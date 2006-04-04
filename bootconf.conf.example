@@ -12,13 +12,13 @@ config:
     tftpd_conf: /etc/xinetd.d/tftp
 distros:
     -
-        initrd: '/boot/initrd-2.6.16-1.2074_FC6.img'
-        kernel: '/boot/vmlinuz-2.6.16-1.2074_FC6'
+        initrd: 'initrd'
+        kernel: 'vmlinuz'
         name: testdistro0
 groups:
     -
         distro: testdistro0
-        kickstart: /tmp/fake.ks
+        kickstart: fc5.ks
         name: testgroup0
 systems:
     -
