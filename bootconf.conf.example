@@ -4,23 +4,23 @@ config:
     dhcpd_conf: /etc/dhcpd.conf
     kernel_root: /var/www/shoe
     kickstart_root: /var/www/shoe
-    kickstart_url: 'http://127.0.0.1/kickstart'
+    kickstart_url: 'http://192.168.1.1/kickstart'
     pxelinux: /usr/lib/syslinux/pxelinux.0
-    servername: '127.0.0.1'
+    servername: '192.168.1.1'
     tftpboot: /tftpboot
     tftpd_bin: /usr/sbin/in.tftpd
     tftpd_conf: /etc/xinetd.d/tftp
 distros:
     -
-        initrd: '/tmp/initrd-2.6.15-1.2054_FAKE.img'
-        kernel: '/tmp/vmlinuz-2.6.15-1.2054_FAKE'
+        initrd: '/boot/initrd-2.6.16-1.2074_FC6.img'
+        kernel: '/boot/vmlinuz-2.6.16-1.2074_FC6'
         name: testdistro0
 groups:
     -
         distro: testdistro0
-        kickstart: fake.ks
+        kickstart: /tmp/fake.ks
         name: testgroup0
 systems:
     -
         group: testgroup0
-        name: mdehaan
+        name: '00:90:27:F9:74:15'

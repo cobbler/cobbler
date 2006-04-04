@@ -38,7 +38,7 @@ class BootSync:
             self.validate_kickstarts()
             self.build_pxelinux_tree()
         except:
-            traceback.print_exc()  # <-- remove later
+            #traceback.print_exc()  # <-- remove later
             return False
         return True
 
@@ -76,7 +76,7 @@ class BootSync:
         for g in self.api.get_groups().contents():
            kickstart_path = self.api.utils.find_kickstart(g.kickstart)
            if kickstart_path is None or not os.path.isfile(kickstart_path):
-              self.api.last_error = "Kickstart for group (%s) cannot be found and needs to be fixed: %s" % (group, kickstart)
+              self.api.last_error = "Kickstart for group (%s) cannot be found and needs to be fixed: %s" % (g.name, g.kickstart)
               raise "error"
             
     def build_pxelinux_tree(self):
