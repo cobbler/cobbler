@@ -1,0 +1,26 @@
+---
+config:
+    dhcpd_bin: /usr/sbin/dhcpd
+    dhcpd_conf: /etc/dhcpd.conf
+    kernel_root: /var/www/shoe
+    kickstart_root: /var/www/shoe
+    kickstart_url: 'http://127.0.0.1/kickstart'
+    pxelinux: /usr/lib/syslinux/pxelinux.0
+    servername: '127.0.0.1'
+    tftpboot: /tftpboot
+    tftpd_bin: /usr/sbin/in.tftpd
+    tftpd_conf: /etc/xinetd.d/tftp
+distros:
+    -
+        initrd: '/tmp/initrd-2.6.15-1.2054_FAKE.img'
+        kernel: '/tmp/vmlinuz-2.6.15-1.2054_FAKE'
+        name: testdistro0
+groups:
+    -
+        distro: testdistro0
+        kickstart: fake.ks
+        name: testgroup0
+systems:
+    -
+        group: testgroup0
+        name: mdehaan
