@@ -209,14 +209,22 @@ class TestSerialization(BootTest):
 class TestCheck(BootTest):
   
    def test_check(self):
-       pass
+       # we can't know if it's supposed to fail in advance
+       # (ain't that the halting problem), but it shouldn't ever
+       # throw exceptions.
+       self.api.check()
 
 class TestSync(BootTest):
   
    def test_dry_run(self):
+       # WARNING: dry run isn't implemented yet, so no test
+       # we don't want to run a real 'sync' in an automated context
        pass
 
    def test_real_run(self):
+       # testing sync could mess up a valid install, so unless
+       # a re-homing option is added, don't write a test for this
+       # it wouldn't be comprehensive anyway
        pass
 
 if __name__ == "__main__":

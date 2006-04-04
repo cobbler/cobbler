@@ -14,6 +14,7 @@ import traceback
 
 import api
 import util
+from msg import *
 
 class BootCLI:
 
@@ -60,20 +61,24 @@ class BootCLI:
     Run the command line
     """
     def run(self):
-        return self.curry_args(self.args[1:], self.toplevel_commands)
+        rc = self.curry_args(self.args[1:], self.toplevel_commands)
+        if not rc:
+            self.api.show_error()
+        return rc
+
 
     """
     Print out abbreviated help if user gives bad syntax
     """
     def usage(self):
-        print "for help, run 'bootconf help'"
+        print m("usage")
         return False
 
     """
     Print out tediously wrong help:  'bootconf help'
     """
     def help(self,args):
-        print open("help.txt").read()
+        print m("help")
         return False
 
     """
@@ -102,13 +107,8 @@ class BootCLI:
         commands = {
            '--name'       : lambda(a):  sys.set_name(a)
         }
-        results = {
-           True         : lambda:  self.api.get_systems().remove(sys),
-           False        : lambda:  self.api.show_error()
-        }
-        rc = self.apply_args(args,commands,results)
-        if rc: self.api.serialize()
-        return rc
+        on_ok = lambda: self.api.get_systems().remove(sys)
+        return self.apply_args(args,commands,on_ok,True)
 
     """
     Delete a group:   'bootconf group remove --name=foo'
@@ -118,13 +118,8 @@ class BootCLI:
         commands = {
            '--name'       : lambda(a):  group.set_name(a)
         }
-        results = {
-           True         : lambda:  self.api.get_groups().remove(group),
-           False        : lambda:  self.api.show_error()
-        }
-        rc = self.apply_args(args,commands,results)
-        if rc: self.api.serialize()
-        return rc
+        on_ok = lambda: self.api.get_groups.remove(group)
+        return self.apply_args(args,commands,on_ok,True)
 
     """
     Delete a distro:  'bootconf distro remove --name='foo'
@@ -132,15 +127,10 @@ class BootCLI:
     def distro_remove(self,args):
         distro = self.api.new_distro()
         commands = {
-           '--name'       : lambda(a):  distro.set_name(a)
+           '--name'     : lambda(a):  distro.set_name(a)
         }
-        results = {
-           True         : lambda:  self.api.get_distros().remove(distro),
-           False        : lambda:  self.api.show_error()
-        }
-        rc = self.apply_args(args,commands,results)
-        if rc: self.api.serialize()
-        return rc
+        on_ok = lambda: self.api.get_distros().remove(distro)
+        return self.apply_args(args,commands,on_ok,True)
 
     """
     Create/Edit a system:  'bootconf system edit --name='foo' ...
@@ -151,13 +141,8 @@ class BootCLI:
            '--name'     :  lambda(a) : sys.set_name(a),
            '--group'    :  lambda(a) : sys.set_group(a)           
         }
-        results = {
-            True        :  lambda : self.api.get_systems().add(sys),
-            False       :  lambda : self.api.show_error()
-        }
-        rc = self.apply_args(args,commands,results)
-        if rc: self.api.serialize()
-        return rc
+        on_ok = lambda: self.api.get_systems().add(sys)
+        return self.apply_args(args,commands,on_ok,True)
 
     """
     Create/Edit a group:  'bootconf group edit --name='foo' ...
@@ -169,13 +154,8 @@ class BootCLI:
             '--distro'    :  lambda(a) : group.set_distro(a),
             '--kickstart' :  lambda(a) : group.set_kickstart(a)
         }
-        results = {
-            True        :  lambda : self.api.get_groups().add(group),
-            False       :  lambda : self.api.show_error()
-        }
-        rc = self.apply_args(args,commands,results)
-        if rc: self.api.serialize()
-        return rc
+        on_ok = lambda: self.api.get_groups().add(group)
+        return self.apply_args(args,commands,on_ok,True)
     
     """
     Create/Edit a distro:  'bootconf distro edit --name='foo' ...
@@ -187,33 +167,35 @@ class BootCLI:
             '--kernel'    :  lambda(a) : distro.set_kernel(a),
             '--initrd'    :  lambda(a) : distro.set_initrd(a)
         }
-        results = { 
-             True       :  lambda : self.api.get_distros().add(distro),
-             False      :  lambda : self.api.show_error()
-        }
-        rc = self.apply_args(args,commands,results)
-        if rc: self.api.serialize()
-        return rc
+        on_ok = lambda: self.api.get_distros().add(distro)
+        return self.apply_args(args,commands,on_ok,True)
 
     """
     Instead of getopt...
     Parses arguments of the form --foo=bar, see group_edit for example
     """
-    def apply_args(self,args,input_routines,results):
+    def apply_args(self,args,input_routines,on_ok,serialize):
+        if len(args) == 0:
+            print m("no_args")
+            return False
         for x in args:
             try:
                 key, value = x.split("=")
+                value = value.replace('"','').replace("'",'')
             except:
-                print "Syntax error in argument"
-                return results[False]()
+                print m("bad_arg") % x
+                return False
             if key in input_routines:
                 if not input_routines[key](value):
-                   print "Argument value rejected: %s" % key
-                   return results[False]()
+                   print m("reject_arg") % key
+                   return False
             else:
-                print "Unmatched argument: %s" % key
-                return results[False]()
-        return results[True]()
+                print m("weird_arg") % key
+                return False
+        rc = on_ok()
+        if rc and serialize:
+            self.api.serialize()
+        return rc
 
     """
     Helper function to make subcommands a bit more friendly.
@@ -221,12 +203,16 @@ class BootCLI:
     """
     def curry_args(self, args, commands):
         if args is None or len(args) == 0:
-            return self.usage()
+            print m("help")
+            return False
         if args[0] in commands:
             rc = commands[args[0]](args[1:])
+            if not rc:
+               return False
         else:
-            rc = self.usage()
-        return rc
+            print m("unknown_cmd") % args[0]
+            return False
+        return True
 
     """
     Sync the config file with the system config: 'bootconf sync [--dryrun]'
@@ -237,8 +223,6 @@ class BootCLI:
             status = self.api.sync(dry_run=True)
         else:
             status = self.api.sync(dry_run=False)
-        if not status:
-            print self.api.last_error
         return status
        
     """
@@ -247,14 +231,12 @@ class BootCLI:
     def check(self,args):
         status = self.api.check()
         if status is None:
-            print self.api.last_error
             return False
         elif len(status) == 0:
-            # FIXME: rewrite this text.
-            print "\nNo setup problems found, though we can't tell if /etc/dhcpd.conf is totally correct, so that's left as an exercise for the reader.  Network boot infrastructure configuration via other 'bootconf' commands should be good to go, though you should correct any errors found as a result of running 'bootconf sync' as well.  Next look over /etc/bootconf.conf and edit any global settings that are 'wrong'.  Ensure that dhcpd and tftpd are started after you are done, but they do not need to be started now.  Note: making changes to /etc/dhcpd.conf always requires a restart of dhcpd. Good luck!\n"
+            print m("check_ok")
             return True
         else:
-            print "The following items need to be corrected:"
+            print m("need_to_fix")
             for i,x in enumerate(status): 
                print "#%d: %s" % (i,x)
             return False
@@ -277,10 +259,9 @@ class BootCLI:
     def system(self,args):
         return self.curry_args(args, self.system_commands)
 
-  
 if __name__ == "__main__":
     if os.getuid() != 0:
-       print "bootconf must be run as root"
+       print m("need_root")
        sys.exit(1)
     if BootCLI(sys.argv).run():
        sys.exit(0)

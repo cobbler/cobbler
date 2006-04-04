@@ -12,6 +12,7 @@ import re
 import shutil
 
 import IPy
+from msg import *
 
 class BootSync:
 
@@ -25,11 +26,11 @@ class BootSync:
     """
     def sync(self,dry_run=False):
         if dry_run:
-            print "dryrun hasn't been implemented yet.  Try not using dryrun at your own risk."
+            print "WARNING: dryrun hasn't been implemented yet.  Try not using dryrun at your own risk."
             sys.exit(1)
-        results = self.api.utils.check_install()
+        results = self.api.check()
         if results != []:
-            self.api.last_error = "Rerun 'bootconf check' and correct problems before proceeding."
+            self.api.last_error = m("run_check")
             return False
         try:
             self.copy_pxelinux()
@@ -38,7 +39,7 @@ class BootSync:
             self.validate_kickstarts()
             self.build_pxelinux_tree()
         except:
-            #traceback.print_exc()  # <-- remove later
+            traceback.print_exc()
             return False
         return True
 
@@ -56,8 +57,8 @@ class BootSync:
         for d in self.api.get_distros().contents():
             kernel = self.api.utils.find_kernel(d.kernel) # full path
             initrd = self.api.utils.find_initrd(d.initrd) # full path
-            print "KERNEL SRC = %s" % kernel
-            print "INITRD SRC = %s" % initrd
+            print "DEBUG: kernel = %s" % kernel
+            print "DEBUG: initrd = %s" % initrd
             if kernel is None:
                self.api.last_error = "Kernel for distro (%s) cannot be found and needs to be fixed: %s" % (d.name, d.kernel)
                raise "error"
@@ -129,5 +130,4 @@ class BootSync:
     # and whether kickstart url works (nfs, http, ftp)
     # at least those that work with open-uri
     # possibly file permissions...
-
 

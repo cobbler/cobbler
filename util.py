@@ -92,7 +92,7 @@ class BootUtil:
    in a given directory that matches a given pattern.  Used for 
    auto-booting the latest kernel in a directory.
    """
-   def find_highest_files(self,directory,regex):
+   def find_highest_files(self,directory,unversioned,regex):
        files = self.find_matching_files(directory, regex)
        get_numbers = re.compile(r'(\d+).(\d+).(\d+)')
        def sort(a,b):
@@ -105,16 +105,25 @@ class BootUtil:
            elif av[2]<bv[2]: return -1
            elif av[2]>bv[2]: return 1
            return 0 
-       files = sorted(files, sort)
-       return files[-1]
-             
+       if len(files) > 0:
+           return sorted(files, sort)[-1]
+       else:
+           # couldn't find a highest numbered file, but maybe there
+           # is just a 'vmlinuz' or an 'initrd.img' in this directory?
+           last_chance = os.path.join(directory,unversioned)
+           if os.path.exists(last_chance):
+               return last_chance
+           return None
+  
    def find_kernel(self,path):
        if os.path.isfile(path):
            filename = os.path.basename(path)
            if self.re_kernel.match(filename):
                return path
+           if filename == "vmlinuz":
+               return path
        elif os.path.isdir(path):
-           return self.find_highest_files(path,self.re_kernel)
+           return self.find_highest_files(path,"vmlinuz",self.re_kernel)
        return None
 
    def find_initrd(self,path):
@@ -123,8 +132,10 @@ class BootUtil:
            filename = os.path.basename(path)
            if self.re_initrd.match(filename):
                return path
+           if filename == "initrd.img" or filename == "initrd":
+               return path
        elif os.path.isdir(path):
-           return self.find_highest_files(path,self.re_initrd)  
+           return self.find_highest_files(path,"initrd.img",self.re_initrd)  
        return None
  
    def find_kickstart(self,path):
@@ -138,61 +149,7 @@ class BootUtil:
            return joined
        return None
 
-   """
-   Returns None if there are no errors, otherwise returns a list 
-   of things to correct prior to running bootconf 'for real'.
-   FIXME: this needs to be more tolerant of non-default paths
-   FIXME: this should check self.api.configuration variables
-   """
-   def check_install(self):
-       status = []
-       if os.getuid() != 0:
-          print "Cannot run this as non-root user"
-          return None
-       if not os.path.exists(self.config.dhcpd_bin):
-          status.append("can't find dhcpd, try 'yum install dhcpd'")
-       if not os.path.exists(self.config.pxelinux):
-          status.append("can't find %s, try 'yum install pxelinux'" % self.pxelinux)
-       if not os.path.exists(self.config.tftpboot):
-          status.append("can't find %s, need to create it" % self.config.tftpboot)
-       if not os.path.exists(self.config.tftpd_bin):
-          status.append("can't find tftpd, need to 'yum install tftp-server'") 
-       if os.path.exists(self.config.tftpd_conf):
-          f = open(self.config.tftpd_conf)
-          re_1 = re.compile(r'default:.*off')
-          re_2 = re.compile(r'disable.*=.*yes')
-          found_bootdir = False
-          for line in f.readlines():
-             if re_1.search(line):
-                 status.append("set default to 'on' in %s" % self.config.tftpd_conf)
-             if re_2.search(line):
-                 status.append("set disable to 'no' in %s" % self.config.tftpd_conf)
-             if line.find("-s %s" % self.config.tftpboot) != -1:
-                 found_bootdir = True
-          if not found_bootdir:
-              status.append("server_args should be \"-s %s\"' in %s" % (self.config.tftpboot,self.config.tftpd_conf))   
-       else:
-          status.append("%s does not exist" % self.tftpd_conf)
-       if os.path.exists(self.config.dhcpd_conf):
-           match_next = False
-           match_file = False
-           f = open(self.config.dhcpd_conf)
-           for line in f.readlines():
-               if line.find("next-server") != -1: 
-                   match_next = True
-               if line.find("filename") != -1:
-                   match_file = True     
-           if not match_next:
-              status.append("%s needs a 'next-server ip-address;' somewhere." % self.config.dhcpd_conf)
-           if not match_file:
-              status.append("%s needs a 'filename \"%s/pxelinux.0\";' somewhere." % (self.config.dhcpd_conf, self.config.tftpboot))
-       else:
-           status.append("can't find %s" % self.config.dhcpd_conf)
-       if not os.path.exists(self.config.kernel_root):
-          status.append("Nothing exists at %s, edit bootconf.conf to change kernel_root or create directory" % self.config.kernel_root)
-       if not os.path.exists(self.config.kickstart_root):
-          status.append("Nothing exists at %s, edit bootconf.conf to change kickstart_root or create directory, also verify that kickstart_url serves up the contents of this directory!" % self.config.kickstart_root)
-       return status     
+    
 
    def sync(self,dryrun=False):
        # FIXME: IMPLEMENT

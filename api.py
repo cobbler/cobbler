@@ -8,6 +8,8 @@ import traceback
 import config
 import util
 import sync
+import check
+from msg import *
 
 class BootAPI:
 
@@ -24,7 +26,7 @@ class BootAPI:
               self.config.deserialize()
        except:
            # traceback.print_exc()
-           util.warning("Could not parse config file, recreating")
+           util.warning(m("no_cfg"))
            try:
                self.config.serialize()
            except:
@@ -83,7 +85,7 @@ class BootAPI:
     See if all preqs for network booting are operational
     """
     def check(self):
-       return self.utils.check_install()
+       return check.BootCheck(self).run()
 
     """
     Update the system with what is specified in the config file
@@ -132,10 +134,10 @@ class Collection:
     """
     def add(self,ref):
         if ref is None or not ref.is_valid(): 
-            self.last_error = "Referenced parameter is not valid"
+            if self.api.last_error is None or self.api.last_error == "":
+                self.api.last_error = m("bad_param")
             return False
         self.listing[ref.name] = ref
-        # removed auto serialization ... now the API must call it explicitly.
         return True
 
     """
@@ -148,7 +150,7 @@ class Collection:
            for v in values: buf = buf + str(v) + "\n"
            return buf
         else:
-           return "(Empty)"
+           return m("empty_list")
 
     def contents(self):
         return self.listing.values()
@@ -174,12 +176,12 @@ class Distros(Collection):
         # first see if any Groups use this distro
         for k,v in self.api.config.groups.listing.items():
             if v.distro == name:
-               self.last_error = "Cannot delete, this distro is referenced by a group"
+               self.api.last_error = m("orphan_group")
                return False
         if name in self.listing:
             del self.listing[name]
             return True
-        self.last_error = "Cannot delete a distro that does not exist"
+        self.api.last_error = m("delete_nothing")
         return False
     
 
@@ -204,12 +206,12 @@ class Groups(Collection):
     def remove(self,name):
         for k,v in self.api.config.systems.listing.items():
            if v.group == name:
-               self.last_error = "Cannot delete, this group is referenced by a system"
+               self.api.last_error = m("orphan_system")
                return False
         if name in self.listing:
             del self.listing[name]
             return True
-        self.last_error = "Cannot delete a group that does not exist"
+        self.api.last_error = m("delete_nothing")
         return False
     
 
@@ -234,7 +236,7 @@ class Systems(Collection):
         if name in self.listing:
             del self.listing[name]
             return True
-        self.last_error = "Cannot delete a system that does not exist"
+        self.api.last_error = m("delete_nothing")
         return False
     
 
@@ -273,12 +275,14 @@ class Distro(Item):
         if self.api.utils.find_kernel(kernel):
             self.kernel = kernel
             return True
+        self.api.last_error = m("no_kernel")
         return False
 
     def set_initrd(self,initrd):
         if self.api.utils.find_initrd(initrd):
             self.initrd = initrd
             return True
+        self.api.last_error = m("no_initrd")
         return False
 
     def is_valid(self):
@@ -314,19 +318,20 @@ class Group(Item):
         if self.api.get_distros().find(distro_name):
             self.distro = distro_name
             return True
-        self.last_error = "Specified distro doesn't exist"
+        self.last_error = m("no_distro")
         return False
 
     def set_kickstart(self,kickstart):
         if self.api.utils.find_kickstart(kickstart):
             self.kickstart = kickstart
             return True
-        self.last_error = "Specified kickstart doesn't exist"
+        self.last_error = m("no_kickstart")
         return False
 
     def is_valid(self):
         for x in (self.name, self.distro, self.kickstart):
-            if x is None: return False
+            if x is None: 
+                return False
         return True
 
     def to_ds(self):
@@ -359,6 +364,7 @@ class System(Item):
     def set_name(self,name):
         new_name = self.api.utils.find_system_identifier(name) 
         if new_name is None or new_name == False:
+            self.api.last_error = m("bad_sys_name")
             return False
         self.name = name  # we check it add time, but store the original value.
         return True
@@ -370,8 +376,11 @@ class System(Item):
         return False
 
     def is_valid(self):
-        for x in (self.name, self.group):
-            if x is None: return False
+        if self.name is None:
+            self.api.last_error = m("bad_sys_name")
+            return False
+        if self.group is None:
+            return False
         return True
 
     def to_ds(self):
