@@ -1,0 +1,289 @@
+#!/usr/bin/env python
+
+# BootConf.py
+# 
+# The command line interface for BootConf, a network boot configuration
+# library ...
+#
+# Michael DeHaan <mdehaan@redhat.com>
+
+import os
+import sys
+import getopt
+import traceback
+
+import api
+import util
+
+class BootCLI:
+
+    """
+    Build the command line parser and API instances, etc.
+    """
+    def __init__(self,args):
+        self.args = args
+        self.api = api.BootAPI()
+        self.distro_commands = { 
+            'add'     :  self.distro_edit,
+            'edit'    :  self.distro_edit,
+            'delete'  :  self.distro_remove,
+            'remove'  :  self.distro_remove,
+            'list'    :  self.distro_list
+        }
+        self.group_commands = {
+            'add'     :  self.group_edit,
+            'edit'    :  self.group_edit,
+            'delete'  :  self.group_remove,
+            'remove'  :  self.group_remove,
+            'list'    :  self.group_list
+        }
+        self.system_commands = {
+            'add'     :  self.system_edit,
+            'edit'    :  self.system_edit,
+            'delete'  :  self.system_remove,
+            'remove'  :  self.system_remove,
+            'list'    :  self.system_list
+        }
+        self.toplevel_commands = {
+            'check'   : self.check,
+            'distros' : self.distro,
+            'distro'  : self.distro,
+            'groups'  : self.group, 
+            'group'   : self.group, 
+            'systems' : self.system,
+            'system'  : self.system,
+            'sync'    : self.sync,
+            'help'    : self.help
+        }
+
+    """
+    Run the command line
+    """
+    def run(self):
+        return self.curry_args(self.args[1:], self.toplevel_commands)
+
+    """
+    Print out abbreviated help if user gives bad syntax
+    """
+    def usage(self):
+        print "for help, run 'bootconf help'"
+        return False
+
+    """
+    Print out tediously wrong help:  'bootconf help'
+    """
+    def help(self,args):
+        print open("help.txt").read()
+        return False
+
+    """
+    Print out the list of systems:  'bootconf system list'
+    """
+    def system_list(self,args):
+        print str(self.api.get_systems())
+
+    """
+    Print out the list of groups:  'bootconf group list'
+    """
+    def group_list(self,args):
+        print str(self.api.get_groups())
+    
+    """
+    Print out the list of distros: 'bootconf distro list'
+    """
+    def distro_list(self,args):
+        print str(self.api.get_distros())
+
+    """
+    Delete a system:  'bootconf system remove --name=foo'
+    """
+    def system_remove(self,args):
+        sys = self.api.new_system()
+        commands = {
+           '--name'       : lambda(a):  sys.set_name(a)
+        }
+        results = {
+           True         : lambda:  self.api.get_systems().remove(sys),
+           False        : lambda:  self.api.show_error()
+        }
+        rc = self.apply_args(args,commands,results)
+        if rc: self.api.serialize()
+        return rc
+
+    """
+    Delete a group:   'bootconf group remove --name=foo'
+    """
+    def group_remove(self,args):
+        group = self.api.new_group()
+        commands = {
+           '--name'       : lambda(a):  group.set_name(a)
+        }
+        results = {
+           True         : lambda:  self.api.get_groups().remove(group),
+           False        : lambda:  self.api.show_error()
+        }
+        rc = self.apply_args(args,commands,results)
+        if rc: self.api.serialize()
+        return rc
+
+    """
+    Delete a distro:  'bootconf distro remove --name='foo'
+    """
+    def distro_remove(self,args):
+        distro = self.api.new_distro()
+        commands = {
+           '--name'       : lambda(a):  distro.set_name(a)
+        }
+        results = {
+           True         : lambda:  self.api.get_distros().remove(distro),
+           False        : lambda:  self.api.show_error()
+        }
+        rc = self.apply_args(args,commands,results)
+        if rc: self.api.serialize()
+        return rc
+
+    """
+    Create/Edit a system:  'bootconf system edit --name='foo' ...
+    """
+    def system_edit(self,args):
+        sys = self.api.new_system()
+        commands = {
+           '--name'     :  lambda(a) : sys.set_name(a),
+           '--group'    :  lambda(a) : sys.set_group(a)           
+        }
+        results = {
+            True        :  lambda : self.api.get_systems().add(sys),
+            False       :  lambda : self.api.show_error()
+        }
+        rc = self.apply_args(args,commands,results)
+        if rc: self.api.serialize()
+        return rc
+
+    """
+    Create/Edit a group:  'bootconf group edit --name='foo' ...
+    """
+    def group_edit(self,args):
+        group = self.api.new_group()
+        commands = {
+            '--name'      :  lambda(a) : group.set_name(a),
+            '--distro'    :  lambda(a) : group.set_distro(a),
+            '--kickstart' :  lambda(a) : group.set_kickstart(a)
+        }
+        results = {
+            True        :  lambda : self.api.get_groups().add(group),
+            False       :  lambda : self.api.show_error()
+        }
+        rc = self.apply_args(args,commands,results)
+        if rc: self.api.serialize()
+        return rc
+    
+    """
+    Create/Edit a distro:  'bootconf distro edit --name='foo' ...
+    """
+    def distro_edit(self,args):
+        distro = self.api.new_distro()
+        commands = {
+            '--name'      :  lambda(a) : distro.set_name(a),
+            '--kernel'    :  lambda(a) : distro.set_kernel(a),
+            '--initrd'    :  lambda(a) : distro.set_initrd(a)
+        }
+        results = { 
+             True       :  lambda : self.api.get_distros().add(distro),
+             False      :  lambda : self.api.show_error()
+        }
+        rc = self.apply_args(args,commands,results)
+        if rc: self.api.serialize()
+        return rc
+
+    """
+    Instead of getopt...
+    Parses arguments of the form --foo=bar, see group_edit for example
+    """
+    def apply_args(self,args,input_routines,results):
+        for x in args:
+            try:
+                key, value = x.split("=")
+            except:
+                print "Syntax error in argument"
+                return results[False]()
+            if key in input_routines:
+                if not input_routines[key](value):
+                   print "Argument value rejected: %s" % key
+                   return results[False]()
+            else:
+                print "Unmatched argument: %s" % key
+                return results[False]()
+        return results[True]()
+
+    """
+    Helper function to make subcommands a bit more friendly.
+    See group(), system(), or distro() for examples
+    """
+    def curry_args(self, args, commands):
+        if args is None or len(args) == 0:
+            return self.usage()
+        if args[0] in commands:
+            rc = commands[args[0]](args[1:])
+        else:
+            rc = self.usage()
+        return rc
+
+    """
+    Sync the config file with the system config: 'bootconf sync [--dryrun]'
+    """
+    def sync(self, args):
+        status = None 
+        if args is not None and len(args) > 0 and args[0] == "--dryrun":
+            status = self.api.sync(dry_run=True)
+        else:
+            status = self.api.sync(dry_run=False)
+        if not status:
+            print self.api.last_error
+        return status
+       
+    """
+    Check system for network boot decency/prereqs: 'bootconf check'
+    """
+    def check(self,args):
+        status = self.api.check()
+        if status is None:
+            print self.api.last_error
+            return False
+        elif len(status) == 0:
+            # FIXME: rewrite this text.
+            print "\nNo setup problems found, though we can't tell if /etc/dhcpd.conf is totally correct, so that's left as an exercise for the reader.  Network boot infrastructure configuration via other 'bootconf' commands should be good to go, though you should correct any errors found as a result of running 'bootconf sync' as well.  Next look over /etc/bootconf.conf and edit any global settings that are 'wrong'.  Ensure that dhcpd and tftpd are started after you are done, but they do not need to be started now.  Note: making changes to /etc/dhcpd.conf always requires a restart of dhcpd. Good luck!\n"
+            return True
+        else:
+            print "The following items need to be corrected:"
+            for i,x in enumerate(status): 
+               print "#%d: %s" % (i,x)
+            return False
+  
+    """
+    Handles any of the 'bootconf distro' subcommands
+    """
+    def distro(self,args):
+        return self.curry_args(args, self.distro_commands) 
+
+    """
+    Handles any of the 'bootconf group' subcommands
+    """
+    def group(self,args):
+        return self.curry_args(args, self.group_commands)
+
+    """
+    Handles any of the 'bootconf system' subcommands
+    """
+    def system(self,args):
+        return self.curry_args(args, self.system_commands)
+
+  
+if __name__ == "__main__":
+    if os.getuid() != 0:
+       print "bootconf must be run as root"
+       sys.exit(1)
+    if BootCLI(sys.argv).run():
+       sys.exit(0)
+    else:
+       sys.exit(1)
+

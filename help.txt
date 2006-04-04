@@ -1,0 +1,61 @@
+Shoe is a simple network boot configuration tool.
+It helps you set up Linux networks for PXE booting.
+
+***INSTRUCTIONS****
+
+First install dhcpd, tftpd, and syslinux.
+You'll also need FTP, HTTP, or NFS to serve kickstarts (if you want them)
+And you'll also have to edit dhcpd.conf.
+
+
+   yum install dhcp tftp-server syslinux
+   ...
+   vi /etc/dhcpd.conf
+
+Verify that everything you need is set up.
+This will mention missing/stopped services and configuration errors.
+Errors?  Correct any problems it reports, then run it again.
+
+   shoe check
+
+Define your distributions, and give them names
+A good example would be 'fc5-i386' or 'fc5-x86_64'
+Paths should be on a mounted filesystem.
+
+  shoe distro add --name="distro1" --kernel=path --initrd=path
+
+Define your provisioning "groups", and give them names too.
+Groups might be called 'webservers' or 'qamachines' or 'desktops'.
+Each group needs to know it's distribution.
+Kickstart can be done over NFS, FTP, or HTTP url, or just 'off'.
+
+  shoe group add --name="group1" --distro="name1" --kickstart=url|off
+
+Now add your systems to groups
+
+  shoe system add --name=mac|ipaddr|hostname --group="group1"
+
+Should you want to review things...
+
+  shoe distros list 
+  shoe groups list
+  shoe systems list
+
+Should you need to delete anything ...
+
+  shoe distro remove --name="distro1"
+  shoe group remove  --name="group1"
+  shoe system remove --name=ipaddr|mac
+
+Too much work?  If you're brave, you can also edit '/etc/shoe.conf'
+Make a backup first. 
+
+  vi /etc/shoe.conf
+
+Now make all of that bootable (immediately)
+
+  shoe sync -dryrun   # for the paranoid
+  shoe sync 
+
+That's it!
+
