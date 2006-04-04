@@ -37,9 +37,9 @@ class BootConfig:
     Set some reasonable defaults in case no values are available
     """
     def set_defaults(self):
-        self.servername     = "127.0.0.1"
+        self.servername     = "your_server_ip"
         self.kickstart_root = "/var/www/Boot"
-        self.kickstart_url  = "http://%s/kickstart" % self.servername
+        self.kickstart_url  = "http://%s/kickstart" % (self.servername)
         self.kernel_root    = "/var/www/Boot"
         self.tftpboot       = "/tftpboot"
         self.dhcpd_conf     = "/etc/dhcpd.conf"
