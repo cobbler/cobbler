@@ -32,22 +32,38 @@ class BootCheck:
        self.check_dhcpd_conf(status)
        return status
 
+   """
+   Check if dhcpd is installed
+   """
    def check_dhcpd_bin(self,status):
        if not os.path.exists(self.config.dhcpd_bin):
           status.append(m("no_dhcpd"))
 
+   """
+   Check if pxelinux (part of syslinux) is installed
+   """
    def check_pxelinux_bin(self,status):
        if not os.path.exists(self.config.pxelinux):
           status.append(m("no_pxelinux"))
 
+   """
+   Check if tftpd is installed
+   """
    def check_tftpd_bin(self,status):
        if not os.path.exists(self.config.tftpd_bin):
           status.append(m("no_tftpd")) 
 
+   """
+   Check if bootconf.conf's tftpboot directory exists
+   """
    def check_tftpd_dir(self,status):
        if not os.path.exists(self.config.tftpboot):
           status.append(m("no_dir") % self.config.tftpboot)
    
+   """
+   Check that bootconf tftpd boot directory matches with tftpd directory
+   Check that tftpd is enabled to autostart
+   """
    def check_tftpd_conf(self,status):
        if os.path.exists(self.config.tftpd_conf):
           f = open(self.config.tftpd_conf)
@@ -66,6 +82,10 @@ class BootCheck:
        else:
           status.append(m("no_exist") % self.tftpd_conf)
    
+   """
+   Check that dhcpd *appears* to be configured for pxe booting.
+   We can't assure file correctness
+   """
    def check_dhcpd_conf(self,status):
        if os.path.exists(self.config.dhcpd_conf):
            match_next = False
@@ -86,3 +106,5 @@ class BootCheck:
           status.append(m("no_dir2") % (self.config.kernel_root, 'kernel_root'))
        if not os.path.exists(self.config.kickstart_root):
           status.append(m("no_dir2") % (self.config.kickstart_root, 'kickstart_root'))
+
+

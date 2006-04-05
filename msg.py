@@ -5,6 +5,8 @@
 # Michael DeHaan <mdehaan@redhat.com>
 
 msg_table = {
+  "parse_error"     : "could not parse /etc/bootconf.conf",
+  "no_create"       : "cannot create: %s",
   "no_args"         : "this command requires arguments.",
   "missing_options" : "cannot add, all parameters have not been set",
   "unknown_cmd"     : "bootconf doesn't understand '%s'",
@@ -36,7 +38,11 @@ msg_table = {
   "no_kernel"       : "the kernel needs to be a directory containing a kernel, or a full path.  Kernels must be named just 'vmlinuz' or in the form 'vmlinuz-AA.BB.CC-something'",
   "no_initrd"       : "the initrd needs to be a directory containing an initrd, or a full path.  Initrds must be named just 'initrd.img' or in the form 'initrd-AA.BB.CC-something.img",
   "check_ok"        : """
-No setup problems found, though we can't tell if /etc/dhcpd.conf is totally correct, so that's left as an exercise for the reader.  Network boot infrastructure configuration via other 'bootconf' commands should be good to go, though you should correct any errors found as a result of running 'bootconf sync' as well.  Next look over /etc/bootconf.conf and edit any global settings that are 'wrong'.  Ensure that dhcpd and tftpd are started after you are done, but they do not need to be started now.  Note: making changes to /etc/dhcpd.conf always requires a restart of dhcpd. Good luck!
+No setup problems found.  
+
+Manual editing of /etc/dhcpd.conf and /etc/bootconf.conf is suggested to tailor them to your specific configuration.  Kickstarts will not work without editing the URL in /etc/bootconf.conf, for instance. Your dhcpd.conf has some PXE related information in it, but it's imposible to tell automatically that it's totally correct in a general sense.  We'll leave this up to you. 
+
+Good luck.
 """,
   "help"           : """
 bootconf is a simple network boot configuration tool.
@@ -102,8 +108,12 @@ That's it!
    """
 }
 
+"""
+Return the lookup of a string key.
+"""
 def m(key):
    if key in msg_table:
+       # localization could use different tables or just gettext.
        return msg_table[key]
    else:
        return "?%s?" % key

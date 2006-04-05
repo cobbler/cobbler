@@ -63,7 +63,7 @@ class BootCLI:
     def run(self):
         rc = self.curry_args(self.args[1:], self.toplevel_commands)
         if not rc:
-            self.api.show_error()
+            print self.api.last_error
         return rc
 
 
@@ -103,33 +103,30 @@ class BootCLI:
     Delete a system:  'bootconf system remove --name=foo'
     """
     def system_remove(self,args):
-        sys = self.api.new_system()
         commands = {
-           '--name'       : lambda(a):  sys.set_name(a)
+           '--name'       : lambda(a):  self.api.get_systems().remove(a) 
         }
-        on_ok = lambda: self.api.get_systems().remove(sys)
+        on_ok = lambda: True
         return self.apply_args(args,commands,on_ok,True)
 
     """
     Delete a group:   'bootconf group remove --name=foo'
     """
     def group_remove(self,args):
-        group = self.api.new_group()
         commands = {
-           '--name'       : lambda(a):  group.set_name(a)
+           '--name'       : lambda(a):  self.api.get_groups().remove(a)
         }
-        on_ok = lambda: self.api.get_groups.remove(group)
+        on_ok = lambda: True
         return self.apply_args(args,commands,on_ok,True)
 
     """
     Delete a distro:  'bootconf distro remove --name='foo'
     """
     def distro_remove(self,args):
-        distro = self.api.new_distro()
         commands = {
-           '--name'     : lambda(a):  distro.set_name(a)
+           '--name'     : lambda(a):  self.api.get_distros().remove(a)
         }
-        on_ok = lambda: self.api.get_distros().remove(distro)
+        on_ok = lambda: True
         return self.apply_args(args,commands,on_ok,True)
 
     """
@@ -219,7 +216,7 @@ class BootCLI:
     """
     def sync(self, args):
         status = None 
-        if args is not None and len(args) > 0 and args[0] == "--dryrun":
+        if args is not None and "--dryrun" in args:
             status = self.api.sync(dry_run=True)
         else:
             status = self.api.sync(dry_run=False)

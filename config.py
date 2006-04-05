@@ -5,6 +5,7 @@
 
 import api 
 import util
+from msg import *
 
 import os
 import yaml
@@ -15,14 +16,14 @@ class BootConfig:
     """
     Constructor.  This class maintains both the logical
     configuration for Boot and the file representation thereof.
+    Creating the config object only loads the default values,
+    users of this class need to call deserialize() to load config
+    file values.
     """
     def __init__(self,api):
         self.api = api
-        # non-configurable......
-        self.config_file    = "bootconf.conf" # LATER: "/etc/bootconf.conf"
-        # reasonable defaults...(config settings)
+        self.config_file    = "/etc/bootconf.conf"
         self.set_defaults()
-        # initially empty containers...
         self.clear()
 
     """
@@ -38,9 +39,9 @@ class BootConfig:
     """
     def set_defaults(self):
         self.servername     = "your_server_ip"
-        self.kickstart_root = "/var/www/Boot"
+        self.kickstart_root = "/var/www/bootconf"
         self.kickstart_url  = "http://%s/kickstart" % (self.servername)
-        self.kernel_root    = "/var/www/Boot"
+        self.kernel_root    = "/var/www/bootconf"
         self.tftpboot       = "/tftpboot"
         self.dhcpd_conf     = "/etc/dhcpd.conf"
         self.tftpd_conf     = "/etc/xinetd.d/tftp"
@@ -109,9 +110,9 @@ class BootConfig:
     def to_hash(self):
         world = {} 
         world['config']  = self.config_to_hash()
-        world['distros'] = self.get_distros().to_ds()
-        world['groups']  = self.get_groups().to_ds()
-        world['systems'] = self.get_systems().to_ds()
+        world['distros'] = self.get_distros().to_datastruct()
+        world['groups']  = self.get_groups().to_datastruct()
+        world['systems'] = self.get_systems().to_datastruct()
         return world  
 
 
@@ -136,10 +137,11 @@ class BootConfig:
         try:
             conf = open(self.config_file,"w+")
         except IOError:
-            print "Can't create %s, are you root?" % (self.config_file)
-            sys.exit(1)
+            self.api.last_error = m("cant_create: %s" % self.config_file)
+            return False
         data = self.to_hash()
         conf.write(yaml.dump(data))
+        return True
 
     """
     Load everything from the config file.
@@ -147,9 +149,14 @@ class BootConfig:
     could use YAML later if we wanted.
     """
     def deserialize(self):
-        conf = yaml.loadFile(self.config_file)
-        raw_data = conf.next()
-        if raw_data is not None:
-            self.from_hash(raw_data)
+        try:
+            conf = yaml.loadFile(self.config_file)
+            raw_data = conf.next()
+            if raw_data is not None:
+                self.from_hash(raw_data)
+            return True
+        except:
+            self.api.last_error = m("parse_error")
+            return False
 
  

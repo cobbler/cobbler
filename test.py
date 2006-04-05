@@ -22,7 +22,7 @@ class BootTest(unittest.TestCase):
     def setUp(self):
         try:
            # it will interfere with results...
-           os.file.remove("bootconf.conf")
+           os.file.remove("/etc/bootconf.conf")
         except:
            pass
         self.api = api.BootAPI()
@@ -38,6 +38,7 @@ class BootTest(unittest.TestCase):
         self.api = None
 
     def make_basic_config(self):
+        self.assertTrue(os.getuid() == 0)
         distro = self.api.new_distro()
         self.assertTrue(distro.set_name("testdistro0"))
         self.assertTrue(distro.set_kernel(FAKE_KERNEL))

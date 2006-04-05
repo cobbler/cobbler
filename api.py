@@ -35,10 +35,6 @@ class BootAPI:
        if not os.path.exists(self.config.config_file):
            self.config.serialize()
 
-
-    def show_error(self):
-       print self.last_error
-
     """
     Forget about current list of groups, distros, and systems
     """
@@ -125,8 +121,8 @@ class Collection:
     """
     Return datastructure representation (to feed to serializer)
     """
-    def to_ds(self):
-        return [x.to_ds() for x in self.listing.values()]
+    def to_datastruct(self):
+        return [x.to_datastruct() for x in self.listing.values()]
     
      
     """
@@ -174,11 +170,11 @@ class Distros(Collection):
     """
     def remove(self,name):
         # first see if any Groups use this distro
-        for k,v in self.api.config.groups.listing.items():
+        for k,v in self.api.get_groups().listing.items():
             if v.distro == name:
                self.api.last_error = m("orphan_group")
                return False
-        if name in self.listing:
+        if self.find(name):
             del self.listing[name]
             return True
         self.api.last_error = m("delete_nothing")
@@ -204,11 +200,11 @@ class Groups(Collection):
     Remove element named 'name' from the collection
     """
     def remove(self,name):
-        for k,v in self.api.config.systems.listing.items():
+        for k,v in self.api.get_groups().listing.items():
            if v.group == name:
                self.api.last_error = m("orphan_system")
                return False
-        if name in self.listing:
+        if self.find(name):
             del self.listing[name]
             return True
         self.api.last_error = m("delete_nothing")
@@ -233,7 +229,7 @@ class Systems(Collection):
     Remove element named 'name' from the collection
     """
     def remove(self,name):
-        if name in self.listing:
+        if self.find(name):
             del self.listing[name]
             return True
         self.api.last_error = m("delete_nothing")
@@ -247,11 +243,15 @@ An Item is a serializable thing that can appear in a Collection
 """
 class Item:
   
+    """
+    All objects have names, and with the exception of System
+    they aren't picky about it.
+    """
     def set_name(self,name):
         self.name = name
         return True
 
-    def to_ds(self):
+    def to_datastruct(self):
         raise "not implemented"
    
     def is_valid(self):
@@ -290,7 +290,7 @@ class Distro(Item):
             if x is None: return False
         return True
 
-    def to_ds(self):
+    def to_datastruct(self):
         return { 
            'name': self.name, 
            'kernel': self.kernel, 
@@ -334,7 +334,7 @@ class Group(Item):
                 return False
         return True
 
-    def to_ds(self):
+    def to_datastruct(self):
         return { 
             'name' : self.name,
             'distro' : self.distro,
@@ -383,7 +383,7 @@ class System(Item):
             return False
         return True
 
-    def to_ds(self):
+    def to_datastruct(self):
         return {
            'name'   : self.name,
            'group'  : self.group 

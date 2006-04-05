@@ -9,25 +9,7 @@ import re
 import socket
 import glob
 
-# FIXME: use python logging?
-
-def debug(msg):
-   print "debug: %s" % msg
-
-def info(msg):
-   print "%s" % msg
-
-def error(msg):
-   print "error: %s" % msg
-
-def warning(msg):
-   print "warning: %s" % msg
-
 class BootUtil:
-
-
-   # TO DO:  functions for manipulation of all things important.
-   #         yes, that's a lot...
 
    def __init__(self,api,config):
        self.api = api
@@ -114,7 +96,11 @@ class BootUtil:
            if os.path.exists(last_chance):
                return last_chance
            return None
-  
+ 
+   """
+   Given a directory or a filename, find if the path can be made
+   to resolve into a kernel, and return that full path if possible.
+   """ 
    def find_kernel(self,path):
        if os.path.isfile(path):
            filename = os.path.basename(path)
@@ -126,8 +112,12 @@ class BootUtil:
            return self.find_highest_files(path,"vmlinuz",self.re_kernel)
        return None
 
+   """
+   Given a directory or a filename, see if the path can be made 
+   to resolve into an intird, return that full path if possible.
+   """
    def find_initrd(self,path):
-       # FUTURE: add another function to see if kernel and initrd have matched numbers (warning?)
+       # FUTURE: add another function to see if kernel and initrd have matched numbers (and throw a warning?)
        if os.path.isfile(path):
            filename = os.path.basename(path)
            if self.re_initrd.match(filename):
@@ -138,6 +128,10 @@ class BootUtil:
            return self.find_highest_files(path,"initrd.img",self.re_initrd)  
        return None
  
+   """
+   Similar to find_kernel and find_initrd, see if a path or filename
+   references a kickstart...
+   """
    def find_kickstart(self,path):
        # Kickstarts must be explicit.
        # FUTURE:  Look in configured kickstart path and don't require full paths to kickstart
@@ -148,11 +142,4 @@ class BootUtil:
        if os.path.isfile(joined):
            return joined
        return None
-
-    
-
-   def sync(self,dryrun=False):
-       # FIXME: IMPLEMENT
-       return False
-
 
