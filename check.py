@@ -104,7 +104,5 @@ class BootCheck:
            status.append(m("no_exist") % self.config.dhcpd_conf)
        if not os.path.exists(self.config.kernel_root):
           status.append(m("no_dir2") % (self.config.kernel_root, 'kernel_root'))
-       if not os.path.exists(self.config.kickstart_root):
-          status.append(m("no_dir2") % (self.config.kickstart_root, 'kickstart_root'))
 
 

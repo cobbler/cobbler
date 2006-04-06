@@ -22,17 +22,17 @@ class BootAPI:
        self.utils  = util.BootUtil(self,self.config)
        # if the file already exists, load real data now
        try:
-           if os.path.exists(self.config.config_file):
+           if not self.config.files_exist():
               self.config.deserialize()
        except:
            # traceback.print_exc()
-           util.warning(m("no_cfg"))
+           print m("no_cfg")
            try:
                self.config.serialize()
            except:
                # traceback.print_exc()
                pass
-       if not os.path.exists(self.config.config_file):
+       if not self.config.files_exist():
            self.config.serialize()
 
     """
@@ -200,7 +200,7 @@ class Groups(Collection):
     Remove element named 'name' from the collection
     """
     def remove(self,name):
-        for k,v in self.api.get_groups().listing.items():
+        for k,v in self.api.get_systems().listing.items():
            if v.group == name:
                self.api.last_error = m("orphan_system")
                return False
@@ -251,6 +251,9 @@ class Item:
         self.name = name
         return True
 
+    def set_kernel_options(self,options_string):
+        self.kernel_options = options_string
+
     def to_datastruct(self):
         raise "not implemented"
    
@@ -266,10 +269,12 @@ class Distro(Item):
         self.name = None
         self.kernel = None
         self.initrd = None
+        self.kernel_options = ""
         if seed_data is not None:
            self.name = seed_data['name']
            self.kernel = seed_data['kernel']
            self.initrd = seed_data['initrd']
+           self.kernel_options = seed_data['kernel_options']
 
     def set_kernel(self,kernel):
         if self.api.utils.find_kernel(kernel):
@@ -294,11 +299,12 @@ class Distro(Item):
         return { 
            'name': self.name, 
            'kernel': self.kernel, 
-           'initrd' : self.initrd
+           'initrd' : self.initrd,
+           'kernel_options' : self.kernel_options
         }
 
     def __str__(self):
-        return "%s : kernel=%s | initrd=%s |" % (self.name,self.kernel,self.initrd)
+        return "%s : kernel=%s | initrd=%s | opts=%s" % (self.name,self.kernel,self.initrd,self.kernel_options)
 
 #---------------------------------------------
 
@@ -309,10 +315,12 @@ class Group(Item):
         self.name = None
         self.distro = None # a name, not a reference
         self.kickstart = None
+        self.kernel_options = ""
         if seed_data is not None:
            self.name        = seed_data['name']
            self.distro    = seed_data['distro']
            self.kickstart = seed_data['kickstart'] 
+           self.kernel_options = seed_data['kernel_options']
 
     def set_distro(self,distro_name):
         if self.api.get_distros().find(distro_name):
@@ -329,7 +337,7 @@ class Group(Item):
         return False
 
     def is_valid(self):
-        for x in (self.name, self.distro, self.kickstart):
+        for x in (self.name, self.distro):
             if x is None: 
                 return False
         return True
@@ -338,11 +346,12 @@ class Group(Item):
         return { 
             'name' : self.name,
             'distro' : self.distro,
-            'kickstart' : self.kickstart
+            'kickstart' : self.kickstart,
+            'kernel_options' : self.kernel_options
         }
 
     def __str__(self):
-        return "%s : distro=%s | kickstart=%s" % (self.name, self.distro, self.kickstart)
+        return "%s : distro=%s | kickstart=%s | opts=%s" % (self.name, self.distro, self.kickstart, self.kernel_options)
 
 #---------------------------------------------
 
@@ -352,9 +361,11 @@ class System(Item):
         self.api = api
         self.name = None
         self.group = None # a name, not a reference
+        self.kernel_options = ""
         if seed_data is not None:
            self.name = seed_data['name']
            self.group = seed_data['group']
+           self.kernel_options = seed_data['kernel_options']
     
     """
     A name can be a resolvable hostname (it instantly resolved and replaced with the IP), 
@@ -386,10 +397,11 @@ class System(Item):
     def to_datastruct(self):
         return {
            'name'   : self.name,
-           'group'  : self.group 
+           'group'  : self.group,
+           'kernel_options' : self.kernel_options
         }
 
     def __str__(self):
-        return "%s : group=%s" % (self.name,self.group)
+        return "%s : group=%s | opts=%s" % (self.name,self.group,self.kernel_options)
 
 

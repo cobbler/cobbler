@@ -1,0 +1,99 @@
+=head1 NAME
+
+bootconf - simple configuration of PXE boot + kickstart environments
+
+=head1 SYNOPSIS
+
+bootconf command [subcommand] [--arg1=] [--arg2=]
+
+=head1 DESCRIPTION
+
+Configuration of a boot server involves a lot of things.  Perhaps too many.  These items include a tftpd server, a dhcpd server, syslinux, and a lot of copying files around and creating other config files.  Bootconf makes these things simpler.
+
+bootconf requires root access.
+
+=head1 INSTRUCTIONS
+
+B<before you start...>
+
+First install dhcpd, tftpd, and syslinux.
+You'll also need FTP, HTTP, or NFS to serve kickstarts (if you want them)
+And you'll also have to edit dhcpd.conf for your particular DHCP environment.
+Yes, DHCP is a required piece.
+
+   yum install dhcp tftp-server syslinux
+   ...
+   vi /etc/dhcpd.conf
+
+B<bootconf check>
+
+This verifies that everything you need to set up is set up.
+This will mention any missing services and obvious configuration errors.
+Errors?  Correct any problems reported, then run check until there are none.
+
+Do not forget to look at /etc/bootconf.conf and modify all parameters to your liking.  Of particular note:  The kernel_opts field is the default kernel options list for all netbooting systems.  It can be overriden by distro, group, or system specific settings.
+
+B<bootconf distro add --name=distro_name --kernel=path --initrd=path [--kopts="string"]>
+
+Defines a distribution as a matched pair of a kernel and an initrd, and 
+gives it a name.  This could be 'fc5-i386' or 'foosball-73', it's your name. Kernel options are inherited from the kernel_opts parameter in /etc/bootconf.conf, though you can override them.
+
+B<bootconf group  add --name=group_name --distro=distro_name [--kickstart=url] [--kopts="string"]>
+
+Defines a provisioning group, which is a distro (you did define a distro, right?) and optionally a kickstart.  Kickstarts are served up by URLs, so these need to be HTTP, NFS, or FTP URLs that point to a kickstart file.  Kernel options are inherited from the distro, but you can optionally override them.  If you don't want a kickstart, that's fine.
+
+B<bootconf system add --name=ip|mac|hostname --group=group_name [--kopts="string"]>
+
+Defines a system.  A system can't have a free form name, it has to be a hostname that resolves to an IP, a MAC address, or an actual IP.  The group parameter is the group name you used with "group add".  Kernel options are inherited from the group, you probably don't want to override them, but you can.
+
+B<bootconf distro list>
+
+Gives a list of distributions that are currently configured.  
+
+B<bootconf group list>
+
+Gives a list of all of the groups in a system that are currently configured.
+
+B<bootconf system list>
+
+Gives a list of the sytems that are currently configured.
+
+B<bootconf distro remove --name=distro_name>
+
+Deletes a distro from the stored configuration.  You can't delete a distro if any groups reference that distro, you'd have to delete all of the systems using that distro first.   Deleting a distro just means that you no longer want it configured for booting, it does not delete any files.
+
+B<bootconf group remove --name=group_name>
+
+Deletes a group from the stored configuration.   You can't delete a group if any systems reference it.  Does not actually delete any kickstart files.
+
+B<bootconf system remove --name=system_name>
+
+Deletes a system from the stored configuration.  You can always delete a system.
+
+B<bootconf sync [--dryrun]>
+
+Applies the stored configuration to the system.  If you have any configuration errors, bootconf sync will ask you to run 'bootconf check' and fix them first.  
+
+Usage of the dryrun option will show you the pending changes without actually making them.
+
+=head1 CONFIGURATION_FILES
+
+bootconf uses /etc/bootconf.conf to store basic settings and /var/bootconf/bootconf.conf for it's internal state.  
+
+After editing /etc/bootconf.conf, run 'bootconf check' againt o ensure that no errors were introduced.
+
+If you happen to screw up /var/bootconf/bootconf.conf or /etc/bootconf.conf, you can delete them and they will be recreated.
+
+=head1 BUGS
+
+It's a new product, there could be one.  Somewhere.
+
+=head1 EXIT_STATUS
+
+bootconf returns a zero for success and non-zero for failure.
+
+=head1 AUTHOR
+
+Michael DeHaan <mdehaan@redhat.com>
+
+

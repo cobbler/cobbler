@@ -22,9 +22,13 @@ class BootConfig:
     """
     def __init__(self,api):
         self.api = api
-        self.config_file    = "/etc/bootconf.conf"
+        self.settings_file    = "/etc/bootconf.conf"
+        self.state_file       = "/var/bootconf/bootconf.conf"
         self.set_defaults()
         self.clear()
+
+    def files_exist(self):
+        return os.path.exists(self.settings_file) and os.path.exists(self.state_file)
 
     """
     Establish an empty list of groups, distros, and systems.
@@ -38,9 +42,6 @@ class BootConfig:
     Set some reasonable defaults in case no values are available
     """
     def set_defaults(self):
-        self.servername     = "your_server_ip"
-        self.kickstart_root = "/var/www/bootconf"
-        self.kickstart_url  = "http://%s/kickstart" % (self.servername)
         self.kernel_root    = "/var/www/bootconf"
         self.tftpboot       = "/tftpboot"
         self.dhcpd_conf     = "/etc/dhcpd.conf"
@@ -48,6 +49,7 @@ class BootConfig:
         self.pxelinux       = "/usr/lib/syslinux/pxelinux.0"    
         self.tftpd_bin      = "/usr/sbin/in.tftpd"
         self.dhcpd_bin      = "/usr/sbin/dhcpd"
+        self.kernel_options = "append devfs=nomount ramdisk_size=16438 lang= vga=788 ksdevice=eth0 console=ttyS0,38400n8" #initrd and ks added programmatically
 
     """
     Access the current groups list
@@ -75,9 +77,6 @@ class BootConfig:
         # idea: add list of properties to self.properties
         # and use method_missing to write accessors???
         data = {}
-        data['servername']     = self.servername
-        data['kickstart_root'] = self.kickstart_root
-        data['kickstart_url']  = self.kickstart_url
         data['kernel_root']    = self.kernel_root
         data['tftpboot']       = self.tftpboot
         data['dhcpd_conf']     = self.dhcpd_conf
@@ -92,9 +91,6 @@ class BootConfig:
     """
     def config_from_hash(self,hash):
         try:
-            self.servername      = hash['servername']
-            self.kickstart_root  = hash['kickstart_root']
-            self.kickstart_url   = hash['kickstart_url']
             self.kernel_root     = hash['kernel_root']
             self.tftpboot        = hash['tftpboot']
             self.dhcpd_conf      = hash['dhcpd_conf']
@@ -103,27 +99,34 @@ class BootConfig:
             self.tftpd_bin       = hash['tftpd_bin']
             self.dhcpd_bin       = hash['dhcpd_bin']
         except:
+            print "WARNING: config file error: %s" % (self.settings_file)
             self.set_defaults()
     """
-    Convert *everything* Boot knows about to a nested hash
+    Convert all items bootconfig knows about to a nested hash.
+    There are seperate hashes for the /etc and /var portions.
     """
-    def to_hash(self):
+    def to_hash(self,is_etc):
         world = {} 
-        world['config']  = self.config_to_hash()
-        world['distros'] = self.get_distros().to_datastruct()
-        world['groups']  = self.get_groups().to_datastruct()
-        world['systems'] = self.get_systems().to_datastruct()
+        if is_etc:
+            world['config']  = self.config_to_hash()
+        else:
+            world['distros'] = self.get_distros().to_datastruct()
+            world['groups']  = self.get_groups().to_datastruct()
+            world['systems'] = self.get_systems().to_datastruct()
         return world  
 
 
     """
-    Convert a hash representation of a Boot config to 'reality'
+    Convert a hash representation of a bootconfig to 'reality'
+    There are seperate hashes for the /etc and /var portions.
     """
-    def from_hash(self,hash):
-        self.config_from_hash(hash['config'])
-        self.distros = api.Distros(self.api, hash['distros'])
-        self.groups  = api.Groups(self.api,  hash['groups'])
-        self.systems = api.Systems(self.api, hash['systems'])
+    def from_hash(self,hash,is_etc):
+        if is_etc:
+            self.config_from_hash(hash['config'])
+        else:
+            self.distros = api.Distros(self.api, hash['distros'])
+            self.groups  = api.Groups(self.api,  hash['groups'])
+            self.systems = api.Systems(self.api, hash['systems'])
 
     # ------------------------------------------------------
     # we don't care about file formats until below this line
@@ -134,13 +137,32 @@ class BootConfig:
     could use YAML later if we wanted.
     """
     def serialize(self):
+
+        settings = None
+        state = None
+        
+        # ------
+        # dump global config (pathing, urls, etc)...
         try:
-            conf = open(self.config_file,"w+")
+            settings = open(self.settings_file,"w+")
         except IOError:
-            self.api.last_error = m("cant_create: %s" % self.config_file)
+            self.api.last_error = m("cant_create: %s" % self.settings_file)
             return False
-        data = self.to_hash()
-        conf.write(yaml.dump(data))
+        data = self.to_hash(True)
+        settings.write(yaml.dump(data))
+        
+        # ------
+        # dump internal state (distros, groups, systems...)
+        if not os.path.isdir(os.path.dirname(self.state_file)):
+            os.mkdir(os.path.dirname(self.state_file))
+        try:
+            state = open(self.state_file,"w+")
+        except:
+            self.api.last_error = m("cant_create: %s" % self.state_file)
+        data = self.to_hash(False)
+        state.write(yaml.dump(data))
+
+        # all good
         return True
 
     """
@@ -149,14 +171,29 @@ class BootConfig:
     could use YAML later if we wanted.
     """
     def deserialize(self):
+
+        # -----
+        # load global config (pathing, urls, etc)...
         try:
-            conf = yaml.loadFile(self.config_file)
-            raw_data = conf.next()
+            settings = yaml.loadFile(self.settings_file)
+            raw_data = settings.next()
             if raw_data is not None:
-                self.from_hash(raw_data)
-            return True
+                self.from_hash(raw_data,True)
         except:
             self.api.last_error = m("parse_error")
             return False
 
- 
+        # -----
+        # load internal state(distros, systems, groups...)
+        try:
+            state = yaml.loadFile(self.state_file)
+            raw_data = state.next()
+            if raw_data is not None:
+                self.from_hash(raw_data,False)
+        except:
+           self.api.last_error = m("parse_error")
+           return False
+        
+        # all good
+        return True
+

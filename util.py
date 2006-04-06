@@ -129,17 +129,12 @@ class BootUtil:
        return None
  
    """
-   Similar to find_kernel and find_initrd, see if a path or filename
-   references a kickstart...
+   Check if a kickstart url looks like an http, ftp, or nfs url.
    """
-   def find_kickstart(self,path):
-       # Kickstarts must be explicit.
-       # FUTURE:  Look in configured kickstart path and don't require full paths to kickstart
-       # FUTURE:  Open kickstart file and validate that it's real
-       if os.path.isfile(path):
-           return path
-       joined = os.path.join(self.config.kickstart_root, path)
-       if os.path.isfile(joined):
-           return joined
+   def find_kickstart(self,url):
+       x = url.lower()
+       for y in ["http://","nfs://","ftp://"]:
+          if x.startswith(y):
+              return url
        return None
 

@@ -72,18 +72,20 @@ class BootSync:
         self.rmtree(os.path.join(self.api.config.tftpboot, "images"), True)
         self.mkdir(images)
         for d in self.api.get_distros().contents():
+            distro_dir = os.path.join(images,d.name)
+            self.mkdir(distro_dir)
             kernel = self.api.utils.find_kernel(d.kernel) # full path
             initrd = self.api.utils.find_initrd(d.initrd) # full path
-            if kernel is None:
+            if kernel is None or not os.path.isfile(kernel):
                self.api.last_error = "Kernel for distro (%s) cannot be found and needs to be fixed: %s" % (d.name, d.kernel)
                raise "error"
-            if kernel is None:
-               self.api.last_error = "Initrd for distro (%s) cannot be found and needs to be fixed: %s" % (d.initrd, d.kernel)
+            if initrd is None or not os.path.isfile(initrd):
+               self.api.last_error = "Initrd for distro (%s) cannot be found and needs to be fixed: %s" % (d.name, d.initrd)
                raise "error"
             b_kernel = os.path.basename(kernel)
             b_initrd = os.path.basename(initrd)
-            self.copyfile(kernel, os.path.join(images, b_kernel))
-            self.copyfile(initrd, os.path.join(images, b_initrd))
+            self.copyfile(kernel, os.path.join(distro_dir, b_kernel))
+            self.copyfile(initrd, os.path.join(distro_dir, b_initrd))
 
     """
     Similar to what we do for distros, ensure all the kickstarts
@@ -151,9 +153,9 @@ class BootSync:
     that would appear inside the system object in api.py
     """
     def write_pxelinux_file(self,filename,system,group,distro):
-        kernel_path = os.path.join("/images",os.path.basename(distro.kernel))
-        initrd_path = os.path.join("/images",os.path.basename(distro.initrd))
-        kickstart_path = self.api.config.kickstart_url + "/" + os.path.basename(group.kickstart)
+        kernel_path = os.path.join("/images",distro.name,os.path.basename(distro.kernel))
+        initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
+        kickstart_path = group.kickstart
         self.sync_log("writing: %s" % filename)
         self.sync_log("---------------------------------")
         if self.dry_run:
@@ -165,10 +167,19 @@ class BootSync:
         self.tee(file,"timeout 1\n")
         self.tee(file,"label linux\n")
         self.tee(file,"   kernel %s\n" % kernel_path)
-        # FIXME: leave off kickstart if no kickstart...
-        # FIXME: allow specifying of other (system specific?) 
-        #        parameters in bootconf.conf ???
-        self.tee(file,"   append devfs=nomount ramdisk_size=16438 lang= vga=788 ksdevice=eth0 initrd=%s ks=%s console=ttyS0,38400n8\n" % (initrd_path, kickstart_path))
+        # FIXME: allow leaving off the kickstart if no kickstart...
+        # FIXME: if the users kernel_options string has zero chance of
+        #        booting we *could* try to detect it and warn them.
+        kopts = self.blend_kernel_options((
+           self.api.config.kernel_options, 
+           group.kernel_options, 
+           distro.kernel_options, 
+           system.kernel_options
+        ))
+        nextline = "    append %s initrd=%s" % (kopts,initrd_path)
+        if kickstart_path is not None and kickstart_path != "":
+            nextline = nextline + " ks=%s" % kickstart_path
+        self.tee(file, nextline)
         if not self.dry_run: 
             file.close()
         self.sync_log("--------------------------------")
@@ -216,8 +227,41 @@ class BootSync:
             else:
                 print message
             
- 
-    # FUTURE: would be nice to check if dhcpd and tftpd are running...
-    # and whether kickstart url works (nfs, http, ftp)
-    # at least those that work with open-uri
 
+    """
+    Given a list of kernel options, take the values used by the
+    first argument in the list unless overridden by those in the
+    second (or further on), according to --key=value formats.  
+
+    This is used such that we can have default kernel options 
+    in /etc and then distro, group, and system options with various 
+    levels of configurability.
+    """
+    def blend_kernel_options(self, list_of_opts):
+        internal = {}
+        results = []
+        # for all list of kernel options
+        for items in list_of_opts:
+           # get each option
+           tokens=items.split(" ")
+           # deal with key/value pairs and single options alike
+           for token in tokens:
+              key_value = tokens.split("=")
+              if len(key_value) == 1:
+                  internal[key_value[0]] = ""
+              else:
+                  internal[key_value[0]] = key_value[1]
+        # now go back through the final list and render the single
+        # items AND key/value items
+        for key in internal.keys():
+           data = internal[key]
+           if key == "ks" or key == "initrd" or key == "append":
+               # the user REALLY doesn't want to do this...
+               next
+           if data == "":
+               results.append(key)
+           else:       
+               results.append("%s=%s" % (key,internal[key]))
+        # end result is a new fragment of a kernel options string
+        return results.join(" ")
+ 

@@ -34,7 +34,7 @@ msg_table = {
   "delete_nothing"  : "can't delete something that doesn't exist",
   "no_distro"       : "distro does not exist",
   "no_group"        : "group does not exist",
-  "no_kickstart"    : "kickstart file not found",
+  "no_kickstart"    : "kickstart must be an http://, ftp:// or nfs:// URL",
   "no_kernel"       : "the kernel needs to be a directory containing a kernel, or a full path.  Kernels must be named just 'vmlinuz' or in the form 'vmlinuz-AA.BB.CC-something'",
   "no_initrd"       : "the initrd needs to be a directory containing an initrd, or a full path.  Initrds must be named just 'initrd.img' or in the form 'initrd-AA.BB.CC-something.img",
   "check_ok"        : """
@@ -44,68 +44,7 @@ Manual editing of /etc/dhcpd.conf and /etc/bootconf.conf is suggested to tailor 
 
 Good luck.
 """,
-  "help"           : """
-bootconf is a simple network boot configuration tool.
-It helps you set up Linux networks for PXE booting.
-
-***INSTRUCTIONS****
-
-First install dhcpd, tftpd, and syslinux.
-You'll also need FTP, HTTP, or NFS to serve kickstarts (if you want them)
-And you'll also have to edit dhcpd.conf.
-
-
-   yum install dhcp tftp-server syslinux
-   ...
-   vi /etc/dhcpd.conf
-
-Verify that everything you need is set up.
-This will mention missing/stopped services and configuration errors.
-Errors?  Correct any problems it reports, then run it again.
-
-   bootconf check
-
-Define your distributions, and give them names
-A good example would be 'fc5-i386' or 'fc5-x86_64'
-Paths should be on a mounted filesystem.
-
-  bootconf distro add --name="distro1" --kernel=path --initrd=path
-
-Define your provisioning "groups", and give them names too.
-Groups might be called 'webservers' or 'qamachines' or 'desktops'.
-Each group needs to know it's distribution.
-Kickstart can be done over NFS, FTP, or HTTP url, or just 'off'.
-
-  bootconf group add --name="group1" --distro="name1" --kickstart=url|off
-
-Now add your systems to groups
-
-  bootconf system add --name=mac|ipaddr|hostname --group="group1"
-
-Should you want to review things...
-
-  bootconf distros list 
-  bootconf groups list
-  bootconf systems list
-
-Should you need to delete anything ...
-
-  bootconf distro remove --name="distro1"
-  bootconf group remove  --name="group1"
-  bootconf system remove --name=ipaddr|mac|hostname
-
-Too much work?  If you're brave, you can also edit '/etc/bootconf.conf'
-Make a backup first. 
-
-  vi /etc/bootconf.conf
-
-Now make all of that bootable (immediately)
-
-  bootconf sync -dryrun   # for the paranoid
-  bootconf sync 
-
-That's it!
-   """
+  "help"           : "see 'man bootconf'"
 }
 
 """

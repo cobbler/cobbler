@@ -16,7 +16,7 @@ FAKE_INITRD3="/tmp/initrd-1.8.18-3.9999_FAKE.img"
 FAKE_KERNEL="/tmp/vmlinuz-2.6.15-1.2054_FAKE"
 FAKE_KERNEL2="/tmp/vmlinuz-2.5.16-2.2055_FAKE"
 FAKE_KERNEL3="/tmp/vmlinuz-1.8.18-3.9999_FAKE"
-FAKE_KICKSTART="/tmp/fake.ks"
+FAKE_KICKSTART="http://127.0.0.1/fake.ks"
 
 class BootTest(unittest.TestCase):
     def setUp(self):
@@ -28,8 +28,7 @@ class BootTest(unittest.TestCase):
         self.api = api.BootAPI()
         self.hostname = os.uname()[1]
         create =  [FAKE_INITRD,FAKE_INITRD2,FAKE_INITRD3,
-                   FAKE_KERNEL,FAKE_KERNEL2,FAKE_KERNEL3,
-                   FAKE_KICKSTART]
+                   FAKE_KERNEL,FAKE_KERNEL2,FAKE_KERNEL3]
         for fn in create:
             f = open(fn,"w+")
         self.make_basic_config()
@@ -75,14 +74,13 @@ class Utilities(BootTest):
         self.assertTrue(self.api.utils.find_initrd("/tmp") == FAKE_INITRD)
         
     def test_kickstart_scan(self):
-        self.assertTrue(self.api.utils.find_kickstart(FAKE_INITRD))
+        self.assertFalse(self.api.utils.find_kickstart(FAKE_INITRD))
         self.assertFalse(self.api.utils.find_kickstart("filedoesnotexist"))
         self.assertFalse(self.api.utils.find_kickstart("/tmp"))
-        # encapsulation is violated, but hey, this is a test case...
-        self.api.config.kickstart_root="/tmp"
-        self.assertTrue(self.api.utils.find_kickstart(FAKE_KICKSTART))
-        self.assertTrue(self.api.utils.find_kickstart(os.path.basename(FAKE_KICKSTART))) 
-        # need a case for files that aren't kickstarts (inside)
+        self.assertTrue(self.api.utils.find_kickstart("http://bar"))
+        self.assertTrue(self.api.utils.find_kickstart("ftp://bar"))
+        self.assertTrue(self.api.utils.find_kickstart("nfs://bar"))
+        self.assertFalse(self.api.utils.find_kickstart("gopher://bar"))
 
     def test_matching(self):
         self.assertTrue(self.api.utils.is_mac("00:C0:B7:7E:55:50"))
@@ -123,14 +121,18 @@ class Additions(BootTest):
         self.assertFalse(self.api.get_groups().add(group))
         self.assertFalse(self.api.get_groups().find("testgroup2"))
 
-    def test_invalid_group_non_referenced_kickstart(self):
+    def test_invalid_group_kickstart_not_url(self):
         group = self.api.new_group()
         self.assertTrue(group.set_name("testgroup12"))
         self.assertTrue(group.set_distro("testdistro0"))
         self.assertFalse(group.set_kickstart("kickstartdoesntexist"))
-        self.assertFalse(self.api.get_groups().add(group))
-        self.assertFalse(self.api.get_groups().find("testgroup3"))
-        pass
+        # since kickstarts are optional, you can still add it
+        self.assertTrue(self.api.get_groups().add(group))
+        self.assertTrue(self.api.get_groups().find("testgroup12"))
+        # now verify the other kickstart forms would still work
+        self.assertTrue(group.set_kickstart("http://bar"))
+        self.assertTrue(group.set_kickstart("ftp://bar"))
+        self.assertTrue(group.set_kickstart("nfs://bar"))
 
     def test_invalid_system_bad_name_host(self):
         system = self.api.new_system()

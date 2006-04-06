@@ -1,0 +1,32 @@
+bootconf TODO list
+
+IMPORTANT ITEMS
+
+T  - Do kernel copying into directories named after each distro
+     to resolve name conflicts
+I  - Manpage (in progress) .. continuously...
+T  - Optional kernel parameter input to replace defaults
+     show what kernel file is *currently* picked as latest.
+     on a per system, group, or distro basis.  Priority
+     resolved to give precendence to system, then group, then
+     distro, then defaults.
+     PARTIAL: input allowed and serialized but *NOT USED YET*
+  -  dlutter mentions directories for kernels might not resolve
+     to full paths.  Check into this and fix.
+
+NICE TO HAVE
+
+T -  Move program writeable section of config to /var 
+     to conform with FS rules
+  -  Make list show resolved values as currently set
+     for things like initrd, kernel, kickstart
+     rather than just the directories or partial filenames.
+  -  Try pulling the kernel and initrd from the kickstart information?
+
+
+LEGEND
+
+T = DONE? BEING TESTED
+D = DONE
+P = PARTIAL
+I = IN PROGRESS
