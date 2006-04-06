@@ -102,7 +102,5 @@ class BootCheck:
               status.append(m("no_line") % (self.config.dhcpd_conf, 'filename "%s/pxelinux.0";' % self.config.tftpboot))
        else:
            status.append(m("no_exist") % self.config.dhcpd_conf)
-       if not os.path.exists(self.config.kernel_root):
-          status.append(m("no_dir2") % (self.config.kernel_root, 'kernel_root'))
 
 

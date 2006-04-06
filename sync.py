@@ -101,8 +101,8 @@ class BootSync:
         # it's up to the user to make sure they are nicely served by their URLs
         for g in self.api.get_groups().contents():
            kickstart_path = self.api.utils.find_kickstart(g.kickstart)
-           if kickstart_path is None or not os.path.isfile(kickstart_path):
-              self.api.last_error = "Kickstart for group (%s) cannot be found and needs to be fixed: %s" % (g.name, g.kickstart)
+           if kickstart_path is None:
+              self.api.last_error = "Kickstart for group (%s) is not valid and needs to be fixed: %s" % (g.name, g.kickstart)
               raise "error"
             
     """
@@ -176,7 +176,7 @@ class BootSync:
            distro.kernel_options, 
            system.kernel_options
         ))
-        nextline = "    append %s initrd=%s" % (kopts,initrd_path)
+        nextline = "   append %s initrd=%s" % (kopts,initrd_path)
         if kickstart_path is not None and kickstart_path != "":
             nextline = nextline + " ks=%s" % kickstart_path
         self.tee(file, nextline)
@@ -246,7 +246,7 @@ class BootSync:
            tokens=items.split(" ")
            # deal with key/value pairs and single options alike
            for token in tokens:
-              key_value = tokens.split("=")
+              key_value = token.split("=")
               if len(key_value) == 1:
                   internal[key_value[0]] = ""
               else:
@@ -257,11 +257,11 @@ class BootSync:
            data = internal[key]
            if key == "ks" or key == "initrd" or key == "append":
                # the user REALLY doesn't want to do this...
-               next
+               continue 
            if data == "":
                results.append(key)
            else:       
                results.append("%s=%s" % (key,internal[key]))
         # end result is a new fragment of a kernel options string
-        return results.join(" ")
+        return " ".join(results)
  

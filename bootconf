@@ -137,7 +137,7 @@ class BootCLI:
         commands = {
            '--name'     :  lambda(a) : sys.set_name(a),
            '--group'    :  lambda(a) : sys.set_group(a),           
-           '--kopts'    :  lambda(a) : sys.set_kernel_opts(a)
+           '--kopts'    :  lambda(a) : sys.set_kernel_options(a)
         }
         on_ok = lambda: self.api.get_systems().add(sys)
         return self.apply_args(args,commands,on_ok,True)
@@ -151,7 +151,7 @@ class BootCLI:
             '--name'      :  lambda(a) : group.set_name(a),
             '--distro'    :  lambda(a) : group.set_distro(a),
             '--kickstart' :  lambda(a) : group.set_kickstart(a),
-            '--kopts'     :  lambda(a) : group.set_kernel_opts(a)
+            '--kopts'     :  lambda(a) : group.set_kernel_options(a)
         }
         on_ok = lambda: self.api.get_groups().add(group)
         return self.apply_args(args,commands,on_ok,True)
@@ -165,7 +165,7 @@ class BootCLI:
             '--name'      :  lambda(a) : distro.set_name(a),
             '--kernel'    :  lambda(a) : distro.set_kernel(a),
             '--initrd'    :  lambda(a) : distro.set_initrd(a),
-            '--kopts'     :  lambda(a) : distro.set_kopts(a)
+            '--kopts'     :  lambda(a) : distro.set_kernel_options(a)
         }
         on_ok = lambda: self.api.get_distros().add(distro)
         return self.apply_args(args,commands,on_ok,True)
@@ -180,7 +180,7 @@ class BootCLI:
             return False
         for x in args:
             try:
-                key, value = x.split("=")
+                key, value = x.split("=",1)
                 value = value.replace('"','').replace("'",'')
             except:
                 print m("bad_arg") % x

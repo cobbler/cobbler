@@ -42,7 +42,6 @@ class BootConfig:
     Set some reasonable defaults in case no values are available
     """
     def set_defaults(self):
-        self.kernel_root    = "/var/www/bootconf"
         self.tftpboot       = "/tftpboot"
         self.dhcpd_conf     = "/etc/dhcpd.conf"
         self.tftpd_conf     = "/etc/xinetd.d/tftp"
@@ -77,7 +76,6 @@ class BootConfig:
         # idea: add list of properties to self.properties
         # and use method_missing to write accessors???
         data = {}
-        data['kernel_root']    = self.kernel_root
         data['tftpboot']       = self.tftpboot
         data['dhcpd_conf']     = self.dhcpd_conf
         data['tftpd_conf']     = self.tftpd_conf
@@ -91,7 +89,6 @@ class BootConfig:
     """
     def config_from_hash(self,hash):
         try:
-            self.kernel_root     = hash['kernel_root']
             self.tftpboot        = hash['tftpboot']
             self.dhcpd_conf      = hash['dhcpd_conf']
             self.tftpd_conf      = hash['tftpd_conf']
@@ -113,6 +110,7 @@ class BootConfig:
             world['distros'] = self.get_distros().to_datastruct()
             world['groups']  = self.get_groups().to_datastruct()
             world['systems'] = self.get_systems().to_datastruct()
+        #print "DEBUG: %s" % (world)
         return world  
 
 
@@ -121,6 +119,7 @@ class BootConfig:
     There are seperate hashes for the /etc and /var portions.
     """
     def from_hash(self,hash,is_etc):
+        #print "DEBUG: %s" % hash
         if is_etc:
             self.config_from_hash(hash['config'])
         else:
@@ -171,6 +170,7 @@ class BootConfig:
     could use YAML later if we wanted.
     """
     def deserialize(self):
+        #print "DEBUG: deserialize"
 
         # -----
         # load global config (pathing, urls, etc)...
@@ -179,6 +179,8 @@ class BootConfig:
             raw_data = settings.next()
             if raw_data is not None:
                 self.from_hash(raw_data,True)
+            else:
+                print "WARNING: no %s data?" % self.settings_file
         except:
             self.api.last_error = m("parse_error")
             return False
@@ -190,6 +192,8 @@ class BootConfig:
             raw_data = state.next()
             if raw_data is not None:
                 self.from_hash(raw_data,False)
+            else:
+                print "WARNING: no %s data?" % self.state_file
         except:
            self.api.last_error = m("parse_error")
            return False

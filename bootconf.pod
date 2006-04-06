@@ -8,7 +8,7 @@ bootconf command [subcommand] [--arg1=] [--arg2=]
 
 =head1 DESCRIPTION
 
-Configuration of a boot server involves a lot of things.  Perhaps too many.  These items include a tftpd server, a dhcpd server, syslinux, and a lot of copying files around and creating other config files.  Bootconf makes these things simpler.
+Configuration of a boot server involves a lot of things.  Perhaps too many.  These items include a tftpd server, a dhcpd server, syslinux, and a lot of copying files around and creating other config files.  Bootconf makes these things simpler and more flexible.
 
 bootconf requires root access.
 
@@ -17,9 +17,8 @@ bootconf requires root access.
 B<before you start...>
 
 First install dhcpd, tftpd, and syslinux.
-You'll also need FTP, HTTP, or NFS to serve kickstarts (if you want them)
-And you'll also have to edit dhcpd.conf for your particular DHCP environment.
-Yes, DHCP is a required piece.
+You'll also need FTP, HTTP, or NFS to serve kickstarts (if you want kickstarts).Finally, you'll also have to edit dhcpd.conf for your particular DHCP environment.
+
 
    yum install dhcp tftp-server syslinux
    ...
@@ -27,24 +26,24 @@ Yes, DHCP is a required piece.
 
 B<bootconf check>
 
-This verifies that everything you need to set up is set up.
+This verifies that everything you need to set up is properly set up.
 This will mention any missing services and obvious configuration errors.
-Errors?  Correct any problems reported, then run check until there are none.
+Correct any problems reported, then run check until there are none.
 
-Do not forget to look at /etc/bootconf.conf and modify all parameters to your liking.  Of particular note:  The kernel_opts field is the default kernel options list for all netbooting systems.  It can be overriden by distro, group, or system specific settings.
+Of particular note:  The kernel_opts field in /etc/bootconf.conf is the default kernel options list for all netbooting systems.  It can be overriden by distro, group, or system specific settings, though the defaults are probably good enough for most administrators.
 
 B<bootconf distro add --name=distro_name --kernel=path --initrd=path [--kopts="string"]>
 
 Defines a distribution as a matched pair of a kernel and an initrd, and 
-gives it a name.  This could be 'fc5-i386' or 'foosball-73', it's your name. Kernel options are inherited from the kernel_opts parameter in /etc/bootconf.conf, though you can override them.
+gives it a name.  This could be 'fc5-i386' or 'foosball_rocks', it's your name. Kernel options are inherited from the kernel_opts parameter in /etc/bootconf.conf, though you can override some or all of them.
 
 B<bootconf group  add --name=group_name --distro=distro_name [--kickstart=url] [--kopts="string"]>
 
-Defines a provisioning group, which is a distro (you did define a distro, right?) and optionally a kickstart.  Kickstarts are served up by URLs, so these need to be HTTP, NFS, or FTP URLs that point to a kickstart file.  Kernel options are inherited from the distro, but you can optionally override them.  If you don't want a kickstart, that's fine.
+Defines a provisioning group, which is a distro (you did define a distro, right?) and optionally a kickstart.  Kickstarts are served up by URLs, so these need to be HTTP, NFS, or FTP URLs that point to a kickstart file.  If you don't want a kickstart, leave that parameter out.  Kernel options are inherited from the distro, but you can optionally override some or all of them.
 
 B<bootconf system add --name=ip|mac|hostname --group=group_name [--kopts="string"]>
 
-Defines a system.  A system can't have a free form name, it has to be a hostname that resolves to an IP, a MAC address, or an actual IP.  The group parameter is the group name you used with "group add".  Kernel options are inherited from the group, you probably don't want to override them, but you can.
+Defines a system, which is a representation of any netbootable system.  A system can't have a free form name, it has to be a hostname that resolves to an IP, a MAC address, or an actual IP.  Partial IP's (as in whole subnets) may be supported later.  The group parameter is the group name you used with "group add", that is, what group the system belongs to.  Kernel options are inherited from the group, and you probably don't want to override them, but you can override some or all of them.
 
 B<bootconf distro list>
 
@@ -75,6 +74,32 @@ B<bootconf sync [--dryrun]>
 Applies the stored configuration to the system.  If you have any configuration errors, bootconf sync will ask you to run 'bootconf check' and fix them first.  
 
 Usage of the dryrun option will show you the pending changes without actually making them.
+
+=head1 EXAMPLE
+
+B<bootconf check>
+
+B<bootconf distro add --name=rhel4u3 --kernel=/dir1/vmlinuz --initrd=/dir1/initrd.img>
+
+B<bootconf distro add --name=fc5 --kernel=/dir2/vmlinuz --initrd=/dir2/initrd.img>
+
+B<bootconf distro list>
+
+B<bootconf group add --name=fc5webservers --distro=fc5-i386 --kickstart=http://192.168.1.10/blah/fc5-webservers.ks --kopts="customization=blah">
+
+B<bootconf group add --name=rhel4u3dbservers --distro=rhel4u3 --kickstart=http://192.168.1.10/blah/rhel4u3-dbservers.ks>
+
+B<bootconf group list>
+
+B<bootconf system add --name=AA:BB:CC:DD:EE:FF --group=fc5-webservers>
+
+B<bootconf system add --name=AA:BB:CC:DD:EE:FE --group=rhel4u3-dbservers>
+
+B<bootconf system list>
+
+B<bootconf sync --dryrun>
+
+B<bootconf sync>
 
 =head1 CONFIGURATION_FILES
 

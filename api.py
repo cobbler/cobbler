@@ -22,7 +22,7 @@ class BootAPI:
        self.utils  = util.BootUtil(self,self.config)
        # if the file already exists, load real data now
        try:
-           if not self.config.files_exist():
+           if self.config.files_exist():
               self.config.deserialize()
        except:
            # traceback.print_exc()
@@ -30,7 +30,7 @@ class BootAPI:
            try:
                self.config.serialize()
            except:
-               # traceback.print_exc()
+               traceback.print_exc()
                pass
        if not self.config.files_exist():
            self.config.serialize()
@@ -141,10 +141,9 @@ class Collection:
     """
     def __str__(self):
         buf = ""
-        values = sorted(self.listing.values())
+        values = map(lambda(a): str(a), sorted(self.listing.values()))
         if len(values) > 0: 
-           for v in values: buf = buf + str(v) + "\n"
-           return buf
+           return "\n\n".join(values)
         else:
            return m("empty_list")
 
@@ -253,6 +252,7 @@ class Item:
 
     def set_kernel_options(self,options_string):
         self.kernel_options = options_string
+        return True
 
     def to_datastruct(self):
         raise "not implemented"
@@ -304,7 +304,22 @@ class Distro(Item):
         }
 
     def __str__(self):
-        return "%s : kernel=%s | initrd=%s | opts=%s" % (self.name,self.kernel,self.initrd,self.kernel_options)
+        kstr = self.api.utils.find_kernel(self.kernel)
+        istr = self.api.utils.find_initrd(self.initrd)
+        if kstr is None:
+            kstr = "%s (NOT FOUND!)" % self.kernel
+        elif os.path.isdir(self.kernel):
+            kstr = "%s (FOUND BY SEARCH)" % kstr
+        if istr is None:
+            istr = "%s (NOT FOUND)" % self.initrd
+        elif os.path.isdir(self.initrd):
+            istr = "%s (FOUND BY SEARCH)" % istr
+        buf = ""
+        buf = buf + "distro      : %s\n" % self.name
+        buf = buf + "kernel      : %s\n" % kstr
+        buf = buf + "initrd      : %s\n" % istr
+        buf = buf + "kernel opts : %s" % self.kernel_options
+        return buf
 
 #---------------------------------------------
 
@@ -351,7 +366,12 @@ class Group(Item):
         }
 
     def __str__(self):
-        return "%s : distro=%s | kickstart=%s | opts=%s" % (self.name, self.distro, self.kickstart, self.kernel_options)
+        buf = ""
+        buf = buf + "group       : %s\n" % self.name
+        buf = buf + "distro      : %s\n" % self.distro
+        buf = buf + "kickstart   : %s\n" % self.kickstart
+        buf = buf + "kernel opts : %s" % self.kernel_options
+        return buf
 
 #---------------------------------------------
 
@@ -402,6 +422,9 @@ class System(Item):
         }
 
     def __str__(self):
-        return "%s : group=%s | opts=%s" % (self.name,self.group,self.kernel_options)
-
+        buf = ""
+        buf = buf + "system       : %s\n" % self.name
+        buf = buf + "group        : %s\n" % self.group
+        buf = buf + "kernel opts  : %s" % self.kernel_options
+        return buf
 
