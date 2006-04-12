@@ -1,7 +1,5 @@
 bootconf TODO list
 
-IMPORTANT ITEMS
-
 T  - Do kernel copying into directories named after each distro
      to resolve name conflicts
 I  - Manpage (in progress) .. continuously...
@@ -10,21 +8,25 @@ T  - Optional kernel parameter input to replace defaults
      on a per system, group, or distro basis.  Priority
      resolved to give precendence to system, then group, then
      distro, then defaults.
-     PARTIAL: input allowed and serialized but *NOT USED YET*
-
-NICE TO HAVE
-
 T -  Move program writeable section of config to /var 
      to conform with FS rules
 D -  Make list show resolved values as currently set
      for things like initrd, kernel, kickstart
      rather than just the directories or partial filenames.
-  -  Try pulling the kernel and initrd from the kickstart information?
-
-RANDOM IDEAS
-  
+  -  Try pulling the kernel and initrd from the kickstart information
+     distro add [--kickstart] optionally as alternative to
+     [--kernel=] and [--initrd=].  If so, groups can INHERIT kickstart info
+     from the group (can and must if the distro has a kickstart specified).
+  -  Support xen-netboot idea from ET meeting (manage Apache tree, add conf file)
+  -  Seperate commands for checkpxe and checkxen
+  -  Don't require root, check for permissions on dirpaths we touch.  (Run pieces of check modularly when we start)
+  -  openuri checking for kickstart existance
+  -  In general, modularilize check code as various pieces of the code need to run various pieces of it interactively and otherwise based on current state.  Should be fairly abstract.  "Check PXE", "Check Perms", "Etc".
+  -  Sync runs checkpxe and checkxen based on presense of pxe/xen pieces
+  -  Don't require dhcp, only that the box is the next-server. ("--nodhcp") 
   -  Support pxelinux's default directory
   -  Subnet creation shorthand
+  -  ...
 
 LEGEND
 
