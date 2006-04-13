@@ -27,6 +27,9 @@ D -  Make list show resolved values as currently set
   -  Support pxelinux's default directory
   -  Subnet creation shorthand
   -  ...
+  -  customized kickstart for dom0 ... allow domU to get profiles
+     en masse, this may evolve to be more highly dynamic as we start
+     to deal with Xen migrations
 
 LEGEND
 
