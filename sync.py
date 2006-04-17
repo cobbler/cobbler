@@ -22,15 +22,14 @@ class BootSync:
 
     """
     Syncs the current bootconf configuration.  
-    Automatically runs the 'check' function first to eliminate likely failures.
-    FUTURE: make dryrun work.
+    Using the Check().run_ functions previously is recommended
     """
     def sync(self,dry_run=False,verbose=True):
         self.dry_run = dry_run
-        results = self.api.check()
-        if results != []:
-            self.api.last_error = m("run_check")
-            return False
+        #results = self.api.check()
+        #if results != []:
+        #    self.api.last_error = m("run_check")
+        #    return False
         try:
             self.copy_pxelinux()
             self.clean_pxelinux_tree()
@@ -99,10 +98,10 @@ class BootSync:
         # ensure all referenced kickstarts exist
         # these are served by either NFS, Apache, or some ftpd, so we don't need to copy them
         # it's up to the user to make sure they are nicely served by their URLs
-        for g in self.api.get_groups().contents():
+        for g in self.api.get_profiles().contents():
            kickstart_path = self.api.utils.find_kickstart(g.kickstart)
            if kickstart_path is None:
-              self.api.last_error = "Kickstart for group (%s) is not valid and needs to be fixed: %s" % (g.name, g.kickstart)
+              self.api.last_error = m("err_kickstart") % (g.name, g.kickstart)
               raise "error"
             
     """
@@ -114,21 +113,21 @@ class BootSync:
         # create pxelinux.cfg under tftpboot
         # and file for each MAC or IP (hex encoded 01-XX-XX-XX-XX-XX-XX)
         systems = self.api.get_systems()
-        groups  = self.api.get_groups()
+        profiles = self.api.get_profiles()
         distros = self.api.get_distros()
         self.mkdir(os.path.join(self.api.config.tftpboot,"pxelinux.cfg"))
         for system in self.api.get_systems().contents():
-            group = groups.find(system.group)
-            if group is None:
-                self.api.last_error = "System %s is orphaned (no group), was the configuration edited manually?" % system.name
+            profile = profiles.find(system.profile)
+            if profile is None:
+                self.api.last_error = m("orphan_profile2")
                 raise "error"
-            distro = distros.find(group.distro)
+            distro = distros.find(profile.distro)
             if distro is None: 
-                self.api.last_error = "Group %s is orphaned (no distro), was the configuration edited manually?" % group.name 
+                self.api.last_error = m("orphan_system2")
                 raise "error"
             filename = self.get_pxelinux_filename(system.name)
             filename = os.path.join(self.api.config.tftpboot, "pxelinux.cfg", filename)
-            self.write_pxelinux_file(filename,system,group,distro)
+            self.write_pxelinux_file(filename,system,profile,distro)
 
     """
     The configuration file for each system pxelinux uses is either
@@ -144,7 +143,7 @@ class BootSync:
         elif self.api.utils.is_mac(name):
             return "01-" + "-".join(name.split(":")).lower()
         else:
-            self.api.last_error = "system name (%s) couldn't resolve and is not an IP or a MAC address." % name
+            self.api.last_error = m("err_resolv") % name
             raise "error"
       
     """
@@ -152,10 +151,10 @@ class BootSync:
     More system-specific configuration may come in later, if so
     that would appear inside the system object in api.py
     """
-    def write_pxelinux_file(self,filename,system,group,distro):
+    def write_pxelinux_file(self,filename,system,profile,distro):
         kernel_path = os.path.join("/images",distro.name,os.path.basename(distro.kernel))
         initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
-        kickstart_path = group.kickstart
+        kickstart_path = profile.kickstart
         self.sync_log("writing: %s" % filename)
         self.sync_log("---------------------------------")
         if self.dry_run:
@@ -172,7 +171,7 @@ class BootSync:
         #        booting we *could* try to detect it and warn them.
         kopts = self.blend_kernel_options((
            self.api.config.kernel_options, 
-           group.kernel_options, 
+           profile.kernel_options, 
            distro.kernel_options, 
            system.kernel_options
         ))
@@ -234,7 +233,7 @@ class BootSync:
     second (or further on), according to --key=value formats.  
 
     This is used such that we can have default kernel options 
-    in /etc and then distro, group, and system options with various 
+    in /etc and then distro, profile, and system options with various 
     levels of configurability.
     """
     def blend_kernel_options(self, list_of_opts):
@@ -265,3 +264,4 @@ class BootSync:
         # end result is a new fragment of a kernel options string
         return " ".join(results)
  
+

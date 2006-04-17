@@ -36,7 +36,7 @@ class BootAPI:
            self.config.serialize()
 
     """
-    Forget about current list of groups, distros, and systems
+    Forget about current list of profiles, distros, and systems
     """
     def clear(self):
        self.config.clear()
@@ -48,10 +48,10 @@ class BootAPI:
        return self.config.get_systems()
 
     """
-    Return the current list of groups
+    Return the current list of profiles 
     """
-    def get_groups(self):
-       return self.config.get_groups()
+    def get_profiles(self):
+       return self.config.get_profiles()
 
     """
     Return the current list of distributions
@@ -72,10 +72,10 @@ class BootAPI:
        return Distro(self,None)
 
     """
-    Create a blank, unconfigured group
+    Create a blank, unconfigured profile
     """
-    def new_group(self):
-       return Group(self,None)
+    def new_profile(self):
+       return Profile(self,None)
 
     """
     See if all preqs for network booting are operational
@@ -169,9 +169,9 @@ class Distros(Collection):
     """
     def remove(self,name):
         # first see if any Groups use this distro
-        for k,v in self.api.get_groups().listing.items():
+        for k,v in self.api.get_profiles().listing.items():
             if v.distro == name:
-               self.api.last_error = m("orphan_group")
+               self.api.last_error = m("orphan_profiles")
                return False
         if self.find(name):
             del self.listing[name]
@@ -183,24 +183,25 @@ class Distros(Collection):
 #--------------------------------------------
 
 """
-A group represents a distro paired with a kickstart file.
+A profile represents a distro paired with a kickstart file.
 For instance, FC5 with a kickstart file specifying OpenOffice
-might represent a 'desktop' group.
+might represent a 'desktop' profile.  For Xen, there are many
+additional options, with client-side defaults (not kept here).
 """
-class Groups(Collection):
+class Profiles(Collection):
 
     def __init__(self,api,seed_data):
         self.api = api
         self.listing = {}
         if seed_data is not None:
            for x in seed_data: 
-               self.add(Group(self.api,x))
+               self.add(Profile(self.api,x))
     """
     Remove element named 'name' from the collection
     """
     def remove(self,name):
         for k,v in self.api.get_systems().listing.items():
-           if v.group == name:
+           if v.profile == name:
                self.api.last_error = m("orphan_system")
                return False
         if self.find(name):
@@ -213,7 +214,7 @@ class Groups(Collection):
 #--------------------------------------------
 
 """
-Systems are hostnames/MACs/IP names and the associated groups
+Systems are hostnames/MACs/IP names and the associated profile
 they belong to.
 """
 class Systems(Collection):
@@ -323,19 +324,30 @@ class Distro(Item):
 
 #---------------------------------------------
 
-class Group(Item):
+class Profile(Item):
 
     def __init__(self,api,seed_data):
         self.api = api
         self.name = None
         self.distro = None # a name, not a reference
         self.kickstart = None
-        self.kernel_options = ""
+        self.kernel_options = ''
+        self.xen_name_prefix = 'xen'
+        self.xen_file_path = '/var/xen-files'
+        self.xen_file_size = 10240
+        self.xen_ram = 2048
+        self.xen_mac = ''
+        self.xen_paravirt = True
         if seed_data is not None:
-           self.name        = seed_data['name']
-           self.distro    = seed_data['distro']
-           self.kickstart = seed_data['kickstart'] 
-           self.kernel_options = seed_data['kernel_options']
+           self.name            = seed_data['name']
+           self.distro          = seed_data['distro']
+           self.kickstart       = seed_data['kickstart'] 
+           self.kernel_options  = seed_data['kernel_options']
+           self.xen_name_prefix = seed_data['xen_name_prefix']
+           self.xen_file_path   = seed_data['xen_file_path']
+           self.xen_file_size   = seed_data['xen_ram']
+           self.xen_mac         = seed_data['xen_mac']
+           self.xen_paravirt    = seed_data['xen_paravirt']
 
     def set_distro(self,distro_name):
         if self.api.get_distros().find(distro_name):
@@ -351,6 +363,56 @@ class Group(Item):
         self.last_error = m("no_kickstart")
         return False
 
+    def set_xen_name_prefix(self,str):
+        # no slashes or wildcards
+        for bad in [ '/', '*', '?' ]:
+            if str.find(bad) != -1:
+                return False
+        self.xen_name_prefix = str
+        return True
+
+    def set_xen_file_path(self,str):
+        # path must look absolute
+        if len(str) < 1 or str[0] != "/":
+            return False
+        self.xen_file_path = str
+        return True
+
+    def set_xen_file_size(self,num):
+        # num is a non-negative integer (0 means default) 
+        try:
+            inum = int(num)
+            if inum != float(num):
+                return False
+            self.xen_file_size = inum
+            if inum >= 0:
+                return True
+            return False
+        except:
+            return False
+
+    def set_xen_mac(self,mac):
+        # mac needs to be in mac format AA:BB:CC:DD:EE:FF or a range
+        # ranges currently *not* supported, so we'll fail them
+        if self.api.utils.is_mac(mac):
+            self.xen_mac = mac
+            return True
+        else:
+            return False
+   
+    def set_xen_paravirt(self,truthiness):
+        # truthiness needs to be True or False, or (lcased) string equivalents
+        try:
+            if (truthiness == False or truthiness.lower() == 'false'):
+                self.xen_paravirt = False
+            elif (truthiness == True or truthiness.lower() == 'true'):
+                self.xen_paravirt = True
+            else:
+                return False      
+        except:
+            return False  
+        return True
+
     def is_valid(self):
         for x in (self.name, self.distro):
             if x is None: 
@@ -362,15 +424,27 @@ class Group(Item):
             'name' : self.name,
             'distro' : self.distro,
             'kickstart' : self.kickstart,
-            'kernel_options' : self.kernel_options
+            'kernel_options' : self.kernel_options,
+            'xen_name_prefix' : self.xen_name_prefix,
+            'xen_file_path'   : self.xen_file_path,
+            'xen_file_size'   : self.xen_file_size,
+            'xen_ram'         : self.xen_ram,
+            'xen_mac'         : self.xen_mac,
+            'xen_paravirt'    : self.xen_paravirt
         }
 
     def __str__(self):
         buf = ""
-        buf = buf + "group       : %s\n" % self.name
-        buf = buf + "distro      : %s\n" % self.distro
-        buf = buf + "kickstart   : %s\n" % self.kickstart
-        buf = buf + "kernel opts : %s" % self.kernel_options
+        buf = buf + "profile         : %s\n" % self.name
+        buf = buf + "distro          : %s\n" % self.distro
+        buf = buf + "kickstart       : %s\n" % self.kickstart
+        buf = buf + "kernel opts     : %s" % self.kernel_options
+        buf = buf + "xen name prefix : %s" % self.xen_name_prefix
+        buf = buf + "xen file path   : %s" % self.xen_file_path
+        buf = buf + "xen file size   : %s" % self.xen_file_size
+        buf = buf + "xen ram         : %s" % self.xen_ram
+        buf = buf + "xen mac         : %s" % self.xen_mac
+        buf = buf + "xen paravirt    : %s" % self.xen_paravirt
         return buf
 
 #---------------------------------------------
@@ -380,11 +454,11 @@ class System(Item):
     def __init__(self,api,seed_data):
         self.api = api
         self.name = None
-        self.group = None # a name, not a reference
+        self.profile = None # a name, not a reference
         self.kernel_options = ""
         if seed_data is not None:
            self.name = seed_data['name']
-           self.group = seed_data['group']
+           self.profile = seed_data['profile']
            self.kernel_options = seed_data['kernel_options']
     
     """
@@ -400,9 +474,9 @@ class System(Item):
         self.name = name  # we check it add time, but store the original value.
         return True
 
-    def set_group(self,group_name):
-        if self.api.get_groups().find(group_name):
-            self.group = group_name
+    def set_profile(self,profile_name):
+        if self.api.get_profiles().find(profile_name):
+            self.profile = profile_name
             return True
         return False
 
@@ -410,21 +484,21 @@ class System(Item):
         if self.name is None:
             self.api.last_error = m("bad_sys_name")
             return False
-        if self.group is None:
+        if self.profile is None:
             return False
         return True
 
     def to_datastruct(self):
         return {
            'name'   : self.name,
-           'group'  : self.group,
+           'profile'  : self.profile,
            'kernel_options' : self.kernel_options
         }
 
     def __str__(self):
         buf = ""
         buf = buf + "system       : %s\n" % self.name
-        buf = buf + "group        : %s\n" % self.group
+        buf = buf + "profile      : %s\n" % self.profile
         buf = buf + "kernel opts  : %s" % self.kernel_options
         return buf
 

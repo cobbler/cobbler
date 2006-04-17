@@ -20,7 +20,6 @@ class BootCheck:
    """
    Returns None if there are no errors, otherwise returns a list 
    of things to correct prior to running bootconf 'for real'.
-   FIXME: this needs to be more tolerant of non-default paths
    """
    def run(self):
        status = []

@@ -1,5 +1,10 @@
+
 bootconf TODO list
 
+P  - Unified options and nomenclature for Xen.
+P  - Group is a "Profile", not a Group
+   - Bootconf 'trace' command to show what a system would be provisioned to
+   - Actually write xen-net-install
 T  - Do kernel copying into directories named after each distro
      to resolve name conflicts
 I  - Manpage (in progress) .. continuously...

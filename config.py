@@ -31,10 +31,10 @@ class BootConfig:
         return os.path.exists(self.settings_file) and os.path.exists(self.state_file)
 
     """
-    Establish an empty list of groups, distros, and systems.
+    Establish an empty list of profiles distros, and systems.
     """
     def clear(self):
-        self.groups         = api.Groups(self.api,None)
+        self.profiles       = api.Profiles(self.api,None)
         self.distros        = api.Distros(self.api,None)
         self.systems        = api.Systems(self.api,None)
 
@@ -51,10 +51,10 @@ class BootConfig:
         self.kernel_options = "append devfs=nomount ramdisk_size=16438 lang= vga=788 ksdevice=eth0 console=ttyS0,38400n8" #initrd and ks added programmatically
 
     """
-    Access the current groups list
+    Access the current profiles list
     """
-    def get_groups(self):
-        return self.groups
+    def get_profiles(self):
+        return self.profiles
 
     """
     Access the current distros list
@@ -72,9 +72,6 @@ class BootConfig:
     Save all global config options in hash form (for serialization)
     """
     def config_to_hash(self):
-        # FIXME: this duplication NEEDS to go away.
-        # idea: add list of properties to self.properties
-        # and use method_missing to write accessors???
         data = {}
         data['tftpboot']       = self.tftpboot
         data['dhcpd_conf']     = self.dhcpd_conf
@@ -105,11 +102,11 @@ class BootConfig:
     def to_hash(self,is_etc):
         world = {} 
         if is_etc:
-            world['config']  = self.config_to_hash()
+            world['config']      = self.config_to_hash()
         else:
-            world['distros'] = self.get_distros().to_datastruct()
-            world['groups']  = self.get_groups().to_datastruct()
-            world['systems'] = self.get_systems().to_datastruct()
+            world['distros']     = self.get_distros().to_datastruct()
+            world['profiles']    = self.get_profiles().to_datastruct()
+            world['systems']     = self.get_systems().to_datastruct()
         #print "DEBUG: %s" % (world)
         return world  
 
@@ -123,9 +120,9 @@ class BootConfig:
         if is_etc:
             self.config_from_hash(hash['config'])
         else:
-            self.distros = api.Distros(self.api, hash['distros'])
-            self.groups  = api.Groups(self.api,  hash['groups'])
-            self.systems = api.Systems(self.api, hash['systems'])
+            self.distros   = api.Distros(self.api, hash['distros'])
+            self.profiles  = api.Profiles(self.api,  hash['profiles'])
+            self.systems   = api.Systems(self.api, hash['systems'])
 
     # ------------------------------------------------------
     # we don't care about file formats until below this line
@@ -151,7 +148,7 @@ class BootConfig:
         settings.write(yaml.dump(data))
         
         # ------
-        # dump internal state (distros, groups, systems...)
+        # dump internal state (distros, profiles, systems...)
         if not os.path.isdir(os.path.dirname(self.state_file)):
             os.mkdir(os.path.dirname(self.state_file))
         try:
@@ -186,7 +183,7 @@ class BootConfig:
             return False
 
         # -----
-        # load internal state(distros, systems, groups...)
+        # load internal state(distros, systems, profiles...)
         try:
             state = yaml.loadFile(self.state_file)
             raw_data = state.next()
@@ -195,8 +192,9 @@ class BootConfig:
             else:
                 print "WARNING: no %s data?" % self.state_file
         except:
-           self.api.last_error = m("parse_error")
-           return False
+            traceback.print_exc()
+            self.api.last_error = m("parse_error")
+            return False
         
         # all good
         return True

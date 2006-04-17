@@ -24,44 +24,45 @@ class BootCLI:
     def __init__(self,args):
         self.args = args
         self.api = api.BootAPI()
-        self.distro_commands = { 
+        self.commands = {}
+        self.commands['distro'] = { 
             'add'     :  self.distro_edit,
             'edit'    :  self.distro_edit,
             'delete'  :  self.distro_remove,
             'remove'  :  self.distro_remove,
             'list'    :  self.distro_list
         }
-        self.group_commands = {
-            'add'     :  self.group_edit,
-            'edit'    :  self.group_edit,
-            'delete'  :  self.group_remove,
-            'remove'  :  self.group_remove,
-            'list'    :  self.group_list
+        self.commands['profile'] = {
+            'add'     :  self.profile_edit,
+            'edit'    :  self.profile_edit,
+            'delete'  :  self.profile_remove,
+            'remove'  :  self.profile_remove,
+            'list'    :  self.profile_list
         }
-        self.system_commands = {
+        self.commands['system'] = {
             'add'     :  self.system_edit,
             'edit'    :  self.system_edit,
             'delete'  :  self.system_remove,
             'remove'  :  self.system_remove,
             'list'    :  self.system_list
         }
-        self.toplevel_commands = {
-            'check'   : self.check,
-            'distros' : self.distro,
-            'distro'  : self.distro,
-            'groups'  : self.group, 
-            'group'   : self.group, 
-            'systems' : self.system,
-            'system'  : self.system,
-            'sync'    : self.sync,
-            'help'    : self.help
+        self.commands['toplevel'] = {
+            'check'    : self.check,
+            'distros'  : self.distro,
+            'distro'   : self.distro,
+            'profiles' : self.profile, 
+            'profile'  : self.profile, 
+            'systems'  : self.system,
+            'system'   : self.system,
+            'sync'     : self.sync,
+            'help'     : self.help
         }
 
     """
     Run the command line
     """
     def run(self):
-        rc = self.curry_args(self.args[1:], self.toplevel_commands)
+        rc = self.curry_args(self.args[1:], self.commands['toplevel'])
         if not rc:
             print self.api.last_error
         return rc
@@ -88,10 +89,10 @@ class BootCLI:
         print str(self.api.get_systems())
 
     """
-    Print out the list of groups:  'bootconf group list'
+    Print out the list of profiles: 'bootconf profile list'
     """
-    def group_list(self,args):
-        print str(self.api.get_groups())
+    def profile_list(self,args):
+        print str(self.api.get_profiles())
     
     """
     Print out the list of distros: 'bootconf distro list'
@@ -110,11 +111,11 @@ class BootCLI:
         return self.apply_args(args,commands,on_ok,True)
 
     """
-    Delete a group:   'bootconf group remove --name=foo'
+    Delete a profile:   'bootconf profile remove --name=foo'
     """
-    def group_remove(self,args):
+    def profile_remove(self,args):
         commands = {
-           '--name'       : lambda(a):  self.api.get_groups().remove(a)
+           '--name'       : lambda(a):  self.api.get_profiles().remove(a)
         }
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok,True)
@@ -136,24 +137,32 @@ class BootCLI:
         sys = self.api.new_system()
         commands = {
            '--name'     :  lambda(a) : sys.set_name(a),
-           '--group'    :  lambda(a) : sys.set_group(a),           
+           '--profile'  :  lambda(a) : sys.set_profile(a),    
+           '--profiles' :  lambda(a) : sys.set_profile(a), # alias       
            '--kopts'    :  lambda(a) : sys.set_kernel_options(a)
         }
         on_ok = lambda: self.api.get_systems().add(sys)
         return self.apply_args(args,commands,on_ok,True)
 
     """
-    Create/Edit a group:  'bootconf group edit --name='foo' ...
+    Create/Edit a profile:  'bootconf profile edit --name='foo' ...
     """
-    def group_edit(self,args):
-        group = self.api.new_group()
+    def profile_edit(self,args):
+        profile = self.api.new_profile()
         commands = {
-            '--name'      :  lambda(a) : group.set_name(a),
-            '--distro'    :  lambda(a) : group.set_distro(a),
-            '--kickstart' :  lambda(a) : group.set_kickstart(a),
-            '--kopts'     :  lambda(a) : group.set_kernel_options(a)
+            '--name'            :  lambda(a) : profile.set_name(a),
+            '--distro'          :  lambda(a) : profile.set_distro(a),
+            '--kickstart'       :  lambda(a) : profile.set_kickstart(a),
+            '--kopts'           :  lambda(a) : profile.set_kernel_options(a),
+            '--xen-name-prefix' :  lambda(a) : profile.set_xen_name(a),
+            '--xen-file-path'   :  lambda(a) : profile.set_xen_file(a),
+            '--xen-file-size'   :  lambda(a) : profile.set_xen_file_size(a),
+            '--xen-ram'         :  lambda(a) : profile.set_xen_ram(a),
+            '--xen-mac'         :  lambda(a) : profile.set_xen_mac(a),
+            '--xen-paravirt'    :  lambda(a) : profile.set_xen_paravirt(a),
+            # FIXME: more Xen opts that xen-guest-install needs
         }
-        on_ok = lambda: self.api.get_groups().add(group)
+        on_ok = lambda: self.api.get_profiles().add(profile)
         return self.apply_args(args,commands,on_ok,True)
     
     """
@@ -172,7 +181,7 @@ class BootCLI:
 
     """
     Instead of getopt...
-    Parses arguments of the form --foo=bar, see group_edit for example
+    Parses arguments of the form --foo=bar, see profile_edit for example
     """
     def apply_args(self,args,input_routines,on_ok,serialize):
         if len(args) == 0:
@@ -199,7 +208,7 @@ class BootCLI:
 
     """
     Helper function to make subcommands a bit more friendly.
-    See group(), system(), or distro() for examples
+    See profiles(), system(), or distro() for examples
     """
     def curry_args(self, args, commands):
         if args is None or len(args) == 0:
@@ -245,22 +254,22 @@ class BootCLI:
     Handles any of the 'bootconf distro' subcommands
     """
     def distro(self,args):
-        return self.curry_args(args, self.distro_commands) 
+        return self.curry_args(args, self.commands['distro']) 
 
     """
-    Handles any of the 'bootconf group' subcommands
+    Handles any of the 'bootconf profile' subcommands
     """
-    def group(self,args):
-        return self.curry_args(args, self.group_commands)
+    def profile(self,args):
+        return self.curry_args(args, self.commands['profile'])
 
     """
     Handles any of the 'bootconf system' subcommands
     """
     def system(self,args):
-        return self.curry_args(args, self.system_commands)
+        return self.curry_args(args, self.commands['system'])
 
 if __name__ == "__main__":
-    if os.getuid() != 0:
+    if os.getuid() != 0: # FIXME
        print m("need_root")
        sys.exit(1)
     if BootCLI(sys.argv).run():
