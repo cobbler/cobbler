@@ -1,41 +1,24 @@
 
 bootconf TODO list
 
-P  - Unified options and nomenclature for Xen.
-P  - Group is a "Profile", not a Group
+   - Implement Xen tree creation / write xen-net-install
+D  - Unified options and nomenclature for Xen.
+D  - Group is a "Profile", not a Group
    - Bootconf 'trace' command to show what a system would be provisioned to
-   - Actually write xen-net-install
 T  - Do kernel copying into directories named after each distro
      to resolve name conflicts
 I  - Manpage (in progress) .. continuously...
-T  - Optional kernel parameter input to replace defaults
-     show what kernel file is *currently* picked as latest.
-     on a per system, group, or distro basis.  Priority
-     resolved to give precendence to system, then group, then
-     distro, then defaults.
-T -  Move program writeable section of config to /var 
-     to conform with FS rules
-D -  Make list show resolved values as currently set
-     for things like initrd, kernel, kickstart
-     rather than just the directories or partial filenames.
-  -  Try pulling the kernel and initrd from the kickstart information
+  -  Pulling the kernel and initrd from the kickstart information
      distro add [--kickstart] optionally as alternative to
      [--kernel=] and [--initrd=].  If so, groups can INHERIT kickstart info
      from the group (can and must if the distro has a kickstart specified).
-  -  Support xen-netboot idea from ET meeting (manage Apache tree, add conf file)
-  -  Seperate commands for checkpxe and checkxen
   -  Don't require root, check for permissions on dirpaths we touch.  (Run pieces of check modularly when we start)
-  -  openuri checking for kickstart existance
-  -  In general, modularilize check code as various pieces of the code need to run various pieces of it interactively and otherwise based on current state.  Should be fairly abstract.  "Check PXE", "Check Perms", "Etc".
-  -  Sync runs checkpxe and checkxen based on presense of pxe/xen pieces
-  -  Don't require dhcp, only that the box is the next-server. ("--nodhcp") 
-  -  Support pxelinux's default directory
+  -  openuri checking for kickstart existance (HTTP HEAD)
+  -  Support pxelinux's default directory and impl. Xen defaults
   -  Subnet creation shorthand
-  -  ...
-  -  customized kickstart for dom0 ... allow domU to get profiles
-     en masse, this may evolve to be more highly dynamic as we start
-     to deal with Xen migrations
-
+  -  MAC ranges for Xen (how best to do this?)
+  -  Consider some sort of kickstart manager to templatize kickstarts?
+     
 LEGEND
 
 T = DONE. SOME TESTING STILL TBA.
