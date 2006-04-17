@@ -1,6 +1,6 @@
 =head1 NAME
 
-bootconf is a command line tool for configuration of bare-metal PXE and Xen provisioning environments.  A Python library is also available.
+bootconf is a command line tool for configuration of bare-metal PXE and Xen provisioning servers.  It is also accessible as a Python library.
 
 =head1 SYNOPSIS
 
@@ -8,11 +8,11 @@ bootconf command [subcommand] [--arg1=] [--arg2=]
 
 =head1 DESCRIPTION
 
-Configuration of a boot server involves a lot of things.  Perhaps too many.  These items for bare-metal PXE provisioning include a tftpd server, a dhcpd server, syslinux, and a lot of copying files around and creating other config files.  Bootconf makes these things simpler and more flexible.   For Xen, bootconf manages a central repository of Xen images that can, like PXE, tell Xen machines what domU's they need to install, or how to install a domU of a specific type.  Sincebare-metal PXE and Xen are a bit different, they are discussed in different sections.
+Configuration of a PXE boot server involves setting up a tftpd server, a dhcpd server, syslinux, and creating semi-complex configuration file trees.
 
-bootconf should be run as root, or at least with equivalent permissions on lots of things that normally only root owns.
+Bootconf makes these things faster, simpler, and more flexible.  It also does the same things for provisioning Xen as it does for PXE.   The client-side component of Xen provisioning is 'xen-net-install'.  
 
-=head1 INSTRUCTIONS:  CREATING A PXE ENVIRONMENT WITH BOOTCONF
+=head1 INSTRUCTIONS FOR PXE
 
 B<before you start...>
 
@@ -26,56 +26,48 @@ You'll also need FTP, HTTP, or NFS to serve kickstarts (if you want kickstarts).
 
 B<bootconf check>
 
-This verifies that everything you need to set up is properly set up.
-This will mention any missing services and obvious configuration errors.
-Correct any problems reported, then run check until there are none.
+This verifies that prerequisites are properly installed and configured.
+Any problems should be corrected, except unless the DHCP server is on another machine, in which case those errors can be ignored.
 
-Of particular note:  The kernel_opts field in /etc/bootconf.conf is the default kernel options list for all netbooting systems.  It can be overriden by distro, group, or system specific settings, though the defaults are probably good enough for most administrators.
+B<bootconf distro add --name=<string> --kernel=<path> --initrd=<path> [--kopts=<string>]>
 
-B<bootconf distro add --name=distro_name --kernel=path --initrd=path [--kopts="string"]>
+Defines a distribution.  Minimally, this is a matched set of an initrd and a kernel that has a name, such as 'fc5-i386' or 'rhel4-x86_64'.  Here you can also override and extend the default kernel options ('kopts') specified in /etc/bootconf.conf (kernel options are a comma seperated list of key=value pairs).
 
-Defines a distribution as a matched pair of a kernel and an initrd, and 
-gives it a name.  This could be 'fc5-i386' or 'foosball_rocks', it's your name. Kernel options are inherited from the kernel_opts parameter in /etc/bootconf.conf, though you can override some or all of them.
+B<bootconf profile add --name=group_name --distro=<name> [--kickstart=<url>] [--kopts=<string>] [--xen-name-prefix=<string>] [--xen-file-path=<directory>] [--xen-file-size=<megabytes>] [--xen-ram=<megabytes>] [--xen-mac=<MAC> [--xen-paravirt=true|false] 
 
-B<bootconf group  add --name=group_name --distro=distro_name [--kickstart=url] [--kopts="string"]>
+Defines a provisioning profile, which is a distro, some other optional parameters, and a name for the profile.  Almost always you will want to specify a kickstart file.  For Xen parameters, xen-net-install may interpret some parameters as hints, not absolutes, if it has to resolve conflicts such as MAC issues or missing paths.  All of these Xen-hints are optional, though as many as possible should be specified if you don't want to risk xen-net-install's defaults.
 
-Defines a provisioning group, which is a distro (you did define a distro, right?) and optionally a kickstart.  Kickstarts are served up by URLs, so these need to be HTTP, NFS, or FTP URLs that point to a kickstart file.  If you don't want a kickstart, leave that parameter out.  Kernel options are inherited from the distro, but you can optionally override some or all of them.
+B<bootconf system add --name=<ip|mac|hostname> --profile=<name1,name2...> [--kopts=<string>]>
 
-B<bootconf system add --name=ip|mac|hostname --group=group_name [--kopts="string"]>
+Correlates a system name (an IP, hostname, or MAC address of a bare-metal system or a Xen dom0) with the Profiles that are to be deployed onto the system.  PXE is fairly straightforward.  If provisioning Xen, note that some Xen parameters may be (loudly) ignored by xen-net-install, depending on the circumstances.
 
-Defines a system, which is a representation of any netbootable system.  A system can't have a free form name, it has to be a hostname that resolves to an IP, a MAC address, or an actual IP.  Partial IP's (as in whole subnets) may be supported later.  The group parameter is the group name you used with "group add", that is, what group the system belongs to.  Kernel options are inherited from the group, and you probably don't want to override them, but you can override some or all of them.
+=head1 LIST OPERATIONS
 
 B<bootconf distro list>
-
-Gives a list of distributions that are currently configured.  
-
-B<bootconf group list>
-
-Gives a list of all of the groups in a system that are currently configured.
-
+B<bootconf profile list>
 B<bootconf system list>
 
-Gives a list of the sytems that are currently configured.
+These commands list the current configuration.
 
-B<bootconf distro remove --name=distro_name>
+B<bootconf trace <ip|hostname|mac>>
 
-Deletes a distro from the stored configuration.  You can't delete a distro if any groups reference that distro, you'd have to delete all of the systems using that distro first.   Deleting a distro just means that you no longer want it configured for booting, it does not delete any files.
+Trace shows what is configured to deploy to a certain system
 
-B<bootconf group remove --name=group_name>
+=head1 DELETING ENTRIES
 
-Deletes a group from the stored configuration.   You can't delete a group if any systems reference it.  Does not actually delete any kickstart files.
+B<bootconf distro remove --name=<string>>
+B<bootconf profile remove --name=<string>>
+B<bootconf system remove --name=<string>>
 
-B<bootconf system remove --name=system_name>
-
-Deletes a system from the stored configuration.  You can always delete a system.
+=head1 APPLYING CONFIGURATIONS
 
 B<bootconf sync [--dryrun]>
 
-Applies the stored configuration to the system.  If you have any configuration errors, bootconf sync will ask you to run 'bootconf check' and fix them first.  
-
-Usage of the dryrun option will show you the pending changes without actually making them.
+Configurations are saved in /var/bootconf/bootconf.conf and are not applied until 'bootconf sync' is run.  A '--dryrun' option is available for the paranoid.
 
 =head1 PXE EXAMPLE
+
+It is easier to understand bootconf once having gone through some examples.  
 
 B<bootconf check>
 
@@ -83,91 +75,29 @@ B<bootconf distro add --name=rhel4u3 --kernel=/dir1/vmlinuz --initrd=/dir1/initr
 
 B<bootconf distro add --name=fc5 --kernel=/dir2/vmlinuz --initrd=/dir2/initrd.img>
 
-B<bootconf distro list>
+B<bootconf profile add --name=fc5webservers --distro=fc5-i386 --kickstart=http://192.168.1.10/blah/fc5-webservers.ks --kopts="something_to_make_my_gfx_card_work=42,some_other_parameter=foo">
 
-B<bootconf group add --name=fc5webservers --distro=fc5-i386 --kickstart=http://192.168.1.10/blah/fc5-webservers.ks --kopts="customization=blah">
+B<bootconf profile add --name=rhel4u3dbservers --distro=rhel4u3 --kickstart=http://192.168.1.10/blah/rhel4u3-dbservers.ks>
 
-B<bootconf group add --name=rhel4u3dbservers --distro=rhel4u3 --kickstart=http://192.168.1.10/blah/rhel4u3-dbservers.ks>
+B<bootconf system add --name=AA:BB:CC:DD:EE:FF --profile=fc5-webservers>
 
-B<bootconf group list>
-
-B<bootconf system add --name=AA:BB:CC:DD:EE:FF --group=fc5-webservers>
-
-B<bootconf system add --name=AA:BB:CC:DD:EE:FE --group=rhel4u3-dbservers>
-
-B<bootconf system list>
-
-B<bootconf sync --dryrun>
+B<bootconf system add --name=AA:BB:CC:DD:EE:FE --profile=rhel4u3-dbservers>
 
 B<bootconf sync>
 
-=head1 INSTRUCTIONS for Xen
+=head1 XEN EXAMPLE
 
-Bootconf is also a remote repository for xen images, or more specifically, instructions on how to install Xen.  This can allow for central definitions/management of what a Xen image *is* as well as what Xen images should be deployed to what systems. 
+TBA ... though vary much the same
 
-The xen features of bootconf are intended to be leveraged by running "xen-net-install" on the dom0's.  The idea is that when setting up a new Xen system, the user only has to run "xen-net-install" to download xen images and configure them from the central boot server.  Thus the central server becomes a repository for Xen images, and how to install those images.
+=head1 CONFIGURATION FILES
 
-B<bootconf xenprofile add --name=string --kickstart= [zen opts TBA]>
+The current bootconf configuration is kept in /var/bootconf/bootconf.conf.  The file is reasonably-human editable YAML.
 
-First off, create any number of Xen profiles.  The parameters given define what makes up the virtual system.  Note that you do not have to define what systems (if any) will load up the specified Xen domU at this point.  Once sync has been applied (see below), this would enable someone running 'xen-net-install --profile=<name>' from any Xen domU to fetch the configuration from the central boot server.  However, more magic is possible.
-
-B<bootconf xenorders add --name=ip|mac|hostname --profiles=[profile1,profile2]
-
-This stores a dynamic configuration on the boot server, stating that for the dom0 specified in 'name', the following xenprofiles (declared previously) should be installed when the command 'xen-net-install --auto' is run on the domU.  This allows magically flexible synergy to be achieved, see 'COMBINING PXE AND XEN'.
-
-=head1 EXAMPLE for Xen
-
-The following example assumes there are two machines that are running Xen hypervisors called 'acmelabs' and 'foobar'.  'xen-net-install --auto' will be run on both machines, and the result of running these installs 2 xen domU's on 'acmelabs' and 1 domU on 'foobar'.
-
-B<bootconf check>
-
-B<bootconf xenprofile add --name=webserver [args...]
-
-B<bootconf xenprofile add --name=dbserver [args...]
-
-B<bootconf xenorders add --name=acmelabs.example.com --profiles=[webserver.profile2]
-
-B<bootconf xenorders add --name=foobar.example.com --profiles=webserver>
-
-B<bootconf sync>
-
-=head1 COMBINING XEN AND BARE-METAL PXE
-
-bootconf is usable for just bare metal PXE or Xen, but it is possible
-to automatically PXE-provision new machines to auto-install themselves
-as Xen dom0's, and then from those dom0's, automatically install several
-domU's on them, without system administrator interaction.  This makes
-bootconf an integrated boot server for both PXE and Xen configuration.
-
-How does this work?
-
-B<bootconf check>
-
-B<bootconf distro add --name=rhel4u3 --kernel=/installer/vmlinuz --initrd=/installer/initrd.img
-
-B<bootconf group add --name=xendom0 --kickstart=http://bootserver.example.com/fc5_with_dom0.ks>
-
-The kickstart needs to remember install the xen kernels, 'xm', 'libvirt', and 'xen-net install'.  There should be a sample kickstart to do this available at some point.  Let's say the MAC address of the system is AA:BB:CC:DD:EE:FF
-
-B<bootconf system add --name=AA:BB:CC:DD:EE:FF --group=xendom0>
-
-Now the system, when it PXE boots, should be set up to install Xen.  However the system will not know what Xen domU's to install inside it.  This too can be controlled in bootconf.
-
-B<bootconf xenprofile add --name=dbserver [args...]>
-B<bootconf xenprofile add --name=webserver [args...]>
-B<bootconf xenorders add --name=AA:BB:CC:DD:EE:FF --profiles=dbserver,webserver>
-B<bootconf sync>
-
-When the system with MAC address AA:BB:CC:DD:EE:FF boots, the system will be bare-metal-PXE provisioned to install a minimal OS and a Xen kernel/hypervisor.  Using the kickstart for this system, "xen-net-install" will be kicked off to ask the boot server what xen domU's to install.  Given the profile above, the system will recieve the 'dbserver' and 'webserver' domU's, which will be installed and automatically started.
-
-=head1 CONFIGURATION_FILES
-
-bootconf uses /etc/bootconf.conf to store basic settings and /var/bootconf/bootconf.conf for it's internal state.  
-
-After editing /etc/bootconf.conf, run 'bootconf check' againt o ensure that no errors were introduced.
+Global settings are in /etc/bootconf.conf.  After editing /etc/bootconf.conf, run 'bootconf check' to ensure that no errors were introduced.
 
 If you happen to screw up /var/bootconf/bootconf.conf or /etc/bootconf.conf, you can delete them and they will be recreated.
 
+No changes are ever applied to the provisioning state unless 'bootconf sync' is run.
 
 =head1 EXIT_STATUS
 
