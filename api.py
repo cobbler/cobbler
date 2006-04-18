@@ -13,10 +13,11 @@ from msg import *
 
 class BootAPI:
 
-    """
-    Constructor...
-    """
+
     def __init__(self):
+       """
+       Constructor...
+       """
        self.last_error = ''
        self.config = config.BootConfig(self)
        self.utils  = util.BootUtil(self,self.config)
@@ -35,72 +36,82 @@ class BootAPI:
        if not self.config.files_exist():
            self.config.serialize()
 
-    """
-    Forget about current list of profiles, distros, and systems
-    """
+
     def clear(self):
+       """
+       Forget about current list of profiles, distros, and systems
+       """
        self.config.clear()
 
-    """
-    Return the current list of systems
-    """
+
     def get_systems(self):
+       """
+       Return the current list of systems
+       """
        return self.config.get_systems()
 
-    """
-    Return the current list of profiles 
-    """
+
     def get_profiles(self):
+       """
+       Return the current list of profiles 
+       """
        return self.config.get_profiles()
 
-    """
-    Return the current list of distributions
-    """
+
     def get_distros(self):
+       """
+       Return the current list of distributions
+       """
        return self.config.get_distros()
 
-    """
-    Create a blank, unconfigured system
-    """
+
     def new_system(self):
+       """
+       Create a blank, unconfigured system
+       """
        return System(self,None)
 
-    """
-    Create a blank, unconfigured distro
-    """
+
     def new_distro(self):
+       """
+       Create a blank, unconfigured distro
+       """
        return Distro(self,None)
 
-    """
-    Create a blank, unconfigured profile
-    """
+
     def new_profile(self):
+       """
+       Create a blank, unconfigured profile
+       """
        return Profile(self,None)
 
-    """
-    See if all preqs for network booting are operational
-    """
+
     def check(self):
+       """
+       See if all preqs for network booting are operational
+       """
        return check.BootCheck(self).run()
 
-    """
-    Update the system with what is specified in the config file
-    """ 
+
     def sync(self,dry_run=True):
+       """
+       Update the system with what is specified in the config file
+       """ 
        self.config.deserialize();
        configurator = sync.BootSync(self)
        configurator.sync(dry_run)
 
-    """
-    Save the config file
-    """
+
     def serialize(self):
+       """
+       Save the config file
+       """
        self.config.serialize() 
     
-    """
-    Make the API's internal state reflect that of the config file
-    """
     def deserialize(self):
+       """
+       Make the API's internal state reflect that of the config file
+       """
        self.config.deserialize()
 
 #--------------------------------------
@@ -110,25 +121,27 @@ Base class for any serializable lists of things...
 """
 class Collection:
 
-    """
-    Return anything named 'name' in the collection, else return None
-    """
+
     def find(self,name):
+        """
+        Return anything named 'name' in the collection, else return None
+        """
         if name in self.listing.keys():
             return self.listing[name]
         return None
 
-    """
-    Return datastructure representation (to feed to serializer)
-    """
+
     def to_datastruct(self):
+        """
+        Return datastructure representation (to feed to serializer)
+        """
         return [x.to_datastruct() for x in self.listing.values()]
     
      
-    """
-    Add an object to the collection, if it's valid
-    """
     def add(self,ref):
+        """
+        Add an object to the collection, if it's valid
+        """
         if ref is None or not ref.is_valid(): 
             if self.api.last_error is None or self.api.last_error == "":
                 self.api.last_error = m("bad_param")
@@ -136,10 +149,11 @@ class Collection:
         self.listing[ref.name] = ref
         return True
 
-    """
-    Printable representation
-    """
+
     def __str__(self):
+        """
+        Printable representation
+        """
         buf = ""
         values = map(lambda(a): str(a), sorted(self.listing.values()))
         if len(values) > 0: 
@@ -148,7 +162,25 @@ class Collection:
            return m("empty_list")
 
     def contents(self):
+        """
+	Access the raw contents of the collection.  Classes shouldn't
+	be doing this (preferably) and should use the __iter__ interface
+	"""
         return self.listing.values()
+
+    def __iter__(self):
+        """
+	Iterator for the collection.  Allows list comprehensions, etc
+	"""
+        for a in self.listing.values():
+	    yield a
+	    
+    def __len__(self):
+        """
+	Returns size of the collection
+	"""
+        return len(self.listing.values())
+	    
 
 #--------------------------------------------
 
@@ -159,15 +191,21 @@ and initrd files
 class Distros(Collection):
 
     def __init__(self,api,seed_data):
+        """
+	Constructor.  Requires an API reference.  seed_data
+	is a hash of data to feed into the collection, that would
+	come from the config file in /var.
+	"""
         self.api = api
         self.listing = {}
         if seed_data is not None:
            for x in seed_data: 
                self.add(Distro(self.api,x))
-    """
-    Remove element named 'name' from the collection
-    """
+
     def remove(self,name):
+        """
+        Remove element named 'name' from the collection
+        """
         # first see if any Groups use this distro
         for k,v in self.api.get_profiles().listing.items():
             if v.distro == name:
@@ -196,10 +234,11 @@ class Profiles(Collection):
         if seed_data is not None:
            for x in seed_data: 
                self.add(Profile(self.api,x))
-    """
-    Remove element named 'name' from the collection
-    """
+
     def remove(self,name):
+        """
+        Remove element named 'name' from the collection
+        """
         for k,v in self.api.get_systems().listing.items():
            if v.profile == name:
                self.api.last_error = m("orphan_system")
@@ -225,10 +264,11 @@ class Systems(Collection):
         if seed_data is not None:
            for x in seed_data: 
                self.add(System(self.api,x))
-    """
-    Remove element named 'name' from the collection
-    """
+
     def remove(self,name):
+        """
+        Remove element named 'name' from the collection
+        """
         if self.find(name):
             del self.listing[name]
             return True
@@ -243,22 +283,37 @@ An Item is a serializable thing that can appear in a Collection
 """
 class Item:
   
-    """
-    All objects have names, and with the exception of System
-    they aren't picky about it.
-    """
+
     def set_name(self,name):
+        """
+        All objects have names, and with the exception of System
+        they aren't picky about it.
+        """
         self.name = name
         return True
 
     def set_kernel_options(self,options_string):
+        """
+	Kernel options are a comma delimited list of key value pairs,
+	like 'a=b,c=d,e=f'
+	"""
         self.kernel_options = options_string
         return True
 
     def to_datastruct(self):
+        """
+	Returns an easily-marshalable representation of the collection.
+	i.e. dictionaries/arrays/scalars.
+	"""
         raise "not implemented"
    
     def is_valid(self):
+        """
+	The individual set_ methods will return failure if any set is
+	rejected, but the is_valid method is intended to indicate whether
+	the object is well formed ... i.e. have all of the important
+	items been set, are they free of conflicts, etc.
+	"""
         return False 
 
 #------------------------------------------
@@ -278,6 +333,13 @@ class Distro(Item):
            self.kernel_options = seed_data['kernel_options']
 
     def set_kernel(self,kernel):
+        """
+	Specifies a kernel.  The kernel parameter is a full path, a filename
+	in the configured kernel directory (set in /etc/bootconf.conf) or a 
+	directory path that would contain a selectable kernel.  Kernel
+	naming conventions are checked, see docs in the utils module
+	for find_kernel.
+	"""
         if self.api.utils.find_kernel(kernel):
             self.kernel = kernel
             return True
@@ -285,6 +347,10 @@ class Distro(Item):
         return False
 
     def set_initrd(self,initrd):
+        """
+	Specifies an initrd image.  Path search works as in set_kernel.
+	File must be named appropriately.
+	"""
         if self.api.utils.find_initrd(initrd):
             self.initrd = initrd
             return True
@@ -292,6 +358,10 @@ class Distro(Item):
         return False
 
     def is_valid(self):
+        """
+	A distro requires that the kernel and initrd be set.  All
+	other variables are optional.
+	"""
         for x in (self.name,self.kernel,self.initrd):
             if x is None: return False
         return True
@@ -305,6 +375,9 @@ class Distro(Item):
         }
 
     def __str__(self):
+        """
+	Human-readable representation.
+	"""
         kstr = self.api.utils.find_kernel(self.kernel)
         istr = self.api.utils.find_initrd(self.initrd)
         if kstr is None:
@@ -350,6 +423,10 @@ class Profile(Item):
            self.xen_paravirt    = seed_data['xen_paravirt']
 
     def set_distro(self,distro_name):
+        """
+	Sets the distro.  This must be the name of an existing
+	Distro object in the Distros collection.
+	"""
         if self.api.get_distros().find(distro_name):
             self.distro = distro_name
             return True
@@ -357,6 +434,10 @@ class Profile(Item):
         return False
 
     def set_kickstart(self,kickstart):
+        """
+	Sets the kickstart.  This must be a NFS, HTTP, or FTP URL.
+	Minor checking of the URL is performed here.
+	"""
         if self.api.utils.find_kickstart(kickstart):
             self.kickstart = kickstart
             return True
@@ -364,6 +445,13 @@ class Profile(Item):
         return False
 
     def set_xen_name_prefix(self,str):
+        """
+	For Xen only.
+	Specifies that Xen filenames created with xen-net-install should 
+	start with 'str'.  To keep the shell happy, the 'str' cannot
+	contain wildcards or slashes.  xen-net-install is free to ignore
+	this suggestion.
+	"""
         # no slashes or wildcards
         for bad in [ '/', '*', '?' ]:
             if str.find(bad) != -1:
@@ -372,6 +460,12 @@ class Profile(Item):
         return True
 
     def set_xen_file_path(self,str):
+        """
+	For Xen only.
+	Specifies that Xen filenames be stored in path specified by 'str'.
+	Paths must be absolute.  xen-net-install will ignore this suggestion
+	if it cannot write to the given location.
+	""" 
         # path must look absolute
         if len(str) < 1 or str[0] != "/":
             return False
@@ -379,6 +473,14 @@ class Profile(Item):
         return True
 
     def set_xen_file_size(self,num):
+        """
+	For Xen only.
+	Specifies the size of the Xen image in megabytes.  xen-net-install
+	may contain some logic to ignore 'illogical' values of this size,
+	though there are no guarantees.  0 tells xen-net-install to just
+	let it pick a semi-reasonable size.  When in doubt, specify the
+	size you want.
+	"""
         # num is a non-negative integer (0 means default) 
         try:
             inum = int(num)
@@ -392,6 +494,15 @@ class Profile(Item):
             return False
 
     def set_xen_mac(self,mac):
+        """
+	For Xen only.
+	Specifies the mac address (or possibly later, a range) that 
+	xen-net-install should try to set on the domU.  Seeing these
+	have a good chance of conflicting with other domU's, especially
+	on a network, this setting is fairly experimental at this time.
+	It's recommended that it *not* be used until we can get
+	decent use cases for how this might work. 
+	"""
         # mac needs to be in mac format AA:BB:CC:DD:EE:FF or a range
         # ranges currently *not* supported, so we'll fail them
         if self.api.utils.is_mac(mac):
@@ -401,6 +512,12 @@ class Profile(Item):
             return False
    
     def set_xen_paravirt(self,truthiness):
+        """
+	For Xen only.
+	Specifies whether the system is a paravirtualized system or not.
+	For ordinary computers, you want to pick 'true'.  Method accepts string
+	'true'/'false' in all cases, or Python True/False.
+	"""
         # truthiness needs to be True or False, or (lcased) string equivalents
         try:
             if (truthiness == False or truthiness.lower() == 'false'):
@@ -414,6 +531,11 @@ class Profile(Item):
         return True
 
     def is_valid(self):
+        """
+	A profile only needs a name and a distro.  Kickstart info,
+	as well as Xen info, are optional.  (Though I would say provisioning
+	without a kickstart is *usually* not a good idea).
+	"""
         for x in (self.name, self.distro):
             if x is None: 
                 return False
@@ -461,12 +583,13 @@ class System(Item):
            self.profile = seed_data['profile']
            self.kernel_options = seed_data['kernel_options']
     
-    """
-    A name can be a resolvable hostname (it instantly resolved and replaced with the IP), 
-    any legal ipv4 address, or any legal mac address. ipv6 is not supported yet but _should_ be.
-    See utils.py
-    """
+
     def set_name(self,name):
+        """
+        A name can be a resolvable hostname (it instantly resolved and replaced with the IP), 
+        any legal ipv4 address, or any legal mac address. ipv6 is not supported yet but _should_ be.
+        See utils.py
+        """
         new_name = self.api.utils.find_system_identifier(name) 
         if new_name is None or new_name == False:
             self.api.last_error = m("bad_sys_name")
@@ -475,12 +598,19 @@ class System(Item):
         return True
 
     def set_profile(self,profile_name):
+        """
+	Set the system to use a certain named profile.  The profile 
+	must have already been loaded into the Profiles collection.
+	"""
         if self.api.get_profiles().find(profile_name):
             self.profile = profile_name
             return True
         return False
 
     def is_valid(self):
+        """
+	A system is valid when it contains a valid name and a profile.
+	"""
         if self.name is None:
             self.api.last_error = m("bad_sys_name")
             return False

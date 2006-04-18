@@ -1,8 +1,10 @@
 # Messages used by bootconf.
-# Just consolidated here so they're not in the source.
-# No plans on localization any time soon.
-# 
 # Michael DeHaan <mdehaan@redhat.com>
+
+"""
+This module encapsulates strings so they can
+be reused and potentially translated.
+"""
 
 msg_table = {
   "parse_error"     : "could not parse /etc/bootconf.conf",
@@ -50,10 +52,10 @@ Good luck.
   "help"           : "see 'man bootconf'"
 }
 
-"""
-Return the lookup of a string key.
-"""
 def m(key):
+   """
+   Return the lookup of a string key.
+   """
    if key in msg_table:
        # localization could use different tables or just gettext.
        return msg_table[key]

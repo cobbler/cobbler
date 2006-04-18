@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-
-# BootConf.py
-# 
-# The command line interface for BootConf, a network boot configuration
-# library ...
-#
 # Michael DeHaan <mdehaan@redhat.com>
+
+"""
+Command line interface for BootConf, a network boot configuration
+library
+"""
 
 import os
 import sys
@@ -18,10 +17,11 @@ from msg import *
 
 class BootCLI:
 
-    """
-    Build the command line parser and API instances, etc.
-    """
+
     def __init__(self,args):
+        """
+        Build the command line parser and API instances, etc.
+        """
         self.args = args
         self.api = api.BootAPI()
         self.commands = {}
@@ -58,82 +58,91 @@ class BootCLI:
             'help'     : self.help
         }
 
-    """
-    Run the command line
-    """
+
     def run(self):
+        """
+        Run the command line
+        """
         rc = self.curry_args(self.args[1:], self.commands['toplevel'])
         if not rc:
             print self.api.last_error
         return rc
 
 
-    """
-    Print out abbreviated help if user gives bad syntax
-    """
     def usage(self):
+        """
+        Print out abbreviated help if user gives bad syntax
+        """
         print m("usage")
         return False
 
-    """
-    Print out tediously wrong help:  'bootconf help'
-    """
+
     def help(self,args):
+        """
+        Print out tediously wrong help:  'bootconf help'
+        """
         print m("help")
         return False
 
-    """
-    Print out the list of systems:  'bootconf system list'
-    """
+
     def system_list(self,args):
+        """
+        Print out the list of systems:  'bootconf system list'
+        """
         print str(self.api.get_systems())
 
-    """
-    Print out the list of profiles: 'bootconf profile list'
-    """
+
     def profile_list(self,args):
+        """
+        Print out the list of profiles: 'bootconf profile list'
+        """
         print str(self.api.get_profiles())
     
-    """
-    Print out the list of distros: 'bootconf distro list'
-    """
+
     def distro_list(self,args):
+        """
+        Print out the list of distros: 'bootconf distro list'
+        """
         print str(self.api.get_distros())
 
-    """
-    Delete a system:  'bootconf system remove --name=foo'
-    """
+
     def system_remove(self,args):
+        """
+        Delete a system:  'bootconf system remove --name=foo'
+        """
         commands = {
            '--name'       : lambda(a):  self.api.get_systems().remove(a) 
         }
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok,True)
 
-    """
-    Delete a profile:   'bootconf profile remove --name=foo'
-    """
+
     def profile_remove(self,args):
+        """
+        Delete a profile:   'bootconf profile remove --name=foo'
+        """
         commands = {
            '--name'       : lambda(a):  self.api.get_profiles().remove(a)
         }
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok,True)
 
-    """
-    Delete a distro:  'bootconf distro remove --name='foo'
-    """
+
     def distro_remove(self,args):
+        """
+        Delete a distro:  'bootconf distro remove --name='foo'
+        """
         commands = {
            '--name'     : lambda(a):  self.api.get_distros().remove(a)
         }
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok,True)
 
-    """
-    Create/Edit a system:  'bootconf system edit --name='foo' ...
-    """
+
     def system_edit(self,args):
+        """
+        Create/Edit a system:  'bootconf system edit --name='foo' ...
+        """
         sys = self.api.new_system()
         commands = {
            '--name'     :  lambda(a) : sys.set_name(a),
@@ -144,10 +153,11 @@ class BootCLI:
         on_ok = lambda: self.api.get_systems().add(sys)
         return self.apply_args(args,commands,on_ok,True)
 
-    """
-    Create/Edit a profile:  'bootconf profile edit --name='foo' ...
-    """
+
     def profile_edit(self,args):
+        """
+        Create/Edit a profile:  'bootconf profile edit --name='foo' ...
+        """
         profile = self.api.new_profile()
         commands = {
             '--name'            :  lambda(a) : profile.set_name(a),
@@ -165,10 +175,11 @@ class BootCLI:
         on_ok = lambda: self.api.get_profiles().add(profile)
         return self.apply_args(args,commands,on_ok,True)
     
-    """
-    Create/Edit a distro:  'bootconf distro edit --name='foo' ...
-    """
+
     def distro_edit(self,args):
+        """
+        Create/Edit a distro:  'bootconf distro edit --name='foo' ...
+        """
         distro = self.api.new_distro()
         commands = {
             '--name'      :  lambda(a) : distro.set_name(a),
@@ -179,11 +190,12 @@ class BootCLI:
         on_ok = lambda: self.api.get_distros().add(distro)
         return self.apply_args(args,commands,on_ok,True)
 
-    """
-    Instead of getopt...
-    Parses arguments of the form --foo=bar, see profile_edit for example
-    """
+
     def apply_args(self,args,input_routines,on_ok,serialize):
+        """
+        Instead of getopt...
+        Parses arguments of the form --foo=bar, see profile_edit for example
+        """
         if len(args) == 0:
             print m("no_args")
             return False
@@ -206,11 +218,12 @@ class BootCLI:
             self.api.serialize()
         return rc
 
-    """
-    Helper function to make subcommands a bit more friendly.
-    See profiles(), system(), or distro() for examples
-    """
+
     def curry_args(self, args, commands):
+        """
+        Helper function to make subcommands a bit more friendly.
+        See profiles(), system(), or distro() for examples
+        """
         if args is None or len(args) == 0:
             print m("help")
             return False
@@ -223,10 +236,11 @@ class BootCLI:
             return False
         return True
 
-    """
-    Sync the config file with the system config: 'bootconf sync [--dryrun]'
-    """
+
     def sync(self, args):
+        """
+        Sync the config file with the system config: 'bootconf sync [--dryrun]'
+        """
         status = None 
         if args is not None and "--dryrun" in args:
             status = self.api.sync(dry_run=True)
@@ -234,10 +248,11 @@ class BootCLI:
             status = self.api.sync(dry_run=False)
         return status
        
-    """
-    Check system for network boot decency/prereqs: 'bootconf check'
-    """
+
     def check(self,args):
+        """
+        Check system for network boot decency/prereqs: 'bootconf check'
+        """
         status = self.api.check()
         if status is None:
             return False
@@ -250,22 +265,25 @@ class BootCLI:
                print "#%d: %s" % (i,x)
             return False
   
-    """
-    Handles any of the 'bootconf distro' subcommands
-    """
+
     def distro(self,args):
+        """
+        Handles any of the 'bootconf distro' subcommands
+        """
         return self.curry_args(args, self.commands['distro']) 
 
-    """
-    Handles any of the 'bootconf profile' subcommands
-    """
+
     def profile(self,args):
+        """
+        Handles any of the 'bootconf profile' subcommands
+        """
         return self.curry_args(args, self.commands['profile'])
 
-    """
-    Handles any of the 'bootconf system' subcommands
-    """
+
     def system(self,args):
+        """
+        Handles any of the 'bootconf system' subcommands
+        """
         return self.curry_args(args, self.commands['system'])
 
 if __name__ == "__main__":

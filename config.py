@@ -9,6 +9,8 @@ from msg import *
 
 import os
 import yaml
+#import syck -- we *want* to use syck, but the FC syck currently does not 
+#            -- contain the dump function, i.e. not gonna work
 import traceback
 
 class BootConfig:
@@ -146,7 +148,7 @@ class BootConfig:
             return False
         data = self.to_hash(True)
         settings.write(yaml.dump(data))
-        
+ 
         # ------
         # dump internal state (distros, profiles, systems...)
         if not os.path.isdir(os.path.dirname(self.state_file)):
