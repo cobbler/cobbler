@@ -10,7 +10,7 @@ bootconf command [subcommand] [--arg1=] [--arg2=]
 
 Configuration of a PXE boot server involves setting up a tftpd server, a dhcpd server, syslinux, and creating semi-complex configuration file trees.
 
-Bootconf makes these things faster, simpler, and more flexible.  It also does the same things for provisioning Xen as it does for PXE.   The client-side component of Xen provisioning is 'xen-net-install'.  
+Bootconf makes these things faster, simpler, and more flexible.  It also does the same things for provisioning Xen as it does for PXE -- allowing the same repository to deploy PXE and Xen while remaining fairly agnostic to the differences between them.  The client-side tool for xen is xen-net-install.
 
 =head1 INSTRUCTIONS FOR PXE
 
@@ -37,9 +37,9 @@ B<bootconf profile add --name=group_name --distro=<name> [--kickstart=<url>] [--
 
 Defines a provisioning profile, which is a distro, some other optional parameters, and a name for the profile.  Almost always you will want to specify a kickstart file.  For Xen parameters, xen-net-install may interpret some parameters as hints, not absolutes, if it has to resolve conflicts such as MAC issues or missing paths.  All of these Xen-hints are optional, though as many as possible should be specified if you don't want to risk xen-net-install's defaults.
 
-B<bootconf system add --name=<ip|mac|hostname> --profile=<name1,name2...> [--kopts=<string>]>
+B<bootconf system add --name=<ip|mac|hostname> --profile=<name1> [--kopts=<string>]>
 
-Correlates a system name (an IP, hostname, or MAC address of a bare-metal system or a Xen dom0) with the Profiles that are to be deployed onto the system.  PXE is fairly straightforward.  If provisioning Xen, note that some Xen parameters may be (loudly) ignored by xen-net-install, depending on the circumstances.
+Correlates a system name (an IP, hostname, or MAC address of a bare-metal system or a Xen dom0) with a PXE profile to be deployed to the system.  For Xen, system configurations are *not* relevant -- xen-net-install run on the dom0 decides what profiles will be installed.
 
 =head1 LIST OPERATIONS
 
@@ -87,7 +87,7 @@ B<bootconf sync>
 
 =head1 XEN EXAMPLE
 
-TBA ... though vary much the same
+TBA
 
 =head1 CONFIGURATION FILES
 

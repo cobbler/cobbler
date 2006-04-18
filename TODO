@@ -1,7 +1,7 @@
 
 bootconf TODO list
 
-   - Implement Xen tree creation / write xen-net-install
+P  - Implement Xen tree creation / write xen-net-install
 D  - Unified options and nomenclature for Xen.
 D  - Group is a "Profile", not a Group
    - Bootconf 'trace' command to show what a system would be provisioned to
@@ -14,9 +14,9 @@ I  - Manpage (in progress) .. continuously...
      from the group (can and must if the distro has a kickstart specified).
   -  Don't require root, check for permissions on dirpaths we touch.  (Run pieces of check modularly when we start)
   -  openuri checking for kickstart existance (HTTP HEAD)
-  -  Support pxelinux's default directory and impl. Xen defaults
-  -  Subnet creation shorthand
-  -  MAC ranges for Xen (how best to do this?)
+  -  Support pxelinux's default directory
+  -  Subnet creation shorthand ... (system objects that match multiples?)
+  -  MAC ranges for Xen (how best to do this? shelve this for now).
   -  Consider some sort of kickstart manager to templatize kickstarts?
      
 LEGEND
