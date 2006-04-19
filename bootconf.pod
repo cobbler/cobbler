@@ -33,9 +33,9 @@ B<bootconf distro add --name=<string> --kernel=<path> --initrd=<path> [--kopts=<
 
 Defines a distribution.  Minimally, this is a matched set of an initrd and a kernel that has a name, such as 'fc5-i386' or 'rhel4-x86_64'.  Here you can also override and extend the default kernel options ('kopts') specified in /etc/bootconf.conf (kernel options are a comma seperated list of key=value pairs).
 
-B<bootconf profile add --name=group_name --distro=<name> [--kickstart=<url>] [--kopts=<string>] [--xen-name-prefix=<string>] [--xen-file-path=<directory>] [--xen-file-size=<megabytes>] [--xen-ram=<megabytes>] [--xen-mac=<MAC> [--xen-paravirt=true|false] 
+B<bootconf profile add --name=group_name --distro=<name> [--kickstart=<url>] [--kopts=<string>] [--xen-name=<string>] [--xen-file-size=<gigabytes>] [--xen-ram=<megabytes>] [--xen-mac=<MAC> [--xen-paravirt=true|false] 
 
-Defines a provisioning profile, which is a distro, some other optional parameters, and a name for the profile.  Almost always you will want to specify a kickstart file.  For Xen parameters, xen-net-install may interpret some parameters as hints, not absolutes, if it has to resolve conflicts such as MAC issues or missing paths.  All of these Xen-hints are optional, though as many as possible should be specified if you don't want to risk xen-net-install's defaults.
+Defines a provisioning profile, which is a distro, some other optional parameters, and a name for the profile.  Almost always you will want to specify a kickstart file.  For Xen parameters, xen-net-install may interpret some parameters as hints, not absolutes, if it has to resolve conflicts.  All of these Xen parameters are optional, though as many as possible should be specified if you don't want to risk xen-net-install's defaults.
 
 B<bootconf system add --name=<ip|mac|hostname> --profile=<name1> [--kopts=<string>]>
 

@@ -405,8 +405,7 @@ class Profile(Item):
         self.distro = None # a name, not a reference
         self.kickstart = None
         self.kernel_options = ''
-        self.xen_name_prefix = 'xen'
-        self.xen_file_path = '/var/xen-files'
+        self.xen_name = 'xen'
         self.xen_file_size = 10240
         self.xen_ram = 2048
         self.xen_mac = ''
@@ -416,8 +415,7 @@ class Profile(Item):
            self.distro          = seed_data['distro']
            self.kickstart       = seed_data['kickstart'] 
            self.kernel_options  = seed_data['kernel_options']
-           self.xen_name_prefix = seed_data['xen_name_prefix']
-           self.xen_file_path   = seed_data['xen_file_path']
+           self.xen_name        = seed_data['xen_name']
            self.xen_file_size   = seed_data['xen_ram']
            self.xen_mac         = seed_data['xen_mac']
            self.xen_paravirt    = seed_data['xen_paravirt']
@@ -444,19 +442,20 @@ class Profile(Item):
         self.last_error = m("no_kickstart")
         return False
 
-    def set_xen_name_prefix(self,str):
+    def set_xen_name(self,str):
         """
 	For Xen only.
-	Specifies that Xen filenames created with xen-net-install should 
-	start with 'str'.  To keep the shell happy, the 'str' cannot
-	contain wildcards or slashes.  xen-net-install is free to ignore
-	this suggestion.
+	Specifies what xenguest install should use for --name.
+        xen-net-install may do conflict resolution, so this is mostly
+        a hint...  To keep the shell happy, the 'str' cannot
+	contain wildcards or slashes and may be subject to some other
+        untainting later.  
 	"""
         # no slashes or wildcards
         for bad in [ '/', '*', '?' ]:
             if str.find(bad) != -1:
                 return False
-        self.xen_name_prefix = str
+        self.xen_name = str
         return True
 
     def set_xen_file_path(self,str):
@@ -475,7 +474,7 @@ class Profile(Item):
     def set_xen_file_size(self,num):
         """
 	For Xen only.
-	Specifies the size of the Xen image in megabytes.  xen-net-install
+	Specifies the size of the Xen image in gigabytes.  xen-net-install
 	may contain some logic to ignore 'illogical' values of this size,
 	though there are no guarantees.  0 tells xen-net-install to just
 	let it pick a semi-reasonable size.  When in doubt, specify the
@@ -546,9 +545,8 @@ class Profile(Item):
             'name' : self.name,
             'distro' : self.distro,
             'kickstart' : self.kickstart,
-            'kernel_options' : self.kernel_options,
-            'xen_name_prefix' : self.xen_name_prefix,
-            'xen_file_path'   : self.xen_file_path,
+            'kernel_options'  : self.kernel_options,
+            'xen_name'        : self.xen_name,
             'xen_file_size'   : self.xen_file_size,
             'xen_ram'         : self.xen_ram,
             'xen_mac'         : self.xen_mac,

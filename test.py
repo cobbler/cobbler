@@ -138,15 +138,12 @@ class Additions(BootTest):
         self.assertTrue(profile.set_name("testprofile12b"))
         self.assertTrue(profile.set_distro("testdistro0"))
         self.assertTrue(profile.set_kickstart("http://127.0.0.1/foo"))
-        # no slashes or wildcards in prefixes
-        self.assertTrue(profile.set_xen_name_prefix("xen"))
-        self.assertTrue(profile.set_xen_name_prefix("xen"))
-        self.assertFalse(profile.set_xen_name_prefix("xen/foo"))
-        self.assertFalse(profile.set_xen_name_prefix("xen*foo"))
-        self.assertFalse(profile.set_xen_name_prefix("xen?foo"))
-        # paths must be absolute
-        self.assertFalse(profile.set_xen_file_path("tmp"))
-        self.assertTrue(profile.set_xen_file_path("/tmp"))
+        # no slashes or wildcards in name
+        self.assertTrue(profile.set_xen_name("xen"))
+        self.assertTrue(profile.set_xen_name("xen"))
+        self.assertFalse(profile.set_xen_name("xen/foo"))
+        self.assertFalse(profile.set_xen_name("xen*foo"))
+        self.assertFalse(profile.set_xen_name("xen?foo"))
         # sizes must be integers
         self.assertTrue(profile.set_xen_file_size("54321"))
         self.assertFalse(profile.set_xen_file_size("huge"))
