@@ -42,8 +42,10 @@ class CurlDownload:
         cmd = "curl tftp://%s/%s -o %s" % (server,src,dest)
         if self.verbose:
             print "> %s" % cmd
-        os.system(cmd)
-        
+        rc = os.system(cmd)
+        if rc!=0:
+            raise "Error.  File doesn't exist?"
+    
     def get_data(self,server,src):
         """
         Download TFTP file from server and return string
@@ -53,8 +55,13 @@ class CurlDownload:
             print "> %s" % cmd
         out = os.popen(cmd)
         data = out.read()
+        if data is None or data == "":
+            raise "Server unreachable or profile doesn't exist."
         out.close()
-        return yaml.load(data).next()       
+        try:
+            return yaml.load(data).next()       
+        except:
+            raise "Server returned invalid data."
 
 class XenNetInstall:
     """
