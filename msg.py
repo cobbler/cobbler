@@ -8,6 +8,7 @@ be reused and potentially translated.
 
 msg_table = {
   "parse_error"     : "could not parse /etc/bootconf.conf",
+  "parse_error2"    : "could not parse /var/bootconf/bootconf.conf",
   "no_create"       : "cannot create: %s",
   "no_args"         : "this command requires arguments.",
   "missing_options" : "cannot add, all parameters have not been set",

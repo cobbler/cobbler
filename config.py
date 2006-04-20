@@ -195,7 +195,7 @@ class BootConfig:
                 print "WARNING: no %s data?" % self.state_file
         except:
             traceback.print_exc()
-            self.api.last_error = m("parse_error")
+            self.api.last_error = m("parse_error2")
             return False
         
         # all good
