@@ -406,8 +406,8 @@ class Profile(Item):
         self.kickstart = None
         self.kernel_options = ''
         self.xen_name = 'xen'
-        self.xen_file_size = 10240
-        self.xen_ram = 2048
+        self.xen_file_size = 2 # GB 
+        self.xen_ram = 2048    # MB
         self.xen_mac = ''
         self.xen_paravirt = True
         if seed_data is not None:
@@ -416,7 +416,8 @@ class Profile(Item):
            self.kickstart       = seed_data['kickstart'] 
            self.kernel_options  = seed_data['kernel_options']
            self.xen_name        = seed_data['xen_name']
-           self.xen_file_size   = seed_data['xen_ram']
+           self.xen_ram         = seed_data['xen_ram']
+           self.xen_file_size   = seed_data['xen_file_size']
            self.xen_mac         = seed_data['xen_mac']
            self.xen_paravirt    = seed_data['xen_paravirt']
 
