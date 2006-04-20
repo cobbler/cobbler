@@ -1,0 +1,23 @@
+---
+distros:
+    -
+        initrd: '/var/bootimages/initrd.img'
+        kernel: '/var/bootimages/vmlinuz'
+        kernel_options: ''
+        name: testdistro0
+profiles:
+    -
+        distro: testdistro0
+        kernel_options: ''
+        kickstart: 'http://deadbeat.rdu.redhat.com/anaconda-ks.cfg'
+        name: testprofile0
+        xen_file_size: 2
+        xen_mac: ''
+        xen_name: xen
+        xen_paravirt: True
+        xen_ram: 256
+systems:
+    -
+        kernel_options: ''
+        name: smurfy.devel.redhat.com
+        profile: testprofile0
