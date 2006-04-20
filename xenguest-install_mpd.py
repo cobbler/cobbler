@@ -18,6 +18,7 @@ import subprocess
 import tempfile
 import urlgrabber.grabber as grabber
 import random
+import traceback
 from optparse import OptionParser
 
 XENCONFIGPATH="/etc/xen/"
@@ -213,10 +214,18 @@ def get_paravirt_install_image(src):
 	try:
             kernel = open("%s/images/xen/vmlinuz" %(nfsmntdir,), "r")
             initrd = open("%s/images/xen/initrd.img" %(nfsmntdir,), "r")
-	except IOError:
+        except IOError:
             print >> sys.stderr, "Invalid NFS location given"
             sys.exit(2)
-        
+    elif src.startswith("file://"):
+        try:
+            # takes *two* files as in "--location=file://initrd.img,vmlinuz"
+            initrd, kernel = map(lambda(f): open(f,"r"), src[7:].split(","))    
+        except:
+            traceback.print_exc()
+            print >> sys.stderr, "Invalid local files given"
+            sys.exit(2)   
+
     (kfd, kfn) = tempfile.mkstemp(prefix="vmlinuz.", dir="/var/lib/xen")
     os.write(kfd, kernel.read())
     os.close(kfd)
@@ -241,6 +250,8 @@ def get_paravirt_install(options):
         if src and (src.startswith("http://") or src.startswith("ftp://")):
             return src
         elif src and src.startswith("nfs:"):
+            return src
+        elif src and src.startswith("file://"):
             return src
         if src is not None: print "Invalid source specified.  Please specify an NFS, HTTP, or FTP install source"
     	print "What is the install location? ",
