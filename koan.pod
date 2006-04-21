@@ -1,0 +1,24 @@
+=head1 NAME
+
+koan standards for 'kickstart-over-a-network' and allows for both network provisioning of new Xen guests and destructive re-provisioning of any existing system.
+
+=head1 SYNOPSIS
+
+koan --xen --server=host --profiles=[profile1,profile2,...]
+
+koan --replaceself --withextremeprejudice --server=host --profile=profile_name
+
+=head1 DESCRIPTION
+
+koan requests named profile information from a remote boot server, 
+which has been configured with the 'cobbler' program, and acts on the data from that server.
+
+For --xen, this means creating new Xen domU's on a xen dom0 in accordance to the orders from cobbler.
+
+For re-kickstarting ('--replaceself'), this means reprovisioning the system, blowing away any current data and replacing it with the results of a network install.  The --withextremeprejudice argument is mandatory, as this command is *highly* destructive.
+
+=head1 AUTHOR
+
+Michael DeHaan <mdehaan@redhat.com>
+
+

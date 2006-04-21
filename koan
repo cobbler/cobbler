@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 #
-# xen-net-install.py
+# koan = kickstart over a network
+#
+# a tool for network provisioning of Xen and network re-provisioning
+# of existing Linux systems.
+#
 # Michael DeHaan <mdehaan@redhat.com>
-#
-# note:
-#   requires arp (pkg: "net-tools"), curl, and xenguest-install.py (pkg "xen")
-#   (on top of the usual python stuff)
-#
-# see 'man xen-net-install' for details.
 
 import sys
 import os
