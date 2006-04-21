@@ -22,7 +22,7 @@ class BootTest(unittest.TestCase):
     def setUp(self):
         try:
            # it will interfere with results...
-           os.file.remove("/etc/bootconf.conf")
+           os.file.remove("/etc/cobbler.conf")
         except:
            pass
         self.api = api.BootAPI()

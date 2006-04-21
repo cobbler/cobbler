@@ -24,8 +24,8 @@ class BootConfig:
     """
     def __init__(self,api):
         self.api = api
-        self.settings_file    = "/etc/bootconf.conf"
-        self.state_file       = "/var/bootconf/bootconf.conf"
+        self.settings_file    = "/etc/cobbler.conf"
+        self.state_file       = "/var/cobbler/cobbler.conf"
         self.set_defaults()
         self.clear()
 
@@ -98,7 +98,7 @@ class BootConfig:
             print "WARNING: config file error: %s" % (self.settings_file)
             self.set_defaults()
     """
-    Convert all items bootconfig knows about to a nested hash.
+    Convert all items cobbler knows about to a nested hash.
     There are seperate hashes for the /etc and /var portions.
     """
     def to_hash(self,is_etc):
@@ -114,7 +114,7 @@ class BootConfig:
 
 
     """
-    Convert a hash representation of a bootconfig to 'reality'
+    Convert a hash representation of a cobbler to 'reality'
     There are seperate hashes for the /etc and /var portions.
     """
     def from_hash(self,hash,is_etc):

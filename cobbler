@@ -55,7 +55,8 @@ class BootCLI:
             'systems'  : self.system,
             'system'   : self.system,
             'sync'     : self.sync,
-            'help'     : self.help
+            '--help'   : self.usage,
+            '/?'       : self.usage
         }
 
 
@@ -69,7 +70,7 @@ class BootCLI:
         return rc
 
 
-    def usage(self):
+    def usage(self,args):
         """
         Print out abbreviated help if user gives bad syntax
         """
@@ -77,38 +78,30 @@ class BootCLI:
         return False
 
 
-    def help(self,args):
-        """
-        Print out tediously wrong help:  'bootconf help'
-        """
-        print m("help")
-        return False
-
-
     def system_list(self,args):
         """
-        Print out the list of systems:  'bootconf system list'
+        Print out the list of systems:  '$0 system list'
         """
         print str(self.api.get_systems())
 
 
     def profile_list(self,args):
         """
-        Print out the list of profiles: 'bootconf profile list'
+        Print out the list of profiles: '$0 profile list'
         """
         print str(self.api.get_profiles())
     
 
     def distro_list(self,args):
         """
-        Print out the list of distros: 'bootconf distro list'
+        Print out the list of distros: '$0 distro list'
         """
         print str(self.api.get_distros())
 
 
     def system_remove(self,args):
         """
-        Delete a system:  'bootconf system remove --name=foo'
+        Delete a system:  '$0 system remove --name=foo'
         """
         commands = {
            '--name'       : lambda(a):  self.api.get_systems().remove(a) 
@@ -119,7 +112,7 @@ class BootCLI:
 
     def profile_remove(self,args):
         """
-        Delete a profile:   'bootconf profile remove --name=foo'
+        Delete a profile:   '$0 profile remove --name=foo'
         """
         commands = {
            '--name'       : lambda(a):  self.api.get_profiles().remove(a)
@@ -130,7 +123,7 @@ class BootCLI:
 
     def distro_remove(self,args):
         """
-        Delete a distro:  'bootconf distro remove --name='foo'
+        Delete a distro:  '$0 distro remove --name='foo'
         """
         commands = {
            '--name'     : lambda(a):  self.api.get_distros().remove(a)
@@ -141,7 +134,7 @@ class BootCLI:
 
     def system_edit(self,args):
         """
-        Create/Edit a system:  'bootconf system edit --name='foo' ...
+        Create/Edit a system:  '$0 system edit --name='foo' ...
         """
         sys = self.api.new_system()
         commands = {
@@ -156,7 +149,7 @@ class BootCLI:
 
     def profile_edit(self,args):
         """
-        Create/Edit a profile:  'bootconf profile edit --name='foo' ...
+        Create/Edit a profile:  '$0 profile edit --name='foo' ...
         """
         profile = self.api.new_profile()
         commands = {
@@ -177,7 +170,7 @@ class BootCLI:
 
     def distro_edit(self,args):
         """
-        Create/Edit a distro:  'bootconf distro edit --name='foo' ...
+        Create/Edit a distro:  '$0 distro edit --name='foo' ...
         """
         distro = self.api.new_distro()
         commands = {
@@ -238,7 +231,7 @@ class BootCLI:
 
     def sync(self, args):
         """
-        Sync the config file with the system config: 'bootconf sync [--dryrun]'
+        Sync the config file with the system config: '$0 sync [--dryrun]'
         """
         status = None 
         if args is not None and "--dryrun" in args:
@@ -250,7 +243,7 @@ class BootCLI:
 
     def check(self,args):
         """
-        Check system for network boot decency/prereqs: 'bootconf check'
+        Check system for network boot decency/prereqs: '$0 check'
         """
         status = self.api.check()
         if status is None:
@@ -267,21 +260,21 @@ class BootCLI:
 
     def distro(self,args):
         """
-        Handles any of the 'bootconf distro' subcommands
+        Handles any of the '$0 distro' subcommands
         """
         return self.curry_args(args, self.commands['distro']) 
 
 
     def profile(self,args):
         """
-        Handles any of the 'bootconf profile' subcommands
+        Handles any of the '$0 profile' subcommands
         """
         return self.curry_args(args, self.commands['profile'])
 
 
     def system(self,args):
         """
-        Handles any of the 'bootconf system' subcommands
+        Handles any of the '$0 system' subcommands
         """
         return self.curry_args(args, self.commands['system'])
 

@@ -21,7 +21,7 @@ class BootCheck:
    def run(self):
        """
        Returns None if there are no errors, otherwise returns a list 
-       of things to correct prior to running bootconf 'for real'.
+       of things to correct prior to running $0 'for real'.
        """
        status = []
        self.check_dhcpd_bin(status)
@@ -56,7 +56,7 @@ class BootCheck:
 
    def check_tftpd_dir(self,status):
        """
-       Check if bootconf.conf's tftpboot directory exists
+       Check if cobbler.conf's tftpboot directory exists
        """
        if not os.path.exists(self.config.tftpboot):
           status.append(m("no_dir") % self.config.tftpboot)
@@ -64,7 +64,7 @@ class BootCheck:
 
    def check_tftpd_conf(self,status):
        """
-       Check that bootconf tftpd boot directory matches with tftpd directory
+       Check that configured tftpd boot directory matches with actual
        Check that tftpd is enabled to autostart
        """
        if os.path.exists(self.config.tftpd_conf):

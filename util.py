@@ -1,4 +1,4 @@
-# Misc heavy lifting functions for bootconf
+# Misc heavy lifting functions for cobbler
 # 
 # Michael DeHaan <mdehaan@redhat.com>
 

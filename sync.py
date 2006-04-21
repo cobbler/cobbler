@@ -1,4 +1,4 @@
-# Code to vivify a bootconf configuration into a real TFTP/DHCP configuration.
+# Code to vivify a configuration into a real TFTP/DHCP configuration.
 #
 # Michael DeHaan <mdehaan@redhat.com>
 
@@ -28,7 +28,7 @@ class BootSync:
 
     def sync(self,dry_run=False,verbose=True):
         """
-        Syncs the current bootconf configuration.  
+        Syncs the current configuration file with the config tree.  
         Using the Check().run_ functions previously is recommended
         """
         self.dry_run = dry_run

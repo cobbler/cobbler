@@ -335,7 +335,7 @@ class Distro(Item):
     def set_kernel(self,kernel):
         """
 	Specifies a kernel.  The kernel parameter is a full path, a filename
-	in the configured kernel directory (set in /etc/bootconf.conf) or a 
+	in the configured kernel directory (set in /etc/cobbler.conf) or a 
 	directory path that would contain a selectable kernel.  Kernel
 	naming conventions are checked, see docs in the utils module
 	for find_kernel.
