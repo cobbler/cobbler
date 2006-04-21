@@ -32,15 +32,12 @@ class BootSync:
         Using the Check().run_ functions previously is recommended
         """
         self.dry_run = dry_run
-        #results = self.api.check()
-        #if results != []:
-        #    self.api.last_error = m("run_check")
-        #    return False
         try:
             self.copy_pxelinux()
             self.clean_trees()
             self.copy_distros()
             self.validate_kickstarts()
+            self.configure_httpd()
             self.build_trees()
         except:
             traceback.print_exc()
@@ -54,7 +51,30 @@ class BootSync:
         """
         self.copy(self.api.config.pxelinux, os.path.join(self.api.config.tftpboot, "pxelinux.0"))
 
-
+    def configure_httpd(self):
+        """
+        Create a config file to Apache that will allow access to the 
+        cobbler infrastructure available over TFTP over HTTP also.
+        """
+        if not os.path.exists("/etc/httpd/conf.d"):
+           self.sync_log(m("no_httpd"))
+           return
+        f = self.open_file("/etc/httpd/conf.d/cobbler.conf","w+")
+        config = """
+        #
+        # This configuration file allows 'cobbler' boot info
+        # to be accessed over HTTP in addition to PXE.
+        AliasMatch ^/cobbler(/.*)?$ "/tftpboot$1"
+        <Directory "/tftpboot">
+            Options Indexes
+            AllowOverride None
+            Order allow,deny
+            Allow from all
+        </Directory>
+        """
+        config.replace("/tftpboot",self.api.config.tftpboot)
+        self.tee(f, config)
+        self.close_file(f)
 
     def clean_trees(self):
         """

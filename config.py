@@ -50,6 +50,7 @@ class BootConfig:
         self.pxelinux       = "/usr/lib/syslinux/pxelinux.0"    
         self.tftpd_bin      = "/usr/sbin/in.tftpd"
         self.dhcpd_bin      = "/usr/sbin/dhcpd"
+        self.httpd_bin      = "/usr/sbin/httpd"
         self.kernel_options = "append devfs=nomount ramdisk_size=16438 lang= vga=788 ksdevice=eth0 console=ttyS0,38400n8" #initrd and ks added programmatically
 
     """
@@ -81,6 +82,7 @@ class BootConfig:
         data['pxelinux']       = self.pxelinux
         data['tftpd_bin']      = self.tftpd_bin
         data['dhcpd_bin']      = self.dhcpd_bin
+        data['httpd_bin']      = self.httpd_bin
         return data
     
     """
@@ -94,6 +96,7 @@ class BootConfig:
             self.pxelinux        = hash['pxelinux']
             self.tftpd_bin       = hash['tftpd_bin']
             self.dhcpd_bin       = hash['dhcpd_bin']
+            self.httpd_bin       = hash['httpd_bin']
         except:
             print "WARNING: config file error: %s" % (self.settings_file)
             self.set_defaults()

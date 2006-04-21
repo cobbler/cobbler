@@ -2,7 +2,6 @@
 # 
 # Michael DeHaan <mdehaan@redhat.com>
 
-# FUTURE: Apache checking
 # FUTURE: Check to see what's running
 
 import os
@@ -30,7 +29,12 @@ class BootCheck:
        self.check_tftpd_dir(status)
        self.check_tftpd_conf(status)
        self.check_dhcpd_conf(status)
+       self.check_httpd(status)
        return status
+
+   def check_httpd(self,status):
+       if not os.path.exists(self.config.httpd_bin):
+          status.append(m("no_httpd"))
 
 
    def check_dhcpd_bin(self,status):
