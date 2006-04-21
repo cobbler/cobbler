@@ -6,7 +6,7 @@ koan standards for 'kickstart-over-a-network' and allows for both network provis
 
 koan --xen --server=host --profiles=[profile1,profile2,...]
 
-koan --replaceself --withextremeprejudice --server=host --profile=profile_name
+koan --replace-self --with-extreme-prejudice --server=host --profile=profile_name
 
 =head1 DESCRIPTION
 
@@ -15,7 +15,7 @@ which has been configured with the 'cobbler' program, and acts on the data from 
 
 For --xen, this means creating new Xen domU's on a xen dom0 in accordance to the orders from cobbler.
 
-For re-kickstarting ('--replaceself'), this means reprovisioning the system, blowing away any current data and replacing it with the results of a network install.  The --withextremeprejudice argument is mandatory, as this command is *highly* destructive.
+For re-kickstarting ('--replace-self'), this means reprovisioning the system, blowing away any current data and replacing it with the results of a network install.  The --withextremeprejudice argument is mandatory, as this command is *highly* destructive.  Do not issue it lightly.
 
 =head1 AUTHOR
 
