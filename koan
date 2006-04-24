@@ -71,6 +71,7 @@ class Koan:
         for profile in self.profiles:
             self.debug("processing profile: %s" % profile)
             profile_data = self.get_profile_yaml(profile)
+            profile_data = profile_data.replace("__SERVER__",self.server)
             self.debug(profile_data)
             if not 'distro' in profile_data:
                 raise InfoException, "invalid response from boot server"
@@ -90,11 +91,13 @@ class Koan:
         def each_profile(self, distro_data, profile_data):
             if not os.path.exists("/sbin/grubby"):
                 raise InfoException, "grubby is not installed"
+            k_args = distro_data['kernel_options']
+            if profile_data['kickstart'] != '':
+                k_args = "%s ks=%s" % (k_args, profile_data['kickstart'])
             args = (distro_data['kernel_local'],
                     distro_data['initrd_local'],
-                    distro_data['kernel_options'],
-                    profile_data['kickstart'])
-            cmd = "/sbin/grubby --add-kernel %s --initrd %s --make-default --title 'kickstart' --args '%s ks=%s' --copy-default" % args
+                    k_args)
+            cmd = "/sbin/grubby --add-kernel %s --initrd %s --make-default --title 'kickstart' --args '%s' --copy-default" % args
             self.debug("editing boot: %s" % cmd)
             try:
                 os.system(cmd)
