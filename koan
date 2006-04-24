@@ -71,7 +71,6 @@ class Koan:
         for profile in self.profiles:
             self.debug("processing profile: %s" % profile)
             profile_data = self.get_profile_yaml(profile)
-            profile_data = profile_data.replace("__SERVER__",self.server)
             self.debug(profile_data)
             if not 'distro' in profile_data:
                 raise InfoException, "invalid response from boot server"
@@ -105,7 +104,7 @@ class Koan:
                 raise InfoException, "error while running /sbin/grubby"
             self.debug("rebooting")
             # os.system("/sbin/shutdown -r -t 5 -k") # remove -k
-        self.do_net_install("/tmp",each_profile) # FIXME: should be /boot
+        self.do_net_install("/boot",each_profile) # FIXME: should be /boot
 
     def get_profile_yaml(self,profile_name):
         """
