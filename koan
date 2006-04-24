@@ -92,10 +92,16 @@ class Koan:
                 raise InfoException, "grubby is not installed"
             args = (distro_data['kernel_local'],
                     distro_data['initrd_local'],
-                    distro_data['kernel_options'])
-            cmd = "/sbin/grubby --add-kernel %s --initrd %s --make-default --title 'kickstart' --args '%s' --copy-default" % args
+                    distro_data['kernel_options'],
+                    profile_data['kickstart'])
+            cmd = "/sbin/grubby --add-kernel %s --initrd %s --make-default --title 'kickstart' --args '%s ks=%s' --copy-default" % args
             self.debug("editing boot: %s" % cmd)
+            try:
+                os.system(cmd)
+            except:
+                raise InfoException, "error while running /sbin/grubby"
             self.debug("rebooting")
+            # os.system("/sbin/shutdown -r -t 5 -k") # remove -k
         self.do_net_install("/tmp",each_profile) # FIXME: should be /boot
 
     def get_profile_yaml(self,profile_name):
