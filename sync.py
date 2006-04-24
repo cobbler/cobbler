@@ -161,8 +161,8 @@ class BootSync:
             if distro is not None:
                 p.kernel_options = self.blend_kernel_options((
                    self.api.config.kernel_options,
-                   profile.kernel_options,
                    distro.kernel_options,
+                   p.kernel_options
                 ))
             self.write_profile_file(filename,p)
 
