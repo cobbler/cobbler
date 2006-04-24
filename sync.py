@@ -147,12 +147,23 @@ class BootSync:
         for d in self.api.get_distros().contents():
             # TODO: add check to ensure all distros have profiles (=warning)
             filename = os.path.join(self.api.config.tftpboot,"distros",d.name)
+            d.kernel_options = self.blend_kernel_options((
+               self.api.config.kernel_options,
+               d.kernel_options
+            ))
             self.write_distro_file(filename,d)
 
         for p in self.api.get_profiles().contents():
             # TODO: add check to ensure all profiles have distros (=error)
             # TODO: add check to ensure all profiles have systems (=warning)
             filename = os.path.join(self.api.config.tftpboot,"profiles",p.name)
+            distro = self.api.get_distros().find(p.distro)
+            if distro is not None:
+                p.kernel_options = self.blend_kernel_options((
+                   self.api.config.kernel_options,
+                   profile.kernel_options,
+                   distro.kernel_options,
+                ))
             self.write_profile_file(filename,p)
 
         for system in self.api.get_systems().contents():
