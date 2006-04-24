@@ -1,23 +1,23 @@
 ---
 distros:
     -
-        initrd: '/var/bootimages/initrd.img'
-        kernel: '/var/bootimages/vmlinuz'
+        initrd: '/scratch/initrd.img'
+        kernel: '/scratch/vmlinuz'
         kernel_options: ''
         name: testdistro0
 profiles:
     -
         distro: testdistro0
         kernel_options: ''
-        kickstart: 'http://deadbeat.rdu.redhat.com/anaconda-ks.cfg'
+        kickstart: '/scratch/rawhide.cfg'
         name: testprofile0
         xen_file_size: 2
         xen_mac: ''
         xen_name: xen
         xen_paravirt: True
-        xen_ram: 256
+        xen_ram: 2048
 systems:
     -
         kernel_options: ''
-        name: smurfy.devel.redhat.com
+        name: mdehaan
         profile: testprofile0

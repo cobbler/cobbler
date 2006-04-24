@@ -7,6 +7,7 @@ be reused and potentially translated.
 """
 
 msg_table = {
+  "bad_server"      : "server field in /etc/cobbler.conf must be set to something other than localhost, or kickstarts will fail",
   "parse_error"     : "could not parse /etc/cobber.conf",
   "parse_error2"    : "could not parse /var/cobbler/cobbler.conf",
   "no_create"       : "cannot create: %s",
@@ -33,6 +34,7 @@ msg_table = {
   "empty_list"      : "(Empty)",
   "err_resolv"      : "system (%s) did not resolve",
   "err_kickstart"   : "kickstart (%s) for item (%s) is not valid",
+  "err_kickstart2"  : "error mirroring kickstart file (%s) to (%s)",
   "orphan_profile2" : "profile does not reference a distro",
   "orphan_system2"  : "system does not reference a profile",
   "orphan_profile"  : "removing this distro would break a profile",

@@ -80,7 +80,7 @@ class BootSync:
         """
         Delete any previously built pxelinux.cfg tree and xen tree info.
         """
-        for x in ["pxelinux.cfg","images","systems","distros","profiles"]:
+        for x in ["pxelinux.cfg","images","systems","distros","profiles","kickstarts"]:
             dir = os.path.join(self.api.config.tftpboot,x)
             self.rmtree(dir, True) 
             self.mkdir(dir)
@@ -115,21 +115,32 @@ class BootSync:
     def validate_kickstarts(self):
         """
         Similar to what we do for distros, ensure all the kickstarts
-        in conf file are valid.  Since kickstarts are referenced by URL
-        (http or ftp), we do not have to copy them.  They are already
-        expected to be in the right place.  We can't check to see that the
-        URLs are right (or we don't, we could...) but we do check to see
-        that the files are at least still there.
+        in conf file are valid.   kickstarts are referenced by URL
+        (http or ftp), can stay as is.  kickstarts referenced by absolute
+        path will be mirrored over http.
         """
         # ensure all referenced kickstarts exist
         # these are served by either NFS, Apache, or some ftpd, so we don't need to copy them
         # it's up to the user to make sure they are nicely served by their URLs
+
         for g in self.api.get_profiles().contents():
+           self.sync_log("mirroring any local kickstarts: %s" % g.name)
            kickstart_path = self.api.utils.find_kickstart(g.kickstart)
            if kickstart_path is None:
               self.api.last_error = m("err_kickstart") % (g.name, g.kickstart)
               raise "error"
-            
+           if os.path.exists(kickstart_path):
+              # the input is an *actual* file, hence we have to copy it
+              copy_path = os.path.join(self.api.config.tftpboot, "kickstarts", g.name)
+              self.mkdir(copy_path)
+              dest = os.path.join(copy_path, "ks.cfg")
+              try:
+                  self.copyfile(g.kickstart, dest)
+              except:
+                  self.api.last_error = m("err_kickstart2") % (g.kickstart,dest)
+                  raise "error"
+           elif kickstart_path.startswith("/"):
+              self.api_last_error = m("err_kickstart") % (kickstart_path,g.name)
 
     def build_trees(self):
         """
@@ -138,13 +149,15 @@ class BootSync:
         configured IP or MAC address.  Also build a parallel 'xeninfo' tree
         for xen-net-install info.
         """
+        print "building trees..."
         # create pxelinux.cfg under tftpboot
         # and file for each MAC or IP (hex encoded 01-XX-XX-XX-XX-XX-XX)
         systems = self.api.get_systems()
         profiles = self.api.get_profiles()
         distros = self.api.get_distros()
 
-        for d in self.api.get_distros().contents():
+        for d in distros:
+            self.sync_log("processing distro: %s" % d.name)
             # TODO: add check to ensure all distros have profiles (=warning)
             filename = os.path.join(self.api.config.tftpboot,"distros",d.name)
             d.kernel_options = self.blend_kernel_options((
@@ -153,7 +166,8 @@ class BootSync:
             ))
             self.write_distro_file(filename,d)
 
-        for p in self.api.get_profiles().contents():
+        for p in profiles:
+            self.sync_log("processing profile: %s" % p.name)
             # TODO: add check to ensure all profiles have distros (=error)
             # TODO: add check to ensure all profiles have systems (=warning)
             filename = os.path.join(self.api.config.tftpboot,"profiles",p.name)
@@ -166,7 +180,8 @@ class BootSync:
                 ))
             self.write_profile_file(filename,p)
 
-        for system in self.api.get_systems().contents():
+        for system in systems:
+            self.sync_log("processing system: %s" % system.name)
             profile = profiles.find(system.profile)
             if profile is None:
                 self.api.last_error = m("orphan_profile2")
@@ -225,6 +240,10 @@ class BootSync:
         ))
         nextline = "   append %s initrd=%s" % (kopts,initrd_path)
         if kickstart_path is not None and kickstart_path != "":
+            # if kickstart path is local, we've already copied it into
+            # the HTTP mirror, so make it something anaconda can get at
+            if kickstart_path.startswith("/"):
+                kickstart_path = "http://%s/cobbler/kickstarts/%s/ks.cfg" % (self.api.config.server, profile.name)
             nextline = nextline + " ks=%s" % kickstart_path
         self.tee(file, nextline)
         self.close_file(file)
@@ -236,7 +255,7 @@ class BootSync:
         Create distro information for xen-net-install
         """
         file = self.open_file(filename,"w+")
-        file.write(yaml.dump(distro.to_datastruct()))
+        self.tee(file,yaml.dump(distro.to_datastruct()))
         self.close_file(file)
 
 
@@ -245,7 +264,11 @@ class BootSync:
         Create profile information for xen-net-install
         """
         file = self.open_file(filename,"w+")
-        file.write(yaml.dump(profile.to_datastruct()))
+        # if kickstart path is local, we've already copied it into
+        # the HTTP mirror, so make it something anaconda can get at
+        if profile.kickstart.startswith("/"):
+            profile.kickstart = "http://%s/cobbler/kickstarts/%s/ks.cfg" % (self.api.config.server, profile.name)
+        self.tee(file,yaml.dump(profile.to_datastruct()))
         self.close_file(file)
  
 
@@ -254,9 +277,8 @@ class BootSync:
         Create system information for xen-net-install
         """ 
         file = self.open_file(filename,"w+")
-        file.write(yaml.dump(system.to_datastruct()))
+        self.tee(file,yaml.dump(system.to_datastruct()))
         self.close_file(file)
-
 
     def tee(self,file,text):
         """

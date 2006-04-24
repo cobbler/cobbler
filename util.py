@@ -139,10 +139,12 @@ class BootUtil:
 
    def find_kickstart(self,url):
        """
-       Check if a kickstart url looks like an http, ftp, or nfs url.
+       Check if a kickstart url looks like an http, ftp, nfs or local path.
+       If a local path is used, cobbler will copy the kickstart and serve
+       it over http.
        """
        x = url.lower()
-       for y in ["http://","nfs://","ftp://"]:
+       for y in ["http://","nfs://","ftp://","/"]:
           if x.startswith(y):
               return url
        return None

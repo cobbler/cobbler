@@ -35,7 +35,9 @@ Defines a distribution.  Minimally, this is a matched set of an initrd and a ker
 
 B<bootconf profile add --name=group_name --distro=<name> [--kickstart=<url>] [--kopts=<string>] [--xen-name=<string>] [--xen-file-size=<gigabytes>] [--xen-ram=<megabytes>] [--xen-mac=<MAC> [--xen-paravirt=true|false] 
 
-Defines a provisioning profile, which is a distro, some other optional parameters, and a name for the profile.  Almost always you will want to specify a kickstart file.  For Xen parameters, xen-net-install may interpret some parameters as hints, not absolutes, if it has to resolve conflicts.  All of these Xen parameters are optional, though as many as possible should be specified if you don't want to risk xen-net-install's defaults.
+Defines a provisioning profile, which is a distro, some other optional parameters, and a name for the profile.  Almost always you will want to specify a kickstart file.  Kickstarts can be nfs://, http://, or ftp:// -- or an absolute path.  For file paths, cobbler will copy the kickstarts and serve them up as http.
+
+For Xen parameters, xen-net-install may interpret some parameters as hints, not absolutes, if it has to resolve conflicts.  All of these Xen parameters are optional, though as many as possible should be specified if you don't want to risk xen-net-install's defaults.
 
 B<bootconf system add --name=<ip|mac|hostname> --profile=<name1> [--kopts=<string>]>
 

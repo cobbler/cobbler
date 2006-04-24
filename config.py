@@ -44,6 +44,7 @@ class BootConfig:
     Set some reasonable defaults in case no values are available
     """
     def set_defaults(self):
+        self.server         = "localhost"
         self.tftpboot       = "/tftpboot"
         self.dhcpd_conf     = "/etc/dhcpd.conf"
         self.tftpd_conf     = "/etc/xinetd.d/tftp"
@@ -76,6 +77,7 @@ class BootConfig:
     """
     def config_to_hash(self):
         data = {}
+        data['server']         = self.server
         data['tftpboot']       = self.tftpboot
         data['dhcpd_conf']     = self.dhcpd_conf
         data['tftpd_conf']     = self.tftpd_conf
@@ -90,6 +92,7 @@ class BootConfig:
     """
     def config_from_hash(self,hash):
         try:
+            self.server          = hash['server']
             self.tftpboot        = hash['tftpboot']
             self.dhcpd_conf      = hash['dhcpd_conf']
             self.tftpd_conf      = hash['tftpd_conf']

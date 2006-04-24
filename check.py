@@ -23,6 +23,7 @@ class BootCheck:
        of things to correct prior to running $0 'for real'.
        """
        status = []
+       self.check_name(status)
        self.check_dhcpd_bin(status)
        self.check_pxelinux_bin(status)
        self.check_tftpd_bin(status)
@@ -31,6 +32,10 @@ class BootCheck:
        self.check_dhcpd_conf(status)
        self.check_httpd(status)
        return status
+
+   def check_name(self,status):
+       if self.config.server == "localhost":
+          status.append(m("bad_server"))
 
    def check_httpd(self,status):
        if not os.path.exists(self.config.httpd_bin):
