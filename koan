@@ -22,18 +22,14 @@ import optparse
 import exceptions
 """
 koan --xen --profiles=webserver,dbserver --server=hostname
-koan --replace-myself --with-extreme-prejudice --server=hostname --profile=foo
+koan --replace-self --with-extreme-prejudice --server=hostname --profiles=foo
 """
 
 class InfoException(exceptions.Exception):
     def __init__(self,args=None):
         self.args = args
 
-class XenNetInstall:
-    """
-    The guts of xen-net-install... the command line uses 
-    this but it's reasonably usable as a library as well.
-    """
+class Koan:
  
     def __init__(self,args):
         """
@@ -48,18 +44,16 @@ class XenNetInstall:
         self.last_error = ""
         if self.server is None:
             raise InfoException, "no --server specified"
-        if not self.is_xen or self.is_auto_kickstart:
+        if not self.is_xen and not self.is_auto_kickstart:
             raise InfoException, "must use either --xen or --replace-self"
         elif self.is_auto_kickstart and not self.is_forced:
-            raise InfoException, "this operation will likely destroy all data on this host.  To confirm, you must specify --with-extreme-prejudice"
+            raise InfoException, "This system will likely be destroyed.  To confirm, you must specify --with-extreme-prejudice"
         if not self.server:
             raise InfoException, "no server specified"
         if self.verbose is None:
             self.verbose = True
         if not self.profiles:
-            self.profiles = []
-            if not self.autodiscover:
-                raise InfoException, "must specify profiles or autodiscover"
+            raise InfoException, "must specify --profiles"
         self.profiles = self.profiles.split(',')
         if self.is_xen:
             self.do_xen()
@@ -70,7 +64,7 @@ class XenNetInstall:
         if self.verbose:
             print "- %s" % msg
     
-    def do_xen(self):
+    def do_net_install(self,download_root,each_profile):
         """
         Actually kicks off downloads and xen installs
         """
@@ -83,12 +77,26 @@ class XenNetInstall:
             distro = profile_data['distro']
             distro_data = self.get_distro_yaml(distro)
             self.debug(distro_data)
-            self.get_distro_files(distro_data)
+            self.get_distro_files(distro_data, download_root)
+            each_profile(self, distro_data, profile_data)
+    
+    def do_xen(self):
+        def each_profile(self, distro_data, profile_data):
             cmd = self.build_xen_args(profile_data, distro_data)
-            self.invoke_xen_install(cmd)            
+            self.invoke_xen_install(cmd) 
+        self.do_net_install("/tmp",each_profile)
 
     def do_auto_kickstart(self):
-        raise "FIXME: not implemented"
+        def each_profile(self, distro_data, profile_data):
+            if not os.path.exists("/sbin/grubby"):
+                raise InfoException, "grubby is not installed"
+            args = (distro_data['kernel_local'],
+                    distro_data['initrd_local'],
+                    distro_data['kernel_options'])
+            cmd = "/sbin/grubby --add-kernel %s --initrd %s --make-default --title 'kickstart' --args '%s' --copy-default" % args
+            self.debug("editing boot: %s" % cmd)
+            self.debug("rebooting")
+        self.do_net_install("/tmp",each_profile) # FIXME: should be /boot
 
     def get_profile_yaml(self,profile_name):
         """
@@ -96,9 +104,12 @@ class XenNetInstall:
         """
         self.debug("fetching configuration for profile: %s" % profile_name)
         try:
-            data = urlgrabber.urlread("http://%s/cobbler/profiles/%s" % (self.server, profile_name))
-            return data
+            url = "http://%s/cobbler/profiles/%s" % (self.server,profile_name)
+            self.debug("url=%s" % url)
+            data = urlgrabber.urlread(url)
+            return yaml.load(data).next()
         except:
+            traceback.print_exc() # debug
             raise InfoException, "couldn't download profile information: %s" % profile_name
 
     def get_distro_yaml(self,distro_name):
@@ -107,12 +118,14 @@ class XenNetInstall:
         """
         self.debug("- fetching configuration for distro: %s" % distro_name)
         try:
-            data = urlgrabber.urlread("http://%s/cobbler/distros/%s" % (self.server, distro_name))
-            return data
+            url = "http://%s/cobbler/distros/%s" % (self.server,distro_name)
+            self.debug("url=%s" % url)
+            data = urlgrabber.urlread(url)
+            return yaml.load(data).next()
         except:
             raise InfoException, "couldn't download distro information: %s" % distro_name 
 
-    def get_distro_files(self,distro_data):
+    def get_distro_files(self,distro_data, download_root):
         """
         Using distro data (fetched from bootconf tree), determine
         what kernel and initrd to download, and save them locally.
@@ -122,13 +135,17 @@ class XenNetInstall:
         initrd = distro_data['initrd']
         kernel_short = os.path.basename(kernel)
         initrd_short = os.path.basename(initrd)
-        kernel_save = "/tmp/%s" % kernel_short
-        initrd_save = "/tmp/%s" % initrd_short
+        kernel_save = "%s/%s" % (download_root, kernel_short)
+        initrd_save = "%s/%s" % (download_root, initrd_short)
         try:
             self.debug("downloading initrd %s to %s" % (initrd_short, initrd_save))
-            urlgrabber.urlgrab("http://%s/cobbler/images/%s/%s" % (self.server, distro, initrd_short))
+            url = "http://%s/cobbler/images/%s/%s" % (self.server, distro, initrd_short)
+            self.debug("url=%s" % url)
+            urlgrabber.urlgrab(url)
             self.debug("downloading kernel %s to %s" % (kernel_short, kernel_save))
-            urlgrabber.urlgrab("http://%s/cobbler/images/%s/%s" % (distro, kernel_short))
+            url = "http://%s/cobbler/images/%s/%s" % (self.server, distro, kernel_short) 
+            self.debug("url=%s" % url)
+            urlgrabber.urlgrab(url)
         except:
             raise InfoException, "error downloading files"
         distro_data['kernel_local'] = kernel_save
@@ -277,10 +294,11 @@ if __name__ == "__main__":
     (options, args) = p.parse_args()
     # FIXME:  catch custom exceptions only...
     try:
-        installer = XenNetInstall(options)
+        Koan(options)
         sys.exit(0)
     except InfoException, ie:
-        print str(ie)  # str.message() ... FIXME
+        traceback.print_exc()
+        # print str(ie)  # str.message() ... FIXME
         sys.exit(1)
     except:
         traceback.print_exc()
