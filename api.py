@@ -2,6 +2,7 @@
 #
 # Michael DeHaan <mdehaan@redhat.com>
 
+import exceptions
 import os
 import traceback
 
@@ -305,7 +306,7 @@ class Item:
 	Returns an easily-marshalable representation of the collection.
 	i.e. dictionaries/arrays/scalars.
 	"""
-        raise "not implemented"
+        raise exceptions.NotImplementedError
    
     def is_valid(self):
         """
