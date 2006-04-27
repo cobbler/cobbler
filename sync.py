@@ -81,9 +81,9 @@ class BootSync:
         Delete any previously built pxelinux.cfg tree and xen tree info.
         """
         for x in ["pxelinux.cfg","images","systems","distros","profiles","kickstarts"]:
-            dir = os.path.join(self.api.config.tftpboot,x)
-            self.rmtree(dir, True) 
-            self.mkdir(dir)
+            path = os.path.join(self.api.config.tftpboot,x)
+            self.rmtree(path, True) 
+            self.mkdir(path)
 
     def copy_distros(self):
         """
