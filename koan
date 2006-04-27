@@ -5,24 +5,23 @@
 #
 # Michael DeHaan <mdehaan@redhat.com>
 
-# TODO list:
-# xenguest-install --> libvirt + testing
-# autoks support + testing
-# http support
-# xml format standardization (mostly a cobbler issue)
-
 import sys
 import os
 import socket
 import yaml       # not in fc5.  should be.  or a fixed py-syck, one...
 import traceback
 import time
+import tempfile
 import urlgrabber
 import optparse
 import exceptions
+import subprocess
+import shutil
+
 """
 koan --xen --profiles=webserver,dbserver --server=hostname
-koan --replace-self --with-extreme-prejudice --server=hostname --profiles=foo
+koan --replace-self --server=hostname --profiles=foo
+LATER? koan --replace-self --kickstart=foo
 """
 
 class InfoException(exceptions.Exception):
@@ -40,14 +39,10 @@ class Koan:
         self.verbose           = args.verbose
         self.is_xen            = args.is_xen
         self.is_auto_kickstart = args.is_auto_kickstart
-        self.is_forced         = args.is_forced
-        self.last_error = ""
         if self.server is None:
             raise InfoException, "no --server specified"
         if not self.is_xen and not self.is_auto_kickstart:
             raise InfoException, "must use either --xen or --replace-self"
-        elif self.is_auto_kickstart and not self.is_forced:
-            raise InfoException, "This system will likely be destroyed.  To confirm, you must specify --with-extreme-prejudice"
         if not self.server:
             raise InfoException, "no server specified"
         if self.verbose is None:
@@ -61,12 +56,24 @@ class Koan:
             self.do_auto_kickstart()
 
     def debug(self,msg):
+        """
+        Debug print if verbose is set.
+        """
         if self.verbose:
             print "- %s" % msg
-    
+        return msg    
+
+    def subprocess_call(self,cmd):
+        """
+        Verbose wrapper around subprocess.call(...)
+        """
+        if self.verbose:
+            print "- %s" % " ".join(cmd)
+        return subprocess.call(cmd)
+
     def do_net_install(self,download_root,each_profile):
         """
-        Actually kicks off downloads and xen installs
+        Actually kicks off downloads and auto-ks or xen installs
         """
         for profile in self.profiles:
             self.debug("processing profile: %s" % profile)
@@ -81,30 +88,134 @@ class Koan:
             each_profile(self, distro_data, profile_data)
     
     def do_xen(self):
+        """
+        Handle xen provisioning.
+        """
         def each_profile(self, distro_data, profile_data):
             cmd = self.build_xen_args(profile_data, distro_data)
             self.invoke_xen_install(cmd) 
         self.do_net_install("/tmp",each_profile)
 
     def do_auto_kickstart(self):
+        """
+        Handle morphing an existing system through downloading new
+        kernel, new initrd, and installing a kickstart in the initrd,
+        then manipulating grub.
+        """
+        try:
+            os.mkdir("/var/spool/koan")
+        except:
+            pass
+    
         def each_profile(self, distro_data, profile_data):
             if not os.path.exists("/sbin/grubby"):
                 raise InfoException, "grubby is not installed"
             k_args = distro_data['kernel_options']
-            if profile_data['kickstart'] != '':
-                k_args = "%s ks=%s" % (k_args, profile_data['kickstart'])
-            args = (distro_data['kernel_local'],
-                    distro_data['initrd_local'],
-                    k_args)
-            cmd = "/sbin/grubby --add-kernel %s --initrd %s --make-default --title 'kickstart' --args '%s' --copy-default" % args
-            self.debug("editing boot: %s" % cmd)
+            k_args.replace(r'ksdevice=\d*','')
+            ksdata = self.get_kickstart_data(profile_data['kickstart'])
+            new_init = self.build_initrd(distro_data['initrd_local'], ksdata)
+            cmd = [ "#/sbin/grubby",
+                    "--add-kernel", distro_data['kernel_local'],
+                    "--initrd", new_init,
+                    "--make-default",
+                    "--title", "kickstart",
+                    "--args", k_args,
+                    "--copy-default" ]
+            self.debug("editing boot: %s" % " ".join(cmd))
             try:
-                os.system(cmd)
+                rc = self.subprocess_call(cmd)
+                if rc !=0: raise "grubby failed"
             except:
                 raise InfoException, "error while running /sbin/grubby"
             self.debug("rebooting")
-            # os.system("/sbin/shutdown -r -t 5 -k") # remove -k
+            # TODO: reboot
+            cmd = [ "#/sbin/shutdown", "-r", "-t", "5", "-k" ]
+            self.subprocess_call(cmd)
         self.do_net_install("/boot",each_profile) # FIXME: should be /boot
+
+    def get_kickstart_data(self,kickstart):
+        """
+        Get contents of data in network kickstart file.
+        """
+        if kickstart.startswith("nfs"):
+            # FIXME
+            raise "NFS kickstart downloads not supported (yet)"
+            dir  = os.path.dirname(kickstart[4:])
+            file = os.path.basename(kickstart[4:])
+            nfsdir = tempfile.mkdtemp(prefix="koan_nfs",dir="/var/spool/koan")
+            nfsfile = os.path.join(nfsdir,file)
+            cmd = ["mount","-o","ro", dir, nfsmntdir]
+            ret = self.subprocess_call(cmd)
+            if ret!=0: raise "nfs mount failed"
+            return file.open(nfsfile).read()
+        elif kickstart.startswith("http") or kickstart.startswith("ftp"):
+            inf   = urlgrabber.urlread(kickstart)
+            return inf
+        else:
+            raise "invalid kickstart URL"
+
+    def build_initrd(self,initrd,kickstart_data):
+        """
+        Crack open an initrd to insert kickstart data
+        """
+        self.debug("unzipping initrd")
+        initrd_copy = self.unzip_initrd(initrd)
+        self.debug("saving kickstart")
+        ksfile = self.save_kickstart_to_file(kickstart_data)
+        self.debug("inserting kickstart")
+        self.copy_kickstart_into_image(initrd_copy, ksfile)
+        self.debug("rezipping initrd")
+        self.rezip_initrd(initrd_copy)
+        
+    def unzip_initrd(self,initrd): 
+        """
+        Unzip an initrd into temp space, return where.
+        """
+        initrd_copy  = "/var/spool/koan/initrd_copy.gz"
+        self.debug("making initrd_copy: %s" % initrd_copy)
+        shutil.copyfile(initrd,initrd_copy)
+        cmd = [ "gunzip", "--force", initrd_copy ]
+        rc = self.subprocess_call(cmd)
+        if rc !=0: raise "gunzip failed"
+        return "/var/spool/koan/initrd_copy"
+        
+    def save_kickstart_to_file(self,kickstart_data):
+        """
+        Save kickstart data to a tempfile, return that file location.
+        """
+        kickstart_file = "/var/spool/koan/ks.cfg"
+        self.debug("kickstart_file = %s" % kickstart_file)
+        open(kickstart_file,"w+").write(kickstart_data)
+        return kickstart_file
+
+    def copy_kickstart_into_image(self,initrd,kickstart_file): 
+        """
+        Crack open an initrd and install the kickstart file.
+        """
+        initrd_data = open(initrd,"r").read()
+        if initrd_data.find("filesystem data") != -1:
+            loop = tempfile.mkdtemp(prefix="koan",dir="/var/spool/koan")
+            self.debug("loop = %s" % loop)
+            cmd = [ "mount", "-o", "loop", "-t", "ext2", loop, initrd ]
+            rc = self.subprocess_call(cmd)
+            if rc != 0: raise "loopback mount failed"
+            shutil.copyfile(kickstart_file,os.path.join(loop,"ks.cfg"))
+        else:
+            # handle CPIO insertion
+            raise exceptions.NotImplementedError
+
+    def rezip_initrd(self, initrd): 
+        """
+        Zip an initrd and copy it to the final boot location.
+        """
+        cmd = [ "gzip", "-c", initrd ]
+        rc = self.subprocess_call(cmd)
+        if rc != 0:
+            raise "gzip failed"
+        outfile = "/boot/koan_initrd.img"
+        self.debug("writing: %s" % outfile)
+        shutil.copyfile(initrd, outfile)
+        return outfile
 
     def get_profile_yaml(self,profile_name):
         """
@@ -138,6 +249,7 @@ class Koan:
         Using distro data (fetched from bootconf tree), determine
         what kernel and initrd to download, and save them locally.
         """
+        os.chdir(download_root)
         distro = distro_data['name']
         kernel = distro_data['kernel']
         initrd = distro_data['initrd']
@@ -157,7 +269,9 @@ class Koan:
         except:
             raise InfoException, "error downloading files"
         distro_data['kernel_local'] = kernel_save
+        self.debug("kernel saved = %s" % kernel_save)       
         distro_data['initrd_local'] = initrd_save
+        self.debug("initrd saved = %s" % initrd_save)
 
     def build_xen_args(self,profile_data,distro_data):
         """
@@ -285,10 +399,6 @@ if __name__ == "__main__":
                  dest="is_auto_kickstart",
                  action="store_true",
                  help="requests re-provisioning of this host")
-    p.add_option("-F", "--with-extreme-prejudice",
-                 dest="is_forced",
-                 action="store_true",
-                 help="required with --replace-self for safety reasons")
     p.add_option("-p", "--profiles", 
                  dest="profiles", 
                  help="list of profiles to install")

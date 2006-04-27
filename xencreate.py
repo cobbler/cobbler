@@ -18,8 +18,9 @@ import subprocess
 import tempfile
 import urlgrabber.grabber as grabber
 import random
-import traceback
 from optparse import OptionParser
+
+import libvirt
 
 XENCONFIGPATH="/etc/xen/"
 
@@ -41,6 +42,17 @@ def randomMAC():
             random.randint(0x00, 0xff),
             random.randint(0x00, 0xff) ]
     return ':'.join(map(lambda x: "%02x" % x, mac))
+
+# ... and stolen from xend/uuid.py
+def randomUUID():
+    """Generate a random UUID."""
+
+    return [ random.randint(0, 255) for _ in range(0, 16) ]
+
+def uuidToString(u):
+    return "-".join(["%02x" * 4, "%02x" * 2, "%02x" * 2, "%02x" * 2,
+                     "%02x" * 6]) % tuple(u)
+
 
 def yes_or_no(s):
     s = s.lower()
@@ -94,6 +106,11 @@ def get_disk(options):
 
     return disk
 
+def get_uuid(options):
+    if options.uuid:
+        return options.uuid
+    return uuidToString(randomUUID())
+
 def get_mac(options):
     if options.mac:
         return options.mac
@@ -129,7 +146,7 @@ def get_virt_cdrom(options):
         cdrom = sys.stdin.readline().strip()
     return cdrom
 
-def start_hvm_guest(name, ram, disk, mac, cdrom):
+def start_hvm_guest(name, ram, disk, mac, uuid, cdrom):
     if os.uname()[4] in ("x86_64"):
         qemu = "/usr/lib64/xen/bin/qemu-dm"
     else:
@@ -152,6 +169,7 @@ def start_hvm_guest(name, ram, disk, mac, cdrom):
 name = "%(name)s"
 builder = "hvm"
 memory = "%(ram)s"
+uuid = "%(uuid)s"
 disk = [ '%(type)s:%(disk)s,ioemu:hda,w' ]
 vif = [ 'type=ioemu,bridge=xenbr0,mac=%(mac)s' ]
 on_reboot   = 'restart'
@@ -164,7 +182,7 @@ vncviewer = 0 # spawn vncviewer by default
 nographic = %(noX)d # don't use graphics
 serial='pty' # enable serial console
 """ % {'name': name, 'ram': ram, 'disk': disk, 'mac': mac, 'devmodel': qemu,
-       'hasX': hasX, 'noX': not hasX, 'type': type }
+       'hasX': hasX, 'noX': not hasX, 'type': type, 'uuid': uuid }
     f.write(buf)
     f.close()
 
@@ -214,18 +232,10 @@ def get_paravirt_install_image(src):
 	try:
             kernel = open("%s/images/xen/vmlinuz" %(nfsmntdir,), "r")
             initrd = open("%s/images/xen/initrd.img" %(nfsmntdir,), "r")
-        except IOError:
+	except IOError:
             print >> sys.stderr, "Invalid NFS location given"
             sys.exit(2)
-    elif src.startswith("file://"):
-        try:
-            # takes *two* files as in "--location=file://initrd.img,vmlinuz"
-            initrd, kernel = map(lambda(f): open(f,"r"), src[7:].split(","))    
-        except:
-            traceback.print_exc()
-            print >> sys.stderr, "Invalid local files given"
-            sys.exit(2)   
-
+        
     (kfd, kfn) = tempfile.mkstemp(prefix="vmlinuz.", dir="/var/lib/xen")
     os.write(kfd, kernel.read())
     os.close(kfd)
@@ -251,71 +261,119 @@ def get_paravirt_install(options):
             return src
         elif src and src.startswith("nfs:"):
             return src
-        elif src and src.startswith("file://"):
-            return src
         if src is not None: print "Invalid source specified.  Please specify an NFS, HTTP, or FTP install source"
     	print "What is the install location? ",
     	src = sys.stdin.readline().strip()
 
-def start_paravirt_install(name, ram, disk, mac, src, extra = ""):
+def start_paravirt_install(name, ram, disk, mac, uuid, src, extra = ""):
+    def writeConfig(cfgdict):
+        cfg = "%s%s" %(XENCONFIGPATH, cfgdict['name'])
+        f = open(cfg, "w+")
+        buf = """# Automatically generated xen config file
+name = "%(name)s"
+memory = "%(ram)s"
+disk = [ '%(disktype)s:%(disk)s,xvda,w' ]
+vif = [ 'mac=%(mac)s' ]
+uuid = "%(uuid)s"
+bootloader="/usr/bin/pygrub"
+
+on_reboot   = 'destroy'
+on_crash    = 'destroy'
+""" % cfgdict
+        f.write(buf)
+        f.close()
+        
     (kfn, ifn) = get_paravirt_install_image(src)
 
     if stat.S_ISBLK(os.stat(disk)[stat.ST_MODE]):
         type = "phy"
     else:
         type = "file"
-    
-    cfg = "%s%s" %(XENCONFIGPATH, name)
-    f = open(cfg, "w+")
-    buf = """# Automatically generated xen config file
-name = "%(name)s"
-memory = "%(ram)s"
-disk = [ '%(type)s:%(disk)s,xvda,w' ]
-vif = [ 'mac=%(mac)s' ]
-#bootloader="/usr/bin/pygrub"
 
-on_reboot   = 'destroy'
-on_crash    = 'destroy'
-""" % {'name': name, 'ram': ram, 'disk': disk, 'mac': mac, 'type': type }
-    f.write(buf)
-    f.close()
+    cfgdict = {'name': name, 'ram': ram, 'ramkb': int(ram) * 1024, 'disk': disk, 'mac': mac, 'disktype': type, 'uuid': uuid, 'kernel': kfn, 'initrd': ifn, 'src': src, 'extra': extra }      
+
+    # FIXME: there's a hack sticking a root= in here because libvirt requires
+    cfgxml = """<domain type='xen'>
+  <name>%(name)s</name>
+  <os>
+    <type>linux</type>
+    <kernel>%(kernel)s</kernel>
+    <initrd>%(initrd)s</initrd>
+    <cmdline> root=/dev/xvd method=%(src)s %(extra)s</cmdline>
+  </os>
+  <memory>%(ramkb)s</memory>
+  <vcpu>1</vcpu>
+  <uuid>%(uuid)s</uuid>
+  <on_reboot>destroy</on_reboot>
+  <on_poweroff>destroy</on_poweroff>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <disk type='%(disktype)s'>
+      <source file='%(disk)s'/>
+      <target dev='xvda'/>
+    </disk>
+    <interface type='bridge'>
+      <source bridge='xenbr0'/>
+      <mac address='%(mac)s'/>
+      <script path='/etc/xen/scripts/vif-bridge'/>
+    </interface>
+  </devices>
+</domain>
+""" % cfgdict
+
+    conn = libvirt.openReadOnly(None)
+    if conn == None:
+        print >> sys.stderr, "Unable to connect to hypervisor, aborting installation"
+        sys.exit(1)
+
 
     print "\n\nStarting install..."
+    dom = conn.createLinux(cfgxml, 0)
+    if dom == None:
+        print >> sys.stderr, "Unable to create domain for guest, aborting installation"
+        sys.exit(2)
 
-    # this is kind of lame.  we call xm create, then change our
-    # guest config file to use a boot loader instead of the passed kernel
-    cmd = ["/usr/sbin/xm", "create", "-c", "kernel=%s" %(kfn,),
-           "ramdisk=%s" %(ifn,),
-           "extra=method=%s %s" %(src,extra),
-           cfg]
+    # *sigh*  would be nice to have a python version of xmconsole I guess...
+    # and probably not much work at all to throw together, but this will
+    # do for now
+    cmd = ["/usr/sbin/xm", "console", "%s" %(dom.ID(),)]
     child = os.fork()
     if (not child):
         os.execvp(cmd[0], cmd)
         os._exit(1)
 
     time.sleep(5)
-    f = open(cfg, "r")
-    buf = f.read()
-    f.close()
     os.unlink(kfn)
     os.unlink(ifn)
+
+    # FIXME: if the domain doesn't exist now, it almost certainly crashed.
+    # it'd be nice to know that for certain...
+    try:
+        d = conn.lookupByID(dom.ID())
+    except libvirt.libvirtError:
+        print ("\n\nIt appears that your installation has crashed.  You should\n"
+               "be able to find more information in the Xen logs")
+        sys.exit(3)
+
+    writeConfig(cfgdict)
     
-    buf = buf.replace("#bootloader", "bootloader")
-    buf = buf.replace("'destroy'", "'restart'")
-
-    f = open(cfg, "w+")
-    f.write(buf)
-    f.close()
-
     status = -1
     try:
         (pid, status) = os.waitpid(child, 0)
     except OSError, (errno, msg):
         print __name__, "waitpid:", msg
 
-    print ("If your install has exited, you can restart your guest by running\n"
-           "'xm create -c %s'.  Otherwise, you can reconnect to the console\n"
-           "by running 'xm console %s'" %(name, name)) 
+    # ensure there's time for the domain to finish destroying if the
+    # install has finished or the guest crashed
+    time.sleep(1)
+    try:
+        d = conn.lookupByID(dom.ID())
+    except libvirt.libvirtError:
+        print ("If your install completed successfully, you can restart your\n"
+               "guest by running 'xm create -c %s'." %(name,))
+    else:
+        print ("You can reconnect to the console of your guest by running\n"
+               "'xm console %s'" %(name,))
     
 
 def parse_args():
@@ -330,6 +388,8 @@ def parse_args():
                       help="Memory to allocate for guest instance in megabytes")
     parser.add_option("-m", "--mac", type="string", dest="mac",
                       help="Fixed MAC address for the guest; if none is given a random address will be used")
+    parser.add_option("-u", "--uuid", type="string", dest="uuid",
+                      help="UUID for the guest; if none is given a random UUID will be generated")
     
     # vmx/svm options
     if is_hvm_capable():
@@ -381,19 +441,20 @@ def main():
     ram = get_ram(options)
     disk = get_disk(options)
     mac = get_mac(options)
+    uuid = get_uuid(options)
 
     if is_hvm_capable():
         hvm = get_full_virt(options)
 
     if not hvm:
         src = get_paravirt_install(options)
-        start_paravirt_install(name, ram, disk, mac, src, options.extra)
+        start_paravirt_install(name, ram, disk, mac, uuid, src, options.extra)
     else:
         if get_virt_cdboot(options):
             cdrom = get_virt_cdrom(options)
         else:
             cdrom = None
-        start_hvm_guest(name, ram, disk, mac, cdrom)
+        start_hvm_guest(name, ram, disk, mac, uuid, cdrom)
 
 if __name__ == "__main__":
     main()

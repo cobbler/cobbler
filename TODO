@@ -1,0 +1,7 @@
+- allow --replace-self to take a --kickstart in lieu of the bootconf
+  required --server= and --profiles=
+- rpmification
+- change config file format
+- finish initrd mangling support
+- testing and test cases
+- write to /var/something rather than /tmp
