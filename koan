@@ -7,7 +7,6 @@
 
 import sys
 import os
-import socket
 import yaml       # not in fc5.  should be.  or a fixed py-syck, one...
 import traceback
 import time
@@ -144,7 +143,7 @@ class Koan:
             nfile = os.path.basename(kickstart[4:])
             nfsdir = tempfile.mkdtemp(prefix="koan_nfs",dir="/var/spool/koan")
             nfsfile = os.path.join(nfsdir,nfile)
-            cmd = ["mount","-o","ro", ndir, nfsmntdir]
+            cmd = ["mount","-o","ro", ndir, nfsdir]
             if self.subprocess_call(cmd) != 0:
                 raise InfoException, "nfs mount failed"
             return nfile.open(nfsfile).read()
@@ -204,7 +203,7 @@ class Koan:
                 raise InfoException, "loopback mount failed"
             shutil.copyfile(kickstart_file,os.path.join(loop,"ks.cfg"))
             cmd = [ "umount", loop ]
-            if self.subprocess.call(cmd) != 0:
+            if self.subprocess_call(cmd) != 0:
                 raise InfoException, "umount failed"
         else:
             cpio = tempfile.mkdtemp(prefix="cpio",dir="/var/spool/koan")
@@ -226,7 +225,7 @@ class Koan:
         cmd = [ "gzip", "-c", initrd ]
         rc = self.subprocess_call(cmd)
         if rc != 0:
-            raise "gzip failed"
+            raise InfoException, "gzip failed"
         outfile = "/boot/koan_initrd.img"
         self.debug("writing: %s" % outfile)
         shutil.copyfile(initrd, outfile)
