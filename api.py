@@ -561,7 +561,7 @@ class Profile(Item):
         buf = buf + "distro          : %s\n" % self.distro
         buf = buf + "kickstart       : %s\n" % self.kickstart
         buf = buf + "kernel opts     : %s" % self.kernel_options
-        buf = buf + "xen name prefix : %s" % self.xen_name_prefix
+        buf = buf + "xen name prefix : %s" % self.xen_name
         buf = buf + "xen file path   : %s" % self.xen_file_path
         buf = buf + "xen file size   : %s" % self.xen_file_size
         buf = buf + "xen ram         : %s" % self.xen_ram
