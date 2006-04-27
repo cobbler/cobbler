@@ -91,7 +91,7 @@ class BootCheck:
           if not found_bootdir:
               status.append(m("chg_attrib") % ('server_args',"-s %s" % self.config.tftpboot, self.config.tftpd_conf))   
        else:
-          status.append(m("no_exist") % self.tftpd_conf)
+          status.append(m("no_exist") % self.config.tftpd_conf)
    
 
    def check_dhcpd_conf(self,status):
