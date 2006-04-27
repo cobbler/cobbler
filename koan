@@ -124,7 +124,7 @@ class Koan:
             self.debug("editing boot: %s" % " ".join(cmd))
             try:
                 rc = self.subprocess_call(cmd)
-                if rc !=0: raise "grubby failed"
+                if rc !=0: raise InfoException, "grubby failed"
             except:
                 raise InfoException, "error while running /sbin/grubby"
             self.debug("rebooting")
@@ -139,20 +139,20 @@ class Koan:
         """
         if kickstart.startswith("nfs"):
             # FIXME
-            raise "NFS kickstart downloads not supported (yet)"
-            dir  = os.path.dirname(kickstart[4:])
-            file = os.path.basename(kickstart[4:])
+            raise InfoException, "NFS kickstart downloads not supported (yet)"
+            ndir  = os.path.dirname(kickstart[4:])
+            nfile = os.path.basename(kickstart[4:])
             nfsdir = tempfile.mkdtemp(prefix="koan_nfs",dir="/var/spool/koan")
-            nfsfile = os.path.join(nfsdir,file)
-            cmd = ["mount","-o","ro", dir, nfsmntdir]
-            ret = self.subprocess_call(cmd)
-            if ret!=0: raise "nfs mount failed"
-            return file.open(nfsfile).read()
+            nfsfile = os.path.join(nfsdir,nfile)
+            cmd = ["mount","-o","ro", ndir, nfsmntdir]
+            if self.subprocess_call(cmd) != 0:
+                raise InfoException, "nfs mount failed"
+            return nfile.open(nfsfile).read()
         elif kickstart.startswith("http") or kickstart.startswith("ftp"):
-            inf   = urlgrabber.urlread(kickstart)
+            inf = urlgrabber.urlread(kickstart)
             return inf
         else:
-            raise "invalid kickstart URL"
+            raise InfoException, "invalid kickstart URL"
 
     def build_initrd(self,initrd,kickstart_data):
         """
@@ -175,8 +175,8 @@ class Koan:
         self.debug("making initrd_copy: %s" % initrd_copy)
         shutil.copyfile(initrd,initrd_copy)
         cmd = [ "gunzip", "--force", initrd_copy ]
-        rc = self.subprocess_call(cmd)
-        if rc !=0: raise "gunzip failed"
+        if self.subprocess_call(cmd) != 0:
+            raise InfoException, "gunzip failed"
         return "/var/spool/koan/initrd_copy"
         
     def save_kickstart_to_file(self,kickstart_data):
@@ -192,17 +192,32 @@ class Koan:
         """
         Crack open an initrd and install the kickstart file.
         """
-        initrd_data = open(initrd,"r").read()
+        fd = open(initrd,"r")
+        initrd_data = fd.read()
+        fd.close()
         if initrd_data.find("filesystem data") != -1:
-            loop = tempfile.mkdtemp(prefix="koan",dir="/var/spool/koan")
+            # handle EXT2
+            loop = tempfile.mkdtemp(prefix="ext2",dir="/var/spool/koan")
             self.debug("loop = %s" % loop)
             cmd = [ "mount", "-o", "loop", "-t", "ext2", loop, initrd ]
-            rc = self.subprocess_call(cmd)
-            if rc != 0: raise "loopback mount failed"
+            if self.subprocess_call(cmd) != 0:
+                raise InfoException, "loopback mount failed"
             shutil.copyfile(kickstart_file,os.path.join(loop,"ks.cfg"))
+            cmd = [ "umount", loop ]
+            if self.subprocess.call(cmd) != 0:
+                raise InfoException, "umount failed"
         else:
-            # handle CPIO insertion
-            raise exceptions.NotImplementedError
+            cpio = tempfile.mkdtemp(prefix="cpio",dir="/var/spool/koan")
+            cmd = [ "cpio", "-id", initrd ]
+            if self.subprocess_call(cmd) !=0:
+                raise InfoException, "cpio extraction failed"
+            shutil.copyfile(kickstart_file,os.path.join(cpio,"ks.cfg"))
+            cmd = [ "cpio", "-c", "-o", cpio ]
+            if self.subprocess_call(cmd) != 0:
+                raise InfoException, "cpio build failed"
+            cmd = [ "gzip", "-9", cpio, initrd ]
+            if self.subprocess_call(cmd) != 0:
+                raise InfoException, "cpio gzip failed"
 
     def rezip_initrd(self, initrd): 
         """
