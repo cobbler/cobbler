@@ -85,6 +85,7 @@ class BootConfig:
         data['tftpd_bin']      = self.tftpd_bin
         data['dhcpd_bin']      = self.dhcpd_bin
         data['httpd_bin']      = self.httpd_bin
+        data['kernel_options'] = self.kernel_options
         return data
     
     """
@@ -100,6 +101,7 @@ class BootConfig:
             self.tftpd_bin       = hash['tftpd_bin']
             self.dhcpd_bin       = hash['dhcpd_bin']
             self.httpd_bin       = hash['httpd_bin']
+            self.kernel_options  = hash['kernel_options']
         except:
             print "WARNING: config file error: %s" % (self.settings_file)
             self.set_defaults()
