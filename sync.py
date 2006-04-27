@@ -226,12 +226,12 @@ class BootSync:
         kickstart_path = profile.kickstart
         self.sync_log("writing: %s" % filename)
         self.sync_log("---------------------------------")
-        file = self.open_file(filename,"w+")
-        self.tee(file,"default linux\n")
-        self.tee(file,"prompt 0\n")
-        self.tee(file,"timeout 1\n")
-        self.tee(file,"label linux\n")
-        self.tee(file,"   kernel %s\n" % kernel_path)
+        fd = self.open_file(filename,"w+")
+        self.tee(fd,"default linux\n")
+        self.tee(fd,"prompt 0\n")
+        self.tee(fd,"timeout 1\n")
+        self.tee(fd,"label linux\n")
+        self.tee(fd,"   kernel %s\n" % kernel_path)
         kopts = self.blend_kernel_options((
            self.api.config.kernel_options, 
            profile.kernel_options, 
@@ -245,8 +245,8 @@ class BootSync:
             if kickstart_path.startswith("/"):
                 kickstart_path = "http://%s/cobbler/kickstarts/%s/ks.cfg" % (self.api.config.server, profile.name)
             nextline = nextline + " ks=%s" % kickstart_path
-        self.tee(file, nextline)
-        self.close_file(file)
+        self.tee(fd, nextline)
+        self.close_file(fd)
         self.sync_log("--------------------------------")
 
 
@@ -254,39 +254,39 @@ class BootSync:
         """ 
         Create distro information for xen-net-install
         """
-        file = self.open_file(filename,"w+")
-        self.tee(file,yaml.dump(distro.to_datastruct()))
-        self.close_file(file)
+        fd = self.open_file(filename,"w+")
+        self.tee(fd,yaml.dump(distro.to_datastruct()))
+        self.close_file(fd)
 
 
     def write_profile_file(self,filename,profile):
         """
         Create profile information for xen-net-install
         """
-        file = self.open_file(filename,"w+")
+        fd = self.open_file(filename,"w+")
         # if kickstart path is local, we've already copied it into
         # the HTTP mirror, so make it something anaconda can get at
         if profile.kickstart.startswith("/"):
             profile.kickstart = "http://%s/cobbler/kickstarts/%s/ks.cfg" % (self.api.config.server, profile.name)
-        self.tee(file,yaml.dump(profile.to_datastruct()))
-        self.close_file(file)
+        self.tee(fd,yaml.dump(profile.to_datastruct()))
+        self.close_file(fd)
  
 
     def write_system_file(self,filename,system):
         """
         Create system information for xen-net-install
         """ 
-        file = self.open_file(filename,"w+")
-        self.tee(file,yaml.dump(system.to_datastruct()))
-        self.close_file(file)
+        fd = self.open_file(filename,"w+")
+        self.tee(fd,yaml.dump(system.to_datastruct()))
+        self.close_file(fd)
 
-    def tee(self,file,text):
+    def tee(self,fd,text):
         """
         For dry_run support:  send data to screen and potentially to disk
         """
         self.sync_log(text)
         if not self.dry_run:
-            file.write(text)
+            fd.write(text)
   
     def open_file(self,filename,mode):
         """
@@ -296,12 +296,12 @@ class BootSync:
             return None
         return open(filename,mode)
  
-    def close_file(self,file):
+    def close_file(self,fd):
         """
 	For dry_run support:  close a file if not in dry_run mode.
 	"""
         if not self.dry_run:
-            file.close()
+            fd.close()
 
     def copyfile(self,src,dst):
        """
