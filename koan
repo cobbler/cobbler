@@ -72,8 +72,9 @@ class Koan:
         self.debug("mkdir: %s" % path)
         try:
             os.mkdir(path)
-        except: 
-            pass
+        except OSError, (errno, msg): 
+            if errno != errno.EEXIST:
+                raise OSError(errno,msg)
 
     def rmtree(self,path):
         """
@@ -144,6 +145,7 @@ class Koan:
             if not os.path.exists("/sbin/grubby"):
                 raise InfoException, "grubby is not installed"
             k_args = distro_data['kernel_options']
+            k_args = k_args + " ks=file:ks.cfg"
             self.build_initrd(distro_data['initrd_local'], profile_data['kickstart'])
             cmd = [ "/sbin/grubby",
                     "--add-kernel", distro_data['kernel_local'],
@@ -427,7 +429,6 @@ if __name__ == "__main__":
     # FIXME:  catch custom exceptions only...
     try:
         Koan(options)
-        sys.exit(0)
     except InfoException, ie:
         traceback.print_exc()
         # print str(ie)  # str.message() ... FIXME
@@ -435,4 +436,6 @@ if __name__ == "__main__":
     except:
         traceback.print_exc()
         sys.exit(2)
+    sys.exit(0)
+
 
