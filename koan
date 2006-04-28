@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+#
 # koan = kickstart over a network
+#
 # a tool for network provisioning of Xen and network re-provisioning
-# of existing Linux systems.
+# of existing Linux systems.  used with 'cobbler'.
 #
 # Michael DeHaan <mdehaan@redhat.com>
 
@@ -38,8 +40,9 @@ class Koan:
         self.verbose           = args.verbose
         self.is_xen            = args.is_xen
         self.is_auto_kickstart = args.is_auto_kickstart
+        self.dryrun            = False
         if self.server is None:
-            raise InfoException, "no --server specified"
+            raise InfoException, "no server specified"
         if not self.is_xen and not self.is_auto_kickstart:
             raise InfoException, "must use either --xen or --replace-self"
         if not self.server:
@@ -62,13 +65,46 @@ class Koan:
             print "- %s" % msg
         return msg    
 
-    def subprocess_call(self,cmd):
+    def mkdir(self,path):
         """
-        Verbose wrapper around subprocess.call(...)
+        A more verbose and tolerant mkdir
         """
-        if self.verbose:
-            print "- %s" % " ".join(cmd)
-        return subprocess.call(cmd)
+        self.debug("mkdir: %s" % path)
+        try:
+            os.mkdir(path)
+        except: 
+            pass
+
+    def rmtree(self,path):
+        """
+        A more verbose and tolerant rmtree
+        """
+        self.debug("removing: %s" % path)
+        try:
+            shutil.rmtree(path)
+        except:
+            pass
+
+    def copyfile(self,src,dest):
+        """
+        A more verbose copyfile
+        """
+        self.debug("copying %s to %s" % (src,dest))
+        return shutil.copyfile(src,dest)
+
+    def subprocess_call(self,cmd,fake_it=False,ignore_rc=False):
+        """
+        Wrapper around subprocess.call(...)
+        """
+        msg = " ".join(cmd)
+        self.debug(cmd)
+        if fake_it: 
+            self.debug("(SIMULATED)")
+            return 0
+        rc = subprocess.call(cmd)
+        if rc != 0 and not ignore_rc:
+            raise InfoException, "command failed (%s)" % rc
+        return rc
 
     def do_net_install(self,download_root,each_profile):
         """
@@ -93,7 +129,7 @@ class Koan:
         def each_profile(self, distro_data, profile_data):
             cmd = self.build_xen_args(profile_data, distro_data)
             self.invoke_xen_install(cmd) 
-        self.do_net_install("/tmp",each_profile)
+        return self.do_net_install("/tmp",each_profile)
 
     def do_auto_kickstart(self):
         """
@@ -101,51 +137,37 @@ class Koan:
         kernel, new initrd, and installing a kickstart in the initrd,
         then manipulating grub.
         """
-        try:
-            os.mkdir("/var/spool/koan")
-        except:
-            pass
+        self.rmtree("/var/spool/koan")
+        self.mkdir("/var/spool/koan")
     
         def each_profile(self, distro_data, profile_data):
             if not os.path.exists("/sbin/grubby"):
                 raise InfoException, "grubby is not installed"
             k_args = distro_data['kernel_options']
-            k_args.replace(r'ksdevice=\d*','')
-            ksdata = self.get_kickstart_data(profile_data['kickstart'])
-            new_init = self.build_initrd(distro_data['initrd_local'], ksdata)
-            cmd = [ "#/sbin/grubby",
+            self.build_initrd(distro_data['initrd_local'], profile_data['kickstart'])
+            cmd = [ "/sbin/grubby",
                     "--add-kernel", distro_data['kernel_local'],
-                    "--initrd", new_init,
+                    "--initrd", distro_data['initrd_local'],
                     "--make-default",
                     "--title", "kickstart",
                     "--args", k_args,
                     "--copy-default" ]
-            self.debug("editing boot: %s" % " ".join(cmd))
-            try:
-                rc = self.subprocess_call(cmd)
-                if rc !=0: raise InfoException, "grubby failed"
-            except:
-                raise InfoException, "error while running /sbin/grubby"
-            self.debug("rebooting")
-            # TODO: reboot
-            cmd = [ "#/sbin/shutdown", "-r", "-t", "5", "-k" ]
-            self.subprocess_call(cmd)
-        self.do_net_install("/boot",each_profile) # FIXME: should be /boot
+            self.subprocess_call(cmd, fake_it=self.dryrun)
+            self.debug("reboot to apply changes")
+        return self.do_net_install("/boot",each_profile)
 
     def get_kickstart_data(self,kickstart):
         """
         Get contents of data in network kickstart file.
         """
         if kickstart.startswith("nfs"):
-            # FIXME
-            raise InfoException, "NFS kickstart downloads not supported (yet)"
+            # FIXME: NFS bits not tested
             ndir  = os.path.dirname(kickstart[4:])
             nfile = os.path.basename(kickstart[4:])
             nfsdir = tempfile.mkdtemp(prefix="koan_nfs",dir="/var/spool/koan")
             nfsfile = os.path.join(nfsdir,nfile)
             cmd = ["mount","-o","ro", ndir, nfsdir]
-            if self.subprocess_call(cmd) != 0:
-                raise InfoException, "nfs mount failed"
+            self.subprocess_call(cmd)
             return nfile.open(nfsfile).read()
         elif kickstart.startswith("http") or kickstart.startswith("ftp"):
             inf = urlgrabber.urlread(kickstart)
@@ -153,83 +175,60 @@ class Koan:
         else:
             raise InfoException, "invalid kickstart URL"
 
-    def build_initrd(self,initrd,kickstart_data):
+    def get_insert_script(self,initrd,initrd_data):
         """
-        Crack open an initrd to insert kickstart data
+        Create bash script for inserting kickstart into initrd.
+        Code heavily borrowed from internal auto-ks scripts.
         """
-        self.debug("unzipping initrd")
-        initrd_copy = self.unzip_initrd(initrd)
-        self.debug("saving kickstart")
-        ksfile = self.save_kickstart_to_file(kickstart_data)
-        self.debug("inserting kickstart")
-        self.copy_kickstart_into_image(initrd_copy, ksfile)
-        self.debug("rezipping initrd")
-        self.rezip_initrd(initrd_copy)
-        
-    def unzip_initrd(self,initrd): 
-        """
-        Unzip an initrd into temp space, return where.
-        """
-        initrd_copy  = "/var/spool/koan/initrd_copy.gz"
-        self.debug("making initrd_copy: %s" % initrd_copy)
-        shutil.copyfile(initrd,initrd_copy)
-        cmd = [ "gunzip", "--force", initrd_copy ]
-        if self.subprocess_call(cmd) != 0:
-            raise InfoException, "gunzip failed"
-        return "/var/spool/koan/initrd_copy"
-        
-    def save_kickstart_to_file(self,kickstart_data):
-        """
-        Save kickstart data to a tempfile, return that file location.
-        """
-        kickstart_file = "/var/spool/koan/ks.cfg"
-        self.debug("kickstart_file = %s" % kickstart_file)
-        open(kickstart_file,"w+").write(kickstart_data)
-        return kickstart_file
+        if initrd_data.find("filesystem data") != -1:
+            return """
+               cp %s /var/spool/koan/initrd_copy.gz
+                gunzip /var/spool/koan/initrd_copy.gz
+                mount -o loop -t ext2 /var/spool/koan/initrd_open /var/spool/koan/initrd_copy
+                cp /var/spool/koan/ks.cfg /var/spool/koan/initrd_contents/
+                ln /var/spool/koan/initrd_open/ks.cfg /var/spool/koan/initrd_open/tmp/ks.cfg
+                umount /var/spool/koan/initrd_open
+                gzip -c initrd_copy > /var/spool/koan/initrd_final
+            """ % (initrd)
+        else:
+            # image is CPIO
+            return """
+                cp %s /var/spool/koan/initrd_copy.gz
+                gunzip /var/spool/koan/initrd_copy.gz
+                cat /var/spool/koan/initrd_copy | (
+                    cd /var/spool/koan/initrd_contents &&
+                    cpio -id &&
+                    cp /var/spool/koan/ks.cfg . &&
+                    ln ks.cfg tmp/ks.cfg &&
+                    find . |
+                    cpio -c -o | gzip -9) > /var/spool/koan/initrd_final
+            """ % (initrd)
 
-    def copy_kickstart_into_image(self,initrd,kickstart_file): 
+
+    def build_initrd(self,initrd,kickstart): 
         """
         Crack open an initrd and install the kickstart file.
         """
+ 
+        # read contents of initrd (check for filesystem)
         fd = open(initrd,"r")
         initrd_data = fd.read()
         fd.close()
-        if initrd_data.find("filesystem data") != -1:
-            # handle EXT2
-            loop = tempfile.mkdtemp(prefix="ext2",dir="/var/spool/koan")
-            self.debug("loop = %s" % loop)
-            cmd = [ "mount", "-o", "loop", "-t", "ext2", loop, initrd ]
-            if self.subprocess_call(cmd) != 0:
-                raise InfoException, "loopback mount failed"
-            shutil.copyfile(kickstart_file,os.path.join(loop,"ks.cfg"))
-            cmd = [ "umount", loop ]
-            if self.subprocess_call(cmd) != 0:
-                raise InfoException, "umount failed"
-        else:
-            cpio = tempfile.mkdtemp(prefix="cpio",dir="/var/spool/koan")
-            cmd = [ "cpio", "-id", initrd ]
-            if self.subprocess_call(cmd) !=0:
-                raise InfoException, "cpio extraction failed"
-            shutil.copyfile(kickstart_file,os.path.join(cpio,"ks.cfg"))
-            cmd = [ "cpio", "-c", "-o", cpio ]
-            if self.subprocess_call(cmd) != 0:
-                raise InfoException, "cpio build failed"
-            cmd = [ "gzip", "-9", cpio, initrd ]
-            if self.subprocess_call(cmd) != 0:
-                raise InfoException, "cpio gzip failed"
 
-    def rezip_initrd(self, initrd): 
-        """
-        Zip an initrd and copy it to the final boot location.
-        """
-        cmd = [ "gzip", "-c", initrd ]
-        rc = self.subprocess_call(cmd)
-        if rc != 0:
-            raise InfoException, "gzip failed"
-        outfile = "/boot/koan_initrd.img"
-        self.debug("writing: %s" % outfile)
-        shutil.copyfile(initrd, outfile)
-        return outfile
+        # create directory where initrd will be exploded
+        self.mkdir("/var/spool/koan/initrd_contents")
+
+        # save kickstart to file
+        fd = open("/var/spool/koan/ks.cfg","w+")
+        fd.write(self.get_kickstart_data(kickstart))
+        fd.close()
+     
+        # handle insertion of kickstart based on type of initrd
+        fd = open("/var/spool/koan/insert.sh","w+")
+        fd.write(self.get_insert_script(initrd,initrd_data))
+        fd.close()
+        self.subprocess_call([ "/bin/bash", "/var/spool/koan/insert.sh" ])
+        self.copyfile("/var/spool/koan/initrd_final", initrd)
 
     def get_profile_yaml(self,profile_name):
         """
