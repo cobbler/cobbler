@@ -145,6 +145,8 @@ class Koan:
             if not os.path.exists("/sbin/grubby"):
                 raise InfoException, "grubby is not installed"
             k_args = distro_data['kernel_options']
+            re1 = re.compile('ksdevice=.* ')
+            k_args = re1.sub('',k_args)
             k_args = k_args + " ks=file:ks.cfg"
             self.build_initrd(distro_data['initrd_local'], profile_data['kickstart'])
             cmd = [ "/sbin/grubby",
