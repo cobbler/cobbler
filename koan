@@ -170,6 +170,7 @@ class Koan:
             self.subprocess_call(cmd)
             return nfile.open(nfsfile).read()
         elif kickstart.startswith("http") or kickstart.startswith("ftp"):
+            self.debug("urlgrab: %s" % kickstart)
             inf = urlgrabber.urlread(kickstart)
             return inf
         else:
