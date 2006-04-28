@@ -8,11 +8,7 @@ library
 
 import os
 import sys
-import getopt
-import traceback
-
 import api
-import util
 from msg import *
 
 class BootCLI:

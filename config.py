@@ -52,7 +52,7 @@ class BootConfig:
         self.tftpd_bin      = "/usr/sbin/in.tftpd"
         self.dhcpd_bin      = "/usr/sbin/dhcpd"
         self.httpd_bin      = "/usr/sbin/httpd"
-        self.kernel_options = "append devfs=nomount ramdisk_size=16438 lang= vga=788 ksdevice=eth0 console=ttyS0,38400n8" #initrd and ks added programmatically
+        self.kernel_options = "append devfs=nomount ramdisk_size=16438 lang= vga=788 ksdevice=eth0" #initrd and ks added programmatically
 
     """
     Access the current profiles list
