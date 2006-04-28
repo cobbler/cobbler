@@ -17,6 +17,7 @@ import urlgrabber
 import optparse
 import exceptions
 import subprocess
+import re
 import shutil
 
 """
