@@ -9,7 +9,7 @@
 
 import sys
 import os
-import yaml       # not in fc5.  should be.  or a fixed py-syck, one...
+import yaml       # (rpm -i python-yaml*.rpm in /hg/cobbler for now)
 import traceback
 import time
 import tempfile
@@ -20,11 +20,17 @@ import subprocess
 import re
 import shutil
 
+# we're importing a slightly modified version of xenguest-install.
+# once it's more of a library that supports a bit more explicit
+# settings we can use the real thing.
+import xencreate
+  
 """
 koan --xen --profiles=webserver,dbserver --server=hostname
 koan --replace-self --server=hostname --profiles=foo
-LATER? koan --replace-self --kickstart=foo
+LATER? koan --replace-self --kickstart=foo (??)
 """
+
 
 class InfoException(exceptions.Exception):
     def __init__(self,args=None):
@@ -129,8 +135,7 @@ class Koan:
         Handle xen provisioning.
         """
         def each_profile(self, distro_data, profile_data):
-            cmd = self.build_xen_args(profile_data, distro_data)
-            self.invoke_xen_install(cmd) 
+            cmd = self.do_xen_net_install(profile_data, distro_data)
         return self.do_net_install("/tmp",each_profile)
 
     def do_auto_kickstart(self):
@@ -290,25 +295,14 @@ class Koan:
         distro_data['initrd_local'] = initrd_save
         self.debug("initrd saved = %s" % initrd_save)
 
-    def build_xen_args(self,profile_data,distro_data):
+    def do_xen_net_install(self,profile_data,distro_data):
         """
-        Probably obsolete.  Refactor out.
+        Invoke xenguest-install (or tweaked copy thereof)
         """
- 
-
-        #pd = profile_data
-        #dd = distro_data
-        #args = [
-        #    self.xenguest_install,
-        #    "--name=%s"     % self.calc_xen_name(pd),
-        #    "--file=%s"     % self.calc_xen_filename(pd),
-        #    "--file-size=%s" % self.calc_xen_filesize(pd),
-        #    "--ram=%s"      % self.calc_xen_ram(pd),
-        #    "--location=file://%s,%s" % (dd['initrd_local'],dd['kernel_local'])
-        #] 
-        # optional opts
-        #if pd['xen_paravirt']:
-        #    args.append("--paravirt")
+        pd = profile_data
+        dd = distro_data
+        
+        extra = ""
         #if pd['kickstart'] != "" or pd['kernel_options'] != "":
         #    extra = " -x "
         #    if pd['kickstart'] != "":
@@ -318,27 +312,30 @@ class Koan:
         #    if pd['kernel_options'] != "":
         #        extra = extra + pd['kernel_options']
         #    args.append(extra)
-        # FIXME: support MAC ranges in addition to specifics
-        #if pd['xen_mac'] != "":
-        #    args.append("--mac=%s" % pd['xen_mac'])
-        #return " ".join(args)
+ 
+        # any calc_ functions filter arguments from cobbler (server side)
+        # and try to make them sane with respect to the local system.
+        # For instance, a name might conflict, or a size might not
+        # be specified and would need to be set to a reasonable default.
+        # 
+        # any xencreate.get_ functions are from xenguest install, and filter
+        # those further.  They are a bit of legacy data left over
+        # from xenguest-install's CLI nature but it's better than recloning
+        # them.  Mainly the original xenguest-install functions have 
+        # been tweaked to remove any danger of interactiveness or need
+        # to use optparse, which we obviously don't want here.
         
-        raise InfoException, "Implementation TBA"
-        return ""    
-
-    def invoke_xen_install(self,cmd):     
-        """
-        Install Xen based on the downloaded parameters
-        """
-        #self.debug("running %s" % cmd)
-        #rc = os.system(cmd)
-        #if not rc == 0:
-        #    raise "%s failed (rc=%d)..." % (self.xenguest_install, rc)
-        #return True
-
-        # FIXME: This should call libvirt
-
-        return True
+        xencreate.start_paravirt_install(
+            name=self.calc_xen_name(pd), 
+            ram=self.calc_xen_ram(pd), 
+            disk= xencreate.get_disk(self.calc_xen_filename(pd),
+                self.calc_xen_filesize(pd)), 
+            mac=xencreate.get_mac(self.calc_xen_mac(pd)),
+            uuid=xencreate.get_uuid(self.calc_xen_uuid(pd)),
+            kernel=dd['kernel_local'],
+            initrd=dd['initrd_local'],
+            extra=extra
+        )
 
     def calc_xen_name(self,data):
         """
@@ -349,9 +346,14 @@ class Koan:
         name = data['xen_name']
         if name is None or name == "":
             name = "xenguest"
-        name = data['xen_name'] + str(int(time.time()))
+        # name = data['xen_name'] + str(int(time.time()))
         data['xen_name'] = name
         return name
+
+    def calc_xen_uuid(self,data):
+        # FIXME: eventually we'll want to allow some koan CLI
+        # option for passing in the UUID.  Until then, it's random.
+        return None 
 
     def calc_xen_filename(self,data): 
         """
@@ -399,6 +401,13 @@ class Koan:
             return 256
         return int(size)
  
+
+    def calc_xen_mac(self,data):
+        """
+        For now, we have no preference.
+        """
+        return None
+
 
 if __name__ == "__main__":
     """
