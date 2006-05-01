@@ -126,10 +126,7 @@ class BootSync:
         for g in self.api.get_profiles().contents():
            self.sync_log("mirroring any local kickstarts: %s" % g.name)
            kickstart_path = self.api.utils.find_kickstart(g.kickstart)
-           if kickstart_path is None:
-              self.api.last_error = m("err_kickstart") % (g.name, g.kickstart)
-              raise "error"
-           if os.path.exists(kickstart_path):
+           if kickstart_path and os.path.exists(kickstart_path):
               # the input is an *actual* file, hence we have to copy it
               copy_path = os.path.join(self.api.config.tftpboot, "kickstarts", g.name)
               self.mkdir(copy_path)
@@ -139,8 +136,6 @@ class BootSync:
               except:
                   self.api.last_error = m("err_kickstart2") % (g.kickstart,dest)
                   raise "error"
-           elif kickstart_path.startswith("/"):
-              self.api_last_error = m("err_kickstart") % (kickstart_path,g.name)
 
     def build_trees(self):
         """
@@ -266,7 +261,7 @@ class BootSync:
         fd = self.open_file(filename,"w+")
         # if kickstart path is local, we've already copied it into
         # the HTTP mirror, so make it something anaconda can get at
-        if profile.kickstart.startswith("/"):
+        if profile.kickstart and profile.kickstart.startswith("/"):
             profile.kickstart = "http://%s/cobbler/kickstarts/%s/ks.cfg" % (self.api.config.server, profile.name)
         self.tee(fd,yaml.dump(profile.to_datastruct()))
         self.close_file(fd)

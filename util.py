@@ -143,6 +143,8 @@ class BootUtil:
        If a local path is used, cobbler will copy the kickstart and serve
        it over http.
        """
+       if url is None:
+           return None
        x = url.lower()
        for y in ["http://","nfs://","ftp://","/"]:
           if x.startswith(y):
