@@ -250,6 +250,9 @@ class BootSync:
         Create distro information for xen-net-install
         """
         fd = self.open_file(filename,"w+")
+        # resolve to current values
+        distro.kernel = self.api.utils.find_kernel(distro.kernel)
+        distro.initrd = self.api.utils.find_initrd(distro.initrd)
         self.tee(fd,yaml.dump(distro.to_datastruct()))
         self.close_file(fd)
 
