@@ -303,15 +303,13 @@ class Koan:
         dd = distro_data
         
         extra = ""
-        #if pd['kickstart'] != "" or pd['kernel_options'] != "":
-        #    extra = " -x "
-        #    if pd['kickstart'] != "":
-        #        extra = extra + "ks=" + pd['kickstart']
-        #    if pd['kickstart'] !="" and pd['kernel_options'] !="":
-        #        extra = extra + ","
-        #    if pd['kernel_options'] != "":
-        #        extra = extra + pd['kernel_options']
-        #    args.append(extra)
+        if pd['kickstart'] != "" or pd['kernel_options'] != "":
+            if pd['kickstart'] != "":
+                extra = extra + "ks=" + pd['kickstart']
+            if pd['kickstart'] !="" and pd['kernel_options'] !="":
+                extra = extra + " "
+            if pd['kernel_options'] != "":
+                extra = extra + pd['kernel_options']
  
         # any calc_ functions filter arguments from cobbler (server side)
         # and try to make them sane with respect to the local system.
