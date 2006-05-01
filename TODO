@@ -13,6 +13,8 @@ I  - Manpage (in progress) .. continuously...
   -  Subnet creation shorthand ... (system objects that match multiples?)
   -  MAC ranges for Xen (how best to do this? shelve this for now).
   -  Consider some sort of kickstart manager to templatize kickstarts?
+  -  If there is a parse error in /etc/cobbler.conf and the user
+     deletes that file, fix the bug that also deletes the file in /var.
      
 LEGEND
 
