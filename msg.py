@@ -35,7 +35,7 @@ msg_table = {
   "err_resolv"      : "system (%s) did not resolve",
   "err_kickstart"   : "kickstart (%s) for item (%s) is not valid",
   "err_kickstart2"  : "error mirroring kickstart file (%s) to (%s)",
-  "orphan_profile2" : "profile does not reference a distro",
+  "orphan_profile2" : "system references a non-existant profile",
   "orphan_system2"  : "system does not reference a profile",
   "orphan_profile"  : "removing this distro would break a profile",
   "orphan_system"   : "removing this profile would break a system",
