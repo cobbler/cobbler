@@ -190,6 +190,7 @@ class Koan:
         Code heavily borrowed from internal auto-ks scripts.
         """
         if initrd_data.find("filesystem data") != -1:
+            # FIXME: not tested with ext2 images yet
             return """
                cp %s /var/spool/koan/initrd_copy.gz
                 gunzip /var/spool/koan/initrd_copy.gz
@@ -257,7 +258,7 @@ class Koan:
         """
         Fetches distribution yaml from a remote bootconf tree.
         """
-        self.debug("- fetching configuration for distro: %s" % distro_name)
+        self.debug("fetching configuration for distro: %s" % distro_name)
         try:
             url = "http://%s/cobbler/distros/%s" % (self.server,distro_name)
             self.debug("url=%s" % url)
@@ -302,15 +303,19 @@ class Koan:
         pd = profile_data
         dd = distro_data
         
-        extra = ""
+        kextra = ""
         if pd['kickstart'] != "" or pd['kernel_options'] != "":
             if pd['kickstart'] != "":
-                extra = extra + "ks=" + pd['kickstart']
+                kextra = kextra + "ks=" + pd['kickstart']
             if pd['kickstart'] !="" and pd['kernel_options'] !="":
-                extra = extra + " "
+                kextra = kextra + " "
             if pd['kernel_options'] != "":
-                extra = extra + pd['kernel_options']
- 
+                kextra = kextra + pd['kernel_options']
+
+        # parser issues?  lang needs a trailing = and somehow doesn't have it.
+        kextra = kextra.replace("lang","lang=")
+        kextra = kextra.replace("==","=")
+
         # any calc_ functions filter arguments from cobbler (server side)
         # and try to make them sane with respect to the local system.
         # For instance, a name might conflict, or a size might not
@@ -332,19 +337,19 @@ class Koan:
             uuid=xencreate.get_uuid(self.calc_xen_uuid(pd)),
             kernel=dd['kernel_local'],
             initrd=dd['initrd_local'],
-            extra=extra
+            extra=kextra
         )
 
     def calc_xen_name(self,data):
         """
         Turn the suggested name into a non-conflicting name.
-        For now we're *really* lazy about this and are just taking on
-        the epoch. FIXME.
+        For now we're being lazy about this and are just taking on
+        the epoch.  Probably not ideal.  FIXME.
         """
         name = data['xen_name']
         if name is None or name == "":
             name = "xenguest"
-        # name = data['xen_name'] + str(int(time.time()))
+        name = data['xen_name'] # + str(int(time.time()))
         data['xen_name'] = name
         return name
 
