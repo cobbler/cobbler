@@ -406,8 +406,8 @@ class Profile(Item):
         self.distro = None # a name, not a reference
         self.kickstart = None
         self.kernel_options = ''
-        self.xen_name = 'xen'
-        self.xen_file_size = 2 # GB 
+        self.xen_name = 'xenguest'
+        self.xen_file_size = 5 # GB 
         self.xen_ram = 2048    # MB
         self.xen_mac = ''
         self.xen_paravirt = True

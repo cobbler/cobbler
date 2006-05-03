@@ -25,7 +25,7 @@ class BootConfig:
     def __init__(self,api):
         self.api = api
         self.settings_file    = "/etc/cobbler.conf"
-        self.state_file       = "/var/cobbler/cobbler.conf"
+        self.state_file       = "/var/lib/cobbler/cobbler.conf"
         self.set_defaults()
         self.clear()
 

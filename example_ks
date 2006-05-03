@@ -1,0 +1,47 @@
+#platform=x86, AMD64, or Intel EM64T
+# System authorization information
+auth  --useshadow  --enablemd5 
+# System bootloader configuration
+bootloader --location=mbr
+# Partition clearing information
+clearpart --linux --initlabel 
+# Use graphical install
+text
+# Firewall configuration
+firewall --disabled
+# Run the Setup Agent on first boot
+firstboot --disable
+# System keyboard
+keyboard us
+# System language
+lang en_US
+# Network information
+network --bootproto=dhcp --device=eth0 --onboot=on
+# Use NFS installation media
+nfs --server=engarchive.rdu.redhat.com --dir=/engineering/archives/released/FC-5/GOLD/i386/tree
+# Reboot after installation
+reboot
+
+#Root password
+rootpw --iscrypted $1$ECbcXWFr$6IihGmd4wBAC6MRklvtq10
+# SELinux configuration
+selinux --disabled
+# Do not configure the X Window System
+skipx
+# System timezone
+timezone  America/New_York
+# Install OS instead of upgrade
+install
+# Disk partitioning information
+part /swap --bytes-per-inode=4096 --fstype="swap" --size=1024
+part / --bytes-per-inode=4096 --fstype="ext3" --grow --size=1
+
+%packages
+@development-libs
+@base
+@development-tools
+@text-internet
+@system-tools
+@server-cfg
+@ruby
+@editors

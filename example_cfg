@@ -16,7 +16,7 @@ profiles:
         kernel_options: ''
         kickstart: /scratch/fc5.cfg
         name: xenfc5machine
-        xen_file_size: 2
+        xen_file_size: 5
         xen_mac: ''
         xen_name: koan_fc5guest
         xen_paravirt: True
@@ -26,7 +26,7 @@ profiles:
         kernel_options: ''
         kickstart: /scratch/fc5.cfg
         name: fc5machine
-        xen_file_size: 2
+        xen_file_size: 5
         xen_mac: ''
         xen_name: na
         xen_paravirt: True
