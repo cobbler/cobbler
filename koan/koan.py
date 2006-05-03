@@ -9,7 +9,7 @@
 
 import sys
 import os
-import yaml       # (rpm -i python-yaml*.rpm in /hg/cobbler for now)
+import yaml       # (pyyaml 3000)
 import traceback
 import time
 import tempfile
@@ -249,7 +249,7 @@ class Koan:
             url = "http://%s/cobbler/profiles/%s" % (self.server,profile_name)
             self.debug("url=%s" % url)
             data = urlgrabber.urlread(url)
-            return yaml.load(data).next()
+            return yaml.load(data)
         except:
             traceback.print_exc() # debug
             raise InfoException, "couldn't download profile information: %s" % profile_name
@@ -263,7 +263,7 @@ class Koan:
             url = "http://%s/cobbler/distros/%s" % (self.server,distro_name)
             self.debug("url=%s" % url)
             data = urlgrabber.urlread(url)
-            return yaml.load(data).next()
+            return yaml.load(data)
         except:
             raise InfoException, "couldn't download distro information: %s" % distro_name 
 
