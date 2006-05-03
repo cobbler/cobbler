@@ -6,7 +6,7 @@ clean:
 	-(rm -r koan-*)
 	-(rm -rf ./dist)
 	-(rm -rf ./build)
-	-(rm MANIFEST.in)
+	-(rm MANIFEST)
 
 manpage:
 	pod2man --center="koan" --release="" koan.pod > koan.1
