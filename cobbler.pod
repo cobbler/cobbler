@@ -1,16 +1,17 @@
 =head1 NAME
 
-bootconf is a command line tool for configuration of bare-metal PXE and Xen provisioning servers.  It is also accessible as a Python library.
+cobbler is a command line tool for simplified configuration of provisioning servers.  It is also accessible as a Python library.   Cobbler supports PXE, Xen, and re-provisioning an existing Linux system via auto-kickstart.  The last two modes require 'koan' to be run on the remote system.
+
 
 =head1 SYNOPSIS
 
-bootconf command [subcommand] [--arg1=] [--arg2=]
+cobbler command [subcommand] [--arg1=] [--arg2=]
 
 =head1 DESCRIPTION
 
 Configuration of a PXE boot server involves setting up a tftpd server, a dhcpd server, syslinux, and creating semi-complex configuration file trees.
 
-Bootconf makes these things faster, simpler, and more flexible.  It also does the same things for provisioning Xen as it does for PXE -- allowing the same repository to deploy PXE and Xen while remaining fairly agnostic to the differences between them.  The client-side tool for xen is xen-net-install.
+Bootconf makes these things faster, simpler, and more flexible.  It also does the same things for provisioning Xen as it does for PXE -- allowing the same repository to deploy PXE and Xen while remaining fairly agnostic to the differences between them.  The client-side tool for xen is 'koan'.  'koan' also supports a method of re-provisioning a running Linux OS without doing PXE.  See the documentation on koan for more details.
 
 =head1 INSTRUCTIONS FOR PXE
 
@@ -24,68 +25,68 @@ You'll also need FTP, HTTP, or NFS to serve kickstarts (if you want kickstarts).
    ...
    vi /etc/dhcpd.conf
 
-B<bootconf check>
+B<cobbler check>
 
 This verifies that prerequisites are properly installed and configured.
 Any problems should be corrected, except unless the DHCP server is on another machine, in which case those errors can be ignored.
 
-B<bootconf distro add --name=<string> --kernel=<path> --initrd=<path> [--kopts=<string>]>
+B<cobbler distro add --name=<string> --kernel=<path> --initrd=<path> [--kopts=<string>]>
 
-Defines a distribution.  Minimally, this is a matched set of an initrd and a kernel that has a name, such as 'fc5-i386' or 'rhel4-x86_64'.  Here you can also override and extend the default kernel options ('kopts') specified in /etc/bootconf.conf (kernel options are a comma seperated list of key=value pairs).
+Defines a distribution.  Minimally, this is a matched set of an initrd and a kernel that has a name, such as 'fc5-i386' or 'rhel4-x86_64'.  Here you can also override and extend the default kernel options ('kopts') specified in /etc/cobbler.conf (kernel options are a comma seperated list of key=value pairs).
 
-B<bootconf profile add --name=group_name --distro=<name> [--kickstart=<url>] [--kopts=<string>] [--xen-name=<string>] [--xen-file-size=<gigabytes>] [--xen-ram=<megabytes>] [--xen-mac=<MAC> [--xen-paravirt=true|false] 
+B<cobbler profile add --name=group_name --distro=<name> [--kickstart=<url>] [--kopts=<string>] [--xen-name=<string>] [--xen-file-size=<gigabytes>] [--xen-ram=<megabytes>] [--xen-mac=<MAC> [--xen-paravirt=true|false] 
 
 Defines a provisioning profile, which is a distro, some other optional parameters, and a name for the profile.  Almost always you will want to specify a kickstart file.  Kickstarts can be nfs://, http://, or ftp:// -- or an absolute path.  For file paths, cobbler will copy the kickstarts and serve them up as http.
 
-For Xen parameters, xen-net-install may interpret some parameters as hints, not absolutes, if it has to resolve conflicts.  All of these Xen parameters are optional, though as many as possible should be specified if you don't want to risk xen-net-install's defaults.
+For Xen parameters, koan may interpret some parameters as hints, not absolutes, if it has to resolve conflicts.  All of these Xen parameters are optional, though as many as possible should be specified if you don't want to risk koan making it's own decisions.
 
-B<bootconf system add --name=<ip|mac|hostname> --profile=<name1> [--kopts=<string>]>
+B<cobbler system add --name=<ip|mac|hostname> --profile=<name1> [--kopts=<string>]>
 
-Correlates a system name (an IP, hostname, or MAC address of a bare-metal system or a Xen dom0) with a PXE profile to be deployed to the system.  For Xen, system configurations are *not* relevant -- xen-net-install run on the dom0 decides what profiles will be installed.
+Correlates a system name (an IP, hostname, or MAC address of a bare-metal system or a Xen dom0) with a PXE profile to be deployed to the system.  For Xen, system configurations are *not* relevant -- koan when run on the dom0 decides what profiles will be installed.
 
 =head1 LIST OPERATIONS
 
-B<bootconf distro list>
-B<bootconf profile list>
-B<bootconf system list>
+B<cobbler distro list>
+B<cobbler profile list>
+B<cobbler system list>
 
 These commands list the current configuration.
 
-B<bootconf trace <ip|hostname|mac>>
+B<cobbler trace <ip|hostname|mac>>
 
 Trace shows what is configured to deploy to a certain system
 
 =head1 DELETING ENTRIES
 
-B<bootconf distro remove --name=<string>>
-B<bootconf profile remove --name=<string>>
-B<bootconf system remove --name=<string>>
+B<cobbler distro remove --name=<string>>
+B<cobbler profile remove --name=<string>>
+B<cobbler system remove --name=<string>>
 
 =head1 APPLYING CONFIGURATIONS
 
-B<bootconf sync [--dryrun]>
+B<cobbler sync [--dryrun]>
 
-Configurations are saved in /var/bootconf/bootconf.conf and are not applied until 'bootconf sync' is run.  A '--dryrun' option is available for the paranoid.
+Configurations are saved in /var/cobbler/cobbler.conf and are not applied until 'cobbler sync' is run.  A '--dryrun' option is available for the paranoid.
 
 =head1 PXE EXAMPLE
 
-It is easier to understand bootconf once having gone through some examples.  
+It is easier to understand cobbler once having gone through some examples.  
 
-B<bootconf check>
+B<cobbler check>
 
-B<bootconf distro add --name=rhel4u3 --kernel=/dir1/vmlinuz --initrd=/dir1/initrd.img>
+B<cobbler distro add --name=rhel4u3 --kernel=/dir1/vmlinuz --initrd=/dir1/initrd.img>
 
-B<bootconf distro add --name=fc5 --kernel=/dir2/vmlinuz --initrd=/dir2/initrd.img>
+B<cobbler distro add --name=fc5 --kernel=/dir2/vmlinuz --initrd=/dir2/initrd.img>
 
-B<bootconf profile add --name=fc5webservers --distro=fc5-i386 --kickstart=http://192.168.1.10/blah/fc5-webservers.ks --kopts="something_to_make_my_gfx_card_work=42,some_other_parameter=foo">
+B<cobbler profile add --name=fc5webservers --distro=fc5-i386 --kickstart=http://192.168.1.10/blah/fc5-webservers.ks --kopts="something_to_make_my_gfx_card_work=42,some_other_parameter=foo">
 
-B<bootconf profile add --name=rhel4u3dbservers --distro=rhel4u3 --kickstart=http://192.168.1.10/blah/rhel4u3-dbservers.ks>
+B<cobbler profile add --name=rhel4u3dbservers --distro=rhel4u3 --kickstart=http://192.168.1.10/blah/rhel4u3-dbservers.ks>
 
-B<bootconf system add --name=AA:BB:CC:DD:EE:FF --profile=fc5-webservers>
+B<cobbler system add --name=AA:BB:CC:DD:EE:FF --profile=fc5-webservers>
 
-B<bootconf system add --name=AA:BB:CC:DD:EE:FE --profile=rhel4u3-dbservers>
+B<cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=rhel4u3-dbservers>
 
-B<bootconf sync>
+B<cobbler sync>
 
 =head1 XEN EXAMPLE
 
@@ -93,17 +94,17 @@ TBA
 
 =head1 CONFIGURATION FILES
 
-The current bootconf configuration is kept in /var/bootconf/bootconf.conf.  The file is reasonably-human editable YAML.
+The current cobbler configuration is kept in /var/lib/cobbler/cobbler.conf.  The file is reasonably-human editable YAML.
 
-Global settings are in /etc/bootconf.conf.  After editing /etc/bootconf.conf, run 'bootconf check' to ensure that no errors were introduced.
+Global settings are in /etc/cobbler.conf.  After editing /etc/cobbler.conf, run 'cobbler check' to ensure that no errors were introduced.
 
-If you happen to screw up /var/bootconf/bootconf.conf or /etc/bootconf.conf, you can delete them and they will be recreated.
+If you happen to screw up /var/lib/cobbler/cobbler.conf or /etc/cobbler.conf, you can delete them and they will be recreated.
 
-No changes are ever applied to the provisioning state unless 'bootconf sync' is run.
+No changes are ever applied to the provisioning state unless 'cobbler sync' is run.
 
 =head1 EXIT_STATUS
 
-bootconf returns a zero for success and non-zero for failure.
+cobbler returns a zero for success and non-zero for failure.
 
 =head1 AUTHOR
 

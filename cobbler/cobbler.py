@@ -274,7 +274,7 @@ class BootCLI:
         """
         return self.curry_args(args, self.commands['system'])
 
-if __name__ == "__main__":
+def main():
     if os.getuid() != 0: # FIXME
        print m("need_root")
        sys.exit(1)
