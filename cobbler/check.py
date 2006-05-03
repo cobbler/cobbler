@@ -1,8 +1,6 @@
-# Validates a system is configured for network booting
+# Classes for validating whether asystem is configured for network booting
 # 
 # Michael DeHaan <mdehaan@redhat.com>
-
-# FUTURE: Check to see what's running
 
 import os
 import sys
@@ -20,7 +18,8 @@ class BootCheck:
    def run(self):
        """
        Returns None if there are no errors, otherwise returns a list 
-       of things to correct prior to running $0 'for real'.
+       of things to correct prior to running application 'for real'.
+       (The CLI usage is "cobbler check" before "cobbler sync")
        """
        status = []
        self.check_name(status)

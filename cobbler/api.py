@@ -1,6 +1,9 @@
-# friendly OO python API module for BootConf 
-#
-# Michael DeHaan <mdehaan@redhat.com>
+"""
+python API module for BootConf 
+see source for bootconf.py for a good API reference
+
+Michael DeHaan <mdehaan@redhat.com>
+"""
 
 import exceptions
 import os
@@ -68,50 +71,58 @@ class BootAPI:
 
     def new_system(self):
        """
-       Create a blank, unconfigured system
+       Return a blank, unconfigured system, unattached to a collection
        """
        return System(self,None)
 
 
     def new_distro(self):
        """
-       Create a blank, unconfigured distro
+       Create a blank, unconfigured distro, unattached to a collection.
        """
        return Distro(self,None)
 
 
     def new_profile(self):
        """
-       Create a blank, unconfigured profile
+       Create a blank, unconfigured profile, unattached to a collection
        """
        return Profile(self,None)
 
 
     def check(self):
        """
-       See if all preqs for network booting are operational
+       See if all preqs for network booting are valid.  This returns
+       a list of strings containing instructions on things to correct.
+       An empty list means there is nothing to correct, but that still
+       doesn't mean there are configuration errors.  This is mainly useful
+       for human admins, who may, for instance, forget to properly set up
+       their TFTP servers for PXE, etc.
        """
        return check.BootCheck(self).run()
 
 
     def sync(self,dry_run=True):
        """
-       Update the system with what is specified in the config file
+       Take the values currently written to the configuration files in
+       /etc, and /var, and build out the information tree found in 
+       /tftpboot.  Any operations done in the API that have not been
+       saved with serialize() will NOT be synchronized with this command.
        """ 
        self.config.deserialize();
        configurator = sync.BootSync(self)
-       configurator.sync(dry_run)
+       return configurator.sync(dry_run)
 
 
     def serialize(self):
        """
-       Save the config file
+       Save the config file(s) to disk.
        """
        self.config.serialize() 
     
     def deserialize(self):
        """
-       Make the API's internal state reflect that of the config file
+       Load the current configuration from config file(s)
        """
        self.config.deserialize()
 
@@ -125,7 +136,8 @@ class Collection:
 
     def find(self,name):
         """
-        Return anything named 'name' in the collection, else return None
+        Return anything named 'name' in the collection, else return None if
+        no objects can be found.
         """
         if name in self.listing.keys():
             return self.listing[name]
@@ -134,14 +146,18 @@ class Collection:
 
     def to_datastruct(self):
         """
-        Return datastructure representation (to feed to serializer)
+        Return datastructure representation of this collection suitable
+        for feeding to a serializer (such as YAML)
         """
         return [x.to_datastruct() for x in self.listing.values()]
     
      
     def add(self,ref):
         """
-        Add an object to the collection, if it's valid
+        Add an object to the collection, if it's valid.  Returns True
+        if the object was added to the collection.  Returns False if the
+        object specified by ref deems itself invalid (and therefore
+        won't be added to the collection).
         """
         if ref is None or not ref.is_valid(): 
             if self.api.last_error is None or self.api.last_error == "":
@@ -151,23 +167,26 @@ class Collection:
         return True
 
 
-    def __str__(self):
+    def printable(self):
         """
-        Printable representation
+        Creates a printable representation of the collection suitable
+        for reading by humans or parsing from scripts.  Actually scripts
+        would be better off reading the YAML in the config files directly.
         """
         buf = ""
-        values = map(lambda(a): str(a), sorted(self.listing.values()))
+        values = map(lambda(a): a.printable(), sorted(self.listing.values()))
         if len(values) > 0: 
            return "\n\n".join(values)
         else:
            return m("empty_list")
 
-    def contents(self):
-        """
-	Access the raw contents of the collection.  Classes shouldn't
-	be doing this (preferably) and should use the __iter__ interface
-	"""
-        return self.listing.values()
+    #def contents(self):
+    #    """
+    #	Access the raw contents of the collection.  Classes shouldn't
+    #	be doing this (preferably) and should use the __iter__ interface.
+    #    Deprecrated.
+    #	 """
+    #    return self.listing.values()
 
     def __iter__(self):
         """
@@ -375,7 +394,7 @@ class Distro(Item):
            'kernel_options' : self.kernel_options
         }
 
-    def __str__(self):
+    def printable(self):
         """
 	Human-readable representation.
 	"""
@@ -417,6 +436,8 @@ class Profile(Item):
            self.kickstart       = seed_data['kickstart'] 
            self.kernel_options  = seed_data['kernel_options']
            self.xen_name        = seed_data['xen_name']
+           if not self.xen_name or self.xen_name == '':
+              self.xen_name = self.name
            self.xen_ram         = seed_data['xen_ram']
            self.xen_file_size   = seed_data['xen_file_size']
            self.xen_mac         = seed_data['xen_mac']
@@ -458,19 +479,6 @@ class Profile(Item):
             if str.find(bad) != -1:
                 return False
         self.xen_name = str
-        return True
-
-    def set_xen_file_path(self,str):
-        """
-	For Xen only.
-	Specifies that Xen filenames be stored in path specified by 'str'.
-	Paths must be absolute.  xen-net-install will ignore this suggestion
-	if it cannot write to the given location.
-	""" 
-        # path must look absolute
-        if len(str) < 1 or str[0] != "/":
-            return False
-        self.xen_file_path = str
         return True
 
     def set_xen_file_size(self,num):
@@ -555,14 +563,13 @@ class Profile(Item):
             'xen_paravirt'    : self.xen_paravirt
         }
 
-    def __str__(self):
+    def printable(self):
         buf = ""
         buf = buf + "profile         : %s\n" % self.name
         buf = buf + "distro          : %s\n" % self.distro
         buf = buf + "kickstart       : %s\n" % self.kickstart
         buf = buf + "kernel opts     : %s" % self.kernel_options
-        buf = buf + "xen name prefix : %s" % self.xen_name
-        buf = buf + "xen file path   : %s" % self.xen_file_path
+        buf = buf + "xen name        : %s" % self.xen_name
         buf = buf + "xen file size   : %s" % self.xen_file_size
         buf = buf + "xen ram         : %s" % self.xen_ram
         buf = buf + "xen mac         : %s" % self.xen_mac
@@ -625,7 +632,7 @@ class System(Item):
            'kernel_options' : self.kernel_options
         }
 
-    def __str__(self):
+    def printable(self):
         buf = ""
         buf = buf + "system       : %s\n" % self.name
         buf = buf + "profile      : %s\n" % self.profile

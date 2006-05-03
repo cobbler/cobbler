@@ -1,19 +1,23 @@
 # Test cases for Cobbler
 #
-# Any test case that just is a 'pass' statement needs to be implemented, I just
-# didn't want them cluttering up the failure list yet.  And lots more beyond that...
-#
 # Michael DeHaan <mdehaan@redhat.com>
 
 
 import sys
 import unittest
 import os
+import subprocess
 
 sys.path.append('../cobbler')
 sys.path.append('./cobbler')
 
 import api
+import config
+
+# rewrite default configuration locations so anyone
+# with a real config won't get hurt
+config.global_settings_file = "./tests/etc/cobbler.conf"
+config.global_state_file = "./tests/var/lib/cobbler/cobbler.conf"
 
 FAKE_INITRD="/tmp/initrd-2.6.15-1.2054_FAKE.img"
 FAKE_INITRD2="/tmp/initrd-2.5.16-2.2055_FAKE.img"
@@ -78,9 +82,11 @@ class Utilities(BootTest):
         self.assertTrue(self.api.utils.find_initrd("/tmp") == FAKE_INITRD)
         
     def test_kickstart_scan(self):
-        self.assertFalse(self.api.utils.find_kickstart(FAKE_INITRD))
-        self.assertFalse(self.api.utils.find_kickstart("filedoesnotexist"))
-        self.assertFalse(self.api.utils.find_kickstart("/tmp"))
+        # we don't check to see if kickstart files look like anything
+        # so this will pass 
+        self.assertTrue(self.api.utils.find_kickstart(FAKE_INITRD) is None)
+        self.assertTrue(self.api.utils.find_kickstart("filedoesnotexist") is None)
+        self.assertTrue(self.api.utils.find_kickstart("/tmp") == None)
         self.assertTrue(self.api.utils.find_kickstart("http://bar"))
         self.assertTrue(self.api.utils.find_kickstart("ftp://bar"))
         self.assertTrue(self.api.utils.find_kickstart("nfs://bar"))
@@ -252,19 +258,46 @@ class TestCheck(BootTest):
 class TestSync(BootTest):
   
    def test_dry_run(self):
-       # WARNING: dry run isn't implemented yet, so no test
-       # we don't want to run a real 'sync' in an automated context
-       pass
+       # dry_run just *shows* what is done, it doesn't apply the config
+       # the test here is mainly for coverage, we do not test
+       # that dry run does not modify anything
+       self.make_basic_config()
+       self.assertTrue(self.api.sync(True))
 
    def test_real_run(self):
-       # testing sync could mess up a valid install, so unless
-       # a re-homing option is added, don't write a test for this
-       # it wouldn't be comprehensive anyway
+       # syncing a real test run in an automated environment would
+       # break a valid cobbler configuration, so we're not going to
+       # test this here.
        pass
+
+class TestListings(BootTest):
+    
+   def test_listings(self):
+       # check to see if the collection listings output something.
+       # this is a minimal check, mainly for coverage, not validity
+       self.make_basic_config()
+       self.assertTrue(len(self.api.get_systems().printable()) > 0)
+       self.assertTrue(len(self.api.get_profiles().printable()) > 0)
+       self.assertTrue(len(self.api.get_distros().printable()) > 0)
+
+class TestCLIBasic(BootTest):
+
+   def test_cli(self):
+       # just invoke the CLI to increase coverage and ensure
+       # nothing major is broke at top level.  Full CLI command testing
+       # is not included (yet) since the API tests hit that fairly throughly
+       # and it would easily double the length of the tests.
+       app = "cobbler/cobbler"
+       self.assertTrue(subprocess.call([app,"system","list"]) == 0)
+       self.assertTrue(subprocess.call([app,"distro","list"]) == 0)
+       self.assertTrue(subprocess.call([app,"profile","list"]) == 0)
 
 if __name__ == "__main__":
     if os.getuid()!=0:
         print "tests: skipping (want root)"
-    else:
-	unittest.main()
+	sys.exit(1)
+    if not os.path.exists("setup.py"):
+        print "tests: must invoke from top level directory"
+        sys.exit(1)
+    unittest.main()
 

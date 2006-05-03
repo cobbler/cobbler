@@ -95,7 +95,7 @@ class BootSync:
         """
         # copy is a 4-letter word but tftpboot runs chroot, thus it's required.
         distros = os.path.join(self.api.config.tftpboot, "images")
-        for d in self.api.get_distros().contents():
+        for d in self.api.get_distros():
             distro_dir = os.path.join(distros,d.name)
             self.mkdir(distro_dir)
             kernel = self.api.utils.find_kernel(d.kernel) # full path
@@ -123,7 +123,7 @@ class BootSync:
         # these are served by either NFS, Apache, or some ftpd, so we don't need to copy them
         # it's up to the user to make sure they are nicely served by their URLs
 
-        for g in self.api.get_profiles().contents():
+        for g in self.api.get_profiles():
            self.sync_log("mirroring any local kickstarts: %s" % g.name)
            kickstart_path = self.api.utils.find_kickstart(g.kickstart)
            if kickstart_path and os.path.exists(kickstart_path):

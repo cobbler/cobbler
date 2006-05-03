@@ -148,6 +148,8 @@ class BootUtil:
        x = url.lower()
        for y in ["http://","nfs://","ftp://","/"]:
           if x.startswith(y):
+              if x.startswith("/") and not os.path.isfile(x):
+                  return None
               return url
        return None
 

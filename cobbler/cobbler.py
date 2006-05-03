@@ -2,8 +2,8 @@
 # Michael DeHaan <mdehaan@redhat.com>
 
 """
-Command line interface for BootConf, a network boot configuration
-library
+Command line interface for cobbler, a network provisioning configuration
+library.  Consult 'man cobbler' for general info.
 """
 
 import os
@@ -76,28 +76,28 @@ class BootCLI:
 
     def system_list(self,args):
         """
-        Print out the list of systems:  '$0 system list'
+        Print out the list of systems:  'cobbler system list'
         """
-        print str(self.api.get_systems())
-
+        print self.api.get_systems().printable()
+        return True
 
     def profile_list(self,args):
         """
-        Print out the list of profiles: '$0 profile list'
+        Print out the list of profiles: 'cobbler profile list'
         """
-        print str(self.api.get_profiles())
-    
+        print self.api.get_profiles().printable()
+        return True
 
     def distro_list(self,args):
         """
-        Print out the list of distros: '$0 distro list'
+        Print out the list of distros: 'cobbler distro list'
         """
-        print str(self.api.get_distros())
-
+        print self.api.get_distros().printable()
+        return True
 
     def system_remove(self,args):
         """
-        Delete a system:  '$0 system remove --name=foo'
+        Delete a system:  'cobbler system remove --name=foo'
         """
         commands = {
            '--name'       : lambda(a):  self.api.get_systems().remove(a) 
@@ -108,7 +108,7 @@ class BootCLI:
 
     def profile_remove(self,args):
         """
-        Delete a profile:   '$0 profile remove --name=foo'
+        Delete a profile:   'cobbler profile remove --name=foo'
         """
         commands = {
            '--name'       : lambda(a):  self.api.get_profiles().remove(a)
@@ -119,7 +119,7 @@ class BootCLI:
 
     def distro_remove(self,args):
         """
-        Delete a distro:  '$0 distro remove --name='foo'
+        Delete a distro:  'cobbler distro remove --name='foo'
         """
         commands = {
            '--name'     : lambda(a):  self.api.get_distros().remove(a)
@@ -130,7 +130,7 @@ class BootCLI:
 
     def system_edit(self,args):
         """
-        Create/Edit a system:  '$0 system edit --name='foo' ...
+        Create/Edit a system:  'cobbler system edit --name='foo' ...
         """
         sys = self.api.new_system()
         commands = {
@@ -145,7 +145,7 @@ class BootCLI:
 
     def profile_edit(self,args):
         """
-        Create/Edit a profile:  '$0 profile edit --name='foo' ...
+        Create/Edit a profile:  'cobbler profile edit --name='foo' ...
         """
         profile = self.api.new_profile()
         commands = {
@@ -155,10 +155,11 @@ class BootCLI:
             '--kopts'           :  lambda(a) : profile.set_kernel_options(a),
             '--xen-name'        :  lambda(a) : profile.set_xen_name(a),
             '--xen-file-size'   :  lambda(a) : profile.set_xen_file_size(a),
-            '--xen-ram'         :  lambda(a) : profile.set_xen_ram(a),
-            '--xen-mac'         :  lambda(a) : profile.set_xen_mac(a),
-            '--xen-paravirt'    :  lambda(a) : profile.set_xen_paravirt(a),
-            # FIXME: more Xen opts that xen-guest-install needs
+            '--xen-ram'         :  lambda(a) : profile.set_xen_ram(a)
+        # the following options are most likely not useful for profiles (yet)
+        # primarily due to not being implemented in koan.  
+        #    '--xen-mac'         :  lambda(a) : profile.set_xen_mac(a),
+        #    '--xen-paravirt'    :  lambda(a) : profile.set_xen_paravirt(a),
         }
         on_ok = lambda: self.api.get_profiles().add(profile)
         return self.apply_args(args,commands,on_ok,True)
@@ -166,7 +167,7 @@ class BootCLI:
 
     def distro_edit(self,args):
         """
-        Create/Edit a distro:  '$0 distro edit --name='foo' ...
+        Create/Edit a distro:  'cobbler distro edit --name='foo' ...
         """
         distro = self.api.new_distro()
         commands = {
@@ -181,7 +182,7 @@ class BootCLI:
 
     def apply_args(self,args,input_routines,on_ok,serialize):
         """
-        Instead of getopt...
+        Custom CLI handling, instead of getopt/optparse
         Parses arguments of the form --foo=bar, see profile_edit for example
         """
         if len(args) == 0:
@@ -189,18 +190,26 @@ class BootCLI:
             return False
         for x in args:
             try:
+                # all arguments must be of the form --key=value
                 key, value = x.split("=",1)
                 value = value.replace('"','').replace("'",'')
             except:
                 print m("bad_arg") % x
                 return False
             if key in input_routines:
+                # --argument is recognized, so run the loader
+                # attached to it in the dispatch table
                 if not input_routines[key](value):
+                   # loader does not like passed value
                    print m("reject_arg") % key
                    return False
             else:
+                # --argument is not recognized
                 print m("weird_arg") % key
                 return False
+        # success thus far, so run the success routine for the set of
+        # arguments.  Configuration will only be written to file if the
+        # final routine succeeds.
         rc = on_ok()
         if rc and serialize:
             self.api.serialize()
@@ -216,6 +225,9 @@ class BootCLI:
             print m("help")
             return False
         if args[0] in commands:
+            # if the subargument is in the dispatch table, run
+            # the selected command routine with the rest of the 
+            # arguments
             rc = commands[args[0]](args[1:])
             if not rc:
                return False
@@ -227,7 +239,7 @@ class BootCLI:
 
     def sync(self, args):
         """
-        Sync the config file with the system config: '$0 sync [--dryrun]'
+        Sync the config file with the system config: 'cobbler sync [--dryrun]'
         """
         status = None 
         if args is not None and "--dryrun" in args:
@@ -239,7 +251,7 @@ class BootCLI:
 
     def check(self,args):
         """
-        Check system for network boot decency/prereqs: '$0 check'
+        Check system for network boot decency/prereqs: 'cobbler check'
         """
         status = self.api.check()
         if status is None:
@@ -256,26 +268,35 @@ class BootCLI:
 
     def distro(self,args):
         """
-        Handles any of the '$0 distro' subcommands
+        Handles any of the 'cobbler distro' subcommands
         """
         return self.curry_args(args, self.commands['distro']) 
 
 
     def profile(self,args):
         """
-        Handles any of the '$0 profile' subcommands
+        Handles any of the 'cobbler profile' subcommands
         """
         return self.curry_args(args, self.commands['profile'])
 
 
     def system(self,args):
         """
-        Handles any of the '$0 system' subcommands
+        Handles any of the 'cobbler system' subcommands
         """
         return self.curry_args(args, self.commands['system'])
 
 def main():
-    if os.getuid() != 0: # FIXME
+    """
+    CLI entry point
+    """
+    if os.getuid() != 0:
+       # while it's true that we don't technically need root, we do need
+       # permissions on a relatively long list of files that ordinarily 
+       # only root has access to, and we don't know specifically what
+       # files are where (other distributions in play, etc).  It's 
+       # fairly safe to assume root is required.  This might be patched
+       # later.
        print m("need_root")
        sys.exit(1)
     if BootCLI(sys.argv).run():

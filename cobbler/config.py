@@ -8,42 +8,46 @@ import util
 from msg import *
 
 import os
-import yaml
-#import syck -- we *want* to use syck, but the FC syck currently does not 
-#            -- contain the dump function, i.e. not gonna work
+import yaml  # python yaml 3000 from pyyaml.org, soon to be in extras
 import traceback
+
+global_settings_file = "/etc/cobbler.conf"
+global_state_file = "/var/lib/cobbler/cobbler.conf"
 
 class BootConfig:
 
-    """
-    Constructor.  This class maintains both the logical
-    configuration for Boot and the file representation thereof.
-    Creating the config object only loads the default values,
-    users of this class need to call deserialize() to load config
-    file values.
-    """
     def __init__(self,api):
+        """
+        Constructor.  This class maintains both the logical
+        configuration for Cobbler and the file representation thereof.
+        Creating the config object only loads the default values,
+        users of this class need to call deserialize() to load config
+        file values.  See cobbler.py for how the CLI does it.
+        """
         self.api = api
-        self.settings_file    = "/etc/cobbler.conf"
-        self.state_file       = "/var/lib/cobbler/cobbler.conf"
+        self.settings_file    = global_settings_file
+        self.state_file       = global_state_file
         self.set_defaults()
         self.clear()
 
     def files_exist(self):
+        """
+        Returns whether the config files exist.
+        """
         return os.path.exists(self.settings_file) and os.path.exists(self.state_file)
 
-    """
-    Establish an empty list of profiles distros, and systems.
-    """
     def clear(self):
+        """
+        Establish an empty list of profiles distros, and systems.
+        """
         self.profiles       = api.Profiles(self.api,None)
         self.distros        = api.Distros(self.api,None)
         self.systems        = api.Systems(self.api,None)
 
-    """
-    Set some reasonable defaults in case no values are available
-    """
     def set_defaults(self):
+        """
+        Set some reasonable defaults in case no values are available
+        """
         self.server         = "localhost"
         self.tftpboot       = "/tftpboot"
         self.dhcpd_conf     = "/etc/dhcpd.conf"
@@ -54,30 +58,30 @@ class BootConfig:
         self.httpd_bin      = "/usr/sbin/httpd"
         self.kernel_options = "append devfs=nomount ramdisk_size=16438 lang= vga=788 ksdevice=eth0" #initrd and ks added programmatically
 
-    """
-    Access the current profiles list
-    """
     def get_profiles(self):
+        """
+        Access the current profiles list
+        """
         return self.profiles
 
-    """
-    Access the current distros list
-    """
     def get_distros(self):
+        """
+        Access the current distros list
+        """
         return self.distros
 
-    """
-    Access the current systems list
-    """
     def get_systems(self):
+        """
+        Access the current systems list
+        """
         return self.systems
 
-    """
-    Save all global config options in hash form (for serialization)
-    """
     def config_to_hash(self):
+        """
+        Save all global config options in hash form (for serialization)
+        """
         data = {}
-        data['server']         = self.server
+        data["server"]         = self.server
         data['tftpboot']       = self.tftpboot
         data['dhcpd_conf']     = self.dhcpd_conf
         data['tftpd_conf']     = self.tftpd_conf
@@ -88,10 +92,10 @@ class BootConfig:
         data['kernel_options'] = self.kernel_options
         return data
     
-    """
-    Load all global config options from hash form (for deserialization)
-    """
     def config_from_hash(self,hash):
+        """
+        Load all global config options from hash form (for deserialization)
+        """
         try:
             self.server          = hash['server']
             self.tftpboot        = hash['tftpboot']
@@ -105,11 +109,12 @@ class BootConfig:
         except:
             print "WARNING: config file error: %s" % (self.settings_file)
             self.set_defaults()
-    """
-    Convert all items cobbler knows about to a nested hash.
-    There are seperate hashes for the /etc and /var portions.
-    """
+    
     def to_hash(self,is_etc):
+        """
+        Convert all items cobbler knows about to a nested hash.
+        There are seperate hashes for the /etc and /var portions.
+        """
         world = {} 
         if is_etc:
             world['config']      = self.config_to_hash()
@@ -121,12 +126,11 @@ class BootConfig:
         return world  
 
 
-    """
-    Convert a hash representation of a cobbler to 'reality'
-    There are seperate hashes for the /etc and /var portions.
-    """
     def from_hash(self,hash,is_etc):
-        #print "DEBUG: %s" % hash
+        """
+        Convert a hash representation of a cobbler to 'reality'
+        There are seperate hashes for the /etc and /var portions.
+        """
         if is_etc:
             self.config_from_hash(hash['config'])
         else:
@@ -137,12 +141,12 @@ class BootConfig:
     # ------------------------------------------------------
     # we don't care about file formats until below this line
 
-    """
-    Save everything to the config file.
-    This goes through an intermediate data format so we
-    could use YAML later if we wanted.
-    """
     def serialize(self):
+        """
+        Save everything to the config file.
+        This goes through an intermediate data format so we
+        could use YAML later if we wanted.
+        """
 
         settings = None
         state = None
@@ -160,32 +164,31 @@ class BootConfig:
         # ------
         # dump internal state (distros, profiles, systems...)
         if not os.path.isdir(os.path.dirname(self.state_file)):
-            os.mkdir(os.path.dirname(self.state_file))
+            os.makedirs(os.path.dirname(self.state_file))
         try:
             state = open(self.state_file,"w+")
         except:
             self.api.last_error = m("cant_create: %s" % self.state_file)
+            return False
         data = self.to_hash(False)
         state.write(yaml.dump(data))
 
         # all good
         return True
 
-    """
-    Load everything from the config file.
-    This goes through an intermediate data structure format so we
-    could use YAML later if we wanted.
-    """
     def deserialize(self):
-        #print "DEBUG: deserialize"
+        """
+        Load everything from the config file.
+        This goes through an intermediate data structure format so we
+        could use YAML later if we wanted.
+        """
 
         # -----
         # load global config (pathing, urls, etc)...
         try:
-            settings = yaml.loadFile(self.settings_file)
-            raw_data = settings.next()
-            if raw_data is not None:
-                self.from_hash(raw_data,True)
+            settings = yaml.load(open(self.settings_file,"r").read())
+            if settings is not None:
+                return self.from_hash(settings,True)
             else:
                 print "WARNING: no %s data?" % self.settings_file
         except:
@@ -195,10 +198,9 @@ class BootConfig:
         # -----
         # load internal state(distros, systems, profiles...)
         try:
-            state = yaml.loadFile(self.state_file)
-            raw_data = state.next()
-            if raw_data is not None:
-                self.from_hash(raw_data,False)
+            state = yaml.load(open(self.state_file,"r").read())
+            if state is not None:
+                return self.from_hash(state,False)
             else:
                 print "WARNING: no %s data?" % self.state_file
         except:
