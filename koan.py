@@ -349,7 +349,7 @@ class Koan:
         name = data['xen_name']
         if name is None or name == "":
             name = "xenguest"
-        name = data['xen_name'] # + str(int(time.time()))
+        name = name + str(int(time.time()))
         data['xen_name'] = name
         return name
 
