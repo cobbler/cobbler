@@ -14,7 +14,7 @@ manpage:
 	gzip cobbler.1
 
 test:
-	python test/tests.py
+	python tests/tests.py
 
 install:
 	python setup.py sdist

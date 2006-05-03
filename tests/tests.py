@@ -1,14 +1,19 @@
-# Test cases for BootConf
+# Test cases for Cobbler
 #
 # Any test case that just is a 'pass' statement needs to be implemented, I just
 # didn't want them cluttering up the failure list yet.  And lots more beyond that...
 #
 # Michael DeHaan <mdehaan@redhat.com>
 
-import api
+
 import sys
 import unittest
 import os
+
+sys.path.append('../cobbler')
+sys.path.append('./cobbler')
+
+import api
 
 FAKE_INITRD="/tmp/initrd-2.6.15-1.2054_FAKE.img"
 FAKE_INITRD2="/tmp/initrd-2.5.16-2.2055_FAKE.img"
@@ -259,7 +264,7 @@ class TestSync(BootTest):
 
 if __name__ == "__main__":
     if os.getuid()!=0:
-        print "root would be nice"
-        sys.exit(1) 
-    unittest.main()
+        print "tests: skipping (want root)"
+    else:
+	unittest.main()
 
