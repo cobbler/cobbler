@@ -412,7 +412,7 @@ class Koan:
         return None
 
 
-if __name__ == "__main__":
+def main():
     """
     Command line stuff...
     """

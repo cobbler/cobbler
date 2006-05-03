@@ -1,10 +1,22 @@
-all: manpage
+all: clean test manpage install
+
+clean:
+	-(rm *.gz)
+	-(rm *.rpm)
+	-(rm -r koan-*)
+	-(rm -rf ./dist)
+	-(rm -rf ./build)
+	-(rm MANIFEST.in)
 
 manpage:
 	pod2man --center="koan" --release="" koan.pod > koan.1
 	-(\rm koan.1.gz)
 	gzip koan.1
-	cp -f koan.1.gz /usr/share/man/man1
+
+test:
+	python test/tests.py
 
 install:
-	echo "(install not implemented)"
+	python setup.py sdist
+	cp dist/*.gz .
+	rpmbuild --define "_topdir %(pwd)" --define "_builddir %{_topdir}" --define "_rpmdir %{_topdir}" --define "_srcrpmdir %{_topdir}" --define '_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm' --define "_specdir %{_topdir}" --define "_sourcedir  %{_topdir}" -ba koan.spec
