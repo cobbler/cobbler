@@ -9,12 +9,12 @@ SHORT_DESC = "Network provisioning tool for Xen and Existing Non-Bare Metal"
 LONG_DESC = """
 koan standards for ’kickstart-over-a-network’ and allows for both
 network provisioning of new Xen guests and destructive provisioning of
-any existing system.  For use with a boot-server configured with 
+any existing system.  For use with a boot-server configured with
 'cobbler'
 """
 
 if __name__ == "__main__":
-        # docspath="share/doc/koan-%s/" % VERSION 
+        # docspath="share/doc/koan-%s/" % VERSION
         manpath="share/man/man1/"
 	setup(
                 name="koan",
@@ -26,7 +26,6 @@ if __name__ == "__main__":
                 license = "GPL",
                 packages = ["koan"],
                 scripts = ["koan/koan"],
-                py_modules = ["koan/koan" ],
                 data_files = [
                                 # (docspath, ['README']),
 				(manpath, ['koan.1.gz'])

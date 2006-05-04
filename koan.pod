@@ -10,12 +10,12 @@ koan --replace-self --server=host --profile=profile_name
 
 =head1 DESCRIPTION
 
-koan requests named profile information from a remote boot server, 
+koan requests named profile information from a remote boot server,
 which has been configured with the 'cobbler' program, and acts on the data from that server.
 
 For --xen, this means creating new Xen domU's on a xen dom0 in accordance to the orders from cobbler.
 
-For re-kickstarting ('--replace-self'), this means reprovisioning the system, blowing away any current data and replacing it with the results of a network install.  
+For re-kickstarting ('--replace-self'), this means reprovisioning the system, blowing away any current data and replacing it with the results of a network install.
 
 =head1 AUTHOR
 

@@ -9,7 +9,7 @@
 
 import sys
 import os
-import yaml       # (pyyaml 3000)
+import syck  # preferably PySyck, > 0.6, not syck-python <= 0.55
 import traceback
 import time
 import tempfile
@@ -24,7 +24,7 @@ import shutil
 # once it's more of a library that supports a bit more explicit
 # settings we can use the real thing.
 import xencreate
-  
+
 """
 koan --xen --profiles=webserver,dbserver --server=hostname
 koan --replace-self --server=hostname --profiles=foo
@@ -37,7 +37,7 @@ class InfoException(exceptions.Exception):
         self.args = args
 
 class Koan:
- 
+
     def __init__(self,args):
         """
         Constructor.  Arguments are those from optparse...
@@ -70,7 +70,7 @@ class Koan:
         """
         if self.verbose:
             print "- %s" % msg
-        return msg    
+        return msg
 
     def mkdir(self,path):
         """
@@ -79,7 +79,7 @@ class Koan:
         self.debug("mkdir: %s" % path)
         try:
             os.mkdir(path)
-        except OSError, (errno, msg): 
+        except OSError, (errno, msg):
             if errno != errno.EEXIST:
                 raise OSError(errno,msg)
 
@@ -106,7 +106,7 @@ class Koan:
         """
         msg = " ".join(cmd)
         self.debug(cmd)
-        if fake_it: 
+        if fake_it:
             self.debug("(SIMULATED)")
             return 0
         rc = subprocess.call(cmd)
@@ -129,7 +129,7 @@ class Koan:
             self.debug(distro_data)
             self.get_distro_files(distro_data, download_root)
             each_profile(self, distro_data, profile_data)
-    
+
     def do_xen(self):
         """
         Handle xen provisioning.
@@ -146,7 +146,7 @@ class Koan:
         """
         self.rmtree("/var/spool/koan")
         self.mkdir("/var/spool/koan")
-    
+
         def each_profile(self, distro_data, profile_data):
             if not os.path.exists("/sbin/grubby"):
                 raise InfoException, "grubby is not installed"
@@ -215,11 +215,11 @@ class Koan:
             """ % (initrd)
 
 
-    def build_initrd(self,initrd,kickstart): 
+    def build_initrd(self,initrd,kickstart):
         """
         Crack open an initrd and install the kickstart file.
         """
- 
+
         # read contents of initrd (check for filesystem)
         fd = open(initrd,"r")
         initrd_data = fd.read()
@@ -232,7 +232,7 @@ class Koan:
         fd = open("/var/spool/koan/ks.cfg","w+")
         fd.write(self.get_kickstart_data(kickstart))
         fd.close()
-     
+
         # handle insertion of kickstart based on type of initrd
         fd = open("/var/spool/koan/insert.sh","w+")
         fd.write(self.get_insert_script(initrd,initrd_data))
@@ -249,7 +249,7 @@ class Koan:
             url = "http://%s/cobbler/profiles/%s" % (self.server,profile_name)
             self.debug("url=%s" % url)
             data = urlgrabber.urlread(url)
-            return yaml.load(data)
+            return syck.load(data)
         except:
             traceback.print_exc() # debug
             raise InfoException, "couldn't download profile information: %s" % profile_name
@@ -263,9 +263,9 @@ class Koan:
             url = "http://%s/cobbler/distros/%s" % (self.server,distro_name)
             self.debug("url=%s" % url)
             data = urlgrabber.urlread(url)
-            return yaml.load(data)
+            return syck.load(data)
         except:
-            raise InfoException, "couldn't download distro information: %s" % distro_name 
+            raise InfoException, "couldn't download distro information: %s" % distro_name
 
     def get_distro_files(self,distro_data, download_root):
         """
@@ -286,13 +286,13 @@ class Koan:
             self.debug("url=%s" % url)
             urlgrabber.urlgrab(url)
             self.debug("downloading kernel %s to %s" % (kernel_short, kernel_save))
-            url = "http://%s/cobbler/images/%s/%s" % (self.server, distro, kernel_short) 
+            url = "http://%s/cobbler/images/%s/%s" % (self.server, distro, kernel_short)
             self.debug("url=%s" % url)
             urlgrabber.urlgrab(url)
         except:
             raise InfoException, "error downloading files"
         distro_data['kernel_local'] = kernel_save
-        self.debug("kernel saved = %s" % kernel_save)       
+        self.debug("kernel saved = %s" % kernel_save)
         distro_data['initrd_local'] = initrd_save
         self.debug("initrd saved = %s" % initrd_save)
 
@@ -302,7 +302,7 @@ class Koan:
         """
         pd = profile_data
         dd = distro_data
-        
+
         kextra = ""
         if pd['kickstart'] != "" or pd['kernel_options'] != "":
             if pd['kickstart'] != "":
@@ -320,19 +320,19 @@ class Koan:
         # and try to make them sane with respect to the local system.
         # For instance, a name might conflict, or a size might not
         # be specified and would need to be set to a reasonable default.
-        # 
+        #
         # any xencreate.get_ functions are from xenguest install, and filter
         # those further.  They are a bit of legacy data left over
         # from xenguest-install's CLI nature but it's better than recloning
-        # them.  Mainly the original xenguest-install functions have 
+        # them.  Mainly the original xenguest-install functions have
         # been tweaked to remove any danger of interactiveness or need
         # to use optparse, which we obviously don't want here.
-        
+
         xencreate.start_paravirt_install(
-            name=self.calc_xen_name(pd), 
-            ram=self.calc_xen_ram(pd), 
+            name=self.calc_xen_name(pd),
+            ram=self.calc_xen_ram(pd),
             disk= xencreate.get_disk(self.calc_xen_filename(pd),
-                self.calc_xen_filesize(pd)), 
+                self.calc_xen_filesize(pd)),
             mac=xencreate.get_mac(self.calc_xen_mac(pd)),
             uuid=xencreate.get_uuid(self.calc_xen_uuid(pd)),
             kernel=dd['kernel_local'],
@@ -356,17 +356,17 @@ class Koan:
     def calc_xen_uuid(self,data):
         # FIXME: eventually we'll want to allow some koan CLI
         # option for passing in the UUID.  Until then, it's random.
-        return None 
+        return None
 
-    def calc_xen_filename(self,data): 
+    def calc_xen_filename(self,data):
         """
         Determine where to store the Xen file.  Just base this off
         the name and put everything close to the other Xen files?
         """
         if not os.path.exists("/var/lib/xenimages"):
-             try: 
+             try:
                  os.mkdir("/var/lib/xenimages")
-             except: 
+             except:
                  pass
         return os.path.join("/var/lib/xenimages","%s.disk" % data['xen_name'])
 
@@ -391,7 +391,7 @@ class Koan:
         """
         Assign a xen ram size if none is given in the profile.
         """
-        size = data['xen_ram'] 
+        size = data['xen_ram']
         err = False
         try:
             int(size)
@@ -403,7 +403,7 @@ class Koan:
             self.debug("invalid RAM size specified, defaulting to 256 MB")
             return 256
         return int(size)
- 
+
 
     def calc_xen_mac(self,data):
         """
@@ -428,11 +428,11 @@ def main():
                  dest="is_auto_kickstart",
                  action="store_true",
                  help="requests re-provisioning of this host")
-    p.add_option("-p", "--profiles", 
-                 dest="profiles", 
+    p.add_option("-p", "--profiles",
+                 dest="profiles",
                  help="list of profiles to install")
-    p.add_option("-s", "--server", 
-                 dest="server", 
+    p.add_option("-s", "--server",
+                 dest="server",
                  help="specify the cobbler server")
     p.add_option("-q", "--quiet",
                  dest="verbose",

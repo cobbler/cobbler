@@ -17,9 +17,9 @@ Url: http://bugzilla.redhat.com
 
 %description
 
-koan standards for ’kickstart-over-a-network’ and allows for both 
+koan standards for ’kickstart-over-a-network’ and allows for both
 network provisioning of new Xen guests and destructive re-provisioning of
-any existing system.  For use with a boot-server configured with 
+any existing system.  For use with a boot-server configured with
 'cobbler'
 
 

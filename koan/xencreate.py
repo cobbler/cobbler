@@ -106,8 +106,8 @@ def get_paravirt_install_image(kernel_fn,initrd_fn):
     initrd.close()
 
     return (kfn, ifn)
-        
-def start_paravirt_install(name=None, ram=None, disk=None, mac=None, 
+
+def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
                            uuid=None, kernel=None, initrd=None, extra=None):
     def writeConfig(cfgdict):
         cfg = "%s%s" %(XENCONFIGPATH, cfgdict['name'])
@@ -125,7 +125,7 @@ on_crash    = 'destroy'
 """ % cfgdict
         f.write(buf)
         f.close()
-        
+
     (kfn, ifn) = get_paravirt_install_image(kernel, initrd)
 
     if stat.S_ISBLK(os.stat(disk)[stat.ST_MODE]):
@@ -133,17 +133,17 @@ on_crash    = 'destroy'
     else:
         type = "file"
     cfgdict = {
-       'name': name, 
-       'ram': ram, 
-       'ramkb': int(ram) * 1024, 
-       'disk': disk, 
-       'mac': mac, 
-       'disktype': type, 
-       'uuid': uuid, 
-       'kernel': kfn, 
-       'initrd': ifn, 
-       'extra': extra 
-    }      
+       'name': name,
+       'ram': ram,
+       'ramkb': int(ram) * 1024,
+       'disk': disk,
+       'mac': mac,
+       'disktype': type,
+       'uuid': uuid,
+       'kernel': kfn,
+       'initrd': ifn,
+       'extra': extra
+    }
 
     cfgxml = """
 <domain type='xen'>
@@ -206,7 +206,7 @@ on_crash    = 'destroy'
         sys.exit(3)
 
     writeConfig(cfgdict)
-    
+
     status = -1
     try:
         (pid, status) = os.waitpid(child, 0)
@@ -223,4 +223,4 @@ on_crash    = 'destroy'
     else:
         print "Reconnect with xm console %s" % (name)
 
- 
+
