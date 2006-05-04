@@ -1,4 +1,4 @@
-# Messages used by cobber.
+# Messages used by cobbler.
 # Michael DeHaan <mdehaan@redhat.com>
 
 """
@@ -8,19 +8,19 @@ be reused and potentially translated.
 
 msg_table = {
   "bad_server"      : "server field in /etc/cobbler.conf must be set to something other than localhost, or kickstarts will fail",
-  "parse_error"     : "could not parse /etc/cobber.conf",
+  "parse_error"     : "could not parse /etc/cobbler.conf",
   "parse_error2"    : "could not parse /var/cobbler/cobbler.conf",
   "no_create"       : "cannot create: %s",
   "no_args"         : "this command requires arguments.",
   "missing_options" : "cannot add, all parameters have not been set",
-  "unknown_cmd"     : "cobber doesn't understand '%s'",
+  "unknown_cmd"     : "cobbler doesn't understand '%s'",
   "bad_arg"         : "expecting an equal sign in argument '%s'",
   "reject_arg"      : "the value of parameter '%s' is not valid",
   "weird_arg"       : "this command doesn't take a parameter named '%s'",
   "bad_sys_name"    : "system name must be a MAC, IP, or resolveable host",
   "usage"           : "for help, see 'man cobbler'",
   "need_to_fix"     : "the following potential problems were detected:",
-  "need_root"       : "cobber must be run as root",
+  "need_root"       : "cobbler must be run as root",
   "no_dhcpd"        : "can't find dhcpd, try 'yum install dhcpd'",
   "no_pxelinux"     : "can't find pxelinux, try 'yum install pxelinux'",
   "no_tftpd"        : "can't find tftpd, try 'yum install tftpd'",
@@ -28,8 +28,8 @@ msg_table = {
   "chg_attrib"      : "need to change '%s' to '%s' in '%s'",
   "no_exist"        : "%s does not exist",
   "no_line"         : "file '%s' should have a line '%s' somewhere",
-  "no_dir2"         : "can't find %s for %s in cobber.conf",
-  "no_cfg"          : "could not find cobber.conf, recreating",
+  "no_dir2"         : "can't find %s for %s in cobbler.conf",
+  "no_cfg"          : "could not find cobbler.conf, recreating",
   "bad_param"       : "at least one parameter is missing for this function",
   "empty_list"      : "(Empty)",
   "err_resolv"      : "system (%s) did not resolve",
@@ -48,11 +48,11 @@ msg_table = {
   "check_ok"        : """
 No setup problems found.
 
-Manual editing of /etc/dhcpd.conf and /etc/cobber.conf is suggested to tailor them to your specific configuration.  Your dhcpd.conf has some PXE related information in it, but it's imposible to tell automatically that it's totally correct in a general sense.  We'll leave this up to you.
+Manual editing of /etc/dhcpd.conf and /etc/cobbler.conf is suggested to tailor them to your specific configuration.  Your dhcpd.conf has some PXE related information in it, but it's imposible to tell automatically that it's totally correct in a general sense.  We'll leave this up to you.
 
 Good luck.
 """,
-  "help"           : "see 'man cobber'"
+  "help"           : "see 'man cobbler'"
 }
 
 def m(key):
