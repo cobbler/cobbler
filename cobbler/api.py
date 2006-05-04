@@ -125,176 +125,6 @@ class BootAPI:
        """
        self.config.deserialize()
 
-#--------------------------------------
-
-"""
-Base class for any serializable lists of things...
-"""
-class Collection:
-
-
-    def find(self,name):
-        """
-        Return anything named 'name' in the collection, else return None if
-        no objects can be found.
-        """
-        if name in self.listing.keys():
-            return self.listing[name]
-        return None
-
-
-    def to_datastruct(self):
-        """
-        Return datastructure representation of this collection suitable
-        for feeding to a serializer (such as YAML)
-        """
-        return [x.to_datastruct() for x in self.listing.values()]
-
-
-    def add(self,ref):
-        """
-        Add an object to the collection, if it's valid.  Returns True
-        if the object was added to the collection.  Returns False if the
-        object specified by ref deems itself invalid (and therefore
-        won't be added to the collection).
-        """
-        if ref is None or not ref.is_valid():
-            if self.api.last_error is None or self.api.last_error == "":
-                self.api.last_error = m("bad_param")
-            return False
-        self.listing[ref.name] = ref
-        return True
-
-
-    def printable(self):
-        """
-        Creates a printable representation of the collection suitable
-        for reading by humans or parsing from scripts.  Actually scripts
-        would be better off reading the YAML in the config files directly.
-        """
-        buf = ""
-        values = map(lambda(a): a.printable(), sorted(self.listing.values()))
-        if len(values) > 0:
-           return "\n\n".join(values)
-        else:
-           return m("empty_list")
-
-    #def contents(self):
-    #    """
-    #	Access the raw contents of the collection.  Classes shouldn't
-    #	be doing this (preferably) and should use the __iter__ interface.
-    #    Deprecrated.
-    #	 """
-    #    return self.listing.values()
-
-    def __iter__(self):
-        """
-	Iterator for the collection.  Allows list comprehensions, etc
-	"""
-        for a in self.listing.values():
-	    yield a
-
-    def __len__(self):
-        """
-	Returns size of the collection
-	"""
-        return len(self.listing.values())
-
-
-#--------------------------------------------
-
-"""
-A distro represents a network bootable matched set of kernels
-and initrd files
-"""
-class Distros(Collection):
-
-    def __init__(self,api,seed_data):
-        """
-	Constructor.  Requires an API reference.  seed_data
-	is a hash of data to feed into the collection, that would
-	come from the config file in /var.
-	"""
-        self.api = api
-        self.listing = {}
-        if seed_data is not None:
-           for x in seed_data:
-               self.add(Distro(self.api,x))
-
-    def remove(self,name):
-        """
-        Remove element named 'name' from the collection
-        """
-        # first see if any Groups use this distro
-        for k,v in self.api.get_profiles().listing.items():
-            if v.distro == name:
-               self.api.last_error = m("orphan_profiles")
-               return False
-        if self.find(name):
-            del self.listing[name]
-            return True
-        self.api.last_error = m("delete_nothing")
-        return False
-
-
-#--------------------------------------------
-
-"""
-A profile represents a distro paired with a kickstart file.
-For instance, FC5 with a kickstart file specifying OpenOffice
-might represent a 'desktop' profile.  For Xen, there are many
-additional options, with client-side defaults (not kept here).
-"""
-class Profiles(Collection):
-
-    def __init__(self,api,seed_data):
-        self.api = api
-        self.listing = {}
-        if seed_data is not None:
-           for x in seed_data:
-               self.add(Profile(self.api,x))
-
-    def remove(self,name):
-        """
-        Remove element named 'name' from the collection
-        """
-        for k,v in self.api.get_systems().listing.items():
-           if v.profile == name:
-               self.api.last_error = m("orphan_system")
-               return False
-        if self.find(name):
-            del self.listing[name]
-            return True
-        self.api.last_error = m("delete_nothing")
-        return False
-
-
-#--------------------------------------------
-
-"""
-Systems are hostnames/MACs/IP names and the associated profile
-they belong to.
-"""
-class Systems(Collection):
-
-    def __init__(self,api,seed_data):
-        self.api = api
-        self.listing = {}
-        if seed_data is not None:
-           for x in seed_data:
-               self.add(System(self.api,x))
-
-    def remove(self,name):
-        """
-        Remove element named 'name' from the collection
-        """
-        if self.find(name):
-            del self.listing[name]
-            return True
-        self.api.last_error = m("delete_nothing")
-        return False
-
-
 #-----------------------------------------
 
 """
@@ -637,4 +467,162 @@ class System(Item):
         buf = buf + "profile      : %s\n" % self.profile
         buf = buf + "kernel opts  : %s" % self.kernel_options
         return buf
+
+#--------------------------------------
+
+"""
+Base class for any serializable lists of things...
+"""
+class Collection:
+    _item_factory = None
+
+    def __init__(self, api, seed_data):
+        """
+	Constructor.  Requires an API reference.  seed_data
+	is a hash of data to feed into the collection, that would
+	come from the config file in /var.
+	"""
+        self.api = api
+        self.listing = {}
+        if seed_data is not None:
+           for x in seed_data:
+               self.add(self._item_factory(self.api, x))
+
+    def find(self,name):
+        """
+        Return anything named 'name' in the collection, else return None if
+        no objects can be found.
+        """
+        if name in self.listing.keys():
+            return self.listing[name]
+        return None
+
+
+    def to_datastruct(self):
+        """
+        Return datastructure representation of this collection suitable
+        for feeding to a serializer (such as YAML)
+        """
+        return [x.to_datastruct() for x in self.listing.values()]
+
+
+    def add(self,ref):
+        """
+        Add an object to the collection, if it's valid.  Returns True
+        if the object was added to the collection.  Returns False if the
+        object specified by ref deems itself invalid (and therefore
+        won't be added to the collection).
+        """
+        if ref is None or not ref.is_valid():
+            if self.api.last_error is None or self.api.last_error == "":
+                self.api.last_error = m("bad_param")
+            return False
+        self.listing[ref.name] = ref
+        return True
+
+
+    def printable(self):
+        """
+        Creates a printable representation of the collection suitable
+        for reading by humans or parsing from scripts.  Actually scripts
+        would be better off reading the YAML in the config files directly.
+        """
+        values = map(lambda(a): a.printable(), sorted(self.listing.values()))
+        if len(values) > 0:
+           return "\n\n".join(values)
+        else:
+           return m("empty_list")
+
+    #def contents(self):
+    #    """
+    #	Access the raw contents of the collection.  Classes shouldn't
+    #	be doing this (preferably) and should use the __iter__ interface.
+    #    Deprecrated.
+    #	 """
+    #    return self.listing.values()
+
+    def __iter__(self):
+        """
+	Iterator for the collection.  Allows list comprehensions, etc
+	"""
+        for a in self.listing.values():
+	    yield a
+
+    def __len__(self):
+        """
+	Returns size of the collection
+	"""
+        return len(self.listing.values())
+
+
+#--------------------------------------------
+
+"""
+A distro represents a network bootable matched set of kernels
+and initrd files
+"""
+class Distros(Collection):
+    _item_factory = Distro
+
+    def remove(self,name):
+        """
+        Remove element named 'name' from the collection
+        """
+        # first see if any Groups use this distro
+        for k,v in self.api.get_profiles().listing.items():
+            if v.distro == name:
+               self.api.last_error = m("orphan_profiles")
+               return False
+        if self.find(name):
+            del self.listing[name]
+            return True
+        self.api.last_error = m("delete_nothing")
+        return False
+
+
+#--------------------------------------------
+
+"""
+A profile represents a distro paired with a kickstart file.
+For instance, FC5 with a kickstart file specifying OpenOffice
+might represent a 'desktop' profile.  For Xen, there are many
+additional options, with client-side defaults (not kept here).
+"""
+class Profiles(Collection):
+    _item_factory = Profile
+
+    def remove(self,name):
+        """
+        Remove element named 'name' from the collection
+        """
+        for k,v in self.api.get_systems().listing.items():
+           if v.profile == name:
+               self.api.last_error = m("orphan_system")
+               return False
+        if self.find(name):
+            del self.listing[name]
+            return True
+        self.api.last_error = m("delete_nothing")
+        return False
+
+
+#--------------------------------------------
+
+"""
+Systems are hostnames/MACs/IP names and the associated profile
+they belong to.
+"""
+class Systems(Collection):
+    _item_factory = System
+
+    def remove(self,name):
+        """
+        Remove element named 'name' from the collection
+        """
+        if self.find(name):
+            del self.listing[name]
+            return True
+        self.api.last_error = m("delete_nothing")
+        return False
+
 
