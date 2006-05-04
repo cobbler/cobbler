@@ -131,7 +131,19 @@ class BootAPI:
 Base class for any serializable lists of things...
 """
 class Collection:
+    _item_factory = None
 
+    def __init__(self, api, seed_data):
+        """
+	Constructor.  Requires an API reference.  seed_data
+	is a hash of data to feed into the collection, that would
+	come from the config file in /var.
+	"""
+        self.api = api
+        self.listing = {}
+        if seed_data is not None:
+           for x in seed_data:
+               self.add(self._item_factory(self.api), x)
 
     def find(self,name):
         """
@@ -172,7 +184,6 @@ class Collection:
         for reading by humans or parsing from scripts.  Actually scripts
         would be better off reading the YAML in the config files directly.
         """
-        buf = ""
         values = map(lambda(a): a.printable(), sorted(self.listing.values()))
         if len(values) > 0:
            return "\n\n".join(values)
@@ -208,18 +219,7 @@ A distro represents a network bootable matched set of kernels
 and initrd files
 """
 class Distros(Collection):
-
-    def __init__(self,api,seed_data):
-        """
-	Constructor.  Requires an API reference.  seed_data
-	is a hash of data to feed into the collection, that would
-	come from the config file in /var.
-	"""
-        self.api = api
-        self.listing = {}
-        if seed_data is not None:
-           for x in seed_data:
-               self.add(Distro(self.api,x))
+    _item_factory = Distro
 
     def remove(self,name):
         """
@@ -246,13 +246,7 @@ might represent a 'desktop' profile.  For Xen, there are many
 additional options, with client-side defaults (not kept here).
 """
 class Profiles(Collection):
-
-    def __init__(self,api,seed_data):
-        self.api = api
-        self.listing = {}
-        if seed_data is not None:
-           for x in seed_data:
-               self.add(Profile(self.api,x))
+    _item_factory = Profile
 
     def remove(self,name):
         """
@@ -276,13 +270,7 @@ Systems are hostnames/MACs/IP names and the associated profile
 they belong to.
 """
 class Systems(Collection):
-
-    def __init__(self,api,seed_data):
-        self.api = api
-        self.listing = {}
-        if seed_data is not None:
-           for x in seed_data:
-               self.add(System(self.api,x))
+    _item_factory = System
 
     def remove(self,name):
         """
