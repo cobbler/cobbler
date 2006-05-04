@@ -10,9 +10,9 @@ import sys
 import traceback
 import re
 import shutil
+import yaml  # from RHN's spec-tree (Howell/Evans)
 
 import IPy
-import yaml
 from msg import *
 
 """

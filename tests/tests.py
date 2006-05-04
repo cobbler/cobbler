@@ -14,11 +14,6 @@ sys.path.append('./cobbler')
 import api
 import config
 
-# rewrite default configuration locations so anyone
-# with a real config won't get hurt
-config.global_settings_file = "./tests/etc/cobbler.conf"
-config.global_state_file = "./tests/var/lib/cobbler/cobbler.conf"
-
 FAKE_INITRD="/tmp/initrd-2.6.15-1.2054_FAKE.img"
 FAKE_INITRD2="/tmp/initrd-2.5.16-2.2055_FAKE.img"
 FAKE_INITRD3="/tmp/initrd-1.8.18-3.9999_FAKE.img"
@@ -231,21 +226,6 @@ class Deletions(BootTest):
         self.assertFalse(self.api.get_systems().find(self.hostname))
         self.assertFalse(self.api.get_profiles().find("testprofile0"))
         self.assertFalse(self.api.get_distros().find("testdistro0"))
-
-class TestSerialization(BootTest):
-
-   def test_serialization(self):
-       self.make_basic_config()
-       self.api.serialize()
-       self.api.clear()
-       self.assertFalse(self.api.get_systems().find(self.hostname))
-       self.assertFalse(self.api.get_profiles().find("testprofile0"))
-       self.assertFalse(self.api.get_distros().find("testdistro0"))
-       self.api.deserialize()
-       self.assertTrue(self.api.get_systems().find(self.hostname))
-       self.assertTrue(self.api.get_profiles().find("testprofile0"))
-       self.assertTrue(self.api.get_distros().find("testdistro0"))
-
 
 class TestCheck(BootTest):
 

@@ -6,13 +6,15 @@
 import api
 import util
 from msg import *
+import yaml  # the yaml parser from RHN's spec-tree (Howell/Evans)
 
 import os
-import yaml  # python yaml 3000 from pyyaml.org, soon to be in extras
 import traceback
 
 global_settings_file = "/etc/cobbler.conf"
 global_state_file = "/var/lib/cobbler/cobbler.conf"
+
+
 
 class BootConfig:
 
@@ -122,7 +124,6 @@ class BootConfig:
             world['distros']     = self.get_distros().to_datastruct()
             world['profiles']    = self.get_profiles().to_datastruct()
             world['systems']     = self.get_systems().to_datastruct()
-        #print "DEBUG: %s" % (world)
         return world
 
 
@@ -164,7 +165,9 @@ class BootConfig:
         # ------
         # dump internal state (distros, profiles, systems...)
         if not os.path.isdir(os.path.dirname(self.state_file)):
-            os.makedirs(os.path.dirname(self.state_file))
+            dirname = os.path.dirname(self.state_file)
+            if dirname != "":
+                os.makedirs(os.path.dirname(self.state_file))
         try:
             state = open(self.state_file,"w+")
         except:
@@ -186,23 +189,26 @@ class BootConfig:
         # -----
         # load global config (pathing, urls, etc)...
         try:
-            settings = yaml.load(open(self.settings_file,"r").read())
+            settings = yaml.load(open(self.settings_file,"r").read()).next()
             if settings is not None:
-                return self.from_hash(settings,True)
+                self.from_hash(settings,True)
             else:
-                print "WARNING: no %s data?" % self.settings_file
+                self.last_error = m("parse_error")
+                return False
         except:
+            traceback.print_exc()
             self.api.last_error = m("parse_error")
             return False
 
         # -----
         # load internal state(distros, systems, profiles...)
         try:
-            state = yaml.load(open(self.state_file,"r").read())
+            state = yaml.load(open(self.state_file,"r").read()).next()
             if state is not None:
-                return self.from_hash(state,False)
+                self.from_hash(state,False)
             else:
-                print "WARNING: no %s data?" % self.state_file
+                self.last_error = m("parse_error")
+                return False
         except:
             traceback.print_exc()
             self.api.last_error = m("parse_error2")

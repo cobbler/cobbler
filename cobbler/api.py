@@ -36,7 +36,6 @@ class BootAPI:
                self.config.serialize()
            except:
                traceback.print_exc()
-               pass
        if not self.config.files_exist():
            self.config.serialize()
 
