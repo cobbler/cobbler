@@ -251,7 +251,6 @@ class Koan:
             data = urlgrabber.urlread(url)
             return syck.load(data)
         except:
-            traceback.print_exc() # debug
             raise InfoException, "couldn't download profile information: %s" % profile_name
 
     def get_distro_yaml(self,distro_name):
@@ -443,8 +442,7 @@ def main():
     try:
         Koan(options)
     except InfoException, ie:
-        traceback.print_exc()
-        # print str(ie)  # str.message() ... FIXME
+        print str(ie) 
         sys.exit(1)
     except:
         traceback.print_exc()
