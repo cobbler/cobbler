@@ -6,7 +6,7 @@
 import api
 import util
 from msg import *
-import yaml  # the yaml parser from RHN's spec-tree (Howell/Evans)
+import syck # pysyck > 0.61, so it has dump() 
 
 import os
 import traceback
@@ -160,7 +160,7 @@ class BootConfig:
             self.api.last_error = m("cant_create: %s" % self.settings_file)
             return False
         data = self.to_hash(True)
-        settings.write(yaml.dump(data))
+        settings.write(syck.dump(data))
 
         # ------
         # dump internal state (distros, profiles, systems...)
@@ -174,7 +174,7 @@ class BootConfig:
             self.api.last_error = m("cant_create: %s" % self.state_file)
             return False
         data = self.to_hash(False)
-        state.write(yaml.dump(data))
+        state.write(syck.dump(data))
 
         # all good
         return True
@@ -189,7 +189,7 @@ class BootConfig:
         # -----
         # load global config (pathing, urls, etc)...
         try:
-            settings = yaml.load(open(self.settings_file,"r").read()).next()
+            settings = syck.load(open(self.settings_file,"r").read())
             if settings is not None:
                 self.from_hash(settings,True)
             else:
@@ -203,7 +203,7 @@ class BootConfig:
         # -----
         # load internal state(distros, systems, profiles...)
         try:
-            state = yaml.load(open(self.state_file,"r").read()).next()
+            state = syck.load(open(self.state_file,"r").read())
             if state is not None:
                 self.from_hash(state,False)
             else:

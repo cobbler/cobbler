@@ -9,6 +9,7 @@ library.  Consult 'man cobbler' for general info.
 import os
 import sys
 import api
+import syck
 from msg import *
 
 class BootCLI:
@@ -290,6 +291,11 @@ def main():
     """
     CLI entry point
     """
+
+    # verify syck isn't busted (old syck bindings were)
+    if not hasattr(syck,"dump"):
+       raise Exception("needs a more-recent PySyck")
+
     if os.getuid() != 0:
        # while it's true that we don't technically need root, we do need
        # permissions on a relatively long list of files that ordinarily

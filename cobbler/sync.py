@@ -10,8 +10,7 @@ import sys
 import traceback
 import re
 import shutil
-import yaml  # from RHN's spec-tree (Howell/Evans)
-
+import syck
 import IPy
 from msg import *
 
@@ -253,7 +252,7 @@ class BootSync:
         # resolve to current values
         distro.kernel = self.api.utils.find_kernel(distro.kernel)
         distro.initrd = self.api.utils.find_initrd(distro.initrd)
-        self.tee(fd,yaml.dump(distro.to_datastruct()))
+        self.tee(fd,syck.dump(distro.to_datastruct()))
         self.close_file(fd)
 
 
@@ -266,7 +265,7 @@ class BootSync:
         # the HTTP mirror, so make it something anaconda can get at
         if profile.kickstart and profile.kickstart.startswith("/"):
             profile.kickstart = "http://%s/cobbler/kickstarts/%s/ks.cfg" % (self.api.config.server, profile.name)
-        self.tee(fd,yaml.dump(profile.to_datastruct()))
+        self.tee(fd,syck.dump(profile.to_datastruct()))
         self.close_file(fd)
 
 
