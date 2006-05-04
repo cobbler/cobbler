@@ -486,7 +486,7 @@ class Collection:
         self.listing = {}
         if seed_data is not None:
            for x in seed_data:
-               self.add(self._item_factory(self.api), x)
+               self.add(self._item_factory(self.api, x))
 
     def find(self,name):
         """
