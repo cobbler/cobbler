@@ -1,10 +1,10 @@
 #platform=x86, AMD64, or Intel EM64T
 # System authorization information
-auth  --useshadow  --enablemd5
+auth  --useshadow  --enablemd5 
 # System bootloader configuration
 bootloader --location=mbr
 # Partition clearing information
-clearpart --linux --initlabel
+clearpart --linux --initlabel 
 # Use graphical install
 text
 # Firewall configuration

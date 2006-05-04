@@ -7,13 +7,13 @@ I  - Manpage (in progress) .. continuously...
      distro add [--kickstart] optionally as alternative to
      [--kernel=] and [--initrd=].  If so, groups can inherit kickstart info
      from the group (can and must if the distro has a kickstart specified).
-  -  Don't require root, check for permissions on dirpaths we touch.
+  -  Don't require root, check for permissions on dirpaths we touch.  
   -  Support pxelinux's default directory
   -  Subnet creation shorthand ... (system objects that match multiples?)
   -  MAC ranges for Xen (how best to do this? shelve this for now).
   -  If there is a parse error in /etc/cobbler.conf and the user
      deletes that file, fix the bug that also deletes the file in /var.
-
+     
 LEGEND
 
 T = DONE. SOME TESTING STILL TBA.

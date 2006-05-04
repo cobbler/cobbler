@@ -21,7 +21,7 @@ class BootCLI:
         self.args = args
         self.api = api.BootAPI()
         self.commands = {}
-        self.commands['distro'] = {
+        self.commands['distro'] = { 
             'add'     :  self.distro_edit,
             'edit'    :  self.distro_edit,
             'delete'  :  self.distro_remove,
@@ -46,8 +46,8 @@ class BootCLI:
             'check'    : self.check,
             'distros'  : self.distro,
             'distro'   : self.distro,
-            'profiles' : self.profile,
-            'profile'  : self.profile,
+            'profiles' : self.profile, 
+            'profile'  : self.profile, 
             'systems'  : self.system,
             'system'   : self.system,
             'sync'     : self.sync,
@@ -100,7 +100,7 @@ class BootCLI:
         Delete a system:  'cobbler system remove --name=foo'
         """
         commands = {
-           '--name'       : lambda(a):  self.api.get_systems().remove(a)
+           '--name'       : lambda(a):  self.api.get_systems().remove(a) 
         }
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok,True)
@@ -135,8 +135,8 @@ class BootCLI:
         sys = self.api.new_system()
         commands = {
            '--name'     :  lambda(a) : sys.set_name(a),
-           '--profile'  :  lambda(a) : sys.set_profile(a),
-           '--profiles' :  lambda(a) : sys.set_profile(a), # alias
+           '--profile'  :  lambda(a) : sys.set_profile(a),    
+           '--profiles' :  lambda(a) : sys.set_profile(a), # alias       
            '--kopts'    :  lambda(a) : sys.set_kernel_options(a)
         }
         on_ok = lambda: self.api.get_systems().add(sys)
@@ -157,13 +157,13 @@ class BootCLI:
             '--xen-file-size'   :  lambda(a) : profile.set_xen_file_size(a),
             '--xen-ram'         :  lambda(a) : profile.set_xen_ram(a)
         # the following options are most likely not useful for profiles (yet)
-        # primarily due to not being implemented in koan.
+        # primarily due to not being implemented in koan.  
         #    '--xen-mac'         :  lambda(a) : profile.set_xen_mac(a),
         #    '--xen-paravirt'    :  lambda(a) : profile.set_xen_paravirt(a),
         }
         on_ok = lambda: self.api.get_profiles().add(profile)
         return self.apply_args(args,commands,on_ok,True)
-
+    
 
     def distro_edit(self,args):
         """
@@ -226,7 +226,7 @@ class BootCLI:
             return False
         if args[0] in commands:
             # if the subargument is in the dispatch table, run
-            # the selected command routine with the rest of the
+            # the selected command routine with the rest of the 
             # arguments
             rc = commands[args[0]](args[1:])
             if not rc:
@@ -241,13 +241,13 @@ class BootCLI:
         """
         Sync the config file with the system config: 'cobbler sync [--dryrun]'
         """
-        status = None
+        status = None 
         if args is not None and "--dryrun" in args:
             status = self.api.sync(dry_run=True)
         else:
             status = self.api.sync(dry_run=False)
         return status
-
+       
 
     def check(self,args):
         """
@@ -261,16 +261,16 @@ class BootCLI:
             return True
         else:
             print m("need_to_fix")
-            for i,x in enumerate(status):
+            for i,x in enumerate(status): 
                print "#%d: %s" % (i,x)
             return False
-
+  
 
     def distro(self,args):
         """
         Handles any of the 'cobbler distro' subcommands
         """
-        return self.curry_args(args, self.commands['distro'])
+        return self.curry_args(args, self.commands['distro']) 
 
 
     def profile(self,args):
@@ -292,9 +292,9 @@ def main():
     """
     if os.getuid() != 0:
        # while it's true that we don't technically need root, we do need
-       # permissions on a relatively long list of files that ordinarily
+       # permissions on a relatively long list of files that ordinarily 
        # only root has access to, and we don't know specifically what
-       # files are where (other distributions in play, etc).  It's
+       # files are where (other distributions in play, etc).  It's 
        # fairly safe to assume root is required.  This might be patched
        # later.
        print m("need_root")

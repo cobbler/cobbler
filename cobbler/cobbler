@@ -1,6 +1,0 @@
-#!/usr/bin/python
-
-import sys
-import cobbler
-sys.exit(cobbler.main())
-

@@ -10,9 +10,9 @@ import sys
 import traceback
 import re
 import shutil
-import yaml  # from RHN's spec-tree (Howell/Evans)
 
 import IPy
+import yaml
 from msg import *
 
 """
@@ -28,7 +28,7 @@ class BootSync:
 
     def sync(self,dry_run=False,verbose=True):
         """
-        Syncs the current configuration file with the config tree.
+        Syncs the current configuration file with the config tree.  
         Using the Check().run_ functions previously is recommended
         """
         self.dry_run = dry_run
@@ -53,7 +53,7 @@ class BootSync:
 
     def configure_httpd(self):
         """
-        Create a config file to Apache that will allow access to the
+        Create a config file to Apache that will allow access to the 
         cobbler infrastructure available over TFTP over HTTP also.
         """
         if not os.path.exists("/etc/httpd/conf.d"):
@@ -82,7 +82,7 @@ class BootSync:
         """
         for x in ["pxelinux.cfg","images","systems","distros","profiles","kickstarts"]:
             path = os.path.join(self.api.config.tftpboot,x)
-            self.rmtree(path, True)
+            self.rmtree(path, True) 
             self.mkdir(path)
 
     def copy_distros(self):
@@ -140,7 +140,7 @@ class BootSync:
     def build_trees(self):
         """
         Now that kernels and initrds are copied and kickstarts are all valid,
-        build the pxelinux.cfg tree, which contains a directory for each
+        build the pxelinux.cfg tree, which contains a directory for each 
         configured IP or MAC address.  Also build a parallel 'xeninfo' tree
         for xen-net-install info.
         """
@@ -182,7 +182,7 @@ class BootSync:
                 self.api.last_error = m("orphan_profile2")
                 raise "error"
             distro = distros.find(profile.distro)
-            if distro is None:
+            if distro is None: 
                 self.api.last_error = m("orphan_system2")
                 raise "error"
             f1 = self.get_pxelinux_filename(system.name)
@@ -208,7 +208,7 @@ class BootSync:
         else:
             self.api.last_error = m("err_resolv") % name
             raise "error"
-
+      
 
     def write_pxelinux_file(self,filename,system,profile,distro):
         """
@@ -228,9 +228,9 @@ class BootSync:
         self.tee(fd,"label linux\n")
         self.tee(fd,"   kernel %s\n" % kernel_path)
         kopts = self.blend_kernel_options((
-           self.api.config.kernel_options,
-           profile.kernel_options,
-           distro.kernel_options,
+           self.api.config.kernel_options, 
+           profile.kernel_options, 
+           distro.kernel_options, 
            system.kernel_options
         ))
         nextline = "   append %s initrd=%s" % (kopts,initrd_path)
@@ -246,7 +246,7 @@ class BootSync:
 
 
     def write_distro_file(self,filename,distro):
-        """
+        """ 
         Create distro information for xen-net-install
         """
         fd = self.open_file(filename,"w+")
@@ -268,12 +268,12 @@ class BootSync:
             profile.kickstart = "http://%s/cobbler/kickstarts/%s/ks.cfg" % (self.api.config.server, profile.name)
         self.tee(fd,yaml.dump(profile.to_datastruct()))
         self.close_file(fd)
-
+ 
 
     def write_system_file(self,filename,system):
         """
         Create system information for xen-net-install
-        """
+        """ 
         fd = self.open_file(filename,"w+")
         self.tee(fd,yaml.dump(system.to_datastruct()))
         self.close_file(fd)
@@ -285,7 +285,7 @@ class BootSync:
         self.sync_log(text)
         if not self.dry_run:
             fd.write(text)
-
+  
     def open_file(self,filename,mode):
         """
         For dry_run support:  open a file if not in dry_run mode.
@@ -293,7 +293,7 @@ class BootSync:
         if self.dry_run:
             return None
         return open(filename,mode)
-
+ 
     def close_file(self,fd):
         """
 	For dry_run support:  close a file if not in dry_run mode.
@@ -347,15 +347,15 @@ class BootSync:
                print "dry_run | %s" % message
            else:
                print message
-
+            
     def blend_kernel_options(self, list_of_opts):
         """
         Given a list of kernel options, take the values used by the
         first argument in the list unless overridden by those in the
-        second (or further on), according to --key=value formats.
+        second (or further on), according to --key=value formats.  
 
-        This is used such that we can have default kernel options
-        in /etc and then distro, profile, and system options with various
+        This is used such that we can have default kernel options 
+        in /etc and then distro, profile, and system options with various 
         levels of configurability.
         """
         internal = {}
@@ -377,12 +377,12 @@ class BootSync:
            data = internal[key]
            if key == "ks" or key == "initrd" or key == "append":
                # the user REALLY doesn't want to do this...
-               continue
+               continue 
            if data == "":
                results.append(key)
-           else:
+           else:       
                results.append("%s=%s" % (key,internal[key]))
         # end result is a new fragment of a kernel options string
         return " ".join(results)
-
+ 
 

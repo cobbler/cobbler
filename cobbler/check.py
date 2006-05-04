@@ -1,5 +1,5 @@
 # Classes for validating whether asystem is configured for network booting
-#
+# 
 # Michael DeHaan <mdehaan@redhat.com>
 
 import os
@@ -13,11 +13,11 @@ class BootCheck:
    def __init__(self, api):
        self.api = api
        self.config = self.api.config
-
+   
 
    def run(self):
        """
-       Returns None if there are no errors, otherwise returns a list
+       Returns None if there are no errors, otherwise returns a list 
        of things to correct prior to running application 'for real'.
        (The CLI usage is "cobbler check" before "cobbler sync")
        """
@@ -60,7 +60,7 @@ class BootCheck:
        Check if tftpd is installed
        """
        if not os.path.exists(self.config.tftpd_bin):
-          status.append(m("no_tftpd"))
+          status.append(m("no_tftpd")) 
 
    def check_tftpd_dir(self,status):
        """
@@ -68,7 +68,7 @@ class BootCheck:
        """
        if not os.path.exists(self.config.tftpboot):
           status.append(m("no_dir") % self.config.tftpboot)
-
+   
 
    def check_tftpd_conf(self,status):
        """
@@ -88,10 +88,10 @@ class BootCheck:
              if line.find("-s %s" % self.config.tftpboot) != -1:
                  found_bootdir = True
           if not found_bootdir:
-              status.append(m("chg_attrib") % ('server_args',"-s %s" % self.config.tftpboot, self.config.tftpd_conf))
+              status.append(m("chg_attrib") % ('server_args',"-s %s" % self.config.tftpboot, self.config.tftpd_conf))   
        else:
           status.append(m("no_exist") % self.config.tftpd_conf)
-
+   
 
    def check_dhcpd_conf(self,status):
        """
@@ -103,10 +103,10 @@ class BootCheck:
            match_file = False
            f = open(self.config.dhcpd_conf)
            for line in f.readlines():
-               if line.find("next-server") != -1:
+               if line.find("next-server") != -1: 
                    match_next = True
                if line.find("filename") != -1:
-                   match_file = True
+                   match_file = True     
            if not match_next:
               status.append(m("no_line") % (self.config.dhcpd_conf, 'next-server ip-address'))
            if not match_file:

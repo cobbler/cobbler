@@ -14,6 +14,11 @@ sys.path.append('./cobbler')
 import api
 import config
 
+# rewrite default configuration locations so anyone
+# with a real config won't get hurt
+config.global_settings_file = "./tests/etc/cobbler.conf"
+config.global_state_file = "./tests/var/lib/cobbler/cobbler.conf"
+
 FAKE_INITRD="/tmp/initrd-2.6.15-1.2054_FAKE.img"
 FAKE_INITRD2="/tmp/initrd-2.5.16-2.2055_FAKE.img"
 FAKE_INITRD3="/tmp/initrd-1.8.18-3.9999_FAKE.img"
@@ -75,10 +80,10 @@ class Utilities(BootTest):
         self.assertFalse(self.api.utils.find_kernel("/etc/fstab"))
         self.assertFalse(self.api.utils.find_initrd("filedoesnotexist"))
         self.assertTrue(self.api.utils.find_initrd("/tmp") == FAKE_INITRD)
-
+        
     def test_kickstart_scan(self):
         # we don't check to see if kickstart files look like anything
-        # so this will pass
+        # so this will pass 
         self.assertTrue(self.api.utils.find_kickstart(FAKE_INITRD) is None)
         self.assertTrue(self.api.utils.find_kickstart("filedoesnotexist") is None)
         self.assertTrue(self.api.utils.find_kickstart("/tmp") == None)
@@ -95,7 +100,7 @@ class Utilities(BootTest):
         self.assertTrue(self.api.utils.is_ip("127.0.0.1"))
         self.assertTrue(self.api.utils.is_ip("192.168.1.1"))
         self.assertFalse(self.api.utils.is_ip("00:C0:B7:7E:55:50"))
-        self.assertFalse(self.api.utils.is_ip(self.hostname))
+        self.assertFalse(self.api.utils.is_ip(self.hostname))    
 
 class Additions(BootTest):
 
@@ -117,7 +122,7 @@ class Additions(BootTest):
         self.assertFalse(distro.set_initrd("filedoesntexist"))
         self.assertFalse(self.api.get_distros().add(distro))
         self.assertFalse(self.api.get_distros().find("testdistro3"))
-
+ 
     def test_invalid_profile_non_referenced_distro(self):
         profile = self.api.new_profile()
         self.assertTrue(profile.set_name("testprofile11"))
@@ -156,7 +161,7 @@ class Additions(BootTest):
         self.assertFalse(profile.set_xen_file_size("54321.23"))
         # macs must be properly formatted
         self.assertTrue(profile.set_xen_mac("AA:BB:CC:DD:EE:FF"))
-        self.assertFalse(profile.set_xen_mac("AA-BB-CC-DD-EE-FF"))
+        self.assertFalse(profile.set_xen_mac("AA-BB-CC-DD-EE-FF")) 
         # paravirt must be 'true' or 'false'
         self.assertFalse(profile.set_xen_mac("cowbell"))
         self.assertTrue(profile.set_xen_paravirt('true'))
@@ -198,7 +203,7 @@ class Additions(BootTest):
         self.assertFalse(self.api.get_systems().add(system))
 
 class Deletions(BootTest):
-
+  
     def test_invalid_delete_profile_doesnt_exist(self):
         self.assertFalse(self.api.get_profiles().remove("doesnotexist"))
 
@@ -215,7 +220,7 @@ class Deletions(BootTest):
     def test_invalid_delete_distro_would_orphan_profile(self):
         self.make_basic_config()
         self.assertFalse(self.api.get_distros().remove("testdistro0"))
-
+        
     def test_working_deletes(self):
         self.api.clear()
         self.make_basic_config()
@@ -227,8 +232,23 @@ class Deletions(BootTest):
         self.assertFalse(self.api.get_profiles().find("testprofile0"))
         self.assertFalse(self.api.get_distros().find("testdistro0"))
 
-class TestCheck(BootTest):
+class TestSerialization(BootTest):
+   
+   def test_serialization(self):
+       self.make_basic_config()
+       self.api.serialize()
+       self.api.clear()
+       self.assertFalse(self.api.get_systems().find(self.hostname))
+       self.assertFalse(self.api.get_profiles().find("testprofile0"))
+       self.assertFalse(self.api.get_distros().find("testdistro0"))
+       self.api.deserialize()
+       self.assertTrue(self.api.get_systems().find(self.hostname))
+       self.assertTrue(self.api.get_profiles().find("testprofile0"))
+       self.assertTrue(self.api.get_distros().find("testdistro0"))
+       
 
+class TestCheck(BootTest):
+  
    def test_check(self):
        # we can't know if it's supposed to fail in advance
        # (ain't that the halting problem), but it shouldn't ever
@@ -236,7 +256,7 @@ class TestCheck(BootTest):
        self.api.check()
 
 class TestSync(BootTest):
-
+  
    def test_dry_run(self):
        # dry_run just *shows* what is done, it doesn't apply the config
        # the test here is mainly for coverage, we do not test
@@ -251,7 +271,7 @@ class TestSync(BootTest):
        pass
 
 class TestListings(BootTest):
-
+    
    def test_listings(self):
        # check to see if the collection listings output something.
        # this is a minimal check, mainly for coverage, not validity
