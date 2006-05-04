@@ -1,5 +1,5 @@
 """
-python API module for BootConf 
+python API module for BootConf
 see source for bootconf.py for a good API reference
 
 Michael DeHaan <mdehaan@redhat.com>
@@ -57,7 +57,7 @@ class BootAPI:
 
     def get_profiles(self):
        """
-       Return the current list of profiles 
+       Return the current list of profiles
        """
        return self.config.get_profiles()
 
@@ -105,10 +105,10 @@ class BootAPI:
     def sync(self,dry_run=True):
        """
        Take the values currently written to the configuration files in
-       /etc, and /var, and build out the information tree found in 
+       /etc, and /var, and build out the information tree found in
        /tftpboot.  Any operations done in the API that have not been
        saved with serialize() will NOT be synchronized with this command.
-       """ 
+       """
        self.config.deserialize();
        configurator = sync.BootSync(self)
        return configurator.sync(dry_run)
@@ -118,8 +118,8 @@ class BootAPI:
        """
        Save the config file(s) to disk.
        """
-       self.config.serialize() 
-    
+       self.config.serialize()
+
     def deserialize(self):
        """
        Load the current configuration from config file(s)
@@ -150,8 +150,8 @@ class Collection:
         for feeding to a serializer (such as YAML)
         """
         return [x.to_datastruct() for x in self.listing.values()]
-    
-     
+
+
     def add(self,ref):
         """
         Add an object to the collection, if it's valid.  Returns True
@@ -159,7 +159,7 @@ class Collection:
         object specified by ref deems itself invalid (and therefore
         won't be added to the collection).
         """
-        if ref is None or not ref.is_valid(): 
+        if ref is None or not ref.is_valid():
             if self.api.last_error is None or self.api.last_error == "":
                 self.api.last_error = m("bad_param")
             return False
@@ -175,7 +175,7 @@ class Collection:
         """
         buf = ""
         values = map(lambda(a): a.printable(), sorted(self.listing.values()))
-        if len(values) > 0: 
+        if len(values) > 0:
            return "\n\n".join(values)
         else:
            return m("empty_list")
@@ -194,13 +194,13 @@ class Collection:
 	"""
         for a in self.listing.values():
 	    yield a
-	    
+
     def __len__(self):
         """
 	Returns size of the collection
 	"""
         return len(self.listing.values())
-	    
+
 
 #--------------------------------------------
 
@@ -219,7 +219,7 @@ class Distros(Collection):
         self.api = api
         self.listing = {}
         if seed_data is not None:
-           for x in seed_data: 
+           for x in seed_data:
                self.add(Distro(self.api,x))
 
     def remove(self,name):
@@ -236,7 +236,7 @@ class Distros(Collection):
             return True
         self.api.last_error = m("delete_nothing")
         return False
-    
+
 
 #--------------------------------------------
 
@@ -252,7 +252,7 @@ class Profiles(Collection):
         self.api = api
         self.listing = {}
         if seed_data is not None:
-           for x in seed_data: 
+           for x in seed_data:
                self.add(Profile(self.api,x))
 
     def remove(self,name):
@@ -268,7 +268,7 @@ class Profiles(Collection):
             return True
         self.api.last_error = m("delete_nothing")
         return False
-    
+
 
 #--------------------------------------------
 
@@ -282,7 +282,7 @@ class Systems(Collection):
         self.api = api
         self.listing = {}
         if seed_data is not None:
-           for x in seed_data: 
+           for x in seed_data:
                self.add(System(self.api,x))
 
     def remove(self,name):
@@ -294,7 +294,7 @@ class Systems(Collection):
             return True
         self.api.last_error = m("delete_nothing")
         return False
-    
+
 
 #-----------------------------------------
 
@@ -302,7 +302,7 @@ class Systems(Collection):
 An Item is a serializable thing that can appear in a Collection
 """
 class Item:
-  
+
 
     def set_name(self,name):
         """
@@ -326,7 +326,7 @@ class Item:
 	i.e. dictionaries/arrays/scalars.
 	"""
         raise exceptions.NotImplementedError
-   
+
     def is_valid(self):
         """
 	The individual set_ methods will return failure if any set is
@@ -334,7 +334,7 @@ class Item:
 	the object is well formed ... i.e. have all of the important
 	items been set, are they free of conflicts, etc.
 	"""
-        return False 
+        return False
 
 #------------------------------------------
 
@@ -355,7 +355,7 @@ class Distro(Item):
     def set_kernel(self,kernel):
         """
 	Specifies a kernel.  The kernel parameter is a full path, a filename
-	in the configured kernel directory (set in /etc/cobbler.conf) or a 
+	in the configured kernel directory (set in /etc/cobbler.conf) or a
 	directory path that would contain a selectable kernel.  Kernel
 	naming conventions are checked, see docs in the utils module
 	for find_kernel.
@@ -387,9 +387,9 @@ class Distro(Item):
         return True
 
     def to_datastruct(self):
-        return { 
-           'name': self.name, 
-           'kernel': self.kernel, 
+        return {
+           'name': self.name,
+           'kernel': self.kernel,
            'initrd' : self.initrd,
            'kernel_options' : self.kernel_options
         }
@@ -426,14 +426,14 @@ class Profile(Item):
         self.kickstart = None
         self.kernel_options = ''
         self.xen_name = 'xenguest'
-        self.xen_file_size = 5 # GB 
+        self.xen_file_size = 5 # GB
         self.xen_ram = 2048    # MB
         self.xen_mac = ''
         self.xen_paravirt = True
         if seed_data is not None:
            self.name            = seed_data['name']
            self.distro          = seed_data['distro']
-           self.kickstart       = seed_data['kickstart'] 
+           self.kickstart       = seed_data['kickstart']
            self.kernel_options  = seed_data['kernel_options']
            self.xen_name        = seed_data['xen_name']
            if not self.xen_name or self.xen_name == '':
@@ -472,7 +472,7 @@ class Profile(Item):
         xen-net-install may do conflict resolution, so this is mostly
         a hint...  To keep the shell happy, the 'str' cannot
 	contain wildcards or slashes and may be subject to some other
-        untainting later.  
+        untainting later.
 	"""
         # no slashes or wildcards
         for bad in [ '/', '*', '?' ]:
@@ -490,7 +490,7 @@ class Profile(Item):
 	let it pick a semi-reasonable size.  When in doubt, specify the
 	size you want.
 	"""
-        # num is a non-negative integer (0 means default) 
+        # num is a non-negative integer (0 means default)
         try:
             inum = int(num)
             if inum != float(num):
@@ -505,12 +505,12 @@ class Profile(Item):
     def set_xen_mac(self,mac):
         """
 	For Xen only.
-	Specifies the mac address (or possibly later, a range) that 
+	Specifies the mac address (or possibly later, a range) that
 	xen-net-install should try to set on the domU.  Seeing these
 	have a good chance of conflicting with other domU's, especially
 	on a network, this setting is fairly experimental at this time.
 	It's recommended that it *not* be used until we can get
-	decent use cases for how this might work. 
+	decent use cases for how this might work.
 	"""
         # mac needs to be in mac format AA:BB:CC:DD:EE:FF or a range
         # ranges currently *not* supported, so we'll fail them
@@ -519,7 +519,7 @@ class Profile(Item):
             return True
         else:
             return False
-   
+
     def set_xen_paravirt(self,truthiness):
         """
 	For Xen only.
@@ -534,9 +534,9 @@ class Profile(Item):
             elif (truthiness == True or truthiness.lower() == 'true'):
                 self.xen_paravirt = True
             else:
-                return False      
+                return False
         except:
-            return False  
+            return False
         return True
 
     def is_valid(self):
@@ -546,12 +546,12 @@ class Profile(Item):
 	without a kickstart is *usually* not a good idea).
 	"""
         for x in (self.name, self.distro):
-            if x is None: 
+            if x is None:
                 return False
         return True
 
     def to_datastruct(self):
-        return { 
+        return {
             'name' : self.name,
             'distro' : self.distro,
             'kickstart' : self.kickstart,
@@ -589,15 +589,15 @@ class System(Item):
            self.name = seed_data['name']
            self.profile = seed_data['profile']
            self.kernel_options = seed_data['kernel_options']
-    
+
 
     def set_name(self,name):
         """
-        A name can be a resolvable hostname (it instantly resolved and replaced with the IP), 
+        A name can be a resolvable hostname (it instantly resolved and replaced with the IP),
         any legal ipv4 address, or any legal mac address. ipv6 is not supported yet but _should_ be.
         See utils.py
         """
-        new_name = self.api.utils.find_system_identifier(name) 
+        new_name = self.api.utils.find_system_identifier(name)
         if new_name is None or new_name == False:
             self.api.last_error = m("bad_sys_name")
             return False
@@ -606,7 +606,7 @@ class System(Item):
 
     def set_profile(self,profile_name):
         """
-	Set the system to use a certain named profile.  The profile 
+	Set the system to use a certain named profile.  The profile
 	must have already been loaded into the Profiles collection.
 	"""
         if self.api.get_profiles().find(profile_name):

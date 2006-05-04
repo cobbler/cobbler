@@ -3,7 +3,7 @@
 #
 # Michael DeHaan <mdehaan@redhat.com>
 
-import api 
+import api
 import util
 from msg import *
 
@@ -52,7 +52,7 @@ class BootConfig:
         self.tftpboot       = "/tftpboot"
         self.dhcpd_conf     = "/etc/dhcpd.conf"
         self.tftpd_conf     = "/etc/xinetd.d/tftp"
-        self.pxelinux       = "/usr/lib/syslinux/pxelinux.0"    
+        self.pxelinux       = "/usr/lib/syslinux/pxelinux.0"
         self.tftpd_bin      = "/usr/sbin/in.tftpd"
         self.dhcpd_bin      = "/usr/sbin/dhcpd"
         self.httpd_bin      = "/usr/sbin/httpd"
@@ -91,7 +91,7 @@ class BootConfig:
         data['httpd_bin']      = self.httpd_bin
         data['kernel_options'] = self.kernel_options
         return data
-    
+
     def config_from_hash(self,hash):
         """
         Load all global config options from hash form (for deserialization)
@@ -109,13 +109,13 @@ class BootConfig:
         except:
             print "WARNING: config file error: %s" % (self.settings_file)
             self.set_defaults()
-    
+
     def to_hash(self,is_etc):
         """
         Convert all items cobbler knows about to a nested hash.
         There are seperate hashes for the /etc and /var portions.
         """
-        world = {} 
+        world = {}
         if is_etc:
             world['config']      = self.config_to_hash()
         else:
@@ -123,7 +123,7 @@ class BootConfig:
             world['profiles']    = self.get_profiles().to_datastruct()
             world['systems']     = self.get_systems().to_datastruct()
         #print "DEBUG: %s" % (world)
-        return world  
+        return world
 
 
     def from_hash(self,hash,is_etc):
@@ -150,7 +150,7 @@ class BootConfig:
 
         settings = None
         state = None
-        
+
         # ------
         # dump global config (pathing, urls, etc)...
         try:
@@ -160,7 +160,7 @@ class BootConfig:
             return False
         data = self.to_hash(True)
         settings.write(yaml.dump(data))
- 
+
         # ------
         # dump internal state (distros, profiles, systems...)
         if not os.path.isdir(os.path.dirname(self.state_file)):
@@ -207,7 +207,7 @@ class BootConfig:
             traceback.print_exc()
             self.api.last_error = m("parse_error2")
             return False
-        
+
         # all good
         return True
 
