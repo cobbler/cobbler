@@ -19,12 +19,11 @@ if __name__ == "__main__":
                 version = VERSION,
                 author = "Michael DeHaan",
                 author_email = "mdehaan@redhat.com",
-                # FIXME: lame, this should point to a real prm webpage
+                # FIXME: lame, this should point to a real cobbler webpage
                 url = "http://bugzilla.redhat.com",
                 license = "GPL",
                 packages = ["cobbler"],
                 scripts = ["cobbler/cobbler"],
-                py_modules = ["cobbler/cobbler" ],
                 data_files = [
                                 # (docspath, ['README']),
                                 (manpath, ['cobbler.1.gz'])
