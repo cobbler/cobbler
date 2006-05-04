@@ -83,25 +83,25 @@ class BootUtil:
        """
        files = self.find_matching_files(directory, regex)
        get_numbers = re.compile(r'(\d+).(\d+).(\d+)')
-       def sort(a,b):
+       def max2(a, b):
+           """Returns the larger of the two values"""
            av  = get_numbers.search(os.path.basename(a)).groups()
            bv  = get_numbers.search(os.path.basename(b)).groups()
-           if av[0]<bv[0]: return -1
-           elif av[0]>bv[0]: return 1
-           elif av[1]<bv[1]: return -1
-           elif av[1]>bv[1]: return 1
-           elif av[2]<bv[2]: return -1
-           elif av[2]>bv[2]: return 1
-           return 0
+
+           ret = cmp(av[0], bv[0]) or cmp(av[1], bv[1]) or cmp(av[2], bv[2])
+           if ret < 0:
+                return b
+           return a
+
        if len(files) > 0:
-           return sorted(files, sort)[-1]
-       else:
-           # couldn't find a highest numbered file, but maybe there
-           # is just a 'vmlinuz' or an 'initrd.img' in this directory?
-           last_chance = os.path.join(directory,unversioned)
-           if os.path.exists(last_chance):
-               return last_chance
-           return None
+           return reduce(max2, files)
+
+       # couldn't find a highest numbered file, but maybe there
+       # is just a 'vmlinuz' or an 'initrd.img' in this directory?
+       last_chance = os.path.join(directory,unversioned)
+       if os.path.exists(last_chance):
+           return last_chance
+       return None
 
 
    def find_kernel(self,path):
