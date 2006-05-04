@@ -777,7 +777,7 @@ class IPint:
         thehash = int(-1)
         ip = self.ip
         while ip > 0:
-            thehash = thehash ^ (ip & 0x7fffffff)
+            thehash = (thehash & 0xffffffff) ^ (ip & 0x7fffffff)
             ip = ip >> 32
         thehash = thehash ^ self._prefixlen
         return int(thehash)
