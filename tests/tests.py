@@ -7,6 +7,8 @@ import sys
 import unittest
 import os
 import subprocess
+import tempfile
+import shutil
 
 sys.path.append('../cobbler')
 sys.path.append('./cobbler')
@@ -14,16 +16,27 @@ sys.path.append('./cobbler')
 import api
 import config
 
-FAKE_INITRD="/tmp/initrd-2.6.15-1.2054_FAKE.img"
-FAKE_INITRD2="/tmp/initrd-2.5.16-2.2055_FAKE.img"
-FAKE_INITRD3="/tmp/initrd-1.8.18-3.9999_FAKE.img"
-FAKE_KERNEL="/tmp/vmlinuz-2.6.15-1.2054_FAKE"
-FAKE_KERNEL2="/tmp/vmlinuz-2.5.16-2.2055_FAKE"
-FAKE_KERNEL3="/tmp/vmlinuz-1.8.18-3.9999_FAKE"
+FAKE_INITRD="initrd-2.6.15-1.2054_FAKE.img"
+FAKE_INITRD2="initrd-2.5.16-2.2055_FAKE.img"
+FAKE_INITRD3="initrd-1.8.18-3.9999_FAKE.img"
+FAKE_KERNEL="vmlinuz-2.6.15-1.2054_FAKE"
+FAKE_KERNEL2="vmlinuz-2.5.16-2.2055_FAKE"
+FAKE_KERNEL3="vmlinuz-1.8.18-3.9999_FAKE"
 FAKE_KICKSTART="http://127.0.0.1/fake.ks"
 
 class BootTest(unittest.TestCase):
+    
     def setUp(self):
+        # Create temp dir
+        self.topdir = tempfile.mkdtemp(prefix="_cobbler-")
+        self.fk_initrd = os.path.join(self.topdir, FAKE_INITRD)
+        self.fk_initrd2 = os.path.join(self.topdir, FAKE_INITRD2)
+        self.fk_initrd3 = os.path.join(self.topdir, FAKE_INITRD3)
+
+        self.fk_kernel = os.path.join(self.topdir, FAKE_KERNEL)
+        self.fk_kernel2 = os.path.join(self.topdir, FAKE_KERNEL2)
+        self.fk_kernel3 = os.path.join(self.topdir, FAKE_KERNEL3)
+        
         try:
            # it will interfere with results...
            os.remove("/etc/cobbler.conf")
@@ -31,20 +44,21 @@ class BootTest(unittest.TestCase):
            pass
         self.api = api.BootAPI()
         self.hostname = os.uname()[1]
-        create =  [FAKE_INITRD,FAKE_INITRD2,FAKE_INITRD3,
-                   FAKE_KERNEL,FAKE_KERNEL2,FAKE_KERNEL3]
+        create = [ self.fk_initrd, self.fk_initrd2, self.fk_initrd3,
+                self.fk_kernel, self.fk_kernel2, self.fk_kernel3 ]
         for fn in create:
             f = open(fn,"w+")
         self.make_basic_config()
 
     def tearDown(self):
+        shutil.rmtree(self.topdir, ignore_errors=1)
         self.api = None
 
     def make_basic_config(self):
         distro = self.api.new_distro()
         self.assertTrue(distro.set_name("testdistro0"))
-        self.assertTrue(distro.set_kernel(FAKE_KERNEL))
-        self.assertTrue(distro.set_initrd(FAKE_INITRD))
+        self.assertTrue(distro.set_kernel(self.fk_kernel))
+        self.assertTrue(distro.set_initrd(self.fk_initrd))
         self.assertTrue(self.api.get_distros().add(distro))
         self.assertTrue(self.api.get_distros().find("testdistro0"))
 
@@ -63,25 +77,28 @@ class BootTest(unittest.TestCase):
 
 class Utilities(BootTest):
 
+    def _expeq(self, expected, actual):
+        self.failUnlessEqual(expected, actual, 
+            "Expected: %s; actual: %s" % (expected, actual))
 
     def test_kernel_scan(self):
-        self.assertTrue(self.api.utils.find_kernel(FAKE_KERNEL))
+        self.assertTrue(self.api.utils.find_kernel(self.fk_kernel))
         self.assertFalse(self.api.utils.find_kernel("/etc/fstab"))
         self.assertFalse(self.api.utils.find_kernel("filedoesnotexist"))
-        self.assertTrue(self.api.utils.find_kernel("/tmp") == FAKE_KERNEL)
+        self._expeq(self.fk_kernel, self.api.utils.find_kernel(self.topdir))
 
     def test_initrd_scan(self):
-        self.assertTrue(self.api.utils.find_initrd(FAKE_INITRD))
+        self.assertTrue(self.api.utils.find_initrd(self.fk_initrd))
         self.assertFalse(self.api.utils.find_kernel("/etc/fstab"))
         self.assertFalse(self.api.utils.find_initrd("filedoesnotexist"))
-        self.assertTrue(self.api.utils.find_initrd("/tmp") == FAKE_INITRD)
+        self._expeq(self.fk_initrd, self.api.utils.find_initrd(self.topdir))
 
     def test_kickstart_scan(self):
         # we don't check to see if kickstart files look like anything
         # so this will pass
-        self.assertTrue(self.api.utils.find_kickstart(FAKE_INITRD) is None)
+        self.assertTrue(self.api.utils.find_kickstart(self.fk_initrd) is None)
         self.assertTrue(self.api.utils.find_kickstart("filedoesnotexist") is None)
-        self.assertTrue(self.api.utils.find_kickstart("/tmp") == None)
+        self.assertTrue(self.api.utils.find_kickstart(self.topdir) == None)
         self.assertTrue(self.api.utils.find_kickstart("http://bar"))
         self.assertTrue(self.api.utils.find_kickstart("ftp://bar"))
         self.assertTrue(self.api.utils.find_kickstart("nfs://bar"))
@@ -106,14 +123,14 @@ class Additions(BootTest):
         distro = self.api.new_distro()
         self.assertTrue(distro.set_name("testdistro2"))
         self.assertFalse(distro.set_kernel("filedoesntexist"))
-        self.assertTrue(distro.set_initrd(FAKE_INITRD))
+        self.assertTrue(distro.set_initrd(self.fk_initrd))
         self.assertFalse(self.api.get_distros().add(distro))
         self.assertFalse(self.api.get_distros().find("testdistro2"))
 
     def test_invalid_distro_non_referenced_initrd(self):
         distro = self.api.new_distro()
         self.assertTrue(distro.set_name("testdistro3"))
-        self.assertTrue(distro.set_kernel(FAKE_KERNEL))
+        self.assertTrue(distro.set_kernel(self.fk_kernel))
         self.assertFalse(distro.set_initrd("filedoesntexist"))
         self.assertFalse(self.api.get_distros().add(distro))
         self.assertFalse(self.api.get_distros().find("testdistro3"))
