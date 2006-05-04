@@ -3,16 +3,18 @@
 #
 # Michael DeHaan <mdehaan@redhat.com>
 
-import api 
+import api
 import util
 from msg import *
+import yaml  # the yaml parser from RHN's spec-tree (Howell/Evans)
 
 import os
-import yaml  # python yaml 3000 from pyyaml.org, soon to be in extras
 import traceback
 
 global_settings_file = "/etc/cobbler.conf"
 global_state_file = "/var/lib/cobbler/cobbler.conf"
+
+
 
 class BootConfig:
 
@@ -52,7 +54,7 @@ class BootConfig:
         self.tftpboot       = "/tftpboot"
         self.dhcpd_conf     = "/etc/dhcpd.conf"
         self.tftpd_conf     = "/etc/xinetd.d/tftp"
-        self.pxelinux       = "/usr/lib/syslinux/pxelinux.0"    
+        self.pxelinux       = "/usr/lib/syslinux/pxelinux.0"
         self.tftpd_bin      = "/usr/sbin/in.tftpd"
         self.dhcpd_bin      = "/usr/sbin/dhcpd"
         self.httpd_bin      = "/usr/sbin/httpd"
@@ -91,7 +93,7 @@ class BootConfig:
         data['httpd_bin']      = self.httpd_bin
         data['kernel_options'] = self.kernel_options
         return data
-    
+
     def config_from_hash(self,hash):
         """
         Load all global config options from hash form (for deserialization)
@@ -109,21 +111,20 @@ class BootConfig:
         except:
             print "WARNING: config file error: %s" % (self.settings_file)
             self.set_defaults()
-    
+
     def to_hash(self,is_etc):
         """
         Convert all items cobbler knows about to a nested hash.
         There are seperate hashes for the /etc and /var portions.
         """
-        world = {} 
+        world = {}
         if is_etc:
             world['config']      = self.config_to_hash()
         else:
             world['distros']     = self.get_distros().to_datastruct()
             world['profiles']    = self.get_profiles().to_datastruct()
             world['systems']     = self.get_systems().to_datastruct()
-        #print "DEBUG: %s" % (world)
-        return world  
+        return world
 
 
     def from_hash(self,hash,is_etc):
@@ -150,7 +151,7 @@ class BootConfig:
 
         settings = None
         state = None
-        
+
         # ------
         # dump global config (pathing, urls, etc)...
         try:
@@ -160,11 +161,13 @@ class BootConfig:
             return False
         data = self.to_hash(True)
         settings.write(yaml.dump(data))
- 
+
         # ------
         # dump internal state (distros, profiles, systems...)
         if not os.path.isdir(os.path.dirname(self.state_file)):
-            os.makedirs(os.path.dirname(self.state_file))
+            dirname = os.path.dirname(self.state_file)
+            if dirname != "":
+                os.makedirs(os.path.dirname(self.state_file))
         try:
             state = open(self.state_file,"w+")
         except:
@@ -186,28 +189,31 @@ class BootConfig:
         # -----
         # load global config (pathing, urls, etc)...
         try:
-            settings = yaml.load(open(self.settings_file,"r").read())
+            settings = yaml.load(open(self.settings_file,"r").read()).next()
             if settings is not None:
-                return self.from_hash(settings,True)
+                self.from_hash(settings,True)
             else:
-                print "WARNING: no %s data?" % self.settings_file
+                self.last_error = m("parse_error")
+                return False
         except:
+            traceback.print_exc()
             self.api.last_error = m("parse_error")
             return False
 
         # -----
         # load internal state(distros, systems, profiles...)
         try:
-            state = yaml.load(open(self.state_file,"r").read())
+            state = yaml.load(open(self.state_file,"r").read()).next()
             if state is not None:
-                return self.from_hash(state,False)
+                self.from_hash(state,False)
             else:
-                print "WARNING: no %s data?" % self.state_file
+                self.last_error = m("parse_error")
+                return False
         except:
             traceback.print_exc()
             self.api.last_error = m("parse_error2")
             return False
-        
+
         # all good
         return True
 

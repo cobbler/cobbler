@@ -22,13 +22,13 @@ msg_table = {
   "need_to_fix"     : "the following potential problems were detected:",
   "need_root"       : "cobber must be run as root",
   "no_dhcpd"        : "can't find dhcpd, try 'yum install dhcpd'",
-  "no_pxelinux"     : "can't find pxelinux, try 'yum install pxelinux'", 
+  "no_pxelinux"     : "can't find pxelinux, try 'yum install pxelinux'",
   "no_tftpd"        : "can't find tftpd, try 'yum install tftpd'",
   "no_dir"          : "can't find %s, need to create it",
   "chg_attrib"      : "need to change '%s' to '%s' in '%s'",
   "no_exist"        : "%s does not exist",
   "no_line"         : "file '%s' should have a line '%s' somewhere",
-  "no_dir2"         : "can't find %s for %s in cobber.conf", 
+  "no_dir2"         : "can't find %s for %s in cobber.conf",
   "no_cfg"          : "could not find cobber.conf, recreating",
   "bad_param"       : "at least one parameter is missing for this function",
   "empty_list"      : "(Empty)",
@@ -46,9 +46,9 @@ msg_table = {
   "no_kernel"       : "the kernel needs to be a directory containing a kernel, or a full path.  Kernels must be named just 'vmlinuz' or in the form 'vmlinuz-AA.BB.CC-something'",
   "no_initrd"       : "the initrd needs to be a directory containing an initrd, or a full path.  Initrds must be named just 'initrd.img' or in the form 'initrd-AA.BB.CC-something.img",
   "check_ok"        : """
-No setup problems found.  
+No setup problems found.
 
-Manual editing of /etc/dhcpd.conf and /etc/cobber.conf is suggested to tailor them to your specific configuration.  Your dhcpd.conf has some PXE related information in it, but it's imposible to tell automatically that it's totally correct in a general sense.  We'll leave this up to you. 
+Manual editing of /etc/dhcpd.conf and /etc/cobber.conf is suggested to tailor them to your specific configuration.  Your dhcpd.conf has some PXE related information in it, but it's imposible to tell automatically that it's totally correct in a general sense.  We'll leave this up to you.
 
 Good luck.
 """,

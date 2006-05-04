@@ -34,7 +34,7 @@ B<cobbler distro add --name=<string> --kernel=<path> --initrd=<path> [--kopts=<s
 
 Defines a distribution.  Minimally, this is a matched set of an initrd and a kernel that has a name, such as 'fc5-i386' or 'rhel4-x86_64'.  Here you can also override and extend the default kernel options ('kopts') specified in /etc/cobbler.conf (kernel options are a comma seperated list of key=value pairs).
 
-B<cobbler profile add --name=group_name --distro=<name> [--kickstart=<url>] [--kopts=<string>] [--xen-name=<string>] [--xen-file-size=<gigabytes>] [--xen-ram=<megabytes>] 
+B<cobbler profile add --name=group_name --distro=<name> [--kickstart=<url>] [--kopts=<string>] [--xen-name=<string>] [--xen-file-size=<gigabytes>] [--xen-ram=<megabytes>]
 
 Defines a provisioning profile, which is a distro, some other optional parameters, and a name for the profile.  Almost always you will want to specify a kickstart file.  Kickstarts can be nfs://, http://, or ftp:// -- or an absolute path.  For file paths, cobbler will copy the kickstarts and serve them up as http.
 
@@ -70,7 +70,7 @@ Configurations are saved in /var/cobbler/cobbler.conf and are not applied until 
 
 =head1 PXE EXAMPLE
 
-It is easier to understand cobbler once having gone through some examples.  
+It is easier to understand cobbler once having gone through some examples.
 
 B<cobbler check>
 

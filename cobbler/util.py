@@ -1,5 +1,5 @@
 # Misc heavy lifting functions for cobbler
-# 
+#
 # Michael DeHaan <mdehaan@redhat.com>
 
 import config
@@ -59,7 +59,7 @@ class BootUtil:
        try:
           return socket.gethostbyname(strdata)
        except:
-          return None 
+          return None
 
 
    def find_matching_files(self,directory,regex):
@@ -68,17 +68,17 @@ class BootUtil:
        Can't use glob directly as glob doesn't take regexen.
        """
        files = glob.glob(os.path.join(directory,"*"))
-       results = [] 
+       results = []
        for f in files:
            if regex.match(os.path.basename(f)):
               results.append(f)
        return results
-   
+
 
    def find_highest_files(self,directory,unversioned,regex):
        """
        Find the highest numbered file (kernel or initrd numbering scheme)
-       in a given directory that matches a given pattern.  Used for 
+       in a given directory that matches a given pattern.  Used for
        auto-booting the latest kernel in a directory.
        """
        files = self.find_matching_files(directory, regex)
@@ -87,12 +87,12 @@ class BootUtil:
            av  = get_numbers.search(os.path.basename(a)).groups()
            bv  = get_numbers.search(os.path.basename(b)).groups()
            if av[0]<bv[0]: return -1
-           elif av[0]>bv[0]: return 1 
+           elif av[0]>bv[0]: return 1
            elif av[1]<bv[1]: return -1
            elif av[1]>bv[1]: return 1
            elif av[2]<bv[2]: return -1
            elif av[2]>bv[2]: return 1
-           return 0 
+           return 0
        if len(files) > 0:
            return sorted(files, sort)[-1]
        else:
@@ -102,13 +102,13 @@ class BootUtil:
            if os.path.exists(last_chance):
                return last_chance
            return None
- 
+
 
    def find_kernel(self,path):
        """
        Given a directory or a filename, find if the path can be made
        to resolve into a kernel, and return that full path if possible.
-       """ 
+       """
        if os.path.isfile(path):
            filename = os.path.basename(path)
            if self.re_kernel.match(filename):
@@ -122,7 +122,7 @@ class BootUtil:
 
    def find_initrd(self,path):
        """
-       Given a directory or a filename, see if the path can be made 
+       Given a directory or a filename, see if the path can be made
        to resolve into an intird, return that full path if possible.
        """
        # FUTURE: add another function to see if kernel and initrd have matched numbers (and throw a warning?)
@@ -133,9 +133,9 @@ class BootUtil:
            if filename == "initrd.img" or filename == "initrd":
                return path
        elif os.path.isdir(path):
-           return self.find_highest_files(path,"initrd.img",self.re_initrd)  
+           return self.find_highest_files(path,"initrd.img",self.re_initrd)
        return None
- 
+
 
    def find_kickstart(self,url):
        """
