@@ -11,6 +11,7 @@ additional options, with client-side defaults (not kept here).
 """
 class Profiles(Collection):
     _item_factory = profile.Profile
+    _filename = "/var/lib/cobbler/profiles"
 
     def remove(self,name):
         """

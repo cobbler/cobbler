@@ -9,10 +9,18 @@ import re
 import socket
 import glob
 import weakref
+import subprocess
 
 re_kernel = re.compile(r'vmlinuz-(\d+)\.(\d+)\.(\d+)-(.*)')
 re_initrd = re.compile(r'initrd-(\d+)\.(\d+)\.(\d+)-(.*).img')
 
+def get_host_ip(ip):
+    handle = subprocess.Popen("/usr/bin/gethostip %s" % ip, 
+                            shell=True
+                            stdout=PIPE) 
+    out = handle.stdout
+    results = out.read()
+    return results.split(" ")[-1]
 
 def find_system_identifier(self,strdata):
     """

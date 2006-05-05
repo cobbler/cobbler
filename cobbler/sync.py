@@ -2,7 +2,6 @@
 #
 # Michael DeHaan <mdehaan@redhat.com>
 
-import api
 import config
 
 import os
@@ -21,8 +20,13 @@ Handles conversion of internal state to the tftpboot tree layout
 
 class BootSync:
 
-    def __init__(self):
-        self.verbose = True
+    def __init__(self,config):
+        self.verbose  = True
+        self.config   = config
+        self.distros  = config.distros
+        self.profiles = config.profiles
+        self.systems  = config.systems
+        self.settings = config.settings 
 
 
     def sync(self,dry_run=False,verbose=True):
@@ -48,7 +52,7 @@ class BootSync:
         """
         Copy syslinux to the configured tftpboot directory
         """
-        self.copy(config.config().pxelinux, os.path.join(config.config().tftpboot, "pxelinux.0"))
+        self.copy(self.settings.pxelinux, os.path.join(self.settings.tftpboot, "pxelinux.0"))
 
     def configure_httpd(self):
         """
@@ -59,7 +63,7 @@ class BootSync:
            self.sync_log(m("no_httpd"))
            return
         f = self.open_file("/etc/httpd/conf.d/cobbler.conf","w+")
-        config = """
+        config_data = """
         #
         # This configuration file allows 'cobbler' boot info
         # to be accessed over HTTP in addition to PXE.
@@ -71,8 +75,8 @@ class BootSync:
             Allow from all
         </Directory>
         """
-        config.replace("/tftpboot",config.config().tftpboot)
-        self.tee(f, config)
+        config_data.replace("/tftpboot",self.settings.tftpboot)
+        self.tee(f, config_data)
         self.close_file(f)
 
     def clean_trees(self):
@@ -80,7 +84,7 @@ class BootSync:
         Delete any previously built pxelinux.cfg tree and xen tree info.
         """
         for x in ["pxelinux.cfg","images","systems","distros","profiles","kickstarts"]:
-            path = os.path.join(config.config().tftpboot,x)
+            path = os.path.join(self.settings.tftpboot,x)
             self.rmtree(path, True)
             self.mkdir(path)
 
@@ -93,8 +97,8 @@ class BootSync:
         mounted.
         """
         # copy is a 4-letter word but tftpboot runs chroot, thus it's required.
-        distros = os.path.join(config.config().tftpboot, "images")
-        for d in distros.get_distros():
+        distros = os.path.join(self.settings.tftpboot, "images")
+        for d in self.distros:
             distro_dir = os.path.join(distros,d.name)
             self.mkdir(distro_dir)
             kernel = utils.find_kernel(d.kernel) # full path
@@ -123,12 +127,12 @@ class BootSync:
         # these are served by either NFS, Apache, or some ftpd, so we don't need to copy them
         # it's up to the user to make sure they are nicely served by their URLs
 
-        for g in profiles.get_profiles():
+        for g in self.profiles:
            self.sync_log("mirroring any local kickstarts: %s" % g.name)
            kickstart_path = utils.find_kickstart(g.kickstart)
            if kickstart_path and os.path.exists(kickstart_path):
               # the input is an *actual* file, hence we have to copy it
-              copy_path = os.path.join(config.config().tftpboot, "kickstarts", g.name)
+              copy_path = os.path.join(self.settings.tftpboot, "kickstarts", g.name)
               self.mkdir(copy_path)
               dest = os.path.join(copy_path, "ks.cfg")
               try:
@@ -147,47 +151,44 @@ class BootSync:
         print "building trees..."
         # create pxelinux.cfg under tftpboot
         # and file for each MAC or IP (hex encoded 01-XX-XX-XX-XX-XX-XX)
-        systems  = systems.get_systems()
-        profiles = profiles.get_profiles()
-        distros  = distros.get_distros()
 
-        for d in distros:
+        for d in self.distros:
             self.sync_log("processing distro: %s" % d.name)
             # TODO: add check to ensure all distros have profiles (=warning)
-            filename = os.path.join(config.config().tftpboot,"distros",d.name)
+            filename = os.path.join(self.settings.tftpboot,"distros",d.name)
             d.kernel_options = self.blend_kernel_options((
-               config.config().kernel_options,
+               self.settings.kernel_options,
                d.kernel_options
             ))
             self.write_distro_file(filename,d)
 
-        for p in profiles:
+        for p in self.profiles:
             self.sync_log("processing profile: %s" % p.name)
             # TODO: add check to ensure all profiles have distros (=error)
             # TODO: add check to ensure all profiles have systems (=warning)
-            filename = os.path.join(config.config().tftpboot,"profiles",p.name)
-            distro = distros.get_distros().find(p.distro)
+            filename = os.path.join(self.settings.tftpboot,"profiles",p.name)
+            distro = self.distros.find(p.distro)
             if distro is not None:
                 p.kernel_options = self.blend_kernel_options((
-                   config.config().kernel_options,
+                   self.settings.kernel_options,
                    distro.kernel_options,
                    p.kernel_options
                 ))
             self.write_profile_file(filename,p)
 
-        for system in systems:
+        for system in self.systems:
             self.sync_log("processing system: %s" % system.name)
-            profile = profiles.find(system.profile)
+            profile = self.profiles.find(system.profile)
             if profile is None:
                 runtime.set_error("orphan_profile2")
                 raise "error"
-            distro = distros.find(profile.distro)
+            distro = self.distros.find(profile.distro)
             if distro is None:
                 runtime.set_error("orphan_system2")
                 raise "error"
             f1 = self.get_pxelinux_filename(system.name)
-            f2 = os.path.join(config.config().tftpboot, "pxelinux.cfg", f1)
-            f3 = os.path.join(config.config().tftpboot, "systems", f1)
+            f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
+            f3 = os.path.join(self.settings.tftpboot, "systems", f1)
             self.write_pxelinux_file(f2,system,profile,distro)
             self.write_system_file(f3,system)
 
@@ -228,7 +229,7 @@ class BootSync:
         self.tee(fd,"label linux\n")
         self.tee(fd,"   kernel %s\n" % kernel_path)
         kopts = self.blend_kernel_options((
-           config.config().kernel_options,
+           self.settings.kernel_options,
            profile.kernel_options,
            distro.kernel_options,
            system.kernel_options
@@ -238,7 +239,7 @@ class BootSync:
             # if kickstart path is local, we've already copied it into
             # the HTTP mirror, so make it something anaconda can get at
             if kickstart_path.startswith("/"):
-                kickstart_path = "http://%s/cobbler/kickstarts/%s/ks.cfg" % (config.config().server, profile.name)
+                kickstart_path = "http://%s/cobbler/kickstarts/%s/ks.cfg" % self.settings.server, profile.name)
             nextline = nextline + " ks=%s" % kickstart_path
         self.tee(fd, nextline)
         self.close_file(fd)
@@ -265,7 +266,7 @@ class BootSync:
         # if kickstart path is local, we've already copied it into
         # the HTTP mirror, so make it something anaconda can get at
         if profile.kickstart and profile.kickstart.startswith("/"):
-            profile.kickstart = "http://%s/cobbler/kickstarts/%s/ks.cfg" % (config.config().server, profile.name)
+            profile.kickstart = "http://%s/cobbler/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)
         self.tee(fd,syck.dump(profile.to_datastruct()))
         self.close_file(fd)
 
@@ -384,9 +385,4 @@ class BootSync:
                results.append("%s=%s" % (key,internal[key]))
         # end result is a new fragment of a kernel options string
         return " ".join(results)
-
-__instance = BootSync()
-
-def bootsync()
-    return __instance
 

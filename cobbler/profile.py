@@ -1,7 +1,6 @@
 class Profile(Item):
 
-    def __init__(self,api,seed_data):
-        self.api = api
+    def __init__(self,seed_data):
         self.name = None
         self.distro = None # a name, not a reference
         self.kickstart = None

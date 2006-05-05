@@ -8,6 +8,7 @@ and initrd files
 """
 class Distros(Collection):
     _item_factory = distro.Distro
+    _filename = "/var/lib/cobbler/distros"
 
     def remove(self,name):
         """

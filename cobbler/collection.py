@@ -2,20 +2,15 @@
 """
 Base class for any serializable lists of things...
 """
-class Collection:
+class Collection(Serializable):
     _item_factory = None
+    _filename = None
 
     def __init__(self):
         """
-	Constructor.  Requires an API reference.  seed_data
-	is a hash of data to feed into the collection, that would
-	come from the config file in /var.
+	Constructor.
 	"""
         self.listing = {}
-        # no longer done at construct time, use from_datastruct
-        #if seed_data is not None:
-        #   for x in seed_data:
-        #       self.add(self._item_factory(self.api, x))
 
     def find(self,name):
         """
@@ -29,11 +24,9 @@ class Collection:
 
     def to_datastruct(self):
         """
-        Return datastructure representation of this collection suitable
-        for feeding to a serializer (such as YAML)
+        Serialize the collection
         """
-        return [x.to_datastruct() for x in self.listing.values()]
-
+        datastruct = [x.to_datastruct() for x in self.listing.values()]
 
     def from_datastruct(self,datastruct):
         for x in datastruct:
@@ -65,14 +58,6 @@ class Collection:
            return "\n\n".join(values)
         else:
            return m("empty_list")
-
-    #def contents(self):
-    #    """
-    #	Access the raw contents of the collection.  Classes shouldn't
-    #	be doing this (preferably) and should use the __iter__ interface.
-    #    Deprecrated.
-    #	 """
-    #    return self.listing.values()
 
     def __iter__(self):
         """

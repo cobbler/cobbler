@@ -57,21 +57,21 @@ class BootTest(unittest.TestCase):
         self.assertTrue(distro.set_name("testdistro0"))
         self.assertTrue(distro.set_kernel(self.fk_kernel))
         self.assertTrue(distro.set_initrd(self.fk_initrd))
-        self.assertTrue(self.api.get_distros().add(distro))
-        self.assertTrue(self.api.get_distros().find("testdistro0"))
+        self.assertTrue(self.api.distros().add(distro))
+        self.assertTrue(self.api.distros().find("testdistro0"))
 
         profile = self.api.new_profile()
         self.assertTrue(profile.set_name("testprofile0"))
         self.assertTrue(profile.set_distro("testdistro0"))
         self.assertTrue(profile.set_kickstart(FAKE_KICKSTART))
-        self.assertTrue(self.api.get_profiles().add(profile))
-        self.assertTrue(self.api.get_profiles().find("testprofile0"))
+        self.assertTrue(self.api.profiles().add(profile))
+        self.assertTrue(self.api.profiles().find("testprofile0"))
 
         system = self.api.new_system()
         self.assertTrue(system.set_name(self.hostname))
         self.assertTrue(system.set_profile("testprofile0"))
-        self.assertTrue(self.api.get_systems().add(system))
-        self.assertTrue(self.api.get_systems().find(self.hostname))
+        self.assertTrue(self.api.systems().add(system))
+        self.assertTrue(self.api.systems().find(self.hostname))
 
 class Utilities(BootTest):
 
@@ -122,24 +122,24 @@ class Additions(BootTest):
         self.assertTrue(distro.set_name("testdistro2"))
         self.assertFalse(distro.set_kernel("filedoesntexist"))
         self.assertTrue(distro.set_initrd(self.fk_initrd))
-        self.assertFalse(self.api.get_distros().add(distro))
-        self.assertFalse(self.api.get_distros().find("testdistro2"))
+        self.assertFalse(self.api.distros().add(distro))
+        self.assertFalse(self.api.distros().find("testdistro2"))
 
     def test_invalid_distro_non_referenced_initrd(self):
         distro = self.api.new_distro()
         self.assertTrue(distro.set_name("testdistro3"))
         self.assertTrue(distro.set_kernel(self.fk_kernel))
         self.assertFalse(distro.set_initrd("filedoesntexist"))
-        self.assertFalse(self.api.get_distros().add(distro))
-        self.assertFalse(self.api.get_distros().find("testdistro3"))
+        self.assertFalse(self.api.distros().add(distro))
+        self.assertFalse(self.api.distros().find("testdistro3"))
 
     def test_invalid_profile_non_referenced_distro(self):
         profile = self.api.new_profile()
         self.assertTrue(profile.set_name("testprofile11"))
         self.assertFalse(profile.set_distro("distrodoesntexist"))
         self.assertTrue(profile.set_kickstart(FAKE_KICKSTART))
-        self.assertFalse(self.api.get_profiles().add(profile))
-        self.assertFalse(self.api.get_profiles().find("testprofile2"))
+        self.assertFalse(self.api.profiles().add(profile))
+        self.assertFalse(self.api.profiles().find("testprofile2"))
 
     def test_invalid_profile_kickstart_not_url(self):
         profile = self.api.new_profile()
@@ -147,8 +147,8 @@ class Additions(BootTest):
         self.assertTrue(profile.set_distro("testdistro0"))
         self.assertFalse(profile.set_kickstart("kickstartdoesntexist"))
         # since kickstarts are optional, you can still add it
-        self.assertTrue(self.api.get_profiles().add(profile))
-        self.assertTrue(self.api.get_profiles().find("testprofile12"))
+        self.assertTrue(self.api.profiles().add(profile))
+        self.assertTrue(self.api.profiles().find("testprofile12"))
         # now verify the other kickstart forms would still work
         self.assertTrue(profile.set_kickstart("http://bar"))
         self.assertTrue(profile.set_kickstart("ftp://bar"))
@@ -180,67 +180,67 @@ class Additions(BootTest):
         self.assertFalse(profile.set_xen_paravirt(11))
         # each item should be 'true' now, so we can add it
         # since the failed items don't affect status
-        self.assertTrue(self.api.get_profiles().add(profile))
+        self.assertTrue(self.api.profiles().add(profile))
 
     def test_invalid_system_bad_name_host(self):
         system = self.api.new_system()
         name = "hostnamewontresolveanyway"
         self.assertFalse(system.set_name(name))
         self.assertTrue(system.set_profile("testprofile0"))
-        self.assertFalse(self.api.get_systems().add(system))
-        self.assertFalse(self.api.get_systems().find(name))
+        self.assertFalse(self.api.systems().add(system))
+        self.assertFalse(self.api.systems().find(name))
 
     def test_system_name_is_a_MAC(self):
         system = self.api.new_system()
         name = "00:16:41:14:B7:71"
         self.assertTrue(system.set_name(name))
         self.assertTrue(system.set_profile("testprofile0"))
-        self.assertTrue(self.api.get_systems().add(system))
-        self.assertTrue(self.api.get_systems().find(name))
+        self.assertTrue(self.api.systems().add(system))
+        self.assertTrue(self.api.systems().find(name))
 
     def test_system_name_is_an_IP(self):
         system = self.api.new_system()
         name = "192.168.1.54"
         self.assertTrue(system.set_name(name))
         self.assertTrue(system.set_profile("testprofile0"))
-        self.assertTrue(self.api.get_systems().add(system))
-        self.assertTrue(self.api.get_systems().find(name))
+        self.assertTrue(self.api.systems().add(system))
+        self.assertTrue(self.api.systems().find(name))
 
     def test_invalid_system_non_referenced_profile(self):
         system = self.api.new_system()
         self.assertTrue(system.set_name(self.hostname))
         self.assertFalse(system.set_profile("profiledoesntexist"))
-        self.assertFalse(self.api.get_systems().add(system))
+        self.assertFalse(self.api.systems().add(system))
 
 class Deletions(BootTest):
 
     def test_invalid_delete_profile_doesnt_exist(self):
-        self.assertFalse(self.api.get_profiles().remove("doesnotexist"))
+        self.assertFalse(self.api.profiles().remove("doesnotexist"))
 
     def test_invalid_delete_profile_would_orphan_systems(self):
         self.make_basic_config()
-        self.assertFalse(self.api.get_profiles().remove("testprofile0"))
+        self.assertFalse(self.api.profiles().remove("testprofile0"))
 
     def test_invalid_delete_system_doesnt_exist(self):
-        self.assertFalse(self.api.get_systems().remove("doesnotexist"))
+        self.assertFalse(self.api.systems().remove("doesnotexist"))
 
     def test_invalid_delete_distro_doesnt_exist(self):
-        self.assertFalse(self.api.get_distros().remove("doesnotexist"))
+        self.assertFalse(self.api.distros().remove("doesnotexist"))
 
     def test_invalid_delete_distro_would_orphan_profile(self):
         self.make_basic_config()
-        self.assertFalse(self.api.get_distros().remove("testdistro0"))
+        self.assertFalse(self.api.distros().remove("testdistro0"))
 
     def test_working_deletes(self):
         self.api.clear()
         self.make_basic_config()
-        self.assertTrue(self.api.get_systems().remove(self.hostname))
+        self.assertTrue(self.api.systems().remove(self.hostname))
         self.api.serialize()
-        self.assertTrue(self.api.get_profiles().remove("testprofile0"))
-        self.assertTrue(self.api.get_distros().remove("testdistro0"))
-        self.assertFalse(self.api.get_systems().find(self.hostname))
-        self.assertFalse(self.api.get_profiles().find("testprofile0"))
-        self.assertFalse(self.api.get_distros().find("testdistro0"))
+        self.assertTrue(self.api.profiles().remove("testprofile0"))
+        self.assertTrue(self.api.distros().remove("testdistro0"))
+        self.assertFalse(self.api.systems().find(self.hostname))
+        self.assertFalse(self.api.profiles().find("testprofile0"))
+        self.assertFalse(self.api.distros().find("testdistro0"))
 
 class TestCheck(BootTest):
 
@@ -271,9 +271,9 @@ class TestListings(BootTest):
        # check to see if the collection listings output something.
        # this is a minimal check, mainly for coverage, not validity
        self.make_basic_config()
-       self.assertTrue(len(self.api.get_systems().printable()) > 0)
-       self.assertTrue(len(self.api.get_profiles().printable()) > 0)
-       self.assertTrue(len(self.api.get_distros().printable()) > 0)
+       self.assertTrue(len(self.api.systems().printable()) > 0)
+       self.assertTrue(len(self.api.profiles().printable()) > 0)
+       self.assertTrue(len(self.api.distros().printable()) > 0)
 
 class TestCLIBasic(BootTest):
 

@@ -17,57 +17,44 @@ from msg import *
 
 class BootAPI:
 
+    _config = config.Config()
 
     def __init__(self):
        """
        Constructor...
-       """
-       # if the file already exists, load real data now
-       try:
-           if config.files_exist():
-              config.deserialize()
-       except Exception, e:
-           # parse errors, attempt to recover
-           print runtime.last_error()
-           if runtime.last_error() == m("parse_error"):
-               # it's bad, raise it so we can croak
-               raise Exception, "parse_error"
-           try:
-               config.serialize()
-           except:
-               # it's bad, raise it so we can croak
-               traceback.print_exc()
-               raise Exception, "parse_error2"
-       if not config.files_exist():
-           config.serialize()
+       """       
+ 
+       # FIXME: deserializer/serializer error
+       # handling probably not up to par yet
+       _config.deserialize()
 
 
     def clear(self):
        """
        Forget about current list of profiles, distros, and systems
        """
-       config.clear()
+       _config.clear()
 
 
-    def get_systems(self):
+    def systems(self):
        """
        Return the current list of systems
        """
-       return config.get_systems()
+       return _config.systems()
 
 
-    def get_profiles(self):
+    def profiles(self):
        """
        Return the current list of profiles
        """
-       return config.get_profiles()
+       return _config.profiles()
 
 
-    def get_distros(self):
+    def distros(self):
        """
        Return the current list of distributions
        """
-       return config.get_distros()
+       return _config.distros()
 
 
     def new_system(self):
@@ -100,7 +87,7 @@ class BootAPI:
        for human admins, who may, for instance, forget to properly set up
        their TFTP servers for PXE, etc.
        """
-       return check.bootcheck().run()
+       return check.bootcheck(_config).run()
 
 
     def sync(self,dry_run=True):
@@ -110,19 +97,19 @@ class BootAPI:
        /tftpboot.  Any operations done in the API that have not been
        saved with serialize() will NOT be synchronized with this command.
        """
-       config.deserialize();
-       return sync.bootsync(self).sync(dry_run)
+       # config.deserialize(); # neccessary?
+       return sync.bootsync(_config).sync(dry_run)
 
 
     def serialize(self):
        """
        Save the config file(s) to disk.
        """
-       config.serialize()
+       _config.serialize()
 
     def deserialize(self):
        """
        Load the current configuration from config file(s)
        """
-       config.deserialize()
+       _config.deserialize()
 

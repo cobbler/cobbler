@@ -9,6 +9,7 @@ they belong to.
 """
 class Systems(Collection):
     _item_factory = system.System
+    _filename = "/var/lib/cobbler/systems"
 
     def remove(self,name):
         """
