@@ -6,9 +6,12 @@
 import api
 import util
 from msg import *
+import distros
+import profiles
+import systems
+
 import weakref
 import syck # pysyck > 0.61, so it has dump() 
-
 import os
 import traceback
 
@@ -18,7 +21,14 @@ global_state_file = "/var/lib/cobbler/cobbler.conf"
 
 class BootConfig:
 
-    def __init__(self,api):
+    __instance
+
+    def __new__(typ, *args, **kwargs):
+        if __instance is None:
+           __instance = object.__new__(type,*args,**kwargs)
+        return __instance
+
+    def __init__(self):
         """
         Constructor.  This class maintains both the logical
         configuration for Cobbler and the file representation thereof.
@@ -26,7 +36,6 @@ class BootConfig:
         users of this class need to call deserialize() to load config
         file values.  See cobbler.py for how the CLI does it.
         """
-        self.api = weakref.proxy(api)
         self.settings_file    = global_settings_file
         self.state_file       = global_state_file
         self.set_defaults()
@@ -42,9 +51,9 @@ class BootConfig:
         """
         Establish an empty list of profiles distros, and systems.
         """
-        self.profiles       = api.Profiles(self.api,None)
-        self.distros        = api.Distros(self.api,None)
-        self.systems        = api.Systems(self.api,None)
+        profiles.clear()
+        distros.clear()
+        systems.clear()
 
     def set_defaults(self):
         """
@@ -135,9 +144,9 @@ class BootConfig:
         if is_etc:
             self.config_from_hash(hash['config'])
         else:
-            self.distros   = api.Distros(self.api, hash['distros'])
-            self.profiles  = api.Profiles(self.api,  hash['profiles'])
-            self.systems   = api.Systems(self.api, hash['systems'])
+            distros.from_datastruct(hash['distros'])
+            profiles.from_datastruct(hash['profiles'])
+            systems.from_datastruct(hash['systems'])
 
     # ------------------------------------------------------
     # we don't care about file formats until below this line
@@ -163,7 +172,7 @@ class BootConfig:
         try:
             state = open(self.state_file,"w+")
         except:
-            self.api.last_error = m("cant_create: %s" % self.state_file)
+            runtime.set_error(m("cant_create: %s" % self.state_file))
             return False
         data = self.to_hash(False)
         state.write(syck.dump(data))
@@ -188,7 +197,7 @@ class BootConfig:
                 self.last_error = m("parse_error")
                 raise Exception("parse_error")
         except:
-            self.api.last_error = m("parse_error")
+            runtime.set_error("parse_error")
             raise Exception("parse_error")
 
         # -----
@@ -201,7 +210,7 @@ class BootConfig:
                 self.last_error = m("parse_error2")
                 raise Exception("parse_error2")
         except:
-            self.api.last_error = m("parse_error2")
+            runtime.set_error("parse_error2")
             raise Exception("parse_error2")
 
         # all good

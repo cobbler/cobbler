@@ -63,5 +63,5 @@ def m(key):
        # localization could use different tables or just gettext.
        return msg_table[key]
    else:
-       return "?%s?" % key
+       return key
 
