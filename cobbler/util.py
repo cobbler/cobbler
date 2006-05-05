@@ -8,12 +8,14 @@ import os
 import re
 import socket
 import glob
+import weakref
 
 class BootUtil:
 
    def __init__(self,api,config):
-       self.api = api
-       self.config = config
+       # BootAPI is the preferred holder of all references
+       self.api = weakref.proxy(api)
+       self.config = weakref.proxy(config)
        self.re_kernel = re.compile(r'vmlinuz-(\d+)\.(\d+)\.(\d+)-(.*)')
        self.re_initrd = re.compile(r'initrd-(\d+)\.(\d+)\.(\d+)-(.*).img')
 

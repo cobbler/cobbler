@@ -49,8 +49,7 @@ class BootTest(unittest.TestCase):
         self.make_basic_config()
 
     def tearDown(self):
-        # this is causing problems with the sync() test
-        # shutil.rmtree(self.topdir,ignore_errors=True)
+        shutil.rmtree(self.topdir,ignore_errors=True)
         self.api = None
 
     def make_basic_config(self):

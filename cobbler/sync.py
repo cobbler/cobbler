@@ -12,6 +12,7 @@ import re
 import shutil
 import syck
 import IPy
+import weakref
 from msg import *
 
 """
@@ -21,7 +22,7 @@ Handles conversion of internal state to the tftpboot tree layout
 class BootSync:
 
     def __init__(self,api):
-        self.api = api
+        self.api = weakref.proxy(api)
         self.verbose = True
 
 

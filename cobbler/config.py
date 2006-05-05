@@ -6,6 +6,7 @@
 import api
 import util
 from msg import *
+import weakref
 import syck # pysyck > 0.61, so it has dump() 
 
 import os
@@ -25,7 +26,7 @@ class BootConfig:
         users of this class need to call deserialize() to load config
         file values.  See cobbler.py for how the CLI does it.
         """
-        self.api = api
+        self.api = weakref.proxy(api)
         self.settings_file    = global_settings_file
         self.state_file       = global_state_file
         self.set_defaults()

@@ -5,14 +5,15 @@
 import os
 import sys
 import re
+import weakref
 
 from msg import *
 
 class BootCheck:
 
    def __init__(self, api):
-       self.api = api
-       self.config = self.api.config
+       self.api = weakref.proxy(api)
+       self.config = weakref.proxy(self.api.config)
 
 
    def run(self):
