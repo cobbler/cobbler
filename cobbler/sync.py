@@ -10,7 +10,6 @@ import traceback
 import re
 import shutil
 import syck
-import IPy
 import weakref
 from msg import *
 
@@ -104,11 +103,11 @@ class BootSync:
             kernel = utils.find_kernel(d.kernel) # full path
             initrd = utils.find_initrd(d.initrd) # full path
             if kernel is None or not os.path.isfile(kernel):
-               runtime.set_error("Kernel for distro (%s) cannot be found and needs to be fixed: %s" % (d.name, d.kernel))
-               print runtime.last_error()
+               utils.set_error("Kernel for distro (%s) cannot be found and needs to be fixed: %s" % (d.name, d.kernel))
+               print utils.last_error()
                raise Exception("error")
             if initrd is None or not os.path.isfile(initrd):
-               runtime.last_error("Initrd for distro (%s) cannot be found and needs to be fixed: %s" % (d.name, d.initrd))
+               utils.last_error("Initrd for distro (%s) cannot be found and needs to be fixed: %s" % (d.name, d.initrd))
                raise Exception("error")
             b_kernel = os.path.basename(kernel)
             b_initrd = os.path.basename(initrd)
@@ -138,7 +137,7 @@ class BootSync:
               try:
                   self.copyfile(g.kickstart, dest)
               except:
-                  runtime.set_error("err_kickstart2")
+                  utils.set_error("err_kickstart2")
                   raise "error"
 
     def build_trees(self):
@@ -180,11 +179,11 @@ class BootSync:
             self.sync_log("processing system: %s" % system.name)
             profile = self.profiles.find(system.profile)
             if profile is None:
-                runtime.set_error("orphan_profile2")
+                utils.set_error("orphan_profile2")
                 raise "error"
             distro = self.distros.find(profile.distro)
             if distro is None:
-                runtime.set_error("orphan_system2")
+                utils.set_error("orphan_system2")
                 raise "error"
             f1 = self.get_pxelinux_filename(system.name)
             f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
@@ -203,11 +202,11 @@ class BootSync:
         """
         name = utils.find_system_identifier(name_input)
         if utils.is_ip(name):
-            return IPy.IP(name).strHex()[2:]
+            return utils.get_host_ip(name)
         elif utils.is_mac(name):
             return "01-" + "-".join(name.split(":")).lower()
         else:
-            runtime.set_error(m("err_resolv" % name)
+            utils.set_error(m("err_resolv" % name))
             raise "error"
 
 
@@ -239,7 +238,7 @@ class BootSync:
             # if kickstart path is local, we've already copied it into
             # the HTTP mirror, so make it something anaconda can get at
             if kickstart_path.startswith("/"):
-                kickstart_path = "http://%s/cobbler/kickstarts/%s/ks.cfg" % self.settings.server, profile.name)
+                kickstart_path = "http://%s/cobbler/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)
             nextline = nextline + " ks=%s" % kickstart_path
         self.tee(fd, nextline)
         self.close_file(fd)

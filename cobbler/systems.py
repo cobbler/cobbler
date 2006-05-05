@@ -1,5 +1,6 @@
 import system
-import runtime
+import utils
+import collection
 
 #--------------------------------------------
 
@@ -7,9 +8,13 @@ import runtime
 Systems are hostnames/MACs/IP names and the associated profile
 they belong to.
 """
-class Systems(Collection):
-    _item_factory = system.System
-    _filename = "/var/lib/cobbler/systems"
+class Systems(collection.Collection):
+    
+    def class_container(self):
+        return system.System
+    
+    def filename(self):
+        return "/var/lib/cobbler/systems"
 
     def remove(self,name):
         """
@@ -18,6 +23,6 @@ class Systems(Collection):
         if self.find(name):
             del self.listing[name]
             return True
-        runtime.set_error("delete_nothing")
+        utils.set_error("delete_nothing")
         return False
 

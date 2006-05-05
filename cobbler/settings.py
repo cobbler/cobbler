@@ -1,14 +1,18 @@
+import serializable
+
 """
 Cobbler app-wide settings
 """
 
-class Settings(Serializable)
+class Settings(serializable.Serializable):
  
    def filename(self):
        return "/var/lib/cobbler/settings"
 
    def __init__(self):
+       self.clear()
 
+   def clear(self):
        self._attributes = {
           "httpd_bin"      : "/usr/sbin/httpd",
           "pxelinux"       : "/usr/lib/syslinux/pxelinux.0",
@@ -20,6 +24,7 @@ class Settings(Serializable)
           "tftpd_conf"     : "/etc/xinetd.d/tftp",
           "tftpboot"       : "/tftpboot", 
        } 
+   
 
    def to_datastruct():
        return self._attributes()
@@ -32,3 +37,4 @@ class Settings(Serializable)
            return self._attributes[name]
        else:
            raise AttributeError, name
+

@@ -80,21 +80,21 @@ class BootCLI:
         """
         Print out the list of systems:  'cobbler system list'
         """
-        print self.api.get_systems().printable()
+        print self.api.systems().printable()
         return True
 
     def profile_list(self,args):
         """
         Print out the list of profiles: 'cobbler profile list'
         """
-        print self.api.get_profiles().printable()
+        print self.api.profiles().printable()
         return True
 
     def distro_list(self,args):
         """
         Print out the list of distros: 'cobbler distro list'
         """
-        print self.api.get_distros().printable()
+        print self.api.distros().printable()
         return True
 
     def system_remove(self,args):
@@ -102,7 +102,7 @@ class BootCLI:
         Delete a system:  'cobbler system remove --name=foo'
         """
         commands = {
-           '--name'       : lambda(a):  self.api.get_systems().remove(a)
+           '--name'       : lambda(a):  self.api.systems().remove(a)
         }
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok,True)
@@ -113,7 +113,7 @@ class BootCLI:
         Delete a profile:   'cobbler profile remove --name=foo'
         """
         commands = {
-           '--name'       : lambda(a):  self.api.get_profiles().remove(a)
+           '--name'       : lambda(a):  self.api.profiles().remove(a)
         }
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok,True)
@@ -124,7 +124,7 @@ class BootCLI:
         Delete a distro:  'cobbler distro remove --name='foo'
         """
         commands = {
-           '--name'     : lambda(a):  self.api.get_distros().remove(a)
+           '--name'     : lambda(a):  self.api.distros().remove(a)
         }
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok,True)
@@ -141,7 +141,7 @@ class BootCLI:
            '--profiles' :  lambda(a) : sys.set_profile(a), # alias
            '--kopts'    :  lambda(a) : sys.set_kernel_options(a)
         }
-        on_ok = lambda: self.api.get_systems().add(sys)
+        on_ok = lambda: self.api.systems().add(sys)
         return self.apply_args(args,commands,on_ok,True)
 
 
@@ -163,7 +163,7 @@ class BootCLI:
         #    '--xen-mac'         :  lambda(a) : profile.set_xen_mac(a),
         #    '--xen-paravirt'    :  lambda(a) : profile.set_xen_paravirt(a),
         }
-        on_ok = lambda: self.api.get_profiles().add(profile)
+        on_ok = lambda: self.api.profiles().add(profile)
         return self.apply_args(args,commands,on_ok,True)
 
 
@@ -178,7 +178,7 @@ class BootCLI:
             '--initrd'    :  lambda(a) : distro.set_initrd(a),
             '--kopts'     :  lambda(a) : distro.set_kernel_options(a)
         }
-        on_ok = lambda: self.api.get_distros().add(distro)
+        on_ok = lambda: self.api.distros().add(distro)
         return self.apply_args(args,commands,on_ok,True)
 
 
@@ -298,18 +298,14 @@ def main():
         raise Exception("needs a more-recent PySyck")
 
     if os.getuid() != 0:
-        # while it's true that we don't technically need root, we do need
-        # permissions on a relatively long list of files that ordinarily
-        # only root has access to, and we don't know specifically what
-        # files are where (other distributions in play, etc).  It's
-        # fairly safe to assume root is required.  This might be patched
-        # later.
+        # FIXME: don't require root
         print m("need_root")
         sys.exit(1)
     try:
         cli = BootCLI(sys.argv)
     except Exception, e:
-        if not str(e) or not str(e).startswith("parse_error"):
-            traceback.print_exc()
-        sys.exit(3)
+        traceback.print_exc()
+        sys.exit(1)
     sys.exit(cli.run())
+
+

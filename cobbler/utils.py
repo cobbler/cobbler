@@ -2,40 +2,42 @@
 #
 # Michael DeHaan <mdehaan@redhat.com>
 
-import config
-
 import os
 import re
 import socket
 import glob
-import weakref
 import subprocess
 
 re_kernel = re.compile(r'vmlinuz-(\d+)\.(\d+)\.(\d+)-(.*)')
 re_initrd = re.compile(r'initrd-(\d+)\.(\d+)\.(\d+)-(.*).img')
+_last_error = ""
+
+def last_error():
+    return _last_error
+
+def set_error(strmsg):
+    _last_error = msg.m(strmsg)
 
 def get_host_ip(ip):
-    handle = subprocess.Popen("/usr/bin/gethostip %s" % ip, 
-                            shell=True
-                            stdout=PIPE) 
+    handle = subprocess.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=subprocess.PIPE) 
     out = handle.stdout
     results = out.read()
     return results.split(" ")[-1]
 
-def find_system_identifier(self,strdata):
+def find_system_identifier(strdata):
     """
     If the input is a MAC or an IP, return that.
     If it's not, resolve the hostname and return the IP.
     pxelinux doesn't work in hostnames
     """
-    if self.is_mac(strdata):
+    if is_mac(strdata):
         return strdata
-    if self.is_ip(strdata):
+    if is_ip(strdata):
         return strdata
-    return self.resolve_ip(strdata)
+    return resolve_ip(strdata)
 
 
-def is_ip(self,strdata):
+def is_ip(strdata):
     """
     Return whether the argument is an IP address.  ipv6 needs
     to be added...
@@ -46,7 +48,7 @@ def is_ip(self,strdata):
     return False
 
 
-def is_mac(self,strdata):
+def is_mac(strdata):
     """
     Return whether the argument is a mac address.
     """
@@ -56,7 +58,7 @@ def is_mac(self,strdata):
     return False
 
 
-def resolve_ip(self,strdata):
+def resolve_ip(strdata):
     """
     Resolve the IP address and handle errors...
     """
@@ -66,7 +68,7 @@ def resolve_ip(self,strdata):
         return None
 
 
-def find_matching_files(self,directory,regex):
+def find_matching_files(directory,regex):
     """
     Find all files in a given directory that match a given regex.
     Can't use glob directly as glob doesn't take regexen.
@@ -79,13 +81,13 @@ def find_matching_files(self,directory,regex):
     return results
 
 
-def find_highest_files(self,directory,unversioned,regex):
+def find_highest_files(directory,unversioned,regex):
     """
     Find the highest numbered file (kernel or initrd numbering scheme)
     in a given directory that matches a given pattern.  Used for
     auto-booting the latest kernel in a directory.
     """
-    files = self.find_matching_files(directory, regex)
+    files = find_matching_files(directory, regex)
     get_numbers = re.compile(r'(\d+).(\d+).(\d+)')
     def max2(a, b):
         """Returns the larger of the two values"""
@@ -108,23 +110,23 @@ def find_highest_files(self,directory,unversioned,regex):
     return None
 
 
-def find_kernel(self,path):
+def find_kernel(path):
     """
     Given a directory or a filename, find if the path can be made
     to resolve into a kernel, and return that full path if possible.
     """
     if os.path.isfile(path):
         filename = os.path.basename(path)
-        if self.re_kernel.match(filename):
+        if re_kernel.match(filename):
             return path
         elif filename == "vmlinuz":
             return path
         elif os.path.isdir(path):
-            return self.find_highest_files(path,"vmlinuz",self.re_kernel)
-       return None
+            return find_highest_files(path,"vmlinuz",re_kernel)
+    return None
 
 
-def find_initrd(self,path):
+def find_initrd(path):
     """
     Given a directory or a filename, see if the path can be made
     to resolve into an intird, return that full path if possible.
@@ -132,16 +134,16 @@ def find_initrd(self,path):
     # FUTURE: try to match kernel/initrd pairs?
     if os.path.isfile(path):
         filename = os.path.basename(path)
-        if self.re_initrd.match(filename):
+        if re_initrd.match(filename):
            return path
         if filename == "initrd.img" or filename == "initrd":
            return path
     elif os.path.isdir(path):
-        return self.find_highest_files(path,"initrd.img",self.re_initrd)
+        return find_highest_files(path,"initrd.img",re_initrd)
     return None
 
 
-def find_kickstart(self,url):
+def find_kickstart(url):
     """
     Check if a kickstart url looks like an http, ftp, nfs or local path.
     If a local path is used, cobbler will copy the kickstart and serve

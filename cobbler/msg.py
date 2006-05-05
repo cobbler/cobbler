@@ -8,8 +8,7 @@ be reused and potentially translated.
 
 msg_table = {
   "bad_server"      : "server field in /etc/cobbler.conf must be set to something other than localhost, or kickstarts will fail",
-  "parse_error"     : "could not parse /etc/cobbler.conf, must fix manually",
-  "parse_error2"    : "could not parse /var/lib/cobbler/cobbler.conf, replacing...",
+  "parse_error"     : "could not read %s, replacing...",
   "no_create"       : "cannot create: %s",
   "no_args"         : "this command requires arguments.",
   "missing_options" : "cannot add, all parameters have not been set",

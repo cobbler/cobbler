@@ -1,3 +1,4 @@
+import exceptions
 
 class Serializable:
 
@@ -5,8 +6,8 @@ class Serializable:
        return None
 
    def from_datastruct(datastruct):
-       raise "not implemented"
+       raise exceptions.NotImplementedError
 
    def to_datastruct():
-       raise "not implemented"
+       raise exceptions.NotImplementedError
 

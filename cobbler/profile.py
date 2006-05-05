@@ -1,6 +1,12 @@
+import utils
+
 class Profile(Item):
 
-    def __init__(self,seed_data):
+    def __init__(self,config):
+        self.config = config
+        self.clear()
+
+    def clear(self):
         self.name = None
         self.distro = None # a name, not a reference
         self.kickstart = None
@@ -10,25 +16,26 @@ class Profile(Item):
         self.xen_ram = 2048    # MB
         self.xen_mac = ''
         self.xen_paravirt = True
-        if seed_data is not None:
-           self.name            = seed_data['name']
-           self.distro          = seed_data['distro']
-           self.kickstart       = seed_data['kickstart']
-           self.kernel_options  = seed_data['kernel_options']
-           self.xen_name        = seed_data['xen_name']
-           if not self.xen_name or self.xen_name == '':
-              self.xen_name = self.name
-           self.xen_ram         = seed_data['xen_ram']
-           self.xen_file_size   = seed_data['xen_file_size']
-           self.xen_mac         = seed_data['xen_mac']
-           self.xen_paravirt    = seed_data['xen_paravirt']
+
+    def from_datastruct(seed_data) 
+        self.name            = seed_data['name']
+        self.distro          = seed_data['distro']
+        self.kickstart       = seed_data['kickstart']
+        self.kernel_options  = seed_data['kernel_options']
+        self.xen_name        = seed_data['xen_name']
+        if not self.xen_name or self.xen_name == '':
+            self.xen_name    = self.name
+        self.xen_ram         = seed_data['xen_ram']
+        self.xen_file_size   = seed_data['xen_file_size']
+        self.xen_mac         = seed_data['xen_mac']
+        self.xen_paravirt    = seed_data['xen_paravirt']
 
     def set_distro(self,distro_name):
         """
 	Sets the distro.  This must be the name of an existing
 	Distro object in the Distros collection.
 	"""
-        if self.api.get_distros().find(distro_name):
+        if self.api.distros().find(distro_name):
             self.distro = distro_name
             return True
         self.last_error = m("no_distro")
@@ -39,7 +46,7 @@ class Profile(Item):
 	Sets the kickstart.  This must be a NFS, HTTP, or FTP URL.
 	Minor checking of the URL is performed here.
 	"""
-        if self.api.utils.find_kickstart(kickstart):
+        if utils.find_kickstart(kickstart):
             self.kickstart = kickstart
             return True
         self.last_error = m("no_kickstart")
@@ -94,7 +101,7 @@ class Profile(Item):
 	"""
         # mac needs to be in mac format AA:BB:CC:DD:EE:FF or a range
         # ranges currently *not* supported, so we'll fail them
-        if self.api.utils.is_mac(mac):
+        if utils.is_mac(mac):
             self.xen_mac = mac
             return True
         else:

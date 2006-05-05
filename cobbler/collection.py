@@ -1,15 +1,25 @@
+import serializable
 
 """
 Base class for any serializable lists of things...
 """
-class Collection(Serializable):
-    _item_factory = None
-    _filename = None
+class Collection(serializable.Serializable):
 
-    def __init__(self):
+    def class_container(self):
+        raise exceptions.NotImplementedError
+
+    def filename(self):
+        raise exceptions.NotImplementedError
+
+    def __init__(self,config):
         """
 	Constructor.
 	"""
+        self.config = config
+        self.clear()
+        
+
+    def clear(self):
         self.listing = {}
 
     def find(self,name):
@@ -29,8 +39,10 @@ class Collection(Serializable):
         datastruct = [x.to_datastruct() for x in self.listing.values()]
 
     def from_datastruct(self,datastruct):
+        container = self.class_container()
         for x in datastruct:
-            self._item_factory(x)
+            item = container(x,self.config)
+            self.add(item)
 
     def add(self,ref):
         """
@@ -40,8 +52,8 @@ class Collection(Serializable):
         won't be added to the collection).
         """
         if ref is None or not ref.is_valid():
-            if runtime.last_error() is None or runtime.last_error() == "":
-                runtime.set_error("bad_param")
+            if utils.last_error() is None or utils.last_error() == "":
+                utils.set_error("bad_param")
             return False
         self.listing[ref.name] = ref
         return True

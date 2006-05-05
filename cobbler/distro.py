@@ -1,15 +1,24 @@
-class Distro(Item):
+import utils
+import item
+import weakref
 
-    def __init__(self,seed_data):
+class Distro(item.Item):
+
+    def __init__(self,config):
+        self.config = config
+        self.clear()
+ 
+    def clear(self):
         self.name = None
         self.kernel = None
         self.initrd = None
         self.kernel_options = ""
-        if seed_data is not None:
-           self.name = seed_data['name']
-           self.kernel = seed_data['kernel']
-           self.initrd = seed_data['initrd']
-           self.kernel_options = seed_data['kernel_options']
+
+    def from_datastruct(seed_data):
+        self.name = seed_data['name']
+        self.kernel = seed_data['kernel']
+        self.initrd = seed_data['initrd']
+        self.kernel_options = seed_data['kernel_options']
 
     def set_kernel(self,kernel):
         """
@@ -22,7 +31,7 @@ class Distro(Item):
         if utils.find_kernel(kernel):
             self.kernel = kernel
             return True
-        runtime.set_error("no_kernel")
+        utils.set_error("no_kernel")
         return False
 
     def set_initrd(self,initrd):
@@ -33,7 +42,7 @@ class Distro(Item):
         if utils.find_initrd(initrd):
             self.initrd = initrd
             return True
-        runtime.set_error("no_initrd")
+        utils.set_error("no_initrd")
         return False
 
     def is_valid(self):

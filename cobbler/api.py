@@ -10,14 +10,14 @@ import os
 import traceback
 
 import config
-import util
+import utils
 import sync
 import check
-from msg import *
+    
+_config = config.Config()
 
 class BootAPI:
 
-    _config = config.Config()
 
     def __init__(self):
        """
@@ -61,22 +61,21 @@ class BootAPI:
        """
        Return a blank, unconfigured system, unattached to a collection
        """
-       return system.System(self,None)
+       return _config.new_system()
 
 
     def new_distro(self):
        """
        Create a blank, unconfigured distro, unattached to a collection.
        """
-       return distro.Distro(self,None)
+       return _config.new_distro()
 
 
     def new_profile(self):
        """
        Create a blank, unconfigured profile, unattached to a collection
        """
-       return profile.Profile(self,None)
-
+       return _config.new_profile()
 
     def check(self):
        """
@@ -112,4 +111,7 @@ class BootAPI:
        Load the current configuration from config file(s)
        """
        _config.deserialize()
+
+    def last_error(self):
+       return utils.last_error()
 

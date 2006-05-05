@@ -1,7 +1,10 @@
+
+import serializable
+
 """
 An Item is a serializable thing that can appear in a Collection
 """
-class Item:
+class Item(serializable.Serializable):
 
     """
     constructor must be of format:

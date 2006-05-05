@@ -80,37 +80,37 @@ class Utilities(BootTest):
             "Expected: %s; actual: %s" % (expected, actual))
 
     def test_kernel_scan(self):
-        self.assertTrue(self.api.utils.find_kernel(self.fk_kernel))
-        self.assertFalse(self.api.utils.find_kernel("/etc/fstab"))
-        self.assertFalse(self.api.utils.find_kernel("filedoesnotexist"))
-        self._expeq(self.fk_kernel, self.api.utils.find_kernel(self.topdir))
+        self.assertTrue(utils.find_kernel(self.fk_kernel))
+        self.assertFalse(utils.find_kernel("/etc/fstab"))
+        self.assertFalse(utils.find_kernel("filedoesnotexist"))
+        self._expeq(self.fk_kernel, utils.find_kernel(self.topdir))
 
     def test_initrd_scan(self):
-        self.assertTrue(self.api.utils.find_initrd(self.fk_initrd))
-        self.assertFalse(self.api.utils.find_kernel("/etc/fstab"))
-        self.assertFalse(self.api.utils.find_initrd("filedoesnotexist"))
-        self._expeq(self.fk_initrd, self.api.utils.find_initrd(self.topdir))
+        self.assertTrue(utils.find_initrd(self.fk_initrd))
+        self.assertFalse(utils.find_kernel("/etc/fstab"))
+        self.assertFalse(utils.find_initrd("filedoesnotexist"))
+        self._expeq(self.fk_initrd, utils.find_initrd(self.topdir))
 
     def test_kickstart_scan(self):
         # we don't check to see if kickstart files look like anything
         # so this will pass
-        self.assertTrue(self.api.utils.find_kickstart(self.fk_initrd) is None)
-        self.assertTrue(self.api.utils.find_kickstart("filedoesnotexist") is None)
-        self.assertTrue(self.api.utils.find_kickstart(self.topdir) == None)
-        self.assertTrue(self.api.utils.find_kickstart("http://bar"))
-        self.assertTrue(self.api.utils.find_kickstart("ftp://bar"))
-        self.assertTrue(self.api.utils.find_kickstart("nfs://bar"))
-        self.assertFalse(self.api.utils.find_kickstart("gopher://bar"))
+        self.assertTrue(utils.find_kickstart(self.fk_initrd) is None)
+        self.assertTrue(utils.find_kickstart("filedoesnotexist") is None)
+        self.assertTrue(utils.find_kickstart(self.topdir) == None)
+        self.assertTrue(utils.find_kickstart("http://bar"))
+        self.assertTrue(utils.find_kickstart("ftp://bar"))
+        self.assertTrue(utils.find_kickstart("nfs://bar"))
+        self.assertFalse(utils.find_kickstart("gopher://bar"))
 
     def test_matching(self):
-        self.assertTrue(self.api.utils.is_mac("00:C0:B7:7E:55:50"))
-        self.assertFalse(self.api.utils.is_mac("00:c0:b7:7E:55:50"))
-        self.assertFalse(self.api.utils.is_mac("00.D0.B7.7E.55.50"))
-        self.assertFalse(self.api.utils.is_mac(self.hostname))
-        self.assertTrue(self.api.utils.is_ip("127.0.0.1"))
-        self.assertTrue(self.api.utils.is_ip("192.168.1.1"))
-        self.assertFalse(self.api.utils.is_ip("00:C0:B7:7E:55:50"))
-        self.assertFalse(self.api.utils.is_ip(self.hostname))
+        self.assertTrue(utils.is_mac("00:C0:B7:7E:55:50"))
+        self.assertFalse(utils.is_mac("00:c0:b7:7E:55:50"))
+        self.assertFalse(utils.is_mac("00.D0.B7.7E.55.50"))
+        self.assertFalse(utils.is_mac(self.hostname))
+        self.assertTrue(utils.is_ip("127.0.0.1"))
+        self.assertTrue(utils.is_ip("192.168.1.1"))
+        self.assertFalse(utils.is_ip("00:C0:B7:7E:55:50"))
+        self.assertFalse(utils.is_ip(self.hostname))
 
 class Additions(BootTest):
 
