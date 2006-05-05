@@ -1,5 +1,5 @@
 
-import utils 
+import utils
 import collection
 import item_distro as distro
 import collection_profiles as profiles
@@ -9,10 +9,10 @@ A distro represents a network bootable matched set of kernels
 and initrd files
 """
 class Distros(collection.Collection):
-    
+
     def factory_produce(self,config):
         return distro.Distro(config)
-    
+
     def filename(self):
         return "/var/lib/cobbler/distros"
 

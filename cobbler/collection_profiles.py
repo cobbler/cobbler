@@ -11,10 +11,10 @@ might represent a 'desktop' profile.  For Xen, there are many
 additional options, with client-side defaults (not kept here).
 """
 class Profiles(collection.Collection):
-    
+
     def factory_produce(self,config):
         return profile.Profile(config)
-    
+
     def filename(self):
         return "/var/lib/cobbler/profiles"
 

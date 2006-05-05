@@ -8,7 +8,7 @@ class Distro(item.Item):
     def __init__(self,config):
         self.config = config
         self.clear()
- 
+
     def clear(self):
         self.name = None
         self.kernel = None

@@ -19,7 +19,7 @@ class Profile(item.Item):
         self.xen_mac = ''
         self.xen_paravirt = True
 
-    def from_datastruct(self,seed_data): 
+    def from_datastruct(self,seed_data):
         self.name            = seed_data['name']
         self.distro          = seed_data['distro']
         self.kickstart       = seed_data['kickstart']
