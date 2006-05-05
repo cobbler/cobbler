@@ -8,6 +8,8 @@ import socket
 import glob
 import subprocess
 
+import msg
+
 re_kernel = re.compile(r'vmlinuz-(\d+)\.(\d+)\.(\d+)-(.*)')
 re_initrd = re.compile(r'initrd-(\d+)\.(\d+)\.(\d+)-(.*).img')
 _last_error = ""
@@ -19,7 +21,7 @@ def set_error(strmsg):
     _last_error = msg.m(strmsg)
 
 def get_host_ip(ip):
-    handle = subprocess.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=subprocess.PIPE) 
+    handle = subprocess.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=subprocess.PIPE)
     out = handle.stdout
     results = out.read()
     return results.split(" ")[-1]
@@ -121,8 +123,8 @@ def find_kernel(path):
             return path
         elif filename == "vmlinuz":
             return path
-        elif os.path.isdir(path):
-            return find_highest_files(path,"vmlinuz",re_kernel)
+    elif os.path.isdir(path):
+        return find_highest_files(path,"vmlinuz",re_kernel)
     return None
 
 

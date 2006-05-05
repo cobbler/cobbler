@@ -15,6 +15,7 @@ sys.path.append('./cobbler')
 
 import api
 import config
+import utils
 
 FAKE_INITRD="initrd-2.6.15-1.2054_FAKE.img"
 FAKE_INITRD2="initrd-2.5.16-2.2055_FAKE.img"
@@ -27,10 +28,11 @@ FAKE_KICKSTART="http://127.0.0.1/fake.ks"
 cleanup_dirs = []
 
 class BootTest(unittest.TestCase):
-    
+
     def setUp(self):
         # Create temp dir
-        self.topdir = tempfile.mkdtemp(prefix="_cobbler-",dir="/tmp")
+        #self.topdir = tempfile.mkdtemp(prefix="_cobbler-",dir="/tmp")
+        self.topdir = "/tmp" # only for refactoring, fix later
         print "using dir = %s" % self.topdir
         self.fk_initrd = os.path.join(self.topdir, FAKE_INITRD)
         self.fk_initrd2 = os.path.join(self.topdir, FAKE_INITRD2)
@@ -39,7 +41,7 @@ class BootTest(unittest.TestCase):
         self.fk_kernel = os.path.join(self.topdir, FAKE_KERNEL)
         self.fk_kernel2 = os.path.join(self.topdir, FAKE_KERNEL2)
         self.fk_kernel3 = os.path.join(self.topdir, FAKE_KERNEL3)
-        
+
         self.api = api.BootAPI()
         self.hostname = os.uname()[1]
         create = [ self.fk_initrd, self.fk_initrd2, self.fk_initrd3,
@@ -49,7 +51,8 @@ class BootTest(unittest.TestCase):
         self.make_basic_config()
 
     def tearDown(self):
-        shutil.rmtree(self.topdir,ignore_errors=True)
+        # only off during refactoring, fix later
+        # shutil.rmtree(self.topdir,ignore_errors=True)
         self.api = None
 
     def make_basic_config(self):
@@ -76,7 +79,7 @@ class BootTest(unittest.TestCase):
 class Utilities(BootTest):
 
     def _expeq(self, expected, actual):
-        self.failUnlessEqual(expected, actual, 
+        self.failUnlessEqual(expected, actual,
             "Expected: %s; actual: %s" % (expected, actual))
 
     def test_kernel_scan(self):

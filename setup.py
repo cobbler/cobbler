@@ -14,7 +14,6 @@ Cobbler is a command line tool for simplified configuration of boot/provisioning
 if __name__ == "__main__":
         # docspath="share/doc/koan-%s/" % VERSION
         manpath="share/man/man1/"
-        etcpath="etc/"
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -28,7 +27,6 @@ if __name__ == "__main__":
                 data_files = [
                                 # (docspath, ['README']),
                                 (manpath, ['cobbler.1.gz'])
-                                (etcpath, ['cobbler.conf'])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC

@@ -1,6 +1,7 @@
 import utils
 import item
 import weakref
+import os
 
 class Distro(item.Item):
 
@@ -14,7 +15,7 @@ class Distro(item.Item):
         self.initrd = None
         self.kernel_options = ""
 
-    def from_datastruct(seed_data):
+    def from_datastruct(self,seed_data):
         self.name = seed_data['name']
         self.kernel = seed_data['kernel']
         self.initrd = seed_data['initrd']

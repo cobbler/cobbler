@@ -1,6 +1,8 @@
 import utils
+import item
+from msg import *
 
-class Profile(Item):
+class Profile(item.Item):
 
     def __init__(self,config):
         self.config = config
@@ -17,7 +19,7 @@ class Profile(Item):
         self.xen_mac = ''
         self.xen_paravirt = True
 
-    def from_datastruct(seed_data) 
+    def from_datastruct(self,seed_data): 
         self.name            = seed_data['name']
         self.distro          = seed_data['distro']
         self.kickstart       = seed_data['kickstart']
@@ -35,10 +37,10 @@ class Profile(Item):
 	Sets the distro.  This must be the name of an existing
 	Distro object in the Distros collection.
 	"""
-        if self.api.distros().find(distro_name):
+        if self.config.distros().find(distro_name):
             self.distro = distro_name
             return True
-        self.last_error = m("no_distro")
+        utils.set_error("no_distro")
         return False
 
     def set_kickstart(self,kickstart):
@@ -49,7 +51,7 @@ class Profile(Item):
         if utils.find_kickstart(kickstart):
             self.kickstart = kickstart
             return True
-        self.last_error = m("no_kickstart")
+        utils.set_error("no_kickstart")
         return False
 
     def set_xen_name(self,str):

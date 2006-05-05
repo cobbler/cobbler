@@ -10,8 +10,8 @@ def serialize(obj):
       raise Exception("not serializable")
    fd = open(obj.filename(),"w+")
    datastruct = obj.to_datastruct()
-   yaml = syck.dump(datastruct)
-   fd.write(yaml)
+   encoded = syck.dump(datastruct)
+   fd.write(encoded)
    fd.close()
    return True
 
@@ -22,9 +22,9 @@ def deserialize(obj):
        fd = open(obj.filename(),"r")
    except:
        print msg.m("parse_error") % obj.filename()
-       return 
+       return
    data = fd.read()
-   datastruct = yaml.load(data)
+   datastruct = syck.load(data)
    fd.close()
    obj.from_datastruct(datastruct)
    return True

@@ -12,7 +12,7 @@ class System(item.Item):
         self.profile = None # a name, not a reference
         self.kernel_options = ""
 
-    def from_datastruct(seed_data):
+    def from_datastruct(self,seed_data):
         self.name = seed_data['name']
         self.profile = seed_data['profile']
         self.kernel_options = seed_data['kernel_options']
@@ -25,7 +25,7 @@ class System(item.Item):
         """
         new_name = utils.find_system_identifier(name)
         if new_name is None or new_name == False:
-            utils.last_error = m("bad_sys_name")
+            utils.set_error("bad_sys_name")
             return False
         self.name = name  # we check it add time, but store the original value.
         return True
@@ -45,7 +45,7 @@ class System(item.Item):
 	A system is valid when it contains a valid name and a profile.
 	"""
         if self.name is None:
-            utils.last_error = m("bad_sys_name")
+            utils.set_error("bad_sys_name")
             return False
         if self.profile is None:
             return False

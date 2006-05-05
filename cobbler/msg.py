@@ -7,7 +7,7 @@ be reused and potentially translated.
 """
 
 msg_table = {
-  "bad_server"      : "server field in /etc/cobbler.conf must be set to something other than localhost, or kickstarts will fail",
+  "bad_server"      : "server field in /var/lib/cobbler/settings must be set to something other than localhost, or kickstarts will fail",
   "parse_error"     : "could not read %s, replacing...",
   "no_create"       : "cannot create: %s",
   "no_args"         : "this command requires arguments.",
@@ -27,8 +27,8 @@ msg_table = {
   "chg_attrib"      : "need to change '%s' to '%s' in '%s'",
   "no_exist"        : "%s does not exist",
   "no_line"         : "file '%s' should have a line '%s' somewhere",
-  "no_dir2"         : "can't find %s for %s in cobbler.conf",
-  "no_cfg"          : "could not find a valid /etc/cobbler.conf, rebuilding",
+  "no_dir2"         : "can't find %s for %s as referenced in /var/lib/cobbler/settings",
+  "no_cfg"          : "could not find a valid /var/lib/cobbler/settings, rebuilding",
   "bad_param"       : "at least one parameter is missing for this function",
   "empty_list"      : "(Empty)",
   "err_resolv"      : "system (%s) did not resolve",
@@ -47,7 +47,7 @@ msg_table = {
   "check_ok"        : """
 No setup problems found.
 
-Manual editing of /etc/dhcpd.conf and /etc/cobbler.conf is suggested to tailor them to your specific configuration.  Your dhcpd.conf has some PXE related information in it, but it's imposible to tell automatically that it's totally correct in a general sense.  We'll leave this up to you.
+Manual editing of /var/lib/cobbler/settings and dhcpd.conf is suggested to tailor them to your specific configuration.  Your dhcpd.conf has some PXE related information in it, but it's imposible to tell automatically that it's totally correct in a general sense.  We'll leave this up to you.
 
 Good luck.
 """,

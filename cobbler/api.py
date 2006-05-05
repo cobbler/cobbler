@@ -13,7 +13,7 @@ import config
 import utils
 import sync
 import check
-    
+
 _config = config.Config()
 
 class BootAPI:
@@ -22,17 +22,19 @@ class BootAPI:
     def __init__(self):
        """
        Constructor...
-       """       
- 
+       """
+       self.debug = 1
        # FIXME: deserializer/serializer error
        # handling probably not up to par yet
-       _config.deserialize()
+       self.deserialize()
 
 
     def clear(self):
        """
        Forget about current list of profiles, distros, and systems
        """
+       if self.debug:
+           print "BootAPI::clear"
        _config.clear()
 
 
@@ -40,6 +42,8 @@ class BootAPI:
        """
        Return the current list of systems
        """
+       if self.debug:
+           print "BootAPI::systems"
        return _config.systems()
 
 
@@ -47,6 +51,8 @@ class BootAPI:
        """
        Return the current list of profiles
        """
+       if self.debug:
+           print "BootAPI::profiles"
        return _config.profiles()
 
 
@@ -54,6 +60,8 @@ class BootAPI:
        """
        Return the current list of distributions
        """
+       if self.debug:
+           print "BootAPI::distros"
        return _config.distros()
 
 
@@ -61,6 +69,8 @@ class BootAPI:
        """
        Return a blank, unconfigured system, unattached to a collection
        """
+       if self.debug:
+           print "BootAPI::new_system"
        return _config.new_system()
 
 
@@ -68,6 +78,8 @@ class BootAPI:
        """
        Create a blank, unconfigured distro, unattached to a collection.
        """
+       if self.debug:
+           print "BootAPI::new_distro"
        return _config.new_distro()
 
 
@@ -75,6 +87,8 @@ class BootAPI:
        """
        Create a blank, unconfigured profile, unattached to a collection
        """
+       if self.debug:
+           print "BootAPI::new_profile"
        return _config.new_profile()
 
     def check(self):
@@ -86,7 +100,9 @@ class BootAPI:
        for human admins, who may, for instance, forget to properly set up
        their TFTP servers for PXE, etc.
        """
-       return check.bootcheck(_config).run()
+       if self.debug:
+           print "BootAPI::check"
+       return check.BootCheck(_config).run()
 
 
     def sync(self,dry_run=True):
@@ -96,22 +112,30 @@ class BootAPI:
        /tftpboot.  Any operations done in the API that have not been
        saved with serialize() will NOT be synchronized with this command.
        """
+       if self.debug:
+           print "BootAPI::sync"
        # config.deserialize(); # neccessary?
-       return sync.bootsync(_config).sync(dry_run)
+       return sync.BootSync(_config).sync(dry_run)
 
 
     def serialize(self):
        """
        Save the config file(s) to disk.
        """
+       if self.debug:
+           print "BootAPI::serialize"
        _config.serialize()
 
     def deserialize(self):
        """
        Load the current configuration from config file(s)
        """
+       if self.debug:
+           print "BootAPI::deserialize"
        _config.deserialize()
 
     def last_error(self):
+       if self.debug:
+           print "BootAPI::last_error"
        return utils.last_error()
 

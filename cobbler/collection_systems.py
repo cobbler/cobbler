@@ -1,4 +1,4 @@
-import system
+import item_system as system
 import utils
 import collection
 
@@ -10,8 +10,8 @@ they belong to.
 """
 class Systems(collection.Collection):
     
-    def class_container(self):
-        return system.System
+    def factory_produce(self,config):
+        return system.System(config)
     
     def filename(self):
         return "/var/lib/cobbler/systems"

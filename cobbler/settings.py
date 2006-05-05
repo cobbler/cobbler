@@ -5,7 +5,7 @@ Cobbler app-wide settings
 """
 
 class Settings(serializable.Serializable):
- 
+
    def filename(self):
        return "/var/lib/cobbler/settings"
 
@@ -22,18 +22,21 @@ class Settings(serializable.Serializable):
           "dhcpd_bin"      : "/usr/sbin/dhcpd",
           "kernel_options" : "append devfs=nomount ramdisk_size=16438 lang= vga=788 ksdevice=eth0",
           "tftpd_conf"     : "/etc/xinetd.d/tftp",
-          "tftpboot"       : "/tftpboot", 
-       } 
-   
+          "tftpboot"       : "/tftpboot",
+       }
 
-   def to_datastruct():
-       return self._attributes()
 
-   def from_datastruct(datastruct):
-       self._attributes = datastruct   
+   def to_datastruct(self):
+       return self._attributes
+
+   def from_datastruct(self,datastruct):
+       if datastruct is None:
+          print "DEBUG: not loading empty structure"
+          return
+       self._attributes = datastruct
 
    def __getattr__(self,name):
-       if name in self._attributes:
+       if self._attributes.has_key(name):
            return self._attributes[name]
        else:
            raise AttributeError, name

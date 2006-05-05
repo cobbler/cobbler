@@ -25,7 +25,7 @@ class BootSync:
         self.distros  = config.distros
         self.profiles = config.profiles
         self.systems  = config.systems
-        self.settings = config.settings 
+        self.settings = config.settings
 
 
     def sync(self,dry_run=False,verbose=True):

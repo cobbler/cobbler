@@ -94,11 +94,7 @@ TBA
 
 =head1 CONFIGURATION FILES
 
-The current cobbler configuration is kept in /var/lib/cobbler/cobbler.conf.  The file is reasonably-human editable YAML.
-
-Global settings are in /etc/cobbler.conf.  After editing /etc/cobbler.conf, run 'cobbler check' to ensure that no errors were introduced.
-
-If you happen to screw up /var/lib/cobbler/cobbler.conf or /etc/cobbler.conf, you can delete them and they will be recreated.
+The current cobbler configuration is kept under /var/lib/cobbler.  The files are reasonably-human editable YAML and will generate themselves if they don't exist.  If you break one of them, delete it.
 
 No changes are ever applied to the provisioning state unless 'cobbler sync' is run.
 
