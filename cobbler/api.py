@@ -29,13 +29,19 @@ class BootAPI:
        try:
            if self.config.files_exist():
               self.config.deserialize()
-       except:
-           # traceback.print_exc()
-           print m("no_cfg")
+       except Exception, e:
+           # parse errors, attempt to recover
+           print self.last_error
+           if self.last_error == m("parse_error"):
+               # the error came from /etc/cobbler.conf, and must be fixed
+               # manually, CLI can't do it for policy reasons on /etc
+               raise Exception, "parse_error"
            try:
                self.config.serialize()
            except:
+               # shouldn't get here.  File permissions issue, perhaps?
                traceback.print_exc()
+               raise Exception, "parse_error2"
        if not self.config.files_exist():
            self.config.serialize()
 

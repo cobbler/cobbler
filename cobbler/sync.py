@@ -101,6 +101,7 @@ class BootSync:
             initrd = self.api.utils.find_initrd(d.initrd) # full path
             if kernel is None or not os.path.isfile(kernel):
                self.api.last_error = "Kernel for distro (%s) cannot be found and needs to be fixed: %s" % (d.name, d.kernel)
+               print self.api.last_error
                raise "error"
             if initrd is None or not os.path.isfile(initrd):
                self.api.last_error = "Initrd for distro (%s) cannot be found and needs to be fixed: %s" % (d.name, d.initrd)

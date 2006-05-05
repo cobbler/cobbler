@@ -8,8 +8,8 @@ be reused and potentially translated.
 
 msg_table = {
   "bad_server"      : "server field in /etc/cobbler.conf must be set to something other than localhost, or kickstarts will fail",
-  "parse_error"     : "could not parse /etc/cobbler.conf",
-  "parse_error2"    : "could not parse /var/cobbler/cobbler.conf",
+  "parse_error"     : "could not parse /etc/cobbler.conf, must fix manually",
+  "parse_error2"    : "could not parse /var/lib/cobbler/cobbler.conf, replacing...",
   "no_create"       : "cannot create: %s",
   "no_args"         : "this command requires arguments.",
   "missing_options" : "cannot add, all parameters have not been set",
@@ -29,7 +29,7 @@ msg_table = {
   "no_exist"        : "%s does not exist",
   "no_line"         : "file '%s' should have a line '%s' somewhere",
   "no_dir2"         : "can't find %s for %s in cobbler.conf",
-  "no_cfg"          : "could not find cobbler.conf, recreating",
+  "no_cfg"          : "could not find a valid /etc/cobbler.conf, rebuilding",
   "bad_param"       : "at least one parameter is missing for this function",
   "empty_list"      : "(Empty)",
   "err_resolv"      : "system (%s) did not resolve",

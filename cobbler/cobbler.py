@@ -10,6 +10,7 @@ import os
 import sys
 import api
 import syck
+import traceback
 from msg import *
 
 class BootCLI:
@@ -59,13 +60,13 @@ class BootCLI:
 
     def run(self):
         """
-        Run the command line
+        Run the command line and return system exit code
         """
         rc = self.curry_args(self.args[1:], self.commands['toplevel'])
         if not rc:
             print self.api.last_error
-        return rc
-
+            return 1
+        return 0
 
     def usage(self,args):
         """
@@ -294,19 +295,21 @@ def main():
 
     # verify syck isn't busted (old syck bindings were)
     if not hasattr(syck,"dump"):
-       raise Exception("needs a more-recent PySyck")
+        raise Exception("needs a more-recent PySyck")
 
     if os.getuid() != 0:
-       # while it's true that we don't technically need root, we do need
-       # permissions on a relatively long list of files that ordinarily
-       # only root has access to, and we don't know specifically what
-       # files are where (other distributions in play, etc).  It's
-       # fairly safe to assume root is required.  This might be patched
-       # later.
-       print m("need_root")
-       sys.exit(1)
-    if BootCLI(sys.argv).run():
-       sys.exit(0)
-    else:
-       sys.exit(1)
-
+        # while it's true that we don't technically need root, we do need
+        # permissions on a relatively long list of files that ordinarily
+        # only root has access to, and we don't know specifically what
+        # files are where (other distributions in play, etc).  It's
+        # fairly safe to assume root is required.  This might be patched
+        # later.
+        print m("need_root")
+        sys.exit(1)
+    try:
+        cli = BootCLI(sys.argv)
+    except Exception, e:
+        if not str(e) or not str(e).startswith("parse_error"):
+            traceback.print_exc()
+        sys.exit(3)
+    sys.exit(cli.run())

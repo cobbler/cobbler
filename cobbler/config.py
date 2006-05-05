@@ -15,7 +15,6 @@ global_settings_file = "/etc/cobbler.conf"
 global_state_file = "/var/lib/cobbler/cobbler.conf"
 
 
-
 class BootConfig:
 
     def __init__(self,api):
@@ -153,17 +152,9 @@ class BootConfig:
         state = None
 
         # ------
-        # dump global config (pathing, urls, etc)...
-        try:
-            settings = open(self.settings_file,"w+")
-        except IOError:
-            self.api.last_error = m("cant_create: %s" % self.settings_file)
-            return False
-        data = self.to_hash(True)
-        settings.write(syck.dump(data))
+        # dump internal state (distros, profiles, systems...) into /var/lib/...
+        # /etc is not serialized, it's packaged.
 
-        # ------
-        # dump internal state (distros, profiles, systems...)
         if not os.path.isdir(os.path.dirname(self.state_file)):
             dirname = os.path.dirname(self.state_file)
             if dirname != "":
@@ -194,11 +185,10 @@ class BootConfig:
                 self.from_hash(settings,True)
             else:
                 self.last_error = m("parse_error")
-                return False
+                raise Exception("parse_error")
         except:
-            traceback.print_exc()
             self.api.last_error = m("parse_error")
-            return False
+            raise Exception("parse_error")
 
         # -----
         # load internal state(distros, systems, profiles...)
@@ -207,12 +197,11 @@ class BootConfig:
             if state is not None:
                 self.from_hash(state,False)
             else:
-                self.last_error = m("parse_error")
-                return False
+                self.last_error = m("parse_error2")
+                raise Exception("parse_error2")
         except:
-            traceback.print_exc()
             self.api.last_error = m("parse_error2")
-            return False
+            raise Exception("parse_error2")
 
         # all good
         return True

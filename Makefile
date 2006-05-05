@@ -7,6 +7,7 @@ manpage:
 
 test:
 	python tests/tests.py
+	\rm -rf /tmp/_cobbler-*
 
 install: clean manpage
 	python setup.py sdist

@@ -24,11 +24,14 @@ FAKE_KERNEL2="vmlinuz-2.5.16-2.2055_FAKE"
 FAKE_KERNEL3="vmlinuz-1.8.18-3.9999_FAKE"
 FAKE_KICKSTART="http://127.0.0.1/fake.ks"
 
+cleanup_dirs = []
+
 class BootTest(unittest.TestCase):
     
     def setUp(self):
         # Create temp dir
-        self.topdir = tempfile.mkdtemp(prefix="_cobbler-")
+        self.topdir = tempfile.mkdtemp(prefix="_cobbler-",dir="/tmp")
+        print "using dir = %s" % self.topdir
         self.fk_initrd = os.path.join(self.topdir, FAKE_INITRD)
         self.fk_initrd2 = os.path.join(self.topdir, FAKE_INITRD2)
         self.fk_initrd3 = os.path.join(self.topdir, FAKE_INITRD3)
@@ -37,11 +40,6 @@ class BootTest(unittest.TestCase):
         self.fk_kernel2 = os.path.join(self.topdir, FAKE_KERNEL2)
         self.fk_kernel3 = os.path.join(self.topdir, FAKE_KERNEL3)
         
-        try:
-           # it will interfere with results...
-           os.remove("/etc/cobbler.conf")
-        except:
-           pass
         self.api = api.BootAPI()
         self.hostname = os.uname()[1]
         create = [ self.fk_initrd, self.fk_initrd2, self.fk_initrd3,
@@ -51,7 +49,8 @@ class BootTest(unittest.TestCase):
         self.make_basic_config()
 
     def tearDown(self):
-        shutil.rmtree(self.topdir, ignore_errors=1)
+        # this is causing problems with the sync() test
+        # shutil.rmtree(self.topdir,ignore_errors=True)
         self.api = None
 
     def make_basic_config(self):
@@ -297,4 +296,3 @@ if __name__ == "__main__":
         print "tests: must invoke from top level directory"
         sys.exit(1)
     unittest.main()
-
