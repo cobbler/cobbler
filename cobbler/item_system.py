@@ -1,3 +1,9 @@
+"""
+A Cobbler System.
+
+Michael DeHaan <mdehaan@redhat.com>
+"""
+
 import utils
 import item
 
@@ -16,6 +22,7 @@ class System(item.Item):
         self.name = seed_data['name']
         self.profile = seed_data['profile']
         self.kernel_options = seed_data['kernel_options']
+        return self
 
     def set_name(self,name):
         """

@@ -1,9 +1,8 @@
-#!/usr/bin/env python
-# Michael DeHaan <mdehaan@redhat.com>
-
 """
 Command line interface for cobbler, a network provisioning configuration
 library.  Consult 'man cobbler' for general info.
+
+Michael DeHaan <mdehaan@redhat.com>
 """
 
 import os

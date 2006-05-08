@@ -1,6 +1,8 @@
-# Code to vivify a configuration into a real TFTP/DHCP configuration.
-#
-# Michael DeHaan <mdehaan@redhat.com>
+"""
+Code to vivify a configuration into a real TFTP/DHCP configuration.
+
+Michael DeHaan <mdehaan@redhat.com>
+"""
 
 import config
 
@@ -11,6 +13,8 @@ import re
 import shutil
 import syck
 import weakref
+
+import utils
 from msg import *
 
 """
@@ -22,10 +26,10 @@ class BootSync:
     def __init__(self,config):
         self.verbose  = True
         self.config   = config
-        self.distros  = config.distros
-        self.profiles = config.profiles
-        self.systems  = config.systems
-        self.settings = config.settings
+        self.distros  = config.distros()
+        self.profiles = config.profiles()
+        self.systems  = config.systems()
+        self.settings = config.settings()
 
 
     def sync(self,dry_run=False,verbose=True):
@@ -275,7 +279,7 @@ class BootSync:
         Create system information for xen-net-install
         """
         fd = self.open_file(filename,"w+")
-        self.tee(fd,yaml.dump(system.to_datastruct()))
+        self.tee(fd,syck.dump(system.to_datastruct()))
         self.close_file(fd)
 
     def tee(self,fd,text):

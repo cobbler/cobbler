@@ -1,3 +1,10 @@
+"""
+A cobbler distribution
+
+Michael DeHaan <mdehaan@redhat.com>
+"""
+
+
 import utils
 import item
 import weakref
@@ -20,6 +27,7 @@ class Distro(item.Item):
         self.kernel = seed_data['kernel']
         self.initrd = seed_data['initrd']
         self.kernel_options = seed_data['kernel_options']
+        return self
 
     def set_kernel(self,kernel):
         """

@@ -1,5 +1,10 @@
 #!/usr/bin/python
 
+"""
+Wrapper for cobbler
+Michael DeHaan <mdehaan@redhat.com>
+"""
+
 import sys
 import cobbler
 sys.exit(cobbler.main())

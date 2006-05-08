@@ -1,3 +1,9 @@
+"""
+A Cobbler Profile.
+
+Michael DeHaan <mdehaan@redhat.com>
+"""
+
 import utils
 import item
 from msg import *
@@ -31,6 +37,7 @@ class Profile(item.Item):
         self.xen_file_size   = seed_data['xen_file_size']
         self.xen_mac         = seed_data['xen_mac']
         self.xen_paravirt    = seed_data['xen_paravirt']
+        return self
 
     def set_distro(self,distro_name):
         """

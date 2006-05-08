@@ -1,6 +1,8 @@
-# Classes for validating whether asystem is configured for network booting
-#
-# Michael DeHaan <mdehaan@redhat.com>
+"""
+Classes for validating whether asystem is configured for network booting
+
+Michael DeHaan <mdehaan@redhat.com>
+"""
 
 import os
 import sys

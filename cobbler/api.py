@@ -1,6 +1,6 @@
 """
-python API module for BootConf
-see source for bootconf.py for a good API reference
+python API module for Cobbler
+see source for cobbler.py, or pydoc, for example usage.
 
 Michael DeHaan <mdehaan@redhat.com>
 """
@@ -11,8 +11,8 @@ import traceback
 
 import config
 import utils
-import sync
-import check
+import action_sync
+import action_check
 
 _config = config.Config()
 
@@ -23,7 +23,6 @@ class BootAPI:
        """
        Constructor...
        """
-       self.debug = 1
        # FIXME: deserializer/serializer error
        # handling probably not up to par yet
        self.deserialize()
@@ -33,7 +32,7 @@ class BootAPI:
        """
        Forget about current list of profiles, distros, and systems
        """
-       if self.debug:
+       if utils.app_debug:
            print "BootAPI::clear"
        _config.clear()
 
@@ -42,7 +41,7 @@ class BootAPI:
        """
        Return the current list of systems
        """
-       if self.debug:
+       if utils.app_debug:
            print "BootAPI::systems"
        return _config.systems()
 
@@ -51,7 +50,7 @@ class BootAPI:
        """
        Return the current list of profiles
        """
-       if self.debug:
+       if utils.app_debug:
            print "BootAPI::profiles"
        return _config.profiles()
 
@@ -60,7 +59,7 @@ class BootAPI:
        """
        Return the current list of distributions
        """
-       if self.debug:
+       if utils.app_debug:
            print "BootAPI::distros"
        return _config.distros()
 
@@ -69,7 +68,7 @@ class BootAPI:
        """
        Return a blank, unconfigured system, unattached to a collection
        """
-       if self.debug:
+       if utils.app_debug:
            print "BootAPI::new_system"
        return _config.new_system()
 
@@ -78,7 +77,7 @@ class BootAPI:
        """
        Create a blank, unconfigured distro, unattached to a collection.
        """
-       if self.debug:
+       if utils.app_debug:
            print "BootAPI::new_distro"
        return _config.new_distro()
 
@@ -87,7 +86,7 @@ class BootAPI:
        """
        Create a blank, unconfigured profile, unattached to a collection
        """
-       if self.debug:
+       if utils.app_debug:
            print "BootAPI::new_profile"
        return _config.new_profile()
 
@@ -100,9 +99,9 @@ class BootAPI:
        for human admins, who may, for instance, forget to properly set up
        their TFTP servers for PXE, etc.
        """
-       if self.debug:
+       if utils.app_debug:
            print "BootAPI::check"
-       return check.BootCheck(_config).run()
+       return action_check.BootCheck(_config).run()
 
 
     def sync(self,dry_run=True):
@@ -112,17 +111,17 @@ class BootAPI:
        /tftpboot.  Any operations done in the API that have not been
        saved with serialize() will NOT be synchronized with this command.
        """
-       if self.debug:
+       if utils.app_debug:
            print "BootAPI::sync"
        # config.deserialize(); # neccessary?
-       return sync.BootSync(_config).sync(dry_run)
+       return action_sync.BootSync(_config).sync(dry_run)
 
 
     def serialize(self):
        """
        Save the config file(s) to disk.
        """
-       if self.debug:
+       if utils.app_debug:
            print "BootAPI::serialize"
        _config.serialize()
 
@@ -130,12 +129,12 @@ class BootAPI:
        """
        Load the current configuration from config file(s)
        """
-       if self.debug:
+       if utils.app_debug:
            print "BootAPI::deserialize"
        _config.deserialize()
 
     def last_error(self):
-       if self.debug:
+       if utils.app_debug:
            print "BootAPI::last_error"
        return utils.last_error()
 

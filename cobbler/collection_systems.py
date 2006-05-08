@@ -1,17 +1,20 @@
+"""
+Systems are hostnames/MACs/IP names and the associated profile
+they belong to.
+
+Michael DeHaan <mdehaan@redhat.com>
+"""
+
 import item_system as system
 import utils
 import collection
 
 #--------------------------------------------
 
-"""
-Systems are hostnames/MACs/IP names and the associated profile
-they belong to.
-"""
 class Systems(collection.Collection):
 
-    def factory_produce(self,config):
-        return system.System(config)
+    def factory_produce(self,config,seed_data):
+        return system.System(config).from_datastruct(seed_data)
 
     def filename(self):
         return "/var/lib/cobbler/systems"

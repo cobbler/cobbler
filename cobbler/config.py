@@ -1,6 +1,9 @@
 """
 Config.py is a repository of the Cobbler object model
+
+Michael DeHaan <mdehaan@redhat.com>
 """
+
 import os
 import weakref
 

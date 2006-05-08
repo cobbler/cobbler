@@ -10,8 +10,8 @@ and initrd files
 """
 class Distros(collection.Collection):
 
-    def factory_produce(self,config):
-        return distro.Distro(config)
+    def factory_produce(self,config,seed_data):
+        return distro.Distro(config).from_datastruct(seed_data)
 
     def filename(self):
         return "/var/lib/cobbler/distros"

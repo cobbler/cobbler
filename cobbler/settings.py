@@ -1,8 +1,11 @@
-import serializable
-
 """
 Cobbler app-wide settings
+
+Michael DeHaan <mdehaan@redhat.com>
 """
+
+import serializable
+import utils
 
 class Settings(serializable.Serializable):
 
@@ -34,8 +37,12 @@ class Settings(serializable.Serializable):
           print "DEBUG: not loading empty structure"
           return
        self._attributes = datastruct
+       return self
 
+   # could use getatr, but I'd rather not.
    def __getattr__(self,name):
+       if utils.app_debug:
+           print "Settings::__getattr__(self,%s)" % name       
        if self._attributes.has_key(name):
            return self._attributes[name]
        else:

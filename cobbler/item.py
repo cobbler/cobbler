@@ -1,9 +1,11 @@
+"""
+An Item is a serializable thing that can appear in a Collection
+
+Michael DeHaan <mdehaan@redhat.com>
+"""
 
 import serializable
 
-"""
-An Item is a serializable thing that can appear in a Collection
-"""
 class Item(serializable.Serializable):
 
     """

@@ -1,9 +1,9 @@
-# Messages used by cobbler.
-# Michael DeHaan <mdehaan@redhat.com>
-
 """
+Messages used by cobbler.
 This module encapsulates strings so they can
 be reused and potentially translated.
+
+Michael DeHaan <mdehaan@redhat.com>
 """
 
 msg_table = {

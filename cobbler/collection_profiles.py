@@ -1,19 +1,22 @@
-import profile
-import utils
-import collection
-
-#--------------------------------------------
-
 """
 A profile represents a distro paired with a kickstart file.
 For instance, FC5 with a kickstart file specifying OpenOffice
 might represent a 'desktop' profile.  For Xen, there are many
 additional options, with client-side defaults (not kept here).
+
+Michael DeHaan <mdehaan@redhat.com>
 """
+
+import item_profile as profile
+import utils
+import collection
+
+#--------------------------------------------
+
 class Profiles(collection.Collection):
 
-    def factory_produce(self,config):
-        return profile.Profile(config)
+    def factory_produce(self,config,seed_data):
+        return profile.Profile(config).from_datastruct(seed_data)
 
     def filename(self):
         return "/var/lib/cobbler/profiles"
