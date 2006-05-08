@@ -109,9 +109,3 @@ class BootAPI:
        """
        return _config.deserialize()
 
-    def last_error(self):
-       """
-       In the event of failure, what went wrong?
-       """
-       return utils.last_error()
-

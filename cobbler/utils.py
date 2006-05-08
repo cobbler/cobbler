@@ -10,24 +10,8 @@ import socket
 import glob
 import subprocess
 
-import msg
-
 _re_kernel = re.compile(r'vmlinuz-(\d+)\.(\d+)\.(\d+)-(.*)')
 _re_initrd = re.compile(r'initrd-(\d+)\.(\d+)\.(\d+)-(.*).img')
-_utils_last_error = ""
-
-def last_error():
-    """
-    Return the last error message set with set_error
-    """
-    return _utils_last_error
-
-def set_error(strmsg):
-    """
-    Set the error message for the last failed operation
-    """
-    global _utils_last_error
-    _utils_last_error = msg.m(strmsg)
 
 def get_host_ip(ip):
     """

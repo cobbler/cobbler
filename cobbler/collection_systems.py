@@ -8,6 +8,7 @@ Michael DeHaan <mdehaan@redhat.com>
 import item_system as system
 import utils
 import collection
+from cobbler_exception import CobblerException
 
 #--------------------------------------------
 
@@ -32,6 +33,5 @@ class Systems(collection.Collection):
         if self.find(name):
             del self.listing[name]
             return True
-        utils.set_error("delete_nothing")
-        return False
+        raise CobblerException("delete_nothing")
 

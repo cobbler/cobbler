@@ -11,7 +11,9 @@ import sys
 import api
 import syck
 import traceback
-from msg import *
+
+import cobbler_msg
+from cobbler_exception import CobblerException
 
 class BootCLI:
 
@@ -58,13 +60,27 @@ class BootCLI:
         }
 
 
+    def deserialize(self):
+        """
+        Load data from file(s)
+        """
+        return self.api.deserialize()
+
+    def serialize(self):
+        """
+        Save data to file(s)
+        """
+        return self.api.serialize()
+
     def run(self):
         """
         Run the command line and return system exit code
         """
-        rc = self.curry_args(self.args[1:], self.commands['toplevel'])
+        rc = self.deserialize()
+        if rc:
+            rc = self.curry_args(self.args[1:], self.commands['toplevel'])
         if not rc:
-            print self.api.last_error
+            print self.api.last_error()
             return 1
         return 0
 
@@ -72,7 +88,7 @@ class BootCLI:
         """
         Print out abbreviated help if user gives bad syntax
         """
-        print m("usage")
+        print cobbler_msg.lookup("usage")
         return False
 
 
@@ -187,7 +203,7 @@ class BootCLI:
         Parses arguments of the form --foo=bar, see profile_edit for example
         """
         if len(args) == 0:
-            print m("no_args")
+            print cobbler_msg.lookup("no_args")
             return False
         for x in args:
             try:
@@ -195,25 +211,25 @@ class BootCLI:
                 key, value = x.split("=",1)
                 value = value.replace('"','').replace("'",'')
             except:
-                print m("bad_arg") % x
+                print cobbler_msg.lookup("bad_arg") % x
                 return False
             if key in input_routines:
                 # --argument is recognized, so run the loader
                 # attached to it in the dispatch table
                 if not input_routines[key](value):
                    # loader does not like passed value
-                   print m("reject_arg") % key
+                   print cobbler_msg.lookup("reject_arg") % key
                    return False
             else:
                 # --argument is not recognized
-                print m("weird_arg") % key
+                print cobbler_msg.lookup("weird_arg") % key
                 return False
         # success thus far, so run the success routine for the set of
         # arguments.  Configuration will only be written to file if the
         # final routine succeeds.
         rc = on_ok()
         if rc and serialize:
-            self.api.serialize()
+            return self.serialize()
         return rc
 
 
@@ -223,7 +239,7 @@ class BootCLI:
         See profiles(), system(), or distro() for examples
         """
         if args is None or len(args) == 0:
-            print m("help")
+            print cobbler_msg.lookup("help")
             return False
         if args[0] in commands:
             # if the subargument is in the dispatch table, run
@@ -233,7 +249,7 @@ class BootCLI:
             if not rc:
                return False
         else:
-            print m("unknown_cmd") % args[0]
+            print cobbler_msg.lookup("unknown_cmd") % args[0]
             return False
         return True
 
@@ -258,10 +274,10 @@ class BootCLI:
         if status is None:
             return False
         elif len(status) == 0:
-            print m("check_ok")
+            print cobbler_msg.lookup("check_ok")
             return True
         else:
-            print m("need_to_fix")
+            print cobbler_msg.lookup("need_to_fix")
             for i,x in enumerate(status):
                print "#%d: %s" % (i,x)
             return False
@@ -294,16 +310,12 @@ def main():
 
     # verify syck isn't busted (old syck bindings were)
     if not hasattr(syck,"dump"):
-        raise Exception("needs a more-recent PySyck module")
+        raise CobblerException("needs a more-recent PySyck module")
 
-    if os.getuid() != 0:
-        # FIXME: don't require root
-        print m("need_root")
-        sys.exit(1)
     try:
         cli = BootCLI(sys.argv)
-    except Exception:
-        traceback.print_exc()
+    except Exception, exc:
+        print exc
         sys.exit(1)
     sys.exit(cli.run())
 

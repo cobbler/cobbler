@@ -6,6 +6,7 @@ Michael DeHaan <mdehaan@redhat.com>
 
 import utils
 import item
+from cobbler_exception import CobblerException
 
 class System(item.Item):
 
@@ -32,8 +33,7 @@ class System(item.Item):
         """
         new_name = utils.find_system_identifier(name)
         if not new_name:
-            utils.set_error("bad_sys_name")
-            return False
+            raise CobblerException("bad_sys_name")
         self.name = name  # we check it add time, but store the original value.
         return True
 
@@ -52,8 +52,7 @@ class System(item.Item):
 	A system is valid when it contains a valid name and a profile.
 	"""
         if self.name is None:
-            utils.set_error("bad_sys_name")
-            return False
+            raise CobblerException("bad_sys_name")
         if self.profile is None:
             return False
         return True

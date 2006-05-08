@@ -7,7 +7,7 @@ Michael DeHaan <mdehaan@redhat.com>
 
 import utils
 import item
-from msg import *
+from cobbler_exception import CobblerException
 
 class Profile(item.Item):
 
@@ -57,8 +57,7 @@ class Profile(item.Item):
         if self.config.distros().find(distro_name):
             self.distro = distro_name
             return True
-        utils.set_error("no_distro")
-        return False
+        raise CobblerException("no_distro")
 
     def set_kickstart(self,kickstart):
         """
@@ -68,8 +67,7 @@ class Profile(item.Item):
         if utils.find_kickstart(kickstart):
             self.kickstart = kickstart
             return True
-        utils.set_error("no_kickstart")
-        return False
+        raise CobblerException("no_kickstart")
 
     def set_xen_name(self,str):
         """

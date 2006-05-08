@@ -11,7 +11,8 @@ import shutil
 import syck
 
 import utils
-from msg import *
+import cobbler_msg
+from cobbler_exception import CobblerException
 
 """
 Handles conversion of internal state to the tftpboot tree layout
@@ -63,7 +64,7 @@ class BootSync:
         cobbler infrastructure available over TFTP over HTTP also.
         """
         if not os.path.exists("/etc/httpd/conf.d"):
-           self.sync_log(m("no_httpd"))
+           self.sync_log(cobbler_msg.lookup("no_httpd"))
            return
         f = self.open_file("/etc/httpd/conf.d/cobbler.conf","w+")
         config_data = """
@@ -107,12 +108,9 @@ class BootSync:
             kernel = utils.find_kernel(d.kernel) # full path
             initrd = utils.find_initrd(d.initrd) # full path
             if kernel is None or not os.path.isfile(kernel):
-               utils.set_error("Kernel for distro (%s) cannot be found and needs to be fixed: %s" % (d.name, d.kernel))
-               print utils.last_error()
-               raise Exception, "error"
+               raise CobblerException("sync_kernel", (d.name, d.kernel))
             if initrd is None or not os.path.isfile(initrd):
-               utils.set_error("Initrd for distro (%s) cannot be found and needs to be fixed: %s" % (d.name, d.initrd))
-               raise Exception, "error"
+               raise CobblerException("sync_initrd", (d.name, d.initrd))
             b_kernel = os.path.basename(kernel)
             b_initrd = os.path.basename(initrd)
             self.copyfile(kernel, os.path.join(distro_dir, b_kernel))
@@ -131,7 +129,7 @@ class BootSync:
         # it's up to the user to make sure they are nicely served by their URLs
 
         for g in self.profiles:
-           self.sync_log("mirroring any local kickstarts: %s" % g.name)
+           self.sync_log(cobbler_msg.lookup("sync_mirror_ks"))
            kickstart_path = utils.find_kickstart(g.kickstart)
            if kickstart_path and os.path.exists(kickstart_path):
               # the input is an *actual* file, hence we have to copy it
@@ -141,8 +139,7 @@ class BootSync:
               try:
                   self.copyfile(g.kickstart, dest)
               except:
-                  utils.set_error("err_kickstart2")
-                  raise Exception, "error"
+                  raise CobblerException("err_kickstart2")
 
     def build_trees(self):
         """
@@ -151,12 +148,12 @@ class BootSync:
         configured IP or MAC address.  Also build a parallel 'xeninfo' tree
         for xen-net-install info.
         """
-        self.sync_log("building trees...")
+        self.sync_log(cobbler_msg.lookup("sync_buildtree"))
         # create pxelinux.cfg under tftpboot
         # and file for each MAC or IP (hex encoded 01-XX-XX-XX-XX-XX-XX)
 
         for d in self.distros:
-            self.sync_log("processing distro: %s" % d.name)
+            self.sync_log(cobbler_msg.lookup("sync_processing") % d.name)
             # TODO: add check to ensure all distros have profiles (=warning)
             filename = os.path.join(self.settings.tftpboot,"distros",d.name)
             d.kernel_options = self.blend_kernel_options((
@@ -166,7 +163,7 @@ class BootSync:
             self.write_distro_file(filename,d)
 
         for p in self.profiles:
-            self.sync_log("processing profile: %s" % p.name)
+            self.sync_log(cobbler_msg.lookup("sync_processing") % p.name)
             # TODO: add check to ensure all profiles have distros (=error)
             # TODO: add check to ensure all profiles have systems (=warning)
             filename = os.path.join(self.settings.tftpboot,"profiles",p.name)
@@ -180,15 +177,13 @@ class BootSync:
             self.write_profile_file(filename,p)
 
         for system in self.systems:
-            self.sync_log("processing system: %s" % system.name)
+            self.sync_log(cobbler_msg.lookup("sync_processing") % system.name)
             profile = self.profiles.find(system.profile)
             if profile is None:
-                utils.set_error("orphan_profile2")
-                raise Exception, "error"
+                raise CobblerException("orphan_profile2")
             distro = self.distros.find(profile.distro)
             if distro is None:
-                utils.set_error("orphan_system2")
-                raise Exception, "error"
+                raise CobblerException("orphan_system2")
             f1 = self.get_pxelinux_filename(system.name)
             f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
             f3 = os.path.join(self.settings.tftpboot, "systems", f1)
@@ -210,8 +205,7 @@ class BootSync:
         elif utils.is_mac(name):
             return "01-" + "-".join(name.split(":")).lower()
         else:
-            utils.set_error(m("err_resolv" % name))
-            raise Exception, "error"
+            raise CobblerException("err_resolv", name)
 
 
     def write_pxelinux_file(self,filename,system,profile,distro):
@@ -223,7 +217,7 @@ class BootSync:
         kernel_path = os.path.join("/images",distro.name,os.path.basename(distro.kernel))
         initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
         kickstart_path = profile.kickstart
-        self.sync_log("writing: %s" % filename)
+        self.sync_log(cobbler_msg.lookup("writing") % filename)
         self.sync_log("---------------------------------")
         fd = self.open_file(filename,"w+")
         self.tee(fd,"default linux\n")
@@ -309,7 +303,7 @@ class BootSync:
        """
        For dry_run support:  potentially copy a file.
        """
-       self.sync_log("copy %s to %s" % (src,dst))
+       self.sync_log(cobbler_msg.lookup("copying") % (src,dst))
        if self.dry_run:
            return True
        return shutil.copyfile(src,dst)
@@ -318,7 +312,7 @@ class BootSync:
        """
        For dry_run support: potentially copy a file.
        """
-       self.sync_log("copy %s to %s" % (src,dst))
+       self.sync_log(cobbler_msg.lookup("copying") % (src,dst))
        if self.dry_run:
            return True
        return shutil.copy(src,dst)
@@ -327,7 +321,7 @@ class BootSync:
        """
        For dry_run support:  potentially delete a tree.
        """
-       self.sync_log("removing dir %s" % (path))
+       self.sync_log(cobbler_msg.lookup("removing") % (path))
        if self.dry_run:
            return True
        return shutil.rmtree(path,ignore)
@@ -336,7 +330,7 @@ class BootSync:
        """
        For dry_run support:  potentially make a directory.
        """
-       self.sync_log("creating dir %s" % (path))
+       self.sync_log(cobbler_msg.lookup("mkdir") % (path))
        if self.dry_run:
            return True
        return os.mkdir(path,mode)
@@ -348,7 +342,7 @@ class BootSync:
        """
        if self.verbose:
            if self.dry_run:
-               print "dry_run | %s" % message
+               print cobbler_msg.lookup("dry_run") % message
            else:
                print message
 

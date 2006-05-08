@@ -8,7 +8,7 @@ import exceptions
 
 import serializable
 import utils
-import msg
+import cobbler_msg
 
 class Collection(serializable.Serializable):
 
@@ -70,9 +70,7 @@ class Collection(serializable.Serializable):
         won't be added to the collection).
         """
         if ref is None or not ref.is_valid():
-            if utils.last_error() is None or utils.last_error() == "":
-                utils.set_error("bad_param")
-            return False
+            raise CobblerException("bad_param")
         self.listing[ref.name] = ref
         return True
 
@@ -87,7 +85,7 @@ class Collection(serializable.Serializable):
         if len(values) > 0:
            return "\n\n".join(values)
         else:
-           return msg.m("empty_list")
+           return cobbler_msg.lookup("empty_list")
 
     def __iter__(self):
         """

@@ -10,6 +10,7 @@ import utils
 import item
 import weakref
 import os
+from cobbler_exception import CobblerException
 
 class Distro(item.Item):
 
@@ -50,8 +51,7 @@ class Distro(item.Item):
         if utils.find_kernel(kernel):
             self.kernel = kernel
             return True
-        utils.set_error("no_kernel")
-        return False
+        raise CobblerException("no_kernel")
 
     def set_initrd(self,initrd):
         """
@@ -61,8 +61,7 @@ class Distro(item.Item):
         if utils.find_initrd(initrd):
             self.initrd = initrd
             return True
-        utils.set_error("no_initrd")
-        return False
+        raise CobblerException("no_initrd")
 
     def is_valid(self):
         """

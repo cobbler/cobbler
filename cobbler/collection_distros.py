@@ -30,11 +30,9 @@ class Distros(collection.Collection):
         # first see if any Groups use this distro
         for v in self.config.profiles():
             if v.distro == name:
-               utils.set_error("orphan_files")
-               return False
+               raise CobblerException("orphan_files")
         if self.find(name):
             del self.listing[name]
             return True
-        utils.set_error("delete_nothing")
-        return False
+        raise CobblerException("delete_nothing")
 

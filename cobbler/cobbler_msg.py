@@ -6,7 +6,7 @@ be reused and potentially translated.
 Michael DeHaan <mdehaan@redhat.com>
 """
 
-msg_table = {
+_msg_table = {
   "bad_server"      : "server field in /var/lib/cobbler/settings must be set to something other than localhost, or kickstarts will fail",
   "parse_error"     : "could not read %s, replacing...",
   "no_create"       : "cannot create: %s",
@@ -19,7 +19,7 @@ msg_table = {
   "bad_sys_name"    : "system name must be a MAC, IP, or resolveable host",
   "usage"           : "for help, see 'man cobbler'",
   "need_to_fix"     : "the following potential problems were detected:",
-  "need_root"       : "cobbler must be run as root",
+  "need_perms"      : "cobbler cannot access %s",
   "no_dhcpd"        : "can't find dhcpd, try 'yum install dhcpd'",
   "no_pxelinux"     : "can't find pxelinux, try 'yum install pxelinux'",
   "no_tftpd"        : "can't find tftpd, try 'yum install tftpd'",
@@ -43,6 +43,8 @@ msg_table = {
   "no_profile"      : "profile does not exist",
   "no_kickstart"    : "kickstart must be an http://, ftp:// or nfs:// URL",
   "no_kernel"       : "the kernel needs to be a directory containing a kernel, or a full path.  Kernels must be named just 'vmlinuz' or in the form 'vmlinuz-AA.BB.CC-something'",
+  "sync_kernel"     : "the kernel (%s) for distro (%s) cannot be found and must be fixed",
+  "sync_initrd"     : "the initrd (%s) for distro (%s) cannot be found and must be fixed",
   "no_initrd"       : "the initrd needs to be a directory containing an initrd, or a full path.  Initrds must be named just 'initrd.img' or in the form 'initrd-AA.BB.CC-something.img",
   "check_ok"        : """
 No setup problems found.
@@ -54,13 +56,12 @@ Good luck.
   "help"           : "see 'man cobbler'"
 }
 
-def m(key):
+def lookup(key):
    """
    Return the lookup of a string key.
    """
-   if key in msg_table:
-       # localization could use different tables or just gettext.
-       return msg_table[key]
+   if _msg_table.has_key(key):
+       return _msg_table[key]
    else:
        return key
 

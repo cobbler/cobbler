@@ -7,8 +7,7 @@ Michael DeHaan <mdehaan@redhat.com>
 
 import os
 import re
-
-from msg import *
+import cobbler_msg
 
 class BootCheck:
 
@@ -43,14 +42,14 @@ class BootCheck:
        parameters.
        """
        if self.settings.server == "localhost":
-          status.append(m("bad_server"))
+          status.append(cobbler_msg.lookup("bad_server"))
 
    def check_httpd(self,status):
        """
        Check if Apache is installed.
        """
        if not os.path.exists(self.settings.httpd_bin):
-          status.append(m("no_httpd"))
+          status.append(cobbler_msg.lookup("no_httpd"))
 
 
    def check_dhcpd_bin(self,status):
@@ -58,28 +57,28 @@ class BootCheck:
        Check if dhcpd is installed
        """
        if not os.path.exists(self.settings.dhcpd_bin):
-          status.append(m("no_dhcpd"))
+          status.append(cobbler_msg.lookup("no_dhcpd"))
 
    def check_pxelinux_bin(self,status):
        """
        Check if pxelinux (part of syslinux) is installed
        """
        if not os.path.exists(self.settings.pxelinux):
-          status.append(m("no_pxelinux"))
+          status.append(cobbler_msg.lookup("no_pxelinux"))
 
    def check_tftpd_bin(self,status):
        """
        Check if tftpd is installed
        """
        if not os.path.exists(self.settings.tftpd_bin):
-          status.append(m("no_tftpd"))
+          status.append(cobbler_msg.lookup("no_tftpd"))
 
    def check_tftpd_dir(self,status):
        """
        Check if cobbler.conf's tftpboot directory exists
        """
        if not os.path.exists(self.settings.tftpboot):
-          status.append(m("no_dir") % self.settings.tftpboot)
+          status.append(cobbler_msg.lookup("no_dir") % self.settings.tftpboot)
 
 
    def check_tftpd_conf(self,status):
@@ -94,15 +93,15 @@ class BootCheck:
           found_bootdir = False
           for line in f.readlines():
              if re_1.search(line):
-                 status.append(m("chg_attrib") % ('default','on',self.settings.tftpd_conf))
+                 status.append(cobbler_msg.lookup("chg_attrib") % ('default','on',self.settings.tftpd_conf))
              if re_2.search(line):
-                 status.append(m("chg_attrib") % ('disable','no',self.settings.tftpd_conf))
+                 status.append(cobbler_msg.lookup("chg_attrib") % ('disable','no',self.settings.tftpd_conf))
              if line.find("-s %s" % self.settings.tftpboot) != -1:
                  found_bootdir = True
           if not found_bootdir:
-              status.append(m("chg_attrib") % ('server_args',"-s %s" % self.settings.tftpboot, self.settings.tftpd_conf))
+              status.append(cobbler_msg.lookup("chg_attrib") % ('server_args',"-s %s" % self.settings.tftpboot, self.settings.tftpd_conf))
        else:
-          status.append(m("no_exist") % self.settings.tftpd_conf)
+          status.append(cobbler_msg.lookup("no_exist") % self.settings.tftpd_conf)
 
 
    def check_dhcpd_conf(self,status):
@@ -122,10 +121,10 @@ class BootCheck:
                if line.find("filename") != -1:
                    match_file = True
            if not match_next:
-              status.append(m("no_line") % (self.settings.dhcpd_conf, 'next-server ip-address'))
+              status.append(cobbler_msg.lookup("no_line") % (self.settings.dhcpd_conf, 'next-server ip-address'))
            if not match_file:
-              status.append(m("no_line") % (self.settings.dhcpd_conf, 'filename "%s/pxelinux.0";' % self.settings.tftpboot))
+              status.append(cobbler_msg.lookup("no_line") % (self.settings.dhcpd_conf, 'filename "%s/pxelinux.0";' % self.settings.tftpboot))
        else:
-           status.append(m("no_exist") % self.settings.dhcpd_conf)
+           status.append(cobbler_msg.lookup("no_exist") % self.settings.dhcpd_conf)
 
 
