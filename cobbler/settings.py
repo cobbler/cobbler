@@ -55,8 +55,6 @@ class Settings(serializable.Serializable):
        return self
 
    def __getattr__(self,name):
-       if utils.app_debug:
-           print "Settings::__getattr__(self,%s)" % name
        if self._attributes.has_key(name):
            return self._attributes[name]
        else:

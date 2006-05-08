@@ -47,7 +47,7 @@ msg_table = {
   "check_ok"        : """
 No setup problems found.
 
-Manual editing of /var/lib/cobbler/settings and dhcpd.conf is suggested to tailor them to your specific configuration.  Your dhcpd.conf has some PXE related information in it, but it's imposible to tell automatically that it's totally correct in a general sense.  We'll leave this up to you.
+Manual editing of /var/lib/cobbler/settings and dhcpd.conf is suggested to tailor them to your specific configuration.  Furthermore, it's important to know that cobbler can't completely understnad what you intend to do with dhcpd.conf, but it looks like there is at least some PXE related information in it.  We'll leave this up to you.
 
 Good luck.
 """,

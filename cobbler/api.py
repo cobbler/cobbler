@@ -1,6 +1,11 @@
 """
 python API module for Cobbler
 see source for cobbler.py, or pydoc, for example usage.
+CLI apps and daemons should import api.py, and no other cobbler code.
+
+All functions return True on success, and generally return False on error.
+Exceptions are *not* extended to escape this class, nor should this class
+need to do any exception handling.
 
 Michael DeHaan <mdehaan@redhat.com>
 """
@@ -19,8 +24,6 @@ class BootAPI:
        """
        Constructor...
        """
-       # FIXME: deserializer/serializer error
-       # handling probably not up to par yet
        self.deserialize()
 
 
@@ -28,17 +31,13 @@ class BootAPI:
        """
        Forget about current list of profiles, distros, and systems
        """
-       if utils.app_debug:
-           print "BootAPI::clear"
-       _config.clear()
+       return _config.clear()
 
 
     def systems(self):
        """
        Return the current list of systems
        """
-       if utils.app_debug:
-           print "BootAPI::systems"
        return _config.systems()
 
 
@@ -46,8 +45,6 @@ class BootAPI:
        """
        Return the current list of profiles
        """
-       if utils.app_debug:
-           print "BootAPI::profiles"
        return _config.profiles()
 
 
@@ -55,8 +52,6 @@ class BootAPI:
        """
        Return the current list of distributions
        """
-       if utils.app_debug:
-           print "BootAPI::distros"
        return _config.distros()
 
 
@@ -64,8 +59,6 @@ class BootAPI:
        """
        Return a blank, unconfigured system, unattached to a collection
        """
-       if utils.app_debug:
-           print "BootAPI::new_system"
        return _config.new_system()
 
 
@@ -73,8 +66,6 @@ class BootAPI:
        """
        Create a blank, unconfigured distro, unattached to a collection.
        """
-       if utils.app_debug:
-           print "BootAPI::new_distro"
        return _config.new_distro()
 
 
@@ -82,8 +73,6 @@ class BootAPI:
        """
        Create a blank, unconfigured profile, unattached to a collection
        """
-       if utils.app_debug:
-           print "BootAPI::new_profile"
        return _config.new_profile()
 
     def check(self):
@@ -95,8 +84,6 @@ class BootAPI:
        for human admins, who may, for instance, forget to properly set up
        their TFTP servers for PXE, etc.
        """
-       if utils.app_debug:
-           print "BootAPI::check"
        return action_check.BootCheck(_config).run()
 
 
@@ -107,9 +94,6 @@ class BootAPI:
        /tftpboot.  Any operations done in the API that have not been
        saved with serialize() will NOT be synchronized with this command.
        """
-       if utils.app_debug:
-           print "BootAPI::sync"
-       # config.deserialize(); # neccessary?
        return action_sync.BootSync(_config).sync(dry_run)
 
 
@@ -117,20 +101,17 @@ class BootAPI:
        """
        Save the config file(s) to disk.
        """
-       if utils.app_debug:
-           print "BootAPI::serialize"
-       _config.serialize()
+       return _config.serialize()
 
     def deserialize(self):
        """
        Load the current configuration from config file(s)
        """
-       if utils.app_debug:
-           print "BootAPI::deserialize"
-       _config.deserialize()
+       return _config.deserialize()
 
     def last_error(self):
-       if utils.app_debug:
-           print "BootAPI::last_error"
+       """
+       In the event of failure, what went wrong?
+       """
        return utils.last_error()
 

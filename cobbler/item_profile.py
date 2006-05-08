@@ -134,6 +134,8 @@ class Profile(item.Item):
 	'true'/'false' in all cases, or Python True/False.
 	"""
         # truthiness needs to be True or False, or (lcased) string equivalents
+        # yes, we *do* want to explicitly test against True/False
+        # the string "foosball" is True, and that is not a valid argument for this function
         try:
             if (truthiness == False or truthiness.lower() == 'false'):
                 self.xen_paravirt = False

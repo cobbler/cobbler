@@ -302,7 +302,7 @@ def main():
         sys.exit(1)
     try:
         cli = BootCLI(sys.argv)
-    except Exception, e:
+    except Exception:
         traceback.print_exc()
         sys.exit(1)
     sys.exit(cli.run())

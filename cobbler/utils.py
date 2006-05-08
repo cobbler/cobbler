@@ -12,20 +12,27 @@ import subprocess
 
 import msg
 
-app_debug = False # essentially an app level global, but the only one
-
 _re_kernel = re.compile(r'vmlinuz-(\d+)\.(\d+)\.(\d+)-(.*)')
 _re_initrd = re.compile(r'initrd-(\d+)\.(\d+)\.(\d+)-(.*).img')
-utils_last_error = ""
+_utils_last_error = ""
 
 def last_error():
-    return utils_last_error
+    """
+    Return the last error message set with set_error
+    """
+    return _utils_last_error
 
 def set_error(strmsg):
-    global utils_last_error
-    utils_last_error = msg.m(strmsg)
+    """
+    Set the error message for the last failed operation
+    """
+    global _utils_last_error
+    _utils_last_error = msg.m(strmsg)
 
 def get_host_ip(ip):
+    """
+    Return the IP encoding needed for the TFTP boot tree.
+    """
     handle = subprocess.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=subprocess.PIPE)
     out = handle.stdout
     results = out.read()

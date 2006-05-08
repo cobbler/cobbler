@@ -5,15 +5,10 @@ This is the code behind 'cobbler sync'.
 Michael DeHaan <mdehaan@redhat.com>
 """
 
-import config
-
 import os
-import sys
 import traceback
-import re
 import shutil
 import syck
-import weakref
 
 import utils
 from msg import *
@@ -41,6 +36,7 @@ class BootSync:
         Syncs the current configuration file with the config tree.
         Using the Check().run_ functions previously is recommended
         """
+        self.verbose = verbose
         self.dry_run = dry_run
         try:
             self.copy_pxelinux()
@@ -113,10 +109,10 @@ class BootSync:
             if kernel is None or not os.path.isfile(kernel):
                utils.set_error("Kernel for distro (%s) cannot be found and needs to be fixed: %s" % (d.name, d.kernel))
                print utils.last_error()
-               raise Exception("error")
+               raise Exception, "error"
             if initrd is None or not os.path.isfile(initrd):
-               utils.last_error("Initrd for distro (%s) cannot be found and needs to be fixed: %s" % (d.name, d.initrd))
-               raise Exception("error")
+               utils.set_error("Initrd for distro (%s) cannot be found and needs to be fixed: %s" % (d.name, d.initrd))
+               raise Exception, "error"
             b_kernel = os.path.basename(kernel)
             b_initrd = os.path.basename(initrd)
             self.copyfile(kernel, os.path.join(distro_dir, b_kernel))
@@ -146,7 +142,7 @@ class BootSync:
                   self.copyfile(g.kickstart, dest)
               except:
                   utils.set_error("err_kickstart2")
-                  raise "error"
+                  raise Exception, "error"
 
     def build_trees(self):
         """
@@ -188,11 +184,11 @@ class BootSync:
             profile = self.profiles.find(system.profile)
             if profile is None:
                 utils.set_error("orphan_profile2")
-                raise "error"
+                raise Exception, "error"
             distro = self.distros.find(profile.distro)
             if distro is None:
                 utils.set_error("orphan_system2")
-                raise "error"
+                raise Exception, "error"
             f1 = self.get_pxelinux_filename(system.name)
             f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
             f3 = os.path.join(self.settings.tftpboot, "systems", f1)
@@ -215,7 +211,7 @@ class BootSync:
             return "01-" + "-".join(name.split(":")).lower()
         else:
             utils.set_error(m("err_resolv" % name))
-            raise "error"
+            raise Exception, "error"
 
 
     def write_pxelinux_file(self,filename,system,profile,distro):

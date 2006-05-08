@@ -6,9 +6,7 @@ Michael DeHaan <mdehaan@redhat.com>
 """
 
 import os
-import sys
 import re
-import config
 
 from msg import *
 

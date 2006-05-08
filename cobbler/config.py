@@ -85,6 +85,7 @@ class Config:
        """
        for x in self._classes:
           x.clear()
+       return True
 
    def file_check(self):
        """
@@ -93,21 +94,28 @@ class Config:
        """
        for x in self._classes:
           if not os.path.exists(x.filename()):
-              serializer.serialize(x)
+              if not serializer.serialize(x):
+                  return False
+       return True
+       
 
    def serialize(self):
        """
        Save the object hierarchy to disk, using the filenames referenced in each object.
        """
        for x in self._classes:
-          serializer.serialize(x)
+          if not serializer.serialize(x):
+              return False
+       return True
 
    def deserialize(self):
        """
        Load the object hierachy from disk, using the filenames referenced in each object.
        """
        for x in self._classes:
-          serializer.deserialize(x)
+          if not serializer.deserialize(x):
+              return False
+       return True
 
 
 
