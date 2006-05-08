@@ -31,8 +31,8 @@ class BootTest(unittest.TestCase):
 
     def setUp(self):
         # Create temp dir
-        #self.topdir = tempfile.mkdtemp(prefix="_cobbler-",dir="/tmp")
-        self.topdir = "/tmp" # only for refactoring, fix later
+        self.topdir = tempfile.mkdtemp(prefix="_cobbler-",dir="/tmp")
+        #self.topdir = "/tmp" # only for refactoring, fix later
         print "using dir = %s" % self.topdir
         self.fk_initrd = os.path.join(self.topdir, FAKE_INITRD)
         self.fk_initrd2 = os.path.join(self.topdir, FAKE_INITRD2)
@@ -52,7 +52,7 @@ class BootTest(unittest.TestCase):
 
     def tearDown(self):
         # only off during refactoring, fix later
-        # shutil.rmtree(self.topdir,ignore_errors=True)
+        shutil.rmtree(self.topdir,ignore_errors=True)
         self.api = None
 
     def make_basic_config(self):
