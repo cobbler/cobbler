@@ -31,7 +31,7 @@ class System(item.Item):
         See utils.py
         """
         new_name = utils.find_system_identifier(name)
-        if new_name is None or new_name == False:
+        if not new_name:
             utils.set_error("bad_sys_name")
             return False
         self.name = name  # we check it add time, but store the original value.

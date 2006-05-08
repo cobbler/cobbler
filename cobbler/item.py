@@ -4,16 +4,11 @@ An Item is a serializable thing that can appear in a Collection
 Michael DeHaan <mdehaan@redhat.com>
 """
 
+import exceptions
+
 import serializable
 
 class Item(serializable.Serializable):
-
-    """
-    constructor must be of format:
-    def __init__(self,seed_data)
-    where seed_data is a hash of argument_name/value pairs
-    see profile.py for example
-    """
 
     def set_name(self,name):
         """

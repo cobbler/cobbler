@@ -4,6 +4,8 @@ Base class for any serializable list of things...
 Michael DeHaan <mdehaan@redhat.com>
 """
 
+import exceptions
+
 import serializable
 import utils
 import msg
@@ -17,13 +19,23 @@ class Collection(serializable.Serializable):
         self.config = config
         self.clear()
 
-    def factory_produce(self):
+    def factory_produce(self,config,seed_data):
+        """
+        Must override in subclass.  Factory_produce returns an Item object
+        from datastructure seed_data
+        """
         raise exceptions.NotImplementedError
 
     def filename(self):
+        """
+        Must override in subclass.  See Serializable
+        """
         raise exceptions.NotImplementedError
 
     def clear(self):
+        """
+        Forget about objects in the collection.
+        """
         if utils.app_debug:
             print "Collection::clear"
         self.listing = {}
@@ -53,9 +65,9 @@ class Collection(serializable.Serializable):
         if utils.app_debug:
             print "Collection::from_datastruct(%s)" % datastruct
         if datastruct is None:
-            print "DEBUG: from_datastruct -> None, skipping"
+            if utils.app_debug:
+                print "DEBUG: from_datastruct -> None, skipping"
             return
-	print "DEBUG: from_datastruct: %s" % datastruct
         for seed_data in datastruct:
             item = self.factory_produce(self.config,seed_data)
             self.add(item)

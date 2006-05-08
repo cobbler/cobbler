@@ -1,5 +1,6 @@
 """
-Classes for validating whether asystem is configured for network booting
+Validates whether the system is reasonably well configured for
+serving up content.  This is the code behind 'cobbler check'.
 
 Michael DeHaan <mdehaan@redhat.com>
 """
@@ -14,6 +15,9 @@ from msg import *
 class BootCheck:
 
    def __init__(self,config):
+       """
+       Constructor
+       """
        self.config   = config
        self.settings = config.settings()
 
@@ -35,10 +39,18 @@ class BootCheck:
        return status
 
    def check_name(self,status):
+       """
+       If the server name in the config file is still set to localhost
+       kickstarts run from koan will not have proper kernel line
+       parameters.
+       """
        if self.settings.server == "localhost":
           status.append(m("bad_server"))
 
    def check_httpd(self,status):
+       """
+       Check if Apache is installed.
+       """
        if not os.path.exists(self.settings.httpd_bin):
           status.append(m("no_httpd"))
 
@@ -98,7 +110,9 @@ class BootCheck:
    def check_dhcpd_conf(self,status):
        """
        Check that dhcpd *appears* to be configured for pxe booting.
-       We can't assure file correctness
+       We can't assure file correctness.  Since a cobbler user might
+       have dhcp on another server, it's okay if it's not there and/or
+       not configured correctly according to automated scans.
        """
        if os.path.exists(self.settings.dhcpd_conf):
            match_next = False

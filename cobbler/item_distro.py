@@ -1,5 +1,6 @@
 """
-A cobbler distribution
+A cobbler distribution.  A distribution is a kernel, and initrd, and potentially
+some kernel options.
 
 Michael DeHaan <mdehaan@redhat.com>
 """
@@ -13,16 +14,25 @@ import os
 class Distro(item.Item):
 
     def __init__(self,config):
+        """
+        Constructor.  Requires a back reference to the Config management object.
+        """
         self.config = config
         self.clear()
 
     def clear(self):
+        """
+        Reset this object.
+        """
         self.name = None
         self.kernel = None
         self.initrd = None
         self.kernel_options = ""
 
     def from_datastruct(self,seed_data):
+        """
+        Modify this object to take on values in seed_data
+        """
         self.name = seed_data['name']
         self.kernel = seed_data['kernel']
         self.initrd = seed_data['initrd']
@@ -64,6 +74,9 @@ class Distro(item.Item):
         return True
 
     def to_datastruct(self):
+        """
+        Return a serializable datastructure representation of this object.
+        """
         return {
            'name': self.name,
            'kernel': self.kernel,

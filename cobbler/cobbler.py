@@ -1,6 +1,7 @@
 """
 Command line interface for cobbler, a network provisioning configuration
-library.  Consult 'man cobbler' for general info.
+library.  Consult 'man cobbler' for general info.  This class serves
+as a good reference on how to drive the API (api.py).
 
 Michael DeHaan <mdehaan@redhat.com>
 """
@@ -137,7 +138,6 @@ class BootCLI:
         commands = {
            '--name'     :  lambda(a) : sys.set_name(a),
            '--profile'  :  lambda(a) : sys.set_profile(a),
-           '--profiles' :  lambda(a) : sys.set_profile(a), # alias
            '--kopts'    :  lambda(a) : sys.set_kernel_options(a)
         }
         on_ok = lambda: self.api.systems().add(sys)
@@ -294,7 +294,7 @@ def main():
 
     # verify syck isn't busted (old syck bindings were)
     if not hasattr(syck,"dump"):
-        raise Exception("needs a more-recent PySyck")
+        raise Exception("needs a more-recent PySyck module")
 
     if os.getuid() != 0:
         # FIXME: don't require root

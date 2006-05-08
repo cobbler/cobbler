@@ -1,5 +1,6 @@
 """
-Code to vivify a configuration into a real TFTP/DHCP configuration.
+Builds out a TFTP/cobbler boot tree based on the object tree.
+This is the code behind 'cobbler sync'.
 
 Michael DeHaan <mdehaan@redhat.com>
 """
@@ -24,6 +25,9 @@ Handles conversion of internal state to the tftpboot tree layout
 class BootSync:
 
     def __init__(self,config):
+        """
+        Constructor
+        """
         self.verbose  = True
         self.config   = config
         self.distros  = config.distros()
@@ -124,7 +128,7 @@ class BootSync:
         Similar to what we do for distros, ensure all the kickstarts
         in conf file are valid.   kickstarts are referenced by URL
         (http or ftp), can stay as is.  kickstarts referenced by absolute
-        path will be mirrored over http.
+        path (i.e. are files path) will be mirrored over http.
         """
         # ensure all referenced kickstarts exist
         # these are served by either NFS, Apache, or some ftpd, so we don't need to copy them
@@ -151,7 +155,7 @@ class BootSync:
         configured IP or MAC address.  Also build a parallel 'xeninfo' tree
         for xen-net-install info.
         """
-        print "building trees..."
+        self.sync_log("building trees...")
         # create pxelinux.cfg under tftpboot
         # and file for each MAC or IP (hex encoded 01-XX-XX-XX-XX-XX-XX)
 

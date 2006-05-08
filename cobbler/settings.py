@@ -10,12 +10,21 @@ import utils
 class Settings(serializable.Serializable):
 
    def filename(self):
+       """
+       The filename where settings are serialized.
+       """
        return "/var/lib/cobbler/settings"
 
    def __init__(self):
+       """
+       Constructor.
+       """
        self.clear()
 
    def clear(self):
+       """
+       Reset this object to reasonable default values.
+       """
        self._attributes = {
           "httpd_bin"      : "/usr/sbin/httpd",
           "pxelinux"       : "/usr/lib/syslinux/pxelinux.0",
@@ -30,19 +39,24 @@ class Settings(serializable.Serializable):
 
 
    def to_datastruct(self):
+       """
+       Return an easily serializable representation of the config.
+       """
        return self._attributes
 
    def from_datastruct(self,datastruct):
+       """
+       Modify this object to load values in datastruct.
+       """
        if datastruct is None:
-          print "DEBUG: not loading empty structure"
+          print "warning: not loading empty structure for %s" % self.filename()
           return
        self._attributes = datastruct
        return self
 
-   # could use getatr, but I'd rather not.
    def __getattr__(self,name):
        if utils.app_debug:
-           print "Settings::__getattr__(self,%s)" % name       
+           print "Settings::__getattr__(self,%s)" % name
        if self._attributes.has_key(name):
            return self._attributes[name]
        else:

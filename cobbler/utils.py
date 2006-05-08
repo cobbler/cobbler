@@ -12,17 +12,18 @@ import subprocess
 
 import msg
 
-app_debug =  True # essentially an app level global, but the only one
+app_debug = False # essentially an app level global, but the only one
 
 _re_kernel = re.compile(r'vmlinuz-(\d+)\.(\d+)\.(\d+)-(.*)')
 _re_initrd = re.compile(r'initrd-(\d+)\.(\d+)\.(\d+)-(.*).img')
-_last_error = ""
+utils_last_error = ""
 
 def last_error():
-    return _last_error
+    return utils_last_error
 
 def set_error(strmsg):
-    _last_error = msg.m(strmsg)
+    global utils_last_error
+    utils_last_error = msg.m(strmsg)
 
 def get_host_ip(ip):
     handle = subprocess.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=subprocess.PIPE)

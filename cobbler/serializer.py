@@ -1,7 +1,5 @@
 # Michael DeHaan <mdehaan@redhat.com>
 
-import api
-import utils
 import syck  # PySyck 0.61 or greater, not syck-python 0.55
 import msg
 

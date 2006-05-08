@@ -1,5 +1,6 @@
 """
-A Cobbler Profile.
+A Cobbler Profile.  A profile is a reference to a distribution, possibly some kernel
+options, possibly some Xen options, and some kickstart data.
 
 Michael DeHaan <mdehaan@redhat.com>
 """
@@ -11,10 +12,16 @@ from msg import *
 class Profile(item.Item):
 
     def __init__(self,config):
+        """
+        Constructor.  Requires a backreference to Config.
+        """
         self.config = config
         self.clear()
 
     def clear(self):
+        """
+        Reset this object.
+        """
         self.name = None
         self.distro = None # a name, not a reference
         self.kickstart = None
@@ -26,6 +33,9 @@ class Profile(item.Item):
         self.xen_paravirt = True
 
     def from_datastruct(self,seed_data):
+        """
+        Load this object's properties based on seed_data
+        """
         self.name            = seed_data['name']
         self.distro          = seed_data['distro']
         self.kickstart       = seed_data['kickstart']
@@ -82,7 +92,7 @@ class Profile(item.Item):
 	For Xen only.
 	Specifies the size of the Xen image in gigabytes.  xen-net-install
 	may contain some logic to ignore 'illogical' values of this size,
-	though there are no guarantees.  0 tells xen-net-install to just
+	though there are no guarantees.  0 tells koan to just
 	let it pick a semi-reasonable size.  When in doubt, specify the
 	size you want.
 	"""
@@ -147,6 +157,9 @@ class Profile(item.Item):
         return True
 
     def to_datastruct(self):
+        """
+        Return hash representation for the serializer
+        """
         return {
             'name' : self.name,
             'distro' : self.distro,
@@ -160,6 +173,9 @@ class Profile(item.Item):
         }
 
     def printable(self):
+        """
+        A human readable representaton
+        """
         buf = ""
         buf = buf + "profile         : %s\n" % self.name
         buf = buf + "distro          : %s\n" % self.distro
@@ -171,3 +187,4 @@ class Profile(item.Item):
         buf = buf + "xen mac         : %s" % self.xen_mac
         buf = buf + "xen paravirt    : %s" % self.xen_paravirt
         return buf
+

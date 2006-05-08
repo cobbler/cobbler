@@ -5,10 +5,6 @@ see source for cobbler.py, or pydoc, for example usage.
 Michael DeHaan <mdehaan@redhat.com>
 """
 
-import exceptions
-import os
-import traceback
-
 import config
 import utils
 import action_sync

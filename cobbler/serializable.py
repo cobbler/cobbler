@@ -1,8 +1,11 @@
 """
-Serializable interface, for documentation purposes
+Serializable interface, for documentation purposes.
+Collections and Settings both support this interface.
 
 Michael DeHaan <mdehaan@redhat.com>
 """
+
+import exceptions
 
 class Serializable:
 
