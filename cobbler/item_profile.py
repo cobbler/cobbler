@@ -7,7 +7,7 @@ Michael DeHaan <mdehaan@redhat.com>
 
 import utils
 import item
-from cobbler_exception import CobblerException
+import cexceptions
 
 class Profile(item.Item):
 
@@ -57,7 +57,7 @@ class Profile(item.Item):
         if self.config.distros().find(distro_name):
             self.distro = distro_name
             return True
-        raise CobblerException("no_distro")
+        raise cexceptions.CobblerException("no_distro")
 
     def set_kickstart(self,kickstart):
         """
@@ -67,7 +67,7 @@ class Profile(item.Item):
         if utils.find_kickstart(kickstart):
             self.kickstart = kickstart
             return True
-        raise CobblerException("no_kickstart")
+        raise cexceptions.CobblerException("no_kickstart")
 
     def set_xen_name(self,str):
         """
@@ -81,7 +81,7 @@ class Profile(item.Item):
         # no slashes or wildcards
         for bad in [ '/', '*', '?' ]:
             if str.find(bad) != -1:
-                return False
+                raise cexceptions.CobblerException("exc_xen_name")
         self.xen_name = str
         return True
 
@@ -98,13 +98,13 @@ class Profile(item.Item):
         try:
             inum = int(num)
             if inum != float(num):
-                return False
-            self.xen_file_size = inum
+                return cexceptions.CobblerException("exc_xen_file")
             if inum >= 0:
+                self.xen_file_size = inum
                 return True
-            return False
+            return cexceptions.CobblerException("exc_xen_file")
         except:
-            return False
+            return cexceptions.CobblerException("exc_xen_file")
 
     def set_xen_mac(self,mac):
         """
@@ -122,7 +122,7 @@ class Profile(item.Item):
             self.xen_mac = mac
             return True
         else:
-            return False
+            raise cexceptions.CobblerException("exc_xen_mac")
 
     def set_xen_paravirt(self,truthiness):
         """
@@ -140,9 +140,9 @@ class Profile(item.Item):
             elif (truthiness == True or truthiness.lower() == 'true'):
                 self.xen_paravirt = True
             else:
-                return False
+                return cexceptions.CobblerException("exc_xen_para")
         except:
-            return False
+            return cexceptions.CobblerException("exc_xen_para")
         return True
 
     def is_valid(self):

@@ -4,6 +4,7 @@ import syck  # PySyck 0.61 or greater, not syck-python 0.55
 import errno
 import os
 
+import cexceptions
 import utils
 
 def serialize(obj):
@@ -16,17 +17,17 @@ def serialize(obj):
     try:
         fd = open(filename,"w+")
     except IOError, ioe:
-        basename = os.path.basename(filename)
-        if not os.path.exists(basename):
+        dirname = os.path.dirname(filename)
+        if not os.path.exists(dirname):
            try:
-               os.makedirs(basename)
-           except:
-               raise CobblerException("need_perms", basename)
-               return False
+               os.makedirs(dirname)
+               # evidentally this doesn't throw exceptions.
+           except OSError, ose:
+               raise cexceptions.CobblerException("need_perms", os.path.dirname(dirname))
         try:
            fd = open(filename,"w+")
-        except:
-           raise CobblerException("need_perms", filename)
+        except IOError, ioe3:
+           raise cexceptions.CobblerException("need_perms", filename)
            return False
     datastruct = obj.to_datastruct()
     encoded = syck.dump(datastruct)

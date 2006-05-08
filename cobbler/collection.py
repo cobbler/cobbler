@@ -5,7 +5,7 @@ Michael DeHaan <mdehaan@redhat.com>
 """
 
 import exceptions
-
+import cexceptions
 import serializable
 import utils
 import cobbler_msg
@@ -70,7 +70,7 @@ class Collection(serializable.Serializable):
         won't be added to the collection).
         """
         if ref is None or not ref.is_valid():
-            raise CobblerException("bad_param")
+            raise cexceptions.CobblerException("bad_param")
         self.listing[ref.name] = ref
         return True
 

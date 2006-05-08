@@ -10,10 +10,9 @@ import os
 import sys
 import api
 import syck
-import traceback
 
 import cobbler_msg
-from cobbler_exception import CobblerException
+import cexceptions
 
 class BootCLI:
 
@@ -76,21 +75,14 @@ class BootCLI:
         """
         Run the command line and return system exit code
         """
-        rc = self.deserialize()
-        if rc:
-            rc = self.curry_args(self.args[1:], self.commands['toplevel'])
-        if not rc:
-            print self.api.last_error()
-            return 1
-        return 0
+        self.deserialize()
+        self.curry_args(self.args[1:], self.commands['toplevel'])
 
     def usage(self,args):
         """
         Print out abbreviated help if user gives bad syntax
         """
-        print cobbler_msg.lookup("usage")
-        return False
-
+        raise cexception.CobblerException("usage")
 
     def system_list(self,args):
         """
@@ -214,24 +206,16 @@ class BootCLI:
                 print cobbler_msg.lookup("bad_arg") % x
                 return False
             if key in input_routines:
-                # --argument is recognized, so run the loader
-                # attached to it in the dispatch table
-                if not input_routines[key](value):
-                   # loader does not like passed value
-                   print cobbler_msg.lookup("reject_arg") % key
-                   return False
+                # run the loader for the argument
+                # it will throw CobblerExceptions on bad args
+                input_routines[key](value)
             else:
                 # --argument is not recognized
                 print cobbler_msg.lookup("weird_arg") % key
                 return False
-        # success thus far, so run the success routine for the set of
-        # arguments.  Configuration will only be written to file if the
-        # final routine succeeds.
-        rc = on_ok()
-        if rc and serialize:
-            return self.serialize()
-        return rc
-
+        # no lethal exceptions, so we can run the finalization routine
+        on_ok()
+        self.serialize()
 
     def curry_args(self, args, commands):
         """
@@ -307,15 +291,14 @@ def main():
     """
     CLI entry point
     """
-
-    # verify syck isn't busted (old syck bindings were)
-    if not hasattr(syck,"dump"):
-        raise CobblerException("needs a more-recent PySyck module")
-
+    
     try:
+        # verify syck isn't busted (old syck bindings were)
+        if not hasattr(syck,"dump"):
+            raise cexceptions.CobblerException("needs a more-recent PySyck module")
         cli = BootCLI(sys.argv)
-    except Exception, exc:
-        print exc
+    except cexceptions.CobblerException, exc:
+        print str(exc)[1:-1]  # remove framing air quotes
         sys.exit(1)
     sys.exit(cli.run())
 

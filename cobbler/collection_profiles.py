@@ -10,7 +10,7 @@ Michael DeHaan <mdehaan@redhat.com>
 import item_profile as profile
 import utils
 import collection
-from cobbler_exception import CobblerException
+import cexceptions
 
 #--------------------------------------------
 
@@ -28,9 +28,9 @@ class Profiles(collection.Collection):
         """
         for k,v in self.config.systems().listing.items():
            if v.profile == name:
-               raise CobblerException("orphan_system")
+               raise cexceptions.CobblerException("orphan_system")
         if self.find(name):
             del self.listing[name]
             return True
-        raise CobblerException("delete_nothing")
+        raise cexceptions.CobblerException("delete_nothing")
 

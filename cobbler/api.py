@@ -3,10 +3,6 @@ python API module for Cobbler
 see source for cobbler.py, or pydoc, for example usage.
 CLI apps and daemons should import api.py, and no other cobbler code.
 
-All functions return True on success, and generally return False on error.
-Exceptions are *not* extended to escape this class, nor should this class
-need to do any exception handling.
-
 Michael DeHaan <mdehaan@redhat.com>
 """
 
@@ -14,66 +10,83 @@ import config
 import utils
 import action_sync
 import action_check
-
-_config = config.Config()
+import cexceptions
 
 class BootAPI:
 
 
-    def __init__(self):
+    def __init__(self,catch_exceptions=False):
        """
-       Constructor...
+       The API can be invoked in two ways, depending on how it is constructed.
+       The catch_exceptions mode will cause any API method to return false
+       if any CobblerExceptions were thrown, along with setting 'last_error'.  
+       The other mode just lets the exceptions pass through, and is the way
+       most apps should use the API.  catch_exceptions was added for the test hooks,
+       since they are coded to use True/False.
        """
+       self._config = config.Config()
+       self.catch_exceptions = catch_exceptions
+       self.last_error = ""
        self.deserialize()
+       
 
+    def __api_call(self,anonymous):
+       if self.catch_exceptions:
+           try:
+               return anonymous()
+           except cexceptions.CobblerException, cobexc:
+               self.last_error = str(cobexc)
+               return False
+       else:
+           return anonymous()
 
     def clear(self):
        """
        Forget about current list of profiles, distros, and systems
        """
-       return _config.clear()
+       return self.__api_call(lambda: self._config.clear())
 
 
     def systems(self):
        """
        Return the current list of systems
        """
-       return _config.systems()
+       return self.__api_call(lambda: self._config.systems())
 
 
     def profiles(self):
        """
        Return the current list of profiles
        """
-       return _config.profiles()
+       return self.__api_call(lambda: self._config.profiles())
 
 
     def distros(self):
        """
        Return the current list of distributions
        """
-       return _config.distros()
+       return self.__api_call(lambda: self._config.distros())
 
 
     def new_system(self):
        """
        Return a blank, unconfigured system, unattached to a collection
        """
-       return _config.new_system()
+       return self.__api_call(lambda: self._config.new_system())
 
 
     def new_distro(self):
        """
        Create a blank, unconfigured distro, unattached to a collection.
        """
-       return _config.new_distro()
+       return self.__api_call(lambda: self._config.new_distro())
 
 
     def new_profile(self):
        """
        Create a blank, unconfigured profile, unattached to a collection
        """
-       return _config.new_profile()
+       return self.__api_call(lambda: self._config.new_profile())
 
     def check(self):
        """
@@ -84,7 +97,7 @@ class BootAPI:
        for human admins, who may, for instance, forget to properly set up
        their TFTP servers for PXE, etc.
        """
-       return action_check.BootCheck(_config).run()
+       return self.__api_call(lambda: action_check.BootCheck(self._config).run())
 
 
     def sync(self,dry_run=True):
@@ -94,18 +107,18 @@ class BootAPI:
        /tftpboot.  Any operations done in the API that have not been
        saved with serialize() will NOT be synchronized with this command.
        """
-       return action_sync.BootSync(_config).sync(dry_run)
+       return self.__api_call(lambda: action_sync.BootSync(self._config).sync(dry_run))
 
 
     def serialize(self):
        """
        Save the config file(s) to disk.
        """
-       return _config.serialize()
+       return self.__api_call(lambda: self._config.serialize())
 
     def deserialize(self):
        """
        Load the current configuration from config file(s)
        """
-       return _config.deserialize()
+       return self.__api_call(lambda: self._config.deserialize())
 

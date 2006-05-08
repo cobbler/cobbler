@@ -45,6 +45,14 @@ _msg_table = {
   "no_kernel"       : "the kernel needs to be a directory containing a kernel, or a full path.  Kernels must be named just 'vmlinuz' or in the form 'vmlinuz-AA.BB.CC-something'",
   "sync_kernel"     : "the kernel (%s) for distro (%s) cannot be found and must be fixed",
   "sync_initrd"     : "the initrd (%s) for distro (%s) cannot be found and must be fixed",
+  "sync_mirror_ks"  : "mirroring local kickstarts...",
+  "sync_buildtree"  : "building trees",
+  "sync_processing" : "processing: %s",
+  "writing"         : "writing file: %s",
+  "mkdir"           : "creating: %s",
+  "dryrun"          : "dry run | %s",
+  "copying"         : "copying file: %s to %s",
+  "removing"        : "removing: %s",
   "no_initrd"       : "the initrd needs to be a directory containing an initrd, or a full path.  Initrds must be named just 'initrd.img' or in the form 'initrd-AA.BB.CC-something.img",
   "check_ok"        : """
 No setup problems found.

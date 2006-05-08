@@ -8,6 +8,7 @@ Michael DeHaan <mdehaan@redhat.com
 import utils
 import collection
 import item_distro as distro
+import cexceptions
 
 class Distros(collection.Collection):
 
@@ -30,9 +31,9 @@ class Distros(collection.Collection):
         # first see if any Groups use this distro
         for v in self.config.profiles():
             if v.distro == name:
-               raise CobblerException("orphan_files")
+               raise cexceptions.CobblerException("orphan_files")
         if self.find(name):
             del self.listing[name]
             return True
-        raise CobblerException("delete_nothing")
+        raise cexceptions.CobblerException("delete_nothing")
 

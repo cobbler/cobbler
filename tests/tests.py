@@ -16,6 +16,7 @@ sys.path.append('./cobbler')
 import api
 import config
 import utils
+from cexceptions import CobblerException
 
 FAKE_INITRD="initrd-2.6.15-1.2054_FAKE.img"
 FAKE_INITRD2="initrd-2.5.16-2.2055_FAKE.img"
@@ -42,7 +43,7 @@ class BootTest(unittest.TestCase):
         self.fk_kernel2 = os.path.join(self.topdir, FAKE_KERNEL2)
         self.fk_kernel3 = os.path.join(self.topdir, FAKE_KERNEL3)
 
-        self.api = api.BootAPI()
+        self.api = api.BootAPI(True) # contain_exceptions
         self.hostname = os.uname()[1]
         create = [ self.fk_initrd, self.fk_initrd2, self.fk_initrd3,
                 self.fk_kernel, self.fk_kernel2, self.fk_kernel3 ]
@@ -79,8 +80,11 @@ class BootTest(unittest.TestCase):
 class Utilities(BootTest):
 
     def _expeq(self, expected, actual):
-        self.failUnlessEqual(expected, actual,
-            "Expected: %s; actual: %s" % (expected, actual))
+        try:
+            self.failUnlessEqual(expected, actual,
+                "Expected: %s; actual: %s" % (expected, actual))
+        except:
+            self.fail("exception during failUnlessEqual")
 
     def test_kernel_scan(self):
         self.assertTrue(utils.find_kernel(self.fk_kernel))
@@ -123,32 +127,32 @@ class Additions(BootTest):
     def test_invalid_distro_non_referenced_kernel(self):
         distro = self.api.new_distro()
         self.assertTrue(distro.set_name("testdistro2"))
-        self.assertFalse(distro.set_kernel("filedoesntexist"))
+        self.failUnlessRaises(CobblerException,distro.set_kernel,"filedoesntexist")
         self.assertTrue(distro.set_initrd(self.fk_initrd))
-        self.assertFalse(self.api.distros().add(distro))
+        self.failUnlessRaises(CobblerException, self.api.distros().add, distro)
         self.assertFalse(self.api.distros().find("testdistro2"))
 
     def test_invalid_distro_non_referenced_initrd(self):
         distro = self.api.new_distro()
         self.assertTrue(distro.set_name("testdistro3"))
         self.assertTrue(distro.set_kernel(self.fk_kernel))
-        self.assertFalse(distro.set_initrd("filedoesntexist"))
-        self.assertFalse(self.api.distros().add(distro))
+        self.failUnlessRaises(CobblerException, distro.set_initrd, "filedoesntexist")
+        self.failUnlessRaises(CobblerException, self.api.distros().add, distro)
         self.assertFalse(self.api.distros().find("testdistro3"))
 
     def test_invalid_profile_non_referenced_distro(self):
         profile = self.api.new_profile()
         self.assertTrue(profile.set_name("testprofile11"))
-        self.assertFalse(profile.set_distro("distrodoesntexist"))
+        self.failUnlessRaises(CobblerException, profile.set_distro, "distrodoesntexist")
         self.assertTrue(profile.set_kickstart(FAKE_KICKSTART))
-        self.assertFalse(self.api.profiles().add(profile))
+        self.failUnlessRaises(CobblerException, self.api.profiles().add, profile)
         self.assertFalse(self.api.profiles().find("testprofile2"))
 
     def test_invalid_profile_kickstart_not_url(self):
         profile = self.api.new_profile()
         self.assertTrue(profile.set_name("testprofile12"))
         self.assertTrue(profile.set_distro("testdistro0"))
-        self.assertFalse(profile.set_kickstart("kickstartdoesntexist"))
+        self.failUnlessRaises(CobblerException, profile.set_kickstart, "kickstartdoesntexist")
         # since kickstarts are optional, you can still add it
         self.assertTrue(self.api.profiles().add(profile))
         self.assertTrue(self.api.profiles().find("testprofile12"))
@@ -165,21 +169,21 @@ class Additions(BootTest):
         # no slashes or wildcards in name
         self.assertTrue(profile.set_xen_name("xen"))
         self.assertTrue(profile.set_xen_name("xen"))
-        self.assertFalse(profile.set_xen_name("xen/foo"))
-        self.assertFalse(profile.set_xen_name("xen*foo"))
-        self.assertFalse(profile.set_xen_name("xen?foo"))
+        self.failUnlessRaises(CobblerException, profile.set_xen_name, "xen/foo")
+        self.failUnlessRaises(CobblerException, profile.set_xen_name, "xen*foo")
+        self.failUnlessRaises(CobblerException, profile.set_xen_name, "xen?foo")
         # sizes must be integers
         self.assertTrue(profile.set_xen_file_size("54321"))
-        self.assertFalse(profile.set_xen_file_size("huge"))
-        self.assertFalse(profile.set_xen_file_size("54321.23"))
+        self.failUnlessRaises(CobblerException, profile.set_xen_file_size, "huge")
+        self.failUnlessRaises(CobblerException, profile.set_xen_file_size, "54321.23")
         # macs must be properly formatted
         self.assertTrue(profile.set_xen_mac("AA:BB:CC:DD:EE:FF"))
-        self.assertFalse(profile.set_xen_mac("AA-BB-CC-DD-EE-FF"))
+        self.failUnlessRaises(CobblerException, profile.set_xen_mac, "AA-BB-CC-DD-EE-FF")
         # paravirt must be 'true' or 'false'
         self.assertFalse(profile.set_xen_mac("cowbell"))
         self.assertTrue(profile.set_xen_paravirt('true'))
         self.assertTrue(profile.set_xen_paravirt('fALsE'))
-        self.assertFalse(profile.set_xen_paravirt('sputnik'))
+        self.failUnlessRaises(CobblerException, profile.set_xen_paravirt, 'sputnik')
         self.assertFalse(profile.set_xen_paravirt(11))
         # each item should be 'true' now, so we can add it
         # since the failed items don't affect status
@@ -188,9 +192,9 @@ class Additions(BootTest):
     def test_invalid_system_bad_name_host(self):
         system = self.api.new_system()
         name = "hostnamewontresolveanyway"
-        self.assertFalse(system.set_name(name))
+        self.failUnlessRaises(CobblerException, system.set_name, name)
         self.assertTrue(system.set_profile("testprofile0"))
-        self.assertFalse(self.api.systems().add(system))
+        self.failUnlessRaises(CobblerException, self.api.systems().add, system)
         self.assertFalse(self.api.systems().find(name))
 
     def test_system_name_is_a_MAC(self):
@@ -212,27 +216,27 @@ class Additions(BootTest):
     def test_invalid_system_non_referenced_profile(self):
         system = self.api.new_system()
         self.assertTrue(system.set_name(self.hostname))
-        self.assertFalse(system.set_profile("profiledoesntexist"))
-        self.assertFalse(self.api.systems().add(system))
+        self.failUnlessRaises(CobblerException, system.set_profile, "profiledoesntexist")
+        self.failUnlessRaises(CobblerException, self.api.systems().add, system)
 
 class Deletions(BootTest):
 
     def test_invalid_delete_profile_doesnt_exist(self):
-        self.assertFalse(self.api.profiles().remove("doesnotexist"))
+        self.failUnlessRaises(CobblerException, self.api.profiles().remove, "doesnotexist")
 
     def test_invalid_delete_profile_would_orphan_systems(self):
         self.make_basic_config()
-        self.assertFalse(self.api.profiles().remove("testprofile0"))
+        self.failUnlessRaises(CobblerException, self.api.profiles().remove, "testprofile0")
 
     def test_invalid_delete_system_doesnt_exist(self):
-        self.assertFalse(self.api.systems().remove("doesnotexist"))
+        self.failUnlessRaises(CobblerException, self.api.systems().remove, "doesnotexist")
 
     def test_invalid_delete_distro_doesnt_exist(self):
-        self.assertFalse(self.api.distros().remove("doesnotexist"))
+        self.failUnlessRaises(CobblerException, self.api.distros().remove, "doesnotexist")
 
     def test_invalid_delete_distro_would_orphan_profile(self):
         self.make_basic_config()
-        self.assertFalse(self.api.distros().remove("testdistro0"))
+        self.failUnlessRaises(CobblerException, self.api.distros().remove, "testdistro0")
 
     def test_working_deletes(self):
         self.api.clear()

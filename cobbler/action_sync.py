@@ -6,13 +6,12 @@ Michael DeHaan <mdehaan@redhat.com>
 """
 
 import os
-import traceback
 import shutil
 import syck
 
 import utils
 import cobbler_msg
-from cobbler_exception import CobblerException
+import cexceptions
 
 """
 Handles conversion of internal state to the tftpboot tree layout
@@ -39,16 +38,12 @@ class BootSync:
         """
         self.verbose = verbose
         self.dry_run = dry_run
-        try:
-            self.copy_pxelinux()
-            self.clean_trees()
-            self.copy_distros()
-            self.validate_kickstarts()
-            self.configure_httpd()
-            self.build_trees()
-        except:
-            traceback.print_exc()
-            return False
+        self.copy_pxelinux()
+        self.clean_trees()
+        self.copy_distros()
+        self.validate_kickstarts()
+        self.configure_httpd()
+        self.build_trees()
         return True
 
 
@@ -108,9 +103,9 @@ class BootSync:
             kernel = utils.find_kernel(d.kernel) # full path
             initrd = utils.find_initrd(d.initrd) # full path
             if kernel is None or not os.path.isfile(kernel):
-               raise CobblerException("sync_kernel", (d.name, d.kernel))
+               raise cexceptions.CobblerException("sync_kernel", (d.name, d.kernel))
             if initrd is None or not os.path.isfile(initrd):
-               raise CobblerException("sync_initrd", (d.name, d.initrd))
+               raise cexceptions.CobblerException("sync_initrd", (d.name, d.initrd))
             b_kernel = os.path.basename(kernel)
             b_initrd = os.path.basename(initrd)
             self.copyfile(kernel, os.path.join(distro_dir, b_kernel))
@@ -139,7 +134,7 @@ class BootSync:
               try:
                   self.copyfile(g.kickstart, dest)
               except:
-                  raise CobblerException("err_kickstart2")
+                  raise cexceptions.CobblerException("err_kickstart2")
 
     def build_trees(self):
         """
@@ -180,10 +175,10 @@ class BootSync:
             self.sync_log(cobbler_msg.lookup("sync_processing") % system.name)
             profile = self.profiles.find(system.profile)
             if profile is None:
-                raise CobblerException("orphan_profile2")
+                raise cexceptions.CobblerException("orphan_profile2")
             distro = self.distros.find(profile.distro)
             if distro is None:
-                raise CobblerException("orphan_system2")
+                raise cexceptions.CobblerException("orphan_system2")
             f1 = self.get_pxelinux_filename(system.name)
             f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
             f3 = os.path.join(self.settings.tftpboot, "systems", f1)
@@ -205,7 +200,7 @@ class BootSync:
         elif utils.is_mac(name):
             return "01-" + "-".join(name.split(":")).lower()
         else:
-            raise CobblerException("err_resolv", name)
+            raise cexceptions.CobblerException("err_resolv", name)
 
 
     def write_pxelinux_file(self,filename,system,profile,distro):
@@ -342,7 +337,9 @@ class BootSync:
        """
        if self.verbose:
            if self.dry_run:
-               print cobbler_msg.lookup("dry_run") % message
+               if not message:
+                   message = ""
+               print cobbler_msg.lookup("dryrun") % str(message)
            else:
                print message
 
