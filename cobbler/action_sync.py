@@ -36,6 +36,8 @@ class BootSync:
         Syncs the current configuration file with the config tree.
         Using the Check().run_ functions previously is recommended
         """
+        if not os.path.exists(self.settings.tftpboot):
+            raise cexceptions.CobblerException("no_dir",self.settings.tftpboot)
         self.verbose = verbose
         self.dryrun = dryrun
         self.clean_trees()
@@ -329,7 +331,8 @@ class BootSync:
        try:
            return shutil.rmtree(path)
        except OSError, ioe:
-           raise cexceptions.CobblerException("no_delete",path)
+           if not ioe.errno == 2: # already exists
+               raise cexceptions.CobblerException("no_delete",path)
 
     def mkdir(self,path,mode=0777):
        """
