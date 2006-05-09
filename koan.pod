@@ -1,21 +1,22 @@
 =head1 NAME
 
-koan standards for 'kickstart-over-a-network' and allows for both network provisioning of new Xen guests and destructive re-provisioning of any existing system.
+koan standards for 'kickstart-over-a-network' and allows for both network provisioning of new Xen guests and "auto-kickstarting" (destructive re-provisioning of any existing system).  It interacts with a centralized boot server that has been configured with 'cobbler'.
 
 =head1 SYNOPSIS
 
-koan --xen --server=host --profiles=[profile1,profile2,...]
+koan --xen --server=host --profile=name
 
-koan --replace-self --server=host --profile=profile_name
+koan --replace-self --server=host --profile=name
 
 =head1 DESCRIPTION
 
-koan requests named profile information from a remote boot server,
-which has been configured with the 'cobbler' program, and acts on the data from that server.
+When invoked, koan requests profile information from a remote boot server that has been configured with cobbler.   What koan does with the profile data depends on whether it was invoked with --xen or --replace-self.
 
-For --xen, this means creating new Xen domU's on a xen dom0 in accordance to the orders from cobbler.
+For --xen, cobbler will create new Xen domUs on a xen dom0 in accordance to the orders from cobbler.
 
 For re-kickstarting ('--replace-self'), this means reprovisioning the system, blowing away any current data and replacing it with the results of a network install.
+
+Consult the man page for cobbler for more information.
 
 =head1 AUTHOR
 

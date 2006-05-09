@@ -1,6 +1,6 @@
 clean:
-	-\rm -f koan*.gz koan*.rpm MANIFEST
-	-\rm -rf koan-* dist build
+	-rm -f koan*.gz koan*.rpm MANIFEST
+	-rm -rf koan-* dist build
 
 manpage:
 	pod2man --center="koan" --release="" koan.pod | gzip -c > koan.1.gz

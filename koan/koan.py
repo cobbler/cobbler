@@ -1,11 +1,13 @@
 #!/usr/bin/env python
-#
-# koan = kickstart over a network
-#
-# a tool for network provisioning of Xen and network re-provisioning
-# of existing Linux systems.  used with 'cobbler'.
-#
-# Michael DeHaan <mdehaan@redhat.com>
+
+"""
+koan = kickstart over a network
+
+a tool for network provisioning of Xen and network re-provisioning
+of existing Linux systems.  used with 'cobbler'.
+
+Michael DeHaan <mdehaan@redhat.com>
+"""
 
 import sys
 import os
@@ -17,37 +19,34 @@ import urlgrabber
 import optparse
 import exceptions
 import subprocess
-import re
 import shutil
 
-# we're importing a slightly modified version of xenguest-install.
-# once it's more of a library that supports a bit more explicit
-# settings we can use the real thing.
 import xencreate
 
 """
-koan --xen --profiles=webserver,dbserver --server=hostname
-koan --replace-self --server=hostname --profiles=foo
-LATER? koan --replace-self --kickstart=foo (??)
+koan --xen --profile=webserver --server=hostname
+koan --replace-self --server=hostname --profile=foo
 """
 
 
 class InfoException(exceptions.Exception):
-    def __init__(self,args=None):
-        self.args = args
+    """ 
+    Custom exception for tracking of fatal errors.
+    """
+    pass
 
 class Koan:
 
-    def __init__(self,args):
+    def __init__(self,**kwargs):
         """
         Constructor.  Arguments are those from optparse...
         """
-        self.server            = args.server
-        self.profiles          = args.profiles
-        self.verbose           = args.verbose
-        self.is_xen            = args.is_xen
-        self.is_auto_kickstart = args.is_auto_kickstart
-        self.dryrun            = False
+        self.server            = kwargs['server']
+        self.profiles          = kwargs['profile']
+        self.verbose           = kwargs['verbose']
+        self.is_xen            = kwargs['is_xen']
+        self.is_auto_kickstart = kwargs['is_auto_kickstart']
+        self.dryrun            = kwargs['dryrun']
         if self.server is None:
             raise InfoException, "no server specified"
         if not self.is_xen and not self.is_auto_kickstart:
@@ -56,9 +55,8 @@ class Koan:
             raise InfoException, "no server specified"
         if self.verbose is None:
             self.verbose = True
-        if not self.profiles:
-            raise InfoException, "must specify --profiles"
-        self.profiles = self.profiles.split(',')
+        if not self.profile:
+            raise InfoException, "must specify --profile"
         if self.is_xen:
             self.do_xen()
         else:
@@ -90,8 +88,9 @@ class Koan:
         self.debug("removing: %s" % path)
         try:
             shutil.rmtree(path)
-        except:
-            pass
+        except OSError, (errno, msg):
+            if errno != errno.EPERM:
+                raise OSError(errno,msg)
 
     def copyfile(self,src,dest):
         """
@@ -104,7 +103,6 @@ class Koan:
         """
         Wrapper around subprocess.call(...)
         """
-        msg = " ".join(cmd)
         self.debug(cmd)
         if fake_it:
             self.debug("(SIMULATED)")
@@ -118,7 +116,7 @@ class Koan:
         """
         Actually kicks off downloads and auto-ks or xen installs
         """
-        for profile in self.profiles:
+        for profile in self.profile:
             self.debug("processing profile: %s" % profile)
             profile_data = self.get_profile_yaml(profile)
             self.debug(profile_data)
@@ -135,7 +133,7 @@ class Koan:
         Handle xen provisioning.
         """
         def each_profile(self, distro_data, profile_data):
-            cmd = self.do_xen_net_install(profile_data, distro_data)
+            self.do_xen_net_install(profile_data, distro_data)
         return self.do_net_install("/tmp",each_profile)
 
     def do_auto_kickstart(self):
@@ -169,7 +167,7 @@ class Koan:
         Get contents of data in network kickstart file.
         """
         if kickstart.startswith("nfs"):
-            # FIXME: NFS bits not tested
+            # FIXME: NFS downloading has not been tested
             ndir  = os.path.dirname(kickstart[4:])
             nfile = os.path.basename(kickstart[4:])
             nfsdir = tempfile.mkdtemp(prefix="koan_nfs",dir="/var/spool/koan")
@@ -190,7 +188,8 @@ class Koan:
         Code heavily borrowed from internal auto-ks scripts.
         """
         if initrd_data.find("filesystem data") != -1:
-            # FIXME: not tested with ext2 images yet
+            # FIXME: EXT2 image mangling has not been tested
+            # waiting on library for manipulation.
             return """
                cp %s /var/spool/koan/initrd_copy.gz
                 gunzip /var/spool/koan/initrd_copy.gz
@@ -347,13 +346,22 @@ class Koan:
         """
         name = data['xen_name']
         if name is None or name == "":
-            name = "xenguest"
-        name = name + str(int(time.time()))
+            name = self.profile
+        path = "/etc/xen/%s" % name
+        id = 0
+        if os.path.exists(path):
+            for fid in xrange(1,9999):
+                path = "/etc/xen/%s_%s" % (name, id)
+                if not os.path.exists(path):
+                    id = fid
+                    break
+        if id != 0:
+            name = "%s_%s" % (name,id)
         data['xen_name'] = name
         return name
 
     def calc_xen_uuid(self,data):
-        # FIXME: eventually we'll want to allow some koan CLI
+        # TODO: eventually we may want to allow some koan CLI
         # option for passing in the UUID.  Until then, it's random.
         return None
 
@@ -415,9 +423,14 @@ def main():
     """
     Command line stuff...
     """
-    if os.getuid() != 0:
-        print "koan requires root access"
-        sys.exit(3)
+    try:
+       for x in [ "/etc", "/boot", "/var/spool"]:
+          fn = tempfile.mkstemp(dir=x)
+          os.unlink(fn)
+    except OSError, ose:
+       print "koan requires write access to %s, which usually means root" % x
+       sys.exit(3)
+    
     p = optparse.OptionParser()
     p.add_option("-x", "--xen",
                  dest="is_xen",
@@ -438,9 +451,10 @@ def main():
                  action="store_false",
                  help="run (more) quietly")
     (options, args) = p.parse_args()
-    # FIXME:  catch custom exceptions only...
     try:
-        Koan(options)
+        Koan(server=args.server,is_xen=args.is_xen,
+             is_auto_kickstart=args.is_auto_kickstart,
+             profiles=args.profiles,verbose=args.verbose)
     except InfoException, ie:
         print str(ie) 
         sys.exit(1)
