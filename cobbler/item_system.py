@@ -64,10 +64,9 @@ class System(item.Item):
            'kernel_options' : self.kernel_options
         }
 
-    def printable(self):
-        buf = ""
-        buf = buf + "system       : %s\n" % self.name
-        buf = buf + "profile      : %s\n" % self.profile
-        buf = buf + "kernel opts  : %s" % self.kernel_options
+    def printable(self,id):
+        buf =       "system %-4s     : %s\n" % (id, self.name)
+        buf = buf + "profile         : %s\n" % self.profile
+        buf = buf + "kernel options  : %s" % self.kernel_options
         return buf
 

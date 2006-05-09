@@ -37,6 +37,11 @@ class Settings(serializable.Serializable):
           "tftpboot"       : "/tftpboot",
        }
 
+   def printable(self):
+       buf = ""
+       buf = buf + "defaults\n"
+       buf = buf + "kernel options  : %s\n" % self._attributes['kernel_options']
+       return buf
 
    def to_datastruct(self):
        """

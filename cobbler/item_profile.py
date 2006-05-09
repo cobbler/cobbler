@@ -172,19 +172,18 @@ class Profile(item.Item):
             'xen_paravirt'    : self.xen_paravirt
         }
 
-    def printable(self):
+    def printable(self,id):
         """
         A human readable representaton
         """
-        buf = ""
-        buf = buf + "profile         : %s\n" % self.name
+        buf =       "profile %-4s    : %s\n" % (id, self.name)
         buf = buf + "distro          : %s\n" % self.distro
         buf = buf + "kickstart       : %s\n" % self.kickstart
-        buf = buf + "kernel opts     : %s" % self.kernel_options
-        buf = buf + "xen name        : %s" % self.xen_name
-        buf = buf + "xen file size   : %s" % self.xen_file_size
-        buf = buf + "xen ram         : %s" % self.xen_ram
-        buf = buf + "xen mac         : %s" % self.xen_mac
-        buf = buf + "xen paravirt    : %s" % self.xen_paravirt
+        buf = buf + "kernel options  : %s\n" % self.kernel_options
+        buf = buf + "xen name        : %s\n" % self.xen_name
+        buf = buf + "xen file size   : %s\n" % self.xen_file_size
+        buf = buf + "xen ram         : %s\n" % self.xen_ram
+        # buf = buf + "xen mac         : %s\n" % self.xen_mac
+        buf = buf + "xen paravirt    : %s\n" % self.xen_paravirt
         return buf
 

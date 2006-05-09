@@ -46,15 +46,9 @@ Correlates a system name (an IP, hostname, or MAC address of a bare-metal system
 
 =head1 LIST OPERATIONS
 
-B<cobbler distro list>
-B<cobbler profile list>
-B<cobbler system list>
+B<cobbler list>
 
-These commands list the current configuration.
-
-B<cobbler trace <ip|hostname|mac>>
-
-Trace shows what is configured to deploy to a certain system
+Prints the current cobbler configuration.
 
 =head1 DELETING ENTRIES
 

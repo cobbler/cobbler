@@ -31,13 +31,13 @@ class BootSync:
         self.settings = config.settings()
 
 
-    def sync(self,dry_run=False,verbose=True):
+    def run(self,dryrun=False,verbose=True):
         """
         Syncs the current configuration file with the config tree.
         Using the Check().run_ functions previously is recommended
         """
         self.verbose = verbose
-        self.dry_run = dry_run
+        self.dryrun = dryrun
         self.copy_pxelinux()
         self.clean_trees()
         self.copy_distros()
@@ -103,9 +103,9 @@ class BootSync:
             kernel = utils.find_kernel(d.kernel) # full path
             initrd = utils.find_initrd(d.initrd) # full path
             if kernel is None or not os.path.isfile(kernel):
-               raise cexceptions.CobblerException("sync_kernel", (d.name, d.kernel))
+               raise cexceptions.CobblerException("sync_kernel", d.kernel, d.name)
             if initrd is None or not os.path.isfile(initrd):
-               raise cexceptions.CobblerException("sync_initrd", (d.name, d.initrd))
+               raise cexceptions.CobblerException("sync_initrd", d.initrd, d.name)
             b_kernel = os.path.basename(kernel)
             b_initrd = os.path.basename(initrd)
             self.copyfile(kernel, os.path.join(distro_dir, b_kernel))
@@ -175,10 +175,10 @@ class BootSync:
             self.sync_log(cobbler_msg.lookup("sync_processing") % system.name)
             profile = self.profiles.find(system.profile)
             if profile is None:
-                raise cexceptions.CobblerException("orphan_profile2")
+                raise cexceptions.CobblerException("orphan_profile2",system.name,system.profile)
             distro = self.distros.find(profile.distro)
             if distro is None:
-                raise cexceptions.CobblerException("orphan_system2")
+                raise cexceptions.CobblerException("orphan_distro2",system.profile,profile.distro)
             f1 = self.get_pxelinux_filename(system.name)
             f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
             f3 = os.path.join(self.settings.tftpboot, "systems", f1)
@@ -273,70 +273,70 @@ class BootSync:
 
     def tee(self,fd,text):
         """
-        For dry_run support:  send data to screen and potentially to disk
+        For dryrun support:  send data to screen and potentially to disk
         """
         self.sync_log(text)
-        if not self.dry_run:
+        if not self.dryrun:
             fd.write(text)
 
     def open_file(self,filename,mode):
         """
-        For dry_run support:  open a file if not in dry_run mode.
+        For dryrun support:  open a file if not in dryrun mode.
         """
-        if self.dry_run:
+        if self.dryrun:
             return None
         return open(filename,mode)
 
     def close_file(self,fd):
         """
-	For dry_run support:  close a file if not in dry_run mode.
+	For dryrun support:  close a file if not in dryrun mode.
 	"""
-        if not self.dry_run:
+        if not self.dryrun:
             fd.close()
 
     def copyfile(self,src,dst):
        """
-       For dry_run support:  potentially copy a file.
+       For dryrun support:  potentially copy a file.
        """
        self.sync_log(cobbler_msg.lookup("copying") % (src,dst))
-       if self.dry_run:
+       if self.dryrun:
            return True
        return shutil.copyfile(src,dst)
 
     def copy(self,src,dst):
        """
-       For dry_run support: potentially copy a file.
+       For dryrun support: potentially copy a file.
        """
        self.sync_log(cobbler_msg.lookup("copying") % (src,dst))
-       if self.dry_run:
+       if self.dryrun:
            return True
        return shutil.copy(src,dst)
 
     def rmtree(self,path,ignore):
        """
-       For dry_run support:  potentially delete a tree.
+       For dryrun support:  potentially delete a tree.
        """
        self.sync_log(cobbler_msg.lookup("removing") % (path))
-       if self.dry_run:
+       if self.dryrun:
            return True
        return shutil.rmtree(path,ignore)
 
     def mkdir(self,path,mode=0777):
        """
-       For dry_run support:  potentially make a directory.
+       For dryrun support:  potentially make a directory.
        """
        self.sync_log(cobbler_msg.lookup("mkdir") % (path))
-       if self.dry_run:
+       if self.dryrun:
            return True
        return os.mkdir(path,mode)
 
     def sync_log(self,message):
        """
-       Used to differentiate dry_run output from the real thing
+       Used to differentiate dryrun output from the real thing
        automagically
        """
        if self.verbose:
-           if self.dry_run:
+           if self.dryrun:
                if not message:
                    message = ""
                print cobbler_msg.lookup("dryrun") % str(message)

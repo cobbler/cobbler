@@ -31,7 +31,7 @@ class Distros(collection.Collection):
         # first see if any Groups use this distro
         for v in self.config.profiles():
             if v.distro == name:
-               raise cexceptions.CobblerException("orphan_files")
+               raise cexceptions.CobblerException("orphan_profile",v.name)
         if self.find(name):
             del self.listing[name]
             return True

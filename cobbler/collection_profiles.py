@@ -26,9 +26,9 @@ class Profiles(collection.Collection):
         """
         Remove element named 'name' from the collection
         """
-        for k,v in self.config.systems().listing.items():
+        for v in self.config.systems():
            if v.profile == name:
-               raise cexceptions.CobblerException("orphan_system")
+               raise cexceptions.CobblerException("orphan_system",v.name)
         if self.find(name):
             del self.listing[name]
             return True

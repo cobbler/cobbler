@@ -81,9 +81,12 @@ class Collection(serializable.Serializable):
         for reading by humans or parsing from scripts.  Actually scripts
         would be better off reading the YAML in the config files directly.
         """
-        values = map(lambda(a): a.printable(), sorted(self.listing.values()))
+        values = sorted(self.listing.values())
+        results = []
+        for i,v in enumerate(values):
+           results.append(v.printable(1+i))
         if len(values) > 0:
-           return "\n\n".join(values)
+           return "\n\n".join(results)
         else:
            return cobbler_msg.lookup("empty_list")
 

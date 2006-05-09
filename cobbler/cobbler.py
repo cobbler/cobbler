@@ -29,24 +29,22 @@ class BootCLI:
             'edit'    :  self.distro_edit,
             'delete'  :  self.distro_remove,
             'remove'  :  self.distro_remove,
-            'list'    :  self.distro_list
         }
         self.commands['profile'] = {
             'add'     :  self.profile_edit,
             'edit'    :  self.profile_edit,
             'delete'  :  self.profile_remove,
             'remove'  :  self.profile_remove,
-            'list'    :  self.profile_list
         }
         self.commands['system'] = {
             'add'     :  self.system_edit,
             'edit'    :  self.system_edit,
             'delete'  :  self.system_remove,
             'remove'  :  self.system_remove,
-            'list'    :  self.system_list
         }
         self.commands['toplevel'] = {
             'check'    : self.check,
+            'list'     : self.list,
             'distros'  : self.distro,
             'distro'   : self.distro,
             'profiles' : self.profile,
@@ -58,24 +56,11 @@ class BootCLI:
             '/?'       : self.usage
         }
 
-
-    def deserialize(self):
-        """
-        Load data from file(s)
-        """
-        return self.api.deserialize()
-
-    def serialize(self):
-        """
-        Save data to file(s)
-        """
-        return self.api.serialize()
-
     def run(self):
         """
         Run the command line and return system exit code
         """
-        self.deserialize()
+        self.api.deserialize()
         self.curry_args(self.args[1:], self.commands['toplevel'])
 
     def usage(self,args):
@@ -84,36 +69,23 @@ class BootCLI:
         """
         raise cexception.CobblerException("usage")
 
-    def system_list(self,args):
-        """
-        Print out the list of systems:  'cobbler system list'
-        """
-        print self.api.systems().printable()
-        return True
-
-    def profile_list(self,args):
-        """
-        Print out the list of profiles: 'cobbler profile list'
-        """
-        print self.api.profiles().printable()
-        return True
-
-    def distro_list(self,args):
-        """
-        Print out the list of distros: 'cobbler distro list'
-        """
-        print self.api.distros().printable()
-        return True
+    def list(self,args):
+        all = [ self.api.settings(), self.api.distros(), 
+                self.api.profiles(), self.api.systems() ]
+        for item in all:
+            print item.printable() 
 
     def system_remove(self,args):
         """
         Delete a system:  'cobbler system remove --name=foo'
         """
         commands = {
-           '--name'       : lambda(a):  self.api.systems().remove(a)
+           '--name'       : lambda(a):  self.api.systems().remove(a),
+           '--system'     : lambda(a):  self.api.systems().remove(a),
+           '--system'     : lambda(a):  self.api.systems().remove(a)
         }
         on_ok = lambda: True
-        return self.apply_args(args,commands,on_ok,True)
+        return self.apply_args(args,commands,on_ok)
 
 
     def profile_remove(self,args):
@@ -121,10 +93,11 @@ class BootCLI:
         Delete a profile:   'cobbler profile remove --name=foo'
         """
         commands = {
-           '--name'       : lambda(a):  self.api.profiles().remove(a)
+           '--name'       : lambda(a):  self.api.profiles().remove(a),
+           '--profile'    : lambda(a):  self.api.profiles().remove(a)
         }
         on_ok = lambda: True
-        return self.apply_args(args,commands,on_ok,True)
+        return self.apply_args(args,commands,on_ok)
 
 
     def distro_remove(self,args):
@@ -132,10 +105,11 @@ class BootCLI:
         Delete a distro:  'cobbler distro remove --name='foo'
         """
         commands = {
-           '--name'     : lambda(a):  self.api.distros().remove(a)
+           '--name'     : lambda(a):  self.api.distros().remove(a),
+           '--distro'   : lambda(a):  self.api.distros().remove(a)
         }
         on_ok = lambda: True
-        return self.apply_args(args,commands,on_ok,True)
+        return self.apply_args(args,commands,on_ok)
 
 
     def system_edit(self,args):
@@ -145,11 +119,12 @@ class BootCLI:
         sys = self.api.new_system()
         commands = {
            '--name'     :  lambda(a) : sys.set_name(a),
+           '--system'   :  lambda(a) : sys.set_name(a),
            '--profile'  :  lambda(a) : sys.set_profile(a),
            '--kopts'    :  lambda(a) : sys.set_kernel_options(a)
         }
         on_ok = lambda: self.api.systems().add(sys)
-        return self.apply_args(args,commands,on_ok,True)
+        return self.apply_args(args,commands,on_ok)
 
 
     def profile_edit(self,args):
@@ -159,6 +134,7 @@ class BootCLI:
         profile = self.api.new_profile()
         commands = {
             '--name'            :  lambda(a) : profile.set_name(a),
+            '--profile'         :  lambda(a) : profile.set_name(a),
             '--distro'          :  lambda(a) : profile.set_distro(a),
             '--kickstart'       :  lambda(a) : profile.set_kickstart(a),
             '--kopts'           :  lambda(a) : profile.set_kernel_options(a),
@@ -171,7 +147,7 @@ class BootCLI:
         #    '--xen-paravirt'    :  lambda(a) : profile.set_xen_paravirt(a),
         }
         on_ok = lambda: self.api.profiles().add(profile)
-        return self.apply_args(args,commands,on_ok,True)
+        return self.apply_args(args,commands,on_ok)
 
 
     def distro_edit(self,args):
@@ -181,60 +157,49 @@ class BootCLI:
         distro = self.api.new_distro()
         commands = {
             '--name'      :  lambda(a) : distro.set_name(a),
+            '--distro'    :  lambda(a) : distro.set_name(a),
             '--kernel'    :  lambda(a) : distro.set_kernel(a),
             '--initrd'    :  lambda(a) : distro.set_initrd(a),
             '--kopts'     :  lambda(a) : distro.set_kernel_options(a)
         }
         on_ok = lambda: self.api.distros().add(distro)
-        return self.apply_args(args,commands,on_ok,True)
+        return self.apply_args(args,commands,on_ok)
 
 
-    def apply_args(self,args,input_routines,on_ok,serialize):
+    def apply_args(self,args,input_routines,on_ok):
         """
-        Custom CLI handling, instead of getopt/optparse
-        Parses arguments of the form --foo=bar, see profile_edit for example
+        Custom CLI handling, instead of getopt/optparse.
+        Parses arguments of the form --foo=bar.
+        'on_ok' is a callable that is run if all arguments are parsed
+        successfully.  'input_routines' is a dispatch table of routines
+        that parse the arguments.  See distro_edit for an example.
         """
         if len(args) == 0:
-            print cobbler_msg.lookup("no_args")
-            return False
+            raise cexceptions.CobblerException("no_args")
         for x in args:
             try:
-                # all arguments must be of the form --key=value
                 key, value = x.split("=",1)
                 value = value.replace('"','').replace("'",'')
             except:
-                print cobbler_msg.lookup("bad_arg") % x
-                return False
-            if key in input_routines:
-                # run the loader for the argument
-                # it will throw CobblerExceptions on bad args
+                raise cexpceptions.CobblerException("bad_arg",x)
+            if input_routines.has_key(key):
                 input_routines[key](value)
             else:
-                # --argument is not recognized
-                print cobbler_msg.lookup("weird_arg") % key
-                return False
-        # no lethal exceptions, so we can run the finalization routine
+                raise cexceptions.CobblerException("weird_arg", key)
         on_ok()
-        self.serialize()
+        self.api.serialize()
 
     def curry_args(self, args, commands):
         """
-        Helper function to make subcommands a bit more friendly.
-        See profiles(), system(), or distro() for examples
+        Lookup command args[0] in the dispatch table and
+        feed it the remaining args[1:-1] as arguments.
         """
         if args is None or len(args) == 0:
-            print cobbler_msg.lookup("help")
-            return False
+            raise cexceptions.CobblerException("help")
         if args[0] in commands:
-            # if the subargument is in the dispatch table, run
-            # the selected command routine with the rest of the
-            # arguments
-            rc = commands[args[0]](args[1:])
-            if not rc:
-               return False
+            commands[args[0]](args[1:])
         else:
-            print cobbler_msg.lookup("unknown_cmd") % args[0]
-            return False
+            raise cexceptions.CobblerException("unknown_cmd", args[0])
         return True
 
 
@@ -244,9 +209,9 @@ class BootCLI:
         """
         status = None
         if args is not None and "--dryrun" in args:
-            status = self.api.sync(dry_run=True)
+            status = self.api.sync(dryrun=True)
         else:
-            status = self.api.sync(dry_run=False)
+            status = self.api.sync(dryrun=False)
         return status
 
 
@@ -255,9 +220,7 @@ class BootCLI:
         Check system for network boot decency/prereqs: 'cobbler check'
         """
         status = self.api.check()
-        if status is None:
-            return False
-        elif len(status) == 0:
+        if len(status) == 0:
             print cobbler_msg.lookup("check_ok")
             return True
         else:
@@ -273,13 +236,11 @@ class BootCLI:
         """
         return self.curry_args(args, self.commands['distro'])
 
-
     def profile(self,args):
         """
         Handles any of the 'cobbler profile' subcommands
         """
         return self.curry_args(args, self.commands['profile'])
-
 
     def system(self,args):
         """
@@ -291,15 +252,14 @@ def main():
     """
     CLI entry point
     """
-    
     try:
         # verify syck isn't busted (old syck bindings were)
         if not hasattr(syck,"dump"):
-            raise cexceptions.CobblerException("needs a more-recent PySyck module")
-        cli = BootCLI(sys.argv)
+            raise cexceptions.CobblerException("PySyck module is outdated")
+        BootCLI(sys.argv).run()
     except cexceptions.CobblerException, exc:
         print str(exc)[1:-1]  # remove framing air quotes
         sys.exit(1)
-    sys.exit(cli.run())
+    sys.exit(0)
 
 

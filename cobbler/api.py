@@ -67,6 +67,12 @@ class BootAPI:
        """
        return self.__api_call(lambda: self._config.distros())
 
+    def settings(self):
+       """
+       Return the application configuration
+       """
+       return self.__api_call(lambda: self._config.settings())
+
 
     def new_system(self):
        """
@@ -97,17 +103,19 @@ class BootAPI:
        for human admins, who may, for instance, forget to properly set up
        their TFTP servers for PXE, etc.
        """
-       return self.__api_call(lambda: action_check.BootCheck(self._config).run())
+       check = action_check.BootCheck(self._config)
+       return self.__api_call(lambda: check.run())
 
 
-    def sync(self,dry_run=True):
+    def sync(self,dryrun=True):
        """
        Take the values currently written to the configuration files in
        /etc, and /var, and build out the information tree found in
        /tftpboot.  Any operations done in the API that have not been
        saved with serialize() will NOT be synchronized with this command.
        """
-       return self.__api_call(lambda: action_sync.BootSync(self._config).sync(dry_run))
+       sync = action_sync.BootSync(self._config)
+       return self.__api_call(lambda: sync.run(dryrun=dryrun))
 
 
     def serialize(self):
