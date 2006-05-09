@@ -1,7 +1,6 @@
 =head1 NAME
 
-cobbler is a command line tool for simplified configuration of provisioning servers.  It is also accessible as a Python library.   Cobbler supports PXE, Xen, and re-provisioning an existing Linux system via auto-kickstart.  The last two modes require 'koan' to be run on the remote system.
-
+cobbler is a command line tool for simplified configuration of a provisioning server.  It supports provisioning via PXE, Xen, and re-provisioning an existing Linux system via a method called "auto-kickstarting".  The last two modes require usage of a program called 'koan' on the remote system.
 
 =head1 SYNOPSIS
 
@@ -9,17 +8,15 @@ cobbler command [subcommand] [--arg1=] [--arg2=]
 
 =head1 DESCRIPTION
 
-Configuration of a PXE boot server involves setting up a tftpd server, a dhcpd server, syslinux, and creating semi-complex configuration file trees.
+Manual configuration of a PXE boot server usually involves setting up a tftpd server, a dhcpd server, syslinux, and creating semi-complex configuration file trees.
 
-Bootconf makes these things faster, simpler, and more flexible.  It also does the same things for provisioning Xen as it does for PXE -- allowing the same repository to deploy PXE and Xen while remaining fairly agnostic to the differences between them.  The client-side tool for xen is 'koan'.  'koan' also supports a method of re-provisioning a running Linux OS without doing PXE.  See the documentation on koan for more details.
+Cobbler makes these things faster, simpler, and more flexible.  It also enables a tool named 'koan', which can quickly provision new Xen instances, as well as amorph an existing machine into a new system (destructively), using a feature known as "auto-kickstarting" -- replacing the kernel/initrd pair of a current system, and rebooting so that it turns into something else.
 
 =head1 INSTRUCTIONS FOR PXE
 
-B<before you start...>
+B<before starting...>
 
-First install dhcpd, tftpd, and syslinux.
-You'll also need FTP, HTTP, or NFS to serve kickstarts (if you want kickstarts).Finally, you'll also have to edit dhcpd.conf for your particular DHCP environment.
-
+An admin should first install dhcpd, tftpd, and httpd.  Kickstarts files can also be downloaded over NFS and FTP (meaning installs of an FTP or NFS server may be warranted), but these modes of delivery are optional.  NFS is a common way of serving kickstart trees, however.  
 
    yum install dhcp tftp-server syslinux
    ...
@@ -28,27 +25,31 @@ You'll also need FTP, HTTP, or NFS to serve kickstarts (if you want kickstarts).
 B<cobbler check>
 
 This verifies that prerequisites are properly installed and configured.
-Any problems should be corrected, except unless the DHCP server is on another machine, in which case those errors can be ignored.
+Any problems should be corrected, with the potential exception of DHCP related warnings.
+
+In the case of the DHCP server being on another machine, the "next-server" field in dhcpd.conf on that machine should be set to the IP of the boot server and "filename" field set to "pxelinux.0".  In this case, DHCP errors coming from "cobbler check" should be ignored.
 
 B<cobbler distro add --name=<string> --kernel=<path> --initrd=<path> [--kopts=<string>]>
 
-Defines a distribution.  Minimally, this is a matched set of an initrd and a kernel that has a name, such as 'fc5-i386' or 'rhel4-x86_64'.  Here you can also override and extend the default kernel options ('kopts') specified in /etc/cobbler.conf (kernel options are a comma seperated list of key=value pairs).
+Cobbler works in terms of distros, profiles, and systems.  All three must define to get a working PXE configuration.  "cobbler distro add" defines a distribution.  Minimally, this is a named set (for instance, 'fc5-i386') of an initrd and a kernel.  Kernel options from /var/lib/cobbler/settings can be overriden here by specifying a comma seperated list of key=value pairs.
 
-B<cobbler profile add --name=group_name --distro=<name> [--kickstart=<url>] [--kopts=<string>] [--xen-name=<string>] [--xen-file-size=<gigabytes>] [--xen-ram=<megabytes>]
+The kernel/initrd pairs used for "distro add" probably should be those that are used to boot Anaconda, but there are plenty of other uses.  If Xen provisioning is desired, a Xen dom0 kernel and the matching Anaconda initrd is required.
 
-Defines a provisioning profile, which is a distro, some other optional parameters, and a name for the profile.  Almost always you will want to specify a kickstart file.  Kickstarts can be nfs://, http://, or ftp:// -- or an absolute path.  For file paths, cobbler will copy the kickstarts and serve them up as http.
+B<cobbler profile add --name=<string> --distro=<string> [--kickstart=<url>] [--kopts=<string>] [--xen-name=<string>] [--xen-file-size=<gigabytes>] [--xen-ram=<megabytes>]
 
-For Xen parameters, koan may interpret some parameters as hints, not absolutes, if it has to resolve conflicts.  All of these Xen parameters are optional, though as many as possible should be specified if you don't want to risk koan making it's own decisions.
+"cobbler profile add" defines a named provisioning profile, which must reference an already created distribution.  Optional parameters can specify kickstart information or Xen parameters.  Kickstarts are almost always desired, and can be nfs://, http://, or ftp:// -- or an absolute path.  For file paths, cobbler will copy the kickstarts and serve them up as http -- so having servable kickstart paths as parameters to "cobbler profile add" is not required.
 
-B<cobbler system add --name=<ip|mac|hostname> --profile=<name1> [--kopts=<string>]>
+For Xen parameters, koan may interpret some parameters as hints, not absolutes, if it has to resolve conflicts.  All of these Xen parameters are optional, though as many as possible should be specified to avoid the risk koan making it's own decisions when run on the target dom0.  See the documentation for koan for more details.
 
-Correlates a system name (an IP, hostname, or MAC address of a bare-metal system or a Xen dom0) with a PXE profile to be deployed to the system.  For Xen, system configurations are *not* relevant -- koan when run on the dom0 decides what profiles will be installed.
+B<cobbler system add --name=<ip|mac|hostname> --profile=<string> [--kopts=<string>]>
 
-=head1 LIST OPERATIONS
+Correlates a system name (an IP, hostname, or MAC address of a bare-metal system or a Xen dom0) with an already created profile.  For koan (the tool used for Xen and auto-kickstart deployment), system configurations are *not* used -- system information is only used for PXE.
+
+=head1 DISPLAYING THE CONFIGURATION
 
 B<cobbler list>
 
-Prints the current cobbler configuration.
+Prints the current cobbler configuration for systems, profiles, and groups.  This can be used to review any data that has been added to the configuration.  To correct information, use add (to overwrite an existing entry) or remove subcommands.
 
 =head1 DELETING ENTRIES
 
@@ -80,6 +81,8 @@ B<cobbler system add --name=AA:BB:CC:DD:EE:FF --profile=fc5-webservers>
 
 B<cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=rhel4u3-dbservers>
 
+B<cobbler list>
+
 B<cobbler sync>
 
 =head1 XEN EXAMPLE
@@ -88,9 +91,9 @@ TBA
 
 =head1 CONFIGURATION FILES
 
-The current cobbler configuration is kept under /var/lib/cobbler.  The files are reasonably-human editable YAML and will generate themselves if they don't exist.  If you break one of them, delete it.
+The current cobbler configuration files are kept under /var/lib/cobbler.  The files are reasonably-human editable YAML and will regenerate themselves if they don't exist.  If one is broken during hand-editing, it should be manually deleted.
 
-No changes are ever applied to the provisioning state unless 'cobbler sync' is run.
+No changes are ever applied to the provisioning state unless 'cobbler sync' is run, as cobbler contains no daemon process.  It exists to build out information under the /tftpboot directory.
 
 =head1 EXIT_STATUS
 
