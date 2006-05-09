@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Modification of xenguest-install to make it usable by other apps
+# Xen creation functions.  Code originated from xenguest-install.
 #
 # Copyright 2005-2006  Red Hat, Inc.
 # Jeremy Katz <katzj@redhat.com>
@@ -15,15 +15,61 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import os, sys, time, stat
-import subprocess
+#import subprocess
 import tempfile
-import urlgrabber.grabber as grabber
+#import urlgrabber.grabber as grabber
 import random
 from optparse import OptionParser
-
+import exceptions
 import libvirt
 
 XENCONFIGPATH="/etc/xen/"
+XENDOMAINPATH="/etc/xen/domains"
+
+PYTEMPLATE = """
+# Automatically generated xen config file
+name = "%(name)s"
+memory = "%(ram)s"
+disk = [ '%(disktype)s:%(disk)s,xvda,w' ]
+vif = [ 'mac=%(mac)s' ]
+uuid = "%(uuid)s"
+bootloader="/usr/bin/pygrub"
+on_reboot   = 'destroy'
+on_crash    = 'destroy'
+"""
+
+XMLTEMPLATE = """
+<domain type='xen'>
+  <name>%(name)s</name>
+  <os>
+    <type>linux</type>
+    <kernel>%(kernel)s</kernel>
+    <initrd>%(initrd)s</initrd>
+    <root>/dev/xvd</root>
+    <cmdline>ro %(extra)s</cmdline>
+  </os>
+  <memory>%(ramkb)s</memory>
+  <vcpu>1</vcpu>
+  <uuid>%(uuid)s</uuid>
+  <on_reboot>restart</on_reboot>
+  <on_poweroff>destroy</on_poweroff>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <disk type='file'>
+      <source file='%(disk)s'/>
+      <target dev='xvda'/>
+    </disk>
+    <interface type='bridge'>
+      <source bridge='xenbr0'/>
+      <mac address='%(mac)s'/>
+      <script path='/etc/xen/scripts/vif-bridge'/>
+    </interface>
+  </devices>
+</domain>
+"""
+
+class XenCreateException(exceptions.Exception):
+    pass
 
 def randomMAC():
     """
@@ -57,7 +103,6 @@ def get_disk(disk,size):
     Create a disk image if path does not exist.
     """
     if not os.path.exists(disk):
-        # FIXME: should we create the disk here?
         fd = os.open(disk, os.O_WRONLY | os.O_CREAT)
         off = long(size * 1024L * 1024L * 1024L)
         os.lseek(fd, off, 0)
@@ -83,7 +128,7 @@ def get_mac(mac):
 
 def get_paravirt_install_image(kernel_fn,initrd_fn):
     """
-    Return a tuple of kernel_filename, intrd_filename
+    Return a tuple of (kernel_filename, initrd_filename)
     where the filenames are copies of the kernel and initrd.
     This must be done because Xen deletes the kernel/initrd pairs
     that are originally passed in.
@@ -92,8 +137,7 @@ def get_paravirt_install_image(kernel_fn,initrd_fn):
         kernel = open(kernel_fn,"r")
         initrd = open(initrd_fn,"r")
     except IOError:
-        print >> sys.stderr, "Invalid kernel or initrd location"
-        sys.exit(2)
+        raise XenCreateException, "Invalid kernel or initrd location"
 
     (kfd, kfn) = tempfile.mkstemp(prefix="vmlinuz.", dir="/var/lib/xen")
     os.write(kfd, kernel.read())
@@ -107,92 +151,46 @@ def get_paravirt_install_image(kernel_fn,initrd_fn):
 
     return (kfn, ifn)
 
+def writeConfigPy(cfgdict):
+    fd = open("%s%s" %(XENCONFIGPATH, cfgdict['name']))
+    fd.write(PYTEMPLATE % cfgdict)
+    fd.close()
+
+def writeConfigXml(cfgdict):
+    fd = open("%s%s.xml" % (XENDOMAINPATH,cfgdict['name']))
+    fd.write(XMLTEMPLATE % cfgdict)
+    fd.close()
+
 def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
                            uuid=None, kernel=None, initrd=None, extra=None):
-    def writeConfig(cfgdict):
-        cfg = "%s%s" %(XENCONFIGPATH, cfgdict['name'])
-        f = open(cfg, "w+")
-        buf = """
-# Automatically generated xen config file
-name = "%(name)s"
-memory = "%(ram)s"
-disk = [ '%(disktype)s:%(disk)s,xvda,w' ]
-vif = [ 'mac=%(mac)s' ]
-uuid = "%(uuid)s"
-bootloader="/usr/bin/pygrub"
-on_reboot   = 'destroy'
-on_crash    = 'destroy'
-""" % cfgdict
-        f.write(buf)
-        f.close()
 
     (kfn, ifn) = get_paravirt_install_image(kernel, initrd)
-
     if stat.S_ISBLK(os.stat(disk)[stat.ST_MODE]):
-        type = "phy"
+        ftype = "phy"
     else:
-        type = "file"
+        ftype = "file"
+    
     cfgdict = {
-       'name': name,
-       'ram': ram,
-       'ramkb': int(ram) * 1024,
-       'disk': disk,
-       'mac': mac,
-       'disktype': type,
-       'uuid': uuid,
-       'kernel': kfn,
-       'initrd': ifn,
-       'extra': extra
+       'name'  : name,            'ram'      : ram,
+       'ramkb' : int(ram) * 1024, 'disk'     : disk,
+       'mac'   : mac,             'disktype' : ftype,
+       'uuid'  : uuid,            'kernel'   : kfn, 
+       'initrd': ifn,             'extra'    : extra
     }
-
-    cfgxml = """
-<domain type='xen'>
-  <name>%(name)s</name>
-  <os>
-    <type>linux</type>
-    <kernel>%(kernel)s</kernel>
-    <initrd>%(initrd)s</initrd>
-    <root>/dev/xvd</root>
-    <cmdline>ro %(extra)s</cmdline>
-  </os>
-  <memory>%(ramkb)s</memory>
-  <vcpu>1</vcpu>
-  <uuid>%(uuid)s</uuid>
-  <on_reboot>restart</on_reboot>
-  <on_poweroff>destroy</on_poweroff>
-  <on_crash>destroy</on_crash>
-  <devices>
-    <disk type='file'>
-      <source file='%(disk)s'/>
-      <target dev='xvda'/>
-    </disk>
-    <interface type='bridge'>
-      <source bridge='xenbr0'/>
-      <mac address='%(mac)s'/>
-      <script path='/etc/xen/scripts/vif-bridge'/>
-    </interface>
-  </devices>
-</domain>
-""" % cfgdict
-
+    cfgxml = XMLTEMPLATE % cfgdict
+    
     conn = libvirt.open(None)
     if conn == None:
-        raise "Unable to connect to hypervisor"
-
-    print "\n\nStarting install..."
-    print cfgxml
-
+        raise XenCreateException("Unable to connect to hypervisor")
     dom = conn.createLinux(cfgxml, 0)
     if dom == None:
-        raise "Unable to create domain for guest"
-        sys.exit(2)
-
+        raise XenCreateException("Unable to create domain for guest")
+    
     cmd = ["/usr/sbin/xm", "console", "%s" %(dom.ID(),)]
     child = os.fork()
     if (not child):
         os.execvp(cmd[0], cmd)
         os._exit(1)
-
     time.sleep(5)
     os.unlink(kfn)
     os.unlink(ifn)
@@ -200,27 +198,30 @@ on_crash    = 'destroy'
     # FIXME: if the domain doesn't exist now, it almost certainly crashed.
     # it'd be nice to know that for certain...
     try:
-        d = conn.lookupByID(dom.ID())
+        conn.lookupByID(dom.ID())
     except libvirt.libvirtError:
-        raise "It appears the installation has crashed"
+        raise XenCreateException("It appears the installation has crashed")
         sys.exit(3)
 
-    writeConfig(cfgdict)
+    writeConfigPy(cfgdict)
+    writeConfigXml(cfgdict)
 
-    status = -1
     try:
         (pid, status) = os.waitpid(child, 0)
     except OSError, (errno, msg):
-        print __name__, "waitpid:", msg
+        raise XenCreateException("%s waitpid: %s" % (__name__,msg))
 
     # ensure there's time for the domain to finish destroying if the
     # install has finished or the guest crashed
     time.sleep(1)
     try:
-        d = conn.lookupByID(dom.ID())
+        conn.lookupByID(dom.ID())
     except libvirt.libvirtError:
-        print "Reconnect with xm create -c %s" % (name)
+        # "Reconnect with xm create -c %s" % (name)
+        pass
     else:
-        print "Reconnect with xm console %s" % (name)
+        # print "Reconnect with xm console %s" % (name)
+        pass
+
 
 

@@ -13,7 +13,6 @@ import sys
 import os
 import syck  # preferably PySyck, > 0.6, not syck-python <= 0.55
 import traceback
-import time
 import tempfile
 import urlgrabber
 import optparse
@@ -42,7 +41,7 @@ class Koan:
         Constructor.  Arguments are those from optparse...
         """
         self.server            = kwargs['server']
-        self.profiles          = kwargs['profile']
+        self.profile           = kwargs['profile']
         self.verbose           = kwargs['verbose']
         self.is_xen            = kwargs['is_xen']
         self.is_auto_kickstart = kwargs['is_auto_kickstart']
@@ -348,14 +347,14 @@ class Koan:
         if name is None or name == "":
             name = self.profile
         path = "/etc/xen/%s" % name
-        id = 0
+        file_id = 0
         if os.path.exists(path):
             for fid in xrange(1,9999):
                 path = "/etc/xen/%s_%s" % (name, id)
                 if not os.path.exists(path):
-                    id = fid
+                    file_id = fid
                     break
-        if id != 0:
+        if file_id != 0:
             name = "%s_%s" % (name,id)
         data['xen_name'] = name
         return name
@@ -427,7 +426,7 @@ def main():
        for x in [ "/etc", "/boot", "/var/spool"]:
           fn = tempfile.mkstemp(dir=x)
           os.unlink(fn)
-    except OSError, ose:
+    except OSError:
        print "koan requires write access to %s, which usually means root" % x
        sys.exit(3)
     
