@@ -38,8 +38,8 @@ class BootSync:
         """
         self.verbose = verbose
         self.dryrun = dryrun
-        self.copy_pxelinux()
         self.clean_trees()
+        self.copy_pxelinux()
         self.copy_distros()
         self.validate_kickstarts()
         self.configure_httpd()
@@ -84,7 +84,7 @@ class BootSync:
         """
         for x in ["pxelinux.cfg","images","systems","distros","profiles","kickstarts"]:
             path = os.path.join(self.settings.tftpboot,x)
-            self.rmtree(path, True)
+            self.rmtree(path)
             self.mkdir(path)
 
     def copy_distros(self):
@@ -301,7 +301,11 @@ class BootSync:
        self.sync_log(cobbler_msg.lookup("copying") % (src,dst))
        if self.dryrun:
            return True
-       return shutil.copyfile(src,dst)
+       try:
+           return shutil.copyfile(src,dst)
+       except IOError, ioe:
+           raise cexceptions.CobblerException("need_perms2",src,dst)
+       
 
     def copy(self,src,dst):
        """
@@ -310,16 +314,22 @@ class BootSync:
        self.sync_log(cobbler_msg.lookup("copying") % (src,dst))
        if self.dryrun:
            return True
-       return shutil.copy(src,dst)
+       try:
+           return shutil.copy(src,dst)
+       except IOError, ioe:
+           raise cexceptions.CobblerException("need_perms2",src,dst)
 
-    def rmtree(self,path,ignore):
+    def rmtree(self,path):
        """
        For dryrun support:  potentially delete a tree.
        """
        self.sync_log(cobbler_msg.lookup("removing") % (path))
        if self.dryrun:
            return True
-       return shutil.rmtree(path,ignore)
+       try:
+           return shutil.rmtree(path)
+       except OSError, ioe:
+           raise cexceptions.CobblerException("no_delete",path)
 
     def mkdir(self,path,mode=0777):
        """
@@ -328,7 +338,10 @@ class BootSync:
        self.sync_log(cobbler_msg.lookup("mkdir") % (path))
        if self.dryrun:
            return True
-       return os.mkdir(path,mode)
+       try:
+           return os.mkdir(path,mode)
+       except:
+           raise cexceptions.CobblerException("no_create", path)
 
     def sync_log(self,message):
        """
