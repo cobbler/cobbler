@@ -292,9 +292,6 @@ class TestCLIBasic(BootTest):
        self.assertTrue(subprocess.call([app,"profile","list"]) == 0)
 
 if __name__ == "__main__":
-    if os.getuid()!=0:
-        print "tests: skipping (want root)"
-	sys.exit(1)
     if not os.path.exists("setup.py"):
         print "tests: must invoke from top level directory"
         sys.exit(1)
