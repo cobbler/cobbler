@@ -36,16 +36,18 @@ class InfoException(exceptions.Exception):
 
 class Koan:
 
-    def __init__(self,**kwargs):
+    def __init__(self):
         """
         Constructor.  Arguments are those from optparse...
         """
-        self.server            = kwargs['server']
-        self.profile           = kwargs['profile']
-        self.verbose           = kwargs['verbose']
-        self.is_xen            = kwargs['is_xen']
-        self.is_auto_kickstart = kwargs['is_auto_kickstart']
-        self.dryrun            = kwargs['dryrun']
+        self.server            = None
+        self.profile           = None
+        self.verbose           = None
+        self.is_xen            = None
+        self.is_auto_kickstart = None
+        self.dryrun            = None
+
+    def run(self):
         if self.server is None:
             raise InfoException, "no server specified"
         if not self.is_xen and not self.is_auto_kickstart:
@@ -88,7 +90,7 @@ class Koan:
         try:
             shutil.rmtree(path)
         except OSError, (errno, msg):
-            if errno != errno.EPERM:
+            if errno != 2: # perm denied
                 raise OSError(errno,msg)
 
     def copyfile(self,src,dest):
@@ -111,29 +113,28 @@ class Koan:
             raise InfoException, "command failed (%s)" % rc
         return rc
 
-    def do_net_install(self,download_root,each_profile):
+    def do_net_install(self,download_root,after_download):
         """
         Actually kicks off downloads and auto-ks or xen installs
         """
-        for profile in self.profile:
-            self.debug("processing profile: %s" % profile)
-            profile_data = self.get_profile_yaml(profile)
-            self.debug(profile_data)
-            if not 'distro' in profile_data:
-                raise InfoException, "invalid response from boot server"
-            distro = profile_data['distro']
-            distro_data = self.get_distro_yaml(distro)
-            self.debug(distro_data)
-            self.get_distro_files(distro_data, download_root)
-            each_profile(self, distro_data, profile_data)
+        self.debug("processing profile: %s" % self.profile)
+        profile_data = self.get_profile_yaml(self.profile)
+        self.debug(profile_data)
+        if not 'distro' in profile_data:
+            raise InfoException, "invalid response from boot server"
+        distro = profile_data['distro']
+        distro_data = self.get_distro_yaml(distro)
+        self.debug(distro_data)
+        self.get_distro_files(distro_data, download_root)
+        after_download(self, distro_data, profile_data)
 
     def do_xen(self):
         """
         Handle xen provisioning.
         """
-        def each_profile(self, distro_data, profile_data):
+        def after_download(self, distro_data, profile_data):
             self.do_xen_net_install(profile_data, distro_data)
-        return self.do_net_install("/tmp",each_profile)
+        return self.do_net_install("/tmp",after_download)
 
     def do_auto_kickstart(self):
         """
@@ -144,12 +145,13 @@ class Koan:
         self.rmtree("/var/spool/koan")
         self.mkdir("/var/spool/koan")
 
-        def each_profile(self, distro_data, profile_data):
+        def after_download(self, distro_data, profile_data):
             if not os.path.exists("/sbin/grubby"):
                 raise InfoException, "grubby is not installed"
             k_args = distro_data['kernel_options']
             k_args = k_args + " ks=file:ks.cfg"
             self.build_initrd(distro_data['initrd_local'], profile_data['kickstart'])
+            k_args = k_args.replace("lang ","lang= ")
             cmd = [ "/sbin/grubby",
                     "--add-kernel", distro_data['kernel_local'],
                     "--initrd", distro_data['initrd_local'],
@@ -159,7 +161,7 @@ class Koan:
                     "--copy-default" ]
             self.subprocess_call(cmd, fake_it=self.dryrun)
             self.debug("reboot to apply changes")
-        return self.do_net_install("/boot",each_profile)
+        return self.do_net_install("/boot",after_download)
 
     def get_kickstart_data(self,kickstart):
         """
@@ -186,32 +188,28 @@ class Koan:
         Create bash script for inserting kickstart into initrd.
         Code heavily borrowed from internal auto-ks scripts.
         """
-        if initrd_data.find("filesystem data") != -1:
-            # FIXME: EXT2 image mangling has not been tested
-            # waiting on library for manipulation.
-            return """
-               cp %s /var/spool/koan/initrd_copy.gz
-                gunzip /var/spool/koan/initrd_copy.gz
-                mount -o loop -t ext2 /var/spool/koan/initrd_open /var/spool/koan/initrd_copy
-                cp /var/spool/koan/ks.cfg /var/spool/koan/initrd_contents/
-                ln /var/spool/koan/initrd_open/ks.cfg /var/spool/koan/initrd_open/tmp/ks.cfg
-                umount /var/spool/koan/initrd_open
-                gzip -c initrd_copy > /var/spool/koan/initrd_final
-            """ % (initrd)
-        else:
-            # image is CPIO
-            return """
-                cp %s /var/spool/koan/initrd_copy.gz
-                gunzip /var/spool/koan/initrd_copy.gz
-                cat /var/spool/koan/initrd_copy | (
-                    cd /var/spool/koan/initrd_contents &&
-                    cpio -id &&
-                    cp /var/spool/koan/ks.cfg . &&
-                    ln ks.cfg tmp/ks.cfg &&
-                    find . |
-                    cpio -c -o | gzip -9) > /var/spool/koan/initrd_final
-            """ % (initrd)
-
+        return """
+        mkdir /var/spool/koan/initrd
+        gunzip -c %s > /var/spool/koan/initrd.tmp
+        if file /var/spool/koan/initrd.tmp | grep "filesystem data" >& /dev/null; then
+            mount -o loop -t ext2 /var/spool/koan/initrd.tmp /var/spool/koan/initrd
+            cp /var/spool/koan/ks.cfg /var/spool/koan/initrd/
+            ln /var/spool/koan/initrd/ks.cfg /var/spool/koan/initrd/tmp/ks.cfg
+            umount /var/spool/koan/initrd
+            gzip -c /var/spool/koan/initrd.tmp > /var/spool/koan/initrd_final
+        else
+            echo "cpio"
+            cat /var/spool/koan/initrd.tmp | (
+               cd /var/spool/koan/initrd ; \
+               cpio -id ; \
+               cp /var/spool/koan/ks.cfg . ; \
+               ( ln ks.cfg tmp/ks.cfg ) ; \
+               find . | \
+               cpio -c -o | gzip -9 ) \
+            > /var/spool/koan/initrd_final
+            echo "done"
+        fi
+        """ % initrd
 
     def build_initrd(self,initrd,kickstart):
         """
@@ -222,9 +220,6 @@ class Koan:
         fd = open(initrd,"r")
         initrd_data = fd.read()
         fd.close()
-
-        # create directory where initrd will be exploded
-        self.mkdir("/var/spool/koan/initrd_contents")
 
         # save kickstart to file
         fd = open("/var/spool/koan/ks.cfg","w+")
@@ -310,8 +305,7 @@ class Koan:
                 kextra = kextra + pd['kernel_options']
 
         # parser issues?  lang needs a trailing = and somehow doesn't have it.
-        kextra = kextra.replace("lang","lang=")
-        kextra = kextra.replace("==","=")
+        kextra = kextra.replace("lang ","lang=")
 
         # any calc_ functions filter arguments from cobbler (server side)
         # and try to make them sane with respect to the local system.
@@ -424,7 +418,7 @@ def main():
     """
     try:
        for x in [ "/etc", "/boot", "/var/spool"]:
-          fn = tempfile.mkstemp(dir=x)
+          (fd, fn) = tempfile.mkstemp(dir=x)
           os.unlink(fn)
     except OSError:
        print "koan requires write access to %s, which usually means root" % x
@@ -451,9 +445,13 @@ def main():
                  help="run (more) quietly")
     (options, args) = p.parse_args()
     try:
-        Koan(server=args.server,is_xen=args.is_xen,
-             is_auto_kickstart=args.is_auto_kickstart,
-             profiles=args.profiles,verbose=args.verbose)
+        k = Koan()
+        k.server            = options.server
+        k.is_xen            = options.is_xen
+        k.is_auto_kickstart = options.is_auto_kickstart
+        k.profile           = options.profiles
+        k.verbose           = options.verbose
+        k.run()
     except InfoException, ie:
         print str(ie) 
         sys.exit(1)
