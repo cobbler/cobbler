@@ -178,7 +178,7 @@ class Koan:
         if kickstart.startswith("nfs"):
             ndir  = os.path.dirname(kickstart[6:])
             nfile = os.path.basename(kickstart[6:])
-            nfsdir = tempfile.mkdtemp(prefix="koan_nfs",dir="/var/spool/koan")
+            nfsdir = tempfile.mkdtemp(prefix="koan_nfs",dir="/tmp")
             nfsfile = os.path.join(nfsdir,nfile)
             cmd = ["mount","-t","nfs","-o","ro", ndir, nfsdir]
             self.subprocess_call(cmd)
