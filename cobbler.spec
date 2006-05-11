@@ -8,7 +8,11 @@ Version: %{version}
 Release: %{release}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
-Group: Development/Libraries
+Group: Applications/System
+Requires: python >= 2.4.2
+Requires: PySyck >= 0.61
+Requires: httpd >= 2.2
+Requires: tftp-server
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Prefix: %{_prefix}
 BuildArch: noarch
