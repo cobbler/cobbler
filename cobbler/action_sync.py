@@ -2,7 +2,15 @@
 Builds out a TFTP/cobbler boot tree based on the object tree.
 This is the code behind 'cobbler sync'.
 
+Copyright 2006, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
+
+This software may be freely redistributed under the terms of the GNU
+general public license.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import os
@@ -307,7 +315,7 @@ class BootSync:
            return shutil.copyfile(src,dst)
        except IOError, ioe:
            raise cexceptions.CobblerException("need_perms2",src,dst)
-       
+
 
     def copy(self,src,dst):
        """

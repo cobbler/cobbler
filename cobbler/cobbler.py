@@ -3,10 +3,17 @@ Command line interface for cobbler, a network provisioning configuration
 library.  Consult 'man cobbler' for general info.  This class serves
 as a good reference on how to drive the API (api.py).
 
+Copyright 2006, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
+
+This software may be freely redistributed under the terms of the GNU
+general public license.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-import os
 import sys
 import api
 import syck
@@ -67,13 +74,13 @@ class BootCLI:
         """
         Print out abbreviated help if user gives bad syntax
         """
-        raise cexception.CobblerException("usage")
+        raise cexceptions.CobblerException("usage")
 
     def list(self,args):
-        all = [ self.api.settings(), self.api.distros(), 
+        all = [ self.api.settings(), self.api.distros(),
                 self.api.profiles(), self.api.systems() ]
         for item in all:
-            print item.printable() 
+            print item.printable()
 
     def system_remove(self,args):
         """
@@ -181,7 +188,7 @@ class BootCLI:
                 key, value = x.split("=",1)
                 value = value.replace('"','').replace("'",'')
             except:
-                raise cexpceptions.CobblerException("bad_arg",x)
+                raise cexceptions.CobblerException("bad_arg",x)
             if input_routines.has_key(key):
                 input_routines[key](value)
             else:

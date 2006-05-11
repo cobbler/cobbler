@@ -3,7 +3,15 @@ Messages used by cobbler.
 This module encapsulates strings so they can
 be reused and potentially translated.
 
+Copyright 2006, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
+
+This software may be freely redistributed under the terms of the GNU
+general public license.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 _msg_table = {
@@ -58,7 +66,7 @@ _msg_table = {
   "exc_xen_name"    : "invalid Xen name",
   "exc_xen_file"    : "invalid Xen file size",
   "exc_xen_mac"     : "invalid Xen mac address",
-  "exc_xen_para"    : "invalid Xen paravirtualization setting", 
+  "exc_xen_para"    : "invalid Xen paravirtualization setting",
   "exc_profile"     : "invalid profile name",
   "exc_profile2"    : "profile name not set",
   "check_ok"        : """

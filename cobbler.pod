@@ -16,7 +16,7 @@ Cobbler makes these things faster, simpler, and more flexible.  It also enables 
 
 B<before starting...>
 
-An admin should first install dhcpd, tftpd, and httpd.  Kickstarts files can also be downloaded over NFS and FTP (meaning installs of an FTP or NFS server may be warranted), but these modes of delivery are optional.  NFS is a common way of serving kickstart trees, however.  
+An admin should first install dhcpd, tftpd, and httpd.  Kickstarts files can also be downloaded over NFS and FTP (meaning installs of an FTP or NFS server may be warranted), but these modes of delivery are optional.  NFS is a common way of serving kickstart trees, however.
 
    yum install dhcp tftp-server syslinux
    ...
@@ -37,7 +37,7 @@ The kernel/initrd pairs used for "distro add" probably should be those that are 
 
 B<cobbler profile add --name=<string> --distro=<string> [--kickstart=<url>] [--kopts=<string>] [--xen-name=<string>] [--xen-file-size=<gigabytes>] [--xen-ram=<megabytes>]
 
-"cobbler profile add" defines a named provisioning profile, which must reference an already created distribution.  Optional parameters can specify kickstart information or Xen parameters.  Kickstarts are almost always desired, and can be nfs://, http://, or ftp:// -- or an absolute path.  For file paths, cobbler will copy the kickstarts and serve them up as http -- so having servable kickstart paths as parameters to "cobbler profile add" is not required.
+"cobbler profile add" defines a named provisioning profile, which must reference an already created distribution.  Optional parameters can specify kickstart information or Xen parameters.  Kickstarts are almost always desired, and can be nfs://, http://, or ftp:// -- or an absolute path.  For file paths, cobbler will copy the kickstarts and serve them up as http -- so having servable kickstart paths as parameters to "cobbler profile add" is not required.  In fact, it's probably a good idea to leave the kickstarts as absolute paths to avoid having yet another resource to manage.
 
 For Xen parameters, koan may interpret some parameters as hints, not absolutes, if it has to resolve conflicts.  All of these Xen parameters are optional, though as many as possible should be specified to avoid the risk koan making it's own decisions when run on the target dom0.  See the documentation for koan for more details.
 

@@ -3,7 +3,15 @@ python API module for Cobbler
 see source for cobbler.py, or pydoc, for example usage.
 CLI apps and daemons should import api.py, and no other cobbler code.
 
+Copyright 2006, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
+
+This software may be freely redistributed under the terms of the GNU
+general public license.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import config
@@ -19,7 +27,7 @@ class BootAPI:
        """
        The API can be invoked in two ways, depending on how it is constructed.
        The catch_exceptions mode will cause any API method to return false
-       if any CobblerExceptions were thrown, along with setting 'last_error'.  
+       if any CobblerExceptions were thrown, along with setting 'last_error'.
        The other mode just lets the exceptions pass through, and is the way
        most apps should use the API.  catch_exceptions was added for the test hooks,
        since they are coded to use True/False.
@@ -28,7 +36,7 @@ class BootAPI:
        self.catch_exceptions = catch_exceptions
        self.last_error = ""
        self.deserialize()
-       
+
 
     def __api_call(self,anonymous):
        if self.catch_exceptions:

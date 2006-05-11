@@ -1,4 +1,16 @@
-# Michael DeHaan <mdehaan@redhat.com>
+"""
+Serializer code for cobbler
+
+Copyright 2006, Red Hat, Inc
+Michael DeHaan <mdehaan@redhat.com>
+
+This software may be freely redistributed under the terms of the GNU
+general public license.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+"""
 
 import syck  # PySyck 0.61 or greater, not syck-python 0.55
 import errno
@@ -61,5 +73,5 @@ def deserialize(obj):
     fd.close()
     obj.from_datastruct(datastruct)
     return True
- 
+
 

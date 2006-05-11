@@ -4,7 +4,15 @@ For instance, FC5 with a kickstart file specifying OpenOffice
 might represent a 'desktop' profile.  For Xen, there are many
 additional options, with client-side defaults (not kept here).
 
+Copyright 2006, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
+
+This software may be freely redistributed under the terms of the GNU
+general public license.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import item_profile as profile

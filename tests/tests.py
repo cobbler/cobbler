@@ -287,9 +287,7 @@ class TestCLIBasic(BootTest):
        # is not included (yet) since the API tests hit that fairly throughly
        # and it would easily double the length of the tests.
        app = "cobbler/cobbler"
-       self.assertTrue(subprocess.call([app,"system","list"]) == 0)
-       self.assertTrue(subprocess.call([app,"distro","list"]) == 0)
-       self.assertTrue(subprocess.call([app,"profile","list"]) == 0)
+       self.assertTrue(subprocess.call([app,"list"]) == 0)
 
 if __name__ == "__main__":
     if not os.path.exists("setup.py"):
