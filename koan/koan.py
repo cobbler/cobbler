@@ -90,7 +90,7 @@ class Koan:
         try:
             shutil.rmtree(path)
         except OSError, (errno, msg):
-            if errno != errno.ENOENT
+            if errno != errno.ENOENT:
                 raise OSError(errno,msg)
 
     def copyfile(self,src,dest):
@@ -319,7 +319,7 @@ class Koan:
         # been tweaked to remove any danger of interactiveness or need
         # to use optparse, which we obviously don't want here.
 
-        xencreate.start_paravirt_install(
+        results = xencreate.start_paravirt_install(
             name=self.calc_xen_name(pd),
             ram=self.calc_xen_ram(pd),
             disk= xencreate.get_disk(self.calc_xen_filename(pd),
@@ -330,6 +330,7 @@ class Koan:
             initrd=dd['initrd_local'],
             extra=kextra
         )
+        print results
 
     def calc_xen_name(self,data):
         """
@@ -344,12 +345,12 @@ class Koan:
         file_id = 0
         if os.path.exists(path):
             for fid in xrange(1,9999):
-                path = "/etc/xen/%s_%s" % (name, id)
+                path = "/etc/xen/%s_%s" % (name, fid)
                 if not os.path.exists(path):
                     file_id = fid
                     break
         if file_id != 0:
-            name = "%s_%s" % (name,id)
+            name = "%s_%s" % (name,file_id)
         data['xen_name'] = name
         return name
 
@@ -455,9 +456,12 @@ def main():
     except InfoException, ie:
         print str(ie)
         sys.exit(1)
+    except xencreate.XenCreateException, xce:
+        print str(xce)
+        sys.exit(2)
     except:
         traceback.print_exc()
-        sys.exit(2)
+        sys.exit(3)
     sys.exit(0)
 
 

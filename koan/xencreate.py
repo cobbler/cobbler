@@ -15,16 +15,15 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import os, sys, time, stat
-#import subprocess
 import tempfile
-#import urlgrabber.grabber as grabber
 import random
 from optparse import OptionParser
 import exceptions
 import libvirt
+import errno
 
 XENCONFIGPATH="/etc/xen/"
-XENDOMAINPATH="/etc/xen/domains"
+XENDOMAINPATH="/etc/xen/domains/"
 
 PYTEMPLATE = """
 # Automatically generated xen config file
@@ -137,7 +136,7 @@ def get_paravirt_install_image(kernel_fn,initrd_fn):
         kernel = open(kernel_fn,"r")
         initrd = open(initrd_fn,"r")
     except IOError:
-        raise XenCreateException, "Invalid kernel or initrd location"
+        raise XenCreateException("Invalid kernel or initrd location")
 
     (kfd, kfn) = tempfile.mkstemp(prefix="vmlinuz.", dir="/var/lib/xen")
     os.write(kfd, kernel.read())
@@ -152,12 +151,17 @@ def get_paravirt_install_image(kernel_fn,initrd_fn):
     return (kfn, ifn)
 
 def writeConfigPy(cfgdict):
-    fd = open("%s%s" %(XENCONFIGPATH, cfgdict['name']))
+    fd = open("%s%s" %(XENCONFIGPATH, cfgdict['name']), "w+")
     fd.write(PYTEMPLATE % cfgdict)
     fd.close()
 
 def writeConfigXml(cfgdict):
-    fd = open("%s%s.xml" % (XENDOMAINPATH,cfgdict['name']))
+    try:
+        os.makedirs(XENDOMAINPATH)
+    except OSError, (err, msg):
+        if err != errno.EEXIST:
+            raise OSError(err,msg)
+    fd = open("%s%s.xml" % (XENDOMAINPATH,cfgdict['name']), "w+")
     fd.write(XMLTEMPLATE % cfgdict)
     fd.close()
 
@@ -179,7 +183,10 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
     }
     cfgxml = XMLTEMPLATE % cfgdict
 
-    conn = libvirt.open(None)
+    try:
+        conn = libvirt.open(None)
+    except:
+        raise XenCreateException("libvirt could not connect to Xen")
     if conn == None:
         raise XenCreateException("Unable to connect to hypervisor")
     dom = conn.createLinux(cfgxml, 0)
@@ -201,7 +208,6 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
         conn.lookupByID(dom.ID())
     except libvirt.libvirtError:
         raise XenCreateException("It appears the installation has crashed")
-        sys.exit(3)
 
     writeConfigPy(cfgdict)
     writeConfigXml(cfgdict)
@@ -217,11 +223,9 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
     try:
         conn.lookupByID(dom.ID())
     except libvirt.libvirtError:
-        # "Reconnect with xm create -c %s" % (name)
-        pass
+        return "Reconnect with /usr/sbin/xm create -c %s" % (name)
     else:
-        # print "Reconnect with xm console %s" % (name)
-        pass
+        return "Reconnect with /usr/sbin/xm console %s" % (name)
 
 
 
