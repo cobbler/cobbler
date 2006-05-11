@@ -27,7 +27,7 @@ import optparse
 import exceptions
 import subprocess
 import shutil
-
+import errno
 import xencreate
 
 """
@@ -86,8 +86,8 @@ class Koan:
         self.debug("mkdir: %s" % path)
         try:
             os.mkdir(path)
-        except OSError, (errno, msg):
-            if errno != errno.EEXIST:
+        except OSError, (err, msg):
+            if err != errno.EEXIST:
                 raise OSError(errno,msg)
 
     def rmtree(self,path):
@@ -97,8 +97,8 @@ class Koan:
         self.debug("removing: %s" % path)
         try:
             shutil.rmtree(path)
-        except OSError, (errno, msg):
-            if errno != errno.ENOENT:
+        except OSError, (err, msg):
+            if err != errno.ENOENT:
                 raise OSError(errno,msg)
 
     def copyfile(self,src,dest):
@@ -176,14 +176,18 @@ class Koan:
         Get contents of data in network kickstart file.
         """
         if kickstart.startswith("nfs"):
-            # FIXME: NFS downloading has not been tested
-            ndir  = os.path.dirname(kickstart[4:])
-            nfile = os.path.basename(kickstart[4:])
+            ndir  = os.path.dirname(kickstart[6:])
+            nfile = os.path.basename(kickstart[6:])
             nfsdir = tempfile.mkdtemp(prefix="koan_nfs",dir="/var/spool/koan")
             nfsfile = os.path.join(nfsdir,nfile)
-            cmd = ["mount","-o","ro", ndir, nfsdir]
+            cmd = ["mount","-t","nfs","-o","ro", ndir, nfsdir]
             self.subprocess_call(cmd)
-            return nfile.open(nfsfile).read()
+            fd = open(nfsfile)
+            data = fd.read()
+            fd.close()
+            cmd = ["umount",nfsdir]
+            self.subprocess_call(cmd)
+            return data
         elif kickstart.startswith("http") or kickstart.startswith("ftp"):
             self.debug("urlgrab: %s" % kickstart)
             inf = urlgrabber.urlread(kickstart)
@@ -191,7 +195,7 @@ class Koan:
         else:
             raise InfoException, "invalid kickstart URL"
 
-    def get_insert_script(self,initrd,initrd_data):
+    def get_insert_script(self,initrd):
         """
         Create bash script for inserting kickstart into initrd.
         Code heavily borrowed from internal auto-ks scripts.
@@ -224,11 +228,6 @@ class Koan:
         Crack open an initrd and install the kickstart file.
         """
 
-        # read contents of initrd (check for filesystem)
-        fd = open(initrd,"r")
-        initrd_data = fd.read()
-        fd.close()
-
         # save kickstart to file
         fd = open("/var/spool/koan/ks.cfg","w+")
         fd.write(self.get_kickstart_data(kickstart))
@@ -236,7 +235,7 @@ class Koan:
 
         # handle insertion of kickstart based on type of initrd
         fd = open("/var/spool/koan/insert.sh","w+")
-        fd.write(self.get_insert_script(initrd,initrd_data))
+        fd.write(self.get_insert_script(initrd))
         fd.close()
         self.subprocess_call([ "/bin/bash", "/var/spool/koan/insert.sh" ])
         self.copyfile("/var/spool/koan/initrd_final", initrd)
