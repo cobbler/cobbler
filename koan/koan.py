@@ -4,9 +4,17 @@
 koan = kickstart over a network
 
 a tool for network provisioning of Xen and network re-provisioning
-of existing Linux systems.  used with 'cobbler'.
+of existing Linux systems.  used with 'cobbler'. see manpage for usage.
 
+Copyright 2006, Red Hat
 Michael DeHaan <mdehaan@redhat.com>
+
+This software may be freely redistributed under the terms of the GNU
+general public license.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import sys
