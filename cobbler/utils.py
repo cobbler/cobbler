@@ -28,7 +28,7 @@ def get_host_ip(ip):
     handle = subprocess.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=subprocess.PIPE)
     out = handle.stdout
     results = out.read()
-    return results.split(" ")[-1]
+    return results.split(" ")[-1][0:8]
 
 def find_system_identifier(strdata):
     """
