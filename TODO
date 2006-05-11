@@ -1,6 +1,2 @@
-- if no xen_name default to profile_name
-- increment xen names by +1 if taken, don't add epoch
 - allow --replace-self to take a --kickstart in lieu of the bootconf
   required --server= and --profiles=  (would be nice, not needed)
-- finish initrd mangling support for ext2
-- test different download means, more testing in general

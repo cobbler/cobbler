@@ -1,12 +1,10 @@
-#!/usr/bin/env python
-
 """
 koan = kickstart over a network
 
 a tool for network provisioning of Xen and network re-provisioning
 of existing Linux systems.  used with 'cobbler'. see manpage for usage.
 
-Copyright 2006, Red Hat
+Copyright 2006 Red Hat, Inc.
 Michael DeHaan <mdehaan@redhat.com>
 
 This software may be freely redistributed under the terms of the GNU
@@ -46,7 +44,7 @@ class Koan:
 
     def __init__(self):
         """
-        Constructor.  Arguments are those from optparse...
+        Constructor.  Arguments will be filled in by optparse...
         """
         self.server            = None
         self.profile           = None
@@ -59,6 +57,8 @@ class Koan:
         if self.server is None:
             raise InfoException, "no server specified"
         if not self.is_xen and not self.is_auto_kickstart:
+            raise InfoException, "must use either --xen or --replace-self"
+        if self.is_xen and self.is_auto_kickstart:
             raise InfoException, "must use either --xen or --replace-self"
         if not self.server:
             raise InfoException, "no server specified"
@@ -312,19 +312,7 @@ class Koan:
                 kextra = kextra + pd['kernel_options']
 
         # parser issues?  lang needs a trailing = and somehow doesn't have it.
-        kextra = kextra.replace("lang ","lang=")
-
-        # any calc_ functions filter arguments from cobbler (server side)
-        # and try to make them sane with respect to the local system.
-        # For instance, a name might conflict, or a size might not
-        # be specified and would need to be set to a reasonable default.
-        #
-        # any xencreate.get_ functions are from xenguest install, and filter
-        # those further.  They are a bit of legacy data left over
-        # from xenguest-install's CLI nature but it's better than recloning
-        # them.  Mainly the original xenguest-install functions have
-        # been tweaked to remove any danger of interactiveness or need
-        # to use optparse, which we obviously don't want here.
+        kextra = kextra.replace("lang ","lang= ")
 
         results = xencreate.start_paravirt_install(
             name=self.calc_xen_name(pd),
@@ -342,8 +330,6 @@ class Koan:
     def calc_xen_name(self,data):
         """
         Turn the suggested name into a non-conflicting name.
-        For now we're being lazy about this and are just taking on
-        the epoch.  Probably not ideal.  FIXME.
         """
         name = data['xen_name']
         if name is None or name == "":
@@ -368,8 +354,7 @@ class Koan:
 
     def calc_xen_filename(self,data):
         """
-        Determine where to store the Xen file.  Just base this off
-        the name and put everything close to the other Xen files?
+        Determine where to store the Xen file.
         """
         if not os.path.exists("/var/lib/xenimages"):
              try:
