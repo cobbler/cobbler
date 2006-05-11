@@ -169,23 +169,23 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
         ftype = "phy"
     else:
         ftype = "file"
-    
+
     cfgdict = {
        'name'  : name,            'ram'      : ram,
        'ramkb' : int(ram) * 1024, 'disk'     : disk,
        'mac'   : mac,             'disktype' : ftype,
-       'uuid'  : uuid,            'kernel'   : kfn, 
+       'uuid'  : uuid,            'kernel'   : kfn,
        'initrd': ifn,             'extra'    : extra
     }
     cfgxml = XMLTEMPLATE % cfgdict
-    
+
     conn = libvirt.open(None)
     if conn == None:
         raise XenCreateException("Unable to connect to hypervisor")
     dom = conn.createLinux(cfgxml, 0)
     if dom == None:
         raise XenCreateException("Unable to create domain for guest")
-    
+
     cmd = ["/usr/sbin/xm", "console", "%s" %(dom.ID(),)]
     child = os.fork()
     if (not child):

@@ -29,7 +29,7 @@ koan --replace-self --server=hostname --profile=foo
 
 
 class InfoException(exceptions.Exception):
-    """ 
+    """
     Custom exception for tracking of fatal errors.
     """
     pass
@@ -90,7 +90,7 @@ class Koan:
         try:
             shutil.rmtree(path)
         except OSError, (errno, msg):
-            if errno != 2: # perm denied
+            if errno != errno.ENOENT
                 raise OSError(errno,msg)
 
     def copyfile(self,src,dest):
@@ -423,7 +423,7 @@ def main():
     except OSError:
        print "koan requires write access to %s, which usually means root" % x
        sys.exit(3)
-    
+
     p = optparse.OptionParser()
     p.add_option("-x", "--xen",
                  dest="is_xen",
@@ -453,7 +453,7 @@ def main():
         k.verbose           = options.verbose
         k.run()
     except InfoException, ie:
-        print str(ie) 
+        print str(ie)
         sys.exit(1)
     except:
         traceback.print_exc()
