@@ -16,7 +16,7 @@ class Basic(unittest.TestCase):
 
     def test_basicCli(self):
        koan.main()
-       assert true # didn't choke
+       self.failUnless(True) # didn't choke
 
 if __name__ == "__main__":
     unittest.main(argv=sys.argv)
