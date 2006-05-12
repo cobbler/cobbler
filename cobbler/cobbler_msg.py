@@ -85,6 +85,4 @@ def lookup(key):
    """
    if _msg_table.has_key(key):
        return _msg_table[key]
-   else:
-       return key
-
+   return key
