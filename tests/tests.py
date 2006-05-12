@@ -1,10 +1,7 @@
 import sys
 import unittest
 
-sys.path.append('../')
-sys.path.append('../koan')
-
-import koan
+from koan import koan
 
 class Basic(unittest.TestCase):
     """
