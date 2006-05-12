@@ -253,24 +253,25 @@ class Koan:
         Code heavily borrowed from internal auto-ks scripts.
         """
         return """
-        mkdir /var/spool/koan/initrd
-        gzip -dc %s > /var/spool/koan/initrd.tmp
-        if file /var/spool/koan/initrd.tmp | grep "filesystem data" >& /dev/null; then
-            mount -o loop -t ext2 /var/spool/koan/initrd.tmp /var/spool/koan/initrd
-            cp /var/spool/koan/ks.cfg /var/spool/koan/initrd/
-            ln /var/spool/koan/initrd/ks.cfg /var/spool/koan/initrd/tmp/ks.cfg
-            umount /var/spool/koan/initrd
-            gzip -c /var/spool/koan/initrd.tmp > /var/spool/koan/initrd_final
+        cd /var/spool/koan
+        mkdir initrd
+        gzip -dc %s > initrd.tmp
+        if file initrd.tmp | grep "filesystem data" >& /dev/null; then
+            mount -o loop -t ext2 initrd.tmp initrd
+            cp ks.cfg initrd/
+            ln initrd/ks.cfg initrd/tmp/ks.cfg
+            umount initrd
+            gzip -c initrd.tmp > initrd_final
         else
             echo "cpio"
-            cat /var/spool/koan/initrd.tmp | (
-               cd /var/spool/koan/initrd ; \
+            cat initrd.tmp | (
+               cd initrd ; \
                cpio -id ; \
-               cp /var/spool/koan/ks.cfg . ; \
+               cp ks.cfg . ; \
                ln ks.cfg tmp/ks.cfg ; \
                find . | \
                cpio -c -o | gzip -9 ) \
-            > /var/spool/koan/initrd_final
+            > initrd_final
             echo "done"
         fi
         """ % initrd
