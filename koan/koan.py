@@ -26,7 +26,6 @@ import subprocess
 import shutil
 import errno
 import xencreate
-
 """
 koan --xen --profile=webserver --server=hostname
 koan --replace-self --server=hostname --profile=foo
@@ -267,7 +266,7 @@ class Koan:
             cat initrd.tmp | (
                cd initrd ; \
                cpio -id ; \
-               cp ks.cfg . ; \
+               cp /var/spool/koan/ks.cfg . ; \
                ln ks.cfg tmp/ks.cfg ; \
                find . | \
                cpio -c -o | gzip -9 ) \
@@ -457,3 +456,5 @@ class Koan:
         """
         return None
 
+if __name__ == "__main__":
+    main()

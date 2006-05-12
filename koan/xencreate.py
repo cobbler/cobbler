@@ -19,7 +19,6 @@ import tempfile
 import random
 from optparse import OptionParser
 import exceptions
-import libvirt
 import errno
 
 XENCONFIGPATH="/etc/xen/"
@@ -167,6 +166,9 @@ def writeConfigXml(cfgdict):
 
 def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
                            uuid=None, kernel=None, initrd=None, extra=None):
+    # this app works without libvirt (for auto-kickstart functionality)
+    # but using xen functions will require it...
+    import libvirt
 
     (kfn, ifn) = get_paravirt_install_image(kernel, initrd)
     if stat.S_ISBLK(os.stat(disk)[stat.ST_MODE]):

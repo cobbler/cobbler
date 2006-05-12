@@ -1,5 +1,6 @@
 import sys
 import unittest
+import traceback
 
 from koan import koan
 
@@ -15,9 +16,14 @@ class Basic(unittest.TestCase):
        pass
 
     def test_basicCli(self):
-       koan.main()
-       self.failUnless(True) # didn't choke
-
+       try:
+           koan.main()
+       except SystemExit:
+           pass
+       except:
+           traceback.print_exc()
+           self.fail("raised exception")
+       
 if __name__ == "__main__":
     unittest.main(argv=sys.argv)
 

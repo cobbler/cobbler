@@ -11,7 +11,6 @@ License: GPL
 Group: Applications/System
 Requires: mkinitrd
 Requires: syslinux
-Requires: libvirt-python
 Requires: python >= 2.4.2
 Requires: PySyck >= 0.61
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
