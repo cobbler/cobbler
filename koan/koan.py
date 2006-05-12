@@ -37,14 +37,6 @@ def main():
     """
     Command line stuff...
     """
-    try:
-       for x in [ "/etc", "/boot", "/var/spool"]:
-          (fd, fn) = tempfile.mkstemp(dir=x)
-          os.unlink(fn)
-    except OSError:
-       print "koan requires write access to %s, which usually means root" % x
-       sys.exit(3)
-
     p = optparse.OptionParser()
     p.add_option("-x", "--xen",
                  dest="is_xen",
@@ -65,6 +57,15 @@ def main():
                  action="store_false",
                  help="run (more) quietly")
     (options, args) = p.parse_args()
+
+    try:
+       for x in [ "/etc", "/boot", "/var/spool"]:
+          (fd, fn) = tempfile.mkstemp(dir=x)
+          os.unlink(fn)
+    except OSError:
+       print "koan requires write access to %s, which usually means root" % x
+       sys.exit(3)
+
     try:
         k = Koan()
         k.server            = options.server
