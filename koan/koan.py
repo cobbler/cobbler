@@ -33,6 +33,58 @@ koan --xen --profile=webserver --server=hostname
 koan --replace-self --server=hostname --profile=foo
 """
 
+def main():
+    """
+    Command line stuff...
+    """
+    try:
+       for x in [ "/etc", "/boot", "/var/spool"]:
+          (fd, fn) = tempfile.mkstemp(dir=x)
+          os.unlink(fn)
+    except OSError:
+       print "koan requires write access to %s, which usually means root" % x
+       sys.exit(3)
+
+    p = optparse.OptionParser()
+    p.add_option("-x", "--xen",
+                 dest="is_xen",
+                 action="store_true",
+                 help="requests new Xen guest creation")
+    p.add_option("-r", "--replace-self",
+                 dest="is_auto_kickstart",
+                 action="store_true",
+                 help="requests re-provisioning of this host")
+    p.add_option("-p", "--profiles",
+                 dest="profiles",
+                 help="list of profiles to install")
+    p.add_option("-s", "--server",
+                 dest="server",
+                 help="specify the cobbler server")
+    p.add_option("-q", "--quiet",
+                 dest="verbose",
+                 action="store_false",
+                 help="run (more) quietly")
+    (options, args) = p.parse_args()
+    try:
+        k = Koan()
+        k.server            = options.server
+        k.is_xen            = options.is_xen
+        k.is_auto_kickstart = options.is_auto_kickstart
+        k.profile           = options.profiles
+        k.verbose           = options.verbose
+        k.run()
+    except InfoException, ie:
+        print str(ie)
+        sys.exit(1)
+    except xencreate.XenCreateException, xce:
+        print str(xce)
+        sys.exit(2)
+    except:
+        traceback.print_exc()
+        sys.exit(3)
+    sys.exit(0)
+
+
 
 class InfoException(exceptions.Exception):
     """
@@ -403,57 +455,4 @@ class Koan:
         For now, we have no preference.
         """
         return None
-
-
-def main():
-    """
-    Command line stuff...
-    """
-    try:
-       for x in [ "/etc", "/boot", "/var/spool"]:
-          (fd, fn) = tempfile.mkstemp(dir=x)
-          os.unlink(fn)
-    except OSError:
-       print "koan requires write access to %s, which usually means root" % x
-       sys.exit(3)
-
-    p = optparse.OptionParser()
-    p.add_option("-x", "--xen",
-                 dest="is_xen",
-                 action="store_true",
-                 help="requests new Xen guest creation")
-    p.add_option("-r", "--replace-self",
-                 dest="is_auto_kickstart",
-                 action="store_true",
-                 help="requests re-provisioning of this host")
-    p.add_option("-p", "--profiles",
-                 dest="profiles",
-                 help="list of profiles to install")
-    p.add_option("-s", "--server",
-                 dest="server",
-                 help="specify the cobbler server")
-    p.add_option("-q", "--quiet",
-                 dest="verbose",
-                 action="store_false",
-                 help="run (more) quietly")
-    (options, args) = p.parse_args()
-    try:
-        k = Koan()
-        k.server            = options.server
-        k.is_xen            = options.is_xen
-        k.is_auto_kickstart = options.is_auto_kickstart
-        k.profile           = options.profiles
-        k.verbose           = options.verbose
-        k.run()
-    except InfoException, ie:
-        print str(ie)
-        sys.exit(1)
-    except xencreate.XenCreateException, xce:
-        print str(xce)
-        sys.exit(2)
-    except:
-        traceback.print_exc()
-        sys.exit(3)
-    sys.exit(0)
-
 
