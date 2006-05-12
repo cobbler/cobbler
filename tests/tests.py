@@ -286,7 +286,7 @@ class TestCLIBasic(BootTest):
        # nothing major is broke at top level.  Full CLI command testing
        # is not included (yet) since the API tests hit that fairly throughly
        # and it would easily double the length of the tests.
-       app = "cobbler/cobbler"
+       app = "cobbler/cobbler.py"
        self.assertTrue(subprocess.call([app,"list"]) == 0)
 
 if __name__ == "__main__":
