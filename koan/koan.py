@@ -58,13 +58,14 @@ def main():
                  help="run (more) quietly")
     (options, args) = p.parse_args()
 
-    try:
-       for x in [ "/etc", "/boot", "/var/spool"]:
-          (fd, fn) = tempfile.mkstemp(dir=x)
-          os.unlink(fn)
-    except OSError:
-       print "koan requires write access to %s, which usually means root" % x
-       sys.exit(3)
+    full_access = 1
+    for x in [ "/etc", "/boot", "/var/spool"]:
+        if not os.access(x, os.O_RDWR):
+            print "Unable to write to %s (which usually means root)" % x
+            full_access = 0
+
+    if not full_access:
+        sys.exit(3)
 
     try:
         k = Koan()
