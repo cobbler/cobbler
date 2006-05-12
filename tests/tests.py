@@ -43,7 +43,7 @@ class BootTest(unittest.TestCase):
         self.fk_kernel2 = os.path.join(self.topdir, FAKE_KERNEL2)
         self.fk_kernel3 = os.path.join(self.topdir, FAKE_KERNEL3)
 
-        self.api = api.BootAPI(True) # contain_exceptions
+        self.api = api.BootAPI()
         self.hostname = os.uname()[1]
         create = [ self.fk_initrd, self.fk_initrd2, self.fk_initrd3,
                 self.fk_kernel, self.fk_kernel2, self.fk_kernel3 ]
