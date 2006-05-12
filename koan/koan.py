@@ -15,7 +15,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-import sys
 import os
 import syck  # preferably PySyck, > 0.6, not syck-python <= 0.55
 import traceback
@@ -65,7 +64,7 @@ def main():
             full_access = 0
 
     if not full_access:
-        sys.exit(3)
+        return 3
 
     try:
         k = Koan()
@@ -77,15 +76,14 @@ def main():
         k.run()
     except InfoException, ie:
         print str(ie)
-        sys.exit(1)
+        return 1
     except xencreate.XenCreateException, xce:
         print str(xce)
-        sys.exit(2)
+        return 2
     except:
         traceback.print_exc()
-        sys.exit(3)
-    sys.exit(0)
-
+        return 3
+    return 0
 
 
 class InfoException(exceptions.Exception):
