@@ -254,7 +254,7 @@ class Koan:
         """
         return """
         mkdir /var/spool/koan/initrd
-        gunzip -c %s > /var/spool/koan/initrd.tmp
+        gzip -dc %s > /var/spool/koan/initrd.tmp
         if file /var/spool/koan/initrd.tmp | grep "filesystem data" >& /dev/null; then
             mount -o loop -t ext2 /var/spool/koan/initrd.tmp /var/spool/koan/initrd
             cp /var/spool/koan/ks.cfg /var/spool/koan/initrd/
