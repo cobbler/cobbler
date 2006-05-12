@@ -5,8 +5,8 @@ from koan import koan
 
 class Basic(unittest.TestCase):
     """
-    Koan is very network, system, and configuration dependant, so there isn't a *ton* of things that can
-    be added here.  But things *should* be added.
+    Koan is very network, system, and configuration dependent, so there isn't
+    a *ton* of things that can be added here.  But things *should* be added.
     """
     def setUp(self):
        pass
@@ -20,4 +20,3 @@ class Basic(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(argv=sys.argv)
-
