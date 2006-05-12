@@ -267,7 +267,7 @@ class Koan:
                cd /var/spool/koan/initrd ; \
                cpio -id ; \
                cp /var/spool/koan/ks.cfg . ; \
-               ( ln ks.cfg tmp/ks.cfg ) ; \
+               ln ks.cfg tmp/ks.cfg ; \
                find . | \
                cpio -c -o | gzip -9 ) \
             > /var/spool/koan/initrd_final
