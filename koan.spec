@@ -17,7 +17,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: Michael DeHaan <mdehaan@redhat.com>
-Url: http://bugzilla.redhat.com
+Url: http://michaeldehaan.net/software/RPMS
 
 %description
 
