@@ -1,0 +1,105 @@
+- Introductions: >
+   Hello.  Welcome to the Python YAML parser.  This is 
+   a work in progress.   The primary author is Steve Howell,
+   with a few contributions by Clark Evans.
+
+- installation: >
+   Simply type "make install" as root, this runs python setup.py install.
+   If you do not have distutils installed, you can simply copy the
+   yaml sub-directory into site-packages.
+
+- testing: >
+   You should be able to type "make test" both before and
+   after the installation.  This simply runs python on the
+   test programs.
+
+   This package uses python iterators, but there is a surrogate
+   which returns a list object instead of an iterator for python
+   versions below 2.2
+
+   This package should work with 1.5.2 and up, although many of
+   the tests fail with 1.5.2; if you are an expert with 1.5.2
+   please help us patch this up so that it works on older versions
+   of Python.
+
+- playing: >
+   The best way to play, is to start with demo.py and 
+   work from there.  Note that this implementation has quite
+   a way to go before it is compliant with the YAML specification.
+   
+   If something is failing in the tests for your platform
+   please let us know.  If something doesn't work, check the
+   tests to see if the test covering the feature you need is
+   active; if not, chances are it's not implemented.
+
+   Your feedback or any other contributions are certainly welcome.
+
+- ypath: >
+   The YPATH implementation is EXPERIMENTAL but included
+   in the yaml package beacuse it is fun and we'd like to get
+   feedback from the user community as to how they'd like it 
+   to work.  It requries Python 2.2 since it uses iterators.
+
+- query: >
+   There is a query.py and query.yml file in this directory,
+   it is currently broke as ypath was re-written.
+
+---
+contributors:
+  - who: Steve Howell
+    why?: |
+      Original author of the pure Python implementations of the 
+      YAML parser and emitter.  Many thanks to the other folks 
+      listed here, and some not listed here.  
+    email: showell@zipcon.net
+
+  - who: Brian Ingerson
+    why?: |
+      Brian got me hooked on YAML.  We have used his Perl 
+      implementation to do some really cool stuff, even on projects
+      that primarily used XML.  He also got me started on 
+      the Python project.
+
+  - who: Clark Evans
+    why?: |
+      Clark's YAML fame far precedes the Python implementation--he
+      founded the whole project.  But, he also contributed alias 
+      emitting to this project, and he's also generously allowed
+      me to bundle his very cool YPATH implementation.  Finally,
+      he's helped with module packaging issues and miscellaneous
+      features and bug fixes.
+
+  - who: Why The Lucky Stiff
+    why?: |
+      That's right, Why's the name, Ruby's the game.  Why devotes
+      most of his YAML effort to a Ruby implementation that grows
+      increasingly robust, but he's also a great team player on 
+      the YAML project.  For example, he consolidated the YAML
+      testing suites, so that multiple YAML implementations can 
+      share the same YAML test files.  If you look in this YAML
+      distribution, you will see Ruby all over the place.  Think
+      of it as a free introduction to another great scripting 
+      language.
+
+  - who: Ryan King
+    why?: |
+      Sharpener of saws and pair programmer extraordinaire.
+
+  - who: Neil Watkiss
+    why?: |
+      Donated hardware and major expertise to the project.       
+
+  - who: Oren Ben-Kiki
+    why?: |
+      YAML cofounder.  All library implementors owe a huge gratitude 
+      toward Oren for his work on the YAML spec.
+
+  - who: Lion Kimbro
+    why?: |
+      Early adopter, also known for his three-humped YAML.
+       
+  - who: Dave Kuhlman
+    why?: |
+      Dave's contributions include, but are not limited to, the 
+      XmlYaml code bundled with this distribution.  The README
+      with that code talks more about Dave.

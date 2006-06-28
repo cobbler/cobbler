@@ -16,7 +16,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import os
-import syck  # preferably PySyck, > 0.6, not syck-python <= 0.55
+import yaml          # Howell-Evans version
 import traceback
 import tempfile
 import urlgrabber
@@ -301,7 +301,7 @@ class Koan:
             url = "http://%s/cobbler/profiles/%s" % (self.server,profile_name)
             self.debug("url=%s" % url)
             data = urlgrabber.urlread(url)
-            return syck.load(data)
+            return yaml.load(data).next() # first record
         except:
             raise InfoException, "couldn't download profile information: %s" % profile_name
 
@@ -314,7 +314,7 @@ class Koan:
             url = "http://%s/cobbler/distros/%s" % (self.server,distro_name)
             self.debug("url=%s" % url)
             data = urlgrabber.urlread(url)
-            return syck.load(data)
+            return yaml.load(data).next() # first record
         except:
             raise InfoException, "couldn't download distro information: %s" % distro_name
 
