@@ -12,7 +12,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-import syck  # PySyck 0.61 or greater, not syck-python 0.55
+import yaml   # Howell-Clark version
 import errno
 import os
 
@@ -42,7 +42,7 @@ def serialize(obj):
            raise cexceptions.CobblerException("need_perms", filename)
            return False
     datastruct = obj.to_datastruct()
-    encoded = syck.dump(datastruct)
+    encoded = yaml.dump(datastruct)
     fd.write(encoded)
     fd.close()
     return True
@@ -65,11 +65,10 @@ def deserialize(obj):
         else:
             raise CobblerException("need_perms",obj.filename())
     data = fd.read()
-    datastruct = syck.load(data)
-    if type(datastruct) == str:
-        # PySyck returns strings when it chokes on data
-        # it doesn't really throw exceptions
-        raise CobblerException("parse_error",filename)
+    datastruct = yaml.load(data).next()  # first record
+    # leftover from PySyck choke detection.  Not relevant?
+    # if type(datastruct) == str:
+    #     raise CobblerException("parse_error",filename)
     fd.close()
     obj.from_datastruct(datastruct)
     return True

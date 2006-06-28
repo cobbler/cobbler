@@ -15,7 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import os
 import shutil
-import syck
+import yaml 
 
 import utils
 import cobbler_msg
@@ -256,7 +256,7 @@ class BootSync:
         # resolve to current values
         distro.kernel = utils.find_kernel(distro.kernel)
         distro.initrd = utils.find_initrd(distro.initrd)
-        self.tee(fd,syck.dump(distro.to_datastruct()))
+        self.tee(fd,yaml.dump(distro.to_datastruct()))
         self.close_file(fd)
 
 
@@ -269,7 +269,7 @@ class BootSync:
         # the HTTP mirror, so make it something anaconda can get at
         if profile.kickstart and profile.kickstart.startswith("/"):
             profile.kickstart = "http://%s/cobbler/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)
-        self.tee(fd,syck.dump(profile.to_datastruct()))
+        self.tee(fd,yaml.dump(profile.to_datastruct()))
         self.close_file(fd)
 
 
@@ -278,7 +278,7 @@ class BootSync:
         Create system information for xen-net-install
         """
         fd = self.open_file(filename,"w+")
-        self.tee(fd,syck.dump(system.to_datastruct()))
+        self.tee(fd,yaml.dump(system.to_datastruct()))
         self.close_file(fd)
 
     def tee(self,fd,text):
