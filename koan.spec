@@ -5,7 +5,7 @@
 Summary: Network provisioning tool for Xen and Existing Non-Bare Metal
 Name: %{name}
 Version: %{version}
-Release: %{release}
+Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -32,6 +32,7 @@ any existing system.  For use with a boot-server configured with
 python setup.py build
 
 %install
+rm -rf $RPM_BUILD_ROOT
 python setup.py install --optimize=1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
 
 %clean
