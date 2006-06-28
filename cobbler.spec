@@ -5,7 +5,7 @@
 Summary: Boot server configurator
 Name: %{name}
 Version: %{version}
-Release: %{release}
+Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -32,6 +32,7 @@ last two modes require 'koan' to be run on the remote system.
 python setup.py build
 
 %install
+rm -rf $RPM_BUILD_ROOT
 python setup.py install --optimize=1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
 
 %clean
