@@ -1,3 +1,5 @@
+all: rpm
+
 clean:
 	-rm -f cobbler*.gz cobbler*.rpm MANIFEST
 	-rm -rf cobbler-* dist build
@@ -9,7 +11,7 @@ test:
 	python tests/tests.py
 	-rm -rf /tmp/_cobbler-*
 
-install: clean manpage
+rpm: clean manpage
 	python setup.py sdist
 	cp dist/*.gz .
 	rpmbuild --define "_topdir %(pwd)" \

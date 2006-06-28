@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 """
 Command line interface for cobbler, a network provisioning configuration
 library.  Consult 'man cobbler' for general info.  This class serves
