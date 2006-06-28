@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #
 # Xen creation functions.  Code originated from xenguest-install.
 #

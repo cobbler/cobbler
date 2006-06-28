@@ -11,13 +11,11 @@ License: GPL
 Group: Applications/System
 Requires: mkinitrd
 Requires: syslinux
-Requires: python >= 2.4.2
-Requires: PySyck >= 0.61
+Requires: python >= 2.3
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: Michael DeHaan <mdehaan@redhat.com>
-Url: http://michaeldehaan.net/software/RPMS
+Url: http://michaeldehaan.net/software/RPMS/koan-0.1.0-1.src.rpm
 
 %description
 
@@ -41,3 +39,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files -f INSTALLED_FILES
 %defattr(-,root,root)
+
+%changelog
+* Wed Jun 28 2005 - 0.1.0-1
+- rpm genesis

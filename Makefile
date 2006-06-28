@@ -1,4 +1,4 @@
-all:
+all: rpm
 
 clean:
 	-rm -f koan*.gz koan*.rpm MANIFEST
@@ -10,7 +10,7 @@ manpage:
 test:
 	python tests/tests.py
 
-install: clean manpage
+rpm: clean manpage
 	python setup.py sdist
 	cp dist/*.gz .
 	rpmbuild --define "_topdir %(pwd)" \
