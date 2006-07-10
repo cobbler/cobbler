@@ -1,11 +1,7 @@
-%define name cobbler
-%define version 0.1.0
-%define release 1
-
 Summary: Boot server configurator
-Name: %{name}
-Version: %{version}
-Release: 1%{?dist}
+Name: cobbler
+Version: 0.1.0
+Release: 2%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -23,8 +19,6 @@ servers.  It is also accessible as a Python library.  Cobbler supports PXE,
 Xen, and re-provisioning an existing Linux system via auto-kickstart.  The
 last two modes require 'koan' to be run on the remote system.
 
-
-
 %prep
 %setup
 
@@ -34,6 +28,9 @@ python setup.py build
 %install
 rm -rf $RPM_BUILD_ROOT
 python setup.py install --optimize=1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
+sed -e 's|/[^/]*$||' INSTALLED_FILES | grep "site-packages/" | \
+sort | uniq | awk '{ print "%attr(755,root,root) %dir " $1}' > INSTALLED_DIRS
+cat INSTALLED_FILES INSTALLED_DIRS > INSTALLED_OBJECTS
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -42,5 +39,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
-* Tue Jun 28 2005 - 0.1.0-1
+* Thu Jul 9 2006 - 0.1.0-2
+- Fedora-Extras rpm spec tweaks
+* Tue Jun 28 2006 - 0.1.0-1
 - rpm genesis
