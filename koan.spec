@@ -12,7 +12,7 @@ Requires: syslinux
 Requires: python >= 2.3
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
-Url: http://michaeldehaan.net/software/cobbler.html
+Url: http://et.redhat.com/page/Cobbler_%26_Koan_Provisioning_Tools 
 
 %description
 
