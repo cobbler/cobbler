@@ -1,11 +1,9 @@
 %define name koan
-%define version 0.1.0
-%define release 1
 
 Summary: Network provisioning tool for Xen and Existing Non-Bare Metal
 Name: %{name}
-Version: %{version}
-Release: 1%{?dist}
+Version: 0.1.0
+Release: 2%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -14,16 +12,14 @@ Requires: syslinux
 Requires: python >= 2.3
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
-Vendor: Michael DeHaan <mdehaan@redhat.com>
-Url: http://michaeldehaan.net/software/RPMS/koan-0.1.0-1.src.rpm
+Url: http://michaeldehaan.net/software/cobbler.html
 
 %description
 
-koan standards for ’kickstart-over-a-network’ and allows for both
+Koan standards for kickstart-over-a-network and allows for both
 network provisioning of new Xen guests and destructive re-provisioning of
 any existing system.  For use with a boot-server configured with
 'cobbler'
-
 
 %prep
 %setup
@@ -34,6 +30,9 @@ python setup.py build
 %install
 rm -rf $RPM_BUILD_ROOT
 python setup.py install --optimize=1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
+sed -e 's|/[^/]*$||' INSTALLED_FILES | grep "site-packages/" | \
+sort | uniq | awk '{ print "%attr(755,root,root) %dir " $1}' > INSTALLED_DIRS
+cat INSTALLED_FILES INSTALLED_DIRS > INSTALLED_OBJECTS
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -42,5 +41,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
-* Wed Jun 28 2005 - 0.1.0-1
+* Thu Jul 09 2006 - 0.1.0-2
+- rpm tweaks for Fedora Extras
+* Wed Jun 28 2006 - 0.1.0-1
 - rpm genesis
