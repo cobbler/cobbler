@@ -10,7 +10,7 @@ Requires: httpd
 Requires: tftp-server
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
-Url: http://michaeldehaan.net/software/RPMS/cobbler-0.1.0-1.src.rpm
+Url: http://et.redhat.com/page/Cobbler_%26_Koan_Provisioning_Tools 
 
 %description
 
