@@ -22,7 +22,7 @@ if __name__ == "__main__":
                 # FIXME: lame, this should point to a real cobbler webpage
                 url = "http://bugzilla.redhat.com",
                 license = "GPL",
-                packages = ["cobbler"],
+                packages = ["cobbler","cobbler/yaml"],
                 scripts = ["cobbler/cobbler"],
                 data_files = [
                                 # (docspath, ['README']),
