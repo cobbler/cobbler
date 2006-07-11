@@ -24,7 +24,7 @@ if __name__ == "__main__":
                 # FIXME: lame, this should point to a real prm webpage
                 url = "http://bugzilla.redhat.com",
                 license = "GPL",
-                packages = ["koan"],
+                packages = ["koan","koan/yaml"],
                 scripts = ["koan/koan"],
                 data_files = [
                                 # (docspath, ['README']),
