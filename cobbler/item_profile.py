@@ -33,11 +33,12 @@ class Profile(item.Item):
         self.distro = None # a name, not a reference
         self.kickstart = None
         self.kernel_options = ''
+        self.ks_meta = ''
         self.xen_name = 'xenguest'
-        self.xen_file_size = 5 # GB
-        self.xen_ram = 2048    # MB
-        self.xen_mac = ''
-        self.xen_paravirt = True
+        self.xen_file_size = 5    # GB.  5 = Decent _minimum_ default for FC5.
+        self.xen_ram = 512        # MB.  Install with 256 not likely to pass
+        self.xen_mac = ''         # allow random generation as default
+        self.xen_paravirt = True  # hvm support is *NOT* in Koan (now)
 
     def from_datastruct(self,seed_data):
         """
@@ -47,6 +48,7 @@ class Profile(item.Item):
         self.distro          = seed_data['distro']
         self.kickstart       = seed_data['kickstart']
         self.kernel_options  = seed_data['kernel_options']
+        self.ks_meta         = seed_data['ks_meta']
         self.xen_name        = seed_data['xen_name']
         if not self.xen_name or self.xen_name == '':
             self.xen_name    = self.name
@@ -176,7 +178,8 @@ class Profile(item.Item):
             'xen_file_size'   : self.xen_file_size,
             'xen_ram'         : self.xen_ram,
             'xen_mac'         : self.xen_mac,
-            'xen_paravirt'    : self.xen_paravirt
+            'xen_paravirt'    : self.xen_paravirt,
+            'ks_meta'         : self.ks_meta
         }
 
     def printable(self,id):
@@ -187,6 +190,7 @@ class Profile(item.Item):
         buf = buf + "distro          : %s\n" % self.distro
         buf = buf + "kickstart       : %s\n" % self.kickstart
         buf = buf + "kernel options  : %s\n" % self.kernel_options
+        buf = buf + "ks metadata     : %s\n" % self.ks_meta
         buf = buf + "xen name        : %s\n" % self.xen_name
         buf = buf + "xen file size   : %s\n" % self.xen_file_size
         buf = buf + "xen ram         : %s\n" % self.xen_ram

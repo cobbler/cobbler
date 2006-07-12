@@ -34,6 +34,20 @@ class Item(serializable.Serializable):
         self.kernel_options = options_string
         return True
 
+    def set_ksmeta(self,options_string):
+        """
+        A comma delimited list of key value pairs, like 'a=b,c=d,e=f'.
+        The meta tags are used as input to the Cheetah templating system
+        to preprocess kickstart files
+        """
+        self.ks_meta = options_string
+        tokens = self.ks_meta.split(",")
+        for t in tokens:
+            tokens2 = t.split("=")
+            if len(tokens2) != 2:
+                return False
+        return True
+
     def to_datastruct(self):
         """
 	Returns an easily-marshalable representation of the collection.

@@ -26,11 +26,13 @@ class System(item.Item):
         self.name = None
         self.profile = None # a name, not a reference
         self.kernel_options = ""
+        self.ks_meta = ""
 
     def from_datastruct(self,seed_data):
         self.name = seed_data['name']
         self.profile = seed_data['profile']
         self.kernel_options = seed_data['kernel_options']
+        self.ks_meta = seed_data['ks_meta']
         return self
 
     def set_name(self,name):
@@ -69,12 +71,14 @@ class System(item.Item):
         return {
            'name'   : self.name,
            'profile'  : self.profile,
-           'kernel_options' : self.kernel_options
+           'kernel_options' : self.kernel_options,
+           'ks_meta' : self.ks_meta
         }
 
     def printable(self,id):
         buf =       "system %-4s     : %s\n" % (id, self.name)
         buf = buf + "profile         : %s\n" % self.profile
         buf = buf + "kernel options  : %s" % self.kernel_options
+        buf = buf + "ks metadata     : %s" % self.ks_meta
         return buf
 

@@ -96,7 +96,7 @@ class Collection(serializable.Serializable):
         if len(values) > 0:
            return "\n\n".join(results)
         else:
-           return cobbler_msg.lookup("empty_list")
+           return cobbler_msg.lookup("empty_list" % cobbler_msg.lookup(self.collection_type()))
 
     def __iter__(self):
         """
@@ -110,5 +110,11 @@ class Collection(serializable.Serializable):
 	Returns size of the collection
 	"""
         return len(self.listing.values())
+
+    def collection_type(self):
+        """
+        Returns the string key for the name of the collection (for use in messages for humans)
+        """
+        return exceptions.NotImplementedError
 
 

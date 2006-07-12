@@ -24,6 +24,9 @@ import cexceptions
 
 class Profiles(collection.Collection):
 
+    def collection_type(self):
+        return "profile"
+
     def factory_produce(self,config,seed_data):
         return profile.Profile(config).from_datastruct(seed_data)
 

@@ -1,13 +1,14 @@
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.1.0
-Release: 2%{?dist}
+Version: 0.1.1
+Release: 3%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
 Requires: python >= 2.3
 Requires: httpd
 Requires: tftp-server
+Requires: python-cheetah
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://et.redhat.com/page/Cobbler_%26_Koan_Provisioning_Tools 
@@ -39,6 +40,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Wed Jul 12 2006 - 0.1.1-3
+- Added templating support using Cheetah
 * Thu Jul 9 2006 - 0.1.0-2
 - Fedora-Extras rpm spec tweaks
 * Tue Jun 28 2006 - 0.1.0-1

@@ -16,16 +16,16 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import os
 import shutil
 import yaml 
+from Cheetah.Template import Template
 
 import utils
 import cobbler_msg
 import cexceptions
-
-"""
-Handles conversion of internal state to the tftpboot tree layout
-"""
-
+        
 class BootSync:
+    """
+    Handles conversion of internal state to the tftpboot tree layout
+    """
 
     def __init__(self,config):
         """
@@ -92,7 +92,7 @@ class BootSync:
         """
         Delete any previously built pxelinux.cfg tree and xen tree info.
         """
-        for x in ["pxelinux.cfg","images","systems","distros","profiles","kickstarts"]:
+        for x in ["pxelinux.cfg","images","systems","distros","profiles","kickstarts","kickstarts_sys"]:
             path = os.path.join(self.settings.tftpboot,x)
             self.rmtree(path)
             self.mkdir(path)
@@ -129,23 +129,98 @@ class BootSync:
         (http or ftp), can stay as is.  kickstarts referenced by absolute
         path (i.e. are files path) will be mirrored over http.
         """
-        # ensure all referenced kickstarts exist
-        # these are served by either NFS, Apache, or some ftpd, so we don't need to copy them
-        # it's up to the user to make sure they are nicely served by their URLs
+ 
+        self.validate_kickstarts_per_profile()
+        self.validate_kickstarts_per_system()
+        return True
+
+    def validate_kickstarts_per_profile(self):
+        """
+        Koan provisioning (Xen + auto-ks) needs kickstarts
+        per profile.  Validate them as needed.  Local kickstarts
+        get template substitution.  Since http:// kickstarts might
+        get generated via magic URLs, those are *not* substituted.
+        NFS kickstarts are also not substituted when referenced
+        by NFS URL's as we don't copy those files over to the cobbler
+        directories.  They are supposed to be live such that an 
+        admin can update those without needing to run 'sync' again.
+        """
 
         for g in self.profiles:
+           distro = self.distros.find(g.distro)
            self.sync_log(cobbler_msg.lookup("sync_mirror_ks"))
            kickstart_path = utils.find_kickstart(g.kickstart)
            if kickstart_path and os.path.exists(kickstart_path):
               # the input is an *actual* file, hence we have to copy it
-              copy_path = os.path.join(self.settings.tftpboot, "kickstarts", g.name)
+              copy_path = os.path.join(
+                  self.settings.tftpboot, 
+                  "kickstarts", # profile kickstarts go here
+                  g.name
+              )
               self.mkdir(copy_path)
               dest = os.path.join(copy_path, "ks.cfg")
-              try:
-                  self.copyfile(g.kickstart, dest)
-              except:
-                  raise cexceptions.CobblerException("err_kickstart2")
+              # FIXME -- uncomment try for now
+              #try:
+              meta = self.blend_options(False, (
+                distro.ks_meta,
+                g.ks_meta,
+              ))
+              self.apply_template(kickstart_path, meta, dest)
+              #except:
+              #msg = "err_kickstart2" % (g.kickstart,dest)
+              #raise cexceptions.CobblerException(msg)
 
+    def validate_kickstarts_per_system(self):
+        """
+        PXE provisioning needs kickstarts evaluated per system.
+        Profiles would normally be sufficient, but not in cases
+        such as static IP, where we want to be able to do templating
+        on a system basis.
+ 
+        FIXME: be sure PXE configs reference the new kickstarts_sys path
+        instead.
+        """
+
+        for s in self.systems:
+            profile = self.profiles.find(s.profile)
+            distro = self.distros.find(profile.distro)
+            kickstart_path = utils.find_kickstart(profile.kickstart)
+            if kickstart_path and os.path.exists(kickstart_path):
+                copy_path = os.path.join(self.settings.tftpboot, 
+                    "kickstarts_sys", # system kickstarts go here
+                    s.name
+                )
+                self.mkdir(copy_path)
+                dest = os.path.join(copy_path, "ks.cfg")
+                try: 
+                    meta = self.blend_options(False,(
+                        distro.ks_meta,
+                        profile.ks_meta,
+                        s.ks_meta
+                    ))
+                    self.apply_template(kickstart_path, meta, dest)
+                except:
+                    msg = "err_kickstart2" % (g.kickstart, dest)
+                    raise cexpcetions.CobblerException(msg)
+
+    def apply_template(self, kickstart_input, metadata, out_path):
+        """
+        Take filesystem file kickstart_input, apply metadata using
+        Cheetah and save as out_path.
+        """
+        fd = open(kickstart_input)
+        data = fd.read()
+        fd.close()
+        print metadata # FIXME: temporary
+        t = Template(
+            "#errorCatcher Echo\n%s" % data, 
+            searchList=[metadata],
+        )
+        computed = str(t)
+        fd = open(out_path, "w+")
+        fd.write(computed)
+        fd.close()
+ 
     def build_trees(self):
         """
         Now that kernels and initrds are copied and kickstarts are all valid,
@@ -161,7 +236,7 @@ class BootSync:
             self.sync_log(cobbler_msg.lookup("sync_processing") % d.name)
             # TODO: add check to ensure all distros have profiles (=warning)
             filename = os.path.join(self.settings.tftpboot,"distros",d.name)
-            d.kernel_options = self.blend_kernel_options((
+            d.kernel_options = self.blend_options(True,(
                self.settings.kernel_options,
                d.kernel_options
             ))
@@ -174,7 +249,7 @@ class BootSync:
             filename = os.path.join(self.settings.tftpboot,"profiles",p.name)
             distro = self.distros.find(p.distro)
             if distro is not None:
-                p.kernel_options = self.blend_kernel_options((
+                p.kernel_options = self.blend_options(True,(
                    self.settings.kernel_options,
                    distro.kernel_options,
                    p.kernel_options
@@ -230,7 +305,7 @@ class BootSync:
         self.tee(fd,"timeout 1\n")
         self.tee(fd,"label linux\n")
         self.tee(fd,"   kernel %s\n" % kernel_path)
-        kopts = self.blend_kernel_options((
+        kopts = self.blend_options(True,(
            self.settings.kernel_options,
            profile.kernel_options,
            distro.kernel_options,
@@ -238,10 +313,10 @@ class BootSync:
         ))
         nextline = "   append %s initrd=%s" % (kopts,initrd_path)
         if kickstart_path is not None and kickstart_path != "":
-            # if kickstart path is local, we've already copied it into
+            # if kickstart path is on disk, we've already copied it into
             # the HTTP mirror, so make it something anaconda can get at
             if kickstart_path.startswith("/"):
-                kickstart_path = "http://%s/cobbler/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)
+                kickstart_path = "http://%s/cobbler/kickstarts_sys/%s/ks.cfg" % (self.settings.server, system.name)
             nextline = nextline + " ks=%s" % kickstart_path
         self.tee(fd, nextline)
         self.close_file(fd)
@@ -367,15 +442,19 @@ class BootSync:
            else:
                print message
 
-    def blend_kernel_options(self, list_of_opts):
+    def blend_options(self, is_for_kernel, list_of_opts):
         """
-        Given a list of kernel options, take the values used by the
+        Given a list of options, take the values used by the
         first argument in the list unless overridden by those in the
         second (or further on), according to --key=value formats.
 
         This is used such that we can have default kernel options
         in /etc and then distro, profile, and system options with various
-        levels of configurability.
+        levels of configurability overriding them.  This also works
+        for template metadata (--ksopts)
+ 
+        The output when is_for_kernel is true is a space delimited list.
+        When is_for_kernel is false, it's just a hash (which Cheetah requires).
         """
         internal = {}
         results = []
@@ -390,17 +469,21 @@ class BootSync:
                   internal[key_value[0]] = ""
               else:
                   internal[key_value[0]] = key_value[1]
-        # now go back through the final list and render the single
+        if not is_for_kernel:
+            return internal
+        # the kernel requires a flat string for options, and we want
+        # to remove certain invalid options.
+        # go back through the final list and render the single
         # items AND key/value items
         for key in internal.keys():
            data = internal[key]
-           if key == "ks" or key == "initrd" or key == "append":
+           if (key == "ks" or key == "initrd" or key == "append"):
                # the user REALLY doesn't want to do this...
                continue
            if data == "":
                results.append(key)
            else:
                results.append("%s=%s" % (key,internal[key]))
-        # end result is a new fragment of a kernel options string
+        # end result is a new fragment of an options string
         return " ".join(results)
 

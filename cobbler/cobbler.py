@@ -128,7 +128,8 @@ class BootCLI:
            '--name'     :  lambda(a) : sys.set_name(a),
            '--system'   :  lambda(a) : sys.set_name(a),
            '--profile'  :  lambda(a) : sys.set_profile(a),
-           '--kopts'    :  lambda(a) : sys.set_kernel_options(a)
+           '--kopts'    :  lambda(a) : sys.set_kernel_options(a),
+           '--ksmeta'   :  lambda(a) : sys.set_ksmeta(a)
         }
         on_ok = lambda: self.api.systems().add(sys)
         return self.apply_args(args,commands,on_ok)
@@ -147,7 +148,8 @@ class BootCLI:
             '--kopts'           :  lambda(a) : profile.set_kernel_options(a),
             '--xen-name'        :  lambda(a) : profile.set_xen_name(a),
             '--xen-file-size'   :  lambda(a) : profile.set_xen_file_size(a),
-            '--xen-ram'         :  lambda(a) : profile.set_xen_ram(a)
+            '--xen-ram'         :  lambda(a) : profile.set_xen_ram(a),
+            '--ksmeta'          :  lambda(a) : profile.set_ksmeta(a)
         # the following options are most likely not useful for profiles (yet)
         # primarily due to not being implemented in koan.
         #    '--xen-mac'         :  lambda(a) : profile.set_xen_mac(a),
@@ -167,7 +169,8 @@ class BootCLI:
             '--distro'    :  lambda(a) : distro.set_name(a),
             '--kernel'    :  lambda(a) : distro.set_kernel(a),
             '--initrd'    :  lambda(a) : distro.set_initrd(a),
-            '--kopts'     :  lambda(a) : distro.set_kernel_options(a)
+            '--kopts'     :  lambda(a) : distro.set_kernel_options(a),
+            '--ksmeta'    :  lambda(a) : distro.set_ksmeta(a)
         }
         on_ok = lambda: self.api.distros().add(distro)
         return self.apply_args(args,commands,on_ok)

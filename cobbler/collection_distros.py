@@ -20,6 +20,9 @@ import cexceptions
 
 class Distros(collection.Collection):
 
+    def collection_type(self):
+        return "distribution"
+
     def factory_produce(self,config,seed_data):
         """
         Return a Distro forged from seed_data

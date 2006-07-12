@@ -22,6 +22,9 @@ import cexceptions
 
 class Systems(collection.Collection):
 
+    def collection_type(self):
+        return "system"
+
     def factory_produce(self,config,seed_data):
         """
         Return a system forged from seed_data

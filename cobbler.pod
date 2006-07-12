@@ -29,19 +29,23 @@ Any problems should be corrected, with the potential exception of DHCP related w
 
 In the case of the DHCP server being on another machine, the "next-server" field in dhcpd.conf on that machine should be set to the IP of the boot server and "filename" field set to "pxelinux.0".  In this case, DHCP errors coming from "cobbler check" should be ignored.
 
-B<cobbler distro add --name=<string> --kernel=<path> --initrd=<path> [--kopts=<string>]>
+B<cobbler distro add --name=<string> --kernel=<path> --initrd=<path> [--kopts=<string>] [--ksmeta=<string>]>
 
-Cobbler works in terms of distros, profiles, and systems.  All three must define to get a working PXE configuration.  "cobbler distro add" defines a distribution.  Minimally, this is a named set (for instance, 'fc5-i386') of an initrd and a kernel.  Kernel options from /var/lib/cobbler/settings can be overriden here by specifying a comma seperated list of key=value pairs.
+Cobbler works in terms of distros, profiles, and systems.  All three must define to get a working PXE configuration.  "cobbler distro add" defines a distribution.  Minimally, this is a named set (for instance, 'fc5-i386') of an initrd and a kernel.  Kernel options from /var/lib/cobbler/settings can be overriden here by specifying a space seperated list of options.
 
 The kernel/initrd pairs used for "distro add" probably should be those that are used to boot Anaconda, but there are plenty of other uses.  If Xen provisioning is desired, a Xen dom0 kernel and the matching Anaconda initrd is required.
 
-B<cobbler profile add --name=<string> --distro=<string> [--kickstart=<url>] [--kopts=<string>] [--xen-name=<string>] [--xen-file-size=<gigabytes>] [--xen-ram=<megabytes>]
+kopts is a string of space delimited key=value pairs such as --kopts="quiet rhgb=true".  kopts are optional and reasonable defaults are provided in /var/lib/cobbler/settings
+
+ksmeta is an advanced feature to enable templating of kickstart files.  See the 'KICKSTART TEMPLATING' section for more details.  ksmeta requires a space delimited list of key=value pairs.
+
+B<cobbler profile add --name=<string> --distro=<string> [--kickstart=<url>] [--kopts=<string>] [--ksmeta=<string>] [--xen-name=<string>] [--xen-file-size=<gigabytes>] [--xen-ram=<megabytes>]
 
 "cobbler profile add" defines a named provisioning profile, which must reference an already created distribution.  Optional parameters can specify kickstart information or Xen parameters.  Kickstarts are almost always desired, and can be nfs://, http://, or ftp:// -- or an absolute path.  For file paths, cobbler will copy the kickstarts and serve them up as http -- so having servable kickstart paths as parameters to "cobbler profile add" is not required.  In fact, it's probably a good idea to leave the kickstarts as absolute paths to avoid having yet another resource to manage.
 
 For Xen parameters, koan may interpret some parameters as hints, not absolutes, if it has to resolve conflicts.  All of these Xen parameters are optional, though as many as possible should be specified to avoid the risk koan making it's own decisions when run on the target dom0.  See the documentation for koan for more details.
 
-B<cobbler system add --name=<ip|mac|hostname> --profile=<string> [--kopts=<string>]>
+B<cobbler system add --name=<ip|mac|hostname> --profile=<string> [--kopts=<string>] [--ksmeta=<string>]
 
 Correlates a system name (an IP, hostname, or MAC address of a bare-metal system or a Xen dom0) with an already created profile.  For koan (the tool used for Xen and auto-kickstart deployment), system configurations are *not* used -- system information is only used for PXE.
 
@@ -87,7 +91,17 @@ B<cobbler sync>
 
 =head1 XEN EXAMPLE
 
-TBA
+For Xen, just add the optional Xen parameters above to customize a Xen profile.  The Xen settings will assume
+reasonable defaults if they are not specified, but it is better to be explicit.
+
+=head1 KICKSTART TEMPLATING
+
+The --ksmeta option is an advanced feature which allows metadata to be assigned to a distro, profile, or system for the purposes of building kickstarts using templates.  The arguments to --ksmeta are comma delimited key=value pairs such as "--ksmeta=a=1,b=2,c=3".  When --ksmeta is used on a system, profile, or distribution, kickstarts can then be evaluated using the Cheetah templating language.  This feature is entirely optional.
+
+Kickstarts do not have to use any templating, but if they do include Cheetah templating language, the ksmeta parameters to distros, profiles, and systems is the method used to pass variables into Cheetah.  For example, using --ksmeta="a=1 b=2" sets the variables (a) and (b) as template variables, which can be used to add flexibility in the way kickstarts are built (such as conditional evaluation, loops, and variable substitution).  Metadata can be added to a distro, a profile, or a system.  System metadata is only relevant to PXE templating, though Distro and Profile metadata is relevant to all types.  System metadata overrides Profile metadata when there are name collisions, and a profile will override Distro metadata.  This is the same way prioritization works for kernel options (--kopts).  Thus if a distribution sets "--ksmeta=alpha=bravo" and a profile sets "--ksmeta=alpha=delta", the value used for "alpha" will be "delta".
+
+For documentation on Cheetah's templating language for use inside kickstart, see http://cheetahtemplate.org. 
+Note that if kickstarts are only passed through the templating engine if they are specified as file paths -- nfs:// and http:// kickstarts, by design, will be evaluated as is.  The reason for this is that templates are only evaluated when 'cobbler sync' is run -- and we want nfs:// and http:// to be more dynamic.  It is possible, for instance, to generate dynamic kickstarts through magic URLs (cgi, mod_python, etc).  This type of dynamic generation would be incompatible with 'cobbler sync', which is based on static generation.  We don't touch NFS kickstarts for similar reasons -- someone may manipulate the kickstarts on a remote system and not be able to run 'cobbler sync' on the boot server.
 
 =head1 CONFIGURATION FILES
 

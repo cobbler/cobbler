@@ -37,6 +37,7 @@ class Distro(item.Item):
         self.kernel = None
         self.initrd = None
         self.kernel_options = ""
+        self.ks_meta = ""
 
     def from_datastruct(self,seed_data):
         """
@@ -46,6 +47,7 @@ class Distro(item.Item):
         self.kernel = seed_data['kernel']
         self.initrd = seed_data['initrd']
         self.kernel_options = seed_data['kernel_options']
+        self.ks_meta = seed_data['ks_meta']
         return self
 
     def set_kernel(self,kernel):
@@ -88,7 +90,8 @@ class Distro(item.Item):
            'name': self.name,
            'kernel': self.kernel,
            'initrd' : self.initrd,
-           'kernel_options' : self.kernel_options
+           'kernel_options' : self.kernel_options,
+           'ks_meta' : self.ks_meta
         }
 
     def printable(self, id):
@@ -109,5 +112,6 @@ class Distro(item.Item):
         buf = buf + "kernel          : %s\n" % kstr
         buf = buf + "initrd          : %s\n" % istr
         buf = buf + "kernel options  : %s\n" % self.kernel_options
+        buf = buf + "ks metadata     : %s\n" % self.ks_meta
         return buf
 

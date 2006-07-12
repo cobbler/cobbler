@@ -15,6 +15,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 _msg_table = {
+  "system"          : "System",
+  "profile"         : "Profile",
+  "distribution"    : "Distribution",
   "bad_server"      : "The 'server' field in /var/lib/cobbler/settings must be set to something other than localhost, or kickstarting features will not work",
   "parse_error"     : "cobbler could not read %s, replacing...",
   "no_create"       : "cobbler could not create: %s",
@@ -39,7 +42,7 @@ _msg_table = {
   "no_line"         : "file '%s' should have a line '%s' somewhere",
   "no_dir2"         : "can't find %s for %s as referenced in /var/lib/cobbler/settings",
   "bad_param"       : "at least one parameter is missing for this function",
-  "empty_list"      : "There are no configured items.",
+  "empty_list"      : "There are no configured %s records.",
   "err_resolv"      : "The system name (%s) did not resolve",
   "err_kickstart"   : "The kickstart (%s) for item (%s) is not valid",
   "err_kickstart2"  : "Error while mirroring kickstart file (%s) to (%s)",
