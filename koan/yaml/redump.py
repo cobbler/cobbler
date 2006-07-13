@@ -11,4 +11,4 @@ def redump(stream):
     dumper = Dumper()
     dumper.alphaSort = 0
     return dumper.dump(*docs)
-    
+

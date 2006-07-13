@@ -23,6 +23,6 @@ class Basic(unittest.TestCase):
        except:
            traceback.print_exc()
            self.fail("raised exception")
-       
+
 if __name__ == "__main__":
     unittest.main(argv=sys.argv)

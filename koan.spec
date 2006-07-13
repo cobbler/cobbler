@@ -2,8 +2,8 @@
 
 Summary: Network provisioning tool for Xen and Existing Non-Bare Metal
 Name: %{name}
-Version: 0.1.0
-Release: 2%{?dist}
+Version: 0.1.1
+Release: 3%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -12,7 +12,7 @@ Requires: syslinux
 Requires: python >= 2.3
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
-Url: http://et.redhat.com/page/Cobbler_%26_Koan_Provisioning_Tools 
+Url: http://et.redhat.com/page/Cobbler_%26_Koan_Provisioning_Tools
 
 %description
 
@@ -41,6 +41,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Fri Jul 12 2006 - 0.1.1-3
+- allow installing with per-system cobbler data in addition to per-profile
 * Thu Jul 09 2006 - 0.1.0-2
 - rpm tweaks for Fedora Extras
 * Wed Jun 28 2006 - 0.1.0-1

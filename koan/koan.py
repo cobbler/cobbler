@@ -25,10 +25,13 @@ import exceptions
 import subprocess
 import shutil
 import errno
+import subprocess
+import re
 import xencreate
+
 """
-koan --xen --profile=webserver --server=hostname
-koan --replace-self --server=hostname --profile=foo
+koan --xen [--profile=webserver|--system=name] --server=hostname
+koan --replace-self --profile=foo --server=hostname
 """
 
 def main():
@@ -44,9 +47,12 @@ def main():
                  dest="is_auto_kickstart",
                  action="store_true",
                  help="requests re-provisioning of this host")
-    p.add_option("-p", "--profiles",
-                 dest="profiles",
-                 help="list of profiles to install")
+    p.add_option("-p", "--profile",
+                 dest="profile",
+                 help="cobbler profile to install")
+    p.add_option("-y", "--system",
+                 dest="system",
+                 help="cobbler system to install")
     p.add_option("-s", "--server",
                  dest="server",
                  help="specify the cobbler server")
@@ -70,7 +76,8 @@ def main():
         k.server            = options.server
         k.is_xen            = options.is_xen
         k.is_auto_kickstart = options.is_auto_kickstart
-        k.profile           = options.profiles
+        k.profile           = options.profile
+        k.system            = options.system
         k.verbose           = options.verbose
         k.run()
     except InfoException, ie:
@@ -115,8 +122,12 @@ class Koan:
             raise InfoException, "no server specified"
         if self.verbose is None:
             self.verbose = True
-        if not self.profile:
+        if self.is_xen and not self.profile:
             raise InfoException, "must specify --profile"
+        if (not self.profile and not self.system):
+            raise InfoException, "must specify --profile or --system"
+        if self.profile and self.system:
+            raise InfoException, "--profile and --system are exclusive"
         if self.is_xen:
             self.do_xen()
         else:
@@ -177,7 +188,10 @@ class Koan:
         Actually kicks off downloads and auto-ks or xen installs
         """
         self.debug("processing profile: %s" % self.profile)
-        profile_data = self.get_profile_yaml(self.profile)
+        if self.profile:
+            profile_data = self.get_profile_yaml(self.profile)
+        else:
+            profile_data = self.get_system_yaml(self.system)
         self.debug(profile_data)
         if not 'distro' in profile_data:
             raise InfoException, "invalid response from boot server"
@@ -304,6 +318,72 @@ class Koan:
             return yaml.load(data).next() # first record
         except:
             raise InfoException, "couldn't download profile information: %s" % profile_name
+
+    def is_ip(self,strdata):
+        """
+        Is strdata an IP?
+        warning: not IPv6 friendly
+        """
+        if re.search(r'\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}',strdata):
+            return True
+        return False
+
+    def is_mac(self,strdata):
+        """
+        Return whether the argument is a mac address.
+        """
+        if re.search(r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}',strdata):
+            return True
+        return False
+
+    def fix_mac(self,strdata):
+        """ Make a MAC look PXE-ish """
+        return "01-" + "-".join(strdata.split(":")).lower()
+
+    def fix_ip(self,ip):
+        """ Make an IP look PXE-ish """
+        handle = subprocess.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=subprocess.PIPE)
+        out = handle.stdout
+        results = out.read()
+        return results.split(" ")[-1][0:8]
+
+    def pxeify(self,system_name):
+        """
+        If the input system name is an IP or MAC, make it conform with
+        what cobbler expects.
+        """
+        if self.is_ip(system_name):
+            return self.fix_ip(system_name)
+        elif self.is_mac(system_name):
+            return "01-" + "-".join(name.split(":")).lower()
+        return system_name
+
+    def get_system_yaml(self,system_name):
+        """
+        If user specifies --system, return the profile data
+        but use the system kickstart and kernel options in place
+        of what was specified in the system's profile.
+        """
+        old_system_name = system_name
+        system_name = self.pxeify(system_name)
+        system_data = None
+        self.debug("fetching configuration for system: %s" % old_system_name)
+        try:
+            url = "http://%s/cobbler/systems/%s" % (self.server,system_name)
+            self.debug("url=%s" % url)
+            data = urlgrabber.urlread(url)
+            system_data = yaml.load(data).next() # first record
+        except:
+            raise InfoException, "couldn't download profile information: %s" % system_name
+        profile_data = self.get_profile_yaml(system_data['profile'])
+        # system overrides the profile values where relevant
+        profile_data.update(system_data)
+        # still have to override the kickstart since these are not in the
+        # YAML (kickstarts are per-profile but template eval'd for each system)
+        profile_data['kickstart'] = "http://%s/cobbler/kickstarts_sys/%s/ks.cfg" % (self.server,system_name)
+        print "DEBUG !!!"
+        print profile_data
+        return profile_data
 
     def get_distro_yaml(self,distro_name):
         """
