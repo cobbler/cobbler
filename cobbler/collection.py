@@ -96,7 +96,7 @@ class Collection(serializable.Serializable):
         if len(values) > 0:
            return "\n\n".join(results)
         else:
-           return cobbler_msg.lookup("empty_list" % cobbler_msg.lookup(self.collection_type()))
+           return cobbler_msg.lookup("empty_list") % cobbler_msg.lookup(self.collection_type())
 
     def __iter__(self):
         """
