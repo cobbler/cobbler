@@ -4,7 +4,7 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 SHORT_DESC = "Network provisioning tool for Xen and Existing Non-Bare Metal"
 LONG_DESC = """
 koan standards for "kickstart-over-a-network" and allows for both
