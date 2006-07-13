@@ -15,13 +15,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import os
 import shutil
-import yaml 
+import yaml
 from Cheetah.Template import Template
 
 import utils
 import cobbler_msg
 import cexceptions
-        
+
 class BootSync:
     """
     Handles conversion of internal state to the tftpboot tree layout
@@ -129,7 +129,7 @@ class BootSync:
         (http or ftp), can stay as is.  kickstarts referenced by absolute
         path (i.e. are files path) will be mirrored over http.
         """
- 
+
         self.validate_kickstarts_per_profile()
         self.validate_kickstarts_per_system()
         return True
@@ -142,7 +142,7 @@ class BootSync:
         get generated via magic URLs, those are *not* substituted.
         NFS kickstarts are also not substituted when referenced
         by NFS URL's as we don't copy those files over to the cobbler
-        directories.  They are supposed to be live such that an 
+        directories.  They are supposed to be live such that an
         admin can update those without needing to run 'sync' again.
         """
 
@@ -153,7 +153,7 @@ class BootSync:
            if kickstart_path and os.path.exists(kickstart_path):
               # the input is an *actual* file, hence we have to copy it
               copy_path = os.path.join(
-                  self.settings.tftpboot, 
+                  self.settings.tftpboot,
                   "kickstarts", # profile kickstarts go here
                   g.name
               )
@@ -176,7 +176,7 @@ class BootSync:
         Profiles would normally be sufficient, but not in cases
         such as static IP, where we want to be able to do templating
         on a system basis.
- 
+
         FIXME: be sure PXE configs reference the new kickstarts_sys path
         instead.
         """
@@ -186,13 +186,14 @@ class BootSync:
             distro = self.distros.find(profile.distro)
             kickstart_path = utils.find_kickstart(profile.kickstart)
             if kickstart_path and os.path.exists(kickstart_path):
-                copy_path = os.path.join(self.settings.tftpboot, 
+                pxe_fn = self.get_pxelinux_filename(s.name)
+                copy_path = os.path.join(self.settings.tftpboot,
                     "kickstarts_sys", # system kickstarts go here
-                    s.name
+                    pxe_fn
                 )
                 self.mkdir(copy_path)
                 dest = os.path.join(copy_path, "ks.cfg")
-                try: 
+                try:
                     meta = self.blend_options(False,(
                         distro.ks_meta,
                         profile.ks_meta,
@@ -213,14 +214,14 @@ class BootSync:
         fd.close()
         print metadata # FIXME: temporary
         t = Template(
-            "#errorCatcher Echo\n%s" % data, 
+            "#errorCatcher Echo\n%s" % data,
             searchList=[metadata],
         )
         computed = str(t)
         fd = open(out_path, "w+")
         fd.write(computed)
         fd.close()
- 
+
     def build_trees(self):
         """
         Now that kernels and initrds are copied and kickstarts are all valid,
@@ -316,7 +317,8 @@ class BootSync:
             # if kickstart path is on disk, we've already copied it into
             # the HTTP mirror, so make it something anaconda can get at
             if kickstart_path.startswith("/"):
-                kickstart_path = "http://%s/cobbler/kickstarts_sys/%s/ks.cfg" % (self.settings.server, system.name)
+                pxe_fn = self.get_pxelinux_filename(system.name)
+                kickstart_path = "http://%s/cobbler/kickstarts_sys/%s/ks.cfg" % (self.settings.server, pxe_fn)
             nextline = nextline + " ks=%s" % kickstart_path
         self.tee(fd, nextline)
         self.close_file(fd)
@@ -452,7 +454,7 @@ class BootSync:
         in /etc and then distro, profile, and system options with various
         levels of configurability overriding them.  This also works
         for template metadata (--ksopts)
- 
+
         The output when is_for_kernel is true is a space delimited list.
         When is_for_kernel is false, it's just a hash (which Cheetah requires).
         """

@@ -7,7 +7,7 @@ PRIVATE_NOTICE = """
   objects and methods exported to the top level yaml package.
 """
 
-# 
+#
 # Time specific operations
 #
 
@@ -77,13 +77,13 @@ class _timestamp:
     def strftime(self,format): return time.strftime(format,self.__tval)
     def mktime(self):          return time.mktime(self.__tval)
     def asctime(self):  return time.asctime(self.__tval)
-    def isotime(self):  
+    def isotime(self):
         return "%04d-%02d-%02dT%02d:%02d:%02d.00Z" % self.__tval[:6]
-    def __repr__(self): return "yaml.timestamp('%s')" % self.isotime()    
+    def __repr__(self): return "yaml.timestamp('%s')" % self.isotime()
     def __str__(self):  return self.isotime()
     def to_yaml_implicit(self): return self.isotime()
-    def __hash__(self): return hash(self.__tval[:6]) 
-    def __cmp__(self,other): 
+    def __hash__(self): return hash(self.__tval[:6])
+    def __cmp__(self,other):
         try:
             return cmp(self.__tval[:6],other.__tval[:6])
         except AttributeError:
@@ -99,18 +99,18 @@ try: # inherit from mx.DateTime functionality if available
               return getattr(self.__mxdt, name)
 except:
     class timestamp(_timestamp): pass
-        
+
 
 
 def unquote(expr):
     """
         summary: >
            Simply returns the unquoted string, and the
-           length of the quoted string token at the 
+           length of the quoted string token at the
            beginning of the expression.
     """
     tok = expr[0]
-    if "'" == tok: 
+    if "'" == tok:
         idx = 1
         odd = 0
         ret = ""

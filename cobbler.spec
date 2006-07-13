@@ -11,12 +11,12 @@ Requires: tftp-server
 Requires: python-cheetah
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
-Url: http://et.redhat.com/page/Cobbler_%26_Koan_Provisioning_Tools 
+Url: http://et.redhat.com/page/Cobbler_%26_Koan_Provisioning_Tools
 
 %description
 
-Cobbler is a command line tool for simplified configuration of provisioning 
-servers.  It is also accessible as a Python library.  Cobbler supports PXE, 
+Cobbler is a command line tool for simplified configuration of provisioning
+servers.  It is also accessible as a Python library.  Cobbler supports PXE,
 Xen, and re-provisioning an existing Linux system via auto-kickstart.  The
 last two modes require 'koan' to be run on the remote system.
 
