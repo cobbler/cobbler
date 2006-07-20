@@ -40,7 +40,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
-* Thr Jul 19 2006 - 0.1.1-4
+* Thu Jul 20 2006 - 0.1.1-4
 - Fixed python import paths in yaml code, which errantly assumed yaml was installed as a module.
 * Wed Jul 12 2006 - 0.1.1-3
 - Added templating support using Cheetah
