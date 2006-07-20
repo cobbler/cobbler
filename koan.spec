@@ -3,7 +3,7 @@
 Summary: Network provisioning tool for Xen and Existing Non-Bare Metal
 Name: %{name}
 Version: 0.1.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -41,6 +41,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Thu Jul 20 2006 - 0.1.1-4
+- Fixed python import paths in yaml code, which errantly assumed yaml was installed as a module.
 * Fri Jul 12 2006 - 0.1.1-3
 - allow installing with per-system cobbler data in addition to per-profile
 * Thu Jul 09 2006 - 0.1.0-2

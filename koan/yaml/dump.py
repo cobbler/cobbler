@@ -2,7 +2,7 @@ import types
 import string
 from types import StringType, UnicodeType, IntType, FloatType
 from types import DictType, ListType, TupleType, InstanceType
-from yaml.klass import hasMethod, isDictionary
+from klass import hasMethod, isDictionary
 import re
 
 """
