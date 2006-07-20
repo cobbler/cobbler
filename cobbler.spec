@@ -1,7 +1,7 @@
 Summary: Boot server configurator
 Name: cobbler
 Version: 0.1.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -40,6 +40,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Thr Jul 19 2006 - 0.1.1-4
+- Fixed python import paths in yaml code, which errantly assumed yaml was installed as a module.
 * Wed Jul 12 2006 - 0.1.1-3
 - Added templating support using Cheetah
 * Thu Jul 9 2006 - 0.1.0-2
