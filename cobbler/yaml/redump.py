@@ -1,5 +1,7 @@
-from yaml.ordered_dict import OrderedDict
-from yaml import Parser, Dumper, StringStream
+from ordered_dict import OrderedDict
+from load import Parser
+from dump import Dumper
+from stream import StringStream
 
 def loadOrdered(stream):
     parser = Parser(StringStream(stream))

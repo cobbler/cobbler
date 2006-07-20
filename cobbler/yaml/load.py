@@ -1,8 +1,8 @@
 import re, string
 from implicit import convertImplicit
 from inline import InlineTokenizer
-from yaml.klass import DefaultResolver
-from yaml.stream import YamlLoaderException, FileStream, StringStream, NestedDocs
+from klass import DefaultResolver
+from stream import YamlLoaderException, FileStream, StringStream, NestedDocs
 
 try:
     iter(list()) # is iter supported by this version of Python?
