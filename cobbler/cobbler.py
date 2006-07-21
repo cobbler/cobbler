@@ -16,7 +16,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import sys
 import api
-import syck
 
 import cobbler_msg
 import cexceptions
@@ -263,9 +262,6 @@ def main():
     CLI entry point
     """
     try:
-        # verify syck isn't busted (old syck bindings were)
-        if not hasattr(syck,"dump"):
-            raise cexceptions.CobblerException("PySyck module is outdated")
         BootCLI(sys.argv).run()
     except cexceptions.CobblerException, exc:
         print str(exc)[1:-1]  # remove framing air quotes
