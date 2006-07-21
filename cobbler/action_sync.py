@@ -280,6 +280,8 @@ class BootSync:
         is either a system name, an IP, or the MAC, so figure it out, resolve
         the host if needed, and return the pxelinux directory name.
         """
+        if name_input == "default":
+            return "default"
         name = utils.find_system_identifier(name_input)
         if utils.is_ip(name):
             return utils.get_host_ip(name)

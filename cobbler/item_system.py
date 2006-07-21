@@ -41,6 +41,9 @@ class System(item.Item):
         any legal ipv4 address, or any legal mac address. ipv6 is not supported yet but _should_ be.
         See utils.py
         """
+        if name == "default":
+            self.name="default"
+            return True
         new_name = utils.find_system_identifier(name)
         if not new_name:
             raise cexceptions.CobblerException("bad_sys_name")
