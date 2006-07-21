@@ -255,7 +255,10 @@ class Koan:
             return data
         elif kickstart.startswith("http") or kickstart.startswith("ftp"):
             self.debug("urlgrab: %s" % kickstart)
-            inf = urlgrabber.urlread(kickstart)
+            try:
+                inf = urlgrabber.urlread(kickstart)
+            except:
+                raise InfoException, "Couldn't download: %s" % kickstart
             return inf
         else:
             raise InfoException, "invalid kickstart URL"
@@ -352,7 +355,9 @@ class Koan:
         If the input system name is an IP or MAC, make it conform with
         what cobbler expects.
         """
-        if self.is_ip(system_name):
+        if system_name == "default":
+            return "default"
+        elif self.is_ip(system_name):
             return self.fix_ip(system_name)
         elif self.is_mac(system_name):
             return "01-" + "-".join(name.split(":")).lower()
@@ -380,8 +385,17 @@ class Koan:
         profile_data.update(system_data)
         # still have to override the kickstart since these are not in the
         # YAML (kickstarts are per-profile but template eval'd for each system)
-        profile_data['kickstart'] = "http://%s/cobbler/kickstarts_sys/%s/ks.cfg" % (self.server,system_name)
-        print "DEBUG !!!"
+        try_this = "http://%s/cobbler/kickstarts_sys/%s/ks.cfg" % (self.server,system_name)
+        try:
+            # can only use a per-system kickstart if it exists.  It may
+            # be that the cobbler config file already references a http
+            # kickstart, hence the per-system kickstart is just a per
+            # profile kickstart, and we can't use it.
+            urlgrabber.urlread(try_this)
+            profile_data['kickstart'] = try_this
+        except:
+            # just use the profile kickstart, whatever it is
+            pass
         print profile_data
         return profile_data
 
