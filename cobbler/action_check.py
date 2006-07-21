@@ -96,13 +96,10 @@ class BootCheck:
        """
        if os.path.exists(self.settings.tftpd_conf):
           f = open(self.settings.tftpd_conf)
-          re_1 = re.compile(r'default:.*off')
-          re_2 = re.compile(r'disable.*=.*yes')
+          re_disable = re.compile(r'disable.*=.*yes')
           found_bootdir = False
           for line in f.readlines():
-             if re_1.search(line):
-                 status.append(cobbler_msg.lookup("chg_attrib") % ('default','on',self.settings.tftpd_conf))
-             if re_2.search(line):
+             if re_disable.search(line):
                  status.append(cobbler_msg.lookup("chg_attrib") % ('disable','no',self.settings.tftpd_conf))
              if line.find("-s %s" % self.settings.tftpboot) != -1:
                  found_bootdir = True
