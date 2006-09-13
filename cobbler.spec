@@ -1,7 +1,7 @@
 Summary: Boot server configurator
 Name: cobbler
 Version: 0.1.1
-Release: 4%{?dist}
+Release: 5%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -21,7 +21,7 @@ Xen, and re-provisioning an existing Linux system via auto-kickstart.  The
 last two modes require 'koan' to be run on the remote system.
 
 %prep
-%setup
+%setup -q
 
 %build
 python setup.py build
@@ -40,6 +40,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Wed Aug 16 2006 - 0.1.1-5
+- Spec file tweaks only for FC-Extras
 * Thu Jul 20 2006 - 0.1.1-4
 - Fixed python import paths in yaml code, which errantly assumed yaml was installed as a module.
 * Wed Jul 12 2006 - 0.1.1-3

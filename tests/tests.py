@@ -111,7 +111,7 @@ class Utilities(BootTest):
 
     def test_matching(self):
         self.assertTrue(utils.is_mac("00:C0:B7:7E:55:50"))
-        self.assertFalse(utils.is_mac("00:c0:b7:7E:55:50"))
+        self.assertTrue(utils.is_mac("00:c0:b7:7E:55:50"))
         self.assertFalse(utils.is_mac("00.D0.B7.7E.55.50"))
         self.assertFalse(utils.is_mac(self.hostname))
         self.assertTrue(utils.is_ip("127.0.0.1"))

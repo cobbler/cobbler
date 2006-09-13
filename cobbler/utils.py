@@ -37,7 +37,7 @@ def find_system_identifier(strdata):
     pxelinux doesn't work in hostnames
     """
     if is_mac(strdata):
-        return strdata
+        return strdata.upper()
     if is_ip(strdata):
         return strdata
     return resolve_ip(strdata)
@@ -59,7 +59,7 @@ def is_mac(strdata):
     Return whether the argument is a mac address.
     """
     # needs testcase
-    if re.search(r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}',strdata):
+    if re.search(r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}',strdata, re.IGNORECASE):
         return True
     return False
 
