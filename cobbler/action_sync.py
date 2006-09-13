@@ -21,6 +21,7 @@ from Cheetah.Template import Template
 import utils
 import cobbler_msg
 import cexceptions
+import traceback
 
 class BootSync:
     """
@@ -46,6 +47,8 @@ class BootSync:
         """
         if not os.path.exists(self.settings.tftpboot):
             raise cexceptions.CobblerException("no_dir",self.settings.tftpboot)
+        # not having a /var/www/cobbler is ok, the app will create it since
+        # no other package has to own it.
         self.verbose = verbose
         self.dryrun = dryrun
         self.clean_trees()
@@ -60,6 +63,8 @@ class BootSync:
     def copy_pxelinux(self):
         """
         Copy syslinux to the configured tftpboot directory
+
+        NOTE: relevant to tftp part only (should be obvious)
         """
         self.copy(self.settings.pxelinux, os.path.join(self.settings.tftpboot, "pxelinux.0"))
 
@@ -76,7 +81,7 @@ class BootSync:
         #
         # This configuration file allows 'cobbler' boot info
         # to be accessed over HTTP in addition to PXE.
-        AliasMatch ^/cobbler(/.*)?$ "/tftpboot$1"
+        AliasMatch ^/cobbler(/.*)?$ "/cobbler_webdir$1"
         <Directory "/tftpboot">
             Options Indexes
             AllowOverride None
@@ -84,18 +89,29 @@ class BootSync:
             Allow from all
         </Directory>
         """
-        config_data.replace("/tftpboot",self.settings.tftpboot)
+        # this defaults to /var/www/cobbler if user didn't change it
+        config_data.replace("/cobbler_webdir",self.settings.webdir)
         self.tee(f, config_data)
         self.close_file(f)
 
     def clean_trees(self):
         """
         Delete any previously built pxelinux.cfg tree and xen tree info.
+  
+        Note: for SELinux reasons, some information goes in /tftpboot, some in /var/www/cobbler
+        and some must be duplicated in both.  This is because PXE needs tftp, and auto-kickstart
+        and Xen operations need http.   Only the kernel and initrd images are duplicated, which is
+        unfortunate, though SELinux won't let me give them two contexts, so symlinks are not
+        a solution.  *Otherwise* duplication is minimal.
         """
-        for x in ["pxelinux.cfg","images","systems","distros","profiles","kickstarts","kickstarts_sys"]:
-            path = os.path.join(self.settings.tftpboot,x)
-            self.rmtree(path)
-            self.mkdir(path)
+        for x in ["pxelinux.cfg","images"]:
+                path = os.path.join(self.settings.tftpboot,x)
+                self.rmtree(path)
+                self.mkdir(path)
+        for x in ["systems","distros","profiles","kickstarts","kickstarts_sys","images"]:
+                path = os.path.join(self.settings.webdir, x)
+                self.rmtree(path)
+                self.mkdir(path)
 
     def copy_distros(self):
         """
@@ -104,23 +120,25 @@ class BootSync:
         via the CLI or API, though it's possible files have been moved
         since or perhaps they reference NFS directories that are no longer
         mounted.
+
+        NOTE:  this has to be done for both tftp and http methods
         """
         # copy is a 4-letter word but tftpboot runs chroot, thus it's required.
-        distros = os.path.join(self.settings.tftpboot, "images")
-        for d in self.distros:
-            distro_dir = os.path.join(distros,d.name)
-            self.mkdir(distro_dir)
-            kernel = utils.find_kernel(d.kernel) # full path
-            initrd = utils.find_initrd(d.initrd) # full path
-            if kernel is None or not os.path.isfile(kernel):
-               raise cexceptions.CobblerException("sync_kernel", d.kernel, d.name)
-            if initrd is None or not os.path.isfile(initrd):
-               raise cexceptions.CobblerException("sync_initrd", d.initrd, d.name)
-            b_kernel = os.path.basename(kernel)
-            b_initrd = os.path.basename(initrd)
-            self.copyfile(kernel, os.path.join(distro_dir, b_kernel))
-            self.copyfile(initrd, os.path.join(distro_dir, b_initrd))
-
+        for dirtree in [self.settings.tftpboot, self.settings.webdir]:
+            distros = os.path.join(dirtree, "images")
+            for d in self.distros:
+                distro_dir = os.path.join(distros,d.name)
+                self.mkdir(distro_dir)
+                kernel = utils.find_kernel(d.kernel) # full path
+                initrd = utils.find_initrd(d.initrd) # full path
+                if kernel is None or not os.path.isfile(kernel):
+                    raise cexceptions.CobblerException("sync_kernel", d.kernel, d.name)
+                if initrd is None or not os.path.isfile(initrd):
+                    raise cexceptions.CobblerException("sync_initrd", d.initrd, d.name)
+                b_kernel = os.path.basename(kernel)
+                b_initrd = os.path.basename(initrd)
+                self.copyfile(kernel, os.path.join(distro_dir, b_kernel))
+                self.copyfile(initrd, os.path.join(distro_dir, b_initrd))
 
     def validate_kickstarts(self):
         """
@@ -144,6 +162,8 @@ class BootSync:
         by NFS URL's as we don't copy those files over to the cobbler
         directories.  They are supposed to be live such that an
         admin can update those without needing to run 'sync' again.
+
+        NOTE: kickstart only uses the web directory (if it uses them at all)
         """
 
         for g in self.profiles:
@@ -153,22 +173,21 @@ class BootSync:
            if kickstart_path and os.path.exists(kickstart_path):
               # the input is an *actual* file, hence we have to copy it
               copy_path = os.path.join(
-                  self.settings.tftpboot,
+                  self.settings.webdir,
                   "kickstarts", # profile kickstarts go here
                   g.name
               )
               self.mkdir(copy_path)
               dest = os.path.join(copy_path, "ks.cfg")
-              # FIXME -- uncomment try for now
-              #try:
-              meta = self.blend_options(False, (
-                distro.ks_meta,
-                g.ks_meta,
-              ))
-              self.apply_template(kickstart_path, meta, dest)
-              #except:
-              #msg = "err_kickstart2" % (g.kickstart,dest)
-              #raise cexceptions.CobblerException(msg)
+              try:
+                   meta = self.blend_options(False, (
+                       distro.ks_meta,
+                       g.ks_meta,
+                   ))
+                   self.apply_template(kickstart_path, meta, dest)
+              except:
+                   msg = "err_kickstart2" % (g.kickstart,dest)
+                   raise cexceptions.CobblerException(msg)
 
     def validate_kickstarts_per_system(self):
         """
@@ -177,8 +196,7 @@ class BootSync:
         such as static IP, where we want to be able to do templating
         on a system basis.
 
-        FIXME: be sure PXE configs reference the new kickstarts_sys path
-        instead.
+        NOTE: kickstart only uses the web directory (if it uses them at all)
         """
 
         for s in self.systems:
@@ -187,7 +205,7 @@ class BootSync:
             kickstart_path = utils.find_kickstart(profile.kickstart)
             if kickstart_path and os.path.exists(kickstart_path):
                 pxe_fn = self.get_pxelinux_filename(s.name)
-                copy_path = os.path.join(self.settings.tftpboot,
+                copy_path = os.path.join(self.settings.webdir,
                     "kickstarts_sys", # system kickstarts go here
                     pxe_fn
                 )
@@ -212,7 +230,6 @@ class BootSync:
         fd = open(kickstart_input)
         data = fd.read()
         fd.close()
-        print metadata # FIXME: temporary
         t = Template(
             "#errorCatcher Echo\n%s" % data,
             searchList=[metadata],
@@ -226,8 +243,11 @@ class BootSync:
         """
         Now that kernels and initrds are copied and kickstarts are all valid,
         build the pxelinux.cfg tree, which contains a directory for each
-        configured IP or MAC address.  Also build a parallel 'xeninfo' tree
-        for xen-net-install info.
+        configured IP or MAC address.  Also build a tree for Xen info.
+
+        NOTE: some info needs to go in TFTP and HTTP directories, but not all.
+        Usually it's just one or the other.
+
         """
         self.sync_log(cobbler_msg.lookup("sync_buildtree"))
         # create pxelinux.cfg under tftpboot
@@ -236,18 +256,19 @@ class BootSync:
         for d in self.distros:
             self.sync_log(cobbler_msg.lookup("sync_processing") % d.name)
             # TODO: add check to ensure all distros have profiles (=warning)
-            filename = os.path.join(self.settings.tftpboot,"distros",d.name)
+            filename = os.path.join(self.settings.webdir,"distros",d.name)
             d.kernel_options = self.blend_options(True,(
                self.settings.kernel_options,
                d.kernel_options
             ))
+            # yaml file: http only
             self.write_distro_file(filename,d)
 
         for p in self.profiles:
             self.sync_log(cobbler_msg.lookup("sync_processing") % p.name)
             # TODO: add check to ensure all profiles have distros (=error)
             # TODO: add check to ensure all profiles have systems (=warning)
-            filename = os.path.join(self.settings.tftpboot,"profiles",p.name)
+            filename = os.path.join(self.settings.webdir,"profiles",p.name)
             distro = self.distros.find(p.distro)
             if distro is not None:
                 p.kernel_options = self.blend_options(True,(
@@ -255,6 +276,7 @@ class BootSync:
                    distro.kernel_options,
                    p.kernel_options
                 ))
+            # yaml file: http only
             self.write_profile_file(filename,p)
 
         for system in self.systems:
@@ -266,8 +288,10 @@ class BootSync:
             if distro is None:
                 raise cexceptions.CobblerException("orphan_distro2",system.profile,profile.distro)
             f1 = self.get_pxelinux_filename(system.name)
+            # tftp only
             f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
-            f3 = os.path.join(self.settings.tftpboot, "systems", f1)
+            # http only
+            f3 = os.path.join(self.settings.webdir, "systems", f1)
             self.write_pxelinux_file(f2,system,profile,distro)
             self.write_system_file(f3,system)
 
@@ -296,6 +320,8 @@ class BootSync:
         Write a configuration file for the pxelinux boot loader.
         More system-specific configuration may come in later, if so
         that would appear inside the system object in api.py
+
+        NOTE: relevant to tftp only
         """
         kernel_path = os.path.join("/images",distro.name,os.path.basename(distro.kernel))
         initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
@@ -330,6 +356,8 @@ class BootSync:
     def write_distro_file(self,filename,distro):
         """
         Create distro information for xen-net-install
+
+        NOTE: relevant to http only
         """
         fd = self.open_file(filename,"w+")
         # resolve to current values
@@ -342,6 +370,8 @@ class BootSync:
     def write_profile_file(self,filename,profile):
         """
         Create profile information for xen-net-install
+
+        NOTE: relevant to http only
         """
         fd = self.open_file(filename,"w+")
         # if kickstart path is local, we've already copied it into
@@ -355,6 +385,8 @@ class BootSync:
     def write_system_file(self,filename,system):
         """
         Create system information for xen-net-install
+
+        NOTE: relevant to http only
         """
         fd = self.open_file(filename,"w+")
         self.tee(fd,yaml.dump(system.to_datastruct()))
@@ -418,7 +450,7 @@ class BootSync:
        try:
            return shutil.rmtree(path)
        except OSError, ioe:
-           if not ioe.errno == 2: # already exists
+           if not ioe.errno == os.ENOENT: # doesn't exist
                raise cexceptions.CobblerException("no_delete",path)
 
     def mkdir(self,path,mode=0777):
@@ -429,9 +461,10 @@ class BootSync:
        if self.dryrun:
            return True
        try:
-           return os.mkdir(path,mode)
-       except:
-           raise cexceptions.CobblerException("no_create", path)
+           return os.makedirs(path,mode)
+       except OSError, oe:
+           if not oe.errno == 17: # already exists (no constant for 17?)
+               raise cexceptions.CobblerException("no_create", path)
 
     def sync_log(self,message):
        """

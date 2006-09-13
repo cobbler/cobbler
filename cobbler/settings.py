@@ -43,6 +43,7 @@ class Settings(serializable.Serializable):
           "kernel_options" : "append devfs=nomount ramdisk_size=16438 lang= vga=788 ksdevice=eth0",
           "tftpd_conf"     : "/etc/xinetd.d/tftp",
           "tftpboot"       : "/tftpboot",
+          "webdir"         : "/var/www/cobbler",
        }
 
    def printable(self):
