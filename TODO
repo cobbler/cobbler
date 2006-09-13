@@ -4,5 +4,7 @@ cobbler TODO list
   -  MAC ranges for Xen (how best to do this? shelve this for now).
   -  SELinux means we want tftp files in /tftpboot and HTTP files in /var/www/something.
      May need to be chcon aware, maybe not.  Some files will be duplicated because of this.
+  -  Web UI for Cobbler ?
+  -  Port over to xeninst python module once available for something other than Rawhide
 
 
