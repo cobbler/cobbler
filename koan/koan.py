@@ -122,8 +122,6 @@ class Koan:
             raise InfoException, "no server specified"
         if self.verbose is None:
             self.verbose = True
-        if self.is_xen and not self.profile:
-            raise InfoException, "must specify --profile"
         if (not self.profile and not self.system):
             raise InfoException, "must specify --profile or --system"
         if self.profile and self.system:

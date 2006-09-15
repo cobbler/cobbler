@@ -1,9 +1,9 @@
-%define name koan
+%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Summary: Network provisioning tool for Xen and Existing Non-Bare Metal
-Name: %{name}
+Name: koan
 Version: 0.1.1
-Release: 4%{?dist}
+Release: 6%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -22,7 +22,7 @@ any existing system.  For use with a boot-server configured with
 'cobbler'
 
 %prep
-%setup
+%setup -q
 
 %build
 python setup.py build
@@ -37,10 +37,20 @@ cat INSTALLED_FILES INSTALLED_DIRS > INSTALLED_OBJECTS
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%files -f INSTALLED_FILES
+%files
 %defattr(-,root,root)
+%{_bindir}/koan
+%dir %{python_sitelib}/koan
+%dir %{python_sitelib}/koan/yaml
+%{python_sitelib}/koan/*.py*
+%{python_sitelib}/koan/yaml/*.py*
+%{_mandir}/man1/koan.1.gz
 
 %changelog
+* Fri Sep 15 2006 - 0.1.1-6
+- Make koan own it's directory, add GPL "COPYING" file.
+* Wed Aug 16 2006 - 0.1.1-5
+- Spec-file only changes for FC-Extras submission
 * Thu Jul 20 2006 - 0.1.1-4
 - Fixed python import paths in yaml code, which errantly assumed yaml was installed as a module.
 * Fri Jul 12 2006 - 0.1.1-3
