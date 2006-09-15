@@ -1,3 +1,5 @@
+%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+
 Summary: Boot server configurator
 Name: cobbler
 Version: 0.1.1
@@ -36,10 +38,18 @@ cat INSTALLED_FILES INSTALLED_DIRS > INSTALLED_OBJECTS
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%files -f INSTALLED_FILES
+%files
 %defattr(-,root,root)
+%{_bindir}/cobbler
+%dir %{python_sitelib}/cobbler
+%dir %{python_sitelib}/cobbler/yaml
+%{python_sitelib}/cobbler/*.py*
+%{python_sitelib}/cobbler/yaml/*.py*
+%{_mandir}/man1/cobbler.1.gz
 
 %changelog
+* Fri Sep 15 2006 - 0.1.1-6
+- Make koan own it's directory, add GPL "COPYING" file.
 * Wed Aug 16 2006 - 0.1.1-5
 - Spec file tweaks only for FC-Extras
 * Thu Jul 20 2006 - 0.1.1-4
