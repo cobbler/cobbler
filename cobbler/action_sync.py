@@ -91,7 +91,7 @@ class BootSync:
         </Directory>
         """
         # this defaults to /var/www/cobbler if user didn't change it
-        config_data.replace("/cobbler_webdir",self.settings.webdir)
+        config_data = config_data.replace("/cobbler_webdir",self.settings.webdir)
         self.tee(f, config_data)
         self.close_file(f)
 
