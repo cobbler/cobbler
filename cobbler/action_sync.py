@@ -83,7 +83,7 @@ class BootSync:
         # This configuration file allows 'cobbler' boot info
         # to be accessed over HTTP in addition to PXE.
         AliasMatch ^/cobbler(/.*)?$ "/cobbler_webdir$1"
-        <Directory "/tftpboot">
+        <Directory "/cobbler_webdir">
             Options Indexes
             AllowOverride None
             Order allow,deny
