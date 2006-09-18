@@ -18,8 +18,8 @@ import socket
 import glob
 import subprocess
 
-_re_kernel = re.compile(r'vmlinuz-(\d+)\.(\d+)\.(\d+)-(.*)')
-_re_initrd = re.compile(r'initrd-(\d+)\.(\d+)\.(\d+)-(.*).img')
+_re_kernel = re.compile(r'vmlinuz(.*)')
+_re_initrd = re.compile(r'initrd(.*).img')
 
 def get_host_ip(ip):
     """
