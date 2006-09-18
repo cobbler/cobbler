@@ -22,6 +22,7 @@ import utils
 import cobbler_msg
 import cexceptions
 import traceback
+import errno
 
 class BootSync:
     """
@@ -450,7 +451,7 @@ class BootSync:
        try:
            return shutil.rmtree(path)
        except OSError, ioe:
-           if not ioe.errno == os.ENOENT: # doesn't exist
+           if not ioe.errno == errno.ENOENT: # doesn't exist
                raise cexceptions.CobblerException("no_delete",path)
 
     def mkdir(self,path,mode=0777):
