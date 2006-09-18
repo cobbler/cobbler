@@ -96,21 +96,14 @@ reasonable defaults if they are not specified, but it is better to be explicit.
 
 =head1 KICKSTART TEMPLATING
 
-When deploying a profile to multiple machines, it may come up that certain settings need to change between machines.  A good example of this is that the network settings (such as a static IP) need to be different between a variety of boxes.  One traditional way to do this is with kickstart templating -- fortunately Cobbler contains a simple kickstart templating implementation.
+When deploying a profile to multiple machines, certain settings may need to be different between machines.  Changing kernel options is fairly straightforward, although sometimes kickstarts must also change.  A good example of this is that the network settings (such as a static IP) need to be different between machines.  One traditional way to do this is with kickstart templating.
 
 Both profile and system add comments take a "--ksmeta" argument.  Usage is something like --ksmeta="a=foo b=bar wordoftheday=elevator", etc.
 
-What this does is allow per-profile and per-system variables to be interpolated into the kickstart file.  
+What this does is allow per-profile and per-system variables to be interpolated into the kickstart file.  For instance, with the "wordoftheday" example, anywhere "TEMPLATE::wordoftheday" occurs in the kickstart file will be replaced with the string "elevator".  
 
-VERY IMPORTANT: This only works if you've referenced the kickstart files on the local filesystem (i.e. /x/y/z.ks) and *REQUIRES* that any instances of the "$" symbol in the original kickstart file be replaced with a double "$" (i.e. "$$").
-
-What happens is that variables passed in via "--ksmeta" now become usable in the file.  For instance, the file could contain "$a", and if "a" is "foosball" for that system, the string "foosball" gets used instead of "$a" in the kickstart file.
-
-For technical users, the kickstarting language is Cheetah, and higher level constructs such as if statements and loops are supported.  See the Cheetah home page for more information.
-
-Cobbler kickstart templating is applied to any kickstart specified by an absolute path (thinks like /mnt/, etc) every time "cobbler sync" is run.  Again, kickstarts served over NFS URLs and HTTP URLs are not effected -- this is so existing systems, like cgi/web scripts that generate kickstarts, can still work.
-
-Kickstart templating is an optional feature, though any "$"'s should be escaped with "$$" if they are on local paths.  To avoid this problem, just copy the kickstarts into an Apache accessible directory (not the cobbler tree, or they'll be deleted) and reference them by http URL's.
+This only works for kickstart files with filesystem locations.  URL based kickstarts (NFS, HTTP) are
+not templated.  Template variables are substituted each time "cobbler sync" is run.
 
 =head1 EXIT_STATUS
 
