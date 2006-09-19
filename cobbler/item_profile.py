@@ -37,7 +37,6 @@ class Profile(item.Item):
         self.xen_name = 'xenguest'
         self.xen_file_size = 5    # GB.  5 = Decent _minimum_ default for FC5.
         self.xen_ram = 512        # MB.  Install with 256 not likely to pass
-        self.xen_mac = ''         # allow random generation as default
         self.xen_paravirt = True  # hvm support is *NOT* in Koan (now)
 
     def from_datastruct(self,seed_data):
@@ -54,7 +53,6 @@ class Profile(item.Item):
             self.xen_name    = self.name
         self.xen_ram         = seed_data['xen_ram']
         self.xen_file_size   = seed_data['xen_file_size']
-        self.xen_mac         = seed_data['xen_mac']
         self.xen_paravirt    = seed_data['xen_paravirt']
         return self
 
@@ -115,24 +113,6 @@ class Profile(item.Item):
         except:
             return cexceptions.CobblerException("exc_xen_file")
 
-    def set_xen_mac(self,mac):
-        """
-	For Xen only.
-	Specifies the mac address (or possibly later, a range) that
-	xen-net-install should try to set on the domU.  Seeing these
-	have a good chance of conflicting with other domU's, especially
-	on a network, this setting is fairly experimental at this time.
-	It's recommended that it *not* be used until we can get
-	decent use cases for how this might work.
-	"""
-        # mac needs to be in mac format AA:BB:CC:DD:EE:FF or a range
-        # ranges currently *not* supported, so we'll fail them
-        if utils.is_mac(mac):
-            self.xen_mac = mac
-            return True
-        else:
-            raise cexceptions.CobblerException("exc_xen_mac")
-
     def set_xen_paravirt(self,truthiness):
         """
 	For Xen only.
@@ -177,7 +157,6 @@ class Profile(item.Item):
             'xen_name'        : self.xen_name,
             'xen_file_size'   : self.xen_file_size,
             'xen_ram'         : self.xen_ram,
-            'xen_mac'         : self.xen_mac,
             'xen_paravirt'    : self.xen_paravirt,
             'ks_meta'         : self.ks_meta
         }
@@ -194,7 +173,6 @@ class Profile(item.Item):
         buf = buf + "xen name        : %s\n" % self.xen_name
         buf = buf + "xen file size   : %s\n" % self.xen_file_size
         buf = buf + "xen ram         : %s\n" % self.xen_ram
-        # buf = buf + "xen mac         : %s\n" % self.xen_mac
         buf = buf + "xen paravirt    : %s\n" % self.xen_paravirt
         return buf
 

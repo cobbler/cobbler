@@ -72,10 +72,10 @@ class System(item.Item):
 
     def to_datastruct(self):
         return {
-           'name'   : self.name,
+           'name'     : self.name,
            'profile'  : self.profile,
            'kernel_options' : self.kernel_options,
-           'ks_meta' : self.ks_meta
+           'ks_meta'  : self.ks_meta,
         }
 
     def printable(self,id):

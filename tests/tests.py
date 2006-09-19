@@ -177,11 +177,7 @@ class Additions(BootTest):
         # temporarily commenting out failing test
         # self.failUnlessRaises(CobblerException, profile.set_xen_file_size, "huge")
         # self.failUnlessRaises(CobblerException, profile.set_xen_file_size, "54321.23")
-        # macs must be properly formatted
-        self.assertTrue(profile.set_xen_mac("AA:BB:CC:DD:EE:FF"))
-        self.failUnlessRaises(CobblerException, profile.set_xen_mac, "AA-BB-CC-DD-EE-FF")
         # paravirt must be 'true' or 'false'
-        self.failUnlessRaises(CobblerException, profile.set_xen_mac, "cowbell")
         self.assertTrue(profile.set_xen_paravirt(False))
         self.assertTrue(profile.set_xen_paravirt(True))
         self.assertTrue(self.api.profiles().add(profile))

@@ -151,7 +151,6 @@ class BootCLI:
             '--ksmeta'          :  lambda(a) : profile.set_ksmeta(a)
         # the following options are most likely not useful for profiles (yet)
         # primarily due to not being implemented in koan.
-        #    '--xen-mac'         :  lambda(a) : profile.set_xen_mac(a),
         #    '--xen-paravirt'    :  lambda(a) : profile.set_xen_paravirt(a),
         }
         on_ok = lambda: self.api.profiles().add(profile)
