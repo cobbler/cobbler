@@ -105,6 +105,7 @@ class Koan:
         Constructor.  Arguments will be filled in by optparse...
         """
         self.server            = None
+        self.system            = None
         self.profile           = None
         self.verbose           = None
         self.is_xen            = None
@@ -333,6 +334,7 @@ class Koan:
         """
         Return whether the argument is a mac address.
         """
+        strdata = strdata.upper()
         if re.search(r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}',strdata):
             return True
         return False
@@ -351,14 +353,14 @@ class Koan:
     def pxeify(self,system_name):
         """
         If the input system name is an IP or MAC, make it conform with
-        what cobbler expects.
+        what the app expects.
         """
         if system_name == "default":
             return "default"
         elif self.is_ip(system_name):
             return self.fix_ip(system_name)
         elif self.is_mac(system_name):
-            return "01-" + "-".join(name.split(":")).lower()
+            return self.fix_mac(system_name)
         return system_name
 
     def get_system_yaml(self,system_name):
@@ -546,6 +548,10 @@ class Koan:
         """
         For now, we have no preference.
         """
+        if not self.is_xen:
+            return None
+        if self.is_mac(self.xen_mac):
+            return self.xen_mac.upper()
         return None
 
 if __name__ == "__main__":
