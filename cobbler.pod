@@ -16,9 +16,9 @@ Profiles associate a Distribution with a kickstart file and optionally customize
 
 Systems associate a hostname, IP, or MAC with a distribution and optionally customize the Profile further.
 
-=head1 SETUP
+=head1 ACTIONS
 
-=head2 cobbler check
+=head2 SETUP
 
 Running "cobbler check" after installation will verify that the prerequisites are installed and configured correctly.
 
@@ -27,8 +27,6 @@ Any problems detected should be corrected, with the potential exception of DHCP 
 It is especially important that the server name be accurate in cobbler.conf
 
 For PXE, if DHCP is run from the cobbler server, the dhcp configuration file should be changed as suggested.  If DHCP is not run locally, the "next-server" field on the DHCP server should point to the cobbler server's IP and the filename should be set to "pxelinux.0".   
-
-=head1 ADDING CONFIGURATION ENTRIES
 
 =head2 ADDING A DISTRIBUTION
 
@@ -105,19 +103,29 @@ B<cobbler system add --name=<ip|mac|hostname> --profile=<string> [--kopts=<strin
 
 =over
 
-Adds a cobbler System to the configuration.  Arguments are specified as per "profile add".
+Adds a cobbler System to the configuration.  Arguments are specified as per "profile add" with
+the following changes:
+
+=item name
+
+The system name must be either a currently-resolvable hostname, an IP address, or a MAC address.
+
+When defining Xen systems, using a MAC address causes the Xen MAC address to be used for creation,
+so that is the preferred usage.
 
 =back
 
 =back
 
-=head1 DISPLAYING CONFIGURATION ENTRIES
+=back
+
+=head2 DISPLAYING CONFIGURATION ENTRIES
 
 B<cobbler list>
 
 Prints the current cobbler configuration for systems, profiles, and groups.  
 
-=head1 DELETING CONFIGURATION ENTRIES
+=head2 DELETING CONFIGURATION ENTRIES
 
 B<cobbler distro remove --name=<string>>
 
@@ -125,7 +133,7 @@ B<cobbler profile remove --name=<string>>
 
 B<cobbler system remove --name=<string>>
 
-=head1 APPLYING CONFIGURATIONS
+=head2 APPLYING CONFIGURATIONS
 
 B<cobbler sync [--dryrun]>
 
@@ -133,9 +141,9 @@ Configurations are saved in /var/lib/cobbler.  Changes made with any commands ar
 applied until 'cobbler sync' is run.   Any errors in the configuration will be reported 
 during the sync process.
 
-=head1 PXE EXAMPLE
+=head1 EXAMPLES
 
-A sample PXE workflow:
+=head2 BASIC WORKFLOW
 
 B<cobbler check>
 
@@ -143,9 +151,9 @@ B<cobbler distro add --name=rhel4u3 --kernel=/dir1/vmlinuz --initrd=/dir1/initrd
 
 B<cobbler distro add --name=fc5 --kernel=/dir2/vmlinuz --initrd=/dir2/initrd.img>
 
-B<cobbler profile add --name=fc5webservers --distro=fc5-i386 --kickstart=http://192.168.1.10/blah/fc5-webservers.ks --kopts="something_to_make_my_gfx_card_work=42,some_other_parameter=foo">
+B<cobbler profile add --name=fc5webservers --distro=fc5-i386 --kickstart=/dir4/kick.ks --kopts="something_to_make_my_gfx_card_work=42,some_other_parameter=foo">
 
-B<cobbler profile add --name=rhel4u3dbservers --distro=rhel4u3 --kickstart=http://192.168.1.10/blah/rhel4u3-dbservers.ks>
+B<cobbler profile add --name=rhel4u3dbservers --distro=rhel4u3 --kickstart=/dir5/kick.ks>
 
 B<cobbler system add --name=AA:BB:CC:DD:EE:FF --profile=fc5-webservers>
 
@@ -155,9 +163,19 @@ B<cobbler list>
 
 B<cobbler sync>
 
-=head1 XEN EXAMPLE
+=head2 XEN
 
-For Xen, take the above example and add additional Xen options to the "profile add" statements.
+For Xen, be sure the distro uses a Xen kernel and initrd:
+
+B<cobbler distro add --name=fc5xen --kernel=/dir3/vmlinuz --initrd=/dir6/initrd.img>
+
+Specify reasonable values for the Xen image size (in GB) and RAM requirements:
+
+B<cobbler profile add --name=xenwebservers --distro=fc5xen --kickstart=/dir7/kick.ks --xen_file_size=10 --xen_ram=512>
+
+And define systems (if desired) using MAC addresses, not IP's or hostnames:
+
+B<cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=xenwebservers>
 
 =head1 ADVANCED TOPICS
 
@@ -171,7 +189,9 @@ in the kickstart file where the string "TEMPLATE::bar" appeared would be replace
 
 To apply these changes, "cobbler sync" must be run to generate custom kickstarts for each profile/system.
 
-For NFS and HTTP URLs, the "--ksmeta" options will have no effect.
+For NFS and HTTP URLs, the "--ksmeta" options will have no effect. This is a good reason to let
+cobbler manage your kickstart files, though the URL functionality is provided for integration with
+legacy infrastructure, possibly including web apps that already generate kickstarts. 
 
 =head2 TWEAKING
 
