@@ -1,6 +1,6 @@
 =head1 NAME
 
-cobbler is a command line tool for simplified configuration of a provisioning server.  It supports provisioning via PXE, Xen, and re-provisioning an existing Linux system via a method called "auto-kickstarting".  The last two modes require usage of a program called 'koan' on the remote system.
+cobbler is a command line tool for configuring a provisioning server.  It supports provisioning via PXE, Xen, and re-provisioning an existing Linux system ("auto-kickstarting").  The latter two features are enabled by usage of 'koan' (a client side provisioning application) on the remote system.
 
 =head1 SYNOPSIS
 
@@ -8,68 +8,134 @@ cobbler command [subcommand] [--arg1=] [--arg2=]
 
 =head1 DESCRIPTION
 
-Manual configuration of a PXE boot server usually involves setting up a tftpd server, a dhcpd server, syslinux, and creating semi-complex configuration file trees.
+Cobbler manages provisioning using a tiered concept of Distributions, Profiles, and Systems.
 
-Cobbler makes these things faster, simpler, and more flexible.  It also enables a tool named 'koan', which can quickly provision new Xen instances, as well as amorph an existing machine into a new system (destructively), using a feature known as "auto-kickstarting" -- replacing the kernel/initrd pair of a current system, and rebooting so that it turns into something else.
+Distributions contain information about what kernel and initrd are used, along with various other information, such as required kernel parameters.  
 
-=head1 INSTRUCTIONS FOR PXE
+Profiles associate a Distribution with a kickstart file and optionally customize it further.  
 
-B<before starting...>
+Systems associate a hostname, IP, or MAC with a distribution and optionally customize the Profile further.
 
-An admin should first install dhcpd, tftpd, and httpd.  Kickstarts files can also be downloaded over NFS and FTP (meaning installs of an FTP or NFS server may be warranted), but these modes of delivery are optional.  NFS is a common way of serving kickstart trees, however.
+=head1 SETUP
 
-   yum install dhcp tftp-server syslinux
-   ...
-   vi /etc/dhcpd.conf
+=head2 cobbler check
 
-B<cobbler check>
+Running "cobbler check" after installation will verify that the prerequisites are installed and configured correctly.
 
-This verifies that prerequisites are properly installed and configured.
-Any problems should be corrected, with the potential exception of DHCP related warnings.
+Any problems detected should be corrected, with the potential exception of DHCP related warnings.  
 
-In the case of the DHCP server being on another machine, the "next-server" field in dhcpd.conf on that machine should be set to the IP of the boot server and "filename" field set to "pxelinux.0".  In this case, DHCP errors coming from "cobbler check" should be ignored.
+It is especially important that the server name be accurate in cobbler.conf
+
+For PXE, if DHCP is run from the cobbler server, the dhcp configuration file should be changed as suggested.  If DHCP is not run locally, the "next-server" field on the DHCP server should point to the cobbler server's IP and the filename should be set to "pxelinux.0".   
+
+=head1 ADDING CONFIGURATION ENTRIES
+
+=head2 ADDING A DISTRIBUTION
 
 B<cobbler distro add --name=<string> --kernel=<path> --initrd=<path> [--kopts=<string>] [--ksmeta=<string>]>
 
-Cobbler works in terms of distros, profiles, and systems.  All three must define to get a working PXE configuration.  "cobbler distro add" defines a distribution.  Minimally, this is a named set (for instance, 'fc5-i386') of an initrd and a kernel.  Kernel options from /var/lib/cobbler/settings can be overriden here by specifying a space seperated list of options.
+=over
 
-The kernel/initrd pairs used for "distro add" probably should be those that are used to boot Anaconda, but there are plenty of other uses.  If Xen provisioning is desired, a Xen dom0 kernel and the matching Anaconda initrd is required.
+=over
 
-kopts is a string of space delimited key=value pairs such as --kopts="quiet rhgb=true".  kopts are optional and reasonable defaults are provided in /var/lib/cobbler/settings
+=item name
 
-ksmeta is an advanced feature to enable templating of kickstart files.  See the 'KICKSTART TEMPLATING' section for more details.  ksmeta requires a space delimited list of key=value pairs.
+a string identifying the distribution
+
+=item kernel
+
+an absolute filesystem path to a kernel image
+
+=item initrd
+
+an absolute filesystem path to a initrd image
+
+=item kopts
+
+(optional) sets kernel arguments, ex: --ksmeta="foo=bar baz=3 asdf"
+
+=item ksmeta
+
+(optional) sets kickstart variables to substitute, ex: --ksmeta="foo=bar baz=3 asdf"
+
+=back
+
+=back
+
+=head2 ADDING A PROFILE
 
 B<cobbler profile add --name=<string> --distro=<string> [--kickstart=<url>] [--kopts=<string>] [--ksmeta=<string>] [--xen-name=<string>] [--xen-file-size=<gigabytes>] [--xen-ram=<megabytes>]
 
-"cobbler profile add" defines a named provisioning profile, which must reference an already created distribution.  Optional parameters can specify kickstart information or Xen parameters.  Kickstarts are almost always desired, and can be nfs://, http://, or ftp:// -- or an absolute path.  For file paths, cobbler will copy the kickstarts and serve them up as http -- so having servable kickstart paths as parameters to "cobbler profile add" is not required.  In fact, it's probably a good idea to leave the kickstarts as absolute paths to avoid having yet another resource to manage.
+=over
 
-For Xen parameters, koan may interpret some parameters as hints, not absolutes, if it has to resolve conflicts.  All of these Xen parameters are optional, though as many as possible should be specified to avoid the risk koan making it's own decisions when run on the target dom0.  See the documentation for koan for more details.
+=over
+
+Arguments are as listed for distributions, with the follwing additions...
+
+=item distro
+
+the name of a previously defined cobbler distribution
+
+=item kickstart
+
+(optional) an HTTP URL, NFS URL, or local filesystem path to a kickstart file
+
+=item xen-name
+
+(optional) (Xen-only) what the Xen domU name should start with
+
+=item xen-file-size
+
+(optional) (Xen-only) how large the disk image should be in gigabytes
+
+=item xen-ram
+
+(optional) (Xen-only) how many megabytes of RAM to consume
+
+=back
+
+=back
+
+
+=head2 ADDING A SYSTEM
 
 B<cobbler system add --name=<ip|mac|hostname> --profile=<string> [--kopts=<string>] [--ksmeta=<string>]
 
-Correlates a system name (an IP, hostname, or MAC address of a bare-metal system or a Xen dom0) with an already created profile.  For koan (the tool used for Xen and auto-kickstart deployment), system configurations are *not* used -- system information is only used for PXE.
+=over
 
-=head1 DISPLAYING THE CONFIGURATION
+=over
+
+Adds a cobbler System to the configuration.  Arguments are specified as per "profile add".
+
+=back
+
+=back
+
+=head1 DISPLAYING CONFIGURATION ENTRIES
 
 B<cobbler list>
 
-Prints the current cobbler configuration for systems, profiles, and groups.  This can be used to review any data that has been added to the configuration.  To correct information, use add (to overwrite an existing entry) or remove subcommands.
+Prints the current cobbler configuration for systems, profiles, and groups.  
 
-=head1 DELETING ENTRIES
+=head1 DELETING CONFIGURATION ENTRIES
 
 B<cobbler distro remove --name=<string>>
+
 B<cobbler profile remove --name=<string>>
+
 B<cobbler system remove --name=<string>>
 
 =head1 APPLYING CONFIGURATIONS
 
 B<cobbler sync [--dryrun]>
 
-Configurations are saved in /var/cobbler/cobbler.conf and are not applied until 'cobbler sync' is run.  A '--dryrun' option is available for the paranoid.
+Configurations are saved in /var/lib/cobbler.  Changes made with any commands are not
+applied until 'cobbler sync' is run.   Any errors in the configuration will be reported 
+during the sync process.
 
 =head1 PXE EXAMPLE
 
-It is easier to understand cobbler once having gone through some examples.
+A sample PXE workflow:
 
 B<cobbler check>
 
@@ -91,23 +157,35 @@ B<cobbler sync>
 
 =head1 XEN EXAMPLE
 
-For Xen, just add the optional Xen parameters above to customize a Xen profile.  The Xen settings will assume
-reasonable defaults if they are not specified, but it is better to be explicit.
+For Xen, take the above example and add additional Xen options to the "profile add" statements.
 
-=head1 KICKSTART TEMPLATING
+=head1 ADVANCED TOPICS
 
-When deploying a profile to multiple machines, certain settings may need to be different between machines.  Changing kernel options is fairly straightforward, although sometimes kickstarts must also change.  A good example of this is that the network settings (such as a static IP) need to be different between machines.  One traditional way to do this is with kickstart templating.
+=head2 KICKSTART TEMPLATING
 
-Both profile and system add comments take a "--ksmeta" argument.  Usage is something like --ksmeta="a=foo b=bar wordoftheday=elevator", etc.
+The --ksmeta options above require more explanation.
 
-What this does is allow per-profile and per-system variables to be interpolated into the kickstart file.  For instance, with the "wordoftheday" example, anywhere "TEMPLATE::wordoftheday" occurs in the kickstart file will be replaced with the string "elevator".  
+If and only if --kickstart options reference filesystem URLs, --ksmeta allows for templating of the kickstart files
+to achieve advanced functions.  If the --ksmeta option for a profile read --ksmeta="foo=7 bar=llama", anywhere
+in the kickstart file where the string "TEMPLATE::bar" appeared would be replaced with the string "llama".
 
-This only works for kickstart files with filesystem locations.  URL based kickstarts (NFS, HTTP) are
-not templated.  Template variables are substituted each time "cobbler sync" is run.
+To apply these changes, "cobbler sync" must be run to generate custom kickstarts for each profile/system.
+
+For NFS and HTTP URLs, the "--ksmeta" options will have no effect.
+
+=head2 TWEAKING
+
+Enterprising users can edit the files in /var/lib/cobbler directly versus using the command line.  The repair
+mechanism for user error here is to delete the files in /var/lib/cobbler.  There are also a few configuration
+variables in /etc/cobbler.conf
+
+=head2 API
+
+Cobbler also makes itself available as a Python API for use by higher level management software.
 
 =head1 EXIT_STATUS
 
-cobbler returns a zero for success and non-zero for failure.
+cobbler's command line returns a zero for success and non-zero for failure.
 
 =head1 AUTHOR
 
