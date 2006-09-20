@@ -113,6 +113,25 @@ class Profile(item.Item):
         except:
             return cexceptions.CobblerException("exc_xen_file")
 
+    def set_xen_ram(self,num):
+        """
+        For Xen only.
+        Specifies the size of the Xen RAM in MB.
+        0 tells Koan to just choose a reasonable default.
+        """
+        # num is a non-negative integer (0 means default)
+        try:
+            inum = int(num)
+            if inum != float(num):
+                return cexceptions.CobblerException("exc_xen_ram")
+            if inum >= 0:
+                self.xen_ram = inum
+                return True
+            return cexceptions.CobblerException("exc_xen_ram")
+        except:
+            return cexceptions.CobblerException("exc_xen_ram")
+
+
     def set_xen_paravirt(self,truthiness):
         """
 	For Xen only.

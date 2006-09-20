@@ -68,6 +68,7 @@ _msg_table = {
   "no_initrd"       : "the initrd needs to be a directory containing an initrd, or a full path.  Initrds must be named just 'initrd.img' or in the form 'initrd-AA.BB.CC-something.img",
   "exc_xen_name"    : "invalid Xen name",
   "exc_xen_file"    : "invalid Xen file size",
+  "exc_xen_ram"     : "invalid Xen RAM size",
   "exc_xen_mac"     : "invalid Xen mac address",
   "exc_xen_para"    : "invalid Xen paravirtualization setting",
   "exc_profile"     : "invalid profile name",
