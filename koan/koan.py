@@ -550,8 +550,8 @@ class Koan:
         """
         if not self.is_xen:
             return None
-        if self.is_mac(self.xen_mac):
-            return self.xen_mac.upper()
+        if self.is_mac(self.system):
+            return self.system.upper()
         return None
 
 if __name__ == "__main__":
