@@ -1,2 +1,4 @@
 - A "list profiles" and "list systems" option.
+- have the RPM own the various directories it creates for Xen
+  - document those directories
 
