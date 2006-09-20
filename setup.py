@@ -14,7 +14,7 @@ any existing system.  For use with a boot-server configured with
 """
 
 if __name__ == "__main__":
-        # docspath="share/doc/koan-%s/" % VERSION
+        docspath="share/doc/koan-%s/" % VERSION
         manpath="share/man/man1/"
 	setup(
                 name="koan",
@@ -27,8 +27,9 @@ if __name__ == "__main__":
                 packages = ["koan","koan/yaml"],
                 scripts = ["koan/koan"],
                 data_files = [
-                                # (docspath, ['README']),
-				(manpath, ['koan.1.gz'])
+				(manpath, ['koan.1.gz']),
+				(docspath, ['CHANGELOG']),
+				(docspath, ['COPYING'])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC

@@ -47,6 +47,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/koan.1.gz
 
 %changelog
+* Tue Sep 20 2006 - 0.1.1-7
+- Upstream updates
 * Fri Sep 15 2006 - 0.1.1-6
 - Make koan own it's directory, add GPL "COPYING" file.
 * Wed Aug 16 2006 - 0.1.1-5
