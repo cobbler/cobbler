@@ -171,7 +171,7 @@ B<cobbler distro add --name=fc5xen --kernel=/dir3/vmlinuz --initrd=/dir6/initrd.
 
 Specify reasonable values for the Xen image size (in GB) and RAM requirements:
 
-B<cobbler profile add --name=xenwebservers --distro=fc5xen --kickstart=/dir7/kick.ks --xen_file_size=10 --xen_ram=512>
+B<cobbler profile add --name=xenwebservers --distro=fc5xen --kickstart=/dir7/kick.ks --xen-file-size=10 --xen-ram=512>
 
 And define systems (if desired) using MAC addresses, not IP's or hostnames:
 
