@@ -3,7 +3,7 @@
 Summary: Network provisioning tool for Xen and Existing Non-Bare Metal
 Name: koan
 Version: 0.1.1
-Release: 6%{?dist}
+Release: 7%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
