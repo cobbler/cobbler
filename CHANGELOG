@@ -1,0 +1,26 @@
+Koan CHANGELOG
+
+* Wed Sep 20 2006 - 0.1.1-7
+- When provisioning Xen, if --system is a MAC address, use that
+  as the Xen MAC address.
+- Fixes to command line argument conflict resolution
+- A few fixes (mainly along error paths)
+
+* Fri Sep 15 2006 - 0.1.1-6
+- packaging only: Make koan own it's directory, add GPL "COPYING" file.
+
+* Wed Aug 16 2006 - 0.1.1-5
+- packaging only: Spec-file only changes for FC-Extras submission
+
+* Thu Jul 20 2006 - 0.1.1-4
+- Fixed python import paths in yaml code, which errantly assumed yaml was installed as a module.
+
+* Fri Jul 12 2006 - 0.1.1-3
+- allow installing with per-system cobbler data in addition to per-profile
+
+* Thu Jul 09 2006 - 0.1.0-2
+- packaging only: rpm tweaks for Fedora Extras
+
+* Wed Jun 28 2006 - 0.1.0-1
+- genesis
+

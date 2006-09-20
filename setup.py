@@ -28,8 +28,6 @@ if __name__ == "__main__":
                 scripts = ["koan/koan"],
                 data_files = [
 				(manpath, ['koan.1.gz']),
-				(docspath, ['CHANGELOG']),
-				(docspath, ['COPYING'])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC

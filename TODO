@@ -1,2 +1,0 @@
-- allow --replace-self to take a --kickstart in lieu of the bootconf
-  required --server= and --profiles=  (would be nice, not needed)

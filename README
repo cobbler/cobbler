@@ -1,0 +1,4 @@
+Docs are currently available in two ways:
+
+- Install and run "man koan"
+- Run "perldoc koan.pod" from a source checkout

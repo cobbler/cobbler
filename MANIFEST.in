@@ -1,1 +1,2 @@
 include koan.1.gz
+include CHANGELOG COPYING NEWS README AUTHORS
