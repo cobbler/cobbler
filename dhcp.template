@@ -1,0 +1,51 @@
+# ******************************************************************
+# Cobbler managed dhcpd.conf file
+#
+# generated from cobbler dhcp.conf template ($date)
+#
+# Note to Admins:
+#
+# cobbler will only manage dhcpd.conf if manage_dhcp is set in
+# /var/lib/cobbler/settings and will only be updated
+# when cobbler sync is run.  For configuring systems, see
+# "man cobbler"
+#
+# ******************************************************************
+
+# ** these values are probably sane for most environments
+ddns-update-style ad-hoc;
+set vendorclass = option vendor-class-identifier;
+
+# **  DO *NOT* change anything in this section or PXE will stop working
+# cobbler will magically deal with PXE architecture changes
+allow booting;
+allow bootp;
+filename                        "/pxelinux.i386";
+
+# ** this value must point to your cobbler server
+next-server                     10.10.76.51;
+
+# ** it's ok to change this values if needed
+default-lease-time              7200;
+max-lease-time                  86400;
+
+# ** these values must be changed for your network
+option domain-name              "foo.example_corp.com bar.example_corp.com"
+option domain-name-servers      172.16.52.28, 172.16.52.27;
+option ntp-servers              clock.example_corp.com;
+
+# ** these whole block should be tweaked for your network
+shared-network rhndev {
+	subnet 10.10.76.0 netmask 255.255.254.0 {
+		option routers                  10.10.77.254;
+		option subnet-mask              255.255.254.0;
+	}
+}
+
+
+# ** leave this line intact
+$insert_cobbler_system_definitions
+
+# ** optional footer data here
+# ...
+

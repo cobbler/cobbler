@@ -71,8 +71,11 @@ class BootCheck:
        """
        Check if pxelinux (part of syslinux) is installed
        """
-       if not os.path.exists(self.settings.pxelinux):
-          status.append(cobbler_msg.lookup("no_pxelinux"))
+       for pxelinux in keys(self.settings.pxelinuxes):
+          filename = self.settings.pxelinuxes[pxelinux]
+          if not os.path.exists(filename):
+              status.append(cobbler_msg.lookup("no_pxelinux"))
+              return
 
    def check_tftpd_bin(self,status):
        """
@@ -111,11 +114,17 @@ class BootCheck:
 
    def check_dhcpd_conf(self,status):
        """
+       NOTE: this code only applies if cobbler is *NOT* set to generate
+       a dhcp.conf file
+
        Check that dhcpd *appears* to be configured for pxe booting.
        We can't assure file correctness.  Since a cobbler user might
        have dhcp on another server, it's okay if it's not there and/or
        not configured correctly according to automated scans.
        """
+       if not (self.settings.manage_dhcp == 0):
+           return
+
        if os.path.exists(self.settings.dhcpd_conf):
            match_next = False
            match_file = False

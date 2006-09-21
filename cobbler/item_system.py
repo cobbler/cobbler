@@ -27,12 +27,14 @@ class System(item.Item):
         self.profile = None # a name, not a reference
         self.kernel_options = ""
         self.ks_meta = ""
+        self.pxe_arch = "i386"
 
     def from_datastruct(self,seed_data):
         self.name = seed_data['name']
         self.profile = seed_data['profile']
         self.kernel_options = seed_data['kernel_options']
         self.ks_meta = seed_data['ks_meta']
+        self.ks_meta = seed_data["pxe_arch"]
         return self
 
     def set_name(self,name):
@@ -60,6 +62,22 @@ class System(item.Item):
             return True
         raise cexceptions.CobblerException("exc_profile")
 
+    def set_pxe_arch(self,new_arch):
+        """
+        The PXE architecture field is naturally relevant to PXE only.
+        Should someone have Itanium machines on a network, having 
+        pxelinux.0 be the only option in the config file causes 
+        problems.  Using an alternative architecture here allows
+        for dhcpd.conf templating to "do the right thing" with
+        those systems.  If manage_dhcp is off in /var/lib/cobbler/settings
+        this parameter is meaningless.  It only has value when
+        generating a dhcp file.
+        """
+        for arch in keys(self.config.pxelinuxes):
+            if arch == new_arch:
+                return True
+        raise cexceptions.CobblerException("exc_pxe_arch")
+
     def is_valid(self):
         """
 	A system is valid when it contains a valid name and a profile.
@@ -76,6 +94,7 @@ class System(item.Item):
            'profile'  : self.profile,
            'kernel_options' : self.kernel_options,
            'ks_meta'  : self.ks_meta,
+           'pxe_arch' : self.pxe_arch
         }
 
     def printable(self,id):
@@ -83,5 +102,6 @@ class System(item.Item):
         buf = buf + "profile         : %s\n" % self.profile
         buf = buf + "kernel options  : %s" % self.kernel_options
         buf = buf + "ks metadata     : %s" % self.ks_meta
+        buf = buf + "pxe arch        : %s" % self.pxe_arch
         return buf
 

@@ -64,10 +64,15 @@ class BootSync:
     def copy_pxelinux(self):
         """
         Copy syslinux to the configured tftpboot directory
-
-        NOTE: relevant to tftp part only (should be obvious)
+        NOTE: we support different arch's if defined in
+        /var/lib/cobbler/settings. 
         """
-        self.copy(self.settings.pxelinux, os.path.join(self.settings.tftpboot, "pxelinux.0"))
+        for pxelinux in keys(self.settings.pxelinuxes):
+            path = self.settings.pxelinuxes[path]
+            self.copy(path, os.path.join(self.settings.tftpboot, pxelinux))
+            # for i386, save it as the canonical name also
+            if pxelinux == "pxelinux.i386":
+                self.copy(path, os.path.join(self.settings.tftpboot, "pxelinux.0");
 
     def configure_httpd(self):
         """

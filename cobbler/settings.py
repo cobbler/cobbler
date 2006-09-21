@@ -35,7 +35,6 @@ class Settings(serializable.Serializable):
        """
        self._attributes = {
           "httpd_bin"      : "/usr/sbin/httpd",
-          "pxelinux"       : "/usr/lib/syslinux/pxelinux.0",
           "dhcpd_conf"     : "/etc/dhcpd.conf",
           "tftpd_bin"      : "/usr/sbin/in.tftpd",
           "server"         : "localhost",
@@ -44,6 +43,11 @@ class Settings(serializable.Serializable):
           "tftpd_conf"     : "/etc/xinetd.d/tftp",
           "tftpboot"       : "/tftpboot",
           "webdir"         : "/var/www/cobbler",
+          "manage_dhcp"    : 0,
+          "pxelinuxes"     : {
+              "i386"   : "/usr/lib/syslinux/pxelinux.0"
+              "ia64"   : "/no/path/to/this/file/pxelinux.0"
+          }
        }
 
    def printable(self):
