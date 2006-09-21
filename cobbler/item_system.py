@@ -73,8 +73,8 @@ class System(item.Item):
         this parameter is meaningless.  It only has value when
         generating a dhcp file.
         """
-        if arch == "standard" or arch == "ia64":
-            self.pxe_arch = arch
+        if new_arch == "standard" or new_arch == "ia64":
+            self.pxe_arch = new_arch
             return True
         raise cexceptions.CobblerException("exc_pxe_arch")
 
