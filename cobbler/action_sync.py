@@ -67,8 +67,8 @@ class BootSync:
         NOTE: we support different arch's if defined in
         /var/lib/cobbler/settings. 
         """
-        for loader in keys(self.settings.bootloaders):
-            path = self.settings.bootloaders[path]
+        for loader in self.settings.bootloaders.keys():
+            path = self.settings.bootloaders[loader]
             self.copy(path, os.path.join(self.settings.tftpboot, loader))
 
     def configure_httpd(self):
@@ -295,11 +295,22 @@ class BootSync:
             if distro is None:
                 raise cexceptions.CobblerException("orphan_distro2",system.profile,profile.distro)
             f1 = self.get_pxe_filename(system.name)
+
             # tftp only
-            f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
-            # http only
+            if system.pxe_arch == "standard":
+                # pxelinux wants a file named $name under pxelinux.cfg
+                f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
+            if system.pxe_arch == "ia64":
+                # elilo expects files to be named "$name.conf" in the root
+                filename = self.get_pxe_filename(system.name)
+                f2 = os.path.join(self.settings.tftpboot, filename)
+               
             f3 = os.path.join(self.settings.webdir, "systems", f1)
-            self.write_pxe_file(f2,system,profile,distro)
+
+            if system.pxe_arch == "standard":
+                self.write_pxe_file(f2,system,profile,distro,False)
+            if system.pxe_arch == "ia64":
+                self.write_ia64_file(f2,system,profile,distro,True)
             self.write_system_file(f3,system)
 
 
@@ -322,7 +333,7 @@ class BootSync:
             raise cexceptions.CobblerException("err_resolv", name)
 
 
-    def write_pxe_file(self,filename,system,profile,distro):
+    def write_pxe_file(self,filename,system,profile,distro,is_ia64):
         """
         Write a configuration file for the boot loader(s).
         More system-specific configuration may come in later, if so
@@ -336,11 +347,20 @@ class BootSync:
         self.sync_log(cobbler_msg.lookup("writing") % filename)
         self.sync_log("---------------------------------")
         fd = self.open_file(filename,"w+")
-        self.tee(fd,"default linux\n")
-        self.tee(fd,"prompt 0\n")
-        self.tee(fd,"timeout 1\n")
-        self.tee(fd,"label linux\n")
-        self.tee(fd,"   kernel %s\n" % kernel_path)
+        if not is_ia64:
+            # pxelinux tree
+            self.tee(fd,"default linux\n")
+            self.tee(fd,"prompt 0\n")
+            self.tee(fd,"timeout 1\n")
+            self.tee(fd,"label linux\n")
+            self.tee(fd,"   kernel %s\n" % kernel_path)
+        else:
+            # elilo thrown in root
+            self.tee(fd,"image=%s\n" % kernel_path)
+            self.tee(fd,"\tlabel=netinstall\n")
+            self.tee(fd,"\tinitrd=%s\n" % initrd_path)
+            self.tee(fd,"read-only\n")
+            self.tee(fd,"root=/dev/ram\n")
         kopts = self.blend_options(True,(
            self.settings.kernel_options,
            profile.kernel_options,
@@ -354,11 +374,15 @@ class BootSync:
             if kickstart_path.startswith("/"):
                 pxe_fn = self.get_pxe_filename(system.name)
                 kickstart_path = "http://%s/cobbler/kickstarts_sys/%s/ks.cfg" % (self.settings.server, pxe_fn)
-            nextline = nextline + " ks=%s" % kickstart_path
+            if not is_ia64:
+                # pxelinux tree
+                nextline = nextline + " ks=%s" % kickstart_path
+            else:
+                # elilo thrown in root
+                nextline = nextline + "\t\"append ks=%s %s\"" % (kickstart_path, kopts)
         self.tee(fd, nextline)
         self.close_file(fd)
         self.sync_log("--------------------------------")
-
 
     def write_distro_file(self,filename,distro):
         """

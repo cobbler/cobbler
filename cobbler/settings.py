@@ -44,8 +44,8 @@ class Settings(serializable.Serializable):
           "tftpboot"       : "/tftpboot",
           "webdir"         : "/var/www/cobbler",
           "manage_dhcp"    : 0,
-          "bootloaders"     : {
-              "i386"   : "/usr/lib/syslinux/pxelinux.0"
+          "bootloaders"    : {
+              "standard"   : "/usr/lib/syslinux/pxelinux.0"
           }
        }
 

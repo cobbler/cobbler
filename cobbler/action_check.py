@@ -71,7 +71,7 @@ class BootCheck:
        """
        Check if network bootloaders are installed
        """
-       for loader in keys(self.settings.bootloaders):
+       for loader in self.settings.bootloaders.keys():
           filename = self.settings.bootloaders[loader]
           if not os.path.exists(filename):
               status.append(cobbler_msg.lookup("no_bootloader"))

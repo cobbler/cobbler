@@ -27,7 +27,7 @@ class System(item.Item):
         self.profile = None # a name, not a reference
         self.kernel_options = ""
         self.ks_meta = ""
-        self.pxe_arch = "i386"
+        self.pxe_arch = "standard"
 
     def from_datastruct(self,seed_data):
         self.name = seed_data['name']
@@ -73,9 +73,9 @@ class System(item.Item):
         this parameter is meaningless.  It only has value when
         generating a dhcp file.
         """
-        for arch in keys(self.config.bootloaders):
-            if arch == new_arch:
-                return True
+        if arch == "standard" or arch == "ia64":
+            self.pxe_arch = arch
+            return True
         raise cexceptions.CobblerException("exc_pxe_arch")
 
     def is_valid(self):

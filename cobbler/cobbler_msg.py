@@ -34,7 +34,7 @@ _msg_table = {
   "need_perms"      : "cobbler could not access %s",
   "need_perms2"     : "cobbler could not copy %s to %s",
   "no_dhcpd"        : "cobbler couldn't find dhcpd, try 'yum install dhcpd'",
-  "no_bootloader"   : "missing 1 or more bootloader files listed in /var/lib/cobbler/settings"
+  "no_bootloader"   : "missing 1 or more bootloader files listed in /var/lib/cobbler/settings",
   "no_tftpd"        : "cobbler couldn't find tftpd, try 'yum install tftpd'",
   "no_dir"          : "cobbler couldn't find %s, please create it",
   "chg_attrib"      : "need to change field '%s' value to '%s' in file '%s'",
@@ -74,7 +74,7 @@ _msg_table = {
   "exc_xen_para"    : "invalid Xen paravirtualization setting",
   "exc_profile"     : "invalid profile name",
   "exc_profile2"    : "profile name not set",
-  "exc_pxe_arch"    : "specified PXE file not found in /var/lib/cobbler/settings"
+  "exc_pxe_arch"    : "valid PXE architectures: standard or ia64",
   "check_ok"        : """
 No setup problems found.
 
