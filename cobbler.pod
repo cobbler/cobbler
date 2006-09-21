@@ -97,7 +97,7 @@ the name of a previously defined cobbler distribution
 
 =head2 ADDING A SYSTEM
 
-B<cobbler system add --name=<ip|mac|hostname> --profile=<string> [--kopts=<string>] [--ksmeta=<string>]
+B<cobbler system add --name=<ip|mac|hostname> --profile=<string> [--kopts=<string>] [--pxe_arch=<standard|ia64>] [--ksmeta=<string>]
 
 =over
 
@@ -112,6 +112,14 @@ The system name must be either a currently-resolvable hostname, an IP address, o
 
 When defining Xen systems, using a MAC address causes the Xen MAC address to be used for creation,
 so that is the preferred usage.
+
+=item pxe-arch
+
+The PXE architecture is (obviously) only relevant to PXE booting.  Setting
+the arch to "ia64" will use elilo.efi as the boot loader instead of 
+"pxelinux.0".  The default, "standard", uses "pxelinux.0".
+
+If no Itanium machines are present, this can be ignored entirely.
 
 =back
 
