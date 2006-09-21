@@ -34,7 +34,7 @@ class System(item.Item):
         self.profile = seed_data['profile']
         self.kernel_options = seed_data['kernel_options']
         self.ks_meta = seed_data['ks_meta']
-        self.ks_meta = seed_data["pxe_arch"]
+        self.pxe_arch = seed_data['pxe_arch']
         return self
 
     def set_name(self,name):

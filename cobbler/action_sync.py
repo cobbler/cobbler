@@ -310,7 +310,7 @@ class BootSync:
             if system.pxe_arch == "standard":
                 self.write_pxe_file(f2,system,profile,distro,False)
             if system.pxe_arch == "ia64":
-                self.write_ia64_file(f2,system,profile,distro,True)
+                self.write_pxe_file(f2,system,profile,distro,True)
             self.write_system_file(f3,system)
 
 
