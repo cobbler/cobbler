@@ -38,6 +38,8 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root)
 %{_bindir}/cobbler
+%dir /etc/cobbler
+/etc/cobbler/dhcp.template
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/yaml
 %{python_sitelib}/cobbler/*.py*

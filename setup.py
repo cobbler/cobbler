@@ -14,18 +14,19 @@ Cobbler is a command line tool for simplified configuration of boot/provisioning
 if __name__ == "__main__":
         # docspath="share/doc/koan-%s/" % VERSION
         manpath="share/man/man1/"
+        etcpath="/etc/cobbler/"
         setup(
                 name="cobbler",
                 version = VERSION,
                 author = "Michael DeHaan",
                 author_email = "mdehaan@redhat.com",
-                # FIXME: lame, this should point to a real cobbler webpage
-                url = "http://bugzilla.redhat.com",
+                url = "http://et.redhat.com/",
                 license = "GPL",
                 packages = ["cobbler","cobbler/yaml"],
                 scripts = ["cobbler/cobbler"],
                 data_files = [
                                 # (docspath, ['README']),
+                                (etcpath, ['dhcp.template']),
                                 (manpath, ['cobbler.1.gz'])
                              ],
                 description = SHORT_DESC,

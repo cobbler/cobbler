@@ -1,2 +1,3 @@
+include dhcp.template
 include cobbler.1.gz
 include COPYING AUTHORS README CHANGELOG NEWS
