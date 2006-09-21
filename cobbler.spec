@@ -3,7 +3,7 @@
 Summary: Boot server configurator
 Name: cobbler
 Version: 0.1.1
-Release: 7%{?dist}
+Release: 8%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -30,10 +30,7 @@ python setup.py build
 
 %install
 rm -rf $RPM_BUILD_ROOT
-python setup.py install --optimize=1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
-sed -e 's|/[^/]*$||' INSTALLED_FILES | grep "site-packages/" | \
-sort | uniq | awk '{ print "%attr(755,root,root) %dir " $1}' > INSTALLED_DIRS
-cat INSTALLED_FILES INSTALLED_DIRS > INSTALLED_OBJECTS
+python setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -47,8 +44,12 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/cobbler/yaml/*.py*
 %{_mandir}/man1/cobbler.1.gz
 
+%doc AUTHORS CHANGELOG NEWS README COPYING
+
 %changelog
-* Tue Sep 20 2006 - 0.1.1-7
+* Thu Sep 21 2006 - 0.1.1-8
+- Added doc files to %doc, removed INSTALLED_FILES code
+* Wed Sep 20 2006 - 0.1.1-7
 - Upstream updates
 * Fri Sep 15 2006 - 0.1.1-6
 - Make koan own it's directory, add GPL "COPYING" file.
