@@ -53,7 +53,7 @@ class BootSync:
         self.verbose = verbose
         self.dryrun = dryrun
         self.clean_trees()
-        self.copy_pxelinux()
+        self.copy_bootloaders()
         self.copy_distros()
         self.validate_kickstarts()
         self.configure_httpd()
@@ -61,18 +61,15 @@ class BootSync:
         return True
 
 
-    def copy_pxelinux(self):
+    def copy_bootloaders(self):
         """
-        Copy syslinux to the configured tftpboot directory
+        Copy bootloaders to the configured tftpboot directory
         NOTE: we support different arch's if defined in
         /var/lib/cobbler/settings. 
         """
-        for pxelinux in keys(self.settings.pxelinuxes):
-            path = self.settings.pxelinuxes[path]
-            self.copy(path, os.path.join(self.settings.tftpboot, pxelinux))
-            # for i386, save it as the canonical name also
-            if pxelinux == "pxelinux.i386":
-                self.copy(path, os.path.join(self.settings.tftpboot, "pxelinux.0");
+        for loader in keys(self.settings.bootloaders):
+            path = self.settings.bootloaders[path]
+            self.copy(path, os.path.join(self.settings.tftpboot, loader))
 
     def configure_httpd(self):
         """
@@ -211,7 +208,7 @@ class BootSync:
             distro = self.distros.find(profile.distro)
             kickstart_path = utils.find_kickstart(profile.kickstart)
             if kickstart_path and os.path.exists(kickstart_path):
-                pxe_fn = self.get_pxelinux_filename(s.name)
+                pxe_fn = self.get_pxe_filename(s.name)
                 copy_path = os.path.join(self.settings.webdir,
                     "kickstarts_sys", # system kickstarts go here
                     pxe_fn
@@ -297,22 +294,22 @@ class BootSync:
             distro = self.distros.find(profile.distro)
             if distro is None:
                 raise cexceptions.CobblerException("orphan_distro2",system.profile,profile.distro)
-            f1 = self.get_pxelinux_filename(system.name)
+            f1 = self.get_pxe_filename(system.name)
             # tftp only
             f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
             # http only
             f3 = os.path.join(self.settings.webdir, "systems", f1)
-            self.write_pxelinux_file(f2,system,profile,distro)
+            self.write_pxe_file(f2,system,profile,distro)
             self.write_system_file(f3,system)
 
 
-    def get_pxelinux_filename(self,name_input):
+    def get_pxe_filename(self,name_input):
         """
-        The configuration file for each system pxelinux uses is either
+        The configuration file for each system pxe uses is either
         a form of the MAC address of the hex version of the IP.  Not sure
         about ipv6 (or if that works).  The system name in the config file
         is either a system name, an IP, or the MAC, so figure it out, resolve
-        the host if needed, and return the pxelinux directory name.
+        the host if needed, and return the pxe directory name.
         """
         if name_input == "default":
             return "default"
@@ -325,9 +322,9 @@ class BootSync:
             raise cexceptions.CobblerException("err_resolv", name)
 
 
-    def write_pxelinux_file(self,filename,system,profile,distro):
+    def write_pxe_file(self,filename,system,profile,distro):
         """
-        Write a configuration file for the pxelinux boot loader.
+        Write a configuration file for the boot loader(s).
         More system-specific configuration may come in later, if so
         that would appear inside the system object in api.py
 
@@ -355,7 +352,7 @@ class BootSync:
             # if kickstart path is on disk, we've already copied it into
             # the HTTP mirror, so make it something anaconda can get at
             if kickstart_path.startswith("/"):
-                pxe_fn = self.get_pxelinux_filename(system.name)
+                pxe_fn = self.get_pxe_filename(system.name)
                 kickstart_path = "http://%s/cobbler/kickstarts_sys/%s/ks.cfg" % (self.settings.server, pxe_fn)
             nextline = nextline + " ks=%s" % kickstart_path
         self.tee(fd, nextline)

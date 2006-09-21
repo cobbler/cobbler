@@ -34,12 +34,13 @@ _msg_table = {
   "need_perms"      : "cobbler could not access %s",
   "need_perms2"     : "cobbler could not copy %s to %s",
   "no_dhcpd"        : "cobbler couldn't find dhcpd, try 'yum install dhcpd'",
-  "no_pxelinux"     : "missing 1 or more pxelinux files listed in /var/lib/cobbler/settings"
+  "no_bootloader"   : "missing 1 or more bootloader files listed in /var/lib/cobbler/settings"
   "no_tftpd"        : "cobbler couldn't find tftpd, try 'yum install tftpd'",
   "no_dir"          : "cobbler couldn't find %s, please create it",
   "chg_attrib"      : "need to change field '%s' value to '%s' in file '%s'",
   "no_exist"        : "file %s does not exist",
   "no_line"         : "file '%s' should have a line '%s' somewhere",
+  "no_next_server"  : "file '%s' should have a next-server line",
   "no_dir2"         : "can't find %s for %s as referenced in /var/lib/cobbler/settings",
   "bad_param"       : "at least one parameter is missing for this function",
   "empty_list"      : "There are no configured %s records.",

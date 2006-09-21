@@ -35,7 +35,7 @@ class BootCheck:
        status = []
        self.check_name(status)
        self.check_dhcpd_bin(status)
-       self.check_pxelinux_bin(status)
+       self.check_bootloaders(status)
        self.check_tftpd_bin(status)
        self.check_tftpd_dir(status)
        self.check_tftpd_conf(status)
@@ -67,14 +67,14 @@ class BootCheck:
        if not os.path.exists(self.settings.dhcpd_bin):
           status.append(cobbler_msg.lookup("no_dhcpd"))
 
-   def check_pxelinux_bin(self,status):
+   def check_bootloaders(self,status):
        """
-       Check if pxelinux (part of syslinux) is installed
+       Check if network bootloaders are installed
        """
-       for pxelinux in keys(self.settings.pxelinuxes):
-          filename = self.settings.pxelinuxes[pxelinux]
+       for loader in keys(self.settings.bootloaders):
+          filename = self.settings.bootloaders[loader]
           if not os.path.exists(filename):
-              status.append(cobbler_msg.lookup("no_pxelinux"))
+              status.append(cobbler_msg.lookup("no_bootloader"))
               return
 
    def check_tftpd_bin(self,status):
@@ -137,7 +137,7 @@ class BootCheck:
            if not match_next:
               status.append(cobbler_msg.lookup("no_line") % (self.settings.dhcpd_conf, 'next-server ip-address'))
            if not match_file:
-              status.append(cobbler_msg.lookup("no_line") % (self.settings.dhcpd_conf, 'filename "%s/pxelinux.0";' % self.settings.tftpboot))
+              status.append(cobbler_msg.lookup("no_next_server") % (self.settings.dhcpd_conf))
        else:
            status.append(cobbler_msg.lookup("no_exist") % self.settings.dhcpd_conf)
 

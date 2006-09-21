@@ -73,7 +73,7 @@ class System(item.Item):
         this parameter is meaningless.  It only has value when
         generating a dhcp file.
         """
-        for arch in keys(self.config.pxelinuxes):
+        for arch in keys(self.config.bootloaders):
             if arch == new_arch:
                 return True
         raise cexceptions.CobblerException("exc_pxe_arch")

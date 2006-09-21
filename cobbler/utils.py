@@ -34,7 +34,7 @@ def find_system_identifier(strdata):
     """
     If the input is a MAC or an IP, return that.
     If it's not, resolve the hostname and return the IP.
-    pxelinux doesn't work in hostnames
+    pxe bootloaders don't work in hostnames
     """
     if is_mac(strdata):
         return strdata.upper()
