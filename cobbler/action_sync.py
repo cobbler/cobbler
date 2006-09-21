@@ -374,12 +374,7 @@ class BootSync:
             if kickstart_path.startswith("/"):
                 pxe_fn = self.get_pxe_filename(system.name)
                 kickstart_path = "http://%s/cobbler/kickstarts_sys/%s/ks.cfg" % (self.settings.server, pxe_fn)
-            if not is_ia64:
-                # pxelinux tree
-                nextline = nextline + " ks=%s" % kickstart_path
-            else:
-                # elilo thrown in root
-                nextline = nextline + "\t\"append ks=%s %s\"" % (kickstart_path, kopts)
+            nextline = nextline + " ks=%s" % kickstart_path
         self.tee(fd, nextline)
         self.close_file(fd)
         self.sync_log("--------------------------------")
