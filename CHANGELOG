@@ -1,5 +1,8 @@
 Koan CHANGELOG
 
+* Thu Sep 21 2006 - 0.1.1-8
+- (RPM) Added doc files to %doc, removed INSTALLED_FILES code
+
 * Wed Sep 20 2006 - 0.1.1-7
 - When provisioning Xen, if --system is a MAC address, use that
   as the Xen MAC address.
