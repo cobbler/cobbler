@@ -75,6 +75,7 @@ _msg_table = {
   "exc_profile"     : "invalid profile name",
   "exc_profile2"    : "profile name not set",
   "exc_pxe_arch"    : "valid PXE architectures: standard or ia64",
+  "exc_no_template" : "can't read /etc/cobbler/dhcp.template",
   "check_ok"        : """
 No setup problems found.
 

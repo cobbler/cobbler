@@ -58,6 +58,8 @@ class BootSync:
         self.validate_kickstarts()
         self.configure_httpd()
         self.build_trees()
+        if self.settings.manage_dhcp:
+            self.write_dhcp_file()
         return True
 
 
@@ -69,9 +71,31 @@ class BootSync:
         """
         for loader in self.settings.bootloaders.keys():
             path = self.settings.bootloaders[loader]
+            print "loader path = %s" % path
             newname = os.path.basename(path)
+            print "loader new name = %s" % newname
             destpath = os.path.join(self.settings.tftpboot, newname)
-            self.copy(path, destpath)
+            print "destpath = %s" % destpath
+            self.copyfile(path, destpath)
+
+    def write_dhcp_file(self):
+        f1 = self.open_file("/etc/dhcpd.conf")
+        template_data = ""
+        try:
+            f2 = open("/etc/cobbler/dhcp.template")
+        except:
+            raise cexceptions.CobblerException("exc_no_template")
+        template_data = f2.read()
+        f2.close()
+        system_definitions = "<INSERT COBBLER LIST HERE>"
+        metadata = {
+           "insert_cobbler_system_definitions" : system_definitions
+        }
+        t = Template(
+           "#errorCatcher Echo\n%s" % template_data,
+           searchList=[metadata]
+        )
+        self.close_file(f1)
 
     def configure_httpd(self):
         """
@@ -109,14 +133,25 @@ class BootSync:
         unfortunate, though SELinux won't let me give them two contexts, so symlinks are not
         a solution.  *Otherwise* duplication is minimal.
         """
+
+        # clean out all of /tftpboot
+        for tree in (self.settings.tftpboot, self.settings.webdir):
+            for x in os.listdir(tree):
+                path = os.path.join(tree,x)
+                if os.path.isfile(path):
+                    self.rmfile(path)
+                if os.path.isdir(path):
+                    self.rmtree(path)
+
+        # make some directories in /tftpboot
         for x in ["pxelinux.cfg","images"]:
-                path = os.path.join(self.settings.tftpboot,x)
-                self.rmtree(path)
-                self.mkdir(path)
+            path = os.path.join(self.settings.tftpboot,x)
+            self.mkdir(path)
+
+        # make some directories in /var/www/cobbler
         for x in ["systems","distros","profiles","kickstarts","kickstarts_sys","images"]:
-                path = os.path.join(self.settings.webdir, x)
-                self.rmtree(path)
-                self.mkdir(path)
+            path = os.path.join(self.settings.webdir, x)
+            self.mkdir(path)
 
     def copy_distros(self):
         """
@@ -304,7 +339,7 @@ class BootSync:
                 f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
             if system.pxe_arch == "ia64":
                 # elilo expects files to be named "$name.conf" in the root
-                filename = self.get_pxe_filename(system.name)
+                filename = "%s.conf" % self.get_pxe_filename(system.name) 
                 f2 = os.path.join(self.settings.tftpboot, filename)
                
             f3 = os.path.join(self.settings.webdir, "systems", f1)
@@ -355,29 +390,48 @@ class BootSync:
             self.tee(fd,"prompt 0\n")
             self.tee(fd,"timeout 1\n")
             self.tee(fd,"label linux\n")
-            self.tee(fd,"   kernel %s\n" % kernel_path)
+            self.tee(fd,"\tkernel %s\n" % kernel_path)
         else:
             # elilo thrown in root
             self.tee(fd,"image=%s\n" % kernel_path)
             self.tee(fd,"\tlabel=netinstall\n")
             self.tee(fd,"\tinitrd=%s\n" % initrd_path)
-            self.tee(fd,"read-only\n")
-            self.tee(fd,"root=/dev/ram\n")
+            self.tee(fd,"\tread-only\n")
+            self.tee(fd,"\troot=/dev/ram\n")
+        
+        # now build the kernel command line
         kopts = self.blend_options(True,(
            self.settings.kernel_options,
            profile.kernel_options,
            distro.kernel_options,
            system.kernel_options
         ))
-        nextline = "   append %s initrd=%s" % (kopts,initrd_path)
+
+        # the kernel options line is common to elilo and pxelinux
+        append_line = "%s" % kopts
+
+        # if not ia64, include initrd on this line
+        # for ia64, it's already done
+        if not is_ia64:
+            append_line = "%s initrd=%s" % (append_line,initrd_path)
+       
+        # kickstart path (if kickstart is used)
         if kickstart_path is not None and kickstart_path != "":
             # if kickstart path is on disk, we've already copied it into
             # the HTTP mirror, so make it something anaconda can get at
             if kickstart_path.startswith("/"):
                 pxe_fn = self.get_pxe_filename(system.name)
                 kickstart_path = "http://%s/cobbler/kickstarts_sys/%s/ks.cfg" % (self.settings.server, pxe_fn)
-            nextline = nextline + " ks=%s" % kickstart_path
-        self.tee(fd, nextline)
+            append_line = "%s ks=%s" % (append_line, kickstart_path)
+
+        # now to add the append line to the file
+        if not is_ia64:
+            # pxelinux.cfg syntax
+            self.tee(fd, "\tappend %s" % append_line)
+        else:
+            # elilo.conf syntax
+            self.tee(fd, "\tappend=\"%s\"" % append_line)
+
         self.close_file(fd)
         self.sync_log("--------------------------------")
 
@@ -467,6 +521,20 @@ class BootSync:
            return shutil.copy(src,dst)
        except IOError, ioe:
            raise cexceptions.CobblerException("need_perms2",src,dst)
+   
+    def rmfile(self,path):
+       """
+       For dryrun support.  potentially unlink a file.
+       """
+       if self.dryrun:
+           return True
+       try:
+           os.unlink(path)
+           return True
+       except:
+           traceback.print_exc()
+           raise cexceptions.CobblerException("no_delete",path)
+
 
     def rmtree(self,path):
        """
