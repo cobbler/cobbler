@@ -1,0 +1,12 @@
+0.1.2
+
+New PXE features
+
+Cobbler now contains an experimental dhcpd.conf templating feature.
+Read the manpage, and if you want to use it, back up your existing
+dhcpd.conf before enabling that feature.  It is off by default.
+
+When using that feature, dhcpd.conf can associate MAC addresses
+with hostnames (as defined from cobbler), and cobbler can
+also differentiate between IA64 and x86/x86_64 network boots.
+

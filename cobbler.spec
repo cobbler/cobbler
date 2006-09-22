@@ -2,8 +2,8 @@
 
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.1.1
-Release: 8%{?dist}
+Version: 0.2.0
+Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -51,6 +51,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
+* Fri Sep 22 2006 - 0.2.0-1
+- Lots of new PXE and dhcpd.conf upstream, elilo.efi now included.
 * Thu Sep 21 2006 - 0.1.1-8
 - Added doc files to %doc, removed INSTALLED_FILES code
 * Wed Sep 20 2006 - 0.1.1-7

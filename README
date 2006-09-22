@@ -1,0 +1,5 @@
+Docs are currently available two ways:
+
+- Install and run "man cobbler"
+- Run "perldoc cobbler.pod" from a source checkout
+

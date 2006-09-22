@@ -1,0 +1,34 @@
+Cobbler CHANGELOG
+
+* Fri Sep 22 2006 - 0.2.0-1
+- New dhcp.d conf management features
+- IA64 support
+- dhcpd.conf MAC & hostname association features
+
+* Thr Sep 21 2006 - 0.1.1-8
+- (RPM) Added doc files to %doc, removed INSTALLED_FILES 
+
+* Wed Sep 20 2006 - 0.1.1-7
+- Split HTTP and TFTP content to seperate directories
+  to enable running in SELinux targetted/enforcing mode.
+- Make the Xen MAC address a property of a system, not a profile 
+- Misc. fixes, mainly along the error path
+
+* Fri Sep 15 2006 - 0.1.1-6
+- Make koan own it's directory, add GPL "COPYING" file.
+
+* Wed Aug 16 2006 - 0.1.1-5
+- Spec file tweaks only for FC-Extras
+
+* Thu Jul 20 2006 - 0.1.1-4
+- Fixed python import paths in yaml code, which errantly assumed yaml was installed as a module.
+
+* Wed Jul 12 2006 - 0.1.1-3
+- Added templating support using Cheetah
+
+* Thu Jul 9 2006 - 0.1.0-2
+- Fedora-Extras rpm spec tweaks
+
+* Tue Jun 28 2006 - 0.1.0-1
+- rpm genesis
+
