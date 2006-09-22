@@ -15,6 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import os
 import shutil
+import time
 import yaml
 from Cheetah.Template import Template
 
@@ -79,22 +80,24 @@ class BootSync:
             self.copyfile(path, destpath)
 
     def write_dhcp_file(self):
-        f1 = self.open_file("/etc/dhcpd.conf")
-        template_data = ""
         try:
-            f2 = open("/etc/cobbler/dhcp.template")
+            f2 = open("/etc/cobbler/dhcp.template","r")
         except:
             raise cexceptions.CobblerException("exc_no_template")
+        template_data = ""
+        f1 = self.open_file("/etc/dhcpd.conf","w+")
         template_data = f2.read()
         f2.close()
         system_definitions = "<INSERT COBBLER LIST HERE>"
         metadata = {
-           "insert_cobbler_system_definitions" : system_definitions
+           "insert_cobbler_system_definitions" : system_definitions,
+           "date" : time.asctime(time.gmtime())
         }
         t = Template(
            "#errorCatcher Echo\n%s" % template_data,
            searchList=[metadata]
         )
+        self.tee(f1,str(t))
         self.close_file(f1)
 
     def configure_httpd(self):
