@@ -28,6 +28,7 @@ class System(item.Item):
         self.kernel_options = ""
         self.ks_meta = ""
         self.pxe_arch = "standard"
+        self.pxe_hostname = ""
 
     def from_datastruct(self,seed_data):
         self.name = seed_data['name']
@@ -35,6 +36,7 @@ class System(item.Item):
         self.kernel_options = seed_data['kernel_options']
         self.ks_meta = seed_data['ks_meta']
         self.pxe_arch = seed_data['pxe_arch']
+        self.pxe_hostname = seed_data['pxe_hostname']
         return self
 
     def set_name(self,name):
@@ -50,6 +52,12 @@ class System(item.Item):
         if not new_name:
             raise cexceptions.CobblerException("bad_sys_name")
         self.name = name  # we check it add time, but store the original value.
+        return True
+
+    def set_pxe_hostname(self,hostname):
+        # we allow this to be set to anything
+        # though we probably should check to see if it looks like a FQDN
+        self.pxe_hostname = hostname
         return True
 
     def set_profile(self,profile_name):
@@ -94,7 +102,8 @@ class System(item.Item):
            'profile'  : self.profile,
            'kernel_options' : self.kernel_options,
            'ks_meta'  : self.ks_meta,
-           'pxe_arch' : self.pxe_arch
+           'pxe_arch' : self.pxe_arch,
+           'pxe_hostname' : self.pxe_hostname
         }
 
     def printable(self,id):
@@ -103,5 +112,6 @@ class System(item.Item):
         buf = buf + "kernel options  : %s" % self.kernel_options
         buf = buf + "ks metadata     : %s" % self.ks_meta
         buf = buf + "pxe arch        : %s" % self.pxe_arch
+        buf = buf + "pxe hostname   : %s" % self.pxe_hostname
         return buf
 

@@ -36,6 +36,4 @@ shared-network rhndev {
 	}
 }
 
-# ** leave this line intact
 $insert_cobbler_system_definitions
-

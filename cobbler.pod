@@ -50,11 +50,19 @@ an absolute filesystem path to a initrd image
 
 =item kopts
 
-(optional) sets kernel arguments, ex: --ksmeta="foo=bar baz=3 asdf"
+(optional) sets kernel arguments.
+
+Example: --ksmeta="foo=bar baz=3 asdf"
 
 =item ksmeta
 
-(optional) sets kickstart variables to substitute, ex: --ksmeta="foo=bar baz=3 asdf"
+(optional)
+
+This is an advanced feature that sets kickstart variables to substitute, thus enabling kickstart files to be treated as templates.  
+
+Example: --ksmeta="foo=bar baz=3 asdf"
+
+See the section below on templating.
 
 =back
 
@@ -97,8 +105,7 @@ the name of a previously defined cobbler distribution
 
 =head2 ADDING A SYSTEM
 
-B<cobbler system add --name=<ip|mac|hostname> --profile=<string> [--kopts=<string>] [--pxe_arch=<standard|ia64>] [--ksmeta=<string>]
-
+B<cobbler system add --name=<ip|mac|hostname> --profile=<string> [--kopts=<string>] [--pxe_arch=<standard|ia64>] [--pxe_hostname=<string>] [--ksmeta=<string>]
 =over
 
 =over
@@ -115,15 +122,25 @@ so that is the preferred usage.
 
 =item pxe-arch
 
-The PXE architecture is (obviously) only relevant to PXE booting.  Setting
-the arch to "ia64" will use elilo.efi as the boot loader instead of 
-"pxelinux.0".  The default, "standard", uses "pxelinux.0".
+Advanced feature.  Applies only if manage-dhcp is set to 1 in /var/lib/cobbler/settings and only for PXE provisioning.
 
-If no Itanium machines are present, this can be ignored entirely.
+Setting the pxe-arch to "ia64" will use elilo.efi as the boot loader instead of 
+"pxelinux.0".  The default, "standard", uses "pxelinux.0", which does not work for IA-64 (Itanium) systems.
 
-=back
+When using this setting, be sure the "--name" given to the "system add" command is a MAC address or no per-system record in dhcpd.conf can be generated..
 
-=back
+Example: --pxe-arch=ia64
+
+=item pxe-hostname
+
+Advanced feature.  Applies only if manage-dhcp is set to 1 in /var/lib/cobbler/settings and only for PXE provisioning.
+
+If cobbler is configured to generate the dhcpd.conf file, use this
+setting to pin a certain MAC address to a specific dhcp hostname.
+
+When using this setting, be sure that the "--name" given to the "system add" command is a MAC address or no per-system record in dhcpd.conf can be generated.
+
+Example: ---pxe-hostname="foo.example.com"
 
 =back
 
@@ -200,6 +217,24 @@ To apply these changes, "cobbler sync" must be run to generate custom kickstarts
 For NFS and HTTP URLs, the "--ksmeta" options will have no effect. This is a good reason to let
 cobbler manage your kickstart files, though the URL functionality is provided for integration with
 legacy infrastructure, possibly including web apps that already generate kickstarts. 
+
+=head2 DHCP CONFIGURATION MANAGEMENT
+
+By default, cobbler does not touch dhcpd.conf and leaves configuration
+of it up to the user.  If manage_dhcp is set to 1 in /var/lib/cobbler/settings,
+this changes, and cobbler *will* write a dhcp.conf file.  The file is based
+on a template in /etc/cobbler/dhcpd.conf.template -- and must be user edited for
+the user's particular networking environment.  Read the file and understand dhcpd.conf files before proceeding.
+
+If this flag is set, it enables two things:
+(A) relatively seamless mixing of Itanium and x86/x86_64 machines in a PXE environment
+(B) pinning dhcp hostnames to MAC addresses automatically.
+
+Per-system records in DHCP will only be written if the cobbler system name is a MAC address, so it's recommended that those be used if manage_dhcp is turned on.
+
+Itanium systems also need to be specified by the MAC address, and in addition need to be given the "--pxe-arch=ia64" parameter.
+
+The dhcpd.conf file will be updated each time "cobbler sync" is run.
 
 =head2 TWEAKING
 

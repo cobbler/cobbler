@@ -25,6 +25,8 @@ import cexceptions
 import traceback
 import errno
 
+
+
 class BootSync:
     """
     Handles conversion of internal state to the tftpboot tree layout
@@ -80,6 +82,7 @@ class BootSync:
             self.copyfile(path, destpath)
 
     def write_dhcp_file(self):
+
         try:
             f2 = open("/etc/cobbler/dhcp.template","r")
         except:
@@ -88,7 +91,31 @@ class BootSync:
         f1 = self.open_file("/etc/dhcpd.conf","w+")
         template_data = f2.read()
         f2.close()
-        system_definitions = "<INSERT COBBLER LIST HERE>"
+       
+        # build each per-system definition 
+        system_definitions = ""
+        counter = 0
+        elilo = os.path.basename(self.settings.bootloaders["ia64"])
+        for system in self.systems:
+            if not utils.is_mac(system.name):
+                # can't do per-system dhcp features if the system
+                # hostname is not a MAC, therefore the templating
+                # gets to be pretty lame.  The general rule here is
+                # if you want to PXE IA64 boxes, you need to use
+                # the MAC as the system name.
+                continue
+            systxt = ""
+            counter = counter + 1            
+            systxt = "\nhost label%d {\n" % counter
+            if system.pxe_arch == "ia64":
+                # can't use pxelinux.0 anymore
+                systxt = systxt + "    filename \"/%s\";\n" % elilo
+            systxt = systxt + "    hardware ethernet %s;\n" % system.name
+            if system.pxe_hostname != "":
+                systxt = systxt + "    fixed-address %s;\n" % system.pxe_hostname
+            systxt = systxt + "}\n"
+            system_definitions = system_definitions + systxt
+
         metadata = {
            "insert_cobbler_system_definitions" : system_definitions,
            "date" : time.asctime(time.gmtime())
