@@ -14,6 +14,7 @@ Cobbler is a command line tool for simplified configuration of boot/provisioning
 if __name__ == "__main__":
         # docspath="share/doc/koan-%s/" % VERSION
         manpath="share/man/man1/"
+        cobpath="/var/lib/cobbler/"
         etcpath="/etc/cobbler/"
         setup(
                 name="cobbler",
@@ -26,7 +27,8 @@ if __name__ == "__main__":
                 scripts = ["cobbler/cobbler"],
                 data_files = [
                                 # (docspath, ['README']),
-                                (etcpath, ['dhcp.template']),
+                                (cobpath, ['elilo-3.6-ia64.efi']),
+				(etcpath, ['dhcp.template']),
                                 (manpath, ['cobbler.1.gz'])
                              ],
                 description = SHORT_DESC,

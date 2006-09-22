@@ -45,6 +45,8 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/cobbler/*.py*
 %{python_sitelib}/cobbler/yaml/*.py*
 %{_mandir}/man1/cobbler.1.gz
+%dir /var/lib/cobbler
+/var/lib/cobbler/elilo-3.6-ia64.efi
 
 %doc AUTHORS CHANGELOG NEWS README COPYING
 

@@ -1,3 +1,5 @@
+include COPYING_ELILO
+include elilo-3.6-ia64.efi
 include dhcp.template
 include cobbler.1.gz
 include COPYING AUTHORS README CHANGELOG NEWS

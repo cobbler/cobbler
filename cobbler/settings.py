@@ -45,7 +45,8 @@ class Settings(serializable.Serializable):
           "webdir"         : "/var/www/cobbler",
           "manage_dhcp"    : 0,
           "bootloaders"    : {
-              "standard"   : "/usr/lib/syslinux/pxelinux.0"
+              "standard"   : "/usr/lib/syslinux/pxelinux.0",
+              "ia64"       : "/var/lib/cobbler/elilo-3.6-ia64.efi"
           }
        }
 

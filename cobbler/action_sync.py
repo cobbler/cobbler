@@ -69,7 +69,9 @@ class BootSync:
         """
         for loader in self.settings.bootloaders.keys():
             path = self.settings.bootloaders[loader]
-            self.copy(path, os.path.join(self.settings.tftpboot, loader))
+            newname = os.path.basename(path)
+            destpath = os.path.join(self.settings.tftpboot, newname)
+            self.copy(path, destpath)
 
     def configure_httpd(self):
         """
