@@ -55,7 +55,7 @@ _msg_table = {
   "no_distro"       : "distro does not exist",
   "no_profile"      : "profile does not exist",
   "no_kickstart"    : "kickstart must be an absolute path, or an http://, ftp:// or nfs:// URL",
-  "no_kernel"       : "the kernel needs to be a directory containing a kernel, or a full path.  Kernels must be named just 'vmlinuz' or in the form 'vmlinuz-AA.BB.CC-something'",
+  "no_kernel"       : "cannot find kernel file"
   "sync_kernel"     : "the kernel (%s) for distro (%s) cannot be found and must be fixed",
   "sync_initrd"     : "the initrd (%s) for distro (%s) cannot be found and must be fixed",
   "sync_mirror_ks"  : "mirroring local kickstarts...",
@@ -66,7 +66,7 @@ _msg_table = {
   "dryrun"          : "dry run | %s",
   "copying"         : "copying file: %s to %s",
   "removing"        : "removing: %s",
-  "no_initrd"       : "the initrd needs to be a directory containing an initrd, or a full path.  Initrds must be named just 'initrd.img' or in the form 'initrd-AA.BB.CC-something.img",
+  "no_initrd"       : "cannot find initrd",
   "exc_xen_name"    : "invalid Xen name",
   "exc_xen_file"    : "invalid Xen file size",
   "exc_xen_ram"     : "invalid Xen RAM size",
