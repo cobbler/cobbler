@@ -55,7 +55,7 @@ _msg_table = {
   "no_distro"       : "distro does not exist",
   "no_profile"      : "profile does not exist",
   "no_kickstart"    : "kickstart must be an absolute path, or an http://, ftp:// or nfs:// URL",
-  "no_kernel"       : "cannot find kernel file"
+  "no_kernel"       : "cannot find kernel file",
   "sync_kernel"     : "the kernel (%s) for distro (%s) cannot be found and must be fixed",
   "sync_initrd"     : "the initrd (%s) for distro (%s) cannot be found and must be fixed",
   "sync_mirror_ks"  : "mirroring local kickstarts...",
