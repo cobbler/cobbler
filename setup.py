@@ -16,6 +16,7 @@ if __name__ == "__main__":
         manpath="share/man/man1/"
         cobpath="/var/lib/cobbler/"
         etcpath="/etc/cobbler/"
+        wwwpath="/var/www/cobbler/"
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -27,6 +28,7 @@ if __name__ == "__main__":
                 scripts = ["cobbler/cobbler"],
                 data_files = [
                                 # (docspath, ['README']),
+                                (wwwpath, []),
                                 (cobpath, ['elilo-3.6-ia64.efi']),
 				(etcpath, ['dhcp.template']),
                                 (manpath, ['cobbler.1.gz'])
