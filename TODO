@@ -1,8 +1,6 @@
 cobbler TODO list
-
-  -  Subnet creation shorthand ... (system objects that match multiples?)
-  -  MAC ranges for Xen (how best to do this? shelve this for now).
-  -  Web UI for Cobbler ?
+  -  GTK (or Web) UI for Cobbler ?
   -  Port over to xeninst python module once available for something other than Rawhide
-
+  -  Wake on lan integration for PXE
+  -  Potential integration with ILO?
 
