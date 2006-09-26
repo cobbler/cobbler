@@ -17,6 +17,8 @@ import os
 import shutil
 import time
 import yaml
+import subprocess
+import sys
 from Cheetah.Template import Template
 
 import utils
@@ -63,6 +65,12 @@ class BootSync:
         self.build_trees()
         if self.settings.manage_dhcp:
             self.write_dhcp_file()
+            try:
+               retcode = subprocess.call("/sbin/service dhcpd restart", shell=True)
+               if retcode != 0:
+                   print >>sys.stderr, "Warning: dhcpd restart failed"
+            except OSError, e:
+               print >>sys.stderr, "Warning: dhcpd restart failed: ", e 
         return True
 
 
