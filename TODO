@@ -2,5 +2,7 @@ cobbler TODO list
   -  GTK (or Web) UI for Cobbler ?
   -  Port over to xeninst python module once available for something other than Rawhide
   -  Wake on lan integration for PXE
-  -  Potential integration with ILO?
-
+  -  Integration with stonnith or other up/down devices?
+  -  koan push script for auto-ks simulation w/o koan
+     
+  
