@@ -3,7 +3,7 @@
 Summary: Network provisioning tool for Xen and Existing Non-Bare Metal
 Name: koan
 Version: 0.1.1
-Release: 8%{?dist}
+Release: 9%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -12,6 +12,7 @@ Requires: syslinux
 Requires: python >= 2.3
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
+ExcludeArch: ppc
 Url: http://et.redhat.com/page/Cobbler_%26_Koan_Provisioning_Tools
 
 %description
@@ -46,6 +47,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING CHANGELOG README NEWS
 
 %changelog
+* Thu Sep 28 2006 - 0.1.1-10
+- Bumping build rev for FC-E
+* Thu Sep 28 2006 - 0.1.1-9
+- Excluding PPC since syslinux (gethostip) isn't available for ppc
 * Thu Sep 21 2006 - 0.1.1-8
 - Added doc files to %doc, removed INSTALLED_FILES code
 * Wed Sep 20 2006 - 0.1.1-7
