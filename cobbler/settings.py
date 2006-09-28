@@ -44,6 +44,7 @@ class Settings(serializable.Serializable):
           "tftpboot"       : "/tftpboot",
           "webdir"         : "/var/www/cobbler",
           "manage_dhcp"    : 0,
+          "koan_path"      : "",
           "bootloaders"    : {
               "standard"   : "/usr/lib/syslinux/pxelinux.0",
               "ia64"       : "/var/lib/cobbler/elilo-3.6-ia64.efi"

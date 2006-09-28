@@ -1,12 +1,21 @@
-0.1.2
+0.2.0
 
-New PXE features
+** New dhcp.conf templating and IA64 PXE features **
 
 Cobbler now contains an experimental dhcpd.conf templating feature.
 Read the manpage, and if you want to use it, back up your existing
-dhcpd.conf before enabling that feature.  It is off by default.
+dhcpd.conf before enabling that feature.  It is *OFF* by default.
 
 When using that feature, dhcpd.conf can associate MAC addresses
 with hostnames (as defined from cobbler), and cobbler can
-also differentiate between IA64 and x86/x86_64 network boots.
+also differentiate between IA64 and x86/x86_64 network boots.  Each
+time cobbler sync is run, it will build a new dhcpd.conf based on
+/etc/cobbler/dhcpd.template.
+
+Cobbler is now packaging ELILO to enable IA64 booting.
+
+Since I do *NOT* currently have access to an IA64 machine, IA64 PXE support
+is largely untested, therefore there may be some issues with the way
+elilo's *.conf files are formatted in /tftpboot after running a "cobbler sync".
+Bug reports and patches from IA64 users are greatly appreciated.
 
