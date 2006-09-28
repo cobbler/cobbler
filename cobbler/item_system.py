@@ -109,9 +109,9 @@ class System(item.Item):
     def printable(self,id):
         buf =       "system %-4s     : %s\n" % (id, self.name)
         buf = buf + "profile         : %s\n" % self.profile
-        buf = buf + "kernel options  : %s" % self.kernel_options
-        buf = buf + "ks metadata     : %s" % self.ks_meta
-        buf = buf + "pxe arch        : %s" % self.pxe_arch
-        buf = buf + "pxe hostname   : %s" % self.pxe_hostname
+        buf = buf + "kernel options  : %s\n" % self.kernel_options
+        buf = buf + "ks metadata     : %s\n" % self.ks_meta
+        buf = buf + "pxe arch        : %s\n" % self.pxe_arch
+        buf = buf + "pxe hostname    : %s\n" % self.pxe_hostname
         return buf
 

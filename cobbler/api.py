@@ -18,106 +18,114 @@ import config
 import utils
 import action_sync
 import action_check
+import action_enchant
 import cexceptions
 
 class BootAPI:
 
-
     def __init__(self):
-       """
-       Constructor
-       """
-       self._config = config.Config()
-       self.deserialize()
+        """
+        Constructor
+        """
+        self._config = config.Config()
+        self.deserialize()
 
     def clear(self):
-       """
-       Forget about current list of profiles, distros, and systems
-       """
-       return self._config.clear()
+        """
+        Forget about current list of profiles, distros, and systems
+        """
+        return self._config.clear()
 
 
     def systems(self):
-       """
-       Return the current list of systems
-       """
-       return self._config.systems()
+        """
+        Return the current list of systems
+        """
+        return self._config.systems()
 
 
     def profiles(self):
-       """
-       Return the current list of profiles
-       """
-       return self._config.profiles()
+        """
+        Return the current list of profiles
+        """
+        return self._config.profiles()
 
 
     def distros(self):
-       """
-       Return the current list of distributions
-       """
-       return self._config.distros()
+        """
+        Return the current list of distributions
+        """
+        return self._config.distros()
 
     def settings(self):
-       """
-       Return the application configuration
-       """
-       return self._config.settings()
+        """
+        Return the application configuration
+        """
+        return self._config.settings()
 
 
     def new_system(self):
-       """
-       Return a blank, unconfigured system, unattached to a collection
-       """
-       return self._config.new_system()
+        """
+        Return a blank, unconfigured system, unattached to a collection
+        """
+        return self._config.new_system()
 
 
     def new_distro(self):
-       """
-       Create a blank, unconfigured distro, unattached to a collection.
-       """
-       return self._config.new_distro()
+        """
+        Create a blank, unconfigured distro, unattached to a collection.
+        """
+        return self._config.new_distro()
 
 
     def new_profile(self):
-       """
-       Create a blank, unconfigured profile, unattached to a collection
-       """
-       return self._config.new_profile()
+        """
+        Create a blank, unconfigured profile, unattached to a collection
+        """
+        return self._config.new_profile()
 
     def check(self):
-       """
-       See if all preqs for network booting are valid.  This returns
-       a list of strings containing instructions on things to correct.
-       An empty list means there is nothing to correct, but that still
-       doesn't mean there are configuration errors.  This is mainly useful
-       for human admins, who may, for instance, forget to properly set up
-       their TFTP servers for PXE, etc.
-       """
-       check = action_check.BootCheck(self._config)
-       return check.run()
+        """
+        See if all preqs for network booting are valid.  This returns
+        a list of strings containing instructions on things to correct.
+        An empty list means there is nothing to correct, but that still
+        doesn't mean there are configuration errors.  This is mainly useful
+        for human admins, who may, for instance, forget to properly set up
+        their TFTP servers for PXE, etc.
+        """
+        check = action_check.BootCheck(self._config)
+        return check.run()
 
 
     def sync(self,dryrun=True):
-       """
-       Take the values currently written to the configuration files in
-       /etc, and /var, and build out the information tree found in
-       /tftpboot.  Any operations done in the API that have not been
-       saved with serialize() will NOT be synchronized with this command.
-       """
-       sync = action_sync.BootSync(self._config)
-       return sync.run(dryrun=dryrun)
+        """
+        Take the values currently written to the configuration files in
+        /etc, and /var, and build out the information tree found in
+        /tftpboot.  Any operations done in the API that have not been
+        saved with serialize() will NOT be synchronized with this command.
+        """
+        sync = action_sync.BootSync(self._config)
+        return sync.run(dryrun=dryrun)
 
+    def enchant(self,sysname,profile,system,password):
+        """
+        Apply a system profile to a running remote system, replacing
+        the current OS.  Either profile or system should be None, other
+        arguments required.
+        """
+        enchant = action_enchant.Enchant(self._config,sysname,profile,password)
+        return enchant.run()
 
     def serialize(self):
-       """
-       Save the config file(s) to disk.
-       """
-       return self._config.serialize()
+        """
+        Save the config file(s) to disk.
+        """
+        return self._config.serialize()
 
     def deserialize(self):
-       """
-       Load the current configuration from config file(s)
-       """
-       return self._config.deserialize()
+        """
+        Load the current configuration from config file(s)
+        """
+        return self._config.deserialize()
 
 

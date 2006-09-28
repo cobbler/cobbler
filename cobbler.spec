@@ -2,7 +2,7 @@
 
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.2.0
+Version: 0.2.1
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -11,8 +11,10 @@ Requires: python >= 2.3
 Requires: httpd
 Requires: tftp-server
 Requires: python-cheetah
+Requires: pexpect
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
+ExcludeArch: ppc
 Url: http://et.redhat.com/page/Cobbler_%26_Koan_Provisioning_Tools
 
 %description
@@ -52,21 +54,33 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
-* Fri Sep 22 2006 - 0.2.0-1
+* Thu Sep 28 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.1-1
+- Upstream pull of bugfixes and new remote system "enchant" feature
+
+* Fri Sep 22 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.0-1
 - Lots of new PXE and dhcpd.conf upstream, elilo.efi now included.
-* Thu Sep 21 2006 - 0.1.1-8
+
+* Thu Sep 21 2006 Michael DeHaan <mdehaan@redhat.com> - 0.1.1-8
 - Added doc files to %doc, removed INSTALLED_FILES code
-* Wed Sep 20 2006 - 0.1.1-7
+
+* Wed Sep 20 2006 Michael DeHaan <mdehaan@redhat.com> - 0.1.1-7
 - Upstream updates
-* Fri Sep 15 2006 - 0.1.1-6
+
+* Fri Sep 15 2006 Michael DeHaan <mdehaan@redhat.com> - 0.1.1-6
 - Make koan own it's directory, add GPL "COPYING" file.
-* Wed Aug 16 2006 - 0.1.1-5
+
+* Wed Aug 16 2006 Michael DeHaan <mdehaan@redhat.com> - 0.1.1-5
 - Spec file tweaks only for FC-Extras
-* Thu Jul 20 2006 - 0.1.1-4
+
+* Thu Jul 20 2006 Michael DeHaan <mdehaan@redhat.com> - 0.1.1-4
 - Fixed python import paths in yaml code, which errantly assumed yaml was installed as a module.
-* Wed Jul 12 2006 - 0.1.1-3
+
+* Wed Jul 12 2006 Michael DeHaan <mdehaan@redhat.com> - 0.1.1-3
 - Added templating support using Cheetah
-* Thu Jul 9 2006 - 0.1.0-2
+
+* Thu Jul 9 2006 Michael DeHaan <mdehaan@redhat.com> - 0.1.0-2
 - Fedora-Extras rpm spec tweaks
-* Tue Jun 28 2006 - 0.1.0-1
+
+* Tue Jun 28 2006 Michael DeHaan <mdehaan@redhat.com> - 0.1.0-1
 - rpm genesis
+

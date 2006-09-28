@@ -14,6 +14,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import os
+import os.path
 import shutil
 import time
 import yaml
@@ -63,6 +64,7 @@ class BootSync:
         self.validate_kickstarts()
         self.configure_httpd()
         self.build_trees()
+        self.copy_koan()
         if self.settings.manage_dhcp:
             self.write_dhcp_file()
             try:
@@ -73,6 +75,13 @@ class BootSync:
                print >>sys.stderr, "Warning: dhcpd restart failed: ", e 
         return True
 
+    def copy_koan(self):
+        koan_path = self.settings.koan_path
+        if koan_path is None:
+            return
+        if not os.path.isfile(koan_path):
+            raise cexceptions.CobblerException("exc_koan_path")
+        self.copyfile(koan_path, os.path.join(self.settings.webdir, "koan.rpm"))
 
     def copy_bootloaders(self):
         """

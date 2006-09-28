@@ -4,5 +4,6 @@ cobbler TODO list
   -  Wake on lan integration for PXE
   -  Integration with stonnith or other up/down devices?
   -  koan push script for auto-ks simulation w/o koan
+  -  Locking
      
   

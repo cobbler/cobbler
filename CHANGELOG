@@ -1,8 +1,12 @@
 Cobbler CHANGELOG
 
+* Thr Sep 28 2006 - 0.2.1-1
+- New ability to "enchant" remote systems (see NEWS)
+- Misc. bugfixes
+
 * Fri Sep 22 2006 - 0.2.0-1
-- New dhcp.d conf management features
-- IA64 support
+- New dhcp.d conf management features (see NEWS)
+- IA64 support (see NEWS)
 - dhcpd.conf MAC & hostname association features
 
 * Thr Sep 21 2006 - 0.1.1-8

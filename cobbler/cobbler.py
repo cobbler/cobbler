@@ -58,6 +58,7 @@ class BootCLI:
             'systems'  : self.system,
             'system'   : self.system,
             'sync'     : self.sync,
+            'enchant'  : self.enchant_system,
             '--help'   : self.usage,
             '/?'       : self.usage
         }
@@ -88,7 +89,6 @@ class BootCLI:
         commands = {
            '--name'       : lambda(a):  self.api.systems().remove(a),
            '--system'     : lambda(a):  self.api.systems().remove(a),
-           '--system'     : lambda(a):  self.api.systems().remove(a)
         }
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok)
@@ -134,6 +134,44 @@ class BootCLI:
         on_ok = lambda: self.api.systems().add(sys)
         return self.apply_args(args,commands,on_ok)
 
+    def enchant_system(self,args):
+        """
+        Replace an existing running password.
+        """
+        sysname = None
+        profile = None
+        system = None
+        password = None
+        first = None
+        last = None
+        for args in self.args:
+            try:
+                (first, last) = (None, None)
+                (first, last) = args.split("=")
+            except:
+                if first == None:
+                   continue
+                raise cexceptions.CobblerException("enchant_args")
+            if first == "--name":
+                sysname = last
+                continue
+            if first == "--profile":
+                profile = last
+                continue
+            if first == "--password":
+                password = last
+                continue
+            if first == "--system":
+                system = last
+                continue
+            else:
+                raise cexceptions.CobblerException("weird_arg",args)
+        if sysname is None or (profile is None and system is None) or password is None or ((not profile is None) and (not system is None)):
+            raise cexceptions.CobblerException("enchant_args")
+        if system is not None:
+            return self.api.enchant(sysname,None,system,password)
+        else:
+            return self.api.enchant(sysname,profile,None,password)
 
     def profile_edit(self,args):
         """
@@ -173,7 +211,6 @@ class BootCLI:
         }
         on_ok = lambda: self.api.distros().add(distro)
         return self.apply_args(args,commands,on_ok)
-
 
     def apply_args(self,args,input_routines,on_ok):
         """
@@ -222,7 +259,6 @@ class BootCLI:
         else:
             status = self.api.sync(dryrun=False)
         return status
-
 
     def check(self,args):
         """
