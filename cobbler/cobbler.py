@@ -140,7 +140,6 @@ class BootCLI:
         """
         sysname = None
         profile = None
-        system = None
         password = None
         first = None
         last = None
@@ -161,17 +160,11 @@ class BootCLI:
             if first == "--password":
                 password = last
                 continue
-            if first == "--system":
-                system = last
-                continue
             else:
                 raise cexceptions.CobblerException("weird_arg",args)
-        if sysname is None or (profile is None and system is None) or password is None or ((not profile is None) and (not system is None)):
+        if sysname is None or profile is None or password is None:
             raise cexceptions.CobblerException("enchant_args")
-        if system is not None:
-            return self.api.enchant(sysname,None,system,password)
-        else:
-            return self.api.enchant(sysname,profile,None,password)
+        return self.api.enchant(sysname,profile,password)
 
     def profile_edit(self,args):
         """

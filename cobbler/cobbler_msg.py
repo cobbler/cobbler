@@ -26,7 +26,7 @@ _msg_table = {
   "no_delete"       : "cobbler could not delete: %s",
   "no_args"         : "this command requires arguments.",
   "missing_options" : "cannot perform this action, more arguments are required",
-  "enchant_args"    : "usage: cobbler enchant --name=<string> --profile=<string> --password=<string>\nOR:\ncobbler enchant --name=<string> --system=<string> --password=<string>",
+  "enchant_args"    : "usage: cobbler enchant --name=<string> --profile=<string> --password=<string>\n",
   "enchant_failed"  : "enchant failed (%s)",
   "unknown_cmd"     : "cobbler doesn't understand '%s'",
   "bad_arg"         : "cobbler was expecting an equal sign in argument '%s'",

@@ -107,11 +107,10 @@ class BootAPI:
         sync = action_sync.BootSync(self._config)
         return sync.run(dryrun=dryrun)
 
-    def enchant(self,sysname,profile,system,password):
+    def enchant(self,sysname,profile,password):
         """
         Apply a system profile to a running remote system, replacing
-        the current OS.  Either profile or system should be None, other
-        arguments required.
+        the current OS.  
         """
         enchant = action_enchant.Enchant(self._config,sysname,profile,password)
         return enchant.run()

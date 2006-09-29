@@ -59,12 +59,12 @@ class BootSync:
         self.verbose = verbose
         self.dryrun = dryrun
         self.clean_trees()
+        self.copy_koan()
         self.copy_bootloaders()
         self.copy_distros()
         self.validate_kickstarts()
         self.configure_httpd()
         self.build_trees()
-        self.copy_koan()
         if self.settings.manage_dhcp:
             self.write_dhcp_file()
             try:
@@ -77,11 +77,13 @@ class BootSync:
 
     def copy_koan(self):
         koan_path = self.settings.koan_path
+        print "koan path = %s" % koan_path
         if koan_path is None:
             return
         if not os.path.isfile(koan_path):
             raise cexceptions.CobblerException("exc_koan_path")
-        self.copyfile(koan_path, os.path.join(self.settings.webdir, "koan.rpm"))
+        base = os.path.basename(koan_path)
+        self.copyfile(koan_path, os.path.join(self.settings.webdir, base))
 
     def copy_bootloaders(self):
         """

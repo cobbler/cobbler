@@ -240,13 +240,11 @@ The dhcpd.conf file will be updated each time "cobbler sync" is run.
 
 While the normal provisioning procedure is either to PXE bare-metal, or use koan to do something else (kickstart an existing system or deploy Xen), cobbler contains yet another option, called "enchant".  
 
-Enchant takes a profile that has already been defined (run "cobbler sync" first!) and applies it to a remote system that may not have koan installed.  This is all done from the cobbler server using SSH.  If the remote system does not have the cobbler server's (root's) public key in /root/.authorized_keys it will prompt for passwords.
+Enchant takes a profile that has already been defined (be sure to run "cobbler sync" before using "cobbler enchant") and applies it to a remote system that may not have koan installed.  This is all done from the cobbler server using SSH.  The remote system will reboot prior to configuring the bootloader to kickstart.
 
 Running "enchant" will replace the operating system of the target machine, so use it with caution.
 
-Usage:  B<cobbler enchant --system=<ip|hostname> --profile=<string>>
-
-
+Usage:  B<cobbler enchant --name=<ip|hostname> --profile=<string> --password=<string>>
 
 =head2 TWEAKING
 

@@ -23,7 +23,7 @@ import traceback
 
 class Enchant:
 
-   def __init__(self,config,sysname,profile,system,password):
+   def __init__(self,config,sysname,profile,password):
        """
        Constructor.  All arguments required.
        """
@@ -32,7 +32,6 @@ class Enchant:
        self.username = "root"
        self.sysname = sysname
        self.profile = profile
-       self.system = system
        self.password = password
  
    def call(self,cmd):
@@ -47,19 +46,16 @@ class Enchant:
        """
        Replace the OS of a remote system.
        """
+       koan = os.path.basename(self.settings.koan_path)
        try:
            ssh = self.ssh = pxssh.pxssh()
            if not ssh.login(self.sysname, self.username, self.password):
                raise cexceptions.CobblerException("enchant_failed","SSH login denied")
            else:
-               self.call("wget http://%s/cobbler/koan.rpm -o /koan.rpm" % self.settings.server)
-               self.call("rpm -Uvh koan.rpm --force")
-               if self.profile is not None:
-                   self.call("koan --replace-self --profile=%s --server=%s" % (self.profile, self.settings.server))
-                   return True
-               if self.system is not None:
-                   self.call("koan --replace-self --system=%s --server=%s" % (self.system, self.settings.server))
-                   return True
+               self.call("wget http://%s/cobbler/%s" % (self.settings.server, koan))
+               self.call("rpm -Uvh %s --force" % koan)
+               self.call("koan --replace-self --profile=%s --server=%s" % (self.profile, self.settings.server))
+               return True
        except:
            traceback.print_exc()
            return False
