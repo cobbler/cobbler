@@ -3,7 +3,6 @@ cobbler TODO list
   -  Port over to xeninst python module once available for something other than Rawhide
   -  Wake on lan integration for PXE
   -  Integration with stonnith or other up/down devices?
-  -  koan push script for auto-ks simulation w/o koan
   -  Locking
-     
+  -  For "enchant", try to verify that syslinux and mkinitrd are installed on the remote.     
   

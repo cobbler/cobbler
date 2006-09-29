@@ -3,7 +3,7 @@
 Summary: Boot server configurator
 Name: cobbler
 Version: 0.2.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -15,7 +15,7 @@ Requires: pexpect
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 ExcludeArch: ppc
-Url: http://et.redhat.com/page/Cobbler_%26_Koan_Provisioning_Tools
+Url: http://et.redhat.com/~mdehaan/cobbler
 
 %description
 
@@ -54,6 +54,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
+* Fri Sep 29 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.1-2
+- URL update
+
 * Thu Sep 28 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.1-1
 - Upstream pull of bugfixes and new remote system "enchant" feature
 
