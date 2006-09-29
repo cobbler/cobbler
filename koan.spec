@@ -3,7 +3,7 @@
 Summary: Network provisioning tool for Xen and Existing Non-Bare Metal
 Name: koan
 Version: 0.1.1
-Release: 9%{?dist}
+Release: 10%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -13,7 +13,7 @@ Requires: python >= 2.3
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 ExcludeArch: ppc
-Url: http://et.redhat.com/page/Cobbler_%26_Koan_Provisioning_Tools
+Url: http://et.redhat.com/~mdehaan/cobbler
 
 %description
 
