@@ -47,6 +47,10 @@ class Enchant:
        Replace the OS of a remote system.
        """
        koan = os.path.basename(self.settings.koan_path)
+       pro  = self.config.profiles().find(self.profile)
+       if pro is None:
+           raise cexceptions.CobblerException("enchant_failed","no such profile: %s" % self.profile)
+
        try:
            ssh = self.ssh = pxssh.pxssh()
            if not ssh.login(self.sysname, self.username, self.password):
@@ -58,6 +62,6 @@ class Enchant:
                return True
        except:
            traceback.print_exc()
-           return False
+           raise cexceptions.CobblerException("enchant_failed","exception")
        return False # shouldn't be here
 
