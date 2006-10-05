@@ -49,7 +49,9 @@ def is_ip(strdata):
     to be added...
     """
     # needs testcase
-    if re.search(r'\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}',strdata):
+    if strdata is None:
+        return False
+    if re.search(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',strdata):
         return True
     return False
 
@@ -59,6 +61,8 @@ def is_mac(strdata):
     Return whether the argument is a mac address.
     """
     # needs testcase
+    if strdata is None:
+        return False
     if re.search(r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}',strdata, re.IGNORECASE):
         return True
     return False

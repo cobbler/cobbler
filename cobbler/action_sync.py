@@ -388,7 +388,10 @@ class BootSync:
                 f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
             if system.pxe_arch == "ia64":
                 # elilo expects files to be named "$name.conf" in the root
-                filename = "%s.conf" % self.get_pxe_filename(system.name) 
+                if system.pxe_address == "" or system.pxe_address is None:
+                   raise cexceptions.CobblerException("exc_ia64_noip",system.name)
+                
+                filename = "%s.conf" % self.get_pxe_filename(system.pxe_address) 
                 f2 = os.path.join(self.settings.tftpboot, filename)
                
             f3 = os.path.join(self.settings.webdir, "systems", f1)

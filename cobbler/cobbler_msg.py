@@ -81,6 +81,7 @@ _msg_table = {
   "exc_pxe_arch"    : "valid PXE architectures: standard or ia64",
   "exc_no_template" : "can't read /etc/cobbler/dhcp.template",
   "exc_dhcp_nomac"  : "when cobbler is managing dhcpd.conf, all system names must be MAC addresses.  Aborting.", 
+  "exc_ia64_noip"   : "due to an IA64 bootloader limitation, system (%s) must define a pxe-address value (which is an IP address)",
   "check_ok"        : """
 No setup problems found.
 
