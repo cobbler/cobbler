@@ -5,4 +5,4 @@ cobbler TODO list
   -  Integration with stonnith or other up/down devices?
   -  Locking
   -  For "enchant", try to verify that syslinux and mkinitrd are installed on the remote.     
-  
+  -  Allow pinning the IP in dhcp.conf?

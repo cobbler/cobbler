@@ -1,5 +1,8 @@
 Cobbler CHANGELOG
 
+NEXT:
+- bugfix: "--pxe-hostname" is "--pxe-address"
+
 * Thr Sep 28 2006 - 0.2.1-1
 - New ability to "enchant" remote systems (see NEWS)
 - Misc. bugfixes

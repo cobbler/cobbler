@@ -130,7 +130,7 @@ class BootCLI:
            '--kopts'        :  lambda(a) : sys.set_kernel_options(a),
            '--ksmeta'       :  lambda(a) : sys.set_ksmeta(a),
            '--pxe-arch'     :  lambda(a) : sys.set_pxe_arch(a),
-           '--pxe-hostname' :  lambda(a) : sys.set_pxe_hostname(a)
+           '--pxe-address'  :  lambda(a) : sys.set_pxe_address(a)
            # FIXME: surface a way to pin the IP.
         }
         on_ok = lambda: self.api.systems().add(sys)

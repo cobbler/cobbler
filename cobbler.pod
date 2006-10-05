@@ -131,12 +131,12 @@ When using this setting, be sure the "--name" given to the "system add" command 
 
 Example: --pxe-arch=ia64
 
-=item pxe-hostname
+=item pxe-address
 
 Advanced feature.  Applies only if manage-dhcp is set to 1 in /var/lib/cobbler/settings and only for PXE provisioning.
 
 If cobbler is configured to generate the dhcpd.conf file, use this
-setting to pin a certain MAC address to a specific dhcp hostname.
+setting to pin a certain MAC address to a specific dhcp hostname.  This corresponds to the "fixed-address" field in dhcpd.conf.
 
 When using this setting, be sure that the "--name" given to the "system add" command is a MAC address or no per-system record in dhcpd.conf can be generated.
 

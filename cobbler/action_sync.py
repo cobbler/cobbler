@@ -130,8 +130,8 @@ class BootSync:
                 # can't use pxelinux.0 anymore
                 systxt = systxt + "    filename \"/%s\";\n" % elilo
             systxt = systxt + "    hardware ethernet %s;\n" % system.name
-            if system.pxe_hostname != "":
-                systxt = systxt + "    fixed-address %s;\n" % system.pxe_hostname
+            if system.pxe_address != "":
+                systxt = systxt + "    fixed-address %s;\n" % system.pxe_address
             systxt = systxt + "}\n"
             system_definitions = system_definitions + systxt
 
