@@ -124,12 +124,14 @@ class BootCLI:
         """
         sys = self.api.new_system()
         commands = {
-           '--name'     :  lambda(a) : sys.set_name(a),
-           '--system'   :  lambda(a) : sys.set_name(a),
-           '--profile'  :  lambda(a) : sys.set_profile(a),
-           '--kopts'    :  lambda(a) : sys.set_kernel_options(a),
-           '--ksmeta'   :  lambda(a) : sys.set_ksmeta(a),
-           '--pxe-arch' :  lambda(a) : sys.set_pxe_arch(a)
+           '--name'         :  lambda(a) : sys.set_name(a),
+           '--system'       :  lambda(a) : sys.set_name(a),
+           '--profile'      :  lambda(a) : sys.set_profile(a),
+           '--kopts'        :  lambda(a) : sys.set_kernel_options(a),
+           '--ksmeta'       :  lambda(a) : sys.set_ksmeta(a),
+           '--pxe-arch'     :  lambda(a) : sys.set_pxe_arch(a),
+           '--pxe-hostname' :  lambda(a) : sys.set_pxe_hostname(a)
+           # FIXME: surface a way to pin the IP.
         }
         on_ok = lambda: self.api.systems().add(sys)
         return self.apply_args(args,commands,on_ok)
