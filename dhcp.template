@@ -25,5 +25,3 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
 
 $insert_cobbler_system_definitions
 
-
-

@@ -105,7 +105,7 @@ the name of a previously defined cobbler distribution
 
 =head2 ADDING A SYSTEM
 
-B<cobbler system add --name=<ip|mac|hostname> --profile=<string> [--kopts=<string>] [--pxe_arch=<standard|ia64>] [--pxe_hostname=<string>] [--ksmeta=<string>]
+B<cobbler system add --name=<ip|mac|hostname> --profile=<string> [--kopts=<string>] [--pxe-arch=<standard|ia64>] [--pxe-address=<string>] [--ksmeta=<string>]
 =over
 
 =over
@@ -127,7 +127,7 @@ Advanced feature.  Applies only if manage-dhcp is set to 1 in /var/lib/cobbler/s
 Setting the pxe-arch to "ia64" will use elilo.efi as the boot loader instead of 
 "pxelinux.0".  The default, "standard", uses "pxelinux.0", which does not work for IA-64 (Itanium) systems.
 
-When using this setting, be sure the "--name" given to the "system add" command is a MAC address or no per-system record in dhcpd.conf can be generated..
+When using this setting, be sure the "--name" given to the "system add" command must be a MAC address or no per-system record in dhcpd.conf can be generated..
 
 Example: --pxe-arch=ia64
 
@@ -140,11 +140,11 @@ setting to pin a certain MAC address to a specific dhcp hostname.  This correspo
 
 When using this setting, be sure that the "--name" given to the "system add" command is a MAC address or no per-system record in dhcpd.conf can be generated.
 
-Example: ---pxe-hostname="foo.example.com"
+Example: ---pxe-address="foo.example.com"
 
 The pxe-address value should be an IP address in dotted decimal notation.
 
-NOTE: Due to a limitation in elilo (IA64 bootloader), this parameter must ALSO be used even if dhcpd.conf files are not being managed by cobbler AND you want to PXE provision IA64 systems.  Explanation -- The limitation is due to IA64 systems not supporting MAC based configuration.  They must download configuration files based on the IP address of the target system.  A bug has been filed on elilo about this issue.
+NOTE: Due to a limitation in elilo (IA64 bootloader), this parameter must ALSO be used even if dhcpd.conf files are not being managed by cobbler AND you want to PXE provision IA64 systems.  
 
 
 =back

@@ -4,5 +4,5 @@ cobbler TODO list
   -  Wake on lan integration for PXE
   -  Integration with stonnith or other up/down devices?
   -  Locking
-  -  For "enchant", try to verify that syslinux and mkinitrd are installed on the remote.     
-  -  Allow pinning the IP in dhcp.conf?
+  -  For "enchant", try to verify that syslinux and mkinitrd are installed on the remote.    
+  -  "make test" shouldn't overwrite files in /var/lib/cobbler/ 
