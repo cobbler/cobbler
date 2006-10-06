@@ -101,7 +101,7 @@ class Distro(item.Item):
         kstr = utils.find_kernel(self.kernel)
         istr = utils.find_initrd(self.initrd)
         if kstr is None:
-            kstr = "%s (NOT FOUND!)" % self.kernel
+            kstr = "%s (NOT FOUND)" % self.kernel
         elif os.path.isdir(self.kernel):
             kstr = "%s (FOUND BY SEARCH)" % kstr
         if istr is None:

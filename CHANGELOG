@@ -1,7 +1,10 @@
 Cobbler CHANGELOG
+(all entries mdehaan@redhat.com unless noted otherwise)
 
-NEXT:
-- bugfix: "--pxe-hostname" is "--pxe-address"
+* Fri Oct 6 2006 - 0.2.2-1
+- bugfix: "--pxe-hostname" made available in CLI and renamed as "--pxe-address"
+- workaround: elilo doesn't do MAC address pxe config files, use IP for ia64
+- bugfix: added next-server line for per-MAC dhcp configs
 
 * Thr Sep 28 2006 - 0.2.1-1
 - New ability to "enchant" remote systems (see NEWS)

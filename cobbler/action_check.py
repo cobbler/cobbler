@@ -49,8 +49,10 @@ class BootCheck:
        kickstarts run from koan will not have proper kernel line
        parameters.
        """
-       if self.settings.server == "localhost":
+       if self.settings.server == "127.0.0.1":
           status.append(cobbler_msg.lookup("bad_server"))
+       if self.settings.next_server == "127.0.0.1":
+          status.append(cobbler_msg.lookup("bad_next"))
 
    def check_httpd(self,status):
        """

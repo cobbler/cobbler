@@ -1,3 +1,16 @@
+Cobbler NEWS
+(all entries mdehaan@redhat.com unless noted otherwise)
+
+0.2.2
+
+** IA64 PXE Go For Launch **
+
+Having had the time to do proper IA64 testing with elilo, Itanium
+PXE support is now confirmed to work.  --pxe-arch and --pxe-address
+must both be set on the IA64 system when it is created with cobbler.
+
+Additional bugfixes have improved stability of the dhcpd.conf generation.
+
 0.2.1
 
 ** New "enchant" feature **
@@ -22,9 +35,4 @@ time cobbler sync is run, it will build a new dhcpd.conf based on
 /etc/cobbler/dhcpd.template.
 
 Cobbler is now packaging ELILO to enable IA64 booting.
-
-Since I do *NOT* currently have access to an IA64 machine, IA64 PXE support
-is largely untested, therefore there may be some issues with the way
-elilo's *.conf files are formatted in /tftpboot after running a "cobbler sync".
-Bug reports and patches from IA64 users are greatly appreciated.
 

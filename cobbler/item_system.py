@@ -56,6 +56,8 @@ class System(item.Item):
 
     def set_pxe_address(self,hostname):
         # we allow this to be set to anything and should restrict it
+        if not utils.is_ip(hostname):
+            raise cexceptions.CobblerException("bad_ip")    
         self.pxe_address = hostname
         return True
 

@@ -78,7 +78,7 @@ class BootSync:
     def copy_koan(self):
         koan_path = self.settings.koan_path
         print "koan path = %s" % koan_path
-        if koan_path is None:
+        if koan_path is None or koan_path == "":
             return
         if not os.path.isfile(koan_path):
             raise cexceptions.CobblerException("exc_koan_path")
@@ -132,12 +132,14 @@ class BootSync:
             systxt = systxt + "    hardware ethernet %s;\n" % system.name
             if system.pxe_address != "":
                 systxt = systxt + "    fixed-address %s;\n" % system.pxe_address
+            systxt = systxt + "    next-server %s;\n" % self.settings.next_server
             systxt = systxt + "}\n"
             system_definitions = system_definitions + systxt
 
         metadata = {
            "insert_cobbler_system_definitions" : system_definitions,
-           "date" : time.asctime(time.gmtime())
+           "date" : time.asctime(time.gmtime()),
+           "next_server" : self.settings.next_server
         }
         t = Template(
            "#errorCatcher Echo\n%s" % template_data,

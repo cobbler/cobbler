@@ -18,7 +18,8 @@ _msg_table = {
   "system"          : "System",
   "profile"         : "Profile",
   "distribution"    : "Distribution",
-  "bad_server"      : "The 'server' field in /var/lib/cobbler/settings must be set to something other than localhost, or kickstarting features will not work",
+  "bad_server"      : "The 'server' field in /var/lib/cobbler/settings must be set to something other than localhost, or kickstarting features will not work.  This should be a resolvable hostname or IP for the boot server as reachable by all machines that will use it",
+  "bad_next"        : "For PXE to be functional, the 'next_server' field in /var/lib/cobbler/settings must be set to something other than 127.0.0.1, and should match the IP of the boot server on the PXE network.",
   "parse_error"     : "cobbler could not read %s, replacing...",
   "no_ssh"          : "cobbler can't read ~/.ssh/id_dsa.pub",
   "exc_koan_path"   : "koan_path in /var/lib/cobbler/settings is invalid",
@@ -33,6 +34,7 @@ _msg_table = {
   "reject_arg"      : "the value of parameter '%s' isn't valid",
   "weird_arg"       : "this command doesn't take a parameter named '%s'",
   "bad_sys_name"    : "system name must be a MAC, IP, or resolveable host",
+  "bad_ip"          : "argument must be an IP address",
   "usage"           : "for help, see 'man cobbler'",
   "need_to_fix"     : "the following potential problems were detected:",
   "need_perms"      : "cobbler could not access %s",
@@ -85,7 +87,7 @@ _msg_table = {
   "check_ok"        : """
 No setup problems found.
 
-Manual editing of /var/lib/cobbler/settings and dhcpd.conf is suggested to tailor them to your specific configuration.  Furthermore, it's important to know that cobbler can't completely understnad what you intend to do with dhcpd.conf, but it looks like there is at least some PXE related information in it.  We'll leave this up to you.
+Manual review and editing of /var/lib/cobbler/settings is recommended to tailor cobbler to your particular configuration.
 
 Good luck.
 """,

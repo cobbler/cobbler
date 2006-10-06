@@ -101,7 +101,6 @@ class Utilities(BootTest):
     def test_kickstart_scan(self):
         # we don't check to see if kickstart files look like anything
         # so this will pass
-        self.assertTrue(utils.find_kickstart(self.fk_initrd) is None)
         self.assertTrue(utils.find_kickstart("filedoesnotexist") is None)
         self.assertTrue(utils.find_kickstart(self.topdir) == None)
         self.assertTrue(utils.find_kickstart("http://bar"))
