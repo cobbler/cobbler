@@ -2,8 +2,8 @@
 
 Summary: Network provisioning tool for Xen and Existing Non-Bare Metal
 Name: koan
-Version: 0.1.1
-Release: 10%{?dist}
+Version: 0.2.1
+Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -47,23 +47,35 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING CHANGELOG README NEWS
 
 %changelog
-* Thu Sep 28 2006 - 0.1.1-10
+* Mon Oct 09 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.1-1
+- Upstream features (see CHANGELOG)
+
+* Thu Sep 28 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-10
 - Bumping build rev for FC-E
-* Thu Sep 28 2006 - 0.1.1-9
+
+* Thu Sep 28 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-9
 - Excluding PPC since syslinux (gethostip) isn't available for ppc
-* Thu Sep 21 2006 - 0.1.1-8
+
+* Thu Sep 21 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-8
 - Added doc files to %doc, removed INSTALLED_FILES code
-* Wed Sep 20 2006 - 0.1.1-7
+
+* Wed Sep 20 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-7
 - Upstream updates
-* Fri Sep 15 2006 - 0.1.1-6
+
+* Fri Sep 15 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-6
 - Make koan own it's directory, add GPL "COPYING" file.
-* Wed Aug 16 2006 - 0.1.1-5
+
+* Wed Aug 16 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-5
 - Spec-file only changes for FC-Extras submission
-* Thu Jul 20 2006 - 0.1.1-4
+
+* Thu Jul 20 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-4
 - Fixed python import paths in yaml code, which errantly assumed yaml was installed as a module.
-* Fri Jul 12 2006 - 0.1.1-3
+
+* Fri Jul 12 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-3
 - allow installing with per-system cobbler data in addition to per-profile
-* Thu Jul 09 2006 - 0.1.0-2
+
+* Thu Jul 09 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.0-2
 - rpm tweaks for Fedora Extras
-* Wed Jun 28 2006 - 0.1.0-1
+
+* Wed Jun 28 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.0-1
 - rpm genesis

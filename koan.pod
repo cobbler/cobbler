@@ -4,11 +4,15 @@ koan standards for 'kickstart-over-a-network' and allows for both network provis
 
 =head1 SYNOPSIS
 
-koan --xen --server=host --profile=name
+koan --server=<host> --list-profiles
 
-koan --replace-self --server=host --profile=name
+koan --server=<host> --list-systems
 
-koan --replace-self --server=host --system=name
+koan --xen --server=<host> --profile=<name>
+
+koan --replace-self --server=<host> --profile=<name>
+
+koan --replace-self --server=<host> --system=<name>
 
 =head1 DESCRIPTION
 

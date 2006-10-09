@@ -39,6 +39,14 @@ def main():
     Command line stuff...
     """
     p = optparse.OptionParser()
+    p.add_option("-l", "--list-profiles",
+                 dest="list_profiles",
+                 action="store_true",
+                 help="list profiles the server can provision")
+    p.add_option("-L", "--list-systems",
+                 dest="list_systems",
+                 action="store_true",
+                 help="list systems the server can provision")
     p.add_option("-x", "--xen",
                  dest="is_xen",
                  action="store_true",
@@ -73,6 +81,8 @@ def main():
 
     try:
         k = Koan()
+        k.list_systems      = options.list_systems
+        k.list_profiles     = options.list_profiles
         k.server            = options.server
         k.is_xen            = options.is_xen
         k.is_auto_kickstart = options.is_auto_kickstart
@@ -107,6 +117,8 @@ class Koan:
         self.server            = None
         self.system            = None
         self.profile           = None
+        self.list_profiles     = None
+        self.list_systems      = None
         self.verbose           = None
         self.is_xen            = None
         self.is_auto_kickstart = None
@@ -115,6 +127,12 @@ class Koan:
     def run(self):
         if self.server is None:
             raise InfoException, "no server specified"
+        if self.list_systems:
+            self.do_list_systems()
+        if self.list_profiles:
+            self.do_list_profiles()
+        if (self.list_systems or self.list_profiles):
+            return
         if not self.is_xen and not self.is_auto_kickstart:
             raise InfoException, "must use either --xen or --replace-self"
         if self.is_xen and self.is_auto_kickstart:
@@ -200,6 +218,33 @@ class Koan:
         self.get_distro_files(distro_data, download_root)
         after_download(self, distro_data, profile_data)
 
+    def do_list_profiles(self):
+        return self.do_list(True)
+
+    def do_list_systems(self):
+        return self.do_list(False)
+
+    def do_list(self,is_profiles):
+        if is_profiles:
+           urlseg = "profile_list"
+           what = "profiles"
+        else:
+           urlseg = "system_list"
+           what = "systems"
+        print "listing defined %s..." % what
+        data = None
+        try:
+            url = "http://%s/cobbler/%s" % (self.server, urlseg)
+            self.debug("url=%s" % url)
+            data = urlgrabber.urlread(url)
+            data = yaml.load(data).next() # first record
+            for x in data:
+                print "%s\n" % x
+            return True
+        except:
+            raise InfoException, "couldn't access listing information"
+        return False # shouldn't be here
+                 
     def do_xen(self):
         """
         Handle xen provisioning.
