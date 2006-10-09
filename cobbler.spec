@@ -2,7 +2,7 @@
 
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.2.2
+Version: 0.2.3
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -15,7 +15,7 @@ Requires: pexpect
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 ExcludeArch: ppc
-Url: http://et.redhat.com/~mdehaan/cobbler
+Url: http://cobbler.et.redhat.com
 
 %description
 
@@ -54,6 +54,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
+* Mon Oct 9 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.3-1
+- Upstream features (see CHANGELOG) & URL update
+
 * Fri Oct 6 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.2-1
 - Upstream bugfixes
 

@@ -1,6 +1,10 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Mon Oct 9 2006 - 0.2.3-1
+- Cobbler now creates a profile and system listing (YAML) in /var needed
+  by the next version of koan (which will be 0.2.1)
+
 * Fri Oct 6 2006 - 0.2.2-1
 - bugfix: "--pxe-hostname" made available in CLI and renamed as "--pxe-address"
 - workaround: elilo doesn't do MAC address pxe config files, use IP for ia64
