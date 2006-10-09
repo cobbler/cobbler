@@ -17,7 +17,7 @@ import os
 import os.path
 import shutil
 import time
-import yaml
+import yaml # Howell-Clark version
 import subprocess
 import sys
 from Cheetah.Template import Template
@@ -344,7 +344,10 @@ class BootSync:
         Usually it's just one or the other.
 
         """
+    
         self.sync_log(cobbler_msg.lookup("sync_buildtree"))
+        self.write_listings()
+
         # create pxelinux.cfg under tftpboot
         # and file for each MAC or IP (hex encoded 01-XX-XX-XX-XX-XX-XX)
 
@@ -489,6 +492,23 @@ class BootSync:
         self.close_file(fd)
         self.sync_log("--------------------------------")
 
+    def write_listings(self):
+        """
+        Creates a very simple index of available systems and profiles
+        that cobbler knows about.  Just the names, no details.
+        """
+        names1 = [x.name for x in self.profiles]
+        names2 = [x.name for x in self.systems]
+        data1 = yaml.dump(names1)
+        data2 = yaml.dump(names2)
+        fd1 = self.open_file(os.path.join(self.settings.webdir, "profile_list"), "w+")
+        fd2 = self.open_file(os.path.join(self.settings.webdir, "system_list"), "w+")
+        self.tee(fd1, data1)
+        self.tee(fd2, data2)
+        self.close_file(fd1)
+        self.close_file(fd2)
+        self.sync_log("--------------------------------")
+
     def write_distro_file(self,filename,distro):
         """
         Create distro information for xen-net-install
@@ -501,7 +521,6 @@ class BootSync:
         distro.initrd = utils.find_initrd(distro.initrd)
         self.tee(fd,yaml.dump(distro.to_datastruct()))
         self.close_file(fd)
-
 
     def write_profile_file(self,filename,profile):
         """
