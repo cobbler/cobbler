@@ -50,6 +50,9 @@ class Enchant:
        pro  = self.config.profiles().find(self.profile)
        if pro is None:
            raise cexceptions.CobblerException("enchant_failed","no such profile: %s" % self.profile)
+       where_is_koan = os.path.join(self.settings.webdir,os.path.basename(koan))
+       if not os.path.exists(where_is_koan):
+           raise cexceptions.CobblerException("enchant_failed","koan is missing")
 
        try:
            ssh = self.ssh = pxssh.pxssh()
@@ -59,6 +62,7 @@ class Enchant:
                self.call("wget http://%s/cobbler/%s" % (self.settings.server, koan))
                self.call("rpm -Uvh %s --force" % koan)
                self.call("koan --replace-self --profile=%s --server=%s" % (self.profile, self.settings.server))
+               self.call("/sbin/reboot")
                return True
        except:
            traceback.print_exc()
