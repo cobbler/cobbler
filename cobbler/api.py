@@ -115,6 +115,13 @@ class BootAPI:
         enchant = action_enchant.Enchant(self._config,sysname,profile,password)
         return enchant.run()
 
+    def import_distros(self,tree_path):
+        """
+        Automatically import a directory tree full of distribution files.
+        """
+        print "STUB: NOT IMPLEMENTED YET"
+        return False
+
     def serialize(self):
         """
         Save the config file(s) to disk.
