@@ -1,6 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Wed Oct 11 2006 - 0.2.4-1
+- Changes to make things work with python 2.3 (RHEL4, etc)
+
 * Mon Oct 9 2006 - 0.2.3-1
 - Cobbler now creates a profile and system listing (YAML) in /var needed
   by the next version of koan (which will be 0.2.1)

@@ -41,7 +41,7 @@ _msg_table = {
   "need_to_fix"     : "the following potential problems were detected:",
   "need_perms"      : "cobbler could not access %s",
   "need_perms2"     : "cobbler could not copy %s to %s",
-  "no_dhcpd"        : "cobbler couldn't find dhcpd, try 'yum install dhcpd'",
+  "no_dhcpd"        : "cobbler couldn't find dhcpd, try 'yum install dhcp'",
   "no_bootloader"   : "missing 1 or more bootloader files listed in /var/lib/cobbler/settings",
   "no_tftpd"        : "cobbler couldn't find tftpd, try 'yum install tftpd'",
   "no_dir"          : "cobbler couldn't find %s, please create it",
