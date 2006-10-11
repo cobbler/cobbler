@@ -22,10 +22,10 @@ import tempfile
 import urlgrabber
 import optparse
 import exceptions
-import subprocess
+import sub_process
 import shutil
 import errno
-import subprocess
+import sub_process
 import re
 import xencreate
 
@@ -195,7 +195,7 @@ class Koan:
         if fake_it:
             self.debug("(SIMULATED)")
             return 0
-        rc = subprocess.call(cmd)
+        rc = sub_process.call(cmd)
         if rc != 0 and not ignore_rc:
             raise InfoException, "command failed (%s)" % rc
         return rc
