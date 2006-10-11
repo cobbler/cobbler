@@ -19,7 +19,7 @@ import os
 import yaml          # Howell-Evans version
 import traceback
 import tempfile
-import urlgrabber
+import urllib2
 import optparse
 import exceptions
 import sub_process
@@ -149,6 +149,27 @@ class Koan:
         else:
             self.do_auto_kickstart()
 
+    def urlread(self,url):
+        """
+        to support more distributions, implement (roughly) some 
+        parts of urlread and urlgrab from urlgrabber, in ways that
+        are less cool and less efficient.
+        """
+        fd = urllib2.urlopen(url)
+        data = fd.read()
+        fd.close()
+        return data
+
+    def urlgrab(self,url,saveto):
+        """
+        like urlread, but saves contents to disk.
+        see comments for urlread as to why it's this way.
+        """
+        data = self.urlread(url)
+        fd = open(saveto, "w+")
+        fd.write(data)
+        fd.close()
+
     def debug(self,msg):
         """
         Debug print if verbose is set.
@@ -223,6 +244,12 @@ class Koan:
     def do_list_systems(self):
         return self.do_list(False)
 
+    def url_read(self,url):
+        fd = urllib2.urlopen(url)
+        data = fd.read()
+        fd.close()
+        return data
+
     def do_list(self,is_profiles):
         if is_profiles:
            urlseg = "profile_list"
@@ -235,7 +262,8 @@ class Koan:
         try:
             url = "http://%s/cobbler/%s" % (self.server, urlseg)
             self.debug("url=%s" % url)
-            data = urlgrabber.urlread(url)
+            # FIXME
+            data = self.urlread(url)
             data = yaml.load(data).next() # first record
             for x in data:
                 print "%s" % x
@@ -297,9 +325,10 @@ class Koan:
             self.subprocess_call(cmd)
             return data
         elif kickstart.startswith("http") or kickstart.startswith("ftp"):
-            self.debug("urlgrab: %s" % kickstart)
+            self.debug("urlread %s" % kickstart)
             try:
-                inf = urlgrabber.urlread(kickstart)
+                # FIXME
+                inf = self.urlread(kickstart)
             except:
                 raise InfoException, "Couldn't download: %s" % kickstart
             return inf
@@ -360,7 +389,8 @@ class Koan:
         try:
             url = "http://%s/cobbler/profiles/%s" % (self.server,profile_name)
             self.debug("url=%s" % url)
-            data = urlgrabber.urlread(url)
+            # FIXME
+            data = self.urlread(url)
             return yaml.load(data).next() # first record
         except:
             raise InfoException, "couldn't download profile information: %s" % profile_name
@@ -420,7 +450,8 @@ class Koan:
         try:
             url = "http://%s/cobbler/systems/%s" % (self.server,system_name)
             self.debug("url=%s" % url)
-            data = urlgrabber.urlread(url)
+            # FIXME 
+            data = self.urlread(url)
             system_data = yaml.load(data).next() # first record
         except:
             raise InfoException, "couldn't download profile information: %s" % system_name
@@ -435,7 +466,8 @@ class Koan:
             # be that the cobbler config file already references a http
             # kickstart, hence the per-system kickstart is just a per
             # profile kickstart, and we can't use it.
-            urlgrabber.urlread(try_this)
+            # FIXME
+            self.urlread(try_this)
             profile_data['kickstart'] = try_this
         except:
             # just use the profile kickstart, whatever it is
@@ -451,7 +483,8 @@ class Koan:
         try:
             url = "http://%s/cobbler/distros/%s" % (self.server,distro_name)
             self.debug("url=%s" % url)
-            data = urlgrabber.urlread(url)
+            # FIXME
+            data = self.urlread(url)
             return yaml.load(data).next() # first record
         except:
             raise InfoException, "couldn't download distro information: %s" % distro_name
@@ -473,11 +506,13 @@ class Koan:
             self.debug("downloading initrd %s to %s" % (initrd_short, initrd_save))
             url = "http://%s/cobbler/images/%s/%s" % (self.server, distro, initrd_short)
             self.debug("url=%s" % url)
-            urlgrabber.urlgrab(url)
+            # FIXME
+            data = self.urlgrab(url,initrd_save)
             self.debug("downloading kernel %s to %s" % (kernel_short, kernel_save))
             url = "http://%s/cobbler/images/%s/%s" % (self.server, distro, kernel_short)
             self.debug("url=%s" % url)
-            urlgrabber.urlgrab(url)
+            # FIXME
+            self.urlgrab(url,kernel_save)
         except:
             raise InfoException, "error downloading files"
         distro_data['kernel_local'] = kernel_save
