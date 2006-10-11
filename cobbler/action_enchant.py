@@ -59,7 +59,9 @@ class Enchant:
                raise cexceptions.CobblerException("enchant_failed","SSH login denied")
            else:
                self.call("wget http://%s/cobbler/%s" % (self.settings.server, koan))
-               self.call("rpm -Uvh %s --force" % koan)
+               # nodeps allows installation on Centos 4 with python 2.3
+               # RHEL4 won't work due to urlgrabber
+               self.call("rpm -Uvh %s --force --nodeps" % koan)
                self.call("koan --replace-self --profile=%s --server=%s" % (self.profile, self.settings.server))
                self.call("/sbin/reboot")
                return True
