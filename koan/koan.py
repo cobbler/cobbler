@@ -25,7 +25,6 @@ import exceptions
 import sub_process
 import shutil
 import errno
-import sub_process
 import re
 import xencreate
 
