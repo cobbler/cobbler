@@ -15,5 +15,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import sys
+
+# ok, about this sys.path voodoo...
+# ordinarily cobbler and koan are intended for FC-5/6 and derivs
+# this makes "cobbler enchant" using FC-5 RPMs work on Centos as well
+# when installed with --nodeps. yes, I know it looks evil.
+# though since "enchant" is there to blow away a system, evil is allowed.
+sys.path.append("/usr/lib/python2.3/site-packages")
+sys.path.append("/usr/lib64/python2.3/site-packages")
 import koan.koan as app
 sys.exit(app.main() or 0)
