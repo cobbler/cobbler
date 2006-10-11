@@ -238,7 +238,7 @@ class Koan:
             data = urlgrabber.urlread(url)
             data = yaml.load(data).next() # first record
             for x in data:
-                print "%s\n" % x
+                print "%s" % x
             return True
         except:
             raise InfoException, "couldn't access listing information"

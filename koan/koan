@@ -21,7 +21,12 @@ import sys
 # this makes "cobbler enchant" using FC-5 RPMs work on Centos as well
 # when installed with --nodeps. yes, I know it looks evil.
 # though since "enchant" is there to blow away a system, evil is allowed.
-sys.path.append("/usr/lib/python2.3/site-packages")
-sys.path.append("/usr/lib64/python2.3/site-packages")
-import koan.koan as app
+# eventually "cobbler enchant" may be modified to not need the koan rpm.
+
+for version in [ "2.3", "2.4", "2.5" ]:
+    for arch in [ "lib", "lib64" ]:
+        append = "/usr/%s/python%s/site-packages" % (arch,version)
+        sys.path.append(append)
+
+import koan.app as app
 sys.exit(app.main() or 0)
