@@ -2,7 +2,7 @@
 
 Summary: Network provisioning tool for Xen and Existing Non-Bare Metal
 Name: koan
-Version: 0.2.1
+Version: 0.2.2
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -47,6 +47,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING CHANGELOG README NEWS
 
 %changelog
+* Mon Oct 09 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.2-1
+- Upstream change -- support Python 2.3
+
 * Mon Oct 09 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.1-1
 - Upstream features (see CHANGELOG)
 
