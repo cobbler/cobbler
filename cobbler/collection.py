@@ -89,7 +89,8 @@ class Collection(serializable.Serializable):
         for reading by humans or parsing from scripts.  Actually scripts
         would be better off reading the YAML in the config files directly.
         """
-        values = sorted(self.listing.values())
+        values = self.listing.values()[:] # copy the values
+        values.sort() # sort the copy (2.3 fix)
         results = []
         for i,v in enumerate(values):
            results.append(v.printable(1+i))
