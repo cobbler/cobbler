@@ -136,16 +136,13 @@ Example: --pxe-arch=ia64
 Advanced feature.
 
 If cobbler is configured to generate the dhcpd.conf file, use this
-setting to pin a certain MAC address to a specific dhcp hostname.  This corresponds to the "fixed-address" field in dhcpd.conf.
+setting to pin a certain hostname or IP to a given MAC address.  This corresponds to the "fixed-address" field in dhcpd.conf.
 
-When using this setting, be sure that the "--name" given to the "system add" command is a MAC address or no per-system record in dhcpd.conf can be generated.
+When using this setting for IA64 machines, be sure that the "--name" given to the "system add" command is a MAC address or no per-system record in dhcpd.conf can be generated. 
 
-Example: ---pxe-address="foo.example.com"
+Example: ---pxe-address=192.168.1.50
 
-The pxe-address value should be an IP address in dotted decimal notation.
-
-NOTE: Due to a limitation in elilo (IA64 bootloader), this parameter must ALSO be used even if dhcpd.conf files are not being managed by cobbler AND you want to PXE provision IA64 systems.  
-
+NOTE: Due to a limitation in elilo (IA64 bootloader), this parameter must ALSO be used even if dhcpd.conf files are not being managed by cobbler AND you want to PXE provision IA64 systems using a handwritten dhcpd.conf.  Also, for IA64, the value of pxe-address must be an IP, and not a hostname, even though hostnames work for X86.  Thankfully, if you don't have IA64 systems, there are a lot less rules.
 
 =back
 
@@ -250,6 +247,30 @@ Enchant takes a profile that has already been defined (be sure to run "cobbler s
 Running "enchant" will replace the operating system of the target machine, so use it with caution.
 
 Usage:  B<cobbler enchant --name=<ip|hostname> --profile=<string> --password=<string>>
+
+=head2 IMPORTING TREES
+
+It is sometimes useful to import an existing directory tree containing a large amount of kernel and initrd images and make "cobbler distro add" calls for each of them.   The "cobbler import" command automates this, and initially names the distros based on the paths they were found in.
+
+For this to work, there can only be one kernel and initrd in each directory, anywhere down in the tree.  
+
+Only images found in directories leaf nodes named "pxe", "pxeboot", or "xen" will be added.  Somewhere higher up in the directory tree, there needs to be a path containing something like "i386" or "x86_64" indicating the architecture.  This is because the import command tries to be smart enough to not import architectures it can't support.
+
+The import command will find new distributions and automatically add them if no existing cobbler distribution references the same files.  Existing cobbler distributions, even ones that no longer point to valid locations, will not be deleted, though warnings will be generated about orphaned distributions.
+
+Import can be run repeatedly with no adverse affect to existing configurations.
+
+Directory tree example (importing /mnt/foo)
+
+/mnt/foo/nightly/rawhide-200610111/tree-ppc <-------------- NOT imported
+/mnt/foo/nightly/rawhide-200610111/tree-i386/images/pxe <-- gets imported
+/mnt/foo/nightly/rawhide-200610111/tree-i386/images/xen <-- gets imported
+/mnt/foo/nightly/rawhide-200610111/tree-ia64/...        <-- gets imported
+/mnt/foo/nightly/rawhide-200610111/tree-x86_64/...      <-- gets imported
+
+Distributions are named after fragments of the path name seperated with underscores instead of slashes.  These names are obviously ugly so you may want to rename them after the fact.
+
+Usage: B<cobbler import --path=<path>>
 
 =head2 TWEAKING
 

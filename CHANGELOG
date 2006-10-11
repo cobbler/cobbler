@@ -4,6 +4,8 @@ Cobbler CHANGELOG
 * Mon Oct 9 2006 - 0.2.3-1
 - Cobbler now creates a profile and system listing (YAML) in /var needed
   by the next version of koan (which will be 0.2.1)
+- bugfix: enchant should reboot the target box
+- bugfix: enchant should fail if path to koan isn't configured
 
 * Fri Oct 6 2006 - 0.2.2-1
 - bugfix: "--pxe-hostname" made available in CLI and renamed as "--pxe-address"

@@ -54,11 +54,15 @@ class System(item.Item):
         self.name = name  # we check it add time, but store the original value.
         return True
 
-    def set_pxe_address(self,hostname):
-        # we allow this to be set to anything and should restrict it
-        if not utils.is_ip(hostname):
+    def set_pxe_address(self,address):
+        # restricting to address as IP only in dhcpd.conf is probably
+        # incorrect ... some people may want to pin the hostname instead.
+        # doing so, however, doesn't allow dhcpd.conf to be managed
+        # by cobbler (since elilo can't do MAC addresses) -- this is 
+        # covered in the man page.
+        if not utils.is_ip(address) and not utils.is_mac(address):
             raise cexceptions.CobblerException("bad_ip")    
-        self.pxe_address = hostname
+        self.pxe_address = address
         return True
 
     def set_profile(self,profile_name):

@@ -136,37 +136,51 @@ class BootCLI:
         on_ok = lambda: self.api.systems().add(sys)
         return self.apply_args(args,commands,on_ok)
 
+    def apply_cmd_args(self,args,accepted,required,err_msg):
+        """
+        This is a variation of the command parsing done in apply_args but
+        is not centric to things in the object graph.  
+        """
+        for arg in args:
+             try:
+                 (first, last) = (None, None)
+                 (first, last) = arg.split("=")
+             except:
+                 if first is None: 
+                     continue
+                 raise cexceptions.CobblerException(err_msg)
+             if first in accepted.keys():
+                 accepted[first] = last
+             else:
+                 raise cexceptions.CobblerException("weird_arg",first)
+        for arg in required:
+            if accepted[arg] is None:
+                raise cexceptions.CobblerException(err_msg)
+        return accepted
+
+    def import_distros(self,args):
+        stored = {
+            "--path" : None
+        }
+        required = [ "--path" ]
+        results = self.apply_cmd_args(args,stored,required,"import_args")
+        return self.api.import_distros(stored["--path"])
+
     def enchant_system(self,args):
         """
         Replace an existing running password.
         """
-        sysname = None
-        profile = None
-        password = None
-        first = None
-        last = None
-        for args in self.args:
-            try:
-                (first, last) = (None, None)
-                (first, last) = args.split("=")
-            except:
-                if first == None:
-                   continue
-                raise cexceptions.CobblerException("enchant_args")
-            if first == "--name":
-                sysname = last
-                continue
-            if first == "--profile":
-                profile = last
-                continue
-            if first == "--password":
-                password = last
-                continue
-            else:
-                raise cexceptions.CobblerException("weird_arg",args)
-        if sysname is None or profile is None or password is None:
-            raise cexceptions.CobblerException("enchant_args")
-        return self.api.enchant(sysname,profile,password)
+        stored = {
+           "--name" : None,
+           "--profile" : None,
+           "--password" : None
+        }
+        required = [ "--name", "--profile", "--password" ]
+        results = self.apply_cmd_args(args,stored,required,"enchant_args")
+        return self.api.enchant(stored["--name"], 
+            stored["--profile"],
+            stored["--password"]
+        )
 
     def profile_edit(self,args):
         """

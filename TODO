@@ -6,3 +6,7 @@ cobbler TODO list
   -  Locking
   -  For "enchant", try to verify that syslinux and mkinitrd are installed on the remote.    
   -  "make test" shouldn't overwrite files in /var/lib/cobbler/ 
+
+Non functional:
+  -  an argument parsing overhaul is probably due
+  -  remove the cobbler_msg logic since i18n isn't likely

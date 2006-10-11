@@ -18,7 +18,7 @@ import os.path
 import shutil
 import time
 import yaml # Howell-Clark version
-import subprocess
+import sub_process
 import sys
 from Cheetah.Template import Template
 
@@ -68,7 +68,7 @@ class BootSync:
         if self.settings.manage_dhcp:
             self.write_dhcp_file()
             try:
-               retcode = subprocess.call("/sbin/service dhcpd restart", shell=True)
+               retcode = sub_process.call("/sbin/service dhcpd restart", shell=True)
                if retcode != 0:
                    print >>sys.stderr, "Warning: dhcpd restart failed"
             except OSError, e:
@@ -393,8 +393,10 @@ class BootSync:
                 f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
             if system.pxe_arch == "ia64":
                 # elilo expects files to be named "$name.conf" in the root
-                if system.pxe_address == "" or system.pxe_address is None:
-                   raise cexceptions.CobblerException("exc_ia64_noip",system.name)
+                # and can not do files based on the MAC address
+                if system.pxe_address == "" or system.pxe_address is None or not utils.is_ip(system.pxe_address):
+                    raise cexceptions.CobblerException("exc_ia64_noip",system.name)
+
                 
                 filename = "%s.conf" % self.get_pxe_filename(system.pxe_address) 
                 f2 = os.path.join(self.settings.tftpboot, filename)

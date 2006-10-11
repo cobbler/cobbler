@@ -16,7 +16,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import cexceptions
 import os
 import os.path
-import subprocess
 import pexpect
 import pxssh
 import traceback
