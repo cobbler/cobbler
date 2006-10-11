@@ -16,7 +16,7 @@ import os
 import re
 import socket
 import glob
-import subprocess
+import sub_process
 
 _re_kernel = re.compile(r'vmlinuz(.*)')
 _re_initrd = re.compile(r'initrd(.*).img')
@@ -25,7 +25,7 @@ def get_host_ip(ip):
     """
     Return the IP encoding needed for the TFTP boot tree.
     """
-    handle = subprocess.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=subprocess.PIPE)
+    handle = sub_process.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=sub_process.PIPE)
     out = handle.stdout
     results = out.read()
     return results.split(" ")[-1][0:8]
