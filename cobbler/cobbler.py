@@ -22,6 +22,7 @@ import os.path
 import cobbler_msg
 import cexceptions
 
+LOCKING_ENABLED = False
 LOCKFILE="/var/lib/cobbler/lock"
 
 class BootCLI:
@@ -63,7 +64,8 @@ class BootCLI:
             'systems'  : self.system,
             'system'   : self.system,
             'sync'     : self.sync,
-            '--help'   : self.usage,
+            'import'   : self.import_tree,
+            'help'     : self.usage,
             '/?'       : self.usage
         }
 
@@ -143,6 +145,25 @@ class BootCLI:
         on_ok = lambda: go_enchant()
         return self.apply_args(args,commands,on_ok)
 
+    def import_tree(self,args):
+        """
+        Import a directory tree and auto-create distros & profiles.
+        'cobbler
+        """
+        self.temp_path = None
+        def set_path(a):
+            if os.path.isdir(a):
+                self.temp_path = a
+                return True
+            return False
+        def go_import():
+            return self.api.import_tree(self.temp_path)
+        commands = {
+            '--path'  : lambda(a): set_path(a)
+        }
+        on_ok = lambda: go_import()
+        return self.apply_args(args,commands,on_ok)
+
     def system_edit(self,args):
         """
         Create/Edit a system:  'cobbler system edit --name='foo' ...
@@ -175,8 +196,6 @@ class BootCLI:
             '--xen-ram'         :  lambda(a) : profile.set_xen_ram(a),
             '--ksmeta'          :  lambda(a) : profile.set_ksmeta(a)
         # the following options are most likely not useful for profiles (yet)
-        # primarily due to not being implemented in koan.
-        #    '--xen-mac'         :  lambda(a) : profile.set_xen_mac(a),
         #    '--xen-paravirt'    :  lambda(a) : profile.set_xen_paravirt(a),
         }
         on_ok = lambda: self.api.profiles().add(profile)
@@ -288,21 +307,23 @@ def main():
     """
     exitcode = 0
     try:
-        if os.path.exists(LOCKFILE):
-            raise cexceptions.CobblerException("lock")
-        try:
-            lockfile = open(LOCKFILE,"w+")
-        except:
-            raise cexceptions.CobblerException("no_create",LOCKFILE)
-        lockfile.close()
+        if LOCKING_ENABLED:
+            if os.path.exists(LOCKFILE):
+                raise cexceptions.CobblerException("lock")
+            try:
+                lockfile = open(LOCKFILE,"w+")
+            except:
+                raise cexceptions.CobblerException("no_create",LOCKFILE)
+            lockfile.close()
         BootCLI(sys.argv).run()
     except cexceptions.CobblerException, exc:
         print str(exc)[1:-1]  # remove framing air quotes
         exitcode = 1
-    try:
-        os.remove(LOCKFILE)
-    except:
-        pass
+    if LOCKING_ENABLED:
+        try:
+            os.remove(LOCKFILE)
+        except:
+            pass
     return exitcode
 
 if __name__ == "__main__":

@@ -54,8 +54,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
-* Wed Oct 11 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.4-1
-- Upstream changes to work with python 2.3
+* Thr Oct 12 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.4-1
+- Upstream features and bugfixes (see CHANGELOG)
 
 * Mon Oct 9 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.3-1
 - Upstream features (see CHANGELOG) & URL update

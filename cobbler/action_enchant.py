@@ -24,12 +24,14 @@ class Enchant:
 
    def __init__(self,config,sysname,password=''):
        """
-       Constructor.  All arguments required.
+       Constructor.  If password is None it should rely on SSH key auth.
        """
        self.config = config
        self.settings = self.config.settings()
        self.username = "root"
        self.sysname = sysname
+       if sysname is None:
+           raise cexception.CobblerException("enchant_failed","no system name specified")
        self.profile = ''
        self.password = password
  

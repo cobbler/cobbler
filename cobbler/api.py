@@ -19,6 +19,7 @@ import utils
 import action_sync
 import action_check
 import action_enchant
+import action_import
 import cexceptions
 
 class BootAPI:
@@ -115,12 +116,12 @@ class BootAPI:
         enchant = action_enchant.Enchant(self._config,sysname,password)
         return enchant.run()
 
-    def import_distros(self,tree_path):
+    def import_tree(self,tree_path):
         """
         Automatically import a directory tree full of distribution files.
         """
-        print "STUB: NOT IMPLEMENTED YET"
-        return False
+        importer = action_import.Importer(self._config, tree_path)
+        return importer.run()
 
     def serialize(self):
         """

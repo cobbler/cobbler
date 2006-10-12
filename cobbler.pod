@@ -246,11 +246,11 @@ Enchant takes a system configuration that has already been defined (be sure to r
 
 Running "enchant" will replace the operating system of the target machine, so use it with caution.
 
-Usage:  B<cobbler system enchant --name=<ip|hostname> --password=<string>>
+Usage:  B<cobbler system enchant --name=<ip|hostname> [--password=<string>]>
 
 =head2 IMPORTING TREES
 
-It is sometimes useful to import an existing directory tree containing a large amount of kernel and initrd images and make "cobbler distro add" calls for each of them.   The "cobbler import" command automates this, and initially names the distros based on the paths they were found in.
+It is sometimes useful to import an existing directory tree containing a large amount of kernel and initrd images and make "cobbler distro add" and "cobbler profile add" calls for each of them.   The "cobbler import" command automates this, and initially names the distros and profiles based on the paths they were found in.  Profiles created in this way are very basic, and initially do not reference kickstarts.
 
 For this to work, there can only be one kernel and initrd in each directory, anywhere down in the tree.  
 
