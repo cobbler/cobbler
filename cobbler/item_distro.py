@@ -43,11 +43,11 @@ class Distro(item.Item):
         """
         Modify this object to take on values in seed_data
         """
-        self.name = seed_data['name']
-        self.kernel = seed_data['kernel']
-        self.initrd = seed_data['initrd']
-        self.kernel_options = seed_data['kernel_options']
-        self.ks_meta = seed_data['ks_meta']
+        self.name           = self.load_item(seed_data,'name')
+        self.kernel         = self.load_item(seed_data,'kernel')
+        self.initrd         = self.load_item(seed_data,'initrd')
+        self.kernel_options = self.load_item(seed_data,'kernel_options')
+        self.ks_meta        = self.load_item(seed_data,'ks_meta')
         return self
 
     def set_kernel(self,kernel):

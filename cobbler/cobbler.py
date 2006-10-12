@@ -16,9 +16,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import sys
 import api
+import os
+import os.path
 
 import cobbler_msg
 import cexceptions
+
+LOCKFILE="/var/lib/cobbler/lock"
 
 class BootCLI:
 
@@ -58,7 +62,6 @@ class BootCLI:
             'systems'  : self.system,
             'system'   : self.system,
             'sync'     : self.sync,
-            'enchant'  : self.enchant_system,
             '--help'   : self.usage,
             '/?'       : self.usage
         }
@@ -89,6 +92,7 @@ class BootCLI:
         commands = {
            '--name'       : lambda(a):  self.api.systems().remove(a),
            '--system'     : lambda(a):  self.api.systems().remove(a),
+           '--system'     : lambda(a):  self.api.systems().remove(a)
         }
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok)
@@ -124,63 +128,15 @@ class BootCLI:
         """
         sys = self.api.new_system()
         commands = {
-           '--name'         :  lambda(a) : sys.set_name(a),
-           '--system'       :  lambda(a) : sys.set_name(a),
-           '--profile'      :  lambda(a) : sys.set_profile(a),
-           '--kopts'        :  lambda(a) : sys.set_kernel_options(a),
-           '--ksmeta'       :  lambda(a) : sys.set_ksmeta(a),
-           '--pxe-arch'     :  lambda(a) : sys.set_pxe_arch(a),
-           '--pxe-address'  :  lambda(a) : sys.set_pxe_address(a)
-           # FIXME: surface a way to pin the IP.
+           '--name'     :  lambda(a) : sys.set_name(a),
+           '--system'   :  lambda(a) : sys.set_name(a),
+           '--profile'  :  lambda(a) : sys.set_profile(a),
+           '--kopts'    :  lambda(a) : sys.set_kernel_options(a),
+           '--ksmeta'   :  lambda(a) : sys.set_ksmeta(a)
         }
         on_ok = lambda: self.api.systems().add(sys)
         return self.apply_args(args,commands,on_ok)
 
-    def apply_cmd_args(self,args,accepted,required,err_msg):
-        """
-        This is a variation of the command parsing done in apply_args but
-        is not centric to things in the object graph.  
-        """
-        for arg in args:
-             try:
-                 (first, last) = (None, None)
-                 (first, last) = arg.split("=")
-             except:
-                 if first is None: 
-                     continue
-                 raise cexceptions.CobblerException(err_msg)
-             if first in accepted.keys():
-                 accepted[first] = last
-             else:
-                 raise cexceptions.CobblerException("weird_arg",first)
-        for arg in required:
-            if accepted[arg] is None:
-                raise cexceptions.CobblerException(err_msg)
-        return accepted
-
-    def import_distros(self,args):
-        stored = {
-            "--path" : None
-        }
-        required = [ "--path" ]
-        results = self.apply_cmd_args(args,stored,required,"import_args")
-        return self.api.import_distros(stored["--path"])
-
-    def enchant_system(self,args):
-        """
-        Replace an existing running password.
-        """
-        stored = {
-           "--name" : None,
-           "--profile" : None,
-           "--password" : None
-        }
-        required = [ "--name", "--profile", "--password" ]
-        results = self.apply_cmd_args(args,stored,required,"enchant_args")
-        return self.api.enchant(stored["--name"], 
-            stored["--profile"],
-            stored["--password"]
-        )
 
     def profile_edit(self,args):
         """
@@ -199,6 +155,7 @@ class BootCLI:
             '--ksmeta'          :  lambda(a) : profile.set_ksmeta(a)
         # the following options are most likely not useful for profiles (yet)
         # primarily due to not being implemented in koan.
+        #    '--xen-mac'         :  lambda(a) : profile.set_xen_mac(a),
         #    '--xen-paravirt'    :  lambda(a) : profile.set_xen_paravirt(a),
         }
         on_ok = lambda: self.api.profiles().add(profile)
@@ -220,6 +177,7 @@ class BootCLI:
         }
         on_ok = lambda: self.api.distros().add(distro)
         return self.apply_args(args,commands,on_ok)
+
 
     def apply_args(self,args,input_routines,on_ok):
         """
@@ -269,6 +227,7 @@ class BootCLI:
             status = self.api.sync(dryrun=False)
         return status
 
+
     def check(self,args):
         """
         Check system for network boot decency/prereqs: 'cobbler check'
@@ -306,12 +265,24 @@ def main():
     """
     CLI entry point
     """
+    exitcode = 0
     try:
+        if os.path.exists(LOCKFILE):
+            raise cexceptions.CobblerException("lock")
+        try:
+            lockfile = open(LOCKFILE,"w+")
+        except:
+            raise cexceptions.CobblerException("no_create",LOCKFILE)
+        lockfile.close()
         BootCLI(sys.argv).run()
     except cexceptions.CobblerException, exc:
         print str(exc)[1:-1]  # remove framing air quotes
-        sys.exit(1)
-    sys.exit(0)
+        exitcode = 1
+    try:
+        os.remove(LOCKFILE)
+    except:
+        pass
+    return exitcode
 
 if __name__ == "__main__":
     sys.exit(main())

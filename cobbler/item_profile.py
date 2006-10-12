@@ -43,17 +43,17 @@ class Profile(item.Item):
         """
         Load this object's properties based on seed_data
         """
-        self.name            = seed_data['name']
-        self.distro          = seed_data['distro']
-        self.kickstart       = seed_data['kickstart']
-        self.kernel_options  = seed_data['kernel_options']
-        self.ks_meta         = seed_data['ks_meta']
-        self.xen_name        = seed_data['xen_name']
+        self.name            = self.load_item(seed_data,'name')
+        self.distro          = self.load_item(seed_data,'distro')
+        self.kickstart       = self.load_item(seed_data,'kickstart')
+        self.kernel_options  = self.load_item(seed_data,'kernel_options')
+        self.ks_meta         = self.load_item(seed_data,'ks_meta')
+        self.xen_name        = self.load_item(seed_data,'xen_name')
         if not self.xen_name or self.xen_name == '':
             self.xen_name    = self.name
-        self.xen_ram         = seed_data['xen_ram']
-        self.xen_file_size   = seed_data['xen_file_size']
-        self.xen_paravirt    = seed_data['xen_paravirt']
+        self.xen_ram         = self.load_item(seed_data,'xen_ram')
+        self.xen_file_size   = self.load_item(seed_data,'xen_file_size')
+        self.xen_paravirt    = self.load_item(seed_data,'xen_paravirt')
         return self
 
     def set_distro(self,distro_name):

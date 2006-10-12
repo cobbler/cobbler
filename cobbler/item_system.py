@@ -31,12 +31,12 @@ class System(item.Item):
         self.pxe_address = ""
 
     def from_datastruct(self,seed_data):
-        self.name = seed_data['name']
-        self.profile = seed_data['profile']
-        self.kernel_options = seed_data['kernel_options']
-        self.ks_meta = seed_data['ks_meta']
-        self.pxe_arch = seed_data['pxe_arch']
-        self.pxe_address = seed_data['pxe_address']
+        self.name = self.load_item(seed_data,'name')
+        self.profile = self.load_item(seed_data,'profile')
+        self.kernel_options = self.load_item(seed_data,'kernel_options')
+        self.ks_meta = self.load_item(seed_data,'ks_meta')
+        self.pxe_arch = self.load_item(seed_data,'pxe_arch')
+        self.pxe_address = self.load_item(seed_data,'pxe_address')
         return self
 
     def set_name(self,name):
