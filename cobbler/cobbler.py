@@ -51,6 +51,7 @@ class BootCLI:
             'edit'    :  self.system_edit,
             'delete'  :  self.system_remove,
             'remove'  :  self.system_remove,
+            'enchant' :  self.system_enchant,
         }
         self.commands['toplevel'] = {
             'check'    : self.check,
@@ -92,11 +93,9 @@ class BootCLI:
         commands = {
            '--name'       : lambda(a):  self.api.systems().remove(a),
            '--system'     : lambda(a):  self.api.systems().remove(a),
-           '--system'     : lambda(a):  self.api.systems().remove(a)
         }
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok)
-
 
     def profile_remove(self,args):
         """
@@ -121,6 +120,28 @@ class BootCLI:
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok)
 
+
+    def system_enchant(self,args):
+        """
+        Reinstall a system:  
+        'cobbler system enchant --name='foo' [--password='foo']
+        """
+        self.temp_password = ''
+        self.temp_name = ''
+        def set_password(a):
+           self.temp_password = a
+           return True
+        def set_name(a):
+           self.temp_name = a
+           return True
+        def go_enchant():
+           return self.api.enchant(self.temp_name,self.temp_password)
+        commands = {
+           '--name'     :  lambda(a): set_name(a),
+           '--password' :  lambda(a): set_password(a),
+        }
+        on_ok = lambda: go_enchant()
+        return self.apply_args(args,commands,on_ok)
 
     def system_edit(self,args):
         """

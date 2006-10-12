@@ -22,7 +22,7 @@ import traceback
 
 class Enchant:
 
-   def __init__(self,config,sysname,profile,password):
+   def __init__(self,config,sysname,password=''):
        """
        Constructor.  All arguments required.
        """
@@ -30,7 +30,7 @@ class Enchant:
        self.settings = self.config.settings()
        self.username = "root"
        self.sysname = sysname
-       self.profile = profile
+       self.profile = ''
        self.password = password
  
    def call(self,cmd):
@@ -46,9 +46,13 @@ class Enchant:
        Replace the OS of a remote system.
        """
        koan = os.path.basename(self.settings.koan_path)
-       pro  = self.config.profiles().find(self.profile)
+       sys  = self.config.systems().find(self.sysname)
+       if sys is None:
+           raise cexceptions.CobblerException("enchant_failed","system not in cobbler database")
+       pro  = self.config.profiles().find(sys.profile)
+       self.profile = pro.name
        if pro is None:
-           raise cexceptions.CobblerException("enchant_failed","no such profile: %s" % self.profile)
+           raise cexceptions.CobblerException("enchant_failed","no such profile for system (%s): %s" % (self.sysname, self.profile))
        where_is_koan = os.path.join(self.settings.webdir,os.path.basename(koan))
        if not os.path.exists(where_is_koan):
            raise cexceptions.CobblerException("enchant_failed","koan is missing")
@@ -63,7 +67,7 @@ class Enchant:
                # RHEL4 won't work due to urlgrabber
                self.call("rpm -Uvh %s --force --nodeps" % koan)
                self.call("koan --replace-self --profile=%s --server=%s" % (self.profile, self.settings.server))
-               self.call("/sbin/reboot")
+               #self.call("/sbin/reboot")
                return True
        except:
            traceback.print_exc()
