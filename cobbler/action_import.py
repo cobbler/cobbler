@@ -26,11 +26,12 @@ import api
 
 # FIXME: add common FC, RHEL, and Centos path segments
 MATCH_LIST = ( 
-   ( "FC-5/"  , "/etc/cobbler/kickstart_fc56.ks" ),
-   ( "FC-6/"  , "/etc/cobbler/kickstart_fc56.ks" ),
-   ( "RHEL-4/", "/etc/cobbler/kickstart_fc56.ks" ),
-   ( "6/"     , "/etc/cobbler/kickstart_fc56.ks" ),
-   ( "5/"     , "/etc/cobbler/kickstart_fc56.ks" )
+   ( "FC-5/"    , "/etc/cobbler/kickstart_fc5.ks" ),
+   ( "FC-6/"    , "/etc/cobbler/kickstart_fc5.ks" ),
+   ( "RHEL-4/"  , "/etc/cobbler/kickstart_fc5.ks" ),
+   ( "6/"       , "/etc/cobbler/kickstart_fc5.ks" ),
+   ( "5/"       , "/etc/cobbler/kickstart_fc5.ks" ),
+   ( "Centos/4" , "/etc/cobbler/kickstart_fc5.ks" )
 )
 
 class Importer:

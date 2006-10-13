@@ -16,7 +16,7 @@ keyboard us
 # System language
 lang en_US
 # Use network installation
-url --url=http://127.0.0.1/cobbler/foo
+url --url=TEMPLATE::tree
 # Network information
 network --bootproto=dhcp --device=eth0 --onboot=on
 # Reboot after installation
