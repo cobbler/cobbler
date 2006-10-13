@@ -25,7 +25,16 @@ import api
 # files.  It's not all that intelligent.
 
 # FIXME: add common FC, RHEL, and Centos path segments
+# it's exceedingly wrong right now and the kickstart file
+# for FC5 is sent everywhere.  That probably WON'T work in most
+# places even though it's a minimalistic kickstart.  This will
+# get patched over time.
 MATCH_LIST = ( 
+   ( "1/"       , "/etc/cobbler/kickstart_fc5.ks" ),
+   ( "2/"       , "/etc/cobbler/kickstart_fc5.ks" ),
+   ( "3/"       , "/etc/cobbler/kickstart_fc5.ks" ),
+   ( "4/"       , "/etc/cobbler/kickstart_fc5.ks" ),
+   ( "5/"       , "/etc/cobbler/kickstart_fc5.ks" ),
    ( "FC-5/"    , "/etc/cobbler/kickstart_fc5.ks" ),
    ( "FC-6/"    , "/etc/cobbler/kickstart_fc5.ks" ),
    ( "RHEL-4/"  , "/etc/cobbler/kickstart_fc5.ks" ),
@@ -44,9 +53,10 @@ class Importer:
        self.mirror_name = mirror_name
        if path is None:
            raise cexceptions.CobblerException("import_failed","no path specified")
-       self.distros = config.distros()
+       self.distros  = config.distros()
        self.profiles = config.profiles()
-       self.systems = config.systems()
+       self.systems  = config.systems()
+       self.settings = config.settings()
 
    def run(self):
        if self.path is None and self.mirror is None:
@@ -90,25 +100,27 @@ class Importer:
        print "*** SCRUBBING ORPHANS"
        # FIXME
        for distro in self.distros:
+           remove = False
            if not os.path.exists(distro.kernel):
                print "*** ORPHANED DISTRO: %s" % distro.name
-               self.distros.remove(distro.name)
-               continue
+               remove = True
            if not os.path.exists(distro.initrd):
                print "*** ORPHANED DISTRO: %s" % distro.name
-               self.distros.remove(distro.initrd)
+               remove = True
+           if not remove:
                continue
-           print "*** KEEPING: %s" % distro.name
-       for profile in self.profiles:
-           if not self.distros.find(profile.distro):
-               print "*** ORPHANED PROFILE: %s" % profile.name
-               self.profiles.remove(profile.name)
-               continue
-           print "*** KEEPING: %s" % profile.name
-       for system in self.systems:
-           if not self.profiles.find(system.profile):
-               print "*** ORPHANED SYSTEM (NOT DELETED): %s" % system.name
-               continue
+           # cascade removal
+           for profile in self.profiles:
+               if profile.distro == distro.name:
+                   # cascade removal of systems
+                   for system in self.systems:
+                       if system.profile == profile.name:
+                           print "SYSTEM REMOVED: %s" % system.name
+                           self.systems.remove(system.name)
+                   print "PROFILE REMOVED: %s" % profile.name
+                   self.profiles.remove(profile.name)
+           print "DISTRO REMOVED: %s" % distro.name
+           self.distros.remove(distro.name)
 
    def guess_kickstarts(self):
        """
@@ -132,11 +144,18 @@ class Importer:
                        profile.set_kickstart(kickstart)      
                        # from the kernel path, the tree path is always two up.
                        # FIXME: that's probably not always true
-                       base = os.path.basename(kpath)
-                       base = os.path.basename(base)
+                       dirname = os.path.dirname(kpath)
+                       print "dirname = %s" % dirname
+                       tokens = dirname.split("/")
+                       print "tokens = %s" % tokens
+                       tokens = tokens[:-2]
+                       base = "/".join(tokens)
+                       print "base=%s" % base
                        base = base.replace("/var/www/cobbler/","")
+                       #firstpart = base.split("/")[0] # mirror_name
+                       print "base2=%s" % base
                        print "%s" % base
-                       tree = "tree=http://%s/localmirror/%s/" % (self.settings,server, self.mirror_name, base)
+                       tree = "tree=http://%s/%s" % (self.settings.server, base)
                        print "%s" % tree
                        print "*** ASSIGNING KS META = %s" % tree
                        profile.set_ksmeta(tree)
