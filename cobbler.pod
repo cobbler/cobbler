@@ -247,9 +247,13 @@ Usage:  B<cobbler system enchant --name=<ip|hostname> [--password=<string>]>
 
 =head2 IMPORTING TREES
 
-Cobbler can auto-add distributions and profiles, including optionally assigning basic kickstarts to them, if it can be pointed at a local filesystem tree or rsync mirror.
+Cobbler can auto-add distributions and profiles from remote sources, whether this is an NFS path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.
 
-There are certain restrictions here imposed by the auto-discovery process -- the architecture (x86, i386, ia64, x86_64, etc) must be in the path name.  For kickstarts to be assigned, so must the name of the distribution.  The kernel images must be named "vmlinuz", and initrd's must be named "initrd.img".  Images must reside in a directory tree containing the string "pxe", "pxeboot", or "xen".  All of these restrictions are used to help to "automagically" set up cobbler based on a mirror.  If all of this sounds confusing, just use a Fedora rsync mirror as listed on http://fedora.redhat.com/Download/mirrors.html, and everything should be fine.
+NOTE: The mirror or directory tree must have the basic directory tree layout as a Fedora or Centos mirror normally looks, including directories named things like "pxeboot" or "xen", "i386" or "x86_64", and so forth.  
+
+When importing a rsync mirror, cobbler can try to detect the distribution type and automatically assign kickstarts.  This autodetection is rather primative but can improve as community users contribute kickstarts.  If cobbler is able to guess the architecture, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of "cobbler".  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting after cobbler creates the profile.
+
+If a mirror updated with rsync changes, running the "update.sh" script created in /var/www/cobbler/localmirror/<mirrorname> will update the files and the cobbler metadata appropriately.  
 
 Usage: B<cobbler import --path=<path>>
 
@@ -258,6 +262,8 @@ Usage; B<cobbler import --mirror=<rsync_url> --mirror-name=<string>>
 Example:  B<cobbler import --mirror=rsync://mirror.linux.duke.edu/fedora-linux-core/ --mirror-name=fedora>
 
 Once imported, run a "cobbler list" to see what you've added.
+
+"Cobbler sync" must still be run after an import to get the system ready to provision what was just imported.
 
 =head2 TWEAKING
 

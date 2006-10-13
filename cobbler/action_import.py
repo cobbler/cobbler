@@ -66,7 +66,8 @@ class Importer:
            sub_process.call(cmd,shell=True)
            update_file = os.path.open(os.path.join(self.path,"update.sh"))
            update.file.write("#!/bin/sh")
-           update_file.write(cmd)
+           update_file.write("%s\n" % cmd)
+           update_file.write("cobbler import --path=%s" % self.path)
            update_file.close()
        if self.path is not None:
            arg = None
