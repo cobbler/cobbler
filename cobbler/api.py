@@ -116,13 +116,13 @@ class BootAPI:
         enchant = action_enchant.Enchant(self._config,sysname,password)
         return enchant.run()
 
-    def import_tree(self,tree_path,mirror_url):
+    def import_tree(self,tree_path,mirror_url,mirror_name):
         """
         Automatically import a directory tree full of distribution files.
         Imports either a tree (path) or mirror (ftp/http).
         Mirror support really doesn't exist yet... TBA.
         """
-        importer = action_import.Importer(self._config, tree_path, mirror_url)
+        importer = action_import.Importer(self._config, tree_path, mirror_url, mirror_name)
         return importer.run()
 
     def serialize(self):

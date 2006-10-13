@@ -21,13 +21,26 @@ import traceback
 
 import api
 
+# MATCH_LIST uses path segments of mirror URLs to assign kickstart
+# files.  It's not all that intelligent.
+
+# FIXME: add common FC, RHEL, and Centos path segments
+MATCH_LIST = ( 
+   ( "FC-5/"  , "/etc/cobbler/kickstart_fc56.ks" ),
+   ( "FC-6/"  , "/etc/cobbler/kickstart_fc56.ks" ),
+   ( "RHEL-4/", "/etc/cobbler/kickstart_fc56.ks" ),
+   ( "6/"     , "/etc/cobbler/kickstart_fc56.ks" ),
+   ( "5/"     , "/etc/cobbler/kickstart_fc56.ks" )
+)
+
 class Importer:
 
-   def __init__(self,config,path,mirror):
+   def __init__(self,config,path,mirror,mirror_name):
        # FIXME: consider a basename for the import
        self.config = config
        self.path = path
        self.mirror = mirror
+       self.mirror_name = mirror_name
        if path is None:
            raise cexceptions.CobblerException("import_failed","no path specified")
        self.distros = config.distros()
@@ -39,11 +52,92 @@ class Importer:
            raise cexceptions.CobblerException("import_failed","no path specified")
        if not os.path.isdir(self.path):
            raise cexceptions.CobblerException("import_failed","bad path")
+       if self.mirror is not None:
+           if not self.mirror.startswith("rsync://"):
+               raise cexceptions.CobblerException("import_failed","expecting rsync:// url")
+           if self.mirror_name is None:
+               raise cexceptions.CobblerException("import_failed","must specify --mirror-name")
+           # FIXME:  --delete is a little harsh and should be a command
+           # line option and not the default (?)
+           print "This will take a while..."
+           self.path = "/var/www/cobbler/localmirror/%s" % self.mirror_name
+           cmd = "rsync -az %s /var/www/cobbler/localmirror/%s --progress" % self.mirror_name
+           sub_process.call(cmd,shell=True)
+           update_file = os.path.open(os.path.join(self.path,"update.sh"))
+           update.file.write("#!/bin/sh")
+           update_file.write(cmd)
+           update_file.close()
        if self.path is not None:
            arg = None
            os.path.walk(self.path, self.walker, arg)
+           self.scrub_orphans()
+           self.guess_kickstarts()
            return True
        return False
+
+   def scrub_orphans(self):
+       """
+       This has nothing to do with parentless children that need baths.
+       first: remove any distros with missing kernel or initrd files
+       second: remove any profiles that depend on distros that don't exist
+       systems will be left as orphans as the MAC info may be useful
+       to the sysadmin and may not be recorded elsewhere.  We will report
+       the orphaned systems.  
+       FIXME: this should also be a seperate API command!
+       """
+       print "*** SCRUBBING ORPHANS"
+       # FIXME
+       for distro in self.distros:
+           if not os.path.exists(distro.kernel):
+               print "*** ORPHANED DISTRO: %s" % distro.name
+               self.distros.remove(distro.name)
+               continue
+           if not os.path.exists(distro.initrd):
+               print "*** ORPHANED DISTRO: %s" % distro.name
+               self.distros.remove(distro.initrd)
+               continue
+           print "*** KEEPING: %s" % distro.name
+       for profile in self.profiles:
+           if not self.distros.find(profile.distro):
+               print "*** ORPHANED PROFILE: %s" % profile.name
+               self.profiles.remove(profile.name)
+               continue
+           print "*** KEEPING: %s" % profile.name
+       for system in self.systems:
+           if not self.profiles.find(system.profile):
+               print "*** ORPHANED SYSTEM (NOT DELETED): %s" % system.name
+               continue
+
+   def guess_kickstarts(self):
+       """
+       For all of the profiles in the config w/o a kickstart, look
+       at the kernel path, from that, see if we can guess the distro,
+       and if we can, assign a kickstart if one is available for it.
+       """
+       print "*** GUESSING KICKSTARTS"
+       for profile in self.profiles:
+           distro = self.distros.find(profile.name)
+           kpath = distro.kernel
+           if not kpath.startswith("/var/www/cobbler"):
+               print "*** CAN'T GUESS (kpath): %s" % kpath
+               continue 
+           for entry in MATCH_LIST:
+               (part, kickstart) = entry
+               if kpath.find(part) != -1:
+                   print "*** CONSIDERING: %s" % kickstart
+                   if os.path.exists(kickstart):
+                       print "*** ASSIGNING kickstart: %s" % kickstart
+                       profile.set_kickstart(kickstart)      
+                       # from the kernel path, the tree path is always two up.
+                       # FIXME: that's probably not always true
+                       base = os.path.basename(kpath)
+                       base = os.path.basename(base)
+                       base = base.replace("/var/www/cobbler/","")
+                       print "%s" % base
+                       tree = "tree=http://%s/localmirror/%s/" % (self.settings,server, self.mirror_name, base)
+                       print "%s" % tree
+                       print "*** ASSIGNING KS META = %s" % tree
+                       profile.set_ksmeta(tree)
 
    def walker(self,arg,dirname,fnames):
        # FIXME: requires getting an arch out of the path
@@ -85,26 +179,23 @@ class Importer:
 
    def get_proposed_name(self,dirname):
        # FIXME: how can this name be nicer?
-       str = "_".join(dirname.split("/"))
-       if str.startswith("_"):
-          return str[1:]
-       return str
+       temp  = "_".join(dirname.split("/"))
+       if temp.startswith("_"):
+          temp = temp[1:]
+       return temp
 
    def get_pxe_arch(self,dirname):
-       tokens = os.path.split(dirname)
-       tokens = [x.lower() for x in tokens]
-       for t in tokens:
-          if t == "i386" or t == "386" or t == "x86":
-              return "x86"
-          if t == "x86_64":
-              return "x86_64"
-          if t == "ia64":
-              return "ia64"
+       t = dirname
+       if t.find("x86_64") != -1:
+          return "x86_64"
+       if t.find("ia64") != -1:
+          return "ia64"
+       if t.find("i386") != -1 or t.find("386") != -1 or t.find("x86") != -1:
+          return "x86"
        return "x86"
 
    def is_pxe_or_xen_dir(self,dirname):
-       tokens = os.path.split(dirname)
-       for x in tokens:
-           if x.lower() == "pxe" or x.lower() == "pxeboot" or x.lower() == "xen":
-               return True
+       if dirname.find("pxe") != -1 or dirname.find("xen") != -1:
+           return True
        return False
+

@@ -30,6 +30,7 @@ if __name__ == "__main__":
                                 # (docspath, ['README']),
                                 (wwwpath, []),
                                 (cobpath, ['elilo-3.6-ia64.efi']),
+                                (etcpath, ['kickstart_fc5.ks']),
 				(etcpath, ['dhcp.template']),
                                 (manpath, ['cobbler.1.gz'])
                              ],

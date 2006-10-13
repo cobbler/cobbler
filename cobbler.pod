@@ -247,27 +247,17 @@ Usage:  B<cobbler system enchant --name=<ip|hostname> [--password=<string>]>
 
 =head2 IMPORTING TREES
 
-It is sometimes useful to import an existing directory tree containing a large amount of kernel and initrd images and make "cobbler distro add" and "cobbler profile add" calls for each of them.   The "cobbler import" command automates this, and initially names the distros and profiles based on the paths they were found in.  Profiles created in this way are very basic, and initially do not reference kickstarts.
+Cobbler can auto-add distributions and profiles, including optionally assigning basic kickstarts to them, if it can be pointed at a local filesystem tree or rsync mirror.
 
-For this to work, there can only be one kernel and initrd in each directory, anywhere down in the tree.  
-
-Only images found in directories leaf nodes named "pxe", "pxeboot", or "xen" will be added.  Somewhere higher up in the directory tree, there needs to be a path containing something like "i386" or "x86_64" indicating the architecture.  This is because the import command tries to be smart enough to not import architectures it can't support.
-
-The import command will find new distributions and automatically add them if no existing cobbler distribution references the same files.  Existing cobbler distributions, even ones that no longer point to valid locations, will not be deleted, though warnings will be generated about orphaned distributions.
-
-Import can be run repeatedly with no adverse affect to existing configurations.
-
-Directory tree example (importing /mnt/foo)
-
-/mnt/foo/nightly/rawhide-200610111/tree-ppc <-------------- NOT imported
-/mnt/foo/nightly/rawhide-200610111/tree-i386/images/pxe <-- gets imported
-/mnt/foo/nightly/rawhide-200610111/tree-i386/images/xen <-- gets imported
-/mnt/foo/nightly/rawhide-200610111/tree-ia64/...        <-- gets imported
-/mnt/foo/nightly/rawhide-200610111/tree-x86_64/...      <-- gets imported
-
-Distributions are named after fragments of the path name seperated with underscores instead of slashes.  These names are obviously ugly so you may want to rename them after the fact.
+There are certain restrictions here imposed by the auto-discovery process -- the architecture (x86, i386, ia64, x86_64, etc) must be in the path name.  For kickstarts to be assigned, so must the name of the distribution.  The kernel images must be named "vmlinuz", and initrd's must be named "initrd.img".  Images must reside in a directory tree containing the string "pxe", "pxeboot", or "xen".  All of these restrictions are used to help to "automagically" set up cobbler based on a mirror.  If all of this sounds confusing, just use a Fedora rsync mirror as listed on http://fedora.redhat.com/Download/mirrors.html, and everything should be fine.
 
 Usage: B<cobbler import --path=<path>>
+
+Usage; B<cobbler import --mirror=<rsync_url> --mirror-name=<string>>
+
+Example:  B<cobbler import --mirror=rsync://mirror.linux.duke.edu/fedora-linux-core/ --mirror-name=fedora>
+
+Once imported, run a "cobbler list" to see what you've added.
 
 =head2 TWEAKING
 

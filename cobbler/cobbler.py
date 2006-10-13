@@ -152,6 +152,9 @@ class BootCLI:
         """
         self.temp_path = None
         self.temp_mirror = None
+        self.temp_mirror_name = None
+        def set_mirror_name(a):
+            self.temp_mirror_name = a
         def set_mirror(a):
             self.temp_mirror = a
         def set_path(a):
@@ -160,7 +163,9 @@ class BootCLI:
                 return True
             return False
         def go_import():
-            return self.api.import_tree(self.temp_path,self.temp_mirror)
+            return self.api.import_tree(self.temp_path,
+                self.temp_mirror,
+                self.temp_mirror_name)
         commands = {
             '--path'    : lambda(a): set_path(a),
             '--mirror'  : lambda(a): set_mirror(a)
