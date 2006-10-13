@@ -48,7 +48,7 @@ class Item(serializable.Serializable):
                 return False
         return True
 
-    def load_item(self,datastruct,key):
+    def load_item(self,datastruct,key,default=''):
         """
         Used in subclass from_datastruct functions to load items from
         a hash.  Intented to ease backwards compatibility of config
@@ -56,7 +56,7 @@ class Item(serializable.Serializable):
         """
         if datastruct.has_key(key):
             return datastruct[key]
-        return '' 
+        return default
 
     def to_datastruct(self):
         """

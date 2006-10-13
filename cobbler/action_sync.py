@@ -126,7 +126,9 @@ class BootSync:
             systxt = ""
             counter = counter + 1            
             systxt = "\nhost label%d {\n" % counter
-            if system.pxe_arch == "ia64":
+            profile = self.profiles.find(system.profile)
+            distro  = self.distros.find(profile.distro)
+            if distro.arch == "ia64":
                 # can't use pxelinux.0 anymore
                 systxt = systxt + "    filename \"/%s\";\n" % elilo
             systxt = systxt + "    hardware ethernet %s;\n" % system.name
@@ -388,10 +390,12 @@ class BootSync:
             f1 = self.get_pxe_filename(system.name)
 
             # tftp only
-            if system.pxe_arch == "standard":
+            
+
+            if distro.arch in [ "x86", "x86_64", "standard"]:
                 # pxelinux wants a file named $name under pxelinux.cfg
                 f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
-            if system.pxe_arch == "ia64":
+            if distro.arch == "ia64":
                 # elilo expects files to be named "$name.conf" in the root
                 # and can not do files based on the MAC address
                 if system.pxe_address == "" or system.pxe_address is None or not utils.is_ip(system.pxe_address):
@@ -403,9 +407,9 @@ class BootSync:
                
             f3 = os.path.join(self.settings.webdir, "systems", f1)
 
-            if system.pxe_arch == "standard":
+            if distro.arch in [ "x86", "x86_64", "standard"]:
                 self.write_pxe_file(f2,system,profile,distro,False)
-            if system.pxe_arch == "ia64":
+            if distro.arch == "ia64":
                 self.write_pxe_file(f2,system,profile,distro,True)
             self.write_system_file(f3,system)
 

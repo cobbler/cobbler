@@ -19,12 +19,15 @@ import os
 import os.path
 import traceback
 
+import api
+
 class Importer:
 
-   def __init__(self,config,path):
+   def __init__(self,config,path,mirror):
        # FIXME: consider a basename for the import
        self.config = config
        self.path = path
+       self.mirror = mirror
        if path is None:
            raise cexceptions.CobblerException("import_failed","no path specified")
        self.distros = config.distros()
@@ -32,70 +35,76 @@ class Importer:
        self.systems = config.systems()
 
    def run(self):
+       if self.path is None and self.mirror is None:
+           raise cexceptions.CobblerException("import_failed","no path specified")
        if not os.path.isdir(self.path):
            raise cexceptions.CobblerException("import_failed","bad path")
-       arg = None
-       os.path.walk(self.path, self.walker, arg)
-       return True
+       if self.path is not None:
+           arg = None
+           os.path.walk(self.path, self.walker, arg)
+           return True
+       return False
 
    def walker(self,arg,dirname,fnames):
        # FIXME: requires getting an arch out of the path
        # FIXME: requires making sure the path contains "pxe" somewhere
        print "dirname: %s" % dirname
-       if self.is_leaf(dirname,fnames):
-           print "is_leaf"
-           initrd = None
-           kernel = None
-           for x in fnames:
-               if x.startswith("initrd"):
-                   initrd = os.path.join(dirname,x)
-               if x.startswith("vmlinuz"):
-                   kernel = os.path.join(dirname,x)
-               if initrd is not None and kernel is not None:
-                   print "kernel: %s" % kernel
-                   print "initrd: %s" % initrd
-                   self.consider(dirname,kernel,initrd)
-
-   def consider(self,dirname,kernel,initrd):
-       if not self.is_pxe_dir(dirname):
+       initrd = None
+       kernel = None
+       if not self.is_pxe_or_xen_dir(dirname):
            return
+       for x in fnames:
+           if x.startswith("initrd"):
+               initrd = os.path.join(dirname,x)
+           if x.startswith("vmlinuz"):
+               kernel = os.path.join(dirname,x)
+           if initrd is not None and kernel is not None:
+               self.add_entry(dirname,kernel,initrd)
+
+   def add_entry(self,dirname,kernel,initrd):
        pxe_arch = self.get_pxe_arch(dirname)
        name = self.get_proposed_name(dirname)
        if self.distros.find(name) is not None:
            print "already registered: %s" % name
        else:
-           print "adding: %s" % name
-           # FIXME
+           distro = self.config.new_distro()
+           distro.set_name(name)
+           distro.set_kernel(kernel)
+           distro.set_initrd(initrd)
+           distro.set_arch(pxe_arch)
+           self.distros.add(distro)
+           print "*** DISTRO ADDED ***"
            if self.profiles.find(name) is not None:
                print "already registered: %s" % name
            else:
-               print "adding: %s" % name
-               # FIXME
- 
+               profile = self.config.new_profile()
+               profile.set_name(name)
+               profile.set_distro(name)
+               self.profiles.add(profile)
+               print "*** PROFILE ADDED ***"
+
    def get_proposed_name(self,dirname):
-       # FIXME
+       # FIXME: how can this name be nicer?
        str = "_".join(dirname.split("/"))
        if str.startswith("_"):
-          return str[1:-1]
+          return str[1:]
        return str
 
    def get_pxe_arch(self,dirname):
-       # FIXME
+       tokens = os.path.split(dirname)
+       tokens = [x.lower() for x in tokens]
+       for t in tokens:
+          if t == "i386" or t == "386" or t == "x86":
+              return "x86"
+          if t == "x86_64":
+              return "x86_64"
+          if t == "ia64":
+              return "ia64"
        return "x86"
 
-   def is_pxe_dir(self,dirname):
+   def is_pxe_or_xen_dir(self,dirname):
        tokens = os.path.split(dirname)
        for x in tokens:
-           if x.lower() == "pxe" or x.lower() == "pxeboot":
+           if x.lower() == "pxe" or x.lower() == "pxeboot" or x.lower() == "xen":
                return True
-       print "not a pxe directory: %s" % dirname
        return False
-
-   def is_leaf(self,dirname,fnames):
-       for x in fnames:
-          if os.path.isdir(x):
-              print "not a leaf directory: %s" % dirname
-              return False
-       return True
- 
-

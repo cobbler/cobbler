@@ -30,7 +30,7 @@ For PXE, if DHCP is run from the cobbler server, the dhcp configuration file sho
 
 =head2 ADDING A DISTRIBUTION
 
-B<cobbler distro add --name=<string> --kernel=<path> --initrd=<path> [--kopts=<string>] [--ksmeta=<string>]>
+B<cobbler distro add --name=<string> --kernel=<path> --initrd=<path> [--kopts=<string>] [--ksmeta=<string>] [--arch=<x86|x86_64|ia64>]
 
 =over
 
@@ -53,6 +53,14 @@ an absolute filesystem path to a initrd image
 (optional) sets kernel arguments.
 
 Example: --ksmeta="foo=bar baz=3 asdf"
+
+=item arch
+
+(optional) sets the architecture for the PXE bootloader
+
+x86 and x86_64 are interchangable, both use syslinux.
+
+ia64 uses the IA64 build of elilo.
 
 =item ksmeta
 
@@ -105,7 +113,7 @@ the name of a previously defined cobbler distribution
 
 =head2 ADDING A SYSTEM
 
-B<cobbler system add --name=<ip|mac|hostname> --profile=<string> [--kopts=<string>] [--pxe-arch=<standard|ia64>] [--pxe-address=<string>] [--ksmeta=<string>]
+B<cobbler system add --name=<ip|mac|hostname> --profile=<string> [--kopts=<string>] [--pxe-address=<string>] [--ksmeta=<string>]
 =over
 
 =over
@@ -119,17 +127,6 @@ The system name must be either a currently-resolvable hostname, an IP address, o
 
 When defining Xen systems, using a MAC address causes the Xen MAC address to be used for creation,
 so that is the preferred usage.
-
-=item pxe-arch
-
-Advanced feature.  Applies only if manage-dhcp is set to 1 in /var/lib/cobbler/settings and only for PXE provisioning.
-
-Setting the pxe-arch to "ia64" will use elilo.efi as the boot loader instead of 
-"pxelinux.0".  The default, "standard", uses "pxelinux.0", which does not work for IA-64 (Itanium) systems.
-
-When using this setting, be sure the "--name" given to the "system add" command must be a MAC address or no per-system record in dhcpd.conf can be generated..
-
-Example: --pxe-arch=ia64
 
 =item pxe-address
 
@@ -234,7 +231,7 @@ If this flag is set, it enables two things:
 
 Per-system records in DHCP will only be written if the cobbler system name is a MAC address, so it's recommended that those be used if manage_dhcp is turned on.
 
-Itanium systems also need to be specified by the MAC address, and in addition need to be given the "--pxe-arch=ia64" parameter.
+Itanium systems names also need to be specified by the MAC address, and their distribution needs to be created with the "--arch=ia64" parameter.
 
 The dhcpd.conf file will be updated each time "cobbler sync" is run.
 

@@ -27,7 +27,6 @@ class System(item.Item):
         self.profile = None # a name, not a reference
         self.kernel_options = ""
         self.ks_meta = ""
-        self.pxe_arch = "standard"
         self.pxe_address = ""
 
     def from_datastruct(self,seed_data):
@@ -35,7 +34,6 @@ class System(item.Item):
         self.profile = self.load_item(seed_data,'profile')
         self.kernel_options = self.load_item(seed_data,'kernel_options')
         self.ks_meta = self.load_item(seed_data,'ks_meta')
-        self.pxe_arch = self.load_item(seed_data,'pxe_arch')
         self.pxe_address = self.load_item(seed_data,'pxe_address')
         return self
 
@@ -75,22 +73,6 @@ class System(item.Item):
             return True
         raise cexceptions.CobblerException("exc_profile")
 
-    def set_pxe_arch(self,new_arch):
-        """
-        The PXE architecture field is naturally relevant to PXE only.
-        Should someone have Itanium machines on a network, having 
-        pxelinux.0 be the only option in the config file causes 
-        problems.  Using an alternative architecture here allows
-        for dhcpd.conf templating to "do the right thing" with
-        those systems.  If manage_dhcp is off in /var/lib/cobbler/settings
-        this parameter is meaningless.  It only has value when
-        generating a dhcp file.
-        """
-        if new_arch == "standard" or new_arch == "ia64":
-            self.pxe_arch = new_arch
-            return True
-        raise cexceptions.CobblerException("exc_pxe_arch")
-
     def is_valid(self):
         """
 	A system is valid when it contains a valid name and a profile.
@@ -107,7 +89,6 @@ class System(item.Item):
            'profile'  : self.profile,
            'kernel_options' : self.kernel_options,
            'ks_meta'  : self.ks_meta,
-           'pxe_arch' : self.pxe_arch,
            'pxe_address' : self.pxe_address
         }
 
@@ -116,7 +97,6 @@ class System(item.Item):
         buf = buf + "profile         : %s\n" % self.profile
         buf = buf + "kernel options  : %s\n" % self.kernel_options
         buf = buf + "ks metadata     : %s\n" % self.ks_meta
-        buf = buf + "pxe arch        : %s\n" % self.pxe_arch
         buf = buf + "pxe address     : %s\n" % self.pxe_address
         return buf
 

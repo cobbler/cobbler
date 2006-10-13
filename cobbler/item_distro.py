@@ -38,6 +38,7 @@ class Distro(item.Item):
         self.initrd = None
         self.kernel_options = ""
         self.ks_meta = ""
+        self.arch = "x86"
 
     def from_datastruct(self,seed_data):
         """
@@ -48,6 +49,7 @@ class Distro(item.Item):
         self.initrd         = self.load_item(seed_data,'initrd')
         self.kernel_options = self.load_item(seed_data,'kernel_options')
         self.ks_meta        = self.load_item(seed_data,'ks_meta')
+        self.arch           = self.load_item(seed_data,'arch',"x86")
         return self
 
     def set_kernel(self,kernel):
@@ -73,6 +75,28 @@ class Distro(item.Item):
             return True
         raise cexceptions.CobblerException("no_initrd")
 
+    def set_arch(self,arch):
+        """
+        The field is mainly relevant to PXE provisioning.
+
+        Should someone have Itanium machines on a network, having
+        syslinux (pxelinux.0) be the only option in the config file causes
+        problems.  
+
+        Using an alternative distro type allows for dhcpd.conf templating 
+        to "do the right thing" with those systems -- this also relates to 
+        bootloader configuration files which have different syntax for different
+        distro types (because of the bootloaders).
+
+        This field is named "arch" because mainly on Linux, we only care about
+        the architecture, though if (in the future) new provisioning types
+        are added, an arch value might be something like "bsd_x86".
+        """
+        if arch in [ "standard", "ia64", "x86", "x86_64" ]:
+            self.arch = arch
+            return True
+        raise cexceptions.CobblerException("exc_pxe_arch")
+
     def is_valid(self):
         """
 	A distro requires that the kernel and initrd be set.  All
@@ -91,7 +115,8 @@ class Distro(item.Item):
            'kernel': self.kernel,
            'initrd' : self.initrd,
            'kernel_options' : self.kernel_options,
-           'ks_meta' : self.ks_meta
+           'ks_meta' : self.ks_meta,
+           'arch' : self.arch
         }
 
     def printable(self, id):
@@ -112,6 +137,7 @@ class Distro(item.Item):
         buf = buf + "kernel          : %s\n" % kstr
         buf = buf + "initrd          : %s\n" % istr
         buf = buf + "kernel options  : %s\n" % self.kernel_options
+        buf = buf + "architecture    : %s\n" % self.arch
         buf = buf + "ks metadata     : %s\n" % self.ks_meta
         return buf
 

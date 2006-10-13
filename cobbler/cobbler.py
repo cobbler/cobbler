@@ -151,15 +151,19 @@ class BootCLI:
         'cobbler
         """
         self.temp_path = None
+        self.temp_mirror = None
+        def set_mirror(a):
+            self.temp_mirror = a
         def set_path(a):
             if os.path.isdir(a):
                 self.temp_path = a
                 return True
             return False
         def go_import():
-            return self.api.import_tree(self.temp_path)
+            return self.api.import_tree(self.temp_path,self.temp_mirror)
         commands = {
-            '--path'  : lambda(a): set_path(a)
+            '--path'    : lambda(a): set_path(a),
+            '--mirror'  : lambda(a): set_mirror(a)
         }
         on_ok = lambda: go_import()
         return self.apply_args(args,commands,on_ok)
@@ -213,6 +217,7 @@ class BootCLI:
             '--kernel'    :  lambda(a) : distro.set_kernel(a),
             '--initrd'    :  lambda(a) : distro.set_initrd(a),
             '--kopts'     :  lambda(a) : distro.set_kernel_options(a),
+            '--arch'      :  lambda(a) : distro.set_arch(a),
             '--ksmeta'    :  lambda(a) : distro.set_ksmeta(a)
         }
         on_ok = lambda: self.api.distros().add(distro)
