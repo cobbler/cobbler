@@ -41,6 +41,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 %{_bindir}/cobbler
 %dir /etc/cobbler
+/etc/cobbler/*.ks
 /etc/cobbler/dhcp.template
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/yaml
@@ -73,7 +74,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 - Lots of new PXE and dhcpd.conf upstream, elilo.efi now included.
 
 * Thu Sep 21 2006 Michael DeHaan <mdehaan@redhat.com> - 0.1.1-8
-- Added doc files to %doc, removed INSTALLED_FILES code
+- Added doc files to doc, removed INSTALLED_FILES code
 
 * Wed Sep 20 2006 Michael DeHaan <mdehaan@redhat.com> - 0.1.1-7
 - Upstream updates

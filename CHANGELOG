@@ -27,7 +27,7 @@ Cobbler CHANGELOG
 - dhcpd.conf MAC & hostname association features
 
 * Thu Sep 21 2006 - 0.1.1-8
-- (RPM) Added doc files to %doc, removed INSTALLED_FILES
+- (RPM) Added doc files to doc section, removed INSTALLED_FILES
 
 * Wed Sep 20 2006 - 0.1.1-7
 - Split HTTP and TFTP content to seperate directories
