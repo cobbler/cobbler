@@ -141,12 +141,11 @@ class Importer:
            distro = self.distros.find(profile.name)
            kpath = distro.kernel
            if not kpath.startswith("/var/www/cobbler"):
-               print "*** CAN'T GUESS (kpath): %s" % kpath
+               print "*** CAN'T GUESS WHAT KICKSTART TO ASSIGN: %s" % kpath
                continue
            for entry in MATCH_LIST:
                (part, kickstart) = entry
                if kpath.find(part) != -1:
-                   print "*** CONSIDERING: %s" % kickstart
                    if os.path.exists(kickstart):
                        print "*** ASSIGNING kickstart: %s" % kickstart
                        profile.set_kickstart(kickstart)
@@ -165,7 +164,7 @@ class Importer:
                        print "%s" % base
                        tree = "tree=http://%s/%s" % (self.settings.server, base)
                        print "%s" % tree
-                       print "*** ASSIGNING KS META = %s" % tree
+                       print "*** ASSIGNING KICKSTART TREE = %s" % tree
                        profile.set_ksmeta(tree)
 
    def walker(self,arg,dirname,fnames):
