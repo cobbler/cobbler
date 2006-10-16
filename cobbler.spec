@@ -54,7 +54,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
-* Thr Oct 12 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.4-1
+* Thu Oct 12 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.4-1
 - Upstream features and bugfixes (see CHANGELOG)
 
 * Mon Oct 9 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.3-1

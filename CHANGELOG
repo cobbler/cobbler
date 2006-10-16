@@ -17,7 +17,7 @@ Cobbler CHANGELOG
 - bugfix: added next-server line for per-MAC dhcp configs
 - bugfix: fixed manpage errors
 
-* Thr Sep 28 2006 - 0.2.1-1
+* Thu Sep 28 2006 - 0.2.1-1
 - New ability to "enchant" remote systems (see NEWS)
 - Misc. bugfixes
 
@@ -26,7 +26,7 @@ Cobbler CHANGELOG
 - IA64 support (see NEWS)
 - dhcpd.conf MAC & hostname association features
 
-* Thr Sep 21 2006 - 0.1.1-8
+* Thu Sep 21 2006 - 0.1.1-8
 - (RPM) Added doc files to %doc, removed INSTALLED_FILES 
 
 * Wed Sep 20 2006 - 0.1.1-7
