@@ -18,6 +18,7 @@ import cexceptions
 import os
 import os.path
 import traceback
+import sub_process
 
 import api
 
@@ -75,7 +76,7 @@ class Importer:
            cmd = "rsync -az %s /var/www/cobbler/localmirror/%s --progress" % self.mirror_name
            sub_process.call(cmd,shell=True)
            update_file = os.path.open(os.path.join(self.path,"update.sh"))
-           update.file.write("#!/bin/sh")
+           update_file.write("#!/bin/sh")
            update_file.write("%s\n" % cmd)
            update_file.write("cobbler import --path=%s" % self.path)
            update_file.close()

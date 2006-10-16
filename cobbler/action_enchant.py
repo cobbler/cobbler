@@ -31,7 +31,7 @@ class Enchant:
        self.username = "root"
        self.sysname = sysname
        if sysname is None:
-           raise cexception.CobblerException("enchant_failed","no system name specified")
+           raise cexceptions.CobblerException("enchant_failed","no system name specified")
        self.profile = ''
        self.password = password
 

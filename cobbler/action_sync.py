@@ -313,7 +313,7 @@ class BootSync:
                     ))
                     self.apply_template(kickstart_path, meta, dest)
                 except:
-                    msg = "err_kickstart2" % (g.kickstart, dest)
+                    msg = "err_kickstart2" % (s.kickstart, dest)
                     raise cexpcetions.CobblerException(msg)
 
     def apply_template(self, kickstart_input, metadata, out_path):
