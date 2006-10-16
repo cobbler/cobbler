@@ -56,10 +56,10 @@ class System(item.Item):
         # restricting to address as IP only in dhcpd.conf is probably
         # incorrect ... some people may want to pin the hostname instead.
         # doing so, however, doesn't allow dhcpd.conf to be managed
-        # by cobbler (since elilo can't do MAC addresses) -- this is 
+        # by cobbler (since elilo can't do MAC addresses) -- this is
         # covered in the man page.
         if not utils.is_ip(address) and not utils.is_mac(address):
-            raise cexceptions.CobblerException("bad_ip")    
+            raise cexceptions.CobblerException("bad_ip")
         self.pxe_address = address
         return True
 

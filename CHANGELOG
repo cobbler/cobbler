@@ -27,12 +27,12 @@ Cobbler CHANGELOG
 - dhcpd.conf MAC & hostname association features
 
 * Thu Sep 21 2006 - 0.1.1-8
-- (RPM) Added doc files to %doc, removed INSTALLED_FILES 
+- (RPM) Added doc files to %doc, removed INSTALLED_FILES
 
 * Wed Sep 20 2006 - 0.1.1-7
 - Split HTTP and TFTP content to seperate directories
   to enable running in SELinux targetted/enforcing mode.
-- Make the Xen MAC address a property of a system, not a profile 
+- Make the Xen MAC address a property of a system, not a profile
 - Misc. fixes, mainly along the error path
 
 * Fri Sep 15 2006 - 0.1.1-6

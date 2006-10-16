@@ -34,7 +34,7 @@ class Enchant:
            raise cexception.CobblerException("enchant_failed","no system name specified")
        self.profile = ''
        self.password = password
- 
+
    def call(self,cmd):
        """
        Invoke something over SSH.

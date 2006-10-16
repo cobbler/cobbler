@@ -29,7 +29,7 @@ import api
 # for FC5 is sent everywhere.  That probably WON'T work in most
 # places even though it's a minimalistic kickstart.  This will
 # get patched over time.
-MATCH_LIST = ( 
+MATCH_LIST = (
    ( "1/"       , "/etc/cobbler/kickstart_fc5.ks" ),
    ( "2/"       , "/etc/cobbler/kickstart_fc5.ks" ),
    ( "3/"       , "/etc/cobbler/kickstart_fc5.ks" ),
@@ -94,7 +94,7 @@ class Importer:
        second: remove any profiles that depend on distros that don't exist
        systems will be left as orphans as the MAC info may be useful
        to the sysadmin and may not be recorded elsewhere.  We will report
-       the orphaned systems.  
+       the orphaned systems.
        FIXME: this should also be a seperate API command!
        """
        print "*** SCRUBBING ORPHANS"
@@ -134,14 +134,14 @@ class Importer:
            kpath = distro.kernel
            if not kpath.startswith("/var/www/cobbler"):
                print "*** CAN'T GUESS (kpath): %s" % kpath
-               continue 
+               continue
            for entry in MATCH_LIST:
                (part, kickstart) = entry
                if kpath.find(part) != -1:
                    print "*** CONSIDERING: %s" % kickstart
                    if os.path.exists(kickstart):
                        print "*** ASSIGNING kickstart: %s" % kickstart
-                       profile.set_kickstart(kickstart)      
+                       profile.set_kickstart(kickstart)
                        # from the kernel path, the tree path is always two up.
                        # FIXME: that's probably not always true
                        dirname = os.path.dirname(kpath)

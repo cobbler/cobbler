@@ -2,7 +2,7 @@ cobbler TODO list
 
 need to fix:
   -  turn on locking in production
-  -  For "enchant", try to verify that syslinux and mkinitrd are installed on the remote.    
+  -  For "enchant", try to verify that syslinux and mkinitrd are installed on the remote.
   -  "enchant" would be better if it didn't need to know the password
   -  "enchant" has issues with ssh key changes locking it out
   -  "enchant" should be written in a more distro-agnostic way.
@@ -17,12 +17,12 @@ making things more standardized/flexible:
      and make the multiple-bootloader system more plugin oriented to allow
      for alternative bootloaders (not neccessarily kickstart related)
      to be added
-  -  look into what it would take to make kickstart *more optional* 
+  -  look into what it would take to make kickstart *more optional*
 
 bells and whistles:
   -  Wake on lan integration for PXE
   -  Integration with stonnith or other up/down devices?
-   
+
 internal code cleanup:
   -  an argument parsing overhaul is probably due
   -  remove the cobbler_msg logic since i18n isn't likely

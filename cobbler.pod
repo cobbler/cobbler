@@ -10,9 +10,9 @@ cobbler command [subcommand] [--arg1=] [--arg2=]
 
 Cobbler manages provisioning using a tiered concept of Distributions, Profiles, and Systems.
 
-Distributions contain information about what kernel and initrd are used, along with various other information, such as required kernel parameters.  
+Distributions contain information about what kernel and initrd are used, along with various other information, such as required kernel parameters.
 
-Profiles associate a Distribution with a kickstart file and optionally customize it further.  
+Profiles associate a Distribution with a kickstart file and optionally customize it further.
 
 Systems associate a hostname, IP, or MAC with a distribution and optionally customize the Profile further.
 
@@ -22,11 +22,11 @@ Systems associate a hostname, IP, or MAC with a distribution and optionally cust
 
 Running "cobbler check" after installation will verify that the prerequisites are installed and configured correctly.
 
-Any problems detected should be corrected, with the potential exception of DHCP related warnings.  
+Any problems detected should be corrected, with the potential exception of DHCP related warnings.
 
 It is especially important that the server name be accurate in cobbler.conf
 
-For PXE, if DHCP is run from the cobbler server, the dhcp configuration file should be changed as suggested.  If DHCP is not run locally, the "next-server" field on the DHCP server should point to the cobbler server's IP and the filename should be set to "pxelinux.0".   
+For PXE, if DHCP is run from the cobbler server, the dhcp configuration file should be changed as suggested.  If DHCP is not run locally, the "next-server" field on the DHCP server should point to the cobbler server's IP and the filename should be set to "pxelinux.0".
 
 =head2 ADDING A DISTRIBUTION
 
@@ -66,7 +66,7 @@ ia64 uses the IA64 build of elilo.
 
 (optional)
 
-This is an advanced feature that sets kickstart variables to substitute, thus enabling kickstart files to be treated as templates.  
+This is an advanced feature that sets kickstart variables to substitute, thus enabling kickstart files to be treated as templates.
 
 Example: --ksmeta="foo=bar baz=3 asdf"
 
@@ -135,7 +135,7 @@ Advanced feature.
 If cobbler is configured to generate the dhcpd.conf file, use this
 setting to pin a certain hostname or IP to a given MAC address.  This corresponds to the "fixed-address" field in dhcpd.conf.
 
-When using this setting for IA64 machines, be sure that the "--name" given to the "system add" command is a MAC address or no per-system record in dhcpd.conf can be generated. 
+When using this setting for IA64 machines, be sure that the "--name" given to the "system add" command is a MAC address or no per-system record in dhcpd.conf can be generated.
 
 Example: ---pxe-address=192.168.1.50
 
@@ -147,7 +147,7 @@ NOTE: Due to a limitation in elilo (IA64 bootloader), this parameter must ALSO b
 
 B<cobbler list>
 
-Prints the current cobbler configuration for systems, profiles, and groups.  
+Prints the current cobbler configuration for systems, profiles, and groups.
 
 =head2 DELETING CONFIGURATION ENTRIES
 
@@ -162,7 +162,7 @@ B<cobbler system remove --name=<string>>
 B<cobbler sync [--dryrun]>
 
 Configurations are saved in /var/lib/cobbler.  Changes made with any commands are not
-applied until 'cobbler sync' is run.   Any errors in the configuration will be reported 
+applied until 'cobbler sync' is run.   Any errors in the configuration will be reported
 during the sync process.
 
 =head1 EXAMPLES
@@ -215,7 +215,7 @@ To apply these changes, "cobbler sync" must be run to generate custom kickstarts
 
 For NFS and HTTP URLs, the "--ksmeta" options will have no effect. This is a good reason to let
 cobbler manage your kickstart files, though the URL functionality is provided for integration with
-legacy infrastructure, possibly including web apps that already generate kickstarts. 
+legacy infrastructure, possibly including web apps that already generate kickstarts.
 
 =head2 DHCP CONFIGURATION MANAGEMENT
 
@@ -237,7 +237,7 @@ The dhcpd.conf file will be updated each time "cobbler sync" is run.
 
 =head2 ENCHANT
 
-While the normal provisioning procedure is either to PXE bare-metal, or use koan to do something else (kickstart an existing system or deploy Xen), cobbler contains yet another option, called "enchant".  
+While the normal provisioning procedure is either to PXE bare-metal, or use koan to do something else (kickstart an existing system or deploy Xen), cobbler contains yet another option, called "enchant".
 
 Enchant takes a system configuration that has already been defined (be sure to run "cobbler sync" before using "cobbler enchant") and applies it to a remote system that may not have koan installed.  This is all done from the cobbler server using SSH.  The remote system will reboot prior to configuring the bootloader to kickstart.
 
@@ -249,11 +249,11 @@ Usage:  B<cobbler system enchant --name=<ip|hostname> [--password=<string>]>
 
 Cobbler can auto-add distributions and profiles from remote sources, whether this is an NFS path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.
 
-NOTE: The mirror or directory tree must have the basic directory tree layout as a Fedora or Centos mirror normally looks, including directories named things like "pxeboot" or "xen", "i386" or "x86_64", and so forth.  
+NOTE: The mirror or directory tree must have the basic directory tree layout as a Fedora or Centos mirror normally looks, including directories named things like "pxeboot" or "xen", "i386" or "x86_64", and so forth.
 
 When importing a rsync mirror, cobbler can try to detect the distribution type and automatically assign kickstarts.  This autodetection is rather primative but can improve as community users contribute kickstarts.  If cobbler is able to guess the architecture, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of "cobbler".  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting after cobbler creates the profile.
 
-If a mirror updated with rsync changes, running the "update.sh" script created in /var/www/cobbler/localmirror/<mirrorname> will update the files and the cobbler metadata appropriately.  
+If a mirror updated with rsync changes, running the "update.sh" script created in /var/www/cobbler/localmirror/<mirrorname> will update the files and the cobbler metadata appropriately.
 
 Usage: B<cobbler import --path=<path>>
 

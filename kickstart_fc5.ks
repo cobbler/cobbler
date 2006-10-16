@@ -1,14 +1,14 @@
 #platform=x86, AMD64, or Intel EM64T
 # System authorization information
-auth  --useshadow  --enablemd5 
+auth  --useshadow  --enablemd5
 # System bootloader configuration
 bootloader --location=mbr
 # Partition clearing information
-clearpart --all --initlabel 
+clearpart --all --initlabel
 # Use text mode install
 text
 # Firewall configuration
-firewall --enabled   
+firewall --enabled
 # Run the Setup Agent on first boot
 firstboot --disable
 # System keyboard

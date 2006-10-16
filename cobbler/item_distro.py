@@ -81,10 +81,10 @@ class Distro(item.Item):
 
         Should someone have Itanium machines on a network, having
         syslinux (pxelinux.0) be the only option in the config file causes
-        problems.  
+        problems.
 
-        Using an alternative distro type allows for dhcpd.conf templating 
-        to "do the right thing" with those systems -- this also relates to 
+        Using an alternative distro type allows for dhcpd.conf templating
+        to "do the right thing" with those systems -- this also relates to
         bootloader configuration files which have different syntax for different
         distro types (because of the bootloaders).
 

@@ -312,7 +312,7 @@ class TestImport(BootTest):
           "import_testdata_RHEL-4_U4_AS_x86_64_tree_images_pxeboot" : [0, 1, "x86_64" ],
           "import_testdata_core_5_i386_os_images_pxeboot" : [ 0, 1, "x86" ],
           "import_testdata_core_5_i386_os_images_xen" : [0, 1, "x86" ],
-       }       
+       }
 
        # first go through all found distros and count the matches
        for distro in self.api.distros():
@@ -326,12 +326,12 @@ class TestImport(BootTest):
                    got_it = True
            if not got_it: # hasn't :)
                self.fail("imported foreign distro: %s" % distro.name)
-           
+
        # now check the required number of matches vs actual.
        # this checks to ensure unsupported arches aren't imported and there
        # are no duplicate imports
        for match in haystacks.keys():
-           found = haystacks[match] 
+           found = haystacks[match]
            self.failUnlessEqual(found[0], found[1], "mismatched counts: %d vs %d for %s" % (found[0], found[1], match))
 
 if __name__ == "__main__":

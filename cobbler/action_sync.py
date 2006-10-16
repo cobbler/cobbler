@@ -72,7 +72,7 @@ class BootSync:
                if retcode != 0:
                    print >>sys.stderr, "Warning: dhcpd restart failed"
             except OSError, e:
-               print >>sys.stderr, "Warning: dhcpd restart failed: ", e 
+               print >>sys.stderr, "Warning: dhcpd restart failed: ", e
         return True
 
     def copy_koan(self):
@@ -89,7 +89,7 @@ class BootSync:
         """
         Copy bootloaders to the configured tftpboot directory
         NOTE: we support different arch's if defined in
-        /var/lib/cobbler/settings. 
+        /var/lib/cobbler/settings.
         """
         for loader in self.settings.bootloaders.keys():
             path = self.settings.bootloaders[loader]
@@ -110,8 +110,8 @@ class BootSync:
         f1 = self.open_file("/etc/dhcpd.conf","w+")
         template_data = f2.read()
         f2.close()
-       
-        # build each per-system definition 
+
+        # build each per-system definition
         system_definitions = ""
         counter = 0
         elilo = os.path.basename(self.settings.bootloaders["ia64"])
@@ -124,7 +124,7 @@ class BootSync:
                 # the MAC as the system name.
                 continue
             systxt = ""
-            counter = counter + 1            
+            counter = counter + 1
             systxt = "\nhost label%d {\n" % counter
             profile = self.profiles.find(system.profile)
             distro  = self.distros.find(profile.distro)
@@ -179,7 +179,7 @@ class BootSync:
     def clean_trees(self):
         """
         Delete any previously built pxelinux.cfg tree and xen tree info.
-  
+
         Note: for SELinux reasons, some information goes in /tftpboot, some in /var/www/cobbler
         and some must be duplicated in both.  This is because PXE needs tftp, and auto-kickstart
         and Xen operations need http.   Only the kernel and initrd images are duplicated, which is
@@ -346,7 +346,7 @@ class BootSync:
         Usually it's just one or the other.
 
         """
-    
+
         self.sync_log(cobbler_msg.lookup("sync_buildtree"))
         self.write_listings()
 
@@ -390,7 +390,7 @@ class BootSync:
             f1 = self.get_pxe_filename(system.name)
 
             # tftp only
-            
+
 
             if distro.arch in [ "x86", "x86_64", "standard"]:
                 # pxelinux wants a file named $name under pxelinux.cfg
@@ -401,10 +401,10 @@ class BootSync:
                 if system.pxe_address == "" or system.pxe_address is None or not utils.is_ip(system.pxe_address):
                     raise cexceptions.CobblerException("exc_ia64_noip",system.name)
 
-                
-                filename = "%s.conf" % self.get_pxe_filename(system.pxe_address) 
+
+                filename = "%s.conf" % self.get_pxe_filename(system.pxe_address)
                 f2 = os.path.join(self.settings.tftpboot, filename)
-               
+
             f3 = os.path.join(self.settings.webdir, "systems", f1)
 
             if distro.arch in [ "x86", "x86_64", "standard"]:
@@ -461,7 +461,7 @@ class BootSync:
             self.tee(fd,"\tinitrd=%s\n" % initrd_path)
             self.tee(fd,"\tread-only\n")
             self.tee(fd,"\troot=/dev/ram\n")
-        
+
         # now build the kernel command line
         kopts = self.blend_options(True,(
            self.settings.kernel_options,
@@ -477,7 +477,7 @@ class BootSync:
         # for ia64, it's already done
         if not is_ia64:
             append_line = "%s initrd=%s" % (append_line,initrd_path)
-       
+
         # kickstart path (if kickstart is used)
         if kickstart_path is not None and kickstart_path != "":
             # if kickstart path is on disk, we've already copied it into
@@ -600,7 +600,7 @@ class BootSync:
            return shutil.copy(src,dst)
        except IOError, ioe:
            raise cexceptions.CobblerException("need_perms2",src,dst)
-   
+
     def rmfile(self,path):
        """
        For dryrun support.  potentially unlink a file.

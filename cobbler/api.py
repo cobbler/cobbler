@@ -111,7 +111,7 @@ class BootAPI:
     def enchant(self,sysname,password):
         """
         Apply a system profile to a running remote system, replacing
-        the current OS.  
+        the current OS.
         """
         enchant = action_enchant.Enchant(self._config,sysname,password)
         return enchant.run()

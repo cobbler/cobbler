@@ -125,7 +125,7 @@ class BootCLI:
 
     def system_enchant(self,args):
         """
-        Reinstall a system:  
+        Reinstall a system:
         'cobbler system enchant --name='foo' [--password='foo']
         """
         self.temp_password = ''
