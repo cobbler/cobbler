@@ -143,9 +143,9 @@ class Profile(item.Item):
         # yes, we *do* want to explicitly test against True/False
         # the string "foosball" is True, and that is not a valid argument for this function
         try:
-            if (truthiness == False or truthiness.lower() == 'false'):
+            if (not truthiness or truthiness.lower() == 'false'):
                 self.xen_paravirt = False
-            elif (truthiness == True or truthiness.lower() == 'true'):
+            elif (truthiness or truthiness.lower() == 'true'):
                 self.xen_paravirt = True
             else:
                 return cexceptions.CobblerException("exc_xen_para")

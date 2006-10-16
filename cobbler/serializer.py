@@ -63,7 +63,7 @@ def deserialize(obj):
         if not os.path.exists(filename):
             return True
         else:
-            raise CobblerException("need_perms",obj.filename())
+            raise cexceptions.CobblerException("need_perms",obj.filename())
     data = fd.read()
     datastruct = yaml.load(data).next()  # first record
     # leftover from PySyck choke detection.  Not relevant?

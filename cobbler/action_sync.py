@@ -280,8 +280,8 @@ class BootSync:
                    self.apply_template(kickstart_path, meta, dest)
               except:
                    traceback.print_exc() # leave this in, for now...
-                   msg = "err_kickstart2" % (kickstart_path,dest)
-                   raise cexceptions.CobblerException(msg)
+                   msg = "err_kickstart2"
+                   raise cexceptions.CobblerException(msg,kickstart_path,dest)
 
     def validate_kickstarts_per_system(self):
         """
@@ -313,8 +313,8 @@ class BootSync:
                     ))
                     self.apply_template(kickstart_path, meta, dest)
                 except:
-                    msg = "err_kickstart2" % (s.kickstart, dest)
-                    raise cexpcetions.CobblerException(msg)
+                    msg = "err_kickstart2"
+                    raise cexceptions.CobblerException(msg,s.kickstart,dest)
 
     def apply_template(self, kickstart_input, metadata, out_path):
         """
