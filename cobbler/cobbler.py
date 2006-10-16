@@ -53,7 +53,7 @@ class BootCLI:
             'delete'       :  self.system_remove,
             'remove'       :  self.system_remove,
             'enchant'      :  self.system_enchant,
-            'transmogrify' :  self.system_enchant,
+            'transmogrify' :  self.system_enchant
         }
         self.commands['toplevel'] = {
             'check'    : self.check,
