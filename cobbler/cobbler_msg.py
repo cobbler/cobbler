@@ -1,3 +1,5 @@
+# -*- coding: iso-8859-15 -*-
+
 """
 Messages used by cobbler.
 This module encapsulates strings so they can
@@ -12,6 +14,35 @@ general public license.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+"""
+
+USAGE = """cobbler provisioning tool
+basic usage guide / see "man cobbler" for more.
+
+cobbler check
+
+cobbler distro add --name=<string> --kernel=<path> --initrd=<path>
+    [--kopts=<string>] [--ksmeta=<string>] [--arch=<x86|x86_64|ia64>]
+
+cobbler profile add --name=<string --distro=<string>
+    [--kick-start=<url>] [--kopts=<string>] [--ksmeta=<string>]
+    [--xen-name=<string>] [--xen-file-size=<gigabytes>]
+    [--xen-ram=<megabytes>]
+
+cobbler system add --name=<ip│mac│hostname|default> --profile=<string>
+    [--pxe-address=<string>]
+    [--ksmeta=<string>]
+
+cobbler import --mirror=rsync://<address> --mirror-name=<string>
+cobbler import --path=<path>
+
+cobbler [distro|profile|system] remove --name=<name>
+
+cobbler list
+
+cobbler sync
+
+cobbler system enchant --name=<string> [--password=<string>]
 """
 
 _msg_table = {
@@ -35,7 +66,6 @@ _msg_table = {
   "weird_arg"       : "this command doesn't take a parameter named '%s'",
   "bad_sys_name"    : "system name must be a MAC, IP, or resolveable host",
   "bad_ip"          : "argument must be an IP address",
-  "usage"           : "for help, see 'man cobbler'",
   "need_to_fix"     : "the following potential problems were detected:",
   "need_perms"      : "cobbler could not access %s",
   "need_perms2"     : "cobbler could not copy %s to %s",
@@ -91,8 +121,7 @@ No setup problems found.
 Manual review and editing of /var/lib/cobbler/settings is recommended to tailor cobbler to your particular configuration.
 
 Good luck.
-""",
-  "help"           : "see 'man cobbler'"
+"""
 }
 
 def lookup(key):

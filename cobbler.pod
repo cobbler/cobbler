@@ -40,8 +40,6 @@ B<cobbler distro add --name=<string> --kernel=<path> --initrd=<path> [--kopts=<s
 
 =over
 
-=over
-
 =item name
 
 a string identifying the distribution
@@ -80,15 +78,11 @@ See the section below on templating.
 
 =back
 
-=back
-
 =head2 ADDING A PROFILE
 
 A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.
 
 B<cobbler profile add --name=<string> --distro=<string> [--kickstart=<url>] [--kopts=<string>] [--ksmeta=<string>] [--xen-name=<string>] [--xen-file-size=<gigabytes>] [--xen-ram=<megabytes>]
-
-=over
 
 =over
 
@@ -117,15 +111,11 @@ multiple images on a machine will cause increasing numbers to be appended to thi
 
 =back
 
-=back
-
-
 =head2 ADDING A SYSTEM
 
 Systems assign a piece of hardware with the cobbler profile to be assigned to it.  Systems can be defined by hostname, IP, or MAC address.  When available, use of the MAC address to assign systems is preferred.
 
 B<cobbler system add --name=<ip|mac|hostname> --profile=<string> [--kopts=<string>] [--pxe-address=<string>] [--ksmeta=<string>]
-=over
 
 =over
 
@@ -180,6 +170,8 @@ Configuration changes made with cobbler commands such as "add/edit" or "delete/r
 
 To create a provisioning infrastructure from a distribution mirror.
 
+=over
+
 B<cobbler check>
 
 B<cobbler import --mirror=rsync://yourfavoritemirror.com/foo --mirror-name=anyname>
@@ -192,7 +184,11 @@ B<cobbler system add --name=AA:BB:CC:DD:EE:FF --profile=name_of_a_profile2>
 
 B<cobbler sync>
 
+=back
+
 =head2 NORMAL WORKFLOW
+
+=over
 
 B<cobbler check>
 
@@ -212,9 +208,13 @@ B<cobbler list>
 
 B<cobbler sync>
 
+=back
+
 =head2 XEN
 
-For Xen, be sure the distro uses a Xen kernel and initrd:
+For Xen, be sure the distro uses a Xen kernel and initrd and follow similar steps as above, adding additional parameters as desired:
+
+=over
 
 B<cobbler distro add --name=fc5xen --kernel=/dir3/vmlinuz --initrd=/dir6/initrd.img>
 
@@ -225,6 +225,8 @@ B<cobbler profile add --name=xenwebservers --distro=fc5xen --kickstart=/dir7/kic
 And define systems (if desired) using MAC addresses, not IP's or hostnames:
 
 B<cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=xenwebservers>
+
+=back
 
 =head1 ADVANCED TOPICS
 

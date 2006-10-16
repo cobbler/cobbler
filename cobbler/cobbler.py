@@ -81,7 +81,7 @@ class BootCLI:
         """
         Print out abbreviated help if user gives bad syntax
         """
-        raise cexceptions.CobblerException("usage")
+        print cobbler_msg.USAGE
 
     def list(self,args):
         all = [ self.api.settings(), self.api.distros(),
@@ -260,7 +260,8 @@ class BootCLI:
         feed it the remaining args[1:-1] as arguments.
         """
         if args is None or len(args) == 0:
-            raise cexceptions.CobblerException("help")
+            print cobbler_msg.USAGE
+            return True
         if args[0] in commands:
             commands[args[0]](args[1:])
         else:
