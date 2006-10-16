@@ -28,14 +28,14 @@ last two modes require 'koan' to be run on the remote system.
 %setup -q
 
 %build
-python setup.py build
+%{__python} setup.py build
 
 %install
-rm -rf $RPM_BUILD_ROOT
-python setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
+test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
+%{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
