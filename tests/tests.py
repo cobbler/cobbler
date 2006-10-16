@@ -13,10 +13,23 @@ import shutil
 sys.path.append('../cobbler')
 sys.path.append('./cobbler')
 
+import settings
+import collection_distros
+import collection_profiles
+import collection_systems
+
+settings.TESTMODE = True
+collection_distros.TESTMODE = True
+collection_profiles.TESTMODE = True
+collection_systems.TESTMODE = True
+
 import api
 import config
 import utils
 from cexceptions import CobblerException
+
+
+
 
 FAKE_INITRD="initrd-2.6.15-1.2054_FAKE.img"
 FAKE_INITRD2="initrd-2.5.16-2.2055_FAKE.img"

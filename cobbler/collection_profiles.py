@@ -20,6 +20,8 @@ import utils
 import collection
 import cexceptions
 
+TESTMODE = False
+
 #--------------------------------------------
 
 class Profiles(collection.Collection):
@@ -31,7 +33,10 @@ class Profiles(collection.Collection):
         return profile.Profile(config).from_datastruct(seed_data)
 
     def filename(self):
-        return "/var/lib/cobbler/profiles"
+        if TESTMODE:
+            return "/var/lib/cobbler/test/profiles"
+        else:
+            return "/var/lib/cobbler/profiles"
 
     def remove(self,name):
         """

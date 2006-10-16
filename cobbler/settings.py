@@ -15,13 +15,18 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import serializable
 import utils
 
+TESTMODE = False
+
 class Settings(serializable.Serializable):
 
    def filename(self):
        """
        The filename where settings are serialized.
        """
-       return "/var/lib/cobbler/settings"
+       if TESTMODE:
+           return "/var/lib/cobbler/test/settings"
+       else:
+           return "/var/lib/cobbler/settings"
 
    def __init__(self):
        """

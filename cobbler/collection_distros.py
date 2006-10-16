@@ -18,6 +18,8 @@ import collection
 import item_distro as distro
 import cexceptions
 
+TESTMODE = False
+
 class Distros(collection.Collection):
 
     def collection_type(self):
@@ -33,7 +35,10 @@ class Distros(collection.Collection):
         """
         Config file for distro serialization
         """
-        return "/var/lib/cobbler/distros"
+        if TESTMODE:
+            return "/var/lib/cobbler/test/distros"
+        else:
+            return "/var/lib/cobbler/distros"
 
     def remove(self,name):
         """

@@ -1,14 +1,12 @@
 cobbler TODO list
 
 need to fix:
-  -  global locking -- one cobbler command at a time
+  -  turn on locking in production
   -  For "enchant", try to verify that syslinux and mkinitrd are installed on the remote.    
   -  "enchant" would be better if it didn't need to know the password
   -  "enchant" has issues with ssh key changes locking it out
   -  "enchant" should be written in a more distro-agnostic way.
   -  "cobbler add" should be distinguished from "edit" so as to not overwrite
-  -  "make test" shouldn't overwrite files in /var/lib/cobbler/ 
-     new configs.
 
 really nice to have:
   -  GTK (or Web) UI for Cobbler ?

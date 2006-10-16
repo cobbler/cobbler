@@ -18,6 +18,8 @@ import utils
 import collection
 import cexceptions
 
+TESTMODE = False
+
 #--------------------------------------------
 
 class Systems(collection.Collection):
@@ -35,7 +37,10 @@ class Systems(collection.Collection):
         """
         Return a filename for System serialization
         """
-        return "/var/lib/cobbler/systems"
+        if TESTMODE:
+            return "/var/lib/cobbler/test/systems"
+        else:
+            return "/var/lib/cobbler/systems"
 
     def remove(self,name):
         """
