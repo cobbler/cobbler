@@ -52,8 +52,8 @@ class Importer:
        self.path = path
        self.mirror = mirror
        self.mirror_name = mirror_name
-       if path is None:
-           raise cexceptions.CobblerException("import_failed","no path specified")
+       #if path is None:
+       #    raise cexceptions.CobblerException("import_failed","no path specified")
        self.distros  = config.distros()
        self.profiles = config.profiles()
        self.systems  = config.systems()
@@ -62,7 +62,7 @@ class Importer:
    def run(self):
        if self.path is None and self.mirror is None:
            raise cexceptions.CobblerException("import_failed","no path specified")
-       if not os.path.isdir(self.path):
+       if self.path and not os.path.isdir(self.path):
            raise cexceptions.CobblerException("import_failed","bad path")
        if self.mirror is not None:
            if not self.mirror.startswith("rsync://"):
@@ -73,9 +73,13 @@ class Importer:
            # line option and not the default (?)
            print "This will take a while..."
            self.path = "/var/www/cobbler/localmirror/%s" % self.mirror_name
-           cmd = "rsync -az %s /var/www/cobbler/localmirror/%s --progress" % self.mirror_name
+           try:
+               os.mkdir(self.path)
+           except:
+               raise cexceptions.CobblerException("couldn't create: %s" % (self.path))
+           cmd = "rsync -az %s /var/www/cobbler/localmirror/%s --progress" % (self.mirror, self.mirror_name)
            sub_process.call(cmd,shell=True)
-           update_file = os.path.open(os.path.join(self.path,"update.sh"))
+           update_file = open(os.path.join(self.path,"update.sh"))
            update_file.write("#!/bin/sh")
            update_file.write("%s\n" % cmd)
            # leave this commented out in the file because it will

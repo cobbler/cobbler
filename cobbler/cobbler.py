@@ -168,8 +168,9 @@ class BootCLI:
                 self.temp_mirror,
                 self.temp_mirror_name)
         commands = {
-            '--path'    : lambda(a): set_path(a),
-            '--mirror'  : lambda(a): set_mirror(a)
+            '--path'         : lambda(a): set_path(a),
+            '--mirror'       : lambda(a): set_mirror(a),
+            '--mirror-name'  : lambda(a): set_mirror_name(a)
         }
         on_ok = lambda: go_import()
         return self.apply_args(args,commands,on_ok)
