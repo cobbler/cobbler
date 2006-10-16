@@ -1,6 +1,12 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Mon Oct 16 2006 - 0.2.5-1
+- New "import" feature for rsync:// mirrors and filesystem directories
+- Manpage clarification
+- "enchant" is now a subcommand of "cobbler system" and takes less arguments.
+- Several random bugfixes (mainly along error paths)
+
 * Wed Oct 11 2006 - 0.2.4-1
 - Changes to make things work with python 2.3 (RHEL4, etc)
 - Updated YAML code to ensure better backward compatibility

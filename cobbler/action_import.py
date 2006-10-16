@@ -79,7 +79,7 @@ class Importer:
            update_file.write("#!/bin/sh")
            update_file.write("%s\n" % cmd)
            # leave this commented out in the file because it will
-           # erase user customizations.  
+           # erase user customizations.
            update_file.write("#cobbler import --path=%s" % self.path)
            update_file.close()
        if self.path is not None:
@@ -202,7 +202,7 @@ class Importer:
                print "*** PROFILE ADDED ***"
 
    def get_proposed_name(self,dirname):
-       # for now, just use the path to the images directory as the 
+       # for now, just use the path to the images directory as the
        # name or the profile.  This provides the added bonus of letting
        # the shell interpolate it.
        return dirname

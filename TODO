@@ -1,28 +1,28 @@
 cobbler TODO list
 
-need to fix:
+core:
   -  turn on locking in production
-  -  For "enchant", try to verify that syslinux and mkinitrd are installed on the remote.
-  -  "enchant" would be better if it didn't need to know the password
-  -  "enchant" has issues with ssh key changes locking it out
-  -  "enchant" should be written in a more distro-agnostic way.
-  -  "cobbler add" should be distinguished from "edit" so as to not overwrite
+  -  "enchant" feature needs some modifications:
+      - verify that syslinux and mkinitrd are installed on the remote.
+      - issues with ssh key changes locking it out (known_hosts)
+      - should be written in a more distro-agnostic way.
+  -  Port over to xeninst python module once available for something other than Rawhide
+  -  import over http://, ftp:// in addition to existing file and rsync://
 
-really nice to have:
+user interface:
+  -  "cobbler add" should be distinguished from "edit" so as to not overwrite
   -  GTK (or Web) UI for Cobbler ?
 
-making things more standardized/flexible:
-  -  Port over to xeninst python module once available for something other than Rawhide
-  -  abstract out the --pxe-arch system, possibly pseudonym it to arch,
-     and make the multiple-bootloader system more plugin oriented to allow
+code cleanup:
+  -  an argument parsing overhaul is probably due
+  -  remove the cobbler_msg logic since i18n isn't likely
+
+ideas:
+  -  make the multiple-bootloader system more plugin oriented to allow
      for alternative bootloaders (not neccessarily kickstart related)
      to be added
   -  look into what it would take to make kickstart *more optional*
-
-bells and whistles:
+     (for future support of foreign operating systems that might
+      do their own thing)
   -  Wake on lan integration for PXE
-  -  Integration with stonnith or other up/down devices?
-
-internal code cleanup:
-  -  an argument parsing overhaul is probably due
-  -  remove the cobbler_msg logic since i18n isn't likely
+  -  Integration with other remote power options (how might this work?)

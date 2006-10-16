@@ -278,7 +278,7 @@ NOTE: The mirror or directory tree must have the basic directory tree layout as 
 
 When importing a rsync mirror, cobbler can try to detect the distribution type and automatically assign kickstarts.  This autodetection is rather primative but can improve as community users contribute kickstarts.  If cobbler is able to guess the architecture, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of "cobbler".  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting after cobbler creates the profile.
 
-If a mirror updated with rsync changes, running the "update.sh" script created in /var/www/cobbler/localmirror/<mirrorname> will update the files and the cobbler metadata appropriately.
+If a mirror updated with rsync changes, running the "update.sh" script created in /var/www/cobbler/localmirror/<mirrorname> will update the files from the same mirror used for the initial download.
 
 Usage: B<cobbler import --path=<path>>
 
