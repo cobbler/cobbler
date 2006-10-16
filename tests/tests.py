@@ -28,9 +28,6 @@ import config
 import utils
 from cexceptions import CobblerException
 
-
-
-
 FAKE_INITRD="initrd-2.6.15-1.2054_FAKE.img"
 FAKE_INITRD2="initrd-2.5.16-2.2055_FAKE.img"
 FAKE_INITRD3="initrd-1.8.18-3.9999_FAKE.img"
@@ -296,6 +293,46 @@ class TestCLIBasic(BootTest):
        # and it would easily double the length of the tests.
        app = "/usr/bin/python"
        self.assertTrue(subprocess.call([app,"cobbler/cobbler.py","list"]) == 0)
+
+class TestImport(BootTest):
+
+   def test_import(self):
+       # testing the import code.
+       self.api.clear()
+       cwd = os.getcwd()
+       tests = os.path.join(cwd,"tests","import_testdata")
+       self.api.import_tree(tests, None, None)
+       self.api.serialize()
+
+       # below:
+       # partial name of distro: current count, passing count, required arch
+       haystacks = {
+          "import_testdata_RHEL-4_U4_AS_ia64_tree_images_pxeboot"   : [0, 1, "ia64" ],
+          "import_testdata_RHEL-4_U4_AS_i386_tree_images_pxeboot"   : [0, 1, "x86" ],
+          "import_testdata_RHEL-4_U4_AS_x86_64_tree_images_pxeboot" : [0, 1, "x86_64" ],
+          "import_testdata_core_5_i386_os_images_pxeboot" : [ 0, 1, "x86" ],
+          "import_testdata_core_5_i386_os_images_xen" : [0, 1, "x86" ],
+       }       
+
+       # first go through all found distros and count the matches
+       for distro in self.api.distros():
+           got_it = False
+           for match in haystacks.keys():
+               if distro.name.find(match) != -1:
+                   found = haystacks[match]
+                   found[0] = found[0] + 1
+                   # check for architecture mismatches
+                   self.failUnlessEqual(distro.arch, found[2], "architecture detection: %s vs %s on %s" % (distro.arch, found[2], distro.name))
+                   got_it = True
+           if not got_it: # hasn't :)
+               self.fail("imported foreign distro: %s" % distro.name)
+           
+       # now check the required number of matches vs actual.
+       # this checks to ensure unsupported arches aren't imported and there
+       # are no duplicate imports
+       for match in haystacks.keys():
+           found = haystacks[match] 
+           self.failUnlessEqual(found[0], found[1], "mismatched counts: %d vs %d for %s" % (found[0], found[1], match))
 
 if __name__ == "__main__":
     if not os.path.exists("setup.py"):
