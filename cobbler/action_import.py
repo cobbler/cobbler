@@ -78,7 +78,9 @@ class Importer:
            update_file = os.path.open(os.path.join(self.path,"update.sh"))
            update_file.write("#!/bin/sh")
            update_file.write("%s\n" % cmd)
-           update_file.write("cobbler import --path=%s" % self.path)
+           # leave this commented out in the file because it will
+           # erase user customizations.  
+           update_file.write("#cobbler import --path=%s" % self.path)
            update_file.close()
        if self.path is not None:
            arg = None
@@ -200,11 +202,10 @@ class Importer:
                print "*** PROFILE ADDED ***"
 
    def get_proposed_name(self,dirname):
-       # FIXME: how can this name be nicer?
-       temp  = "_".join(dirname.split("/"))
-       if temp.startswith("_"):
-          temp = temp[1:]
-       return temp
+       # for now, just use the path to the images directory as the 
+       # name or the profile.  This provides the added bonus of letting
+       # the shell interpolate it.
+       return dirname
 
    def get_pxe_arch(self,dirname):
        t = dirname
