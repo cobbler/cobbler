@@ -16,19 +16,25 @@ Profiles associate a Distribution with a kickstart file and optionally customize
 
 Systems associate a hostname, IP, or MAC with a distribution and optionally customize the Profile further.
 
-=head1 ACTIONS
+=head1 SEE ALSO
+
+For help in building kickstarts, try "system-config-kickstart", or install a new system and look at the /root/anaconda-ks.cfg file left over from the installer.  General kickstart questions can also be asked at kickstart-list@redhat.com.
+
+=head1 COBBLER USAGE
 
 =head2 SETUP
 
-Running "cobbler check" after installation will verify that the prerequisites are installed and configured correctly.
+Running "cobbler check" after installation will verify that cobbler's prerequisites are installed and configured correctly.
 
 Any problems detected should be corrected, with the potential exception of DHCP related warnings.
 
-It is especially important that the server name be accurate in cobbler.conf
+It is especially important that the server name field be accurate in /var/lib/cobbler/cobbler.conf
 
-For PXE, if DHCP is run from the cobbler server, the dhcp configuration file should be changed as suggested.  If DHCP is not run locally, the "next-server" field on the DHCP server should point to the cobbler server's IP and the filename should be set to "pxelinux.0".
+For PXE, if DHCP is to be run from the cobbler server, the dhcp configuration file should be changed as suggested.  If DHCP is not run locally, the "next-server" field on the DHCP server should point to the cobbler server's IP and the filename should be set to "pxelinux.0".  Cobbler can also (optionally) generate dhcp configuration files -- this is covered in a later section.
 
 =head2 ADDING A DISTRIBUTION
+
+This first step is to add a distribution to the cobbler system.  If there is an rsync mirror or filesystem tree that you would rather import instead, skip down to the documentation about the "import" command.
 
 B<cobbler distro add --name=<string> --kernel=<path> --initrd=<path> [--kopts=<string>] [--ksmeta=<string>] [--arch=<x86|x86_64|ia64>]
 
@@ -50,7 +56,7 @@ an absolute filesystem path to a initrd image
 
 =item kopts
 
-(optional) sets kernel arguments.
+(optional) sets kernel command-line arguments.
 
 Example: --ksmeta="foo=bar baz=3 asdf"
 
@@ -78,13 +84,15 @@ See the section below on templating.
 
 =head2 ADDING A PROFILE
 
+A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.
+
 B<cobbler profile add --name=<string> --distro=<string> [--kickstart=<url>] [--kopts=<string>] [--ksmeta=<string>] [--xen-name=<string>] [--xen-file-size=<gigabytes>] [--xen-ram=<megabytes>]
 
 =over
 
 =over
 
-Arguments are as listed for distributions, with the follwing additions...
+Arguments are as listed for distributions, except for the "arch" parameter, and with the additions listed below:
 
 =item distro
 
@@ -92,19 +100,20 @@ the name of a previously defined cobbler distribution
 
 =item kickstart
 
-(optional) an HTTP URL, NFS URL, or local filesystem path to a kickstart file
+(optional) an HTTP URL, NFS URL, or local filesystem path to a kickstart file.  Filesystem paths are needed to take advantage of cobbler's kickstart templating features.  Kickstart templating is covered in a later section.  If this parameter is not provided, no kickstart will be used, and the installs will not be automated.
 
 =item xen-name
 
-(optional) (Xen-only) what the Xen domU name should start with
+(optional) (Xen-only) what the Xen domU name should start with.  Creating
+multiple images on a machine will cause increasing numbers to be appended to this name.  The default is "xenguest".
 
 =item xen-file-size
 
-(optional) (Xen-only) how large the disk image should be in gigabytes
+(optional) (Xen-only) how large the disk image should be in gigabytes.  The default is "5".
 
 =item xen-ram
 
-(optional) (Xen-only) how many megabytes of RAM to consume
+(optional) (Xen-only) how many megabytes of RAM to consume.  The default is 512 MB.
 
 =back
 
@@ -112,6 +121,8 @@ the name of a previously defined cobbler distribution
 
 
 =head2 ADDING A SYSTEM
+
+Systems assign a piece of hardware with the cobbler profile to be assigned to it.  Systems can be defined by hostname, IP, or MAC address.  When available, use of the MAC address to assign systems is preferred.
 
 B<cobbler system add --name=<ip|mac|hostname> --profile=<string> [--kopts=<string>] [--pxe-address=<string>] [--ksmeta=<string>]
 =over
@@ -161,13 +172,27 @@ B<cobbler system remove --name=<string>>
 
 B<cobbler sync [--dryrun]>
 
-Configurations are saved in /var/lib/cobbler.  Changes made with any commands are not
-applied until 'cobbler sync' is run.   Any errors in the configuration will be reported
-during the sync process.
+Configuration changes made with cobbler commands such as "add/edit" or "delete/remove" are saved in /var/lib/cobbler.  These changes are not applied until 'cobbler sync' is run.   Any errors in the configuration that must be corrected (such as missing files) will be reported during the sync process.
 
 =head1 EXAMPLES
 
-=head2 BASIC WORKFLOW
+=head2 IMPORT WORKFLOW
+
+To create a provisioning infrastructure from a distribution mirror.
+
+B<cobbler check>
+
+B<cobbler import --mirror=rsync://yourfavoritemirror.com/foo --mirror-name=anyname>
+
+B<cobbler list>
+
+B<cobbler system add --name=default --profile=name_of_a_profile1>
+
+B<cobbler system add --name=AA:BB:CC:DD:EE:FF --profile=name_of_a_profile2>
+
+B<cobbler sync>
+
+=head2 NORMAL WORKFLOW
 
 B<cobbler check>
 

@@ -199,6 +199,7 @@ class BootCLI:
             '--profile'         :  lambda(a) : profile.set_name(a),
             '--distro'          :  lambda(a) : profile.set_distro(a),
             '--kickstart'       :  lambda(a) : profile.set_kickstart(a),
+            '--kick-start'      :  lambda(a) : profile.set_kickstart(a),
             '--kopts'           :  lambda(a) : profile.set_kernel_options(a),
             '--xen-name'        :  lambda(a) : profile.set_xen_name(a),
             '--xen-file-size'   :  lambda(a) : profile.set_xen_file_size(a),
