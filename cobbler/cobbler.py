@@ -48,11 +48,12 @@ class BootCLI:
             'remove'  :  self.profile_remove,
         }
         self.commands['system'] = {
-            'add'     :  self.system_edit,
-            'edit'    :  self.system_edit,
-            'delete'  :  self.system_remove,
-            'remove'  :  self.system_remove,
-            'enchant' :  self.system_enchant,
+            'add'          :  self.system_edit,
+            'edit'         :  self.system_edit,
+            'delete'       :  self.system_remove,
+            'remove'       :  self.system_remove,
+            'enchant'      :  self.system_enchant,
+            'transmogrify' :  self.system_enchant,
         }
         self.commands['toplevel'] = {
             'check'    : self.check,
