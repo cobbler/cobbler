@@ -76,10 +76,11 @@ class Importer:
            try:
                os.mkdir(self.path)
            except:
-               raise cexceptions.CobblerException("couldn't create: %s" % (self.path))
+               if not os.path.exists(self.path):
+                   raise cexceptions.CobblerException("couldn't create: %s" % (self.path))
            cmd = "rsync -az %s /var/www/cobbler/localmirror/%s --progress" % (self.mirror, self.mirror_name)
            sub_process.call(cmd,shell=True)
-           update_file = open(os.path.join(self.path,"update.sh"))
+           update_file = open(os.path.join(self.path,"update.sh"),"w+")
            update_file.write("#!/bin/sh")
            update_file.write("%s\n" % cmd)
            # leave this commented out in the file because it will
@@ -92,7 +93,7 @@ class Importer:
            self.scrub_orphans()
            self.guess_kickstarts()
            return True
-       return False
+       raise cexceptions.CobblerException("path not specified")
 
    def scrub_orphans(self):
        """
