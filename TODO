@@ -4,8 +4,8 @@ core:
   -  turn on locking in production
   -  "enchant" feature needs some modifications:
       - verify that syslinux and mkinitrd are installed on the remote.
-      - issues with ssh key changes locking it out (known_hosts)
       - should be written in a more distro-agnostic way.
+      - improved error checking and feedback to the cobbler user
   -  Port over to xeninst python module once available for something other than Rawhide
   -  import over http://, ftp:// in addition to existing file and rsync://
 
@@ -26,4 +26,7 @@ ideas:
       do their own thing)
   -  Wake on lan integration for PXE
   -  Integration with other remote power options (how might this work?)
-  -  when creating a system definition generate the ssh key.
+  -  when creating a system definition generate the ssh key
+     so it's usable in kickstart templating.  Include this in the default
+     kickstart that is created with import.
+
