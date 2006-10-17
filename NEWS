@@ -2,8 +2,10 @@ Cobbler NEWS
 (all entries mdehaan@redhat.com unless noted otherwise)
 
 ======================================================
-0.2.7 -- pexpect no longer required, "enchant" changes
+0.2.7 -- RHEL4, pexpect not required, "enchant" changes
 ======================================================
+
+Cobbler now builds on RHEL4 out of the box!
 
 In order to make Cobbler work on more platforms, the dependancy on
 pexpect (a python module) has been removed.  SSH is now invoked directly.

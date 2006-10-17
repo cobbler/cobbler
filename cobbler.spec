@@ -56,6 +56,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 * Tue Oct 17 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.7-1
 - Upstream changes (see CHANGELOG), includes removing pexpect as a require
+- This RPM now builds on RHEL4
 
 * Tue Oct 17 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.6-1
 - Upstream changes (see CHANGELOG), includes removing Cheetah as a require

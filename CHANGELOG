@@ -4,6 +4,7 @@ Cobbler CHANGELOG
 * Tue Oct 17 2006 - 0.2.7-1
 - Removed pexpect to enhance support for other distros
 - enchant syntax changed (see NEWS)
+- now builds on RHEL4
 
 * Tue Oct 17 2006 - 0.2.6-1
 - Removing Cheetah and replacing w/ simpler templating system

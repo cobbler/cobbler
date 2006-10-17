@@ -71,7 +71,7 @@ class Enchant:
                self.ssh_exec("koan --replace-self --system=%s --server=%s" % (self.system, self.settings.server))
            else:
                self.ssh_exec("koan --replace-self --profile=%s --server=%s" % (self.profile, self.settings.server))
-           # self.ssh_exec(self.sysname, "/sbin/reboot")
+           self.ssh_exec("/sbin/reboot")
            return True
        except:
            traceback.print_exc()
