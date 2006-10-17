@@ -1,6 +1,15 @@
 Cobbler NEWS
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+===================================
+0.2.6 -- Cheetah no longer required
+===================================
+
+Cobbler is loosing it's dependancy on Cheetah for kickstart templating.
+Most users won't be affected, templating still works as described in the
+manpage.  A future release will remove the dependancy on pxssh, allowing
+for better installation on RHEL4.
+
 =============================
 0.2.5 -- New "import" feature
 =============================
