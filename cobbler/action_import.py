@@ -140,8 +140,8 @@ class Importer:
        for profile in self.profiles:
            distro = self.distros.find(profile.name)
            kpath = distro.kernel
-           if not kpath.startswith("/var/www/cobbler"):
-               print "*** CAN'T GUESS WHAT KICKSTART TO ASSIGN: %s" % kpath
+           if not kpath.startswith("/var/www/cobbler/localmirror/"):
+               print "*** Skipping kickstart assignment since this path isn't under /var/www/cobbler/localmirror/ and the kickstart tree can't be served" % kpath
                continue
            for entry in MATCH_LIST:
                (part, kickstart) = entry
