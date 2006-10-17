@@ -10,6 +10,8 @@ core:
   -  import over http://, ftp:// in addition to existing file and rsync://
   -  imports should save distros as they find them (api.serialize)
   -  imports over NFS should be a lot faster... speedup improvements?
+  -  remove Cheetah and pexpect dependencies to make things work nicer
+     with RHEL4.
 
 user interface:
   -  "cobbler add" should be distinguished from "edit" so as to not overwrite

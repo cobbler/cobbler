@@ -37,7 +37,7 @@ class Item(serializable.Serializable):
     def set_ksmeta(self,options_string):
         """
         A comma delimited list of key value pairs, like 'a=b,c=d,e=f'.
-        The meta tags are used as input to the Cheetah templating system
+        The meta tags are used as input to the templating system
         to preprocess kickstart files
         """
         self.ks_meta = options_string

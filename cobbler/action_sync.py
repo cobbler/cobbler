@@ -20,7 +20,6 @@ import time
 import yaml # Howell-Clark version
 import sub_process
 import sys
-from Cheetah.Template import Template
 
 import utils
 import cobbler_msg
@@ -143,10 +142,8 @@ class BootSync:
            "date" : time.asctime(time.gmtime()),
            "next_server" : self.settings.next_server
         }
-        t = Template(
-           "#errorCatcher Echo\n%s" % template_data,
-           searchList=[metadata]
-        )
+        for x in metadata.keys():
+            template_data = template_data.replace("$%s" % x, metadata[x])
         self.tee(f1,str(t))
         self.close_file(f1)
 
@@ -194,7 +191,8 @@ class BootSync:
                 if os.path.isfile(path):
                     self.rmfile(path)
                 if os.path.isdir(path):
-                    self.rmtree(path)
+                    if not x == "localmirror":
+                        self.rmtree(path)
 
         # make some directories in /tftpboot
         for x in ["pxelinux.cfg","images"]:
@@ -324,16 +322,10 @@ class BootSync:
         fd = open(kickstart_input)
         data = fd.read()
         fd.close()
-        data = data.replace("$","@@DOLLAR_SIGN@@")
-        data = data.replace("TEMPLATE::","$")
-        t = Template(
-            "#errorCatcher Echo\n%s" % data,
-            searchList=[metadata],
-        )
-        computed = str(t)
-        computed = computed.replace("@@DOLLAR_SIGN@@","$")
+        for x in metadata.keys():
+            data = data.replace("TEMPLATE::%s" % x, metadata[x])
         fd = open(out_path, "w+")
-        fd.write(computed)
+        fd.write(data)
         fd.close()
 
     def build_trees(self):
