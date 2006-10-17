@@ -1,6 +1,10 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Tue Oct 17 2006 - 0.2.6-1
+- Removing Cheetah and replacing w/ simpler templating system
+- Don't delete localmirror on sync
+
 * Mon Oct 16 2006 - 0.2.5-1
 - New "import" feature for rsync:// mirrors and filesystem directories
 - Manpage clarification

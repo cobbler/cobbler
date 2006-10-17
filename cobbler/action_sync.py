@@ -144,7 +144,7 @@ class BootSync:
         }
         for x in metadata.keys():
             template_data = template_data.replace("$%s" % x, metadata[x])
-        self.tee(f1,str(t))
+        self.tee(f1,template_data)
         self.close_file(f1)
 
     def configure_httpd(self):
