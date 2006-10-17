@@ -6,6 +6,7 @@ wasn't consistant for 0.1.X builds, though it will be in the future.
 
 * Wed Oct 11 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.2-1
 - Bundled subprocess to allow it's use under python 2.3 (RHEL4, etc)
+- Hack to koan's main app to allow enchant to tolerate more distros
 
 * Mon Oct 09 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.1-1
 - Added --list-profiles and --list-systems option to show available

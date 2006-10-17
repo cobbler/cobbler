@@ -1,4 +1,4 @@
-- A "list profiles" and "list systems" option.
-- have the RPM own the various directories it creates for Xen
-  - document those directories
-
+- have the RPM own the directories it creates for xen
+  (doesn't already?)
+- put koan in /usr/share so we don't have to deal with
+  different python paths
