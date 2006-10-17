@@ -9,6 +9,7 @@ core:
   -  Port over to xeninst python module once available for something other than Rawhide
   -  import over http://, ftp:// in addition to existing file and rsync://
   -  imports should save distros as they find them (api.serialize)
+  -  imports over NFS should be a lot faster... speedup improvements?
 
 user interface:
   -  "cobbler add" should be distinguished from "edit" so as to not overwrite
