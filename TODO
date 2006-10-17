@@ -8,6 +8,7 @@ core:
       - improved error checking and feedback to the cobbler user
   -  Port over to xeninst python module once available for something other than Rawhide
   -  import over http://, ftp:// in addition to existing file and rsync://
+  -  imports should save distros as they find them (api.serialize)
 
 user interface:
   -  "cobbler add" should be distinguished from "edit" so as to not overwrite
