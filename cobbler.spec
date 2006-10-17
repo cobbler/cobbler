@@ -55,7 +55,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Tue Oct 17 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.5-1
+* Tue Oct 17 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.6-1
 - Upstream changes (see CHANGELOG), includes removing Cheetah as a require
 
 * Mon Oct 16 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.5-1
