@@ -108,12 +108,14 @@ class BootAPI:
         sync = action_sync.BootSync(self._config)
         return sync.run(dryrun=dryrun)
 
-    def enchant(self,sysname,password):
+    def enchant(self,address,profile,systemdef):
         """
-        Apply a system profile to a running remote system, replacing
-        the current OS.
+        Re-kickstart a running system.
+        Either profile or systemdef should be a name of a
+        profile or system definition, the other should be None.  address is an
+        address reachable by SSH.
         """
-        enchant = action_enchant.Enchant(self._config,sysname,password)
+        enchant = action_enchant.Enchant(self._config,address,profile,systemdef)
         return enchant.run()
 
     def import_tree(self,tree_path,mirror_url,mirror_name):

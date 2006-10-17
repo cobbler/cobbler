@@ -2,7 +2,7 @@
 
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.2.6
+Version: 0.2.7
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -10,7 +10,6 @@ Group: Applications/System
 Requires: python >= 2.3
 Requires: httpd
 Requires: tftp-server
-Requires: pexpect
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 ExcludeArch: ppc
@@ -54,6 +53,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
+
+* Tue Oct 17 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.7-1
+- Upstream changes (see CHANGELOG), includes removing pexpect as a require
 
 * Tue Oct 17 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.6-1
 - Upstream changes (see CHANGELOG), includes removing Cheetah as a require

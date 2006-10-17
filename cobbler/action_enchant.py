@@ -17,14 +17,19 @@ import cexceptions
 import os
 import os.path
 import pexpect
-import pxssh
+# GOING AWAY
+# import pxssh
+import sub_process
 import traceback
 
 class Enchant:
 
-   def __init__(self,config,sysname,password=''):
+   def __init__(self,config,sysname,profile):
        """
-       Constructor.  If password is None it should rely on SSH key auth.
+       Constructor.  
+       config:  a configuration reference (see api module)
+       sysname:  address of system to enchant (not necc. defined in cobbler)
+       profile:  profile to make the system become
        """
        self.config = config
        self.settings = self.config.settings()
@@ -33,15 +38,12 @@ class Enchant:
        if sysname is None:
            raise cexceptions.CobblerException("enchant_failed","no system name specified")
        self.profile = ''
-       self.password = password
 
-   def call(self,cmd):
+   def ssh_exec(self,cmd):
        """
-       Invoke something over SSH.
+       Invoke an SSH command.
        """
-       print "ssh -> %s" % cmd
-       self.ssh.sendline(cmd)
-       self.ssh.prompt()
+       sub_process.call("ssh root:%s %s" % (self.sysname,cmd),shell=True)
 
    def run(self):
        """
@@ -60,17 +62,11 @@ class Enchant:
            raise cexceptions.CobblerException("enchant_failed","koan is missing")
 
        try:
-           ssh = self.ssh = pxssh.pxssh()
-           if not ssh.login(self.sysname, self.username, self.password):
-               raise cexceptions.CobblerException("enchant_failed","SSH login denied")
-           else:
-               self.call("wget http://%s/cobbler/%s" % (self.settings.server, koan))
-               # nodeps allows installation on older pythons
-               # koan will move to /usr/share/koan shortly
-               self.call("rpm -Uvh %s --force --nodeps" % koan)
-               self.call("koan --replace-self --profile=%s --server=%s" % (self.profile, self.settings.server))
-               #self.call("/sbin/reboot")
-               return True
+           self.ssh_exec(self.sysname, "wget http://%s/cobbler/%s" % (self.settings.server, koan))
+           self.ssh_exec(self.sysname, "rpm -Uvh %s --force --nodeps" % koan))
+           self.ssh_exec(self.sysname, "koan --replace-self --profile=%s --server=%s" % (self.profile, self.settings.server))
+           # self.ssh_exec(self.sysname, "/sbin/reboot")
+           return True
        except:
            traceback.print_exc()
            raise cexceptions.CobblerException("enchant_failed","exception")

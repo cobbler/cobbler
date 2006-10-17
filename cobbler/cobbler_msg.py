@@ -42,7 +42,7 @@ cobbler list
 
 cobbler sync
 
-cobbler system enchant --name=<string> [--password=<string>]
+cobbler enchant --address=<ip|hostname> [--profile=<string>|--system=<string>]
 """
 
 _msg_table = {

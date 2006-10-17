@@ -1,6 +1,10 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Tue Oct 17 2006 - 0.2.7-1
+- Removed pexpect to enhance support for other distros
+- enchant syntax changed (see NEWS)
+
 * Tue Oct 17 2006 - 0.2.6-1
 - Removing Cheetah and replacing w/ simpler templating system
 - Don't delete localmirror on sync

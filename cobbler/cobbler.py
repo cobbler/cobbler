@@ -48,27 +48,27 @@ class BootCLI:
             'remove'  :  self.profile_remove,
         }
         self.commands['system'] = {
-            'add'          :  self.system_edit,
-            'edit'         :  self.system_edit,
-            'delete'       :  self.system_remove,
-            'remove'       :  self.system_remove,
-            'enchant'      :  self.system_enchant,
-            'transmogrify' :  self.system_enchant
+            'add'     :  self.system_edit,
+            'edit'    :  self.system_edit,
+            'delete'  :  self.system_remove,
+            'remove'  :  self.system_remove,
         }
         self.commands['toplevel'] = {
-            'check'    : self.check,
-            'list'     : self.list,
-            'distros'  : self.distro,
-            'distro'   : self.distro,
-            'profiles' : self.profile,
-            'profile'  : self.profile,
-            'systems'  : self.system,
-            'system'   : self.system,
-            'sync'     : self.sync,
-            'import'   : self.import_tree,
-            'help'     : self.usage,
-            '--help'   : self.usage,
-            '/?'       : self.usage
+            'check'        : self.check,
+            'list'         : self.list,
+            'distros'      : self.distro,
+            'distro'       : self.distro,
+            'profiles'     : self.profile,
+            'profile'      : self.profile,
+            'systems'      : self.system,
+            'system'       : self.system,
+            'sync'         : self.sync,
+            'import'       : self.import_tree,
+            'enchant'      : self.enchant,
+            'transmogrify' : self.enchant,
+            'help'         : self.usage,
+            '--help'       : self.usage,
+            '/?'           : self.usage
         }
 
     def run(self):
@@ -125,24 +125,29 @@ class BootCLI:
         return self.apply_args(args,commands,on_ok)
 
 
-    def system_enchant(self,args):
+    def enchant(self,args):
         """
         Reinstall a system:
         'cobbler system enchant --name='foo' [--password='foo']
         """
-        self.temp_password = ''
-        self.temp_name = ''
-        def set_password(a):
-           self.temp_password = a
+        self.temp_profile = None
+        self.temp_system = None
+        self.temp_address = None
+        def set_profile(a):
+           self.temp_profile = a
            return True
-        def set_name(a):
-           self.temp_name = a
+        def set_system(a):
+           self.temp_system = a
+           return True
+        def set_address(a):
+           self.temp_address = a
            return True
         def go_enchant():
-           return self.api.enchant(self.temp_name,self.temp_password)
+           return self.api.enchant(self.temp_address,self.temp_profile,self.temp_system)
         commands = {
-           '--name'     :  lambda(a): set_name(a),
-           '--password' :  lambda(a): set_password(a),
+           '--address'  :  lambda(a): set_address(a),
+           '--profile'  :  lambda(a): set_profile(a),
+           '--system'   :  lambda(a): set_system(a)
         }
         on_ok = lambda: go_enchant()
         return self.apply_args(args,commands,on_ok)
