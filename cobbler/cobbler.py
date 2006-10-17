@@ -67,6 +67,7 @@ class BootCLI:
             'sync'     : self.sync,
             'import'   : self.import_tree,
             'help'     : self.usage,
+            '--help'   : self.usage,
             '/?'       : self.usage
         }
 
