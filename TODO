@@ -26,3 +26,4 @@ ideas:
       do their own thing)
   -  Wake on lan integration for PXE
   -  Integration with other remote power options (how might this work?)
+  -  when creating a system definition generate the ssh key.
