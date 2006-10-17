@@ -11,11 +11,11 @@ This means Cobbler now builds very easily on RHEL 4.
 
 As a result, this means that to run "enchant" a remote system, that
 system needs to have the cobbler server in the /root/.ssh/authorized_keys
-file.  Removing password functionality is more secure and should be 
-considered goodness.
+file or the password will be prompted for multiple times.  Use ssh-agent
+if this is undesirable.
 
-In addition, the arguments to "enchant" have changed.  See the manpage
-for details.
+In addition, the arguments to "enchant" have changed to make it more
+flexible.  See the manpage for details.
 
 ===================================
 0.2.6 -- Cheetah no longer required
