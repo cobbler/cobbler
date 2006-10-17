@@ -136,12 +136,10 @@ class Importer:
        at the kernel path, from that, see if we can guess the distro,
        and if we can, assign a kickstart if one is available for it.
        """
-       print "*** GUESSING KICKSTARTS"
        for profile in self.profiles:
            distro = self.distros.find(profile.name)
            kpath = distro.kernel
            if not kpath.startswith("/var/www/cobbler/localmirror/"):
-               print "*** Skipping kickstart assignment since this path isn't under /var/www/cobbler/localmirror/ and the kickstart tree can't be served" % kpath
                continue
            for entry in MATCH_LIST:
                (part, kickstart) = entry
