@@ -21,8 +21,7 @@ if __name__ == "__main__":
                 version = VERSION,
                 author = "Michael DeHaan",
                 author_email = "mdehaan@redhat.com",
-                # FIXME: lame, this should point to a real prm webpage
-                url = "http://bugzilla.redhat.com",
+                url = "http://cobbler.et.redhat.com/",
                 license = "GPL",
                 packages = ["koan","koan/yaml"],
                 scripts = ["koan/koan"],

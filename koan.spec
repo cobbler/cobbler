@@ -3,7 +3,7 @@
 Summary: Network provisioning tool for Xen and Existing Non-Bare Metal
 Name: koan
 Version: 0.2.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -13,7 +13,7 @@ Requires: python >= 2.3
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 ExcludeArch: ppc
-Url: http://et.redhat.com/~mdehaan/cobbler
+Url: http://cobbler.et.redhat.com/
 
 %description
 
@@ -26,14 +26,14 @@ any existing system.  For use with a boot-server configured with
 %setup -q
 
 %build
-python setup.py build
+%{__python} setup.py build
 
 %install
-rm -rf $RPM_BUILD_ROOT
-python setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
+test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
+%{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
@@ -47,6 +47,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING CHANGELOG README NEWS
 
 %changelog
+* Wed Oct 18 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.2-2
+- Use __python instead of python, test RPM dir before deletion
+- Update URLs
+
 * Mon Oct 09 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.2-1
 - Upstream change -- support Python 2.3
 
