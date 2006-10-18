@@ -182,7 +182,6 @@ class Importer:
        initrd = None
        kernel = None
        for tentative in fnames:
-           print "T(%s)" % tentative
            for filter_out in DIRECTORY_SIEVE:
                if tentative == filter_out:
                    fnames.remove(tentative)
@@ -221,10 +220,10 @@ class Importer:
                self.api.serialize()
 
    def get_proposed_name(self,dirname):
-       # for now, just use the path to the images directory as the
-       # name or the profile.  This provides the added bonus of letting
-       # the shell interpolate it.
-       return dirname
+       name = "_".join(dirname.split("/"))
+       if name.startswith("_"):
+          name = name[1:]
+       return name
 
    def get_pxe_arch(self,dirname):
        t = dirname
