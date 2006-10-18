@@ -44,6 +44,27 @@ MATCH_LIST = (
    ( "Centos/4" , "/etc/cobbler/kickstart_fc5.ks" )
 )
 
+# the following is a filter to reduce import scan times,
+# particularly over NFS.  these indicate directory segments
+# that we do not need to recurse into.  In the case where
+# these path segments are important to a certain distro import,
+# it's a bug, and this list needs to be edited.
+
+DIRECTORY_SIEVE = [
+   "debuginfo", "ppc", "s390x", "s390", "variant-src",
+   "ftp-isos", "compat-layer", "compat-layer-tree",
+   "SRPMS", "headers", "dosutils", "Publishers",
+   "LIVE", "RedHat", "image-template", "logs",
+   "EMEA", "APAC", "isolinux", 
+   "debug", "repodata", "repoview", "Fedora",
+   "stylesheet-images", "buildinstall", "partner", "noarch",
+   "src-isos", "dvd-isos", "docs", "misc"
+]
+
+# to keep serialization to a good level, serialize every
+# so many iterations, but not every time.
+
+
 class Importer:
 
    def __init__(self,api,config,path,mirror,mirror_name):
@@ -56,6 +77,7 @@ class Importer:
        self.profiles = config.profiles()
        self.systems  = config.systems()
        self.settings = config.settings()
+       self.serialize_counter = 0
 
    def run(self):
        if self.path is None and self.mirror is None:
@@ -67,8 +89,6 @@ class Importer:
                raise cexceptions.CobblerException("import_failed","expecting rsync:// url")
            if self.mirror_name is None:
                raise cexceptions.CobblerException("import_failed","must specify --mirror-name")
-           # FIXME:  --delete is a little harsh and should be a command
-           # line option and not the default (?)
            print "This will take a while..."
            self.path = "/var/www/cobbler/localmirror/%s" % self.mirror_name
            try:
@@ -101,10 +121,9 @@ class Importer:
        systems will be left as orphans as the MAC info may be useful
        to the sysadmin and may not be recorded elsewhere.  We will report
        the orphaned systems.
-       FIXME: this should also be a seperate API command!
+       FIXME: this should also be a seperate API command as it's useful elsewhere
        """
        print "*** SCRUBBING ORPHANS"
-       # FIXME
        for distro in self.distros:
            remove = False
            if not os.path.exists(distro.kernel):
@@ -146,30 +165,28 @@ class Importer:
                        print "*** ASSIGNING kickstart: %s" % kickstart
                        profile.set_kickstart(kickstart)
                        # from the kernel path, the tree path is always two up.
-                       # FIXME: that's probably not always true
                        dirname = os.path.dirname(kpath)
                        print "dirname = %s" % dirname
                        tokens = dirname.split("/")
-                       print "tokens = %s" % tokens
                        tokens = tokens[:-2]
                        base = "/".join(tokens)
-                       print "base=%s" % base
                        base = base.replace("/var/www/cobbler/","")
-                       #firstpart = base.split("/")[0] # mirror_name
-                       print "base2=%s" % base
-                       print "%s" % base
                        tree = "tree=http://%s/%s" % (self.settings.server, base)
-                       print "%s" % tree
-                       print "*** ASSIGNING KICKSTART TREE = %s" % tree
+                       print "*** KICKSTART TREE = %s" % tree
                        profile.set_ksmeta(tree)
-                       self.api.serialize()
+                       self.serialize_counter = self.serialize_counter + 1
+                       if (self.serialize_counter % 5) == 0:
+                           self.api.serialize()
 
    def walker(self,arg,dirname,fnames):
-       # FIXME: requires getting an arch out of the path
-       # FIXME: requires making sure the path contains "pxe" somewhere
-       print "dirname: %s" % dirname
        initrd = None
        kernel = None
+       for tentative in fnames:
+           print "T(%s)" % tentative
+           for filter_out in DIRECTORY_SIEVE:
+               if tentative == filter_out:
+                   fnames.remove(tentative)
+       print "%s" % dirname
        if not self.is_pxe_or_xen_dir(dirname):
            return
        for x in fnames:
@@ -192,16 +209,16 @@ class Importer:
            distro.set_initrd(initrd)
            distro.set_arch(pxe_arch)
            self.distros.add(distro)
-           print "*** DISTRO ADDED ***"
-           if self.profiles.find(name) is not None:
-               print "already registered: %s" % name
-           else:
+           print "(distro added)"
+           if self.profiles.find(name) is None:
                profile = self.config.new_profile()
                profile.set_name(name)
                profile.set_distro(name)
                self.profiles.add(profile)
-               print "*** PROFILE ADDED ***"
-           self.api.serialize()
+               print "(profile added)"
+           self.serialize_counter = self.serialize_counter + 1
+           if (self.serialize_counter % 5) == 0:
+               self.api.serialize()
 
    def get_proposed_name(self,dirname):
        # for now, just use the path to the images directory as the
