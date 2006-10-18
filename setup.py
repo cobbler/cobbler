@@ -22,7 +22,7 @@ if __name__ == "__main__":
                 version = VERSION,
                 author = "Michael DeHaan",
                 author_email = "mdehaan@redhat.com",
-                url = "http://et.redhat.com/",
+                url = "http://cobbler.et.redhat.com/",
                 license = "GPL",
                 packages = ["cobbler","cobbler/yaml"],
                 scripts = ["cobbler/cobbler"],
