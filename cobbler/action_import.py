@@ -55,7 +55,7 @@ DIRECTORY_SIEVE = [
    "ftp-isos", "compat-layer", "compat-layer-tree",
    "SRPMS", "headers", "dosutils", "Publishers",
    "LIVE", "RedHat", "image-template", "logs",
-   "EMEA", "APAC", "isolinux", 
+   "EMEA", "APAC", "isolinux",
    "debug", "repodata", "repoview", "Fedora",
    "stylesheet-images", "buildinstall", "partner", "noarch",
    "src-isos", "dvd-isos", "docs", "misc"

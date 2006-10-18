@@ -23,7 +23,7 @@ class Enchant:
 
    def __init__(self,config,address,profile,system):
        """
-       Constructor.  
+       Constructor.
        config:  a configuration reference (see api module)
        sysname:  address of system to enchant (not necc. defined in cobbler)
        profile:  profile to make the system become

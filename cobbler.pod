@@ -266,7 +266,7 @@ The dhcpd.conf file will be updated each time "cobbler sync" is run.
 
 While the normal provisioning procedure is either to PXE bare-metal, or use koan to do something else (kickstart an existing system or deploy Xen), cobbler contains yet another option, called "enchant".
 
-Enchant takes a configuration that has already been defined (be sure to run "cobbler sync" before using "cobbler enchant") and applies it to a remote system that may not have koan installed.  
+Enchant takes a configuration that has already been defined (be sure to run "cobbler sync" before using "cobbler enchant") and applies it to a remote system that may not have koan installed.
 
 Running "enchant" will replace the operating system of the target machine, so use it with caution.
 
