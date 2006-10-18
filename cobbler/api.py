@@ -124,7 +124,7 @@ class BootAPI:
         Imports either a tree (path) or mirror (ftp/http).
         Mirror support really doesn't exist yet... TBA.
         """
-        importer = action_import.Importer(self._config, tree_path, mirror_url, mirror_name)
+        importer = action_import.Importer(self, self._config, tree_path, mirror_url, mirror_name)
         return importer.run()
 
     def serialize(self):

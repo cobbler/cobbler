@@ -46,14 +46,12 @@ MATCH_LIST = (
 
 class Importer:
 
-   def __init__(self,config,path,mirror,mirror_name):
-       # FIXME: consider a basename for the import
+   def __init__(self,api,config,path,mirror,mirror_name):
+       self.api = api
        self.config = config
        self.path = path
        self.mirror = mirror
        self.mirror_name = mirror_name
-       #if path is None:
-       #    raise cexceptions.CobblerException("import_failed","no path specified")
        self.distros  = config.distros()
        self.profiles = config.profiles()
        self.systems  = config.systems()
@@ -164,6 +162,7 @@ class Importer:
                        print "%s" % tree
                        print "*** ASSIGNING KICKSTART TREE = %s" % tree
                        profile.set_ksmeta(tree)
+                       self.api.serialize()
 
    def walker(self,arg,dirname,fnames):
        # FIXME: requires getting an arch out of the path
@@ -202,6 +201,7 @@ class Importer:
                profile.set_distro(name)
                self.profiles.add(profile)
                print "*** PROFILE ADDED ***"
+           self.api.serialize()
 
    def get_proposed_name(self,dirname):
        # for now, just use the path to the images directory as the
