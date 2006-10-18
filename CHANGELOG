@@ -1,6 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Wed Oct 18 2006 - 0.2.8-1
+- Performance speedups to "import" command
+
 * Tue Oct 17 2006 - 0.2.7-1
 - Removed pexpect to enhance support for other distros
 - enchant syntax changed (see NEWS)

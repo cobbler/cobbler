@@ -2,7 +2,7 @@
 
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.2.7
+Version: 0.2.8
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -53,6 +53,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
+
+* Wed Oct 18 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.8-1
+- Upstream changes (see CHANGELOG)
 
 * Tue Oct 17 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.7-1
 - Upstream changes (see CHANGELOG), includes removing pexpect as a require
