@@ -192,6 +192,7 @@ class BootCLI:
            '--profile'  :  lambda(a) : sys.set_profile(a),
            '--kopts'    :  lambda(a) : sys.set_kernel_options(a),
            '--ksmeta'   :  lambda(a) : sys.set_ksmeta(a)
+           '--pxe-address'   :  lambda(a) : sys.set_pxe_address(a)
         }
         on_ok = lambda: self.api.systems().add(sys)
         return self.apply_args(args,commands,on_ok)
