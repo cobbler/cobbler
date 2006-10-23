@@ -317,6 +317,8 @@ class Koan:
         """
         Get contents of data in network kickstart file.
         """
+        if kickstart is None or kickstart == "":
+            return None
         if kickstart.startswith("nfs"):
             ndir  = os.path.dirname(kickstart[6:])
             nfile = os.path.basename(kickstart[6:])
@@ -376,8 +378,10 @@ class Koan:
         """
 
         # save kickstart to file
+        ksdata = self.get_kickstart_data(kickstart)
         fd = open("/var/spool/koan/ks.cfg","w+")
-        fd.write(self.get_kickstart_data(kickstart))
+        if ksdata is not None:
+            fd.write(ksdata)
         fd.close()
 
         # handle insertion of kickstart based on type of initrd
