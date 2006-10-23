@@ -17,27 +17,6 @@ import utils
 
 TESTMODE = False
 
-DEFAULTS = {
-    "httpd_bin"         : "/usr/sbin/httpd",
-    "dhcpd_conf"        : "/etc/dhcpd.conf",
-    "tftpd_bin"         : "/usr/sbin/in.tftpd",
-    "server"            : "127.0.0.1",
-    "next_server"       : "127.0.0.1",
-    "dhcpd_bin"         : "/usr/sbin/dhcpd",
-    "kernel_options"    : "append devfs=nomount ramdisk_size=16438 lang= text ksdevice=eth0",
-    "tftpd_conf"        : "/etc/xinetd.d/tftp",
-    "tftpboot"          : "/tftpboot",
-    "webdir"            : "/var/www/cobbler",
-    "default_kickstart" : "/etc/cobbler/default.ks",
-    "manage_dhcp"       : 0,
-    "koan_path"         : "",
-    "bootloaders"       : {
-        "standard"      : "/usr/lib/syslinux/pxelinux.0",
-        "ia64"          : "/var/lib/cobbler/elilo-3.6-ia64.efi"
-    }
-}
-
-
 class Settings(serializable.Serializable):
 
    def filename(self):
@@ -59,7 +38,24 @@ class Settings(serializable.Serializable):
        """
        Reset this object to reasonable default values.
        """
-       self._attributes = DEFAULTS
+       self._attributes = {
+          "httpd_bin"      : "/usr/sbin/httpd",
+          "dhcpd_conf"     : "/etc/dhcpd.conf",
+          "tftpd_bin"      : "/usr/sbin/in.tftpd",
+          "server"         : "127.0.0.1",
+          "next_server"    : "127.0.0.1",
+          "dhcpd_bin"      : "/usr/sbin/dhcpd",
+          "kernel_options" : "append devfs=nomount ramdisk_size=16438 lang= vga=788 ksdevice=eth0",
+          "tftpd_conf"     : "/etc/xinetd.d/tftp",
+          "tftpboot"       : "/tftpboot",
+          "webdir"         : "/var/www/cobbler",
+          "manage_dhcp"    : 0,
+          "koan_path"      : "",
+          "bootloaders"    : {
+              "standard"   : "/usr/lib/syslinux/pxelinux.0",
+              "ia64"       : "/var/lib/cobbler/elilo-3.6-ia64.efi"
+          }
+       }
 
    def printable(self):
        buf = ""
@@ -86,10 +82,6 @@ class Settings(serializable.Serializable):
    def __getattr__(self,name):
        if self._attributes.has_key(name):
            return self._attributes[name]
-       elif DEFAULTS.has_key(name):
-           lookup = DEFAULTS[name]
-           self._attributes[name] = lookup
-           return lookup
        else:
            raise AttributeError, name
 

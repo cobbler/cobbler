@@ -1,5 +1,5 @@
 """
-A Cobbler Profile.  A profile is a reference to a distribution, possibly some kernel options, possibly some Virt options, and some kickstart data.
+A Cobbler Profile.  A profile is a reference to a distribution, possibly some kernel options, possibly some Xen options, and some kickstart data.
 
 Copyright 2006, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
@@ -23,7 +23,6 @@ class Profile(item.Item):
         Constructor.  Requires a backreference to Config.
         """
         self.config = config
-        self.settings = self.config.settings()
         self.clear()
 
     def clear(self):
@@ -32,13 +31,13 @@ class Profile(item.Item):
         """
         self.name = None
         self.distro = None # a name, not a reference
-        self.kickstart = self.settings.default_kickstart
+        self.kickstart = None
         self.kernel_options = ''
         self.ks_meta = ''
-        self.virt_name = 'virtguest'
-        self.virt_file_size = 5    # GB.  5 = Decent _minimum_ default for FC5.
-        self.virt_ram = 512        # MB.  Install with 256 not likely to pass
-        self.virt_paravirt = True  # hvm support is *NOT* in Koan (now)
+        self.xen_name = 'xenguest'
+        self.xen_file_size = 5    # GB.  5 = Decent _minimum_ default for FC5.
+        self.xen_ram = 512        # MB.  Install with 256 not likely to pass
+        self.xen_paravirt = True  # hvm support is *NOT* in Koan (now)
 
     def from_datastruct(self,seed_data):
         """
@@ -49,22 +48,12 @@ class Profile(item.Item):
         self.kickstart       = self.load_item(seed_data,'kickstart')
         self.kernel_options  = self.load_item(seed_data,'kernel_options')
         self.ks_meta         = self.load_item(seed_data,'ks_meta')
-       
-        # virt specific 
-        self.virt_name       = self.load_item(seed_data,'virt_name')
-        self.virt_ram        = self.load_item(seed_data,'virt_ram')
-        self.virt_file_size  = self.load_item(seed_data,'virt_file_size')
-        self.virt_paravirt   = self.load_item(seed_data,'virt_paravirt')
-
-        # support for older versions of the cobbler files (backwards compat)...
-        self.virt_name        = self.load_item(seed_data,'xen_name')
-        if not self.virt_name or self.virt_name == '':
-            self.virt_name    = self.name
-        self.virt_ram         = self.load_item(seed_data,'xen_ram')
-        self.virt_file_size   = self.load_item(seed_data,'xen_file_size')
-        self.virt_paravirt    = self.load_item(seed_data,'xen_paravirt')
-
-
+        self.xen_name        = self.load_item(seed_data,'xen_name')
+        if not self.xen_name or self.xen_name == '':
+            self.xen_name    = self.name
+        self.xen_ram         = self.load_item(seed_data,'xen_ram')
+        self.xen_file_size   = self.load_item(seed_data,'xen_file_size')
+        self.xen_paravirt    = self.load_item(seed_data,'xen_paravirt')
         return self
 
     def set_distro(self,distro_name):
@@ -87,11 +76,11 @@ class Profile(item.Item):
             return True
         raise cexceptions.CobblerException("no_kickstart")
 
-    def set_virt_name(self,str):
+    def set_xen_name(self,str):
         """
-	For Virt only.
-	Specifies what virt install should use for --name.
-        virt install may do conflict resolution, so this is mostly
+	For Xen only.
+	Specifies what xenguest install should use for --name.
+        xen-net-install may do conflict resolution, so this is mostly
         a hint...  To keep the shell happy, the 'str' cannot
 	contain wildcards or slashes and may be subject to some other
         untainting later.
@@ -99,14 +88,14 @@ class Profile(item.Item):
         # no slashes or wildcards
         for bad in [ '/', '*', '?' ]:
             if str.find(bad) != -1:
-                raise cexceptions.CobblerException("exc_virt_name")
-        self.virt_name = str
+                raise cexceptions.CobblerException("exc_xen_name")
+        self.xen_name = str
         return True
-    
-    def set_virt_file_size(self,num):
+
+    def set_xen_file_size(self,num):
         """
-	For Virt only.
-	Specifies the size of the virt image in gigabytes.  koan
+	For Xen only.
+	Specifies the size of the Xen image in gigabytes.  xen-net-install
 	may contain some logic to ignore 'illogical' values of this size,
 	though there are no guarantees.  0 tells koan to just
 	let it pick a semi-reasonable size.  When in doubt, specify the
@@ -116,35 +105,36 @@ class Profile(item.Item):
         try:
             inum = int(num)
             if inum != float(num):
-                return cexceptions.CobblerException("exc_virt_file")
+                return cexceptions.CobblerException("exc_xen_file")
             if inum >= 0:
-                self.virt_file_size = inum
+                self.xen_file_size = inum
                 return True
-            return cexceptions.CobblerException("exc_virt_file")
+            return cexceptions.CobblerException("exc_xen_file")
         except:
-            return cexceptions.CobblerException("exc_virt_file")
+            return cexceptions.CobblerException("exc_xen_file")
 
-    def set_virt_ram(self,num):
+    def set_xen_ram(self,num):
         """
-        For Virt only.
-        Specifies the size of the Virt RAM in MB.
+        For Xen only.
+        Specifies the size of the Xen RAM in MB.
         0 tells Koan to just choose a reasonable default.
         """
         # num is a non-negative integer (0 means default)
         try:
             inum = int(num)
             if inum != float(num):
-                return cexceptions.CobblerException("exc_virt_ram")
+                return cexceptions.CobblerException("exc_xen_ram")
             if inum >= 0:
-                self.virt_ram = inum
+                self.xen_ram = inum
                 return True
-            return cexceptions.CobblerException("exc_virt_ram")
+            return cexceptions.CobblerException("exc_xen_ram")
         except:
-            return cexceptions.CobblerException("exc_virt_ram")
+            return cexceptions.CobblerException("exc_xen_ram")
 
-    def set_virt_paravirt(self,truthiness):
+
+    def set_xen_paravirt(self,truthiness):
         """
-	For Virt only.
+	For Xen only.
 	Specifies whether the system is a paravirtualized system or not.
 	For ordinary computers, you want to pick 'true'.  Method accepts string
 	'true'/'false' in all cases, or Python True/False.
@@ -154,19 +144,19 @@ class Profile(item.Item):
         # the string "foosball" is True, and that is not a valid argument for this function
         try:
             if (not truthiness or truthiness.lower() == 'false'):
-                self.virt_paravirt = False
+                self.xen_paravirt = False
             elif (truthiness or truthiness.lower() == 'true'):
-                self.virt_paravirt = True
+                self.xen_paravirt = True
             else:
-                return cexceptions.CobblerException("exc_virt_para")
+                return cexceptions.CobblerException("exc_xen_para")
         except:
-            return cexceptions.CobblerException("exc_virt_para")
+            return cexceptions.CobblerException("exc_xen_para")
         return True
 
     def is_valid(self):
         """
 	A profile only needs a name and a distro.  Kickstart info,
-	as well as Virt info, are optional.  (Though I would say provisioning
+	as well as Xen info, are optional.  (Though I would say provisioning
 	without a kickstart is *usually* not a good idea).
 	"""
         for x in (self.name, self.distro):
@@ -179,15 +169,15 @@ class Profile(item.Item):
         Return hash representation for the serializer
         """
         return {
-            'name'             : self.name,
-            'distro'           : self.distro,
-            'kickstart'        : self.kickstart,
-            'kernel_options'   : self.kernel_options,
-            'virt_name'        : self.virt_name,
-            'virt_file_size'   : self.virt_file_size,
-            'virt_ram'         : self.virt_ram,
-            'virt_paravirt'    : self.virt_paravirt,
-            'ks_meta'          : self.ks_meta
+            'name' : self.name,
+            'distro' : self.distro,
+            'kickstart' : self.kickstart,
+            'kernel_options'  : self.kernel_options,
+            'xen_name'        : self.xen_name,
+            'xen_file_size'   : self.xen_file_size,
+            'xen_ram'         : self.xen_ram,
+            'xen_paravirt'    : self.xen_paravirt,
+            'ks_meta'         : self.ks_meta
         }
 
     def printable(self,id):
@@ -199,9 +189,9 @@ class Profile(item.Item):
         buf = buf + "kickstart       : %s\n" % self.kickstart
         buf = buf + "kernel options  : %s\n" % self.kernel_options
         buf = buf + "ks metadata     : %s\n" % self.ks_meta
-        buf = buf + "virt name        : %s\n" % self.virt_name
-        buf = buf + "virt file size   : %s\n" % self.virt_file_size
-        buf = buf + "virt ram         : %s\n" % self.virt_ram
-        buf = buf + "virt paravirt    : %s\n" % self.virt_paravirt
+        buf = buf + "xen name        : %s\n" % self.xen_name
+        buf = buf + "xen file size   : %s\n" % self.xen_file_size
+        buf = buf + "xen ram         : %s\n" % self.xen_ram
+        buf = buf + "xen paravirt    : %s\n" % self.xen_paravirt
         return buf
 

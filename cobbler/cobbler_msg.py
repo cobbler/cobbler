@@ -26,8 +26,8 @@ cobbler distro add --name=<string> --kernel=<path> --initrd=<path>
 
 cobbler profile add --name=<string --distro=<string>
     [--kick-start=<url>] [--kopts=<string>] [--ksmeta=<string>]
-    [--virt-name=<string>] [--virt-file-size=<gigabytes>]
-    [--virt-ram=<megabytes>]
+    [--xen-name=<string>] [--xen-file-size=<gigabytes>]
+    [--xen-ram=<megabytes>]
 
 cobbler system add --name=<ip│mac│hostname|default> --profile=<string>
     [--pxe-address=<string>]
@@ -103,11 +103,11 @@ _msg_table = {
   "copying"         : "copying file: %s to %s",
   "removing"        : "removing: %s",
   "no_initrd"       : "cannot find initrd",
-  "exc_virt_name"    : "invalid name for virtual image",
-  "exc_virt_file"    : "invalid file size for virtual image",
-  "exc_virt_ram"     : "invalid RAM size for virtual image",
-  "exc_virt_mac"     : "invalid MAC address for virtual image",
-  "exc_virt_para"    : "invalid paravirtualization setting",
+  "exc_xen_name"    : "invalid Xen name",
+  "exc_xen_file"    : "invalid Xen file size",
+  "exc_xen_ram"     : "invalid Xen RAM size",
+  "exc_xen_mac"     : "invalid Xen mac address",
+  "exc_xen_para"    : "invalid Xen paravirtualization setting",
   "exc_profile"     : "invalid profile name",
   "exc_profile2"    : "profile name not set",
   "exc_pxe_arch"    : "valid PXE architectures: standard or ia64",

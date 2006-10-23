@@ -1,31 +1,8 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Thr Oct 25 2006 - 0.3.2-1
-- By default, boot and install in text mode
-
-* Wed Oct 25 2006 - 0.3.1-1
-- The app now refers to "virt" in many places instead of "xen".
-  It's been coded such that files will migrate forward without
-  any major issues, and the newer version of koan can still hit
-  older releases (for now).  The CLI still takes the --xen options
-  as well as the new --virt options, as they are aliased.  The API
-  now exclusively just uses methods with "virt" in them, however.
-- Fixed some bugs related to kickstart templating
-
-* Tue Oct 24 2006 - 0.3.0-1
-- Reload httpd during sync
-- New profiles without set kickstarts default to /etc/cobbler/default.ks
-  though this can be changed in /var/lib/cobbler/settings
-- Better forward upgrades for /var/lib/cobbler/settings.  New entries
-  get added when they are referenced.
-
-* Tue Oct 24 2006 - 0.2.9-1
+* Mon Oct 23 2006 - 0.2.9-1
 - Bug fix, enchant now detects if koan_path is not set
-- import now can do ssh rsync as well as just rsyncd
-- Misc bug fixes related to not choking on bad info
-- Fixed bug where --pxe-address wasn't surfaced
-- Sync is a little less verbose
 
 * Wed Oct 18 2006 - 0.2.8-1
 - Performance speedups to "import" command
@@ -77,7 +54,7 @@ Cobbler CHANGELOG
 * Wed Sep 20 2006 - 0.1.1-7
 - Split HTTP and TFTP content to seperate directories
   to enable running in SELinux targetted/enforcing mode.
-- Make the Virt MAC address a property of a system, not a profile
+- Make the Xen MAC address a property of a system, not a profile
 - Misc. fixes, mainly along the error path
 
 * Fri Sep 15 2006 - 0.1.1-6

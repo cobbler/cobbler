@@ -8,8 +8,6 @@ core:
   -  make the "scrub orphans" bit a seperate command, warn by default, with an
      option for "--delete".  Seperate from "import".   This could probably
      be a part of "check" to avoid making another command.
-  -  "check" should check if services (esp httpd) are started
-  -  import should be able to do rsync over ssh:// as well as rsync://
 
 user interface:
   -  "cobbler add" should be distinguished from "edit" so as to not overwrite
