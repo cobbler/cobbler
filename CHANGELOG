@@ -1,6 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Mon Oct 23 2006 - 0.2.9-1
+- Bug fix, enchant now detects if koan_path is not set
+
 * Wed Oct 18 2006 - 0.2.8-1
 - Performance speedups to "import" command
 - Bug fix, imported paths (again) convert slashes to underscores
