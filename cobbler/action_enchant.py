@@ -59,7 +59,7 @@ class Enchant:
        """
        koan = os.path.basename(self.settings.koan_path)
        where_is_koan = os.path.join(self.settings.webdir,os.path.basename(koan))
-       if not os.path.exists(where_is_koan):
+       if not os.path.exists(where_is_koan) or os.path.isdir(where_is_koan):
            raise cexceptions.CobblerException("enchant_failed","koan is missing")
 
        try:
