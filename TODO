@@ -12,6 +12,7 @@ core:
 user interface:
   -  "cobbler add" should be distinguished from "edit" so as to not overwrite
   -  GTK (or Web) UI for Cobbler ?
+  -  make sync have less output
 
 code cleanup:
   -  an argument parsing overhaul is probably due
