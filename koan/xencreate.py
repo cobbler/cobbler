@@ -164,7 +164,7 @@ def writeConfigXml(cfgdict):
     fd.close()
 
 def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
-                           uuid=None, kernel=None, initrd=None, extra=None):
+                           uuid=None, kernel=None, initrd=None, extra=None, interactive=False):
     # this app works without libvirt (for auto-kickstart functionality)
     # but using xen functions will require it...
     import libvirt
@@ -195,10 +195,11 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
         raise XenCreateException("Unable to create domain for guest")
 
     cmd = ["/usr/sbin/xm", "console", "%s" %(dom.ID(),)]
-    child = os.fork()
-    if (not child):
-        os.execvp(cmd[0], cmd)
-        os._exit(1)
+    if interactive:
+        child = os.fork()
+        if (not child):
+            os.execvp(cmd[0], cmd)
+            os._exit(1)
     time.sleep(5)
     os.unlink(kfn)
     os.unlink(ifn)

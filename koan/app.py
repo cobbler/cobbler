@@ -67,6 +67,10 @@ def main():
                  dest="verbose",
                  action="store_false",
                  help="run (more) quietly")
+    p.add_option("-i", "--interactive",
+                 dest="interactive",
+                 action="store_true",
+                 help="don't run in batch mode (xen only)")
     (options, args) = p.parse_args()
 
     full_access = 1
@@ -88,6 +92,7 @@ def main():
         k.profile           = options.profile
         k.system            = options.system
         k.verbose           = options.verbose
+        k.interactive       = options.interactive
         k.run()
     except InfoException, ie:
         print str(ie)
@@ -122,6 +127,7 @@ class Koan:
         self.is_xen            = None
         self.is_auto_kickstart = None
         self.dryrun            = None
+        self.interactive       = False
 
     def run(self):
         if self.server is None:
@@ -548,7 +554,8 @@ class Koan:
             uuid=xencreate.get_uuid(self.calc_xen_uuid(pd)),
             kernel=dd['kernel_local'],
             initrd=dd['initrd_local'],
-            extra=kextra
+            extra=kextra,
+            interactive=self.interactive
         )
         print results
 

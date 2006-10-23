@@ -8,7 +8,7 @@ koan --server=<host> --list-profiles
 
 koan --server=<host> --list-systems
 
-koan --xen --server=<host> --profile=<name>
+koan --xen --server=<host> --profile=<name> [--interactive]
 
 koan --replace-self --server=<host> --profile=<name>
 
@@ -18,7 +18,7 @@ koan --replace-self --server=<host> --system=<name>
 
 When invoked, koan requests profile information from a remote boot server that has been configured with cobbler.   What koan does with the profile data depends on whether it was invoked with --xen or --replace-self.
 
-For --xen, cobbler will create new Xen domUs on a xen dom0 in accordance to the orders from cobbler.
+For --xen, cobbler will create new Xen domUs on a xen dom0 in accordance to the orders from cobbler.  If you add the --interactive flag, you can watch the kickstart as it happens in an "xm console".   This is helpful for debugging and is highly recommended until you're sure your kickstarts are fully automated.  To exit, use the usual Ctrl + right bracket you use to exit an xm console.
 
 For re-kickstarting ('--replace-self'), this means reprovisioning the system, blowing away any current data and replacing it with the results of a network install.
 
