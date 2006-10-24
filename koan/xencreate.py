@@ -195,11 +195,10 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
         raise XenCreateException("Unable to create domain for guest")
 
     cmd = ["/usr/sbin/xm", "console", "%s" %(dom.ID(),)]
-    if interactive:
-        child = os.fork()
-        if (not child):
-            os.execvp(cmd[0], cmd)
-            os._exit(1)
+    child = os.fork()
+    if (not child):
+       os.execvp(cmd[0], cmd)
+       os._exit(1)
     time.sleep(5)
     os.unlink(kfn)
     os.unlink(ifn)
