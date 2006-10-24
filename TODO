@@ -2,5 +2,3 @@
   (doesn't already?)
 - put koan in /usr/share so we don't have to deal with
   different python paths
-- batch mode default, --console for xen installs that
-  spawn xm console
