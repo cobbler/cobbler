@@ -23,6 +23,7 @@ class Profile(item.Item):
         Constructor.  Requires a backreference to Config.
         """
         self.config = config
+        self.settings = self.config.settings()
         self.clear()
 
     def clear(self):
@@ -31,7 +32,7 @@ class Profile(item.Item):
         """
         self.name = None
         self.distro = None # a name, not a reference
-        self.kickstart = "/etc/cobbler/default.ks"
+        self.kickstart = self.settings.default_kickstart
         self.kernel_options = ''
         self.ks_meta = ''
         self.xen_name = 'xenguest'
