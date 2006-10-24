@@ -31,7 +31,7 @@ class Profile(item.Item):
         """
         self.name = None
         self.distro = None # a name, not a reference
-        self.kickstart = None
+        self.kickstart = "/etc/cobbler/default.ks"
         self.kernel_options = ''
         self.ks_meta = ''
         self.xen_name = 'xenguest'

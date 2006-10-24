@@ -2,7 +2,7 @@
 
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.2.9
+Version: 0.3.0
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -39,8 +39,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 %{_bindir}/cobbler
 %dir /etc/cobbler
-/etc/cobbler/*.ks
-/etc/cobbler/dhcp.template
+%config(noreplace) /etc/cobbler/default.ks
+%config(noreplace) /etc/cobbler/kickstart_fc5.ks
+%config(noreplace) /etc/cobbler/dhcp.template
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/yaml
 %{python_sitelib}/cobbler/*.py*
@@ -54,7 +55,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Tue Oct 29 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.9-1
+* Tue Oct 24 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.0-1
+- Upstream changes (see CHANGELOG)
+- Marked files in /etc/cobbler as config
+- Marked /etc/cobbler/dhcpd.template as noreplace 
+
+* Tue Oct 24 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.9-1
 - Upstream changes (see CHANGELOG)
 
 * Wed Oct 18 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.8-1
