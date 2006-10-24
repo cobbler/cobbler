@@ -1,6 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Tue Oct 24 2006 - 0.3.0-1
+- Reload httpd during sync
+
 * Tue Oct 24 2006 - 0.2.9-1
 - Bug fix, enchant now detects if koan_path is not set
 - import now can do ssh rsync as well as just rsyncd

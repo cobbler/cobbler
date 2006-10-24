@@ -172,6 +172,7 @@ class BootSync:
         config_data = config_data.replace("/cobbler_webdir",self.settings.webdir)
         self.tee(f, config_data)
         self.close_file(f)
+        sub_process.call("/sbin/service httpd reload", shell=True)
 
     def clean_trees(self):
         """
