@@ -90,12 +90,12 @@ class Importer:
            print "This will take a while..."
            self.path = "/var/www/cobbler/localmirror/%s" % self.mirror_name
            try:
-               os.mkdir(self.path)
+               os.makedirs(self.path)
            except:
                if not os.path.exists(self.path):
                    raise cexceptions.CobblerException("couldn't create: %s" % (self.path))
            spacer = ""
-           if not self.mirror.startswith("rsync://")
+           if not self.mirror.startswith("rsync://"):
                spacer = ' -e "ssh" '
            cmd = "rsync -az %s %s /var/www/cobbler/localmirror/%s --progress" % (spacer, self.mirror, self.mirror_name)
            sub_process.call(cmd,shell=True)
