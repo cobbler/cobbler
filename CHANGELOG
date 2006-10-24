@@ -4,6 +4,9 @@ Cobbler CHANGELOG
 * Tue Oct 24 2006 - 0.3.0-1
 - Reload httpd during sync
 - New profiles without set kickstarts default to /etc/cobbler/default.ks
+  though this can be changed in /var/lib/cobbler/settings
+- Better forward upgrades for /var/lib/cobbler/settings.  New entries
+  get added when they are referenced.
 
 * Tue Oct 24 2006 - 0.2.9-1
 - Bug fix, enchant now detects if koan_path is not set
