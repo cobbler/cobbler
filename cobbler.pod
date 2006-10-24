@@ -289,6 +289,8 @@ Usage; B<cobbler import --mirror=<rsync_url> --mirror-name=<string>>
 
 Example:  B<cobbler import --mirror=rsync://mirror.linux.duke.edu/fedora-linux-core/ --mirror-name=fedora>
 
+Example2:  B<cobbler import --mirror=root@192.168.1.10:/stuff --mirror-name=bar>
+
 Once imported, run a "cobbler list" to see what you've added.
 
 "Cobbler sync" must still be run after an import to get the system ready to provision what was just imported.

@@ -1,8 +1,12 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Mon Oct 23 2006 - 0.2.9-1
+* Tue Oct 24 2006 - 0.2.9-1
 - Bug fix, enchant now detects if koan_path is not set
+- import now can do ssh rsync as well as just rsyncd
+- Misc bug fixes related to not choking on bad info
+- Fixed bug where --pxe-address wasn't surfaced
+- Sync is a little less verbose
 
 * Wed Oct 18 2006 - 0.2.8-1
 - Performance speedups to "import" command
