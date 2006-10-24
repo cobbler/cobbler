@@ -85,8 +85,6 @@ class Importer:
        if self.path and not os.path.isdir(self.path):
            raise cexceptions.CobblerException("import_failed","bad path")
        if self.mirror is not None:
-           if not self.mirror.startswith("rsync://"):
-               raise cexceptions.CobblerException("import_failed","expecting rsync:// url")
            if self.mirror_name is None:
                raise cexceptions.CobblerException("import_failed","must specify --mirror-name")
            print "This will take a while..."
@@ -96,7 +94,10 @@ class Importer:
            except:
                if not os.path.exists(self.path):
                    raise cexceptions.CobblerException("couldn't create: %s" % (self.path))
-           cmd = "rsync -az %s /var/www/cobbler/localmirror/%s --progress" % (self.mirror, self.mirror_name)
+           spacer = ""
+           if not self.mirror.startswith("rsync://")
+               spacer = ' -e "ssh" '
+           cmd = "rsync -az %s %s /var/www/cobbler/localmirror/%s --progress" % (spacer, self.mirror, self.mirror_name)
            sub_process.call(cmd,shell=True)
            update_file = open(os.path.join(self.path,"update.sh"),"w+")
            update_file.write("#!/bin/sh")
