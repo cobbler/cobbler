@@ -94,7 +94,9 @@ the name of a previously defined cobbler distribution
 
 =item kickstart
 
-(optional) an HTTP URL, NFS URL, or local filesystem path to a kickstart file.  Filesystem paths are needed to take advantage of cobbler's kickstart templating features.  Kickstart templating is covered in a later section.  If this parameter is not provided, no kickstart will be used, and the installs will not be automated.
+(optional) an HTTP URL, NFS URL, or local filesystem path to a kickstart file.  Filesystem paths are needed to take advantage of cobbler's kickstart templating features and are therefore recommended.  Kickstart templating is covered in a later section.  
+
+If this parameter is not provided, the kickstart file will default to /etc/cobbler/default.ks.  This file is initially blank, meaning default kickstarts are not automated.  Admins can change the default.ks or can leave it blank.
 
 =item xen-name
 
