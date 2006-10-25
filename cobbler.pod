@@ -1,6 +1,6 @@
 =head1 NAME
 
-cobbler is a command line tool for configuring a provisioning server.  It supports provisioning via PXE, Xen, and re-provisioning an existing Linux system ("auto-kickstarting").  The latter two features are enabled by usage of 'koan' (a client side provisioning application) on the remote system.
+cobbler is a command line tool for configuring a provisioning server.  It supports provisioning via PXE, Virt, and re-provisioning an existing Linux system ("auto-kickstarting").  The latter two features are enabled by usage of 'koan' (a client side provisioning application) on the remote system.
 
 =head1 SYNOPSIS
 
@@ -82,7 +82,7 @@ See the section below on templating.
 
 A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.
 
-B<cobbler profile add --name=<string> --distro=<string> [--kickstart=<url>] [--kopts=<string>] [--ksmeta=<string>] [--xen-name=<string>] [--xen-file-size=<gigabytes>] [--xen-ram=<megabytes>]
+B<cobbler profile add --name=<string> --distro=<string> [--kickstart=<url>] [--kopts=<string>] [--ksmeta=<string>] [--virt-name=<string>] [--virt-file-size=<gigabytes>] [--virt-ram=<megabytes>]
 
 =over
 
@@ -94,20 +94,22 @@ the name of a previously defined cobbler distribution
 
 =item kickstart
 
-(optional) an HTTP URL, NFS URL, or local filesystem path to a kickstart file.  Filesystem paths are needed to take advantage of cobbler's kickstart templating features.  Kickstart templating is covered in a later section.  If this parameter is not provided, no kickstart will be used, and the installs will not be automated.
+(optional) an HTTP URL, NFS URL, or local filesystem path to a kickstart file.  Filesystem paths are needed to take advantage of cobbler's kickstart templating features and are therefore recommended.  Kickstart templating is covered in a later section.  
 
-=item xen-name
+If this parameter is not provided, the kickstart file will default to /etc/cobbler/default.ks (or whatever is set in /var/lib/cobbler/settings).  This file is initially blank, meaning default kickstarts are not automated.  Admins can change the default.ks or can leave it blank.
 
-(optional) (Xen-only) what the Xen domU name should start with.  Creating
-multiple images on a machine will cause increasing numbers to be appended to this name.  The default is "xenguest".
+=item virt-name
 
-=item xen-file-size
+(optional) (Virt-only) what the Virt guest name should start with.  Creating
+multiple images on a machine will cause increasing numbers to be appended to this name.  The default is "virtguest".
 
-(optional) (Xen-only) how large the disk image should be in gigabytes.  The default is "5".
+=item virt-file-size
 
-=item xen-ram
+(optional) (Virt-only) how large the disk image should be in gigabytes.  The default is "5".
 
-(optional) (Xen-only) how many megabytes of RAM to consume.  The default is 512 MB.
+=item virt-ram
+
+(optional) (Virt-only) how many megabytes of RAM to consume.  The default is 512 MB.
 
 =back
 
@@ -126,7 +128,7 @@ the following changes:
 
 The system name must be either a currently-resolvable hostname, an IP address, or a MAC address.
 
-When defining Xen systems, using a MAC address causes the Xen MAC address to be used for creation,
+When defining Virtualized systems, using a MAC address causes the Virt MAC address to be used for creation,
 so that is the preferred usage.
 
 =item pxe-address
@@ -212,19 +214,19 @@ B<cobbler sync>
 
 =head2 XEN
 
-For Xen, be sure the distro uses a Xen kernel and initrd and follow similar steps as above, adding additional parameters as desired:
+For Virt, be sure the distro uses a Virt kernel and initrd and follow similar steps as above, adding additional parameters as desired:
 
 =over
 
-B<cobbler distro add --name=fc5xen --kernel=/dir3/vmlinuz --initrd=/dir6/initrd.img>
+B<cobbler distro add --name=fc5virt --kernel=/dir3/vmlinuz --initrd=/dir6/initrd.img>
 
-Specify reasonable values for the Xen image size (in GB) and RAM requirements:
+Specify reasonable values for the Virt image size (in GB) and RAM requirements:
 
-B<cobbler profile add --name=xenwebservers --distro=fc5xen --kickstart=/dir7/kick.ks --xen-file-size=10 --xen-ram=512>
+B<cobbler profile add --name=virtwebservers --distro=fc5virt --kickstart=/dir7/kick.ks --virt-file-size=10 --virt-ram=512>
 
 And define systems (if desired) using MAC addresses, not IP's or hostnames:
 
-B<cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=xenwebservers>
+B<cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=virtwebservers>
 
 =back
 
@@ -264,7 +266,7 @@ The dhcpd.conf file will be updated each time "cobbler sync" is run.
 
 =head2 ENCHANT
 
-While the normal provisioning procedure is either to PXE bare-metal, or use koan to do something else (kickstart an existing system or deploy Xen), cobbler contains yet another option, called "enchant".
+While the normal provisioning procedure is either to PXE bare-metal, or use koan to do something else (kickstart an existing system or deploy Virt), cobbler contains yet another option, called "enchant".
 
 Enchant takes a configuration that has already been defined (be sure to run "cobbler sync" before using "cobbler enchant") and applies it to a remote system that may not have koan installed.
 
@@ -277,7 +279,7 @@ Usage:  B<cobbler enchant --address=<ip|hostname> --system=<string>>
 
 Cobbler can auto-add distributions and profiles from remote sources, whether this is an NFS path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.
 
-NOTE: The mirror or directory tree must have the basic directory tree layout as a Fedora or Centos mirror normally looks, including directories named things like "pxeboot" or "xen", "i386" or "x86_64", and so forth.
+NOTE: The mirror or directory tree must have the basic directory tree layout as a Fedora or Centos mirror normally looks, including directories named things like "pxeboot", "i386" or "x86_64", and so forth.
 
 When importing a rsync mirror, cobbler can try to detect the distribution type and automatically assign kickstarts.  This autodetection is rather primative but can improve as community users contribute kickstarts.  If cobbler is able to guess the architecture, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of "cobbler".  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting after cobbler creates the profile.
 
@@ -288,6 +290,8 @@ Usage: B<cobbler import --path=<path>>
 Usage; B<cobbler import --mirror=<rsync_url> --mirror-name=<string>>
 
 Example:  B<cobbler import --mirror=rsync://mirror.linux.duke.edu/fedora-linux-core/ --mirror-name=fedora>
+
+Example2:  B<cobbler import --mirror=root@192.168.1.10:/stuff --mirror-name=bar>
 
 Once imported, run a "cobbler list" to see what you've added.
 

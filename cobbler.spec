@@ -2,7 +2,7 @@
 
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.2.8
+Version: 0.3.1
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -17,10 +17,7 @@ Url: http://cobbler.et.redhat.com
 
 %description
 
-Cobbler is a command line tool for simplified configuration of provisioning
-servers.  It is also accessible as a Python library.  Cobbler supports PXE,
-Xen, and re-provisioning an existing Linux system via auto-kickstart.  The
-last two modes require 'koan' to be run on the remote system.
+Cobbler is a command line tool for configuration of boot/provisioning servers.  It is also accessible as a Python library.  Cobbler supports PXE, provisioning virtualized ("virt") images, and reinstalling machines that are already up and running (over SSH).  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from rsync mirrors, kickstart templating, and managing dhcpd.conf.
 
 %prep
 %setup -q
@@ -39,8 +36,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 %{_bindir}/cobbler
 %dir /etc/cobbler
-/etc/cobbler/*.ks
-/etc/cobbler/dhcp.template
+%config(noreplace) /etc/cobbler/default.ks
+%config(noreplace) /etc/cobbler/kickstart_fc5.ks
+%config(noreplace) /etc/cobbler/dhcp.template
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/yaml
 %{python_sitelib}/cobbler/*.py*
@@ -53,6 +51,18 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
+
+* Wed Oct 25 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.1-1
+- Upstream changes (see CHANGELOG)
+- Updated description
+
+* Tue Oct 24 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.0-1
+- Upstream changes (see CHANGELOG)
+- Marked files in /etc/cobbler as config
+- Marked /etc/cobbler/dhcpd.template as noreplace 
+
+* Tue Oct 24 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.9-1
+- Upstream changes (see CHANGELOG)
 
 * Wed Oct 18 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.8-1
 - Upstream changes (see CHANGELOG)

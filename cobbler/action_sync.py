@@ -153,7 +153,7 @@ class BootSync:
         cobbler infrastructure available over TFTP over HTTP also.
         """
         if not os.path.exists("/etc/httpd/conf.d"):
-           self.sync_log(cobbler_msg.lookup("no_httpd"))
+           print cobbler_msg.lookup("no_httpd")
            return
         f = self.open_file("/etc/httpd/conf.d/cobbler.conf","w+")
         config_data = """
@@ -172,14 +172,15 @@ class BootSync:
         config_data = config_data.replace("/cobbler_webdir",self.settings.webdir)
         self.tee(f, config_data)
         self.close_file(f)
+        sub_process.call("/sbin/service httpd reload", shell=True)
 
     def clean_trees(self):
         """
-        Delete any previously built pxelinux.cfg tree and xen tree info.
+        Delete any previously built pxelinux.cfg tree and virt tree info.
 
         Note: for SELinux reasons, some information goes in /tftpboot, some in /var/www/cobbler
         and some must be duplicated in both.  This is because PXE needs tftp, and auto-kickstart
-        and Xen operations need http.   Only the kernel and initrd images are duplicated, which is
+        and Virt operations need http.   Only the kernel and initrd images are duplicated, which is
         unfortunate, though SELinux won't let me give them two contexts, so symlinks are not
         a solution.  *Otherwise* duplication is minimal.
         """
@@ -245,7 +246,7 @@ class BootSync:
 
     def validate_kickstarts_per_profile(self):
         """
-        Koan provisioning (Xen + auto-ks) needs kickstarts
+        Koan provisioning (Virt + auto-ks) needs kickstarts
         per profile.  Validate them as needed.  Local kickstarts
         get template substitution.  Since http:// kickstarts might
         get generated via magic URLs, those are *not* substituted.
@@ -259,7 +260,6 @@ class BootSync:
 
         for g in self.profiles:
            distro = self.distros.find(g.distro)
-           self.sync_log(cobbler_msg.lookup("sync_mirror_ks"))
            kickstart_path = utils.find_kickstart(g.kickstart)
            if kickstart_path and os.path.exists(kickstart_path):
               # the input is an *actual* file, hence we have to copy it
@@ -323,7 +323,8 @@ class BootSync:
         data = fd.read()
         fd.close()
         for x in metadata.keys():
-            data = data.replace("TEMPLATE::%s" % x, metadata[x])
+            if x != "":
+               data = data.replace("TEMPLATE::%s" % x, metadata[x])
         fd = open(out_path, "w+")
         fd.write(data)
         fd.close()
@@ -332,21 +333,19 @@ class BootSync:
         """
         Now that kernels and initrds are copied and kickstarts are all valid,
         build the pxelinux.cfg tree, which contains a directory for each
-        configured IP or MAC address.  Also build a tree for Xen info.
+        configured IP or MAC address.  Also build a tree for Virt info.
 
         NOTE: some info needs to go in TFTP and HTTP directories, but not all.
         Usually it's just one or the other.
 
         """
 
-        self.sync_log(cobbler_msg.lookup("sync_buildtree"))
         self.write_listings()
 
         # create pxelinux.cfg under tftpboot
         # and file for each MAC or IP (hex encoded 01-XX-XX-XX-XX-XX-XX)
 
         for d in self.distros:
-            self.sync_log(cobbler_msg.lookup("sync_processing") % d.name)
             # TODO: add check to ensure all distros have profiles (=warning)
             filename = os.path.join(self.settings.webdir,"distros",d.name)
             d.kernel_options = self.blend_options(True,(
@@ -357,7 +356,6 @@ class BootSync:
             self.write_distro_file(filename,d)
 
         for p in self.profiles:
-            self.sync_log(cobbler_msg.lookup("sync_processing") % p.name)
             # TODO: add check to ensure all profiles have distros (=error)
             # TODO: add check to ensure all profiles have systems (=warning)
             filename = os.path.join(self.settings.webdir,"profiles",p.name)
@@ -372,7 +370,6 @@ class BootSync:
             self.write_profile_file(filename,p)
 
         for system in self.systems:
-            self.sync_log(cobbler_msg.lookup("sync_processing") % system.name)
             profile = self.profiles.find(system.profile)
             if profile is None:
                 raise cexceptions.CobblerException("orphan_profile2",system.name,system.profile)
@@ -436,8 +433,6 @@ class BootSync:
         kernel_path = os.path.join("/images",distro.name,os.path.basename(distro.kernel))
         initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
         kickstart_path = profile.kickstart
-        self.sync_log(cobbler_msg.lookup("writing") % filename)
-        self.sync_log("---------------------------------")
         fd = self.open_file(filename,"w+")
         if not is_ia64:
             # pxelinux tree
@@ -488,7 +483,6 @@ class BootSync:
             self.tee(fd, "\tappend=\"%s\"" % append_line)
 
         self.close_file(fd)
-        self.sync_log("--------------------------------")
 
     def write_listings(self):
         """
@@ -505,11 +499,10 @@ class BootSync:
         self.tee(fd2, data2)
         self.close_file(fd1)
         self.close_file(fd2)
-        self.sync_log("--------------------------------")
 
     def write_distro_file(self,filename,distro):
         """
-        Create distro information for xen-net-install
+        Create distro information for virt install
 
         NOTE: relevant to http only
         """
@@ -522,7 +515,7 @@ class BootSync:
 
     def write_profile_file(self,filename,profile):
         """
-        Create profile information for xen-net-install
+        Create profile information for virt install
 
         NOTE: relevant to http only
         """
@@ -537,7 +530,7 @@ class BootSync:
 
     def write_system_file(self,filename,system):
         """
-        Create system information for xen-net-install
+        Create system information for virt install
 
         NOTE: relevant to http only
         """
@@ -549,7 +542,8 @@ class BootSync:
         """
         For dryrun support:  send data to screen and potentially to disk
         """
-        self.sync_log(text)
+        if self.dryrun:
+            print text
         if not self.dryrun:
             fd.write(text)
 
@@ -572,7 +566,7 @@ class BootSync:
        """
        For dryrun support:  potentially copy a file.
        """
-       self.sync_log(cobbler_msg.lookup("copying") % (src,dst))
+       print "%s -> %s" % (src,dst)
        if self.dryrun:
            return True
        try:
@@ -585,7 +579,7 @@ class BootSync:
        """
        For dryrun support: potentially copy a file.
        """
-       self.sync_log(cobbler_msg.lookup("copying") % (src,dst))
+       print "%s -> %s" % (src,dst)
        if self.dryrun:
            return True
        try:
@@ -611,7 +605,7 @@ class BootSync:
        """
        For dryrun support:  potentially delete a tree.
        """
-       self.sync_log(cobbler_msg.lookup("removing") % (path))
+       print "del %s" % (path)
        if self.dryrun:
            return True
        try:
@@ -624,27 +618,14 @@ class BootSync:
        """
        For dryrun support:  potentially make a directory.
        """
-       self.sync_log(cobbler_msg.lookup("mkdir") % (path))
        if self.dryrun:
+           print "mkdir %s" % (path)
            return True
        try:
            return os.makedirs(path,mode)
        except OSError, oe:
            if not oe.errno == 17: # already exists (no constant for 17?)
                raise cexceptions.CobblerException("no_create", path)
-
-    def sync_log(self,message):
-       """
-       Used to differentiate dryrun output from the real thing
-       automagically
-       """
-       if self.verbose:
-           if self.dryrun:
-               if not message:
-                   message = ""
-               print cobbler_msg.lookup("dryrun") % str(message)
-           else:
-               print message
 
     def blend_options(self, is_for_kernel, list_of_opts):
         """
