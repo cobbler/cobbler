@@ -468,8 +468,8 @@ class BootSync:
         # kickstart path (if kickstart is used)
         if kickstart_path is not None and kickstart_path != "":
             # if kickstart path is on disk, we've already copied it into
-            # the HTTP mirror, so make it something anaconda can get at
-            if kickstart_path.startswith("/"):
+            # the HTTP mirror, so make it something anaconda can get at.
+            if kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
                 pxe_fn = self.get_pxe_filename(system.name)
                 kickstart_path = "http://%s/cobbler/kickstarts_sys/%s/ks.cfg" % (self.settings.server, pxe_fn)
             append_line = "%s ks=%s" % (append_line, kickstart_path)
