@@ -618,13 +618,13 @@ class Koan:
         """
         Assign a virt filesize if none is given in the profile.
         """
-        size = self.safe_load(data,'virt_file_size','xen_file_size')
+        size = self.safe_load(data,'virt_file_size','xen_file_size',0)
         err = False
         try:
             int(size)
         except:
             err = True
-        if int(size)<1:
+        if size is None or size == '' or int(size)<1:
             err = True
         if err:
             self.debug("invalid file size specified, defaulting to 1 GB")
@@ -635,13 +635,13 @@ class Koan:
         """
         Assign a virt ram size if none is given in the profile.
         """
-        size = self.safe_load(data,'virt_ram','xen_ram')
+        size = self.safe_load(data,'virt_ram','xen_ram',0)
         err = False
         try:
             int(size)
         except:
             err = True
-        if int(size) < 256:
+        if size is None or size == '' or int(size) < 256:
             err = True
         if err:
             self.debug("invalid RAM size specified, defaulting to 256 MB")
