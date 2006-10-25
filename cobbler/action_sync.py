@@ -323,7 +323,8 @@ class BootSync:
         data = fd.read()
         fd.close()
         for x in metadata.keys():
-            data = data.replace("TEMPLATE::%s" % x, metadata[x])
+            if x != "":
+               data = data.replace("TEMPLATE::%s" % x, metadata[x])
         fd = open(out_path, "w+")
         fd.write(data)
         fd.close()
