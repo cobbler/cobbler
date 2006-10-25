@@ -176,11 +176,11 @@ class BootSync:
 
     def clean_trees(self):
         """
-        Delete any previously built pxelinux.cfg tree and xen tree info.
+        Delete any previously built pxelinux.cfg tree and virt tree info.
 
         Note: for SELinux reasons, some information goes in /tftpboot, some in /var/www/cobbler
         and some must be duplicated in both.  This is because PXE needs tftp, and auto-kickstart
-        and Xen operations need http.   Only the kernel and initrd images are duplicated, which is
+        and Virt operations need http.   Only the kernel and initrd images are duplicated, which is
         unfortunate, though SELinux won't let me give them two contexts, so symlinks are not
         a solution.  *Otherwise* duplication is minimal.
         """
@@ -246,7 +246,7 @@ class BootSync:
 
     def validate_kickstarts_per_profile(self):
         """
-        Koan provisioning (Xen + auto-ks) needs kickstarts
+        Koan provisioning (Virt + auto-ks) needs kickstarts
         per profile.  Validate them as needed.  Local kickstarts
         get template substitution.  Since http:// kickstarts might
         get generated via magic URLs, those are *not* substituted.
@@ -332,7 +332,7 @@ class BootSync:
         """
         Now that kernels and initrds are copied and kickstarts are all valid,
         build the pxelinux.cfg tree, which contains a directory for each
-        configured IP or MAC address.  Also build a tree for Xen info.
+        configured IP or MAC address.  Also build a tree for Virt info.
 
         NOTE: some info needs to go in TFTP and HTTP directories, but not all.
         Usually it's just one or the other.
@@ -501,7 +501,7 @@ class BootSync:
 
     def write_distro_file(self,filename,distro):
         """
-        Create distro information for xen-net-install
+        Create distro information for virt install
 
         NOTE: relevant to http only
         """
@@ -514,7 +514,7 @@ class BootSync:
 
     def write_profile_file(self,filename,profile):
         """
-        Create profile information for xen-net-install
+        Create profile information for virt install
 
         NOTE: relevant to http only
         """
@@ -529,7 +529,7 @@ class BootSync:
 
     def write_system_file(self,filename,system):
         """
-        Create system information for xen-net-install
+        Create system information for virt install
 
         NOTE: relevant to http only
         """

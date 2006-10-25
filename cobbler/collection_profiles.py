@@ -1,7 +1,7 @@
 """
 A profile represents a distro paired with a kickstart file.
 For instance, FC5 with a kickstart file specifying OpenOffice
-might represent a 'desktop' profile.  For Xen, there are many
+might represent a 'desktop' profile.  For Virt, there are many
 additional options, with client-side defaults (not kept here).
 
 Copyright 2006, Red Hat, Inc

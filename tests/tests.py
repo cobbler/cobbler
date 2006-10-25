@@ -170,25 +170,25 @@ class Additions(BootTest):
         self.assertTrue(profile.set_kickstart("ftp://bar"))
         self.assertTrue(profile.set_kickstart("nfs://bar"))
 
-    def test_profile_xen_parameter_checking(self):
+    def test_profile_virt_parameter_checking(self):
         profile = self.api.new_profile()
         self.assertTrue(profile.set_name("testprofile12b"))
         self.assertTrue(profile.set_distro("testdistro0"))
         self.assertTrue(profile.set_kickstart("http://127.0.0.1/foo"))
         # no slashes or wildcards in name
-        self.assertTrue(profile.set_xen_name("xen"))
-        self.assertTrue(profile.set_xen_name("xen"))
-        self.failUnlessRaises(CobblerException, profile.set_xen_name, "xen/foo")
-        self.failUnlessRaises(CobblerException, profile.set_xen_name, "xen*foo")
-        self.failUnlessRaises(CobblerException, profile.set_xen_name, "xen?foo")
+        self.assertTrue(profile.set_virt_name("virt"))
+        self.assertTrue(profile.set_virt_name("virt"))
+        self.failUnlessRaises(CobblerException, profile.set_virt_name, "virt/foo")
+        self.failUnlessRaises(CobblerException, profile.set_virt_name, "virt*foo")
+        self.failUnlessRaises(CobblerException, profile.set_virt_name, "virt?foo")
         # sizes must be integers
-        self.assertTrue(profile.set_xen_file_size("54321"))
+        self.assertTrue(profile.set_virt_file_size("54321"))
         # temporarily commenting out failing test
-        # self.failUnlessRaises(CobblerException, profile.set_xen_file_size, "huge")
-        # self.failUnlessRaises(CobblerException, profile.set_xen_file_size, "54321.23")
+        # self.failUnlessRaises(CobblerException, profile.set_virt_file_size, "huge")
+        # self.failUnlessRaises(CobblerException, profile.set_virt_file_size, "54321.23")
         # paravirt must be 'true' or 'false'
-        self.assertTrue(profile.set_xen_paravirt(False))
-        self.assertTrue(profile.set_xen_paravirt(True))
+        self.assertTrue(profile.set_virt_paravirt(False))
+        self.assertTrue(profile.set_virt_paravirt(True))
         self.assertTrue(self.api.profiles().add(profile))
 
     def test_invalid_system_bad_name_host(self):

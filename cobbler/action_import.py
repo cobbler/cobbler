@@ -187,7 +187,7 @@ class Importer:
                if tentative == filter_out:
                    fnames.remove(tentative)
        print "%s" % dirname
-       if not self.is_pxe_or_xen_dir(dirname):
+       if not self.is_pxe_or_virt_dir(dirname):
            return
        for x in fnames:
            if x.startswith("initrd"):
@@ -236,8 +236,8 @@ class Importer:
           return "x86"
        return "x86"
 
-   def is_pxe_or_xen_dir(self,dirname):
-       if dirname.find("pxe") != -1 or dirname.find("xen") != -1:
+   def is_pxe_or_virt_dir(self,dirname):
+       if dirname.find("pxe") != -1 or dirname.find("xen") != -1 or dirname.find("virt") != -1:
            return True
        return False
 
