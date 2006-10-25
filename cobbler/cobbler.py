@@ -211,11 +211,12 @@ class BootCLI:
             '--kick-start'      :  lambda(a) : profile.set_kickstart(a),
             '--kopts'           :  lambda(a) : profile.set_kernel_options(a),
             '--xen-name'        :  lambda(a) : profile.set_xen_name(a),
+            '--virt-name'       :  lambda(a) : profile.set_xen_name(a),
             '--xen-file-size'   :  lambda(a) : profile.set_xen_file_size(a),
+            '--virt-file-size'  :  lambda(a) : profile.set_xen_file_size(a),
             '--xen-ram'         :  lambda(a) : profile.set_xen_ram(a),
+            '--virt-ram'        :  lambda(a) : profile.set_xen_ram(a),
             '--ksmeta'          :  lambda(a) : profile.set_ksmeta(a)
-        # the following options are most likely not useful for profiles (yet)
-        #    '--xen-paravirt'    :  lambda(a) : profile.set_xen_paravirt(a),
         }
         on_ok = lambda: self.api.profiles().add(profile)
         return self.apply_args(args,commands,on_ok)
