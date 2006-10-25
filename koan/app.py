@@ -1,7 +1,7 @@
 """
 koan = kickstart over a network
 
-a tool for network provisioning of Xen and network re-provisioning
+a tool for network provisioning of virtualization and network re-provisioning
 of existing Linux systems.  used with 'cobbler'. see manpage for usage.
 
 Copyright 2006 Red Hat, Inc.
@@ -26,10 +26,10 @@ import sub_process
 import shutil
 import errno
 import re
-import xencreate
+import virtcreate
 
 """
-koan --xen [--profile=webserver|--system=name] --server=hostname
+koan --virt [--profile=webserver|--system=name] --server=hostname
 koan --replace-self --profile=foo --server=hostname
 """
 
@@ -47,9 +47,13 @@ def main():
                  action="store_true",
                  help="list systems the server can provision")
     p.add_option("-x", "--xen",
-                 dest="is_xen",
+                 dest="is_virt",
                  action="store_true",
-                 help="requests new Xen guest creation")
+                 help="alias for --virt")
+    p.add_option("-v", "--virt",
+                 dest="is_virt",
+                 action="store_true",
+                 help="requests new virtualized image installation")
     p.add_option("-r", "--replace-self",
                  dest="is_auto_kickstart",
                  action="store_true",
@@ -67,12 +71,6 @@ def main():
                  dest="verbose",
                  action="store_false",
                  help="run (more) quietly")
-    # backing this out as the xm console bit is currently needed
-    # during install... a better / more permanent fix is preferred.
-    #p.add_option("-i", "--interactive",
-    #             dest="interactive",
-    #             action="store_true",
-    #             help="don't run in batch mode (xen only)")
     (options, args) = p.parse_args()
 
     full_access = 1
@@ -89,7 +87,7 @@ def main():
         k.list_systems      = options.list_systems
         k.list_profiles     = options.list_profiles
         k.server            = options.server
-        k.is_xen            = options.is_xen
+        k.is_virt           = options.is_virt
         k.is_auto_kickstart = options.is_auto_kickstart
         k.profile           = options.profile
         k.system            = options.system
@@ -99,7 +97,7 @@ def main():
     except InfoException, ie:
         print str(ie)
         return 1
-    except xencreate.XenCreateException, xce:
+    except virtcreate.VirtCreateException, xce:
         print str(xce)
         return 2
     except:
@@ -126,7 +124,7 @@ class Koan:
         self.list_profiles     = None
         self.list_systems      = None
         self.verbose           = None
-        self.is_xen            = None
+        self.is_virt           = None
         self.is_auto_kickstart = None
         self.dryrun            = None
         # self.interactive       = False
@@ -140,10 +138,10 @@ class Koan:
             self.do_list_profiles()
         if (self.list_systems or self.list_profiles):
             return
-        if not self.is_xen and not self.is_auto_kickstart:
-            raise InfoException, "must use either --xen or --replace-self"
-        if self.is_xen and self.is_auto_kickstart:
-            raise InfoException, "must use either --xen or --replace-self"
+        if not self.is_virt and not self.is_auto_kickstart:
+            raise InfoException, "must use either --virt or --replace-self"
+        if self.is_virt and self.is_auto_kickstart:
+            raise InfoException, "must use either --virt or --replace-self"
         if not self.server:
             raise InfoException, "no server specified"
         if self.verbose is None:
@@ -152,8 +150,8 @@ class Koan:
             raise InfoException, "must specify --profile or --system"
         if self.profile and self.system:
             raise InfoException, "--profile and --system are exclusive"
-        if self.is_xen:
-            self.do_xen()
+        if self.is_virt:
+            self.do_virt()
         else:
             self.do_auto_kickstart()
 
@@ -230,7 +228,7 @@ class Koan:
 
     def do_net_install(self,download_root,after_download):
         """
-        Actually kicks off downloads and auto-ks or xen installs
+        Actually kicks off downloads and auto-ks or virt installs
         """
         self.debug("processing profile: %s" % self.profile)
         if self.profile:
@@ -280,12 +278,12 @@ class Koan:
             raise InfoException, "couldn't access listing information"
         return False # shouldn't be here
                  
-    def do_xen(self):
+    def do_virt(self):
         """
-        Handle xen provisioning.
+        Handle virt provisioning.
         """
         def after_download(self, distro_data, profile_data):
-            self.do_xen_net_install(profile_data, distro_data)
+            self.do_virt_net_install(profile_data, distro_data)
         return self.do_net_install("/tmp",after_download)
 
     def do_auto_kickstart(self):
@@ -534,9 +532,9 @@ class Koan:
         distro_data['initrd_local'] = initrd_save
         self.debug("initrd saved = %s" % initrd_save)
 
-    def do_xen_net_install(self,profile_data,distro_data):
+    def do_virt_net_install(self,profile_data,distro_data):
         """
-        Invoke xenguest-install (or tweaked copy thereof)
+        Invoke virt guest-install (or tweaked copy thereof)
         """
         pd = profile_data
         dd = distro_data
@@ -553,13 +551,13 @@ class Koan:
         # parser issues?  lang needs a trailing = and somehow doesn't have it.
         kextra = kextra.replace("lang ","lang= ")
 
-        results = xencreate.start_paravirt_install(
-            name=self.calc_xen_name(pd),
-            ram=self.calc_xen_ram(pd),
-            disk= xencreate.get_disk(self.calc_xen_filename(pd),
-                self.calc_xen_filesize(pd)),
-            mac=xencreate.get_mac(self.calc_xen_mac(pd)),
-            uuid=xencreate.get_uuid(self.calc_xen_uuid(pd)),
+        results = virtcreate.start_paravirt_install(
+            name=self.calc_virt_name(pd),
+            ram=self.calc_virt_ram(pd),
+            disk= virtcreate.get_disk(self.calc_virt_filename(pd),
+                self.calc_virt_filesize(pd)),
+            mac=virtcreate.get_mac(self.calc_virt_mac(pd)),
+            uuid=virtcreate.get_uuid(self.calc_virt_uuid(pd)),
             kernel=dd['kernel_local'],
             initrd=dd['initrd_local'],
             extra=kextra
@@ -567,11 +565,12 @@ class Koan:
         )
         print results
 
-    def calc_xen_name(self,data):
+    def calc_virt_name(self,data):
         """
         Turn the suggested name into a non-conflicting name.
+        Currently this is Xen specific, may change later.
         """
-        name = data['xen_name']
+        name = data['virt_name']
         if name is None or name == "":
             name = self.profile
         path = "/etc/xen/%s" % name
@@ -584,30 +583,30 @@ class Koan:
                     break
         if file_id != 0:
             name = "%s_%s" % (name,file_id)
-        data['xen_name'] = name
+        data['virt_name'] = name
         return name
 
-    def calc_xen_uuid(self,data):
+    def calc_virt_uuid(self,data):
         # TODO: eventually we may want to allow some koan CLI
         # option for passing in the UUID.  Until then, it's random.
         return None
 
-    def calc_xen_filename(self,data):
+    def calc_virt_filename(self,data):
         """
-        Determine where to store the Xen file.
+        Determine where to store the virtualization file.
         """
-        if not os.path.exists("/var/lib/xenimages"):
+        if not os.path.exists("/var/lib/virtimages"):
              try:
-                 os.mkdir("/var/lib/xenimages")
+                 os.mkdir("/var/lib/virtimages")
              except:
                  pass
-        return os.path.join("/var/lib/xenimages","%s.disk" % data['xen_name'])
+        return os.path.join("/var/lib/virtimages","%s.disk" % data['virt_name'])
 
-    def calc_xen_filesize(self,data):
+    def calc_virt_filesize(self,data):
         """
-        Assign a xen filesize if none is given in the profile.
+        Assign a virt filesize if none is given in the profile.
         """
-        size = data['xen_file_size']
+        size = data['virt_file_size']
         err = False
         try:
             int(size)
@@ -620,11 +619,11 @@ class Koan:
             return 1
         return int(size)
 
-    def calc_xen_ram(self,data):
+    def calc_virt_ram(self,data):
         """
-        Assign a xen ram size if none is given in the profile.
+        Assign a virt ram size if none is given in the profile.
         """
-        size = data['xen_ram']
+        size = data['virt_ram']
         err = False
         try:
             int(size)
@@ -638,11 +637,11 @@ class Koan:
         return int(size)
 
 
-    def calc_xen_mac(self,data):
+    def calc_virt_mac(self,data):
         """
         For now, we have no preference.
         """
-        if not self.is_xen:
+        if not self.is_virt:
             return None
         if self.is_mac(self.system):
             return self.system.upper()

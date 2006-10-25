@@ -1,5 +1,8 @@
 #
-# Xen creation functions.  Code originated from xenguest-install.
+# Virtualization installation functions.  
+# Code originated from xenguest-install.
+# Currently somewhat Xen specific, but it goes through libvirt,
+# so this may change later.
 #
 # Copyright 2005-2006  Red Hat, Inc.
 # Jeremy Katz <katzj@redhat.com>
@@ -65,7 +68,7 @@ XMLTEMPLATE = """
 </domain>
 """
 
-class XenCreateException(exceptions.Exception):
+class VirtCreateException(exceptions.Exception):
     pass
 
 def randomMAC():
@@ -134,7 +137,7 @@ def get_paravirt_install_image(kernel_fn,initrd_fn):
         kernel = open(kernel_fn,"r")
         initrd = open(initrd_fn,"r")
     except IOError:
-        raise XenCreateException("Invalid kernel or initrd location")
+        raise VirtCreateException("Invalid kernel or initrd location")
 
     (kfd, kfn) = tempfile.mkstemp(prefix="vmlinuz.", dir="/var/lib/xen")
     os.write(kfd, kernel.read())
@@ -187,12 +190,12 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
     try:
         conn = libvirt.open(None)
     except:
-        raise XenCreateException("libvirt could not connect to Xen")
+        raise VirtCreateException("libvirt could not connect to Xen")
     if conn == None:
-        raise XenCreateException("Unable to connect to hypervisor")
+        raise VirtCreateException("Unable to connect to hypervisor")
     dom = conn.createLinux(cfgxml, 0)
     if dom == None:
-        raise XenCreateException("Unable to create domain for guest")
+        raise VirtCreateException("Unable to create domain for guest")
 
     cmd = ["/usr/sbin/xm", "console", "%s" %(dom.ID(),)]
     child = os.fork()
@@ -208,7 +211,7 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
     try:
         conn.lookupByID(dom.ID())
     except libvirt.libvirtError:
-        raise XenCreateException("It appears the installation has crashed")
+        raise VirtCreateException("It appears the installation has crashed")
 
     writeConfigPy(cfgdict)
     writeConfigXml(cfgdict)
@@ -216,7 +219,7 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
     try:
         (pid, status) = os.waitpid(child, 0)
     except OSError, (errno, msg):
-        raise XenCreateException("%s waitpid: %s" % (__name__,msg))
+        raise VirtCreateException("%s waitpid: %s" % (__name__,msg))
 
     # ensure there's time for the domain to finish destroying if the
     # install has finished or the guest crashed

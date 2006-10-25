@@ -5,12 +5,12 @@ from distutils.core import setup, Extension
 import string
 
 VERSION = "0.2.3"
-SHORT_DESC = "Network provisioning tool for Xen and Existing Non-Bare Metal"
+SHORT_DESC = "Network provisioning tool for Virtualized Images and Existing Non-Bare Metal"
 LONG_DESC = """
-koan standards for "kickstart-over-a-network" and allows for both
-network provisioning of new Xen guests and destructive provisioning of
+koan stands for "kickstart-over-a-network" and allows for both
+network provisioning of new virtualized guests and destructive provisioning of
 any existing system.  For use with a boot-server configured with
-'cobbler'
+'cobbler'.
 """
 
 if __name__ == "__main__":
