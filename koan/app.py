@@ -226,6 +226,14 @@ class Koan:
             raise InfoException, "command failed (%s)" % rc
         return rc
 
+    def safe_load(self,hash,primary_key,alternate_key=None,default=None):
+        if hash.has_key(primary_key): 
+            return hash[primary_key]
+        elif alternate_key is not None and hash.has_key(alternate_key):
+            return hash[alternate_key]
+        else:
+            return default
+
     def do_net_install(self,download_root,after_download):
         """
         Actually kicks off downloads and auto-ks or virt installs
@@ -238,7 +246,7 @@ class Koan:
         self.debug(profile_data)
         if not 'distro' in profile_data:
             raise InfoException, "invalid response from boot server"
-        distro = profile_data['distro']
+        distro = self.safe_load(profile_data,'distro')
         distro_data = self.get_distro_yaml(distro)
         self.debug(distro_data)
         self.get_distro_files(distro_data, download_root)
@@ -298,13 +306,16 @@ class Koan:
         def after_download(self, distro_data, profile_data):
             if not os.path.exists("/sbin/grubby"):
                 raise InfoException, "grubby is not installed"
-            k_args = distro_data['kernel_options']
+            k_args = self.safe_load(distro_data,'kernel_options')
             k_args = k_args + " ks=file:ks.cfg"
-            self.build_initrd(distro_data['initrd_local'], profile_data['kickstart'])
+            self.build_initrd(
+                self.safe_load(distro_data,'initrd_local'), 
+                self.safe_load(profile_data,'kickstart')
+            )
             k_args = k_args.replace("lang ","lang= ")
             cmd = [ "/sbin/grubby",
-                    "--add-kernel", distro_data['kernel_local'],
-                    "--initrd", distro_data['initrd_local'],
+                    "--add-kernel", self.safe_load(distro_data,'kernel_local'),
+                    "--initrd", self.safe_load(distro_data,'initrd_local'),
                     "--make-default",
                     "--title", "kickstart",
                     "--args", k_args,
@@ -431,7 +442,7 @@ class Koan:
 
     def fix_ip(self,ip):
         """ Make an IP look PXE-ish """
-        handle = subprocess.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=subprocess.PIPE)
+        handle = sub_process.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=sub_process.PIPE)
         out = handle.stdout
         results = out.read()
         return results.split(" ")[-1][0:8]
@@ -467,7 +478,7 @@ class Koan:
             system_data = yaml.load(data).next() # first record
         except:
             raise InfoException, "couldn't download profile information: %s" % system_name
-        profile_data = self.get_profile_yaml(system_data['profile'])
+        profile_data = self.get_profile_yaml(self.safe_load(system_data,'profile'))
         # system overrides the profile values where relevant
         profile_data.update(system_data)
         # still have to override the kickstart since these are not in the
@@ -507,9 +518,9 @@ class Koan:
         what kernel and initrd to download, and save them locally.
         """
         os.chdir(download_root)
-        distro = distro_data['name']
-        kernel = distro_data['kernel']
-        initrd = distro_data['initrd']
+        distro = self.safe_load(distro_data,'name')
+        kernel = self.safe_load(distro_data,'kernel')
+        initrd = self.safe_load(distro_data,'initrd')
         kernel_short = os.path.basename(kernel)
         initrd_short = os.path.basename(initrd)
         kernel_save = "%s/%s" % (download_root, kernel_short)
@@ -518,12 +529,10 @@ class Koan:
             self.debug("downloading initrd %s to %s" % (initrd_short, initrd_save))
             url = "http://%s/cobbler/images/%s/%s" % (self.server, distro, initrd_short)
             self.debug("url=%s" % url)
-            # FIXME
-            data = self.urlgrab(url,initrd_save)
+            self.urlgrab(url,initrd_save)
             self.debug("downloading kernel %s to %s" % (kernel_short, kernel_save))
             url = "http://%s/cobbler/images/%s/%s" % (self.server, distro, kernel_short)
             self.debug("url=%s" % url)
-            # FIXME
             self.urlgrab(url,kernel_save)
         except:
             raise InfoException, "error downloading files"
@@ -540,13 +549,15 @@ class Koan:
         dd = distro_data
 
         kextra = ""
-        if pd['kickstart'] != "" or pd['kernel_options'] != "":
-            if pd['kickstart'] != "":
-                kextra = kextra + "ks=" + pd['kickstart']
-            if pd['kickstart'] !="" and pd['kernel_options'] !="":
+        lkickstart = self.safe_load(pd,'kickstart')
+        loptions   = self.safe_load(pd,'kernel_options')
+        if lkickstart != "" or loptions != "":
+            if lkickstart != "":
+                kextra = kextra + "ks=" + lkickstart
+            if lkickstart !="" and loptions !="":
                 kextra = kextra + " "
-            if pd['kernel_options'] != "":
-                kextra = kextra + pd['kernel_options']
+            if loptions != "":
+                kextra = kextra + loptions
 
         # parser issues?  lang needs a trailing = and somehow doesn't have it.
         kextra = kextra.replace("lang ","lang= ")
@@ -558,8 +569,8 @@ class Koan:
                 self.calc_virt_filesize(pd)),
             mac=virtcreate.get_mac(self.calc_virt_mac(pd)),
             uuid=virtcreate.get_uuid(self.calc_virt_uuid(pd)),
-            kernel=dd['kernel_local'],
-            initrd=dd['initrd_local'],
+            kernel=self.safe_load(dd,'kernel_local'),
+            initrd=self.safe_load(dd,'initrd_local'),
             extra=kextra
             # interactive=self.interactive
         )
@@ -570,7 +581,7 @@ class Koan:
         Turn the suggested name into a non-conflicting name.
         Currently this is Xen specific, may change later.
         """
-        name = data['virt_name']
+        name = self.safe_load(data,'virt_name','xen_name')
         if name is None or name == "":
             name = self.profile
         path = "/etc/xen/%s" % name
@@ -600,13 +611,14 @@ class Koan:
                  os.mkdir("/var/lib/virtimages")
              except:
                  pass
-        return os.path.join("/var/lib/virtimages","%s.disk" % data['virt_name'])
+        vname = self.safe_load(data,'virt_name','xen_name')
+        return os.path.join("/var/lib/virtimages","%s.disk" % vname)
 
     def calc_virt_filesize(self,data):
         """
         Assign a virt filesize if none is given in the profile.
         """
-        size = data['virt_file_size']
+        size = self.safe_load(data,'virt_file_size','xen_file_size')
         err = False
         try:
             int(size)
@@ -623,7 +635,7 @@ class Koan:
         """
         Assign a virt ram size if none is given in the profile.
         """
-        size = data['virt_ram']
+        size = self.safe_load(data,'virt_ram','xen_ram')
         err = False
         try:
             int(size)

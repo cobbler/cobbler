@@ -167,7 +167,7 @@ def writeConfigXml(cfgdict):
     fd.close()
 
 def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
-                           uuid=None, kernel=None, initrd=None, extra=None, interactive=False):
+                           uuid=None, kernel=None, initrd=None, extra=None):
     # this app works without libvirt (for auto-kickstart functionality)
     # but using xen functions will require it...
     import libvirt
