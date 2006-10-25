@@ -4,6 +4,12 @@ Detail of software changes that are not packaging related.
 These *should* correspond with a bump in the software version.  This
 wasn't consistant for 0.1.X builds, though it will be in the future.
 
+* Wed Oct 25 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.4-1
+- To be more generic, koan uses --virt instead of --xen now.  --xen
+  will continue to work for some time.  Cobbler has updated it's YAML
+  to correspond with the Xen->Virt renaming, and koan will be backward
+  compatible.  So, basically, users shouldn't be affected all that much.
+
 * Tue Oct 24 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.3-1
 - bugfixes related to missing kickstart and MAC info if not filled in
   by the profile/system definition.

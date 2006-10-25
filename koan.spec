@@ -2,7 +2,7 @@
 
 Summary: Network provisioning tool for Xen and Existing Non-Bare Metal
 Name: koan
-Version: 0.2.3
+Version: 0.2.4
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -18,8 +18,8 @@ Url: http://cobbler.et.redhat.com/
 %description
 
 Koan stands for kickstart-over-a-network and allows for both
-network provisioning of new Xen guests and destructive re-provisioning of
-any existing system.  For use with a boot-server configured with
+network provisioning of new virtualized guests and destructive re-provisioning 
+of any existing system.  For use with a boot-server configured with
 'cobbler'
 
 %prep
@@ -47,6 +47,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING CHANGELOG README NEWS
 
 %changelog
+* Wed Oct 25 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.4-1
+- Upstream changes (see CHANGELOG)
+- Description update
+
 * Tue Oct 24 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.3-1
 - Upstream changes (see CHANGELOG)
 

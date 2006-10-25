@@ -24,7 +24,7 @@ import exceptions
 import errno
 
 XENCONFIGPATH="/etc/xen/"
-XENDOMAINPATH="/var/koan/xen/"
+XENDOMAINPATH="/var/koan/virt/"
 
 PYTEMPLATE = """
 # Automatically generated xen config file
