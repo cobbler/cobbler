@@ -1,6 +1,14 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Wed Oct 25 2006 - 0.3.1-1
+- The app now refers to "virt" in many places instead of "xen".
+  It's been coded such that files will migrate forward without
+  any major issues, and the newer version of koan can still hit
+  older releases (for now).  The CLI still takes the --xen options
+  as well as the new --virt options, as they are aliased.  The API
+  now exclusively just uses methods with "virt" in them, however.
+
 * Tue Oct 24 2006 - 0.3.0-1
 - Reload httpd during sync
 - New profiles without set kickstarts default to /etc/cobbler/default.ks
