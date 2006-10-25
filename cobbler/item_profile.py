@@ -35,7 +35,7 @@ class Profile(item.Item):
         self.kickstart = self.settings.default_kickstart
         self.kernel_options = ''
         self.ks_meta = ''
-        self.xen_name = 'xenguest'
+        self.xen_name = 'virtguest'
         self.xen_file_size = 5    # GB.  5 = Decent _minimum_ default for FC5.
         self.xen_ram = 512        # MB.  Install with 256 not likely to pass
         self.xen_paravirt = True  # hvm support is *NOT* in Koan (now)
@@ -92,6 +92,10 @@ class Profile(item.Item):
                 raise cexceptions.CobblerException("exc_xen_name")
         self.xen_name = str
         return True
+    
+    def set_virt_name(self,str):
+        return self.set_xen_name(str)
+
 
     def set_xen_file_size(self,num):
         """
@@ -114,6 +118,9 @@ class Profile(item.Item):
         except:
             return cexceptions.CobblerException("exc_xen_file")
 
+    def set_virt_file_size(self,num):
+        return self.set_xen_file_size(num)
+
     def set_xen_ram(self,num):
         """
         For Xen only.
@@ -132,6 +139,8 @@ class Profile(item.Item):
         except:
             return cexceptions.CobblerException("exc_xen_ram")
 
+    def set_virt_ram(self,num):
+        return self.set_xen_ram(num)
 
     def set_xen_paravirt(self,truthiness):
         """
@@ -153,6 +162,9 @@ class Profile(item.Item):
         except:
             return cexceptions.CobblerException("exc_xen_para")
         return True
+
+    def set_virt_paravirt(self,truthiness):
+        return self.set_xen_paravirt(truthiness)
 
     def is_valid(self):
         """
