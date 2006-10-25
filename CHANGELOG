@@ -8,6 +8,7 @@ Cobbler CHANGELOG
   older releases (for now).  The CLI still takes the --xen options
   as well as the new --virt options, as they are aliased.  The API
   now exclusively just uses methods with "virt" in them, however.
+- Fixed some bugs related to kickstart templating
 
 * Tue Oct 24 2006 - 0.3.0-1
 - Reload httpd during sync
