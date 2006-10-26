@@ -24,7 +24,7 @@ DEFAULTS = {
     "server"            : "127.0.0.1",
     "next_server"       : "127.0.0.1",
     "dhcpd_bin"         : "/usr/sbin/dhcpd",
-    "kernel_options"    : "append devfs=nomount ramdisk_size=16438 lang= vga=788 ksdevice=eth0",
+    "kernel_options"    : "append devfs=nomount ramdisk_size=16438 lang= text ksdevice=eth0",
     "tftpd_conf"        : "/etc/xinetd.d/tftp",
     "tftpboot"          : "/tftpboot",
     "webdir"            : "/var/www/cobbler",
