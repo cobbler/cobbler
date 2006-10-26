@@ -1,6 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Thr Oct 25 2006 - 0.3.2-1
+- By default, boot and install in text mode
+
 * Wed Oct 25 2006 - 0.3.1-1
 - The app now refers to "virt" in many places instead of "xen".
   It's been coded such that files will migrate forward without
