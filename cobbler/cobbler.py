@@ -85,8 +85,22 @@ class BootCLI:
         print cobbler_msg.USAGE
 
     def list(self,args):
-        all = [ self.api.settings(), self.api.distros(),
-                self.api.profiles(), self.api.systems() ]
+        all = []
+        terms = []
+        for a in args:
+            if a == '--systems':
+                all.append(self.api.systems())
+            elif a == '--profiles':
+                all.append(self.api.profiles())
+            elif a == '--distros':
+                all.append(self.api.distros())
+            elif a == '--settings':
+                all.append(self.api.settings())
+            else:
+                terms.extend(a)
+        if len(all) == 0:
+            all = [ self.api.settings(), self.api.distros(),
+                    self.api.profiles(), self.api.systems() ]
         for item in all:
             print item.printable()
 

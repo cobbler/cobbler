@@ -148,9 +148,9 @@ NOTE: Due to a limitation in elilo (IA64 bootloader), this parameter must ALSO b
 
 =head2 DISPLAYING CONFIGURATION ENTRIES
 
-B<cobbler list>
+B<cobbler list [--settings] [--profiles] [--distros] [--systems]>
 
-Prints the current cobbler configuration for systems, profiles, and groups.
+Prints the current cobbler configuration for systems, profiles, and groups. If one of the switches is given, only information for those is printed.
 
 =head2 DELETING CONFIGURATION ENTRIES
 
