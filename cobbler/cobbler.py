@@ -297,7 +297,7 @@ class BootCLI:
         Sync the config file with the system config: 'cobbler sync [--dryrun]'
         """
         status = None
-        if args is not None and "--dryrun" in args:
+        if args is not None and ("--dryrun" in args or "-n" in args):
             status = self.api.sync(dryrun=True)
         else:
             status = self.api.sync(dryrun=False)

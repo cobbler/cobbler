@@ -32,6 +32,7 @@ if __name__ == "__main__":
                                 (etcpath, ['kickstart_fc5.ks']),
                                 (etcpath, ['default.ks']),
 				(etcpath, ['dhcp.template']),
+				(etcpath, ['default.pxe']),
                                 (manpath, ['cobbler.1.gz'])
                              ],
                 description = SHORT_DESC,

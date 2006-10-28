@@ -67,7 +67,7 @@ class BootSync:
         if self.settings.manage_dhcp:
             self.write_dhcp_file()
             try:
-               retcode = sub_process.call("/sbin/service dhcpd restart", shell=True)
+               retcode = self.service("dhcpd", "restart")
                if retcode != 0:
                    print >>sys.stderr, "Warning: dhcpd restart failed"
             except OSError, e:
@@ -172,7 +172,7 @@ class BootSync:
         config_data = config_data.replace("/cobbler_webdir",self.settings.webdir)
         self.tee(f, config_data)
         self.close_file(f)
-        sub_process.call("/sbin/service httpd reload", shell=True)
+        self.service("httpd", "reload")
 
     def clean_trees(self):
         """
@@ -368,6 +368,13 @@ class BootSync:
                 ))
             # yaml file: http only
             self.write_profile_file(filename,p)
+
+        # Copy default PXE file if it exists; if there's none, ignore
+        # FIXME: Log something inobtrusive ifthe default file is missing
+        src = "/etc/cobbler/default.pxe"
+        if os.path.exists(src):
+            dst = os.path.join(self.settings.tftpboot, "pxelinux.cfg", "default")
+            self.copyfile(src, dst)
 
         for system in self.systems:
             profile = self.profiles.find(system.profile)
@@ -626,6 +633,18 @@ class BootSync:
        except OSError, oe:
            if not oe.errno == 17: # already exists (no constant for 17?)
                raise cexceptions.CobblerException("no_create", path)
+
+    def service(self, name, action):
+        """
+        Call /sbin/service NAME ACTION, unless its a dryrun
+        """
+
+        cmd = "/sbin/service %s %s" % (name, action)
+        if self.dryrun:
+            print cmd
+            return 0
+        else:
+            return sub_process.call(cmd, shell=True)
 
     def blend_options(self, is_for_kernel, list_of_opts):
         """
