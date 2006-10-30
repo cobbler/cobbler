@@ -27,4 +27,12 @@ ideas:
   -  make the multiple-bootloader system more plugin oriented to allow
      for alternative bootloaders (not neccessarily kickstart related)
      to be added
-
+  -  kickstart success tracking
+     originally I implemented some of this using a CGI based system, though it really would benefit
+     more from a custom webserver (python's HTTP server would be fine) and providing a few more options
+     to integrate with the API.  this would allow tracking of more data w/o having to store it in files, etc,
+     and a bit more opportunity for dynamic stuff.  It also prevents needing to tweak the permissions
+     model used by the serializer, (and some additional SELinux problems).
+  -  a "--next-profile" option to set the profile after a machine has kickstarted, i.e. to boot locally, etc
+     (useful with PXE-anytime configs, or perhaps PXE configs that just probe HW or do something weird)
+ 
