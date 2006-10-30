@@ -373,8 +373,14 @@ class BootSync:
         # FIXME: Log something inobtrusive ifthe default file is missing
         src = "/etc/cobbler/default.pxe"
         if os.path.exists(src):
-            dst = os.path.join(self.settings.tftpboot, "pxelinux.cfg", "default")
-            self.copyfile(src, dst)
+            nocopy = False
+            for system in self.systems:
+                if system.name == "default":
+                    nocopy = True
+                    break
+            if not nocopy:
+                dst = os.path.join(self.settings.tftpboot, "pxelinux.cfg", "default")
+                self.copyfile(src, dst)
 
         for system in self.systems:
             profile = self.profiles.find(system.profile)
