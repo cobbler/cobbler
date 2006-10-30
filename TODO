@@ -15,6 +15,9 @@ user interface:
   -  "cobbler add" should be distinguished from "edit" so as to not overwrite
   -  GTK (or Web) UI for Cobbler ?
   -  make sync have less output
+  -  PXE menus would be interesting for default behavior.  
+     Set local boot to the timeout default, show all profiles.
+     Depends on how many entries can be added...
 
 code cleanup:
   -  an argument parsing overhaul is probably due

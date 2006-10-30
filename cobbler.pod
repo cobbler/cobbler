@@ -297,6 +297,25 @@ Once imported, run a "cobbler list" to see what you've added.
 
 "Cobbler sync" must still be run after an import to get the system ready to provision what was just imported.
 
+=head2 DEFAULT PXE BOOT BEHAVIOR
+
+What happens when PXE booting a system when cobbler has no record
+of the system being booted?
+
+By default, cobbler will configure PXE to boot to the contents of
+/etc/cobbler/default.pxe, which (if unmodified) will just fall through
+to the local boot process.  Administrators can modify this file if they
+like to change that behavior.
+
+An easy way to specify a default cobbler profile to PXE boot is to
+create a system named "default".  This will cause /etc/cobbler/default.pxe
+to be ignored.  To restore the previous behavior do a "cobbler system remove"
+on the "default" system.
+
+B<cobbler system add --name=default --profile=boot_this>
+
+B<cobbler system remove --name=default>
+
 =head2 TWEAKING
 
 Enterprising users can edit the files in /var/lib/cobbler directly versus using the command line.  The repair
