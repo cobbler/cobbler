@@ -6,6 +6,7 @@ clean:
 
 manpage:
 	pod2man --center=koan --release= koan.pod | gzip -c > koan.1.gz
+	pod2html koan.pod > koan.html
 
 test:
 	python tests/tests.py
