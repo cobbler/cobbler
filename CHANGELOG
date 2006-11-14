@@ -1,6 +1,11 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Tue Nov 14 2006 - 0.3.3-1
+- During "cobbler sync" only PXE-related directories in /tftpboot
+  are deleted.  This allows /tftpboot to be used for other
+  purposes.
+
 * Thr Oct 25 2006 - 0.3.2-1
 - By default, boot and install in text mode
 

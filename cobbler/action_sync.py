@@ -186,14 +186,17 @@ class BootSync:
         """
 
         # clean out all of /tftpboot
-        for tree in (self.settings.tftpboot, self.settings.webdir):
-            for x in os.listdir(tree):
-                path = os.path.join(tree,x)
-                if os.path.isfile(path):
-                    self.rmfile(path)
-                if os.path.isdir(path):
-                    if not x == "localmirror":
-                        self.rmtree(path)
+        for x in os.listdir(self.settings.webdir):
+            path = os.path.join(self.settings.webdir,x)
+            if os.path.isfile(path):
+                self.rmfile(path)
+            if os.path.isdir(path):
+                if not x == "localmirror":
+                    self.rmtree(path)
+        self.rmtree(os.path.join(self.settings.tftpboot, "pxelinux.cfg"))
+        self.rmtree(os.path.join(self.settings.tftpboot, "images"))
+        self.rmfile(os.path.join(self.settings.tftpboot, "pxelinux.0"))
+        self.rmfile(os.path.join(self.settings.tftpboot, "elilo-3.6-ia64.efi"))
 
         # make some directories in /tftpboot
         for x in ["pxelinux.cfg","images"]:
