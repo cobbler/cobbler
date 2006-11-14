@@ -6,6 +6,7 @@ clean:
 
 manpage:
 	pod2man --center="cobbler" --release="" cobbler.pod | gzip -c > cobbler.1.gz
+	pod2html cobbler.pod > cobbler.html
 
 test:
 	python tests/tests.py
