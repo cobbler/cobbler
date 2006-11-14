@@ -612,10 +612,11 @@ class BootSync:
        try:
            os.unlink(path)
            return True
-       except:
-           traceback.print_exc()
-           raise cexceptions.CobblerException("no_delete",path)
-
+       except OSError, ioe:
+           if not ioe.errno == errno.ENOENT: # doesn't exist
+               traceback.print_exc()
+               raise cexceptions.CobblerException("no_delete",path)
+           return True
 
     def rmtree(self,path):
        """
@@ -629,6 +630,7 @@ class BootSync:
        except OSError, ioe:
            if not ioe.errno == errno.ENOENT: # doesn't exist
                raise cexceptions.CobblerException("no_delete",path)
+           return True
 
     def mkdir(self,path,mode=0777):
        """
