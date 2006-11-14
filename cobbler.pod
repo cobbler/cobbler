@@ -28,7 +28,7 @@ Running "cobbler check" after installation will verify that cobbler's prerequisi
 
 Any problems detected should be corrected, with the potential exception of DHCP related warnings.
 
-It is especially important that the server name field be accurate in /var/lib/cobbler/cobbler.conf
+It is especially important that the server name field be accurate in /var/lib/cobbler/settings.
 
 For PXE, if DHCP is to be run from the cobbler server, the dhcp configuration file should be changed as suggested.  If DHCP is not run locally, the "next-server" field on the DHCP server should point to the cobbler server's IP and the filename should be set to "pxelinux.0".  Cobbler can also (optionally) generate dhcp configuration files -- this is covered in a later section.
 
