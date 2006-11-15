@@ -36,7 +36,7 @@ For PXE, if DHCP is to be run from the cobbler server, the dhcp configuration fi
 
 This first step is to add a distribution to the cobbler system.  If there is an rsync mirror or filesystem tree that you would rather import instead, skip down to the documentation about the "import" command.
 
-B<cobbler distro add --name=<string> --kernel=<path> --initrd=<path> [--kopts=<string>] [--ksmeta=<string>] [--arch=<x86|x86_64|ia64>]
+B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--ksmeta=string] [--arch=x86|x86_64|ia64]>
 
 =over
 
@@ -82,7 +82,7 @@ See the section below on templating.
 
 A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.
 
-B<cobbler profile add --name=<string> --distro=<string> [--kickstart=<url>] [--kopts=<string>] [--ksmeta=<string>] [--virt-name=<string>] [--virt-file-size=<gigabytes>] [--virt-ram=<megabytes>]
+B<cobbler profile add --name=string --distro=string [--kickstart=url] [--kopts=string] [--ksmeta=string] [--virt-name=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes]>
 
 =over
 
@@ -117,7 +117,7 @@ multiple images on a machine will cause increasing numbers to be appended to thi
 
 Systems assign a piece of hardware with the cobbler profile to be assigned to it.  Systems can be defined by hostname, IP, or MAC address.  When available, use of the MAC address to assign systems is preferred.
 
-B<cobbler system add --name=<ip|mac|hostname> --profile=<string> [--kopts=<string>] [--pxe-address=<string>] [--ksmeta=<string>]
+B<cobbler system add --name=ip|mac|hostname --profile=string [--kopts=string] [--pxe-address=string] [--ksmeta=string]>
 
 =over
 
@@ -154,11 +154,11 @@ Prints the current cobbler configuration for systems, profiles, and groups. If o
 
 =head2 DELETING CONFIGURATION ENTRIES
 
-B<cobbler distro remove --name=<string>>
+B<cobbler distro remove --name=string>
 
-B<cobbler profile remove --name=<string>>
+B<cobbler profile remove --name=string>
 
-B<cobbler system remove --name=<string>>
+B<cobbler system remove --name=string>
 
 =head2 APPLYING CONFIGURATIONS
 
@@ -272,8 +272,8 @@ Enchant takes a configuration that has already been defined (be sure to run "cob
 
 Running "enchant" will replace the operating system of the target machine, so use it with caution.
 
-Usage:  B<cobbler enchant --address=<ip|hostname> --profile=<string>>
-Usage:  B<cobbler enchant --address=<ip|hostname> --system=<string>>
+Usage:  B<cobbler enchant --address=ip|hostname --profile=string>
+Usage:  B<cobbler enchant --address=ip|hostname --system=string>
 
 =head2 IMPORTING TREES
 
@@ -285,9 +285,9 @@ When importing a rsync mirror, cobbler can try to detect the distribution type a
 
 If a mirror updated with rsync changes, running the "update.sh" script created in /var/www/cobbler/localmirror/<mirrorname> will update the files from the same mirror used for the initial download.
 
-Usage: B<cobbler import --path=<path>>
+Usage: B<cobbler import --path=path>
 
-Usage; B<cobbler import --mirror=<rsync_url> --mirror-name=<string>>
+Usage; B<cobbler import --mirror=rsync_url> --mirror-name=<string>>
 
 Example:  B<cobbler import --mirror=rsync://mirror.linux.duke.edu/fedora-linux-core/ --mirror-name=fedora>
 
