@@ -2,31 +2,28 @@ cobbler TODO list
 
 core:
   -  turn on locking in production (or think about it)
-  -  import over http://, ftp:// in addition to existing file and rsync://
+  -  import over http://, ftp:// in addition to existing file and rsync:// and ssh://
   -  make "cobbler sync" only change what needs to change, to be more efficient
      (though is this really a problem?  Copying doesn't take THAT long...)
   -  make the "scrub orphans" bit a seperate command, warn by default, with an
      option for "--delete".  Seperate from "import".   This could probably
      be a part of "check" to avoid making another command.
   -  "check" should check if services (esp httpd) are started
-  -  import should be able to do rsync over ssh:// as well as rsync://
 
 user interface:
   -  "cobbler add" should be distinguished from "edit" so as to not overwrite
   -  GTK (or Web) UI for Cobbler ?
-  -  make sync have less output
   -  PXE menus would be interesting for default behavior.  
      Set local boot to the timeout default, show all profiles.
      Depends on how many entries can be added...
 
 code cleanup:
-  -  an argument parsing overhaul is probably due
   -  remove the cobbler_msg logic since i18n isn't likely
 
 ideas:
   -  make the multiple-bootloader system more plugin oriented to allow
      for alternative bootloaders (not neccessarily kickstart related)
-     to be added
+     to be added.  (Low priority)
   -  kickstart success tracking
      originally I implemented some of this using a CGI based system, though it really would benefit
      more from a custom webserver (python's HTTP server would be fine) and providing a few more options
