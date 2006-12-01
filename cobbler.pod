@@ -248,15 +248,20 @@ legacy infrastructure, possibly including web apps that already generate kicksta
 
 =head2 DHCP CONFIGURATION MANAGEMENT
 
-By default, cobbler does not touch dhcpd.conf and leaves configuration
-of it up to the user.  If manage_dhcp is set to 1 in /var/lib/cobbler/settings,
-this changes, and cobbler *will* write a dhcp.conf file.  The file is based
-on a template in /etc/cobbler/dhcpd.conf.template -- and must be user edited for
-the user's particular networking environment.  Read the file and understand dhcpd.conf files before proceeding.
+By default, cobbler does not write a dhcpd.conf and leaves configuration
+of DHCP up to the user.  If manage_dhcp is set to 1 in /var/lib/cobbler/settings,
+this changes, and cobbler *will* write it's own dhcp.conf file, replacing any dhcpd.conf
+that already exists. 
 
-If this flag is set, it enables two things:
-(A) relatively seamless mixing of Itanium and x86/x86_64 machines in a PXE environment
-(B) pinning dhcp hostnames to MAC addresses automatically.
+The file is based on a template in /etc/cobbler/dhcpd.conf.template -- and must be user edited for
+the user's particular networking environment.  Read the file and understand dhcpd.conf files before proceeding.
+If you already have dhcpd.conf data that you would like to preserve (say DHCP was manually configured earlier), 
+insert the relevant portions of it into the template file.
+
+So, if this manage_dhcp bit is enabled, the following features are enabled:
+
+(A) pinning dhcp hostnames to MAC addresses automatically.
+(B) relatively seamless mixing of Itanium and x86/x86_64 machines in a PXE environment
 
 Per-system records in DHCP will only be written if the cobbler system name is a MAC address, so it's recommended that those be used if manage_dhcp is turned on.
 
