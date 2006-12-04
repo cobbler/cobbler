@@ -1,7 +1,8 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Fri Dec 01 2006 - 0.3.4-1
+* Mon Dec 04 2006 - 0.3.4-1
+- Don't rsync PPC content or ISO's on cobbler import
 - Manpage cleanup
 
 * Tue Nov 14 2006 - 0.3.3-1
