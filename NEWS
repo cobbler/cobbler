@@ -1,4 +1,12 @@
 Cobbler NEWS
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-No NEWS is good NEWS.   See CHANGELOG.
+0.3.4 contains a /etc/rsync.exclude file that minimizes
+the amount of files transferred during a cobbler import.  By
+default, PPC, ISO, and debug content are not transferred
+from "cobbler import" commands.  Users can customize this
+file.  Imports will now use less bandwidth and take up
+less disk space.
+
+
+

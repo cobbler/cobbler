@@ -40,6 +40,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/cobbler/kickstart_fc5.ks
 %config(noreplace) /etc/cobbler/dhcp.template
 %config(noreplace) /etc/cobbler/default.pxe
+%config(noreplace) /etc/cobbler/rsync.exclude
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/yaml
 %{python_sitelib}/cobbler/*.py*
@@ -53,7 +54,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Mon Dec 04 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.4-1
+* Tue Dec 05 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.4-1
 - Upstream changes (see CHANGELOG)
 
 * Tue Nov 14 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.3-1

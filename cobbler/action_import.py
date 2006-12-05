@@ -97,7 +97,7 @@ class Importer:
            spacer = ""
            if not self.mirror.startswith("rsync://"):
                spacer = ' -e "ssh" '
-           cmd = "rsync -a %s %s /var/www/cobbler/localmirror/%s --exclude */iso/*.iso --exclude=*/ppc/debug/* --exclude=*/ppc/os/* --exclude=*/ppc/tree/* --progress" % (spacer, self.mirror, self.mirror_name)
+           cmd = "rsync -a %s %s /var/www/cobbler/localmirror/%s --exclude-from=/etc/cobbler/rsync.exclude --delete --delete-excluded --progress" % (spacer, self.mirror, self.mirror_name)
            sub_process.call(cmd,shell=True)
            update_file = open(os.path.join(self.path,"update.sh"),"w+")
            update_file.write("#!/bin/sh")

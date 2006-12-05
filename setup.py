@@ -33,7 +33,8 @@ if __name__ == "__main__":
                                 (etcpath, ['default.ks']),
 				(etcpath, ['dhcp.template']),
 				(etcpath, ['default.pxe']),
-                                (manpath, ['cobbler.1.gz'])
+                                (manpath, ['cobbler.1.gz']),
+                                (etcpath, ['rsync.exclude'])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC
