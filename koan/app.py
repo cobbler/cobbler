@@ -313,14 +313,26 @@ class Koan:
                 self.safe_load(profile_data,'kickstart')
             )
             k_args = k_args.replace("lang ","lang= ")
+
+            cmd = [ "/sbin/grubby", 
+                    "--bootloader-probe" ]
+
+            which_loader = sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
+ 
+            loader = "--grub"
+            if which_loader.find("elilo") != -1:
+                loader = "--elilo"
+            elif which_loader.find("lilo") != -1:
+                loader = "--lilo"
+
             cmd = [ "/sbin/grubby",
+                    loader,
                     "--add-kernel", self.safe_load(distro_data,'kernel_local'),
                     "--initrd", self.safe_load(distro_data,'initrd_local'),
                     "--make-default",
                     "--title", "kickstart",
                     "--args", k_args,
-                    "--copy-default",
-                    "--bootloader-probe"
+                    "--copy-default"
             ]
             self.subprocess_call(cmd, fake_it=self.dryrun)
             self.debug("reboot to apply changes")

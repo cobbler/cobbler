@@ -4,7 +4,7 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-VERSION = "0.2.4"
+VERSION = "0.2.5"
 SHORT_DESC = "Network provisioning tool for Virtualized Images and Existing Non-Bare Metal"
 LONG_DESC = """
 koan stands for "kickstart-over-a-network" and allows for both
