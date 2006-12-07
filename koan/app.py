@@ -319,7 +319,9 @@ class Koan:
                     "--make-default",
                     "--title", "kickstart",
                     "--args", k_args,
-                    "--copy-default" ]
+                    "--copy-default",
+                    "--bootloader-probe"
+            ]
             self.subprocess_call(cmd, fake_it=self.dryrun)
             self.debug("reboot to apply changes")
         return self.do_net_install("/boot",after_download)
