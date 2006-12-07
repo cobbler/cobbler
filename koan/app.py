@@ -23,6 +23,7 @@ import urllib2
 import optparse
 import exceptions
 import sub_process
+import time
 import shutil
 import errno
 import re
@@ -330,11 +331,17 @@ class Koan:
                     "--add-kernel", self.safe_load(distro_data,'kernel_local'),
                     "--initrd", self.safe_load(distro_data,'initrd_local'),
                     "--make-default",
-                    "--title", "kickstart",
+                    "--title", "kick%s" % int(time.time()),
                     "--args", k_args,
                     "--copy-default"
             ]
             self.subprocess_call(cmd, fake_it=self.dryrun)
+
+            if loader == "--lilo":
+                print "- applying lilo changes"
+                cmd = [ "/sbin/lilo" ]
+                sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
+
             self.debug("reboot to apply changes")
         return self.do_net_install("/boot",after_download)
 
