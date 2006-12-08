@@ -286,7 +286,7 @@ Cobbler can auto-add distributions and profiles from remote sources, whether thi
 
 NOTE: The mirror or directory tree must have the basic directory tree layout as a Fedora or Centos mirror normally looks, including directories named things like "pxeboot", "i386" or "x86_64", and so forth.
 
-When importing a rsync mirror, cobbler can try to detect the distribution type and automatically assign kickstarts.  This autodetection is rather primative but can improve as community users contribute kickstarts.  If cobbler is able to guess the architecture, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of "cobbler".  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting after cobbler creates the profile.
+When importing a rsync mirror, cobbler can try to detect the distribution type and automatically assign kickstarts.  By default, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of "cobbler".  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting after cobbler creates the profile.
 
 If a mirror updated with rsync changes, running the "update.sh" script created in /var/www/cobbler/localmirror/<mirrorname> will update the files from the same mirror used for the initial download.
 
@@ -301,6 +301,8 @@ Example2:  B<cobbler import --mirror=root@192.168.1.10:/stuff --mirror-name=bar>
 Once imported, run a "cobbler list" to see what you've added.
 
 "Cobbler sync" must still be run after an import to get the system ready to provision what was just imported.
+
+By default, the rsync operations will exclude PPC content, debug RPMs, and ISO images -- to change what is excluded during an import, see /etc/cobbler/rsync.exclude.
 
 =head2 DEFAULT PXE BOOT BEHAVIOR
 
