@@ -29,7 +29,7 @@ import sys
 # when using koan normally, the RPM will be built for the proper distro
 # and this code will be mostly harmless.
 
-for version in [ "2.3", "2.4", "2.5" ]:
+for version in [ "2.2", "2.3", "2.4", "2.5" ]:
     for arch in [ "lib", "lib64" ]:
         append = "/usr/%s/python%s/site-packages" % (arch,version)
         sys.path.append(append)

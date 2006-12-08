@@ -48,8 +48,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Thu Dec 07 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.5-1
+* Fri Dec 08 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.5-1
 - Upstream changes (see CHANGELOG)
+- tweaked MANIFEST.in to appease rhel3 builds
 
 * Wed Oct 25 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.4-1
 - Upstream changes (see CHANGELOG)

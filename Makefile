@@ -22,3 +22,4 @@ rpm: clean manpage
 	--define "_specdir %{_topdir}" \
 	--define "_sourcedir  %{_topdir}" \
 	-ba koan.spec
+

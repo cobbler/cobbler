@@ -4,7 +4,7 @@ Detail of software changes that are not packaging related.
 These *should* correspond with a bump in the software version.  This
 wasn't consistant for 0.1.X builds, though it will be in the future.
 
-* Thr Dec 07 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.5-1
+* Fri Dec 08 2006 Michael DeHaan <mdehaan@redhat.com> - 0.2.5-1
 - Now probes bootloader to determine what bootloader to edit, rather
   than using the first installed package.
 
