@@ -18,10 +18,12 @@ import weakref
 import item_distro as distro
 import item_profile as profile
 import item_system as system
+import item_repo as repo
 
 import collection_distros as distros
 import collection_profiles as profiles
 import collection_systems as systems
+import collection_repos as repos
 
 import settings
 import serializer
@@ -37,11 +39,13 @@ class Config:
        self._profiles     = profiles.Profiles(weakref.proxy(self))
        self._systems      = systems.Systems(weakref.proxy(self))
        self._settings     = settings.Settings() # not a true collection
+       self._repos        = repos.Repos(weakref.proxy(self))
        self._classes = [
           self._distros,
           self._profiles,
           self._systems,
           self._settings,
+          self._repos
        ]
        self.file_check()
 
@@ -69,6 +73,12 @@ class Config:
        """
        return self._settings
 
+   def repos(self):
+       """
+       Return the definitive copy of the Repos collection
+       """
+       return self._repos
+
    def new_distro(self):
        """
        Create a new distro object with a backreference to this object
@@ -86,6 +96,12 @@ class Config:
        Create a new profile with a backreference to this object
        """
        return profile.Profile(weakref.proxy(self))
+
+   def new_repo(self):
+       """
+       Create a new mirror to keep track of...
+       """
+       return repo.Repo(weakref.proxy(self))
 
    def clear(self):
        """

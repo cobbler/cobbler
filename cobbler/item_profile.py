@@ -39,6 +39,7 @@ class Profile(item.Item):
         self.virt_file_size = 5    # GB.  5 = Decent _minimum_ default for FC5.
         self.virt_ram = 512        # MB.  Install with 256 not likely to pass
         self.virt_paravirt = True  # hvm support is *NOT* in Koan (now)
+        self.repos = []            # names of cobbler repo definitions
 
     def from_datastruct(self,seed_data):
         """
@@ -49,7 +50,8 @@ class Profile(item.Item):
         self.kickstart       = self.load_item(seed_data,'kickstart')
         self.kernel_options  = self.load_item(seed_data,'kernel_options')
         self.ks_meta         = self.load_item(seed_data,'ks_meta')
-       
+        self.repos           = self.load_item(seed_data,'repos', "")       
+
         # virt specific 
         self.virt_name       = self.load_item(seed_data,'virt_name')
         self.virt_ram        = self.load_item(seed_data,'virt_ram')
@@ -76,6 +78,18 @@ class Profile(item.Item):
             self.distro = distro_name
             return True
         raise cexceptions.CobblerException("no_distro")
+
+    def set_repos(self,repos):
+        repolist = repos.split(" ")
+        ok = True
+        for r in repolist:
+            if not self.config.repos().find(r):
+                ok = False 
+                break
+        if ok:
+            self.repos = repolist
+        else:
+            raise cexceptions.CobblerException("no_repos")
 
     def set_kickstart(self,kickstart):
         """
@@ -187,7 +201,8 @@ class Profile(item.Item):
             'virt_file_size'   : self.virt_file_size,
             'virt_ram'         : self.virt_ram,
             'virt_paravirt'    : self.virt_paravirt,
-            'ks_meta'          : self.ks_meta
+            'ks_meta'          : self.ks_meta,
+            'repos'            : " ".join(self.repos)
         }
 
     def printable(self,id):
@@ -203,5 +218,6 @@ class Profile(item.Item):
         buf = buf + "virt file size   : %s\n" % self.virt_file_size
         buf = buf + "virt ram         : %s\n" % self.virt_ram
         buf = buf + "virt paravirt    : %s\n" % self.virt_paravirt
+        buf = buf + "repos            : %s\n" % " ".join(self.repos)
         return buf
 

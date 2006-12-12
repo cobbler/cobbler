@@ -44,7 +44,7 @@ class BootSync:
         self.profiles = config.profiles()
         self.systems  = config.systems()
         self.settings = config.settings()
-
+        self.repos    = config.repos()
 
     def run(self,dryrun=False,verbose=True):
         """
@@ -191,7 +191,10 @@ class BootSync:
             if os.path.isfile(path):
                 self.rmfile(path)
             if os.path.isdir(path):
-                if not x == "localmirror":
+                if not x in ["localmirror","repo_mirror","ks_mirror"] :
+                    # new versions of cobbler use repo_mirror for repos and ks_mirror for
+                    # basic kickstart tree core data.  older versions just used "local_mirror" so we
+                    # do have to leave the "localmirror" in there to avoid breaking users on upgrades
                     self.rmtree(path)
         self.rmtree(os.path.join(self.settings.tftpboot, "pxelinux.cfg"))
         self.rmtree(os.path.join(self.settings.tftpboot, "images"))
@@ -278,11 +281,26 @@ class BootSync:
                        distro.ks_meta,
                        g.ks_meta,
                    ))
+                   meta["yum_repo_stanza"] = self.generate_repo_stanza(g)
                    self.apply_template(kickstart_path, meta, dest)
               except:
                    traceback.print_exc() # leave this in, for now...
                    msg = "err_kickstart2"
                    raise cexceptions.CobblerException(msg,kickstart_path,dest)
+
+    def generate_repo_stanza(self, profile):
+        # returns the line of repo additions (Anaconda supports in FC-6 and later) that adds
+        # the list of repos to things that Anaconda can install from.  This corresponds
+        # will replace "TEMPLATE::yum_repo_stanza" in a cobbler kickstart file.
+        buf = ""
+        repos = profile.repos.split(" ")
+        for r in repos:
+            repo = self.repos.find(r)
+            if repo is None:
+                raise cexceptions.CobblerException("no_repo",r)
+            http_url = "http://%s/repo_mirror/%s" % (self.settings.server, repo.name)
+            buf = buf + "repo --name=%s --baseurl=%s\n" % (repo.name, http_url)
+        return buf
 
     def validate_kickstarts_per_system(self):
         """
@@ -312,6 +330,7 @@ class BootSync:
                         profile.ks_meta,
                         s.ks_meta
                     ))
+                    meta["yum_repo_stanza"] = self.generate_repo_stanza(profile)
                     self.apply_template(kickstart_path, meta, dest)
                 except:
                     msg = "err_kickstart2"

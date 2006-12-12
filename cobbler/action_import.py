@@ -37,7 +37,7 @@ MATCH_LIST = (
    ( "4/"       , "/etc/cobbler/kickstart_fc5.ks" ),
    ( "5/"       , "/etc/cobbler/kickstart_fc5.ks" ),
    ( "FC-5/"    , "/etc/cobbler/kickstart_fc5.ks" ),
-   ( "FC-6/"    , "/etc/cobbler/kickstart_fc5.ks" ),
+   ( "FC-6/"    , "/etc/cobbler/kickstart_fc6.ks" ),
    ( "RHEL-4/"  , "/etc/cobbler/kickstart_fc5.ks" ),
    ( "6/"       , "/etc/cobbler/kickstart_fc5.ks" ),
    ( "5/"       , "/etc/cobbler/kickstart_fc5.ks" ),
@@ -88,7 +88,7 @@ class Importer:
            if self.mirror_name is None:
                raise cexceptions.CobblerException("import_failed","must specify --mirror-name")
            print "This will take a while..."
-           self.path = "/var/www/cobbler/localmirror/%s" % self.mirror_name
+           self.path = "/var/www/cobbler/ks_mirror/%s" % self.mirror_name
            try:
                os.makedirs(self.path)
            except:
@@ -97,7 +97,7 @@ class Importer:
            spacer = ""
            if not self.mirror.startswith("rsync://"):
                spacer = ' -e "ssh" '
-           cmd = "rsync -a %s %s /var/www/cobbler/localmirror/%s --exclude-from=/etc/cobbler/rsync.exclude --delete --delete-excluded --progress" % (spacer, self.mirror, self.mirror_name)
+           cmd = "rsync -a %s %s /var/www/cobbler/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --delete --delete-excluded --progress" % (spacer, self.mirror, self.mirror_name)
            sub_process.call(cmd,shell=True)
            update_file = open(os.path.join(self.path,"update.sh"),"w+")
            update_file.write("#!/bin/sh")
@@ -157,7 +157,7 @@ class Importer:
        for profile in self.profiles:
            distro = self.distros.find(profile.name)
            kpath = distro.kernel
-           if not kpath.startswith("/var/www/cobbler/localmirror/"):
+           if not kpath.startswith("/var/www/cobbler/ks_mirror/"):
                continue
            for entry in MATCH_LIST:
                (part, kickstart) = entry

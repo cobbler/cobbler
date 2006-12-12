@@ -20,6 +20,7 @@ import action_sync
 import action_check
 import action_enchant
 import action_import
+import action_reposync
 import cexceptions
 
 class BootAPI:
@@ -51,19 +52,23 @@ class BootAPI:
         """
         return self._config.profiles()
 
-
     def distros(self):
         """
         Return the current list of distributions
         """
         return self._config.distros()
 
+    def repos(self):
+        """
+        Return the current list of repos
+        """
+        return self._config.repos()
+
     def settings(self):
         """
         Return the application configuration
         """
         return self._config.settings()
-
 
     def new_system(self):
         """
@@ -85,6 +90,12 @@ class BootAPI:
         """
         return self._config.new_profile()
 
+    def new_repo(self):
+        """
+        Create a blank, unconfigured repo, unattached to a collection
+        """
+        return self._config.new_repo()
+
     def check(self):
         """
         See if all preqs for network booting are valid.  This returns
@@ -97,7 +108,6 @@ class BootAPI:
         check = action_check.BootCheck(self._config)
         return check.run()
 
-
     def sync(self,dryrun=True):
         """
         Take the values currently written to the configuration files in
@@ -106,6 +116,14 @@ class BootAPI:
         saved with serialize() will NOT be synchronized with this command.
         """
         sync = action_sync.BootSync(self._config)
+        return sync.run(dryrun=dryrun)
+
+    def reposync(self,dryrun=True):
+        """
+        Take the contents of /var/lib/cobbler/repos and update them --
+        or create the initial copy if no contents exist yet.
+        """
+        sync = action_reposync.RepoSync(self._config)
         return sync.run(dryrun=dryrun)
 
     def enchant(self,address,profile,systemdef):

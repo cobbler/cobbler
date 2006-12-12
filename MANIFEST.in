@@ -2,6 +2,7 @@ include COPYING_ELILO
 include elilo-3.6-ia64.efi
 include dhcp.template
 include kickstart_fc5.ks
+include kickstart_fc6.ks
 include default.ks
 include default.pxe
 include cobbler.1.gz

@@ -10,6 +10,7 @@ Group: Applications/System
 Requires: python >= 2.3
 Requires: httpd
 Requires: tftp-server
+Requires: python-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 ExcludeArch: ppc

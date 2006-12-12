@@ -53,6 +53,12 @@ class BootCLI:
             'delete'  :  self.system_remove,
             'remove'  :  self.system_remove,
         }
+        self.commands['repo'] = {
+            'add'     :  self.repo_edit,
+            'edit'    :  self.repo_edit,
+            'delete'  :  self.repo_remove,
+            'remove'  :  self.repo_remove
+        }
         self.commands['toplevel'] = {
             'check'        : self.check,
             'list'         : self.list,
@@ -62,7 +68,10 @@ class BootCLI:
             'profile'      : self.profile,
             'systems'      : self.system,
             'system'       : self.system,
+            'repos'        : self.repo,
+            'repo'         : self.repo,
             'sync'         : self.sync,
+            'reposync'     : self.reposync,
             'import'       : self.import_tree,
             'enchant'      : self.enchant,
             'transmogrify' : self.enchant,
@@ -96,11 +105,13 @@ class BootCLI:
                 all.append(self.api.distros())
             elif a == '--settings':
                 all.append(self.api.settings())
+            elif a == '--repos':
+                all.append(self.api.repos())
             else:
                 terms.extend(a)
         if len(all) == 0:
             all = [ self.api.settings(), self.api.distros(),
-                    self.api.profiles(), self.api.systems() ]
+                    self.api.profiles(), self.api.systems(), self.api.repos() ]
         for item in all:
             print item.printable()
 
@@ -138,6 +149,16 @@ class BootCLI:
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok)
 
+    def repo_remove(self,args):
+        """
+        Delete a repo:  'cobbler repo remove --name='foo'
+        """
+        commands = {
+           '--name'   : lambda(a):  self.api.repos().remove(a),
+           '--repo'   : lambda(a):  self.api.repos().remove(a)
+        }
+        on_ok = lambda: True
+        return self.apply_args(args,commands,on_ok)
 
     def enchant(self,args):
         """
@@ -230,11 +251,25 @@ class BootCLI:
             '--virt-file-size'  :  lambda(a) : profile.set_virt_file_size(a),
             '--xen-ram'         :  lambda(a) : profile.set_virt_ram(a),
             '--virt-ram'        :  lambda(a) : profile.set_virt_ram(a),
-            '--ksmeta'          :  lambda(a) : profile.set_ksmeta(a)
+            '--ksmeta'          :  lambda(a) : profile.set_ksmeta(a),
+            '--repos'           :  lambda(a) : profile.set_repos(a)
         }
         on_ok = lambda: self.api.profiles().add(profile)
         return self.apply_args(args,commands,on_ok)
 
+    def repo_edit(self,args):
+        """
+        Create/edit a repo:  'cobbler repo add --name='foo' ...
+        """
+        repo = self.api.new_repo()
+        commands = {
+           '--name'             :  lambda(a): repo.set_name(a),
+           '--mirror'           :  lambda(a): repo.set_mirror(a),
+           '--keep-updated'     :  lambda(a): repo.set_keep_updated(a),
+           '--root'             :  lambda(a): repo.set_root(a)
+        }
+        on_ok = lambda: self.api.repos().add(repo)
+        return self.apply_args(args,commands,on_ok)
 
     def distro_edit(self,args):
         """
@@ -291,7 +326,6 @@ class BootCLI:
             raise cexceptions.CobblerException("unknown_cmd", args[0])
         return True
 
-
     def sync(self, args):
         """
         Sync the config file with the system config: 'cobbler sync [--dryrun]'
@@ -303,6 +337,17 @@ class BootCLI:
             status = self.api.sync(dryrun=False)
         return status
 
+    def reposync(self, args):
+        """
+        Sync the repo-specific portions of the config with the filesystem.
+        'cobbler reposync'.  Intended to be run on cron.
+        """
+        status = None
+        if args is not None and ("--dryrun" in args or "-n" in args):
+            status = self.api.reposync(dryrun=True)
+        else:
+            status = self.api.reposync(dryrun=False)
+        return status
 
     def check(self,args):
         """
@@ -317,7 +362,6 @@ class BootCLI:
             for i,x in enumerate(status):
                print "#%d: %s" % (i,x)
             return False
-
 
     def distro(self,args):
         """
@@ -336,6 +380,12 @@ class BootCLI:
         Handles any of the 'cobbler system' subcommands
         """
         return self.curry_args(args, self.commands['system'])
+
+    def repo(self,args):
+        """
+        Handles any of the 'cobbler repo' subcommands
+        """
+        return self.curry_args(args, self.commands['repo'])
 
 def main():
     """
