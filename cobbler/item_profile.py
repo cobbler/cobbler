@@ -218,6 +218,6 @@ class Profile(item.Item):
         buf = buf + "virt file size   : %s\n" % self.virt_file_size
         buf = buf + "virt ram         : %s\n" % self.virt_ram
         buf = buf + "virt paravirt    : %s\n" % self.virt_paravirt
-        buf = buf + "repos            : %s\n" % " ".join(self.repos)
+        buf = buf + "repos            : %s\n" % self.repos
         return buf
 
