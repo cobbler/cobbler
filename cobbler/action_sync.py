@@ -298,7 +298,7 @@ class BootSync:
             repo = self.repos.find(r)
             if repo is None:
                 raise cexceptions.CobblerException("no_repo",r)
-            http_url = "http://%s/repo_mirror/%s" % (self.settings.server, repo.name)
+            http_url = "http://%s/cobbler/repo_mirror/%s" % (self.settings.server, repo.name)
             buf = buf + "repo --name=%s --baseurl=%s\n" % (repo.name, http_url)
         return buf
 
