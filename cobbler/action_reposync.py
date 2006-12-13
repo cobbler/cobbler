@@ -84,6 +84,21 @@ class RepoSync:
         print "- walking: %s" % dest_path
         os.path.walk(dest_path, self.createrepo_walker, arg)
  
+        if repo.local_filename is not None and repo.local_filename != "":
+            # this is a rather primative configuration in terms of yum options, but allows
+            # for repos that were added with a value for --local-filename to provision a system
+            # using a kickstart that will write the yum config for that repo (named whatever
+            # was used for local_filename) in /etc/yum.repos.d ... see code in action_sync.py
+            # that relies on this and for more info about how this is added to %post kickstart
+            # templating.
+            config_file = open(os.path.join(dest_path,"config.repo"),"w+")
+            config_file.write("[%s]\n" % repo.local_filename)
+            config_file.write("baseurl=http://%s/cobbler/repo_mirror/%s\n" % (self.settings.server, repo.name))
+            config_file.write("enabled=1\n")
+            config_file.write("gpgcheck=0\n")
+            config_file.close()
+        
+
     def createrepo_walker(self, arg, dirname, fname):
         target_dir = os.path.dirname(dirname).split("/")[-1]
         print "- scanning: %s" % target_dir
@@ -95,4 +110,4 @@ class RepoSync:
             except:
                 print "- createrepo failed.  Is it installed?"
             fnames = []  # we're in the right place                  
-
+            

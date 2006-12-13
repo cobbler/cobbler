@@ -305,14 +305,14 @@ class BootSync:
 
     def generate_config_stanza(self, profile):
         # returns the line in post that would configure yum to use repos added with "cobbler repo add"
-        repos = profile.respos.split(" ")
+        repos = profile.repos.split(" ")
         buf = ""
         for r in repos:
             repo = self.repos.find(r)
             if repo is None: 
                 raise cexceptions.CobblerException("no_repo",r)
             if not (repo.local_filename is None and repo.local_filename != ""):
-                buf = buf + "wget http://%s/cobbler/repo_mirror/this.repo -O /etc/yum.repos.d/%s.repo" % (self.settings.server, repo.name, repo.local_filename)    
+                buf = buf + "wget http://%s/cobbler/repo_mirror/%s/config.repo -O /etc/yum.repos.d/%s.repo" % (self.settings.server, repo.name, repo.local_filename)    
         return buf
 
     def validate_kickstarts_per_system(self):
@@ -327,6 +327,8 @@ class BootSync:
 
         for s in self.systems:
             profile = self.profiles.find(s.profile)
+            if profile is None:
+                raise cexceptions.CobblerException("orphan_profile2",s.name,s.profile)
             distro = self.distros.find(profile.distro)
             kickstart_path = utils.find_kickstart(profile.kickstart)
             if kickstart_path and os.path.exists(kickstart_path):
