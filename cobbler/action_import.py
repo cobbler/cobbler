@@ -107,8 +107,8 @@ class Importer:
            update_file.write("#cobbler import --path=%s" % self.path)
            update_file.close()
        if self.path is not None:
-           arg = None
-           os.path.walk(self.path, self.walker, arg)
+           processed_repos = {}
+           os.path.walk(self.path, self.walker, processed_repos)
            self.scrub_orphans()
            self.guess_kickstarts()
            return True
@@ -124,14 +124,14 @@ class Importer:
        the orphaned systems.
        FIXME: this should also be a seperate API command as it's useful elsewhere
        """
-       print "*** SCRUBBING ORPHANS"
+       print "- Removing orphaned distributions"
        for distro in self.distros:
            remove = False
            if not os.path.exists(distro.kernel):
-               print "*** ORPHANED DISTRO: %s" % distro.name
+               print "- Orphaned distro (no kernel): %s" % distro.name
                remove = True
            if not os.path.exists(distro.initrd):
-               print "*** ORPHANED DISTRO: %s" % distro.name
+               print "- Orphaned distro (no initrd): %s" % distro.name
                remove = True
            if not remove:
                continue
@@ -141,11 +141,11 @@ class Importer:
                    # cascade removal of systems
                    for system in self.systems:
                        if system.profile == profile.name:
-                           print "SYSTEM REMOVED: %s" % system.name
+                           print "- System removed: %s" % system.name
                            self.systems.remove(system.name)
-                   print "PROFILE REMOVED: %s" % profile.name
+                   print "- Profile removed: %s" % profile.name
                    self.profiles.remove(profile.name)
-           print "DISTRO REMOVED: %s" % distro.name
+           print "- Distro removed: %s" % distro.name
            self.distros.remove(distro.name)
 
    def guess_kickstarts(self):
@@ -155,7 +155,9 @@ class Importer:
        and if we can, assign a kickstart if one is available for it.
        """
        for profile in self.profiles:
-           distro = self.distros.find(profile.name)
+           distro = self.distros.find(profile.distro)
+           if distro is None:
+               raise cexceptions.CobblerException("orphan_distro2",profile.name,profile.distro)
            kpath = distro.kernel
            if not kpath.startswith("/var/www/cobbler/ks_mirror/"):
                continue
@@ -179,7 +181,7 @@ class Importer:
                        if (self.serialize_counter % 5) == 0:
                            self.api.serialize()
 
-   def walker(self,arg,dirname,fnames):
+   def walker(self,processed_repos,dirname,fnames):
        initrd = None
        kernel = None
        for tentative in fnames:
@@ -189,6 +191,7 @@ class Importer:
        print "%s" % dirname
        if not self.is_pxe_or_virt_dir(dirname):
            return
+       # keep track of where we've run create repo
        for x in fnames:
            if x.startswith("initrd"):
                initrd = os.path.join(dirname,x)
@@ -196,6 +199,24 @@ class Importer:
                kernel = os.path.join(dirname,x)
            if initrd is not None and kernel is not None:
                self.add_entry(dirname,kernel,initrd)
+               # repo is up two locations and down in repodata
+               path_parts = kernel.split("/")[:-3]
+               comps_path = "/".join(path_parts)
+               print "- looking for comps in %s" % comps_path
+               comps_file = os.path.join(comps_path, "repodata", "comps.xml")
+               if not os.path.exists(comps_file):
+                   print "- no comps file found: %s" % comps_file
+               try:
+                   # don't run creatrepo twice -- this can happen easily for Xen and PXE, when
+                   # they'll share same repo files.
+                   if not processed_repos.has_key(comps_path):
+                      cmd = "createrepo --groupfile %s %s" % (comps_file, comps_path)
+                      sub_process.call(cmd,shell=True)
+                      print "- repository updated"
+                      processed_repos[comps_path] = 1
+               except:
+                   print "- error launching createrepo, ignoring for now..."
+                   traceback.print_exc()
 
    def add_entry(self,dirname,kernel,initrd):
        pxe_arch = self.get_pxe_arch(dirname)

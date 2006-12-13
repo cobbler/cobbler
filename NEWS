@@ -1,6 +1,13 @@
 Cobbler NEWS
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+0.3.5 contains a more strict rsync.excludes file and now
+runs createrepo after import to build more correct repodata
+based on the results of that file. In addition some bugs were
+fixed in the import code.  New experimental commands for
+generalized repo mirroring are now in cobbler, though they
+are not yet documented.
+
 0.3.4 contains a /etc/rsync.exclude file that minimizes
 the amount of files transferred during a cobbler import.  By
 default, PPC, ISO, and debug content are not transferred

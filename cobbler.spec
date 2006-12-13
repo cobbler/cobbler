@@ -2,7 +2,7 @@
 
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.3.4
+Version: 0.3.5
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -11,6 +11,7 @@ Requires: python >= 2.3
 Requires: httpd
 Requires: tftp-server
 Requires: python-devel
+Requires: createrepo
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 ExcludeArch: ppc
@@ -54,6 +55,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
+
+* Wed Dec 13 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.5-1
+- Upstream changes (see CHANGELOG)
+- Added createrepo as Requires
 
 * Tue Dec 05 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.4-1
 - Upstream changes (see CHANGELOG)
