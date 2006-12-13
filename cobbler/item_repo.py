@@ -30,12 +30,14 @@ class Repo(item.Item):
         self.mirror = None                           # is required
         self.keep_updated = 1                        # has reasonable defaults
         self.root = "/var/www/cobbler/repo_mirror"   # has reasonable defaults
+        self.local_filename = ""                     # off by default
 
     def from_datastruct(self,seed_data):
-        self.name = self.load_item(seed_data,'name')
-        self.mirror = self.load_item(seed_data,'mirror')
-        self.keep_updated = self.load_item(seed_data, 'keep_updated')
-        self.root = self.load_item(seed_data, 'root')
+        self.name           = self.load_item(seed_data,'name')
+        self.mirror         = self.load_item(seed_data,'mirror')
+        self.keep_updated   = self.load_item(seed_data, 'keep_updated')
+        self.root           = self.load_item(seed_data, 'root')
+        self.local_filename = self.load_item(seed_data, 'local_filename')
         return self
 
     def set_name(self,name):
@@ -77,6 +79,22 @@ class Repo(item.Item):
            return True
         raise cexceptions.CobblerException("no_exist2",root)
 
+    def set_local_filename(self,fname):
+        """
+        If this repo is to be automatically configured to be "in use" for profiles that reference it,
+        the local filename must be specified.  This allows, for instance, to define a repo foo and autocreate
+        a foo.repo on the system that corresponds to it in /etc/yum.repos.d.  
+
+        You can overwrite default repos by doing this, so
+        setting a value of something like "fedora-updates" has some significance.  If you just name it foo, it's 
+        a bonus repo of your own special stuff.   This is only used if the distro has set_repos() called on it
+        with the name of this repo.
+
+        NOTE: this should not contain the ".repo" in the filename.  The kickstart will add that part.
+        """
+        self.local_filename = fname
+        return True
+
     def is_valid(self):
         """
 	A repo is valid if it has a name and a mirror URL
@@ -89,10 +107,11 @@ class Repo(item.Item):
 
     def to_datastruct(self):
         return {
-           'name'         : self.name,
-           'mirror'       : self.mirror,
-           'keep_updated' : self.keep_updated,
-           'root'         : self.root
+           'name'           : self.name,
+           'mirror'         : self.mirror,
+           'keep_updated'   : self.keep_updated,
+           'root'           : self.root,
+           'local_filename' : self.local_filename
         }
 
     def printable(self,id):
@@ -100,5 +119,6 @@ class Repo(item.Item):
         buf = buf + "mirror          : %s\n" % self.mirror
         buf = buf + "keep updated    : %s\n" % self.keep_updated
         buf = buf + "root            : %s\n" % self.root
+        buf = buf + "local filename  : %s\n" % self.local_filename
         return buf
 

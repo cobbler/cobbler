@@ -27,8 +27,6 @@ import cexceptions
 import traceback
 import errno
 
-
-
 class RepoSync:
     """
     Handles conversion of internal state to the tftpboot tree layout
@@ -79,8 +77,22 @@ class RepoSync:
         spacer = ""
         if repo.mirror.find("ssh://") != -1:
             spacer = "-e ssh"
-        cmd = "rsync -av %s --exclude=debug/ %s %s" % (spacer, repo.mirror, dest_path)       
+        cmd = "rsync -av %s --delete --delete-excluded --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)       
         print "executing: %s" % cmd
         rc = sub_process.call(cmd, shell=True)
-
+        arg = {}
+        print "- walking: %s" % dest_path
+        os.path.walk(dest_path, self.createrepo_walker, arg)
  
+    def createrepo_walker(self, arg, dirname, fname):
+        target_dir = os.path.dirname(dirname).split("/")[-1]
+        print "- scanning: %s" % target_dir
+        if target_dir.lower() in [ "i386", "x86_64", "ia64" ]:
+            try:
+                cmd = "createrepo %s" % dirname
+                print cmd
+                sub_process.call(cmd, shell=True)
+            except:
+                print "- createrepo failed.  Is it installed?"
+            fnames = []  # we're in the right place                  
+

@@ -39,3 +39,7 @@ zerombr
 
 %packages
 
+%post
+TEMPLATE::yum_config_stanza
+
+

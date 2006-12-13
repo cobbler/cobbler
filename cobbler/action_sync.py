@@ -282,6 +282,7 @@ class BootSync:
                        g.ks_meta,
                    ))
                    meta["yum_repo_stanza"] = self.generate_repo_stanza(g)
+                   meta["yum_config_stanza"] = self.generate_config_stanza(g)
                    self.apply_template(kickstart_path, meta, dest)
               except:
                    traceback.print_exc() # leave this in, for now...
@@ -300,6 +301,18 @@ class BootSync:
                 raise cexceptions.CobblerException("no_repo",r)
             http_url = "http://%s/cobbler/repo_mirror/%s" % (self.settings.server, repo.name)
             buf = buf + "repo --name=%s --baseurl=%s\n" % (repo.name, http_url)
+        return buf
+
+    def generate_config_stanza(self, profile):
+        # returns the line in post that would configure yum to use repos added with "cobbler repo add"
+        repos = profile.respos.split(" ")
+        buf = ""
+        for r in repos:
+            repo = self.repos.find(r)
+            if repo is None: 
+                raise cexceptions.CobblerException("no_repo",r)
+            if not (repo.local_filename is None and repo.local_filename != ""):
+                buf = buf + "wget http://%s/cobbler/repo_mirror/this.repo -O /etc/yum.repos.d/%s.repo" % (self.settings.server, repo.name, repo.local_filename)    
         return buf
 
     def validate_kickstarts_per_system(self):
@@ -331,6 +344,7 @@ class BootSync:
                         s.ks_meta
                     ))
                     meta["yum_repo_stanza"] = self.generate_repo_stanza(profile)
+                    meta["yum_config_stanza"] = self.generate_config_stanza(profile)
                     self.apply_template(kickstart_path, meta, dest)
                 except:
                     msg = "err_kickstart2"
