@@ -1,35 +1,46 @@
 cobbler TODO list
+now with 1-5 priority ratings
+
+always:
+2  -  better documentation (particularly online articles)
+2  -  add repo stuff in the manpages
+
+more new thoughts:
+1  -  support repo add taking http:// urls, which will use repotrack/reposync
+3  -  possibly look at pungi, though maybe not if above (^) works well.
 
 core:
-  -  turn on locking in production (or think about it)
-  -  import over http://, ftp:// in addition to existing file and rsync:// and ssh://
-  -  make "cobbler sync" only change what needs to change, to be more efficient
+1 -  turn on locking in production (or think about it) -- important for rsync especially.
+1 -  import over http://, ftp:// in addition to existing file and rsync:// and ssh://
+      NOTE:  possibly allow import via curl (just w/o updates)?
+
+4 -  make "cobbler sync" only change what needs to change, to be more efficient
      (though is this really a problem?  Copying doesn't take THAT long...)
-  -  make the "scrub orphans" bit a seperate command, warn by default, with an
+4 -  make the "scrub orphans" bit a seperate command, warn by default, with an
      option for "--delete".  Seperate from "import".   This could probably
      be a part of "check" to avoid making another command.
-  -  "check" should check if services (esp httpd) are started
+5 -  "check" should check if services (esp httpd) are started
 
 user interface:
-  -  "cobbler add" should be distinguished from "edit" so as to not overwrite
-  -  GTK (or Web) UI for Cobbler ?
-  -  PXE menus would be interesting for default behavior.  
+5 -  "cobbler add" should be distinguished from "edit" so as to not overwrite
+5 -  GTK (or Web) UI for Cobbler ?
+5 -  PXE menus would be interesting for default behavior.  
      Set local boot to the timeout default, show all profiles.
      Depends on how many entries can be added...
 
 code cleanup:
-  -  remove the cobbler_msg logic since i18n isn't likely
+5 -  remove the cobbler_msg logic since i18n isn't likely
 
 ideas:
-  -  make the multiple-bootloader system more plugin oriented to allow
+5 -  make the multiple-bootloader system more plugin oriented to allow
      for alternative bootloaders (not neccessarily kickstart related)
      to be added.  (Low priority)
-  -  kickstart success tracking
+5 -  kickstart success tracking
      originally I implemented some of this using a CGI based system, though it really would benefit
      more from a custom webserver (python's HTTP server would be fine) and providing a few more options
      to integrate with the API.  this would allow tracking of more data w/o having to store it in files, etc,
      and a bit more opportunity for dynamic stuff.  It also prevents needing to tweak the permissions
      model used by the serializer, (and some additional SELinux problems).
-  -  a "--next-profile" option to set the profile after a machine has kickstarted, i.e. to boot locally, etc
+5 -  a "--next-profile" option to set the profile after a machine has kickstarted, i.e. to boot locally, etc
      (useful with PXE-anytime configs, or perhaps PXE configs that just probe HW or do something weird)
  
