@@ -100,10 +100,12 @@ class Importer:
            cmd = "rsync -a %s %s /var/www/cobbler/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --delete --delete-excluded --progress" % (spacer, self.mirror, self.mirror_name)
            sub_process.call(cmd,shell=True)
            update_file = open(os.path.join(self.path,"update.sh"),"w+")
-           update_file.write("#!/bin/sh")
+           update_file.write("#!/bin/sh\n")
            update_file.write("%s\n" % cmd)
            # leave this commented out in the file because it will
-           # erase user customizations.
+           # erase user customizations ... it is needed to update the repodata, however.
+           # FIXME: cobbler reposync might want to take care of this and then update.sh would
+           # go away...
            update_file.write("#cobbler import --path=%s" % self.path)
            update_file.close()
        if self.path is not None:
