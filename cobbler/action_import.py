@@ -88,26 +88,35 @@ class Importer:
            if self.mirror_name is None:
                raise cexceptions.CobblerException("import_failed","must specify --mirror-name")
            print "This will take a while..."
-           self.path = "/var/www/cobbler/ks_mirror/%s" % self.mirror_name
+           self.path = "%s/ks_mirror/%s" % (self.settings.webdir, self.mirror_name)
            try:
                os.makedirs(self.path)
            except:
                if not os.path.exists(self.path):
                    raise cexceptions.CobblerException("couldn't create: %s" % (self.path))
-           spacer = ""
-           if not self.mirror.startswith("rsync://"):
-               spacer = ' -e "ssh" '
-           cmd = "rsync -a %s %s /var/www/cobbler/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --delete --delete-excluded --progress" % (spacer, self.mirror, self.mirror_name)
-           sub_process.call(cmd,shell=True)
-           update_file = open(os.path.join(self.path,"update.sh"),"w+")
-           update_file.write("#!/bin/sh\n")
-           update_file.write("%s\n" % cmd)
-           # leave this commented out in the file because it will
-           # erase user customizations ... it is needed to update the repodata, however.
-           # FIXME: cobbler reposync might want to take care of this and then update.sh would
-           # go away...
-           update_file.write("#cobbler import --path=%s" % self.path)
-           update_file.close()
+
+
+
+           if self.mirror.startswith("http://"):
+               # http mirrors are kind of primative.  rsync is better.  
+               try:
+                   os.makedirs("%s/ks_mirror/%s" % (self.settings.webdir, self.mirror_name))
+               except:
+                   print "- didn't create %s" % self.mirror_name
+               cmd = "wget --mirror --no-parent --no-host-directories --directory-prefix %s/%s %s" % (self.settings.webdir, self.mirror_name, self.mirror)
+               print "- %s" % cmd
+               sub_process.call(cmd,shell=True)
+           else:
+               # use rsync...
+
+               spacer = ""
+               if not self.mirror.startswith("rsync://"):
+                   spacer = ' -e "ssh" '
+               cmd = "rsync -a %s %s %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --delete --delete-excluded --progress" % (spacer, self.mirror, self.mirror_name, self.settings.webdir)
+               print "- %s" % cmd
+               sub_process.call(cmd,shell=True)
+
+
        if self.path is not None:
            processed_repos = {}
            os.path.walk(self.path, self.walker, processed_repos)
@@ -161,7 +170,7 @@ class Importer:
            if distro is None:
                raise cexceptions.CobblerException("orphan_distro2",profile.name,profile.distro)
            kpath = distro.kernel
-           if not kpath.startswith("/var/www/cobbler/ks_mirror/"):
+           if not kpath.startswith("%s/ks_mirror/" % self.settings.webdir):
                continue
            for entry in MATCH_LIST:
                (part, kickstart) = entry
@@ -175,7 +184,7 @@ class Importer:
                        tokens = dirname.split("/")
                        tokens = tokens[:-2]
                        base = "/".join(tokens)
-                       base = base.replace("/var/www/cobbler/","")
+                       base = base.replace(self.settings.webdir,"")
                        tree = "tree=http://%s/%s" % (self.settings.server, base)
                        print "*** KICKSTART TREE = %s" % tree
                        profile.set_ksmeta(tree)
