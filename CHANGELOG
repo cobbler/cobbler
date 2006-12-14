@@ -7,6 +7,7 @@ Cobbler CHANGELOG
 - Now runs createrepo during "cobbler import" to build more correct repodata
 - Added additional repo mirroring commands:  "cobbler repo add", etc
 - Documentation on repo mirroring features TBA.
+- cobbler import gets primative support for http://, though rsync:// is still the way to go.
 
 * Mon Dec 05 2006 - 0.3.4-1
 - Don't rsync PPC content or ISO's on cobbler import
