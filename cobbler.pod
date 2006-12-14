@@ -282,13 +282,9 @@ Usage:  B<cobbler enchant --address=ip|hostname --system=string>
 
 =head2 IMPORTING TREES
 
-Cobbler can auto-add distributions and profiles from remote sources, whether this is an NFS path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.
+Cobbler can auto-add distributions and profiles from remote sources, whether this is an NFS path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.  Rudimentary support is also provided for importing from a http:// mirror, but rsync works much better and is the recommended route.
 
-NOTE: The mirror or directory tree must have the basic directory tree layout as a Fedora or Centos mirror normally looks, including directories named things like "pxeboot", "i386" or "x86_64", and so forth.
-
-When importing a rsync mirror, cobbler can try to detect the distribution type and automatically assign kickstarts.  By default, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of "cobbler".  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting after cobbler creates the profile.
-
-If a mirror updated with rsync changes, running the "update.sh" script created in /var/www/cobbler/localmirror/<mirrorname> will update the files from the same mirror used for the initial download.
+When importing a rsync mirror, cobbler will try to detect the distribution type and automatically assign kickstarts.  By default, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of "cobbler".  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting after cobbler creates the profile.
 
 Usage: B<cobbler import --path=path>
 
