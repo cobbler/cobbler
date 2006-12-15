@@ -266,7 +266,6 @@ class BootCLI:
            '--name'             :  lambda(a): repo.set_name(a),
            '--mirror'           :  lambda(a): repo.set_mirror(a),
            '--keep-updated'     :  lambda(a): repo.set_keep_updated(a),
-           '--root'             :  lambda(a): repo.set_root(a),
            '--local-filename'   :  lambda(a): repo.set_local_filename(a)
         }
         on_ok = lambda: self.api.repos().add(repo)

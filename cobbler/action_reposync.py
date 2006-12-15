@@ -53,7 +53,7 @@ class RepoSync:
         self.dryrun = dryrun
         for repo in self.repos:
             print "considering: %s" % repo
-            repo_path = os.path.join(repo.root, repo.name)
+            repo_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
             mirror = repo.mirror
             if not os.path.isdir(repo_path):
                 try:

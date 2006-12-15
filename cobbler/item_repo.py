@@ -29,14 +29,12 @@ class Repo(item.Item):
         self.name = None                             # is required 
         self.mirror = None                           # is required
         self.keep_updated = 1                        # has reasonable defaults
-        self.root = "/var/www/cobbler/repo_mirror"   # has reasonable defaults
         self.local_filename = ""                     # off by default
 
     def from_datastruct(self,seed_data):
         self.name           = self.load_item(seed_data,'name')
         self.mirror         = self.load_item(seed_data,'mirror')
         self.keep_updated   = self.load_item(seed_data, 'keep_updated')
-        self.root           = self.load_item(seed_data, 'root')
         self.local_filename = self.load_item(seed_data, 'local_filename')
         return self
 
@@ -69,16 +67,6 @@ class Repo(item.Item):
             self.keep_updated = True
         return True
 
-    def set_root(self,root):
-        """
-        Sets the directory to mirror in.  Directory will include the name of the repo off of the
-        given root.  By default, uses /var/www/cobbler/repomirror/.
-        """
-        if os.path.isdir(root):
-           self.root = root
-           return True
-        raise cexceptions.CobblerException("no_exist2",root)
-
     def set_local_filename(self,fname):
         """
         If this repo is to be automatically configured to be "in use" for profiles that reference it,
@@ -110,7 +98,6 @@ class Repo(item.Item):
            'name'           : self.name,
            'mirror'         : self.mirror,
            'keep_updated'   : self.keep_updated,
-           'root'           : self.root,
            'local_filename' : self.local_filename
         }
 
@@ -118,7 +105,6 @@ class Repo(item.Item):
         buf =       "repo %-4s       : %s\n" % (id, self.name)
         buf = buf + "mirror          : %s\n" % self.mirror
         buf = buf + "keep updated    : %s\n" % self.keep_updated
-        buf = buf + "root            : %s\n" % self.root
         buf = buf + "local filename  : %s\n" % self.local_filename
         return buf
 

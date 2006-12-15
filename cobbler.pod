@@ -1,6 +1,6 @@
 =head1 NAME
 
-cobbler is a command line tool for configuring a provisioning server.  It supports provisioning via PXE, Virt, and re-provisioning an existing Linux system ("auto-kickstarting").  The latter two features are enabled by usage of 'koan' (a client side provisioning application) on the remote system.
+cobbler is a command line tool for configuring a provisioning and update server.  It supports provisioning via PXE, Virt, and re-provisioning an existing Linux system ("auto-kickstarting").  The latter two features are enabled by usage of 'koan' (a client side provisioning application) on the remote system.  Update server features include yum mirroring over rsync:// and integration of those mirrors with kickstart.
 
 =head1 SYNOPSIS
 
@@ -8,7 +8,7 @@ cobbler command [subcommand] [--arg1=] [--arg2=]
 
 =head1 DESCRIPTION
 
-Cobbler manages provisioning using a tiered concept of Distributions, Profiles, and Systems.
+Cobbler manages provisioning using a tiered concept of Distributions, Profiles, Systems, and Repositories.
 
 Distributions contain information about what kernel and initrd are used, along with various other information, such as required kernel parameters.
 
@@ -16,25 +16,32 @@ Profiles associate a Distribution with a kickstart file and optionally customize
 
 Systems associate a hostname, IP, or MAC with a distribution and optionally customize the Profile further.
 
+Repositories contain yum mirror information.  Using cobbler to mirror repositories is an optional/advanced 
+feature and is covered further down in this manpage.
+
+The main advantages of cobbler is that it glues together a lot of disjoint technologies and concepts and abstracts the user from the need to understand them.   It allows the systems administrator to concentrate on what he needs to do, and not how it is done. 
+
 =head1 SEE ALSO
 
-For help in building kickstarts, try "system-config-kickstart", or install a new system and look at the /root/anaconda-ks.cfg file left over from the installer.  General kickstart questions can also be asked at kickstart-list@redhat.com.
+For help in building kickstarts, try "system-config-kickstart", or install a new system and look at the /root/anaconda-ks.cfg file left over from the installer.  General kickstart questions can also be asked at kickstart-list@redhat.com.  Cobbler ships some kickstart templates in /etc/cobbler that may also prove helpful.
 
 =head1 COBBLER USAGE
 
 =head2 SETUP
 
-Running "cobbler check" after installation will verify that cobbler's prerequisites are installed and configured correctly.
+Running "cobbler check" after installation will verify that cobbler's prerequisites are installed and configured correctly.  This is a good first command to run after installing cobbler.
 
 Any problems detected should be corrected, with the potential exception of DHCP related warnings.
 
-It is especially important that the server name field be accurate in /var/lib/cobbler/settings.
+It is especially important that the server name field be accurate in /var/lib/cobbler/settings, without this field being correct, kickstart trees may not be found, and provisioning won't work.
 
-For PXE, if DHCP is to be run from the cobbler server, the dhcp configuration file should be changed as suggested.  If DHCP is not run locally, the "next-server" field on the DHCP server should point to the cobbler server's IP and the filename should be set to "pxelinux.0".  Cobbler can also (optionally) generate dhcp configuration files -- this is covered in a later section.
+For PXE, if DHCP is to be run from the cobbler server, the dhcp configuration file should be changed as suggested.  If DHCP is not run locally, the "next-server" field on the DHCP server should point to the cobbler server's IP and the filename should be set to "pxelinux.0".  Cobbler can also (optionally) generate dhcp configuration files -- this is covered in a later section.  If you don't already have a dhcp setup, allowing cobbler to manage it may prove to be useful.  If you already have a setup, moving an existing setup to cobbler is relatively painless.
 
 =head2 ADDING A DISTRIBUTION
 
-This first step is to add a distribution to the cobbler system.  If there is an rsync mirror or filesystem tree that you would rather import instead, skip down to the documentation about the "import" command.
+This first step towards configurating what you want to provision is to add a distribution to the cobbler's configuration.  If there is an rsync mirror or filesystem tree that you would rather import instead, skip down to the documentation about the "import" command.  It's really a lot easier, but it requires waiting for the mirror to sync data across.  Imported mirrors also save time during install since they don't have to hit external install sources.
+
+Anyhow, the manual distro add command is:
 
 B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--ksmeta=string] [--arch=x86|x86_64|ia64]>
 
@@ -42,7 +49,7 @@ B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] 
 
 =item name
 
-a string identifying the distribution
+a string identifying the distribution, this should be something like "rhel4".
 
 =item kernel
 
@@ -54,7 +61,8 @@ an absolute filesystem path to a initrd image
 
 =item kopts
 
-(optional) sets kernel command-line arguments.
+(optional) sets kernel command-line arguments that the distro, and profiles/systems dependant
+on it, will use.
 
 Example: --ksmeta="foo=bar baz=3 asdf"
 
@@ -65,6 +73,8 @@ Example: --ksmeta="foo=bar baz=3 asdf"
 x86 and x86_64 are interchangable, both use syslinux.
 
 ia64 uses the IA64 build of elilo.
+
+if you don't use IA64 systems, leaving this parameter off is fine.
 
 =item ksmeta
 
@@ -80,13 +90,17 @@ See the section below on templating.
 
 =head2 ADDING A PROFILE
 
-A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.
+A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.  A profile might represent, for instance, a web server or desktop configuration.
 
 B<cobbler profile add --name=string --distro=string [--kickstart=url] [--kopts=string] [--ksmeta=string] [--virt-name=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes]>
 
 =over
 
 Arguments are as listed for distributions, except for the "arch" parameter, and with the additions listed below:
+
+=item name
+
+a descriptive name.  This could be something like "rhel4webservers" or "fc6desktops".
 
 =item distro
 
@@ -129,7 +143,11 @@ the following changes:
 The system name must be either a currently-resolvable hostname, an IP address, or a MAC address.
 
 When defining Virtualized systems, using a MAC address causes the Virt MAC address to be used for creation,
-so that is the preferred usage.
+so that is the preferred usage.  To restate this, unless you have a better reason, use the MAC
+address here, as it makes things a lot easier and more powerful across the board.
+
+There is also the magic name "default", which allows creation of the default PXE profile.  Without
+a "default" system name created, PXE will fall through to local boot for unconfigured systems.
 
 =item pxe-address
 
@@ -146,19 +164,80 @@ NOTE: Due to a limitation in elilo (IA64 bootloader), this parameter must ALSO b
 
 =back
 
+=head2 ADDING A REPOSITORY TO MIRROR
+
+Repository mirroring is one of the more complex cobbler features, though if you want to mirror
+a yum repository and integrate it with your provisioning, cobbler can help simplify the required
+knowledge a good bit.  If you're just provisioning your home system, ignore this part.
+
+B<cobbler repo add --mirror=url --mirror-name=string [--local-file=string]>
+
+=over
+
+=item mirror
+
+The addresss of the mirror.  This needs to be either an rsync:// url or an ssh location usable with rsync.
+The mirror address should specify an exact repository to mirror -- just one architecture
+and just one distribution.  If you have a seperate repo to mirror for a different arch, add that
+repo seperately.  
+
+Here's an example of what looks like a good URL:
+
+rsync://yourmirror.example.com/fedora-linux-core/6/i386 (for rsync protocol)
+user@yourmirror.example.com/fedora-linux-core/6/i386  (for SSH)
+
+These are bad URL's:
+
+rsync://yourmirror.example.com/fedora-linux-core/
+rsync://yourmirror.example.com/fedora-linux-core/6/
+
+To put it more simply, if the content you are mirroring doesn't contain rpm's
+at the top level of the URL, this is bad, and you need to specify a different value.  Using the
+wrong mirror value here will rsync over too much data, and also the provisioning integration code
+simply won't work.  You can't pass in a Fedora mirror, or even a FC6 mirror address.  Be specific.
+
+=item mirror-name
+
+This name is used as the save location for the mirror.  If the mirror represented, say, Fedora Core
+6 i386 updates, a good name would be "fc6i386updates".  Be explicit.  
+
+This name corresponds with values given to the --repo parameter of "cobbler profile add".  If a profile
+has a --repo value that matches the name here, that repo can be automatically set up during provisioning.
+This means that, if supported by Anaconda, the repo can be used during kickstart install -- and -- either way,
+it can be automatically configured on the clients.
+
+=item local-filename
+
+Local filename specifies, for kickstarts containing the template parameter "TEMPLATE::yum_config_stanza",
+what files to populate on provisioned clients in /etc/yum.repos.d.  In other words, if this value
+is "foo", the repo would be added on provisioned clients as "/etc/yum.repos.d/foo.repo".  If you don't
+want clients to have this repo installed, don't add a name for the repo, and provisioned machines
+will not configure yum to know about this repo -- you can still do it manually if you choose.
+
+=back
+
 =head2 DISPLAYING CONFIGURATION ENTRIES
 
-B<cobbler list [--settings] [--profiles] [--distros] [--systems]>
+This is a rather simple command, usable regardless of how you are using cobbler.
+
+B<cobbler list [--settings] [--profiles] [--distros] [--systems] [--repos]>
 
 Prints the current cobbler configuration for systems, profiles, and groups. If one of the switches is given, only information for those is printed.
 
+Alternatively, you could cat the configuration files in /var/lib/cobbler to see the same information.  This
+command basically makes those configuration files more human readable.
+
 =head2 DELETING CONFIGURATION ENTRIES
+
+If you want to remove a specific object, use the remove command with the name that was used to add it.
 
 B<cobbler distro remove --name=string>
 
 B<cobbler profile remove --name=string>
 
 B<cobbler system remove --name=string>
+
+B<cobbler remove repo --name=string>
 
 =head2 APPLYING CONFIGURATIONS
 
@@ -170,13 +249,17 @@ Configuration changes made with cobbler commands such as "add/edit" or "delete/r
 
 =head2 IMPORT WORKFLOW
 
-To create a provisioning infrastructure from a distribution mirror.
+This example shows how to create a provisioning infrastructure from a distribution mirror.
+Then a default PXE configuration is created, so that by default systems will PXE boot into 
+a fully automated install process for that distribution.
 
 =over
 
 B<cobbler check>
 
 B<cobbler import --mirror=rsync://yourfavoritemirror.com/foo --mirror-name=anyname>
+
+# wait for mirror to rsync...
 
 B<cobbler list>
 
@@ -189,6 +272,10 @@ B<cobbler sync>
 =back
 
 =head2 NORMAL WORKFLOW
+
+The following example uses a local kernel and initrd file (already downloaded), and 
+shows how profiles would be created using two different kickstarts -- one for a web server
+configuration and one for a database server.  Then, a machine is assigned to each profile.
 
 =over
 
@@ -209,6 +296,30 @@ B<cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=rhel4u3-dbservers>
 B<cobbler list>
 
 B<cobbler sync>
+
+=head2 REPOSITORY MIRRORING WORKFLOW
+
+The following example shows how to set up a repo mirror for two repositories, and create a profile
+that will auto install those repository configurations on provisioned systems using that profile.
+
+B<cobbler check>
+
+# set up your cobbler distros here.
+
+B<cobbler repo add --mirror=rsync://repos.example.com/foo/i386/ --mirror=name=magicfooi386>
+
+B<cobbler repo add --mirror=rsync://repos.example.com/bar/i386/ --mirror=name=magicbari386>
+
+B<cobbler reposync>
+
+B<cobbler profile add --name=p1 --distro=existing_distro_name --kickstart=/etc/cobbler/kickstart_fc6.ks --repos="magicfooi386 magicbari386">
+
+B<cobbler sync>
+
+See the expanded description towards the bottom of this manpage for further information about
+repo management.
+
+=over
 
 =back
 
@@ -318,6 +429,31 @@ on the "default" system.
 B<cobbler system add --name=default --profile=boot_this>
 
 B<cobbler system remove --name=default>
+
+=head2 REPO MANAGEMENT
+
+This has already been covered a good bit in the command reference section.
+
+Yum repository management is an optional feature, and is not required to provision through cobbler.
+However, if cobbler is configured to mirror certain repositories, it can then be used to associate
+profiles with those repositories.  Systems installed under those profiles will then be autoconfigured
+to use these repository mirrors in /etc/yum.repos.d, and if supported (Fedora Core 6 and later) these
+repositories can be leveraged even within Anaconda.  This can be useful if (A) you have a large
+install base, (B) you want fast installation and upgrades for your systems, or (C) have some
+extra software not in a standard repository but want provisioned systems to know about that repository.
+
+Make sure there is plenty of space in cobbler's webdir, which defaults to /var/www/cobbler.
+
+B<cobbler reposync>
+
+Cobbler reposync is the command to use to update repos as configured with "cobbler repo add".  Mirroring
+can take a long time, and usage of cobbler reposync prior to cobbler sync is needed to ensure
+provisioned systems have the files they need to actually use the mirrored repositories.  If you just
+add repos and never run reposync, the repos will never be mirrored.  This is probably a command
+you would want to put on a crontab, though the frequency of that crontab and where the output
+goes is left up to the systems administrator.
+
+Repositories that do not need to be updated can be modifed by tweaking the values in /var/lib/cobbler/repos.
 
 =head2 TWEAKING
 
