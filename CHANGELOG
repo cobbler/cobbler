@@ -9,6 +9,7 @@ Cobbler CHANGELOG
 - Documentation on repo mirroring features TBA.
 - cobbler import gets primative support for http://, though rsync:// is still the way to go.
 - fix bug in rsync:// import code that saved distributions in the wrong path
+- The --dryrun option on "cobbler sync" is now unsupported.
 
 * Mon Dec 05 2006 - 0.3.4-1
 - Don't rsync PPC content or ISO's on cobbler import
