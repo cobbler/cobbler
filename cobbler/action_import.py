@@ -112,7 +112,7 @@ class Importer:
                spacer = ""
                if not self.mirror.startswith("rsync://"):
                    spacer = ' -e "ssh" '
-               cmd = "rsync -a %s %s %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --delete --delete-excluded --progress" % (spacer, self.mirror, self.mirror_name, self.settings.webdir)
+               cmd = "rsync -a %s %s %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --delete --delete-excluded --progress" % (spacer, self.mirror, self.settings.webdir, self.mirror_name)
                print "- %s" % cmd
                sub_process.call(cmd,shell=True)
 

@@ -56,7 +56,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Wed Dec 13 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.5-1
+* Mon Dec 18 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.5-1
 - Upstream changes (see CHANGELOG)
 - Added createrepo as Requires
 
