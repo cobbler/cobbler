@@ -367,6 +367,7 @@ class BootSync:
         for x in metadata.keys():
             if x != "":
                data = data.replace("TEMPLATE::%s" % x, metadata[x])
+        self.mkdir(os.path.basename(out_path))
         fd = open(out_path, "w+")
         fd.write(data)
         fd.close()

@@ -241,7 +241,7 @@ B<cobbler remove repo --name=string>
 
 =head2 APPLYING CONFIGURATIONS
 
-B<cobbler sync [--dryrun]>
+B<cobbler sync>
 
 Configuration changes made with cobbler commands such as "add/edit" or "delete/remove" are saved in /var/lib/cobbler.  These changes are not applied until 'cobbler sync' is run.   Any errors in the configuration that must be corrected (such as missing files) will be reported during the sync process.
 
