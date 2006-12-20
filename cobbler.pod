@@ -308,7 +308,7 @@ B<cobbler check>
 
 B<cobbler repo add --mirror=rsync://repos.example.com/foo/i386/ --name=magicfooi386>
 
-B<cobbler repo add --mirror=rsync://repos.example.com/bar/i386/ --name=magicbari386>
+B<cobbler repo add --mirror=root@192.168.1.5:/foo/i386/ --name=magicbari386>
 
 B<cobbler reposync>
 
