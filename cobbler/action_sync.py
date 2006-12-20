@@ -316,7 +316,7 @@ class BootSync:
             if repo is None: 
                 continue
             if not (repo.local_filename is None and repo.local_filename != ""):
-                buf = buf + "wget http://%s/cobbler/repo_mirror/%s/config.repo -O /etc/yum.repos.d/%s.repo" % (self.settings.server, repo.name, repo.local_filename)    
+                buf = buf + "wget http://%s/cobbler/repo_mirror/%s/config.repo > /etc/yum.repos.d/%s.repo\n" % (self.settings.server, repo.name, repo.local_filename)    
         return buf
 
     def validate_kickstarts_per_system(self):
