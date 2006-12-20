@@ -314,7 +314,7 @@ class BootSync:
             if repo is None: 
                 continue
             if not (repo.local_filename is None and repo.local_filename != ""):
-                buf = buf + "wget http://%s/cobbler/repo_mirror/%s/config.repo > /etc/yum.repos.d/%s.repo\n" % (self.settings.server, repo.name, repo.local_filename)    
+                buf = buf + "wget http://%s/cobbler/repo_mirror/%s/config.repo --output-document=/etc/yum.repos.d/%s.repo\n" % (self.settings.server, repo.name, repo.local_filename)    
         return buf
 
     def validate_kickstarts_per_system(self):
@@ -681,6 +681,7 @@ class BootSync:
            return os.makedirs(path,mode)
        except OSError, oe:
            if not oe.errno == 17: # already exists (no constant for 17?)
+               traceback.print_exc()
                raise cexceptions.CobblerException("no_create", path)
 
     def service(self, name, action):

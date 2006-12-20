@@ -42,11 +42,13 @@ class Enchant:
        if profile is not None and self.config.profiles().find(profile) is None:
            raise cexceptions.CobblerException("enchant_failed","profile name not found")
 
+
    def ssh_exec(self,cmd,catch_fail=True):
        """
        Invoke an SSH command.
+ -o 'HostKeyAlias NoHostKeyStorage'
        """
-       cmd2 = "ssh -o 'StrictHostKeyChecking=no' root@%s %s" % (self.address,cmd)
+       cmd2 = "ssh -o 'StrictHostKeyChecking=no' -o 'HostKeyAlias nocobblerhostkey' root@%s %s" % (self.address,cmd)
        print "running: %s" % cmd2
        rc = sub_process.call(cmd2,shell=True)
        print "returns: %d" % rc
@@ -57,6 +59,18 @@ class Enchant:
        """
        Replace the OS of a remote system.
        """
+
+       # clean out known hosts file to eliminate conflicts
+       known_hosts = open("/root/.ssh/known_hosts","r")
+       data = known_hosts.read()
+       known_hosts.close()
+       known_hosts = open("/root/.ssh/known_hosts","w+")
+       for line in data.split("\n"):
+           if not line.startswith("nocobblerhostkey"):
+               known_hosts.write(line)
+               known_hosts.write("\n")
+       known_hosts.close()
+
        koan = os.path.basename(self.settings.koan_path)
        where_is_koan = os.path.join(self.settings.webdir,os.path.basename(koan))
        if not os.path.exists(where_is_koan) or os.path.isdir(where_is_koan):
