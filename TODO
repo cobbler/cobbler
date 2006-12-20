@@ -8,6 +8,7 @@ always:
 more new thoughts:
 1  -  support repo add taking http:// urls, which will use repotrack/reposync
 3  -  possibly look at pungi, though maybe not if above (^) works well.
+1  -  make enchant work for remote xen installs
 
 core:
 1 -  turn on locking in production (or think about it) -- important for rsync especially.

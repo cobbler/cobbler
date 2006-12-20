@@ -39,7 +39,7 @@ class Profile(item.Item):
         self.virt_file_size = 5    # GB.  5 = Decent _minimum_ default for FC5.
         self.virt_ram = 512        # MB.  Install with 256 not likely to pass
         self.virt_paravirt = True  # hvm support is *NOT* in Koan (now)
-        self.repos = []            # names of cobbler repo definitions
+        self.repos = ""            # names of cobbler repo definitions
 
     def from_datastruct(self,seed_data):
         """
@@ -80,7 +80,7 @@ class Profile(item.Item):
                 ok = False 
                 break
         if ok:
-            self.repos = repolist
+            self.repos = repos
         else:
             raise cexceptions.CobblerException("no_repos")
 

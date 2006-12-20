@@ -69,11 +69,12 @@ class RepoSync:
         if not repo.keep_updated:
             print "- %s is set to not be updated"
             return True
-        print "imagine an rsync happened here, and that it was amazing..."
         dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
         spacer = ""
         if repo.mirror.find("rsync://") != -1:
             spacer = "-e ssh"
+        if not repo.mirror.endswith("/"):
+            repo.mirror = "%s/" % repo.mirror
         cmd = "rsync -av %s --delete --delete-excluded --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)       
         print "executing: %s" % cmd
         rc = sub_process.call(cmd, shell=True)

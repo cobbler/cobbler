@@ -24,7 +24,7 @@ cobbler check
 cobbler distro add --name=<string> --kernel=<path> --initrd=<path>
     [--kopts=<string>] [--ksmeta=<string>] [--arch=<x86|x86_64|ia64>]
 
-cobbler profile add --name=<string --distro=<string>
+cobbler profile add --name=<string> --distro=<string>
     [--kick-start=<url>] [--kopts=<string>] [--ksmeta=<string>]
     [--virt-name=<string>] [--virt-file-size=<gigabytes>]
     [--virt-ram=<megabytes>]
@@ -33,8 +33,13 @@ cobbler system add --name=<ip│mac│hostname|default> --profile=<string>
     [--pxe-address=<string>]
     [--ksmeta=<string>]
 
-cobbler import --mirror=rsync://<address> --mirror-name=<string>
+cobbler import --name=<string> --mirror=rsync://<address>
+cobbler import --name=<string> --mirror=user@address:/path
 cobbler import --path=<path>
+
+cobbler repo add --name=<string> --mirror=rsync://<address> [--local-file=name]
+cobbler repo add --name=<string> --mirror=user@address:/path [--local-file=name]
+cobbler reposync
 
 cobbler [distro|profile|system] remove --name=<name>
 

@@ -295,8 +295,7 @@ class BootSync:
         # will replace "TEMPLATE::yum_repo_stanza" in a cobbler kickstart file.
         buf = ""
         repos = profile.repos
-        if type(repos) == str:
-            repos = repos.split(" ")
+        repos = repos.split(" ")
         for r in repos:
             repo = self.repos.find(r)
             if repo is None:
@@ -308,8 +307,7 @@ class BootSync:
     def generate_config_stanza(self, profile):
         # returns the line in post that would configure yum to use repos added with "cobbler repo add"
         repos = profile.repos
-        if type(repos) == str:
-            repos = repos.split(" ")
+        repos = repos.split(" ")
         buf = ""
         for r in repos:
             repo = self.repos.find(r)
