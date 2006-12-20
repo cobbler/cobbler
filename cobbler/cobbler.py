@@ -74,6 +74,7 @@ class BootCLI:
             'reposync'     : self.reposync,
             'import'       : self.import_tree,
             'enchant'      : self.enchant,
+            'clobber'      : self.enchant,
             'transmogrify' : self.enchant,
             'help'         : self.usage,
             '--help'       : self.usage,

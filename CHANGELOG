@@ -12,6 +12,7 @@ Cobbler CHANGELOG
 - Fixed bug in virt specific profile information not being used with koan
 - import now takes --name in addition to --mirror-name to be more consistant
 - rsync repo import shouldn't assume SSH unless no rsync:// in mirror URL
+- strict host key checking disabled for "cobbler enchant" feature
 
 * Mon Dec 05 2006 - 0.3.4-1
 - Don't rsync PPC content or ISO's on cobbler import
