@@ -300,7 +300,7 @@ class BootSync:
         for r in repos:
             repo = self.repos.find(r)
             if repo is None:
-                raise cexceptions.CobblerException("no_repo",r)
+                continue
             http_url = "http://%s/cobbler/repo_mirror/%s" % (self.settings.server, repo.name)
             buf = buf + "repo --name=%s --baseurl=%s\n" % (repo.name, http_url)
         return buf
@@ -314,7 +314,7 @@ class BootSync:
         for r in repos:
             repo = self.repos.find(r)
             if repo is None: 
-                raise cexceptions.CobblerException("no_repo",r)
+                continue
             if not (repo.local_filename is None and repo.local_filename != ""):
                 buf = buf + "wget http://%s/cobbler/repo_mirror/%s/config.repo -O /etc/yum.repos.d/%s.repo" % (self.settings.server, repo.name, repo.local_filename)    
         return buf

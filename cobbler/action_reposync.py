@@ -61,10 +61,7 @@ class RepoSync:
                 except OSError, oe:
                     if not oe.errno == 17: # already exists, constant for this?
                         raise cexceptions.CobblerException("no_create", repo_path)
-            if mirror.startswith("rsync://") or mirror.startswith("ssh://"):
-                self.do_rsync_repo(repo)
-            else:
-                raise cexceptions.CobblerException("no_mirror")
+            self.do_rsync_repo(repo)
 
         return True
    
@@ -75,7 +72,7 @@ class RepoSync:
         print "imagine an rsync happened here, and that it was amazing..."
         dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
         spacer = ""
-        if repo.mirror.find("ssh://") != -1:
+        if repo.mirror.find("rsync://") != -1:
             spacer = "-e ssh"
         cmd = "rsync -av %s --delete --delete-excluded --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)       
         print "executing: %s" % cmd

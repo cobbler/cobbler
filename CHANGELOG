@@ -6,11 +6,11 @@ Cobbler CHANGELOG
 - Made default rsync.exclude more strict (OO langpacks and KDE translation)
 - Now runs createrepo during "cobbler import" to build more correct repodata
 - Added additional repo mirroring commands:  "cobbler repo add", etc
-- Documentation on repo mirroring features TBA.
-- cobbler import gets primative support for http://, though rsync:// is still the way to go.
+- Documentation on repo mirroring features.
 - fix bug in rsync:// import code that saved distributions in the wrong path
 - The --dryrun option on "cobbler sync" is now unsupported.
 - Fixed bug in virt specific profile information not being used with koan
+- import now takes --name in addition to --mirror-name to be more consistant
 
 * Mon Dec 05 2006 - 0.3.4-1
 - Don't rsync PPC content or ISO's on cobbler import

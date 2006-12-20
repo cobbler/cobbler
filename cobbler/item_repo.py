@@ -51,11 +51,8 @@ class Repo(item.Item):
         A repo is (initially, as in right now) is something that can be rsynced.
         reposync/repotrack integration over HTTP might come later.
         """
-        if mirror.startswith("rsync://") or mirror.startswith("ssh://"):
-            self.mirror = mirror
-            return True
-        else:
-            raise cexceptions.CobblerException("no_mirror")
+        self.mirror = mirror
+        return True
 
     def set_keep_updated(self,keep_updated):
         """

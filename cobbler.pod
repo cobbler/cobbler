@@ -306,9 +306,9 @@ B<cobbler check>
 
 # set up your cobbler distros here.
 
-B<cobbler repo add --mirror=rsync://repos.example.com/foo/i386/ --mirror=name=magicfooi386>
+B<cobbler repo add --mirror=rsync://repos.example.com/foo/i386/ --name=magicfooi386>
 
-B<cobbler repo add --mirror=rsync://repos.example.com/bar/i386/ --mirror=name=magicbari386>
+B<cobbler repo add --mirror=rsync://repos.example.com/bar/i386/ --name=magicbari386>
 
 B<cobbler reposync>
 

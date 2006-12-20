@@ -211,7 +211,8 @@ class BootCLI:
         commands = {
             '--path'         : lambda(a): set_path(a),
             '--mirror'       : lambda(a): set_mirror(a),
-            '--mirror-name'  : lambda(a): set_mirror_name(a)
+            '--mirror-name'  : lambda(a): set_mirror_name(a),
+            '--name'         : lambda(a): set_mirror_name(a)
         }
         on_ok = lambda: go_import()
         return self.apply_args(args,commands,on_ok)
@@ -264,6 +265,7 @@ class BootCLI:
         repo = self.api.new_repo()
         commands = {
            '--name'             :  lambda(a): repo.set_name(a),
+           '--mirror-name'      :  lambda(a): repo.set_name(a),
            '--mirror'           :  lambda(a): repo.set_mirror(a),
            '--keep-updated'     :  lambda(a): repo.set_keep_updated(a),
            '--local-filename'   :  lambda(a): repo.set_local_filename(a)
