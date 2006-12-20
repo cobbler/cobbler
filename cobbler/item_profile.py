@@ -54,18 +54,11 @@ class Profile(item.Item):
 
         # virt specific 
         self.virt_name       = self.load_item(seed_data,'virt_name')
+        if not self.virt_name or self.virt_name == '':
+            self.virt_name    = self.name
         self.virt_ram        = self.load_item(seed_data,'virt_ram')
         self.virt_file_size  = self.load_item(seed_data,'virt_file_size')
         self.virt_paravirt   = self.load_item(seed_data,'virt_paravirt')
-
-        # support for older versions of the cobbler files (backwards compat)...
-        self.virt_name        = self.load_item(seed_data,'xen_name')
-        if not self.virt_name or self.virt_name == '':
-            self.virt_name    = self.name
-        self.virt_ram         = self.load_item(seed_data,'xen_ram')
-        self.virt_file_size   = self.load_item(seed_data,'xen_file_size')
-        self.virt_paravirt    = self.load_item(seed_data,'xen_paravirt')
-
 
         return self
 
