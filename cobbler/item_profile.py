@@ -195,7 +195,7 @@ class Profile(item.Item):
             'virt_ram'         : self.virt_ram,
             'virt_paravirt'    : self.virt_paravirt,
             'ks_meta'          : self.ks_meta,
-            'repos'            : " ".join(self.repos)
+            'repos'            : self.repos
         }
 
     def printable(self,id):
