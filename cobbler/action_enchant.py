@@ -46,7 +46,7 @@ class Enchant:
        """
        Invoke an SSH command.
        """
-       cmd2 = "ssh root@%s %s" % (self.address,cmd)
+       cmd2 = "ssh -o 'StrictHostKeyChecking=no' root@%s %s" % (self.address,cmd)
        print "running: %s" % cmd2
        rc = sub_process.call(cmd2,shell=True)
        print "returns: %d" % rc
