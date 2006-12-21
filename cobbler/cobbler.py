@@ -151,13 +151,13 @@ class BootCLI:
 
         for a in args:
             if a == '--distros' or len(args) == 1:
-                self.distro_report()
+                self.distro_report([])
             if a == '--repos' or len(args) == 1:
-                self.repo_report()
+                self.repo_report([])
             if a == '--profiles' or len(args) == 1:
-                self.profile_report()
+                self.profile_report([])
             if a == '--systems' or len(args) == 1:
-                self.system_report()
+                self.system_report([])
 
     def system_remove(self,args):
         """
