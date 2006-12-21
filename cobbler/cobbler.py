@@ -147,6 +147,7 @@ class BootCLI:
 
     def __list_names(self, collection):
         names = [ x.name for x in collection]
+        names.sort() # sorted() is 2.4 only
         for name in names:
            print "   %s" % name
         return True
