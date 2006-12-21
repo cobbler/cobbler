@@ -65,7 +65,8 @@ class BootCLI:
             'delete'  :  self.repo_remove,
             'remove'  :  self.repo_remove,
             'list'    :  self.repo_list,
-            'report'  :  self.repo_report
+            'report'  :  self.repo_report,
+            'sync'    :  self.reposync
         }
         self.commands['toplevel'] = {
             'check'        : self.check,
