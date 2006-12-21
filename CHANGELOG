@@ -2,7 +2,12 @@ Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
 * Thu Dec 21 2006 - 0.3.6
-- Cobbler no longer restarts httpd if the config file already exists.
+- cobbler no longer restarts httpd if the config file already exists.
+- "cobbler repo sync" is now an alias for "cobbler reposync"
+- "cobbler list --something" can now be invoked as "cobbler something list"
+- "cobbler list" just shows names of items now
+- "cobbler report" is now used for showing full information output
+- "list" (as well as report) are now sorted alphabetically
 
 * Wed Dec 20 2006 - 0.3.5
 - Fixed bug in cobbler import related to orphan detection
