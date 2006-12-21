@@ -98,8 +98,8 @@ class Repo(item.Item):
            'local_filename' : self.local_filename
         }
 
-    def printable(self,id):
-        buf =       "repo %-4s       : %s\n" % (id, self.name)
+    def printable(self):
+        buf =       "repo            : %s\n" % self.name
         buf = buf + "mirror          : %s\n" % self.mirror
         buf = buf + "keep updated    : %s\n" % self.keep_updated
         buf = buf + "local filename  : %s\n" % self.local_filename

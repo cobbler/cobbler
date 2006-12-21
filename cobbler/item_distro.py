@@ -119,7 +119,7 @@ class Distro(item.Item):
            'arch' : self.arch
         }
 
-    def printable(self, id):
+    def printable(self):
         """
 	Human-readable representation.
 	"""
@@ -133,7 +133,7 @@ class Distro(item.Item):
             istr = "%s (NOT FOUND)" % self.initrd
         elif os.path.isdir(self.initrd):
             istr = "%s (FOUND BY SEARCH)" % istr
-        buf =       "distro %-4s     : %s\n" % (id, self.name)
+        buf =       "distro          : %s\n" % self.name
         buf = buf + "kernel          : %s\n" % kstr
         buf = buf + "initrd          : %s\n" % istr
         buf = buf + "kernel options  : %s\n" % self.kernel_options

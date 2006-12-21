@@ -90,8 +90,8 @@ class System(item.Item):
            'pxe_address' : self.pxe_address
         }
 
-    def printable(self,id):
-        buf =       "system %-4s     : %s\n" % (id, self.name)
+    def printable(self):
+        buf =       "system          : %s\n" % self.name
         buf = buf + "profile         : %s\n" % self.profile
         buf = buf + "kernel options  : %s\n" % self.kernel_options
         buf = buf + "ks metadata     : %s\n" % self.ks_meta

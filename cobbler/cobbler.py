@@ -105,34 +105,38 @@ class BootCLI:
             if a == '--distros' or len(args) == 1:
                 print "Distros:"
                 self.distro_list([])
+            if a == '--repos' or len(args) == 1:
+                print "Repos:"
             if a == '--profiles' or len(args) == 1:
                 print "Profiles:"
                 self.profile_list([])
             if a == '--systems' or len(args) == 1:
                 print "Systems:"
                 self.system_list([])
-            if a == '--repos' or len(args) == 1:
-                print "Repos:"
                 self.repo_list([])
 
     def report(self,args):
-        all = []
+
+        args.append("") # filler
+
+        def sorter(a, b):
+            return cmp(a.name, b.name)
+
+        def print_sorted(collection):
+            collection = [x for x in collection]
+            collection.sort(sorter)
+            for x in collection:
+                print x.printable()
+
         for a in args:
-            if a == '--systems':
-                all.append(self.api.systems())
-            elif a == '--profiles':
-                all.append(self.api.profiles())
-            elif a == '--distros':
-                all.append(self.api.distros())
-            elif a == '--settings':
-                all.append(self.api.settings())
-            elif a == '--repos':
-                all.append(self.api.repos())
-        if len(all) == 0:
-            all = [ self.api.settings(), self.api.distros(),
-                    self.api.profiles(), self.api.systems(), self.api.repos() ]
-        for item in all:
-            print item.printable()
+            if a == '--distros' or len(args) == 1:
+                print_sorted(self.api.distros())
+            if a == '--repos' or len(args) == 1:
+                print_sorted(self.api.repos())
+            if a == '--profiles' or len(args) == 1:
+                print_sorted(self.api.profiles())
+            if a == '--systems' or len(args) == 1:
+                print_sorted(self.api.systems())
 
     def system_remove(self,args):
         """

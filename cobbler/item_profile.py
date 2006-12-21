@@ -198,19 +198,19 @@ class Profile(item.Item):
             'repos'            : self.repos
         }
 
-    def printable(self,id):
+    def printable(self):
         """
         A human readable representaton
         """
-        buf =       "profile %-4s    : %s\n" % (id, self.name)
+        buf =       "profile         : %s\n" % self.name
         buf = buf + "distro          : %s\n" % self.distro
         buf = buf + "kickstart       : %s\n" % self.kickstart
         buf = buf + "kernel options  : %s\n" % self.kernel_options
         buf = buf + "ks metadata     : %s\n" % self.ks_meta
-        buf = buf + "virt name        : %s\n" % self.virt_name
-        buf = buf + "virt file size   : %s\n" % self.virt_file_size
-        buf = buf + "virt ram         : %s\n" % self.virt_ram
-        buf = buf + "virt paravirt    : %s\n" % self.virt_paravirt
-        buf = buf + "repos            : %s\n" % self.repos
+        buf = buf + "virt name       : %s\n" % self.virt_name
+        buf = buf + "virt file size  : %s\n" % self.virt_file_size
+        buf = buf + "virt ram        : %s\n" % self.virt_ram
+        buf = buf + "virt paravirt   : %s\n" % self.virt_paravirt
+        buf = buf + "repos           : %s\n" % self.repos
         return buf
 
