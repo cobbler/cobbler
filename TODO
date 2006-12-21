@@ -45,3 +45,12 @@ ideas:
 5 -  a "--next-profile" option to set the profile after a machine has kickstarted, i.e. to boot locally, etc
      (useful with PXE-anytime configs, or perhaps PXE configs that just probe HW or do something weird)
  
+usability comments from list:
+1 * restart Apache a bit less (as that breaks active kickstarts)
+2 * full vs short forms of listing
+2 * sort the lists, don't use hash order which is undefined
+5 * have -v or --version
+2 * way to list just the profile/distro/system names
+4 * cobbler system list in addition to cobbler list system
+     (and why not cobbler add system, then?)
+
