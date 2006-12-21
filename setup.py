@@ -4,10 +4,10 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-VERSION = "0.3.5"
-SHORT_DESC = "Boot server configurator"
+VERSION = "0.3.6"
+SHORT_DESC = "Boot and update server configurator"
 LONG_DESC = """
-Cobbler is a command line tool for configuration of boot/provisioning servers.  It is also accessible as a Python library.  Cobbler supports PXE, provisioning virtualized ("virt") images, and reinstalling machines that are already up and running (over SSH).  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from rsync mirrors, kickstart templating, and managing dhcpd.conf.
+Cobbler is a command line tool for configuration of boot/provisioning, and update servers which is also accessible as a Python library.  Cobbler supports PXE, provisioning virtualized images, and reinstalling machines that are already up and running (over SSH).  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from rsync mirrors, kickstart templating, integrated yum mirroring (and linking repository setup with kickstarts), plus managing dhcpd.conf.
 """
 
 if __name__ == "__main__":

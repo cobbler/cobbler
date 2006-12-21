@@ -55,6 +55,7 @@ class BootSync:
             raise cexceptions.CobblerException("no_dir",self.settings.tftpboot)
         # not having a /var/www/cobbler is ok, the app will create it since
         # no other package has to own it.
+        self.needs_http_restart = False
         self.verbose = verbose
         self.dryrun = dryrun
         self.clean_trees()
@@ -66,13 +67,17 @@ class BootSync:
         self.build_trees()
         if self.settings.manage_dhcp:
             self.write_dhcp_file()
-            try:
-               retcode = self.service("dhcpd", "restart")
-               if retcode != 0:
-                   print >>sys.stderr, "Warning: dhcpd restart failed"
-            except OSError, e:
-               print >>sys.stderr, "Warning: dhcpd restart failed: ", e
+            self.restart_dhcp()
+        # self.consider_restarting_apache()
         return True
+
+    def restart_dhcp(self):
+        try:
+            retcode = self.service("dhcpd", "restart")
+            if retcode != 0:
+                print >>sys.stderr, "Warning: dhcpd restart failed"
+        except OSError, e:
+            print >>sys.stderr, "Warning: dhcpd restart failed: ", e
 
     def copy_koan(self):
         koan_path = self.settings.koan_path
@@ -152,10 +157,30 @@ class BootSync:
         Create a config file to Apache that will allow access to the
         cobbler infrastructure available over TFTP over HTTP also.
         """
+        
+        conf_file = "/etc/httpd/conf.d/cobbler.conf"
+        self.needs_http_restart = True
+
         if not os.path.exists("/etc/httpd/conf.d"):
            print cobbler_msg.lookup("no_httpd")
            return
-        f = self.open_file("/etc/httpd/conf.d/cobbler.conf","w+")
+
+        # now we're going to figure out whether we actually need to write
+        # the file.  If the file exists and contains self.settings.webdir,
+        # then we don't.  and if the file is already there, then we really
+        # don't have to restart the service either.
+
+        if os.path.exists(conf_file):
+            fh = open(conf_file, "r")
+            data = fh.read()
+            if data.find(self.settings.webdir) != -1:
+                self.needs_http_restart=False
+            fh.close()
+
+        if not self.needs_http_restart:
+            return
+
+        f = self.open_file(conf_file,"w+")
         config_data = """
         #
         # This configuration file allows 'cobbler' boot info
@@ -172,7 +197,9 @@ class BootSync:
         config_data = config_data.replace("/cobbler_webdir",self.settings.webdir)
         self.tee(f, config_data)
         self.close_file(f)
-        self.service("httpd", "reload")
+
+        if self.needs_http_restart:
+            self.service("httpd", "reload")
 
     def clean_trees(self):
         """

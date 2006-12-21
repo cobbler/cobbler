@@ -1,7 +1,10 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Wed Dec 20 2006 - 0.3.5-1
+* Thu Dec 21 2006 - 0.3.6
+- Cobbler no longer restarts httpd if the config file already exists.
+
+* Wed Dec 20 2006 - 0.3.5
 - Fixed bug in cobbler import related to orphan detection
 - Made default rsync.exclude more strict (OO langpacks and KDE translation)
 - Now runs createrepo during "cobbler import" to build more correct repodata
@@ -14,19 +17,19 @@ Cobbler CHANGELOG
 - rsync repo import shouldn't assume SSH unless no rsync:// in mirror URL
 - strict host key checking disabled for "cobbler enchant" feature
 
-* Mon Dec 05 2006 - 0.3.4-1
+* Mon Dec 05 2006 - 0.3.4
 - Don't rsync PPC content or ISO's on cobbler import
 - Manpage cleanup
 
-* Tue Nov 14 2006 - 0.3.3-1
+* Tue Nov 14 2006 - 0.3.3
 - During "cobbler sync" only PXE-related directories in /tftpboot
   are deleted.  This allows /tftpboot to be used for other
   purposes.
 
-* Thr Oct 25 2006 - 0.3.2-1
+* Thr Oct 25 2006 - 0.3.2
 - By default, boot and install in text mode
 
-* Wed Oct 25 2006 - 0.3.1-1
+* Wed Oct 25 2006 - 0.3.1
 - The app now refers to "virt" in many places instead of "xen".
   It's been coded such that files will migrate forward without
   any major issues, and the newer version of koan can still hit
@@ -35,60 +38,60 @@ Cobbler CHANGELOG
   now exclusively just uses methods with "virt" in them, however.
 - Fixed some bugs related to kickstart templating
 
-* Tue Oct 24 2006 - 0.3.0-1
+* Tue Oct 24 2006 - 0.3.0
 - Reload httpd during sync
 - New profiles without set kickstarts default to /etc/cobbler/default.ks
   though this can be changed in /var/lib/cobbler/settings
 - Better forward upgrades for /var/lib/cobbler/settings.  New entries
   get added when they are referenced.
 
-* Tue Oct 24 2006 - 0.2.9-1
+* Tue Oct 24 2006 - 0.2.9
 - Bug fix, enchant now detects if koan_path is not set
 - import now can do ssh rsync as well as just rsyncd
 - Misc bug fixes related to not choking on bad info
 - Fixed bug where --pxe-address wasn't surfaced
 - Sync is a little less verbose
 
-* Wed Oct 18 2006 - 0.2.8-1
+* Wed Oct 18 2006 - 0.2.8
 - Performance speedups to "import" command
 - Bug fix, imported paths (again) convert slashes to underscores
 
-* Tue Oct 17 2006 - 0.2.7-1
+* Tue Oct 17 2006 - 0.2.7
 - Removed pexpect to enhance support for other distros
 - enchant syntax changed (see NEWS)
 - now builds on RHEL4
 
-* Tue Oct 17 2006 - 0.2.6-1
+* Tue Oct 17 2006 - 0.2.6
 - Removing Cheetah and replacing w/ simpler templating system
 - Don't delete localmirror on sync
 
-* Mon Oct 16 2006 - 0.2.5-1
+* Mon Oct 16 2006 - 0.2.5
 - New "import" feature for rsync:// mirrors and filesystem directories
 - Manpage clarification
 - "enchant" is now a subcommand of "cobbler system" and takes less arguments.
 - Several random bugfixes (mainly along error paths)
 
-* Wed Oct 11 2006 - 0.2.4-1
+* Wed Oct 11 2006 - 0.2.4
 - Changes to make things work with python 2.3 (RHEL4, etc)
 - Updated YAML code to ensure better backward compatibility
 
-* Mon Oct 9 2006 - 0.2.3-1
+* Mon Oct 9 2006 - 0.2.3
 - Cobbler now creates a profile and system listing (YAML) in /var needed
   by the next version of koan (which will be 0.2.1)
 - bugfix: enchant should reboot the target box
 - bugfix: enchant should fail if path to koan isn't configured
 
-* Fri Oct 6 2006 - 0.2.2-1
+* Fri Oct 6 2006 - 0.2.2
 - bugfix: "--pxe-hostname" made available in CLI and renamed as "--pxe-address"
 - workaround: elilo doesn't do MAC address pxe config files, use IP for ia64
 - bugfix: added next-server line for per-MAC dhcp configs
 - bugfix: fixed manpage errors
 
-* Thu Sep 28 2006 - 0.2.1-1
+* Thu Sep 28 2006 - 0.2.1
 - New ability to "enchant" remote systems (see NEWS)
 - Misc. bugfixes
 
-* Fri Sep 22 2006 - 0.2.0-1
+* Fri Sep 22 2006 - 0.2.0
 - New dhcp.d conf management features (see NEWS)
 - IA64 support (see NEWS)
 - dhcpd.conf MAC & hostname association features

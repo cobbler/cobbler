@@ -2,7 +2,7 @@
 
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.3.5
+Version: 0.3.6
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -20,7 +20,7 @@ Url: http://cobbler.et.redhat.com
 
 %description
 
-Cobbler is a command line tool for configuration of boot/provisioning servers.  It is also accessible as a Python library.  Cobbler supports PXE, provisioning virtualized ("virt") images, and reinstalling machines that are already up and running (over SSH).  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from rsync mirrors, kickstart templating, and managing dhcpd.conf.
+Cobbler is a command line tool for configuration of boot/provisioning, and update servers which is also accessible as a Python library.  Cobbler supports PXE, provisioning virtualized images, and reinstalling machines that are already up and running (over SSH).  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from rsync mirrors, kickstart templating, integrated yum mirroring (and linking repository setup with kickstarts), plus managing dhcpd.conf.
 
 %prep
 %setup -q
@@ -57,9 +57,14 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Wed Dec 20 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.5-1
+* Thu Dec 21 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.6-1
+- Upstream changes (see CHANGELOG)
+- Description updated
+
+* Thu Dec 21 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.5-4
 - Upstream changes (see CHANGELOG)
 - Added createrepo as Requires
+- BuildRequires: python-devel (needed for 2.5)
 
 * Tue Dec 05 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.4-1
 - Upstream changes (see CHANGELOG)
