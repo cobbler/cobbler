@@ -12,6 +12,7 @@ Requires: httpd
 Requires: tftp-server
 Requires: python-devel
 Requires: createrepo
+BuildRequires: python-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 ExcludeArch: ppc
@@ -56,7 +57,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Mon Dec 18 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.5-1
+* Wed Dec 20 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.5-1
 - Upstream changes (see CHANGELOG)
 - Added createrepo as Requires
 

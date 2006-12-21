@@ -81,7 +81,6 @@ class RepoSync:
         arg = {}
         print "- walking: %s" % dest_path
         os.path.walk(dest_path, self.createrepo_walker, arg)
- 
         if repo.local_filename is not None and repo.local_filename != "":
             # this is a rather primative configuration in terms of yum options, but allows
             # for repos that were added with a value for --local-filename to provision a system
