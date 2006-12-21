@@ -40,28 +40,33 @@ class BootCLI:
             'edit'    :  self.distro_edit,
             'delete'  :  self.distro_remove,
             'remove'  :  self.distro_remove,
+            'list'    :  self.distro_list
         }
         self.commands['profile'] = {
             'add'     :  self.profile_edit,
             'edit'    :  self.profile_edit,
             'delete'  :  self.profile_remove,
             'remove'  :  self.profile_remove,
+            'list'    :  self.profile_list
         }
         self.commands['system'] = {
             'add'     :  self.system_edit,
             'edit'    :  self.system_edit,
             'delete'  :  self.system_remove,
             'remove'  :  self.system_remove,
+            'list'    :  self.system_list
         }
         self.commands['repo'] = {
             'add'     :  self.repo_edit,
             'edit'    :  self.repo_edit,
             'delete'  :  self.repo_remove,
-            'remove'  :  self.repo_remove
+            'remove'  :  self.repo_remove,
+            'list'    :  self.repo_list
         }
         self.commands['toplevel'] = {
             'check'        : self.check,
             'list'         : self.list,
+            'report'       : self.report,
             'distros'      : self.distro,
             'distro'       : self.distro,
             'profiles'     : self.profile,
@@ -95,8 +100,23 @@ class BootCLI:
         print cobbler_msg.USAGE
 
     def list(self,args):
+        args.append("") # filler
+        for a in args:
+            if a == '--distros' or len(args) == 1:
+                print "Distros:"
+                self.distro_list([])
+            if a == '--profiles' or len(args) == 1:
+                print "Profiles:"
+                self.profile_list([])
+            if a == '--systems' or len(args) == 1:
+                print "Systems:"
+                self.system_list([])
+            if a == '--repos' or len(args) == 1:
+                print "Repos:"
+                self.repo_list([])
+
+    def report(self,args):
         all = []
-        terms = []
         for a in args:
             if a == '--systems':
                 all.append(self.api.systems())
@@ -108,8 +128,6 @@ class BootCLI:
                 all.append(self.api.settings())
             elif a == '--repos':
                 all.append(self.api.repos())
-            else:
-                terms.extend(a)
         if len(all) == 0:
             all = [ self.api.settings(), self.api.distros(),
                     self.api.profiles(), self.api.systems(), self.api.repos() ]
@@ -127,6 +145,24 @@ class BootCLI:
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok)
 
+    def __list_names(self, collection):
+        names = [ x.name for x in collection]
+        for name in names:
+           print "   %s" % name
+        return True
+
+    def system_list(self, args):
+        return self.__list_names(self.api.systems())
+    
+    def distro_list(self, args):
+        return self.__list_names(self.api.distros())
+    
+    def profile_list(self, args):
+        return self.__list_names(self.api.profiles())
+    
+    def repo_list(self, args):
+        return self.__list_names(self.api.repos())
+  
     def profile_remove(self,args):
         """
         Delete a profile:   'cobbler profile remove --name=foo'

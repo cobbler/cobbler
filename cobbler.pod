@@ -220,12 +220,17 @@ will not configure yum to know about this repo -- you can still do it manually i
 
 This is a rather simple command, usable regardless of how you are using cobbler.
 
-B<cobbler list [--settings] [--profiles] [--distros] [--systems] [--repos]>
+B<cobbler report [--settings] [--profiles] [--distros] [--systems] [--repos]>
 
 Prints the current cobbler configuration for systems, profiles, and groups. If one of the switches is given, only information for those is printed.
 
-Alternatively, you could cat the configuration files in /var/lib/cobbler to see the same information.  This
-command basically makes those configuration files more human readable.
+The list command gives an abbreviated version of what "report" gives.
+It only returns the names of each item.
+
+B<cobbler list [--settings] [--profiles] [--distros] [--systems] [--repos]>
+
+Alternatively, you could look at the configuration files in /var/lib/cobbler to see the same information.  
+
 
 =head2 DELETING CONFIGURATION ENTRIES
 
