@@ -40,28 +40,32 @@ class BootCLI:
             'edit'    :  self.distro_edit,
             'delete'  :  self.distro_remove,
             'remove'  :  self.distro_remove,
-            'list'    :  self.distro_list
+            'list'    :  self.distro_list,
+            'report'  :  self.distro_report
         }
         self.commands['profile'] = {
             'add'     :  self.profile_edit,
             'edit'    :  self.profile_edit,
             'delete'  :  self.profile_remove,
             'remove'  :  self.profile_remove,
-            'list'    :  self.profile_list
+            'list'    :  self.profile_list,
+            'report'  :  self.profile_report
         }
         self.commands['system'] = {
             'add'     :  self.system_edit,
             'edit'    :  self.system_edit,
             'delete'  :  self.system_remove,
             'remove'  :  self.system_remove,
-            'list'    :  self.system_list
+            'list'    :  self.system_list,
+            'report'  :  self.system_report
         }
         self.commands['repo'] = {
             'add'     :  self.repo_edit,
             'edit'    :  self.repo_edit,
             'delete'  :  self.repo_remove,
             'remove'  :  self.repo_remove,
-            'list'    :  self.repo_list
+            'list'    :  self.repo_list,
+            'report'  :  self.repo_report
         }
         self.commands['toplevel'] = {
             'check'        : self.check,
@@ -107,36 +111,52 @@ class BootCLI:
                 self.distro_list([])
             if a == '--repos' or len(args) == 1:
                 print "Repos:"
+                self.repo_list([])
             if a == '--profiles' or len(args) == 1:
                 print "Profiles:"
                 self.profile_list([])
             if a == '--systems' or len(args) == 1:
                 print "Systems:"
                 self.system_list([])
-                self.repo_list([])
+
+    def __sorter(self, a, b):
+        return cmp(a.name, b.name)
+
+    def __print_sorted(self, collection):
+        collection = [x for x in collection]
+        collection.sort(self.__sorter)
+        for x in collection:
+            print x.printable()
+
+    def distro_report(self,args):
+        self.__print_sorted(self.api.distros())
+        return True
+
+    def system_report(self,args):
+        self.__print_sorted(self.api.systems())
+        return True
+
+    def profile_report(self,args):
+        self.__print_sorted(self.api.profiles())
+        return True
+
+    def repo_report(self,args):
+        self.__print_sorted(self.api.repos())
+        return True
 
     def report(self,args):
 
         args.append("") # filler
 
-        def sorter(a, b):
-            return cmp(a.name, b.name)
-
-        def print_sorted(collection):
-            collection = [x for x in collection]
-            collection.sort(sorter)
-            for x in collection:
-                print x.printable()
-
         for a in args:
             if a == '--distros' or len(args) == 1:
-                print_sorted(self.api.distros())
+                self.distro_report()
             if a == '--repos' or len(args) == 1:
-                print_sorted(self.api.repos())
+                self.repo_report()
             if a == '--profiles' or len(args) == 1:
-                print_sorted(self.api.profiles())
+                self.profile_report()
             if a == '--systems' or len(args) == 1:
-                print_sorted(self.api.systems())
+                self.system_report()
 
     def system_remove(self,args):
         """
