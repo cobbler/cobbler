@@ -266,7 +266,7 @@ B<cobbler import --mirror=rsync://yourfavoritemirror.com/foo --mirror-name=anyna
 
 # wait for mirror to rsync...
 
-B<cobbler list>
+B<cobbler report>
 
 B<cobbler system add --name=default --profile=name_of_a_profile1>
 
@@ -298,7 +298,7 @@ B<cobbler system add --name=AA:BB:CC:DD:EE:FF --profile=fc5-webservers>
 
 B<cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=rhel4u3-dbservers>
 
-B<cobbler list>
+B<cobbler report>
 
 B<cobbler sync>
 
@@ -410,7 +410,7 @@ Example:  B<cobbler import --mirror=rsync://mirror.linux.duke.edu/fedora-linux-c
 
 Example2:  B<cobbler import --mirror=root@192.168.1.10:/stuff --mirror-name=bar>
 
-Once imported, run a "cobbler list" to see what you've added.
+Once imported, run a "cobbler list" or "cobbler report" to see what you've added.
 
 "Cobbler sync" must still be run after an import to get the system ready to provision what was just imported.
 
