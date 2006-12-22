@@ -463,9 +463,11 @@ def main():
     CLI entry point
     """
     exitcode = 0
+    lock_hit = False
     try:
         if LOCKING_ENABLED:
             if os.path.exists(LOCKFILE):
+                lock_hit = True
                 raise cexceptions.CobblerException("lock")
             try:
                 lockfile = open(LOCKFILE,"w+")
@@ -476,7 +478,7 @@ def main():
     except cexceptions.CobblerException, exc:
         print str(exc)[1:-1]  # remove framing air quotes
         exitcode = 1
-    if LOCKING_ENABLED:
+    if LOCKING_ENABLED and not lock_hit:
         try:
             os.remove(LOCKFILE)
         except:
