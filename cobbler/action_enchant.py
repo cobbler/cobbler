@@ -81,11 +81,12 @@ class Enchant:
 
        try:
            self.ssh_exec("wget http://%s/cobbler/%s" % (self.settings.server, koan))
-           # koan doesn't require libvirt, but uses it for koan --virt options if available
-           # so, if --virt is requested, we have to make sure it's installed.
+           # koan doesn't require libvirt-python, but uses it for koan --virt options if available
+           # so, if --virt is requested, we have to make sure it's installed.  It's probably
+           # reasonable to just assume it /IS/ installed though as Xen kernel usage is required.
            extra_virt_packages = ""
            if self.is_virt:
-              extra_virt_packages = " libvirt-python libvirt xen"
+              extra_virt_packages = " libvirt-python libvirt"
            # package installation without knowing whether the target is yum-based or not
            self.ssh_exec("up2date install syslinux%s" % (extra_virt_packages), catch_fail=False)
            self.ssh_exec("yum -y install syslinux%s" % (extra_virt_packages), catch_fail=False)
