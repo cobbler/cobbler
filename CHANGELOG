@@ -2,6 +2,7 @@ Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
 * Thu Dec 21 2006 - 0.3.6
+- locking feature now enabled
 - "enchant" now supports provisioning virtual images remotely when using --is-virt=yes
 - cobbler no longer restarts httpd if the config file already exists.
 - "cobbler repo sync" is now an alias for "cobbler reposync"

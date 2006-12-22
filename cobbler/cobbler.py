@@ -22,7 +22,7 @@ import os.path
 import cobbler_msg
 import cexceptions
 
-LOCKING_ENABLED = False
+LOCKING_ENABLED = True 
 LOCKFILE="/var/lib/cobbler/lock"
 
 class BootCLI:
