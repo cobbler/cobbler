@@ -389,12 +389,17 @@ The dhcpd.conf file will be updated each time "cobbler sync" is run.
 
 While the normal provisioning procedure is either to PXE bare-metal, or use koan to do something else (kickstart an existing system or deploy Virt), cobbler contains yet another option, called "enchant".
 
-Enchant takes a configuration that has already been defined (be sure to run "cobbler sync" before using "cobbler enchant") and applies it to a remote system that may not have koan installed.
+Enchant takes a configuration that has already been defined (be sure to run "cobbler sync" before using "cobbler enchant") and applies it to a remote system that might not have koan installed.  Users might want to use this command to replace a server that is being repurposed, or when no PXE environment can be created.
 
-Running "enchant" will replace the operating system of the target machine, so use it with caution.
+Essentially what enchant does is allow koan to be executed remotely from the cobbler server.  Running "enchant" in it's normal mode will replace the operating system of the target machine, so use it with caution. 
 
 Usage:  B<cobbler enchant --address=ip|hostname --profile=string>
 Usage:  B<cobbler enchant --address=ip|hostname --system=string>
+
+Adding a "--virt=yes" to either form will provision a virtualized image rather than reprovisioning
+the remote machine.   The default behavior is machine (not virtual) re-provisioning.
+
+Example:  B<cobbler enchant --virt=yes --address=192.168.10.10 --profile=fc6xen>
 
 =head2 IMPORTING TREES
 

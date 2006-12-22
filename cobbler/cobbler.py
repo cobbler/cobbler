@@ -233,11 +233,11 @@ class BootCLI:
         self.temp_address = None
         self.is_virt = False
         def set_is_virt(a):
-           if a.lower() in [ "1", "true", "yes", "y", "on" ]:
+           if a.lower() in [ "0", "false", "no", "n", "off" ]:
+               self.is_virt = False
+           else:
                self.is_virt = True
-               return True
-           elif a.lower() not in [ "0", "false", "no", "n", "off" ]:
-               return False
+           return True
         def set_profile(a):
            self.temp_profile = a
            return True
