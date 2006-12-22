@@ -235,18 +235,16 @@ class BootCLI:
         def set_is_virt(a):
            if a.lower() in [ "0", "false", "no", "n", "off" ]:
                self.is_virt = False
-           else:
+           elif a.lower() in [ "1", "true", "yes", "y", "on" ]:
                self.is_virt = True
-           return True
+           else:
+               raise cexceptions.CobblerException("reject_arg","virt")
         def set_profile(a):
            self.temp_profile = a
-           return True
         def set_system(a):
            self.temp_system = a
-           return True
         def set_address(a):
            self.temp_address = a
-           return True
         def go_enchant():
            return self.api.enchant(self.temp_address,self.temp_profile,self.temp_system,self.is_virt)
         commands = {
