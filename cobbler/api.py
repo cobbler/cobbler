@@ -126,14 +126,14 @@ class BootAPI:
         sync = action_reposync.RepoSync(self._config)
         return sync.run(dryrun=dryrun)
 
-    def enchant(self,address,profile,systemdef):
+    def enchant(self,address,profile,systemdef,is_virt):
         """
         Re-kickstart a running system.
         Either profile or systemdef should be a name of a
         profile or system definition, the other should be None.  address is an
         address reachable by SSH.
         """
-        enchant = action_enchant.Enchant(self._config,address,profile,systemdef)
+        enchant = action_enchant.Enchant(self._config,address,profile,systemdef,is_virt)
         return enchant.run()
 
     def import_tree(self,tree_path,mirror_url,mirror_name):
