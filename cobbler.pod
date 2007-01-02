@@ -1,6 +1,6 @@
 =head1 NAME
 
-cobbler is a command line tool for configuring a provisioning and update server.  It supports provisioning via PXE, Virt, and re-provisioning an existing Linux system ("auto-kickstarting").  The latter two features are enabled by usage of 'koan' (a client side provisioning application) on the remote system.  Update server features include yum mirroring over rsync:// and integration of those mirrors with kickstart.
+cobbler is a command line tool for configuring a provisioning and update server.  It supports provisioning via PXE, virtualization (Xen), and remotely re-kickstarting a existing Linux system when PXE booting isn't possible.  The latter two features are enabled by usage of 'koan' (a client side provisioning application) on the remote system.  Update server features include yum mirroring over rsync:// and integration of those mirrors with kickstart.
 
 =head1 SYNOPSIS
 
