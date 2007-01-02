@@ -37,7 +37,7 @@ if __name__ == "__main__":
 				(etcpath,  ['default.pxe']),
                                 (manpath,  ['cobbler.1.gz']),
                                 (etcpath,  ['rsync.exclude']),
-                                (logpath,  ['cobbler-logrotate']),
+                                (logpath,  ['cobbler_rotate']),
                                 (logpath2, [])
                              ],
                 description = SHORT_DESC,
