@@ -191,6 +191,14 @@ class BootSync:
             AllowOverride None
             Order allow,deny
             Allow from all
+            AddHandler mod_python .py
+            PythonOutputFilter watcher WATCHER
+            AddOutputFilter WATCHER .rpm
+            AddOutputFilter WATCHER .xml
+            AddOutputFilter WATCHER initrd.img
+            AddOutputFilter WATCHER vmlinuz
+            AddOutputFilter WATCHER .py
+            PythonDebug On
         </Directory>
         """
         # this defaults to /var/www/cobbler if user didn't change it
