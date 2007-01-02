@@ -8,3 +8,5 @@ include default.pxe
 include cobbler.1.gz
 include COPYING AUTHORS README CHANGELOG NEWS
 include rsync.exclude
+include watcher.py
+

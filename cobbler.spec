@@ -52,6 +52,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler
 %dir /var/www/cobbler
 /var/lib/cobbler/elilo-3.6-ia64.efi
+/var/www/cobbler/watcher.py
 
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
