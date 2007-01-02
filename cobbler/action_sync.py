@@ -216,7 +216,8 @@ class BootSync:
         for x in os.listdir(self.settings.webdir):
             path = os.path.join(self.settings.webdir,x)
             if os.path.isfile(path):
-                self.rmfile(path)
+                if not x.endswith(".py"):
+                    self.rmfile(path)
             if os.path.isdir(path):
                 if not x in ["localmirror","repo_mirror","ks_mirror"] :
                     # new versions of cobbler use repo_mirror for repos and ks_mirror for
