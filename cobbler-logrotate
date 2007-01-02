@@ -1,4 +1,4 @@
-/var/log/cimbiote/cimbiote.log {
+/var/log/cobbler/cobbler.log {
     rotate 4
     daily
     nocompress

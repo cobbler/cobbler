@@ -16,6 +16,8 @@ if __name__ == "__main__":
         cobpath="/var/lib/cobbler/"
         etcpath="/etc/cobbler/"
         wwwpath="/var/www/cobbler/"
+        logpath="/etc/logrotate.d/"
+        logpath2="/var/log/cobbler/"
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -27,14 +29,16 @@ if __name__ == "__main__":
                 scripts = ["cobbler/cobbler"],
                 data_files = [
                                 # (docspath, ['README']),
-                                (wwwpath, []),
-                                (cobpath, ['elilo-3.6-ia64.efi']),
-                                (etcpath, ['kickstart_fc5.ks']),
-                                (etcpath, ['default.ks']),
-				(etcpath, ['dhcp.template']),
-				(etcpath, ['default.pxe']),
-                                (manpath, ['cobbler.1.gz']),
-                                (etcpath, ['rsync.exclude'])
+                                (wwwpath,  ['watcher.py']),
+                                (cobpath,  ['elilo-3.6-ia64.efi']),
+                                (etcpath,  ['kickstart_fc5.ks']),
+                                (etcpath,  ['default.ks']),
+				(etcpath,  ['dhcp.template']),
+				(etcpath,  ['default.pxe']),
+                                (manpath,  ['cobbler.1.gz']),
+                                (etcpath,  ['rsync.exclude']),
+                                (logpath,  ['cobbler-logrotate']),
+                                (logpath2, [])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC
