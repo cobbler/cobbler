@@ -193,6 +193,7 @@ class BootSync:
             Allow from all
             AddHandler mod_python .py
             PythonOutputFilter watcher WATCHER
+            AddOutputFilter WATCHER ks.cfg
             AddOutputFilter WATCHER .rpm
             AddOutputFilter WATCHER .xml
             AddOutputFilter WATCHER initrd.img
