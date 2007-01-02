@@ -10,6 +10,7 @@ Cobbler CHANGELOG
 - "cobbler list" just shows names of items now
 - "cobbler report" is now used for showing full information output
 - "list" (as well as report) are now sorted alphabetically
+- basic kickstart tracking feature. requests on /var/www/cobbler get logged to /var/log/cobbler.
 
 * Wed Dec 20 2006 - 0.3.5
 - Fixed bug in cobbler import related to orphan detection

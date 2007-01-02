@@ -1,0 +1,7 @@
+/var/log/cimbiote/cimbiote.log {
+    rotate 4
+    daily
+    nocompress
+    missingok
+    notifempty
+}
