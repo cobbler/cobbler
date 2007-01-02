@@ -56,6 +56,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/log/cobbler
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/www/cobbler/watcher.py
+%attr(644, root, root)
+/etc/logrotate.d/cimbiote-logrotate
 
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
