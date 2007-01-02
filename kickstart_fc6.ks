@@ -41,5 +41,5 @@ zerombr
 
 %post
 TEMPLATE::yum_config_stanza
-
+TEMPLATE::kickstart_done
 

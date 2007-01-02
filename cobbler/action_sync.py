@@ -319,11 +319,19 @@ class BootSync:
                    ))
                    meta["yum_repo_stanza"] = self.generate_repo_stanza(g)
                    meta["yum_config_stanza"] = self.generate_config_stanza(g)
+                   meta["kickstart_done"] = self.generate_kickstart_done(g, is_system=False)
                    self.apply_template(kickstart_path, meta, dest)
               except:
                    traceback.print_exc() # leave this in, for now...
                    msg = "err_kickstart2"
                    raise cexceptions.CobblerException(msg,kickstart_path,dest)
+
+    def generate_kickstart_done(self, obj, is_system=False):
+        pattern = "wget http://%s/cobbler/watcher.py?%s_done=%s --output-document=kickstart_done"
+        if is_system:
+            return pattern % (self.settings.server, "system", obj.name)
+        else:
+            return pattern % (self.settings.server, "profile", obj.name)
 
     def generate_repo_stanza(self, profile):
         # returns the line of repo additions (Anaconda supports in FC-6 and later) that adds
@@ -385,6 +393,7 @@ class BootSync:
                     ))
                     meta["yum_repo_stanza"] = self.generate_repo_stanza(profile)
                     meta["yum_config_stanza"] = self.generate_config_stanza(profile)
+                    meta["kickstart_done"] = self.generate_kickstart_done(profile, is_system=True)
                     self.apply_template(kickstart_path, meta, dest)
                 except:
                     msg = "err_kickstart2"

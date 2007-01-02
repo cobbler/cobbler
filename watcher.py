@@ -34,6 +34,11 @@ def outputfilter(filter):
     # logfile.write(request.filename)
     logfile.write("\n")
 
+    # if requesting this file, don't return it
+    if request.the_request.find("watcher.py") != -1:
+        filter.close()
+        return
+
     # pass-through filter
     s = filter.read()
     while s:
