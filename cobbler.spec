@@ -36,6 +36,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %files
+%defattr(-,apache,apache)
+%dir /var/log/cobbler
 %defattr(-,root,root)
 %{_bindir}/cobbler
 %dir /etc/cobbler
@@ -51,6 +53,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/cobbler.1.gz
 %dir /var/lib/cobbler
 %dir /var/www/cobbler
+%dir /var/log/cobbler
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/www/cobbler/watcher.py
 
@@ -61,6 +64,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 * Thu Dec 21 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.6-1
 - Upstream changes (see CHANGELOG)
 - Description updated
+- Added mod_python kickstart watcher script and associated logging changes
 
 * Thu Dec 21 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.5-4
 - Upstream changes (see CHANGELOG)
