@@ -397,7 +397,7 @@ class BootSync:
                     ))
                     meta["yum_repo_stanza"] = self.generate_repo_stanza(profile)
                     meta["yum_config_stanza"] = self.generate_config_stanza(profile)
-                    meta["kickstart_done"]  = self.generate_kickstart_signal(profile, is_system=True, is_done=True)
+                    meta["kickstart_done"]  = self.generate_kickstart_signal(profile, is_system=True)
                     self.apply_template(kickstart_path, meta, dest)
                 except:
                     msg = "err_kickstart2"
