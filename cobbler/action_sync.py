@@ -186,6 +186,7 @@ class BootSync:
         # This configuration file allows 'cobbler' boot info
         # to be accessed over HTTP in addition to PXE.
         AliasMatch ^/cobbler(/.*)?$ "/cobbler_webdir$1"
+        AliasMatch ^/cobbler_track(/.*)?$ "/cobbler_webdir$1"
         <Directory "/cobbler_webdir">
             Options Indexes FollowSymLinks
             AllowOverride None
@@ -328,7 +329,7 @@ class BootSync:
                    raise cexceptions.CobblerException(msg,kickstart_path,dest)
 
     def generate_kickstart_signal(self, obj, is_system=False):
-        pattern = "wget http://%s/cobbler/watcher.py?%s_%s=%s -b"
+        pattern = "wget http://%s/cobbler_track/watcher.py?%s_%s=%s -b"
         if is_system:
             return pattern % (self.settings.server, "system", "done", obj.name)
         else:
@@ -345,7 +346,7 @@ class BootSync:
             repo = self.repos.find(r)
             if repo is None:
                 continue
-            http_url = "http://%s/cobbler/repo_mirror/%s" % (self.settings.server, repo.name)
+            http_url = "http://%s/cobbler_track/repo_mirror/%s" % (self.settings.server, repo.name)
             buf = buf + "repo --name=%s --baseurl=%s\n" % (repo.name, http_url)
         return buf
 
@@ -359,7 +360,7 @@ class BootSync:
             if repo is None: 
                 continue
             if not (repo.local_filename is None and repo.local_filename != ""):
-                buf = buf + "wget http://%s/cobbler/repo_mirror/%s/config.repo --output-document=/etc/yum.repos.d/%s.repo\n" % (self.settings.server, repo.name, repo.local_filename)    
+                buf = buf + "wget http://%s/cobbler_track/repo_mirror/%s/config.repo --output-document=/etc/yum.repos.d/%s.repo\n" % (self.settings.server, repo.name, repo.local_filename)    
         return buf
 
     def validate_kickstarts_per_system(self):
@@ -571,7 +572,7 @@ class BootSync:
             # the HTTP mirror, so make it something anaconda can get at.
             if kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
                 pxe_fn = self.get_pxe_filename(system.name)
-                kickstart_path = "http://%s/cobbler/kickstarts_sys/%s/ks.cfg" % (self.settings.server, pxe_fn)
+                kickstart_path = "http://%s/cobbler_track/kickstarts_sys/%s/ks.cfg" % (self.settings.server, pxe_fn)
             append_line = "%s ks=%s" % (append_line, kickstart_path)
 
         # now to add the append line to the file
@@ -623,7 +624,7 @@ class BootSync:
         # if kickstart path is local, we've already copied it into
         # the HTTP mirror, so make it something anaconda can get at
         if profile.kickstart and profile.kickstart.startswith("/"):
-            profile.kickstart = "http://%s/cobbler/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)
+            profile.kickstart = "http://%s/cobbler_track/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)
         self.tee(fd,yaml.dump(profile.to_datastruct()))
         self.close_file(fd)
 
