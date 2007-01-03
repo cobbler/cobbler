@@ -84,7 +84,12 @@ class BootStatusReport:
  
                # keep track of when IP addresses's finish.  Right now, we don't
                # care much about profile or system name but can get this later.
- 
+
+               if filepath.find("/cobbler_track/") != -1:
+                  # it's a regular cobbler path, not a cobbler_track one, so ignore it.
+                  # the logger doesn't need to log these anyway, but it might in the future.
+                  # this is just an extra safeguard.
+                  pass
                if filepath.find("?system_done") != -1:             
                   done[ip].append(epoch)
                elif filepath.find("?profile_done") != -1:
@@ -92,9 +97,9 @@ class BootStatusReport:
                else:
                   files[ip][epoch] = filepath
  
-               # FIXME: what's a good way to see when systems START?  For FC6+
-               # it will install via yum, so xml and xml.gz files come first. 
-               # elsewhere, that's not true.  
+               # FIXME: calculate start times for each IP as defined as earliest file
+               # requested after each stop time, or the first file requested if no
+               # stop time.
 
             logfile.close()
 
