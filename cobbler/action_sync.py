@@ -187,7 +187,7 @@ class BootSync:
         # to be accessed over HTTP in addition to PXE.
         AliasMatch ^/cobbler(/.*)?$ "/cobbler_webdir$1"
         <Directory "/cobbler_webdir">
-            Options Indexes
+            Options Indexes FollowSymLinks
             AllowOverride None
             Order allow,deny
             Allow from all
