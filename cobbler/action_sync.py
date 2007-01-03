@@ -55,7 +55,6 @@ class BootSync:
             raise cexceptions.CobblerException("no_dir",self.settings.tftpboot)
         # not having a /var/www/cobbler is ok, the app will create it since
         # no other package has to own it.
-        self.needs_http_restart = False
         self.verbose = verbose
         self.dryrun = dryrun
         self.clean_trees()
@@ -159,7 +158,6 @@ class BootSync:
         """
         
         conf_file = "/etc/httpd/conf.d/cobbler.conf"
-        self.needs_http_restart = True
 
         if not os.path.exists("/etc/httpd/conf.d"):
            print cobbler_msg.lookup("no_httpd")
@@ -170,15 +168,20 @@ class BootSync:
         # then we don't.  and if the file is already there, then we really
         # don't have to restart the service either.
 
+        found_webdir = False
+        found_track_support = False
         if os.path.exists(conf_file):
             fh = open(conf_file, "r")
             data = fh.read()
             if data.find(self.settings.webdir) != -1:
-                self.needs_http_restart=False
+                found_webdir = True
+            if data.find("cobbler_track") != -1:
+                found_track_support = True
             fh.close()
 
-        if not self.needs_http_restart:
-            return
+        if found_track_support and found_webdir:
+            # no http reconfig and restart needed
+            return 
 
         f = self.open_file(conf_file,"w+")
         config_data = """
@@ -208,8 +211,7 @@ class BootSync:
         self.tee(f, config_data)
         self.close_file(f)
 
-        if self.needs_http_restart:
-            self.service("httpd", "reload")
+        self.service("httpd", "reload")
 
     def clean_trees(self):
         """
