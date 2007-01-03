@@ -37,6 +37,9 @@ zerombr
 
 %packages
 
+%pre
+TEMPLATE::kickstart_start
+
 %post
 TEMPLATE::yum_config_stanza
 TEMPLATE::kickstart_done

@@ -21,6 +21,7 @@ import action_check
 import action_enchant
 import action_import
 import action_reposync
+import action_status
 import cexceptions
 
 class BootAPI:

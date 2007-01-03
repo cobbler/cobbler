@@ -18,6 +18,7 @@ import sys
 import api
 import os
 import os.path
+import traceback
 
 import cobbler_msg
 import cexceptions
@@ -230,6 +231,8 @@ class BootCLI:
         'cobbler status [--mode=text|somethingelse]'
         """
         self.mode = "text"
+        if args is None or len(args) == 0:
+            return self.api.status(self.mode)
         def set_mode(a):
             if a.lower in [ "text" ]:
                 self.mode = a
@@ -237,12 +240,11 @@ class BootCLI:
             else: 
                 return False
         commands = {
-            '--mode' : lambda(a): set_mode(a)
+            '--mode' : set_mode
         }
         def go_status():
-            return self.api.show_status(self.mode)
-        on_ok = lambda: go_status()
-        return self.apply_args(args, commands, on_ok)
+            return self.api.status(self.mode)
+        return self.apply_args(args, commands, go_status)
 
     def enchant(self,args):
         """
@@ -498,6 +500,9 @@ def main():
         BootCLI(sys.argv).run()
     except cexceptions.CobblerException, exc:
         print str(exc)[1:-1]  # remove framing air quotes
+        exitcode = 1
+    except Exception, other:
+        traceback.print_exc()
         exitcode = 1
     if LOCKING_ENABLED and not lock_hit:
         try:
