@@ -196,7 +196,7 @@ class BootSync:
             AddOutputFilter WATCHER ks.cfg
             AddOutputFilter WATCHER .rpm
             AddOutputFilter WATCHER .xml
-            AddOutputFilter WATCHER initrd.img
+            AddOutputFilter WATCHER .img
             AddOutputFilter WATCHER vmlinuz
             AddOutputFilter WATCHER .py
             PythonDebug On
