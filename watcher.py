@@ -18,6 +18,15 @@ def outputfilter(filter):
     # open the logfile (directory be set writeable by installer)
     logfile = open("/var/log/cobbler/cobbler.log","a+")
 
+    # extract important info    
+    request = filter.req
+    connection = request.connection
+
+    if request.the_request.find("cobbler_track") == -1:
+        # skip URL's not related to kickstart tracking
+        filter.close()
+        return
+
     # write the timestamp
     t = time.gmtime()
     seconds = str(time.mktime(t))
@@ -28,8 +37,6 @@ def outputfilter(filter):
     logfile.write("\t")
 
     # write the IP address of the client
-    request = filter.req
-    connection = request.connection
     (address,port) = connection.remote_addr
     logfile.write(address)
     logfile.write("\t")
