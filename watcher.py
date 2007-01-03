@@ -19,7 +19,12 @@ def outputfilter(filter):
     logfile = open("/var/log/cobbler/cobbler.log","a+")
 
     # write the timestamp
-    logfile.write(str(time.asctime()))
+    t = time.gmtime()
+    seconds = str(time.mktime(t))
+    logfile.write(seconds)
+    logfile.write("\t")
+    timestr = str(time.asctime(t))
+    logfile.write(timestr)
     logfile.write("\t")
 
     # write the IP address of the client
