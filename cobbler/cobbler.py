@@ -86,6 +86,7 @@ class BootCLI:
             'enchant'      : self.enchant,
             'clobber'      : self.enchant,
             'transmogrify' : self.enchant,
+            'status'       : self.status,
             'help'         : self.usage,
             '--help'       : self.usage,
             '/?'           : self.usage
@@ -222,6 +223,26 @@ class BootCLI:
         }
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok)
+
+    def status(self,args):
+        """
+        Show the kickstart status for logged kickstart activity.
+        'cobbler status [--mode=text|somethingelse]'
+        """
+        self.mode = "text"
+        def set_mode(a):
+            if a.lower in [ "text" ]:
+                self.mode = a
+                return True
+            else: 
+                return False
+        commands = {
+            '--mode' : lambda(a): set_mode(a)
+        }
+        def go_status():
+            return self.api.show_status(self.mode)
+        on_ok = lambda: go_status()
+        return self.apply_args(args, commands, on_ok)
 
     def enchant(self,args):
         """

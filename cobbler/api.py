@@ -38,13 +38,11 @@ class BootAPI:
         """
         return self._config.clear()
 
-
     def systems(self):
         """
         Return the current list of systems
         """
         return self._config.systems()
-
 
     def profiles(self):
         """
@@ -75,7 +73,6 @@ class BootAPI:
         Return a blank, unconfigured system, unattached to a collection
         """
         return self._config.new_system()
-
 
     def new_distro(self):
         """
@@ -133,8 +130,12 @@ class BootAPI:
         profile or system definition, the other should be None.  address is an
         address reachable by SSH.
         """
-        enchant = action_enchant.Enchant(self._config,address,profile,systemdef,is_virt)
-        return enchant.run()
+        enchanter = action_enchant.Enchant(self._config,address,profile,systemdef,is_virt)
+        return enchanter.run()
+
+    def status(self,mode):
+        statusifier = action_status.BootStatusReport(self._config, mode)
+        return statusifier.run()
 
     def import_tree(self,tree_path,mirror_url,mirror_name):
         """
