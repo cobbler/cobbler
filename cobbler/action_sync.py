@@ -320,23 +320,19 @@ class BootSync:
                    ))
                    meta["yum_repo_stanza"] = self.generate_repo_stanza(g)
                    meta["yum_config_stanza"] = self.generate_config_stanza(g)
-                   meta["kickstart_done"] = self.generate_kickstart_signal(g, is_system=False, is_done=True)
-                   meta["kickstart_start"] = self.generate_kickstart_signal(g, is_system=False, is_done=False)
+                   meta["kickstart_done"] = self.generate_kickstart_signal(g, is_system=False)
                    self.apply_template(kickstart_path, meta, dest)
               except:
                    traceback.print_exc() # leave this in, for now...
                    msg = "err_kickstart2"
                    raise cexceptions.CobblerException(msg,kickstart_path,dest)
 
-    def generate_kickstart_signal(self, obj, is_system=False, is_done=True):
-        doneness = "done"
-        if not is_done:
-            doneness = "start"
+    def generate_kickstart_signal(self, obj, is_system=False):
         pattern = "wget http://%s/cobbler/watcher.py?%s_%s=%s -b"
         if is_system:
-            return pattern % (self.settings.server, "system", doneness, obj.name)
+            return pattern % (self.settings.server, "system", "done", obj.name)
         else:
-            return pattern % (self.settings.server, "profile", doneness, obj.name)
+            return pattern % (self.settings.server, "profile", "done", obj.name)
 
     def generate_repo_stanza(self, profile):
         # returns the line of repo additions (Anaconda supports in FC-6 and later) that adds
@@ -399,7 +395,6 @@ class BootSync:
                     meta["yum_repo_stanza"] = self.generate_repo_stanza(profile)
                     meta["yum_config_stanza"] = self.generate_config_stanza(profile)
                     meta["kickstart_done"]  = self.generate_kickstart_signal(profile, is_system=True, is_done=True)
-                    meta["kickstart_start"] = self.generate_kickstart_signal(profile, is_system=True, is_done=False)
                     self.apply_template(kickstart_path, meta, dest)
                 except:
                     msg = "err_kickstart2"
