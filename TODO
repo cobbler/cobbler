@@ -54,3 +54,7 @@ usability comments from list:
 4 * cobbler system list in addition to cobbler list system
      (and why not cobbler add system, then?)
 
+small bugs:
+  - cobbler report with a random parameter produces no output
+    that should be an error.
+

@@ -48,6 +48,8 @@ cobbler list
 cobbler sync
 
 cobbler enchant --address=<ip|hostname> [--profile=<string>|--system=<string>]
+
+cobbler status
 """
 
 _msg_table = {
