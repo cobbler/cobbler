@@ -22,29 +22,29 @@ def outputfilter(filter):
     request = filter.req
     connection = request.connection
 
+    log_it = True
     if request.the_request.find("cobbler_track") == -1:
-        # skip URL's not related to kickstart tracking
-        filter.close()
-        return
+        log_it = False
 
-    # write the timestamp
-    t = time.gmtime()
-    seconds = str(time.mktime(t))
-    logfile.write(seconds)
-    logfile.write("\t")
-    timestr = str(time.asctime(t))
-    logfile.write(timestr)
-    logfile.write("\t")
+    if log_it:
+        # write the timestamp
+        t = time.gmtime()
+        seconds = str(time.mktime(t))
+        logfile.write(seconds)
+        logfile.write("\t")
+        timestr = str(time.asctime(t))
+        logfile.write(timestr)
+        logfile.write("\t")
 
-    # write the IP address of the client
-    (address,port) = connection.remote_addr
-    logfile.write(address)
-    logfile.write("\t")
+        # write the IP address of the client
+        (address,port) = connection.remote_addr
+        logfile.write(address)
+        logfile.write("\t")
 
-    # write the filename being requested
-    logfile.write(request.the_request)
-    # logfile.write(request.filename)
-    logfile.write("\n")
+        # write the filename being requested
+        logfile.write(request.the_request)
+        # logfile.write(request.filename)
+        logfile.write("\n")
 
     # if requesting this file, don't return it
     if request.the_request.find("watcher.py") != -1:

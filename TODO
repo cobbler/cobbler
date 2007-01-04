@@ -58,3 +58,34 @@ small bugs:
   - cobbler report with a random parameter produces no output
     that should be an error.
 
+===
+
+better default kickstarts ... from kickstart-list:
+
+%pre
+
+# Determine how many drives we have
+set $(list-harddrives)
+let numd=$#/2
+d1=$1
+d2=$3
+
+if [ $numd -ge 2 ] ; then
+cat << EOF >> /tmp/partinfo
+part pv.01 --size=1 --grow --fstype=ext3 --ondisk=$d1 volgroup volgrp01
+pv.01 part pv.02 --size=1 --grow --fstype=ext3 --ondisk=$d2 volgroup
+volgrp02 pv.02 #HOWEVER_YOU_WANT_TO_PARTITION EOF
+
+else
+
+cat << EOF >> /tmp/partinfo
+part pv.01 --size=1 --grow --fstype=ext3 --ondisk=$d1 volgroup volgrp01
+pv.01 #HOWEVER_YOU_WANT_TO_PARTITION EOF
+
+fi
+
+I then %include the partitioning back up in the command section:
+
+%include /tmp/partinfo 
+
+
