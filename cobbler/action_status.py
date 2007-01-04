@@ -45,15 +45,11 @@ class BootStatusReport:
         time_collisions = 0
 
         filelist = glob.glob("/var/log/cobbler/kicklog/*")
-        for i in filelist:
- 
-            fname = os.path.basename(i)
+        for fullname in filelist:
+            fname = os.path.basename(fullname)
 
             # open it if it's there
-            if not os.path.exists(fname):
-                # print "no such file: %s" % fname
-                break
-            logfile = open(fname, "r")
+            logfile = open(fullname, "r")
  
             # each line in the file corresponds to an accessed file
             while(True):
@@ -136,7 +132,8 @@ class BootStatusReport:
         ips.sort()
 
         # FIXME: print the header
-        # ...
+        header = ("Address", "State", "Started", "Last Request", "Seconds", "File Count")
+        print "%-20s | %-15s | %-25s | %-25s | %-10s | %-6s" % header
  
         # for each machine
         for ip in ips:
@@ -175,7 +172,7 @@ class BootStatusReport:
            # calculate elapsed time for kickstart
            elapsed_time = 0
            if install_state != "norecord":
-               elapsed_time = last_request_time - last_start_time
+               elapsed_time = int(last_request_time - last_start_time)
 
            # FIXME: IP to MAC mapping where cobbler knows about it would be nice.
 
@@ -183,7 +180,7 @@ class BootStatusReport:
            display_last  = time.asctime(time.localtime(last_request_time))
  
            # print the status for this IP address
-           print "%-20s | %-15s | %-20s | %-20s | %-10s | %-6s" % (ip, install_state, display_start, display_last, elapsed_time, files_counter)               
+           print "%-20s | %-15s | %-25s | %-25s | %-10s | %-6s" % (ip, install_state, display_start, display_last, elapsed_time, files_counter)               
  
         # print "%s" % files
 
