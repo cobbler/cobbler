@@ -14,7 +14,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import os
-#import re
+import time
 import cobbler_msg
 
 class BootStatusReport:
@@ -39,17 +39,18 @@ class BootStatusReport:
         files = {} # keep up with xfer'd files by IP addr
         
         # gather stats from logfiles, allowing for rotations in the log file ...
+        last_recorded_time = 0
+        time_collisions = 0
         for i in range(0,6):
  
             # figure out what logfile to open
-            j = ""
+            fname = "/var/log/cobbler/cobbler.log"
             if i != 0:
-               j = "%s" % (i-1)
-            fname = "/var/log/cobbler/cobbler%s.log" % j
- 
+               fname = "/var/log/cobbler/cobbler.log.%s" % (i)
+
             # open it if it's there
             if not os.path.exists(fname):
-                print "no such file: %s" % fname
+                # print "no such file: %s" % fname
                 break
             logfile = open(fname, "r")
  
@@ -82,18 +83,29 @@ class BootStatusReport:
                # keep track of when IP addresses's finish.  Right now, we don't
                # care much about profile or system name but can get this later.
 
-               if filepath.find("/cobbler_track/") != -1:
+               # we are storing times in a hash, and this prevents them from colliding
+               # which would break the filecount and possibly the state check
+               logtime = float(epoch)
+               if int(logtime) == last_recorded_time:
+                   time_collisions = time_collisions + 1
+               else:
+                   time_collisions = 0
+               logtime = logtime + (0.001 * time_collisions)
+
+               if filepath.find("/cobbler_track/") == -1:
                   # it's a regular cobbler path, not a cobbler_track one, so ignore it.
                   # the logger doesn't need to log these anyway, but it might in the future.
                   # this is just an extra safeguard.
                   pass
-               if filepath.find("?system_done") != -1:             
-                  files[ip][float(epoch)+.0001] = "DONE"
+               elif filepath.find("?system_done") != -1:             
+                  files[ip][logtime] = "DONE"
                elif filepath.find("?profile_done") != -1:
-                  files[ip][float(epoch)+.0001] = "DONE"
+                  files[ip][logtime] = "DONE"
                else:
-                  files[ip][epoch] = filepath
- 
+                  files[ip][logtime] = filepath
+
+               last_recorded_time = int(logtime) 
+
                # FIXME: calculate start times for each IP as defined as earliest file
                # requested after each stop time, or the first file requested if no
                # stop time.
@@ -116,7 +128,63 @@ class BootStatusReport:
         FIXME: just text for now, but should pay attention to self.mode and possibly offer
         a HTML or XML or YAML version for other apps.  Not all, just some alternatives.
         """
-        print "%s" % files
+        
+
+        # find all machines that have logged kickstart activity
+        ips = files.keys()
+        ips.sort()
+
+        # FIXME: print the header
+        # ...
+ 
+        # for each machine
+        for ip in ips:
+
+           # sort the access times
+           rtimes = files[ip].keys()
+           rtimes.sort()
+
+           # variables for calculating kickstart state
+           last_request_time = 0
+           last_start_time = 0
+           last_done_time = 0
+           files_counter = 0
+           install_state = "norecord"
+
+           # for each request time the machine has made
+           for rtime in rtimes:
+
+               rtime = rtime
+               fname = files[ip][rtime]
+
+               if fname != "DONE":
+                   # process kickstart done state
+                   if install_state == "done" or install_state == "norecord":
+                       files_counter = 0
+                       last_start_time = rtime
+                   install_state = "notdone"
+                   last_request_time = rtime 
+                   files_counter = files_counter + 1
+               else:       
+                   # kickstart finished
+                   install_state = "done"
+                   last_request_time = rtime
+                   last_done_time = rtime
+
+           # calculate elapsed time for kickstart
+           elapsed_time = 0
+           if install_state != "norecord":
+               elapsed_time = last_request_time - last_start_time
+
+           # FIXME: IP to MAC mapping where cobbler knows about it would be nice.
+
+           display_start = time.asctime(time.localtime(last_start_time))
+           display_last  = time.asctime(time.localtime(last_request_time))
+ 
+           # print the status for this IP address
+           print "%-20s | %-15s | %-20s | %-20s | %-10s | %-6s" % (ip, install_state, display_start, display_last, elapsed_time, files_counter)               
+ 
+        # print "%s" % files
 
 
 

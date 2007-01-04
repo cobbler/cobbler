@@ -28,7 +28,7 @@ def outputfilter(filter):
 
     if log_it:
         # write the timestamp
-        t = time.gmtime()
+        t = time.localtime()
         seconds = str(time.mktime(t))
         logfile.write(seconds)
         logfile.write("\t")
