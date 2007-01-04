@@ -12,12 +12,12 @@ Cobbler is a command line tool for configuration of boot/provisioning, and updat
 
 if __name__ == "__main__":
         # docspath="share/doc/koan-%s/" % VERSION
-        manpath="share/man/man1/"
-        cobpath="/var/lib/cobbler/"
-        etcpath="/etc/cobbler/"
-        wwwpath="/var/www/cobbler/"
-        logpath="/etc/logrotate.d/"
-        logpath2="/var/log/cobbler/"
+        manpath  = "share/man/man1/"
+        cobpath  = "/var/lib/cobbler/"
+        etcpath  = "/etc/cobbler/"
+        wwwpath  = "/var/www/cobbler/"
+        logpath  = "/var/log/cobbler/"
+        logpath2 = "/var/log/cobbler/kicklog"
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -37,7 +37,7 @@ if __name__ == "__main__":
 				(etcpath,  ['default.pxe']),
                                 (manpath,  ['cobbler.1.gz']),
                                 (etcpath,  ['rsync.exclude']),
-                                (logpath,  ['cobbler_rotate']),
+                                (logpath,  []),
                                 (logpath2, [])
                              ],
                 description = SHORT_DESC,

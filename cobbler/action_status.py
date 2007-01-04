@@ -14,6 +14,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import os
+import os.path
+import glob
 import time
 import cobbler_msg
 
@@ -41,12 +43,11 @@ class BootStatusReport:
         # gather stats from logfiles, allowing for rotations in the log file ...
         last_recorded_time = 0
         time_collisions = 0
-        for i in range(0,6):
+
+        filelist = glob.glob("/var/log/cobbler/kicklog/*")
+        for i in filelist:
  
-            # figure out what logfile to open
-            fname = "/var/log/cobbler/cobbler.log"
-            if i != 0:
-               fname = "/var/log/cobbler/cobbler.log.%s" % (i)
+            fname = os.path.basename(i)
 
             # open it if it's there
             if not os.path.exists(fname):

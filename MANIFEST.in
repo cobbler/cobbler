@@ -9,4 +9,3 @@ include cobbler.1.gz
 include COPYING AUTHORS README CHANGELOG NEWS
 include rsync.exclude
 include watcher.py
-include cobbler_rotate

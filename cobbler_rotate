@@ -1,7 +1,0 @@
-/var/log/cobbler/cobbler.log {
-    rotate 4
-    daily
-    nocompress
-    missingok
-    notifempty
-}

@@ -15,12 +15,14 @@ from mod_python import apache
 
 def outputfilter(filter):
 
-    # open the logfile (directory be set writeable by installer)
-    logfile = open("/var/log/cobbler/cobbler.log","a+")
 
     # extract important info    
     request = filter.req
     connection = request.connection
+    (address,port) = connection.remote_addr
+
+    # open the logfile (directory be set writeable by installer)
+    logfile = open("/var/log/cobbler/kicklog/%s" % address,"a+")
 
     log_it = True
     if request.the_request.find("cobbler_track") == -1:
@@ -37,7 +39,6 @@ def outputfilter(filter):
         logfile.write("\t")
 
         # write the IP address of the client
-        (address,port) = connection.remote_addr
         logfile.write(address)
         logfile.write("\t")
 

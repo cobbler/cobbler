@@ -38,6 +38,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,apache,apache)
 %dir /var/log/cobbler
+%dir /var/log/cobbler/kicklog
 %defattr(-,root,root)
 %{_bindir}/cobbler
 %dir /etc/cobbler
@@ -54,8 +55,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/www/cobbler/watcher.py*
-%attr(644, root, root)
-/etc/logrotate.d/cobbler_rotate
 
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
