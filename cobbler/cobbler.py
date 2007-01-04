@@ -501,6 +501,9 @@ def main():
     except cexceptions.CobblerException, exc:
         print str(exc)[1:-1]  # remove framing air quotes
         exitcode = 1
+    except KeyboardInterrupt:
+        print "interrupted."
+        exitcode = 1
     except Exception, other:
         traceback.print_exc()
         exitcode = 1
