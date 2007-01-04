@@ -36,7 +36,6 @@ class BootStatusReport:
         tracking will be incomplete.  This should be noted in the docs.
         """
  
-        done  = {} # keep track of finish times by IP addr
         files = {} # keep up with xfer'd files by IP addr
         
         # gather stats from logfiles, allowing for rotations in the log file ...
@@ -77,8 +76,6 @@ class BootStatusReport:
 
                # make room in the nested datastructures for report info
         
-               if not done.has_key(ip):
-                  done[ip] = []  # list of kickstart finish times
                if not files.has_key(ip):
                   files[ip] = {} # hash of access times and filenames
  
@@ -91,9 +88,9 @@ class BootStatusReport:
                   # this is just an extra safeguard.
                   pass
                if filepath.find("?system_done") != -1:             
-                  done[ip].append(epoch)
+                  files[ip][float(epoch)+.0001] = "DONE"
                elif filepath.find("?profile_done") != -1:
-                  done[ip].append(epoch)
+                  files[ip][float(epoch)+.0001] = "DONE"
                else:
                   files[ip][epoch] = filepath
  
@@ -106,12 +103,12 @@ class BootStatusReport:
 
         # report on the data found in all of the files, aggregated.
 
-        self.generate_report(files,done)
+        self.generate_report(files)
         return True
 
      #-----------------------------------------
 
-    def generate_report(self,files,done):
+    def generate_report(self,files):
         """
         Given the information about transferred files and kickstart finish times, attempt
         to produce a report that most describes the state of the system.
@@ -120,7 +117,6 @@ class BootStatusReport:
         a HTML or XML or YAML version for other apps.  Not all, just some alternatives.
         """
         print "%s" % files
-        print "%s" % done
 
 
 
