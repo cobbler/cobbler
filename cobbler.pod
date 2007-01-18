@@ -465,6 +465,22 @@ goes is left up to the systems administrator.
 
 Repositories that do not need to be updated can be modifed by tweaking the values in /var/lib/cobbler/repos.
 
+=head2 KICKSTART TRACKING
+
+Cobbler knows how to keep track of the status of kickstarting machines.   
+
+B<cobbler status>
+
+Using the status command will show when cobbler thinks a machine started kickstarting and when it last requested a file.
+This is a good way to track machines that may have gone interactive during kickstarts.  Cobbler will also make a special
+request in the post section of the kickstart to signal when a machine is finished kickstarting.
+
+To use this feature, the kickstart tree files need to be served via a http://server/cobbler_track/... URL, which happens
+automatically when using the "cobbler import" command to pull in a kickstart tree from an rsync mirror.
+
+If kickstart trees are somewhere else, one can still benefit from the kickstart tracking feature by adding a symlink to 
+/var/www/cobbler/localmirror/distroname will allow the kickstarts to be served through the tracking URL mentioned above.   Be sure to use the http://server/cobbler_track/ URL to point to the kickstart tree for each distro you want to track.
+
 =head2 TWEAKING
 
 Enterprising users can edit the files in /var/lib/cobbler directly versus using the command line.  The repair
