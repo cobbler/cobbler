@@ -34,6 +34,20 @@ timezone  America/New_York
 install
 # Clear the Master Boot Record
 zerombr
+# Magically figure out how to partition this thing
+%include /tmp/partinfo
+
+%pre
+# Determine how many drives we have
+set $(list-harddrives)
+let numd=$#/2
+d1=$1
+d2=$3
+
+cat << EOF >> /tmp/partinfo
+part / --fstype ext3 --size=1024 --grow --ondisk=$d1 --asprimary
+part swap --size=1024 --ondisk=$d1 --asprimary
+#EOF
 
 %packages
 
