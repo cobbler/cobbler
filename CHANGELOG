@@ -1,6 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Fri Jan 19 2007 - 0.3.7
+- Default/examples kickstarts are now fully automatic (added hd type/size detection).
+
 * Thu Dec 21 2006 - 0.3.6
 - locking feature now enabled
 - "enchant" now supports provisioning virtual images remotely when using --is-virt=yes
