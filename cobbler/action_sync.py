@@ -788,5 +788,9 @@ class BootSync:
            else:
                results.append("%s=%s" % (key,internal[key]))
         # end result is a new fragment of an options string
+    
+        # now add the remote syslogging stuff
+        results.append("syslog=%s:%s" % (self.settings.server, self.settings.syslog_port))
+
         return " ".join(results)
 
