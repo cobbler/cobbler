@@ -16,8 +16,10 @@ if __name__ == "__main__":
         cobpath  = "/var/lib/cobbler/"
         etcpath  = "/etc/cobbler/"
         wwwpath  = "/var/www/cobbler/"
+        initpath = "/etc/init.d/"
         logpath  = "/var/log/cobbler/"
         logpath2 = "/var/log/cobbler/kicklog"
+        logpath3 = "/var/log/cobbler/syslog"
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -26,7 +28,7 @@ if __name__ == "__main__":
                 url = "http://cobbler.et.redhat.com/",
                 license = "GPL",
                 packages = ["cobbler","cobbler/yaml"],
-                scripts = ["cobbler/cobbler"],
+                scripts = ["cobbler/cobbler", "cobbler/cobbler_syslogd"],
                 data_files = [
                                 # (docspath, ['README']),
                                 (wwwpath,  ['watcher.py']),
@@ -37,8 +39,10 @@ if __name__ == "__main__":
 				(etcpath,  ['default.pxe']),
                                 (manpath,  ['cobbler.1.gz']),
                                 (etcpath,  ['rsync.exclude']),
+                                (initpath, ['cobblersyslogd']),
                                 (logpath,  []),
-                                (logpath2, [])
+                                (logpath2, []),
+                                (logpath3, [])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC

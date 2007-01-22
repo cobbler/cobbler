@@ -1,8 +1,10 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Fri Jan 19 2007 - 0.3.7
+* Mon Jan 21 2007 - 0.3.7
 - Default/examples kickstarts are now fully automatic (added hd type/size detection).
+- Kickstart tracking now includes remote syslog support, just run "cobbler sync" to enable.
+- "cobbler status" command improved to include syslog info/times.
 
 * Thu Dec 21 2006 - 0.3.6
 - locking feature now enabled

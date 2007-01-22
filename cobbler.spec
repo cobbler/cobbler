@@ -32,6 +32,12 @@ Cobbler is a command line tool for configuration of network boot and update serv
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
 
+%post
+chkconfig --add cobblersyslogd
+
+%preun
+chkconfig --del cobblersyslogd
+
 %clean
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
@@ -41,6 +47,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/log/cobbler/kicklog
 %defattr(-,root,root)
 %{_bindir}/cobbler
+%{_bindir}/cobbler_syslogd
 %dir /etc/cobbler
 %config(noreplace) /etc/cobbler/default.ks
 %config(noreplace) /etc/cobbler/kickstart_fc5.ks
@@ -55,13 +62,16 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/www/cobbler/watcher.py*
+/etc/init.d/cobblersyslogd
+%dir /var/log/cobbler/syslog
 
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
 
-* Fri Dec 19 2007 Michael DeHaan <mdehaan@redhat.com> - 0.3.7-1
+* Mon Jan 21 2007 Michael DeHaan <mdehaan@redhat.com> - 0.3.7-1
 - Upstream changes (see CHANGELOG)
+- Added packaging for new logfile directory and syslog watcher daemon
 
 * Thu Dec 21 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.6-1
 - Upstream changes (see CHANGELOG)

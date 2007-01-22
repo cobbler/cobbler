@@ -1,0 +1,77 @@
+#!/bin/sh
+#
+# cobblersyslogd    Cobbler kickstart status monitor
+#
+# chkconfig: 345 99 99 
+# description:  This is a daemon which monitors and logs remote syslog traffic \
+#               from machines being provisioned from cobbler.  \
+#               See http://cobbler.et.redhat.com
+#
+# processname: cobbler_syslogd
+# pidfile: /var/run/cobblersyslog.pid
+
+# Sanity checks.
+[ -x /usr/bin/cobbler_syslogd ] || exit 0
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+RETVAL=0
+
+start() {
+    if test -f /var/lock/subsys/cobbler_syslogd ; then
+        return 1
+    fi
+    echo -n $"Starting cobbler remote syslog monitor: "
+    /usr/bin/cobbler_syslogd
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/cobbler_syslogd
+    return $RETVAL
+}
+
+
+stop() {
+    if ! test -f /var/lock/subsys/cobbler_syslogd ; then
+        return 1
+    fi
+    echo -n $"Stopping cobbler remote syslog monitor: "
+    pkill cobbler_syslogd
+    RETVAL=$?
+    rm /var/lock/subsys/cobbler_syslogd
+    echo
+    return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status $processname
+        RETVAL=$?
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    condrestart)
+        if [ -f /var/lock/subsys/$servicename ]; then
+            stop
+            start
+        fi
+        ;;
+    reload)
+        echo "can't reload configuration, you have to restart it"
+        RETVAL=$?
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|condrestart|reload}"
+        ;;
+esac
+exit $RETVAL
+
