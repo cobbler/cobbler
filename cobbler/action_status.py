@@ -85,7 +85,7 @@ class BootStatusReport:
                     # (1) method, which should always be GET
                     # (2) filename, which is relative from server root
                     # (3) protocol, such as HTTP/1.1
-       
+
                     # time collision voodoo
                     # we are storing times in a hash, and this prevents them from colliding
                     # which would break the filecount and possibly the state check
@@ -102,6 +102,8 @@ class BootStatusReport:
                     if request.find("?system_done") != -1:             
                         entries[logtime] = "DONE:%s" % request
                     elif request.find("?profile_done") != -1:
+                        entries[logtime] = "DONE:%s" % request
+                    elif request.find("methodcomplete") != -1:
                         entries[logtime] = "DONE:%s" % request
                     elif request.find("Method =") != -1:
                         entries[logtime] = "START:%s" % request
@@ -153,7 +155,6 @@ class BootStatusReport:
                fcount = 0
             elif fname.startswith("DONE"):       
                # kickstart finished
-               last_request_time = rtime
                last_done_time = rtime
                install_state = "done"
             else:
