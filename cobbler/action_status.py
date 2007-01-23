@@ -150,6 +150,7 @@ class BootStatusReport:
                install_state = "installing"
                last_start_time = rtime
                last_request_time = rtime
+               fcount = 0
             elif fname.startswith("DONE"):       
                # kickstart finished
                last_request_time = rtime
