@@ -7,8 +7,7 @@
 #               from machines being provisioned from cobbler.  \
 #               See http://cobbler.et.redhat.com
 #
-# processname: cobbler_syslogd
-# pidfile: /var/run/cobblersyslog.pid
+# processname: /usr/bin/cobbler_syslogd
 
 # Sanity checks.
 [ -x /usr/bin/cobbler_syslogd ] || exit 0
@@ -49,6 +48,16 @@ stop() {
     return $RETVAL
 }
 
+mystatus() {
+    if test -f /var/lock/subsys/cobbler_syslogd ; then
+        echo "cobbbler_syslogd is running..."
+        return 0
+    fi
+    echo "cobbler_syslogd is stopped"
+    echo
+    return 0
+}
+
 # See how we were called.
 case "$1" in
     start)
@@ -58,7 +67,7 @@ case "$1" in
         stop
         ;;
     status)
-        status $processname
+        mystatus
         RETVAL=$?
         ;;
     restart)
