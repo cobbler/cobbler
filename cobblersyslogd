@@ -19,12 +19,15 @@
 RETVAL=0
 
 start() {
+    echo -n $"Starting cobbler remote syslog monitor: "
     if test -f /var/lock/subsys/cobbler_syslogd ; then
+        echo_failure
+        echo
         return 1
     fi
-    echo -n $"Starting cobbler remote syslog monitor: "
     /usr/bin/cobbler_syslogd
     RETVAL=$?
+    echo_success
     echo
     [ $RETVAL -eq 0 ] && touch /var/lock/subsys/cobbler_syslogd
     return $RETVAL
@@ -32,13 +35,16 @@ start() {
 
 
 stop() {
+    echo -n $"Stopping cobbler remote syslog monitor: "
     if ! test -f /var/lock/subsys/cobbler_syslogd ; then
+        echo_failure
+        echo
         return 1
     fi
-    echo -n $"Stopping cobbler remote syslog monitor: "
     pkill cobbler_syslogd
     RETVAL=$?
     rm /var/lock/subsys/cobbler_syslogd
+    echo_success
     echo
     return $RETVAL
 }
