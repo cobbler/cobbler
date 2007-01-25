@@ -42,7 +42,7 @@ class BootStatusReport:
         time_collisions = 0
 
         # find all of the logged IP addrs
-        filelist = glob.glob("/var/log/cobbler/kicklog/*")
+        filelist = glob.glob("/var/log/cobbler/syslog/*")
         filelist.sort()
         
         header = ("Address", "State", "Started", "Last Request", "Seconds", "Log Entries")
