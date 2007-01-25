@@ -72,6 +72,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
+* Thu Jan 24 2007 Michael DeHaan <mdehaan@redhat.com> - 0.3.8-1
+- Upstream changes (see CHANGELOG)
+
 * Thu Jan 24 2007 Michael DeHaan <mdehaan@redhat.com> - 0.3.7-1
 - Upstream changes (see CHANGELOG)
 - Added packaging for new logfile directory and syslog watcher daemon
