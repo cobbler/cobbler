@@ -12,6 +12,7 @@ Requires: httpd
 Requires: tftp-server
 Requires: python-devel
 Requires: createrepo
+Requires: mod_python
 BuildRequires: python-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
@@ -51,6 +52,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /etc/cobbler
 %config(noreplace) /etc/cobbler/default.ks
 %config(noreplace) /etc/cobbler/kickstart_fc5.ks
+%config(noreplace) /etc/cobbler/kickstart_fc6.ks
+%config(noreplace) /etc/cobbler/kickstart_fc6_domU.ks
 %config(noreplace) /etc/cobbler/dhcp.template
 %config(noreplace) /etc/cobbler/default.pxe
 %config(noreplace) /etc/cobbler/rsync.exclude
@@ -69,9 +72,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Mon Jan 21 2007 Michael DeHaan <mdehaan@redhat.com> - 0.3.7-1
+* Thu Jan 24 2007 Michael DeHaan <mdehaan@redhat.com> - 0.3.7-1
 - Upstream changes (see CHANGELOG)
 - Added packaging for new logfile directory and syslog watcher daemon
+- Added Requires for mod_python
+- Added sample FC6 kickstart that I forgot to add from months ago.  doh!
+- Added FC6 mini domU kickstart
 
 * Thu Dec 21 2006 Michael DeHaan <mdehaan@redhat.com> - 0.3.6-1
 - Upstream changes (see CHANGELOG)

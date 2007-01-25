@@ -184,6 +184,36 @@ class BootSync:
             return 
 
         f = self.open_file(conf_file,"w+")
+ 
+        # the watcher.py script appears a bit flakey in older Apache 2 versions
+        # so only install the MP hook when we think Apache can handle it
+        # otherwise the filter could corrupt some binary files (erg!) and the install
+        # will die almost immediately.  You've got to love all the corner cases in systems mgmt
+        # software, don't you?
+
+        release_info_fh = os.popen("rpm -q --whatprovides redhat-release")
+        release_info = release_info_fh.read()
+        release_info_fh.close()
+
+        mod_python_ok = True
+
+        for x in [ "redhat-release-4", "redhat-release-3", "centos-release-4", "centos-release-3" ]:
+            if release_info.lower().find(x) != -1:
+                mod_python_ok = False
+
+        if mod_python_ok:
+            mp_section = """
+            AddHandler mod_python .py
+            PythonOutputFilter watcher WATCHER
+            AddOutputFilter WATCHER ks.cfg
+            AddOutputFilter WATCHER .rpm
+            AddOutputFilter WATCHER .xml
+            AddOutputFilter WATCHER .py
+            PythonDebug On
+            """
+        else:
+            mp_section = ""
+
         config_data = """
         #
         # This configuration file allows 'cobbler' boot info
@@ -195,19 +225,12 @@ class BootSync:
             AllowOverride None
             Order allow,deny
             Allow from all
-            AddHandler mod_python .py
-            PythonOutputFilter watcher WATCHER
-            AddOutputFilter WATCHER ks.cfg
-            AddOutputFilter WATCHER .rpm
-            AddOutputFilter WATCHER .xml
-            AddOutputFilter WATCHER .img
-            AddOutputFilter WATCHER vmlinuz
-            AddOutputFilter WATCHER .py
-            PythonDebug On
+            MPSECTION
         </Directory>
         """
         # this defaults to /var/www/cobbler if user didn't change it
         config_data = config_data.replace("/cobbler_webdir",self.settings.webdir)
+        config_data = config_data.replace("MPSECTION", mp_section)
         self.tee(f, config_data)
         self.close_file(f)
 
@@ -731,6 +754,7 @@ class BootSync:
        except OSError, oe:
            if not oe.errno == 17: # already exists (no constant for 17?)
                traceback.print_exc()
+               print oe.errno
                raise cexceptions.CobblerException("no_create", path)
 
     def service(self, name, action):

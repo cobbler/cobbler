@@ -1,10 +1,15 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Mon Jan 21 2007 - 0.3.7
+* Thu Jan 24 2007 - 0.3.7
 - Default/examples kickstarts are now fully automatic (added hd type/size detection).
 - Kickstart tracking now includes remote syslog support, just run "cobbler sync" to enable.
 - "cobbler status" command improved to include syslog info/times.
+- Added fc6 kickstart file that was left out of the RPM earlier
+- Added mini domU kickstart
+- bugfix: don't install mod_python watcher on older Apache installs (like RHEL4) as it
+  somehow corrupts downloads on older copies.  kickstart tracking by syslog still works
+  on those platforms.  (This only applies to the cobbler server, not clients).
 
 * Thu Dec 21 2006 - 0.3.6
 - locking feature now enabled
