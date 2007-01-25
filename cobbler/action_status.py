@@ -50,7 +50,7 @@ class BootStatusReport:
 
         for fullname in filelist:
             fname = os.path.basename(fullname)               # access times log
-            fullname2 = "/var/log/cobbler/syslog/%s" % fname # remote syslog
+            fullname2 = "/var/log/cobbler/kicklog/%s" % fname # remote syslog
                
             entries = {} # hash of access times and messages
             ip = None
