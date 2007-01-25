@@ -170,7 +170,12 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
                            uuid=None, kernel=None, initrd=None, extra=None):
     # this app works without libvirt (for auto-kickstart functionality)
     # but using xen functions will require it...
-    import libvirt
+    try:
+         import libvirt
+    except:
+         print "Usage of this feature requires installing libvirt-python."
+         print "A version of python >= 2.4 is also required for usage of libvirt-python."
+         print "These items are not required to use koan --replace-self, however."
 
     (kfn, ifn) = get_paravirt_install_image(kernel, initrd)
     if stat.S_ISBLK(os.stat(disk)[stat.ST_MODE]):
