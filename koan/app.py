@@ -280,6 +280,7 @@ class Koan:
             # FIXME
             data = self.urlread(url)
             data = yaml.load(data).next() # first record
+            data.sort()
             for x in data:
                 print "%s" % x
             return True
