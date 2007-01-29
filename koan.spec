@@ -9,7 +9,7 @@ License: GPL
 Group: Applications/System
 Requires: mkinitrd
 Requires: syslinux
-Requires: python >= 2.3
+Requires: python >= 2.2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 ExcludeArch: ppc
@@ -48,7 +48,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Thu Jan 24 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.6-1
+* Thu Jan 24 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.6-1
 - Upstream changes (see CHANGELOG)
 
 * Fri Dec 08 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.5-1

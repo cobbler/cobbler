@@ -285,6 +285,7 @@ class Koan:
                 print "%s" % x
             return True
         except:
+            traceback.print_exc()
             raise InfoException, "couldn't access listing information"
         return False # shouldn't be here
                  
