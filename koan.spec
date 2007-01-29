@@ -50,6 +50,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 * Thu Jan 24 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.6-1
 - Upstream changes (see CHANGELOG)
+- Lowering python version number requirements
 
 * Fri Dec 08 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.5-1
 - Upstream changes (see CHANGELOG)
