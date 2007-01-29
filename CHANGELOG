@@ -1,6 +1,12 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Mon Jan 28 2007 - 0.3.9
+- Make init scripts correspond with FC-E guidelines
+
+* Thu Jan 24 2007 - 0.3.8
+- Fixed minor bug in logfile processing related to 0.3.7
+
 * Thu Jan 24 2007 - 0.3.7
 - Default/examples kickstarts are now fully automatic (added hd type/size detection).
 - Kickstart tracking now includes remote syslog support, just run "cobbler sync" to enable.

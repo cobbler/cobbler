@@ -2,7 +2,7 @@
 
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.3.8
+Version: 0.3.9
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -13,6 +13,9 @@ Requires: tftp-server
 Requires: python-devel
 Requires: createrepo
 Requires: mod_python
+Requires(post):  /sbin/chkconfig
+Requires(preun): /sbin/chkconfig
+Requires(preun): /sbin/service
 BuildRequires: python-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
@@ -21,7 +24,15 @@ Url: http://cobbler.et.redhat.com
 
 %description
 
-Cobbler is a command line tool for configuration of network boot and update servers.  It is also accessible as a Python library.  Cobbler supports PXE, provisioning virtualized images, and reinstalling machines that are already up and running (over SSH).  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from rsync mirrors, kickstart templating, integrated yum mirroring, kickstart monitoring, and auto-managing dhcpd.conf.
+Cobbler is a command line tool for configuration of network \
+boot and update servers.  It is also available as a Python \
+library.  Cobbler supports PXE, provisioning virtualized images, \
+and reinstalling machines that are already running (over SSH). \
+The last two modes require a helper tool called 'koan' that \
+integrates with cobbler.  Cobbler's advanced features include \
+importing distributions from rsync mirrors, kickstart templating, \
+integrated yum mirroring, kickstart monitoring, and auto-managing \
+dhcpd.conf.
 
 %prep
 %setup -q
@@ -34,10 +45,18 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
 
 %post
-chkconfig --add cobblersyslogd
+/sbin/chkconfig --add cobblersyslogd
 
 %preun
-chkconfig --del cobblersyslogd
+if [ $1 = 0 ]; then
+    /sbin/service cobblersyslogd stop >/dev/null 2>&1 || :
+    chkconfig --del cobblersyslogd
+fi
+
+%postun
+if [ "$1" -ge "1" ]; then
+    /sbin/service cobblersyslogd condrestart >/dev/null 2>&1 || :
+fi
 
 %clean
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
@@ -71,6 +90,11 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
+
+* Mon Jan 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.3.9-1
+- Changed init script pre/post code to match FC-E guidelines/example
+- Shortened RPM description
+- (also see CHANGELOG)
 
 * Thu Jan 24 2007 Michael DeHaan <mdehaan@redhat.com> - 0.3.8-1
 - Upstream changes (see CHANGELOG)

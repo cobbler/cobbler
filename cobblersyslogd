@@ -19,7 +19,7 @@ RETVAL=0
 
 start() {
     echo -n $"Starting cobbler remote syslog monitor: "
-    if test -f /var/lock/subsys/cobbler_syslogd ; then
+    if test -f /var/lock/subsys/cobblersyslogd ; then
         echo_failure
         echo
         return 1
@@ -28,28 +28,28 @@ start() {
     RETVAL=$?
     echo_success
     echo
-    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/cobbler_syslogd
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/cobblersyslogd
     return $RETVAL
 }
 
 
 stop() {
     echo -n $"Stopping cobbler remote syslog monitor: "
-    if ! test -f /var/lock/subsys/cobbler_syslogd ; then
+    if ! test -f /var/lock/subsys/cobblersyslogd ; then
         echo_failure
         echo
         return 1
     fi
     pkill cobbler_syslogd
     RETVAL=$?
-    rm /var/lock/subsys/cobbler_syslogd
+    rm /var/lock/subsys/cobblersyslogd
     echo_success
     echo
     return $RETVAL
 }
 
 mystatus() {
-    if test -f /var/lock/subsys/cobbler_syslogd ; then
+    if test -f /var/lock/subsys/cobblersyslogd ; then
         echo "cobbbler_syslogd is running..."
         return 0
     fi
@@ -75,7 +75,7 @@ case "$1" in
         start
         ;;
     condrestart)
-        if [ -f /var/lock/subsys/$servicename ]; then
+        if [ -f /var/lock/subsys/cobblersyslogd ]; then
             stop
             start
         fi
