@@ -71,6 +71,10 @@ class BootSync:
         return True
 
     def restart_dhcp(self):
+        """
+        DHCP restarts need to be made when the config file is
+        changed. 
+        """
         try:
             retcode = self.service("dhcpd", "restart")
             if retcode != 0:
@@ -79,6 +83,11 @@ class BootSync:
             print >>sys.stderr, "Warning: dhcpd restart failed: ", e
 
     def copy_koan(self):
+        """
+        This is just for the "enchant" feature which a lot of folks
+        probably don't use... enchant automates an SSH into a remote
+        system, including koan installation if need be.
+        """
         koan_path = self.settings.koan_path
         print "koan path = %s" % koan_path
         if koan_path is None or koan_path == "":
@@ -104,7 +113,10 @@ class BootSync:
             self.copyfile(path, destpath)
 
     def write_dhcp_file(self):
-
+        """
+        DHCP files are written when manage_dhcp is set in
+        /var/lib/cobbler/settings.
+        """
         try:
             f2 = open("/etc/cobbler/dhcp.template","r")
         except:
