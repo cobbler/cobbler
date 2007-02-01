@@ -46,7 +46,7 @@ class BootSync:
         self.settings = config.settings()
         self.repos    = config.repos()
 
-    def run(self,dryrun=False,verbose=True):
+    def run(self,verbose=True):
         """
         Syncs the current configuration file with the config tree.
         Using the Check().run_ functions previously is recommended
@@ -56,7 +56,6 @@ class BootSync:
         # not having a /var/www/cobbler is ok, the app will create it since
         # no other package has to own it.
         self.verbose = verbose
-        self.dryrun = dryrun
         self.clean_trees()
         self.copy_koan()
         self.copy_bootloaders()
@@ -297,21 +296,24 @@ class BootSync:
         NOTE:  this has to be done for both tftp and http methods
         """
         # copy is a 4-letter word but tftpboot runs chroot, thus it's required.
-        for dirtree in [self.settings.tftpboot, self.settings.webdir]:
+        for d in self.distros:
+            self.copy_single_distro_files(d)
+
+    def copy_single_distro_files(self, d):
+        for dirtree in [self.settings.tftpboot, self.settings.webdir]: 
             distros = os.path.join(dirtree, "images")
-            for d in self.distros:
-                distro_dir = os.path.join(distros,d.name)
-                self.mkdir(distro_dir)
-                kernel = utils.find_kernel(d.kernel) # full path
-                initrd = utils.find_initrd(d.initrd) # full path
-                if kernel is None or not os.path.isfile(kernel):
-                    raise cexceptions.CobblerException("sync_kernel", d.kernel, d.name)
-                if initrd is None or not os.path.isfile(initrd):
-                    raise cexceptions.CobblerException("sync_initrd", d.initrd, d.name)
-                b_kernel = os.path.basename(kernel)
-                b_initrd = os.path.basename(initrd)
-                self.copyfile(kernel, os.path.join(distro_dir, b_kernel))
-                self.copyfile(initrd, os.path.join(distro_dir, b_initrd))
+            distro_dir = os.path.join(distros,d.name)
+            self.mkdir(distro_dir)
+            kernel = utils.find_kernel(d.kernel) # full path
+            initrd = utils.find_initrd(d.initrd) # full path
+            if kernel is None or not os.path.isfile(kernel):
+                raise cexceptions.CobblerException("sync_kernel", d.kernel, d.name)
+            if initrd is None or not os.path.isfile(initrd):
+                raise cexceptions.CobblerException("sync_initrd", d.initrd, d.name)
+            b_kernel = os.path.basename(kernel)
+            b_initrd = os.path.basename(initrd)
+            self.copyfile(kernel, os.path.join(distro_dir, b_kernel))
+            self.copyfile(initrd, os.path.join(distro_dir, b_initrd))
 
     def validate_kickstarts(self):
         """
@@ -340,30 +342,33 @@ class BootSync:
         """
 
         for g in self.profiles:
-           distro = self.distros.find(g.distro)
-           kickstart_path = utils.find_kickstart(g.kickstart)
-           if kickstart_path and os.path.exists(kickstart_path):
-              # the input is an *actual* file, hence we have to copy it
-              copy_path = os.path.join(
-                  self.settings.webdir,
-                  "kickstarts", # profile kickstarts go here
-                  g.name
-              )
-              self.mkdir(copy_path)
-              dest = os.path.join(copy_path, "ks.cfg")
-              try:
-                   meta = self.blend_options(False, (
-                       distro.ks_meta,
-                       g.ks_meta,
-                   ))
-                   meta["yum_repo_stanza"] = self.generate_repo_stanza(g)
-                   meta["yum_config_stanza"] = self.generate_config_stanza(g)
-                   meta["kickstart_done"] = self.generate_kickstart_signal(g, is_system=False)
-                   self.apply_template(kickstart_path, meta, dest)
-              except:
-                   traceback.print_exc() # leave this in, for now...
-                   msg = "err_kickstart2"
-                   raise cexceptions.CobblerException(msg,kickstart_path,dest)
+           validate_kickstart_for_specific_profile(g)
+
+    def validate_kickstart_for_specific_profile(self,g):
+        distro = self.distros.find(g.distro)
+        kickstart_path = utils.find_kickstart(g.kickstart)
+        if kickstart_path and os.path.exists(kickstart_path):
+           # the input is an *actual* file, hence we have to copy it
+           copy_path = os.path.join(
+               self.settings.webdir,
+               "kickstarts", # profile kickstarts go here
+               g.name
+           )
+           self.mkdir(copy_path)
+           dest = os.path.join(copy_path, "ks.cfg")
+           try:
+                meta = self.blend_options(False, (   
+                    distro.ks_meta,
+                    g.ks_meta,
+                ))  
+                meta["yum_repo_stanza"] = self.generate_repo_stanza(g)
+                meta["yum_config_stanza"] = self.generate_config_stanza(g)
+                meta["kickstart_done"] = self.generate_kickstart_signal(g, is_system=False)
+                self.apply_template(kickstart_path, meta, dest)
+           except:
+                traceback.print_exc() # leave this in, for now...
+                msg = "err_kickstart2"
+                raise cexceptions.CobblerException(msg,kickstart_path,dest)
 
     def generate_kickstart_signal(self, obj, is_system=False):
         pattern = "wget http://%s/cobbler_track/watcher.py?%s_%s=%s -b"
@@ -471,28 +476,12 @@ class BootSync:
         # and file for each MAC or IP (hex encoded 01-XX-XX-XX-XX-XX-XX)
 
         for d in self.distros:
-            # TODO: add check to ensure all distros have profiles (=warning)
-            filename = os.path.join(self.settings.webdir,"distros",d.name)
-            d.kernel_options = self.blend_options(True,(
-               self.settings.kernel_options,
-               d.kernel_options
-            ))
-            # yaml file: http only
-            self.write_distro_file(filename,d)
+            self.write_distro_file(d)
 
         for p in self.profiles:
             # TODO: add check to ensure all profiles have distros (=error)
             # TODO: add check to ensure all profiles have systems (=warning)
-            filename = os.path.join(self.settings.webdir,"profiles",p.name)
-            distro = self.distros.find(p.distro)
-            if distro is not None:
-                p.kernel_options = self.blend_options(True,(
-                   self.settings.kernel_options,
-                   distro.kernel_options,
-                   p.kernel_options
-                ))
-            # yaml file: http only
-            self.write_profile_file(filename,p)
+            self.write_profile_file(p)
 
         # Copy default PXE file if it exists; if there's none, ignore
         # FIXME: Log something inobtrusive ifthe default file is missing
@@ -508,37 +497,41 @@ class BootSync:
                 self.copyfile(src, dst)
 
         for system in self.systems:
-            profile = self.profiles.find(system.profile)
-            if profile is None:
-                raise cexceptions.CobblerException("orphan_profile2",system.name,system.profile)
-            distro = self.distros.find(profile.distro)
-            if distro is None:
-                raise cexceptions.CobblerException("orphan_distro2",system.profile,profile.distro)
-            f1 = self.get_pxe_filename(system.name)
+            write_all_system_files(system)
 
-            # tftp only
+    def write_all_system_files(self,system):
 
+        profile = self.profiles.find(system.profile)
+        if profile is None:
+            raise cexceptions.CobblerException("orphan_profile2",system.name,system.profile)
+        distro = self.distros.find(profile.distro)
+        if distro is None:
+            raise cexceptions.CobblerException("orphan_distro2",system.profile,profile.distro)
+        f1 = self.get_pxe_filename(system.name)
 
-            if distro.arch in [ "x86", "x86_64", "standard"]:
-                # pxelinux wants a file named $name under pxelinux.cfg
-                f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
-            if distro.arch == "ia64":
-                # elilo expects files to be named "$name.conf" in the root
-                # and can not do files based on the MAC address
-                if system.pxe_address == "" or system.pxe_address is None or not utils.is_ip(system.pxe_address):
-                    raise cexceptions.CobblerException("exc_ia64_noip",system.name)
+        # tftp only
 
 
-                filename = "%s.conf" % self.get_pxe_filename(system.pxe_address)
-                f2 = os.path.join(self.settings.tftpboot, filename)
+        if distro.arch in [ "x86", "x86_64", "standard"]:
+            # pxelinux wants a file named $name under pxelinux.cfg
+            f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
+        if distro.arch == "ia64":
+            # elilo expects files to be named "$name.conf" in the root
+            # and can not do files based on the MAC address
+            if system.pxe_address == "" or system.pxe_address is None or not utils.is_ip(system.pxe_address):
+                raise cexceptions.CobblerException("exc_ia64_noip",system.name)
 
-            f3 = os.path.join(self.settings.webdir, "systems", f1)
 
-            if distro.arch in [ "x86", "x86_64", "standard"]:
-                self.write_pxe_file(f2,system,profile,distro,False)
-            if distro.arch == "ia64":
-                self.write_pxe_file(f2,system,profile,distro,True)
-            self.write_system_file(f3,system)
+            filename = "%s.conf" % self.get_pxe_filename(system.pxe_address)
+            f2 = os.path.join(self.settings.tftpboot, filename)
+
+        f3 = os.path.join(self.settings.webdir, "systems", f1)
+
+        if distro.arch in [ "x86", "x86_64", "standard"]:
+            self.write_pxe_file(f2,system,profile,distro,False)
+        if distro.arch == "ia64":
+            self.write_pxe_file(f2,system,profile,distro,True)
+        self.write_system_file(f3,system)
 
 
     def get_pxe_filename(self,name_input):
@@ -638,12 +631,17 @@ class BootSync:
         self.close_file(fd1)
         self.close_file(fd2)
 
-    def write_distro_file(self,filename,distro):
+    def write_distro_file(self,distro):
         """
         Create distro information for virt install
 
         NOTE: relevant to http only
         """
+        filename = os.path.join(self.settings.webdir,"distros",distro.name)
+        distro.kernel_options = self.blend_options(True,(
+           self.settings.kernel_options,
+           distro.kernel_options
+        ))
         fd = self.open_file(filename,"w+")
         # resolve to current values
         distro.kernel = utils.find_kernel(distro.kernel)
@@ -651,12 +649,21 @@ class BootSync:
         self.tee(fd,yaml.dump(distro.to_datastruct()))
         self.close_file(fd)
 
-    def write_profile_file(self,filename,profile):
+    def write_profile_file(self,profile):
         """
         Create profile information for virt install
 
         NOTE: relevant to http only
         """
+        filename = os.path.join(self.settings.webdir,"profiles",profile.name)
+        distro = self.distros.find(profile.distro)
+        if distro is not None:
+            profile.kernel_options = self.blend_options(True,(
+               self.settings.kernel_options,
+               distro.kernel_options,
+               profile.kernel_options
+            ))
+        # yaml file: http only
         fd = self.open_file(filename,"w+")
         # if kickstart path is local, we've already copied it into
         # the HTTP mirror, so make it something anaconda can get at
@@ -677,76 +684,45 @@ class BootSync:
         self.close_file(fd)
 
     def tee(self,fd,text):
-        """
-        For dryrun support:  send data to screen and potentially to disk
-        """
-        if self.dryrun:
+        if self.verbose:
             print text
-        if not self.dryrun:
-            fd.write(text)
+        fd.write(text)
 
     def open_file(self,filename,mode):
-        """
-        For dryrun support:  open a file if not in dryrun mode.
-        """
-        if self.dryrun:
-            return None
         return open(filename,mode)
 
     def close_file(self,fd):
-        """
-	For dryrun support:  close a file if not in dryrun mode.
-	"""
-        if not self.dryrun:
-            fd.close()
+        fd.close()
 
     def copyfile(self,src,dst):
-       """
-       For dryrun support:  potentially copy a file.
-       """
-       print "%s -> %s" % (src,dst)
-       if self.dryrun:
-           return True
-       try:
-           return shutil.copyfile(src,dst)
-       except IOError, ioe:
-           raise cexceptions.CobblerException("need_perms2",src,dst)
+        if self.verbose:
+            print "%s -> %s" % (src,dst)
+        try:
+            return shutil.copyfile(src,dst)
+        except IOError, ioe:
+            raise cexceptions.CobblerException("need_perms2",src,dst)
 
 
     def copy(self,src,dst):
-       """
-       For dryrun support: potentially copy a file.
-       """
-       print "%s -> %s" % (src,dst)
-       if self.dryrun:
-           return True
-       try:
-           return shutil.copy(src,dst)
-       except IOError, ioe:
-           raise cexceptions.CobblerException("need_perms2",src,dst)
+        print "%s -> %s" % (src,dst)
+        try:
+            return shutil.copy(src,dst)
+        except IOError, ioe:
+            raise cexceptions.CobblerException("need_perms2",src,dst)
 
     def rmfile(self,path):
-       """
-       For dryrun support.  potentially unlink a file.
-       """
-       if self.dryrun:
-           return True
-       try:
-           os.unlink(path)
-           return True
-       except OSError, ioe:
-           if not ioe.errno == errno.ENOENT: # doesn't exist
-               traceback.print_exc()
-               raise cexceptions.CobblerException("no_delete",path)
-           return True
+        try:
+            os.unlink(path)
+            return True
+        except OSError, ioe:
+            if not ioe.errno == errno.ENOENT: # doesn't exist
+                traceback.print_exc()
+                raise cexceptions.CobblerException("no_delete",path)
+            return True
 
     def rmtree(self,path):
-       """
-       For dryrun support:  potentially delete a tree.
-       """
-       print "del %s" % (path)
-       if self.dryrun:
-           return True
+       if self.verbose:
+           print "del %s" % (path)
        try:
            return shutil.rmtree(path)
        except OSError, ioe:
@@ -755,12 +731,8 @@ class BootSync:
            return True
 
     def mkdir(self,path,mode=0777):
-       """
-       For dryrun support:  potentially make a directory.
-       """
-       if self.dryrun:
+       if self.verbose:
            print "mkdir %s" % (path)
-           return True
        try:
            return os.makedirs(path,mode)
        except OSError, oe:
@@ -771,15 +743,13 @@ class BootSync:
 
     def service(self, name, action):
         """
-        Call /sbin/service NAME ACTION, unless its a dryrun
+        Call /sbin/service NAME ACTION
         """
 
         cmd = "/sbin/service %s %s" % (name, action)
-        if self.dryrun:
+        if self.verbose:
             print cmd
-            return 0
-        else:
-            return sub_process.call(cmd, shell=True)
+        return sub_process.call(cmd, shell=True)
 
     def blend_options(self, is_for_kernel, list_of_opts):
         """
@@ -793,8 +763,9 @@ class BootSync:
         for template metadata (--ksopts)
 
         The output when is_for_kernel is true is a space delimited list.
-        When is_for_kernel is false, it's just a hash (which Cheetah requires).
+        When is_for_kernel is false, it's just a hash.
         """
+        # FIXME: needs to be smart enough to remove duplicate options.
         internal = {}
         results = []
         # for all list of kernel options

@@ -75,7 +75,7 @@ class Collection(serializable.Serializable):
             item = self.factory_produce(self.config,seed_data)
             self.add(item)
 
-    def add(self,ref):
+    def add(self,ref,with_copy=False):
         """
         Add an object to the collection, if it's valid.  Returns True
         if the object was added to the collection.  Returns False if the
@@ -84,20 +84,21 @@ class Collection(serializable.Serializable):
         """
         if ref is None or not ref.is_valid():
             raise cexceptions.CobblerException("bad_param")
+        self.listing[ref.name] = ref
 
         # perform filesystem operations
-        lite_sync = action_litesync.BootLiteSync(self.config)
-        if isinstance(ref, item_system.System):
-           lite_sync.add_single_system(ref.name)
-        elif isinstance(ref, item_profile.Profile):
-           lite_sync.add_single_profile(ref.name) 
-        elif isinstance(ref, item_distro.Distro):
-           lite_sync.add_single_distro(ref.name)
-        else:
-           print "AIEEE ??? %s " % type(ref)
+        if with_copy:
+            lite_sync = action_litesync.BootLiteSync(self.config)
+            if isinstance(ref, item_system.System):
+                lite_sync.add_single_system(ref.name)
+            elif isinstance(ref, item_profile.Profile):
+                lite_sync.add_single_profile(ref.name) 
+            elif isinstance(ref, item_distro.Distro):
+                lite_sync.add_single_distro(ref.name)
+            else:
+                print "AIEEE ??? %s " % type(ref)
             
 
-        self.listing[ref.name] = ref
         return True
 
 

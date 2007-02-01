@@ -43,14 +43,15 @@ class Systems(collection.Collection):
         else:
             return "/var/lib/cobbler/systems"
 
-    def remove(self,name):
+    def remove(self,name,with_delete=False):
         """
         Remove element named 'name' from the collection
         """
         if self.find(name):
             del self.listing[name]
-            lite_sync = action_litesync.BootLiteSync(self.config)
-            lite_sync.remove_single_system(name)
+            if with_delete:
+                lite_sync = action_litesync.BootLiteSync(self.config)
+                lite_sync.remove_single_system(name)
             return True
         raise cexceptions.CobblerException("delete_nothing")
          

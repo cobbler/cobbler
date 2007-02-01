@@ -261,13 +261,6 @@ class TestCheck(BootTest):
 
 class TestSync(BootTest):
 
-   def test_dry_run(self):
-       # dry_run just *shows* what is done, it doesn't apply the config
-       # the test here is mainly for coverage, we do not test
-       # that dry run does not modify anything
-       self.make_basic_config()
-       self.assertTrue(self.api.sync(dryrun=True))
-
    def test_real_run(self):
        # syncing a real test run in an automated environment would
        # break a valid cobbler configuration, so we're not going to

@@ -39,7 +39,7 @@ class Profiles(collection.Collection):
         else:
             return "/var/lib/cobbler/profiles"
 
-    def remove(self,name):
+    def remove(self,name,with_delete=True):
         """
         Remove element named 'name' from the collection
         """
@@ -48,8 +48,9 @@ class Profiles(collection.Collection):
                raise cexceptions.CobblerException("orphan_system",v.name)
         if self.find(name):
             del self.listing[name]
-            lite_sync = action_litesync.BootLiteSync(self.config)
-            lite_sync.remove_single_profile(name)
+            if with_delete:
+                lite_sync = action_litesync.BootLiteSync(self.config)
+                lite_sync.remove_single_profile(name)
             return True
         raise cexceptions.CobblerException("delete_nothing")
 

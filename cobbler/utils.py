@@ -125,6 +125,8 @@ def find_kernel(path):
     Given a directory or a filename, find if the path can be made
     to resolve into a kernel, and return that full path if possible.
     """
+    if path is None:
+        return None
     if os.path.isfile(path):
         filename = os.path.basename(path)
         if _re_kernel.match(filename):
@@ -142,6 +144,8 @@ def find_initrd(path):
     to resolve into an intird, return that full path if possible.
     """
     # FUTURE: try to match kernel/initrd pairs?
+    if path is None:
+        return None
     if os.path.isfile(path):
         filename = os.path.basename(path)
         if _re_initrd.match(filename):

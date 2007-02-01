@@ -166,8 +166,8 @@ class BootCLI:
         Delete a system:  'cobbler system remove --name=foo'
         """
         commands = {
-           '--name'       : lambda(a):  self.api.systems().remove(a),
-           '--system'     : lambda(a):  self.api.systems().remove(a),
+           '--name'       : lambda(a):  self.api.systems().remove(a, with_delete=self.api.sync_flag),
+           '--system'     : lambda(a):  self.api.systems().remove(a, with_delete=self.api.sync_flag),
         }
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok)
@@ -196,8 +196,8 @@ class BootCLI:
         Delete a profile:   'cobbler profile remove --name=foo'
         """
         commands = {
-           '--name'       : lambda(a):  self.api.profiles().remove(a),
-           '--profile'    : lambda(a):  self.api.profiles().remove(a)
+           '--name'       : lambda(a):  self.api.profiles().remove(a, with_delete=self.api.sync_flag),
+           '--profile'    : lambda(a):  self.api.profiles().remove(a, with_delete=self.api.sync_flag)
         }
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok)
@@ -208,8 +208,8 @@ class BootCLI:
         Delete a distro:  'cobbler distro remove --name='foo'
         """
         commands = {
-           '--name'     : lambda(a):  self.api.distros().remove(a),
-           '--distro'   : lambda(a):  self.api.distros().remove(a)
+           '--name'     : lambda(a):  self.api.distros().remove(a, with_delete=self.api.sync_flag),
+           '--distro'   : lambda(a):  self.api.distros().remove(a, with_delete=self.api.sync_flag)
         }
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok)
@@ -322,7 +322,7 @@ class BootCLI:
            '--ksmeta'      :  lambda(a) : sys.set_ksmeta(a),
            '--pxe-address' :  lambda(a) : sys.set_pxe_address(a)
         }
-        on_ok = lambda: self.api.systems().add(sys)
+        on_ok = lambda: self.api.systems().add(sys, with_copy=self.api.sync_flag)
         return self.apply_args(args,commands,on_ok)
 
 
@@ -347,7 +347,7 @@ class BootCLI:
             '--ksmeta'          :  lambda(a) : profile.set_ksmeta(a),
             '--repos'           :  lambda(a) : profile.set_repos(a)
         }
-        on_ok = lambda: self.api.profiles().add(profile)
+        on_ok = lambda: self.api.profiles().add(profile, with_copy=self.api.sync_flag)
         return self.apply_args(args,commands,on_ok)
 
     def repo_edit(self,args):
@@ -379,7 +379,7 @@ class BootCLI:
             '--arch'      :  lambda(a) : distro.set_arch(a),
             '--ksmeta'    :  lambda(a) : distro.set_ksmeta(a)
         }
-        on_ok = lambda: self.api.distros().add(distro)
+        on_ok = lambda: self.api.distros().add(distro, with_copy=self.api.sync_flag)
         return self.apply_args(args,commands,on_ok)
 
 
@@ -422,26 +422,18 @@ class BootCLI:
 
     def sync(self, args):
         """
-        Sync the config file with the system config: 'cobbler sync [--dryrun]'
+        Sync the config file with the system config: 'cobbler sync'
         """
-        status = None
-        if args is not None and ("--dryrun" in args or "-n" in args):
-            status = self.api.sync(dryrun=True)
-        else:
-            status = self.api.sync(dryrun=False)
-        return status
+        self.api.sync()
+        return True
 
     def reposync(self, args):
         """
         Sync the repo-specific portions of the config with the filesystem.
         'cobbler reposync'.  Intended to be run on cron.
         """
-        status = None
-        if args is not None and ("--dryrun" in args or "-n" in args):
-            status = self.api.reposync(dryrun=True)
-        else:
-            status = self.api.reposync(dryrun=False)
-        return status
+        self.api.reposync()
+        return True
 
     def check(self,args):
         """

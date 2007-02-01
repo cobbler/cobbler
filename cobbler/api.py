@@ -32,6 +32,8 @@ class BootAPI:
         """
         self._config = config.Config()
         self.deserialize()
+        # self.settings = self._config.settings()
+        # self.syncflag = self.settings.minimize_syncs
 
     def clear(self):
         """
@@ -106,7 +108,7 @@ class BootAPI:
         check = action_check.BootCheck(self._config)
         return check.run()
 
-    def sync(self,dryrun=True):
+    def sync(self):
         """
         Take the values currently written to the configuration files in
         /etc, and /var, and build out the information tree found in
@@ -114,15 +116,15 @@ class BootAPI:
         saved with serialize() will NOT be synchronized with this command.
         """
         sync = action_sync.BootSync(self._config)
-        return sync.run(dryrun=dryrun)
+        return sync.run()
 
-    def reposync(self,dryrun=True):
+    def reposync(self):
         """
         Take the contents of /var/lib/cobbler/repos and update them --
         or create the initial copy if no contents exist yet.
         """
-        sync = action_reposync.RepoSync(self._config)
-        return sync.run(dryrun=dryrun)
+        reposync = action_reposync.RepoSync(self._config)
+        return reposync.run()
 
     def enchant(self,address,profile,systemdef,is_virt):
         """

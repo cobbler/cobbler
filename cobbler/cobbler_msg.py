@@ -110,7 +110,6 @@ _msg_table = {
   "sync_processing" : "processing: %s",
   "writing"         : "writing file: %s",
   "mkdir"           : "creating: %s",
-  "dryrun"          : "dry run | %s",
   "copying"         : "copying file: %s to %s",
   "removing"        : "removing: %s",
   "no_initrd"       : "cannot find initrd",

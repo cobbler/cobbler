@@ -44,13 +44,12 @@ class RepoSync:
         self.settings = config.settings()
         self.repos    = config.repos()
 
-    def run(self,dryrun=False,verbose=True):
+    def run(self,verbose=True):
         """
         Syncs the current repo configuration file with the filesystem.
         """
 
         self.verbose = verbose
-        self.dryrun = dryrun
         for repo in self.repos:
             print "considering: %s" % repo
             repo_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
