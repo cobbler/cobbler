@@ -17,6 +17,7 @@ import utils
 import collection
 import item_distro as distro
 import cexceptions
+import action_litesync
 
 TESTMODE = False
 
@@ -50,6 +51,8 @@ class Distros(collection.Collection):
                raise cexceptions.CobblerException("orphan_profile",v.name)
         if self.find(name):
             del self.listing[name]
+            lite_sync = action_litesync.BootLiteSync(self.config)
+            lite_sync.remove_single_profile(name)
             return True
         raise cexceptions.CobblerException("delete_nothing")
 

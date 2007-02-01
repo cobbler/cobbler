@@ -19,6 +19,7 @@ import item_profile as profile
 import utils
 import collection
 import cexceptions
+import action_litesync
 
 TESTMODE = False
 
@@ -47,6 +48,8 @@ class Profiles(collection.Collection):
                raise cexceptions.CobblerException("orphan_system",v.name)
         if self.find(name):
             del self.listing[name]
+            lite_sync = action_litesync.BootLiteSync(self.config)
+            lite_sync.remove_single_profile(name)
             return True
         raise cexceptions.CobblerException("delete_nothing")
 

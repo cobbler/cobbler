@@ -18,6 +18,11 @@ import serializable
 import utils
 import cobbler_msg
 
+import action_litesync
+import item_system
+import item_profile
+import item_distro
+
 class Collection(serializable.Serializable):
 
     def __init__(self,config):
@@ -79,6 +84,19 @@ class Collection(serializable.Serializable):
         """
         if ref is None or not ref.is_valid():
             raise cexceptions.CobblerException("bad_param")
+
+        # perform filesystem operations
+        lite_sync = action_litesync.BootLiteSync(self.config)
+        if isinstance(ref, item_system.System):
+           lite_sync.add_single_system(ref.name)
+        elif isinstance(ref, item_profile.Profile):
+           lite_sync.add_single_profile(ref.name) 
+        elif isinstance(ref, item_distro.Distro):
+           lite_sync.add_single_distro(ref.name)
+        else:
+           print "AIEEE ??? %s " % type(ref)
+            
+
         self.listing[ref.name] = ref
         return True
 
@@ -93,7 +111,7 @@ class Collection(serializable.Serializable):
         values.sort() # sort the copy (2.3 fix)
         results = []
         for i,v in enumerate(values):
-           results.append(v.printable(1+i))
+           results.append(v.printable())
         if len(values) > 0:
            return "\n\n".join(results)
         else:

@@ -17,6 +17,7 @@ import item_system as system
 import utils
 import collection
 import cexceptions
+import action_litesync
 
 TESTMODE = False
 
@@ -48,6 +49,8 @@ class Systems(collection.Collection):
         """
         if self.find(name):
             del self.listing[name]
+            lite_sync = action_litesync.BootLiteSync(self.config)
+            lite_sync.remove_single_system(name)
             return True
         raise cexceptions.CobblerException("delete_nothing")
-
+         

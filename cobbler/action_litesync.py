@@ -48,34 +48,34 @@ class BootLiteSync:
         self.systems     = config.systems()
         self.settings    = config.settings()
         self.repos       = config.repos()
-        self.sync_module = BootSync() 
+        self.sync_module = action_sync.BootSync(self.config) 
 
-    def add_single_distro(name):
+    def add_single_distro(self, name):
         # generate YAML file in distros/$name in webdir
         # copy image files to images/$name in webdir:
         #    filenames: initrd.img and vmlinuz
         # same for tftpboot/images/$name
         pass
 
-    def remove_single_distro(name):
+    def remove_single_distro(self, name):
         # delete distro YAML file in distros/$name in webdir
         # delete contents of images/$name directory in webdir
         # delete contents of images/$name in tftpboot
         pass
 
-    def add_single_profile(name):
+    def add_single_profile(self, name):
         # rebuild profile_list YAML file in webdir
         # add profiles/$name YAML file in webdir
         # generate kickstart for kickstarts/$name/ks.cfg in webdir
         pass
     
-    def remove_single_profile(name)
+    def remove_single_profile(self, name):
         # rebuild profile_list YAML file in webdir
         # delete profiles/$name file in webdir
         # delete contents on kickstarts/$name directory in webdir
         pass
     
-    def add_single_system(name):
+    def add_single_system(self, name):
         # rebuild system_list file in webdir
         # create system YAML file in systems/$name in webdir
         # create kickstarts_sys/$name/ks.cfg in webdir
@@ -83,7 +83,7 @@ class BootLiteSync:
         #    or the MAC or default
         pass
 
-    def remove_single_system(name):
+    def remove_single_system(self, name):
         # rebuild system_list file in webdir
         # delete system YAML file in systems/$name in webdir
         # delete contents of kickstarts_sys/$name in webdir
