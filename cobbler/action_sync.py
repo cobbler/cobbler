@@ -34,11 +34,11 @@ class BootSync:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,config):
+    def __init__(self,config,verbose=False):
         """
         Constructor
         """
-        self.verbose  = True
+        self.verbose  = verbose
         self.config   = config
         self.distros  = config.distros()
         self.profiles = config.profiles()

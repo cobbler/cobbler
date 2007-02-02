@@ -32,8 +32,8 @@ class BootAPI:
         """
         self._config = config.Config()
         self.deserialize()
-        # self.settings = self._config.settings()
-        # self.syncflag = self.settings.minimize_syncs
+        self.settings = self._config.settings()
+        self.sync_flag = self.settings.minimize_syncs
 
     def clear(self):
         """
