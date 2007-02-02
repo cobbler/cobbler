@@ -97,8 +97,10 @@ class BootLiteSync:
             raise cexceptions.CobblerException("error in system lookup")
         # rebuild system_list file in webdir
         self.sync.write_listings()
-        # wire the PXE and YAML files for the system
+        # write the PXE and YAML files for the system
         self.sync.write_all_system_files(system)
+        # per system kickstarts
+        self.sync.validate_kickstart_for_specific_system(system)
 
     def remove_single_system(self, name):
         # rebuild system_list file in webdir

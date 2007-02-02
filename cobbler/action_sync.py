@@ -413,32 +413,35 @@ class BootSync:
         """
 
         for s in self.systems:
-            profile = self.profiles.find(s.profile)
-            if profile is None:
-                raise cexceptions.CobblerException("orphan_profile2",s.name,s.profile)
-            distro = self.distros.find(profile.distro)
-            kickstart_path = utils.find_kickstart(profile.kickstart)
-            if kickstart_path and os.path.exists(kickstart_path):
-                pxe_fn = self.get_pxe_filename(s.name)
-                copy_path = os.path.join(self.settings.webdir,
-                    "kickstarts_sys", # system kickstarts go here
-                    pxe_fn
-                )
-                self.mkdir(copy_path)
-                dest = os.path.join(copy_path, "ks.cfg")
-                try:
-                    meta = self.blend_options(False,(
-                        distro.ks_meta,
-                        profile.ks_meta,
-                        s.ks_meta
-                    ))
-                    meta["yum_repo_stanza"] = self.generate_repo_stanza(profile)
-                    meta["yum_config_stanza"] = self.generate_config_stanza(profile)
-                    meta["kickstart_done"]  = self.generate_kickstart_signal(profile, is_system=True)
-                    self.apply_template(kickstart_path, meta, dest)
-                except:
-                    msg = "err_kickstart2"
-                    raise cexceptions.CobblerException(msg,s.kickstart,dest)
+            self.validate_kickstart_for_specific_system(s)
+
+    def validate_kickstart_for_specific_system(self,s):
+        profile = self.profiles.find(s.profile)
+        if profile is None:
+            raise cexceptions.CobblerException("orphan_profile2",s.name,s.profile)
+        distro = self.distros.find(profile.distro)
+        kickstart_path = utils.find_kickstart(profile.kickstart)
+        if kickstart_path and os.path.exists(kickstart_path):
+            pxe_fn = self.get_pxe_filename(s.name)
+            copy_path = os.path.join(self.settings.webdir,
+                "kickstarts_sys", # system kickstarts go here
+                pxe_fn
+            )
+            self.mkdir(copy_path)
+            dest = os.path.join(copy_path, "ks.cfg")
+            try:
+                meta = self.blend_options(False,(
+                    distro.ks_meta,
+                    profile.ks_meta,
+                    s.ks_meta
+                ))
+                meta["yum_repo_stanza"] = self.generate_repo_stanza(profile)
+                meta["yum_config_stanza"] = self.generate_config_stanza(profile)
+                meta["kickstart_done"]  = self.generate_kickstart_signal(profile, is_system=True)
+                self.apply_template(kickstart_path, meta, dest)
+            except:
+                msg = "err_kickstart2"
+                raise cexceptions.CobblerException(msg,s.kickstart,dest)
 
     def apply_template(self, kickstart_input, metadata, out_path):
         """
