@@ -27,6 +27,7 @@ import cexceptions
 import traceback
 import errno
 
+import item_profile
 
 
 class BootSync:
@@ -46,7 +47,7 @@ class BootSync:
         self.settings = config.settings()
         self.repos    = config.repos()
 
-    def run(self,verbose=True):
+    def run(self):
         """
         Syncs the current configuration file with the config tree.
         Using the Check().run_ functions previously is recommended
@@ -55,7 +56,6 @@ class BootSync:
             raise cexceptions.CobblerException("no_dir",self.settings.tftpboot)
         # not having a /var/www/cobbler is ok, the app will create it since
         # no other package has to own it.
-        self.verbose = verbose
         self.clean_trees()
         self.copy_koan()
         self.copy_bootloaders()
@@ -88,7 +88,6 @@ class BootSync:
         system, including koan installation if need be.
         """
         koan_path = self.settings.koan_path
-        print "koan path = %s" % koan_path
         if koan_path is None or koan_path == "":
             return
         if not os.path.isfile(koan_path):
@@ -104,11 +103,8 @@ class BootSync:
         """
         for loader in self.settings.bootloaders.keys():
             path = self.settings.bootloaders[loader]
-            print "loader path = %s" % path
             newname = os.path.basename(path)
-            print "loader new name = %s" % newname
             destpath = os.path.join(self.settings.tftpboot, newname)
-            print "destpath = %s" % destpath
             self.copyfile(path, destpath)
 
     def write_dhcp_file(self):
@@ -342,12 +338,12 @@ class BootSync:
         """
 
         for g in self.profiles:
-           validate_kickstart_for_specific_profile(g)
+           self.validate_kickstart_for_specific_profile(g)
 
     def validate_kickstart_for_specific_profile(self,g):
         distro = self.distros.find(g.distro)
         kickstart_path = utils.find_kickstart(g.kickstart)
-        if kickstart_path and os.path.exists(kickstart_path):
+        if kickstart_path is not None and os.path.exists(g.kickstart):
            # the input is an *actual* file, hence we have to copy it
            copy_path = os.path.join(
                self.settings.webdir,
@@ -356,6 +352,7 @@ class BootSync:
            )
            self.mkdir(copy_path)
            dest = os.path.join(copy_path, "ks.cfg")
+           print "ks copy: %s -> %s" % (kickstart_path, dest)
            try:
                 meta = self.blend_options(False, (   
                     distro.ks_meta,
@@ -497,7 +494,7 @@ class BootSync:
                 self.copyfile(src, dst)
 
         for system in self.systems:
-            write_all_system_files(system)
+            self.write_all_system_files(system)
 
     def write_all_system_files(self,system):
 
@@ -667,9 +664,16 @@ class BootSync:
         fd = self.open_file(filename,"w+")
         # if kickstart path is local, we've already copied it into
         # the HTTP mirror, so make it something anaconda can get at
-        if profile.kickstart and profile.kickstart.startswith("/"):
-            profile.kickstart = "http://%s/cobbler_track/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)
-        self.tee(fd,yaml.dump(profile.to_datastruct()))
+
+        # NOTE: we only want to write this to the webdir, not the settings
+        # file, so we must make a clone, outside of the collection.
+ 
+        clone = item_profile.Profile(self.config)
+        clone.from_datastruct(profile.to_datastruct())
+
+        if clone.kickstart and clone.kickstart.startswith("/"):
+            clone.kickstart = "http://%s/cobbler_track/kickstarts/%s/ks.cfg" % (self.settings.server, clone.name)
+        self.tee(fd,yaml.dump(clone.to_datastruct()))
         self.close_file(fd)
 
 
@@ -684,8 +688,8 @@ class BootSync:
         self.close_file(fd)
 
     def tee(self,fd,text):
-        if self.verbose:
-            print text
+        #if self.verbose:
+        #    print text
         fd.write(text)
 
     def open_file(self,filename,mode):
