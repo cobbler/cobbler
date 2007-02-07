@@ -24,7 +24,7 @@ if __name__ == "__main__":
                 url = "http://cobbler.et.redhat.com/",
                 license = "GPL",
                 packages = ["koan","koan/yaml"],
-                scripts = ["koan/koan"],
+                scripts = ["koan/koan", "pypxeboot_koan"]
                 data_files = [
 				(manpath, ['koan.1.gz']),
                              ],

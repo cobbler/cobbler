@@ -1,0 +1,218 @@
+#!/usr/bin/python
+#
+# pypxeboot - simple python-based bootloader to fake PXE booting for Xen DomUs
+# Uses a modified version of udhcpc that allows MAC address to be passed on
+# the command line. Also uses tftp client to download configuration and images
+#
+# Copyright 2007 Trinity College Dublin
+# Stephen Childs <childss@cs.tcd.ie>
+#
+# This software may be freely redistributed under the terms of the GNU
+# general public license.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+import commands,sys,re,os,getopt
+
+udhcpc_command="/usr/bin/udhcpc"
+udhcpc_script="/usr/share/udhcpc/outputpy.udhcp.sh"
+havekernelargs=False
+
+def run_pygrub():
+    arglist=[]
+    for arg in sys.argv[1:]:
+        if not (macre.match(arg)):
+            arglist.append(arg)
+
+    program="/usr/bin/pygrub"
+
+    os.execvp(program, (program,) +  tuple(arglist))
+
+def tftp_success(statusoutput):
+    errorre=re.compile("Error*")
+    if errorre.match(statusoutput[1]):
+        return False
+    else:
+        return True
+
+
+
+
+# get arguments from calling program -- most important is MAC address
+
+
+
+macre=re.compile("mac*=*",re.IGNORECASE)
+outputre=re.compile("--output*",re.IGNORECASE)
+
+argstring=''
+for arg in sys.argv[1:]:
+    if not (macre.match(arg)) and not (outputre.match(arg)):
+         argstring+=arg+' '
+
+
+def usage():
+    print >> sys.stderr, "Usage: %s [-q|--quiet] [--output=] [--entry=] <image>" %(sys.argv[0],)
+
+try:
+    opts, args = getopt.gnu_getopt(sys.argv[1:], 'qh::',
+                                   ["quiet", "help", "output=", "entry=", "mac=",
+                                    "isconfig"])
+except getopt.GetoptError:
+    usage()
+    sys.exit(1)
+
+if len(args) < 1:
+    usage()
+    sys.exit(1)
+
+output = None
+
+for o, a in opts:
+    if o in  ("--output",):
+        output = a
+
+if output is None or output == "-":
+    outputfd = sys.stdout.fileno()
+else:
+    outputfd = os.open(output, os.O_WRONLY)
+
+mac=""
+
+# look for a mac= option in the options passed in
+# should do this properly using getopt?
+for arg in sys.argv[1:]:
+    if macre.match(arg):
+        mac=arg.split('=')[1]
+        print "pypxeboot: requesting info for MAC address "+mac+""
+        break
+
+if mac == "":
+    print "pypxeboot: Didn't get a MAC address, dying"
+    sys.exit(1)
+
+# run modified udhcp with specified MAC address
+udhcp_result=commands.getstatusoutput(udhcpc_command+" -n -q -s "+
+                                      udhcpc_script+" -M "+mac)
+
+if (udhcp_result[0] != 0):
+    print "pypxeboot: udhcpc failed (%s), output: %s\n" %(udhcp_result[0],
+                                                          udhcp_result[1])
+    sys.exit(1)
+
+# parse python formatted output from udhcp-executed script
+udhcplines=udhcp_result[1].split('\n')
+
+dhcpinfo={}
+
+for line in udhcplines:
+    s = line.strip()
+    f = s.split()
+
+    if s[0]=='{' and s[-1]=='}':
+        dhcpinfo=eval(s, {"__builtins__" : {}})
+        for k in dhcpinfo:
+            dhcpinfo[k]=dhcpinfo[k].strip()
+
+# run tftp client to get configuration info
+servaddr=dhcpinfo['siaddr']
+
+ipaddr=dhcpinfo['ip']
+ipaddrlist=ipaddr.split('.')
+hexip=commands.getstatusoutput("/usr/bin/gethostip -x "+ipaddr)[1]
+
+print "pypxeboot: getting cfg for IP %s (%s) from server %s" %(ipaddr,hexip,servaddr)
+
+tmpdir="/var/lib/xen/"
+
+os.chdir(tmpdir)
+commandstr="tftp -c get "+servaddr+":pxelinux.cfg/"+hexip
+#print "running command "+commandstr
+getpxeres=commands.getstatusoutput(commandstr)
+
+# check for errors in tftp output -- it doesn't use return codes properly!
+if not tftp_success(getpxeres):
+    print ("pypxeboot: error getting pxelinux cfg")
+    sys.exit(1)
+
+# read in the downloaded pxelinux cfg file
+cfgfile=open(tmpdir+hexip)
+cfglines=cfgfile.readlines()
+
+# check whether we should drop to localboot
+# XXX should really check that localboot is the default
+localbootre=re.compile("\s*localboot\w*")
+
+for line in cfglines:
+    if (localbootre.match(line)):
+        print "pypxeboot: dropping to pygrub for local boot"
+        run_pygrub()
+        sys.exit(0)
+
+# if "network" boot get kernel to local file and return the location as
+# sxp as pygrub does
+
+kernelre=re.compile("kernel*")
+appendre=re.compile("append*")
+
+
+# parse the pxelinux entry: add key/value pairs to
+# a dict and dump all other args to a string
+# XXX assumes there's only one entry at the moment
+# XXX need to parse properly and use default entry
+syslinux={}
+simpleargs=""
+for line in cfglines:
+    if (line[0]!='#'):
+        line=line.strip()
+        if (kernelre.match(line)):
+            (k,v)=line.split()
+            syslinux[k]=v
+        elif (appendre.match(line)):
+            havekernelargs=True
+            for entry in line[6:].split():
+                if (entry.find('=') != -1):
+                    (k,v)=entry.split('=')
+                    syslinux[k]=v
+                else:
+                    simpleargs+=entry+' '
+            
+
+# if network boot, get kernel and initrd
+# temp directory should still be the working dir
+dlres={}
+for i in ["initrd","kernel"]:
+    cmd="tftp -c get "+servaddr+":"+syslinux[i]
+    print "pypxeboot: downloading "+i+" using cmd: "+cmd
+    dlres[i]=commands.getstatusoutput(cmd)
+    if not tftp_success (dlres[i]):
+        print "pypxeboot: tftp failed for "+i+": "+dlres[i][1]
+        sys.exit(1)
+
+# format kernel and args as sxp
+# will need to get the --output option and write to that fd
+kernelname=syslinux['kernel'].split('/')[-1]
+initrdname=syslinux['initrd'].split('/')[-1]
+
+sxp="linux (kernel %s)" %(tmpdir+kernelname,)
+
+if 'initrd' in syslinux:
+    sxp+="(ramdisk %s)" % (tmpdir+initrdname,)
+if havekernelargs:
+    sxp+="(args '"
+    for arg in syslinux:
+        if arg != 'kernel' and arg != 'initrd':
+            sxp+=arg+"="+syslinux[arg]+' '
+    sxp+=simpleargs
+    sxp=sxp[0:-1]        
+    sxp+="'"
+sxp+=")"        
+
+sys.stdout.flush()
+os.write(outputfd,sxp)
+
+
+
