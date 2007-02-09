@@ -1,6 +1,6 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
-Summary: Network provisioning tool for Xen and Existing Non-Bare Metal
+Summary: Network provisioning tool for Xen and Bare Metal Machines 
 Name: koan
 Version: 0.2.6
 Release: 1%{?dist}

@@ -249,6 +249,8 @@ class Koan:
             raise InfoException, "invalid response from boot server"
         distro = self.safe_load(profile_data,'distro')
         distro_data = self.get_distro_yaml(distro)
+        if distro_data.has_key("breed") and distro_data["breed"] != "redhat":
+            raise InfoException, "koan only works for Red Hat based distros"
         self.debug(distro_data)
         self.get_distro_files(distro_data, download_root)
         after_download(self, distro_data, profile_data)
@@ -604,6 +606,7 @@ class Koan:
         Turn the suggested name into a non-conflicting name.
         Currently this is Xen specific, may change later.
         """
+        # FIXME: number incrementing needs to mod with vircreate bits
         name = self.safe_load(data,'virt_name','xen_name')
         if name is None or name == "":
             name = self.profile
