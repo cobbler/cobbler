@@ -70,7 +70,6 @@ class BootLiteSync:
         self.sync.rmtree(os.path.join(self.settings.tftpboot, "images", name))
 
     def add_single_profile(self, name):
-        print "DEBUG: add_single_profile: %s" % name
         # get the profile object:
         profile = self.profiles.find(name)
         if profile is None:

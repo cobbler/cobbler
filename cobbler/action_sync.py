@@ -352,7 +352,7 @@ class BootSync:
            )
            self.mkdir(copy_path)
            dest = os.path.join(copy_path, "ks.cfg")
-           print "ks copy: %s -> %s" % (kickstart_path, dest)
+           # print "ks copy: %s -> %s" % (kickstart_path, dest)
            try:
                 meta = self.blend_options(False, (   
                     distro.ks_meta,
@@ -603,7 +603,10 @@ class BootSync:
             if kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
                 pxe_fn = self.get_pxe_filename(system.name)
                 kickstart_path = "http://%s/cobbler_track/kickstarts_sys/%s/ks.cfg" % (self.settings.server, pxe_fn)
-            append_line = "%s ks=%s" % (append_line, kickstart_path)
+            if distro.breed is None or distro.breed == "redhat":
+                append_line = "%s ks=%s" % (append_line, kickstart_path)
+            elif distro.breed == "suse":
+                append_line = "%s autoyast=%s" % (append_line, kickstart_path)
 
         # now to add the append line to the file
         if not is_ia64:

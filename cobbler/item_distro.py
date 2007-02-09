@@ -39,6 +39,7 @@ class Distro(item.Item):
         self.kernel_options = ""
         self.ks_meta = ""
         self.arch = "x86"
+        self.breed = "redhat"
 
     def from_datastruct(self,seed_data):
         """
@@ -49,7 +50,8 @@ class Distro(item.Item):
         self.initrd         = self.load_item(seed_data,'initrd')
         self.kernel_options = self.load_item(seed_data,'kernel_options')
         self.ks_meta        = self.load_item(seed_data,'ks_meta')
-        self.arch           = self.load_item(seed_data,'arch',"x86")
+        self.arch           = self.load_item(seed_data,'arch','x86')
+        self.breed          = self.load_item(seed_data,'breed','redhat')
         return self
 
     def set_kernel(self,kernel):
@@ -64,6 +66,12 @@ class Distro(item.Item):
             self.kernel = kernel
             return True
         raise cexceptions.CobblerException("no_kernel")
+
+    def set_breed(self, breed):
+        if breed is not None and breed.lower() in [ "redhat", "suse" ]:
+            self.breed = breed.lower()
+            return True
+        raise cexceptions.CobblerException("exc_breed")
 
     def set_initrd(self,initrd):
         """
@@ -111,12 +119,13 @@ class Distro(item.Item):
         Return a serializable datastructure representation of this object.
         """
         return {
-           'name': self.name,
-           'kernel': self.kernel,
-           'initrd' : self.initrd,
+           'name'           : self.name,
+           'kernel'         : self.kernel,
+           'initrd'         : self.initrd,
            'kernel_options' : self.kernel_options,
-           'ks_meta' : self.ks_meta,
-           'arch' : self.arch
+           'ks_meta'        : self.ks_meta,
+           'arch'           : self.arch,
+           'breed'          : self.breed  
         }
 
     def printable(self):
@@ -139,5 +148,6 @@ class Distro(item.Item):
         buf = buf + "kernel options  : %s\n" % self.kernel_options
         buf = buf + "architecture    : %s\n" % self.arch
         buf = buf + "ks metadata     : %s\n" % self.ks_meta
+        buf = buf + "breed           : %s\n" % self.breed
         return buf
 

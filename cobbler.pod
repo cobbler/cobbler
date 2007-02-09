@@ -1,6 +1,6 @@
 =head1 NAME
 
-cobbler is a command line tool for configuring a provisioning and update server.  It supports provisioning via PXE, virtualization (Xen), and remotely re-kickstarting a existing Linux system when PXE booting isn't possible.  The latter two features are enabled by usage of 'koan' (a client side provisioning application) on the remote system.  Update server features include yum mirroring over rsync:// and integration of those mirrors with kickstart.
+cobbler is a command line tool for configuring a provisioning and update server.  It supports provisioning via PXE, virtualization (Xen), and remotely re-provisioning a existing Linux system when PXE booting isn't possible.  The latter two features are enabled by usage of 'koan' (a client side provisioning application) on the remote system.  Update server features include yum mirroring over rsync:// and integration of those mirrors with kickstart.
 
 =head1 SYNOPSIS
 
@@ -43,7 +43,7 @@ This first step towards configurating what you want to provision is to add a dis
 
 Anyhow, the manual distro add command is:
 
-B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--ksmeta=string] [--arch=x86|x86_64|ia64]>
+B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--ksmeta=string] [--arch=x86|x86_64|ia64] [--breed=redhat|suse]>
 
 =over
 
@@ -86,6 +86,12 @@ Example: --ksmeta="foo=bar baz=3 asdf"
 
 See the section below on templating.
 
+=item breed
+
+Defaults to "redhat", which is a suitable value for Fedora and Centos as well.  Specifying "suse" allows the kickstart file parameters to be treated instead like AutoYaST answer files, such that the proper parameters for SuSE answer files
+are put on the kernel command line.  Support for other types of distributions is possible in the future.  The file used for the answer file, regardless of
+distro breed, is the value used for --kickstart when creating the profile.  See the profile add commands for further information.
+
 =back
 
 =head2 ADDING A PROFILE
@@ -111,6 +117,8 @@ the name of a previously defined cobbler distribution
 (optional) an HTTP URL, NFS URL, or local filesystem path to a kickstart file.  Filesystem paths are needed to take advantage of cobbler's kickstart templating features and are therefore recommended.  Kickstart templating is covered in a later section.  
 
 If this parameter is not provided, the kickstart file will default to /etc/cobbler/default.ks (or whatever is set in /var/lib/cobbler/settings).  This file is initially blank, meaning default kickstarts are not automated.  Admins can change the default.ks or can leave it blank.
+
+Note:  For other breeds of distros (see --breed argument to "distro add") that do not use "kickstarts", the kickstart in this case is just the distro specific answer file (such as an AutoYAST file).  koan doesn't work for those other distros (like SuSE), but cobbler should be perfectly usable as a stand-alone solution for automated multi-distro-breed PXE control.
 
 =item virt-name
 
