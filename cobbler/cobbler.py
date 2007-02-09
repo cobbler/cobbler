@@ -337,6 +337,7 @@ class BootCLI:
             '--distro'          :  lambda(a) : profile.set_distro(a),
             '--kickstart'       :  lambda(a) : profile.set_kickstart(a),
             '--kick-start'      :  lambda(a) : profile.set_kickstart(a),
+            '--answers'         :  lambda(a) : profile.set_kickstart(a),
             '--kopts'           :  lambda(a) : profile.set_kernel_options(a),
             '--xen-name'        :  lambda(a) : profile.set_virt_name(a),
             '--virt-name'       :  lambda(a) : profile.set_virt_name(a),
@@ -377,7 +378,8 @@ class BootCLI:
             '--initrd'    :  lambda(a) : distro.set_initrd(a),
             '--kopts'     :  lambda(a) : distro.set_kernel_options(a),
             '--arch'      :  lambda(a) : distro.set_arch(a),
-            '--ksmeta'    :  lambda(a) : distro.set_ksmeta(a)
+            '--ksmeta'    :  lambda(a) : distro.set_ksmeta(a),
+            '--breed'     :  lambda(a) : distro.set_breed(a)
         }
         on_ok = lambda: self.api.distros().add(distro, with_copy=self.api.sync_flag)
         return self.apply_args(args,commands,on_ok)
