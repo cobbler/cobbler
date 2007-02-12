@@ -40,6 +40,8 @@ class Item(serializable.Serializable):
         The meta tags are used as input to the templating system
         to preprocess kickstart files
         """
+        if options_string is None:
+            options_string = ""
         self.ks_meta = options_string
         tokens = self.ks_meta.split(",")
         for t in tokens:
