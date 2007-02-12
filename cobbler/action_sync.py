@@ -781,14 +781,15 @@ class BootSync:
         # for all list of kernel options
         for items in list_of_opts:
            # get each option
-           tokens=items.split(" ")
-           # deal with key/value pairs and single options alike
-           for token in tokens:
-              key_value = token.split("=")
-              if len(key_value) == 1:
-                  internal[key_value[0]] = ""
-              else:
-                  internal[key_value[0]] = key_value[1]
+           if items is not None:
+               tokens=items.split(" ")
+               # deal with key/value pairs and single options alike
+               for token in tokens:
+                   key_value = token.split("=")
+                   if len(key_value) == 1:
+                       internal[key_value[0]] = ""
+                   else:
+                       internal[key_value[0]] = key_value[1]
         if not is_for_kernel:
             return internal
         # the kernel requires a flat string for options, and we want
