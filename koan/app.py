@@ -632,13 +632,13 @@ class Koan:
         """
         Determine where to store the virtualization file.
         """
-        if not os.path.exists("/var/lib/virtimages"):
+        if not os.path.exists("/var/lib/xen/images"):
              try:
-                 os.mkdir("/var/lib/virtimages")
+                 os.makedirs("/var/lib/xen/images")
              except:
                  pass
         vname = self.safe_load(data,'virt_name','xen_name')
-        return os.path.join("/var/lib/virtimages","%s.disk" % vname)
+        return os.path.join("/var/lib/xen/images","%s.disk" % vname)
 
     def calc_virt_filesize(self,data):
         """
