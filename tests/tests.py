@@ -2,6 +2,13 @@
 #
 # Michael DeHaan <mdehaan@redhat.com>
 
+HAS_GRAPH = False
+
+try:
+   import pycallgraph_mod as pycallgraph
+   HAS_GRAPH = True
+except:
+   pass
 
 import sys
 import unittest
@@ -41,6 +48,8 @@ cleanup_dirs = []
 class BootTest(unittest.TestCase):
 
     def setUp(self):
+
+
         # Create temp dir
         self.topdir = tempfile.mkdtemp(prefix="_cobbler-",dir="/tmp")
         #self.topdir = "/tmp" # only for refactoring, fix later
@@ -65,6 +74,9 @@ class BootTest(unittest.TestCase):
         # only off during refactoring, fix later
         shutil.rmtree(self.topdir,ignore_errors=True)
         self.api = None
+
+        if HAS_GRAPH:
+            pycallgraph.save_dot("%s.dot" % self.__class__.__name__)
 
     def make_basic_config(self):
         distro = self.api.new_distro()
@@ -331,4 +343,13 @@ if __name__ == "__main__":
     if not os.path.exists("setup.py"):
         print "tests: must invoke from top level directory"
         sys.exit(1)
-    unittest.main()
+    if HAS_GRAPH:
+       pycallgraph.start_trace()
+    loader = unittest.defaultTestLoader
+    test_module = __import__("tests")  # self import considered harmful?
+    tests = loader.loadTestsFromModule(test_module)
+    runner = unittest.TextTestRunner()
+    runner.run(tests)
+    if HAS_GRAPH:
+        pycallgraph.make_graph('test.png')
+    
