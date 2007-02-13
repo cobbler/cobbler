@@ -64,7 +64,7 @@ an absolute filesystem path to a initrd image
 (optional) sets kernel command-line arguments that the distro, and profiles/systems dependant
 on it, will use.
 
-Example: --ksmeta="foo=bar baz=3 asdf"
+Example: --kopts="foo=bar baz=3 asdf"
 
 =item arch
 
@@ -256,7 +256,7 @@ B<cobbler remove repo --name=string>
 
 B<cobbler sync>
 
-Configuration changes made with cobbler commands such as "add/edit" or "delete/remove" are saved in /var/lib/cobbler.  These changes are not applied until 'cobbler sync' is run.   Any errors in the configuration that must be corrected (such as missing files) will be reported during the sync process.
+Cobbler sync must be run after changing /var/lib/cobbler/settings or manually editing kickstart templates or other internal files in /var/lib/cobbler.  Cobbler sync's job is to make sure that the provisionable entities and the cobbler internal configuration are in sync.
 
 =head1 EXAMPLES
 
@@ -362,13 +362,15 @@ The --ksmeta options above require more explanation.
 
 If and only if --kickstart options reference filesystem URLs, --ksmeta allows for templating of the kickstart files
 to achieve advanced functions.  If the --ksmeta option for a profile read --ksmeta="foo=7 bar=llama", anywhere
-in the kickstart file where the string "TEMPLATE::bar" appeared would be replaced with the string "llama".
+in the kickstart file where the string "TEMPLATE::bar" appeared would be replaced with the string "llama".  (Actually $bar is also replaced, if you prefer that syntax).
 
 To apply these changes, "cobbler sync" must be run to generate custom kickstarts for each profile/system.
 
 For NFS and HTTP URLs, the "--ksmeta" options will have no effect. This is a good reason to let
 cobbler manage your kickstart files, though the URL functionality is provided for integration with
 legacy infrastructure, possibly including web apps that already generate kickstarts.
+
+Templated kickstart files are processed by the templating program/package Cheetah, so anything you can do in a Cheetah template can be done to a kickstart template.  Learn more at http://www.cheetahtemplate.org/learn.html
 
 =head2 DHCP CONFIGURATION MANAGEMENT
 

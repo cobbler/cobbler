@@ -46,7 +46,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
 
 %post
+cobbler sync >/dev/null 2>/dev/null
 /sbin/chkconfig --add cobblersyslogd
+
 
 %preun
 if [ $1 = 0 ]; then
