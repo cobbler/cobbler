@@ -351,5 +351,6 @@ if __name__ == "__main__":
     runner = unittest.TextTestRunner()
     runner.run(tests)
     if HAS_GRAPH:
-        pycallgraph.make_graph('test.png')
-    
+        pycallgraph.make_graph('cg_dot.png', tool='dot')
+    sys.exit(0)
+ 
