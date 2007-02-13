@@ -29,6 +29,7 @@ import errno
 
 import item_profile
 
+from Cheetah.Template import Template
 
 class BootSync:
     """
@@ -153,10 +154,13 @@ class BootSync:
            "date" : time.asctime(time.gmtime()),
            "next_server" : self.settings.next_server
         }
-        for x in metadata.keys():
-            template_data = template_data.replace("$%s" % x, metadata[x])
+        self.apply_template(template_data, metadata, f1)
         self.tee(f1,template_data)
         self.close_file(f1)
+
+    def templatify(self, data, metadata, outfile):
+        for x in metadata.keys():
+            template_data = template_data.replace("$%s" % x, metadata[x])
 
     def configure_httpd(self):
         """
@@ -361,7 +365,9 @@ class BootSync:
                 meta["yum_repo_stanza"] = self.generate_repo_stanza(g)
                 meta["yum_config_stanza"] = self.generate_config_stanza(g)
                 meta["kickstart_done"] = self.generate_kickstart_signal(g, is_system=False)
-                self.apply_template(kickstart_path, meta, dest)
+                kfile = open(kickstart_path)
+                self.apply_template(kfile, meta, dest)
+                kfile.close()
            except:
                 traceback.print_exc() # leave this in, for now...
                 msg = "err_kickstart2"
@@ -438,25 +444,37 @@ class BootSync:
                 meta["yum_repo_stanza"] = self.generate_repo_stanza(profile)
                 meta["yum_config_stanza"] = self.generate_config_stanza(profile)
                 meta["kickstart_done"]  = self.generate_kickstart_signal(profile, is_system=True)
-                self.apply_template(kickstart_path, meta, dest)
+                kfile = open(kickstart_path)
+                self.apply_template(kfile, meta, dest)
+                kfile.close()
             except:
                 msg = "err_kickstart2"
                 raise cexceptions.CobblerException(msg,s.kickstart,dest)
 
-    def apply_template(self, kickstart_input, metadata, out_path):
+    def apply_template(self, data_input, metadata, out_path):
         """
         Take filesystem file kickstart_input, apply metadata using
         Cheetah and save as out_path.
         """
-        fd = open(kickstart_input)
-        data = fd.read()
-        fd.close()
-        for x in metadata.keys():
-            if x != "":
-               data = data.replace("TEMPLATE::%s" % x, metadata[x])
+        if type(data_input) != "str":
+           data = data_input.read()
+        else:
+           data = data_input
+
+        # backward support for Cobbler's legacy (and slightly more readable) 
+        # template syntax.
+        data.replace("TEMPLATE::","$")
+
+        data = "#errorCatcher Echo\n" + data
+       
+        t = Template(source=data, searchList=metadata)
+        data_out = str(t)
+        #for x in metadata.keys():
+        #    if x != "":
+        #       data = data.replace("TEMPLATE::%s" % x, metadata[x])
         self.mkdir(os.path.basename(out_path))
         fd = open(out_path, "w+")
-        fd.write(data)
+        fd.write(data_out)
         fd.close()
 
     def build_trees(self):

@@ -13,6 +13,7 @@ Requires: tftp-server
 Requires: python-devel
 Requires: createrepo
 Requires: mod_python
+Requires: python-cheetah
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
@@ -91,8 +92,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Mon Jan 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.0-1
-- Placeholder
+* Tue Feb 12 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.0-1
+- Moving back to Cheetah for templating
+- Upstream changes (see CHANGELOG)
 
 * Mon Jan 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.3.9-1
 - Changed init script pre/post code to match FC-E guidelines/example

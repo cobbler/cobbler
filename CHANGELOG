@@ -1,8 +1,11 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Mon Jan 28 2007 - 0.4.0
-- Placeholder
+* Tue Feb 12 2007 - 0.4.0
+- Added feature to minimize the need to run "cobbler sync" for add commands
+  Now only need to run sync when files change behind the scenes or when
+  manually editing YAML
+- Moving back to Cheetah for templating (old files still backwards compatible)
 
 * Mon Jan 28 2007 - 0.3.9
 - Make init scripts correspond with FC-E guidelines
