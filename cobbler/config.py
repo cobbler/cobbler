@@ -49,6 +49,9 @@ class Config:
        ]
        self.file_check()
 
+   def __cmp(self,a,b):
+       return cmp(a.name,b.name)
+
    def distros(self):
        """
        Return the definitive copy of the Distros collection

@@ -70,6 +70,7 @@ class BootSync:
         if self.settings.manage_dhcp:
            self.write_dhcp_file()
            self.restart_dhcp()
+        self.make_tftp_menu()
         return True
 
     def restart_dhcp(self):
@@ -494,16 +495,16 @@ class BootSync:
 
         # Copy default PXE file if it exists; if there's none, ignore
         # FIXME: Log something inobtrusive ifthe default file is missing
-        src = "/etc/cobbler/default.pxe"
-        if os.path.exists(src):
-            nocopy = False
-            for system in self.systems:
-                if system.name == "default":
-                    nocopy = True
-                    break
-            if not nocopy:
-                dst = os.path.join(self.settings.tftpboot, "pxelinux.cfg", "default")
-                self.copyfile(src, dst)
+        # src = "/etc/cobbler/default.pxe"
+        # if os.path.exists(src):
+        #     nocopy = False
+        #     for system in self.systems:
+        #        if system.name == "default":
+        #            nocopy = True
+        #            break
+        #    if not nocopy:
+        #        dst = os.path.join(self.settings.tftpboot, "pxelinux.cfg", "default")
+        #        self.copyfile(src, dst)
 
         for system in self.systems:
             self.write_all_system_files(system)
@@ -560,9 +561,59 @@ class BootSync:
             return "01-" + "-".join(name.split(":")).lower()
         else:
             raise cexceptions.CobblerException("err_resolv", name)
+        
+    def make_tftp_menu(self):
+        # only do this if there is NOT a system named default.
+        default = self.systems.find("default")
+        if default is not None:
+            return
+        # generate the defaults file:
+        fname = os.path.join(self.settings.tftpboot, "pxelinux.cfg", "default")
 
+        # get menu categories
+        categories = {}
+        for profile in self.profiles:
+            categories[profile.pxe_category] = 1
+        categories = categories.keys() 
 
-    def write_pxe_file(self,filename,system,profile,distro,is_ia64):
+        defaults = open(fname, "w")
+        defaults.write("default local\n")
+        defaults.write("timeout 60\n")
+        defaults.write("prompt 1\n")
+        defaults.write("\n")
+        defaults.write("label local\n")
+        defaults.write("\tLOCALBOOT 0\n")
+        defaults.write("\n")
+
+        categories.sort()
+
+        for category in categories:
+            defaults.write("label %s\n" % category)
+            defaults.write("\tkernel menu.c32\n")
+            defaults.write("\tappend menu_%s\n" % category)
+            defaults.write("\n")
+                   
+            catfile = open(os.path.join(self.settings.tftpboot, "pxelinux.cfg", "menu_%s" % category), "w")
+            profile_list = [profile for profile in self.profiles]
+            def sort_name(a,b):
+               return cmp(a.name,b.name)
+            profile_list.sort(sort_name)
+            for profile in profile_list:
+             
+                if profile.pxe_category == category:
+                    catfile.write("label %s\n" % profile.name)
+                    
+                    # a evil invocation of the pxe file creation tool that only generates bits and pieces
+                    # without a filename to write to, and without system interpolation, so it's basically just
+                    # bits and pieces relevant to the profile.
+                    distro = self.distros.find(profile.distro)
+                    contents = self.write_pxe_file(None,None,profile,distro,False,include_header=False)
+                    catfile.write(contents + "\n")
+                    catfile.write("\n")
+            catfile.close()
+        defaults.close()
+
+    def write_pxe_file(self,filename,system,profile,distro,is_ia64, include_header=True):
         """
         Write a configuration file for the boot loader(s).
         More system-specific configuration may come in later, if so
@@ -570,32 +621,45 @@ class BootSync:
 
         NOTE: relevant to tftp only
         """
+
+        buffer = ""
+
         kernel_path = os.path.join("/images",distro.name,os.path.basename(distro.kernel))
         initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
         kickstart_path = profile.kickstart
-        fd = self.open_file(filename,"w+")
+        #fd = self.open_file(filename,"w+")
+
         if not is_ia64:
             # pxelinux tree
-            self.tee(fd,"default linux\n")
-            self.tee(fd,"prompt 0\n")
-            self.tee(fd,"timeout 1\n")
-            self.tee(fd,"label linux\n")
-            self.tee(fd,"\tkernel %s\n" % kernel_path)
+            if include_header:
+                buffer = buffer + "default linux\n"
+                buffer = buffer + "prompt 0\n"
+                buffer = buffer + "timeout 1\n"
+                buffer = buffer + "label linux\n"
+            buffer = buffer + "\tkernel %s\n" % kernel_path
         else:
             # elilo thrown in root
-            self.tee(fd,"image=%s\n" % kernel_path)
-            self.tee(fd,"\tlabel=netinstall\n")
-            self.tee(fd,"\tinitrd=%s\n" % initrd_path)
-            self.tee(fd,"\tread-only\n")
-            self.tee(fd,"\troot=/dev/ram\n")
+            buffer = buffer + "image=%s\n" % kernel_path
+            buffer = buffer + "\tlabel=netinstall\n"
+            buffer = buffer + "\tinitrd=%s\n" % initrd_path
+            buffer = buffer + "\tread-only\n"
+            buffer = buffer + "\troot=/dev/ram\n"
 
         # now build the kernel command line
-        kopts = self.blend_options(True,(
-           self.settings.kernel_options,
-           profile.kernel_options,
-           distro.kernel_options,
-           system.kernel_options
-        ))
+        if system is not None:
+            kopts = self.blend_options(True,(
+                self.settings.kernel_options,
+                profile.kernel_options,
+                distro.kernel_options,
+                system.kernel_options
+            ))
+        else:
+            kopts = self.blend_options(True,(
+                self.settings.kernel_options,
+                profile.kernel_options,
+                distro.kernel_options
+            ))
+
 
         # the kernel options line is common to elilo and pxelinux
         append_line = "%s" % self.hash_to_string(kopts)
@@ -607,11 +671,15 @@ class BootSync:
 
         # kickstart path (if kickstart is used)
         if kickstart_path is not None and kickstart_path != "":
+
             # if kickstart path is on disk, we've already copied it into
             # the HTTP mirror, so make it something anaconda can get at.
-            if kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
+            if system is not None and kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
                 pxe_fn = self.get_pxe_filename(system.name)
                 kickstart_path = "http://%s/cobbler_track/kickstarts_sys/%s/ks.cfg" % (self.settings.server, pxe_fn)
+            elif kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
+                kickstart_path = "http://%s/cobbler_track/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)
+
             if distro.breed is None or distro.breed == "redhat":
                 append_line = "%s ks=%s" % (append_line, kickstart_path)
             elif distro.breed == "suse":
@@ -620,12 +688,18 @@ class BootSync:
         # now to add the append line to the file
         if not is_ia64:
             # pxelinux.cfg syntax
-            self.tee(fd, "\tappend %s" % append_line)
+            buffer = buffer + "\tappend %s" % append_line
         else:
             # elilo.conf syntax
-            self.tee(fd, "\tappend=\"%s\"" % append_line)
+            buffer = buffer + "\tappend=\"%s\"" % append_line
+         
+        if filename is not None:
+            fd = self.open_file(filename, "w")
+            self.tee(fd, buffer)
+            self.close_file(fd)
 
-        self.close_file(fd)
+        return buffer
+
 
     def write_listings(self):
         """
@@ -762,7 +836,10 @@ class BootSync:
            return shutil.rmtree(path)
        except OSError, ioe:
            if not ioe.errno == errno.ENOENT: # doesn't exist
-               raise cexceptions.CobblerException("no_delete",path)
+               try:
+                   self.rmfile(path)
+               except:
+                   raise cexceptions.CobblerException("no_delete",path)
            return True
 
     def mkdir(self,path,mode=0777):

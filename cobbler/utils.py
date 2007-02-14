@@ -192,6 +192,7 @@ def input_string_or_hash(options,delim=","):
                 new_dict[tokens2[0]] = tokens2[1]
             else:
                 return (False, {})
+        new_dict.pop('', None)
         return (True, new_dict)
     else:
         options.pop('',None)

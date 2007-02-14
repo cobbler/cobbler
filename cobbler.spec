@@ -88,7 +88,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/cobbler/kickstart_fc6.ks
 %config(noreplace) /etc/cobbler/kickstart_fc6_domU.ks
 %config(noreplace) /etc/cobbler/dhcp.template
-%config(noreplace) /etc/cobbler/default.pxe
 %config(noreplace) /etc/cobbler/rsync.exclude
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/yaml

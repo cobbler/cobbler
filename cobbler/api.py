@@ -41,6 +41,9 @@ class BootAPI:
         """
         return self._config.clear()
 
+    def __cmp(self,a,b):
+        return cmp(a.name,b.name)
+
     def systems(self):
         """
         Return the current list of systems
