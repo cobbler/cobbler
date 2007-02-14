@@ -252,11 +252,13 @@ B<cobbler system remove --name=string>
 
 B<cobbler remove repo --name=string>
 
-=head2 APPLYING CONFIGURATIONS
+=head2 REBUILDING CONFIGURATIONS
 
 B<cobbler sync>
 
-Cobbler sync must be run after changing /var/lib/cobbler/settings or manually editing kickstart templates or other internal files in /var/lib/cobbler.  Cobbler sync's job is to make sure that the provisionable entities and the cobbler internal configuration are in sync.
+Cobbler sync is used to repair or rebuild the contents /tftpboot or /var/www/cobbler when something has changed behind the scenes.  It brings the filesystem up to date with the configuration as understood by cobbler.   
+
+Sync should be run whenever files in /var/www/cobbler are manually edited or when making changes to kickstart files.  In practice, this should not happen often, though running sync too many times does not cause any adverse effects.
 
 =head1 EXAMPLES
 
@@ -308,8 +310,6 @@ B<cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=rhel4u3-dbservers>
 
 B<cobbler report>
 
-B<cobbler sync>
-
 =head2 REPOSITORY MIRRORING WORKFLOW
 
 The following example shows how to set up a repo mirror for two repositories, and create a profile
@@ -326,8 +326,6 @@ B<cobbler repo add --mirror=root@192.168.1.5:/foo/i386/ --name=magicbari386>
 B<cobbler reposync>
 
 B<cobbler profile add --name=p1 --distro=existing_distro_name --kickstart=/etc/cobbler/kickstart_fc6.ks --repos="magicfooi386 magicbari386">
-
-B<cobbler sync>
 
 See the expanded description towards the bottom of this manpage for further information about
 repo management.
@@ -496,6 +494,8 @@ If kickstart trees are somewhere else, one can still benefit from the kickstart 
 Enterprising users can edit the files in /var/lib/cobbler directly versus using the command line.  The repair
 mechanism for user error here is to delete the files in /var/lib/cobbler.  There are also a few configuration
 files in /etc/cobbler that can be edited.
+
+Running "cobbler sync" is required to apply any changes that are made manually.
 
 =head2 API
 

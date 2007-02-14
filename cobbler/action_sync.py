@@ -50,7 +50,7 @@ class BootSync:
         self.settings = config.settings()
         self.repos    = config.repos()
 
-    def run(self):
+    def run(self,initial_only=False):
         """
         Syncs the current configuration file with the config tree.
         Using the Check().run_ functions previously is recommended
@@ -59,17 +59,18 @@ class BootSync:
             raise cexceptions.CobblerException("no_dir",self.settings.tftpboot)
         # not having a /var/www/cobbler is ok, the app will create it since
         # no other package has to own it.
-        self.clean_trees()
+        self.clean_trees(no_deletes=initial_only)
         self.copy_koan()
         self.copy_bootloaders()
+        self.configure_httpd()
+        if initial_only:
+           return True
         self.copy_distros()
         self.validate_kickstarts()
-        self.configure_httpd()
         self.build_trees()
         if self.settings.manage_dhcp:
-            self.write_dhcp_file()
-            self.restart_dhcp()
-        # self.consider_restarting_apache()
+           self.write_dhcp_file()
+           self.restart_dhcp()
         return True
 
     def restart_dhcp(self):
@@ -249,9 +250,10 @@ class BootSync:
 
         self.service("httpd", "reload")
 
-    def clean_trees(self):
+    def clean_trees(self,no_deletes=False):
         """
-        Delete any previously built pxelinux.cfg tree and virt tree info.
+        Delete any previously built pxelinux.cfg tree and virt tree info and then create
+        directories.
 
         Note: for SELinux reasons, some information goes in /tftpboot, some in /var/www/cobbler
         and some must be duplicated in both.  This is because PXE needs tftp, and auto-kickstart
@@ -261,21 +263,22 @@ class BootSync:
         """
 
         # clean out all of /tftpboot
-        for x in os.listdir(self.settings.webdir):
-            path = os.path.join(self.settings.webdir,x)
-            if os.path.isfile(path):
-                if not x.endswith(".py"):
-                    self.rmfile(path)
-            if os.path.isdir(path):
-                if not x in ["localmirror","repo_mirror","ks_mirror"] :
-                    # new versions of cobbler use repo_mirror for repos and ks_mirror for
-                    # basic kickstart tree core data.  older versions just used "local_mirror" so we
-                    # do have to leave the "localmirror" in there to avoid breaking users on upgrades
-                    self.rmtree(path)
-        self.rmtree(os.path.join(self.settings.tftpboot, "pxelinux.cfg"))
-        self.rmtree(os.path.join(self.settings.tftpboot, "images"))
-        self.rmfile(os.path.join(self.settings.tftpboot, "pxelinux.0"))
-        self.rmfile(os.path.join(self.settings.tftpboot, "elilo-3.6-ia64.efi"))
+        if not no_deletes:
+            for x in os.listdir(self.settings.webdir):
+                path = os.path.join(self.settings.webdir,x)
+                if os.path.isfile(path):
+                    if not x.endswith(".py"):
+                        self.rmfile(path)
+                if os.path.isdir(path):
+                    if not x in ["localmirror","repo_mirror","ks_mirror"] :
+                        # new versions of cobbler use repo_mirror for repos and ks_mirror for
+                        # basic kickstart tree core data.  older versions just used "local_mirror" so we
+                        # do have to leave the "localmirror" in there to avoid breaking users on upgrades
+                        self.rmtree(path)
+            self.rmtree(os.path.join(self.settings.tftpboot, "pxelinux.cfg"))
+            self.rmtree(os.path.join(self.settings.tftpboot, "images"))
+            self.rmfile(os.path.join(self.settings.tftpboot, "pxelinux.0"))
+            self.rmfile(os.path.join(self.settings.tftpboot, "elilo-3.6-ia64.efi"))
 
         # make some directories in /tftpboot
         for x in ["pxelinux.cfg","images"]:

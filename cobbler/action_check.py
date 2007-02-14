@@ -16,6 +16,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import os
 import re
 import cobbler_msg
+import action_sync
 
 class BootCheck:
 
@@ -41,6 +42,15 @@ class BootCheck:
        self.check_tftpd_conf(status)
        self.check_dhcpd_conf(status)
        self.check_httpd(status)
+
+       # run just the earliest parts of the sync command here.  The purpose of this is to
+       # allow "cobbler check" to be run initially by the RPM, creating initial directories
+       # that do not require cobbler sync to be run prior to add commands when using
+       # the minimize_syncs feature.  A bit obscure, but useful...
+       
+       syncer = action_sync.BootSync(self.config)
+       syncer.run(initial_only=True)
+
        return status
 
    def check_name(self,status):
