@@ -36,8 +36,8 @@ class Distro(item.Item):
         self.name = None
         self.kernel = None
         self.initrd = None
-        self.kernel_options = ""
-        self.ks_meta = ""
+        self.kernel_options = {}
+        self.ks_meta = {}
         self.arch = "x86"
         self.breed = "redhat"
 
@@ -52,6 +52,11 @@ class Distro(item.Item):
         self.ks_meta        = self.load_item(seed_data,'ks_meta')
         self.arch           = self.load_item(seed_data,'arch','x86')
         self.breed          = self.load_item(seed_data,'breed','redhat')
+        # backwards compatibility -- convert string entries to dicts for storage
+        if type(self.kernel_options) != dict:
+            self.set_kernel_options(self.kernel_options)
+        if type(self.ks_meta) != dict:
+            self.set_ksmeta(self.ks_meta)
         return self
 
     def set_kernel(self,kernel):

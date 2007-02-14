@@ -25,8 +25,8 @@ class System(item.Item):
     def clear(self):
         self.name = None
         self.profile = None # a name, not a reference
-        self.kernel_options = ""
-        self.ks_meta = ""
+        self.kernel_options = {}
+        self.ks_meta = {}
         self.pxe_address = ""
 
     def from_datastruct(self,seed_data):
@@ -35,6 +35,13 @@ class System(item.Item):
         self.kernel_options = self.load_item(seed_data,'kernel_options')
         self.ks_meta = self.load_item(seed_data,'ks_meta')
         self.pxe_address = self.load_item(seed_data,'pxe_address')
+
+        # backwards compatibility -- convert string entries to dicts for storage
+        if type(self.kernel_options) != dict:
+            self.set_kernel_options(self.kernel_options)
+        if type(self.ks_meta) != dict:
+            self.set_ksmeta(self.ks_meta)
+
         return self
 
     def set_name(self,name):

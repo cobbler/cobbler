@@ -33,8 +33,8 @@ class Profile(item.Item):
         self.name = None
         self.distro = None # a name, not a reference
         self.kickstart = self.settings.default_kickstart
-        self.kernel_options = ''
-        self.ks_meta = ''
+        self.kernel_options = {}
+        self.ks_meta = {} 
         self.virt_name = 'virtguest'
         self.virt_file_size = 5    # GB.  5 = Decent _minimum_ default for FC5.
         self.virt_ram = 512        # MB.  Install with 256 not likely to pass
@@ -51,6 +51,9 @@ class Profile(item.Item):
         self.kernel_options  = self.load_item(seed_data,'kernel_options')
         self.ks_meta         = self.load_item(seed_data,'ks_meta')
         self.repos           = self.load_item(seed_data,'repos', "")       
+        # backwards compatibility
+        if type(self.repos) != list:
+            self.set_repos(self.repos)
 
         # virt specific 
         self.virt_name       = self.load_item(seed_data,'virt_name')
@@ -59,6 +62,12 @@ class Profile(item.Item):
         self.virt_ram        = self.load_item(seed_data,'virt_ram')
         self.virt_file_size  = self.load_item(seed_data,'virt_file_size')
         self.virt_paravirt   = self.load_item(seed_data,'virt_paravirt')
+
+        # backwards compatibility -- convert string entries to dicts for storage
+        if type(self.kernel_options) != dict:
+            self.set_kernel_options(self.kernel_options)
+        if type(self.ks_meta) != dict:
+            self.set_ksmeta(self.ks_meta)
 
         return self
 
@@ -73,8 +82,13 @@ class Profile(item.Item):
         raise cexceptions.CobblerException("no_distro")
 
     def set_repos(self,repos):
-        repolist = repos.split(" ")
+        if type(repos) != list:
+            # allow backwards compatibility support of string input
+            repolist = repos.split(" ")
+        else:
+            repolist = repos
         ok = True
+        repolist.remove('')
         for r in repolist:
             if not self.config.repos().find(r):
                 ok = False 

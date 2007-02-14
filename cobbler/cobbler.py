@@ -88,6 +88,7 @@ class BootCLI:
             'clobber'      : self.enchant,
             'transmogrify' : self.enchant,
             'status'       : self.status,
+            'reserialize'  : self.reserialize,
             'help'         : self.usage,
             '--help'       : self.usage,
             '/?'           : self.usage
@@ -420,6 +421,16 @@ class BootCLI:
             commands[args[0]](args[1:])
         else:
             raise cexceptions.CobblerException("unknown_cmd", args[0])
+        return True
+
+    def reserialize(self, args):
+        """
+        This command is intentionally not documented in the manpage.
+        Basically it loads the cobbler config and then reserialize's it's internal state.
+        It can be used for testing config format upgrades and other development related things.
+        It has very little purpose in the real world.
+        """
+        self.api.serialize()
         return True
 
     def sync(self, args):

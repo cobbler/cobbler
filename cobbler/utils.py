@@ -173,4 +173,27 @@ def find_kickstart(url):
            return url
     return None
 
+def input_string_or_hash(options,delim=","):
+    """
+    Older cobbler files stored configurations in a flat way, such that all values for strings.
+    Newer versions of cobbler allow dictionaries.  This function is used to allow loading
+    of older value formats so new users of cobbler aren't broken in an upgrade.
+    """
+    if options is None:
+        return (True, {})
+    elif type(options) != dict:
+        new_dict = {}
+        tokens = options.split(delim)
+        for t in tokens:
+            tokens2 = t.split("=")
+            if len(tokens2) == 1 and tokens2[0] != '':
+                new_dict[tokens2[0]] = None
+            elif len(tokens2) == 2 and tokens2[0] != '':
+                new_dict[tokens2[0]] = tokens2[1]
+            else:
+                return (False, {})
+        return (True, new_dict)
+    else:
+        options.pop('',None)
+        return (True, options)
 

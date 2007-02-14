@@ -24,7 +24,14 @@ DEFAULTS = {
     "server"            : "127.0.0.1",
     "next_server"       : "127.0.0.1",
     "dhcpd_bin"         : "/usr/sbin/dhcpd",
-    "kernel_options"    : "append devfs=nomount ramdisk_size=16438 lang= text ksdevice=eth0",
+    "kernel_options"    : {
+        "append"        : None,
+        "devfs"         : "nomount",
+        "ramdisk_size"  : 16438,
+        "lang="         : " ",
+        "text"          : None,
+        "ksdevice"      : "eth0",
+    },
     "tftpd_conf"        : "/etc/xinetd.d/tftp",
     "tftpboot"          : "/tftpboot",
     "webdir"            : "/var/www/cobbler",
@@ -87,6 +94,11 @@ class Settings(serializable.Serializable):
 
    def __getattr__(self,name):
        if self._attributes.has_key(name):
+           if name == "kernel_options":
+               # backwards compatibility -- convert possible string value to hash
+               (success, result) = utils.input_string_or_hash(self._attributes[name], " ")
+               self._attributes[name] = result
+               return result
            return self._attributes[name]
        elif DEFAULTS.has_key(name):
            lookup = DEFAULTS[name]

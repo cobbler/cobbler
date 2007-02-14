@@ -13,8 +13,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import exceptions
-
 import serializable
+import utils
 
 class Item(serializable.Serializable):
 
@@ -26,29 +26,30 @@ class Item(serializable.Serializable):
         self.name = name
         return True
 
-    def set_kernel_options(self,options_string):
+    def set_kernel_options(self,options):
         """
-	Kernel options are a comma delimited list of key value pairs,
-	like 'a=b,c=d,e=f'
+	Kernel options are a space delimited list,
+	like 'a=b,c=d,e=f' or as a hash.
 	"""
-        self.kernel_options = options_string
-        return True
+        (success, value) = utils.input_string_or_hash(options," ")
+        if not success:
+            return False
+        else:
+            self.kernel_options = value
+            return True
 
-    def set_ksmeta(self,options_string):
+    def set_ksmeta(self,options):
         """
-        A comma delimited list of key value pairs, like 'a=b,c=d,e=f'.
+        A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a hash.
         The meta tags are used as input to the templating system
         to preprocess kickstart files
         """
-        if options_string is None:
-            options_string = ""
-        self.ks_meta = options_string
-        tokens = self.ks_meta.split(",")
-        for t in tokens:
-            tokens2 = t.split("=")
-            if len(tokens2) != 2:
-                return False
-        return True
+        (success, value) = utils.input_string_or_hash(options,",")
+        if not success:
+            return False
+        else:
+            self.ks_meta = value
+            return True
 
     def load_item(self,datastruct,key,default=''):
         """

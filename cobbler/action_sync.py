@@ -27,7 +27,9 @@ import cexceptions
 import traceback
 import errno
 
+import item_distro
 import item_profile
+import item_system
 
 from Cheetah.Template import Template
 
@@ -356,12 +358,9 @@ class BootSync:
            )
            self.mkdir(copy_path)
            dest = os.path.join(copy_path, "ks.cfg")
-           # print "ks copy: %s -> %s" % (kickstart_path, dest)
            try:
-                meta = self.blend_options(False, (   
-                    distro.ks_meta,
-                    g.ks_meta,
-                ))  
+                will_it_blend = (distro.ks_meta, g.ks_meta)
+                meta = self.blend_options(False, will_it_blend) 
                 meta["yum_repo_stanza"] = self.generate_repo_stanza(g)
                 meta["yum_config_stanza"] = self.generate_config_stanza(g)
                 meta["kickstart_done"] = self.generate_kickstart_signal(g, is_system=False)
@@ -386,7 +385,6 @@ class BootSync:
         # will replace "TEMPLATE::yum_repo_stanza" in a cobbler kickstart file.
         buf = ""
         repos = profile.repos
-        repos = repos.split(" ")
         for r in repos:
             repo = self.repos.find(r)
             if repo is None:
@@ -398,7 +396,6 @@ class BootSync:
     def generate_config_stanza(self, profile):
         # returns the line in post that would configure yum to use repos added with "cobbler repo add"
         repos = profile.repos
-        repos = repos.split(" ")
         buf = ""
         for r in repos:
             repo = self.repos.find(r)
@@ -607,7 +604,7 @@ class BootSync:
         ))
 
         # the kernel options line is common to elilo and pxelinux
-        append_line = "%s" % kopts
+        append_line = "%s" % self.hash_to_string(kopts)
 
         # if not ia64, include initrd on this line
         # for ia64, it's already done
@@ -658,16 +655,23 @@ class BootSync:
 
         NOTE: relevant to http only
         """
-        filename = os.path.join(self.settings.webdir,"distros",distro.name)
-        distro.kernel_options = self.blend_options(True,(
-           self.settings.kernel_options,
-           distro.kernel_options
-        ))
+
+        clone = item_distro.Distro(self.config)
+        clone.from_datastruct(distro.to_datastruct())
+
+        filename = os.path.join(self.settings.webdir,"distros",clone.name)
+        will_it_blend = (self.settings.kernel_options, distro.kernel_options)
+        clone.kernel_options = self.blend_options(True,will_it_blend)
         fd = self.open_file(filename,"w+")
         # resolve to current values
-        distro.kernel = utils.find_kernel(distro.kernel)
-        distro.initrd = utils.find_initrd(distro.initrd)
-        self.tee(fd,yaml.dump(distro.to_datastruct()))
+        clone.kernel = utils.find_kernel(clone.kernel)
+        clone.initrd = utils.find_initrd(clone.initrd)
+
+        # convert storage to something that's koan readable        
+        clone.kernel_options = self.hash_to_string(clone.kernel_options)
+        clone.ks_meta = self.hash_to_string(clone.ks_meta)
+
+        self.tee(fd,yaml.dump(clone.to_datastruct()))
         self.close_file(fd)
 
     def write_profile_file(self,profile):
@@ -676,14 +680,16 @@ class BootSync:
 
         NOTE: relevant to http only
         """
-        filename = os.path.join(self.settings.webdir,"profiles",profile.name)
-        distro = self.distros.find(profile.distro)
+
+        clone = item_profile.Profile(self.config)
+        clone.from_datastruct(profile.to_datastruct())
+
+
+        filename = os.path.join(self.settings.webdir,"profiles",clone.name)
+        distro = self.distros.find(clone.distro)
         if distro is not None:
-            profile.kernel_options = self.blend_options(True,(
-               self.settings.kernel_options,
-               distro.kernel_options,
-               profile.kernel_options
-            ))
+            will_it_blend = (self.settings.kernel_options, distro.kernel_options, clone.kernel_options)
+            clone.kernel_options = self.blend_options(True,will_it_blend)
         # yaml file: http only
         fd = self.open_file(filename,"w+")
         # if kickstart path is local, we've already copied it into
@@ -691,10 +697,12 @@ class BootSync:
 
         # NOTE: we only want to write this to the webdir, not the settings
         # file, so we must make a clone, outside of the collection.
- 
-        clone = item_profile.Profile(self.config)
-        clone.from_datastruct(profile.to_datastruct())
 
+        # convert storage to something that's koan readable                   
+        clone.kernel_options = self.hash_to_string(clone.kernel_options)
+        clone.ks_meta = self.hash_to_string(clone.ks_meta)
+
+        # make URLs for koan if the kickstart files are locally managed (which is preferred)
         if clone.kickstart and clone.kickstart.startswith("/"):
             clone.kickstart = "http://%s/cobbler_track/kickstarts/%s/ks.cfg" % (self.settings.server, clone.name)
         self.tee(fd,yaml.dump(clone.to_datastruct()))
@@ -707,8 +715,16 @@ class BootSync:
 
         NOTE: relevant to http only
         """
+
+        # no real reason to clone this yet, but in case changes come later, might as well be safe.
+        clone = item_system.System(self.config)
+        clone.from_datastruct(system.to_datastruct())
+        # koan expects strings, not cobbler's storage format
+        clone.kernel_options = self.hash_to_string(clone.kernel_options)
+        clone.ks_meta = self.hash_to_string(clone.ks_meta)
+
         fd = self.open_file(filename,"w+")
-        self.tee(fd,yaml.dump(system.to_datastruct()))
+        self.tee(fd,yaml.dump(clone.to_datastruct()))
         self.close_file(fd)
 
     def tee(self,fd,text):
@@ -727,14 +743,6 @@ class BootSync:
             print "%s -> %s" % (src,dst)
         try:
             return shutil.copyfile(src,dst)
-        except IOError, ioe:
-            raise cexceptions.CobblerException("need_perms2",src,dst)
-
-
-    def copy(self,src,dst):
-        print "%s -> %s" % (src,dst)
-        try:
-            return shutil.copy(src,dst)
         except IOError, ioe:
             raise cexceptions.CobblerException("need_perms2",src,dst)
 
@@ -783,50 +791,26 @@ class BootSync:
         """
         Given a list of options, take the values used by the
         first argument in the list unless overridden by those in the
-        second (or further on), according to --key=value formats.
-
-        This is used such that we can have default kernel options
-        in /etc and then distro, profile, and system options with various
-        levels of configurability overriding them.  This also works
-        for template metadata (--ksopts)
-
-        The output when is_for_kernel is true is a space delimited list.
-        When is_for_kernel is false, it's just a hash.
+        second (or further on).
         """
-        # FIXME: needs to be smart enough to remove duplicate options.
-        internal = {}
-        results = []
-        # for all list of kernel options
-        for items in list_of_opts:
-           # get each option
-           if items is not None:
-               tokens=items.split(" ")
-               # deal with key/value pairs and single options alike
-               for token in tokens:
-                   key_value = token.split("=")
-                   if len(key_value) == 1:
-                       internal[key_value[0]] = ""
-                   else:
-                       internal[key_value[0]] = key_value[1]
-        if not is_for_kernel:
-            return internal
-        # the kernel requires a flat string for options, and we want
-        # to remove certain invalid options.
-        # go back through the final list and render the single
-        # items AND key/value items
-        for key in internal.keys():
-           data = internal[key]
-           if (key == "ks" or key == "initrd" or key == "append"):
-               # the user REALLY doesn't want to do this...
-               continue
-           if data == "":
-               results.append(key)
-           else:
-               results.append("%s=%s" % (key,internal[key]))
-        # end result is a new fragment of an options string
-    
-        # now add the remote syslogging stuff
-        results.append("syslog=%s:%s" % (self.settings.server, self.settings.syslog_port))
+        results = {}
+        buffer = ""
+        for optslist in list_of_opts:
+           for key in optslist:
+               results[key] = optslist[key]
 
-        return " ".join(results)
+        if is_for_kernel and self.settings.syslog_port != 0:
+            results["syslog"] = "%s:%s" % (self.settings.server, self.settings.syslog_port)
+
+        return results
+
+    def hash_to_string(self, hash):
+        buffer = ""
+        for key in hash:
+           value = hash[key]
+           if value is None:
+               buffer = buffer + key + " "
+           else:
+               buffer = buffer + key + "=" + value + " "
+        return buffer
 
