@@ -23,7 +23,7 @@ The main advantages of cobbler is that it glues together a lot of disjoint techn
 
 =head1 SEE ALSO
 
-For help in building kickstarts, try "system-config-kickstart", or install a new system and look at the /root/anaconda-ks.cfg file left over from the installer.  General kickstart questions can also be asked at kickstart-list@redhat.com.  Cobbler ships some kickstart templates in /etc/cobbler that may also prove helpful.
+For help in building kickstarts, try using the "system-config-kickstart" tool, or install a new system and look at the /root/anaconda-ks.cfg file left over from the installer.  General kickstart questions can also be asked at kickstart-list@redhat.com.  Cobbler ships some kickstart templates in /etc/cobbler that may also prove helpful.
 
 =head1 COBBLER USAGE
 
@@ -31,17 +31,21 @@ For help in building kickstarts, try "system-config-kickstart", or install a new
 
 Running "cobbler check" after installation will verify that cobbler's prerequisites are installed and configured correctly.  This is a good first command to run after installing cobbler.
 
-Any problems detected should be corrected, with the potential exception of DHCP related warnings.
+Any problems detected should be corrected, with the potential exception of DHCP related warnings.  Run "cobbler sync" after making any changes to the configuration files to ensure those changes are applied.
 
 It is especially important that the server name field be accurate in /var/lib/cobbler/settings, without this field being correct, kickstart trees may not be found, and provisioning won't work.
 
-For PXE, if DHCP is to be run from the cobbler server, the dhcp configuration file should be changed as suggested.  If DHCP is not run locally, the "next-server" field on the DHCP server should point to the cobbler server's IP and the filename should be set to "pxelinux.0".  Cobbler can also (optionally) generate dhcp configuration files -- this is covered in a later section.  If you don't already have a dhcp setup, allowing cobbler to manage it may prove to be useful.  If you already have a setup, moving an existing setup to cobbler is relatively painless.
+For PXE, if DHCP is to be run from the cobbler server, the dhcp configuration file should be changed as suggested.  If DHCP is not run locally, the "next-server" field on the DHCP server should point to the cobbler server's IP and the filename should be set to "pxelinux.0".  
+
+Cobbler can also manage (generate) your dhcp configuration file -- this is covered in a later section.  If you don't already have a dhcp setup, allowing cobbler to manage it may prove to be useful.  If you already have a setup, moving an existing setup to be managed from within cobbler is relatively painless and is entirely optional.
 
 =head2 ADDING A DISTRIBUTION
 
-This first step towards configurating what you want to provision is to add a distribution to the cobbler's configuration.  If there is an rsync mirror or filesystem tree that you would rather import instead, skip down to the documentation about the "import" command.  It's really a lot easier, but it requires waiting for the mirror to sync data across.  Imported mirrors also save time during install since they don't have to hit external install sources.
+This first step towards configurating what you want to provision is to add a distribution to the cobbler's configuration.  
 
-Anyhow, the manual distro add command is:
+If there is an rsync mirror or filesystem tree that you would rather import instead, skip down to the documentation about the "import" command.  It's really a lot easier, but it requires waiting for the mirror to sync data across.  Imported mirrors also save time during install since they don't have to hit external install sources.
+
+The manual distro add command is:
 
 B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--ksmeta=string] [--arch=x86|x86_64|ia64] [--breed=redhat|suse]>
 
@@ -258,7 +262,10 @@ B<cobbler sync>
 
 Cobbler sync is used to repair or rebuild the contents /tftpboot or /var/www/cobbler when something has changed behind the scenes.  It brings the filesystem up to date with the configuration as understood by cobbler.   
 
-Sync should be run whenever files in /var/www/cobbler are manually edited or when making changes to kickstart files.  In practice, this should not happen often, though running sync too many times does not cause any adverse effects.
+Sync should be run whenever files in /var/www/cobbler are manually edited or when making changes to kickstart files.  In practice, this should not happen often, though running sync too many times does not cause any adverse effects.  
+
+If using cobbler to manage a DHCP server (see the advanced section of this manpage), sync does need to be
+run after systems are added to regenerate and reload the DHCP configuration.
 
 =head1 EXAMPLES
 
@@ -370,6 +377,8 @@ legacy infrastructure, possibly including web apps that already generate kicksta
 
 Templated kickstart files are processed by the templating program/package Cheetah, so anything you can do in a Cheetah template can be done to a kickstart template.  Learn more at http://www.cheetahtemplate.org/learn.html
 
+Should you want to express larger sections of templating (more that can be decently expressed on the command line), you may want to edit /var/lib/cobbler/ files directly.  Keep in mind that changes need to be valid YAML 1.0 syntax and "cobbler sync" should be run after making any changes to those files.
+
 =head2 DHCP CONFIGURATION MANAGEMENT
 
 By default, cobbler does not write a dhcpd.conf and leaves configuration
@@ -391,7 +400,8 @@ Per-system records in DHCP will only be written if the cobbler system name is a 
 
 Itanium systems names also need to be specified by the MAC address, and their distribution needs to be created with the "--arch=ia64" parameter.
 
-The dhcpd.conf file will be updated each time "cobbler sync" is run.
+The dhcpd.conf file will be updated each time "cobbler sync" is run, and not until then, so it is important
+to remember to use "cobbler sync" when using this feature.
 
 =head2 ENCHANT
 
