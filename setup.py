@@ -20,6 +20,17 @@ if __name__ == "__main__":
         logpath  = "/var/log/cobbler/"
         logpath2 = "/var/log/cobbler/kicklog"
         logpath3 = "/var/log/cobbler/syslog"
+        vw_localmirror = "/var/www/cobbler/localmirror"
+        vw_kickstarts  = "/var/www/cobbler/kickstarts"
+        vw_kickstarts_sys  = "/var/www/cobbler/kickstarts_sys"
+        vw_repomirror = "/var/www/cobbler/repo_mirror"
+        vw_ksmirror   = "/var/www/cobbler/ks_mirror"
+        vw_images     = "/var/www/cobbler/images"
+        vw_distros    = "/var/www/cobbler/distros"
+        vw_systems    = "/var/www/cobbler/systems"
+        vw_profiles   = "/var/www/cobbler/profiles"
+        tftp_cfg      = "/tftpboot/pxelinux.cfg"
+        tftp_images   = "/tftpboot/images"
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -44,7 +55,18 @@ if __name__ == "__main__":
                                 (initpath, ['cobblersyslogd']),
                                 (logpath,  []),
                                 (logpath2, []),
-                                (logpath3, [])
+                                (logpath3, []),
+                                (vw_localmirror,    []),
+                                (vw_kickstarts,     []),
+                                (vw_kickstarts_sys, []),
+                                (vw_repomirror,     []),
+                                (vw_ksmirror,       []),
+                                (vw_distros,        []),
+                                (vw_images,         []),
+                                (vw_systems,        []),
+                                (vw_profiles,       []),
+                                (tftp_cfg,          []),
+                                (tftp_images,       []),
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC

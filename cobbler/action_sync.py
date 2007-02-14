@@ -20,6 +20,7 @@ import time
 import yaml # Howell-Clark version
 import sub_process
 import sys
+import glob
 
 import utils
 import cobbler_msg
@@ -50,7 +51,7 @@ class BootSync:
         self.settings = config.settings()
         self.repos    = config.repos()
 
-    def run(self,initial_only=False):
+    def run(self):
         """
         Syncs the current configuration file with the config tree.
         Using the Check().run_ functions previously is recommended
@@ -59,12 +60,10 @@ class BootSync:
             raise cexceptions.CobblerException("no_dir",self.settings.tftpboot)
         # not having a /var/www/cobbler is ok, the app will create it since
         # no other package has to own it.
-        self.clean_trees(no_deletes=initial_only)
+        self.clean_trees()
         self.copy_koan()
         self.copy_bootloaders()
         self.configure_httpd()
-        if initial_only:
-           return True
         self.copy_distros()
         self.validate_kickstarts()
         self.build_trees()
@@ -250,7 +249,7 @@ class BootSync:
 
         self.service("httpd", "reload")
 
-    def clean_trees(self,no_deletes=False):
+    def clean_trees(self):
         """
         Delete any previously built pxelinux.cfg tree and virt tree info and then create
         directories.
@@ -263,32 +262,22 @@ class BootSync:
         """
 
         # clean out all of /tftpboot
-        if not no_deletes:
-            for x in os.listdir(self.settings.webdir):
-                path = os.path.join(self.settings.webdir,x)
-                if os.path.isfile(path):
-                    if not x.endswith(".py"):
-                        self.rmfile(path)
-                if os.path.isdir(path):
-                    if not x in ["localmirror","repo_mirror","ks_mirror"] :
-                        # new versions of cobbler use repo_mirror for repos and ks_mirror for
-                        # basic kickstart tree core data.  older versions just used "local_mirror" so we
-                        # do have to leave the "localmirror" in there to avoid breaking users on upgrades
-                        self.rmtree(path)
-            self.rmtree(os.path.join(self.settings.tftpboot, "pxelinux.cfg"))
-            self.rmtree(os.path.join(self.settings.tftpboot, "images"))
-            self.rmfile(os.path.join(self.settings.tftpboot, "pxelinux.0"))
-            self.rmfile(os.path.join(self.settings.tftpboot, "elilo-3.6-ia64.efi"))
-
-        # make some directories in /tftpboot
-        for x in ["pxelinux.cfg","images"]:
-            path = os.path.join(self.settings.tftpboot,x)
-            self.mkdir(path)
-
-        # make some directories in /var/www/cobbler
-        for x in ["systems","distros","profiles","kickstarts","kickstarts_sys","images"]:
-            path = os.path.join(self.settings.webdir, x)
-            self.mkdir(path)
+        for x in os.listdir(self.settings.webdir):
+            path = os.path.join(self.settings.webdir,x)
+            if os.path.isfile(path):
+                if not x.endswith(".py"):
+                    self.rmfile(path)
+            if os.path.isdir(path):
+                if not x in ["localmirror","repo_mirror","ks_mirror","kickstarts","kickstarts_sys","distros","images","systems"] :
+                    # new versions of cobbler use repo_mirror for repos and ks_mirror for
+                    # basic kickstart tree core data.  older versions just used "local_mirror" so we
+                    # do have to leave the "localmirror" in there to avoid breaking users on upgrades
+                    self.rmtree_contents(path)
+        self.rmtree_contents(os.path.join(self.settings.tftpboot, "pxelinux.cfg"))
+        self.rmtree_contents(os.path.join(self.settings.tftpboot, "images"))
+        # no real reason to delete these
+        # self.rmfile(os.path.join(self.settings.tftpboot, "pxelinux.0"))
+        # self.rmfile(os.path.join(self.settings.tftpboot, "elilo-3.6-ia64.efi"))
 
     def copy_distros(self):
         """
@@ -351,6 +340,8 @@ class BootSync:
 
     def validate_kickstart_for_specific_profile(self,g):
         distro = self.distros.find(g.distro)
+        if distro is None:
+           raise cexceptions.CobblerException("orphan_distro2", g.name, g.distro)
         kickstart_path = utils.find_kickstart(g.kickstart)
         if kickstart_path is not None and os.path.exists(g.kickstart):
            # the input is an *actual* file, hence we have to copy it
@@ -758,6 +749,11 @@ class BootSync:
                 traceback.print_exc()
                 raise cexceptions.CobblerException("no_delete",path)
             return True
+
+    def rmtree_contents(self,path):
+       what_to_delete = glob.glob("%s/*" % path)
+       for x in what_to_delete:
+           self.rmtree(x)
 
     def rmtree(self,path):
        if self.verbose:

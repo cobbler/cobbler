@@ -46,7 +46,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
 
 %post
-cobbler check >/dev/null 2>/dev/null
 /sbin/chkconfig --add cobblersyslogd
 
 
@@ -68,7 +67,19 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(-,apache,apache)
 %dir /var/log/cobbler
 %dir /var/log/cobbler/kicklog
+%dir /var/www/cobbler/
+%dir /var/www/cobbler/localmirror
+%dir /var/www/cobbler/kickstarts
+%dir /var/www/cobbler/kickstarts_sys
+%dir /var/www/cobbler/repo_mirror
+%dir /var/www/cobbler/ks_mirror
+%dir /var/www/cobbler/images
+%dir /var/www/cobbler/distros
+%dir /var/www/cobbler/profiles
+%dir /var/www/cobbler/systems
 %defattr(-,root,root)
+%dir /tftpboot/pxelinux.cfg
+%dir /tftpboot/images
 %{_bindir}/cobbler
 %{_bindir}/cobbler_syslogd
 %dir /etc/cobbler
@@ -96,6 +107,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 * Tue Feb 12 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.0-1
 - Moving back to Cheetah for templating
+- Cobbler now owns the directories it uses.
 - Upstream changes (see CHANGELOG)
 
 * Mon Jan 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.3.9-1
