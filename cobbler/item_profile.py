@@ -40,7 +40,6 @@ class Profile(item.Item):
         self.virt_ram = 512        # MB.  Install with 256 not likely to pass
         self.virt_paravirt = True  # hvm support is *NOT* in Koan (now)
         self.repos = ""            # names of cobbler repo definitions
-        self.pxe_category = "misc" 
 
     def from_datastruct(self,seed_data):
         """
@@ -53,7 +52,6 @@ class Profile(item.Item):
         self.kernel_options  = self.load_item(seed_data,'kernel_options')
         self.ks_meta         = self.load_item(seed_data,'ks_meta')
         self.repos           = self.load_item(seed_data,'repos', [])
-        self.pxe_category    = self.load_item(seed_data,'pxe_category', 'misc') 
       
         # backwards compatibility
         if type(self.repos) != list:
@@ -167,10 +165,6 @@ class Profile(item.Item):
         except:
             return cexceptions.CobblerException("exc_virt_ram")
 
-    def set_pxe_category(self, category):
-        self.pxe_category = category
-        return True
-
     def set_virt_paravirt(self,truthiness):
         """
 	For Virt only.
@@ -217,8 +211,7 @@ class Profile(item.Item):
             'virt_ram'         : self.virt_ram,
             'virt_paravirt'    : self.virt_paravirt,
             'ks_meta'          : self.ks_meta,
-            'repos'            : self.repos,
-            'pxe_category'     : self.pxe_category
+            'repos'            : self.repos
         }
 
     def printable(self):

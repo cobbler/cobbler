@@ -70,7 +70,7 @@ class BootSync:
         if self.settings.manage_dhcp:
            self.write_dhcp_file()
            self.restart_dhcp()
-        self.make_tftp_menu()
+        self.make_pxe_menu()
         return True
 
     def restart_dhcp(self):
@@ -110,6 +110,8 @@ class BootSync:
             newname = os.path.basename(path)
             destpath = os.path.join(self.settings.tftpboot, newname)
             self.copyfile(path, destpath)
+        self.copyfile("/usr/lib/syslinux/menu.c32", os.path.join(self.settings.tftpboot, "menu.c32"))
+
 
     def write_dhcp_file(self):
         """
@@ -121,7 +123,7 @@ class BootSync:
         except:
             raise cexceptions.CobblerException("exc_no_template")
         template_data = ""
-        f1 = self.open_file("/etc/dhcpd.conf","w+")
+        #f1 = self.open_file("/etc/dhcpd.conf","w+")
         template_data = f2.read()
         f2.close()
 
@@ -157,9 +159,9 @@ class BootSync:
            "date" : time.asctime(time.gmtime()),
            "next_server" : self.settings.next_server
         }
-        self.apply_template(template_data, metadata, f1)
-        self.tee(f1,template_data)
-        self.close_file(f1)
+        self.apply_template(template_data, metadata, "/etc/dhcpd.conf")
+        #self.tee(f1,template_data)
+        #self.close_file(f1)
 
     def templatify(self, data, metadata, outfile):
         for x in metadata.keys():
@@ -448,7 +450,7 @@ class BootSync:
         Take filesystem file kickstart_input, apply metadata using
         Cheetah and save as out_path.
         """
-        if type(data_input) != "str":
+        if type(data_input) != str:
            data = data_input.read()
         else:
            data = data_input
@@ -461,9 +463,6 @@ class BootSync:
        
         t = Template(source=data, searchList=metadata)
         data_out = str(t)
-        #for x in metadata.keys():
-        #    if x != "":
-        #       data = data.replace("TEMPLATE::%s" % x, metadata[x])
         self.mkdir(os.path.basename(out_path))
         fd = open(out_path, "w+")
         fd.write(data_out)
@@ -562,7 +561,7 @@ class BootSync:
         else:
             raise cexceptions.CobblerException("err_resolv", name)
         
-    def make_tftp_menu(self):
+    def make_pxe_menu(self):
         # only do this if there is NOT a system named default.
         default = self.systems.find("default")
         if default is not None:
@@ -570,47 +569,36 @@ class BootSync:
         # generate the defaults file:
         fname = os.path.join(self.settings.tftpboot, "pxelinux.cfg", "default")
 
-        # get menu categories
-        categories = {}
-        for profile in self.profiles:
-            categories[profile.pxe_category] = 1
-        categories = categories.keys() 
-
         defaults = open(fname, "w")
-        defaults.write("default local\n")
-        defaults.write("timeout 60\n")
-        defaults.write("prompt 1\n")
+        defaults.write("DEFAULT menu.c32\n")
+        defaults.write("PROMPT 0\n")
+        defaults.write("MENU TITLE Cobbler | http://cobbler.et.redhat.com\n")
+        defaults.write("TIMEOUT 200\n")
+        defaults.write("TOTALTIMEOUT 600\n")
+        defaults.write("ONTIMEOUT local\n")
         defaults.write("\n")
-        defaults.write("label local\n")
+        defaults.write("LABEL local\n")
+        defaults.write("\tMENU LABEL (local)\n")
+        defaults.write("\tMENU DEFAULT\n")
         defaults.write("\tLOCALBOOT 0\n")
         defaults.write("\n")
 
-        categories.sort()
+        profile_list = [profile for profile in self.profiles]
+        def sort_name(a,b):
+           return cmp(a.name,b.name)
+        profile_list.sort(sort_name)
 
-        for category in categories:
-            defaults.write("label %s\n" % category)
-            defaults.write("\tkernel menu.c32\n")
-            defaults.write("\tappend menu_%s\n" % category)
-            defaults.write("\n")
-                   
-            catfile = open(os.path.join(self.settings.tftpboot, "pxelinux.cfg", "menu_%s" % category), "w")
-            profile_list = [profile for profile in self.profiles]
-            def sort_name(a,b):
-               return cmp(a.name,b.name)
-            profile_list.sort(sort_name)
-            for profile in profile_list:
+        for profile in profile_list:
              
-                if profile.pxe_category == category:
-                    catfile.write("label %s\n" % profile.name)
-                    
-                    # a evil invocation of the pxe file creation tool that only generates bits and pieces
-                    # without a filename to write to, and without system interpolation, so it's basically just
-                    # bits and pieces relevant to the profile.
-                    distro = self.distros.find(profile.distro)
-                    contents = self.write_pxe_file(None,None,profile,distro,False,include_header=False)
-                    catfile.write(contents + "\n")
-                    catfile.write("\n")
-            catfile.close()
+            defaults.write("LABEL %s\n" % profile.name)
+            # a evil invocation of the pxe file creation tool that only generates bits and pieces
+            # without a filename to write to, and without system interpolation, so it's basically just
+            # bits and pieces relevant to the profile.
+            distro = self.distros.find(profile.distro)
+            contents = self.write_pxe_file(None,None,profile,distro,False,include_header=False)
+            defaults.write(contents + "\n")
+            defaults.write("\n")
+
         defaults.close()
 
     def write_pxe_file(self,filename,system,profile,distro,is_ia64, include_header=True):
@@ -687,6 +675,8 @@ class BootSync:
 
         # now to add the append line to the file
         if not is_ia64:
+            if system is None:
+                buffer = buffer + "\tMENU LABEL %s\n" % profile.name
             # pxelinux.cfg syntax
             buffer = buffer + "\tappend %s" % append_line
         else:
