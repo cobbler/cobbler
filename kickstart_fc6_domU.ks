@@ -4,13 +4,13 @@
 
 install
 reboot
-url --url=TEMPLATE::tree
+url --url=$tree
 
 lang en_US.UTF-8
 keyboard us
 xconfig --driver "fbdev" --resolution 800x600 --depth 24
 network --device eth0 --bootproto dhcp
-rootpw --iscrypted $1$mF86/UHC$WvcIcX2t6crBz2onWxyac. 
+rootpw --iscrypted \$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac. 
 firewall --enabled --port=22:tcp
 authconfig --enableshadow --enablemd5
 selinux --disabled
@@ -34,6 +34,6 @@ openssh-server
 yum
 
 %post
-TEMPLATE::yum_config_stanza
-TEMPLATE::kickstart_done
+$yum_config_stanza
+$kickstart_done
 

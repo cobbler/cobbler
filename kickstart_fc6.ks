@@ -25,7 +25,7 @@ network --bootproto=dhcp --device=eth0 --onboot=on
 reboot
 
 #Root password
-rootpw --iscrypted $1$mF86/UHC$WvcIcX2t6crBz2onWxyac.
+rootpw --iscrypted \$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.
 # SELinux configuration
 selinux --disabled
 # Do not configure the X Window System
@@ -41,14 +41,14 @@ zerombr
 
 %pre
 # Determine how many drives we have
-set $(list-harddrives)
-let numd=$#/2
-d1=$1
-d2=$3
+set \$(list-harddrives)
+let numd=\$#/2
+d1=\$1
+d2=\$3
 
 cat << EOF >> /tmp/partinfo
-part / --fstype ext3 --size=1024 --grow --ondisk=$d1 --asprimary
-part swap --size=1024 --ondisk=$d1 --asprimary
+part / --fstype ext3 --size=1024 --grow --ondisk=\$d1 --asprimary
+part swap --size=1024 --ondisk=\$d1 --asprimary
 #EOF
 
 %packages
