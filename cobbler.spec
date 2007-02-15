@@ -104,9 +104,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Tue Feb 12 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.0-1
-- Moving back to Cheetah for templating
-- Cobbler now owns the directories it uses.
+* Thu Feb 15 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.0-1
+- Moving back to Cheetah for templating (new Requires)
+- Cobbler RPM now owns the directories it uses versus creating them using commands.
 - Upstream changes (see CHANGELOG)
 
 * Mon Jan 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.3.9-1

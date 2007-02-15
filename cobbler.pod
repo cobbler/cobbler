@@ -361,6 +361,20 @@ B<cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=virtwebservers>
 
 =head1 ADVANCED TOPICS
 
+=head2 PXE MENUS
+
+Cobbler will automatically generate PXE menus for all profiles it has defined.  Running "cobbler sync" is required
+to generate and update these menus.
+
+To access the menus, type "menu" at the "boot:" prompt while a system is PXE booting.  If nothing is typed, the network boot 
+will default to a local boot.  If "menu" is typed, the user can then choose and provision any cobbler profile the system
+knows about.  
+
+If the association between a system (MAC address) and a profile is already known, it may be more useful to just use
+"system add" commands and declare that relationship in cobbler; however many use cases will prefer having a PXE system, especially when provisioning is done at the same time as installing new physical machines.
+
+If this behavior is not desired, run "cobbler system add --name=default --profile=plugh" to default all PXE booting machines to get a new copy of the profile "plugh".  To go back to the menu system, run "cobbler system remove --name=default" and then "cobbler sync" to regenerate the menus.
+
 =head2 KICKSTART TEMPLATING
 
 The --ksmeta options above require more explanation.
