@@ -182,7 +182,7 @@ Repository mirroring is one of the more complex cobbler features, though if you 
 a yum repository and integrate it with your provisioning, cobbler can help simplify the required
 knowledge a good bit.  If you're just provisioning your home system, ignore this part.
 
-B<cobbler repo add --mirror=url --mirror-name=string [--local-file=string]>
+B<cobbler repo add --mirror=url --mirror-name=string [--local-filename=string]>
 
 =over
 
@@ -220,11 +220,13 @@ it can be automatically configured on the clients.
 
 =item local-filename
 
-Local filename specifies, for kickstarts containing the template parameter "TEMPLATE::yum_config_stanza",
+Local filename specifies, for kickstarts containing the template parameter "yum_config_stanza",
 what files to populate on provisioned clients in /etc/yum.repos.d.  In other words, if this value
 is "foo", the repo would be added on provisioned clients as "/etc/yum.repos.d/foo.repo".  If you don't
 want clients to have this repo installed, don't add a name for the repo, and provisioned machines
 will not configure yum to know about this repo -- you can still do it manually if you choose.
+
+See /etc/cobbler/kickstart_fc6.ks for an example of how to employ this within a kickstart template.
 
 =back
 

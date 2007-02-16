@@ -398,7 +398,7 @@ class BootSync:
             repo = self.repos.find(r)
             if repo is None: 
                 continue
-            if not (repo.local_filename is None and repo.local_filename != ""):
+            if not (repo.local_filename is None) or (repo.local_filename == ""):
                 buf = buf + "wget http://%s/cobbler_track/repo_mirror/%s/config.repo --output-document=/etc/yum.repos.d/%s.repo\n" % (self.settings.server, repo.name, repo.local_filename)    
         return buf
 

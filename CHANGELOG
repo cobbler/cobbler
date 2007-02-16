@@ -7,6 +7,9 @@ Cobbler CHANGELOG
   manually editing YAML
 - Moving back to Cheetah for templating (old files still backwards compatible)
 - PXE menus for the default profile.  Type "menu" at the prompt to get a menu, or wait for local boot.
+- Manpage cleanup and clarification
+- Bugfix: cobbler will no longer create repo files on remotes when --local-filename is not used for "repo add"
+
 
 * Mon Jan 28 2007 - 0.3.9
 - Make init scripts correspond with FC-E guidelines
