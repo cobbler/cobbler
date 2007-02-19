@@ -1,6 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Mon Feb 19 2007 - 0.4.2
+- Fix bug in "cobbler system remove"
+
 * Mon Feb 19 2007 - 0.4.1
 - Bundle menu.c32 for older distros
 - Unbundle Cheetah as it's available at http://www.python.org/pyvault/centos-4-i386/

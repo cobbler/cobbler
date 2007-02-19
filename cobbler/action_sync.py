@@ -830,7 +830,7 @@ class BootSync:
            if os.path.isfile(path):
                return self.rmfile(path)
            else:
-               return shutil.rmtree(path,ignore_errors=False)
+               return shutil.rmtree(path,ignore_errors=True)
        except OSError, ioe:
            traceback.print_exc()
            if not ioe.errno == errno.ENOENT: # doesn't exist

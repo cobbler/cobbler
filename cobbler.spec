@@ -2,7 +2,7 @@
 
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.4.1
+Version: 0.4.2
 Release: 0%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -105,9 +105,13 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
+* Mon Feb 19 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.2-0
+- Upstream changes (see CHANGELOG)
+
 * Mon Feb 19 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.1-0
 - Bundles menu.c32 (syslinux) for those distros that don't provide it.
 - Unbundles Cheetah since it's available at http://www.python.org/pyvault/centos-4-i386/
+- Upstream changes (see CHANGELOG)
 
 * Mon Feb 19 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.0-1
 - Upstream changes (see CHANGELOG)
