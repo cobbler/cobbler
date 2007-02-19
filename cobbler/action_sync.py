@@ -118,7 +118,7 @@ class BootSync:
             newname = os.path.basename(path)
             destpath = os.path.join(self.settings.tftpboot, newname)
             self.copyfile(path, destpath)
-        self.copyfile("/usr/lib/syslinux/menu.c32", os.path.join(self.settings.tftpboot, "menu.c32"))
+        self.copyfile("/var/lib/cobbler/menu.c32", os.path.join(self.settings.tftpboot, "menu.c32"))
 
 
     def write_dhcp_file(self):

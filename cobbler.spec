@@ -2,8 +2,8 @@
 
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.4.0
-Release: 1%{?dist}
+Version: 0.4.1
+Release: 0%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -102,6 +102,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/cobbler.1.gz
 %dir /var/lib/cobbler
 /var/lib/cobbler/elilo-3.6-ia64.efi
+/var/lib/cobbler/menu.c32
 /var/www/cobbler/watcher.py*
 /etc/init.d/cobblersyslogd
 %dir /var/log/cobbler/syslog
@@ -109,6 +110,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
+
+* Mon Feb 19 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.1-0
+- Bundles menu.c32 (syslinux) for those distros that don't provide it.
 
 * Mon Feb 19 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.0-1
 - Upstream changes (see CHANGELOG)

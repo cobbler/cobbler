@@ -53,6 +53,7 @@ if __name__ == "__main__":
                                 # (docspath, ['README']),
                                 (wwwpath,  ['watcher.py']),
                                 (cobpath,  ['elilo-3.6-ia64.efi']),
+                                (cobpath,  ['menu.c32']),
                                 (etcpath,  ['kickstart_fc5.ks']),
                                 (etcpath,  ['kickstart_fc6.ks']),
                                 (etcpath,  ['kickstart_fc6_domU.ks']),
