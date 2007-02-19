@@ -466,7 +466,7 @@ class BootSync:
 
         # backward support for Cobbler's legacy (and slightly more readable) 
         # template syntax.
-        data.replace("TEMPLATE::","$")
+        data = data.replace("TEMPLATE::","$")
 
         data = "#errorCatcher Echo\n" + data
        

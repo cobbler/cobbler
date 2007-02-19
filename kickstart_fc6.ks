@@ -16,9 +16,9 @@ keyboard us
 # System language
 lang en_US
 # Use network installation
-url --url=TEMPLATE::tree
+url --url=$tree
 # If any cobbler repo definitions were referenced in the kickstart profile, include them here.
-TEMPLATE::yum_repo_stanza
+$yum_repo_stanza
 # Network information
 network --bootproto=dhcp --device=eth0 --onboot=on
 # Reboot after installation
@@ -54,6 +54,6 @@ part swap --size=1024 --ondisk=\$d1 --asprimary
 %packages
 
 %post
-TEMPLATE::yum_config_stanza
-TEMPLATE::kickstart_done
+$yum_config_stanza
+$kickstart_done
 
