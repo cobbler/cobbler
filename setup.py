@@ -40,13 +40,7 @@ if __name__ == "__main__":
                 license = "GPL",
                 packages = [
                     "cobbler",
-                    "cobbler/yaml", 
-                    "cobbler/Cheetah",
-                    "cobbler/Cheetah/Macros",
-                    "cobbler/Cheetah/Templates",
-                    "cobbler/Cheetah/Tests",
-                    "cobbler/Cheetah/Tools",
-                    "cobbler/Cheetah/Utils",
+                    "cobbler/yaml" 
                 ],
                 scripts = ["cobbler/cobbler", "cobbler/cobbler_syslogd"],
                 data_files = [

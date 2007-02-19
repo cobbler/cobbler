@@ -32,14 +32,6 @@ import item_distro
 import item_profile
 import item_system
 
-# add Cheetah to sys.path so Cheetah's internal imports work with our
-# bundled copy of Cheetah (which we bundle to support older distros
-# that don't package it).
-import distutils.sysconfig as distconfig
-site_packages = distconfig.get_python_lib(False, False)
-sys.path.append(os.path.join(site_packages, "cobbler"))
-sys.path.append(os.path.join(site_packages, "cobbler", "Cheetah"))
-
 from Cheetah.Template import Template
 
 class BootSync:
