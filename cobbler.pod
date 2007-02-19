@@ -393,6 +393,8 @@ legacy infrastructure, possibly including web apps that already generate kicksta
 
 Templated kickstart files are processed by the templating program/package Cheetah, so anything you can do in a Cheetah template can be done to a kickstart template.  Learn more at http://www.cheetahtemplate.org/learn.html
 
+When working with Cheetah, be sure to escape any shell macros that look like "$(this)" with something like "\$(this)" or errors may show up during the sync process.
+
 Should you want to express larger sections of templating (more that can be decently expressed on the command line), you may want to edit /var/lib/cobbler/ files directly.  Keep in mind that changes need to be valid YAML 1.0 syntax and "cobbler sync" should be run after making any changes to those files.
 
 =head2 DHCP CONFIGURATION MANAGEMENT

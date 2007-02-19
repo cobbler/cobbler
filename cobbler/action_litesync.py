@@ -107,9 +107,9 @@ class BootLiteSync:
         # delete system YAML file in systems/$name in webdir
         self.sync.rmfile(os.path.join(self.settings.webdir, "systems", name))
         # delete contents of kickstarts_sys/$name in webdir
-        self.sync.rmtree(os.path.join(self.settings.webdir, "kickstarts_sys", name))
+        filename = self.sync.get_pxe_filename(name)
+        self.sync.rmtree(os.path.join(self.settings.webdir, "kickstarts_sys", filename))
         # delete pxelinux.cfg/$foo where $foo is either the *encoded* IP
         #   or the MAC or default        
-        filename = self.sync.get_pxe_filename(name)
         self.sync.rmfile(os.path.join(self.settings.tftpboot, "pxelinux.cfg", filename))
 

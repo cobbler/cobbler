@@ -295,6 +295,7 @@ class BootSync:
         """
         # copy is a 4-letter word but tftpboot runs chroot, thus it's required.
         for d in self.distros:
+            print "sync distro: %s" % d.name
             self.copy_single_distro_files(d)
 
     def copy_single_distro_files(self, d):
@@ -340,6 +341,7 @@ class BootSync:
         """
 
         for g in self.profiles:
+           print "sync profile: %s" % g.name
            self.validate_kickstart_for_specific_profile(g)
 
     def validate_kickstart_for_specific_profile(self,g):
@@ -414,6 +416,7 @@ class BootSync:
         """
 
         for s in self.systems:
+            print "sync system: %s" % s.name
             self.validate_kickstart_for_specific_system(s)
 
     def validate_kickstart_for_specific_system(self,s):
@@ -462,7 +465,7 @@ class BootSync:
 
         data = "#errorCatcher Echo\n" + data
        
-        t = Template(source=data, searchList=metadata)
+        t = Template(source=data, searchList=[metadata])
         data_out = str(t)
         self.mkdir(os.path.basename(out_path))
         fd = open(out_path, "w+")
