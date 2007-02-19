@@ -38,7 +38,16 @@ if __name__ == "__main__":
                 author_email = "mdehaan@redhat.com",
                 url = "http://cobbler.et.redhat.com/",
                 license = "GPL",
-                packages = ["cobbler","cobbler/yaml"],
+                packages = [
+                    "cobbler",
+                    "cobbler/yaml", 
+                    "cobbler/Cheetah",
+                    "cobbler/Cheetah/Macros",
+                    "cobbler/Cheetah/Templates",
+                    "cobbler/Cheetah/Tests",
+                    "cobbler/Cheetah/Tools",
+                    "cobbler/Cheetah/Utils",
+                ],
                 scripts = ["cobbler/cobbler", "cobbler/cobbler_syslogd"],
                 data_files = [
                                 # (docspath, ['README']),

@@ -13,7 +13,6 @@ Requires: tftp-server
 Requires: python-devel
 Requires: createrepo
 Requires: mod_python
-Requires: python-cheetah
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
@@ -91,8 +90,15 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/cobbler/rsync.exclude
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/yaml
+%dir %{python_sitelib}/cobbler/Cheetah
 %{python_sitelib}/cobbler/*.py*
 %{python_sitelib}/cobbler/yaml/*.py*
+%{python_sitelib}/cobbler/Cheetah/*.py*
+%{python_sitelib}/cobbler/Cheetah/Macros/*.py*
+%{python_sitelib}/cobbler/Cheetah/Templates/*.py*
+%{python_sitelib}/cobbler/Cheetah/Tests/*.py*
+%{python_sitelib}/cobbler/Cheetah/Tools/*.py*
+%{python_sitelib}/cobbler/Cheetah/Utils/*.py*
 %{_mandir}/man1/cobbler.1.gz
 %dir /var/lib/cobbler
 /var/lib/cobbler/elilo-3.6-ia64.efi
@@ -104,10 +110,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Thu Feb 15 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.0-1
-- Moving back to Cheetah for templating (new Requires)
-- Cobbler RPM now owns the directories it uses versus creating them using commands.
+* Mon Feb 19 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.0-1
 - Upstream changes (see CHANGELOG)
+- Cobbler RPM now owns various directories it uses versus creating them using commands.
+- Bundling a copy of Cheetah for older distros
 
 * Mon Jan 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.3.9-1
 - Changed init script pre/post code to match FC-E guidelines/example

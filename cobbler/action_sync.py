@@ -32,6 +32,14 @@ import item_distro
 import item_profile
 import item_system
 
+# add Cheetah to sys.path so Cheetah's internal imports work with our
+# bundled copy of Cheetah (which we bundle to support older distros
+# that don't package it).
+import distutils.sysconfig as distconfig
+site_packages = distconfig.get_python_lib(False, False)
+sys.path.append(os.path.join(site_packages, "cobbler"))
+sys.path.append(os.path.join(site_packages, "cobbler", "Cheetah"))
+
 from Cheetah.Template import Template
 
 class BootSync:
@@ -271,10 +279,11 @@ class BootSync:
                 if not x.endswith(".py"):
                     self.rmfile(path)
             if os.path.isdir(path):
-                if not x in ["localmirror","repo_mirror","ks_mirror","kickstarts","kickstarts_sys","distros","images","systems"] :
-                    # new versions of cobbler use repo_mirror for repos and ks_mirror for
-                    # basic kickstart tree core data.  older versions just used "local_mirror" so we
-                    # do have to leave the "localmirror" in there to avoid breaking users on upgrades
+                if not x in ["localmirror","repo_mirror","ks_mirror","kickstarts","kickstarts_sys","distros","images","systems","profiles"] :
+                    # delete directories that shouldn't exist
+                    self.rmtree(path)
+                if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles"]:
+                    # clean out directory contents
                     self.rmtree_contents(path)
         self.rmtree_contents(os.path.join(self.settings.tftpboot, "pxelinux.cfg"))
         self.rmtree_contents(os.path.join(self.settings.tftpboot, "images"))
@@ -823,13 +832,14 @@ class BootSync:
        if self.verbose:
            print "del %s" % (path)
        try:
-           return shutil.rmtree(path)
+           if os.path.isfile(path):
+               return self.rmfile(path)
+           else:
+               return shutil.rmtree(path,ignore_errors=False)
        except OSError, ioe:
+           traceback.print_exc()
            if not ioe.errno == errno.ENOENT: # doesn't exist
-               try:
-                   self.rmfile(path)
-               except:
-                   raise cexceptions.CobblerException("no_delete",path)
+               raise cexceptions.CobblerException("no_delete",path)
            return True
 
     def mkdir(self,path,mode=0777):

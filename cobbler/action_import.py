@@ -221,7 +221,7 @@ class Importer:
                    # don't run creatrepo twice -- this can happen easily for Xen and PXE, when
                    # they'll share same repo files.
                    if not processed_repos.has_key(comps_path):
-                      cmd = "createrepo --groupfile %s %s" % (comps_file, comps_path)
+                      cmd = "createrepo --basedir / --groupfile %s %s" % (comps_file, comps_path)
                       print "- %s" % cmd
                       sub_process.call(cmd,shell=True)
                       print "- repository updated"
