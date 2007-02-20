@@ -3,6 +3,7 @@ Cobbler CHANGELOG
 
 * Tue Feb 20 2007 - 0.4.3
 - Added netboot_enabled option for systems to control install loops in programmatic context.
+- Disabling anchors in YAML serialization (which make files harder to edit)
 - Ongoing ...
 
 * Mon Feb 19 2007 - 0.4.2

@@ -69,13 +69,15 @@ class Dumper:
 
     def dumpData(self, data):
         anchor = self.anchors.shouldAnchor(data)
-        if anchor: 
-            self.output(" &%d" % anchor )
-        else:
-            anchor = self.anchors.isAlias(data)
-            if anchor:
-                self.output(" *%d" % anchor )
-                return
+        # Disabling anchors because they are lame for strings that the user might want to view/edit -- mdehaan
+        # 
+        #if anchor: 
+        #    self.output(" &%d" % anchor )
+        #else:
+        #    anchor = self.anchors.isAlias(data)
+        #    if anchor:
+        #        self.output(" *%d" % anchor )
+        #        return
         if (data is None):
             self.output(' ~')
         elif hasMethod(data, 'to_yaml'):
