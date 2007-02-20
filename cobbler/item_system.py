@@ -28,13 +28,15 @@ class System(item.Item):
         self.kernel_options = {}
         self.ks_meta = {}
         self.pxe_address = ""
+        self.netboot_enabled = 1 
 
     def from_datastruct(self,seed_data):
-        self.name = self.load_item(seed_data,'name')
-        self.profile = self.load_item(seed_data,'profile')
-        self.kernel_options = self.load_item(seed_data,'kernel_options')
-        self.ks_meta = self.load_item(seed_data,'ks_meta')
-        self.pxe_address = self.load_item(seed_data,'pxe_address')
+        self.name            = self.load_item(seed_data, 'name')
+        self.profile         = self.load_item(seed_data, 'profile')
+        self.kernel_options  = self.load_item(seed_data, 'kernel_options')
+        self.ks_meta         = self.load_item(seed_data, 'ks_meta')
+        self.pxe_address     = self.load_item(seed_data, 'pxe_address')
+        self.netboot_enabled = self.load_item(seed_data, 'netboot_enabled', 1)
 
         # backwards compatibility -- convert string entries to dicts for storage
         if type(self.kernel_options) != dict:
@@ -60,6 +62,10 @@ class System(item.Item):
         return True
 
     def set_pxe_address(self,address):
+        """
+        Assign a IP or hostname in DHCP when this MAC boots.
+        Only works if manage_dhcp is set in /var/lib/cobbler/settings
+        """
         # restricting to address as IP only in dhcpd.conf is probably
         # incorrect ... some people may want to pin the hostname instead.
         # doing so, however, doesn't allow dhcpd.conf to be managed
@@ -78,6 +84,27 @@ class System(item.Item):
             return True
         raise cexceptions.CobblerException("exc_profile")
 
+    def set_netboot_enabled(self,netboot_enabled):
+        """
+        If true, allows per-system PXE files to be generated on sync (or add).  If false,
+        these files are not generated, thus eliminating the potential for an infinite install
+        loop when systems are set to PXE boot first in the boot order.  In general, users
+        who are PXE booting first in the boot order won't create system definitions, so this
+        feature primarily comes into play for programmatic users of the API, who want to
+        initially create a system with netboot enabled and then disable it after the system installs, 
+        as triggered by some action in kickstart %post.   For this reason, this option is not
+        surfaced in the CLI, output, or documentation (yet).
+
+        Use of this option does not affect the ability to use PXE menus.  If an admin has machines 
+        set up to PXE only after local boot fails, this option isn't even relevant.
+        """
+        if netboot_enabled in [ True, "True", "true", 1, "on", "yes", "y", "ON", "YES", "Y" ]:
+            # this is a bit lame, though we don't know what the user will enter YAML wise...
+            self.netboot_enabled = 1
+        else:
+            self.netboot_enabled = 0
+        return True
+
     def is_valid(self):
         """
 	A system is valid when it contains a valid name and a profile.
@@ -90,11 +117,12 @@ class System(item.Item):
 
     def to_datastruct(self):
         return {
-           'name'     : self.name,
-           'profile'  : self.profile,
-           'kernel_options' : self.kernel_options,
-           'ks_meta'  : self.ks_meta,
-           'pxe_address' : self.pxe_address
+           'name'            : self.name,
+           'profile'         : self.profile,
+           'kernel_options'  : self.kernel_options,
+           'ks_meta'         : self.ks_meta,
+           'pxe_address'     : self.pxe_address,
+           'netboot_enabled' : self.netboot_enabled
         }
 
     def printable(self):

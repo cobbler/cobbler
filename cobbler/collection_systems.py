@@ -48,10 +48,10 @@ class Systems(collection.Collection):
         Remove element named 'name' from the collection
         """
         if self.find(name):
-            del self.listing[name]
             if with_delete:
                 lite_sync = action_litesync.BootLiteSync(self.config)
                 lite_sync.remove_single_system(name)
+            del self.listing[name]
             return True
         raise cexceptions.CobblerException("delete_nothing")
          

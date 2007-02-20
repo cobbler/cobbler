@@ -109,7 +109,18 @@ class BootLiteSync:
         # delete contents of kickstarts_sys/$name in webdir
         filename = self.sync.get_pxe_filename(name)
         self.sync.rmtree(os.path.join(self.settings.webdir, "kickstarts_sys", filename))
-        # delete pxelinux.cfg/$foo where $foo is either the *encoded* IP
-        #   or the MAC or default        
-        self.sync.rmfile(os.path.join(self.settings.tftpboot, "pxelinux.cfg", filename))
+        
+        # delete PXE Linux configuration file (which might be in one of two places)
+        itanic = False
+        system_record = self.systems.find(name)
+        profile = self.profiles.find(system_record.profile)
+        # allow cobbler deletes to still work in the cobbler config is discombobulated
+        if profile is not None:
+            distro = self.distros.find(profile.distro)
+            if distro is not None and distro in [ "ia64", "IA64"]:
+                itanic = True
+        if not itanic:
+            self.sync.rmfile(os.path.join(self.settings.tftpboot, "pxelinux.cfg", filename))
+        else:
+            self.sync.rmfile(os.path.join(self.settings.tftpboot, filename))
 

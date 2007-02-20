@@ -264,7 +264,7 @@ class BootSync:
         a solution.  *Otherwise* duplication is minimal.
         """
 
-        # clean out all of /tftpboot
+        # clean out parts of webdir and all of /tftpboot/images and /tftpboot/pxelinux.cfg
         for x in os.listdir(self.settings.webdir):
             path = os.path.join(self.settings.webdir,x)
             if os.path.isfile(path):
@@ -279,9 +279,6 @@ class BootSync:
                     self.rmtree_contents(path)
         self.rmtree_contents(os.path.join(self.settings.tftpboot, "pxelinux.cfg"))
         self.rmtree_contents(os.path.join(self.settings.tftpboot, "images"))
-        # no real reason to delete these
-        # self.rmfile(os.path.join(self.settings.tftpboot, "pxelinux.0"))
-        # self.rmfile(os.path.join(self.settings.tftpboot, "elilo-3.6-ia64.efi"))
 
     def copy_distros(self):
         """
@@ -492,22 +489,7 @@ class BootSync:
             self.write_distro_file(d)
 
         for p in self.profiles:
-            # TODO: add check to ensure all profiles have distros (=error)
-            # TODO: add check to ensure all profiles have systems (=warning)
             self.write_profile_file(p)
-
-        # Copy default PXE file if it exists; if there's none, ignore
-        # FIXME: Log something inobtrusive ifthe default file is missing
-        # src = "/etc/cobbler/default.pxe"
-        # if os.path.exists(src):
-        #     nocopy = False
-        #     for system in self.systems:
-        #        if system.name == "default":
-        #            nocopy = True
-        #            break
-        #    if not nocopy:
-        #        dst = os.path.join(self.settings.tftpboot, "pxelinux.cfg", "default")
-        #        self.copyfile(src, dst)
 
         for system in self.systems:
             self.write_all_system_files(system)
@@ -540,10 +522,16 @@ class BootSync:
 
         f3 = os.path.join(self.settings.webdir, "systems", f1)
 
-        if distro.arch in [ "x86", "x86_64", "standard"]:
-            self.write_pxe_file(f2,system,profile,distro,False)
-        if distro.arch == "ia64":
-            self.write_pxe_file(f2,system,profile,distro,True)
+
+        if system.netboot_enabled:
+            if distro.arch in [ "x86", "x86_64", "standard"]:
+                self.write_pxe_file(f2,system,profile,distro,False)
+            if distro.arch == "ia64":
+                self.write_pxe_file(f2,system,profile,distro,True)
+        else:
+            # ensure the file doesn't exist
+            self.rmfile(f2)
+
         self.write_system_file(f3,system)
 
 
@@ -600,8 +588,9 @@ class BootSync:
             # bits and pieces relevant to the profile.
             distro = self.distros.find(profile.distro)
             contents = self.write_pxe_file(None,None,profile,distro,False,include_header=False)
-            defaults.write(contents + "\n")
-            defaults.write("\n")
+            if contents is not None:
+                defaults.write(contents + "\n")
+                defaults.write("\n")
 
         defaults.close()
 
@@ -613,6 +602,11 @@ class BootSync:
 
         NOTE: relevant to tftp only
         """
+
+        # system might have netboot_enabled set to False (see item_system.py), if so, 
+        # don't do anything else and flag the error condition.
+        if system is not None and not system.netboot_enabled:
+            return None
 
         buffer = ""
 
