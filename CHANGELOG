@@ -1,6 +1,10 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Tue Feb 20 2007 - 0.4.3
+- Added netboot_enabled option for systems to control install loops in programmatic context.
+- Ongoing ...
+
 * Mon Feb 19 2007 - 0.4.2
 - Fix bug in "cobbler system remove"
 
