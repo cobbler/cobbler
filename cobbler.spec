@@ -25,14 +25,14 @@ Url: http://cobbler.et.redhat.com
 
 %description
 
-Cobbler is a command line tool for configuration of network \
-boot and update servers.  It is also available as a Python \
-library.  Cobbler supports PXE, provisioning virtualized images, \
-and reinstalling machines that are already running (over SSH). \
-The last two modes require a helper tool called 'koan' that \
-integrates with cobbler.  Cobbler's advanced features include \
-importing distributions from rsync mirrors, kickstart templating, \
-integrated yum mirroring, kickstart monitoring, and auto-managing \
+Cobbler is a command line tool for configuration of network
+boot and update servers.  It is also available as a Python
+library.  Cobbler supports PXE, provisioning virtualized images,
+and reinstalling machines that are already running (over SSH).
+The last two modes require a helper tool called 'koan' that
+integrates with cobbler.  Cobbler's advanced features include
+importing distributions from rsync mirrors, kickstart templating,
+integrated yum mirroring, kickstart monitoring, and auto-managing
 dhcpd.conf.
 
 %prep
