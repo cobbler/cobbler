@@ -874,8 +874,8 @@ class BootSync:
         for key in hash:
            value = hash[key]
            if value is None:
-               buffer = buffer + key + " "
+               buffer = buffer + str(key) + " "
            else:
-               buffer = buffer + key + "=" + value + " "
+               buffer = buffer + str(key) + "=" + str(value) + " "
         return buffer
 
