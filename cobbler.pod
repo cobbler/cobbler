@@ -195,13 +195,8 @@ repo seperately.
 
 Here's an example of what looks like a good URL:
 
-rsync://yourmirror.example.com/fedora-linux-core/6/i386 (for rsync protocol)
-user@yourmirror.example.com/fedora-linux-core/6/i386  (for SSH)
-
-These are bad URL's:
-
-rsync://yourmirror.example.com/fedora-linux-core/
-rsync://yourmirror.example.com/fedora-linux-core/6/
+rsync://yourmirror.example.com/fedora-linux-core/updates/6/i386 (for rsync protocol)
+user@yourmirror.example.com/fedora-linux-core/updates/6/i386  (for SSH)
 
 To put it more simply, if the content you are mirroring doesn't contain rpm's
 at the top level of the URL, this is bad, and you need to specify a different value.  Using the
@@ -277,11 +272,17 @@ This example shows how to create a provisioning infrastructure from a distributi
 Then a default PXE configuration is created, so that by default systems will PXE boot into 
 a fully automated install process for that distribution.
 
+You can use a network rsync mirror or a mounted DVD location.
+
 =over
 
 B<cobbler check>
 
 B<cobbler import --mirror=rsync://yourfavoritemirror.com/foo --mirror-name=anyname>
+
+# OR 
+
+B<cobbler import --mirror=root@localhost:/mnt/dvd --mirror-name=anyname>
 
 # wait for mirror to rsync...
 
@@ -439,21 +440,23 @@ Example:  B<cobbler enchant --virt=yes --address=192.168.10.10 --profile=fc6xen>
 
 =head2 IMPORTING TREES
 
-Cobbler can auto-add distributions and profiles from remote sources, whether this is an NFS path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.  Rudimentary support is also provided for importing from a http:// mirror, but rsync works much better and is the recommended route.
+Cobbler can auto-add distributions and profiles from remote sources, whether this is an NFS path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.  
 
 When importing a rsync mirror, cobbler will try to detect the distribution type and automatically assign kickstarts.  By default, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of "cobbler".  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting after cobbler creates the profile.
 
-Usage: B<cobbler import --path=path>
+Note that if you use --path instead of --mirror, no files will actually be copied.  Most of the time, usage of --mirror is preferred, to create a local copy of the files you are importing.  These files are saved automatically in /var/www/cobbler/ks_mirror.
 
-Usage; B<cobbler import --mirror=rsync_url> --mirror-name=<string>>
-
-Example:  B<cobbler import --mirror=rsync://mirror.linux.duke.edu/fedora-linux-core/ --mirror-name=fedora>
+Example:  B<cobbler import --mirror=rsync://mirrorserver.example.com/path/ --mirror-name=fedora>
 
 Example2:  B<cobbler import --mirror=root@192.168.1.10:/stuff --mirror-name=bar>
 
+Example3:  B<cobbler import --mirror=root@localhost:/mnt/dvd --mirror-name=baz>
+
+Example4:  B<cobbler import --path=/path/to/stuff --mirror-name=glorp>
+
 Once imported, run a "cobbler list" or "cobbler report" to see what you've added.
 
-"Cobbler sync" must still be run after an import to get the system ready to provision what was just imported.
+"Cobbler sync" should still be run after an import to get the system ready to provision what was just imported.
 
 By default, the rsync operations will exclude PPC content, debug RPMs, and ISO images -- to change what is excluded during an import, see /etc/cobbler/rsync.exclude.
 

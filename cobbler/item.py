@@ -29,11 +29,11 @@ class Item(serializable.Serializable):
     def set_kernel_options(self,options):
         """
 	Kernel options are a space delimited list,
-	like 'a=b,c=d,e=f' or as a hash.
+	like 'a=b c=d e=f g h i=j' or a hash.
 	"""
-        (success, value) = utils.input_string_or_hash(options," ")
+        (success, value) = utils.input_string_or_hash(options,None)
         if not success:
-            return False
+            raise cexceptions.CobblerException("exc_kopts")
         else:
             self.kernel_options = value
             return True
