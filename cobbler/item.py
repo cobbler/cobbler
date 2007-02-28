@@ -44,7 +44,7 @@ class Item(serializable.Serializable):
         The meta tags are used as input to the templating system
         to preprocess kickstart files
         """
-        (success, value) = utils.input_string_or_hash(options,",")
+        (success, value) = utils.input_string_or_hash(options,None)
         if not success:
             return False
         else:
