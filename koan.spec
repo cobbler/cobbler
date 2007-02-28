@@ -3,13 +3,14 @@
 Summary: Network provisioning tool for Xen and Bare Metal Machines 
 Name: koan
 Version: 0.2.6
-Release: 1%{?dist}
+Release: 2%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
 Requires: mkinitrd
 Requires: syslinux
 Requires: python >= 2.2
+BuildRequires: python-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 ExcludeArch: ppc
@@ -47,6 +48,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING CHANGELOG README NEWS
 
 %changelog
+
+* Wed Feb 28 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.6-2
+- BuildRequires python-devel for FC7
 
 * Thu Jan 24 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.6-1
 - Upstream changes (see CHANGELOG)
