@@ -1,10 +1,11 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Tue Feb 20 2007 - 0.4.3
+* Wed Feb 28 2007 - 0.4.3
 - Added netboot_enabled option for systems to control install loops in programmatic context.
 - Disabling anchors in YAML serialization (which make files harder to edit)
-- Ongoing ...
+- Fix bug in ksmeta argument processing, takes whitespace again, not commas
+- Fix bug in old-style deserialization with str and int concatenation
 
 * Mon Feb 19 2007 - 0.4.2
 - Fix bug in "cobbler system remove"
