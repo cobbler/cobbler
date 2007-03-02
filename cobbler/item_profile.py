@@ -86,11 +86,14 @@ class Profile(item.Item):
     def set_repos(self,repos):
         if type(repos) != list:
             # allow backwards compatibility support of string input
-            repolist = repos.split(" ")
+            repolist = repos.split(None)
         else:
             repolist = repos
         ok = True
-        repolist.remove('')
+	try:
+	    repolist.remove('')
+        except:
+            pass
         for r in repolist:
             if not self.config.repos().find(r):
                 ok = False 

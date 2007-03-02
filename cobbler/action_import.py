@@ -185,7 +185,7 @@ class Importer:
                        tokens = tokens[:-2]
                        base = "/".join(tokens)
                        base = base.replace(self.settings.webdir,"")
-                       tree = "tree=http://%s/%s" % (self.settings.server, base)
+                       tree = "tree=http://%s/cobbler_track/%s" % (self.settings.server, base)
                        print "*** KICKSTART TREE = %s" % tree
                        profile.set_ksmeta(tree)
                        self.serialize_counter = self.serialize_counter + 1
