@@ -1,6 +1,10 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Fri Mar 02 2007 - 0.4.4
+- Fix bug with wrong kickstart metadata being used for import
+- Fix bug with argument parsing for --repos
+
 * Wed Feb 28 2007 - 0.4.3
 - Added netboot_enabled option for systems to control install loops in programmatic context.
 - Disabling anchors in YAML serialization (which make files harder to edit)

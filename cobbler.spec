@@ -2,7 +2,7 @@
 
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.4.3
+Version: 0.4.4
 Release: 0%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -104,6 +104,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
+
+* Fri Mar 02 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.4-0
+- Upstream changes (see CHANGELOG)
 
 * Wed Feb 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.3-0
 - Upstream changes (see CHANGELOG)
