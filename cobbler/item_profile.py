@@ -90,7 +90,7 @@ class Profile(item.Item):
         else:
             repolist = repos
         ok = True
-	try:
+        try:
 	    repolist.remove('')
         except:
             pass
