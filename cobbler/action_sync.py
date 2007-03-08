@@ -464,7 +464,7 @@ class BootSync:
        
         t = Template(source=data, searchList=[metadata])
         data_out = str(t)
-        self.mkdir(os.path.basename(out_path))
+        self.mkdir(os.path.dirname(out_path))
         fd = open(out_path, "w+")
         fd.write(data_out)
         fd.close()
