@@ -22,51 +22,8 @@ import random
 from optparse import OptionParser
 import exceptions
 import errno
-
-XENCONFIGPATH="/etc/xen/"
-XENDOMAINPATH="/var/koan/virt/"
-
-PYTEMPLATE = """
-# Automatically generated xen config file
-name = "%(name)s"
-memory = "%(ram)s"
-disk = [ '%(disktype)s:%(disk)s,xvda,w' ]
-vif = [ 'mac=%(mac)s' ]
-uuid = "%(uuid)s"
-bootloader="/usr/bin/pygrub"
-on_reboot   = 'destroy'
-on_crash    = 'destroy'
-"""
-
-XMLTEMPLATE = """
-<domain type='xen'>
-  <name>%(name)s</name>
-  <os>
-    <type>linux</type>
-    <kernel>%(kernel)s</kernel>
-    <initrd>%(initrd)s</initrd>
-    <root>/dev/xvd</root>
-    <cmdline>ro %(extra)s</cmdline>
-  </os>
-  <memory>%(ramkb)s</memory>
-  <vcpu>1</vcpu>
-  <uuid>%(uuid)s</uuid>
-  <on_reboot>restart</on_reboot>
-  <on_poweroff>destroy</on_poweroff>
-  <on_crash>destroy</on_crash>
-  <devices>
-    <disk type='file'>
-      <source file='%(disk)s'/>
-      <target dev='xvda'/>
-    </disk>
-    <interface type='bridge'>
-      <source bridge='xenbr0'/>
-      <mac address='%(mac)s'/>
-      <script path='/etc/xen/scripts/vif-bridge'/>
-    </interface>
-  </devices>
-</domain>
-"""
+import re
+import virtinst   # NEW!
 
 class VirtCreateException(exceptions.Exception):
     pass
@@ -89,7 +46,8 @@ def randomUUID():
     """
     Generate a random UUID.  Copied from xend/uuid.py
     """
-    return [ random.randint(0, 255) for _ in range(0, 16) ]
+    return [ random.randint(0, 255) for x in range(0, 16) ]
+
 
 def uuidToString(u):
     """
@@ -97,18 +55,6 @@ def uuidToString(u):
     """
     return "-".join(["%02x" * 4, "%02x" * 2, "%02x" * 2, "%02x" * 2,
                      "%02x" * 6]) % tuple(u)
-
-def get_disk(disk,size):
-    """
-    Create a disk image if path does not exist.
-    """
-    if not os.path.exists(disk):
-        fd = os.open(disk, os.O_WRONLY | os.O_CREAT)
-        off = long(size * 1024L * 1024L * 1024L)
-        os.lseek(fd, off, 0)
-        os.write(fd, '\x00')
-        os.close(fd)
-    return disk
 
 def get_uuid(uuid):
     """
@@ -126,115 +72,34 @@ def get_mac(mac):
        return mac
     return randomMAC()
 
-def get_paravirt_install_image(kernel_fn,initrd_fn):
-    """
-    Return a tuple of (kernel_filename, initrd_filename)
-    where the filenames are copies of the kernel and initrd.
-    This must be done because Xen deletes the kernel/initrd pairs
-    that are originally passed in.
-    """
-    try:
-        kernel = open(kernel_fn,"r")
-        initrd = open(initrd_fn,"r")
-    except IOError:
-        raise VirtCreateException("Invalid kernel or initrd location")
-
-    (kfd, kfn) = tempfile.mkstemp(prefix="vmlinuz.", dir="/var/lib/xen")
-    os.write(kfd, kernel.read())
-    os.close(kfd)
-    kernel.close()
-
-    (ifd, ifn) = tempfile.mkstemp(prefix="initrd.img.", dir="/var/lib/xen")
-    os.write(ifd, initrd.read())
-    os.close(ifd)
-    initrd.close()
-
-    return (kfn, ifn)
-
-def writeConfigPy(cfgdict):
-    fd = open("%s%s" %(XENCONFIGPATH, cfgdict['name']), "w+")
-    fd.write(PYTEMPLATE % cfgdict)
-    fd.close()
-
-def writeConfigXml(cfgdict):
-    try:
-        os.makedirs(XENDOMAINPATH)
-    except OSError, (err, msg):
-        if err != errno.EEXIST:
-            raise OSError(err,msg)
-    fd = open("%s%s.xml" % (XENDOMAINPATH,cfgdict['name']), "w+")
-    fd.write(XMLTEMPLATE % cfgdict)
-    fd.close()
 
 def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
                            uuid=None, kernel=None, initrd=None, extra=None):
-    # this app works without libvirt (for auto-kickstart functionality)
-    # but using xen functions will require it...
-    try:
-         import libvirt
-    except:
-         print "Usage of this feature requires installing libvirt-python."
-         print "A version of python >= 2.4 is also required for usage of libvirt-python."
-         print "These items are not required to use koan --replace-self, however."
-
-    (kfn, ifn) = get_paravirt_install_image(kernel, initrd)
-    if stat.S_ISBLK(os.stat(disk)[stat.ST_MODE]):
-        ftype = "phy"
-    else:
-        ftype = "file"
-
-    cfgdict = {
-       'name'  : name,            'ram'      : ram,
-       'ramkb' : int(ram) * 1024, 'disk'     : disk,
-       'mac'   : mac,             'disktype' : ftype,
-       'uuid'  : uuid,            'kernel'   : kfn,
-       'initrd': ifn,             'extra'    : extra
-    }
-    cfgxml = XMLTEMPLATE % cfgdict
-
-    try:
-        conn = libvirt.open(None)
-    except:
-        raise VirtCreateException("libvirt could not connect to Xen")
-    if conn == None:
-        raise VirtCreateException("Unable to connect to hypervisor")
-    dom = conn.createLinux(cfgxml, 0)
-    if dom == None:
-        raise VirtCreateException("Unable to create domain for guest")
-
-    cmd = ["/usr/sbin/xm", "console", "%s" %(dom.ID(),)]
-    child = os.fork()
-    if (not child):
-       os.execvp(cmd[0], cmd)
-       os._exit(1)
-    time.sleep(5)
-    os.unlink(kfn)
-    os.unlink(ifn)
-
-    # FIXME: if the domain doesn't exist now, it almost certainly crashed.
-    # it'd be nice to know that for certain...
-    try:
-        conn.lookupByID(dom.ID())
-    except libvirt.libvirtError:
-        raise VirtCreateException("It appears the installation has crashed")
-
-    writeConfigPy(cfgdict)
-    writeConfigXml(cfgdict)
-
-    try:
-        (pid, status) = os.waitpid(child, 0)
-    except OSError, (errno, msg):
-        raise VirtCreateException("%s waitpid: %s" % (__name__,msg))
-
-    # ensure there's time for the domain to finish destroying if the
-    # install has finished or the guest crashed
-    time.sleep(1)
-    try:
-        conn.lookupByID(dom.ID())
-    except libvirt.libvirtError:
-        return "Reconnect with /usr/sbin/xm create -c %s" % (name)
-    else:
-        return "Reconnect with /usr/sbin/xm console %s" % (name)
 
 
+    if mac == None:
+       mac = randomMAC()
+    macname = mac.replace(":","_")
 
+    guest = virtinst.ParaVirtGuest()
+    guest.set_boot((kernel,initrd))
+    guest.set_extra_args(extra)
+    guest.set_name(macname)   
+    guest.set_memory(ram)
+    guest.set_vcpus(1)            # FIXME!
+    guest.set_graphics(False)
+    if uuid is not None:
+        guest.set_uuid(uuid)
+
+    disk_path = "/var/lib/xen/images/%s" % macname
+    disk_obj = virtinst.XenDisk(disk_path, size=disk)
+
+    nic_obj = virtinst.XenNetworkInterface(macaddr=mac)
+
+    guest.disks.append(disk_obj)
+    guest.nics.append(nic_obj)
+
+    guest.start_install()
+    
+    return "reconnect with xm console %s" % macname 
+     

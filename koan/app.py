@@ -590,8 +590,7 @@ class Koan:
         results = virtcreate.start_paravirt_install(
             name=self.calc_virt_name(pd),
             ram=self.calc_virt_ram(pd),
-            disk= virtcreate.get_disk(self.calc_virt_filename(pd),
-                self.calc_virt_filesize(pd)),
+            disk= self.calc_virt_filesize(pd),
             mac=virtcreate.get_mac(self.calc_virt_mac(pd)),
             uuid=virtcreate.get_uuid(self.calc_virt_uuid(pd)),
             kernel=self.safe_load(dd,'kernel_local'),

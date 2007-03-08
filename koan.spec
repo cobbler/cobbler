@@ -2,8 +2,8 @@
 
 Summary: Network provisioning tool for Xen and Bare Metal Machines 
 Name: koan
-Version: 0.2.6
-Release: 2%{?dist}
+Version: 0.2.7
+Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -48,6 +48,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING CHANGELOG README NEWS
 
 %changelog
+
+* Thu Mar 06 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.6-2
+- Upstream changes (see CHANGELOG)
 
 * Wed Feb 28 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.6-2
 - BuildRequires python-devel for FC7
