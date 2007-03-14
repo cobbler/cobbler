@@ -1,6 +1,6 @@
 Koan CHANGELOG
 
-* Thu Mar 08 2007 Michael DeHaan <mdehaan@redhat.com> - 0.2.7-1
+* Wed Mar 14 2007 Michael DeHaan <mdehaan@redhat.com> - 0.2.7-1
 - Use virtinst for installing Xen
 
 * Thu Jan 24 2007 Michael DeHaan <mdehaan@redhat.com> - 0.2.6-1

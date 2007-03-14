@@ -1,10 +1,10 @@
-#
 # Virtualization installation functions.  
-# Code originated from xenguest-install.
-# Currently somewhat Xen specific, but it goes through libvirt,
-# so this may change later.
+# Currently somewhat Xen/paravirt specific, will evolve later.
 #
-# Copyright 2005-2006  Red Hat, Inc.
+# Copyright 2006-2007 Red Hat, Inc.
+# Michael DeHaan <mdehaan@redhat.com>
+#
+# Original version based on virtguest-install
 # Jeremy Katz <katzj@redhat.com>
 # Option handling added by Andrew Puch <apuch@redhat.com>
 # Simplified for use as library by koan, Michael DeHaan <mdehaan@redhat.com>
@@ -23,7 +23,7 @@ from optparse import OptionParser
 import exceptions
 import errno
 import re
-import virtinst   # NEW!
+import virtinst
 
 class VirtCreateException(exceptions.Exception):
     pass
@@ -79,7 +79,7 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
 
     if mac == None:
        mac = randomMAC()
-    macname = mac.replace(":","_")
+    macname = mac.replace(":","_").upper()
 
     guest = virtinst.ParaVirtGuest()
     guest.set_boot((kernel,initrd))

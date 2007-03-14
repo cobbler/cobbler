@@ -11,7 +11,9 @@ koan --server=<host> --list-profiles
 
 koan --server=<host> --list-systems
 
-koan --virt --server=<host> --profile=<name> [--interactive]
+koan --virt --server=<host> --profile=<name>
+
+koan --virt --server=<host> --system=<name>
 
 koan --replace-self --server=<host> --profile=<name>
 
@@ -21,15 +23,15 @@ koan --replace-self --server=<host> --system=<name>
 
 When invoked, koan requests profile information from a remote boot server that has been configured with cobbler.   What koan does with the profile data depends on whether it was invoked with --virt or --replace-self.
 
-For --virt, cobbler will create new virtualized guests on a machine in accordance to the orders from cobbler.  If you add the --interactive flag, you can watch the kickstart as it happens in an "xm console".   This is helpful for debugging and is highly recommended until you're sure your kickstarts are fully automated.  To exit, use the usual Ctrl + right bracket you use to exit an xm console.
+For --virt, cobbler will create new virtualized guests on a machine in accordance to the orders from cobbler.  You can then, once finished, use "virsh" and "xm" commands on the guest.  Cobbler automatically names domains based on their mac addresses.   
 
-For re-kickstarting ('--replace-self'), this means reprovisioning the system, blowing away any current data and replacing it with the results of a network install.
+For re-kickstarting ('--replace-self'), cobbler will reprovisioning the system, blowing away any current data and replacing it with the results of a network install.
 
 =head1 NOTES FOR USERS OF COBBLER TEMPLATING
 
 Cobbler contains an advanced templating feature that allows a single kickstart file to be customized on a per-system basis.  See the cobbler manpage for more details.
 
-Ordinarily specifying the cobbler profile (--profile) when running koan would be sufficient, though if you are utilizing cobbler's templating features, you might want to provision the system by specifying a cobbler system entry instead.  The arguments to --system would be an ip, such as --system=172.16.57.21 or a MAC, such as --system=00:11:22:AA:BB:CC.  If the cobbler administrator has created any customizations for the system, this way, the koan machine will be sure to get them.  Note, however, that if the cobbler administrator never created an entry for the IP and/or MAC address, this will fail, and you should resort to using the profile name.
+If you have system specific customizations in your kickstarts and have cobbler system definitions defined server side for those systems, use --system and not --profile.
 
 =head1 ADDITIONAL
 
