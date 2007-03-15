@@ -3,31 +3,24 @@ now with 1-5 priority ratings
 
 always:
 2  -  better documentation (particularly online articles)
-2  -  add repo stuff in the manpages
 
 more new thoughts:
-1  -  support repo add taking http:// urls, which will use repotrack/reposync
-3  -  possibly look at pungi, though maybe not if above (^) works well.
-1  -  make enchant work for remote xen installs
+1  -  re-support repo add taking http:// urls, which will use repotrack/reposync
 
 core:
-1 -  turn on locking in production (or think about it) -- important for rsync especially.
 1 -  import over http://, ftp:// in addition to existing file and rsync:// and ssh://
-      NOTE:  possibly allow import via curl (just w/o updates)?
-
-4 -  make "cobbler sync" only change what needs to change, to be more efficient
-     (though is this really a problem?  Copying doesn't take THAT long...)
-4 -  make the "scrub orphans" bit a seperate command, warn by default, with an
-     option for "--delete".  Seperate from "import".   This could probably
-     be a part of "check" to avoid making another command.
+1 -  better support for import from DVD
 5 -  "check" should check if services (esp httpd) are started
 
 user interface:
 5 -  "cobbler add" should be distinguished from "edit" so as to not overwrite
 5 -  GTK (or Web) UI for Cobbler ?
-5 -  PXE menus would be interesting for default behavior.  
-     Set local boot to the timeout default, show all profiles.
-     Depends on how many entries can be added...
+5 -  have -v or --version
+3 -  cobbler system names (indeed, everything) should be case insensitive.
+
+virt:
+1 -  enable more virtualization types in koan
+4  -  (more of a koan item) LVM support
 
 code cleanup:
 5 -  remove the cobbler_msg logic since i18n isn't likely
@@ -36,56 +29,11 @@ ideas:
 5 -  make the multiple-bootloader system more plugin oriented to allow
      for alternative bootloaders (not neccessarily kickstart related)
      to be added.  (Low priority)
-5 -  kickstart success tracking
-     originally I implemented some of this using a CGI based system, though it really would benefit
-     more from a custom webserver (python's HTTP server would be fine) and providing a few more options
-     to integrate with the API.  this would allow tracking of more data w/o having to store it in files, etc,
-     and a bit more opportunity for dynamic stuff.  It also prevents needing to tweak the permissions
-     model used by the serializer, (and some additional SELinux problems).
-5 -  a "--next-profile" option to set the profile after a machine has kickstarted, i.e. to boot locally, etc
-     (useful with PXE-anytime configs, or perhaps PXE configs that just probe HW or do something weird)
- 
-usability comments from list:
-1 * restart Apache a bit less (as that breaks active kickstarts)
-2 * full vs short forms of listing
-2 * sort the lists, don't use hash order which is undefined
-5 * have -v or --version
-2 * way to list just the profile/distro/system names
-4 * cobbler system list in addition to cobbler list system
-     (and why not cobbler add system, then?)
+4 -  someone suggested looking at OMAPI for DHCP management 
 
 small bugs:
-  - cobbler report with a random parameter produces no output
-    that should be an error.
-
-===
-
-better default kickstarts ... from kickstart-list:
-
-%pre
-
-# Determine how many drives we have
-set $(list-harddrives)
-let numd=$#/2
-d1=$1
-d2=$3
-
-if [ $numd -ge 2 ] ; then
-cat << EOF >> /tmp/partinfo
-part pv.01 --size=1 --grow --fstype=ext3 --ondisk=$d1 volgroup volgrp01
-pv.01 part pv.02 --size=1 --grow --fstype=ext3 --ondisk=$d2 volgroup
-volgrp02 pv.02 #HOWEVER_YOU_WANT_TO_PARTITION EOF
-
-else
-
-cat << EOF >> /tmp/partinfo
-part pv.01 --size=1 --grow --fstype=ext3 --ondisk=$d1 volgroup volgrp01
-pv.01 #HOWEVER_YOU_WANT_TO_PARTITION EOF
-
-fi
-
-I then %include the partitioning back up in the command section:
-
-%include /tmp/partinfo 
-
+3  - cobbler report with a random parameter produces no output
+     that should be an error... is that still the case?
+3  - no logrotate or cleanup for /var/log/cobbler (kickstart tracking)
+4  - cobbler import should attach "tree" to distro, not profile
 

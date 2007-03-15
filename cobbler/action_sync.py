@@ -622,6 +622,7 @@ class BootSync:
                 buffer = buffer + "prompt 0\n"
                 buffer = buffer + "timeout 1\n"
                 buffer = buffer + "label linux\n"
+                buffer = buffer + "ipappend 2\n"
             buffer = buffer + "\tkernel %s\n" % kernel_path
         else:
             # elilo thrown in root
