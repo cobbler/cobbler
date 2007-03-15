@@ -9,8 +9,9 @@ more new thoughts:
 
 core:
 1 -  import over http://, ftp:// in addition to existing file and rsync:// and ssh://
-1 -  better support for import from DVD
+1 -  better support for import from DVD (with cleaner imported names)
 5 -  "check" should check if services (esp httpd) are started
+3 -  allow rsync without ssh option
 
 user interface:
 5 -  "cobbler add" should be distinguished from "edit" so as to not overwrite
@@ -29,11 +30,10 @@ ideas:
 5 -  make the multiple-bootloader system more plugin oriented to allow
      for alternative bootloaders (not neccessarily kickstart related)
      to be added.  (Low priority)
-4 -  someone suggested looking at OMAPI for DHCP management 
+4 -  someone suggested looking at OMAPI for DHCP management
 
 small bugs:
 3  - cobbler report with a random parameter produces no output
      that should be an error... is that still the case?
 3  - no logrotate or cleanup for /var/log/cobbler (kickstart tracking)
 4  - cobbler import should attach "tree" to distro, not profile
-
