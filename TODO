@@ -31,9 +31,12 @@ ideas:
      for alternative bootloaders (not neccessarily kickstart related)
      to be added.  (Low priority)
 4 -  someone suggested looking at OMAPI for DHCP management
+1 -  make syslinux config files be template generated also
 
 small bugs:
 3  - cobbler report with a random parameter produces no output
      that should be an error... is that still the case?
 3  - no logrotate or cleanup for /var/log/cobbler (kickstart tracking)
 4  - cobbler import should attach "tree" to distro, not profile
+3  - provide ways to get around max kernel length limits (symlink paths?)
+
