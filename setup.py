@@ -53,6 +53,7 @@ if __name__ == "__main__":
                                 (etcpath,  ['kickstart_fc6_domU.ks']),
                                 (etcpath,  ['default.ks']),
 				(etcpath,  ['dhcp.template']),
+				(etcpath,  ['pxe.template']),
                                 (manpath,  ['cobbler.1.gz']),
                                 (etcpath,  ['rsync.exclude']),
                                 (initpath, ['cobblersyslogd']),

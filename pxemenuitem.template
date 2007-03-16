@@ -1,0 +1,4 @@
+LABEL $profile_name
+        kernel $kernel_path
+        MENU LABEL $profile_name
+        append $kernel_options
