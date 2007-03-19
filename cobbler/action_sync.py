@@ -191,7 +191,7 @@ class BootSync:
             data = fh.read()
             if data.find(self.settings.webdir) != -1:
                 found_webdir = True
-            if data.find("cobbler_track") != -1:
+            if data.find("cblr") != -1:
                 found_track_support = True
             fh.close()
 
@@ -236,6 +236,7 @@ class BootSync:
         # to be accessed over HTTP in addition to PXE.
         AliasMatch ^/cobbler(/.*)?$ "/cobbler_webdir$1"
         AliasMatch ^/cobbler_track(/.*)?$ "/cobbler_webdir$1"
+        AliasMatch ^/cblr(/.*)?$ "/cobbler_webdir$1"
         <Directory "/cobbler_webdir">
             Options Indexes FollowSymLinks
             AllowOverride None
@@ -370,7 +371,7 @@ class BootSync:
                 raise cexceptions.CobblerException(msg,kickstart_path,dest)
 
     def generate_kickstart_signal(self, obj, is_system=False):
-        pattern = "wget http://%s/cobbler_track/watcher.py?%s_%s=%s -b"
+        pattern = "wget http://%s/cblr/watcher.py?%s_%s=%s -b"
         if is_system:
             return pattern % (self.settings.server, "system", "done", obj.name)
         else:
@@ -386,7 +387,7 @@ class BootSync:
             repo = self.repos.find(r)
             if repo is None:
                 continue
-            http_url = "http://%s/cobbler_track/repo_mirror/%s" % (self.settings.server, repo.name)
+            http_url = "http://%s/cblr/repo_mirror/%s" % (self.settings.server, repo.name)
             buf = buf + "repo --name=%s --baseurl=%s\n" % (repo.name, http_url)
         return buf
 
@@ -399,7 +400,7 @@ class BootSync:
             if repo is None: 
                 continue
             if not (repo.local_filename is None) or (repo.local_filename == ""):
-                buf = buf + "wget http://%s/cobbler_track/repo_mirror/%s/config.repo --output-document=/etc/yum.repos.d/%s.repo\n" % (self.settings.server, repo.name, repo.local_filename)    
+                buf = buf + "wget http://%s/cblr/repo_mirror/%s/config.repo --output-document=/etc/yum.repos.d/%s.repo\n" % (self.settings.server, repo.name, repo.local_filename)    
         return buf
 
     def validate_kickstarts_per_system(self):
@@ -451,9 +452,14 @@ class BootSync:
         Take filesystem file kickstart_input, apply metadata using
         Cheetah and save as out_path.
         """
+
+        print "DEBUG: AT: ... ", out_path
+
         if type(data_input) != str:
+           print "DEBUG: from file"
            data = data_input.read()
         else:
+           print "DEBUG: from string"
            data = data_input
 
         # backward support for Cobbler's legacy (and slightly more readable) 
@@ -462,12 +468,19 @@ class BootSync:
 
         data = "#errorCatcher Echo\n" + data
        
+        print "DEBUG: data in = %s" % data
         t = Template(source=data, searchList=[metadata])
         data_out = str(t)
-        self.mkdir(os.path.dirname(out_path))
-        fd = open(out_path, "w+")
-        fd.write(data_out)
-        fd.close()
+        print "DEBUG: data out = %s" % data_out
+        if out_path is not None:
+            print "DEBUG: making: %s" % os.path.dirname(out_path)
+            self.mkdir(os.path.dirname(out_path))
+            fd = open(out_path, "w+")
+            fd.write(data_out)
+            fd.close()
+        else:
+            print "DEBUG: out_path: %s" % out_path
+        return data_out
 
     def build_trees(self):
         """
@@ -558,41 +571,37 @@ class BootSync:
         default = self.systems.find("default")
         if default is not None:
             return
-        # generate the defaults file:
+        
         fname = os.path.join(self.settings.tftpboot, "pxelinux.cfg", "default")
 
-        defaults = open(fname, "w")
-        defaults.write("DEFAULT local\n")
-        defaults.write("PROMPT 1\n")
-        defaults.write("MENU TITLE Cobbler | http://cobbler.et.redhat.com\n")
-        defaults.write("TIMEOUT 200\n")
-        defaults.write("TOTALTIMEOUT 6000\n")
-        defaults.write("ONTIMEOUT local\n")
-        defaults.write("\n")
-        defaults.write("LABEL local\n")
-        defaults.write("\tMENU LABEL (local)\n")
-        defaults.write("\tMENU DEFAULT\n")
-        defaults.write("\tLOCALBOOT 0\n")
-        defaults.write("\n")
+        # read the default template file
+        template_src = open("/etc/cobbler/pxedefault.template")
+        template_data = template_src.read()
 
+        # sort the profiles
         profile_list = [profile for profile in self.profiles]
         def sort_name(a,b):
            return cmp(a.name,b.name)
         profile_list.sort(sort_name)
 
+        # build out the menu entries
+        pxe_menu_items = ""
         for profile in profile_list:
-             
-            defaults.write("LABEL %s\n" % profile.name)
-            # a evil invocation of the pxe file creation tool that only generates bits and pieces
-            # without a filename to write to, and without system interpolation, so it's basically just
-            # bits and pieces relevant to the profile.
             distro = self.distros.find(profile.distro)
             contents = self.write_pxe_file(None,None,profile,distro,False,include_header=False)
             if contents is not None:
-                defaults.write(contents + "\n")
-                defaults.write("\n")
+                pxe_menu_items = pxe_menu_items + contents
+ 
+        # save the template.
+        print "DEBUG: src = %s" % template_data
+        metadata = { "pxe_menu_items" : pxe_menu_items }
+        print "DEBUG: metadata = %s" % metadata
+        outfile = os.path.join(self.settings.tftpboot, "pxelinux.cfg", "default")
+        print "DEBUG: outfile = %s" % outfile
+        self.apply_template(template_data, metadata, outfile)
+        print "** DEBUG: APPLIED **"
+        template_src.close()
 
-        defaults.close()
 
     def write_pxe_file(self,filename,system,profile,distro,is_ia64, include_header=True):
         """
@@ -603,34 +612,32 @@ class BootSync:
         NOTE: relevant to tftp only
         """
 
+        # ---
         # system might have netboot_enabled set to False (see item_system.py), if so, 
         # don't do anything else and flag the error condition.
         if system is not None and not system.netboot_enabled:
             return None
 
+        # ---
+        # just some random variables
+        template = None
+        metadata = {}
         buffer = ""
 
+        # ---
+        # find kernel and initrd
         kernel_path = os.path.join("/images",distro.name,os.path.basename(distro.kernel))
         initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
         kickstart_path = profile.kickstart
-        #fd = self.open_file(filename,"w+")
 
-        if not is_ia64:
-            # pxelinux tree
-            if include_header:
-                buffer = buffer + "default linux\n"
-                buffer = buffer + "prompt 0\n"
-                buffer = buffer + "timeout 1\n"
-                buffer = buffer + "label linux\n"
-                buffer = buffer + "ipappend 2\n"
-            buffer = buffer + "\tkernel %s\n" % kernel_path
+        # ---
+        # choose a template
+        if system is None:
+            template = "/etc/cobbler/pxeprofile.template"
+        elif not is_ia64:
+            template = "/etc/cobbler/pxesystem.template"
         else:
-            # elilo thrown in root
-            buffer = buffer + "image=%s\n" % kernel_path
-            buffer = buffer + "\tlabel=netinstall\n"
-            buffer = buffer + "\tinitrd=%s\n" % initrd_path
-            buffer = buffer + "\tread-only\n"
-            buffer = buffer + "\troot=/dev/ram\n"
+            template = "/etc/cobbler/pxesystem_ia64.template"
 
         # now build the kernel command line
         if system is not None:
@@ -647,23 +654,19 @@ class BootSync:
                 distro.kernel_options
             ))
 
-
-        # the kernel options line is common to elilo and pxelinux
-        append_line = "%s" % self.hash_to_string(kopts)
-
-        # if not ia64, include initrd on this line
-        # for ia64, it's already done
+        # ---
+        # generate the append line
+        append_line = "append %s" % self.hash_to_string(kopts)
         if not is_ia64:
-            append_line = "%s initrd=%s" % (append_line,initrd_path)
+            append_line = "%s initrd=%s" % (append_line, initrd_path)
 
-        # kickstart path (if kickstart is used)
+        # ---
+        # kickstart path rewriting (get URLs for local files)
         if kickstart_path is not None and kickstart_path != "":
 
-            # if kickstart path is on disk, we've already copied it into
-            # the HTTP mirror, so make it something anaconda can get at.
             if system is not None and kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
                 pxe_fn = self.get_pxe_filename(system.name)
-                kickstart_path = "http://%s/cobbler_track/kickstarts_sys/%s/ks.cfg" % (self.settings.server, pxe_fn)
+                kickstart_path = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (self.settings.server, pxe_fn)
             elif kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
                 kickstart_path = "http://%s/cobbler_track/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)
 
@@ -672,21 +675,29 @@ class BootSync:
             elif distro.breed == "suse":
                 append_line = "%s autoyast=%s" % (append_line, kickstart_path)
 
-        # now to add the append line to the file
-        if not is_ia64:
-            if system is None:
-                buffer = buffer + "\tMENU LABEL %s\n" % profile.name
-            # pxelinux.cfg syntax
-            buffer = buffer + "\tappend %s" % append_line
-        else:
-            # elilo.conf syntax
-            buffer = buffer + "\tappend=\"%s\"" % append_line
-         
+        # ---
+        # store variables for templating
+        metadata["menu_label"] = ""
+        if not is_ia64 and system is None:
+            metadata["menu_label"] = "MENU LABEL %s\n" % profile.name
+        metadata["profile_name"] = profile.name
+        metadata["kernel_path"] = kernel_path
+        metadata["initrd_path"] = initrd_path
+        metadata["append_line"] = append_line
+
+        # ---
+        # get the template
+        template_fh = open(template)
+        template_data = template_fh.read()
+        template_fh.close()
+
+        # ---
+        # save file and/or return results, depending on how called.
+        buffer = self.apply_template(template_data, metadata, None)
         if filename is not None:
             fd = self.open_file(filename, "w")
             self.tee(fd, buffer)
             self.close_file(fd)
-
         return buffer
 
 

@@ -1,0 +1,27 @@
+# ******************************************************************
+# Cobbler managed dhcpd.conf file
+#
+# generated from cobbler dhcp.conf template ($date)
+#
+# ******************************************************************
+
+ddns-update-style interim;
+
+allow booting;
+allow bootp;
+
+ignore client-updates;
+set vendorclass = option vendor-class-identifier;
+
+subnet 192.168.1.0 netmask 255.255.255.0 {
+     option routers          192.168.1.5;
+     option subnet-mask      255.255.255.0;
+     range dynamic-bootp     192.168.1.100 192.168.1.254;
+     filename                "/pxelinux.0";
+     default-lease-time      21600;
+     max-lease-time          43200;
+     next-server             $next_server;
+}
+
+$insert_cobbler_system_definitions
+

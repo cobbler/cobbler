@@ -5,8 +5,8 @@ clean:
 	-rm -rf cobbler-* dist build
 
 manpage:
-	pod2man --center="cobbler" --release="" cobbler.pod | gzip -c > cobbler.1.gz
-	pod2html cobbler.pod > cobbler.html
+	pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz
+	pod2html ./docs/cobbler.pod > ./docs/cobbler.html
 
 test:
 	python tests/tests.py

@@ -285,24 +285,18 @@ class BootCLI:
         Import a directory tree and auto-create distros & profiles.
         'cobbler
         """
-        self.temp_path = None
         self.temp_mirror = None
         self.temp_mirror_name = None
         def set_mirror_name(a):
             self.temp_mirror_name = a
         def set_mirror(a):
             self.temp_mirror = a
-        def set_path(a):
-            if os.path.isdir(a):
-                self.temp_path = a
-                return True
-            return False
         def go_import():
-            return self.api.import_tree(self.temp_path,
+            return self.api.import_tree(
                 self.temp_mirror,
                 self.temp_mirror_name)
         commands = {
-            '--path'         : lambda(a): set_path(a),
+            '--path'         : lambda(a): set_mirror(a),
             '--mirror'       : lambda(a): set_mirror(a),
             '--mirror-name'  : lambda(a): set_mirror_name(a),
             '--name'         : lambda(a): set_mirror_name(a)

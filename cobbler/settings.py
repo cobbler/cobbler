@@ -25,10 +25,9 @@ DEFAULTS = {
     "next_server"       : "127.0.0.1",
     "dhcpd_bin"         : "/usr/sbin/dhcpd",
     "kernel_options"    : {
-        "append"        : None,
         "devfs"         : "nomount",
         "ramdisk_size"  : 16438,
-        "lang="         : " ",
+        "lang"          : " ",
         "text"          : None,
         "ksdevice"      : "eth0",
     },

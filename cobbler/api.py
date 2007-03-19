@@ -143,13 +143,12 @@ class BootAPI:
         statusifier = action_status.BootStatusReport(self._config, mode)
         return statusifier.run()
 
-    def import_tree(self,tree_path,mirror_url,mirror_name):
+    def import_tree(self,mirror_url,mirror_name):
         """
         Automatically import a directory tree full of distribution files.
-        Imports either a tree (path) or mirror (ftp/http).
-        Mirror support really doesn't exist yet... TBA.
+        mirror_url can be a string that represents a path, a user@host syntax for SSH, or an rsync:// address
         """
-        importer = action_import.Importer(self, self._config, tree_path, mirror_url, mirror_name)
+        importer = action_import.Importer(self, self._config, mirror_url, mirror_name)
         return importer.run()
 
     def serialize(self):

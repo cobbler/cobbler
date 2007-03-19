@@ -1,12 +1,14 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Fri Mar 02 2007 - 0.4.4
+* Fri Mar 16 2007 - 0.4.4
+- Generate PXE configuration files from templates in /etc/cobbler
 - Fix bug with wrong kickstart metadata being used for import
 - Fix bug with argument parsing for --repos
-- Generate PXE configuration files from editable files:
-  /etc/cobbler/pxe.template, pxemenuitem.template, pxemenu.template
-- Generate PXE menus from /etc/cobbler/pxemenuitem.template
+- Much cleaner distro/profile names with --import
+- For import, the "tree" parameter is now attached to the distro, not the profile
+- Add "links" directory in webdir for symlinking to full kickstart tree paths.
+- Misc tweaks to shorten kernel parameter length
 
 * Wed Feb 28 2007 - 0.4.3
 - Added netboot_enabled option for systems to control install loops in programmatic context.

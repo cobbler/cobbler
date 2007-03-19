@@ -29,6 +29,7 @@ if __name__ == "__main__":
         vw_distros    = "/var/www/cobbler/distros"
         vw_systems    = "/var/www/cobbler/systems"
         vw_profiles   = "/var/www/cobbler/profiles"
+        vw_links      = "/var/www/cobbler/links"
         tftp_cfg      = "/tftpboot/pxelinux.cfg"
         tftp_images   = "/tftpboot/images"
         setup(
@@ -42,21 +43,24 @@ if __name__ == "__main__":
                     "cobbler",
                     "cobbler/yaml" 
                 ],
-                scripts = ["cobbler/cobbler", "cobbler/cobbler_syslogd"],
+                scripts = ["scripts/cobbler", "scripts/cobbler_syslogd"],
                 data_files = [
                                 # (docspath, ['README']),
-                                (wwwpath,  ['watcher.py']),
-                                (cobpath,  ['elilo-3.6-ia64.efi']),
-                                (cobpath,  ['menu.c32']),
-                                (etcpath,  ['kickstart_fc5.ks']),
-                                (etcpath,  ['kickstart_fc6.ks']),
-                                (etcpath,  ['kickstart_fc6_domU.ks']),
-                                (etcpath,  ['default.ks']),
-				(etcpath,  ['dhcp.template']),
-				(etcpath,  ['pxe.template']),
-                                (manpath,  ['cobbler.1.gz']),
-                                (etcpath,  ['rsync.exclude']),
-                                (initpath, ['cobblersyslogd']),
+                                (wwwpath,  ['scripts/watcher.py']),
+                                (cobpath,  ['loaders/elilo-3.6-ia64.efi']),
+                                (cobpath,  ['loaders/menu.c32']),
+                                (etcpath,  ['kickstarts/kickstart_fc5.ks']),
+                                (etcpath,  ['kickstarts/kickstart_fc6.ks']),
+                                (etcpath,  ['kickstarts/kickstart_fc6_domU.ks']),
+                                (etcpath,  ['kickstarts/default.ks']),
+				(etcpath,  ['templates/dhcp.template']),
+				(etcpath,  ['templates/pxedefault.template']),
+				(etcpath,  ['templates/pxesystem.template']),
+				(etcpath,  ['templates/pxesystem_ia64.template']),
+				(etcpath,  ['templates/pxeprofile.template']),
+                                (manpath,  ['docs/cobbler.1.gz']),
+                                (etcpath,  ['templates/rsync.exclude']),
+                                (initpath, ['scripts/cobblersyslogd']),
                                 (logpath,  []),
                                 (logpath2, []),
                                 (logpath3, []),
@@ -69,6 +73,7 @@ if __name__ == "__main__":
                                 (vw_images,         []),
                                 (vw_systems,        []),
                                 (vw_profiles,       []),
+                                (vw_links,          []),
                                 (tftp_cfg,          []),
                                 (tftp_images,       []),
                              ],

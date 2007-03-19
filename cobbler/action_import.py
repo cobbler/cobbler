@@ -1,9 +1,9 @@
 """
-Enables the "cobbler distro import" command to seed cobbler
-information with available distributions.  A minimal (kickstartless)
-profile will also be created with the same name as the distro.
+Enables the "cobbler import" command to seed cobbler
+information with available distribution from rsync mirrors
+and mounted DVDs.  
 
-Copyright 2006, Red Hat, Inc
+Copyright 2006-2007, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This software may be freely redistributed under the terms of the GNU
@@ -22,33 +22,34 @@ import sub_process
 
 import api
 
+WGET_CMD = "wget --mirror --no-parent --no-host-directories --directory-prefix %s/%s %s"
+RSYNC_CMD =  "rsync -a %s %s %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --delete --delete-excluded --progress"
+
 # MATCH_LIST uses path segments of mirror URLs to assign kickstart
 # files.  It's not all that intelligent.
+# patches welcome!
 
-# FIXME: add common FC, RHEL, and Centos path segments
-# it's exceedingly wrong right now and the kickstart file
-# for FC5 is sent everywhere.  That probably WON'T work in most
-# places even though it's a minimalistic kickstart.  This will
-# get patched over time.
 MATCH_LIST = (
+   ( "FC-5/"    , "/etc/cobbler/kickstart_fc5.ks" ),
+   ( "FC-6/"    , "/etc/cobbler/kickstart_fc6.ks" ),
+   ( "RHEL-4/"  , "/etc/cobbler/kickstart_fc5.ks" ),
+   ( "RHEL-5/"  , "/etc/cobbler/kickstart_fc6.ks" ),
+   ( "Centos/4" , "/etc/cobbler/kickstart_fc5.ks" ),
+   ( "Centos/5" , "/etc/cobbler/kickstart_fc6.ks" ),
    ( "1/"       , "/etc/cobbler/kickstart_fc5.ks" ),
    ( "2/"       , "/etc/cobbler/kickstart_fc5.ks" ),
    ( "3/"       , "/etc/cobbler/kickstart_fc5.ks" ),
    ( "4/"       , "/etc/cobbler/kickstart_fc5.ks" ),
    ( "5/"       , "/etc/cobbler/kickstart_fc5.ks" ),
-   ( "FC-5/"    , "/etc/cobbler/kickstart_fc5.ks" ),
-   ( "FC-6/"    , "/etc/cobbler/kickstart_fc6.ks" ),
-   ( "RHEL-4/"  , "/etc/cobbler/kickstart_fc5.ks" ),
-   ( "6/"       , "/etc/cobbler/kickstart_fc5.ks" ),
-   ( "5/"       , "/etc/cobbler/kickstart_fc5.ks" ),
-   ( "Centos/4" , "/etc/cobbler/kickstart_fc5.ks" )
+   ( "6/"       , "/etc/cobbler/kickstart_fc6.ks" ),
 )
 
 # the following is a filter to reduce import scan times,
 # particularly over NFS.  these indicate directory segments
 # that we do not need to recurse into.  In the case where
 # these path segments are important to a certain distro import,
-# it's a bug, and this list needs to be edited.
+# it's a bug, and this list needs to be edited.  please submit
+# patches or reports in this case.
 
 DIRECTORY_SIEVE = [
    "debuginfo", "ppc", "s390x", "s390", "variant-src",
@@ -61,16 +62,11 @@ DIRECTORY_SIEVE = [
    "src-isos", "dvd-isos", "docs", "misc"
 ]
 
-# to keep serialization to a good level, serialize every
-# so many iterations, but not every time.
-
-
 class Importer:
 
-   def __init__(self,api,config,path,mirror,mirror_name):
+   def __init__(self,api,config,mirror,mirror_name):
        self.api = api
        self.config = config
-       self.path = path
        self.mirror = mirror
        self.mirror_name = mirror_name
        self.distros  = config.distros()
@@ -80,91 +76,61 @@ class Importer:
        self.serialize_counter = 0
 
    def run(self):
-       if self.path is None and self.mirror is None:
-           raise cexceptions.CobblerException("import_failed","no path specified")
-       if self.path and not os.path.isdir(self.path):
-           raise cexceptions.CobblerException("import_failed","bad path")
-       if self.mirror is not None:
-           if self.mirror_name is None:
-               raise cexceptions.CobblerException("import_failed","must specify --mirror-name")
-           print "This will take a while..."
-           self.path = "%s/ks_mirror/%s" % (self.settings.webdir, self.mirror_name)
-           try:
-               os.makedirs(self.path)
-           except:
-               if not os.path.exists(self.path):
-                   raise cexceptions.CobblerException("couldn't create: %s" % (self.path))
+       if self.mirror is None:
+           raise cexceptions.CobblerException("import_failed","no mirror specified")
+       if self.mirror_name is None:
+           raise cexceptions.CobblerException("import_failed","no mirror-name specified")
+
+       if self.mirror_name is None:
+           raise cexceptions.CobblerException("import_failed","must specify --mirror-name")
+       
+       # make the output path
+       self.path = "%s/ks_mirror/%s" % (self.settings.webdir, self.mirror_name)
+       self.mkdir(self.path)
+
+       # prevent rsync from creating the directory name twice
+       if not self.mirror.endswith("/"):
+           self.mirror = "%s/" % self.mirror 
+
+       if self.mirror.startswith("http://"):
+           # http mirrors are kind of primative.  rsync is better.
+           self.run_this(WGET_CMD, (self.settings.webdir, self.mirror_name, self.mirror))
+       else:
+           # use rsync.. no SSH for public mirrors and local files.
+           # presence of user@host syntax means use SSH
+           spacer = ""
+           if not self.mirror.startswith("rsync://") and not self.mirror.startswith("/"):
+               spacer = ' -e "ssh" '
+           self.run_this(RSYNC_CMD, (spacer, self.mirror, self.settings.webdir, self.mirror_name))
 
 
-
-           if self.mirror.startswith("http://"):
-               # http mirrors are kind of primative.  rsync is better.  
-               try:
-                   os.makedirs("%s/ks_mirror/%s" % (self.settings.webdir, self.mirror_name))
-               except:
-                   print "- didn't create %s" % self.mirror_name
-               cmd = "wget --mirror --no-parent --no-host-directories --directory-prefix %s/%s %s" % (self.settings.webdir, self.mirror_name, self.mirror)
-               print "- %s" % cmd
-               sub_process.call(cmd,shell=True)
-           else:
-               # use rsync...
-
-               spacer = ""
-               if not self.mirror.startswith("rsync://"):
-                   spacer = ' -e "ssh" '
-               cmd = "rsync -a %s %s %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --delete --delete-excluded --progress" % (spacer, self.mirror, self.settings.webdir, self.mirror_name)
-               print "- %s" % cmd
-               sub_process.call(cmd,shell=True)
+       processed_repos = {}
+       os.path.walk(self.path, self.walker, processed_repos)
+       self.guess_kickstarts()
+       return True
 
 
-       if self.path is not None:
-           processed_repos = {}
-           os.path.walk(self.path, self.walker, processed_repos)
-           self.scrub_orphans()
-           self.guess_kickstarts()
-           return True
-       raise cexceptions.CobblerException("path not specified")
+   def mkdir(self, dir):
+       try:
+           os.makedirs(dir)
+       except:
+           print "- didn't create %s" % dir
 
-   def scrub_orphans(self):
-       """
-       This has nothing to do with parentless children that need baths.
-       first: remove any distros with missing kernel or initrd files
-       second: remove any profiles that depend on distros that don't exist
-       systems will be left as orphans as the MAC info may be useful
-       to the sysadmin and may not be recorded elsewhere.  We will report
-       the orphaned systems.
-       FIXME: this should also be a seperate API command as it's useful elsewhere
-       """
-       print "- Removing orphaned distributions"
-       for distro in self.distros:
-           remove = False
-           if not os.path.exists(distro.kernel):
-               print "- Orphaned distro (no kernel): %s" % distro.name
-               remove = True
-           if not os.path.exists(distro.initrd):
-               print "- Orphaned distro (no initrd): %s" % distro.name
-               remove = True
-           if not remove:
-               continue
-           # cascade removal
-           for profile in self.profiles:
-               if profile.distro == distro.name:
-                   # cascade removal of systems
-                   for system in self.systems:
-                       if system.profile == profile.name:
-                           print "- System removed: %s" % system.name
-                           self.systems.remove(system.name)
-                   print "- Profile removed: %s" % profile.name
-                   self.profiles.remove(profile.name)
-           print "- Distro removed: %s" % distro.name
-           self.distros.remove(distro.name)
+   def run_this(self, cmd, args):
+       my_cmd = cmd % args
+       print "- %s" % my_cmd
+       sub_process.call(my_cmd,shell=True)
 
    def guess_kickstarts(self):
+
        """
        For all of the profiles in the config w/o a kickstart, look
        at the kernel path, from that, see if we can guess the distro,
        and if we can, assign a kickstart if one is available for it.
        """
+       # FIXME: refactor this and make it more intelligent
+       # FIXME: if no distro can be found from the path, find through alternative means.
+
        for profile in self.profiles:
            distro = self.distros.find(profile.distro)
            if distro is None:
@@ -183,11 +149,15 @@ class Importer:
                        print "dirname = %s" % dirname
                        tokens = dirname.split("/")
                        tokens = tokens[:-2]
-                       base = "/".join(tokens)
+                       base = "/".join(tokens) 
+                       dest_link = os.path.join(self.settings.webdir, "links", distro.name)
+                       print "base=%s -> %s to %s" % (base, dest_link)
+                       if not os.path.exists(dest_link):
+                           os.symlink(base, dest_link)                       
                        base = base.replace(self.settings.webdir,"")
-                       tree = "tree=http://%s/cobbler_track/%s" % (self.settings.server, base)
+                       tree = "tree=http://%s/cblr/links/%s" % distro.name
                        print "*** KICKSTART TREE = %s" % tree
-                       profile.set_ksmeta(tree)
+                       distro.set_ksmeta(tree)
                        self.serialize_counter = self.serialize_counter + 1
                        if (self.serialize_counter % 5) == 0:
                            self.api.serialize()
@@ -254,9 +224,21 @@ class Importer:
                self.api.serialize()
 
    def get_proposed_name(self,dirname):
-       name = "_".join(dirname.split("/"))
-       if name.startswith("_"):
+       name = "-".join(dirname.split("/"))
+       if name.startswith("-"):
           name = name[1:]
+       # some of this filtering is a bit excessive though we want to compensate for
+       # finding "tree" vs "image" in the path and so on, and being a little more
+       # aggressive in filtering will reduce path name lengths in all circumstances.
+       # long paths are bad because they are hard to type, look weird, and run up
+       # against the 255 char kernel options limit too quickly.
+       name = name.replace("var-www-cobbler-", "")
+       name = name.replace("ks-mirror-","")
+       name = name.replace("os-images-","")
+       name = name.replace("tree-images-","")
+       name = name.replace("images-","")
+       name = name.replace("tree-","")
+       name = name.replace("--","-")
        return name
 
    def get_pxe_arch(self,dirname):

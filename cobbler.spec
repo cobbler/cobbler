@@ -88,7 +88,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/cobbler/kickstart_fc6.ks
 %config(noreplace) /etc/cobbler/kickstart_fc6_domU.ks
 %config(noreplace) /etc/cobbler/dhcp.template
-%config(noreplace) /etc/cobbler/pxe.template
+%config(noreplace) /etc/cobbler/pxedefault.template
+%config(noreplace) /etc/cobbler/pxeprofile.template
+%config(noreplace) /etc/cobbler/pxesystem.template
 %config(noreplace) /etc/cobbler/rsync.exclude
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/yaml
@@ -106,7 +108,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Fri Mar 02 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.4-0
+* Fri Mar 16 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.4-0
 - Upstream changes (see CHANGELOG)
 
 * Wed Feb 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.3-0
