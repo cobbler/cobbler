@@ -68,6 +68,8 @@ class BootLiteSync:
         self.sync.rmtree(os.path.join(self.settings.webdir, "images", name))
         # delete contents of images/$name in tftpboot
         self.sync.rmtree(os.path.join(self.settings.tftpboot, "images", name))
+        # delete potential symlink to tree in webdir/links
+        self.sync.rmfile(os.path.join(self.settings.webdir, "links", name)) 
 
     def add_single_profile(self, name):
         # get the profile object:

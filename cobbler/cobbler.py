@@ -151,16 +151,23 @@ class BootCLI:
     def report(self,args):
 
         args.append("") # filler
-
+        match = False
         for a in args:
             if a == '--distros' or len(args) == 1:
                 self.distro_report([])
+                match = True
             if a == '--repos' or len(args) == 1:
                 self.repo_report([])
+                match = True
             if a == '--profiles' or len(args) == 1:
                 self.profile_report([])
+                match = True
             if a == '--systems' or len(args) == 1:
                 self.system_report([])
+                match = True
+            if not match and a is not None and a != "":
+                raise cexceptions.CobblerException("unknown_cmd",a)
+            match = False
 
     def system_remove(self,args):
         """

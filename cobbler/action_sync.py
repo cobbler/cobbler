@@ -453,13 +453,10 @@ class BootSync:
         Cheetah and save as out_path.
         """
 
-        print "DEBUG: AT: ... ", out_path
 
         if type(data_input) != str:
-           print "DEBUG: from file"
            data = data_input.read()
         else:
-           print "DEBUG: from string"
            data = data_input
 
         # backward support for Cobbler's legacy (and slightly more readable) 
@@ -468,18 +465,13 @@ class BootSync:
 
         data = "#errorCatcher Echo\n" + data
        
-        print "DEBUG: data in = %s" % data
         t = Template(source=data, searchList=[metadata])
         data_out = str(t)
-        print "DEBUG: data out = %s" % data_out
         if out_path is not None:
-            print "DEBUG: making: %s" % os.path.dirname(out_path)
             self.mkdir(os.path.dirname(out_path))
             fd = open(out_path, "w+")
             fd.write(data_out)
             fd.close()
-        else:
-            print "DEBUG: out_path: %s" % out_path
         return data_out
 
     def build_trees(self):
@@ -590,16 +582,12 @@ class BootSync:
             distro = self.distros.find(profile.distro)
             contents = self.write_pxe_file(None,None,profile,distro,False,include_header=False)
             if contents is not None:
-                pxe_menu_items = pxe_menu_items + contents
+                pxe_menu_items = pxe_menu_items + contents + "\n"
  
         # save the template.
-        print "DEBUG: src = %s" % template_data
         metadata = { "pxe_menu_items" : pxe_menu_items }
-        print "DEBUG: metadata = %s" % metadata
         outfile = os.path.join(self.settings.tftpboot, "pxelinux.cfg", "default")
-        print "DEBUG: outfile = %s" % outfile
         self.apply_template(template_data, metadata, outfile)
-        print "** DEBUG: APPLIED **"
         template_src.close()
 
 
@@ -654,11 +642,14 @@ class BootSync:
                 distro.kernel_options
             ))
 
+
         # ---
         # generate the append line
         append_line = "append %s" % self.hash_to_string(kopts)
         if not is_ia64:
             append_line = "%s initrd=%s" % (append_line, initrd_path)
+        if len(append_line) >= 255 + len("append "):
+            print "warning: kernel option length exceeds 255"
 
         # ---
         # kickstart path rewriting (get URLs for local files)
@@ -679,7 +670,7 @@ class BootSync:
         # store variables for templating
         metadata["menu_label"] = ""
         if not is_ia64 and system is None:
-            metadata["menu_label"] = "MENU LABEL %s\n" % profile.name
+            metadata["menu_label"] = "MENU LABEL %s" % profile.name
         metadata["profile_name"] = profile.name
         metadata["kernel_path"] = kernel_path
         metadata["initrd_path"] = initrd_path

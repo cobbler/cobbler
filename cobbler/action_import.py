@@ -274,6 +274,7 @@ class Importer:
        name = name.replace("images-","")
        name = name.replace("tree-","")
        name = name.replace("--","-")
+       name = name.replace("-pxeboot","")  
        return name
 
    def get_pxe_arch(self,dirname):

@@ -9,19 +9,17 @@ more new thoughts:
 
 core:
 1 -  import over http://, ftp:// in addition to existing file and rsync:// and ssh://
-1 -  better support for import from DVD (with cleaner imported names)
 5 -  "check" should check if services (esp httpd) are started
-3 -  allow rsync without ssh option
 
 user interface:
 5 -  "cobbler add" should be distinguished from "edit" so as to not overwrite
 5 -  GTK (or Web) UI for Cobbler ?
 5 -  have -v or --version
-3 -  cobbler system names (indeed, everything) should be case insensitive.
 
-virt:
+koan items:
 1 -  enable more virtualization types in koan
-4  -  (more of a koan item) LVM support
+4  - LVM support
+1  - hwvirt
 
 code cleanup:
 5 -  remove the cobbler_msg logic since i18n isn't likely
@@ -31,12 +29,8 @@ ideas:
      for alternative bootloaders (not neccessarily kickstart related)
      to be added.  (Low priority)
 4 -  someone suggested looking at OMAPI for DHCP management
-1 -  make syslinux config files be template generated also
 
 small bugs:
-3  - cobbler report with a random parameter produces no output
-     that should be an error... is that still the case?
 3  - no logrotate or cleanup for /var/log/cobbler (kickstart tracking)
-4  - cobbler import should attach "tree" to distro, not profile
-3  - provide ways to get around max kernel length limits (symlink paths?)
+3  - add warning if kernel arg length is exceeded
 

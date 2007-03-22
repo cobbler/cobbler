@@ -56,10 +56,11 @@ class Collection(serializable.Serializable):
         Return anything named 'name' in the collection, else return None if
         no objects can be found.
         """
-        if name in self.listing.keys():
-            return self.listing[name]
+        n1 = name.lower()
+        for key in self.listing.keys():
+            if key.lower() == n1:
+                return self.listing[name]
         return None
-
 
     def to_datastruct(self):
         """
