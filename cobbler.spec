@@ -77,6 +77,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cobbler/distros
 %dir /var/www/cobbler/profiles
 %dir /var/www/cobbler/systems
+%dir /var/www/cobbler/links
 %defattr(-,root,root)
 %dir /tftpboot/pxelinux.cfg
 %dir /tftpboot/images
