@@ -5,6 +5,7 @@ include templates/dhcp.template
 include templates/pxeprofile.template
 include templates/pxedefault.template
 include templates/pxesystem.template
+include templates/pxesystem_ia64.template
 include kickstarts/kickstart_fc5.ks
 include kickstarts/kickstart_fc6.ks
 include kickstarts/kickstart_fc6_domU.ks
