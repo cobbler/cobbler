@@ -25,7 +25,7 @@ def outputfilter(filter):
     logfile = open("/var/log/cobbler/kicklog/%s" % address,"a+")
 
     log_it = True
-    if request.the_request.find("cobbler_track") == -1 and request.the_request.find("ctr/") == -1":
+    if request.the_request.find("cobbler_track") == -1 and request.the_request.find("cblr/") == -1:
         log_it = False
 
     if log_it:

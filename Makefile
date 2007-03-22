@@ -1,6 +1,7 @@
 all: rpm
 
 clean:
+	-rm -f pod2htm*.tmp
 	-rm -f cobbler*.gz cobbler*.rpm MANIFEST
 	-rm -rf cobbler-* dist build
 
