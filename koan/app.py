@@ -27,7 +27,6 @@ import time
 import shutil
 import errno
 import re
-import virtcreate
 
 """
 koan --virt [--profile=webserver|--system=name] --server=hostname
@@ -98,9 +97,6 @@ def main():
     except InfoException, ie:
         print str(ie)
         return 1
-    except virtcreate.VirtCreateException, xce:
-        print str(xce)
-        return 2
     except:
         traceback.print_exc()
         return 3
@@ -586,6 +582,11 @@ class Koan:
 
         # parser issues?  lang needs a trailing = and somehow doesn't have it.
         kextra = kextra.replace("lang ","lang= ")
+
+        try:
+            import virtcreate
+        except:
+            print "no virtualization support available, install python-virtinst?"
 
         results = virtcreate.start_paravirt_install(
             name=self.calc_virt_name(pd),
