@@ -2,8 +2,8 @@
 
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.4.4
-Release: 0%{?dist}
+Version: 0.4.5
+Release: 3%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -64,7 +64,7 @@ fi
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %files
-%defattr(-,apache,apache)
+%defattr(2755,apache,apache)
 %dir /var/log/cobbler
 %dir /var/log/cobbler/kicklog
 %dir /var/www/cobbler/
@@ -78,6 +78,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cobbler/profiles
 %dir /var/www/cobbler/systems
 %dir /var/www/cobbler/links
+/var/www/cobbler/watcher.py*
 %defattr(-,root,root)
 %dir /tftpboot/pxelinux.cfg
 %dir /tftpboot/images
@@ -102,13 +103,16 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/lib/cobbler/menu.c32
-/var/www/cobbler/watcher.py*
 /etc/init.d/cobblersyslogd
 %dir /var/log/cobbler/syslog
 
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
+
+* Fri Mar 23 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.5-3
+- Upstream changes (see CHANGELOG)
+- Fix sticky bit on /var/www/cobbler files
 
 * Fri Mar 23 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.4-0
 - Upstream changes (see CHANGELOG)

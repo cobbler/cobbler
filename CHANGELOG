@@ -1,6 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Fri Mar 23 2007 - 0.4.5
+- Removed legacy --virt-name parameter, requires koan upgrade to 0.2.8
+
 * Fri Mar 23 2007 - 0.4.4
 - Generate PXE configuration files from templates in /etc/cobbler to be more customizable
 - Fix bug with wrong kickstart metadata being used for import

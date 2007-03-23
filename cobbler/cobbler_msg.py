@@ -26,7 +26,7 @@ cobbler distro add --name=<string> --kernel=<path> --initrd=<path>
 
 cobbler profile add --name=<string> --distro=<string>
     [--kick-start=<url>] [--kopts=<string>] [--ksmeta=<string>]
-    [--virt-name=<string>] [--virt-file-size=<gigabytes>]
+    [--virt-file-size=<gigabytes>]
     [--virt-ram=<megabytes>]
 
 cobbler system add --name=<ip│mac│hostname|default> --profile=<string>

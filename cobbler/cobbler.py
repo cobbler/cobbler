@@ -341,11 +341,7 @@ class BootCLI:
             '--kick-start'      :  lambda(a) : profile.set_kickstart(a),
             '--answers'         :  lambda(a) : profile.set_kickstart(a),
             '--kopts'           :  lambda(a) : profile.set_kernel_options(a),
-            '--xen-name'        :  lambda(a) : profile.set_virt_name(a),
-            '--virt-name'       :  lambda(a) : profile.set_virt_name(a),
-            '--xen-file-size'   :  lambda(a) : profile.set_virt_file_size(a),
             '--virt-file-size'  :  lambda(a) : profile.set_virt_file_size(a),
-            '--xen-ram'         :  lambda(a) : profile.set_virt_ram(a),
             '--virt-ram'        :  lambda(a) : profile.set_virt_ram(a),
             '--ksmeta'          :  lambda(a) : profile.set_ksmeta(a),
             '--repos'           :  lambda(a) : profile.set_repos(a)

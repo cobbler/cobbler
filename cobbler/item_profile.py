@@ -35,7 +35,6 @@ class Profile(item.Item):
         self.kickstart = self.settings.default_kickstart
         self.kernel_options = {}
         self.ks_meta = {} 
-        self.virt_name = 'virtguest'
         self.virt_file_size = 5    # GB.  5 = Decent _minimum_ default for FC5.
         self.virt_ram = 512        # MB.  Install with 256 not likely to pass
         self.virt_paravirt = True  # hvm support is *NOT* in Koan (now)
@@ -58,9 +57,6 @@ class Profile(item.Item):
             self.set_repos(self.repos)
 
         # virt specific 
-        self.virt_name       = self.load_item(seed_data,'virt_name')
-        if not self.virt_name or self.virt_name == '':
-            self.virt_name    = self.name
         self.virt_ram        = self.load_item(seed_data,'virt_ram')
         self.virt_file_size  = self.load_item(seed_data,'virt_file_size')
         self.virt_paravirt   = self.load_item(seed_data,'virt_paravirt')
@@ -113,22 +109,6 @@ class Profile(item.Item):
             return True
         raise cexceptions.CobblerException("no_kickstart")
 
-    def set_virt_name(self,str):
-        """
-	For Virt only.
-	Specifies what virt install should use for --name.
-        virt install may do conflict resolution, so this is mostly
-        a hint...  To keep the shell happy, the 'str' cannot
-	contain wildcards or slashes and may be subject to some other
-        untainting later.
-	"""
-        # no slashes or wildcards
-        for bad in [ '/', '*', '?' ]:
-            if str.find(bad) != -1:
-                raise cexceptions.CobblerException("exc_virt_name")
-        self.virt_name = str
-        return True
-    
     def set_virt_file_size(self,num):
         """
 	For Virt only.
@@ -209,7 +189,6 @@ class Profile(item.Item):
             'distro'           : self.distro,
             'kickstart'        : self.kickstart,
             'kernel_options'   : self.kernel_options,
-            'virt_name'        : self.virt_name,
             'virt_file_size'   : self.virt_file_size,
             'virt_ram'         : self.virt_ram,
             'virt_paravirt'    : self.virt_paravirt,
@@ -226,7 +205,6 @@ class Profile(item.Item):
         buf = buf + "kickstart       : %s\n" % self.kickstart
         buf = buf + "kernel options  : %s\n" % self.kernel_options
         buf = buf + "ks metadata     : %s\n" % self.ks_meta
-        buf = buf + "virt name       : %s\n" % self.virt_name
         buf = buf + "virt file size  : %s\n" % self.virt_file_size
         buf = buf + "virt ram        : %s\n" % self.virt_ram
         buf = buf + "virt paravirt   : %s\n" % self.virt_paravirt

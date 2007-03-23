@@ -102,7 +102,7 @@ distro breed, is the value used for --kickstart when creating the profile.  See 
 
 A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.  A profile might represent, for instance, a web server or desktop configuration.
 
-B<cobbler profile add --name=string --distro=string [--kickstart=url] [--kopts=string] [--ksmeta=string] [--virt-name=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes]>
+B<cobbler profile add --name=string --distro=string [--kickstart=url] [--kopts=string] [--ksmeta=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes]>
 
 =over
 
@@ -123,11 +123,6 @@ the name of a previously defined cobbler distribution
 If this parameter is not provided, the kickstart file will default to /etc/cobbler/default.ks (or whatever is set in /var/lib/cobbler/settings).  This file is initially blank, meaning default kickstarts are not automated.  Admins can change the default.ks or can leave it blank.
 
 Note:  For other breeds of distros (see --breed argument to "distro add") that do not use "kickstarts", the kickstart in this case is just the distro specific answer file (such as an AutoYAST file).  koan doesn't work for those other distros (like SuSE), but cobbler should be perfectly usable as a stand-alone solution for automated multi-distro-breed PXE control.
-
-=item virt-name
-
-(optional) (Virt-only) what the Virt guest name should start with.  Creating
-multiple images on a machine will cause increasing numbers to be appended to this name.  The default is "virtguest".
 
 =item virt-file-size
 
