@@ -1,9 +1,6 @@
 =head1 NAME
 
-koan stands for "kickstart-over-a-network" and allows for both
-network provisioning of new virtualized guests and destructive provisioning of
-any existing system.  For use with a boot-server configured with
-'cobbler'.
+koan stands for "kickstart-over-a-network" and allows for both network provisioning of new virtualized guests and destructive provisioning of any existing system.  For use with a boot-server configured with 'cobbler'.
 
 =head1 SYNOPSIS
 

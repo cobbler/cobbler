@@ -4,7 +4,7 @@ koan = kickstart over a network
 a tool for network provisioning of virtualization and network re-provisioning
 of existing Linux systems.  used with 'cobbler'. see manpage for usage.
 
-Copyright 2006 Red Hat, Inc.
+Copyright 2006-2007 Red Hat, Inc.
 Michael DeHaan <mdehaan@redhat.com>
 
 This software may be freely redistributed under the terms of the GNU
@@ -27,6 +27,7 @@ import time
 import shutil
 import errno
 import re
+import sys
 
 """
 koan --virt [--profile=webserver|--system=name] --server=hostname
@@ -587,9 +588,9 @@ class Koan:
             import virtcreate
         except:
             print "no virtualization support available, install python-virtinst?"
+            sys.exit(1)
 
         results = virtcreate.start_paravirt_install(
-            name=self.calc_virt_name(pd),
             ram=self.calc_virt_ram(pd),
             disk= self.calc_virt_filesize(pd),
             mac=virtcreate.get_mac(self.calc_virt_mac(pd)),
@@ -601,44 +602,10 @@ class Koan:
         )
         print results
 
-    def calc_virt_name(self,data):
-        """
-        Turn the suggested name into a non-conflicting name.
-        Currently this is Xen specific, may change later.
-        """
-        # FIXME: number incrementing needs to mod with vircreate bits
-        name = self.safe_load(data,'virt_name','xen_name')
-        if name is None or name == "":
-            name = self.profile
-        path = "/etc/xen/%s" % name
-        file_id = 0
-        if os.path.exists(path):
-            for fid in xrange(1,9999):
-                path = "/etc/xen/%s_%s" % (name, fid)
-                if not os.path.exists(path):
-                    file_id = fid
-                    break
-        if file_id != 0:
-            name = "%s_%s" % (name,file_id)
-        data['virt_name'] = name
-        return name
-
     def calc_virt_uuid(self,data):
         # TODO: eventually we may want to allow some koan CLI
         # option for passing in the UUID.  Until then, it's random.
         return None
-
-    def calc_virt_filename(self,data):
-        """
-        Determine where to store the virtualization file.
-        """
-        if not os.path.exists("/var/lib/xen/images"):
-             try:
-                 os.makedirs("/var/lib/xen/images")
-             except:
-                 pass
-        vname = self.safe_load(data,'virt_name','xen_name')
-        return os.path.join("/var/lib/xen/images","%s.disk" % vname)
 
     def calc_virt_filesize(self,data):
         """

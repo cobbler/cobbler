@@ -2,7 +2,7 @@
 
 Summary: Network provisioning tool for Xen and Bare Metal Machines 
 Name: koan
-Version: 0.2.7
+Version: 0.2.8
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -49,6 +49,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
+* Fri Mar 23 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.8-1
+- Upstream changes (see CHANGELOG)
+
 * Wed Mar 08 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.7-1
 - Upstream changes (see CHANGELOG)
 
@@ -87,7 +90,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 - Excluding PPC since syslinux (gethostip) isn't available for ppc
 
 * Thu Sep 21 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-8
-- Added doc files to %doc, removed INSTALLED_FILES code
+- Added doc files to %%doc, removed INSTALLED_FILES code
 
 * Wed Sep 20 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-7
 - Upstream updates

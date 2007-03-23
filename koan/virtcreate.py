@@ -73,7 +73,7 @@ def get_mac(mac):
     return randomMAC()
 
 
-def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
+def start_paravirt_install(ram=None, disk=None, mac=None,
                            uuid=None, kernel=None, initrd=None, extra=None):
 
 
