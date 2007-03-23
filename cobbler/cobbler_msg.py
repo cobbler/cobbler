@@ -35,7 +35,7 @@ cobbler system add --name=<ip│mac│hostname|default> --profile=<string>
 
 cobbler import --name=<string> --mirror=rsync://<address>
 cobbler import --name=<string> --mirror=user@address:/path
-cobbler import --path=<path>
+cobbler import --name=<string> --mirror=<path>
 
 cobbler repo add --name=<string> --mirror=rsync://<address> [--local-file=name]
 cobbler repo add --name=<string> --mirror=user@address:/path [--local-file=name]

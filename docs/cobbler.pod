@@ -269,10 +269,13 @@ run after systems are added to regenerate and reload the DHCP configuration.
 =head2 IMPORT WORKFLOW
 
 This example shows how to create a provisioning infrastructure from a distribution mirror.
-Then a default PXE configuration is created, so that by default systems will PXE boot into 
-a fully automated install process for that distribution.
 
-You can use a network rsync mirror or a mounted DVD location.
+You can use a network rsync mirror or a mounted DVD location.  Most folks will want
+to use the DVD.
+
+The result is a cobbler server, already set up with a network accessible mirror of content
+and fully automatic kickstarts.  You might want to tweak the results later, but this is an
+excellent way to start off after installing cobbler.
 
 =over
 
@@ -288,11 +291,9 @@ B<cobbler import --mirror=/mnt/dvd --mirror-name=anyname>
 
 B<cobbler report>
 
-B<cobbler system add --name=default --profile=name_of_a_profile1>
+# and if you like, add some systems records ...
 
 B<cobbler system add --name=AA:BB:CC:DD:EE:FF --profile=name_of_a_profile2>
-
-B<cobbler sync>
 
 =back
 
@@ -456,22 +457,15 @@ By default, the rsync operations will exclude PPC content, debug RPMs, and ISO i
 
 =head2 DEFAULT PXE BOOT BEHAVIOR
 
-What happens when PXE booting a system when cobbler has no record
-of the system being booted?
-
-By default, cobbler will configure PXE to boot to the contents of
-/etc/cobbler/default.pxe, which (if unmodified) will just fall through
-to the local boot process.  Administrators can modify this file if they
-like to change that behavior.
-
-An easy way to specify a default cobbler profile to PXE boot is to
-create a system named "default".  This will cause /etc/cobbler/default.pxe
-to be ignored.  To restore the previous behavior do a "cobbler system remove"
-on the "default" system.
+If one wants to boot to a specific profile rather than using PXE menus, that's possible...
 
 B<cobbler system add --name=default --profile=boot_this>
 
+To go back to the PXE menu behavior:
+
 B<cobbler system remove --name=default>
+
+B<cobbler sync>
 
 =head2 REPO MANAGEMENT
 
@@ -508,11 +502,11 @@ Using the status command will show when cobbler thinks a machine started kicksta
 This is a good way to track machines that may have gone interactive during kickstarts.  Cobbler will also make a special
 request in the post section of the kickstart to signal when a machine is finished kickstarting.
 
-To use this feature, the kickstart tree files need to be served via a http://server/cobbler_track/... URL, which happens
-automatically when using the "cobbler import" command to pull in a kickstart tree from an rsync mirror.
+To use this feature, the kickstart tree files need to be served via a http://server/cblr/... URL, which happens
+automatically when using the "cobbler import" command to pull in a kickstart tree from a DVD or rsync mirror.
 
 If kickstart trees are somewhere else, one can still benefit from the kickstart tracking feature by adding a symlink to 
-/var/www/cobbler/localmirror/distroname will allow the kickstarts to be served through the tracking URL mentioned above.   Be sure to use the http://server/cobbler_track/ URL to point to the kickstart tree for each distro you want to track.
+/var/www/cobbler/localmirror/distroname will allow the kickstarts to be served through the tracking URL mentioned above.   Be sure to use the http://server/cblr/ URL to point to the kickstart tree for each distro you want to track.
 
 =head2 TWEAKING
 

@@ -79,7 +79,10 @@ class Importer:
 
        os.path.walk(self.path, self.walker, None)
 
-       self.guess_kickstarts()
+       self.guess_kickstarts() 
+ 
+       self.api.sync()
+
        return True
 
    # ----------------------------------------------------------------------
