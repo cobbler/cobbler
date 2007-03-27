@@ -4,10 +4,8 @@ now with 1-5 priority ratings
 always:
 2  -  better documentation (particularly online articles)
 
-more new thoughts:
-1  -  re-support repo add taking http:// urls, which will use repotrack/reposync
-
 core:
+1  -  re-support repo add taking http:// urls, which will use repotrack/reposync
 1 -  import over http://, ftp:// in addition to existing file and rsync:// and ssh://
 5 -  "check" should check if services (esp httpd) are started
 
@@ -29,8 +27,12 @@ ideas:
      for alternative bootloaders (not neccessarily kickstart related)
      to be added.  (Low priority)
 4 -  someone suggested looking at OMAPI for DHCP management
+3 -  explore use cases for pykickstart "plugin" concept
+5 -  mDNS discovery of server from koan
+1 -  (stateless) scripts triggered on profile/system/distro add
+1 -  (stateless) support for diskless object w/o dummy profile/distro
 
 small bugs:
 3  - no logrotate or cleanup for /var/log/cobbler (kickstart tracking)
 3  - add warning if kernel arg length is exceeded
-
+3  - relax detection of kernel/initrd to accept any file
