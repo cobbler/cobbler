@@ -22,10 +22,7 @@ def main():
     port     = settings.syslog_port
 
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.bind((socket.gethostname(), port))
-    except: 
-        s.bind("127.0.0.1", port))
+    s.bind(("0.0.0.0", port))
 
     buf = 1024
 
