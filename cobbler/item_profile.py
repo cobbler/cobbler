@@ -95,7 +95,7 @@ class Profile(item.Item):
                 ok = False 
                 break
         if ok:
-            self.repos = repos
+            self.repos = repolist
         else:
             raise cexceptions.CobblerException("no_repos")
 
