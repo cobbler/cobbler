@@ -5,7 +5,8 @@
 **/debug/**
 **/ppc/**
 **/source/**
-**/iso/**
+**/SRPMS/**
+**/*.iso
 **/openoffice.org-langpack**
 **/kde-i18n**
 **/SPRMS/**

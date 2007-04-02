@@ -140,7 +140,7 @@ class Importer:
                            if results is None:
                                continue
                            (flavor, major, minor) = results
-                           print "- determining best kickstart for %s %s.%s" % (flavor, major, minor)          
+                           print "- determining best kickstart for %s %s" % (flavor, major)          
                            kickstart = self.set_kickstart(profile, flavor, major, minor)
                            print "- kickstart=%s" % kickstart
                            self.configure_tree_location(distro)
@@ -178,13 +178,43 @@ class Importer:
    # ---------------------------------------------------------------------
 
    def scan_rpm_filename(self, rpm):
+       """
+       Determine what the distro is based on the release RPM filename.
+       """
+
        rpm = os.path.basename(rpm)
+
+       # if it looks like a RHEL RPM we'll cheat.
+       # it may be slightly wrong, but it will be close enough
+       # for RHEL5 we can get it exactly.
+       
+       for x in [ "4AS", "4ES", "4WS" ]:
+          if rpm.find(x) != -1:
+             return ("redhat", 4, 0)
+       for x in [ "3AS", "3ES", "3WS" ]:
+          if rpm.find(x) != -1:
+             return ("redhat", 3, 0)
+       for x in [ "2AS", "2ES", "2WS" ]:
+          if rpm.find(x) != -1:
+             return ("redhat", 2, 0)
+
+       print "- scanning rpm: %s" % rpm
        (first, rest) = rpm.split("-release-")
        flavor = first.lower()
-       (major, rest) = rest.split("-",1)
-       (minor, rest) = rest.split(".",1)
-       major = int(major)
-       minor = int(minor)
+       
+       # if there's still a hypen in the filename, get the trailing part.
+       rdx = rest.find("-")
+       if rdx != -1:
+          rest = rest[rdx+1:]
+
+       # if there's still a hypen in the filename, get the beginning part
+       rdx = rest.rfind("-")
+       if rdx != -1:
+          rest = rest[:rdx-1]
+
+       tokens = rest.split(".")
+       major = float(tokens[0])
+       minor = float(tokens[1])
        return (flavor, major, minor)
 
    # ----------------------------------------------------------------------
