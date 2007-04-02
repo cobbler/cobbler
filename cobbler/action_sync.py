@@ -655,7 +655,7 @@ class BootSync:
         # kickstart path rewriting (get URLs for local files)
         if kickstart_path is not None and kickstart_path != "":
 
-            if system is not None and kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
+            if system is not None and kickstart_path.startswith("/"):
                 pxe_fn = self.get_pxe_filename(system.name)
                 kickstart_path = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (self.settings.server, pxe_fn)
             elif kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
