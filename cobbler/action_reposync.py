@@ -2,7 +2,7 @@
 Builds out and synchronizes yum repo mirrors.
 Initial support for rsync, perhaps reposync coming later.
 
-Copyright 2006, Red Hat, Inc
+Copyright 2006-2007, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This software may be freely redistributed under the terms of the GNU
@@ -55,18 +55,53 @@ class RepoSync:
             repo_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
             mirror = repo.mirror
             if not os.path.isdir(repo_path):
-                try:
-                    os.makedirs(repo_path)
-                except OSError, oe:
-                    if not oe.errno == 17: # already exists, constant for this?
-                        raise cexceptions.CobblerException("no_create", repo_path)
-            self.do_rsync_repo(repo)
+                os.makedirs(repo_path)
+            # if path contains http:// or ftp://, use with yum's reposync.
+            # else do rsync
+            if mirror.lower().find("http://") != -1 or mirror.lower().find("ftp://") != -1:
+                self.do_reposync(repo)
+            else:
+                self.do_rsync(repo)
 
         return True
-   
-    def do_rsync_repo(self,repo):
+  
+    def do_reposync(self,repo):
+
+        """
+        Handle copying of http:// and ftp:// repos.
+        FIXME: support for mirrorlist?
+        """
+
         if not repo.keep_updated:
-            print "- %s is set to not be updated"
+            print "- %s is set to not be updated" % repo.name
+            return True
+
+        # create yum config file for use by reposync
+        store_path = os.path.join(self.settings.webdir, "repo_mirror")
+        dest_path = os.path.join(store_path, repo.name)
+        temp_path = os.path.join(store_path, ".origin")
+        if not os.path.isdir(temp_path):
+            os.makedirs(temp_path)
+        temp_file = self.create_local_file(repo, temp_path, output=False)
+ 
+        cmd = "/usr/bin/reposync --config=%s --repoid=%s --tempcache --download_path=%s" % (temp_file, repo.name, store_path)
+        print "- %s" % cmd
+        rc = sub_process.call(cmd, shell=True)
+        if rc !=0:
+            raise cexceptions.CobblerException("cobbler reposync failed")
+        arg = None
+        os.path.walk(dest_path, self.createrepo_walker, arg)
+
+        self.create_local_file(repo, dest_path)
+ 
+    def do_rsync(self,repo):
+
+        """
+        Handle copying of rsync:// and rsync-over-ssh repos.
+        """
+
+        if not repo.keep_updated:
+            print "- %s is set to not be updated" % repo.name
             return True
         dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
         spacer = ""
@@ -75,30 +110,46 @@ class RepoSync:
         if not repo.mirror.endswith("/"):
             repo.mirror = "%s/" % repo.mirror
         cmd = "rsync -av %s --delete --delete-excluded --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)       
-        print "executing: %s" % cmd
+        print "- %s" % cmd
         rc = sub_process.call(cmd, shell=True)
+        if rc !=0:
+            raise cexceptions.CobblerException("cobbler reposync failed")
         arg = {}
         print "- walking: %s" % dest_path
         os.path.walk(dest_path, self.createrepo_walker, arg)
-        if repo.local_filename is not None and repo.local_filename != "":
-            # this is a rather primative configuration in terms of yum options, but allows
-            # for repos that were added with a value for --local-filename to provision a system
-            # using a kickstart that will write the yum config for that repo (named whatever
-            # was used for local_filename) in /etc/yum.repos.d ... see code in action_sync.py
-            # that relies on this and for more info about how this is added to %post kickstart
-            # templating.
-            config_file = open(os.path.join(dest_path,"config.repo"),"w+")
-            config_file.write("[%s]\n" % repo.local_filename)
+        self.create_local_file(repo, dest_path)
+
+    def create_local_file(self, repo, dest_path, output=True):
+        """
+        Two uses:
+        (A) Create local files that can be used with yum on provisioned clients to make use of thisi mirror.
+        (B) Create a temporary file for yum to feed into reposync
+        """
+
+        if output:
+            fname = os.path.join(dest_path,"config.repo")
+        else:
+            fname = os.path.join(dest_path, "%s.repo" % repo.name)
+        print "- creating: %s" % fname
+        config_file = open(fname, "w+")
+        config_file.write("[%s]\n" % repo.name)
+        config_file.write("name=%s\n" % repo.name)
+        if output:
             config_file.write("baseurl=http://%s/cobbler/repo_mirror/%s\n" % (self.settings.server, repo.name))
-            config_file.write("enabled=1\n")
-            config_file.write("gpgcheck=0\n")
-            config_file.close()
-        
+        else:
+            config_file.write("baseurl=%s\n" % repo.mirror)
+        config_file.write("enabled=1\n")
+        config_file.write("gpgcheck=0\n")
+        config_file.close()
+        return fname 
 
     def createrepo_walker(self, arg, dirname, fname):
+        """
+        Used to run createrepo on a copied mirror.
+        """
         target_dir = os.path.dirname(dirname).split("/")[-1]
         print "- scanning: %s" % target_dir
-        if target_dir.lower() in [ "i386", "x86_64", "ia64" ]:
+        if target_dir.lower() in [ "i386", "x86_64", "ia64" ] or (arg is None):
             try:
                 cmd = "createrepo %s" % dirname
                 print cmd
