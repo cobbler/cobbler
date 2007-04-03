@@ -2,10 +2,10 @@ Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
 * Mon Apr 02 2007 - 0.4.6
-- Bugfix: Bind cobbler_syslogd to all addresses
-- Bugfix: Store repos as list, not string
-- Bugfix: Fix traceback in cobbler_sync with older configurations (pre-kickstart tracking)
-- Bugfix: Make cobbler import feature better understand older RHEL and in-between builds of Fedora.
+- Bind cobbler_syslogd to all addresses
+- Store repos as list, not string
+- Fix traceback in cobbler_sync with older configurations (pre-kickstart tracking)
+- Make cobbler import feature better understand older RHEL and in-between builds of Fedora.
 
 * Fri Mar 23 2007 - 0.4.5
 - Removed legacy --virt-name parameter, requires koan upgrade to 0.2.8
