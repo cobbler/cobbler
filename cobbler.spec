@@ -73,6 +73,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cobbler/kickstarts_sys
 %dir /var/www/cobbler/repo_mirror
 %dir /var/www/cobbler/ks_mirror
+%dir /var/www/cobbler/ks_mirror/config
 %dir /var/www/cobbler/images
 %dir /var/www/cobbler/distros
 %dir /var/www/cobbler/profiles

@@ -389,6 +389,15 @@ class BootSync:
                 continue
             http_url = "http://%s/cblr/repo_mirror/%s" % (self.settings.server, repo.name)
             buf = buf + "repo --name=%s --baseurl=%s\n" % (repo.name, http_url)
+        distro = self.distros.find(profile.distro)
+
+        # tack on all the install source repos IF there is more than one.
+        # this is basically to support things like RHEL5 split trees
+        # if there is only one, then there is no need to do this.
+        if len(distro.source_repos) > 1:
+            for r in distro.source_repos:
+                buf = buf + "%s\n" % r
+
         return buf
 
     def generate_config_stanza(self, profile):
@@ -401,6 +410,19 @@ class BootSync:
                 continue
             if not (repo.local_filename is None) or (repo.local_filename == ""):
                 buf = buf + "wget http://%s/cblr/repo_mirror/%s/config.repo --output-document=/etc/yum.repos.d/%s.repo\n" % (self.settings.server, repo.name, repo.local_filename)    
+
+        # now install the core repos
+        distro = self.distros.find(profile.distro)
+        for r in distro.source_repos:
+             short = r.split("/")[-1]
+             buf = buf + "wget %s --output-document=/etc/yum.repos.d/%s.repo\n" % (r, short)
+
+        # if there were any core repos, install the voodoo to disable the OS public core
+        # location
+        if len(distro.source_repos) > 0:
+             for x in ["fedora-core", "Centos-Base", "rhel-core"] :
+                  buf = buf + "mv /etc/yum.repos.d/%s.repo /etc/yum.repos.d/disabled-%s\n" % (x,x)
+
         return buf
 
     def validate_kickstarts_per_system(self):

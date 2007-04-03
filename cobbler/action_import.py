@@ -43,6 +43,7 @@ class Importer:
        self.profiles = config.profiles()
        self.systems  = config.systems()
        self.settings = config.settings()
+       self.distros_added = []
 
    # ----------------------------------------------------------------------
 
@@ -77,10 +78,16 @@ class Importer:
 
        self.processed_repos = {}
 
-       os.path.walk(self.path, self.walker, None)
+       print "---------------- (adding distros)"
+       os.path.walk(self.path, self.distro_adder, {})
 
-       self.guess_kickstarts() 
- 
+       print "---------------- (associating repos)"
+       self.repo_finder()
+
+       print "---------------- (associating kickstarts)"
+       self.kickstart_finder() 
+
+       print "---------------- (syncing)"
        self.api.sync()
 
        return True
@@ -91,7 +98,7 @@ class Importer:
        try:
            os.makedirs(dir)
        except:
-           print "- didn't create %s" % dir
+           pass
 
    # ----------------------------------------------------------------------
 
@@ -104,7 +111,7 @@ class Importer:
 
    # ----------------------------------------------------------------------
 
-   def guess_kickstarts(self):
+   def kickstart_finder(self):
 
        """
        For all of the profiles in the config w/o a kickstart, look
@@ -119,10 +126,6 @@ class Importer:
            if not distro.kernel.startswith("%s/ks_mirror/" % self.settings.webdir):
                # this isn't a mirrored profile, so we won't touch it
                print "- skipping %s since profile isn't mirrored" % profile.name
-               continue
-           if distro.ks_meta.has_key("tree") or profile.ks_meta.has_key("tree"):
-               # this distro has already been imported, do not proceed
-               print "- skipping %s since existing tree attributes were found" % profile.name
                continue
  
            kdir = os.path.dirname(distro.kernel)   
@@ -159,9 +162,11 @@ class Importer:
        if not os.path.exists(dest_link):
            os.symlink(base, dest_link)
        base = base.replace(self.settings.webdir,"")
-       tree = "tree=http://%s/cblr/links/%s" % (self.settings.server, distro.name)
-       print "- %s" % tree
-       distro.set_ksmeta(tree)
+       
+       meta = distro.ks_meta
+       meta["tree"] = "http://%s/cblr/links/%s" % (self.settings.server, distro.name)
+       print "- tree: %s" % meta["tree"]
+       distro.set_ksmeta(meta)
 
    # ---------------------------------------------------------------------
 
@@ -198,28 +203,32 @@ class Importer:
           if rpm.find(x) != -1:
              return ("redhat", 2, 0)
 
-       print "- scanning rpm: %s" % rpm
-       (first, rest) = rpm.split("-release-")
-       flavor = first.lower()
-       
-       # if there's still a hypen in the filename, get the trailing part.
-       rdx = rest.find("-")
-       if rdx != -1:
-          rest = rest[rdx+1:]
+       # now get the flavor:
+       flavor = "redhat"
+       if rpm.lower().find("fedora") != -1:
+          flavor = "fedora"
+       if rpm.lower().find("centos") != -1:
+          flavor = "centos"
 
-       # if there's still a hypen in the filename, get the beginning part
-       rdx = rest.rfind("-")
-       if rdx != -1:
-          rest = rest[:rdx-1]
+       # get all the tokens and try to guess a version
+       accum = []
+       tokens = rpm.split(".")
+       for t in tokens:
+          tokens2 = t.split("-")
+          for t2 in tokens2:
+             try:
+                 float(t2)
+                 accum.append(t2)
+             except:
+                 pass
 
-       tokens = rest.split(".")
-       major = float(tokens[0])
-       minor = float(tokens[1])
+       major = float(accum[0])
+       minor = float(accum[1])
        return (flavor, major, minor)
 
    # ----------------------------------------------------------------------
 
-   def walker(self,foo,dirname,fnames):
+   def distro_adder(self,foo,dirname,fnames):
        
        initrd = None
        kernel = None
@@ -231,27 +240,89 @@ class Importer:
                initrd = os.path.join(dirname,x)
            if x.startswith("vmlinuz"):
                kernel = os.path.join(dirname,x)
-           if initrd is not None and kernel is not None:
-               self.last_distro = self.add_entry(dirname,kernel,initrd)
-               path_parts = kernel.split("/")[:-3]
+           if initrd is not None and kernel is not None and dirname.find("isolinux") == -1:
+               self.add_entry(dirname,kernel,initrd)
+               path_parts = kernel.split("/")[:-2]
                comps_path = "/".join(path_parts)
-               print "- running repo update on %s" % comps_path
-               self.process_comps_file(comps_path)
+
+   # ----------------------------------------------------------------------
+   
+   def repo_finder(self):
+       
+       for distro in self.distros_added:
+           print "- traversing distro %s" % distro.name
+           if distro.kernel.find("ks_mirror") != -1:
+               basepath = os.path.dirname(distro.kernel)
+               top = "/".join(basepath.split("/")[0:-3]) # up one level
+               print "- descent into %s" % top
+               os.path.walk(top, self.repo_scanner, distro)
+           else:
+               print "- this distro isn't mirrored"
+
+   # ----------------------------------------------------------------------
+
+   def repo_scanner(self,distro,dirname,fnames):
+       
+       for x in fnames:
+           if x == "repodata":
+               self.process_comps_file(dirname, distro)
+               continue
+
    # ----------------------------------------------------------------------
                
 
-   def process_comps_file(self, comps_path):
+   def process_comps_file(self, comps_path, distro):
 
+       print "- scanning: %s (distro: %s)" % (comps_path, distro.name)
 
-       comps_file = os.path.join(comps_path, "repodata", "comps.xml")
-       if not os.path.exists(comps_file):
-           print "- no comps file found: %s" % comps_file
-           return
+       repo_file = os.path.join(comps_path, "repodata", "repomd.xml")
+       if not os.path.exists(repo_file):
+           raise RuntimeError, "no repomd found"
+
+       # figure out what our comps file is ...
+       print "- looking for %s/repodata/comps*.xml" % comps_path
+       files = glob.glob("%s/repodata/comps*.xml" % comps_path)
+       if len(files) == 0:
+           raise RuntimeError, "no comps files here: %s" % comps_path
+       # pull the filename from the longer part
+       comps_file = files[0].split("/")[-1]
+
        try:
+
+           # store the location of the RPMs in the distro object.
+           # this is so sync can find it later.  
+           # FIXME: can't really do that as there right be more than one.
+
+
+           counter = len(distro.source_repos)
+
+           # find path segment for yum_url (changing filesystem path to http:// trailing fragment)
+           seg = comps_path.rfind("ks_mirror")
+           urlseg = comps_path[seg+10:]
+
+           # write a yum config file that shows how to use the repo.
+           if counter == 0:
+               dotrepo = "%s.repo" % distro.name
+           else:
+               dotrepo = "%s-%s.repo" % (distro.name, counter)
+
+           fname = os.path.join(self.settings.webdir, "ks_mirror", "config", "%s-%s.repo" % (distro.name, counter))
+           repo_url = "http://%s/cobbler/ks_mirror/config/%s-%s.repo" % (self.settings.server, distro.name, counter)
+           distro.source_repos.append(repo_url)
+
+           print "- url: %s" % repo_url
+           config_file = open(fname, "w+")
+           config_file.write("[%s]\n" % "core-%s" % counter)
+           config_file.write("name=%s\n" % "core-%s " % counter)
+           config_file.write("baseurl=http://%s/cobbler/ks_mirror/%s\n" % (self.settings.server, urlseg))
+           config_file.write("enabled=1\n")
+           config_file.write("gpgcheck=0\n")
+           config_file.close()
+
            # don't run creatrepo twice -- this can happen easily for Xen and PXE, when
            # they'll share same repo files.
            if not self.processed_repos.has_key(comps_path):
-               cmd = "createrepo --basedir / --groupfile %s %s" % (comps_file, comps_path)
+               cmd = "createrepo --basedir / --groupfile %s %s" % (os.path.join(comps_path, "repodata", comps_file), comps_path)
                print "- %s" % cmd
                sub_process.call(cmd,shell=True)
                self.processed_repos[comps_path] = 1
@@ -277,8 +348,10 @@ class Importer:
        distro.set_kernel(kernel)
        distro.set_initrd(initrd)
        distro.set_arch(pxe_arch)
+       distro.source_repos = []
        self.distros.add(distro)
-       
+       self.distros_added.append(distro)       
+
        existing_profile = self.profiles.find(name) 
 
        if existing_profile is None:
@@ -300,14 +373,13 @@ class Importer:
        name = "-".join(dirname.split("/"))
        if name.startswith("-"):
           name = name[1:]
+       name = name.replace("-os","")
+       name = name.replace("-images","")
+       name = name.replace("-tree","")
        name = name.replace("var-www-cobbler-", "")
        name = name.replace("ks_mirror-","")
-       name = name.replace("os-images-","")
-       name = name.replace("tree-images-","")
-       name = name.replace("images-","")
-       name = name.replace("tree-","")
-       name = name.replace("--","-")
        name = name.replace("-pxeboot","")  
+       name = name.replace("--","-")
        return name
 
    def get_pxe_arch(self,dirname):

@@ -40,6 +40,7 @@ class Distro(item.Item):
         self.ks_meta = {}
         self.arch = "x86"
         self.breed = "redhat"
+        self.source_repos = []
 
     def from_datastruct(self,seed_data):
         """
@@ -52,6 +53,8 @@ class Distro(item.Item):
         self.ks_meta        = self.load_item(seed_data,'ks_meta')
         self.arch           = self.load_item(seed_data,'arch','x86')
         self.breed          = self.load_item(seed_data,'breed','redhat')
+        self.source_repos   = self.load_item(seed_data,'source_repos',[])
+
         # backwards compatibility -- convert string entries to dicts for storage
         if type(self.kernel_options) != dict:
             self.set_kernel_options(self.kernel_options)
@@ -87,6 +90,14 @@ class Distro(item.Item):
             self.initrd = initrd
             return True
         raise cexceptions.CobblerException("no_initrd")
+
+    def set_source_repos(self, repos):
+        """
+        A list of http:// URLs on the cobbler server that point to
+        yum configuration files that can be used to
+        install core packages.  Use by cobbler import only.
+        """
+        self.source_repos = repos
 
     def set_arch(self,arch):
         """
@@ -130,7 +141,8 @@ class Distro(item.Item):
            'kernel_options' : self.kernel_options,
            'ks_meta'        : self.ks_meta,
            'arch'           : self.arch,
-           'breed'          : self.breed  
+           'breed'          : self.breed,
+           'source_repos'   : self.source_repos
         }
 
     def printable(self):
