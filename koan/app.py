@@ -191,7 +191,7 @@ class Koan:
             os.mkdir(path)
         except OSError, (err, msg):
             if err != errno.EEXIST:
-                raise OSError(errno,msg)
+                raise
 
     def rmtree(self,path):
         """
@@ -202,7 +202,7 @@ class Koan:
             shutil.rmtree(path)
         except OSError, (err, msg):
             if err != errno.ENOENT:
-                raise OSError(errno,msg)
+                raise
 
     def copyfile(self,src,dest):
         """
