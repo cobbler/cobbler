@@ -6,6 +6,7 @@ Cobbler CHANGELOG
 - Store repos as list, not string
 - Fix traceback in cobbler_sync with older configurations (pre-kickstart tracking)
 - Make cobbler import feature better understand older RHEL and in-between builds of Fedora.
+- Make cobbler repo add/reposync understand http://, ftp://, and some limited support for RHN.
 
 * Fri Mar 23 2007 - 0.4.5
 - Removed legacy --virt-name parameter, requires koan upgrade to 0.2.8
