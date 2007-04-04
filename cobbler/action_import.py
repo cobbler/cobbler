@@ -308,7 +308,10 @@ class Importer:
 
            fname = os.path.join(self.settings.webdir, "ks_mirror", "config", "%s-%s.repo" % (distro.name, counter))
            repo_url = "http://%s/cobbler/ks_mirror/config/%s-%s.repo" % (self.settings.server, distro.name, counter)
-           distro.source_repos.append(repo_url)
+         
+           repo_url2 = "http://%s/cobbler/ks_mirror/%s" % (self.settings.server, urlseg) 
+
+           distro.source_repos.append([repo_url,repo_url2])
 
            print "- url: %s" % repo_url
            config_file = open(fname, "w+")

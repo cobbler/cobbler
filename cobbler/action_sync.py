@@ -396,8 +396,8 @@ class BootSync:
         # if there is only one, then there is no need to do this.
         if len(distro.source_repos) > 1:
             for r in distro.source_repos:
-                base = r.split("/")[-1].replace(".repo","")
-                buf = buf + "repo --name=%s --baseurl=%s\n" % (base, r)
+                base = r[1].split("/")[-1].replace(".repo","")
+                buf = buf + "repo --name=%s --baseurl=%s\n" % (base, r[1])
 
         return buf
 
@@ -409,14 +409,15 @@ class BootSync:
             repo = self.repos.find(r)
             if repo is None: 
                 continue
+            repo.local_filename = repo.local_filename.replace(".repo","")
             if not (repo.local_filename is None) or (repo.local_filename == ""):
                 buf = buf + "wget http://%s/cblr/repo_mirror/%s/config.repo --output-document=/etc/yum.repos.d/%s.repo\n" % (self.settings.server, repo.name, repo.local_filename)    
 
         # now install the core repos
         distro = self.distros.find(profile.distro)
         for r in distro.source_repos:
-             short = r.split("/")[-1]
-             buf = buf + "wget %s --output-document=/etc/yum.repos.d/%s.repo\n" % (r, short)
+             short = r[0].split("/")[-1]
+             buf = buf + "wget %s --output-document=/etc/yum.repos.d/%s\n" % (r[0], short)
 
         # if there were any core repos, install the voodoo to disable the OS public core
         # location -- FIXME: should probably run sed on the files, rather than rename them.
