@@ -1,5 +1,5 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
-
+%define _has_yum 1
 Summary: Boot server configurator
 Name: cobbler
 Version: 0.4.6
@@ -14,6 +14,7 @@ Requires: python-devel
 Requires: createrepo
 Requires: mod_python
 Requires: python-cheetah
+Requires: yum-utils
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service

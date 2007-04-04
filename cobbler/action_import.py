@@ -121,8 +121,9 @@ class Importer:
 
        for profile in self.profiles:
            distro = self.distros.find(profile.distro)
-           if distro is None:
-               raise cexceptions.CobblerException("orphan_distro2",profile.name,profile.distro)
+           if distro is None or not (distro in self.distros_added):
+               print "- skipping distro %s since it wasn't imported this time" % profile.distro
+               continue
            if not distro.kernel.startswith("%s/ks_mirror/" % self.settings.webdir):
                # this isn't a mirrored profile, so we won't touch it
                print "- skipping %s since profile isn't mirrored" % profile.name

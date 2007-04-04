@@ -54,11 +54,11 @@ class RepoSync:
             print "considering: %s" % repo
             repo_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
             mirror = repo.mirror
-            if not os.path.isdir(repo_path):
+            if not os.path.isdir(repo_path) and not repo.mirror.lower().startswith("rhn://"):
                 os.makedirs(repo_path)
             # if path contains http:// or ftp://, use with yum's reposync.
             # else do rsync
-            if mirror.lower().find("http://") != -1 or mirror.lower().find("ftp://") != -1:
+            if mirror.lower().find("http://") != -1 or mirror.lower().find("ftp://") or mirror.lower().find("rhn://") != -1:
                 self.do_reposync(repo)
             else:
                 self.do_rsync(repo)
@@ -80,13 +80,25 @@ class RepoSync:
         store_path = os.path.join(self.settings.webdir, "repo_mirror")
         dest_path = os.path.join(store_path, repo.name)
         temp_path = os.path.join(store_path, ".origin")
-        if not os.path.isdir(temp_path):
+        if not os.path.isdir(temp_path) and not repo.mirror.lower().startswith("rhn://"):
             os.makedirs(temp_path)
-        temp_file = self.create_local_file(repo, temp_path, output=False)
- 
-        cmd = "/usr/bin/reposync --config=%s --repoid=%s --tempcache --download_path=%s" % (temp_file, repo.name, store_path)
-        print "- %s" % cmd
+         
+        if not repo.mirror.lower().startswith("rhn://"):
+            cmd = "/usr/bin/reposync --config=%s --repoid=%s --download_path=%s" % (temp_file, repo.name, store_path)
+            print "- %s" % cmd
+        else:
+            rest = repo.mirror[6:]
+            cmd = "/usr/bin/reposync -r %s --download_path=%s" % (rest, store_path)
+            print "- %s" % cmd
+            # downloads using -r use the value given for -r as part of the output dir, so create a symlink with the name the user
+            # gave such that everything still works as intended.
+            print "- %s" % dest_path
+            if not os.path.exists(dest_path):
+                from1 = os.path.join(self.settings.webdir, "repo_mirror", rest)
+                print "- symlink: %s -> %s" % (from1, dest_path)
+                os.symlink(from1, dest_path)
         rc = sub_process.call(cmd, shell=True)
+        temp_file = self.create_local_file(repo, temp_path, output=False)
         if rc !=0:
             raise cexceptions.CobblerException("cobbler reposync failed")
         arg = None
