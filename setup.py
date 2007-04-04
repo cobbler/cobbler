@@ -25,6 +25,7 @@ if __name__ == "__main__":
         vw_kickstarts_sys  = "/var/www/cobbler/kickstarts_sys"
         vw_repomirror = "/var/www/cobbler/repo_mirror"
         vw_ksmirror   = "/var/www/cobbler/ks_mirror"
+        vw_ksmirrorc  = "/var/www/cobbler/ks_mirror/config"
         vw_images     = "/var/www/cobbler/images"
         vw_distros    = "/var/www/cobbler/distros"
         vw_systems    = "/var/www/cobbler/systems"
@@ -69,6 +70,7 @@ if __name__ == "__main__":
                                 (vw_kickstarts_sys, []),
                                 (vw_repomirror,     []),
                                 (vw_ksmirror,       []),
+                                (vw_ksmirrorc,      []),
                                 (vw_distros,        []),
                                 (vw_images,         []),
                                 (vw_systems,        []),
