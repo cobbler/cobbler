@@ -1,0 +1,152 @@
+/* These styles basically allow the top bar to be flush against the edges of the    
+          browser window */
+body { 
+  margin-top:   0px; 
+  margin-left:  0px; 
+  margin-right: 0px;
+  background: white url('img/black-red/content-right-bg.png') repeat-y right;
+}
+
+/* This is the topmost black bar on the page. It contains the name of the page     
+                 and some images for decoration */
+div#topbar { 
+  background-color: black; 
+  background-image: url('img/black-red/topbar-bg.png');
+  height: 65px; 
+}
+
+/* This is just a slender red line for decorative effect. It's immediately 
+                      below the topmost black bar. */
+div.topbar-line {  
+  background-color: maroon; 
+  height: 3px;
+  color:white; 
+  font-weight: bold;
+}
+
+/* This is the style that defines the bold page title in the upper left. */
+
+h1#product-name {
+  clear: left;
+  color: white; 
+  padding: 0px 0px 0px 0px; 
+  font-family: sans-serif; 
+  margin: 0px;
+}
+
+/* This is the area where the product name & blurb are displayed */
+
+div#page-title {
+  padding-top: 23px;
+  margin: 0px;
+  height: 40px;
+  background: url('img/black-red/topbar-graphic.png') repeat-y right;
+}
+
+span#blurb {
+  margin-left: 8px;
+  padding: 0px 0px 0px 0px;
+  clear: both;
+  color: #ccc;
+  font-weight: 900;
+  font-size: large;
+  font-family: sans-serif
+}
+
+/* The follow styles are for the navigational links across the top of the page */
+ul.topnav { 
+  margin: 0px;
+  padding: 0px;
+  list-style-type: none;
+  width: 100%;
+  margin-bottom: 35px;
+}
+
+ul.topnav li, ul.topnav li a, ul.topnav li a:link {
+  color: #444;
+  font-family: sans-serif;
+  font-size: medium;
+  padding: 0px 12px 4px 12px;
+  float: left;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+ul.topnav a#selected:link{
+  background-color: #999;
+  font-weight: 900;
+  color: white;
+  padding: 2px 12px 4px 12px;
+}
+
+
+ul.topnav li a:hover {
+  background-color: #ccc;
+  color: #777;
+  font-size: medium;
+}
+
+
+div#content-main {
+  padding-left: 24px;
+  padding-right: 24px;
+  font-family: sans-serif;
+  font-size: small;
+  color: #555;
+  width: 45%;
+  float: left;
+}
+
+div#content-main h2 {
+  border-bottom: 5px solid maroon;
+  line-height: 92%; 
+  padding: 0px;
+  margin-top: 15px;
+  font-size: large;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #777;
+  width: 100%;
+  text-align: right;
+}
+
+div.content-right {
+  float: right;
+  width: 25%;
+  margin-top: 30px;
+  margin-right: 12%;
+  margin-left: 12%;
+  font-family: sans-serif;
+}
+
+div.callout-1 {
+  background: maroon url('img/black-red/callout-bg.png') repeat-x center;
+  padding: 6px 12px 32px 12px;
+  margin-bottom: 32px;
+}
+
+div.callout-2 {
+  background-color: gray;
+  padding: 6px 12px 32px 12px;
+  margin-bottom: 48px;
+}
+
+div.content-right h2, div.content-right p {
+  padding: 0px;
+  margin: 0px;
+  color: white;
+}
+
+div.content-right p {
+  font-size: small;
+}
+
+div.content-right h2 {
+  font-weight: 900;
+  text-align: right;
+  font-size: x-large;
+}
+
+hr {
+  background-image: url('img/black-red/hr.png');
+}
