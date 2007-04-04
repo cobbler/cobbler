@@ -396,7 +396,8 @@ class BootSync:
         # if there is only one, then there is no need to do this.
         if len(distro.source_repos) > 1:
             for r in distro.source_repos:
-                buf = buf + "%s\n" % r
+                base = r.split("/")[-1].replace(".repo","")
+                buf = buf + "repo --name=%s --baseurl=%s\n" % (base, r)
 
         return buf
 
@@ -418,7 +419,7 @@ class BootSync:
              buf = buf + "wget %s --output-document=/etc/yum.repos.d/%s.repo\n" % (r, short)
 
         # if there were any core repos, install the voodoo to disable the OS public core
-        # location
+        # location -- FIXME: should probably run sed on the files, rather than rename them.
         if len(distro.source_repos) > 0:
              for x in ["fedora-core", "Centos-Base", "rhel-core"] :
                   buf = buf + "mv /etc/yum.repos.d/%s.repo /etc/yum.repos.d/disabled-%s\n" % (x,x)
