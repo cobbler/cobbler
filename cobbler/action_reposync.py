@@ -105,7 +105,7 @@ class RepoSync:
             return True
         dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
         spacer = ""
-        if repo.mirror.find("rsync://") != -1:
+        if not repo.mirror.startswith("rsync://") and not repo.mirror.startswith("/"):
             spacer = "-e ssh"
         if not repo.mirror.endswith("/"):
             repo.mirror = "%s/" % repo.mirror
