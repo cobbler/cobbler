@@ -84,7 +84,7 @@ class RepoSync:
             os.makedirs(temp_path)
          
         if not repo.mirror.lower().startswith("rhn://"):
-            cmd = "/usr/bin/reposync --config=%s --repoid=%s --download_path=%s" % (temp_file, repo.name, store_path)
+            cmd = "/usr/bin/reposync --repoid=%s --download_path=%s" % (repo.name, store_path)
             print "- %s" % cmd
         else:
             rest = repo.mirror[6:]
