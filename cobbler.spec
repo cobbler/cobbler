@@ -113,6 +113,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %changelog
 * Mon Apr 23 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.6-0
 - Upstream changes (see CHANGELOG)
+- Packaged 'config' directory under ks_mirror
 
 * Fri Mar 23 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.5-3
 - Upstream changes (see CHANGELOG)

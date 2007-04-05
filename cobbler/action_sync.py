@@ -415,15 +415,16 @@ class BootSync:
 
         # now install the core repos
         distro = self.distros.find(profile.distro)
-        for r in distro.source_repos:
-             short = r[0].split("/")[-1]
-             buf = buf + "wget %s --output-document=/etc/yum.repos.d/%s\n" % (r[0], short)
+        if self.settings.yum_core_mirror_from_server:
+            for r in distro.source_repos:
+                short = r[0].split("/")[-1]
+                buf = buf + "wget %s --output-document=/etc/yum.repos.d/%s\n" % (r[0], short)
 
-        # if there were any core repos, install the voodoo to disable the OS public core
-        # location -- FIXME: should probably run sed on the files, rather than rename them.
-        if len(distro.source_repos) > 0:
-             for x in ["fedora-core", "Centos-Base", "rhel-core"] :
-                  buf = buf + "mv /etc/yum.repos.d/%s.repo /etc/yum.repos.d/disabled-%s\n" % (x,x)
+            # if there were any core repos, install the voodoo to disable the OS public core
+            # location -- FIXME: should probably run sed on the files, rather than rename them.
+            if len(distro.source_repos) > 0:
+                for x in ["fedora-core", "Centos-Base"] :
+                    buf = buf + "test -e /etc/yum.repos.d/%s.repo && mv /etc/yum.repos.d/%s.repo /etc/yum.repos.d/disabled-%s\n" % (x,x,x)
 
         return buf
 

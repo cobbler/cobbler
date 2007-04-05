@@ -18,29 +18,30 @@ import utils
 TESTMODE = False
 
 DEFAULTS = {
-    "httpd_bin"         : "/usr/sbin/httpd",
-    "dhcpd_conf"        : "/etc/dhcpd.conf",
-    "tftpd_bin"         : "/usr/sbin/in.tftpd",
-    "server"            : "127.0.0.1",
-    "next_server"       : "127.0.0.1",
-    "dhcpd_bin"         : "/usr/sbin/dhcpd",
-    "kernel_options"    : {
-        "lang"          : " ",
-        "text"          : None,
-        "ksdevice"      : "eth0",
+    "httpd_bin"          : "/usr/sbin/httpd",
+    "dhcpd_conf"         : "/etc/dhcpd.conf",
+    "tftpd_bin"          : "/usr/sbin/in.tftpd",
+    "server"             : "127.0.0.1",
+    "next_server"        : "127.0.0.1",
+    "dhcpd_bin"          : "/usr/sbin/dhcpd",
+    "kernel_options"     : {
+        "lang"           : " ",
+        "text"           : None,
+        "ksdevice"       : "eth0",
     },
-    "tftpd_conf"        : "/etc/xinetd.d/tftp",
-    "tftpboot"          : "/tftpboot",
-    "webdir"            : "/var/www/cobbler",
-    "default_kickstart" : "/etc/cobbler/default.ks",
-    "manage_dhcp"       : 0,
-    "koan_path"         : "",
-    "bootloaders"       : {
-        "standard"      : "/usr/lib/syslinux/pxelinux.0",
-        "ia64"          : "/var/lib/cobbler/elilo-3.6-ia64.efi"
+    "tftpd_conf"         : "/etc/xinetd.d/tftp",
+    "tftpboot"           : "/tftpboot",
+    "webdir"             : "/var/www/cobbler",
+    "default_kickstart"  : "/etc/cobbler/default.ks",
+    "manage_dhcp"        : 0,
+    "koan_path"          : "",
+    "bootloaders"        : {
+        "standard"       : "/usr/lib/syslinux/pxelinux.0",
+        "ia64"           : "/var/lib/cobbler/elilo-3.6-ia64.efi"
     },
-    "syslog_port"       : 25150,
-    "minimize_syncs"    : 1
+    "syslog_port"                 : 25150,
+    "minimize_syncs"              : 1,
+    "yum_core_mirror_from_server" : 1
 }
 
 

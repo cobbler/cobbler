@@ -94,7 +94,7 @@ See the section below on templating.
 
 Defaults to "redhat", which is a suitable value for Fedora and Centos as well.  Specifying "suse" allows the kickstart file parameters to be treated instead like AutoYaST answer files, such that the proper parameters for SuSE answer files
 are put on the kernel command line.  Support for other types of distributions is possible in the future.  The file used for the answer file, regardless of
-distro breed, is the value used for --kickstart when creating the profile.  See the profile add commands for further information.
+distro breed, is the value used for --kickstart when creating the profile.  See the profile add commands for further information.  This feature is still rather experimental.
 
 =back
 
@@ -104,9 +104,9 @@ A profile associates a distribution to additional specialized options, such as a
 
 B<cobbler profile add --name=string --distro=string [--kickstart=url] [--kopts=string] [--ksmeta=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes]>
 
-=over
-
 Arguments are as listed for distributions, except for the "arch" parameter, and with the additions listed below:
+
+=over
 
 =item name
 
@@ -118,11 +118,9 @@ the name of a previously defined cobbler distribution
 
 =item kickstart
 
-(optional) an HTTP URL, NFS URL, or local filesystem path to a kickstart file.  Filesystem paths are needed to take advantage of cobbler's kickstart templating features and are therefore recommended.  Kickstart templating is covered in a later section.  
+Local filesystem path to a kickstart file.  
 
 If this parameter is not provided, the kickstart file will default to /etc/cobbler/default.ks (or whatever is set in /var/lib/cobbler/settings).  This file is initially blank, meaning default kickstarts are not automated.  Admins can change the default.ks or can leave it blank.
-
-Note:  For other breeds of distros (see --breed argument to "distro add") that do not use "kickstarts", the kickstart in this case is just the distro specific answer file (such as an AutoYAST file).  koan doesn't work for those other distros (like SuSE), but cobbler should be perfectly usable as a stand-alone solution for automated multi-distro-breed PXE control.
 
 =item virt-file-size
 
@@ -134,7 +132,7 @@ Note:  For other breeds of distros (see --breed argument to "distro add") that d
 
 =item repos
 
-(optional) a space delimited list of all the repos (created with "cobbler repo add" and "cobbler repo sync") that this profile
+(optional) a space delimited list of all the repos (created with "cobbler repo add" and "cobbler reposync") that this profile
 can make use of during kickstart installation.  For example, an example might be --repos="fc6i386updates fc6i386extras".
 
 =back
@@ -145,10 +143,10 @@ Systems assign a piece of hardware with the cobbler profile to be assigned to it
 
 B<cobbler system add --name=ip|mac|hostname --profile=string [--kopts=string] [--pxe-address=string] [--ksmeta=string]>
 
-=over
-
 Adds a cobbler System to the configuration.  Arguments are specified as per "profile add" with
 the following changes:
+
+=over
 
 =item name
 
@@ -191,7 +189,7 @@ B<cobbler repo add --mirror=url --name=string [--local-filename=string]>
 =item mirror
 
 The addresss of the yum mirror.  This can be an rsync:// URL, an ssh location, or
-a http:// or ftp:// mirror location.
+a http:// or ftp:// mirror location.  
 
 The mirror address should specify an exact repository to mirror -- just one architecture
 and just one distribution.  If you have a seperate repo to mirror for a different arch, add that
@@ -203,10 +201,9 @@ rsync://yourmirror.example.com/fedora-linux-core/updates/6/i386 (for rsync proto
 http://mirrors.kernel.org/fedora/extras/6/i386/ (for http://)
 user@yourmirror.example.com/fedora-linux-core/updates/6/i386  (for SSH)
 
-To put it more simply, if the content you are mirroring doesn't contain rpm's
-at the top level of the URL, this is bad, and you need to specify a different value.  Using the
-wrong mirror value here will rsync over too much data, and also the provisioning integration code
-simply won't work.  Be specific.
+Experimental support is also provided for mirroring (RHEL5) and later RHN content when you need
+a fast local mirror.  The mirror syntax for this is --mirror=rhn://channel-name and you must
+have entitlements for this to work.
 
 =item name
 
@@ -283,8 +280,6 @@ a fully automated install process for that distribution.
 
 You can use a network rsync mirror or a mounted DVD location.
 
-=over
-
 B<cobbler check>
 
 B<cobbler import --mirror=rsync://yourfavoritemirror.com/foo --mirror-name=anyname>
@@ -303,15 +298,11 @@ B<cobbler system add --name=AA:BB:CC:DD:EE:FF --profile=name_of_a_profile2>
 
 B<cobbler sync>
 
-=back
-
 =head2 NORMAL WORKFLOW
 
 The following example uses a local kernel and initrd file (already downloaded), and 
 shows how profiles would be created using two different kickstarts -- one for a web server
 configuration and one for a database server.  Then, a machine is assigned to each profile.
-
-=over
 
 B<cobbler check>
 
@@ -346,15 +337,9 @@ B<cobbler reposync>
 
 B<cobbler profile add --name=p1 --distro=existing_distro_name --kickstart=/etc/cobbler/kickstart_fc6.ks --repos="fc6i386updates fc6i386extras">
 
-=over
-
-=back
-
 =head2 XEN
 
 For Virt, be sure the distro uses a Virt kernel and initrd and follow similar steps as above, adding additional parameters as desired:
-
-=over
 
 B<cobbler distro add --name=fc5virt --kernel=/dir3/vmlinuz --initrd=/dir6/initrd.img>
 
@@ -365,8 +350,6 @@ B<cobbler profile add --name=virtwebservers --distro=fc5virt --kickstart=/dir7/k
 And define systems (if desired) using MAC addresses, not IP's or hostnames:
 
 B<cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=virtwebservers>
-
-=back
 
 =head1 ADVANCED TOPICS
 
@@ -444,6 +427,9 @@ the remote machine.   The default behavior is machine (not virtual) re-provision
 
 Example:  B<cobbler enchant --virt=yes --address=192.168.10.10 --profile=fc6xen>
 
+Before using enchant, configure the location of the koan noarch RPM in /var/lib/cobbler/settings (a local path) and re-run "cobbler sync".
+
+
 =head2 IMPORTING TREES
 
 Cobbler can auto-add distributions and profiles from remote sources, whether this is an NFS path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.  
@@ -513,6 +499,12 @@ use "cobbler reposync" to update cobbler mirrors, as reposync does not perform a
 cobbler adds support for rsync and SSH locations, where as yum's reposync only supports what yum supports
 (http/ftp).
 
+Note that if a cobbler import provides enough information to use the boot server as a yum mirror for
+core packages, cobbler will set up kickstarts to use the cobbler server as a mirror instead of the 
+outside world.  If this feature is undesirable, it can be turned off by setting yum_core_mirror_from_server
+to 0 in /var/lib/cobbler/settings (and rerunning "cobbler sync").  You may want to disable this feature
+if machines are provisioned on a different VLAN/network than production.
+
 =head2 KICKSTART TRACKING
 
 Cobbler knows how to keep track of the status of kickstarting machines.   
@@ -523,11 +515,16 @@ Using the status command will show when cobbler thinks a machine started kicksta
 This is a good way to track machines that may have gone interactive during kickstarts.  Cobbler will also make a special
 request in the post section of the kickstart to signal when a machine is finished kickstarting.
 
-To use this feature, the kickstart tree files need to be served via a http://server/cobbler_track/... URL, which happens
+To use this feature, the kickstart tree files need to be served via a http://server/cblr/... URL, which happens
 automatically when using the "cobbler import" command to pull in a kickstart tree from an rsync mirror.
 
 If kickstart trees are somewhere else, one can still benefit from the kickstart tracking feature by adding a symlink to 
-/var/www/cobbler/localmirror/distroname will allow the kickstarts to be served through the tracking URL mentioned above.   Be sure to use the http://server/cobbler_track/ URL to point to the kickstart tree for each distro you want to track.
+/var/www/cobbler/localmirror/distroname will allow the kickstarts to be served through the tracking URL mentioned above.   Be sure to use the http://server/cblr/ URL to point to the kickstart tree for each distro you want to track.
+
+Note that kickstart tracking support using syslog requires an Anaconda that supports syslog forwarding.
+RHEL5 is good, as is FC6 and later.  URL tracking currently requires python2.3 or higher on the server
+for the mod_python piece to work.  This will likely be improved later to better support older distros acting
+as a cobbler server.
 
 =head2 TWEAKING
 
@@ -544,6 +541,10 @@ Cobbler also makes itself available as a Python API for use by higher level mana
 =head1 EXIT_STATUS
 
 cobbler's command line returns a zero for success and non-zero for failure.
+
+=head1 MAILING LIST
+
+Cobbler has a mailing list for user and development-related questions/comments at et-mgmt-tools@redhat.com.
 
 =head1 AUTHOR
 
