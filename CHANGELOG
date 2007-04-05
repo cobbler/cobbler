@@ -1,7 +1,7 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Mon Apr 02 2007 - 0.4.6
+* Thu Apr 05 2007 - 0.4.6
 - Bind cobbler_syslogd to all addresses
 - Store repos as list, not string
 - Fix traceback in cobbler_sync with older configurations (pre-kickstart tracking)

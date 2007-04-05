@@ -56,6 +56,7 @@
 	</ul>
 
 	<li><a href="#exit_status">EXIT_STATUS</a></li>
+	<li><a href="#mailing_list">MAILING LIST</a></li>
 	<li><a href="#author">AUTHOR</a></li>
 </ul>
 <!-- INDEX END -->
@@ -102,7 +103,7 @@ feature and is covered further down in this manpage.</p>
 </p>
 <h2><a name="adding_a_distribution">ADDING A DISTRIBUTION</a></h2>
 <p>This first step towards configurating what you want to provision is to add a distribution to the cobbler's configuration.</p>
-<p>If there is an rsync mirror or filesystem tree that you would rather import instead, skip down to the documentation about the ``import'' command.  It's really a lot easier, but it requires waiting for the mirror to sync data across, or using a mounted DVD (or DVD image) you might have lying around.  Imported distros also save time during install since they don't have to hit external install sources.</p>
+<p>If there is an rsync mirror or filesystem tree that you would rather import instead, skip down to the documentation about the ``import'' command.  It's really a lot easier, but it requires waiting for the mirror to sync data across.  Imported mirrors also save time during install since they don't have to hit external install sources.</p>
 <p>The manual distro add command is:</p>
 <p><strong>cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--ksmeta=string] [--arch=x86|x86_64|ia64] [--breed=redhat|suse]</strong></p>
 <dl>
@@ -169,7 +170,7 @@ on it, will use.</p>
 <dd>
 <p>Defaults to ``redhat'', which is a suitable value for Fedora and Centos as well.  Specifying ``suse'' allows the kickstart file parameters to be treated instead like AutoYaST answer files, such that the proper parameters for SuSE answer files
 are put on the kernel command line.  Support for other types of distributions is possible in the future.  The file used for the answer file, regardless of
-distro breed, is the value used for --kickstart when creating the profile.  See the profile add commands for further information.</p>
+distro breed, is the value used for --kickstart when creating the profile.  See the profile add commands for further information.  This feature is still rather experimental.</p>
 </dd>
 </li>
 </dl>
@@ -177,7 +178,7 @@ distro breed, is the value used for --kickstart when creating the profile.  See 
 </p>
 <h2><a name="adding_a_profile">ADDING A PROFILE</a></h2>
 <p>A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.  A profile might represent, for instance, a web server or desktop configuration.</p>
-<p><strong>cobbler profile add --name=string --distro=string [--kickstart=url] [--kopts=string] [--ksmeta=string] [--virt-name=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes]</strong></p>
+<p><strong>cobbler profile add --name=string --distro=string [--kickstart=url] [--kopts=string] [--ksmeta=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes]</strong></p>
 <p>Arguments are as listed for distributions, except for the ``arch'' parameter, and with the additions listed below:</p>
 <dl>
 <dt><strong>name</strong>
@@ -195,20 +196,10 @@ distro breed, is the value used for --kickstart when creating the profile.  See 
 <dt><strong><a name="item_kickstart">kickstart</a></strong>
 
 <dd>
-<p>(optional) an HTTP URL, NFS URL, or local filesystem path to a kickstart file.  Filesystem paths are needed to take advantage of cobbler's kickstart templating features and are therefore recommended.  Kickstart templating is covered in a later section.</p>
+<p>Local filesystem path to a kickstart file.</p>
 </dd>
 <dd>
 <p>If this parameter is not provided, the kickstart file will default to /etc/cobbler/default.ks (or whatever is set in /var/lib/cobbler/settings).  This file is initially blank, meaning default kickstarts are not automated.  Admins can change the default.ks or can leave it blank.</p>
-</dd>
-<dd>
-<p>Note:  For other breeds of distros (see --breed argument to ``distro add'') that do not use ``kickstarts'', the kickstart in this case is just the distro specific answer file (such as an AutoYAST file).  koan doesn't work for those other distros (like SuSE), but cobbler should be perfectly usable as a stand-alone solution for automated multi-distro-breed PXE control.</p>
-</dd>
-</li>
-<dt><strong><a name="item_virt_2dname">virt-name</a></strong>
-
-<dd>
-<p>(optional) (Virt-only) what the Virt guest name should start with.  Creating
-multiple images on a machine will cause increasing numbers to be appended to this name.  The default is ``virtguest''.</p>
 </dd>
 </li>
 <dt><strong><a name="item_virt_2dfile_2dsize">virt-file-size</a></strong>
@@ -221,6 +212,13 @@ multiple images on a machine will cause increasing numbers to be appended to thi
 
 <dd>
 <p>(optional) (Virt-only) how many megabytes of RAM to consume.  The default is 512 MB.</p>
+</dd>
+</li>
+<dt><strong><a name="item_repos">repos</a></strong>
+
+<dd>
+<p>(optional) a space delimited list of all the repos (created with ``cobbler repo add'' and ``cobbler reposync'') that this profile
+can make use of during kickstart installation.  For example, an example might be --repos=``fc6i386updates fc6i386extras''.</p>
 </dd>
 </li>
 </dl>
@@ -270,16 +268,21 @@ setting to pin a certain hostname or IP to a given MAC address.  This correspond
 <p>
 </p>
 <h2><a name="adding_a_repository_to_mirror">ADDING A REPOSITORY TO MIRROR</a></h2>
-<p>Repository mirroring is one of the more complex cobbler features, though if you want to mirror
-a yum repository and integrate it with your provisioning, cobbler can help simplify the required
-knowledge a good bit.  If you're just provisioning your home system, ignore this part.</p>
-<p><strong>cobbler repo add --mirror=url --mirror-name=string [--local-filename=string]</strong></p>
+<p>Repository mirroring allows cobbler to mirror not only install trees (``cobbler import'' does this for you) but
+also optional packages, 3rd party content, and even updates.   Mirroring all of this content locally
+on your network will result in faster, more up-to-date installations and faster updates.  If you
+are only provisioning a home setup, this will probably be overkill, though it can be very useful
+for larger setups (labs, datacenters, etc).</p>
+<p><strong>cobbler repo add --mirror=url --name=string [--local-filename=string]</strong></p>
 <dl>
 <dt><strong><a name="item_mirror">mirror</a></strong>
 
 <dd>
-<p>The addresss of the mirror.  This needs to be either an rsync:// url or an ssh location usable with rsync.
-The mirror address should specify an exact repository to mirror -- just one architecture
+<p>The addresss of the yum mirror.  This can be an rsync:// URL, an ssh location, or
+a http:// or ftp:// mirror location.</p>
+</dd>
+<dd>
+<p>The mirror address should specify an exact repository to mirror -- just one architecture
 and just one distribution.  If you have a seperate repo to mirror for a different arch, add that
 repo seperately.</p>
 </dd>
@@ -288,36 +291,44 @@ repo seperately.</p>
 </dd>
 <dd>
 <p><a href="rsync://yourmirror.example.com/fedora-linux-core/updates/6/i386">rsync://yourmirror.example.com/fedora-linux-core/updates/6/i386</a> (for rsync protocol)
+<a href="http://mirrors.kernel.org/fedora/extras/6/i386/">http://mirrors.kernel.org/fedora/extras/6/i386/</a> (for http://)
 <a href="mailto:user@yourmirror.example.com/fedora-linux-core/updates/6/i386">user@yourmirror.example.com/fedora-linux-core/updates/6/i386</a>  (for SSH)</p>
 </dd>
 <dd>
-<p>To put it more simply, if the content you are mirroring doesn't contain rpm's
-at the top level of the URL, this is bad, and you need to specify a different value.  Using the
-wrong mirror value here will rsync over too much data, and also the provisioning integration code
-simply won't work.  You can't pass in a Fedora mirror, or even a FC6 mirror address.  Be specific.</p>
+<p>Experimental support is also provided for mirroring (RHEL5) and later RHN content when you need
+a fast local mirror.  The mirror syntax for this is --mirror=rhn://channel-name and you must
+have entitlements for this to work.</p>
 </dd>
 </li>
-<dt><strong><a name="item_mirror_2dname">mirror-name</a></strong>
+<dt><strong>name</strong>
 
 <dd>
 <p>This name is used as the save location for the mirror.  If the mirror represented, say, Fedora Core
-6 i386 updates, a good name would be ``fc6i386updates''.  Be explicit.</p>
+6 i386 updates, a good name would be ``fc6i386updates''.  Again, be specific.</p>
 </dd>
 <dd>
-<p>This name corresponds with values given to the --repo parameter of ``cobbler profile add''.  If a profile
-has a --repo value that matches the name here, that repo can be automatically set up during provisioning.
+<p>This name corresponds with values given to the --repos parameter of ``cobbler profile add''.  If a profile
+has a --repos value that matches the name here, that repo can be automatically set up during provisioning.
 This means that, if supported by Anaconda, the repo can be used during kickstart install -- and -- either way,
 it can be automatically configured on the clients.</p>
+</dd>
+<dd>
+<p>See the documentation on ``cobbler profile add'' for more information.</p>
 </dd>
 </li>
 <dt><strong><a name="item_local_2dfilename">local-filename</a></strong>
 
 <dd>
 <p>Local filename specifies, for kickstarts containing the template parameter ``yum_config_stanza'',
-what files to populate on provisioned clients in /etc/yum.repos.d.  In other words, if this value
-is ``foo'', the repo would be added on provisioned clients as ``/etc/yum.repos.d/foo.repo''.  If you don't
-want clients to have this repo installed, don't add a name for the repo, and provisioned machines
-will not configure yum to know about this repo -- you can still do it manually if you choose.</p>
+what files to populate on provisioned clients in /etc/yum.repos.d.</p>
+</dd>
+<dd>
+<p>In other words, if this value is ``foo'', the repo would be installed on provisioned clients as ``/etc/yum.repos.d/foo.repo''.</p>
+</dd>
+<dd>
+<p>If you don't want clients to have this repo installed, don't add a name for the repo, and provisioned machines
+will not configure yum to know about this repo -- you can still do it manually if you choose.  The repository will
+still be used for installation, it just won't get installed automatically in /etc/yum.repos.d on the client.</p>
 </dd>
 <dd>
 <p>See /etc/cobbler/kickstart_fc6.ks for an example of how to employ this within a kickstart template.</p>
@@ -364,8 +375,8 @@ a fully automated install process for that distribution.</p>
 <p><strong>cobbler check</strong></p>
 <p><strong>cobbler import --mirror=rsync://yourfavoritemirror.com/foo --mirror-name=anyname</strong></p>
 <p># OR</p>
-<p><strong>cobbler import --mirror=/mnt/dvd --mirror-name=anyname</strong></p>
-<p># wait for rsync to copy files...</p>
+<p><strong>cobbler import --mirror=root@localhost:/mnt/dvd --mirror-name=anyname</strong></p>
+<p># wait for mirror to rsync...</p>
 <p><strong>cobbler report</strong></p>
 <p><strong>cobbler system add --name=default --profile=name_of_a_profile1</strong></p>
 <p><strong>cobbler system add --name=AA:BB:CC:DD:EE:FF --profile=name_of_a_profile2</strong></p>
@@ -391,12 +402,10 @@ configuration and one for a database server.  Then, a machine is assigned to eac
 that will auto install those repository configurations on provisioned systems using that profile.</p>
 <p><strong>cobbler check</strong></p>
 <p># set up your cobbler distros here.</p>
-<p><strong>cobbler repo add --mirror=rsync://repos.example.com/foo/i386/ --name=magicfooi386</strong></p>
-<p><strong>cobbler repo add <a href="mailto:--mirror=root@192.168.1.5:/foo/i386/">--mirror=root@192.168.1.5:/foo/i386/</a> --name=magicbari386</strong></p>
+<p><strong>cobbler repo add --mirror=http://mirrors.kernel.org/fedora/core/updates/6/i386/ --name=fc6i386updates</strong></p>
+<p><strong>cobbler repo add --mirror=http://mirrors.kernel.org/fedora/extras/6/i386/ --name=fc6i386extras</strong></p>
 <p><strong>cobbler reposync</strong></p>
-<p><strong>cobbler profile add --name=p1 --distro=existing_distro_name --kickstart=/etc/cobbler/kickstart_fc6.ks --repos=``magicfooi386 magicbari386''</strong></p>
-<p>See the expanded description towards the bottom of this manpage for further information about
-repo management.</p>
+<p><strong>cobbler profile add --name=p1 --distro=existing_distro_name --kickstart=/etc/cobbler/kickstart_fc6.ks --repos=``fc6i386updates fc6i386extras''</strong></p>
 <p>
 </p>
 <h2><a name="xen">XEN</a></h2>
@@ -464,16 +473,20 @@ Usage:  <strong>cobbler enchant --address=ip|hostname --system=string</strong></
 <p>Adding a ``--virt=yes'' to either form will provision a virtualized image rather than reprovisioning
 the remote machine.   The default behavior is machine (not virtual) re-provisioning.</p>
 <p>Example:  <strong>cobbler enchant --virt=yes --address=192.168.10.10 --profile=fc6xen</strong></p>
+<p>Before using enchant, configure the location of the koan noarch RPM in /var/lib/cobbler/settings (a local path) and re-run ``cobbler sync''.</p>
 <p>
 </p>
 <h2><a name="importing_trees">IMPORTING TREES</a></h2>
-<p>Cobbler can auto-add distributions and profiles from local or remote sources, usually an rsync mirror of the distribution or a mounted DVD.  This can save a lot of time when setting up a new provisioning environment.</p>
-<p>Cobbler will try to detect the distribution type and automatically assign kickstarts.  By default, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of ``cobbler''.  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting in the configuration file after cobbler finishes the import.</p>
+<p>Cobbler can auto-add distributions and profiles from remote sources, whether this is an NFS path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.</p>
+<p>When importing a rsync mirror, cobbler will try to detect the distribution type and automatically assign kickstarts.  By default, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of ``cobbler''.  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting after cobbler creates the profile.</p>
+<p>Note that if you use --path instead of --mirror, no files will actually be copied.  Most of the time, usage of --mirror is preferred, to create a local copy of the files you are importing.  These files are saved automatically in /var/www/cobbler/ks_mirror.</p>
 <p>Example:  <strong>cobbler import --mirror=rsync://mirrorserver.example.com/path/ --mirror-name=fedora</strong></p>
-<p>Example:  <strong>cobbler import --mirror=/mnt/dvd --mirror-name=baz</strong></p>
+<p>Example2:  <strong>cobbler import <a href="mailto:--mirror=root@192.168.1.10:/stuff">--mirror=root@192.168.1.10:/stuff</a> --mirror-name=bar</strong></p>
+<p>Example3:  <strong>cobbler import --mirror=root@localhost:/mnt/dvd --mirror-name=baz</strong></p>
+<p>Example4:  <strong>cobbler import --path=/path/to/stuff --mirror-name=glorp</strong></p>
 <p>Once imported, run a ``cobbler list'' or ``cobbler report'' to see what you've added.</p>
+<p>``Cobbler sync'' should still be run after an import to get the system ready to provision what was just imported.</p>
 <p>By default, the rsync operations will exclude PPC content, debug RPMs, and ISO images -- to change what is excluded during an import, see /etc/cobbler/rsync.exclude.</p>
-<p>(Note: if you don't have a DVD drive, you can still download a DVD image and use ``losetup'').</p>
 <p>
 </p>
 <h2><a name="default_pxe_boot_behavior">DEFAULT PXE BOOT BEHAVIOR</a></h2>
@@ -505,10 +518,18 @@ extra software not in a standard repository but want provisioned systems to know
 <p>Cobbler reposync is the command to use to update repos as configured with ``cobbler repo add''.  Mirroring
 can take a long time, and usage of cobbler reposync prior to cobbler sync is needed to ensure
 provisioned systems have the files they need to actually use the mirrored repositories.  If you just
-add repos and never run reposync, the repos will never be mirrored.  This is probably a command
+add repos and never run ``cobbler reposync'', the repos will never be mirrored.  This is probably a command
 you would want to put on a crontab, though the frequency of that crontab and where the output
 goes is left up to the systems administrator.</p>
-<p>Repositories that do not need to be updated can be modifed by tweaking the values in /var/lib/cobbler/repos.</p>
+<p>For those familiar with yum's reposync, cobbler's reposync is a wrapper around the yum command.  Please
+use ``cobbler reposync'' to update cobbler mirrors, as reposync does not perform all required steps.  Also
+cobbler adds support for rsync and SSH locations, where as yum's reposync only supports what yum supports
+(http/ftp).</p>
+<p>Note that if a cobbler import provides enough information to use the boot server as a yum mirror for
+core packages, cobbler will set up kickstarts to use the cobbler server as a mirror instead of the 
+outside world.  If this feature is undesirable, it can be turned off by setting yum_core_mirror_from_server
+to 0 in /var/lib/cobbler/settings (and rerunning ``cobbler sync'').  You may want to disable this feature
+if machines are provisioned on a different VLAN/network than production.</p>
 <p>
 </p>
 <h2><a name="kickstart_tracking">KICKSTART TRACKING</a></h2>
@@ -517,10 +538,14 @@ goes is left up to the systems administrator.</p>
 <p>Using the status command will show when cobbler thinks a machine started kickstarting and when it last requested a file.
 This is a good way to track machines that may have gone interactive during kickstarts.  Cobbler will also make a special
 request in the post section of the kickstart to signal when a machine is finished kickstarting.</p>
-<p>To use this feature, the kickstart tree files need to be served via a <a href="http://server/cobbler_track/...">http://server/cobbler_track/...</a> URL, which happens
+<p>To use this feature, the kickstart tree files need to be served via a <a href="http://server/cblr/...">http://server/cblr/...</a> URL, which happens
 automatically when using the ``cobbler import'' command to pull in a kickstart tree from an rsync mirror.</p>
 <p>If kickstart trees are somewhere else, one can still benefit from the kickstart tracking feature by adding a symlink to 
-/var/www/cobbler/localmirror/distroname will allow the kickstarts to be served through the tracking URL mentioned above.   Be sure to use the <a href="http://server/cobbler_track/">http://server/cobbler_track/</a> URL to point to the kickstart tree for each distro you want to track.</p>
+/var/www/cobbler/localmirror/distroname will allow the kickstarts to be served through the tracking URL mentioned above.   Be sure to use the <a href="http://server/cblr/">http://server/cblr/</a> URL to point to the kickstart tree for each distro you want to track.</p>
+<p>Note that kickstart tracking support using syslog requires an Anaconda that supports syslog forwarding.
+RHEL5 is good, as is FC6 and later.  URL tracking currently requires python2.3 or higher on the server
+for the mod_python piece to work.  This will likely be improved later to better support older distros acting
+as a cobbler server.</p>
 <p>
 </p>
 <h2><a name="tweaking">TWEAKING</a></h2>
@@ -537,6 +562,11 @@ files in /etc/cobbler that can be edited.</p>
 <hr />
 <h1><a name="exit_status">EXIT_STATUS</a></h1>
 <p>cobbler's command line returns a zero for success and non-zero for failure.</p>
+<p>
+</p>
+<hr />
+<h1><a name="mailing_list">MAILING LIST</a></h1>
+<p>Cobbler has a mailing list for user and development-related questions/comments at <a href="mailto:et-mgmt-tools@redhat.com.">et-mgmt-tools@redhat.com.</a></p>
 <p>
 </p>
 <hr />
