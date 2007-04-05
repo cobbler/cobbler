@@ -5,12 +5,12 @@ always:
 2  -  better documentation (particularly online articles)
 
 core:
-1  -  re-support repo add taking http:// urls, which will use repotrack/reposync
-1 -  import over http://, ftp:// in addition to existing file and rsync:// and ssh://
 5 -  "check" should check if services (esp httpd) are started
+1 -  better tracking solution.  RHEL4 doesn't do syslog, and RHEL4 server doesn't work w/ the current soln.
 
 user interface:
-5 -  "cobbler add" should be distinguished from "edit" so as to not overwrite
+3 -  "cobbler add" should be distinguished from "edit" so as to not overwrite
+     ex: "cobbler edit profile --name=asdf --kickstart=foo" should just change the kickstart.
 5 -  GTK (or Web) UI for Cobbler ?
 5 -  have -v or --version
 
@@ -30,9 +30,7 @@ ideas:
 3 -  explore use cases for pykickstart "plugin" concept
 5 -  mDNS discovery of server from koan
 1 -  (stateless) scripts triggered on profile/system/distro add
-1 -  (stateless) support for diskless object w/o dummy profile/distro
 
 small bugs:
 3  - no logrotate or cleanup for /var/log/cobbler (kickstart tracking)
-3  - add warning if kernel arg length is exceeded
 3  - relax detection of kernel/initrd to accept any file
