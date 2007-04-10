@@ -1,7 +1,7 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.4.6
+Version: 0.4.7
 Release: 0%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -110,6 +110,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
+* Tue Apr 10 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.7-0
+- Upstream changes (see CHANGELOG)
+
 * Thu Apr 05 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.6-0
 - Upstream changes (see CHANGELOG)
 - Packaged 'config' directory under ks_mirror
