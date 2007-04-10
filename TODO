@@ -35,3 +35,5 @@ ideas:
 small bugs:
 3  - no logrotate or cleanup for /var/log/cobbler (kickstart tracking)
 3  - relax detection of kernel/initrd to accept any file
+5  - use smaller swap dependant on ram setting.
+

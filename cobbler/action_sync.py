@@ -213,7 +213,7 @@ class BootSync:
 
         mod_python_ok = True
 
-        for x in [ "redhat-release-4", "redhat-release-3", "centos-release-4", "centos-release-3" ]:
+        for x in [ "redhat-release-5", "redhat-release-4", "redhat-release-3", "centos-release-4", "centos-release-3" ]:
             if release_info.lower().find(x) != -1:
                 mod_python_ok = False
 
