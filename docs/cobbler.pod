@@ -205,6 +205,8 @@ Experimental support is also provided for mirroring (RHEL5) and later RHN conten
 a fast local mirror.  The mirror syntax for this is --mirror=rhn://channel-name and you must
 have entitlements for this to work.
 
+http://, ftp:// and rhn:// mirrors require yum-utils be installed.
+
 =item name
 
 This name is used as the save location for the mirror.  If the mirror represented, say, Fedora Core
@@ -229,6 +231,16 @@ will not configure yum to know about this repo -- you can still do it manually i
 still be used for installation, it just won't get installed automatically in /etc/yum.repos.d on the client.
 
 See /etc/cobbler/kickstart_fc6.ks for an example of how to employ this within a kickstart template.
+
+=item rpm-list
+
+By specifying a space-delimited list of package names for --rpm-list, one can decide to mirror only a part
+of a repo (the list of packages given, plus dependencies).  This may be helpful in conserving time/space/bandwidth.
+For intance, when mirroring FC6 Extras, it may be desired to mirror just cobbler and koan, and skip all of the
+games.  To do this, use --rpm-list="cobbler koan".
+
+This option only works for http:// and ftp:// repositories.  It will be ignored for other
+mirror types, such as local paths and rsync:// mirrors.  This option requires yum-utils be installed.
 
 =back
 

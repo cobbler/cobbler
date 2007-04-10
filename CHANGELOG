@@ -3,6 +3,8 @@ Cobbler CHANGELOG
 
 * TBA - 0.4.7
 - Disable mod_python tracker piece for RHEL5 (replacement eventual).
+- Added support for --rpm-list parameter to "repo add" for download of partial content from repositories
+  (ex: cobbler and koan from FC6extras, w/o games).
 
 * Thu Apr 05 2007 - 0.4.6
 - Bind cobbler_syslogd to all addresses

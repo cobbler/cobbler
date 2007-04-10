@@ -32,6 +32,8 @@ class RepoSync:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
+    # ==================================================================================
+
     def __init__(self,config):
         """
         Constructor
@@ -43,6 +45,8 @@ class RepoSync:
         self.systems  = config.systems()
         self.settings = config.settings()
         self.repos    = config.repos()
+    
+    # ==================================================================================
 
     def run(self,verbose=True):
         """
@@ -64,6 +68,8 @@ class RepoSync:
                 self.do_rsync(repo)
 
         return True
+    
+    # ==================================================================================
   
     def do_reposync(self,repo):
 
@@ -72,12 +78,25 @@ class RepoSync:
         FIXME: support for mirrorlist?
         """
 
+        # warn about not having yum-utils.  We don't want to require it in the package because
+        # RHEL4 and RHEL5U0 don't have it.
+
         if not os.path.exists("/usr/bin/reposync"):
             raise cexceptions.CobblerException("no /usr/bin/reposync found, please install yum-utils")
 
-        is_rhn = False
+        cmds = []                 # queues up commands to run
+        is_rhn = False            # RHN repositories require extra black magic
+        has_rpm_list = False      # flag indicating not to pull the whole repo
+
+        # detect cases that require special handling
+
         if repo.mirror.lower().startswith("rhn://"):
             is_rhn = True
+        if repo.rpm_list != "":
+            has_rpm_list = True
+
+        # user might have disabled repo updates in the config file for whatever reason.
+        # if so, don't update this one.
 
         if not repo.keep_updated:
             print "- %s is set to not be updated" % repo.name
@@ -89,35 +108,86 @@ class RepoSync:
         temp_path = os.path.join(store_path, ".origin")
         if not os.path.isdir(temp_path) and not is_rhn:
             # if doing the rhn sync, reposync will make the directory
+            # otherwise, we need to do it explicitly
             os.makedirs(temp_path)
          
+        # how we invoke yum-utils depends on whether this is RHN content or not.
+
         if not is_rhn:
-            # rhn sync takes different params
+
+            # this is the simple non-RHN case.
+            # create the config file that yum will use for the copying
+
             temp_file = self.create_local_file(repo, temp_path, output=False)
-            cmd = "/usr/bin/reposync --config=%s --repoid=%s --download_path=%s" % (temp_file, repo.name, store_path)
-            print "- %s" % cmd
+
+            if not has_rpm_list:
+
+                # if we have not requested only certain RPMs, use reposync
+                cmd = "/usr/bin/reposync --config=%s --repoid=%s --download_path=%s" % (temp_file, repo.name, store_path)
+                print "- %s" % cmd
+                cmds.append(cmd)
+
+            else:
+
+                # create the output directory if it doesn't exist
+                if not os.path.exists(dest_path):
+                   os.makedirs(dest_path)
+
+                # if we only want certain RPMs, use yumdownloader (likely more than once)
+                # FIXME: yumdownloader has a current bug where --resolve blows up
+                # removing --resolve until I get the email from bugzilla saying it's fixed.
+                cmd = "/usr/bin/yumdownloader --config=%s --destdir=%s %s" %(temp_file, dest_path, " ".join(repo.rpm_list))
+                print "- %s" % cmd
+                cmds.append(cmd)
         else:
-            # this requires that you have entitlements for the server and you give the mirror as rhn://$channelname
-            rest = repo.mirror[6:]
+
+            # this is the somewhat more-complex RHN case.
+            # NOTE: this requires that you have entitlements for the server and you give the mirror as rhn://$channelname
+
+            if has_rpm_list:
+                print "- warning: --rpm-list is not supported for RHN content"
+            rest = repo.mirror[6:] # everything after rhn://
             cmd = "/usr/bin/reposync -r %s --download_path=%s" % (rest, store_path)
             print "- %s" % cmd
-            # downloads using -r use the value given for -r as part of the output dir, so create a symlink with the name the user
+            cmds.append(cmd)
+
+            # downloads using -r use the value given for -r as part of the output dir, 
+            # so create a symlink with the name the user
             # gave such that everything still works as intended and the sync code still works
+            # this doesn't happen for the http:// and ftp:// mirrors.
+
             if not os.path.exists(dest_path):
                 from1 = os.path.join(self.settings.webdir, "repo_mirror", rest)
                 print "- symlink: %s -> %s" % (from1, dest_path)
                 os.symlink(from1, dest_path)
-        rc = sub_process.call(cmd, shell=True)
+ 
+        # now regardless of whether we're doing yumdownloader or reposync
+        # or whether the repo was http://, ftp://, or rhn://, execute all queued
+        # commands here.  Any failure at any point stops the operation.
+
+        for cmd in cmds:
+            rc = sub_process.call(cmd, shell=True)
+            if rc !=0:
+                raise cexceptions.CobblerException("cobbler reposync failed")
+
+        # some more special case handling for RHN.
+        # create the config file now, because the directory didn't exist earlier
+
         if is_rhn:
-            # now that the directory exists, we can create the config file.  this is different from the normal case.
             temp_file = self.create_local_file(repo, temp_path, output=False)
-        if rc !=0:
-            raise cexceptions.CobblerException("cobbler reposync failed")
+
+        # now run createrepo to rebuild the index
+
         arg = None
         os.path.walk(dest_path, self.createrepo_walker, arg)
 
+        # create the config file the hosts will use to access the repository.
+
         self.create_local_file(repo, dest_path)
  
+
+    # ==================================================================================
+
     def do_rsync(self,repo):
 
         """
@@ -127,6 +197,8 @@ class RepoSync:
         if not repo.keep_updated:
             print "- %s is set to not be updated" % repo.name
             return True
+        if repo.rpm_list != "":
+            print "- warning: --rpm-list is not supported for rsync'd repositories"
         dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
         spacer = ""
         if not repo.mirror.startswith("rsync://") and not repo.mirror.startswith("/"):
@@ -142,6 +214,8 @@ class RepoSync:
         print "- walking: %s" % dest_path
         os.path.walk(dest_path, self.createrepo_walker, arg)
         self.create_local_file(repo, dest_path)
+    
+    # ==================================================================================
 
     def create_local_file(self, repo, dest_path, output=True):
         """
@@ -166,6 +240,8 @@ class RepoSync:
         config_file.write("gpgcheck=0\n")
         config_file.close()
         return fname 
+
+    # ==================================================================================
 
     def createrepo_walker(self, arg, dirname, fname):
         """

@@ -30,12 +30,14 @@ class Repo(item.Item):
         self.mirror = None                           # is required
         self.keep_updated = 1                        # has reasonable defaults
         self.local_filename = ""                     # off by default
+        self.rpm_list = ""                      # just get selected RPMs + deps
 
     def from_datastruct(self,seed_data):
-        self.name           = self.load_item(seed_data,'name')
-        self.mirror         = self.load_item(seed_data,'mirror')
+        self.name           = self.load_item(seed_data, 'name')
+        self.mirror         = self.load_item(seed_data, 'mirror')
         self.keep_updated   = self.load_item(seed_data, 'keep_updated')
         self.local_filename = self.load_item(seed_data, 'local_filename')
+        self.rpm_list       = self.load_item(seed_data, 'rpm_list')
         return self
 
     def set_name(self,name):
@@ -80,6 +82,22 @@ class Repo(item.Item):
         self.local_filename = fname
         return True
 
+    def set_rpm_list(self,rpms):
+        """
+        Rather than mirroring the entire contents of a repository (Fedora Extras, for instance,
+        contains games, and we probably don't want those), make it possible to list the packages
+        one wants out of those repos, so only those packages + deps can be mirrored.
+        """
+        if type(rpms) != list:
+            rpmlist = rpms.split(None)
+        else:
+            rpmlist = rpms
+        try:
+            rpmlist.remove('')
+        except:
+            pass
+        self.rpm_list = rpmlist 
+
     def is_valid(self):
         """
 	A repo is valid if it has a name and a mirror URL
@@ -95,7 +113,8 @@ class Repo(item.Item):
            'name'           : self.name,
            'mirror'         : self.mirror,
            'keep_updated'   : self.keep_updated,
-           'local_filename' : self.local_filename
+           'local_filename' : self.local_filename,
+           'rpm_list'       : self.rpm_list
         }
 
     def printable(self):
@@ -103,5 +122,6 @@ class Repo(item.Item):
         buf = buf + "mirror          : %s\n" % self.mirror
         buf = buf + "keep updated    : %s\n" % self.keep_updated
         buf = buf + "local filename  : %s\n" % self.local_filename
+        buf = buf + "rpm list        : %s\n" % self.rpm_list
         return buf
 
