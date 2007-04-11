@@ -3,6 +3,7 @@ Cobbler CHANGELOG
 
 * TBA - 0.4.7
 - Disable mod_python tracker piece for RHEL5 (replacement eventual).
+- Kickstart tracking now understands Apache logs
 - Added support for --rpm-list parameter to "repo add" for download of partial content from repositories
   (ex: cobbler and koan from FC6extras, w/o games).
 
