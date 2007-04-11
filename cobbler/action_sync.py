@@ -63,7 +63,6 @@ class BootSync:
         self.clean_trees()
         self.copy_koan()
         self.copy_bootloaders()
-        self.configure_httpd()
         self.copy_distros()
         self.validate_kickstarts()
         self.build_trees()
@@ -166,92 +165,6 @@ class BootSync:
     def templatify(self, data, metadata, outfile):
         for x in metadata.keys():
             template_data = template_data.replace("$%s" % x, metadata[x])
-
-    def configure_httpd(self):
-        """
-        Create a config file to Apache that will allow access to the
-        cobbler infrastructure available over TFTP over HTTP also.
-        """
-        
-        conf_file = "/etc/httpd/conf.d/cobbler.conf"
-
-        if not os.path.exists("/etc/httpd/conf.d"):
-           print cobbler_msg.lookup("no_httpd")
-           return
-
-        # now we're going to figure out whether we actually need to write
-        # the file.  If the file exists and contains self.settings.webdir,
-        # then we don't.  and if the file is already there, then we really
-        # don't have to restart the service either.
-
-        found_webdir = False
-        found_track_support = False
-        if os.path.exists(conf_file):
-            fh = open(conf_file, "r")
-            data = fh.read()
-            if data.find(self.settings.webdir) != -1:
-                found_webdir = True
-            if data.find("cblr") != -1:
-                found_track_support = True
-            fh.close()
-
-        if found_track_support and found_webdir:
-            # no http reconfig and restart needed
-            return 
-
-        f = self.open_file(conf_file,"w+")
- 
-        # the watcher.py script appears a bit flakey in older Apache 2 versions
-        # so only install the MP hook when we think Apache can handle it
-        # otherwise the filter could corrupt some binary files (erg!) and the install
-        # will die almost immediately.  You've got to love all the corner cases in systems mgmt
-        # software, don't you?
-
-        release_info_fh = os.popen("rpm -q --whatprovides redhat-release")
-        release_info = release_info_fh.read()
-        release_info_fh.close()
-
-        mod_python_ok = True
-
-        for x in [ "redhat-release-5", "redhat-release-4", "redhat-release-3", "centos-release-4", "centos-release-3" ]:
-            if release_info.lower().find(x) != -1:
-                mod_python_ok = False
-
-        if mod_python_ok:
-            mp_section = """
-            AddHandler mod_python .py
-            PythonOutputFilter watcher WATCHER
-            AddOutputFilter WATCHER ks.cfg
-            AddOutputFilter WATCHER .rpm
-            AddOutputFilter WATCHER .xml
-            AddOutputFilter WATCHER .py
-            PythonDebug On
-            """
-        else:
-            mp_section = ""
-
-        config_data = """
-        #
-        # This configuration file allows 'cobbler' boot info
-        # to be accessed over HTTP in addition to PXE.
-        AliasMatch ^/cobbler(/.*)?$ "/cobbler_webdir$1"
-        AliasMatch ^/cobbler_track(/.*)?$ "/cobbler_webdir$1"
-        AliasMatch ^/cblr(/.*)?$ "/cobbler_webdir$1"
-        <Directory "/cobbler_webdir">
-            Options Indexes FollowSymLinks
-            AllowOverride None
-            Order allow,deny
-            Allow from all
-            MPSECTION
-        </Directory>
-        """
-        # this defaults to /var/www/cobbler if user didn't change it
-        config_data = config_data.replace("/cobbler_webdir",self.settings.webdir)
-        config_data = config_data.replace("MPSECTION", mp_section)
-        self.tee(f, config_data)
-        self.close_file(f)
-
-        self.service("httpd", "reload")
 
     def clean_trees(self):
         """

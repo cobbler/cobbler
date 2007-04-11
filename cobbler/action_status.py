@@ -29,7 +29,72 @@ class BootStatusReport:
         self.settings = config.settings()
         self.mode     = mode
 
-   # -------------------------------------------------------
+    # -------------------------------------------------------
+
+    def scan_apache_logfiles(self):
+        results = {}
+        files = [ "/var/log/httpd/access_log" ] 
+        for x in range(1,4):
+           consider = "/var/log/httpd/access_log.%s" % x
+           if os.path.exists(consider):
+               files.append(consider)
+        for fname in files:
+           fh = open(fname)
+           data = fh.readline()
+           while (data is not None and data != ""):
+               data = fh.readline()
+               #print data
+               tokens = data.split(None)
+               if len(tokens) < 6:
+                   continue
+               #print "----"
+               ip    = tokens[0]
+               stime  = tokens[3].replace("[","")
+               req   = tokens[6]        
+               if req.find("/cblr") == -1:
+                   continue
+               #print "%s,%s,%s,%s" % (tokens,ip,time,req)
+               ttime = time.strptime(stime,"%d/%b/%Y:%H:%M:%S")
+               #print ttime
+               itime = time.mktime(ttime)
+               if not results.has_key(ip):
+                   results[ip] = {}
+               #print "ip (%s) time (%s) req (%s)" % (ip,itime,req)
+               results[ip][itime] = req
+
+        return results
+
+    # -------------------------------------------------------
+
+    def scan_syslog_logfiles(self):
+        
+        # find all of the logged IP addrs
+        filelist = glob.glob("/var/log/cobbler/syslog/*")
+        filelist.sort()
+        results = {}
+
+        for fullname in filelist:
+            #fname = os.path.basename(fullname)    
+            logfile = open(fullname, "r")
+            # for each line in the file...
+            data = logfile.readline()
+            while(data is not None and data != ""):
+                data = logfile.readline()
+
+                try:
+                    (epoch, strdate, ip, request) = data.split("\t", 3)
+                    epoch = float(epoch)
+                except:
+                    continue
+ 
+                if not results.has_key(ip):
+                    results[ip] = {}
+                # print "results (%s) (%s) <- %s" % (ip, epoch, request) 
+                results[ip][epoch] = request
+
+        return results
+
+    # -------------------------------------------------------
 
     def run(self):
         """
@@ -37,90 +102,55 @@ class BootStatusReport:
         For kickstart trees not in /var/lib/cobbler (or a symlink off of there)
         tracking will be incomplete.  This should be noted in the docs.
         """
- 
+
+        apache_results = self.scan_apache_logfiles()
+        syslog_results = self.scan_syslog_logfiles()
+        ips = apache_results.keys()
+        ips.sort()
+        ips2 = syslog_results.keys()
+        ips2.sort()
+
+        ips.extend(ips2)
+        ip_printed = {}
+
         last_recorded_time = 0
         time_collisions = 0
-
-        # find all of the logged IP addrs
-        filelist = glob.glob("/var/log/cobbler/syslog/*")
-        filelist.sort()
         
         header = ("Address", "State", "Started", "Last Request", "Seconds", "Log Entries")
         print "%-20s | %-15s | %-25s | %-25s | %-10s | %-6s" % header
 
-        for fullname in filelist:
-            fname = os.path.basename(fullname)               # access times log
-            fullname2 = "/var/log/cobbler/kicklog/%s" % fname # remote syslog
-               
+        
+        for ip in ips:
+            if ip_printed.has_key(ip):
+                continue
+            ip_printed[ip] = 1
             entries = {} # hash of access times and messages
-            ip = None
-
-            # both types of log files must be intertwingled (TM)
-
-            for openme in [ fullname, fullname2 ]:
-
-                # it's possible syslog never hit the server, that's ok.
-                if not os.path.exists(openme):
-                    continue
-                
-                logfile = open(openme, "r")
-                data = "..."
-                
-                # for each line in the file...
-                while(data is not None and data != ""):
-                    data = logfile.readline()
-
-                    # fields are tab delimited
-                    # (1) seconds since 1970, in decimal
-                    # (2) ASCII date for humans
-                    # (3) IP address of requester
-                    # (4) HTTP request line
-      
-                    try: 
-                        (epoch, strdate, ip, request) = data.split("\t", 3)
-                    except:
-                        continue
-
-                    # HTTP request line is essentially space delimited
-                    # (1) method, which should always be GET
-                    # (2) filename, which is relative from server root
-                    # (3) protocol, such as HTTP/1.1
-
-                    # time collision voodoo
-                    # we are storing times in a hash, and this prevents them from colliding
-                    # which would break the filecount and possibly the state check
-                    
-                    logtime = float(epoch)
-                    if int(logtime) == last_recorded_time:
-                        time_collisions = time_collisions + 1
-                    else:
-                        time_collisions = 0
-                    logtime = logtime + (0.001 * time_collisions)
-
-                    # to make the report generation a bit easier, flag what we think are start/end points
-
+            if apache_results.has_key(ip):
+                times = apache_results[ip].keys()
+                for logtime in times:
+                    request = apache_results[ip][logtime] 
                     if request.find("?system_done") != -1:             
-                        entries[logtime] = "DONE:%s" % request
+                        entries[logtime] = "DONE"
                     elif request.find("?profile_done") != -1:
-                        entries[logtime] = "DONE:%s" % request
-                    elif request.find("methodcomplete") != -1:
-                        entries[logtime] = "DONE:%s" % request
-                    elif request.find("Method =") != -1:
-                        entries[logtime] = "START:%s" % request
+                        entries[logtime] = "DONE"
                     else:
                         entries[logtime] = "1" # don't really care what the filename was
 
-                    last_recorded_time = int(logtime) 
+            if syslog_results.has_key(ip):
+                times = syslog_results[ip].keys()
+                for logtime in times:
+                    request = syslog_results[ip][logtime]
+                    if request.find("methodcomplete") != -1:
+                        entries[logtime] = "DONE"
+                    elif request.find("Method =") != -1:
+                        entries[logtime] = "START"
+                    else:
+                        entries[logtime] = "1"
 
-                    # FIXME: calculate start times for each IP as defined as earliest file
-                    # requested after each stop time, or the first file requested if no
-                    # stop time.
-
-                logfile.close()
-
-            # print the report line for this IP addr
 
             self.generate_report(entries,ip)
+
+            # print entries
 
         return True
 
@@ -142,23 +172,27 @@ class BootStatusReport:
         last_done_time = 0
         fcount = 0
 
+        if len(rtimes) == 0:
+            print "%s: ?" % ip
+            return
+
         # for each request time the machine has made
         for rtime in rtimes:
 
             rtime = rtime
             fname = entries[rtime]
 
-            if fname.startswith("START:"):
+            if fname == "START":
                install_state = "installing"
                last_start_time = rtime
                last_request_time = rtime
                fcount = 0
-            elif fname.startswith("DONE"):       
+            elif fname == "DONE":
                # kickstart finished
                last_done_time = rtime
                install_state = "done"
             else:
-               install_state = "installing"
+               install_state = "?"
                last_request_time = rtime
             fcount = fcount + 1
 
@@ -172,7 +206,12 @@ class BootStatusReport:
         # FIXME: IP to MAC mapping where cobbler knows about it would be nice.
         display_start = time.asctime(time.localtime(last_start_time))
         display_last  = time.asctime(time.localtime(last_request_time))
- 
+
+        if display_start.find(" 1969") != -1:
+            display_start = "?"
+            elapsed_time  = "?"   
+  
         # print the status line for this IP address
         print "%-20s | %-15s | %-25s | %-25s | %-10s | %-6s" % (ip, install_state, display_start, display_last, elapsed_time, fcount)               
  
+

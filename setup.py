@@ -15,6 +15,7 @@ if __name__ == "__main__":
         manpath  = "share/man/man1/"
         cobpath  = "/var/lib/cobbler/"
         etcpath  = "/etc/cobbler/"
+        wwwconf  = "/etc/httpd/conf.d/"
         wwwpath  = "/var/www/cobbler/"
         initpath = "/etc/init.d/"
         logpath  = "/var/log/cobbler/"
@@ -46,8 +47,7 @@ if __name__ == "__main__":
                 ],
                 scripts = ["scripts/cobbler", "scripts/cobbler_syslogd"],
                 data_files = [
-                                # (docspath, ['README']),
-                                (wwwpath,  ['scripts/watcher.py']),
+                                (wwwconf,  ['templates/cobbler.conf']),
                                 (cobpath,  ['loaders/elilo-3.6-ia64.efi']),
                                 (cobpath,  ['loaders/menu.c32']),
                                 (etcpath,  ['kickstarts/kickstart_fc5.ks']),

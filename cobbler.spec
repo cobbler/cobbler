@@ -79,7 +79,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cobbler/profiles
 %dir /var/www/cobbler/systems
 %dir /var/www/cobbler/links
-/var/www/cobbler/watcher.py*
 %defattr(-,root,root)
 %dir /tftpboot/pxelinux.cfg
 %dir /tftpboot/images
@@ -105,6 +104,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/lib/cobbler/menu.c32
 /etc/init.d/cobblersyslogd
+/etc/httpd/conf.d/cobbler.conf
 %dir /var/log/cobbler/syslog
 
 %doc AUTHORS CHANGELOG NEWS README COPYING

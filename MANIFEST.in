@@ -1,6 +1,7 @@
 include loaders/COPYING_ELILO
 include loaders/elilo-3.6-ia64.efi
 include loaders/menu.c32
+include templates/cobbler.conf
 include templates/dhcp.template
 include templates/pxeprofile.template
 include templates/pxedefault.template
