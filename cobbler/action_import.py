@@ -20,7 +20,7 @@ import os.path
 import traceback
 import sub_process
 import glob
-
+import shutil
 import api
 
 WGET_CMD = "wget --mirror --no-parent --no-host-directories --directory-prefix %s/%s %s"
@@ -161,7 +161,11 @@ class Importer:
        base = "/".join(tokens)
        dest_link = os.path.join(self.settings.webdir, "links", distro.name)
        if not os.path.exists(dest_link):
-           os.symlink(base, dest_link)
+           try:
+               os.symlink(base, dest_link)
+           except:
+               # this shouldn't happen but I've seen it ... debug ...
+               print "- symlink creation failed: %s, %s" % (base, dest_link)
        base = base.replace(self.settings.webdir,"")
        
        meta = distro.ks_meta
@@ -233,6 +237,7 @@ class Importer:
        
        initrd = None
        kernel = None
+
        if not self.is_relevant_dir(dirname):
            return
 
@@ -326,6 +331,14 @@ class Importer:
            # don't run creatrepo twice -- this can happen easily for Xen and PXE, when
            # they'll share same repo files.
            if not self.processed_repos.has_key(comps_path):
+               bad = os.path.join(comps_path, "repodata", ".olddata")
+               bad2 = os.path.join(comps_path, ".olddata")
+               if os.path.exists(bad):
+                   print "- removing .olddata: %s" % bad
+                   shutil.rmtree(bad, ignore_errors=False, onerror=None)
+               if os.path.exists(bad2):
+                   print "- removing .olddata: %s" % bad
+                   shutil.rmtree(bad2, ignore_errors=False, onerror=None)
                cmd = "createrepo --basedir / --groupfile %s %s" % (os.path.join(comps_path, "repodata", comps_file), comps_path)
                print "- %s" % cmd
                sub_process.call(cmd,shell=True)
@@ -337,7 +350,7 @@ class Importer:
 
    def add_entry(self,dirname,kernel,initrd):
        pxe_arch = self.get_pxe_arch(dirname)
-       name = self.get_proposed_name(dirname)
+       name = self.get_proposed_name(dirname, pxe_arch)
 
        existing_distro = self.distros.find(name)
 
@@ -373,7 +386,10 @@ class Importer:
 
        return distro
 
-   def get_proposed_name(self,dirname):
+   def get_proposed_name(self,dirname,pxe_arch):
+       archname = pxe_arch
+       if archname == "x86":
+          archname = "i386"
        name = "-".join(dirname.split("/"))
        if name.startswith("-"):
           name = name[1:]
@@ -384,7 +400,58 @@ class Importer:
        name = name.replace("ks_mirror-","")
        name = name.replace("-pxeboot","")  
        name = name.replace("--","-")
+       name = name.replace("-i386","")
+       name = name.replace("-x86_64","")
+       name = name.replace("-ia64","")
+       # ensure arch is on the end, regardless of path used.
+       name = name + "-" + archname
+
        return name
+
+   def arch_walker(self,foo,dirname,fnames):
+       """
+       See docs on learn_arch_from_tree
+       """
+ 
+       # don't care about certain directories
+       match = False
+       for x in TRY_LIST:
+           if dirname.find(x) != -1:
+               match = True
+               continue
+       if not match:
+          # print "- skipping: %s" % dirname
+          return
+
+       # try to find a kernel header RPM and then look at it's arch.
+       for x in fnames:
+           if not x.endswith("rpm"):
+               continue
+           if x.find("kernel-header") != -1:
+               print "- kernel header found: %s" % x
+               if x.find("i386") != -1:
+                   foo["result"] = "x86"
+                   return
+               elif x.find("x86_64") != -1: 
+                   foo["result"] = "x86_64"
+                   return
+               elif x.find("ia64") != -1:
+                   foo["result"] = "ia64"
+                   return
+                
+
+   def learn_arch_from_tree(self,dirname):
+       """ 
+       If a distribution is imported from DVD, there is a good chance the path doesn't contain the arch
+       and we should add it back in so that it's part of the meaningful name ... so this code helps
+       figure out the arch name.  This is important for producing predictable distro names (and profile names)
+       from differing import sources
+       """
+       dirname2 = "/".join(dirname.split("/")[:-2])  # up two from images, then down as many as needed
+       print "- scanning %s for architecture info" % dirname2
+       result = {} 
+       os.path.walk(dirname2, self.arch_walker, result)      
+       return result["result"]
 
    def get_pxe_arch(self,dirname):
        t = dirname.lower()
@@ -394,7 +461,7 @@ class Importer:
           return "ia64"
        if t.find("i386") != -1 or t.find("386") != -1 or t.find("x86") != -1:
           return "x86"
-       return "x86"
+       return self.learn_arch_from_tree(dirname)
 
    def is_relevant_dir(self,dirname):
        for x in [ "pxe", "xen", "virt" ]:
