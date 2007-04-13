@@ -17,6 +17,7 @@ import re
 import socket
 import glob
 import sub_process
+import shutil
 
 _re_kernel = re.compile(r'vmlinuz(.*)')
 _re_initrd = re.compile(r'initrd(.*).img')
@@ -137,6 +138,22 @@ def find_kernel(path):
         return find_highest_files(path,"vmlinuz",_re_kernel)
     return None
 
+def remove_yum_olddata(path):
+    """
+    Delete .olddata files that might be present from a failed run
+    of createrepo.  
+    """
+    trythese = [
+        ".olddata",
+        ".repodata/.olddata",
+        "repodata/.oldata",
+        "repodata/repodata"
+    ]
+    for pathseg in trythese:
+        olddata = os.path.join(path, pathseg)
+        if os.path.exists(olddata):
+            print "- removing: %s" % olddata
+            shutil.rmtree(olddata, ignore_errors=False, onerror=None)  
 
 def find_initrd(path):
     """

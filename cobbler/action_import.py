@@ -20,8 +20,8 @@ import os.path
 import traceback
 import sub_process
 import glob
-import shutil
 import api
+import utils
 
 WGET_CMD = "wget --mirror --no-parent --no-host-directories --directory-prefix %s/%s %s"
 RSYNC_CMD =  "rsync -a %s %s %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --delete --delete-excluded --progress"
@@ -331,14 +331,7 @@ class Importer:
            # don't run creatrepo twice -- this can happen easily for Xen and PXE, when
            # they'll share same repo files.
            if not self.processed_repos.has_key(comps_path):
-               bad = os.path.join(comps_path, "repodata", ".olddata")
-               bad2 = os.path.join(comps_path, ".olddata")
-               if os.path.exists(bad):
-                   print "- removing .olddata: %s" % bad
-                   shutil.rmtree(bad, ignore_errors=False, onerror=None)
-               if os.path.exists(bad2):
-                   print "- removing .olddata: %s" % bad
-                   shutil.rmtree(bad2, ignore_errors=False, onerror=None)
+               utils.remove_yum_olddata(comps_path)
                cmd = "createrepo --basedir / --groupfile %s %s" % (os.path.join(comps_path, "repodata", comps_file), comps_path)
                print "- %s" % cmd
                sub_process.call(cmd,shell=True)

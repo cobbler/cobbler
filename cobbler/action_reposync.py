@@ -15,7 +15,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import os
 import os.path
-import shutil
 import time
 import yaml # Howell-Clark version
 import sub_process
@@ -250,6 +249,7 @@ class RepoSync:
         target_dir = os.path.dirname(dirname).split("/")[-1]
         print "- scanning: %s" % target_dir
         if target_dir.lower() in [ "i386", "x86_64", "ia64" ] or (arg is None):
+            utils.remove_yum_olddata(dirname)
             try:
                 cmd = "createrepo %s" % dirname
                 print cmd
