@@ -1,20 +1,31 @@
-all: rpm
+all: rpms
 
 clean:
 	-rm -f koan*.gz koan*.rpm MANIFEST
 	-rm -rf koan-* dist build
+	-rm -rf rpm-build
+	-rm -rf *~ *.pyc *.pyo
 
 manpage:
-	pod2man --center=koan --release= koan.pod | gzip -c > koan.1.gz
+	pod2man --center="koan" --release= koan.pod | gzip -c > koan.1.gz
 	pod2html koan.pod > koan.html
 
 test:
 	python tests/tests.py
 
-rpm: clean manpage
+build: clean
+	python setup.py build -f
+
+install: build
+	python setup.py install -f
+
+sdist: clean manpage
 	python setup.py sdist
-	cp dist/*.gz .
-	rpmbuild --define "_topdir %(pwd)" \
+
+rpms:  sdist
+	mkdir -p rpm-build
+	cp dist/*.gz rpm-build/
+	rpmbuild --define "_topdir %(pwd)/rpm-build" \
 	--define "_builddir %{_topdir}" \
 	--define "_rpmdir %{_topdir}" \
 	--define "_srcrpmdir %{_topdir}" \
