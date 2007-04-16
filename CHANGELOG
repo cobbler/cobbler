@@ -8,6 +8,7 @@ Cobbler CHANGELOG
   (ex: cobbler and koan from FC6extras, w/o games).
 - More consistant naming on imports, regardless of data source.
 - Teach cobbler to remove .olddata dirs, which can happen if createrepo crashes or is killed mid-process
+- Default yum_core_repos_from_server to 0 
 
 * Thu Apr 05 2007 - 0.4.6
 - Bind cobbler_syslogd to all addresses

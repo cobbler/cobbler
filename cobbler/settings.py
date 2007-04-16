@@ -41,7 +41,7 @@ DEFAULTS = {
     },
     "syslog_port"                 : 25150,
     "minimize_syncs"              : 1,
-    "yum_core_mirror_from_server" : 1
+    "yum_core_mirror_from_server" : 0
 }
 
 

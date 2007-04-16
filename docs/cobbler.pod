@@ -512,9 +512,9 @@ cobbler adds support for rsync and SSH locations, where as yum's reposync only s
 (http/ftp).
 
 Note that if a cobbler import provides enough information to use the boot server as a yum mirror for
-core packages, cobbler will set up kickstarts to use the cobbler server as a mirror instead of the 
-outside world.  If this feature is undesirable, it can be turned off by setting yum_core_mirror_from_server
-to 0 in /var/lib/cobbler/settings (and rerunning "cobbler sync").  You may want to disable this feature
+core packages, cobbler can set up kickstarts to use the cobbler server as a mirror instead of the 
+outside world.  If this feature is desirable, it can be turned on by setting yum_core_mirror_from_server
+to 1 in /var/lib/cobbler/settings (and rerunning "cobbler sync").  You should not enable this feature
 if machines are provisioned on a different VLAN/network than production.
 
 =head2 KICKSTART TRACKING

@@ -259,7 +259,7 @@ class Importer:
            print "- traversing distro %s" % distro.name
            if distro.kernel.find("ks_mirror") != -1:
                basepath = os.path.dirname(distro.kernel)
-               top = "/".join(basepath.split("/")[0:-3]) # up one level
+               top = "/".join(basepath.split("/")[0:-2]) # up one level
                print "- descent into %s" % top
                os.path.walk(top, self.repo_scanner, distro)
            else:
