@@ -16,8 +16,10 @@ import exceptions
 import cexceptions
 import serializable
 import utils
-import cobbler_msg
+import glob
+import sub_process
 
+import cobbler_msg
 import action_litesync
 import item_system
 import item_profile
@@ -87,6 +89,9 @@ class Collection(serializable.Serializable):
             raise cexceptions.CobblerException("bad_param")
         self.listing[ref.name] = ref
 
+        # save the tree, so if neccessary, scripts can examine it.
+        self.config.api.serialize()
+
         # perform filesystem operations
         if with_copy:
             lite_sync = action_litesync.BootLiteSync(self.config)
@@ -98,10 +103,15 @@ class Collection(serializable.Serializable):
                 lite_sync.add_single_distro(ref.name)
             else:
                 print "AIEEE ??? %s " % type(ref)
-            
+    
+            self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/*" % self.collection_type())
 
         return True
 
+    def _run_triggers(self,ref,globber):
+        triggers = glob.glob(globber)
+        for file in triggers:
+            sub_process.call("%s %s" % (file,ref.name), shell=True)
 
     def printable(self):
         """

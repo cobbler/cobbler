@@ -24,7 +24,7 @@ TESTMODE = False
 class Distros(collection.Collection):
 
     def collection_type(self):
-        return "distribution"
+        return "distro"
 
     def factory_produce(self,config,seed_data):
         """
@@ -53,6 +53,7 @@ class Distros(collection.Collection):
             if with_delete:
                 lite_sync = action_litesync.BootLiteSync(self.config)
                 lite_sync.remove_single_profile(name)
+                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/distro/*")
             del self.listing[name]
             return True
         raise cexceptions.CobblerException("delete_nothing")

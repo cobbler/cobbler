@@ -51,7 +51,9 @@ class Systems(collection.Collection):
             if with_delete:
                 lite_sync = action_litesync.BootLiteSync(self.config)
                 lite_sync.remove_single_system(name)
+            self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/system/*")
             del self.listing[name]
             return True
         raise cexceptions.CobblerException("delete_nothing")
-         
+    
+     

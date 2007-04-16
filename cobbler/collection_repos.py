@@ -26,7 +26,7 @@ TESTMODE = False
 class Repos(collection.Collection):
 
     def collection_type(self):
-        return "repository"
+        return "repo"
 
     def factory_produce(self,config,seed_data):
         """
@@ -48,6 +48,7 @@ class Repos(collection.Collection):
         Remove element named 'name' from the collection
         """
         if self.find(name):
+            self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/repo/*")
             del self.listing[name]
             return True
         raise cexceptions.CobblerException("delete_nothing")

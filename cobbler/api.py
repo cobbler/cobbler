@@ -30,7 +30,7 @@ class BootAPI:
         """
         Constructor
         """
-        self._config = config.Config()
+        self._config = config.Config(self)
         self.deserialize()
         self.__settings = self._config.settings()
         self.sync_flag = self.__settings.minimize_syncs

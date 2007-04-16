@@ -78,6 +78,14 @@ if __name__ == "__main__":
                                 (vw_links,          []),
                                 (tftp_cfg,          []),
                                 (tftp_images,       []),
+                                ("/var/lib/cobbler/triggers/add/distro",     []),
+                                ("/var/lib/cobbler/triggers/add/profile",    []),
+                                ("/var/lib/cobbler/triggers/add/system",     []),
+                                ("/var/lib/cobbler/triggers/add/repo",       []),
+                                ("/var/lib/cobbler/triggers/delete/distro",  []),
+                                ("/var/lib/cobbler/triggers/delete/profile", []),
+                                ("/var/lib/cobbler/triggers/delete/system",  []),
+                                ("/var/lib/cobbler/triggers/delete/repo",    [])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC

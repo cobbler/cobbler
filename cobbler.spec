@@ -2,7 +2,7 @@
 Summary: Boot server configurator
 Name: cobbler
 Version: 0.4.7
-Release: 1%{?dist}
+Release: 2%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -100,18 +100,28 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/cobbler/*.py*
 %{python_sitelib}/cobbler/yaml/*.py*
 %{_mandir}/man1/cobbler.1.gz
-%dir /var/lib/cobbler
-/var/lib/cobbler/elilo-3.6-ia64.efi
-/var/lib/cobbler/menu.c32
 /etc/init.d/cobblersyslogd
 /etc/httpd/conf.d/cobbler.conf
 %dir /var/log/cobbler/syslog
+%defattr(2770,root,root)
+%dir /var/lib/cobbler
+%dir /var/lib/cobbler/triggers/add/distro
+%dir /var/lib/cobbler/triggers/add/profile
+%dir /var/lib/cobbler/triggers/add/system
+%dir /var/lib/cobbler/triggers/add/repo
+%dir /var/lib/cobbler/triggers/delete/distro
+%dir /var/lib/cobbler/triggers/delete/profile
+%dir /var/lib/cobbler/triggers/delete/system
+%dir /var/lib/cobbler/triggers/delete/repo
+/var/lib/cobbler/elilo-3.6-ia64.efi
+/var/lib/cobbler/menu.c32
 
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
-* Tue Apr 10 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.7-1
+* Tue Apr 10 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.7-2
 - Upstream changes (see CHANGELOG)
+- Added triggers to /var/lib/cobbler/triggers
 
 * Thu Apr 05 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.6-0
 - Upstream changes (see CHANGELOG)

@@ -30,11 +30,12 @@ import serializer
 
 class Config:
 
-   def __init__(self):
+   def __init__(self,api):
        """
        Constructor.  Manages a definitive copy of all data collections with weakrefs
        poiting back into the class so they can understand each other's contents
        """
+       self.api           = api
        self._distros      = distros.Distros(weakref.proxy(self))
        self._profiles     = profiles.Profiles(weakref.proxy(self))
        self._systems      = systems.Systems(weakref.proxy(self))

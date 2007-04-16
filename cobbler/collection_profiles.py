@@ -47,10 +47,11 @@ class Profiles(collection.Collection):
            if v.profile == name:
                raise cexceptions.CobblerException("orphan_system",v.name)
         if self.find(name):
-            del self.listing[name]
             if with_delete:
                 lite_sync = action_litesync.BootLiteSync(self.config)
                 lite_sync.remove_single_profile(name)
+                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/profile/*")
+            del self.listing[name]
             return True
         raise cexceptions.CobblerException("delete_nothing")
 
