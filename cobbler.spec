@@ -2,7 +2,7 @@
 Summary: Boot server configurator
 Name: cobbler
 Version: 0.4.7
-Release: 2%{?dist}
+Release: 3%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -119,7 +119,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
-* Tue Apr 10 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.7-2
+* Tue Apr 10 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.7-3
 - Upstream changes (see CHANGELOG)
 - Added triggers to /var/lib/cobbler/triggers
 
