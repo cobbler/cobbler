@@ -3,11 +3,11 @@ now with 1-5 priority ratings
 
 always:
 2  -  better documentation (particularly online articles)
-5  -  switch to asciidoc?
+      switch (manpages) to asciidoc?
 
 core:
 5 -  "check" should check if services (esp httpd) are started
-1 -  better tracking solution.  RHEL4 doesn't do syslog, and RHEL4 server doesn't work w/ the current soln.
+1 -  better tracking solution.  
 
 user interface:
 3 -  "cobbler add" should be distinguished from "edit" so as to not overwrite
@@ -30,7 +30,8 @@ ideas:
 4 -  someone suggested looking at OMAPI for DHCP management
 3 -  explore use cases for pykickstart "plugin" concept
 5 -  mDNS discovery of server from koan
-1 -  (stateless) scripts triggered on profile/system/distro add
+1 -  XMLRPC cobbler daemon to isolate koan from yaml parsing and allow future
+     advanced features.
 
 small bugs:
 3  - no logrotate or cleanup for /var/log/cobbler (kickstart tracking)
