@@ -89,8 +89,6 @@ class Collection(serializable.Serializable):
             raise cexceptions.CobblerException("bad_param")
         self.listing[ref.name] = ref
 
-        # save the tree, so if neccessary, scripts can examine it.
-        self.config.api.serialize()
 
         # perform filesystem operations
         if with_copy:
@@ -103,6 +101,9 @@ class Collection(serializable.Serializable):
                 lite_sync.add_single_distro(ref.name)
             else:
                 print "AIEEE ??? %s " % type(ref)
+        
+            # save the tree, so if neccessary, scripts can examine it.
+            self.config.api.serialize()
     
             self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/*" % self.collection_type())
 

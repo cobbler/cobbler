@@ -25,6 +25,7 @@ def serialize(obj):
     Will create intermediate paths if it can.  Returns True on Success,
     False on permission errors.
     """
+    # FIXME: DEBUG
     filename = obj.filename()
     try:
         fd = open(filename,"w+")

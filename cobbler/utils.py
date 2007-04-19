@@ -18,9 +18,16 @@ import socket
 import glob
 import sub_process
 import shutil
+import string
+import traceback
 
 _re_kernel = re.compile(r'vmlinuz(.*)')
 _re_initrd = re.compile(r'initrd(.*).img')
+
+def trace_me():
+   x = traceback.extract_stack()
+   bar = string.join(traceback.format_list(x))
+   return bar
 
 def get_host_ip(ip):
     """

@@ -26,14 +26,21 @@ import cexceptions
 
 class BootAPI:
 
+    __shared_state = {}
+    has_loaded = False
+
     def __init__(self):
         """
         Constructor
         """
-        self._config = config.Config(self)
-        self.deserialize()
-        self.__settings = self._config.settings()
-        self.sync_flag = self.__settings.minimize_syncs
+
+        self.__dict__ = self.__shared_state
+        if not BootAPI.has_loaded:
+            BootAPI.has_loaded = True
+            self._config = config.Config(self)
+            self.deserialize()
+            self.__settings = self._config.settings()
+            self.sync_flag = self.__settings.minimize_syncs
 
     def clear(self):
         """
