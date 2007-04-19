@@ -4,7 +4,7 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-VERSION = "0.2.8"
+VERSION = "0.2.9"
 SHORT_DESC = "Network provisioning tool for Virtualized Images and Existing Non-Bare Metal"
 LONG_DESC = """
 koan stands for "kickstart-over-a-network" and allows for both
@@ -23,7 +23,7 @@ if __name__ == "__main__":
                 author_email = "mdehaan@redhat.com",
                 url = "http://cobbler.et.redhat.com/",
                 license = "GPL",
-                packages = ["koan","koan/yaml"],
+                packages = ["koan"],
                 scripts = ["koan/koan"],
                 data_files = [
 				(manpath, ['koan.1.gz']),

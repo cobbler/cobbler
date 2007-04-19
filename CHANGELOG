@@ -1,6 +1,9 @@
 Koan CHANGELOG
 
-* Fri Mar 23 2007 Michael DeHaan <mdehaan@redhat.com> - 0.2.8-1
+* Thu Apr 19 2007 Michael DeHaan <mdehaan@redhat.com> - 0.2.9-1
+- koan now speaks XMLRPC with cobbler (requires cobbler > 0.4.7-4)
+
+* Fri Mar 23 2007 Michael DeHaan <mdehaan@redhat.com> - 0.2.8-3
 - Remove redundant code for --virt-name handling.
 
 * Wed Mar 14 2007 Michael DeHaan <mdehaan@redhat.com> - 0.2.7-1

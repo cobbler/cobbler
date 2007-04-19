@@ -2,8 +2,8 @@
 
 Summary: Network provisioning tool for Xen and Bare Metal Machines 
 Name: koan
-Version: 0.2.8
-Release: 2%{?dist}
+Version: 0.2.9
+Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -40,14 +40,14 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 %{_bindir}/koan
 %dir %{python_sitelib}/koan
-%dir %{python_sitelib}/koan/yaml
 %{python_sitelib}/koan/*.py*
-%{python_sitelib}/koan/yaml/*.py*
 %{_mandir}/man1/koan.1.gz
 
 %doc AUTHORS COPYING CHANGELOG README NEWS
 
 %changelog
+
+* Thu Apr 19 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.9-1
 
 * Fri Mar 23 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.8-2
 - Upstream changes (see CHANGELOG)
