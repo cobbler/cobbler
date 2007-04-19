@@ -2,7 +2,7 @@
 Summary: Boot server configurator
 Name: cobbler
 Version: 0.4.7
-Release: 3%{?dist}
+Release: 4%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
