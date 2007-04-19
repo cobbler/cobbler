@@ -16,7 +16,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import os
-import yaml          # Howell-Evans version
 import traceback
 import tempfile
 import urllib2
@@ -28,6 +27,8 @@ import shutil
 import errno
 import re
 import sys
+import xmlrpclib
+import string
 
 """
 koan --virt [--profile=webserver|--system=name] --server=hostname
@@ -72,6 +73,10 @@ def main():
                  dest="verbose",
                  action="store_false",
                  help="run (more) quietly")
+    p.add_option("-t", "--port",
+                 dest="port",
+                 help="cobbler xmlrpc port (default 25151)")
+
     (options, args) = p.parse_args()
 
     full_access = 1
@@ -93,7 +98,8 @@ def main():
         k.profile           = options.profile
         k.system            = options.system
         k.verbose           = options.verbose
-        #k.interactive       = options.interactive
+        if options.port is not None:
+            k.port          = options.port
         k.run()
     except InfoException, ie:
         print str(ie)
@@ -110,6 +116,11 @@ class InfoException(exceptions.Exception):
     """
     pass
 
+class ServerProxy(xmlrpclib.ServerProxy):
+
+    def __init__(self, url=None):
+        xmlrpclib.ServerProxy.__init__(self, url)
+
 class Koan:
 
     def __init__(self):
@@ -125,11 +136,13 @@ class Koan:
         self.is_virt           = None
         self.is_auto_kickstart = None
         self.dryrun            = None
-        # self.interactive       = False
+        self.port              = 25151
 
     def run(self):
         if self.server is None:
             raise InfoException, "no server specified"
+        url = "http://%s:%s" % (self.server, self.port)
+        self.xmlrpc_server = ServerProxy(url)
         if self.list_systems:
             self.do_list_systems()
         if self.list_profiles:
@@ -148,6 +161,8 @@ class Koan:
             raise InfoException, "must specify --profile or --system"
         if self.profile and self.system:
             raise InfoException, "--profile and --system are exclusive"
+
+
         if self.is_virt:
             self.do_virt()
         else:
@@ -238,14 +253,14 @@ class Koan:
         """
         self.debug("processing profile: %s" % self.profile)
         if self.profile:
-            profile_data = self.get_profile_yaml(self.profile)
+            profile_data = self.get_profile_xmlrpc(self.profile)
         else:
-            profile_data = self.get_system_yaml(self.system)
+            profile_data = self.get_system_xmlrpc(self.system)
         self.debug(profile_data)
         if not 'distro' in profile_data:
             raise InfoException, "invalid response from boot server"
         distro = self.safe_load(profile_data,'distro')
-        distro_data = self.get_distro_yaml(distro)
+        distro_data = self.get_distro_xmlrpc(distro)
         if distro_data.has_key("breed") and distro_data["breed"] != "redhat":
             raise InfoException, "koan only works for Red Hat based distros"
         self.debug(distro_data)
@@ -266,27 +281,13 @@ class Koan:
 
     def do_list(self,is_profiles):
         if is_profiles:
-           urlseg = "profile_list"
-           what = "profiles"
+            data = self.get_profiles_xmlrpc()
         else:
-           urlseg = "system_list"
-           what = "systems"
-        print "listing defined %s..." % what
-        data = None
-        try:
-            url = "http://%s/cobbler/%s" % (self.server, urlseg)
-            self.debug("url=%s" % url)
-            # FIXME
-            data = self.urlread(url)
-            data = yaml.load(data).next() # first record
-            data.sort()
-            for x in data:
-                print "%s" % x
-            return True
-        except:
-            traceback.print_exc()
-            raise InfoException, "couldn't access listing information"
-        return False # shouldn't be here
+            data = self.get_systems_xmlrpc()
+        for x in data:
+            if x.has_key("name"):
+                print x["name"]
+        return True
                  
     def do_virt(self):
         """
@@ -310,11 +311,6 @@ class Koan:
                 raise InfoException, "grubby is not installed"
             k_args = self.safe_load(distro_data,'kernel_options')
             k_args = k_args + " ks=file:ks.cfg"
-            self.build_initrd(
-                self.safe_load(distro_data,'initrd_local'), 
-                self.safe_load(profile_data,'kickstart')
-            )
-            k_args = k_args.replace("lang ","lang= ")
 
             cmd = [ "/sbin/grubby", 
                     "--bootloader-probe" ]
@@ -350,8 +346,19 @@ class Koan:
         """
         Get contents of data in network kickstart file.
         """
+        print "- kickstart: %s" % kickstart
         if kickstart is None or kickstart == "":
             return None
+        if kickstart.startswith("/var/www/cobbler/kickstarts/"):
+            kickstart = kickstart.replace(
+                "/var/www/cobbler/kickstarts",
+                "http://%s/cblr/kickstarts" % self.server
+            )
+        if kickstart.startswith("/var/www/cobbler/kickstarts_sys/"):
+            kickstart = kickstart.replace(
+                "/var/www/cobbler/kickstarts_sys",
+                "http://%s/cblr/kickstarts_sys" % self.server
+           )
         if kickstart.startswith("nfs"):
             ndir  = os.path.dirname(kickstart[6:])
             nfile = os.path.basename(kickstart[6:])
@@ -424,19 +431,36 @@ class Koan:
         self.subprocess_call([ "/bin/bash", "/var/spool/koan/insert.sh" ])
         self.copyfile("/var/spool/koan/initrd_final", initrd)
 
-    def get_profile_yaml(self,profile_name):
+    def trace_me(self):
+        x = traceback.extract_stack()
+        bar = string.join(traceback.format_list(x))
+        return bar
+
+    def connect_fail(self):
+        print self.trace_me()
+        raise InfoException, "Could not communicate with %s:%s" % (self.server, self.port)
+
+    def get_profiles_xmlrpc(self):
+        try:
+            return self.xmlrpc_server.get_profiles()
+        except:
+            self.connect_fail()
+
+    def get_profile_xmlrpc(self,profile_name):
         """
         Fetches profile yaml from a from a remote bootconf tree.
         """
-        self.debug("fetching configuration for profile: %s" % profile_name)
         try:
-            url = "http://%s/cobbler/profiles/%s" % (self.server,profile_name)
-            self.debug("url=%s" % url)
-            # FIXME
-            data = self.urlread(url)
-            return yaml.load(data).next() # first record
+            return self.xmlrpc_server.get_profile_for_koan(profile_name)
         except:
-            raise InfoException, "couldn't download profile information: %s" % profile_name
+            traceback.print_exc()
+            self.connect_fail()
+
+    def get_systems_xmlrpc(self):
+        try:
+            return self.xmlrpc_server.get_systems()
+        except:
+            self.connect_fail()
 
     def is_ip(self,strdata):
         """
@@ -482,7 +506,7 @@ class Koan:
             return self.fix_mac(system_name)
         return system_name
 
-    def get_system_yaml(self,system_name):
+    def get_system_xmlrpc(self,system_name):
         """
         If user specifies --system, return the profile data
         but use the system kickstart and kernel options in place
@@ -493,18 +517,12 @@ class Koan:
         system_data = None
         self.debug("fetching configuration for system: %s" % old_system_name)
         try:
-            url = "http://%s/cobbler/systems/%s" % (self.server,system_name)
-            self.debug("url=%s" % url)
-            # FIXME 
-            data = self.urlread(url)
-            system_data = yaml.load(data).next() # first record
+            data = self.xmlrpc_server.get_system_for_koan(system_name)
         except:
-            raise InfoException, "couldn't download profile information: %s" % system_name
-        profile_data = self.get_profile_yaml(self.safe_load(system_data,'profile'))
+            self.connect_fail()
+        profile_data = self.get_profile_xmlrpc(self.safe_load(system_data,'profile'))
         # system overrides the profile values where relevant
         profile_data.update(system_data)
-        # still have to override the kickstart since these are not in the
-        # YAML (kickstarts are per-profile but template eval'd for each system)
         try_this = "http://%s/cobbler/kickstarts_sys/%s/ks.cfg" % (self.server,system_name)
         try:
             # can only use a per-system kickstart if it exists.  It may
@@ -520,19 +538,15 @@ class Koan:
         print profile_data
         return profile_data
 
-    def get_distro_yaml(self,distro_name):
+    def get_distro_xmlrpc(self,distro_name):
         """
         Fetches distribution yaml from a remote bootconf tree.
         """
         self.debug("fetching configuration for distro: %s" % distro_name)
         try:
-            url = "http://%s/cobbler/distros/%s" % (self.server,distro_name)
-            self.debug("url=%s" % url)
-            # FIXME
-            data = self.urlread(url)
-            return yaml.load(data).next() # first record
+            return self.xmlrpc_server.get_distro_for_koan(distro_name)
         except:
-            raise InfoException, "couldn't download distro information: %s" % distro_name
+            self.connect_fail()
 
     def get_distro_files(self,distro_data, download_root):
         """
