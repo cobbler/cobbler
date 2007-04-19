@@ -1,0 +1,11 @@
+### files to exclude from "cobbler import" commands that use
+### rsync mirrors.  by default ISOs, PPC code, and debug
+### RPM's are not transferred.  Some users may want to
+### re-enable debug RPM's.
+**/debug/**
+**/ppc/**
+**/source/**
+**/SRPMS/**
+**/*.iso
+**/openoffice.org-langpack**
+**/kde-i18n**

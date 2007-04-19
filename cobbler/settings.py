@@ -40,6 +40,7 @@ DEFAULTS = {
         "ia64"           : "/var/lib/cobbler/elilo-3.6-ia64.efi"
     },
     "syslog_port"                 : 25150,
+    "xmlrpc_port"                 : 25151,
     "minimize_syncs"              : 1,
     "yum_core_mirror_from_server" : 0
 }

@@ -16,7 +16,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import sys
 import os
-import cobbler.syslog_watcher as app
+import cobbler.cobblerd as app
 
 if __name__ == "__main__":
 

@@ -45,9 +45,9 @@ if __name__ == "__main__":
                     "cobbler",
                     "cobbler/yaml" 
                 ],
-                scripts = ["scripts/cobbler", "scripts/cobbler_syslogd"],
+                scripts = ["scripts/cobbler", "scripts/cobblerd"],
                 data_files = [
-                                (wwwconf,  ['templates/cobbler.conf']),
+                                (wwwconf,  ['config/cobbler.conf']),
                                 (cobpath,  ['loaders/elilo-3.6-ia64.efi']),
                                 (cobpath,  ['loaders/menu.c32']),
                                 (etcpath,  ['kickstarts/kickstart_fc5.ks']),
@@ -60,8 +60,8 @@ if __name__ == "__main__":
 				(etcpath,  ['templates/pxesystem_ia64.template']),
 				(etcpath,  ['templates/pxeprofile.template']),
                                 (manpath,  ['docs/cobbler.1.gz']),
-                                (etcpath,  ['templates/rsync.exclude']),
-                                (initpath, ['scripts/cobblersyslogd']),
+                                (etcpath,  ['config/rsync.exclude']),
+                                (initpath, ['config/cobblerd']),
                                 (logpath,  []),
                                 (logpath2, []),
                                 (logpath3, []),

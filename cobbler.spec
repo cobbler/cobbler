@@ -46,18 +46,18 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
 
 %post
-/sbin/chkconfig --add cobblersyslogd
+/sbin/chkconfig --add cobblerd
 
 
 %preun
 if [ $1 = 0 ]; then
-    /sbin/service cobblersyslogd stop >/dev/null 2>&1 || :
-    chkconfig --del cobblersyslogd
+    /sbin/service cobblerd stop >/dev/null 2>&1 || :
+    chkconfig --del cobblerd
 fi
 
 %postun
 if [ "$1" -ge "1" ]; then
-    /sbin/service cobblersyslogd condrestart >/dev/null 2>&1 || :
+    /sbin/service cobblerd condrestart >/dev/null 2>&1 || :
 fi
 
 %clean
@@ -83,7 +83,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /tftpboot/pxelinux.cfg
 %dir /tftpboot/images
 %{_bindir}/cobbler
-%{_bindir}/cobbler_syslogd
+%{_bindir}/cobblerd
 %dir /etc/cobbler
 %config(noreplace) /etc/cobbler/default.ks
 %config(noreplace) /etc/cobbler/kickstart_fc5.ks
@@ -100,7 +100,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/cobbler/*.py*
 %{python_sitelib}/cobbler/yaml/*.py*
 %{_mandir}/man1/cobbler.1.gz
-/etc/init.d/cobblersyslogd
+/etc/init.d/cobblerd
 /etc/httpd/conf.d/cobbler.conf
 %dir /var/log/cobbler/syslog
 %defattr(2770,root,root)
