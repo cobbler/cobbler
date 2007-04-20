@@ -3,6 +3,7 @@ Koan CHANGELOG
 * Thu Apr 19 2007 Michael DeHaan <mdehaan@redhat.com> - 0.2.9-1
 - koan now speaks XMLRPC with cobbler (requires cobbler > 0.4.7-4)
 - allow any RAM size >128MB.
+- add --virtname option (see manpage)
 
 * Fri Mar 23 2007 Michael DeHaan <mdehaan@redhat.com> - 0.2.8-3
 - Remove redundant code for --virt-name handling.

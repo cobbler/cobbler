@@ -47,7 +47,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Thu Apr 19 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.9-1
+* Fri Apr 20 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.9-1
+- Upstream changes (see CHANGELOG)
+- Removed yaml packages
 
 * Fri Mar 23 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.8-2
 - Upstream changes (see CHANGELOG)
