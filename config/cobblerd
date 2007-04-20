@@ -39,11 +39,11 @@ stop() {
         echo
         return 1
     fi
-    pkill cobblerd
-    RETVAL=$?
     rm /var/lock/subsys/cobblerd
     echo_success
     echo
+    pkill -9 cobblerd >/dev/null 2>/dev/null
+    RETVAL=$?
     return $RETVAL
 }
 
