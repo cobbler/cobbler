@@ -89,7 +89,6 @@ class Collection(serializable.Serializable):
             raise cexceptions.CobblerException("bad_param")
         self.listing[ref.name] = ref
 
-
         # perform filesystem operations
         if with_copy:
             lite_sync = action_litesync.BootLiteSync(self.config)

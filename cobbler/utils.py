@@ -136,11 +136,12 @@ def find_kernel(path):
     if path is None:
         return None
     if os.path.isfile(path):
-        filename = os.path.basename(path)
-        if _re_kernel.match(filename):
-            return path
-        elif filename == "vmlinuz":
-            return path
+        #filename = os.path.basename(path)
+        #if _re_kernel.match(filename):
+        #   return path
+        #elif filename == "vmlinuz":
+        #   return path
+        return path
     elif os.path.isdir(path):
         return find_highest_files(path,"vmlinuz",_re_kernel)
     return None
@@ -171,11 +172,12 @@ def find_initrd(path):
     if path is None:
         return None
     if os.path.isfile(path):
-        filename = os.path.basename(path)
-        if _re_initrd.match(filename):
-           return path
-        if filename == "initrd.img" or filename == "initrd":
-           return path
+        #filename = os.path.basename(path)
+        #if _re_initrd.match(filename):
+        #   return path
+        #if filename == "initrd.img" or filename == "initrd":
+        #   return path
+        return path
     elif os.path.isdir(path):
         return find_highest_files(path,"initrd.img",_re_initrd)
     return None

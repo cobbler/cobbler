@@ -1,7 +1,7 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* TBA - 0.4.7
+* Fri Apr 20 2007 - 0.4.7
 - Disable mod_python tracker piece for RHEL5 (replacement eventual).
 - Kickstart tracking now understands Apache logs
 - Added support for --rpm-list parameter to "repo add" for download of partial content from repositories
@@ -13,6 +13,8 @@ Cobbler CHANGELOG
 - BootAPI and Config object classes are now Borg patterned to prevent duplication of config info from the API.
 - cobbler_syslogd -> cobblerd, now has XMLRPC component for koan >= 0.2.9 clients.  Old clients still work.
 - Make cobbler_import work for Centos 5
+- Removed requirements on what files that are parameters to --kernel and --initrd must be named.
+- Added support for "rename", "copy", and "edit" commands -- before there just was "add" and "remove"
 
 * Thu Apr 05 2007 - 0.4.6
 - Bind cobbler_syslogd to all addresses

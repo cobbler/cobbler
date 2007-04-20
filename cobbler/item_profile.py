@@ -18,13 +18,18 @@ import cexceptions
 
 class Profile(item.Item):
 
-    def __init__(self,config):
-        """
-        Constructor.  Requires a backreference to Config.
-        """
-        self.config = config
-        self.settings = self.config.settings()
-        self.clear()
+    #def __init__(self,config):
+    #    """
+    #    Constructor.  Requires a backreference to Config.
+    #    """
+    #    self.config = config
+    #    self.settings = self.config.settings()
+
+    def make_clone(self):
+        ds = self.to_datastruct()
+        cloned = Profile(self.config)
+        cloned.from_datastruct(ds)
+        return cloned
 
     def clear(self):
         """

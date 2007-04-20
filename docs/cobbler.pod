@@ -246,16 +246,17 @@ mirror types, such as local paths and rsync:// mirrors.  This option requires yu
 
 =head2 DISPLAYING CONFIGURATION ENTRIES
 
-This is a rather simple command, usable regardless of how you are using cobbler.
+The following commands are usable regardless of how you are using cobbler.
+"report" gives detailed configuration info. "list" just lists the names of items in the configuration.
+Run these commands to check how you have cobbler configured.
 
-B<cobbler report [--settings] [--profiles] [--distros] [--systems] [--repos]>
+B<cobbler report>
 
-Prints the current cobbler configuration for systems, profiles, and groups. If one of the switches is given, only information for those is printed.
+B<cobbler distro|profile|system|repo report>
 
-The list command gives an abbreviated version of what "report" gives.
-It only returns the names of each item.
+B<cobbler list>
 
-B<cobbler list [--settings] [--profiles] [--distros] [--systems] [--repos]>
+B<cobbler distro|profile|system|repo list>
 
 Alternatively, you could look at the configuration files in /var/lib/cobbler to see the same information.  
 
@@ -270,6 +271,25 @@ B<cobbler profile remove --name=string>
 B<cobbler system remove --name=string>
 
 B<cobbler remove repo --name=string>
+
+=head2 EDITING
+
+If you want to change a particular setting without doing an "add" again, use the "edit" command, using
+the same name you gave when you added the item.
+
+B<cobbler distro|profile|system|repo edit --name=string [parameterlist]>
+
+=head2 COPYING
+
+Objects can also be copied:
+
+B<cobbler distro|profile|system|repo copy --name=oldname --newname=newname>
+
+=head2 RENAMING
+
+Objects can also be renamed, as long as other objects don't reference them.
+
+B<cobbler distro|profile|system|repo rename --name=oldname --newname=newname>
 
 =head2 REBUILDING CONFIGURATIONS
 

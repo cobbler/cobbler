@@ -21,9 +21,11 @@ import cexceptions
 
 class Repo(item.Item):
 
-    def __init__(self,config):
-        self.config = config
-        self.clear()
+    def make_clone(self):
+        ds = self.to_datastruct()
+        cloned = Repo(self.config)
+        cloned.from_datastruct(ds)
+        return cloned
 
     def clear(self):
         self.name = None                             # is required 

@@ -18,6 +18,17 @@ import utils
 
 class Item(serializable.Serializable):
 
+    def __init__(self,config):
+        """
+        Constructor.  Requires a back reference to the Config management object.
+        """
+        self.config = config
+        self.settings = self.config._settings
+        self.clear()
+
+    def clear(self):
+        raise exceptions.NotImplementedError
+
     def set_name(self,name):
         """
         All objects have names, and with the exception of System
