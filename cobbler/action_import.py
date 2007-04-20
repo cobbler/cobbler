@@ -27,9 +27,9 @@ WGET_CMD = "wget --mirror --no-parent --no-host-directories --directory-prefix %
 RSYNC_CMD =  "rsync -a %s %s %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --delete --delete-excluded --progress"
 
 TRY_LIST = [
-   "Fedora", "RedHat", "Client", "Server", "Centos",
+   "Fedora", "RedHat", "Client", "Server", "Centos", "CentOS",
    "Fedora/RPMS", "RedHat/RPMS", "Client/RPMS", "Server/RPMS", "Centos/RPMS",
-   "RPMS"
+   "CentOS/RPMS", "RPMS"
 ]
 
 class Importer:
@@ -133,23 +133,22 @@ class Importer:
            base_dir = "/".join(kdir.split("/")[0:-2])
       
            for try_entry in TRY_LIST:
-               for dnames in [ "fedora", "centos", "redhat" ]:
-                   try_dir = os.path.join(base_dir, try_entry)
-                   if os.path.exists(try_dir):
-                       rpms = glob.glob(os.path.join(try_dir, "*release-*"))
-                       for rpm in rpms:
-                           if rpm.find("notes") != -1:
-                               continue
-                           results = self.scan_rpm_filename(rpm)
-                           if results is None:
-                               continue
-                           (flavor, major, minor) = results
-                           print "- determining best kickstart for %s %s" % (flavor, major)          
-                           kickstart = self.set_kickstart(profile, flavor, major, minor)
-                           print "- kickstart=%s" % kickstart
-                           self.configure_tree_location(distro)
-                           self.distros.add(distro) # re-save
-                           self.api.serialize()
+               try_dir = os.path.join(base_dir, try_entry)
+               if os.path.exists(try_dir):
+                   rpms = glob.glob(os.path.join(try_dir, "*release-*"))
+                   for rpm in rpms:
+                       if rpm.find("notes") != -1:
+                           continue
+                       results = self.scan_rpm_filename(rpm)
+                       if results is None:
+                           continue
+                       (flavor, major, minor) = results
+                       print "- determining best kickstart for %s %s" % (flavor, major)          
+                       kickstart = self.set_kickstart(profile, flavor, major, minor)
+                       print "- kickstart=%s" % kickstart
+                       self.configure_tree_location(distro)
+                       self.distros.add(distro) # re-save
+                       self.api.serialize()
 
    # --------------------------------------------------------------------
 
@@ -413,7 +412,6 @@ class Importer:
                match = True
                continue
        if not match:
-          # print "- skipping: %s" % dirname
           return
 
        # try to find a kernel header RPM and then look at it's arch.
@@ -442,7 +440,7 @@ class Importer:
        """
        dirname2 = "/".join(dirname.split("/")[:-2])  # up two from images, then down as many as needed
        print "- scanning %s for architecture info" % dirname2
-       result = {} 
+       result = { "result" : "x86" } # default, but possibly not correct ... 
        os.path.walk(dirname2, self.arch_walker, result)      
        return result["result"]
 
