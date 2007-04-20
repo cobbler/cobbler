@@ -125,7 +125,7 @@ class InfoException(exceptions.Exception):
 class ServerProxy(xmlrpclib.ServerProxy):
 
     def __init__(self, url=None):
-        xmlrpclib.ServerProxy.__init__(self, url)
+        xmlrpclib.ServerProxy.__init__(self, url, allow_none=True)
 
 class Koan:
 
