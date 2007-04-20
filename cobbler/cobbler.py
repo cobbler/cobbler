@@ -273,16 +273,16 @@ class BootCLI:
     # REMOVAL FUNCTIONS
   
     def distro_remove(self,args):
-        return self.__generic_remove(self,args,"distro","name",self.api.distros)
+        return self.__generic_remove(args,"distro","name",self.api.distros)
     
     def profile_remove(self,args):
-        return self.__generic_remove(self,args,"profile","name",self.api.profiles)
+        return self.__generic_remove(args,"profile","name",self.api.profiles)
 
     def system_remove(self,args):
-        return self.__generic_remove(self,args,"system","name",self.api.systems)
+        return self.__generic_remove(args,"system","name",self.api.systems)
     
     def repo_remove(self,args):
-        return self.__generic_remove(self,args,"repo","name",self.api.repos)
+        return self.__generic_remove(args,"repo","name",self.api.repos)
  
     ####################################################################
     # COPY FUNCTIONS
