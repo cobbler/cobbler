@@ -18,6 +18,20 @@ import yaml # Howell Clark version
 
 import api as cobbler_api
 
+# hack to make xmlrpclib tolerate None:
+# http://www.thescripts.com/forum/thread499321.html
+import xmlrpclib
+# WARNING: Dirty hack below.
+# Replace the dumps() function in xmlrpclib with one that by default
+# handles None, so SimpleXMLRPCServer can return None.
+class _xmldumps(object):
+    def __init__(self, dumps):
+        self.__dumps = (dumps,)
+    def __call__(self, *args, **kwargs):
+        kwargs.setdefault('allow_none', 1)
+        return self.__dumps[0](*args, **kwargs)
+xmlrpclib.dumps = _xmldumps(xmlrpclib.dumps)
+
 def main():
 
     bootapi     = cobbler_api.BootAPI()
