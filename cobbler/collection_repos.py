@@ -43,10 +43,14 @@ class Repos(collection.Collection):
         else:
             return "/var/lib/cobbler/repos"
 
-    def remove(self,name):
+    def remove(self,name,with_delete=False):
         """
         Remove element named 'name' from the collection
         """
+
+        # NOTE: with_delete isn't currently meaningful
+        # but is left in for consistancy in the API.
+
         if self.find(name):
             self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/repo/*")
             del self.listing[name]
