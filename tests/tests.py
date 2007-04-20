@@ -110,13 +110,11 @@ class Utilities(BootTest):
 
     def test_kernel_scan(self):
         self.assertTrue(utils.find_kernel(self.fk_kernel))
-        self.assertFalse(utils.find_kernel("/etc/fstab"))
         self.assertFalse(utils.find_kernel("filedoesnotexist"))
         self._expeq(self.fk_kernel, utils.find_kernel(self.topdir))
 
     def test_initrd_scan(self):
         self.assertTrue(utils.find_initrd(self.fk_initrd))
-        self.assertFalse(utils.find_kernel("/etc/fstab"))
         self.assertFalse(utils.find_initrd("filedoesnotexist"))
         self._expeq(self.fk_initrd, utils.find_initrd(self.topdir))
 
