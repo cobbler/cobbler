@@ -12,6 +12,7 @@ Cobbler CHANGELOG
 - Implemented triggers for add/delete commands
 - BootAPI and Config object classes are now Borg patterned to prevent duplication of config info from the API.
 - cobbler_syslogd -> cobblerd, now has XMLRPC component for koan >= 0.2.9 clients.  Old clients still work.
+- Make cobbler_import work for Centos 5
 
 * Thu Apr 05 2007 - 0.4.6
 - Bind cobbler_syslogd to all addresses

@@ -119,7 +119,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
 %changelog
-* Tue Apr 10 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.7-3
+* Fri Apr 20 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.7-4
 - Upstream changes (see CHANGELOG)
 - Added triggers to /var/lib/cobbler/triggers
 

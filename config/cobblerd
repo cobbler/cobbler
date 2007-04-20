@@ -1,15 +1,15 @@
 #!/bin/sh
 #
-# cobblersyslogd    Cobbler kickstart status monitor
+# cobblerd    Cobbler helper daemon
 #
 # chkconfig: 345 99 99 
 # description:  This is a daemon that provides remote cobbler info to koan
-#               clients and also logs installer syslog activitity. 
+#               clients and also logs installer yslog activitity. 
 #
-# processname: /usr/bin/cobbler_syslogd
+# processname: /usr/bin/cobblerd
 
 # Sanity checks.
-[ -x /usr/bin/cobbler_syslogd ] || exit 0
+[ -x /usr/bin/cobblerd ] || exit 0
 
 # Source function library.
 . /etc/rc.d/init.d/functions
@@ -18,41 +18,41 @@ RETVAL=0
 
 start() {
     echo -n $"Starting cobbler daemon: "
-    if test -f /var/lock/subsys/cobblersyslogd ; then
+    if test -f /var/lock/subsys/cobblerd ; then
         echo_failure
         echo
         return 1
     fi
-    /usr/bin/cobbler_syslogd
+    /usr/bin/cobblerd
     RETVAL=$?
     echo_success
     echo
-    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/cobblersyslogd
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/cobblerd
     return $RETVAL
 }
 
 
 stop() {
     echo -n $"Stopping cobbler daemon: "
-    if ! test -f /var/lock/subsys/cobblersyslogd ; then
+    if ! test -f /var/lock/subsys/cobblerd ; then
         echo_failure
         echo
         return 1
     fi
-    pkill cobbler_syslogd
+    pkill cobblerd
     RETVAL=$?
-    rm /var/lock/subsys/cobblersyslogd
+    rm /var/lock/subsys/cobblerd
     echo_success
     echo
     return $RETVAL
 }
 
 mystatus() {
-    if test -f /var/lock/subsys/cobblersyslogd ; then
+    if test -f /var/lock/subsys/cobblerd ; then
         echo "cobbblerd is running..."
         return 0
     fi
-    echo "cobbler_syslogd is stopped"
+    echo "cobblerd is stopped"
     echo
     return 0
 }
@@ -74,7 +74,7 @@ case "$1" in
         start
         ;;
     condrestart)
-        if [ -f /var/lock/subsys/cobblersyslogd ]; then
+        if [ -f /var/lock/subsys/cobblerd ]; then
             stop
             start
         fi
