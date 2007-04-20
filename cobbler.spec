@@ -103,7 +103,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /etc/init.d/cobblerd
 /etc/httpd/conf.d/cobbler.conf
 %dir /var/log/cobbler/syslog
-%defattr(2770,root,root)
+%defattr(2550,root,root)
 %dir /var/lib/cobbler
 %dir /var/lib/cobbler/triggers/add/distro
 %dir /var/lib/cobbler/triggers/add/profile
@@ -115,8 +115,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/triggers/delete/repo
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/lib/cobbler/menu.c32
-
+%defattr(-,-,-)
 %doc AUTHORS CHANGELOG NEWS README COPYING
+
 
 %changelog
 * Fri Apr 20 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.7-5
