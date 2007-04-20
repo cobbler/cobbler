@@ -56,6 +56,9 @@ def main():
                  dest="is_virt",
                  action="store_true",
                  help="requests new virtualized image installation")
+    p.add_option("-V", "--virtname",
+                 dest="virtname",
+                 help="force the virtual domain to use this name")
     p.add_option("-r", "--replace-self",
                  dest="is_auto_kickstart",
                  action="store_true",
@@ -98,9 +101,12 @@ def main():
         k.profile           = options.profile
         k.system            = options.system
         k.verbose           = options.verbose
+        if options.virtname is not None:
+            k.virtname          = options.virtname
         if options.port is not None:
-            k.port          = options.port
+            k.port              = options.port
         k.run()
+
     except InfoException, ie:
         print str(ie)
         return 1
@@ -137,6 +143,7 @@ class Koan:
         self.is_auto_kickstart = None
         self.dryrun            = None
         self.port              = 25151
+        self.virtname          = None
 
     def run(self):
         if self.server is None:
@@ -611,8 +618,8 @@ class Koan:
             uuid=virtcreate.get_uuid(self.calc_virt_uuid(pd)),
             kernel=self.safe_load(dd,'kernel_local'),
             initrd=self.safe_load(dd,'initrd_local'),
-            extra=kextra
-            # interactive=self.interactive
+            extra=kextra,
+            nameoverride=self.virtname
         )
         print results
 
@@ -648,7 +655,7 @@ class Koan:
             int(size)
         except:
             err = True
-        if size is None or size == '' or int(size) < 256:
+        if size is None or size == '' or int(size) < 128:
             err = True
         if err:
             self.debug("invalid RAM size specified, defaulting to 256 MB")

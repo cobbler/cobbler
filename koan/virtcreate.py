@@ -74,7 +74,7 @@ def get_mac(mac):
 
 
 def start_paravirt_install(ram=None, disk=None, mac=None,
-                           uuid=None, kernel=None, initrd=None, extra=None):
+                           uuid=None, kernel=None, initrd=None, extra=None, nameoverride=None):
 
 
     if mac == None:
@@ -84,7 +84,11 @@ def start_paravirt_install(ram=None, disk=None, mac=None,
     guest = virtinst.ParaVirtGuest()
     guest.set_boot((kernel,initrd))
     guest.set_extra_args(extra)
-    guest.set_name(macname)   
+    if nameoverride is None:
+        usename = macname
+    else:
+        usename = nameoverride
+    guest.set_name(usename)   
     guest.set_memory(ram)
     guest.set_vcpus(1)            # FIXME!
     guest.set_graphics(False)
@@ -101,5 +105,5 @@ def start_paravirt_install(ram=None, disk=None, mac=None,
 
     guest.start_install()
     
-    return "reconnect with xm console %s" % macname 
+    return "reconnect with xm console %s" % usename 
      

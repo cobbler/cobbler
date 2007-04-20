@@ -8,9 +8,9 @@ koan --server=<host> --list-profiles
 
 koan --server=<host> --list-systems
 
-koan --virt --server=<host> --profile=<name>
+koan --virt --server=<host> --profile=<name> [--virtname=<name>]
 
-koan --virt --server=<host> --system=<name>
+koan --virt --server=<host> --system=<name> [--virtname=<name>]
 
 koan --replace-self --server=<host> --profile=<name>
 
@@ -20,7 +20,7 @@ koan --replace-self --server=<host> --system=<name>
 
 When invoked, koan requests profile information from a remote boot server that has been configured with cobbler.   What koan does with the profile data depends on whether it was invoked with --virt or --replace-self.
 
-For --virt, cobbler will create new virtualized guests on a machine in accordance to the orders from cobbler.  You can then, once finished, use "virsh" and "xm" commands on the guest.  Cobbler automatically names domains based on their mac addresses.   
+For --virt, cobbler will create new virtualized guests on a machine in accordance to the orders from cobbler.  You can then, once finished, use "virsh" and "xm" commands on the guest.  Cobbler automatically names domains based on their mac addresses.  To install using a more descriptive name, specify one with --virtname.
 
 For re-kickstarting ('--replace-self'), cobbler will reprovisioning the system, blowing away any current data and replacing it with the results of a network install.
 
