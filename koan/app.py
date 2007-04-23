@@ -524,7 +524,7 @@ class Koan:
         system_data = None
         self.debug("fetching configuration for system: %s" % old_system_name)
         try:
-            data = self.xmlrpc_server.get_system_for_koan(system_name)
+            system_data = self.xmlrpc_server.get_system_for_koan(system_name)
         except:
             self.connect_fail()
         profile_data = self.get_profile_xmlrpc(self.safe_load(system_data,'profile'))
