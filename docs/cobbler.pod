@@ -464,23 +464,21 @@ Before using enchant, configure the location of the koan noarch RPM in /var/lib/
 
 =head2 IMPORTING TREES
 
-Cobbler can auto-add distributions and profiles from remote sources, whether this is an NFS path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.  
+Cobbler can auto-add distributions and profiles from remote sources, whether this is a filesystem path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.  
 
-When importing a rsync mirror, cobbler will try to detect the distribution type and automatically assign kickstarts.  By default, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of "cobbler".  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting after cobbler creates the profile.
+Cobbler will try to detect the distribution type and automatically assign kickstarts.  By default, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of "cobbler".  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting after cobbler creates the profile.
 
-Note that if you use --path instead of --mirror, no files will actually be copied.  Most of the time, usage of --mirror is preferred, to create a local copy of the files you are importing.  These files are saved automatically in /var/www/cobbler/ks_mirror.
+Mirrored content is saved automatically in /var/www/cobbler/ks_mirror.
 
-Example:  B<cobbler import --mirror=rsync://mirrorserver.example.com/path/ --mirror-name=fedora>
+Example:  B<cobbler import --mirror=rsync://mirrorserver.example.com/path/ --name=fedora>
 
-Example2:  B<cobbler import --mirror=root@192.168.1.10:/stuff --mirror-name=bar>
+Example2:  B<cobbler import --mirror=root@192.168.1.10:/stuff --name=bar>
 
-Example3:  B<cobbler import --mirror=root@localhost:/mnt/dvd --mirror-name=baz>
+Example3:  B<cobbler import --mirror=/mnt/dvd --name=baz>
 
-Example4:  B<cobbler import --path=/path/to/stuff --mirror-name=glorp>
+Example4:  B<cobbler import --mirror=/path/to/stuff --name=glorp>
 
 Once imported, run a "cobbler list" or "cobbler report" to see what you've added.
-
-"Cobbler sync" should still be run after an import to get the system ready to provision what was just imported.
 
 By default, the rsync operations will exclude PPC content, debug RPMs, and ISO images -- to change what is excluded during an import, see /etc/cobbler/rsync.exclude.
 

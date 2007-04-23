@@ -49,15 +49,18 @@ Another interesting feature of Cobbler is that it can integrate mirroring of pac
 <A NAME="News"></A>
 <h2>News</h2>
 <p>
-<B>Cobbler 0.4.6</B></br>
+<B>Cobbler 0.4.7, Koan 0.2.9</B><br/>
+What's new?  Centos 5 DVD imports and provisioning.  Better yum repository handling.  Copy, edit, and rename from the command line mean there's no more need to understand YAML.  There's also better kickstart tracking for older distributions and a new XMLRPC component.  Koan gets XMLRPC, lower virtual RAM requirements, and control over the names of virtual guests.
+</p>
+<B>Cobbler 0.4.6</B><br/>
 Cobbler can now mirror yum repos over http://, ftp://, and includes some experimental support for RHN.  Also you can now use the boot server as a yum install source for core packages automatically.  Provisioning can now be much more tightly integrated with post-install package installation.
 </p>
 <p>
-<B>Cobbler 0.4.5</B></br>
+<B>Cobbler 0.4.5</B><br/>
 Vastly improved support for importing from DVDs.  <A HREF="http://et.redhat.com/page/Cobbler_Import">(examples)</A>.  Shorter kernel options by default.  Fully templated PXE configurations mean greater customization opportunities.
 </p>
 <p>
-<B>Cobbler 0.4.3</B></br>
+<B>Cobbler 0.4.3</B><br/>
 Cobbler 0.4.3 is a bugfix release.  Recently 0.4.2 added auto-generated PXE menus for rapid installation of machines "just off the truck".  Also, cobbler now once again uses <A HREF="http://cheetahtemplate.org/learn.html">Cheetah</A> for more-powerful kickstart templating.
 </p>
 <B>Koan 0.2.8</B><br/>
@@ -151,11 +154,11 @@ Most features -- like dhcp.conf templating and kickstart templating -- are optio
 </p>
 <p>
 <B>Are there any daemons involved?</B><br/>
-Cobbler configures and uses tftp-server and httpd, and (optionally) dhcpd.  It configures these various apps as well as the file system tree to enable provisioning without <i>requiring</i> cobbler-specific daemons.  One small syslog monitoring daemon (cobbler_syslogd) is included in 0.3.7 and later, which will enable better remote status tracking of kickstarts, though it's optional, and can be turned off with only a small degradation in kickstart tracking accuracy.  If you want to remotely administer cobbler, SSH is your friend.
+Cobbler configures and uses tftp-server and httpd, and (optionally) dhcpd.  It configures these various apps as well as the file system tree to enable provisioning without <i>requiring</i> cobbler-specific daemons for basic PXE.  To enable koan, as well as syslog monitoring of installs, cobblerd must be running.  Cobblerd defaults to port 25150 (for syslog) and port 25151 (for XMLRPC).
 </p>
 <p>
 <B>Is Cobbler tied to a particular Koan version?</B><br/>
-Not currently.  Cobbler and koan tend to be very flexible.  New metadata fields added to cobbler are ignored by older koan versions.  Major architectural changes could affect things, though none are in plan.  A best effort will be made to preserve cobbler settings across upgrades.  Koan may be able to detect downlevel versions of cobbler in the future.</p>
+Not currently.  Koan 0.2.9 does require Cobbler >= 0.4.7, however.   Cobbler and koan tend to be very flexible.  New metadata fields added to cobbler are ignored by older koan versions.  Major architectural changes could affect things, though none are in plan.  A best effort will be made to preserve cobbler settings across upgrades.  Koan may be able to detect downlevel versions of cobbler in the future.</p>
 <p>
 <B>Does dhcpd have to run on the same box?</B><br/>
 No.  In the case where you're not in control of your dhcp (which is likely), but still want a provisioning infrastructure, cobbler still works -- by default, it doesn't try to manage dhcpd.conf.  Should you want to do PXE, you'll have to have your IT administrator configure DHCP a bit to add the "next-server" and "filename" records, though cobbler can point you in the right direction.  Futhermore, if you're just using reprovisioning and virtualization features, then you don't need a dhcp server anyway.
@@ -166,7 +169,7 @@ A cobbler is a person who makes boots.  "Koan" stands for "kickstart over a netw
 </p>
 <p>
 <B>What operating systems are supported?</B><br/>
-Cobbler and koan are intended to be used on systems that support kickstart.  Cobbler currently enjoys being installed on FC-5, FC-6, RHEL-4, RHEL-5, and Centos 4 (you'll want to "rpmbuild --rebuild" the source RPM's yourself if not running Fedora).  Koan (which is the helper application for non-PXE provisioning modes) works everywhere cobbler does, plus RHEL 3.  Curently any Linux system can be rolled out with cobbler/koan, though there are a lot of kickstart specific features -- so distributions that do kickstart have some advantages.  Patches, expertise, and suggestions on how to adapt cobbler to support other free operating systems are definitely welcome.
+Cobbler and koan are intended to be used on systems that support kickstart.  Cobbler currently enjoys being installed on FC-5, FC-6, RHEL-4, RHEL-5, and Centos 4/5 (you'll want to "rpmbuild --rebuild" the source RPM's yourself if not running Fedora).  Koan (which is the helper application for non-PXE provisioning modes) works everywhere cobbler does, plus RHEL 3.  Curently any Linux system can be rolled out with cobbler/koan, though there are a lot of kickstart specific features -- so distributions that do kickstart have some advantages.  Patches, expertise, and suggestions on how to adapt cobbler to support other free operating systems are definitely welcome.
 </p>
 <p>
 <B>What architectures are supported?</B><br/>
