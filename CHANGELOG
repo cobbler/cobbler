@@ -2,6 +2,7 @@ Koan CHANGELOG
 
 * Tue Apr 24 2007 Michael DeHaan <mdehaan@redhat.com> - 0.3.0-1
 - Fix error with --system
+- Fix IP vs MAC regex checking
 
 * Thu Apr 19 2007 Michael DeHaan <mdehaan@redhat.com> - 0.2.9-1
 - koan now speaks XMLRPC with cobbler (requires cobbler > 0.4.7-4)

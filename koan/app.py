@@ -258,14 +258,14 @@ class Koan:
         """
         Actually kicks off downloads and auto-ks or virt installs
         """
-        self.debug("processing profile: %s" % self.profile)
+        # self.debug("processing profile: %s" % self.profile)
         if self.profile:
             profile_data = self.get_profile_xmlrpc(self.profile)
         else:
             profile_data = self.get_system_xmlrpc(self.system)
         self.debug(profile_data)
         if not 'distro' in profile_data:
-            raise InfoException, "invalid response from boot server"
+            raise InfoException, "cobbler data not found"
         distro = self.safe_load(profile_data,'distro')
         distro_data = self.get_distro_xmlrpc(distro)
         if distro_data.has_key("breed") and distro_data["breed"] != "redhat":
@@ -474,7 +474,7 @@ class Koan:
         Is strdata an IP?
         warning: not IPv6 friendly
         """
-        if re.search(r'\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}',strdata):
+        if re.search(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',strdata):
             return True
         return False
 
@@ -522,7 +522,7 @@ class Koan:
         old_system_name = system_name
         system_name = self.pxeify(system_name)
         system_data = None
-        self.debug("fetching configuration for system: %s" % old_system_name)
+        self.debug("fetching configuration for system: (%s)" % old_system_name)
         try:
             system_data = self.xmlrpc_server.get_system_for_koan(system_name)
         except:
