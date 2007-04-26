@@ -319,6 +319,11 @@ class Koan:
             k_args = self.safe_load(distro_data,'kernel_options')
             k_args = k_args + " ks=file:ks.cfg"
 
+            self.build_initrd(
+                self.safe_load(distro_data,'initrd_local'), 
+                self.safe_load(profile_data,'kickstart')
+            )
+
             cmd = [ "/sbin/grubby", 
                     "--bootloader-probe" ]
 
