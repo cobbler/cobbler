@@ -1,5 +1,8 @@
 Koan CHANGELOG
 
+* Thr Apr 26 2007 Michael DeHaan <mdehaan@redhat.com> - 0.3.1-1
+- Restore missing initrd build code for --replace-self
+
 * Tue Apr 24 2007 Michael DeHaan <mdehaan@redhat.com> - 0.3.0-1
 - Fix error with --system
 - Fix IP vs MAC regex checking
