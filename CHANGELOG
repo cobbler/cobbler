@@ -1,6 +1,10 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Thu Apr 26 2007 - 0.4.8
+- Make import friendlier for older distros
+- Make import friendlier for newer createrepos that don't have --basedir
+
 * Fri Apr 20 2007 - 0.4.7
 - Disable mod_python tracker piece for RHEL5 (replacement eventual).
 - Kickstart tracking now understands Apache logs
