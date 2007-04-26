@@ -22,6 +22,7 @@ import sub_process
 import glob
 import api
 import utils
+import shutil
 
 WGET_CMD = "wget --mirror --no-parent --no-host-directories --directory-prefix %s/%s %s"
 RSYNC_CMD =  "rsync -a %s %s %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --delete --delete-excluded --progress"
@@ -269,7 +270,7 @@ class Importer:
    def repo_scanner(self,distro,dirname,fnames):
        
        for x in fnames:
-           if x == "repodata":
+           if x == "repodata" or x == "base":
                self.process_comps_file(dirname, distro)
                continue
 
@@ -278,17 +279,27 @@ class Importer:
 
    def process_comps_file(self, comps_path, distro):
 
+       # all of this is mainly to set up the core repos in a sane
+       # way and shouldn't fail if the tree structure is too foreign
+       masterdir = "repodata"
+       if not os.path.exists(os.path.join(comps_path, "repodata")):
+           # older distros...
+           masterdir = "base"
+
        print "- scanning: %s (distro: %s)" % (comps_path, distro.name)
 
-       repo_file = os.path.join(comps_path, "repodata", "repomd.xml")
-       if not os.path.exists(repo_file):
-           raise RuntimeError, "no repomd found"
+       #repo_file = os.path.join(comps_path, masterdir, "repomd.xml")
+       #if not os.path.exists(repo_file):
+       #    print "- no repomd found here: %s" % repo_file
+       #    return
 
        # figure out what our comps file is ...
-       print "- looking for %s/repodata/comps*.xml" % comps_path
-       files = glob.glob("%s/repodata/comps*.xml" % comps_path)
+       print "- looking for %s/%s/comps*.xml" % (comps_path, masterdir)
+       files = glob.glob("%s/%s/comps*.xml" % (comps_path, masterdir))
        if len(files) == 0:
-           raise RuntimeError, "no comps files here: %s" % comps_path
+           print "- no comps found here: %s" % os.path.join(comps_path, masterdir)
+           return # no comps xml file found
+
        # pull the filename from the longer part
        comps_file = files[0].split("/")[-1]
 
@@ -331,10 +342,18 @@ class Importer:
            # they'll share same repo files.
            if not self.processed_repos.has_key(comps_path):
                utils.remove_yum_olddata(comps_path)
-               cmd = "createrepo --basedir / --groupfile %s %s" % (os.path.join(comps_path, "repodata", comps_file), comps_path)
+               #cmd = "createrepo --basedir / --groupfile %s %s" % (os.path.join(comps_path, masterdir, comps_file), comps_path)
+               cmd = "createrepo --groupfile %s %s" % (os.path.join(comps_path, masterdir, comps_file), comps_path)
                print "- %s" % cmd
                sub_process.call(cmd,shell=True)
                self.processed_repos[comps_path] = 1
+               # for older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up one...
+               p1 = os.path.join(comps_path, "repodata", "comps.xml")
+               p2 = os.path.join(comps_path, "base", "comps.xml")
+               if os.path.exists(p1) and os.path.exists(p2):
+                   print "- cp %s %s" % (p1, p2)
+                   shutil.copyfile(p1,p2)
+
        except:
            print "- error launching createrepo, ignoring..."
            traceback.print_exc()
