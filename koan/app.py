@@ -323,6 +323,7 @@ class Koan:
                 self.safe_load(distro_data,'initrd_local'), 
                 self.safe_load(profile_data,'kickstart')
             )
+-           k_args = k_args.replace("lang ","lang= ")
 
             cmd = [ "/sbin/grubby", 
                     "--bootloader-probe" ]
