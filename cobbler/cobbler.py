@@ -179,17 +179,36 @@ class BootCLI:
            print "   %s" % name
         return True
 
+    def __list_names2(self, collection, args):
+        for p in args:
+            obj = collection.find(p)
+            if obj is not None:
+                print obj.printable()
+        return True
+
     def system_list(self, args):
-        return self.__list_names(self.api.systems())
+        if len(args) > 0:
+           self.__list_names2(self.api.systems(), args)
+        else:
+           return self.__list_names(self.api.systems())
     
     def distro_list(self, args):
-        return self.__list_names(self.api.distros())
+        if len(args) > 0:
+           return self.__list_names2(self.api.distros(),args)
+        else:
+           return self.__list_names(self.api.distros())
     
     def profile_list(self, args):
-        return self.__list_names(self.api.profiles())
+        if len(args) > 0:
+           return self.__list_names2(self.api.profiles(),args)
+        else:
+           return self.__list_names(self.api.profiles())
     
     def repo_list(self, args):
-        return self.__list_names(self.api.repos())
+        if len(args) > 0:
+           return self.__list_names2(self.api.repos(),args)
+        else:
+           return self.__list_names(self.api.repos())
 
     ###############################################################
     # UTILITY FUNCTIONS
