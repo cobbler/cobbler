@@ -139,9 +139,9 @@ class BootCheck:
                if line.find("filename") != -1:
                    match_file = True
            if not match_next:
-              status.append(cobbler_msg.lookup("no_line") % (self.settings.dhcpd_conf, 'next-server ip-address'))
-           if not match_file:
               status.append(cobbler_msg.lookup("no_next_server") % (self.settings.dhcpd_conf))
+           if not match_file:
+              status.append(cobbler_msg.lookup("no_filename") % (self.settings.dhcpd_conf))
        else:
            status.append(cobbler_msg.lookup("no_exist") % self.settings.dhcpd_conf)
 
