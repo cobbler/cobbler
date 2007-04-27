@@ -4,6 +4,7 @@ Cobbler CHANGELOG
 * Fri Apr 27 2007 - 0.4.9
 - Remove hardcode of /var/www/cobbler in cobblerd
 - Fix warning message error for "cobbler check" and /etc/dhcpd.conf
+- cobbler (objecttype) (objectname) now gives info about the object instead of just all objects
 
 * Thu Apr 26 2007 - 0.4.8
 - Make import friendlier for older distros
