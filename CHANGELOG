@@ -1,6 +1,10 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Fri Apr 27 2007 - 0.4.9
+- Remove hardcode of /var/www/cobbler in cobblerd
+- Fix warning message error for "cobbler check" and /etc/dhcpd.conf
+
 * Thu Apr 26 2007 - 0.4.8
 - Make import friendlier for older distros
 - Make import friendlier for newer createrepos that don't have --basedir
