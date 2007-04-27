@@ -125,7 +125,7 @@ class CobblerXMLRPCInterface:
         return self.__get_specific(self.api.repos(),name)
 
     def __get_for_koan(self,dir,name):
-        path = os.path.join(settings.webdir, dir, name)
+        path = os.path.join("/var/www/cobbler/", dir, name)
         if not os.path.exists(path):
             return {}
         fd = open(path)
