@@ -120,20 +120,28 @@ class BootCLI:
     # REPORTING FUNCTIONS
 
     def distro_report(self,args):
-        self.__print_sorted(self.api.distros())
-        return True
+        if len(args) > 0:
+           return self.__list_names2(self.api.distros(), args)
+        else:
+           return self.__print_sorted(self.api.distros())
 
     def system_report(self,args):
-        self.__print_sorted(self.api.systems())
-        return True
+        if len(args) > 0:
+           return self.__list_names2(self.api.systems(), args)
+        else:
+           return self.__print_sorted(self.api.systems())
 
     def profile_report(self,args):
-        self.__print_sorted(self.api.profiles())
-        return True
+        if len(args) > 0:
+           return self.__list_names2(self.api.profiles(), args)
+        else:
+           return self.__print_sorted(self.api.profiles())
 
     def repo_report(self,args):
-        self.__print_sorted(self.api.repos())
-        return True
+        if len(args) > 0:
+           return self.__list_names2(self.api.repos(), args)
+        else:
+           return self.__print_sorted(self.api.repos())
 
     def report(self,args):
 
@@ -240,7 +248,7 @@ class BootCLI:
         collection.sort(self.__sorter)
         for x in collection:
             print x.printable()
-
+        return True
 
     ######################################################################
     # BASIC FRAMEWORK
