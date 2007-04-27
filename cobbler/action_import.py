@@ -412,8 +412,11 @@ class Importer:
        name = name.replace("-pxeboot","")  
        name = name.replace("--","-")
        name = name.replace("-i386","")
+       name = name.replace("_i386","")
        name = name.replace("-x86_64","")
+       name = name.replace("_x86_64","")
        name = name.replace("-ia64","")
+       name = name.replace("_ia64","")
        # ensure arch is on the end, regardless of path used.
        name = name + "-" + archname
 
