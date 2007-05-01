@@ -135,7 +135,7 @@ class RepoSync:
                 # if we only want certain RPMs, use yumdownloader (likely more than once)
                 # FIXME: yumdownloader has a current bug where --resolve blows up
                 # removing --resolve until I get the email from bugzilla saying it's fixed.
-                cmd = "/usr/bin/yumdownloader --config=%s --destdir=%s %s" %(temp_file, dest_path, " ".join(repo.rpm_list))
+                cmd = "/usr/bin/yumdownloader -c %s --destdir=%s %s" %(temp_file, dest_path, " ".join(repo.rpm_list))
                 print "- %s" % cmd
                 cmds.append(cmd)
         else:
