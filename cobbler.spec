@@ -14,6 +14,9 @@ Requires: createrepo
 Requires: mod_python
 Requires: python-cheetah
 Requires: yum-utils
+%ifarch i386 i686 x86_64
+Requires: syslinux
+%endif
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
