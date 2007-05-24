@@ -69,6 +69,8 @@ class BootSync:
         if self.settings.manage_dhcp:
            # these functions DRT for ISC or dnsmasq
            self.write_dhcp_file()
+           self.regen_ethers()
+           self.regen_hosts()
            self.restart_dhcp()
         self.make_pxe_menu()
         return True
@@ -171,27 +173,60 @@ class BootSync:
                     systxt = systxt + "    fixed-address %s;\n" % system.pxe_address
                 systxt = systxt + "    next-server %s;\n" % self.settings.next_server
                 systxt = systxt + "}\n"
-                system_definitions = system_definitions + systxt
 
             else:
-                # dnsmasq.  dnsmasq also allows for setting hostnames.  Neat.
-                  
-                systxt = systxt + "dhcp-host=" + system.name
+                # dnsmasq.  don't have to write IP and other info here, but we do tag
+                # each MAC based on the arch of it's distro, if it needs something other
+                # than pxelinux.0 -- for these arches, and these arches only, a dnsmasq
+                # reload (full "cobbler sync") would be required after adding the system
+                # to cobbler, just to tag this relationship.
+
+                profile = self.profiles.find(system.profile)
+                distro  = self.distros.find(profile.distro)
                 if system.pxe_address != "":
-                    systxt = systxt + "," + system.pxe_address
-                if system.hostname != "":
-                    systxt = systxt + "," + system.hostname + ",infinite"
-                systxt = systxt + "\n"
+                    if distro.arch.lower() == "ia64":
+                        systxt = "dhcp-host=net:ia64," + system.pxe_address + "\n"
+                    # support for other arches needs modifications here
+                    else:
+                        systxt = ""
 
             system_definitions = system_definitions + systxt
 
         metadata = {
            "insert_cobbler_system_definitions" : system_definitions,
-           "date" : time.asctime(time.gmtime()),
-           "next_server" : self.settings.next_server
+           "date"           : time.asctime(time.gmtime()),
+           "cobbler_server" : self.settings.server,
+           "next_server"    : self.settings.next_server,
+           "elilo"          : elilo
         }
         # print "writing to: %s" % settings_file
         self.apply_template(template_data, metadata, settings_file)
+
+    def regen_ethers(self):
+        # dnsmasq knows how to read this database of MACs -> IPs, so we'll keep it up to date
+        # every time we add a system.
+        # read 'man ethers' for format info
+        fh = open("/etc/ethers","w+")
+        for sys in self.systems:
+            if not utils.is_mac(sys.name):
+                # hopefully no one uses non-mac system ID's anymore, but I'm not sure.
+                # these need to be deprecated
+                continue
+            if sys.pxe_address != "":
+                fh.write(sys.name.upper() + "\t" + sys.pxe_address + "\n")
+        fh.close()
+
+    def regen_hosts(self):
+        # dnsmasq knows how to read this database for host info
+        # (other things may also make use of this later)
+        fh = open("/var/lib/cobbler/cobbler_hosts","w+")
+        for sys in self.systems:
+            if not utils.is_mac(sys.name):
+                continue
+            if sys.hostname != "" and sys.pxe_address != "":
+                fh.write(sys.pxe_address + "\t" + sys.hostname + "\n")
+        fh.close()
+
 
     def templatify(self, data, metadata, outfile):
         for x in metadata.keys():

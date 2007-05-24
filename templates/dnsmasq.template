@@ -3,16 +3,18 @@
 #
 
 # resolve.conf .. ?
-no-poll
+#no-poll
+#enable-dbus
+read-ethers
+addn-hosts = /var/lib/cobbler/hosts_cobbler/
 
 dhcp-range=192.168.1.5,192.168.1.200
 dhcp-option=3,$next_server
-dhcp-boot=pxelinux.0
 dhcp-lease-max=1000
 dhcp-authoritative
-
-# FYI: using tftp-server for TFTP ...
-
+dhcp-boot=pxelinux.0
+dhcp-boot=net:normalarch,pxelinux.0
+dhcp-boot=net:ia64,$elilo
 
 $insert_cobbler_system_definitions
 
