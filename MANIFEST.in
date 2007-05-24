@@ -3,6 +3,7 @@ include loaders/elilo-3.6-ia64.efi
 include loaders/menu.c32
 include config/cobbler.conf
 include templates/dhcp.template
+include templates/dnsmasq.template
 include templates/pxeprofile.template
 include templates/pxedefault.template
 include templates/pxesystem.template
