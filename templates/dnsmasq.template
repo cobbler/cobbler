@@ -1,0 +1,18 @@
+# Cobbler generated configuration file for dnsmasq
+# $date 
+#
+
+# resolve.conf .. ?
+no-poll
+
+dhcp-range=192.168.1.5,192.168.1.200
+dhcp-option=3,$next_server
+dhcp-boot=pxelinux.0
+dhcp-lease-max=1000
+dhcp-authoritative
+
+# FYI: using tftp-server for TFTP ...
+
+
+$insert_cobbler_system_definitions
+
