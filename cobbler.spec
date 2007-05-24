@@ -125,7 +125,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Thr May 24 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.9-1
+* Thu May 24 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.9-1
 - Upstream changes (see CHANGELOG)
 - Added dnsmasq.template 
 
