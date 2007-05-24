@@ -35,12 +35,20 @@ class BootCheck:
        """
        status = []
        self.check_name(status)
-       self.check_dhcpd_bin(status)
+       if self.settings.manage_dhcp:
+           mode = self.settings.manage_dhcp_mode.lower()
+           if mode == "isc": 
+               self.check_dhcpd_bin(status)
+               self.check_dhcpd_conf(status)
+           elif mode == "dnsmasq":
+               self.check_dnsmasq_bin(status)
+           else:
+               status.append(cobbler_msg.lookup("dhcp_choice"))
+               
        self.check_bootloaders(status)
        self.check_tftpd_bin(status)
        self.check_tftpd_dir(status)
        self.check_tftpd_conf(status)
-       self.check_dhcpd_conf(status)
        self.check_httpd(status)
 
        return status
@@ -61,7 +69,7 @@ class BootCheck:
        Check if Apache is installed.
        """
        if not os.path.exists(self.settings.httpd_bin):
-          status.append(cobbler_msg.lookup("no_httpd"))
+           status.append(cobbler_msg.lookup("no_httpd"))
 
 
    def check_dhcpd_bin(self,status):
@@ -69,7 +77,14 @@ class BootCheck:
        Check if dhcpd is installed
        """
        if not os.path.exists(self.settings.dhcpd_bin):
-          status.append(cobbler_msg.lookup("no_dhcpd"))
+           status.append(cobbler_msg.lookup("no_dhcpd"))
+
+   def check_dnsmasq_bin(self,status):
+       """
+       Check if dnsmasq is installed
+       """
+       if not os.path.exists(self.settings.dnsmasq_bin):
+           status.append(cobbler_msg.lookup("no_dnsmasq"))
 
    def check_bootloaders(self,status):
        """

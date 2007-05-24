@@ -270,7 +270,7 @@ class Importer:
    def repo_scanner(self,distro,dirname,fnames):
        
        for x in fnames:
-           if x == "repodata" or x == "base":
+           if x == "base": # don't do "repodata"
                self.process_comps_file(dirname, distro)
                continue
 

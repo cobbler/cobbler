@@ -1,10 +1,12 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Fri Apr 27 2007 - 0.4.9
+* Thu May 24 2007 - 0.4.9
 - Remove hardcode of /var/www/cobbler in cobblerd
-- Fix warning message error for "cobbler check" and /etc/dhcpd.conf
+- Improve various warning warning messages
 - cobbler (objecttype) (objectname) now gives info about the object instead of just all objects
+- Added --hostname to "cobbler system add", --ip-address is also a better alias for --pxe-address
+- Optionally use dnsmasq for DHCP (and DNS!) instead of ISC dhcpd.
 
 * Thu Apr 26 2007 - 0.4.8
 - Make import friendlier for older distros

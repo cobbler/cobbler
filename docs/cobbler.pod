@@ -141,7 +141,7 @@ can make use of during kickstart installation.  For example, an example might be
 
 Systems assign a piece of hardware with the cobbler profile to be assigned to it.  Systems can be defined by hostname, IP, or MAC address.  When available, use of the MAC address to assign systems is preferred.
 
-B<cobbler system add --name=ip|mac|hostname --profile=string [--kopts=string] [--pxe-address=string] [--ksmeta=string]>
+B<cobbler system add --name=macaddress --profile=string [--kopts=string] [--ipaddress=string] [--hostname=string] [--ksmeta=string]>
 
 Adds a cobbler System to the configuration.  Arguments are specified as per "profile add" with
 the following changes:
@@ -159,20 +159,25 @@ address here, as it makes things a lot easier and more powerful across the board
 There is also the magic name "default", which allows creation of the default PXE profile.  Without
 a "default" system name created, PXE will fall through to local boot for unconfigured systems.
 
-=item pxe-address
+=item ip-address
 
-Advanced feature.
+If cobbler is configured to generate to manage a DHCP configuratition (see advanced section), use this
+setting to pin a certain IP to a given MAC address.  This corresponds to the "fixed-address" field in dhcpd.conf.
 
-If cobbler is configured to generate the dhcpd.conf file, use this
-setting to pin a certain hostname or IP to a given MAC address.  This corresponds to the "fixed-address" field in dhcpd.conf.
+Example: ---ip-address=192.168.1.50
 
-When using this setting for IA64 machines, be sure that the "--name" given to the "system add" command is a MAC address or no per-system record in dhcpd.conf can be generated.
-
-Example: ---pxe-address=192.168.1.50
-
-NOTE: Due to a limitation in elilo (IA64 bootloader), this parameter must ALSO be used even if dhcpd.conf files are not being managed by cobbler AND you want to PXE provision IA64 systems using a handwritten dhcpd.conf.  Also, for IA64, the value of pxe-address must be an IP, and not a hostname, even though hostnames work for X86.  Thankfully, if you don't have IA64 systems, there are a lot less rules.
+Note for Itanium users: For this to work with IA64 systems, currently ISC dhcpd must be chosen as the DHCP server.  Even if no cobbler DHCP management is enabled, this parameter is mandatory to get cobbler systems to PXE boot, due to limitations in ELILO (it doesn't request config files based on MAC addresses).
 
 =back
+
+=item hostname
+
+If using the DHCP configuration feature (see advanced section), use this to pin a hostname to a particular
+system record.  Currently this only works when 'manage_dhcp_mode' is set to 'dnsmasq' and not for 'isc'. 
+
+Example: --hostname=mycomputer.example.com
+
+=end
 
 =head2 ADDING A REPOSITORY TO MIRROR
 
@@ -421,27 +426,32 @@ Should you want to express larger sections of templating (more that can be decen
 
 =head2 DHCP CONFIGURATION MANAGEMENT
 
-By default, cobbler does not write a dhcpd.conf and leaves configuration
-of DHCP up to the user.  If manage_dhcp is set to 1 in /var/lib/cobbler/settings,
-this changes, and cobbler *will* write it's own dhcp.conf file, replacing any dhcpd.conf
-that already exists. 
+Cobbler can optionally help you manage DHCP and (depending on how used) DNS as it relates
+to systems you wish to provision/control.  This allows cobbler to essentially maintain a database
+of all of your installed systems, and be a central point of control for aspects related to setting
+up those systems.
 
-The file is based on a template in /etc/cobbler/dhcpd.conf.template -- and must be user edited for
-the user's particular networking environment.  Read the file and understand dhcpd.conf files before proceeding.
-If you already have dhcpd.conf data that you would like to preserve (say DHCP was manually configured earlier), 
-insert the relevant portions of it into the template file.
+This feature is off by default and must be turned on by setting 'manage_dhcp' to 1 in
+/var/lib/cobbler/settings.   Choices include ISC dhcpd (default), or DNSmasq, which can be chosen
+by setting manage_dhcp_mode to 'dnsmasq'.  If you choose dnsmasq and want to revert to ISC, change
+the setting to 'isc'.
 
-So, if this manage_dhcp bit is enabled, the following features are enabled:
+Depending on your choice, cobbler will use /etc/cobbler/dhcpd.template or /etc/cobbler/dnsmasq.template as a starting point.  This file must be user edited for the user's particular networking environment.  Read the file and understand how the particular app (ISC dhcpd or dnsmasq) work before proceeding.
+
+If you already have DHCP configuration data that you would like to preserve (say DHCP was manually configured earlier), insert the relevant portions of it into the template file, as running "cobbler sync" will overwrite your previous configuration.
+
+In summary, if this manage_dhcp bit is enabled, the following features are enabled:
 
 (A) pinning dhcp hostnames to MAC addresses automatically.
-(B) relatively seamless mixing of Itanium and x86/x86_64 machines in a PXE environment
+(B) relatively seamless mixing of Itanium and x86/x86_64 machines in a PXE environment (ISC only)
+(C) assigning hostnames to MAC addresses using DNS (dnsmasq only).
 
-Per-system records in DHCP will only be written if the cobbler system name is a MAC address, so it's recommended that those be used if manage_dhcp is turned on.
+These options are all enabled by using the --hostname and --ip-address options when using the "cobbler system add" command.
 
-Itanium systems names also need to be specified by the MAC address, and their distribution needs to be created with the "--arch=ia64" parameter.
+Itanium systems names also need to be assigned to a distro that was created with the "--arch=ia64" parameter. If you have Itanium systems, you must (for now) choose 'isc' for
+'manage_dhcp_mode' in the /var/lib/cobbler/settings file, and are required to use --ip-address when creating the system object in order for those systems to PXE.
 
-The dhcpd.conf file will be updated each time "cobbler sync" is run, and not until then, so it is important
-to remember to use "cobbler sync" when using this feature.
+The dhcpd.conf file will be updated each time "cobbler sync" is run, and not until then, so it is important to remember to use "cobbler sync" when using this feature.  Support for online updates to DHCP (and DNS, in this dnsmasq case) are pending.
 
 =head2 ENCHANT
 
@@ -460,7 +470,6 @@ the remote machine.   The default behavior is machine (not virtual) re-provision
 Example:  B<cobbler enchant --virt=yes --address=192.168.10.10 --profile=fc6xen>
 
 Before using enchant, configure the location of the koan noarch RPM in /var/lib/cobbler/settings (a local path) and re-run "cobbler sync".
-
 
 =head2 IMPORTING TREES
 
@@ -572,6 +581,7 @@ When adding a distro, profile, system, or repo, all scripts in /var/lib/cobbler/
 =head2 API
 
 Cobbler also makes itself available as a Python API for use by higher level management software.
+Learn more at http://cobbler.et.redhat.com
 
 =head1 EXIT_STATUS
 

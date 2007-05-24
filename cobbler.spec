@@ -93,6 +93,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/cobbler/kickstart_fc6.ks
 %config(noreplace) /etc/cobbler/kickstart_fc6_domU.ks
 %config(noreplace) /etc/cobbler/dhcp.template
+%config(noreplace) /etc/cobbler/dnsmasq.template
 %config(noreplace) /etc/cobbler/pxedefault.template
 %config(noreplace) /etc/cobbler/pxeprofile.template
 %config(noreplace) /etc/cobbler/pxesystem.template
@@ -123,6 +124,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+
+* Thr May 24 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.9-1
+- Upstream changes (see CHANGELOG)
+- Added dnsmasq.template 
 
 * Fri Apr 27 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.9-1
 - Upstream changes (see CHANGELOG)

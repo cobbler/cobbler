@@ -35,6 +35,7 @@ class System(item.Item):
         self.ks_meta = {}
         self.pxe_address = ""
         self.netboot_enabled = 1 
+        self.hostname = ""
 
     def from_datastruct(self,seed_data):
         self.name            = self.load_item(seed_data, 'name')
@@ -43,6 +44,7 @@ class System(item.Item):
         self.ks_meta         = self.load_item(seed_data, 'ks_meta')
         self.pxe_address     = self.load_item(seed_data, 'pxe_address')
         self.netboot_enabled = self.load_item(seed_data, 'netboot_enabled', 1)
+        self.hostname        = self.load_item(seed_data, 'hostname')
 
         # backwards compatibility -- convert string entries to dicts for storage
         if type(self.kernel_options) != dict:
@@ -66,6 +68,14 @@ class System(item.Item):
             raise cexceptions.CobblerException("bad_sys_name")
         self.name = name  # we check it add time, but store the original value.
         return True
+
+    def set_hostname(self,hostname):
+        self.hostname = hostname
+        return True
+
+    def set_ip_address(self,address):
+        # allow function to use more sensical name
+        return self.set_pxe_address(address)
 
     def set_pxe_address(self,address):
         """
@@ -128,7 +138,8 @@ class System(item.Item):
            'kernel_options'  : self.kernel_options,
            'ks_meta'         : self.ks_meta,
            'pxe_address'     : self.pxe_address,
-           'netboot_enabled' : self.netboot_enabled
+           'netboot_enabled' : self.netboot_enabled,
+           'hostname'        : self.hostname,
         }
 
     def printable(self):
@@ -136,6 +147,7 @@ class System(item.Item):
         buf = buf + "profile         : %s\n" % self.profile
         buf = buf + "kernel options  : %s\n" % self.kernel_options
         buf = buf + "ks metadata     : %s\n" % self.ks_meta
-        buf = buf + "pxe address     : %s\n" % self.pxe_address
+        buf = buf + "ip address      : %s\n" % self.pxe_address
+        buf = buf + "hostname        : %s\n" % self.hostname
         return buf
 

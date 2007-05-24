@@ -67,6 +67,7 @@ class BootSync:
         self.validate_kickstarts()
         self.build_trees()
         if self.settings.manage_dhcp:
+           # these functions DRT for ISC or dnsmasq
            self.write_dhcp_file()
            self.restart_dhcp()
         self.make_pxe_menu()
@@ -75,14 +76,19 @@ class BootSync:
     def restart_dhcp(self):
         """
         DHCP restarts need to be made when the config file is
-        changed. 
+        changed. ISC or DNSMASQ.  Support for ISC omshell not
+        yet available (adding dynamically w/o restart).
         """
         try:
-            retcode = self.service("dhcpd", "restart")
+            mode = self.settings.manage_dhcp_mode.lower()
+            service = "dhcpd"
+            if mode == "dnsmasq":
+                service = "dnsmasq"
+            retcode = self.service(service, "restart")
             if retcode != 0:
-                print >>sys.stderr, "Warning: dhcpd restart failed"
+                print >>sys.stderr, "Warning: %s restart failed" % service
         except OSError, e:
-            print >>sys.stderr, "Warning: dhcpd restart failed: ", e
+            print >>sys.stderr, "Warning: %s restart failed: " % service, e
 
     def copy_koan(self):
         """
@@ -111,25 +117,35 @@ class BootSync:
             self.copyfile(path, destpath)
         self.copyfile("/var/lib/cobbler/menu.c32", os.path.join(self.settings.tftpboot, "menu.c32"))
 
-
     def write_dhcp_file(self):
         """
         DHCP files are written when manage_dhcp is set in
         /var/lib/cobbler/settings.
         """
+        
+        settings_file = self.settings.dhcpd_conf
+        template_file = "/etc/cobbler/dhcp.template"
+        mode = self.settings.manage_dhcp_mode.lower()
+        # print "my mode is: %s" % mode
+        if mode == "dnsmasq":
+            settings_file = self.settings.dnsmasq_conf
+            template_file = "/etc/cobbler/dnsmasq.template"
+
         try:
-            f2 = open("/etc/cobbler/dhcp.template","r")
+            f2 = open(template_file,"r")
         except:
-            raise cexceptions.CobblerException("exc_no_template")
+            raise cexceptions.CobblerException("exc_no_template",template_file)
         template_data = ""
-        #f1 = self.open_file("/etc/dhcpd.conf","w+")
         template_data = f2.read()
         f2.close()
 
         # build each per-system definition
+        # as configured, this only works for ISC, patches accepted
+        # from those that care about Itanium.
+        elilo = os.path.basename(self.settings.bootloaders["ia64"])
+
         system_definitions = ""
         counter = 0
-        elilo = os.path.basename(self.settings.bootloaders["ia64"])
         for system in self.systems:
             if not utils.is_mac(system.name):
                 # can't do per-system dhcp features if the system
@@ -138,19 +154,35 @@ class BootSync:
                 # if you want to PXE IA64 boxes, you need to use
                 # the MAC as the system name.
                 continue
-            systxt = ""
+
+            
             counter = counter + 1
-            systxt = "\nhost label%d {\n" % counter
-            profile = self.profiles.find(system.profile)
-            distro  = self.distros.find(profile.distro)
-            if distro.arch == "ia64":
-                # can't use pxelinux.0 anymore
-                systxt = systxt + "    filename \"/%s\";\n" % elilo
-            systxt = systxt + "    hardware ethernet %s;\n" % system.name
-            if system.pxe_address != "":
-                systxt = systxt + "    fixed-address %s;\n" % system.pxe_address
-            systxt = systxt + "    next-server %s;\n" % self.settings.next_server
-            systxt = systxt + "}\n"
+            systxt = "" 
+            if mode == "isc":
+
+                systxt = "\nhost label%d {\n" % counter
+                profile = self.profiles.find(system.profile)
+                distro  = self.distros.find(profile.distro)
+                if distro.arch == "ia64":
+                    # can't use pxelinux.0 anymore
+                    systxt = systxt + "    filename \"/%s\";\n" % elilo
+                systxt = systxt + "    hardware ethernet %s;\n" % system.name
+                if system.pxe_address != "":
+                    systxt = systxt + "    fixed-address %s;\n" % system.pxe_address
+                systxt = systxt + "    next-server %s;\n" % self.settings.next_server
+                systxt = systxt + "}\n"
+                system_definitions = system_definitions + systxt
+
+            else:
+                # dnsmasq.  dnsmasq also allows for setting hostnames.  Neat.
+                  
+                systxt = systxt + "dhcp-host=" + system.name
+                if system.pxe_address != "":
+                    systxt = systxt + "," + system.pxe_address
+                if system.hostname != "":
+                    systxt = systxt + "," + system.hostname + ",infinite"
+                systxt = systxt + "\n"
+
             system_definitions = system_definitions + systxt
 
         metadata = {
@@ -158,9 +190,8 @@ class BootSync:
            "date" : time.asctime(time.gmtime()),
            "next_server" : self.settings.next_server
         }
-        self.apply_template(template_data, metadata, "/etc/dhcpd.conf")
-        #self.tee(f1,template_data)
-        #self.close_file(f1)
+        # print "writing to: %s" % settings_file
+        self.apply_template(template_data, metadata, settings_file)
 
     def templatify(self, data, metadata, outfile):
         for x in metadata.keys():

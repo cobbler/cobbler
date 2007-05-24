@@ -448,7 +448,9 @@ class BootCLI:
            '--profile'     :  lambda(a) : sys.set_profile(a),
            '--kopts'       :  lambda(a) : sys.set_kernel_options(a),
            '--ksmeta'      :  lambda(a) : sys.set_ksmeta(a),
-           '--pxe-address' :  lambda(a) : sys.set_pxe_address(a)
+           '--hostname'    :  lambda(a) : sys.set_hostname(a),
+           '--pxe-address' :  lambda(a) : sys.set_ip_address(a),
+           '--ip-address'  :  lambda(a) : sys.set_ip_address(a)
         }
         def on_ok():
             self.api.systems().add(sys, with_copy=self.api.sync_flag)

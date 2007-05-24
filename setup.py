@@ -55,6 +55,7 @@ if __name__ == "__main__":
                                 (etcpath,  ['kickstarts/kickstart_fc6_domU.ks']),
                                 (etcpath,  ['kickstarts/default.ks']),
 				(etcpath,  ['templates/dhcp.template']),
+				(etcpath,  ['templates/dnsmasq.template']),
 				(etcpath,  ['templates/pxedefault.template']),
 				(etcpath,  ['templates/pxesystem.template']),
 				(etcpath,  ['templates/pxesystem_ia64.template']),

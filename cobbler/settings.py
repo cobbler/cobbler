@@ -20,10 +20,12 @@ TESTMODE = False
 DEFAULTS = {
     "httpd_bin"          : "/usr/sbin/httpd",
     "dhcpd_conf"         : "/etc/dhcpd.conf",
+    "dnsmasq_conf"       : "/etc/dnsmasq.conf",
     "tftpd_bin"          : "/usr/sbin/in.tftpd",
     "server"             : "127.0.0.1",
     "next_server"        : "127.0.0.1",
     "dhcpd_bin"          : "/usr/sbin/dhcpd",
+    "dnsmasq_bin"        : "/usr/sbin/dnsmasq",
     "kernel_options"     : {
         "lang"           : " ",
         "text"           : None,
@@ -34,6 +36,7 @@ DEFAULTS = {
     "webdir"             : "/var/www/cobbler",
     "default_kickstart"  : "/etc/cobbler/default.ks",
     "manage_dhcp"        : 0,
+    "manage_dhcp_mode"   : "isc",
     "koan_path"          : "",
     "bootloaders"        : {
         "standard"       : "/usr/lib/syslinux/pxelinux.0",
