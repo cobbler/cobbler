@@ -15,6 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import utils
 import item
 import cexceptions
+from rhpl.translate import _, N_, textdomain, utf8
 
 # TODO: if distribution is detected FC6 or greater, auto-add the mirror stanza
 # to the kickstart.

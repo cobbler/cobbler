@@ -16,6 +16,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
+from rhpl.translate import _, N_, textdomain, utf8
+
+
 USAGE = """cobbler provisioning tool
 basic usage guide / see "man cobbler" for more.
 

@@ -14,6 +14,7 @@ Requires: createrepo
 Requires: mod_python
 Requires: python-cheetah
 Requires: yum-utils
+Requires: rhpl
 %ifarch i386 i686 x86_64
 Requires: syslinux
 %endif

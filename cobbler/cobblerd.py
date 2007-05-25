@@ -17,6 +17,8 @@ import SimpleXMLRPCServer
 import yaml # Howell Clark version
 
 import api as cobbler_api
+from rhpl.translate import _, N_, textdomain, utf8
+
 
 # hack to make xmlrpclib tolerate None:
 # http://www.thescripts.com/forum/thread499321.html

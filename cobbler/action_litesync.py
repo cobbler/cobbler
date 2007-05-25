@@ -32,6 +32,8 @@ import cexceptions
 import traceback
 import errno
 
+from rhpl.translate import _, N_, textdomain, utf8
+
 
 class BootLiteSync:
     """

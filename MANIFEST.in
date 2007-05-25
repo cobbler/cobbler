@@ -2,19 +2,13 @@ include loaders/COPYING_ELILO
 include loaders/elilo-3.6-ia64.efi
 include loaders/menu.c32
 include config/cobbler.conf
-include templates/dhcp.template
-include templates/dnsmasq.template
-include templates/pxeprofile.template
-include templates/pxedefault.template
-include templates/pxesystem.template
-include templates/pxesystem_ia64.template
-include kickstarts/kickstart_fc5.ks
-include kickstarts/kickstart_fc6.ks
-include kickstarts/kickstart_fc6_domU.ks
-include kickstarts/default.ks
+include config/rsync.exclude
+include config/cobblerd
+recursive-include templates *.template
+recursive-include kickstarts *.ks
 include docs/cobbler.1.gz
 include COPYING AUTHORS README CHANGELOG NEWS
-include config/rsync.exclude
 include scripts/watcher.py
 include scripts/cobblerd
-include config/cobblerd
+recursive-include po *.pot
+recursive-include po *.po

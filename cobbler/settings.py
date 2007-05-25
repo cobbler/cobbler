@@ -14,6 +14,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import serializable
 import utils
+from rhpl.translate import _, N_, textdomain, utf8
 
 TESTMODE = False
 

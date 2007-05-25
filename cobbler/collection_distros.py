@@ -18,6 +18,7 @@ import collection
 import item_distro as distro
 import cexceptions
 import action_litesync
+from rhpl.translate import _, N_, textdomain, utf8
 
 TESTMODE = False
 

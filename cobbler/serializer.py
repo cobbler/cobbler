@@ -19,6 +19,8 @@ import os
 import cexceptions
 import utils
 
+from rhpl.translate import _, N_, textdomain, utf8
+
 def serialize(obj):
     """
     Save an object to disk.  Object must "implement" Serializable.

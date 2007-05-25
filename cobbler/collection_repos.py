@@ -18,6 +18,8 @@ import item_repo as repo
 import utils
 import collection
 import cexceptions
+from rhpl.translate import _, N_, textdomain, utf8
+
 
 TESTMODE = False
 

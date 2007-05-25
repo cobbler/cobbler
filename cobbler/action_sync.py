@@ -34,6 +34,9 @@ import item_system
 
 from Cheetah.Template import Template
 
+from rhpl.translate import _, N_, textdomain, utf8
+
+
 class BootSync:
     """
     Handles conversion of internal state to the tftpboot tree layout

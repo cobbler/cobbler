@@ -20,6 +20,8 @@ import utils
 import collection
 import cexceptions
 import action_litesync
+from rhpl.translate import _, N_, textdomain, utf8
+
 
 TESTMODE = False
 

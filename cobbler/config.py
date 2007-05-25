@@ -28,6 +28,9 @@ import collection_repos as repos
 import settings
 import serializer
 
+from rhpl.translate import _, N_, textdomain, utf8
+
+
 class Config:
 
    has_loaded = False

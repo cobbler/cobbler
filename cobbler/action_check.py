@@ -17,6 +17,7 @@ import os
 import re
 import cobbler_msg
 import action_sync
+from rhpl.translate import _, N_, textdomain, utf8
 
 class BootCheck:
 

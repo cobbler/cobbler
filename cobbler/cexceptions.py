@@ -15,6 +15,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import exceptions
 import cobbler_msg
 
+from rhpl.translate import _, N_, textdomain, utf8
+
+
 class CobblerException(exceptions.Exception):
 
    def __init__(self, value, *args):

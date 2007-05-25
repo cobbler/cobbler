@@ -18,6 +18,8 @@ import os
 import os.path
 import sub_process
 import traceback
+from rhpl.translate import _, N_, textdomain, utf8
+
 
 class Enchant:
 

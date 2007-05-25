@@ -20,6 +20,8 @@ import weakref
 import os
 import cexceptions
 
+from rhpl.translate import _, N_, textdomain, utf8
+
 class Distro(item.Item):
 
     #def __init__(self,config):

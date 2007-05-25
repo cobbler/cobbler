@@ -19,6 +19,9 @@ import glob
 import time
 import cobbler_msg
 
+from rhpl.translate import _, N_, textdomain, utf8
+
+
 class BootStatusReport:
 
     def __init__(self,config,mode):

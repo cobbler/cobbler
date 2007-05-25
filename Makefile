@@ -1,3 +1,5 @@
+MESSAGESPOT=po/messages.pot
+
 all: rpms
 
 clean:
@@ -15,14 +17,19 @@ test:
 	python tests/tests.py
 	-rm -rf /tmp/_cobbler-*
 
-build: clean
+build: clean messages
 	python setup.py build -f
 
 install: clean
 	python setup.py install -f
 
-sdist: clean
+sdist: clean messages
 	python setup.py sdist
+
+messages: cobbler/*.py
+	xgettext -k_ -kN_ -o $(MESSAGESPOT) cobbler/*.py
+	sed -i'~' -e 's/SOME DESCRIPTIVE TITLE/cobbler/g' -e 's/YEAR THE PACKAGE'"'"'S COPYRIGHT HOLDER/2007 Red Hat, Inc. /g' -e 's/FIRST AUTHOR <EMAIL@ADDRESS>, YEAR/Michael DeHaan <mdehaan@redhat.com>, 2007/g' -e 's/PACKAGE VERSION/cobbler $(VERSION)-$(RELEASE)/g' -e 's/PACKAGE/cobbler/g' $(MESSAGESPOT)
+
 
 rpms: manpage sdist
 	mkdir -p rpm-build

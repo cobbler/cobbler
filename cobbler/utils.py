@@ -20,6 +20,8 @@ import sub_process
 import shutil
 import string
 import traceback
+from rhpl.translate import _, N_, textdomain, utf8
+
 
 _re_kernel = re.compile(r'vmlinuz(.*)')
 _re_initrd = re.compile(r'initrd(.*).img')

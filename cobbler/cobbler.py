@@ -23,6 +23,9 @@ import traceback
 import cobbler_msg
 import cexceptions
 
+from rhpl.translate import _, N_, textdomain, utf8
+I18N_DOMAIN = "cobbler"
+
 LOCKING_ENABLED = True 
 LOCKFILE="/var/lib/cobbler/lock"
 
@@ -33,6 +36,7 @@ class BootCLI:
         """
         Build the command line parser and API instances, etc.
         """
+        textdomain(I18N_DOMAIN)
         self.args = args
         self.api = api.BootAPI()
         self.commands = {}
@@ -680,4 +684,5 @@ def main():
     return exitcode
 
 if __name__ == "__main__":
+    print _("Testing")
     sys.exit(main())
