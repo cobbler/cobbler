@@ -1,40 +1,16 @@
 cobbler TODO list.
-now with 1-5 priority ratings
 
-always:
-2  -  better documentation (particularly online articles)
-      switch (manpages) to asciidoc?
+-  switch manpages to asciidoc + general cleanup
+-  (ongoing) better documentation and online articles
+-  "check" should check if services (esp httpd) are started
+-  better kickstart tracking solution
+-  GTK (or Web) UI for Cobbler ?
+-  have -v or --version
+-  i18n cobbler -- replace cobbler_msg bits
+-  (koan) LVM support to override disk image choice, include graphics?
+-  OMAPI/omshell integration for dhcpd
+-  no logrotate or cleanup for /var/log/cobbler (kickstart tracking)
+-  build net-install CD images
+-  build non-net-install CD from cobbler profile
 
-core:
-5 -  "check" should check if services (esp httpd) are started
-1 -  better tracking solution.  
-
-user interface:
-3 -  "cobbler add" should be distinguished from "edit" so as to not overwrite
-     ex: "cobbler edit profile --name=asdf --kickstart=foo" should just change the kickstart.
-5 -  GTK (or Web) UI for Cobbler ?
-5 -  have -v or --version
-
-koan items:
-1 -  enable more virtualization types in koan
-4  - LVM support
-1  - hwvirt
-
-code cleanup:
-5 -  remove the cobbler_msg logic since i18n isn't likely
-
-ideas:
-5 -  make the multiple-bootloader system more plugin oriented to allow
-     for alternative bootloaders (not neccessarily kickstart related)
-     to be added.  (Low priority)
-4 -  someone suggested looking at OMAPI for DHCP management
-3 -  explore use cases for pykickstart "plugin" concept
-5 -  mDNS discovery of server from koan
-1 -  XMLRPC cobbler daemon to isolate koan from yaml parsing and allow future
-     advanced features.
-
-small bugs:
-3  - no logrotate or cleanup for /var/log/cobbler (kickstart tracking)
-3  - relax detection of kernel/initrd to accept any file
-5  - use smaller swap dependant on ram setting.
 
