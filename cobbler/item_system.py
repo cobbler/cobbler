@@ -14,15 +14,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import utils
 import item
-import cexceptions
+from cexceptions import *
 from rhpl.translate import _, N_, textdomain, utf8
 
 
 class System(item.Item):
-
-    #def __init__(self,config):
-    #    self.config = config
-    #    self.clear()
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -67,7 +63,7 @@ class System(item.Item):
             return True
         new_name = utils.find_system_identifier(name)
         if not new_name:
-            raise cexceptions.CobblerException("bad_sys_name")
+            raise CX(_("system name must be an MAC address, IP, or resolvable host"))
         self.name = name  # we check it add time, but store the original value.
         return True
 
@@ -100,7 +96,7 @@ class System(item.Item):
         if self.config.profiles().find(profile_name):
             self.profile = profile_name
             return True
-        raise cexceptions.CobblerException("exc_profile")
+        raise CX(_("invalid profile name"))
 
     def set_netboot_enabled(self,netboot_enabled):
         """
@@ -145,11 +141,11 @@ class System(item.Item):
         }
 
     def printable(self):
-        buf =       "system          : %s\n" % self.name
-        buf = buf + "profile         : %s\n" % self.profile
-        buf = buf + "kernel options  : %s\n" % self.kernel_options
-        buf = buf + "ks metadata     : %s\n" % self.ks_meta
-        buf = buf + "ip address      : %s\n" % self.pxe_address
-        buf = buf + "hostname        : %s\n" % self.hostname
+        buf =       _("system          : %s\n") % self.name
+        buf = buf + _("profile         : %s\n") % self.profile
+        buf = buf + _("kernel options  : %s\n") % self.kernel_options
+        buf = buf + _("ks metadata     : %s\n") % self.ks_meta
+        buf = buf + _("ip address      : %s\n") % self.pxe_address
+        buf = buf + _("hostname        : %s\n") % self.hostname
         return buf
 

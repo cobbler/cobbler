@@ -75,8 +75,8 @@ class Settings(serializable.Serializable):
 
    def printable(self):
        buf = ""
-       buf = buf + "defaults\n"
-       buf = buf + "kernel options  : %s\n" % self._attributes['kernel_options']
+       buf = buf + _("defaults\n")
+       buf = buf + _("kernel options  : %s\n") % self._attributes['kernel_options']
        return buf
 
    def to_datastruct(self):
@@ -90,7 +90,7 @@ class Settings(serializable.Serializable):
        Modify this object to load values in datastruct.
        """
        if datastruct is None:
-          print "warning: not loading empty structure for %s" % self.filename()
+          print _("warning: not loading empty structure for %s") % self.filename()
           return
        self._attributes = datastruct
        return self

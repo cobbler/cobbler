@@ -16,7 +16,7 @@ import yaml   # Howell-Clark version
 import errno
 import os
 
-import cexceptions
+from cexceptions import *
 import utils
 
 from rhpl.translate import _, N_, textdomain, utf8
@@ -38,11 +38,11 @@ def serialize(obj):
                os.makedirs(dirname)
                # evidentally this doesn't throw exceptions.
            except OSError, ose:
-               raise cexceptions.CobblerException("need_perms", os.path.dirname(dirname))
+               raise CX(_("Need permissions to write to %s") % os.path.dirname(dirname))
         try:
            fd = open(filename,"w+")
         except IOError, ioe3:
-           raise cexceptions.CobblerException("need_perms", filename)
+           raise CX(_("Need permissions to write to %s") % filename)
            return False
     datastruct = obj.to_datastruct()
     encoded = yaml.dump(datastruct)
@@ -66,12 +66,9 @@ def deserialize(obj):
         if not os.path.exists(filename):
             return True
         else:
-            raise cexceptions.CobblerException("need_perms",obj.filename())
+            raise CX(_("Need permissions to read %s") % obj.filename())
     data = fd.read()
     datastruct = yaml.load(data).next()  # first record
-    # leftover from PySyck choke detection.  Not relevant?
-    # if type(datastruct) == str:
-    #     raise CobblerException("parse_error",filename)
     fd.close()
     obj.from_datastruct(datastruct)
     return True

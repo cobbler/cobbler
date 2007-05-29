@@ -14,18 +14,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import utils
 import item
-import cexceptions
+from cexceptions import *
 
 from rhpl.translate import _, N_, textdomain, utf8
 
 class Profile(item.Item):
-
-    #def __init__(self,config):
-    #    """
-    #    Constructor.  Requires a backreference to Config.
-    #    """
-    #    self.config = config
-    #    self.settings = self.config.settings()
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -44,7 +37,6 @@ class Profile(item.Item):
         self.ks_meta = {} 
         self.virt_file_size = 5    # GB.  5 = Decent _minimum_ default for FC5.
         self.virt_ram = 512        # MB.  Install with 256 not likely to pass
-        self.virt_paravirt = True  # hvm support is *NOT* in Koan (now)
         self.repos = ""            # names of cobbler repo definitions
 
     def from_datastruct(self,seed_data):
@@ -66,7 +58,6 @@ class Profile(item.Item):
         # virt specific 
         self.virt_ram        = self.load_item(seed_data,'virt_ram')
         self.virt_file_size  = self.load_item(seed_data,'virt_file_size')
-        self.virt_paravirt   = self.load_item(seed_data,'virt_paravirt')
 
         # backwards compatibility -- convert string entries to dicts for storage
         if type(self.kernel_options) != dict:
@@ -84,7 +75,7 @@ class Profile(item.Item):
         if self.config.distros().find(distro_name):
             self.distro = distro_name
             return True
-        raise cexceptions.CobblerException("no_distro")
+        raise CX(_("distribution not found"))
 
     def set_repos(self,repos):
         if type(repos) != list:
@@ -104,7 +95,7 @@ class Profile(item.Item):
         if ok:
             self.repos = repolist
         else:
-            raise cexceptions.CobblerException("no_repos")
+            raise CX(_("repository not found"))
 
     def set_kickstart(self,kickstart):
         """
@@ -114,7 +105,7 @@ class Profile(item.Item):
         if utils.find_kickstart(kickstart):
             self.kickstart = kickstart
             return True
-        raise cexceptions.CobblerException("no_kickstart")
+        raise CX(_("kickstart not found"))
 
     def set_virt_file_size(self,num):
         """
@@ -129,13 +120,13 @@ class Profile(item.Item):
         try:
             inum = int(num)
             if inum != float(num):
-                return cexceptions.CobblerException("exc_virt_file")
+                return CX(_("invalid virt file size"))
             if inum >= 0:
                 self.virt_file_size = inum
                 return True
-            return cexceptions.CobblerException("exc_virt_file")
+            raise CX(_("invalid virt file size"))
         except:
-            return cexceptions.CobblerException("exc_virt_file")
+            raise CX(_("invalid virt file size"))
 
     def set_virt_ram(self,num):
         """
@@ -147,34 +138,13 @@ class Profile(item.Item):
         try:
             inum = int(num)
             if inum != float(num):
-                return cexceptions.CobblerException("exc_virt_ram")
+                return CX(_("invalid virt ram size"))
             if inum >= 0:
                 self.virt_ram = inum
                 return True
-            return cexceptions.CobblerException("exc_virt_ram")
+            return CX(_("invalid virt ram size"))
         except:
-            return cexceptions.CobblerException("exc_virt_ram")
-
-    def set_virt_paravirt(self,truthiness):
-        """
-	For Virt only.
-	Specifies whether the system is a paravirtualized system or not.
-	For ordinary computers, you want to pick 'true'.  Method accepts string
-	'true'/'false' in all cases, or Python True/False.
-	"""
-        # truthiness needs to be True or False, or (lcased) string equivalents
-        # yes, we *do* want to explicitly test against True/False
-        # the string "foosball" is True, and that is not a valid argument for this function
-        try:
-            if (not truthiness or truthiness.lower() == 'false'):
-                self.virt_paravirt = False
-            elif (truthiness or truthiness.lower() == 'true'):
-                self.virt_paravirt = True
-            else:
-                return cexceptions.CobblerException("exc_virt_para")
-        except:
-            return cexceptions.CobblerException("exc_virt_para")
-        return True
+            return CX(_("invalid virt ram size"))
 
     def is_valid(self):
         """
@@ -198,7 +168,6 @@ class Profile(item.Item):
             'kernel_options'   : self.kernel_options,
             'virt_file_size'   : self.virt_file_size,
             'virt_ram'         : self.virt_ram,
-            'virt_paravirt'    : self.virt_paravirt,
             'ks_meta'          : self.ks_meta,
             'repos'            : self.repos
         }
@@ -207,14 +176,13 @@ class Profile(item.Item):
         """
         A human readable representaton
         """
-        buf =       "profile         : %s\n" % self.name
-        buf = buf + "distro          : %s\n" % self.distro
-        buf = buf + "kickstart       : %s\n" % self.kickstart
-        buf = buf + "kernel options  : %s\n" % self.kernel_options
-        buf = buf + "ks metadata     : %s\n" % self.ks_meta
-        buf = buf + "virt file size  : %s\n" % self.virt_file_size
-        buf = buf + "virt ram        : %s\n" % self.virt_ram
-        buf = buf + "virt paravirt   : %s\n" % self.virt_paravirt
-        buf = buf + "repos           : %s\n" % self.repos
+        buf =       _("profile         : %s\n") % self.name
+        buf = buf + _("distro          : %s\n") % self.distro
+        buf = buf + _("kickstart       : %s\n") % self.kickstart
+        buf = buf + _("kernel options  : %s\n") % self.kernel_options
+        buf = buf + _("ks metadata     : %s\n") % self.ks_meta
+        buf = buf + _("virt file size  : %s\n") % self.virt_file_size
+        buf = buf + _("virt ram        : %s\n") % self.virt_ram
+        buf = buf + _("repos           : %s\n") % self.repos
         return buf
 

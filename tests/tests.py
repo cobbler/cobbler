@@ -191,9 +191,6 @@ class Additions(BootTest):
         # temporarily commenting out failing test
         # self.failUnlessRaises(CobblerException, profile.set_virt_file_size, "huge")
         # self.failUnlessRaises(CobblerException, profile.set_virt_file_size, "54321.23")
-        # paravirt must be 'true' or 'false'
-        self.assertTrue(profile.set_virt_paravirt(False))
-        self.assertTrue(profile.set_virt_paravirt(True))
         self.assertTrue(self.api.profiles().add(profile))
 
     def test_invalid_system_bad_name_host(self):

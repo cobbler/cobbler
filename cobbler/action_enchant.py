@@ -13,7 +13,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-import cexceptions
+from cexceptions import *
 import os
 import os.path
 import sub_process
@@ -37,13 +37,13 @@ class Enchant:
        self.system = system
        self.is_virt = is_virt
        if address is None:
-           raise cexceptions.CobblerException("enchant_failed","no address specified")
+           raise CX(_("enchant failed. no address specified"))
        if system is None and profile is None:
-           raise cexceptions.CobblerException("enchant_failed","no profile specified")
+           raise CX(_("enchant failed. no profile specified"))
        if system is not None and self.config.systems().find(system) is None:
-           raise cexceptions.CobblerException("enchant_failed","system name not found")
+           raise CX(_("enchant failed. system not found"))
        if profile is not None and self.config.profiles().find(profile) is None:
-           raise cexceptions.CobblerException("enchant_failed","profile name not found")
+           raise CX(_("enchant failed. profile name not found"))
 
 
    def ssh_exec(self,cmd,catch_fail=True):
@@ -56,7 +56,7 @@ class Enchant:
        rc = sub_process.call(cmd2,shell=True)
        print "returns: %d" % rc
        if catch_fail and rc != 0:
-           raise cexceptions.CobblerException("enchant_failed","ssh failure")
+           raise CX(_("enchant failed. SSH error."))
 
    def run(self):
        """
@@ -79,7 +79,7 @@ class Enchant:
        koan = os.path.basename(self.settings.koan_path)
        where_is_koan = os.path.join(self.settings.webdir,os.path.basename(koan))
        if not os.path.exists(where_is_koan) or os.path.isdir(where_is_koan):
-           raise cexceptions.CobblerException("enchant_failed","koan is missing")
+           raise CX(_("enchant failed.  koan_path is not correct in /var/lib/cobbler/settings"))
 
        try:
            self.ssh_exec("wget http://%s/cobbler/%s" % (self.settings.server, koan))
@@ -107,6 +107,6 @@ class Enchant:
            return True
        except:
            traceback.print_exc()
-           raise cexceptions.CobblerException("enchant_failed","exception")
+           raise CX(_("enchant failed.  an exception occurred."))
        return False # shouldn't be here
 

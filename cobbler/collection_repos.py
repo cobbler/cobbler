@@ -17,7 +17,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import item_repo as repo
 import utils
 import collection
-import cexceptions
+from cexceptions import *
 from rhpl.translate import _, N_, textdomain, utf8
 
 
@@ -57,5 +57,5 @@ class Repos(collection.Collection):
             self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/repo/*")
             del self.listing[name]
             return True
-        raise cexceptions.CobblerException("delete_nothing")
+        raise CX(_("cannot delete an object that does not exist"))
 

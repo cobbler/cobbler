@@ -17,7 +17,6 @@ import os
 import os.path
 import glob
 import time
-import cobbler_msg
 
 from rhpl.translate import _, N_, textdomain, utf8
 
@@ -46,23 +45,18 @@ class BootStatusReport:
            data = fh.readline()
            while (data is not None and data != ""):
                data = fh.readline()
-               #print data
                tokens = data.split(None)
                if len(tokens) < 6:
                    continue
-               #print "----"
                ip    = tokens[0]
                stime  = tokens[3].replace("[","")
                req   = tokens[6]        
                if req.find("/cblr") == -1:
                    continue
-               #print "%s,%s,%s,%s" % (tokens,ip,time,req)
                ttime = time.strptime(stime,"%d/%b/%Y:%H:%M:%S")
-               #print ttime
                itime = time.mktime(ttime)
                if not results.has_key(ip):
                    results[ip] = {}
-               #print "ip (%s) time (%s) req (%s)" % (ip,itime,req)
                results[ip][itime] = req
 
         return results
@@ -92,7 +86,6 @@ class BootStatusReport:
  
                 if not results.has_key(ip):
                     results[ip] = {}
-                # print "results (%s) (%s) <- %s" % (ip, epoch, request) 
                 results[ip][epoch] = request
 
         return results
@@ -119,8 +112,15 @@ class BootStatusReport:
         last_recorded_time = 0
         time_collisions = 0
         
-        header = ("Address", "State", "Started", "Last Request", "Seconds", "Log Entries")
-        print "%-20s | %-15s | %-25s | %-25s | %-10s | %-6s" % header
+        #header = ("Address", "State", "Started", "Last Request", "Seconds", "Log Entries")
+        print _("%-20(address)s | %-15(state)s | %-25(started)s | %-25(lastreq)s | %-10(seconds)s | %-6(logentries)s") % {
+           "address"    : _("Address"),
+           "state"      : _("State"),
+           "lastreq"    : _("Last Request"),
+           "started"    : _("Started"),
+           "seconds"    : _("Seconds"),
+           "logentries" : _("Log Entries"),
+        } 
 
         
         for ip in ips:
@@ -153,7 +153,6 @@ class BootStatusReport:
 
             self.generate_report(entries,ip)
 
-            # print entries
 
         return True
 
@@ -176,7 +175,7 @@ class BootStatusReport:
         fcount = 0
 
         if len(rtimes) == 0:
-            print "%s: ?" % ip
+            print _("%s: ?") % ip
             return
 
         # for each request time the machine has made
@@ -215,6 +214,13 @@ class BootStatusReport:
             elapsed_time  = "?"   
   
         # print the status line for this IP address
-        print "%-20s | %-15s | %-25s | %-25s | %-10s | %-6s" % (ip, install_state, display_start, display_last, elapsed_time, fcount)               
+        print "%-20(ip)s | %-15(state)s | %-25(start)s | %-25(last)s | %-10(elapsed)s | %-6(fcount)s" % {
+            "ip"      : ip, 
+            "state"   : install_state, 
+            "start"   : display_start, 
+            "last"    : display_last, 
+            "elapsed" : elapsed_time, 
+            "fcount"  : fcount
+        }            
  
 

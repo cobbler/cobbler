@@ -14,11 +14,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import utils
 import item
-import cexceptions
+from cexceptions import *
 from rhpl.translate import _, N_, textdomain, utf8
-
-# TODO: if distribution is detected FC6 or greater, auto-add the mirror stanza
-# to the kickstart.
 
 class Repo(item.Item):
 
@@ -121,10 +118,10 @@ class Repo(item.Item):
         }
 
     def printable(self):
-        buf =       "repo            : %s\n" % self.name
-        buf = buf + "mirror          : %s\n" % self.mirror
-        buf = buf + "keep updated    : %s\n" % self.keep_updated
-        buf = buf + "local filename  : %s\n" % self.local_filename
-        buf = buf + "rpm list        : %s\n" % self.rpm_list
+        buf =       _("repo            : %s\n") % self.name
+        buf = buf + _("mirror          : %s\n") % self.mirror
+        buf = buf + _("keep updated    : %s\n") % self.keep_updated
+        buf = buf + _("local filename  : %s\n") % self.local_filename
+        buf = buf + _("rpm list        : %s\n") % self.rpm_list
         return buf
 

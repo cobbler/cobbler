@@ -15,7 +15,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import os
 import re
-import cobbler_msg
 import action_sync
 from rhpl.translate import _, N_, textdomain, utf8
 
@@ -44,7 +43,7 @@ class BootCheck:
            elif mode == "dnsmasq":
                self.check_dnsmasq_bin(status)
            else:
-               status.append(cobbler_msg.lookup("dhcp_choice"))
+               status.append(_("manage_dhcp_mode in /var/lib/cobbler/settings should be 'isc' or 'dnsmasq'"))
                
        self.check_bootloaders(status)
        self.check_tftpd_bin(status)
@@ -61,16 +60,16 @@ class BootCheck:
        parameters.
        """
        if self.settings.server == "127.0.0.1":
-          status.append(cobbler_msg.lookup("bad_server"))
+          status.append(_("The 'server' field in /var/lib/cobbler/settings must be set to something other than localhost, or kickstarting features will not work.  This should be a resolvable hostname or IP for the boot server as reachable by all machines that will use it."))
        if self.settings.next_server == "127.0.0.1":
-          status.append(cobbler_msg.lookup("bad_next"))
+          status.append(_("For PXE to be functional, the 'next_server' field in /var/lib/cobbler/settings must be set to something other than 127.0.0.1, and should match the IP of the boot server on the PXE network."))
 
    def check_httpd(self,status):
        """
        Check if Apache is installed.
        """
        if not os.path.exists(self.settings.httpd_bin):
-           status.append(cobbler_msg.lookup("no_httpd"))
+           status.append(_("Apache doesn't appear to be installed"))
 
 
    def check_dhcpd_bin(self,status):
@@ -78,14 +77,14 @@ class BootCheck:
        Check if dhcpd is installed
        """
        if not os.path.exists(self.settings.dhcpd_bin):
-           status.append(cobbler_msg.lookup("no_dhcpd"))
+           status.append(_("dhcpd isn't installed, but is enabled in /var/lib/cobbler/settings"))
 
    def check_dnsmasq_bin(self,status):
        """
        Check if dnsmasq is installed
        """
        if not os.path.exists(self.settings.dnsmasq_bin):
-           status.append(cobbler_msg.lookup("no_dnsmasq"))
+           status.append(_("dnsmasq isn't installed, but is enabled in /var/lib/cobbler/settings"))
 
    def check_bootloaders(self,status):
        """
@@ -94,7 +93,7 @@ class BootCheck:
        for loader in self.settings.bootloaders.keys():
           filename = self.settings.bootloaders[loader]
           if not os.path.exists(filename):
-              status.append(cobbler_msg.lookup("no_bootloader"))
+              status.append(_("missing 1 or more bootloader files listed in /var/lib/cobbler/settings"))
               return
 
    def check_tftpd_bin(self,status):
@@ -102,14 +101,14 @@ class BootCheck:
        Check if tftpd is installed
        """
        if not os.path.exists(self.settings.tftpd_bin):
-          status.append(cobbler_msg.lookup("no_tftpd"))
+          status.append(_("tftp-server is not installed."))
 
    def check_tftpd_dir(self,status):
        """
        Check if cobbler.conf's tftpboot directory exists
        """
        if not os.path.exists(self.settings.tftpboot):
-          status.append(cobbler_msg.lookup("no_dir") % self.settings.tftpboot)
+          status.append(_("please create directory: %(dirname)s") % { "dirname" : self.settings.tftpboot })
 
 
    def check_tftpd_conf(self,status):
@@ -123,13 +122,14 @@ class BootCheck:
           found_bootdir = False
           for line in f.readlines():
              if re_disable.search(line):
-                 status.append(cobbler_msg.lookup("chg_attrib") % ('disable','no',self.settings.tftpd_conf))
+                 status.append(_("change 'disable' to 'no' in %(file)s") % { "file" : self.settings.tftpd_conf })
              if line.find("-s %s" % self.settings.tftpboot) != -1:
                  found_bootdir = True
           if not found_bootdir:
-              status.append(cobbler_msg.lookup("chg_attrib") % ('server_args',"-s %s" % self.settings.tftpboot, self.settings.tftpd_conf))
+              status.append(_("change 'server_args' to '-s %(args)' in %(file)s") % { "file" : self.settings.tftpboot, "args" : self.settings.tftpboot })
+
        else:
-          status.append(cobbler_msg.lookup("no_exist") % self.settings.tftpd_conf)
+          status.append(_("file %(file)s does not exist") % { "file" : self.settings.tftpd_conf })
 
 
    def check_dhcpd_conf(self,status):
@@ -155,10 +155,10 @@ class BootCheck:
                if line.find("filename") != -1:
                    match_file = True
            if not match_next:
-              status.append(cobbler_msg.lookup("no_next_server") % (self.settings.dhcpd_conf))
+              status.append(_("expecting next-server entry in %(file)s") % { "file" : self.settings.dhcpd_conf })
            if not match_file:
-              status.append(cobbler_msg.lookup("no_filename") % (self.settings.dhcpd_conf))
+              status.append(_("missing file: %(file)s") % { "file" : self.settings.dhcpd_conf })
        else:
-           status.append(cobbler_msg.lookup("no_exist") % self.settings.dhcpd_conf)
+           status.append(_("missing file: %(file)s") % { "file" : self.settings.dhcpd_conf })
 
 

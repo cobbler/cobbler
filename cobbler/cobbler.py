@@ -20,14 +20,15 @@ import os
 import os.path
 import traceback
 
-import cobbler_msg
-import cexceptions
+from cexceptions import *
 
 from rhpl.translate import _, N_, textdomain, utf8
 I18N_DOMAIN = "cobbler"
 
 LOCKING_ENABLED = True 
 LOCKFILE="/var/lib/cobbler/lock"
+
+USAGE = _("see 'man cobbler' for instructions")
 
 class BootCLI:
 
@@ -117,7 +118,7 @@ class BootCLI:
         """
         Print out abbreviated help if user gives bad syntax
         """
-        print cobbler_msg.USAGE
+        print USAGE
 
 
     ###########################################################
@@ -165,7 +166,7 @@ class BootCLI:
                 self.system_report([])
                 match = True
             if not match and a is not None and a != "":
-                raise cexceptions.CobblerException("unknown_cmd",a)
+                raise CX(_("cobbler does not understand '%(command)s'") % { "command" : a })
             match = False
 
     #############################################
@@ -174,21 +175,26 @@ class BootCLI:
     def list(self,args):
         # FIXME: inefficient
         for d in self.api.distros():
-            print "distribution   : %s" % d.name
+            str = _("distribution   : %(distro)s") % { "distro" : d.name }
+            print str
             for p in self.api.profiles():
                 if p.distro == d.name:
-                    print "  profile      :   %s" % p.name
+                    str = _("  profile      :   %(profile)s") % { "profile" : p.name }
+                    print str
                     for s in self.api.systems():
                         if s.profile == p.name:
-                            print "    system     :     %s" % s.name
+                            str = _("    system     :     %(system)s") % { "system" : s.name }
+                            print str
         for r in self.api.repos():
-            print "repo           : %s" % r.name
+            str = _("repo           : %(repo)s")  % { "repo" : r.name }
+            print str
 
     def __list_names(self, collection):
         names = [ x.name for x in collection]
         names.sort() # sorted() is 2.4 only
         for name in names:
-           print "   %s" % name
+           str = _("  %(name)s") % { "name" : name }
+           print str
         return True
 
     def __list_names2(self, collection, args):
@@ -265,16 +271,16 @@ class BootCLI:
         obj = collection_fn().find(self.find_arg(args,"--name"))
         name2 = self.find_arg(args,"--newname")
         if name2 is not None:
-            raise cexceptions.CobblerException("no_rename")
+            raise CX("objects cannot be renamed with the edit command, use 'rename'")
         if obj is None:
-            raise cexceptions.CobblerException(exc_msg)
+            raise CX(exc_msg)
         control_fn(args,obj)
 
     def __generic_copy(self,args,collection_fn,control_fn,exc_msg):
         obj = collection_fn().find(self.find_arg(args,"--name"))
         obj2 = self.find_arg(args,"--newname")
         if obj is None:
-            raise cexceptions.CobblerException(exc_msg)
+            raise CX(exc_msg)
         args = self.replace_names(args, obj2)
         obj3 = obj.make_clone()
         obj3.set_name(obj2)
@@ -283,10 +289,10 @@ class BootCLI:
     def __generic_rename(self,args,collection_fn,control_fn,exc_msg):
         objname = self.find_arg(args,"--name")
         if objname is None:
-            raise cexceptions.CobblerException("bad_param")
+            raise CX(_("at least one required parameter is missing.  See 'man cobbler'."))
         objname2 = self.find_arg(args,"--newname")
         if objname2 is None:
-            raise cexceptions.CobblerException("bad_param")
+            raise CX(_("at least one required parameter is missing.  See 'man cobbler'."))
         self.__generic_copy(args,collection_fn,control_fn,exc_msg)
         if objname != objname2:
             collection_fn().remove(objname, with_delete=self.api.sync_flag)
@@ -319,46 +325,58 @@ class BootCLI:
     # COPY FUNCTIONS
  
     def distro_copy(self,args):
-        self.__generic_copy(args,self.api.distros,self.__distro_control,"no_distro")
+        exc = _("distribution does not exist")
+        self.__generic_copy(args,self.api.distros,self.__distro_control,exc)
     
     def profile_copy(self,args):
-        self.__generic_copy(args,self.api.profiles,self.__profile_control,"no_profile")
+        exc = _("profile does not exist")
+        self.__generic_copy(args,self.api.profiles,self.__profile_control,exc)
     
     def system_copy(self,args):
-        self.__generic_copy(args,self.api.systems,self.__system_control,"no_system")
+        exc = _("system does not exist")
+        self.__generic_copy(args,self.api.systems,self.__system_control,exc)
         
     def repo_copy(self,args):
-        self.__generic_copy(args,self.api.repos,self.__repo_control,"no_repo")
+        exc = _("repository does not exist")
+        self.__generic_copy(args,self.api.repos,self.__repo_control,exc)
 
     #####################################################################
     # RENAME FUNCTIONS
 
     def distro_rename(self,args):
-        self.__generic_rename(args,self.api.distros,self.__distro_control,"no_distro")
+        exc = _("distribution does not exist")
+        self.__generic_rename(args,self.api.distros,self.__distro_control,exc)
 
     def profile_rename(self,args):
-        self.__generic_rename(args,self.api.profiles,self.__profile_control,"no_profile")
+        exc = _("profile does not exist")
+        self.__generic_rename(args,self.api.profiles,self.__profile_control,exc)
 
     def system_rename(self,args):
-        self.__generic_rename(args,self.api.systems,self.__system_control,"no_system")
+        exc = _("system does not exist")
+        self.__generic_rename(args,self.api.systems,self.__system_control,exc)
 
     def repo_rename(self,args):
-        self.__generic_rename(args,self.api.repos,self.__repo_control,"no_repo")
+        exc = _("repository does not exist")
+        self.__generic_rename(args,self.api.repos,self.__repo_control,exc)
 
     #####################################################################
     # EDIT FUNCTIONS
 
     def distro_edit(self,args):
-        self.__generic_edit(args,self.api.distros,self.__distro_control,"no_distro")
+        exc = _("distribution does not exist")
+        self.__generic_edit(args,self.api.distros,self.__distro_control,exc)
     
     def profile_edit(self,args):
-        self.__generic_edit(args,self.api.profiles,self.__profile_control,"no_profile")
+        exc = _("profile does not exist")
+        self.__generic_edit(args,self.api.profiles,self.__profile_control,exc)
     
     def system_edit(self,args):
-        self.__generic_edit(args,self.api.systems,self.__system_control,"no_system")
+        exc = _("system does not exist")
+        self.__generic_edit(args,self.api.systems,self.__system_control,exc)
     
     def repo_edit(self,args):
-        self.__generic_edit(args,self.api.repos,self.__repo_control,"no_repo")
+        exc = _("repository does not exist")
+        self.__generic_edit(args,self.api.repos,self.__repo_control,exc)
    
     #####################################################################
     # ADD FUNCTIONS
@@ -472,17 +490,17 @@ class BootCLI:
         that parse the arguments.  See distro_edit for an example.
         """
         if len(args) == 0:
-            raise cexceptions.CobblerException("no_args")
+            raise CX(_("this command requires arguments"))
         for x in args:
             try:
                 key, value = x.split("=",1)
                 value = value.replace('"','').replace("'",'')
             except:
-                raise cexceptions.CobblerException("bad_arg",x)
+                raise CX(_("Cobbler was expecting an equal sign in argument '%(argument)s'") % { "argument" : x })
             if input_routines.has_key(key):
                 input_routines[key](value)
             else:
-                raise cexceptions.CobblerException("weird_arg", key)
+                raise CX(_("this command doesn't take an option called '%(argument)s'") % { "argument" : key })
         on_ok()
         self.api.serialize()
 
@@ -492,12 +510,12 @@ class BootCLI:
         feed it the remaining args[1:-1] as arguments.
         """
         if args is None or len(args) == 0:
-            print cobbler_msg.USAGE
+            print USAGE
             return True
         if args[0] in commands:
             commands[args[0]](args[1:])
         else:
-            raise cexceptions.CobblerException("unknown_cmd", args[0])
+            raise CX(_("Cobbler does not understand '%(command)s'") % { "command" : args[0] })
         return True
 
     ################################################
@@ -534,12 +552,15 @@ class BootCLI:
         """
         status = self.api.check()
         if len(status) == 0:
-            print cobbler_msg.lookup("check_ok")
+            print _("No setup problems found")
+            print _("Manual review and editing of /var/lib/cobbler/settings is recommended to tailor cobbler to your particular configuration.") 
+            print _("Good luck.")
+
             return True
         else:
-            print cobbler_msg.lookup("need_to_fix")
+            print _("The following potential problems were detected:")
             for i,x in enumerate(status):
-               print "#%d: %s" % (i,x)
+               print _("#%(number)d: %(problem)s") % { "number" : i, "problem" : x }
             return False
 
     def status(self,args):
@@ -578,7 +599,7 @@ class BootCLI:
            elif a.lower() in [ "1", "true", "yes", "y", "on" ]:
                self.is_virt = True
            else:
-               raise cexceptions.CobblerException("reject_arg","virt")
+               raise CX("reject_arg","virt")
         def set_profile(a):
            self.temp_profile = a
         def set_system(a):
@@ -660,18 +681,18 @@ def main():
         if LOCKING_ENABLED:
             if os.path.exists(LOCKFILE):
                 lock_hit = True
-                raise cexceptions.CobblerException("lock")
+                raise CX(_("Locked.  If cobbler is currently running, wait for termination, otherwise remove /var/lib/cobbler/lock"))
             try:
                 lockfile = open(LOCKFILE,"w+")
             except:
-                raise cexceptions.CobblerException("no_create",LOCKFILE)
+                raise CX(_("Cobbler could not create the lockfile %(lockfile)s. Are you root?") % { "lockfile" : lockfile })
             lockfile.close()
         BootCLI(sys.argv).run()
-    except cexceptions.CobblerException, exc:
+    except CobblerException, exc:
         print str(exc)[1:-1]  # remove framing air quotes
         exitcode = 1
     except KeyboardInterrupt:
-        print "interrupted."
+        print _("interrupted.")
         exitcode = 1
     except Exception, other:
         traceback.print_exc()
@@ -684,5 +705,4 @@ def main():
     return exitcode
 
 if __name__ == "__main__":
-    print _("Testing")
     sys.exit(main())

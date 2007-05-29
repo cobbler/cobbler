@@ -16,7 +16,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import utils
 import collection
 import item_distro as distro
-import cexceptions
+from cexceptions import *
 import action_litesync
 from rhpl.translate import _, N_, textdomain, utf8
 
@@ -49,7 +49,7 @@ class Distros(collection.Collection):
         # first see if any Groups use this distro
         for v in self.config.profiles():
             if v.distro == name:
-               raise cexceptions.CobblerException("orphan_profile",v.name)
+               raise CX(_("removal would orphan profile: %s") % v.name)
         if self.find(name):
             if with_delete:
                 lite_sync = action_litesync.BootLiteSync(self.config)
@@ -57,5 +57,5 @@ class Distros(collection.Collection):
                 self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/distro/*")
             del self.listing[name]
             return True
-        raise cexceptions.CobblerException("delete_nothing")
+        raise CX(_("cannot delete object that does not exist"))
 

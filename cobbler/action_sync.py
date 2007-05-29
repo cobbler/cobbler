@@ -23,8 +23,7 @@ import sys
 import glob
 
 import utils
-import cobbler_msg
-import cexceptions
+from cexceptions import *
 import traceback
 import errno
 
@@ -60,7 +59,7 @@ class BootSync:
         Using the Check().run_ functions previously is recommended
         """
         if not os.path.exists(self.settings.tftpboot):
-            raise cexceptions.CobblerException("no_dir",self.settings.tftpboot)
+            raise CX(_("cannot find directory: %s") % self.settings.tftpboot)
         # not having a /var/www/cobbler is ok, the app will create it since
         # no other package has to own it.
         self.clean_trees()
@@ -91,9 +90,9 @@ class BootSync:
                 service = "dnsmasq"
             retcode = self.service(service, "restart")
             if retcode != 0:
-                print >>sys.stderr, "Warning: %s restart failed" % service
+                print _("Warning: %s restart failed") % service
         except OSError, e:
-            print >>sys.stderr, "Warning: %s restart failed: " % service, e
+            print _("Warning: %s restart failed: ") % service, e
 
     def copy_koan(self):
         """
@@ -105,7 +104,7 @@ class BootSync:
         if koan_path is None or koan_path == "":
             return
         if not os.path.isfile(koan_path):
-            raise cexceptions.CobblerException("exc_koan_path")
+            raise CX(_("missing koan, check koan_path in /var/lib/cobbler/settings"))
         base = os.path.basename(koan_path)
         self.copyfile(koan_path, os.path.join(self.settings.webdir, base))
 
@@ -131,7 +130,6 @@ class BootSync:
         settings_file = self.settings.dhcpd_conf
         template_file = "/etc/cobbler/dhcp.template"
         mode = self.settings.manage_dhcp_mode.lower()
-        # print "my mode is: %s" % mode
         if mode == "dnsmasq":
             settings_file = self.settings.dnsmasq_conf
             template_file = "/etc/cobbler/dnsmasq.template"
@@ -139,7 +137,7 @@ class BootSync:
         try:
             f2 = open(template_file,"r")
         except:
-            raise cexceptions.CobblerException("exc_no_template",template_file)
+            raise CX(_("error writing template to file: %s") % template_file)
         template_data = ""
         template_data = f2.read()
         f2.close()
@@ -202,7 +200,6 @@ class BootSync:
            "next_server"    : self.settings.next_server,
            "elilo"          : elilo
         }
-        # print "writing to: %s" % settings_file
         self.apply_template(template_data, metadata, settings_file)
 
     def regen_ethers(self):
@@ -275,7 +272,7 @@ class BootSync:
         """
         # copy is a 4-letter word but tftpboot runs chroot, thus it's required.
         for d in self.distros:
-            print "sync distro: %s" % d.name
+            print _("sync distro: %s") % d.name
             self.copy_single_distro_files(d)
 
     def copy_single_distro_files(self, d):
@@ -286,9 +283,9 @@ class BootSync:
             kernel = utils.find_kernel(d.kernel) # full path
             initrd = utils.find_initrd(d.initrd) # full path
             if kernel is None or not os.path.isfile(kernel):
-                raise cexceptions.CobblerException("sync_kernel", d.kernel, d.name)
+                raise CX(_("kernel not found: %s"), d.kernel, d.name)
             if initrd is None or not os.path.isfile(initrd):
-                raise cexceptions.CobblerException("sync_initrd", d.initrd, d.name)
+                raise CX(_("initrd not found: %s"), d.initrd, d.name)
             b_kernel = os.path.basename(kernel)
             b_initrd = os.path.basename(initrd)
             self.copyfile(kernel, os.path.join(distro_dir, b_kernel))
@@ -321,13 +318,13 @@ class BootSync:
         """
 
         for g in self.profiles:
-           print "sync profile: %s" % g.name
+           print _("sync profile: %s") % g.name
            self.validate_kickstart_for_specific_profile(g)
 
     def validate_kickstart_for_specific_profile(self,g):
         distro = self.distros.find(g.distro)
         if distro is None:
-           raise cexceptions.CobblerException("orphan_distro2", g.name, g.distro)
+           raise CX(_("profile %(profile)s references missing distro %(distro)s") % { "profile" : g.name, "distro" : g.distro })
         kickstart_path = utils.find_kickstart(g.kickstart)
         if kickstart_path is not None and os.path.exists(g.kickstart):
            # the input is an *actual* file, hence we have to copy it
@@ -350,7 +347,7 @@ class BootSync:
            except:
                 traceback.print_exc() # leave this in, for now...
                 msg = "err_kickstart2"
-                raise cexceptions.CobblerException(msg,kickstart_path,dest)
+                raise CX(_("Error copying kickstart file %(src)s to %(dest)s") % { "src" : kickstart_path, "dest" : dest })
 
     def generate_kickstart_signal(self, obj, is_system=False):
         pattern = "wget http://%s/cblr/watcher.py?%s_%s=%s -b"
@@ -421,13 +418,13 @@ class BootSync:
         """
 
         for s in self.systems:
-            print "sync system: %s" % s.name
+            print _("sync system: %s") % s.name
             self.validate_kickstart_for_specific_system(s)
 
     def validate_kickstart_for_specific_system(self,s):
         profile = self.profiles.find(s.profile)
         if profile is None:
-            raise cexceptions.CobblerException("orphan_profile2",s.name,s.profile)
+            raise CX(_("system %(system)s references missing profile %(profile)s") % { "system" : s.name, "profile" : s.profile })
         distro = self.distros.find(profile.distro)
         kickstart_path = utils.find_kickstart(profile.kickstart)
         if kickstart_path and os.path.exists(kickstart_path):
@@ -451,8 +448,7 @@ class BootSync:
                 self.apply_template(kfile, meta, dest)
                 kfile.close()
             except:
-                msg = "err_kickstart2"
-                raise cexceptions.CobblerException(msg,s.kickstart,dest)
+                raise CX(_("Error templating file %s to %s") % { "src" : s.kickstart, "dest" : dest })
 
     def apply_template(self, data_input, metadata, out_path):
         """
@@ -510,10 +506,10 @@ class BootSync:
 
         profile = self.profiles.find(system.profile)
         if profile is None:
-            raise cexceptions.CobblerException("orphan_profile2",system.name,system.profile)
+            raise CX(_("system %s references a missing profile %s") % { "system" : system.name, "profile" : system.profile})
         distro = self.distros.find(profile.distro)
         if distro is None:
-            raise cexceptions.CobblerException("orphan_distro2",system.profile,profile.distro)
+            raise CX(_("profile %s references a missing distro %s") % { "profile" : system.profile, "distro" : profile.distro})
         f1 = self.get_pxe_filename(system.name)
 
         # tftp only
@@ -526,7 +522,7 @@ class BootSync:
             # elilo expects files to be named "$name.conf" in the root
             # and can not do files based on the MAC address
             if system.pxe_address == "" or system.pxe_address is None or not utils.is_ip(system.pxe_address):
-                raise cexceptions.CobblerException("exc_ia64_noip",system.name)
+                raise CX(_("Itanium system object names must be MAC addresses"))
 
 
             filename = "%s.conf" % self.get_pxe_filename(system.pxe_address)
@@ -563,7 +559,7 @@ class BootSync:
         elif utils.is_mac(name):
             return "01-" + "-".join(name.split(":")).lower()
         else:
-            raise cexceptions.CobblerException("err_resolv", name)
+            raise CX(_("System name for %s is not an MAC, IP, or resolvable host") % name)
         
     def make_pxe_menu(self):
         # only do this if there is NOT a system named default.
@@ -656,7 +652,7 @@ class BootSync:
         if not is_ia64:
             append_line = "%s initrd=%s" % (append_line, initrd_path)
         if len(append_line) >= 255 + len("append "):
-            print "warning: kernel option length exceeds 255"
+            print _("warning: kernel option length exceeds 255")
 
         # ---
         # kickstart path rewriting (get URLs for local files)
@@ -794,8 +790,6 @@ class BootSync:
         self.close_file(fd)
 
     def tee(self,fd,text):
-        #if self.verbose:
-        #    print text
         fd.write(text)
 
     def open_file(self,filename,mode):
@@ -806,11 +800,11 @@ class BootSync:
 
     def copyfile(self,src,dst):
         if self.verbose:
-            print "%s -> %s" % (src,dst)
+            print _("copy: %(src)s -> %(dst)s") % { "src" : src, "dest" : dst }
         try:
             return shutil.copyfile(src,dst)
         except IOError, ioe:
-            raise cexceptions.CobblerException("need_perms2",src,dst)
+            raise CX(_("Error copying %(src) to %(dst)") % { "src" : src, "dst" : dst})
 
     def rmfile(self,path):
         try:
@@ -819,7 +813,7 @@ class BootSync:
         except OSError, ioe:
             if not ioe.errno == errno.ENOENT: # doesn't exist
                 traceback.print_exc()
-                raise cexceptions.CobblerException("no_delete",path)
+                raise CX(_("Error deleting %s") % path)
             return True
 
     def rmtree_contents(self,path):
@@ -829,7 +823,7 @@ class BootSync:
 
     def rmtree(self,path):
        if self.verbose:
-           print "del %s" % (path)
+           print _("del %s") % (path)
        try:
            if os.path.isfile(path):
                return self.rmfile(path)
@@ -838,19 +832,19 @@ class BootSync:
        except OSError, ioe:
            traceback.print_exc()
            if not ioe.errno == errno.ENOENT: # doesn't exist
-               raise cexceptions.CobblerException("no_delete",path)
+               raise CX(_("Error deleting %s") % path)
            return True
 
     def mkdir(self,path,mode=0777):
        if self.verbose:
-           print "mkdir %s" % (path)
+           print _("mkdir %s") % (path)
        try:
            return os.makedirs(path,mode)
        except OSError, oe:
            if not oe.errno == 17: # already exists (no constant for 17?)
                traceback.print_exc()
                print oe.errno
-               raise cexceptions.CobblerException("no_create", path)
+               raise CX(_("Error creating") % path)
 
     def service(self, name, action):
         """

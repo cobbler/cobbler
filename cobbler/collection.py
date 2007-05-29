@@ -13,17 +13,18 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import exceptions
-import cexceptions
+from cexceptions import *
 import serializable
 import utils
 import glob
 import sub_process
 
-import cobbler_msg
 import action_litesync
 import item_system
 import item_profile
 import item_distro
+
+from rhpl.translate import _, N_, textdomain, utf8
 
 class Collection(serializable.Serializable):
 
@@ -86,7 +87,7 @@ class Collection(serializable.Serializable):
         won't be added to the collection).
         """
         if ref is None or not ref.is_valid():
-            raise cexceptions.CobblerException("bad_param")
+            raise CX(_("invalid parameter"))
         self.listing[ref.name] = ref
 
         # perform filesystem operations
@@ -99,7 +100,7 @@ class Collection(serializable.Serializable):
             elif isinstance(ref, item_distro.Distro):
                 lite_sync.add_single_distro(ref.name)
             else:
-                print "AIEEE ??? %s " % type(ref)
+                print _("Internal error. Object type not recognized: %s") % type(ref)
         
             # save the tree, so if neccessary, scripts can examine it.
             self.config.api.serialize()
@@ -127,7 +128,7 @@ class Collection(serializable.Serializable):
         if len(values) > 0:
            return "\n\n".join(results)
         else:
-           return cobbler_msg.lookup("empty_list") % cobbler_msg.lookup(self.collection_type())
+           return _("No objects found")
 
     def __iter__(self):
         """

@@ -18,18 +18,11 @@ import utils
 import item
 import weakref
 import os
-import cexceptions
+from cexceptions import *
 
 from rhpl.translate import _, N_, textdomain, utf8
 
 class Distro(item.Item):
-
-    #def __init__(self,config):
-    #    """
-    #    Constructor.  Requires a back reference to the Config management object.
-    #    """
-    #    self.config = config
-    #    self.clear()
 
     def clear(self):
         """
@@ -81,13 +74,13 @@ class Distro(item.Item):
         if utils.find_kernel(kernel):
             self.kernel = kernel
             return True
-        raise cexceptions.CobblerException("no_kernel")
+        raise CX(_("kernel not found"))
 
     def set_breed(self, breed):
         if breed is not None and breed.lower() in [ "redhat", "suse" ]:
             self.breed = breed.lower()
             return True
-        raise cexceptions.CobblerException("exc_breed")
+        raise CX(_("invalid value for --breed, see manpage"))
 
     def set_initrd(self,initrd):
         """
@@ -97,7 +90,7 @@ class Distro(item.Item):
         if utils.find_initrd(initrd):
             self.initrd = initrd
             return True
-        raise cexceptions.CobblerException("no_initrd")
+        raise CX(_("initrd not found"))
 
     def set_source_repos(self, repos):
         """
@@ -127,7 +120,7 @@ class Distro(item.Item):
         if arch in [ "standard", "ia64", "x86", "x86_64" ]:
             self.arch = arch
             return True
-        raise cexceptions.CobblerException("exc_pxe_arch")
+        raise CX(_("PXE arch choices include: x86, x86_64, and ia64"))
 
     def is_valid(self):
         """
@@ -168,12 +161,12 @@ class Distro(item.Item):
         #    istr = "%s (NOT FOUND)" % self.initrd
         #elif os.path.isdir(self.initrd):
         #    istr = "%s (FOUND BY SEARCH)" % istr
-        buf =       "distro          : %s\n" % self.name
-        buf = buf + "kernel          : %s\n" % kstr
-        buf = buf + "initrd          : %s\n" % istr
-        buf = buf + "kernel options  : %s\n" % self.kernel_options
-        buf = buf + "architecture    : %s\n" % self.arch
-        buf = buf + "ks metadata     : %s\n" % self.ks_meta
-        buf = buf + "breed           : %s\n" % self.breed
+        buf =       _("distro          : %s\n") % self.name
+        buf = buf + _("kernel          : %s\n") % kstr
+        buf = buf + _("initrd          : %s\n") % istr
+        buf = buf + _("kernel options  : %s\n") % self.kernel_options
+        buf = buf + _("architecture    : %s\n") % self.arch
+        buf = buf + _("ks metadata     : %s\n") % self.ks_meta
+        buf = buf + _("breed           : %s\n") % self.breed
         return buf
 

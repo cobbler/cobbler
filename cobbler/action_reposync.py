@@ -21,8 +21,7 @@ import sub_process
 import sys
 
 import utils
-import cobbler_msg
-import cexceptions
+from cexceptions import *
 import traceback
 import errno
 
@@ -81,7 +80,7 @@ class RepoSync:
         # RHEL4 and RHEL5U0 don't have it.
 
         if not os.path.exists("/usr/bin/reposync"):
-            raise cexceptions.CobblerException("no /usr/bin/reposync found, please install yum-utils")
+            raise CX(_("no /usr/bin/reposync found, please install yum-utils"))
 
         cmds = []                 # queues up commands to run
         is_rhn = False            # RHN repositories require extra black magic
@@ -98,7 +97,7 @@ class RepoSync:
         # if so, don't update this one.
 
         if not repo.keep_updated:
-            print "- %s is set to not be updated" % repo.name
+            print _("- %s is set to not be updated") % repo.name
             return True
 
         # create yum config file for use by reposync
@@ -123,7 +122,7 @@ class RepoSync:
 
                 # if we have not requested only certain RPMs, use reposync
                 cmd = "/usr/bin/reposync --config=%s --repoid=%s --download_path=%s" % (temp_file, repo.name, store_path)
-                print "- %s" % cmd
+                print _("- %s") % cmd
                 cmds.append(cmd)
 
             else:
@@ -136,7 +135,7 @@ class RepoSync:
                 # FIXME: yumdownloader has a current bug where --resolve blows up
                 # removing --resolve until I get the email from bugzilla saying it's fixed.
                 cmd = "/usr/bin/yumdownloader -c %s --destdir=%s %s" %(temp_file, dest_path, " ".join(repo.rpm_list))
-                print "- %s" % cmd
+                print _("- %s") % cmd
                 cmds.append(cmd)
         else:
 
@@ -144,10 +143,10 @@ class RepoSync:
             # NOTE: this requires that you have entitlements for the server and you give the mirror as rhn://$channelname
 
             if has_rpm_list:
-                print "- warning: --rpm-list is not supported for RHN content"
+                print _("- warning: --rpm-list is not supported for RHN content")
             rest = repo.mirror[6:] # everything after rhn://
             cmd = "/usr/bin/reposync -r %s --download_path=%s" % (rest, store_path)
-            print "- %s" % cmd
+            print _("- %s") %  cmd
             cmds.append(cmd)
 
             # downloads using -r use the value given for -r as part of the output dir, 
@@ -157,7 +156,7 @@ class RepoSync:
 
             if not os.path.exists(dest_path):
                 from1 = os.path.join(self.settings.webdir, "repo_mirror", rest)
-                print "- symlink: %s -> %s" % (from1, dest_path)
+                print _("- symlink: %(from)s -> %(to)s") % { "from" : from1, "to" : dest_path }
                 os.symlink(from1, dest_path)
  
         # now regardless of whether we're doing yumdownloader or reposync
@@ -167,7 +166,7 @@ class RepoSync:
         for cmd in cmds:
             rc = sub_process.call(cmd, shell=True)
             if rc !=0:
-                raise cexceptions.CobblerException("cobbler reposync failed")
+                raise CX(_("cobbler reposync failed"))
 
         # some more special case handling for RHN.
         # create the config file now, because the directory didn't exist earlier
@@ -194,10 +193,10 @@ class RepoSync:
         """
 
         if not repo.keep_updated:
-            print "- %s is set to not be updated" % repo.name
+            print _("- %s is set to not be updated") % repo.name
             return True
         if repo.rpm_list != "":
-            print "- warning: --rpm-list is not supported for rsync'd repositories"
+            print _("- warning: --rpm-list is not supported for rsync'd repositories")
         dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
         spacer = ""
         if not repo.mirror.startswith("rsync://") and not repo.mirror.startswith("/"):
@@ -205,12 +204,12 @@ class RepoSync:
         if not repo.mirror.endswith("/"):
             repo.mirror = "%s/" % repo.mirror
         cmd = "rsync -av %s --delete --delete-excluded --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)       
-        print "- %s" % cmd
+        print _("- %s") % cmd
         rc = sub_process.call(cmd, shell=True)
         if rc !=0:
-            raise cexceptions.CobblerException("cobbler reposync failed")
+            raise CX(_("cobbler reposync failed"))
         arg = {}
-        print "- walking: %s" % dest_path
+        print _("- walking: %s") % dest_path
         os.path.walk(dest_path, self.createrepo_walker, arg)
         self.create_local_file(repo, dest_path)
     
@@ -227,7 +226,7 @@ class RepoSync:
             fname = os.path.join(dest_path,"config.repo")
         else:
             fname = os.path.join(dest_path, "%s.repo" % repo.name)
-        print "- creating: %s" % fname
+        print _("- creating: %s") % fname
         config_file = open(fname, "w+")
         config_file.write("[%s]\n" % repo.name)
         config_file.write("name=%s\n" % repo.name)
@@ -247,14 +246,14 @@ class RepoSync:
         Used to run createrepo on a copied mirror.
         """
         target_dir = os.path.dirname(dirname).split("/")[-1]
-        print "- scanning: %s" % target_dir
+        print _("- scanning: %s") % target_dir
         if target_dir.lower() in [ "i386", "x86_64", "ia64" ] or (arg is None):
             utils.remove_yum_olddata(dirname)
             try:
                 cmd = "createrepo %s" % dirname
-                print cmd
+                print _("- %s") % cmd
                 sub_process.call(cmd, shell=True)
             except:
-                print "- createrepo failed.  Is it installed?"
+                print _("- createrepo failed.  Is it installed?")
             fnames = []  # we're in the right place                  
             

@@ -14,7 +14,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-import cexceptions
+from cexceptions import *
 import os
 import os.path
 import traceback
@@ -51,12 +51,12 @@ class Importer:
 
    def run(self):
        if self.mirror is None:
-           raise cexceptions.CobblerException("import_failed","no mirror specified")
+           raise CX(_("import failed.  no --mirror specified"))
        if self.mirror_name is None:
-           raise cexceptions.CobblerException("import_failed","no mirror-name specified")
+           raise CX(_("import failed.  no --name specified"))
 
        if self.mirror_name is None:
-           raise cexceptions.CobblerException("import_failed","must specify --mirror-name")
+           raise CX(_("import failed.  no --name specified"))
        
        # make the output path
        self.path = "%s/ks_mirror/%s" % (self.settings.webdir, self.mirror_name)
@@ -80,16 +80,16 @@ class Importer:
 
        self.processed_repos = {}
 
-       print "---------------- (adding distros)"
+       print _("---------------- (adding distros)")
        os.path.walk(self.path, self.distro_adder, {})
 
-       print "---------------- (associating repos)"
+       print _("---------------- (associating repos)")
        self.repo_finder()
 
-       print "---------------- (associating kickstarts)"
+       print _("---------------- (associating kickstarts)")
        self.kickstart_finder() 
 
-       print "---------------- (syncing)"
+       print _("---------------- (syncing)")
        self.api.sync()
 
        return True
@@ -106,10 +106,10 @@ class Importer:
 
    def run_this(self, cmd, args):
        my_cmd = cmd % args
-       print "- %s" % my_cmd
+       print _("- %s") % my_cmd
        rc = sub_process.call(my_cmd,shell=True)
        if rc != 0:
-          raise cexceptions.CobblerException("Command failed.")
+          raise CX(_("Command failed"))
 
    # ----------------------------------------------------------------------
 
@@ -124,11 +124,11 @@ class Importer:
        for profile in self.profiles:
            distro = self.distros.find(profile.distro)
            if distro is None or not (distro in self.distros_added):
-               print "- skipping distro %s since it wasn't imported this time" % profile.distro
+               print _("- skipping distro %s since it wasn't imported this time") % profile.distro
                continue
            if not distro.kernel.startswith("%s/ks_mirror/" % self.settings.webdir):
                # this isn't a mirrored profile, so we won't touch it
-               print "- skipping %s since profile isn't mirrored" % profile.name
+               print _("- skipping %s since profile isn't mirrored") % profile.name
                continue
  
            kdir = os.path.dirname(distro.kernel)   
@@ -145,9 +145,9 @@ class Importer:
                        if results is None:
                            continue
                        (flavor, major, minor) = results
-                       print "- determining best kickstart for %s %s" % (flavor, major)          
+                       print _("- determining best kickstart for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
                        kickstart = self.set_kickstart(profile, flavor, major, minor)
-                       print "- kickstart=%s" % kickstart
+                       print _("- kickstart=%s") % kickstart
                        self.configure_tree_location(distro)
                        self.distros.add(distro) # re-save
                        self.api.serialize()
@@ -166,12 +166,12 @@ class Importer:
                os.symlink(base, dest_link)
            except:
                # this shouldn't happen but I've seen it ... debug ...
-               print "- symlink creation failed: %s, %s" % (base, dest_link)
+               print _("- symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
        base = base.replace(self.settings.webdir,"")
        
        meta = distro.ks_meta
        meta["tree"] = "http://%s/cblr/links/%s" % (self.settings.server, distro.name)
-       print "- tree: %s" % meta["tree"]
+       print _("- tree: %s") % meta["tree"]
        distro.set_ksmeta(meta)
 
    # ---------------------------------------------------------------------
@@ -183,7 +183,7 @@ class Importer:
        if flavor == "redhat" or flavor == "centos":
            if major >= 5:
                 return profile.set_kickstart("/etc/cobbler/kickstart_fc6.ks")
-       print "- using default kickstart file choice"
+       print _("- using default kickstart file choice")
        return profile.set_kickstart("/etc/cobbler/kickstart_fc5.ks")
 
    # ---------------------------------------------------------------------
@@ -257,14 +257,14 @@ class Importer:
    def repo_finder(self):
        
        for distro in self.distros_added:
-           print "- traversing distro %s" % distro.name
+           print _("- traversing distro %s") % distro.name
            if distro.kernel.find("ks_mirror") != -1:
                basepath = os.path.dirname(distro.kernel)
                top = "/".join(basepath.split("/")[0:-2]) # up one level
-               print "- descent into %s" % top
+               print _("- descent into %s") % top
                os.path.walk(top, self.repo_scanner, distro)
            else:
-               print "- this distro isn't mirrored"
+               print _("- this distro isn't mirrored")
 
    # ----------------------------------------------------------------------
 
@@ -287,18 +287,13 @@ class Importer:
            # older distros...
            masterdir = "base"
 
-       print "- scanning: %s (distro: %s)" % (comps_path, distro.name)
-
-       #repo_file = os.path.join(comps_path, masterdir, "repomd.xml")
-       #if not os.path.exists(repo_file):
-       #    print "- no repomd found here: %s" % repo_file
-       #    return
+       print _("- scanning: %(path)s (distro: %(name)s)") % { "path" : comps_path, "name" : distro.name }
 
        # figure out what our comps file is ...
-       print "- looking for %s/%s/comps*.xml" % (comps_path, masterdir)
+       print _("- looking for %(p1)s/%(p2)s/comps*.xml") % { "p1" : comps_path, "p2" : masterdir }
        files = glob.glob("%s/%s/comps*.xml" % (comps_path, masterdir))
        if len(files) == 0:
-           print "- no comps found here: %s" % os.path.join(comps_path, masterdir)
+           print _("- no comps found here: %s") % os.path.join(comps_path, masterdir)
            return # no comps xml file found
 
        # pull the filename from the longer part
@@ -330,7 +325,7 @@ class Importer:
 
            distro.source_repos.append([repo_url,repo_url2])
 
-           print "- url: %s" % repo_url
+           print _("- url: %s") % repo_url
            config_file = open(fname, "w+")
            config_file.write("[%s]\n" % "core-%s" % counter)
            config_file.write("name=%s\n" % "core-%s " % counter)
@@ -345,18 +340,18 @@ class Importer:
                utils.remove_yum_olddata(comps_path)
                #cmd = "createrepo --basedir / --groupfile %s %s" % (os.path.join(comps_path, masterdir, comps_file), comps_path)
                cmd = "createrepo --groupfile %s %s" % (os.path.join(comps_path, masterdir, comps_file), comps_path)
-               print "- %s" % cmd
+               print _("- %s") % cmd
                sub_process.call(cmd,shell=True)
                self.processed_repos[comps_path] = 1
                # for older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up one...
                p1 = os.path.join(comps_path, "repodata", "comps.xml")
                p2 = os.path.join(comps_path, "base", "comps.xml")
                if os.path.exists(p1) and os.path.exists(p2):
-                   print "- cp %s %s" % (p1, p2)
+                   print _("- cp %s %s") % (p1, p2)
                    shutil.copyfile(p1,p2)
 
        except:
-           print "- error launching createrepo, ignoring..."
+           print _("- error launching createrepo, ignoring...")
            traceback.print_exc()
         
 
@@ -367,10 +362,10 @@ class Importer:
        existing_distro = self.distros.find(name)
 
        if existing_distro is not None:
-           print "- modifying existing distro: %s" % name
+           print _("- modifying existing distro: %s") % name
            distro = existing_distro
        else:
-           print "- creating new distro: %s" % name
+           print _("- creating new distro: %s") % name
            distro = self.config.new_distro()
            
        distro.set_name(name)
@@ -384,10 +379,10 @@ class Importer:
        existing_profile = self.profiles.find(name) 
 
        if existing_profile is None:
-           print "- creating new profile: %s" % name 
+           print _("- creating new profile: %s") % name 
            profile = self.config.new_profile()
        else:
-           print "- modifying existing profile: %s" % name
+           print _("- modifying existing profile: %s") % name
            profile = existing_profile
 
        profile.set_name(name)
@@ -442,7 +437,7 @@ class Importer:
            if not x.endswith("rpm"):
                continue
            if x.find("kernel-header") != -1:
-               print "- kernel header found: %s" % x
+               print _("- kernel header found: %s") % x
                if x.find("i386") != -1:
                    foo["result"] = "x86"
                    return
@@ -462,7 +457,7 @@ class Importer:
        from differing import sources
        """
        dirname2 = "/".join(dirname.split("/")[:-2])  # up two from images, then down as many as needed
-       print "- scanning %s for architecture info" % dirname2
+       print _("- scanning %s for architecture info") % dirname2
        result = { "result" : "x86" } # default, but possibly not correct ... 
        os.path.walk(dirname2, self.arch_walker, result)      
        return result["result"]

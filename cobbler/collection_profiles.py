@@ -18,7 +18,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import item_profile as profile
 import utils
 import collection
-import cexceptions
+from cexceptions import *
 import action_litesync
 from rhpl.translate import _, N_, textdomain, utf8
 
@@ -47,7 +47,7 @@ class Profiles(collection.Collection):
         """
         for v in self.config.systems():
            if v.profile == name:
-               raise cexceptions.CobblerException("orphan_system",v.name)
+               raise CX(_("removal would orphan system: %s") % v.name)
         if self.find(name):
             if with_delete:
                 lite_sync = action_litesync.BootLiteSync(self.config)
@@ -55,5 +55,5 @@ class Profiles(collection.Collection):
                 self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/profile/*")
             del self.listing[name]
             return True
-        raise cexceptions.CobblerException("delete_nothing")
+        raise CX(_("cannot delete an object that does not exist"))
 

@@ -24,11 +24,9 @@ import yaml # Howell-Clark version
 import sub_process
 import sys
 
-import cexceptions
 import utils
 import action_sync
-import cobbler_msg
-import cexceptions
+from cexceptions import *
 import traceback
 import errno
 
@@ -57,7 +55,7 @@ class BootLiteSync:
         # get the distro record
         distro = self.distros.find(name)
         if distro is None:
-            raise cexceptions.CobblerException("error in distro lookup: %s" % name)
+            raise CX(_("error in distro lookup: %s") % name)
         # generate YAML file in distros/$name in webdir
         self.sync.write_distro_file(distro)
         # copy image files to images/$name in webdir & tftpboot:
@@ -77,7 +75,7 @@ class BootLiteSync:
         # get the profile object:
         profile = self.profiles.find(name)
         if profile is None:
-            raise cexceptions.CobblerException("error in profile lookup")
+            raise CX(_("error in profile lookup"))
         # rebuild profile_list YAML file in webdir
         self.sync.write_listings()
         # add profiles/$name YAML file in webdir
@@ -97,7 +95,7 @@ class BootLiteSync:
         # get the system object:
         system = self.systems.find(name)
         if system is None:
-            raise cexceptions.CobblerException("error in system lookup")
+            raise CX(_("error in system lookup"))
         # rebuild system_list file in webdir
         self.sync.regen_ethers() # /etc/ethers, for dnsmasq & rarpd
         self.sync.regen_hosts()  # /var/lib/cobbler/cobbler_hosts, pretty much for dnsmasq

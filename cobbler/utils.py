@@ -162,7 +162,7 @@ def remove_yum_olddata(path):
     for pathseg in trythese:
         olddata = os.path.join(path, pathseg)
         if os.path.exists(olddata):
-            print "- removing: %s" % olddata
+            print _("- removing: %s") % olddata
             shutil.rmtree(olddata, ignore_errors=False, onerror=None)  
 
 def find_initrd(path):
