@@ -6,8 +6,9 @@ cobbler TODO list.
 -  better kickstart tracking solution
 -  GTK (or Web) UI for Cobbler ?
 -  have -v or --version
--  i18n cobbler -- replace cobbler_msg bits
+-  (in progress) i18n cobbler -- replace cobbler_msg bits
 -  (koan) LVM support to override disk image choice, include graphics?
+-  (koan) investigate SELinux issues
 -  OMAPI/omshell integration for dhcpd
 -  no logrotate or cleanup for /var/log/cobbler (kickstart tracking)
 -  build net-install CD images
