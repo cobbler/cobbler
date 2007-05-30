@@ -62,7 +62,7 @@ class Collection(serializable.Serializable):
         n1 = name.lower()
         for key in self.listing.keys():
             if key.lower() == n1:
-                return self.listing[name]
+                return self.listing[key]
         return None
 
     def to_datastruct(self):
