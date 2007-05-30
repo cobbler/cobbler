@@ -40,17 +40,25 @@ def get_host_ip(ip):
     results = out.read()
     return results.split(" ")[-1][0:8]
 
-def find_system_identifier(strdata):
+def get_config_filename(sys):
     """
-    If the input is a MAC or an IP, return that.
-    If it's not, resolve the hostname and return the IP.
-    pxe bootloaders don't work in hostnames
+    The configuration file for each system pxe uses is either
+    a form of the MAC address of the hex version of the IP.  If none
+    of that is available, just use the given name, though the name
+    given will be unsuitable for PXE configuration (For this, check
+    system.is_pxe_supported()).  This same file is used to store
+    system config information in the Apache tree, so it's still relevant.
     """
-    if is_mac(strdata):
-        return strdata.upper()
-    if is_ip(strdata):
-        return strdata
-    return resolve_ip(strdata)
+    if sys.name == "default":
+        return "default"
+    mac = sys.get_mac_address()
+    ip  = sys.get_ip_address()
+    if mac != None:
+        return "01-" + "-".join(mac.split(":")).lower()
+    elif ip != None:
+        return utils.get_host_ip(ip)
+    else:
+        return sys.name
 
 
 def is_ip(strdata):

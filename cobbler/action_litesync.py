@@ -106,13 +106,15 @@ class BootLiteSync:
         self.sync.validate_kickstart_for_specific_system(system)
 
     def remove_single_system(self, name):
+        system_record = self.systems.find(name)
         # rebuild system_list file in webdir
         self.sync.write_listings()
         # delete system YAML file in systems/$name in webdir
         self.sync.rmfile(os.path.join(self.settings.webdir, "systems", name))
         # delete contents of kickstarts_sys/$name in webdir
-        filename = self.sync.get_pxe_filename(name)
-        self.sync.rmtree(os.path.join(self.settings.webdir, "kickstarts_sys", filename))
+        if system_record.is_pxe_supported():
+            filename = self.sync.get_config_filename(system_record)
+            self.sync.rmtree(os.path.join(self.settings.webdir, "kickstarts_sys", filename))
         
         # delete PXE Linux configuration file (which might be in one of two places)
         itanic = False

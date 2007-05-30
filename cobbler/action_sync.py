@@ -150,15 +150,11 @@ class BootSync:
         system_definitions = ""
         counter = 0
         for system in self.systems:
-            if not utils.is_mac(system.name):
-                # can't do per-system dhcp features if the system
-                # hostname is not a MAC, therefore the templating
-                # gets to be pretty lame.  The general rule here is
-                # if you want to PXE IA64 boxes, you need to use
-                # the MAC as the system name.
-                continue
-
-            
+            if not system.get_mac_address() != "":
+                # can't write a DHCP entry for this system
+                # FIXME: should this be a warning?
+                pass
+ 
             counter = counter + 1
             systxt = "" 
             if mode == "isc":
@@ -169,9 +165,9 @@ class BootSync:
                 if distro.arch == "ia64":
                     # can't use pxelinux.0 anymore
                     systxt = systxt + "    filename \"/%s\";\n" % elilo
-                systxt = systxt + "    hardware ethernet %s;\n" % system.name
-                if system.pxe_address != "":
-                    systxt = systxt + "    fixed-address %s;\n" % system.pxe_address
+                systxt = systxt + "    hardware ethernet %s;\n" % system.get_mac_address()
+                if system.get_ip_address() != None:
+                    systxt = systxt + "    fixed-address %s;\n" % system.get_ip_address()
                 systxt = systxt + "    next-server %s;\n" % self.settings.next_server
                 systxt = systxt + "}\n"
 
@@ -184,9 +180,9 @@ class BootSync:
 
                 profile = self.profiles.find(system.profile)
                 distro  = self.distros.find(profile.distro)
-                if system.pxe_address != "":
+                if system.get_ip_address() != None:
                     if distro.arch.lower() == "ia64":
-                        systxt = "dhcp-host=net:ia64," + system.pxe_address + "\n"
+                        systxt = "dhcp-host=net:ia64," + system.get_ip_address() + "\n"
                     # support for other arches needs modifications here
                     else:
                         systxt = ""
@@ -208,12 +204,12 @@ class BootSync:
         # read 'man ethers' for format info
         fh = open("/etc/ethers","w+")
         for sys in self.systems:
-            if not utils.is_mac(sys.name):
-                # hopefully no one uses non-mac system ID's anymore, but I'm not sure.
-                # these need to be deprecated
+            if sys.get_mac_address() == None:
+                # can't write this w/o a MAC address
+                # FIXME -- should this raise a warning?  
                 continue
-            if sys.pxe_address != "":
-                fh.write(sys.name.upper() + "\t" + sys.pxe_address + "\n")
+            if sys.get_ip_address() != None:
+                fh.write(sys.get_mac_address().upper() + "\t" + sys.get_ip_address() + "\n")
         fh.close()
 
     def regen_hosts(self):
@@ -221,10 +217,10 @@ class BootSync:
         # (other things may also make use of this later)
         fh = open("/var/lib/cobbler/cobbler_hosts","w+")
         for sys in self.systems:
-            if not utils.is_mac(sys.name):
+            if sys.get_mac_address() == None:
                 continue
-            if sys.hostname != "" and sys.pxe_address != "":
-                fh.write(sys.pxe_address + "\t" + sys.hostname + "\n")
+            if sys.hostname != "" and sys.get_ip_address() != None:
+                fh.write(sys.get_ip_address() + "\t" + sys.hostname + "\n")
         fh.close()
 
 
@@ -428,7 +424,7 @@ class BootSync:
         distro = self.distros.find(profile.distro)
         kickstart_path = utils.find_kickstart(profile.kickstart)
         if kickstart_path and os.path.exists(kickstart_path):
-            pxe_fn = self.get_pxe_filename(s.name)
+            pxe_fn = utils.get_config_filename(s)
             copy_path = os.path.join(self.settings.webdir,
                 "kickstarts_sys", # system kickstarts go here
                 pxe_fn
@@ -510,7 +506,7 @@ class BootSync:
         distro = self.distros.find(profile.distro)
         if distro is None:
             raise CX(_("profile %s references a missing distro %s") % { "profile" : system.profile, "distro" : profile.distro})
-        f1 = self.get_pxe_filename(system.name)
+        f1 = utils.get_config_filename(system)
 
         # tftp only
 
@@ -521,17 +517,17 @@ class BootSync:
         if distro.arch == "ia64":
             # elilo expects files to be named "$name.conf" in the root
             # and can not do files based on the MAC address
-            if system.pxe_address == "" or system.pxe_address is None or not utils.is_ip(system.pxe_address):
-                raise CX(_("Itanium system object names must be MAC addresses"))
+            if system.get_ip_address() == None:
+                print _("Warning: Itanium system object (%s) needs an IP address to PXE") % system.name
 
 
-            filename = "%s.conf" % self.get_pxe_filename(system.pxe_address)
+            filename = "%s.conf" % self.utils_config_filename(system)
             f2 = os.path.join(self.settings.tftpboot, filename)
 
         f3 = os.path.join(self.settings.webdir, "systems", f1)
 
 
-        if system.netboot_enabled:
+        if system.netboot_enabled and system.is_pxe_supported():
             if distro.arch in [ "x86", "x86_64", "standard"]:
                 self.write_pxe_file(f2,system,profile,distro,False)
             if distro.arch == "ia64":
@@ -541,25 +537,6 @@ class BootSync:
             self.rmfile(f2)
 
         self.write_system_file(f3,system)
-
-
-    def get_pxe_filename(self,name_input):
-        """
-        The configuration file for each system pxe uses is either
-        a form of the MAC address of the hex version of the IP.  Not sure
-        about ipv6 (or if that works).  The system name in the config file
-        is either a system name, an IP, or the MAC, so figure it out, resolve
-        the host if needed, and return the pxe directory name.
-        """
-        if name_input == "default":
-            return "default"
-        name = utils.find_system_identifier(name_input)
-        if utils.is_ip(name):
-            return utils.get_host_ip(name)
-        elif utils.is_mac(name):
-            return "01-" + "-".join(name.split(":")).lower()
-        else:
-            raise CX(_("System name for %s is not an MAC, IP, or resolvable host") % name)
         
     def make_pxe_menu(self):
         # only do this if there is NOT a system named default.
@@ -659,7 +636,7 @@ class BootSync:
         if kickstart_path is not None and kickstart_path != "":
 
             if system is not None and kickstart_path.startswith("/"):
-                pxe_fn = self.get_pxe_filename(system.name)
+                pxe_fn = self.utils_config_filename(system)
                 kickstart_path = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (self.settings.server, pxe_fn)
             elif kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
                 kickstart_path = "http://%s/cblr/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)

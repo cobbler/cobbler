@@ -471,8 +471,11 @@ class BootCLI:
            '--kopts'       :  lambda(a) : sys.set_kernel_options(a),
            '--ksmeta'      :  lambda(a) : sys.set_ksmeta(a),
            '--hostname'    :  lambda(a) : sys.set_hostname(a),
-           '--pxe-address' :  lambda(a) : sys.set_ip_address(a),
-           '--ip-address'  :  lambda(a) : sys.set_ip_address(a)
+           '--pxe-address' :  lambda(a) : sys.set_ip_address(a), # deprecated
+           '--ip-address'  :  lambda(a) : sys.set_ip_address(a),
+           '--ip'          :  lambda(a) : sys.set_ip_address(a), # alias
+           '--mac-address' :  lambda(a) : sys.set_mac_address(a),
+           '--mac'         :  lambda(a) : sys.set_mac_address(a) # alias
         }
         def on_ok():
             self.api.systems().add(sys, with_copy=self.api.sync_flag)
