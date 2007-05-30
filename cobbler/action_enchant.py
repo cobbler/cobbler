@@ -79,7 +79,7 @@ class Enchant:
        koan = os.path.basename(self.settings.koan_path)
        where_is_koan = os.path.join(self.settings.webdir,os.path.basename(koan))
        if not os.path.exists(where_is_koan) or os.path.isdir(where_is_koan):
-           raise CX(_("enchant failed.  koan_path is not correct in /var/lib/cobbler/settings"))
+           raise CX(_("koan_path is not correct in /var/lib/cobbler/settings, or need to run 'cobbler sync'."))
 
        try:
            self.ssh_exec("wget http://%s/cobbler/%s" % (self.settings.server, koan))
