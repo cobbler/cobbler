@@ -208,14 +208,15 @@ class System(item.Item):
         }
 
     def printable(self):
-        buf =       _("system          : %s\n") % self.name
-        buf = buf + _("profile         : %s\n") % self.profile
-        buf = buf + _("kernel options  : %s\n") % self.kernel_options
-        buf = buf + _("ks metadata     : %s\n") % self.ks_meta
-        buf = buf + _("ip address      : %s\n") % self.get_ip_address()
-        buf = buf + _("mac address     : %s\n") % self.get_mac_address()
-        buf = buf + _("pxe info set?   : %s\n") % self.is_pxe_supported()
-        buf = buf + _("pxe id          : %s\n") % self.get_system_identifier()
-        buf = buf + _("hostname        : %s\n") % self.hostname
+        buf =       _("system           : %s\n") % self.name
+        buf = buf + _("profile          : %s\n") % self.profile
+        buf = buf + _("kernel options   : %s\n") % self.kernel_options
+        buf = buf + _("ks metadata      : %s\n") % self.ks_meta
+        buf = buf + _("ip address       : %s\n") % self.get_ip_address()
+        buf = buf + _("mac address      : %s\n") % self.get_mac_address()
+        buf = buf + _("hostname         : %s\n") % self.hostname
+        buf = buf + _("pxe info set?    : %s\n") % self.is_pxe_supported()
+        buf = buf + _("config id        : %s\n") % utils.get_config_filename(self)
+        buf = buf + _("netboot enabled? : %s\n") % self.netboot_enabled 
         return buf
 

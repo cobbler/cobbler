@@ -5,8 +5,10 @@ Cobbler CHANGELOG
 - Remove hardcode of /var/www/cobbler in cobblerd
 - Improve various warning warning messages
 - cobbler (objecttype) (objectname) now gives info about the object instead of just all objects
-- Added --hostname to "cobbler system add", --ip-address is also a better alias for --pxe-address
+- Added --hostname to "cobbler system add", --ip-address (or --ip) is also a better alias for the misnamed --pxe-address
 - Optionally use dnsmasq for DHCP (and DNS!) instead of ISC dhcpd.
+- Add --mac and remove requirement for --name to be an ip, mac, or hostname.
+- Manpage cleanup
 
 * Thu Apr 26 2007 - 0.4.8
 - Make import friendlier for older distros

@@ -1,6 +1,6 @@
 cobbler TODO list.
 
--  switch manpages to asciidoc + general cleanup
+-  manpage cleanup (ongoing)
 -  (ongoing) better documentation and online articles
 -  "check" should check if services (esp httpd) are started
 -  better kickstart tracking solution
