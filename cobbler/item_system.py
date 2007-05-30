@@ -111,7 +111,7 @@ class System(item.Item):
         Get the IP address, which may be implicit in the object name or explict with --ip-address.
         Use the explicit location first.
         """
-        if self.ip_address != "": # misnomer
+        if self.ip_address != "": 
             return self.ip_address
         elif utils.is_ip(self.name):
             return self.name
@@ -202,9 +202,10 @@ class System(item.Item):
            'profile'         : self.profile,
            'kernel_options'  : self.kernel_options,
            'ks_meta'         : self.ks_meta,
-           'ip_address'     : self.ip_address,
+           'ip_address'      : self.ip_address,
            'netboot_enabled' : self.netboot_enabled,
            'hostname'        : self.hostname,
+           'mac_address'     : self.mac_address
         }
 
     def printable(self):
