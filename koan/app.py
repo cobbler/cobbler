@@ -302,7 +302,7 @@ class Koan:
         """
         def after_download(self, distro_data, profile_data):
             self.do_virt_net_install(profile_data, distro_data)
-        return self.do_net_install("/tmp",after_download)
+        return self.do_net_install("/var/lib/xen",after_download)
 
     def do_auto_kickstart(self):
         """
