@@ -279,9 +279,9 @@ class BootSync:
             kernel = utils.find_kernel(d.kernel) # full path
             initrd = utils.find_initrd(d.initrd) # full path
             if kernel is None or not os.path.isfile(kernel):
-                raise CX(_("kernel not found: %s"), d.kernel, d.name)
+                raise CX(_("kernel not found: %s, distro: %s"), d.kernel, d.name)
             if initrd is None or not os.path.isfile(initrd):
-                raise CX(_("initrd not found: %s"), d.initrd, d.name)
+                raise CX(_("initrd not found: %s, distro: %s"), d.initrd, d.name)
             b_kernel = os.path.basename(kernel)
             b_initrd = os.path.basename(initrd)
             self.copyfile(kernel, os.path.join(distro_dir, b_kernel))
