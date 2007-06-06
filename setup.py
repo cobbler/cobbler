@@ -46,7 +46,7 @@ if __name__ == "__main__":
                     "cobbler/yaml" 
                 ],
                 scripts = ["scripts/cobbler", "scripts/cobblerd"],
-                data_files = [
+                data_files = [ 
                                 (wwwconf,  ['config/cobbler.conf']),
                                 (cobpath,  ['loaders/elilo-3.6-ia64.efi']),
                                 (cobpath,  ['loaders/menu.c32']),
@@ -79,21 +79,21 @@ if __name__ == "__main__":
                                 (vw_links,          []),
                                 (tftp_cfg,          []),
                                 (tftp_images,       []),
-                                ("/var/lib/cobbler/triggers/add/distro/pre",     []),
+                                ("/var/lib/cobbler/triggers/add/distro/pre",      []),
                                 ("/var/lib/cobbler/triggers/add/distro/post",     []),
-                                ("/var/lib/cobbler/triggers/add/profile/pre",    []),
+                                ("/var/lib/cobbler/triggers/add/profile/pre",     []),
                                 ("/var/lib/cobbler/triggers/add/profile/post",    []),
-                                ("/var/lib/cobbler/triggers/add/system/pre",     []),
+                                ("/var/lib/cobbler/triggers/add/system/pre",      []),
                                 ("/var/lib/cobbler/triggers/add/system/post",     []),
-                                ("/var/lib/cobbler/triggers/add/repo/pre",       []),
+                                ("/var/lib/cobbler/triggers/add/repo/pre",        []),
                                 ("/var/lib/cobbler/triggers/add/repo/post",       []),
-                                ("/var/lib/cobbler/triggers/delete/distro/pre",  []),
+                                ("/var/lib/cobbler/triggers/delete/distro/pre",   []),
                                 ("/var/lib/cobbler/triggers/delete/distro/post",  []),
-                                ("/var/lib/cobbler/triggers/delete/profile/pre", []),
+                                ("/var/lib/cobbler/triggers/delete/profile/pre",  []),
                                 ("/var/lib/cobbler/triggers/delete/profile/post", []),
-                                ("/var/lib/cobbler/triggers/delete/system/pre",  []),
+                                ("/var/lib/cobbler/triggers/delete/system/pre",   []),
                                 ("/var/lib/cobbler/triggers/delete/system/post",  []),
-                                ("/var/lib/cobbler/triggers/delete/repo/pre",    [])
+                                ("/var/lib/cobbler/triggers/delete/repo/pre",     []),
                                 ("/var/lib/cobbler/triggers/delete/repo/post",    [])
                              ],
                 description = SHORT_DESC,
