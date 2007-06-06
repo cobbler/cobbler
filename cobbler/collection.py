@@ -85,13 +85,27 @@ class Collection(serializable.Serializable):
         if the object was added to the collection.  Returns False if the
         object specified by ref deems itself invalid (and therefore
         won't be added to the collection).
+
+        with_copy is a bit of a misnomer, but lots of internal add operations
+        can run with "with_copy" as False. True means a real final commit, as if
+        entered from the command line (or basically, by a user).  
+ 
+        With with_copy as False, the particular add call might just be being run 
+        during deserialization, in which case extra semantics around the add don't really apply.
+        So, in that case, don't run any triggers and don't deal with any actual files.
+
         """
         if ref is None or not ref.is_valid():
             raise CX(_("invalid parameter"))
-        self.listing[ref.name] = ref
+        if not with_copy:
+            # don't need to run triggers, so add it already ...
+            self.listing[ref.name] = ref
 
         # perform filesystem operations
         if with_copy:
+            # failure of a pre trigger will prevent the object from being added
+            self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
+            self.listing[ref.name] = ref
             lite_sync = action_litesync.BootLiteSync(self.config)
             if isinstance(ref, item_system.System):
                 lite_sync.add_single_system(ref.name)
@@ -104,15 +118,17 @@ class Collection(serializable.Serializable):
         
             # save the tree, so if neccessary, scripts can examine it.
             self.config.api.serialize()
-    
-            self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/*" % self.collection_type())
+            self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type())
+ 
 
         return True
 
     def _run_triggers(self,ref,globber):
         triggers = glob.glob(globber)
         for file in triggers:
-            sub_process.call("%s %s" % (file,ref.name), shell=True)
+            rc = sub_process.call("%s %s" % (file,ref.name), shell=True)
+            if rc != 0:
+               raise CX(_("cobbler trigger failed: %(file)s returns %(code)d") % { "file" : file, "code" : rc })
 
     def printable(self):
         """

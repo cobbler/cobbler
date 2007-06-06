@@ -110,14 +110,22 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/log/cobbler/syslog
 %defattr(2550,root,root)
 %dir /var/lib/cobbler
-%dir /var/lib/cobbler/triggers/add/distro
-%dir /var/lib/cobbler/triggers/add/profile
-%dir /var/lib/cobbler/triggers/add/system
-%dir /var/lib/cobbler/triggers/add/repo
-%dir /var/lib/cobbler/triggers/delete/distro
-%dir /var/lib/cobbler/triggers/delete/profile
-%dir /var/lib/cobbler/triggers/delete/system
-%dir /var/lib/cobbler/triggers/delete/repo
+%dir /var/lib/cobbler/triggers/add/distro/pre
+%dir /var/lib/cobbler/triggers/add/distro/post
+%dir /var/lib/cobbler/triggers/add/profile/pre
+%dir /var/lib/cobbler/triggers/add/profile/post
+%dir /var/lib/cobbler/triggers/add/system/pre
+%dir /var/lib/cobbler/triggers/add/system/post
+%dir /var/lib/cobbler/triggers/add/repo/pre
+%dir /var/lib/cobbler/triggers/add/repo/post
+%dir /var/lib/cobbler/triggers/delete/distro/pre
+%dir /var/lib/cobbler/triggers/delete/distro/post
+%dir /var/lib/cobbler/triggers/delete/profile/pre
+%dir /var/lib/cobbler/triggers/delete/profile/post
+%dir /var/lib/cobbler/triggers/delete/system/pre
+%dir /var/lib/cobbler/triggers/delete/system/post
+%dir /var/lib/cobbler/triggers/delete/repo/pre
+%dir /var/lib/cobbler/triggers/delete/repo/post
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/lib/cobbler/menu.c32
 %defattr(-,root,root)

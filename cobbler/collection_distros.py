@@ -52,9 +52,10 @@ class Distros(collection.Collection):
                raise CX(_("removal would orphan profile: %s") % v.name)
         if self.find(name):
             if with_delete:
+                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/distro/pre/*")
                 lite_sync = action_litesync.BootLiteSync(self.config)
                 lite_sync.remove_single_profile(name)
-                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/distro/*")
+                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/distro/post/*")
             del self.listing[name]
             return True
         raise CX(_("cannot delete object that does not exist"))

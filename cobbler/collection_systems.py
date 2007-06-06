@@ -50,9 +50,10 @@ class Systems(collection.Collection):
         """
         if self.find(name):
             if with_delete:
+                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/system/pre/*")
                 lite_sync = action_litesync.BootLiteSync(self.config)
                 lite_sync.remove_single_system(name)
-            self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/system/*")
+                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/system/post/*")
             del self.listing[name]
             return True
         raise CX(_("cannot delete an object that does not exist"))

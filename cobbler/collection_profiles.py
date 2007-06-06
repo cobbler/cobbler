@@ -50,9 +50,10 @@ class Profiles(collection.Collection):
                raise CX(_("removal would orphan system: %s") % v.name)
         if self.find(name):
             if with_delete:
+                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/profile/pre/*")
                 lite_sync = action_litesync.BootLiteSync(self.config)
                 lite_sync.remove_single_profile(name)
-                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/profile/*")
+                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/profile/post/*")
             del self.listing[name]
             return True
         raise CX(_("cannot delete an object that does not exist"))

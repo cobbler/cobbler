@@ -193,14 +193,6 @@ class Additions(BootTest):
         # self.failUnlessRaises(CobblerException, profile.set_virt_file_size, "54321.23")
         self.assertTrue(self.api.profiles().add(profile))
 
-    def test_invalid_system_bad_name_host(self):
-        system = self.api.new_system()
-        name = "hostnamewontresolveanyway"
-        self.failUnlessRaises(CobblerException, system.set_name, name)
-        self.assertTrue(system.set_profile("testprofile0"))
-        self.failUnlessRaises(CobblerException, self.api.systems().add, system)
-        self.assertFalse(self.api.systems().find(name))
-
     def test_system_name_is_a_MAC(self):
         system = self.api.new_system()
         name = "00:16:41:14:B7:71"
