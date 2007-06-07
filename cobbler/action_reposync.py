@@ -45,7 +45,7 @@ class RepoSync:
         self.systems  = config.systems()
         self.settings = config.settings()
         self.repos    = config.repos()
-    
+
     # ==================================================================================
 
     def run(self,verbose=True):
@@ -59,13 +59,11 @@ class RepoSync:
             mirror = repo.mirror
             if not os.path.isdir(repo_path) and not repo.mirror.lower().startswith("rhn://"):
                 os.makedirs(repo_path)
-            # if path contains http:// or ftp://, use with yum's reposync.
-            # else do rsync
-            lower = mirror.lower()
-            if lower.startswith("http://") or lower.startswith("ftp://") or lower.startswith("rhn://"):
-                self.do_reposync(repo)
-            else:
+            
+            if repo.is_rsync_mirror():
                 self.do_rsync(repo)
+            else:
+                self.do_reposync(repo)
 
         return True
     
@@ -178,8 +176,7 @@ class RepoSync:
 
         # now run createrepo to rebuild the index
 
-        arg = None
-        os.path.walk(dest_path, self.createrepo_walker, arg)
+        os.path.walk(dest_path, self.createrepo_walker, repo)
 
         # create the config file the hosts will use to access the repository.
 
@@ -210,9 +207,8 @@ class RepoSync:
         rc = sub_process.call(cmd, shell=True)
         if rc !=0:
             raise CX(_("cobbler reposync failed"))
-        arg = {}
         print _("- walking: %s") % dest_path
-        os.path.walk(dest_path, self.createrepo_walker, arg)
+        os.path.walk(dest_path, self.createrepo_walker, repo)
         self.create_local_file(repo, dest_path)
     
     # ==================================================================================
@@ -243,19 +239,19 @@ class RepoSync:
 
     # ==================================================================================
 
-    def createrepo_walker(self, arg, dirname, fname):
+    def createrepo_walker(self, repo, dirname, fnames):
         """
         Used to run createrepo on a copied mirror.
         """
         target_dir = os.path.dirname(dirname).split("/")[-1]
-        print _("- scanning: %s") % target_dir
-        if target_dir.lower() in [ "i386", "x86_64", "ia64" ] or (arg is None):
+        if target_dir.lower() in [ "i386", "x86_64", "ia64" ] or not repo.is_rsync_mirror():
             utils.remove_yum_olddata(dirname)
             try:
-                cmd = "createrepo %s" % dirname
+                cmd = "createrepo %s %s" % (repo.createrepo_flags, dirname)
                 print _("- %s") % cmd
                 sub_process.call(cmd, shell=True)
             except:
                 print _("- createrepo failed.  Is it installed?")
-            fnames = []  # we're in the right place                  
+            del fnames[:] # we're in the right place
+
             

@@ -339,7 +339,7 @@ class Importer:
            if not self.processed_repos.has_key(comps_path):
                utils.remove_yum_olddata(comps_path)
                #cmd = "createrepo --basedir / --groupfile %s %s" % (os.path.join(comps_path, masterdir, comps_file), comps_path)
-               cmd = "createrepo --groupfile %s %s" % (os.path.join(comps_path, masterdir, comps_file), comps_path)
+               cmd = "createrepo -c cache --groupfile %s %s" % (os.path.join(comps_path, masterdir, comps_file), comps_path)
                print _("- %s") % cmd
                sub_process.call(cmd,shell=True)
                self.processed_repos[comps_path] = 1

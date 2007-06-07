@@ -30,14 +30,16 @@ class Repo(item.Item):
         self.mirror = None                           # is required
         self.keep_updated = 1                        # has reasonable defaults
         self.local_filename = ""                     # off by default
-        self.rpm_list = ""                      # just get selected RPMs + deps
+        self.rpm_list = ""                           # just get selected RPMs + deps
+        self.createrepo_flags = ""                   # none by default
 
     def from_datastruct(self,seed_data):
-        self.name           = self.load_item(seed_data, 'name')
-        self.mirror         = self.load_item(seed_data, 'mirror')
-        self.keep_updated   = self.load_item(seed_data, 'keep_updated')
-        self.local_filename = self.load_item(seed_data, 'local_filename')
-        self.rpm_list       = self.load_item(seed_data, 'rpm_list')
+        self.name             = self.load_item(seed_data, 'name')
+        self.mirror           = self.load_item(seed_data, 'mirror')
+        self.keep_updated     = self.load_item(seed_data, 'keep_updated')
+        self.local_filename   = self.load_item(seed_data, 'local_filename')
+        self.rpm_list         = self.load_item(seed_data, 'rpm_list')
+        self.createrepo_flags = self.load_item(seed_data, 'createrepo_flags')
         return self
 
     def set_name(self,name):
@@ -98,6 +100,14 @@ class Repo(item.Item):
             pass
         self.rpm_list = rpmlist 
 
+    def set_createrepo_flags(self,createrepo_flags):
+        """
+        Flags passed to createrepo when it is called.  Common flags to use would be
+        -c cache or -g comps.xml to generate group information.
+        """
+        self.createrepo_flags = createrepo_flags
+        return True
+
     def is_valid(self):
         """
 	A repo is valid if it has a name and a mirror URL
@@ -110,18 +120,30 @@ class Repo(item.Item):
 
     def to_datastruct(self):
         return {
-           'name'           : self.name,
-           'mirror'         : self.mirror,
-           'keep_updated'   : self.keep_updated,
-           'local_filename' : self.local_filename,
-           'rpm_list'       : self.rpm_list
+           'name'             : self.name,
+           'mirror'           : self.mirror,
+           'keep_updated'     : self.keep_updated,
+           'local_filename'   : self.local_filename,
+           'rpm_list'         : self.rpm_list,
+           'createrepo_flags' : self.createrepo_flags
         }
 
     def printable(self):
-        buf =       _("repo            : %s\n") % self.name
-        buf = buf + _("mirror          : %s\n") % self.mirror
-        buf = buf + _("keep updated    : %s\n") % self.keep_updated
-        buf = buf + _("local filename  : %s\n") % self.local_filename
-        buf = buf + _("rpm list        : %s\n") % self.rpm_list
+        buf =       _("repo             : %s\n") % self.name
+        buf = buf + _("mirror           : %s\n") % self.mirror
+        buf = buf + _("keep updated     : %s\n") % self.keep_updated
+        buf = buf + _("local filename   : %s\n") % self.local_filename
+        buf = buf + _("rpm list         : %s\n") % self.rpm_list
+        buf = buf + _("createrepo_flags : %s\n") % self.createrepo_flags
         return buf
+
+    def is_rsync_mirror(self):
+        """
+        Returns True if this mirror is synchronized using rsync, False otherwise
+        """
+        lower = self.mirror.lower()
+        if lower.startswith("http://") or lower.startswith("ftp://") or lower.startswith("rhn://"):
+            return False
+        else:
+            return True
 
