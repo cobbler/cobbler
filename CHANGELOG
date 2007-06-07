@@ -9,6 +9,8 @@ Cobbler CHANGELOG
 - Optionally use dnsmasq for DHCP (and DNS!) instead of ISC dhcpd.
 - Add --mac and remove requirement for --name to be an ip, mac, or hostname.
 - Manpage cleanup
+- Patch to allow pre and post triggers
+- Patch to allow --createrepo-flags and to cache on import, fix multiple calls to createrepo
 
 * Thu Apr 26 2007 - 0.4.8
 - Make import friendlier for older distros

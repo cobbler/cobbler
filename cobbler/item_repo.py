@@ -26,12 +26,12 @@ class Repo(item.Item):
         return cloned
 
     def clear(self):
-        self.name = None                             # is required 
-        self.mirror = None                           # is required
-        self.keep_updated = 1                        # has reasonable defaults
-        self.local_filename = ""                     # off by default
-        self.rpm_list = ""                           # just get selected RPMs + deps
-        self.createrepo_flags = ""                   # none by default
+        self.name = None                    # is required 
+        self.mirror = None                  # is required
+        self.keep_updated = 1               # has reasonable defaults
+        self.local_filename = ""            # off by default
+        self.rpm_list = ""                  # just get selected RPMs + deps
+        self.createrepo_flags = "-c cache"  # none by default
 
     def from_datastruct(self,seed_data):
         self.name             = self.load_item(seed_data, 'name')
@@ -39,7 +39,7 @@ class Repo(item.Item):
         self.keep_updated     = self.load_item(seed_data, 'keep_updated')
         self.local_filename   = self.load_item(seed_data, 'local_filename')
         self.rpm_list         = self.load_item(seed_data, 'rpm_list')
-        self.createrepo_flags = self.load_item(seed_data, 'createrepo_flags')
+        self.createrepo_flags = self.load_item(seed_data, 'createrepo_flags', '-c cache')
         return self
 
     def set_name(self,name):
