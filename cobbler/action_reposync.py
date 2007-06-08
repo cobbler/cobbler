@@ -104,9 +104,8 @@ class RepoSync:
         store_path = os.path.join(self.settings.webdir, "repo_mirror")
         dest_path = os.path.join(store_path, repo.name)
         temp_path = os.path.join(store_path, ".origin")
-        if not os.path.isdir(temp_path) and not is_rhn:
-            # if doing the rhn sync, reposync will make the directory
-            # otherwise, we need to do it explicitly
+        if not os.path.isdir(temp_path):
+            # FIXME: there's a chance this might break the RHN D/L case
             os.makedirs(temp_path)
          
         # how we invoke yum-utils depends on whether this is RHN content or not.
