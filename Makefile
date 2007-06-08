@@ -12,7 +12,6 @@ clean:
 manpage:
 	pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz
 	pod2html ./docs/cobbler.pod > ./docs/cobbler.html
-        cp ./docs/cobbler.html ./website/new/
  
 test:
 	python tests/tests.py

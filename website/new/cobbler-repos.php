@@ -1,11 +1,10 @@
 <?php
-  $current_page = 'faq';
+  $current_page = 'documentation';
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-
 <head>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="description" content="" />
@@ -22,18 +21,15 @@
 ?>
 
 <div id="main">
-<div id="sidebar">
+ <div id="sidebar">
 <?php 
   include("nav.php"); 
 ?>
-</div>
+ </div>
 
 <div id="content">
-
-<h2>Frequently-Asked Questions</h2>
-
-<?php
-  include('faq.html');
+<?php 
+  include("docs/cobbler-repos.html"); 
 ?>
 
 </div>

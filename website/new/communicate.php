@@ -10,7 +10,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="description" content="" />
 <meta name="keywords" content="" />
-<title>UMP: Update and Management Platform</title>
+<title>Cobbler</title>
 
   <link rel="stylesheet" href="css/style.css" type="text/css" media="all" />
 </head>
