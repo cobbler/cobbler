@@ -27,18 +27,15 @@
 <p>
 </p>
 <h1><a name="name">NAME</a></h1>
-<p>koan stands for ``kickstart-over-a-network'' and allows for both
-network provisioning of new virtualized guests and destructive provisioning of
-any existing system.  For use with a boot-server configured with
-'cobbler'.</p>
+<p>koan stands for ``kickstart-over-a-network'' and allows for both network provisioning of new virtualized guests and destructive provisioning of any existing system.  For use with a boot-server configured with 'cobbler'.</p>
 <p>
 </p>
 <hr />
 <h1><a name="synopsis">SYNOPSIS</a></h1>
 <p>koan --server=&lt;host&gt; --list-profiles</p>
 <p>koan --server=&lt;host&gt; --list-systems</p>
-<p>koan --virt --server=&lt;host&gt; --profile=&lt;name&gt;</p>
-<p>koan --virt --server=&lt;host&gt; --system=&lt;name&gt;</p>
+<p>koan --virt --server=&lt;host&gt; --profile=&lt;name&gt; [--virtname=&lt;name&gt;]</p>
+<p>koan --virt --server=&lt;host&gt; --system=&lt;name&gt; [--virtname=&lt;name&gt;]</p>
 <p>koan --replace-self --server=&lt;host&gt; --profile=&lt;name&gt;</p>
 <p>koan --replace-self --server=&lt;host&gt; --system=&lt;name&gt;</p>
 <p>
@@ -46,7 +43,7 @@ any existing system.  For use with a boot-server configured with
 <hr />
 <h1><a name="description">DESCRIPTION</a></h1>
 <p>When invoked, koan requests profile information from a remote boot server that has been configured with cobbler.   What koan does with the profile data depends on whether it was invoked with --virt or --replace-self.</p>
-<p>For --virt, cobbler will create new virtualized guests on a machine in accordance to the orders from cobbler.  You can then, once finished, use ``virsh'' and ``xm'' commands on the guest.  Cobbler automatically names domains based on their mac addresses.</p>
+<p>For --virt, cobbler will create new virtualized guests on a machine in accordance to the orders from cobbler.  You can then, once finished, use ``virsh'' and ``xm'' commands on the guest.  Cobbler automatically names domains based on their mac addresses.  To install using a more descriptive name, specify one with --virtname.</p>
 <p>For re-kickstarting ('--replace-self'), cobbler will reprovisioning the system, blowing away any current data and replacing it with the results of a network install.</p>
 <p>
 </p>

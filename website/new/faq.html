@@ -1,0 +1,54 @@
+
+<a name="questions">
+<h3>Questions</h3>
+</a>
+<ul id="faq">
+<li><a href="#whouses">Who Uses Cobbler?</a></li>
+<li><a href="#supported">What Operating Systems Are Supported?</a></li>
+<li><a href="#reinstalls">What are my non-PXE install options?</a></li>
+<li><a href="#virt">How are virtual systems installed?</a></li>
+<li><a href="#contribute">How can I contribute?</a></li>
+</ul>
+
+<h3>Answers</h3>
+
+<a name="whouses">
+<dt>Who Uses Cobbler?</dt>
+</a>
+ <dd>Cobbler is in use in a lot of diverse configurations. Large companies, hosting datacenters, college labs, consultants, ISVs, developers, and home Linux users all use cobbler and koan in different ways. It is intended to cover the large configurations just as easily as the smaller ones -- and be non-complex for all classes of users.
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+<a name="supported">
+<dt>What Operating Systems Are Supported?</dt>
+</a>
+ <dd>
+Cobbler runs on RHEL 4 and later, Fedora 5 and later, and Centos 4 and later.  Koan, cobbler's helper program, also works with RHEL 3.
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+<a name="reinstalls">
+<dt>What are my non-PXE install options?</dt>
+</a>
+ <dd>Cobbler's helper program koan can be used on the target system to reinstall it's operating system to start a fully-automated reinstall of another operating system.  This solution is ideal for those users who can not take advantage of PXE due to hardware, network, or policy constraints. For more information, see the <A HREF="./docs/koan.html">koan</A> manpage documentation.
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+<a name="virt">
+<dt>How are virtual systems installed?</dt>
+</a>
+ <dd>Cobbler's helper program, koan, is invoked on the remote host system, and it pulls down information from the remote cobbler server to begin a fully automated installation of a virtual guest. This works out of the box for any distribution that contains a Xen kernel. For more information, see the <A HREF="./docs/koan.html">koan</A> manpage documentation.
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+
+<a name="contribute">
+<dt>How can I contribute?</dt>
+</a>
+ <dd>
+Send in bug reports, patches, ideas, or comments.  We're interested in hearing about your real-world provisioning challenges and how we can solve them for system administrators everywhere.
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+
+

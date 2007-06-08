@@ -1,0 +1,62 @@
+<p>Cobbler is licensed under the <a href="http://www.gnu.org/copyleft/gpl.html">General Public License (GPL)</a>.</p>
+
+<h3>Download Cobbler</h3>
+
+<h4>Latest Source</h4>
+<p>The latest source code (Python and Ruby-on-Rails) is available through git:</p>
+
+<blockquote>
+git clone git://et.redhat.com/cobbler<br/>
+git clone git://et.redhat.com/koan
+</blockquote>
+</p>
+
+<h4>Source RPMs</h4>
+<p>
+<blockquote>
+Source RPMS and tarballs are available <A HREF="http://cobbler.et.redhat.com/download/">here</A>
+</blockquote>
+<p>
+
+<h4>Downloading Binaries for Users of Fedora Core 5/6, and F7</h4>
+<p>
+<blockquote>
+yum install cobbler # on the boot server
+yum install koan    # on target systems
+</blockquote>
+</p>
+
+<h4>Build Instructions for RHEL4</h4>
+<p>
+<blockquote>
+    <ul>
+    <li>wget http://www.python.org/pyvault/centos-4-i386/python-cheetah-0.9.18-1.el4.pyv.i386.rpm</li>
+    <li>wget http://www.python.org/pyvault/centos-4-i386/python23-cheetah-0.9.18-1.el4.pyv.i386.rpm</li>
+    <li>rpm -i python*cheetah*.rpm</li>
+    <li>wget http://cobbler.et.redhat.com/download/cobbler-$version.src.rpm</li>
+    <li>rpmbuild --rebuild cobbler-$version.src.rpm</li>
+    <li>rpm -i /usr/src/redhat/RPMS/noarch/cobbler-$version.src.rpm</li>
+    </ul>
+</blockquote>
+
+<h4>Build Instructions for RHEL5</h4>
+<p>
+<blockquote>
+    <ul>
+    <li>Grab python-setuputils from <A HREF="ftp://rpmfind.net/linux/fedora/extras/6/SRPMS/python-setuptools-0.6c5-1.fc6.src.rpm">here</A></li>
+    <li>Grab python-cheetah and yum-utils from here: <A HREF="ftp://mirror.linux.duke.edu/pub/fedora/linux/extras/6/SRPMS/">here</A></li>
+    <li>rpmbuild --rebuild those RPMs and then install them</li>
+    <li>now rebuild --rebuild and install Cobbler from it's source RPM</li>
+    </ul>
+</blockquote>
+</p>
+
+<h4>Download Instructions For Centos Users</h4>
+<p>
+<blockquote>
+Cobbler will be part of Centos Extras shortly and will then be yum installable.  Until then, you will want to rebuild the source RPMs.  The process will be as in RHEL, though you should get the dependencies from "yum install" instead of the above hard-coded URLs.
+</blockquote>
+</p>
+
+
+
