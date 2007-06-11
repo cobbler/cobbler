@@ -43,6 +43,13 @@ class Distro(item.Item):
         cloned.from_datastruct(ds)
         return cloned
 
+    def get_parent(self):
+        """
+        Return object next highest up the tree.
+        """
+        return None
+
+
     def from_datastruct(self,seed_data):
         """
         Modify this object to take on values in seed_data

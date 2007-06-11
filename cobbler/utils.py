@@ -22,6 +22,7 @@ import string
 import traceback
 from rhpl.translate import _, N_, textdomain, utf8
 
+import api # factor out
 
 _re_kernel = re.compile(r'vmlinuz(.*)')
 _re_initrd = re.compile(r'initrd(.*).img')
@@ -233,4 +234,81 @@ def input_string_or_hash(options,delim=","):
     else:
         options.pop('',None)
         return (True, options)
+
+def grab_tree(obj):
+    """
+    Climb the tree and get every node.
+    """
+    settings = api.BootAPI().settings()
+    results = [ obj ]
+    parent = obj.get_parent()
+    while parent is not None:
+       results.append(parent)
+       parent = parent.get_parent()
+    results.append(settings)  
+    return results
+
+def blender(remove_hashes, root_obj):
+    """
+    Combine all of the data in an object tree from the perspective
+    of that point on the tree, and produce a merged hash containing
+    consolidated data.
+    """
+    settings = api.BootAPI().settings()
+
+    tree = grab_tree(root_obj)
+    results = {}
+    for node in tree:
+        __consolidate(node,results)
+
+    # add in syslog to results (magic)    
+    if settings.syslog_port != 0:
+        if not results.has_key("kernel_options"):
+            results["kernel_options"] = {}
+        results["kernel_options"]["syslog"] = "%s:%s" % (settings.server, settings.syslog_port)
+
+    # sanitize output for koan and kernel option lines, etc
+    if remove_hashes:
+        results["kernel_options"] = hash_to_string(results["kernel_options"])
+        results["ks_meta"] = hash_to_string(results["ks_meta"])
+
+    return results
+
+def __consolidate(node,results):
+    """
+    Merge data from a given node with the aggregate of all
+    data from past scanned nodes.  Hashes and arrays are treated
+    specially.
+    """
+    node_data =  node.to_datastruct()
+    for field in node_data:
+       data_item = node_data[field] 
+       if results.has_key(field):
+          if type(data_item) == dict:
+             results[field].update(data_item)
+          elif type(data_item) == list or type(data_item) == tuple:
+             results[field].extend(data_item)
+          else:
+             # override
+             results[field] = data_item
+       else:
+          results[field] = data_item
+
+def hash_to_string(hash):
+    """
+    Convert a hash to a printable string.
+    used primarily in the kernel options string
+    and for some legacy stuff where koan expects strings
+    (though this last part should be changed to hashes)
+    """
+    buffer = ""
+    if type(hash) != dict:
+       return hash
+    for key in hash:
+       value = hash[key]
+       if value is None:
+           buffer = buffer + str(key) + " "
+       else:
+          buffer = buffer + str(key) + "=" + str(value) + " "
+    return buffer
 

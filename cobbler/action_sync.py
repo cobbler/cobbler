@@ -332,8 +332,11 @@ class BootSync:
            self.mkdir(copy_path)
            dest = os.path.join(copy_path, "ks.cfg")
            try:
-                will_it_blend = (distro.ks_meta, g.ks_meta)
-                meta = self.blend_options(False, will_it_blend) 
+                # will_it_blend = (distro.ks_meta, g.ks_meta)
+                # regular blend
+                # meta = self.blend_options(False, will_it_blend) 
+                meta = utils.blender(False, g)
+
                 meta["yum_repo_stanza"] = self.generate_repo_stanza(g)
                 meta["yum_config_stanza"] = self.generate_config_stanza(g)
                 meta["kickstart_done"] = self.generate_kickstart_signal(g, is_system=False)
@@ -432,11 +435,13 @@ class BootSync:
             self.mkdir(copy_path)
             dest = os.path.join(copy_path, "ks.cfg")
             try:
-                meta = self.blend_options(False,(
-                    distro.ks_meta,
-                    profile.ks_meta,
-                    s.ks_meta
-                ))
+                # regular blend
+                #meta = self.blend_options(False,(
+                #    distro.ks_meta,
+                #    profile.ks_meta,
+                #    s.ks_meta
+                #))
+                meta = utils.blender(False, s)
                 meta["yum_repo_stanza"] = self.generate_repo_stanza(profile)
                 meta["yum_config_stanza"] = self.generate_config_stanza(profile)
                 meta["kickstart_done"]  = self.generate_kickstart_signal(profile, is_system=True)
@@ -609,23 +614,27 @@ class BootSync:
 
         # now build the kernel command line
         if system is not None:
-            kopts = self.blend_options(True,(
-                self.settings.kernel_options,
-                profile.kernel_options,
-                distro.kernel_options,
-                system.kernel_options
-            ))
+            # kernel blend
+            #kopts = self.blend_options(True,(
+            #    self.settings.kernel_options,
+            #    profile.kernel_options,
+            #    distro.kernel_options,
+            #    system.kernel_options
+            #))
+            kopts = utils.blender(True,system)["kernel_options"]
         else:
-            kopts = self.blend_options(True,(
-                self.settings.kernel_options,
-                profile.kernel_options,
-                distro.kernel_options
-            ))
+            # kernel blend
+            #kopts = self.blend_options(True,(
+            #    self.settings.kernel_options,
+            #    profile.kernel_options,
+            #    distro.kernel_options
+            #))
+            kopts = utils.blender(True,profile)["kernel_options"]
 
 
         # ---
         # generate the append line
-        append_line = "append %s" % self.hash_to_string(kopts)
+        append_line = "append %s" % utils.hash_to_string(kopts)
         if not is_ia64:
             append_line = "%s initrd=%s" % (append_line, initrd_path)
         if len(append_line) >= 255 + len("append "):
@@ -666,9 +675,9 @@ class BootSync:
         # save file and/or return results, depending on how called.
         buffer = self.apply_template(template_data, metadata, None)
         if filename is not None:
-            fd = self.open_file(filename, "w")
-            self.tee(fd, buffer)
-            self.close_file(fd)
+            fd = open(filename, "w")
+            fd.write(buffer)
+            fd.close()
         return buffer
 
 
@@ -681,37 +690,22 @@ class BootSync:
         names2 = [x.name for x in self.systems]
         data1 = yaml.dump(names1)
         data2 = yaml.dump(names2)
-        fd1 = self.open_file(os.path.join(self.settings.webdir, "profile_list"), "w+")
-        fd2 = self.open_file(os.path.join(self.settings.webdir, "system_list"), "w+")
-        self.tee(fd1, data1)
-        self.tee(fd2, data2)
-        self.close_file(fd1)
-        self.close_file(fd2)
+        fd1 = open(os.path.join(self.settings.webdir, "profile_list"), "w+")
+        fd2 = open(os.path.join(self.settings.webdir, "system_list"), "w+")
+        fd1.write(data1)
+        fd2.write(data2)
+        fd1.close()
+        fd2.close()
 
     def write_distro_file(self,distro):
         """
-        Create distro information for virt install
-
-        NOTE: relevant to http only
+        Create distro information for koan install
         """
-
-        clone = item_distro.Distro(self.config)
-        clone.from_datastruct(distro.to_datastruct())
-
-        filename = os.path.join(self.settings.webdir,"distros",clone.name)
-        will_it_blend = (self.settings.kernel_options, distro.kernel_options)
-        clone.kernel_options = self.blend_options(True,will_it_blend)
-        fd = self.open_file(filename,"w+")
-        # resolve to current values
-        clone.kernel = utils.find_kernel(clone.kernel)
-        clone.initrd = utils.find_initrd(clone.initrd)
-
-        # convert storage to something that's koan readable        
-        clone.kernel_options = self.hash_to_string(clone.kernel_options)
-        clone.ks_meta = self.hash_to_string(clone.ks_meta)
-
-        self.tee(fd,yaml.dump(clone.to_datastruct()))
-        self.close_file(fd)
+        blended = utils.blender(True, distro)
+        filename = os.path.join(self.settings.webdir,"distros",distro.name)
+        fd = open(filename, "w+")
+        fd.write(yaml.dump(blended))
+        fd.close() 
 
     def write_profile_file(self,profile):
         """
@@ -720,33 +714,14 @@ class BootSync:
         NOTE: relevant to http only
         """
 
-        clone = item_profile.Profile(self.config)
-        clone.from_datastruct(profile.to_datastruct())
-
-
-        filename = os.path.join(self.settings.webdir,"profiles",clone.name)
-        distro = self.distros.find(clone.distro)
-        if distro is not None:
-            will_it_blend = (self.settings.kernel_options, distro.kernel_options, clone.kernel_options)
-            clone.kernel_options = self.blend_options(True,will_it_blend)
-        # yaml file: http only
-        fd = self.open_file(filename,"w+")
-        # if kickstart path is local, we've already copied it into
-        # the HTTP mirror, so make it something anaconda can get at
-
-        # NOTE: we only want to write this to the webdir, not the settings
-        # file, so we must make a clone, outside of the collection.
-
-        # convert storage to something that's koan readable                   
-        clone.kernel_options = self.hash_to_string(clone.kernel_options)
-        clone.ks_meta = self.hash_to_string(clone.ks_meta)
-
-        # make URLs for koan if the kickstart files are locally managed (which is preferred)
-        if clone.kickstart and clone.kickstart.startswith("/"):
-            clone.kickstart = "http://%s/cblr/kickstarts/%s/ks.cfg" % (self.settings.server, clone.name)
-        self.tee(fd,yaml.dump(clone.to_datastruct()))
-        self.close_file(fd)
-
+        blended = utils.blender(True, profile)
+        filename = os.path.join(self.settings.webdir,"profiles",profile.name)
+        fd = open(filename, "w+")
+        if blended.has_key("kickstart") and blended["kickstart"].startswith("/"):
+            # write the file location as needed by koan
+            blended["kickstart"] = "http://%s/cblr/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)
+        fd.write(yaml.dump(blended))
+        fd.close()
 
     def write_system_file(self,filename,system):
         """
@@ -755,24 +730,10 @@ class BootSync:
         NOTE: relevant to http only
         """
 
-        # no real reason to clone this yet, but in case changes come later, might as well be safe.
-        clone = item_system.System(self.config)
-        clone.from_datastruct(system.to_datastruct())
-        # koan expects strings, not cobbler's storage format
-        clone.kernel_options = self.hash_to_string(clone.kernel_options)
-        clone.ks_meta = self.hash_to_string(clone.ks_meta)
-
-        fd = self.open_file(filename,"w+")
-        self.tee(fd,yaml.dump(clone.to_datastruct()))
-        self.close_file(fd)
-
-    def tee(self,fd,text):
-        fd.write(text)
-
-    def open_file(self,filename,mode):
-        return open(filename,mode)
-
-    def close_file(self,fd):
+        blended = utils.blender(True, system)
+        filename = os.path.join(self.settings.webdir,"systems",system.name)
+        fd = open(filename, "w+")
+        fd.write(yaml.dump(blended))
         fd.close()
 
     def copyfile(self,src,dst):
@@ -833,30 +794,34 @@ class BootSync:
             print cmd
         return sub_process.call(cmd, shell=True)
 
-    def blend_options(self, is_for_kernel, list_of_opts):
-        """
-        Given a list of options, take the values used by the
-        first argument in the list unless overridden by those in the
-        second (or further on).
-        """
-        results = {}
-        buffer = ""
-        for optslist in list_of_opts:
-           for key in optslist:
-               results[key] = optslist[key]
+    # factoring out
 
-        if is_for_kernel and self.settings.syslog_port != 0:
-            results["syslog"] = "%s:%s" % (self.settings.server, self.settings.syslog_port)
+    #def blend_options(self, is_for_kernel, list_of_opts):
+    #    """
+    #    Given a list of options, take the values used by the
+    #    first argument in the list unless overridden by those in the
+    #    second (or further on).
+    #    """
+    #    results = {}
+    #    buffer = ""
+    #    for optslist in list_of_opts:
+    #       for key in optslist:
+    #           results[key] = optslist[key]
+#
+#        if is_for_kernel and self.settings.syslog_port != 0:
+#            results["syslog"] = "%s:%s" % (self.settings.server, self.settings.syslog_port)
+#
+#        return results
 
-        return results
+    # moved to utils.py
 
-    def hash_to_string(self, hash):
-        buffer = ""
-        for key in hash:
-           value = hash[key]
-           if value is None:
-               buffer = buffer + str(key) + " "
-           else:
-               buffer = buffer + str(key) + "=" + str(value) + " "
-        return buffer
+    #def hash_to_string(self, hash):
+    #    buffer = ""
+    #    for key in hash:
+    #       value = hash[key]
+    #       if value is None:
+    #           buffer = buffer + str(key) + " "
+    #       else:
+    #           buffer = buffer + str(key) + "=" + str(value) + " "
+    #    return buffer
 

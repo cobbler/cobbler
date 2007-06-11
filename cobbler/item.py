@@ -31,6 +31,12 @@ class Item(serializable.Serializable):
     def clear(self):
         raise exceptions.NotImplementedError
 
+    def get_parent(self):
+        """
+        For objects with a tree relationship, what's the parent object?
+        """
+        return None
+
     def set_name(self,name):
         """
         All objects have names, and with the exception of System

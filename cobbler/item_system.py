@@ -76,6 +76,12 @@ class System(item.Item):
 
         return self
 
+    def get_parent(self):
+        """
+        Return object next highest up the tree.
+        """
+        return self.config.distros().find(self.distro_name)
+
     def set_name(self,name):
         """
         In Cobbler 0.4.9, any name given is legal, but if it's not an IP or MAC, --ip-address of --mac-address must

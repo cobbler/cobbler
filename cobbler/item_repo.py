@@ -137,6 +137,9 @@ class Repo(item.Item):
         buf = buf + _("createrepo_flags : %s\n") % self.createrepo_flags
         return buf
 
+    def get_parent(self):
+        return None
+
     def is_rsync_mirror(self):
         """
         Returns True if this mirror is synchronized using rsync, False otherwise

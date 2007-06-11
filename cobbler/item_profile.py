@@ -146,6 +146,12 @@ class Profile(item.Item):
         except:
             return CX(_("invalid virt ram size"))
 
+    def get_parent(self):
+        """
+        Return object next highest up the tree.
+        """
+        return self.config.distros().find(self.distro)
+
     def is_valid(self):
         """
 	A profile only needs a name and a distro.  Kickstart info,
