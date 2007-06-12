@@ -20,6 +20,8 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 class System(item.Item):
 
+    TYPE_NAME = _("system")
+
     def make_clone(self):
         ds = self.to_datastruct()
         cloned = System(self.config)

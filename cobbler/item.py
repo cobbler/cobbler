@@ -20,6 +20,8 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 class Item(serializable.Serializable):
 
+    TYPE_NAME = "generic"
+
     def __init__(self,config):
         """
         Constructor.  Requires a back reference to the Config management object.

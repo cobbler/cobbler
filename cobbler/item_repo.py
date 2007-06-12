@@ -19,6 +19,8 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 class Repo(item.Item):
 
+    ITEM_NAME = _("repo")
+
     def make_clone(self):
         ds = self.to_datastruct()
         cloned = Repo(self.config)

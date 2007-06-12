@@ -24,6 +24,8 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 class Distro(item.Item):
 
+    TYPE_NAME = _("distro")
+
     def clear(self):
         """
         Reset this object.

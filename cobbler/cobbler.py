@@ -173,21 +173,20 @@ class BootCLI:
     # LISTING FUNCTIONS
 
     def list(self,args):
-        # FIXME: inefficient
-        for d in self.api.distros():
-            str = _("distribution   : %(distro)s") % { "distro" : d.name }
-            print str
-            for p in self.api.profiles():
-                if p.distro == d.name:
-                    str = _("  profile      :   %(profile)s") % { "profile" : p.name }
-                    print str
-                    for s in self.api.systems():
-                        if s.profile == p.name:
-                            str = _("    system     :     %(system)s") % { "system" : s.name }
-                            print str
-        for r in self.api.repos():
-            str = _("repo           : %(repo)s")  % { "repo" : r.name }
-            print str
+        collection = self.api.distros()
+        self.__tree(collection,0)
+        self.__tree(self.api.repos(),0)
+
+    def __tree(self,collection,level):
+        for item in collection:
+            print _("%(indent)s%(type)s %(name)s") % { 
+                "indent" : "   " * level,
+                "type"   : item.TYPE_NAME,
+                "name"   : item.name 
+            }
+            kids = item.get_children()
+            if kids is not None and len(kids) > 0:
+               self.__tree(kids,level+1)
 
     def __list_names(self, collection):
         names = [ x.name for x in collection]
