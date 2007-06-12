@@ -794,34 +794,3 @@ class BootSync:
             print cmd
         return sub_process.call(cmd, shell=True)
 
-    # factoring out
-
-    #def blend_options(self, is_for_kernel, list_of_opts):
-    #    """
-    #    Given a list of options, take the values used by the
-    #    first argument in the list unless overridden by those in the
-    #    second (or further on).
-    #    """
-    #    results = {}
-    #    buffer = ""
-    #    for optslist in list_of_opts:
-    #       for key in optslist:
-    #           results[key] = optslist[key]
-#
-#        if is_for_kernel and self.settings.syslog_port != 0:
-#            results["syslog"] = "%s:%s" % (self.settings.server, self.settings.syslog_port)
-#
-#        return results
-
-    # moved to utils.py
-
-    #def hash_to_string(self, hash):
-    #    buffer = ""
-    #    for key in hash:
-    #       value = hash[key]
-    #       if value is None:
-    #           buffer = buffer + str(key) + " "
-    #       else:
-    #           buffer = buffer + str(key) + "=" + str(value) + " "
-    #    return buffer
-
