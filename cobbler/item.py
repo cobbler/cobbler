@@ -29,22 +29,24 @@ class Item(serializable.Serializable):
         self.config = config
         self.settings = self.config._settings
         self.clear()
-        self.children = {}
+        self.children = {}             # caching for performance reasons, not serialized
+        self.conceptual_parent = None  # " "
 
     def clear(self):
         raise exceptions.NotImplementedError
 
-    def get_children(self):
+    def get_children(self,sorted=True):
         """
         Get direct children of this object.
    
         FIXME: testing
         """
         keys = self.children.keys()
-        keys.sort()
+        if sorted:
+            keys.sort()
         results = []
         for k in keys:
-           results.append(self.children[k])
+            results.append(self.children[k])
         return results
 
     def get_descendants(self):
@@ -55,7 +57,7 @@ class Item(serializable.Serializable):
         FIXME: testing
         """
         results = []
-        kids = self.get_children()
+        kids = self.get_children(sorted=False)
         results.extend(kids)
         for kid in kids:
             grandkids = kid.get_descendants()
@@ -73,6 +75,10 @@ class Item(serializable.Serializable):
         The parent may just be a superclass for something like a
         subprofile.  Get the first parent of a different type.
         """
+
+        if self.conceptual_parent is not None:
+            return self.conceptual_parent
+
         # FIXME: this is a workaround to get the type of an instance var
         # what's a more clean way to do this that's python 2.3 friendly?
         # this returns something like:  cobbler.item_system.System
@@ -81,7 +87,9 @@ class Item(serializable.Serializable):
         while parent is not None:
            ptype = str(parent).split(" ")[0][1:]
            if mtype != ptype:
+              self.conceptual_parent = parent
               return parent
+
         return None
 
     def set_name(self,name):

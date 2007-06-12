@@ -192,7 +192,5 @@ class Profile(item.Item):
         buf = buf + _("virt file size  : %s\n") % self.virt_file_size
         buf = buf + _("virt ram        : %s\n") % self.virt_ram
         buf = buf + _("repos           : %s\n") % self.repos
-        # FIXME: testing only
-        buf = buf + _("children:       : %s\n") % self.get_children()
         return buf
 
