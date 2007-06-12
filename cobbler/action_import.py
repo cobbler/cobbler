@@ -301,10 +301,8 @@ class Importer:
 
        try:
 
-           # store the location of the RPMs in the distro object.
-           # this is so sync can find it later.  
-           # FIXME: can't really do that as there right be more than one.
-
+           # store the yum configs on the filesystem so we can use them later.
+           # and configure them in the kickstart post, etc
 
            counter = len(distro.source_repos)
 

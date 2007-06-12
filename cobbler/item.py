@@ -38,8 +38,6 @@ class Item(serializable.Serializable):
     def get_children(self,sorted=True):
         """
         Get direct children of this object.
-   
-        FIXME: testing
         """
         keys = self.children.keys()
         if sorted:
@@ -53,8 +51,6 @@ class Item(serializable.Serializable):
         """
         Get objects that depend on this object, i.e. those that
         would be affected by a cascading delete, etc.
-
-        FIXME: testing
         """
         results = []
         kids = self.get_children(sorted=False)

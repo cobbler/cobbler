@@ -73,7 +73,6 @@ class RepoSync:
 
         """
         Handle copying of http:// and ftp:// repos.
-        FIXME: support for mirrorlist?
         """
 
         # warn about not having yum-utils.  We don't want to require it in the package because
