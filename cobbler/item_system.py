@@ -133,7 +133,7 @@ class System(item.Item):
         """
         mac = self.get_mac_address()
         ip  = self.get_ip_address()
-        if mac is None or ip is None:
+        if mac is None and ip is None:
            return False
         return True
 

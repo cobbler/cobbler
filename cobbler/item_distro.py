@@ -158,15 +158,6 @@ class Distro(item.Item):
 	"""
         kstr = utils.find_kernel(self.kernel)
         istr = utils.find_initrd(self.initrd)
-        # old code, as we've relaxed filename requirements:
-        #if kstr is None:
-        #    kstr = "%s (NOT FOUND)" % self.kernel
-        #elif os.path.isdir(self.kernel):
-        #    kstr = "%s (FOUND BY SEARCH)" % kstr
-        #if istr is None:
-        #    istr = "%s (NOT FOUND)" % self.initrd
-        #elif os.path.isdir(self.initrd):
-        #    istr = "%s (FOUND BY SEARCH)" % istr
         buf =       _("distro          : %s\n") % self.name
         buf = buf + _("kernel          : %s\n") % kstr
         buf = buf + _("initrd          : %s\n") % istr

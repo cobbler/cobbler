@@ -66,6 +66,22 @@ class Item(serializable.Serializable):
         """
         return None
 
+    def get_conceptual_parent(self):
+        """
+        The parent may just be a superclass for something like a
+        subprofile.  Get the first parent of a different type.
+        """
+        # FIXME: this is a workaround to get the type of an instance var
+        # what's a more clean way to do this that's python 2.3 friendly?
+        # this returns something like:  cobbler.item_system.System
+        mtype = str(self).split(" ")[0][1:]
+        parent = self.get_parent()
+        while parent is not None:
+           ptype = str(parent).split(" ")[0][1:]
+           if mtype != ptype:
+              return parent
+        return None
+
     def set_name(self,name):
         """
         All objects have names, and with the exception of System

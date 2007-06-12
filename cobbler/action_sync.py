@@ -160,8 +160,8 @@ class BootSync:
             if mode == "isc":
 
                 systxt = "\nhost label%d {\n" % counter
-                profile = self.profiles.find(system.profile)
-                distro  = self.distros.find(profile.distro)
+                profile = system.get_conceptual_parent()
+                distro  = profile.get_conceptual_parent()
                 if distro.arch == "ia64":
                     # can't use pxelinux.0 anymore
                     systxt = systxt + "    filename \"/%s\";\n" % elilo
@@ -178,8 +178,8 @@ class BootSync:
                 # reload (full "cobbler sync") would be required after adding the system
                 # to cobbler, just to tag this relationship.
 
-                profile = self.profiles.find(system.profile)
-                distro  = self.distros.find(profile.distro)
+                profile = system.get_conceptual_parent()
+                distro  = profile.get_conceptual_parent()
                 if system.get_ip_address() != None:
                     if distro.arch.lower() == "ia64":
                         systxt = "dhcp-host=net:ia64," + system.get_ip_address() + "\n"
@@ -318,7 +318,7 @@ class BootSync:
            self.validate_kickstart_for_specific_profile(g)
 
     def validate_kickstart_for_specific_profile(self,g):
-        distro = self.distros.find(g.distro)
+        distro = g.get_conceptual_parent()
         if distro is None:
            raise CX(_("profile %(profile)s references missing distro %(distro)s") % { "profile" : g.name, "distro" : g.distro })
         kickstart_path = utils.find_kickstart(g.kickstart)
@@ -367,7 +367,7 @@ class BootSync:
                 continue
             http_url = "http://%s/cblr/repo_mirror/%s" % (self.settings.server, repo.name)
             buf = buf + "repo --name=%s --baseurl=%s\n" % (repo.name, http_url)
-        distro = self.distros.find(profile.distro)
+        distro = profile.get_conceptual_parent()
 
         # tack on all the install source repos IF there is more than one.
         # this is basically to support things like RHEL5 split trees
@@ -392,7 +392,7 @@ class BootSync:
                 buf = buf + "wget http://%s/cblr/repo_mirror/%s/config.repo --output-document=/etc/yum.repos.d/%s.repo\n" % (self.settings.server, repo.name, repo.local_filename)    
 
         # now install the core repos
-        distro = self.distros.find(profile.distro)
+        distro = profile.get_conceptual_parent()
         if self.settings.yum_core_mirror_from_server:
             for r in distro.source_repos:
                 short = r[0].split("/")[-1]
@@ -421,10 +421,10 @@ class BootSync:
             self.validate_kickstart_for_specific_system(s)
 
     def validate_kickstart_for_specific_system(self,s):
-        profile = self.profiles.find(s.profile)
+        profile = s.get_conceptual_parent()
         if profile is None:
             raise CX(_("system %(system)s references missing profile %(profile)s") % { "system" : s.name, "profile" : s.profile })
-        distro = self.distros.find(profile.distro)
+        distro = profile.get_conceptual_parent()
         kickstart_path = utils.find_kickstart(profile.kickstart)
         if kickstart_path and os.path.exists(kickstart_path):
             pxe_fn = utils.get_config_filename(s)
@@ -505,14 +505,13 @@ class BootSync:
 
     def write_all_system_files(self,system):
 
-        profile = self.profiles.find(system.profile)
+        profile = system.get_conceptual_parent()
         if profile is None:
             raise CX(_("system %s references a missing profile %s") % { "system" : system.name, "profile" : system.profile})
-        distro = self.distros.find(profile.distro)
+        distro = profile.get_conceptual_parent()
         if distro is None:
             raise CX(_("profile %s references a missing distro %s") % { "profile" : system.profile, "distro" : profile.distro})
         f1 = utils.get_config_filename(system)
-
         # tftp only
 
 
@@ -530,7 +529,6 @@ class BootSync:
             f2 = os.path.join(self.settings.tftpboot, filename)
 
         f3 = os.path.join(self.settings.webdir, "systems", f1)
-
 
         if system.netboot_enabled and system.is_pxe_supported():
             if distro.arch in [ "x86", "x86_64", "standard"]:
@@ -564,7 +562,7 @@ class BootSync:
         # build out the menu entries
         pxe_menu_items = ""
         for profile in profile_list:
-            distro = self.distros.find(profile.distro)
+            distro = profile.get_conceptual_parent()
             contents = self.write_pxe_file(None,None,profile,distro,False,include_header=False)
             if contents is not None:
                 pxe_menu_items = pxe_menu_items + contents + "\n"
