@@ -93,10 +93,10 @@ class System(item.Item):
         # set appropriate fields if the name implicitly is a MAC or IP.
         # if the name is a hostname though, don't intuit that, as that's hard to determine
 
-        if utils.is_mac(self.name):
-           self.mac_address = self.name
-        elif utils.is_ip(self.name):
-           self.ip_address = self.name
+        if utils.is_mac(name):
+           self.mac_address = name
+        elif utils.is_ip(name):
+           self.ip_address = name
         self.name = name 
 
         return True
