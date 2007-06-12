@@ -332,11 +332,10 @@ class BootSync:
            self.mkdir(copy_path)
            dest = os.path.join(copy_path, "ks.cfg")
            try:
-                # will_it_blend = (distro.ks_meta, g.ks_meta)
-                # regular blend
-                # meta = self.blend_options(False, will_it_blend) 
                 meta = utils.blender(False, g)
-
+                ksmeta = meta["ks_meta"]
+                del meta["ks_meta"]
+                meta.update(ksmeta) # make available at top level
                 meta["yum_repo_stanza"] = self.generate_repo_stanza(g)
                 meta["yum_config_stanza"] = self.generate_config_stanza(g)
                 meta["kickstart_done"] = self.generate_kickstart_signal(g, is_system=False)
@@ -435,13 +434,10 @@ class BootSync:
             self.mkdir(copy_path)
             dest = os.path.join(copy_path, "ks.cfg")
             try:
-                # regular blend
-                #meta = self.blend_options(False,(
-                #    distro.ks_meta,
-                #    profile.ks_meta,
-                #    s.ks_meta
-                #))
                 meta = utils.blender(False, s)
+                ksmeta = meta["ks_meta"]
+                del meta["ks_meta"]
+                meta.update(ksmeta) # make available at top level
                 meta["yum_repo_stanza"] = self.generate_repo_stanza(profile)
                 meta["yum_config_stanza"] = self.generate_config_stanza(profile)
                 meta["kickstart_done"]  = self.generate_kickstart_signal(profile, is_system=True)
@@ -612,23 +608,9 @@ class BootSync:
 
         # now build the kernel command line
         if system is not None:
-            # kernel blend
-            #kopts = self.blend_options(True,(
-            #    self.settings.kernel_options,
-            #    profile.kernel_options,
-            #    distro.kernel_options,
-            #    system.kernel_options
-            #))
             kopts = utils.blender(True,system)["kernel_options"]
         else:
-            # kernel blend
-            #kopts = self.blend_options(True,(
-            #    self.settings.kernel_options,
-            #    profile.kernel_options,
-            #    distro.kernel_options
-            #))
             kopts = utils.blender(True,profile)["kernel_options"]
-
 
         # ---
         # generate the append line
