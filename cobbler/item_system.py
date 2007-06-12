@@ -80,7 +80,7 @@ class System(item.Item):
         """
         Return object next highest up the tree.
         """
-        return self.config.distros().find(self.distro_name)
+        return self.config.profiles().find(self.profile)
 
     def set_name(self,name):
         """

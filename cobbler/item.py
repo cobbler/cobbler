@@ -27,9 +27,38 @@ class Item(serializable.Serializable):
         self.config = config
         self.settings = self.config._settings
         self.clear()
+        self.children = {}
 
     def clear(self):
         raise exceptions.NotImplementedError
+
+    def get_children(self):
+        """
+        Get direct children of this object.
+   
+        FIXME: testing
+        """
+        keys = self.children.keys()
+        keys.sort()
+        results = []
+        for k in keys:
+           results.append(self.children[k])
+        return results
+
+    def get_descendants(self):
+        """
+        Get objects that depend on this object, i.e. those that
+        would be affected by a cascading delete, etc.
+
+        FIXME: testing
+        """
+        results = []
+        kids = self.get_children()
+        results.extend(kids)
+        for kid in kids:
+            grandkids = kid.get_descendants()
+            results.extend(grandkids)
+        return results
 
     def get_parent(self):
         """

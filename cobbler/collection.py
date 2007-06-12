@@ -60,10 +60,11 @@ class Collection(serializable.Serializable):
         no objects can be found.
         """
         n1 = name.lower()
-        for key in self.listing.keys():
-            if key.lower() == n1:
-                return self.listing[key]
-        return None
+        listing = self.listing
+        if listing.has_key(n1):
+            return self.listing[n1]
+        else:
+            return None
 
     def to_datastruct(self):
         """
@@ -99,13 +100,15 @@ class Collection(serializable.Serializable):
             raise CX(_("invalid parameter"))
         if not with_copy:
             # don't need to run triggers, so add it already ...
-            self.listing[ref.name] = ref
+            self.listing[ref.name.lower()] = ref
+
 
         # perform filesystem operations
         if with_copy:
             # failure of a pre trigger will prevent the object from being added
             self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
-            self.listing[ref.name] = ref
+            self.listing[ref.name.lower()] = ref
+            self.config.api.serialize()
             lite_sync = action_litesync.BootLiteSync(self.config)
             if isinstance(ref, item_system.System):
                 lite_sync.add_single_system(ref.name)
@@ -117,9 +120,12 @@ class Collection(serializable.Serializable):
                 print _("Internal error. Object type not recognized: %s") % type(ref)
         
             # save the tree, so if neccessary, scripts can examine it.
-            self.config.api.serialize()
             self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type())
- 
+        
+        # update children cache in parent object
+        parent = ref.get_parent()
+        if parent != None:
+            parent.children[ref.name] = ref
 
         return True
 

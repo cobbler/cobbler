@@ -49,7 +49,6 @@ class Distro(item.Item):
         """
         return None
 
-
     def from_datastruct(self,seed_data):
         """
         Modify this object to take on values in seed_data
@@ -175,5 +174,8 @@ class Distro(item.Item):
         buf = buf + _("architecture    : %s\n") % self.arch
         buf = buf + _("ks metadata     : %s\n") % self.ks_meta
         buf = buf + _("breed           : %s\n") % self.breed
+        # FIXME: temporary
+        buf = buf + _("children        : %s\n") % self.get_children()
+        buf = buf + _("descendants     : %s\n") % self.get_descendants()
         return buf
 

@@ -95,7 +95,7 @@ class BootLiteSync:
         # get the system object:
         system = self.systems.find(name)
         if system is None:
-            raise CX(_("error in system lookup"))
+            raise CX(_("error in system lookup for %s") % name)
         # rebuild system_list file in webdir
         self.sync.regen_ethers() # /etc/ethers, for dnsmasq & rarpd
         self.sync.regen_hosts()  # /var/lib/cobbler/cobbler_hosts, pretty much for dnsmasq
