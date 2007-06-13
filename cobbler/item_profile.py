@@ -28,24 +28,25 @@ class Profile(item.Item):
         cloned.from_datastruct(ds)
         return cloned
 
-    def clear(self):
+    def clear(self,is_subobject=False):
         """
         Reset this object.
         """
-        self.name = None
-        self.distro = None # a name, not a reference
-        self.kickstart = self.settings.default_kickstart
-        self.kernel_options = {}
-        self.ks_meta = {} 
-        self.virt_file_size = 5    # GB.  5 = Decent _minimum_ default for FC5.
-        self.virt_ram = 512        # MB.  Install with 256 not likely to pass
-        self.repos = ""            # names of cobbler repo definitions
+        self.name            = None
+        self.distro          = (None,                            '<<inherit>>')[is_subobject]
+        self.kickstart       = (self.settings.default_kickstart, '<<inherit>>')[is_subobject]    
+        self.kernel_options  = ({},                              '<<inherit>>')[is_subobject]
+        self.ks_meta         = ({},                              '<<inherit>>')[is_subobject]
+        self.virt_file_size  = (5,                               '<<inherit>>')[is_subobject]
+        self.virt_ram        = (512,                             '<<inherit>>')[is_subobject]
+        self.repos           = ("",                              '<<inherit>>')[is_subobject]
 
     def from_datastruct(self,seed_data):
         """
         Load this object's properties based on seed_data
         """
 
+        self.parent          = self.load_item(seed_data,'parent')
         self.name            = self.load_item(seed_data,'name')
         self.distro          = self.load_item(seed_data,'distro')
         self.kickstart       = self.load_item(seed_data,'kickstart')
@@ -62,12 +63,32 @@ class Profile(item.Item):
         self.virt_file_size  = self.load_item(seed_data,'virt_file_size')
 
         # backwards compatibility -- convert string entries to dicts for storage
-        if type(self.kernel_options) != dict:
+        if self.kernel_options != "<<inherit>>" and type(self.kernel_options) != dict:
             self.set_kernel_options(self.kernel_options)
-        if type(self.ks_meta) != dict:
+        if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
             self.set_ksmeta(self.ks_meta)
 
         return self
+
+    def set_parent(self,parent_name):
+        """
+        Instead of a --distro, set the parent of this object to another profile
+        and use the values from the parent instead of this one where the values
+        for this profile aren't filled in, and blend them together where they
+        are hashes.  Basically this enables profile inheritance.  To use this,
+        the object MUST have been constructed with is_subobject=True or the
+        default values for everything will be screwed up and this will likely NOT
+        work.  So, API users -- make sure you pass is_subobject=True into the
+        constructor when using this.
+        """
+        if parent_name == self.name:
+           # check must be done in two places as set_parent could be called before/after
+           # set_name...
+           raise CX(_("self parentage is weird"))
+        found = self.config.profiles().find(parent_name)
+        if found is None:
+           raise CX(_("profile %s not found, inheritance not possible") % parent_name)
+        self.parent = parent_name       
 
     def set_distro(self,distro_name):
         """
@@ -80,6 +101,10 @@ class Profile(item.Item):
         raise CX(_("distribution not found"))
 
     def set_repos(self,repos):
+        if repos == "<<inherit>>":
+            self.repos = "<<inherit>>"
+            return
+
         if type(repos) != list:
             # allow backwards compatibility support of string input
             repolist = repos.split(None)
@@ -152,7 +177,11 @@ class Profile(item.Item):
         """
         Return object next highest up the tree.
         """
-        return self.config.distros().find(self.distro)
+        if self.parent is None or self.parent == '':
+            result = self.config.distros().find(self.distro)
+        else:
+            result = self.config.profiles().find(self.parent)
+        return result
 
     def is_valid(self):
         """
@@ -160,9 +189,19 @@ class Profile(item.Item):
 	as well as Virt info, are optional.  (Though I would say provisioning
 	without a kickstart is *usually* not a good idea).
 	"""
-        for x in (self.name, self.distro):
-            if x is None:
-                return False
+        if self.parent is None or self.parent == '':
+            # all values must be filled in if not inheriting from another profile
+            if self.name is None:
+                raise CX(_("no name specified"))
+            if self.distro is None:
+                raise CX(_("no distro specified"))
+        else:
+            # if inheriting, specifying distro is not allowed, and
+            # name is required, but there are no other rules.
+            if self.name is None:
+                raise CX(_("no name specified"))
+            if self.distro != "<<inherit>>":
+                raise CX(_("cannot override distro when inheriting a profile"))
         return True
 
     def to_datastruct(self):
@@ -177,7 +216,8 @@ class Profile(item.Item):
             'virt_file_size'   : self.virt_file_size,
             'virt_ram'         : self.virt_ram,
             'ks_meta'          : self.ks_meta,
-            'repos'            : self.repos
+            'repos'            : self.repos,
+            'parent'           : self.parent
         }
 
     def printable(self):

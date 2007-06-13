@@ -255,8 +255,8 @@ def blender(remove_hashes, root_obj):
     consolidated data.
     """
     settings = api.BootAPI().settings()
-
     tree = grab_tree(root_obj)
+    tree.reverse()  # start with top of tree, override going down
     results = {}
     for node in tree:
         __consolidate(node,results)
@@ -281,15 +281,41 @@ def __consolidate(node,results):
     specially.
     """
     node_data =  node.to_datastruct()
-    for field in node_data:
-       data_item = node_data[field] 
+
+    # if the node has any data items labelled <<inherit>> we need to expunge them.
+    # so that they do not override the supernodes.
+    node_data_copy = {}
+    for key in node_data:
+       value = node_data[key]
+       if value != "<<inherit>>":
+          node_data_copy[key] = value
+
+    for field in node_data_copy:
+
+       data_item = node_data_copy[field] 
        if results.has_key(field):
+ 
+          # FIXME: remove, we're doing this higher up
+          #    for subobjects (child objects), a value of <<inherit>>
+          #    means defer up the stack, and by definition usage of the API
+          #    must ensure the value is valid somewhere up the stack.  So, remove
+          #    any magic values of <<inherit>> prior to blending.
+          #if data_item == '<<inherit>>':
+          #   # don't load into results hash, the parent will have the
+          #   # data we need.
+          #   continue
+
+          # now merge data types seperately depending on whether they are hash, list,
+          # or scalar.
           if type(data_item) == dict:
+             # interweave hash results
              results[field].update(data_item)
           elif type(data_item) == list or type(data_item) == tuple:
+             # add to lists (cobbler doesn't have many lists)
+             # FIXME: should probably uniqueify list after doing this
              results[field].extend(data_item)
           else:
-             # override
+             # just override scalars
              results[field] = data_item
        else:
           results[field] = data_item

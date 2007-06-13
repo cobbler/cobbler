@@ -97,7 +97,8 @@ class Collection(serializable.Serializable):
 
         """
         if ref is None or not ref.is_valid():
-            raise CX(_("invalid parameter"))
+            raise CX(_("insufficient or invalid arguments supplied"))
+        print "DEBUG: adding object %s" % ref.name
         if not with_copy:
             # don't need to run triggers, so add it already ...
             self.listing[ref.name.lower()] = ref
@@ -126,7 +127,6 @@ class Collection(serializable.Serializable):
         parent = ref.get_parent()
         if parent != None:
             parent.children[ref.name] = ref
-
         return True
 
     def _run_triggers(self,ref,globber):

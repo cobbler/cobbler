@@ -100,29 +100,29 @@ class Config:
        """
        return self._repos
 
-   def new_distro(self):
+   def new_distro(self,is_subobject=False):
        """
        Create a new distro object with a backreference to this object
        """
-       return distro.Distro(weakref.proxy(self))
+       return distro.Distro(weakref.proxy(self),is_subobject=is_subobject)
 
-   def new_system(self):
+   def new_system(self,is_subobject=False):
        """
        Create a new system with a backreference to this object
        """
-       return system.System(weakref.proxy(self))
+       return system.System(weakref.proxy(self),is_subobject=is_subobject)
 
-   def new_profile(self):
+   def new_profile(self,is_subobject=False):
        """
        Create a new profile with a backreference to this object
        """
-       return profile.Profile(weakref.proxy(self))
+       return profile.Profile(weakref.proxy(self),is_subobject=is_subobject)
 
-   def new_repo(self):
+   def new_repo(self,is_subobject=False):
        """
        Create a new mirror to keep track of...
        """
-       return repo.Repo(weakref.proxy(self))
+       return repo.Repo(weakref.proxy(self),is_subobject=is_subobject)
 
    def clear(self):
        """

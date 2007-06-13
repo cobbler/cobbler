@@ -80,30 +80,30 @@ class BootAPI:
         """
         return self._config.settings()
 
-    def new_system(self):
+    def new_system(self,is_subobject=False):
         """
         Return a blank, unconfigured system, unattached to a collection
         """
-        return self._config.new_system()
+        return self._config.new_system(is_subobject=is_subobject)
 
-    def new_distro(self):
+    def new_distro(self,is_subobject=False):
         """
         Create a blank, unconfigured distro, unattached to a collection.
         """
-        return self._config.new_distro()
+        return self._config.new_distro(is_subobject=is_subobject)
 
 
-    def new_profile(self):
+    def new_profile(self,is_subobject=False):
         """
         Create a blank, unconfigured profile, unattached to a collection
         """
-        return self._config.new_profile()
+        return self._config.new_profile(is_subobject=is_subobject)
 
-    def new_repo(self):
+    def new_repo(self,is_subobject=False):
         """
         Create a blank, unconfigured repo, unattached to a collection
         """
-        return self._config.new_repo()
+        return self._config.new_repo(is_subobject=is_subobject)
 
     def check(self):
         """

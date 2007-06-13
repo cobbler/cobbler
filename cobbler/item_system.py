@@ -28,17 +28,21 @@ class System(item.Item):
         cloned.from_datastruct(ds)
         return cloned
 
-    def clear(self):
-        self.name = None
-        self.profile = None # a name, not a reference
-        self.kernel_options = {}
-        self.ks_meta = {}
-        self.ip_address = ""  # bad naming here, to the UI, this is usually 'ip-address'
-        self.mac_address = ""  
-        self.netboot_enabled = 1 
-        self.hostname = ""
+    def clear(self,is_subobject=False):
+        # names of cobbler repo definitions
+  
+        self.name            = None
+        self.profile         = (None,     '<<inherit>>')[is_subobject]
+        self.kernel_options  = ({},       '<<inherit>>')[is_subobject]
+        self.ks_meta         = ({},       '<<inherit>>')[is_subobject]
+        self.ip_address      = ("",       '<<inherit>>')[is_subobject]
+        self.mac_address     = ("",       '<<inherit>>')[is_subobject]  
+        self.netboot_enabled = (1,        '<<inherit>>')[is_subobject] 
+        self.hostname        = ("",       '<<inheirt>>')[is_subobject]
 
     def from_datastruct(self,seed_data):
+
+        self.parent          = self.load_item(seed_data, 'parent')
         self.name            = self.load_item(seed_data, 'name')
         self.profile         = self.load_item(seed_data, 'profile')
         self.kernel_options  = self.load_item(seed_data, 'kernel_options')
@@ -82,7 +86,10 @@ class System(item.Item):
         """
         Return object next highest up the tree.
         """
-        return self.config.profiles().find(self.profile)
+        if self.parent is None or self.parent == '':
+            return self.config.profiles().find(self.profile)
+        else:
+            return self.config.systems().find(self.parent)
 
     def set_name(self,name):
         """
@@ -198,6 +205,8 @@ class System(item.Item):
         """
 	A system is valid when it contains a valid name and a profile.
 	"""
+        # NOTE: this validation code does not support inheritable distros at this time.
+        # this is by design as inheritable systems don't make sense.
         if self.name is None:
             return False
         if self.profile is None:
@@ -213,7 +222,8 @@ class System(item.Item):
            'ip_address'      : self.ip_address,
            'netboot_enabled' : self.netboot_enabled,
            'hostname'        : self.hostname,
-           'mac_address'     : self.mac_address
+           'mac_address'     : self.mac_address,
+           'parent'          : self.parent
         }
 
     def printable(self):

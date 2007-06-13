@@ -27,15 +27,17 @@ class Repo(item.Item):
         cloned.from_datastruct(ds)
         return cloned
 
-    def clear(self):
-        self.name = None                    # is required 
-        self.mirror = None                  # is required
-        self.keep_updated = 1               # has reasonable defaults
-        self.local_filename = ""            # off by default
-        self.rpm_list = ""                  # just get selected RPMs + deps
-        self.createrepo_flags = "-c cache"  # none by default
-
+    def clear(self,is_subobject=False):
+        self.parent           = None
+        self.name             = None
+        self.mirror           = (None,       '<<inherit>>')[is_subobject]
+        self.keep_updated     = (None,       '<<inherit>>')[is_subobject]
+        self.local_filename   = ("",         '<<inherit>>')[is_subobject]
+        self.rpm_list         = ("",         '<<inherit>>')[is_subobject]
+        self.createrepo_flags = ("-c cache", '<<inherit>>')[is_subobject]
+        
     def from_datastruct(self,seed_data):
+        self.parent           = self.load_item(seed_data, 'parent')
         self.name             = self.load_item(seed_data, 'name')
         self.mirror           = self.load_item(seed_data, 'mirror')
         self.keep_updated     = self.load_item(seed_data, 'keep_updated')
@@ -127,7 +129,8 @@ class Repo(item.Item):
            'keep_updated'     : self.keep_updated,
            'local_filename'   : self.local_filename,
            'rpm_list'         : self.rpm_list,
-           'createrepo_flags' : self.createrepo_flags
+           'createrepo_flags' : self.createrepo_flags,
+           'parent'           : self.parent
         }
 
     def printable(self):
@@ -140,6 +143,10 @@ class Repo(item.Item):
         return buf
 
     def get_parent(self):
+        """
+        currently the Cobbler object space does not support subobjects of this object
+        as it is conceptually not useful.  
+        """
         return None
 
     def is_rsync_mirror(self):

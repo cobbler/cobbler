@@ -14,4 +14,4 @@ cobbler TODO list.
 -  build net-install CD images
 -  build non-net-install CD from cobbler profile
 -  have pre and post triggers, check return codes and validate
-
+-  make is_valid throw exceptions that explains exactly what is wrong.

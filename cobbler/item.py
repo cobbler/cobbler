@@ -22,15 +22,35 @@ class Item(serializable.Serializable):
 
     TYPE_NAME = "generic"
 
-    def __init__(self,config):
+    def __init__(self,config,is_subobject=False):
         """
         Constructor.  Requires a back reference to the Config management object.
+        
+        NOTE: is_subobject is used for objects that allow inheritance in their trees.  This
+        inheritance refers to conceptual inheritance, not Python inheritance.  Objects created
+        with is_subobject need to call their set_parent() method immediately after creation
+        and pass in a value of an object of the same type.  Currently this is only supported
+        for profiles.  Subobjects blend their data with their parent objects and only require
+        a valid parent name and a name for themselves, so other required options can be
+        gathered from items further up the cobbler tree.
+
+        Old cobbler:             New cobbler:
+        distro                   distro
+          profile                   profile
+            system                     profile  <-- created with is_subobject=True
+                                         system   <-- created as normal
+
+        For consistancy, there is some code supporting this in all object types, though it is only usable
+        (and only should be used) for profiles at this time.  Objects that are children of
+        objects of the same type (i.e. subprofiles) need to pass this in as True.  Otherwise, just
+        use False for is_subobject and the parent object will (therefore) have a different type.
+
         """
         self.config = config
         self.settings = self.config._settings
-        self.clear()
-        self.children = {}             # caching for performance reasons, not serialized
-        self.conceptual_parent = None  # " "
+        self.clear(is_subobject)      # reset behavior differs for inheritance cases
+        self.parent = None            # all objects by default are not subobjects
+        self.children = {}            # caching for performance reasons, not serialized
 
     def clear(self):
         raise exceptions.NotImplementedError
@@ -72,9 +92,6 @@ class Item(serializable.Serializable):
         subprofile.  Get the first parent of a different type.
         """
 
-        if self.conceptual_parent is not None:
-            return self.conceptual_parent
-
         # FIXME: this is a workaround to get the type of an instance var
         # what's a more clean way to do this that's python 2.3 friendly?
         # this returns something like:  cobbler.item_system.System
@@ -85,7 +102,7 @@ class Item(serializable.Serializable):
            if mtype != ptype:
               self.conceptual_parent = parent
               return parent
-
+           parent = parent.get_parent()
         return None
 
     def set_name(self,name):
@@ -93,6 +110,8 @@ class Item(serializable.Serializable):
         All objects have names, and with the exception of System
         they aren't picky about it.
         """
+        if self.name not in ["",None] and self.parent not in ["",None] and self.name == self.parent:
+            raise CX(_("self parentage is weird"))
         self.name = name
         return True
 
@@ -125,7 +144,7 @@ class Item(serializable.Serializable):
         """
         Used in subclass from_datastruct functions to load items from
         a hash.  Intented to ease backwards compatibility of config
-        files during upgrades.
+        files during upgrades.  
         """
         if datastruct.has_key(key):
             return datastruct[key]

@@ -112,7 +112,7 @@ class BootCLI:
         Run the command line and return system exit code
         """
         self.api.deserialize()
-        self.curry_args(self.args[1:], self.commands['toplevel'])
+        self.relay_args(self.args[1:], self.commands['toplevel'])
 
     def usage(self,args):
         """
@@ -173,8 +173,7 @@ class BootCLI:
     # LISTING FUNCTIONS
 
     def list(self,args):
-        collection = self.api.distros()
-        self.__tree(collection,0)
+        self.__tree(self.api.distros(),0)
         self.__tree(self.api.repos(),0)
 
     def __tree(self,collection,level):
@@ -262,8 +261,8 @@ class BootCLI:
     ######################################################################
     # BASIC FRAMEWORK
 
-    def __generic_add(self,args,new_fn,control_fn):
-        obj = new_fn()
+    def __generic_add(self,args,new_fn,control_fn,does_inherit):
+        obj = new_fn(is_subobject=does_inherit)
         control_fn(args,obj)
 
     def __generic_edit(self,args,collection_fn,control_fn,exc_msg):
@@ -379,18 +378,42 @@ class BootCLI:
    
     #####################################################################
     # ADD FUNCTIONS
- 
+
+    def __prescan_for_inheritance_args(self,args):
+        """
+        Normally we just feed all the arguments through to the functions
+        in question, but here, we need to send a special flag to the foo_add
+        functions if we are creating a subobject, because that needs to affect
+        what function calls we make.  So, this checks to see if the user
+        is creating a subobject by looking for --inherit in the arguments list,
+        before we actually parse the --inherit arg.  Complicated :)
+        """
+        for x in args:
+            try:
+                key, value = x.split("=",1)
+                value = value.replace('"','').replace("'",'')
+                if key == "--inherit":
+                   return True
+            except:
+                traceback.print_exc() # FIXME: remove
+                pass
+        return False
+
     def distro_add(self,args):
-        self.__generic_add(args,self.api.new_distro,self.__distro_control)
+        does_inherit = self.__prescan_for_inheritance_args(args)
+        self.__generic_add(args,self.api.new_distro,self.__distro_control,does_inherit)
 
     def profile_add(self,args):
-        self.__generic_add(args,self.api.new_profile,self.__profile_control)    
+        does_inherit = self.__prescan_for_inheritance_args(args)
+        self.__generic_add(args,self.api.new_profile,self.__profile_control,does_inherit)    
 
     def system_add(self,args):
-        self.__generic_add(args,self.api.new_system,self.__system_control)
+        does_inherit = self.__prescan_for_inheritance_args(args)
+        self.__generic_add(args,self.api.new_system,self.__system_control,does_inherit)
 
     def repo_add(self,args):
-        self.__generic_add(args,self.api.new_repo,self.__repo_control)
+        does_inherit = self.__prescan_for_inheritance_args(args)
+        self.__generic_add(args,self.api.new_repo,self.__repo_control,does_inherit)
 
 
     ###############################################################
@@ -402,6 +425,7 @@ class BootCLI:
         """
         commands = {
             '--name'            :  lambda(a) : profile.set_name(a),
+            '--inherit'         :  lambda(a) : profile.set_parent(a),
             '--newname'         :  lambda(a) : True,
             '--profile'         :  lambda(a) : profile.set_name(a),
             '--distro'          :  lambda(a) : profile.set_distro(a),
@@ -507,7 +531,7 @@ class BootCLI:
         on_ok()
         self.api.serialize()
 
-    def curry_args(self, args, commands):
+    def relay_args(self, args, commands):
         """
         Lookup command args[0] in the dispatch table and
         feed it the remaining args[1:-1] as arguments.
@@ -652,25 +676,25 @@ class BootCLI:
         """
         Handles any of the 'cobbler distro' subcommands
         """
-        return self.curry_args(args, self.commands['distro'])
+        return self.relay_args(args, self.commands['distro'])
 
     def profile(self,args):
         """
         Handles any of the 'cobbler profile' subcommands
         """
-        return self.curry_args(args, self.commands['profile'])
+        return self.relay_args(args, self.commands['profile'])
 
     def system(self,args):
         """
         Handles any of the 'cobbler system' subcommands
         """
-        return self.curry_args(args, self.commands['system'])
+        return self.relay_args(args, self.commands['system'])
 
     def repo(self,args):
         """
         Handles any of the 'cobbler repo' subcommands
         """
-        return self.curry_args(args, self.commands['repo'])
+        return self.relay_args(args, self.commands['repo'])
 
 ####################################################
 

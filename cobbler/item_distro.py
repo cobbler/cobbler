@@ -26,18 +26,18 @@ class Distro(item.Item):
 
     TYPE_NAME = _("distro")
 
-    def clear(self):
+    def clear(self,is_subobject=False):
         """
         Reset this object.
         """
-        self.name = None
-        self.kernel = None
-        self.initrd = None
-        self.kernel_options = {}
-        self.ks_meta = {}
-        self.arch = "x86"
-        self.breed = "redhat"
-        self.source_repos = []
+        self.name           = None
+        self.kernel         = (None,     '<<inherit>>')[is_subobject]
+        self.initrd         = (None,     '<<inherit>>')[is_subobject]
+        self.kernel_options = ({},       '<<inherit>>')[is_subobject]
+        self.ks_meta        = ({},       '<<inherit>>')[is_subobject]
+        self.arch           = ('x86',    '<<inherit>>')[is_subobject]
+        self.breed          = ('redhat', '<<inherit>>')[is_subobject]
+        self.source_repos   = ([],       '<<inherit>>')[is_subobject]
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -48,13 +48,19 @@ class Distro(item.Item):
     def get_parent(self):
         """
         Return object next highest up the tree.
+        NOTE: conceptually there is no need for subdistros, but it's implemented
+        anyway for testing purposes
         """
-        return None
+        if self.parent is None or self.parent == '':
+            return None
+        else:
+            return self.config.distros().find(self.parent)
 
     def from_datastruct(self,seed_data):
         """
         Modify this object to take on values in seed_data
         """
+        self.parent         = self.load_item(seed_data,'parent')
         self.name           = self.load_item(seed_data,'name')
         self.kernel         = self.load_item(seed_data,'kernel')
         self.initrd         = self.load_item(seed_data,'initrd')
@@ -135,8 +141,11 @@ class Distro(item.Item):
 	A distro requires that the kernel and initrd be set.  All
 	other variables are optional.
 	"""
+        # NOTE: this code does not support inheritable distros at this time.
+        # this is by design because inheritable distros do not make sense.
         for x in (self.name,self.kernel,self.initrd):
-            if x is None: return False
+            if x is None: 
+                return False
         return True
 
     def to_datastruct(self):
@@ -151,7 +160,8 @@ class Distro(item.Item):
            'ks_meta'        : self.ks_meta,
            'arch'           : self.arch,
            'breed'          : self.breed,
-           'source_repos'   : self.source_repos
+           'source_repos'   : self.source_repos,
+           'parent'         : self.parent
         }
 
     def printable(self):
