@@ -98,7 +98,6 @@ class Collection(serializable.Serializable):
         """
         if ref is None or not ref.is_valid():
             raise CX(_("insufficient or invalid arguments supplied"))
-        print "DEBUG: adding object %s" % ref.name
         if not with_copy:
             # don't need to run triggers, so add it already ...
             self.listing[ref.name.lower()] = ref
