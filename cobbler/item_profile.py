@@ -40,6 +40,7 @@ class Profile(item.Item):
         self.virt_file_size  = (5,                               '<<inherit>>')[is_subobject]
         self.virt_ram        = (512,                             '<<inherit>>')[is_subobject]
         self.repos           = ("",                              '<<inherit>>')[is_subobject]
+        self.depth           = 1
 
     def from_datastruct(self,seed_data):
         """
@@ -53,7 +54,8 @@ class Profile(item.Item):
         self.kernel_options  = self.load_item(seed_data,'kernel_options')
         self.ks_meta         = self.load_item(seed_data,'ks_meta')
         self.repos           = self.load_item(seed_data,'repos', [])
-      
+        self.depth           = self.load_item(seed_data,'depth', 1)     
+ 
         # backwards compatibility
         if type(self.repos) != list:
             self.set_repos(self.repos)
@@ -89,14 +91,17 @@ class Profile(item.Item):
         if found is None:
            raise CX(_("profile %s not found, inheritance not possible") % parent_name)
         self.parent = parent_name       
+        self.depth = found.depth + 1
 
     def set_distro(self,distro_name):
         """
 	Sets the distro.  This must be the name of an existing
 	Distro object in the Distros collection.
 	"""
-        if self.config.distros().find(distro_name):
+        d = self.config.distros().find(distro_name)
+        if d is not None:
             self.distro = distro_name
+            self.depth  = d.depth +1 # reset depth if previously a subprofile and now top-level
             return True
         raise CX(_("distribution not found"))
 
@@ -217,7 +222,8 @@ class Profile(item.Item):
             'virt_ram'         : self.virt_ram,
             'ks_meta'          : self.ks_meta,
             'repos'            : self.repos,
-            'parent'           : self.parent
+            'parent'           : self.parent,
+            'depth'            : self.depth
         }
 
     def printable(self):

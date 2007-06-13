@@ -38,6 +38,7 @@ class Distro(item.Item):
         self.arch           = ('x86',    '<<inherit>>')[is_subobject]
         self.breed          = ('redhat', '<<inherit>>')[is_subobject]
         self.source_repos   = ([],       '<<inherit>>')[is_subobject]
+        self.depth          = 0
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -69,6 +70,7 @@ class Distro(item.Item):
         self.arch           = self.load_item(seed_data,'arch','x86')
         self.breed          = self.load_item(seed_data,'breed','redhat')
         self.source_repos   = self.load_item(seed_data,'source_repos',[])
+        self.depth          = self.load_item(seed_data,'depth',0)
 
         # backwards compatibility -- convert string entries to dicts for storage
         if type(self.kernel_options) != dict:
@@ -161,7 +163,8 @@ class Distro(item.Item):
            'arch'           : self.arch,
            'breed'          : self.breed,
            'source_repos'   : self.source_repos,
-           'parent'         : self.parent
+           'parent'         : self.parent,
+           'depth'          : self.depth
         }
 
     def printable(self):

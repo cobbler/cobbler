@@ -29,8 +29,6 @@ class System(item.Item):
         return cloned
 
     def clear(self,is_subobject=False):
-        # names of cobbler repo definitions
-  
         self.name            = None
         self.profile         = (None,     '<<inherit>>')[is_subobject]
         self.kernel_options  = ({},       '<<inherit>>')[is_subobject]
@@ -39,6 +37,7 @@ class System(item.Item):
         self.mac_address     = ("",       '<<inherit>>')[is_subobject]  
         self.netboot_enabled = (1,        '<<inherit>>')[is_subobject] 
         self.hostname        = ("",       '<<inheirt>>')[is_subobject]
+        self.depth           = 2
 
     def from_datastruct(self,seed_data):
 
@@ -47,7 +46,8 @@ class System(item.Item):
         self.profile         = self.load_item(seed_data, 'profile')
         self.kernel_options  = self.load_item(seed_data, 'kernel_options')
         self.ks_meta         = self.load_item(seed_data, 'ks_meta')
-        
+        self.depth           = self.load_item(seed_data, 'depth')        
+
         # backwards compat, load --ip-address from two possible sources.
         # the old --pxe-address was a bit of a misnomer, new value is --ip-address
 
@@ -175,8 +175,10 @@ class System(item.Item):
 	Set the system to use a certain named profile.  The profile
 	must have already been loaded into the Profiles collection.
 	"""
-        if self.config.profiles().find(profile_name):
+        p = self.config.profiles().find(profile_name)
+        if p is not None:
             self.profile = profile_name
+            self.depth = p.depth + 1 # subprofiles have varying depths.
             return True
         raise CX(_("invalid profile name"))
 
@@ -223,7 +225,8 @@ class System(item.Item):
            'netboot_enabled' : self.netboot_enabled,
            'hostname'        : self.hostname,
            'mac_address'     : self.mac_address,
-           'parent'          : self.parent
+           'parent'          : self.parent,
+           'depth'           : self.depth
         }
 
     def printable(self):

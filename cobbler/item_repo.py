@@ -35,7 +35,8 @@ class Repo(item.Item):
         self.local_filename   = ("",         '<<inherit>>')[is_subobject]
         self.rpm_list         = ("",         '<<inherit>>')[is_subobject]
         self.createrepo_flags = ("-c cache", '<<inherit>>')[is_subobject]
-        
+        self.depth            = 2  # arbitrary, as not really apart of the graph         
+
     def from_datastruct(self,seed_data):
         self.parent           = self.load_item(seed_data, 'parent')
         self.name             = self.load_item(seed_data, 'name')
@@ -44,6 +45,7 @@ class Repo(item.Item):
         self.local_filename   = self.load_item(seed_data, 'local_filename')
         self.rpm_list         = self.load_item(seed_data, 'rpm_list')
         self.createrepo_flags = self.load_item(seed_data, 'createrepo_flags', '-c cache')
+        self.depth            = self.load_item(seed_data, 'depth', 2)
         return self
 
     def set_name(self,name):
@@ -130,7 +132,8 @@ class Repo(item.Item):
            'local_filename'   : self.local_filename,
            'rpm_list'         : self.rpm_list,
            'createrepo_flags' : self.createrepo_flags,
-           'parent'           : self.parent
+           'parent'           : self.parent,
+           'depth'            : self.depth
         }
 
     def printable(self):

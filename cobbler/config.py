@@ -59,10 +59,16 @@ class Config:
        self._settings     = settings.Settings() # not a true collection
        self._repos        = repos.Repos(weakref.proxy(self))
        self._classes = [
+          self._settings,
           self._distros,
           self._profiles,
           self._systems,
-          self._settings,
+          self._repos
+       ]
+       self._graph_classes = [
+          self._distros,
+          self._profiles,
+          self._systems,
           self._repos
        ]
        self.file_check()
@@ -157,8 +163,10 @@ class Config:
        """
        Load the object hierachy from disk, using the filenames referenced in each object.
        """
-       for x in self._classes:
-          if not serializer.deserialize(x):
+       if not serializer.deserialize(self._settings,topological=False):
+          return False
+       for x in self._graph_classes:
+          if not serializer.deserialize(x,topological=True):
               return False
        return True
 

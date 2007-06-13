@@ -49,7 +49,7 @@ def serialize(obj):
     fd.close()
     return True
 
-def deserialize(obj):
+def deserialize(obj,topological=False):
     """
     Populate an existing object with the contents of datastruct.
     Object must "implement" Serializable.  Returns True assuming
@@ -69,7 +69,21 @@ def deserialize(obj):
     data = fd.read()
     datastruct = yaml.load(data).next()  # first record
     fd.close()
+
+    if topological:
+       # in order to build the graph links from the flat list, sort by the
+       # depth of items in the graph.  If an object doesn't have a depth, sort it as
+       # if the depth were 0.  It will be assigned a proper depth at serialization
+       # time.  This is a bit cleaner implementation wise than a topological sort,
+       # though that would make a shiny upgrade.
+       datastruct.sort(cmp=__depth_cmp)
     obj.from_datastruct(datastruct)
     return True
 
+def __depth_cmp(item1, item2):
+    if not item1.has_key("depth"):
+       return 1
+    if not item2.has_key("depth"):
+       return -1
+    return cmp(item1["depth"],item2["depth"])
 
