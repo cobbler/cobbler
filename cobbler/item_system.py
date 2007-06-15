@@ -38,16 +38,18 @@ class System(item.Item):
         self.netboot_enabled = (1,        '<<inherit>>')[is_subobject] 
         self.hostname        = ("",       '<<inheirt>>')[is_subobject]
         self.depth           = 2
+        self.kickstart       = "<<inherit>>"   # use value in profile
 
     def from_datastruct(self,seed_data):
 
         self.parent          = self.load_item(seed_data, 'parent')
         self.name            = self.load_item(seed_data, 'name')
         self.profile         = self.load_item(seed_data, 'profile')
-        self.kernel_options  = self.load_item(seed_data, 'kernel_options')
-        self.ks_meta         = self.load_item(seed_data, 'ks_meta')
-        self.depth           = self.load_item(seed_data, 'depth')        
-
+        self.kernel_options  = self.load_item(seed_data, 'kernel_options', {})
+        self.ks_meta         = self.load_item(seed_data, 'ks_meta', {})
+        self.depth           = self.load_item(seed_data, 'depth', 2)        
+        self.kickstart       = self.load_item(seed_data, 'kickstart', '<<inherit>>')
+ 
         # backwards compat, load --ip-address from two possible sources.
         # the old --pxe-address was a bit of a misnomer, new value is --ip-address
 
@@ -166,7 +168,7 @@ class System(item.Item):
            return True
         raise CX(_("invalid format for MAC address"))
 
-    def set_ip_address(self,address):
+    def set_pxe_address(self,address):
         # backwards compatibility for API users:
         return self.set_ip_address(address)
 
@@ -210,10 +212,30 @@ class System(item.Item):
         # NOTE: this validation code does not support inheritable distros at this time.
         # this is by design as inheritable systems don't make sense.
         if self.name is None:
+            raise CX(_("need to specify a name for this object"))
             return False
         if self.profile is None:
+            raise CX(_("need to specify a profile for this system"))
             return False
         return True
+
+    def set_kickstart(self,kickstart):
+        """
+        Sets the kickstart.  This must be a NFS, HTTP, or FTP URL.
+        Or filesystem path. Minor checking of the URL is performed here.
+
+        NOTE -- usage of the --kickstart parameter in the profile
+        is STRONGLY encouraged.  This is only for exception cases
+        where a user already has kickstarts made for each system
+        and can't leverage templating.  Profiles provide an important
+        abstraction layer -- assigning systems to defined and repeatable 
+        roles.
+        """
+        if utils.find_kickstart(kickstart):
+            self.kickstart = kickstart
+            return True
+        raise CX(_("kickstart not found"))
+
 
     def to_datastruct(self):
         return {
@@ -226,7 +248,8 @@ class System(item.Item):
            'hostname'        : self.hostname,
            'mac_address'     : self.mac_address,
            'parent'          : self.parent,
-           'depth'           : self.depth
+           'depth'           : self.depth,
+           'kickstart'       : self.kickstart
         }
 
     def printable(self):
@@ -240,5 +263,6 @@ class System(item.Item):
         buf = buf + _("pxe info set?    : %s\n") % self.is_pxe_supported()
         buf = buf + _("config id        : %s\n") % utils.get_config_filename(self)
         buf = buf + _("netboot enabled? : %s\n") % self.netboot_enabled 
+        buf = buf + _("kickstart        : %s\n") % self.kickstart
         return buf
 

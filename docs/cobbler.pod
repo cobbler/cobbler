@@ -133,6 +133,16 @@ If this parameter is not provided, the kickstart file will default to /etc/cobbl
 (optional) a space delimited list of all the repos (created with "cobbler repo add" and "cobbler reposync") that this profile
 can make use of during kickstart installation.  For example, an example might be --repos="fc6i386updates fc6i386extras".
 
+=item inherit
+
+(optional) profiles may inherit from other profiles in lieu of specifing --distro.  Inherited profiles will override any settings specified in their parent, with the exception of --ksmet(templating) and --kopts (kernel options), which will be blended together.  
+
+Example:  If profile A has --kopts="x=7 y=2", B inherits from A, and B has --kopts="x=9 z=2", the actual kernel options that will be used for B are "x=7 y=2 z=2". 
+
+Example:  If profile B has --virt-ram=256 and A has --virt-ram of 512, profile B will use the value 256.  
+
+Example:  If profile A has a --virt-file-size of 5 and B does not specify a size, B will use the value from A.
+
 =back
 
 =head2 ADDING A SYSTEM
@@ -188,6 +198,10 @@ recieve from DNS.  If not using DHCP management or not using dnsmasq, this field
 basically ignored.
 
 Example: --hostname=mycomputer.example.com
+
+=item --kickstart
+
+(optional) While it is recommended that the --kickstart parameter is only used within for the "profile add" command, there are scenarios when an install base switching to cobbler may have kickstarts created on a per-system basis (one kickstart for each system, nothing shared) and may not want to immediately make use of the cobbler templating system.  This allows specifing a kickstart for use on a per-system basis.  Creation of a parent profile is still required.  If the kickstart is a filesystem location, it will still be treated as a cobbler template.
 
 =end
 

@@ -132,7 +132,7 @@ class Profile(item.Item):
     def set_kickstart(self,kickstart):
         """
 	Sets the kickstart.  This must be a NFS, HTTP, or FTP URL.
-	Minor checking of the URL is performed here.
+	Or filesystem path.  Minor checking of the URL is performed here.
 	"""
         if utils.find_kickstart(kickstart):
             self.kickstart = kickstart

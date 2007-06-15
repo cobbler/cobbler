@@ -319,10 +319,11 @@ class BootSync:
 
     def validate_kickstart_for_specific_profile(self,g):
         distro = g.get_conceptual_parent()
+        meta = utils.blender(False, g)
         if distro is None:
            raise CX(_("profile %(profile)s references missing distro %(distro)s") % { "profile" : g.name, "distro" : g.distro })
-        kickstart_path = utils.find_kickstart(g.kickstart)
-        if kickstart_path is not None and os.path.exists(g.kickstart):
+        kickstart_path = utils.find_kickstart(meta["kickstart"])
+        if kickstart_path is not None and os.path.exists(kickstart_path):
            # the input is an *actual* file, hence we have to copy it
            copy_path = os.path.join(
                self.settings.webdir,
@@ -424,7 +425,8 @@ class BootSync:
         if profile is None:
             raise CX(_("system %(system)s references missing profile %(profile)s") % { "system" : s.name, "profile" : s.profile })
         distro = profile.get_conceptual_parent()
-        kickstart_path = utils.find_kickstart(profile.kickstart)
+        meta = utils.blender(False, s)
+        kickstart_path = utils.find_kickstart(meta["kickstart"])
         if kickstart_path and os.path.exists(kickstart_path):
             pxe_fn = utils.get_config_filename(s)
             copy_path = os.path.join(self.settings.webdir,
@@ -434,7 +436,6 @@ class BootSync:
             self.mkdir(copy_path)
             dest = os.path.join(copy_path, "ks.cfg")
             try:
-                meta = utils.blender(False, s)
                 ksmeta = meta["ks_meta"]
                 del meta["ks_meta"]
                 meta.update(ksmeta) # make available at top level
@@ -445,7 +446,7 @@ class BootSync:
                 self.apply_template(kfile, meta, dest)
                 kfile.close()
             except:
-                raise CX(_("Error templating file %s to %s") % { "src" : s.kickstart, "dest" : dest })
+                raise CX(_("Error templating file %s to %s") % { "src" : meta["kickstart"], "dest" : dest })
 
     def apply_template(self, data_input, metadata, out_path):
         """

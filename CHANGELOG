@@ -13,7 +13,7 @@ Cobbler CHANGELOG
 - Patch to allow --createrepo-flags and to cache on import, fix multiple calls to createrepo
 - Various modifications to allow for profile inheritance
 - All variables in object tree now available for use in templating, nicer blending algorithms
-- ~2x speedup in unit tests due to caching of parent relationships
+- Optional override of --kickstart in system object
 
 * Thu Apr 26 2007 - 0.4.8
 - Make import friendlier for older distros
