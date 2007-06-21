@@ -142,6 +142,8 @@ class System(item.Item):
         only record.  Actually Itanium goes beyond all this and needs the IP all of the time
         though this is enforced elsewhere (action_sync.py).
         """
+        if self.name == "default":
+           return True
         mac = self.get_mac_address()
         ip  = self.get_ip_address()
         if mac is None and ip is None:
