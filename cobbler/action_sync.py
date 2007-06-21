@@ -224,9 +224,9 @@ class BootSync:
         fh.close()
 
 
-    def templatify(self, data, metadata, outfile):
-        for x in metadata.keys():
-            template_data = template_data.replace("$%s" % x, metadata[x])
+    #def templatify(self, data, metadata, outfile):
+    #    for x in metadata.keys():
+    #        template_data = template_data.replace("$%s" % x, metadata[x])
 
     def clean_trees(self):
         """

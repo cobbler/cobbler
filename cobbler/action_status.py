@@ -113,14 +113,14 @@ class BootStatusReport:
         time_collisions = 0
         
         #header = ("Address", "State", "Started", "Last Request", "Seconds", "Log Entries")
-        print _("%-20(address)s | %-15(state)s | %-25(started)s | %-25(lastreq)s | %-10(seconds)s | %-6(logentries)s") % {
-           "address"    : _("Address"),
-           "state"      : _("State"),
-           "lastreq"    : _("Last Request"),
-           "started"    : _("Started"),
-           "seconds"    : _("Seconds"),
-           "logentries" : _("Log Entries"),
-        } 
+        print _("%-20s | %-15s | %-25s | %-25s | %-10s | %-6s") % (
+           _("Address"),
+           _("State"),
+           _("Last Request"),
+           _("Started"),
+           _("Seconds"),
+           _("Log Entries")
+        )
 
         
         for ip in ips:
@@ -214,13 +214,13 @@ class BootStatusReport:
             elapsed_time  = "?"   
   
         # print the status line for this IP address
-        print "%-20(ip)s | %-15(state)s | %-25(start)s | %-25(last)s | %-10(elapsed)s | %-6(fcount)s" % {
-            "ip"      : ip, 
-            "state"   : install_state, 
-            "start"   : display_start, 
-            "last"    : display_last, 
-            "elapsed" : elapsed_time, 
-            "fcount"  : fcount
-        }            
+        print "%-20s | %-15s | %-25s | %-25s | %-10s | %-6s" % (
+            ip, 
+            install_state, 
+            display_start, 
+            display_last, 
+            elapsed_time, 
+            fcount
+        )           
  
 
