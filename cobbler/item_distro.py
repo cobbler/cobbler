@@ -93,7 +93,7 @@ class Distro(item.Item):
         raise CX(_("kernel not found"))
 
     def set_breed(self, breed):
-        if breed is not None and breed.lower() in [ "redhat", "suse" ]:
+        if breed is not None and breed.lower() in [ "redhat", "debian", "suse" ]:
             self.breed = breed.lower()
             return True
         raise CX(_("invalid value for --breed, see manpage"))

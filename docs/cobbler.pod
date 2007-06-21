@@ -44,7 +44,7 @@ This first step towards configurating what you want to provision is to add a dis
 
 If there is an rsync mirror, DVD, or filesystem tree available that you would rather import instead, skip down to the documentation about the "import" command.  It's really a lot easier, and it only requires waiting for the mirror content to be copied.  Imported mirrors also save time during install since they don't have to hit external install sources.   However if you have the content locally already and don't want to create another copy of it, you'll want to use the manual distro add commands.
 
-B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--ksmeta=string] [--arch=x86|x86_64|ia64] [--breed=redhat|suse]>
+B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--ksmeta=string] [--arch=x86|x86_64|ia64] [--breed=redhat|debian|suse]>
 
 =over
 
@@ -89,7 +89,7 @@ See the section on "Kickstart Templating" for further information.
 
 Defaults to "redhat", which is a suitable value for Fedora and Centos as well.  It means anything redhat based.
 
-There is limited experimental support for specifying "suse", which treats the kickstart file as a autoyast file and changes the kernel
+There is limited experimental support for specifying "debian" or "suse", which treats the kickstart file as a different format and changes the kernel
 arguments appropriately.   Support for other types of distributions is possible in the future.  
 
 The file used for the answer file, regardless of the breed setting, is the value used for --kickstart when creating the profile.  

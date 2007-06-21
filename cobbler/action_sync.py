@@ -635,6 +635,8 @@ class BootSync:
                 append_line = "%s ks=%s" % (append_line, kickstart_path)
             elif distro.breed == "suse":
                 append_line = "%s autoyast=%s" % (append_line, kickstart_path)
+            elif distro.breed == "debian":
+                append_line = "%s auto=true url=%s" % (append_line, kickstart_path)
 
         # ---
         # store variables for templating
