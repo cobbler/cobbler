@@ -31,7 +31,7 @@ class Repo(item.Item):
         self.parent           = None
         self.name             = None
         self.mirror           = (None,       '<<inherit>>')[is_subobject]
-        self.keep_updated     = (None,       '<<inherit>>')[is_subobject]
+        self.keep_updated     = ('y',        '<<inherit>>')[is_subobject]
         self.local_filename   = ("",         '<<inherit>>')[is_subobject]
         self.rpm_list         = ("",         '<<inherit>>')[is_subobject]
         self.createrepo_flags = ("-c cache", '<<inherit>>')[is_subobject]
@@ -41,7 +41,7 @@ class Repo(item.Item):
         self.parent           = self.load_item(seed_data, 'parent')
         self.name             = self.load_item(seed_data, 'name')
         self.mirror           = self.load_item(seed_data, 'mirror')
-        self.keep_updated     = self.load_item(seed_data, 'keep_updated')
+        self.keep_updated     = self.load_item(seed_data, 'keep_updated','y')
         self.local_filename   = self.load_item(seed_data, 'local_filename')
         self.rpm_list         = self.load_item(seed_data, 'rpm_list')
         self.createrepo_flags = self.load_item(seed_data, 'createrepo_flags', '-c cache')
