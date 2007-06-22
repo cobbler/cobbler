@@ -15,38 +15,14 @@ import time
 import os
 import SimpleXMLRPCServer
 import yaml # Howell Clark version
-
+import glob
 import api as cobbler_api
+import utils
 from rhpl.translate import _, N_, textdomain, utf8
-
-import logging
-
-# hack to make xmlrpclib tolerate None:
-# http://www.thescripts.com/forum/thread499321.html
 import xmlrpclib
-# WARNING: Dirty hack below.
-# Replace the dumps() function in xmlrpclib with one that by default
-# handles None, so SimpleXMLRPCServer can return None.
-#class _xmldumps(object):
-#    def __init__(self, dumps):
-#        self.__dumps = (dumps,)
-#    def __call__(self, *args, **kwargs):
-#        kwargs.setdefault('allow_none', 1)
-#        return self.__dumps[0](*args, **kwargs)
-#xmlrpclib.dumps = _xmldumps(xmlrpclib.dumps)
 
-log = logging.getLogger('cobblerd')
-level = logging.ERROR
 
 def main():
-
-    log.setLevel(level)
-    ch = logging.FileHandler("/var/log/cobbler/cobblerd.log")
-    ch.setLevel(level)
-    #create formatter
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    ch.setFormatter(formatter)
-    log.addHandler(ch)
 
     bootapi     = cobbler_api.BootAPI()
     settings    = bootapi.settings()
@@ -107,8 +83,6 @@ class CobblerXMLRPCInterface:
         return cmp(a["name"],b["name"])
 
     def __get_all(self,collection):
-        log.debug("get_all...")
-        log.debug(collection)
         data = collection.to_datastruct()
         data.sort(self.__sorter)
         return self.fix_none(data)
@@ -126,9 +100,6 @@ class CobblerXMLRPCInterface:
         if name is None:
             return self.fix_none({})
         name = name.lower()
-        log.debug("get_specific...")
-        log.debug(collection)
-        log.debug(name)
         item = collection.find(name)
         if item is None:
             return self.fix_none({})
@@ -147,41 +118,29 @@ class CobblerXMLRPCInterface:
     def get_repo(self,name):
         return self.__get_specific(self.api.repos(),name)
 
-    def __get_for_koan(self,dir,name):
-        if name is None:
-            return self.fix_none({})
-        name = name.lower()
-        log.debug("get_for_koan ...")
-        log.debug(dir)
-        log.debug(name)
-        path = os.path.join("/var/www/cobbler/", dir, name)
-        if not os.path.exists(path):
-            return self.fix_none({})
-        fd = open(path)
-        data = fd.read()
-        datastruct = yaml.load(data).next()
-        fd.close()
-        return self.fix_none(datastruct)
-
     def get_distro_for_koan(self,name):
-        return self.__get_for_koan("distros",name)
+        obj = cobbler_api.distros().find(name)
+        if obj is not None:
+            return self.fix_none(utils.blender(True, obj))
+        return self.fix_none({})
 
     def get_profile_for_koan(self,name):
-        return self.__get_for_koan("profiles",name)
+        obj = self.api.profiles().find(name)
+        if obj is not None:
+            return self.fix_none(utils.blender(True, obj))
+        return self.fix_none({})
 
     def get_system_for_koan(self,name):
-        name = self.fix_system_name(name)
-        return self.__get_for_koan("systems",name)
+        obj = self.api.systems().find(name)
+        if obj is not None:
+           return self.fix_none(utils.blender(True, obj))
+        return self.fix_none({})
 
-    def fix_system_name(self,name):
-        # convert pxeified name entries to cobbler format
-        if name is None:
-            return None
-        name = name.lower()
-        if name.startswith("01-"):
-            name = name[3:]
-            name = name.replace("-",":")
-        return name
+    def get_repo_for_koan(self,name):
+        obj = self.api.repos().find(name)
+        if obj is not None:
+            return self.fix_none(utils.blender(True, obj))
+        return self.fix_none({})
 
     def fix_none(self,data,recurse=False):
         """
@@ -198,10 +157,6 @@ class CobblerXMLRPCInterface:
         elif type(data) == dict:
             for key in data.keys():
                data[key] = self.fix_none(data[key],recurse=True)
-
-        if not recurse:
-            log.debug("returning...")
-            log.debug(data)
 
         return data
 

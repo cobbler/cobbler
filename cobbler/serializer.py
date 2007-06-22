@@ -37,7 +37,7 @@ def serialize(obj):
                os.makedirs(dirname)
                # evidentally this doesn't throw exceptions.
            except OSError, ose:
-               raise CX(_("Need permissions to write to %s") % os.path.dirname(dirname))
+               pass
         try:
            fd = open(filename,"w+")
         except IOError, ioe3:
