@@ -357,7 +357,7 @@ class Koan:
 
         if kickstart.startswith("/") and data.has_key('profile'):
             kickstart = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (data['server'],data['name'])
-        else:
+        elif kickstart.startswith("/"):
             kickstart = "http://%s/cblr/kickstarts/%s/ks.cfg" % (data['server'],data['name'])
 
         if kickstart.startswith("nfs"):
