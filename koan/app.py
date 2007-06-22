@@ -312,7 +312,8 @@ class Koan:
 
             self.build_initrd(
                 self.safe_load(profile_data,'initrd_local'),
-                self.safe_load(profile_data,'kickstart')
+                self.safe_load(profile_data,'kickstart'),
+                profile_data
             )
             k_args = k_args.replace("lang ","lang= ")
 
@@ -346,23 +347,19 @@ class Koan:
             self.debug("reboot to apply changes")
         return self.do_net_install("/boot",after_download)
 
-    def get_kickstart_data(self,kickstart):
+    def get_kickstart_data(self,kickstart,data):
         """
         Get contents of data in network kickstart file.
         """
         print "- kickstart: %s" % kickstart
         if kickstart is None or kickstart == "":
             return None
-        if kickstart.startswith("/var/www/cobbler/kickstarts/"):
-            kickstart = kickstart.replace(
-                "/var/www/cobbler/kickstarts",
-                "http://%s/cblr/kickstarts" % self.server
-            )
-        if kickstart.startswith("/var/www/cobbler/kickstarts_sys/"):
-            kickstart = kickstart.replace(
-                "/var/www/cobbler/kickstarts_sys",
-                "http://%s/cblr/kickstarts_sys" % self.server
-           )
+
+        if kickstart.startswith("/") and data.has_key('profile'):
+            kickstart = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (data['server'],data['name'])
+        else:
+            kickstart = "http://%s/cblr/kickstarts/%s/ks.cfg" % (data['server'],data['name'])
+
         if kickstart.startswith("nfs"):
             ndir  = os.path.dirname(kickstart[6:])
             nfile = os.path.basename(kickstart[6:])
@@ -416,13 +413,13 @@ class Koan:
         fi
         """ % initrd
 
-    def build_initrd(self,initrd,kickstart):
+    def build_initrd(self,initrd,kickstart,data):
         """
         Crack open an initrd and install the kickstart file.
         """
 
         # save kickstart to file
-        ksdata = self.get_kickstart_data(kickstart)
+        ksdata = self.get_kickstart_data(kickstart,data)
         fd = open("/var/spool/koan/ks.cfg","w+")
         if ksdata is not None:
             fd.write(ksdata)
