@@ -113,7 +113,7 @@ class BootLiteSync:
         self.sync.rmfile(os.path.join(self.settings.webdir, "systems", name))
         # delete contents of kickstarts_sys/$name in webdir
         if system_record.is_pxe_supported():
-            filename = self.sync.get_config_filename(system_record)
+            filename = utils.get_config_filename(system_record)
             self.sync.rmtree(os.path.join(self.settings.webdir, "kickstarts_sys", filename))
         
         # delete PXE Linux configuration file (which might be in one of two places)
