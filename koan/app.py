@@ -353,6 +353,16 @@ class Koan:
         print "- kickstart: %s" % kickstart
         if kickstart is None or kickstart == "":
             return None
+        if kickstart.startswith("/var/www/cobbler/kickstarts/"):
+            kickstart = kickstart.replace(
+                "/var/www/cobbler/kickstarts",
+                "http://%s/cblr/kickstarts" % self.server
+            )
+        if kickstart.startswith("/var/www/cobbler/kickstarts_sys/"):
+            kickstart = kickstart.replace(
+                "/var/www/cobbler/kickstarts_sys",
+                "http://%s/cblr/kickstarts_sys" % self.server
+           )
         if kickstart.startswith("nfs"):
             ndir  = os.path.dirname(kickstart[6:])
             nfile = os.path.basename(kickstart[6:])
@@ -430,20 +440,27 @@ class Koan:
 
     def get_profiles_xmlrpc(self):
         try:
-            return self.xmlrpc_server.get_profiles()
+            data = self.xmlrpc_server.get_profiles()
         except:
             traceback.print_exc()
             self.connect_fail()
+        if data == {}:
+            raise InfoException("No profiles found on cobbler server")
+        return data
 
     def get_profile_xmlrpc(self,profile_name):
         """
         Fetches profile yaml from a from a remote bootconf tree.
         """
         try:
-            return self.xmlrpc_server.get_profile_for_koan(profile_name)
+            data = self.xmlrpc_server.get_profile_for_koan(profile_name)
         except:
             traceback.print_exc()
             self.connect_fail()
+        if data == {}:
+            raise InfoException("no cobbler entry for this profile")
+        return data
+
 
     def get_systems_xmlrpc(self):
         try:
@@ -472,17 +489,6 @@ class Koan:
             return True
         return False
 
-    def fix_mac(self,strdata):
-        """ Make a MAC look PXE-ish """
-        return "01-" + "-".join(strdata.split(":")).lower()
-
-    def fix_ip(self,ip):
-        """ Make an IP look PXE-ish """
-        handle = sub_process.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=sub_process.PIPE)
-        out = handle.stdout
-        results = out.read()
-        return results.split(" ")[-1][0:8]
-
     def get_system_xmlrpc(self,system_name):
         """
         If user specifies --system, return the profile data
@@ -490,29 +496,15 @@ class Koan:
         of what was specified in the system's profile.
         """
         system_data = None
-        self.debug("fetching configuration for system: (%s)" % system_name)
         try:
             system_data = self.xmlrpc_server.get_system_for_koan(system_name)
         except:
             traceback.print_exc()
             self.connect_fail()
-        profile_data = self.get_profile_xmlrpc(self.safe_load(system_data,'profile'))
-        # system overrides the profile values where relevant
-        profile_data.update(system_data)
-        try_this = "http://%s/cobbler/kickstarts_sys/%s/ks.cfg" % (self.server,system_name)
-        try:
-            # can only use a per-system kickstart if it exists.  It may
-            # be that the cobbler config file already references a http
-            # kickstart, hence the per-system kickstart is just a per
-            # profile kickstart, and we can't use it.
-            # FIXME
-            self.urlread(try_this)
-            profile_data['kickstart'] = try_this
-        except:
-            # just use the profile kickstart, whatever it is
-            pass
-        print profile_data
-        return profile_data
+        if system_data == {}:
+            raise InfoException("no cobbler entry for system")        
+        print system_data
+        return system_data
 
     def get_distro_files(self,profile_data, download_root):
         """
