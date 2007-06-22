@@ -74,6 +74,9 @@ def do_syslog(bootapi, settings, port):
             logfile.write("\n")
             logfile.close()
 
+# FIXME: somewhat inefficient as it reloads the configs each time
+# better to watch files for changes?
+
 class CobblerXMLRPCInterface:
 
     def __init__(self,api):
@@ -83,6 +86,7 @@ class CobblerXMLRPCInterface:
         return cmp(a["name"],b["name"])
 
     def __get_all(self,collection):
+        self.api.deserialize()
         data = collection.to_datastruct()
         data.sort(self.__sorter)
         return self.fix_none(data)
@@ -97,6 +101,7 @@ class CobblerXMLRPCInterface:
         return self.__get_all(self.api.systems())
 
     def __get_specific(self,collection,name):
+        self.api.deserialize()
         if name is None:
             return self.fix_none({})
         name = name.lower()
@@ -119,24 +124,28 @@ class CobblerXMLRPCInterface:
         return self.__get_specific(self.api.repos(),name)
 
     def get_distro_for_koan(self,name):
+        self.api.deserialize()
         obj = cobbler_api.distros().find(name)
         if obj is not None:
             return self.fix_none(utils.blender(True, obj))
         return self.fix_none({})
 
     def get_profile_for_koan(self,name):
+        self.api.deserialize()
         obj = self.api.profiles().find(name)
         if obj is not None:
             return self.fix_none(utils.blender(True, obj))
         return self.fix_none({})
 
     def get_system_for_koan(self,name):
+        self.api.deserialize()
         obj = self.api.systems().find(name)
         if obj is not None:
            return self.fix_none(utils.blender(True, obj))
         return self.fix_none({})
 
     def get_repo_for_koan(self,name):
+        self.api.deserialize()
         obj = self.api.repos().find(name)
         if obj is not None:
             return self.fix_none(utils.blender(True, obj))
