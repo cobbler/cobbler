@@ -19,7 +19,7 @@ build: clean
 install: build
 	python setup.py install -f
 
-sdist: clean manpage
+sdist: manpage
 	python setup.py sdist
 
 rpms:  sdist

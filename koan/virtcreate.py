@@ -73,29 +73,31 @@ def get_mac(mac):
     return randomMAC()
 
 
-def start_paravirt_install(ram=None, disk=None, mac=None,
+def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
                            uuid=None, kernel=None, initrd=None, extra=None, nameoverride=None):
 
 
     if mac == None:
        mac = randomMAC()
-    macname = mac.replace(":","_").upper()
+    if name == None:
+       name = mac
+    fixname = name.replace(":","_").upper()
 
     guest = virtinst.ParaVirtGuest()
     guest.set_boot((kernel,initrd))
     guest.set_extra_args(extra)
     if nameoverride is None:
-        usename = macname
+        usename = fixname
     else:
         usename = nameoverride
-    guest.set_name(usename)   
+    guest.set_name(fixname)
     guest.set_memory(ram)
     guest.set_vcpus(1)            # FIXME!
     guest.set_graphics(False)
     if uuid is not None:
         guest.set_uuid(uuid)
 
-    disk_path = "/var/lib/xen/images/%s" % macname
+    disk_path = "/var/lib/xen/images/%s" % usename
     disk_obj = virtinst.XenDisk(disk_path, size=disk)
 
     nic_obj = virtinst.XenNetworkInterface(macaddr=mac)

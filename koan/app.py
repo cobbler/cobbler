@@ -263,16 +263,8 @@ class Koan:
             profile_data = self.get_profile_xmlrpc(self.profile)
         else:
             profile_data = self.get_system_xmlrpc(self.system)
-        self.debug(profile_data)
-        if not 'distro' in profile_data:
-            raise InfoException, "cobbler data not found"
-        distro = self.safe_load(profile_data,'distro')
-        distro_data = self.get_distro_xmlrpc(distro)
-        if distro_data.has_key("breed") and distro_data["breed"] != "redhat":
-            raise InfoException, "koan only works for Red Hat based distros"
-        self.debug(distro_data)
-        self.get_distro_files(distro_data, download_root)
-        after_download(self, distro_data, profile_data)
+        self.get_distro_files(profile_data, download_root)
+        after_download(self, profile_data)
 
     def do_list_profiles(self):
         return self.do_list(True)
@@ -300,8 +292,8 @@ class Koan:
         """
         Handle virt provisioning.
         """
-        def after_download(self, distro_data, profile_data):
-            self.do_virt_net_install(profile_data, distro_data)
+        def after_download(self, profile_data):
+            self.do_virt_net_install(profile_data)
         return self.do_net_install("/var/lib/xen",after_download)
 
     def do_auto_kickstart(self):
@@ -313,14 +305,14 @@ class Koan:
         self.rmtree("/var/spool/koan")
         self.mkdir("/var/spool/koan")
 
-        def after_download(self, distro_data, profile_data):
+        def after_download(self, profile_data):
             if not os.path.exists("/sbin/grubby"):
                 raise InfoException, "grubby is not installed"
-            k_args = self.safe_load(distro_data,'kernel_options')
+            k_args = self.safe_load(profile_data,'kernel_options')
             k_args = k_args + " ks=file:ks.cfg"
 
             self.build_initrd(
-                self.safe_load(distro_data,'initrd_local'), 
+                self.safe_load(profile_data,'initrd_local'),
                 self.safe_load(profile_data,'kickstart')
             )
             k_args = k_args.replace("lang ","lang= ")
@@ -338,8 +330,8 @@ class Koan:
 
             cmd = [ "/sbin/grubby",
                     loader,
-                    "--add-kernel", self.safe_load(distro_data,'kernel_local'),
-                    "--initrd", self.safe_load(distro_data,'initrd_local'),
+                    "--add-kernel", self.safe_load(profile_data,'kernel_local'),
+                    "--initrd", self.safe_load(profile_data,'initrd_local'),
                     "--make-default",
                     "--title", "kick%s" % int(time.time()),
                     "--args", k_args,
@@ -444,19 +436,14 @@ class Koan:
         self.subprocess_call([ "/bin/bash", "/var/spool/koan/insert.sh" ])
         self.copyfile("/var/spool/koan/initrd_final", initrd)
 
-    def trace_me(self):
-        x = traceback.extract_stack()
-        bar = string.join(traceback.format_list(x))
-        return bar
-
     def connect_fail(self):
-        print self.trace_me()
         raise InfoException, "Could not communicate with %s:%s" % (self.server, self.port)
 
     def get_profiles_xmlrpc(self):
         try:
             return self.xmlrpc_server.get_profiles()
         except:
+            traceback.print_exc()
             self.connect_fail()
 
     def get_profile_xmlrpc(self,profile_name):
@@ -473,6 +460,7 @@ class Koan:
         try:
             return self.xmlrpc_server.get_systems()
         except:
+            traceback.print_exc()
             self.connect_fail()
 
     def is_ip(self,strdata):
@@ -506,32 +494,18 @@ class Koan:
         results = out.read()
         return results.split(" ")[-1][0:8]
 
-    def pxeify(self,system_name):
-        """
-        If the input system name is an IP or MAC, make it conform with
-        what the app expects.
-        """
-        if system_name == "default":
-            return "default"
-        elif self.is_ip(system_name):
-            return self.fix_ip(system_name)
-        elif self.is_mac(system_name):
-            return self.fix_mac(system_name)
-        return system_name
-
     def get_system_xmlrpc(self,system_name):
         """
         If user specifies --system, return the profile data
         but use the system kickstart and kernel options in place
         of what was specified in the system's profile.
         """
-        old_system_name = system_name
-        system_name = self.pxeify(system_name)
         system_data = None
-        self.debug("fetching configuration for system: (%s)" % old_system_name)
+        self.debug("fetching configuration for system: (%s)" % system_name)
         try:
             system_data = self.xmlrpc_server.get_system_for_koan(system_name)
         except:
+            traceback.print_exc()
             self.connect_fail()
         profile_data = self.get_profile_xmlrpc(self.safe_load(system_data,'profile'))
         # system overrides the profile values where relevant
@@ -551,25 +525,15 @@ class Koan:
         print profile_data
         return profile_data
 
-    def get_distro_xmlrpc(self,distro_name):
-        """
-        Fetches distribution yaml from a remote bootconf tree.
-        """
-        self.debug("fetching configuration for distro: %s" % distro_name)
-        try:
-            return self.xmlrpc_server.get_distro_for_koan(distro_name)
-        except:
-            self.connect_fail()
-
-    def get_distro_files(self,distro_data, download_root):
+    def get_distro_files(self,profile_data, download_root):
         """
         Using distro data (fetched from bootconf tree), determine
         what kernel and initrd to download, and save them locally.
         """
         os.chdir(download_root)
-        distro = self.safe_load(distro_data,'name')
-        kernel = self.safe_load(distro_data,'kernel')
-        initrd = self.safe_load(distro_data,'initrd')
+        distro = self.safe_load(profile_data,'distro')
+        kernel = self.safe_load(profile_data,'kernel')
+        initrd = self.safe_load(profile_data,'initrd')
         kernel_short = os.path.basename(kernel)
         initrd_short = os.path.basename(initrd)
         kernel_save = "%s/%s" % (download_root, kernel_short)
@@ -585,17 +549,16 @@ class Koan:
             self.urlgrab(url,kernel_save)
         except:
             raise InfoException, "error downloading files"
-        distro_data['kernel_local'] = kernel_save
+        profile_data['kernel_local'] = kernel_save
         self.debug("kernel saved = %s" % kernel_save)
-        distro_data['initrd_local'] = initrd_save
+        profile_data['initrd_local'] = initrd_save
         self.debug("initrd saved = %s" % initrd_save)
 
-    def do_virt_net_install(self,profile_data,distro_data):
+    def do_virt_net_install(self,profile_data):
         """
         Invoke virt guest-install (or tweaked copy thereof)
         """
         pd = profile_data
-        dd = distro_data
 
         kextra = ""
         lkickstart = self.safe_load(pd,'kickstart')
@@ -617,13 +580,25 @@ class Koan:
             print "no virtualization support available, install python-virtinst?"
             sys.exit(1)
 
+        # if the object has a "profile" entry, then it's a system
+        # and we pass in the name straight.  If it's not, pass in None
+        # for the Name, such that we can use the MAC or the override value.
+        pro = self.safe_load(pd,'profile')
+        if pro is None or pro == "":
+            # this is a system object, use name as entered
+            name = self.safe_load(pd,'name')
+        else:
+            # this is a profile object, use MAC or override value
+            name = None
+
         results = virtcreate.start_paravirt_install(
+            name=name,
             ram=self.calc_virt_ram(pd),
             disk= self.calc_virt_filesize(pd),
             mac=virtcreate.get_mac(self.calc_virt_mac(pd)),
             uuid=virtcreate.get_uuid(self.calc_virt_uuid(pd)),
-            kernel=self.safe_load(dd,'kernel_local'),
-            initrd=self.safe_load(dd,'initrd_local'),
+            kernel=self.safe_load(pd,'kernel_local'),
+            initrd=self.safe_load(pd,'initrd_local'),
             extra=kextra,
             nameoverride=self.virtname
         )
