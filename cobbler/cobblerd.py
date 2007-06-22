@@ -102,9 +102,6 @@ class CobblerXMLRPCInterface:
 
     def __get_specific(self,collection,name):
         self.api.deserialize()
-        if name is None:
-            return self.fix_none({})
-        name = name.lower()
         item = collection.find(name)
         if item is None:
             return self.fix_none({})
