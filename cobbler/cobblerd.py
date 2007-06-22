@@ -19,6 +19,7 @@ import yaml # Howell Clark version
 import api as cobbler_api
 from rhpl.translate import _, N_, textdomain, utf8
 
+import logging
 
 # hack to make xmlrpclib tolerate None:
 # http://www.thescripts.com/forum/thread499321.html
@@ -26,15 +27,26 @@ import xmlrpclib
 # WARNING: Dirty hack below.
 # Replace the dumps() function in xmlrpclib with one that by default
 # handles None, so SimpleXMLRPCServer can return None.
-class _xmldumps(object):
-    def __init__(self, dumps):
-        self.__dumps = (dumps,)
-    def __call__(self, *args, **kwargs):
-        kwargs.setdefault('allow_none', 1)
-        return self.__dumps[0](*args, **kwargs)
-xmlrpclib.dumps = _xmldumps(xmlrpclib.dumps)
+#class _xmldumps(object):
+#    def __init__(self, dumps):
+#        self.__dumps = (dumps,)
+#    def __call__(self, *args, **kwargs):
+#        kwargs.setdefault('allow_none', 1)
+#        return self.__dumps[0](*args, **kwargs)
+#xmlrpclib.dumps = _xmldumps(xmlrpclib.dumps)
+
+log = logging.getLogger('cobblerd')
+level = logging.ERROR
 
 def main():
+
+    log.setLevel(level)
+    ch = logging.FileHandler("/var/log/cobbler/cobblerd.log")
+    ch.setLevel(level)
+    #create formatter
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    ch.setFormatter(formatter)
+    log.addHandler(ch)
 
     bootapi     = cobbler_api.BootAPI()
     settings    = bootapi.settings()
@@ -95,9 +107,11 @@ class CobblerXMLRPCInterface:
         return cmp(a["name"],b["name"])
 
     def __get_all(self,collection):
+        log.debug("get_all...")
+        log.debug(collection)
         data = collection.to_datastruct()
         data.sort(self.__sorter)
-        return data
+        return self.fix_none(data)
 
     def get_distros(self):
         return self.__get_all(self.api.distros())
@@ -109,10 +123,16 @@ class CobblerXMLRPCInterface:
         return self.__get_all(self.api.systems())
 
     def __get_specific(self,collection,name):
+        if name is None:
+            return self.fix_none({})
+        name = name.lower()
+        log.debug("get_specific...")
+        log.debug(collection)
+        log.debug(name)
         item = collection.find(name)
         if item is None:
-            return {}
-        return item.to_datastruct()
+            return self.fix_none({})
+        return self.fix_none(item.to_datastruct())
 
     def get_distro(self,name):
         return self.__get_specific(self.api.distros(),name)
@@ -121,20 +141,27 @@ class CobblerXMLRPCInterface:
         return self.__get_specific(self.api.profiles(),name)
 
     def get_system(self,name):
+        name = self.fix_system_name(name)
         return self.__get_specific(self.api.systems(),name)
 
     def get_repo(self,name):
         return self.__get_specific(self.api.repos(),name)
 
     def __get_for_koan(self,dir,name):
+        if name is None:
+            return self.fix_none({})
+        name = name.lower()
+        log.debug("get_for_koan ...")
+        log.debug(dir)
+        log.debug(name)
         path = os.path.join("/var/www/cobbler/", dir, name)
         if not os.path.exists(path):
-            return {}
+            return self.fix_none({})
         fd = open(path)
         data = fd.read()
         datastruct = yaml.load(data).next()
         fd.close()
-        return datastruct
+        return self.fix_none(datastruct)
 
     def get_distro_for_koan(self,name):
         return self.__get_for_koan("distros",name)
@@ -143,7 +170,42 @@ class CobblerXMLRPCInterface:
         return self.__get_for_koan("profiles",name)
 
     def get_system_for_koan(self,name):
+        name = self.fix_system_name(name)
         return self.__get_for_koan("systems",name)
+
+    def fix_system_name(self,name):
+        # convert pxeified name entries to cobbler format
+        if name is None:
+            return None
+        name = name.lower()
+        if name.startswith("01-"):
+            name = name[3:]
+            name = name.replace("-",":")
+        return name
+
+    def fix_none(self,data,recurse=False):
+        """
+        Convert None in XMLRPC to just '~'.  Above hack should
+        do this, but let's make extra sure.
+        """
+
+        if data is None:
+            data = '~'
+
+        elif type(data) == list:
+            data = [ self.fix_none(x,recurse=True) for x in data ]
+
+        elif type(data) == dict:
+            for key in data.keys():
+               data[key] = self.fix_none(data[key],recurse=True)
+
+        if not recurse:
+            log.debug("returning...")
+            log.debug(data)
+
+        return data
+
+
 
 class CobblerXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
 
