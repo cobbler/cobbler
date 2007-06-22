@@ -46,6 +46,7 @@ class Distros(collection.Collection):
         """
         Remove element named 'name' from the collection
         """
+        name = name.lower()
         # first see if any Groups use this distro
         for v in self.config.profiles():
             if v.distro == name:

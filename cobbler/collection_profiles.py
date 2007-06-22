@@ -45,6 +45,7 @@ class Profiles(collection.Collection):
         """
         Remove element named 'name' from the collection
         """
+        name = name.lower()
         for v in self.config.systems():
            if v.profile == name:
                raise CX(_("removal would orphan system: %s") % v.name)
