@@ -1,5 +1,8 @@
 Koan CHANGELOG
 
+* Fri Jun 22 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.0-1
+- Upgrades to take advantage of (and work with) Cobbler 0.5.0
+
 * Thu May 31 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.0-1
 - Change virt kernel/initrd download location to make SELinux happy
 
