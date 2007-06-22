@@ -90,7 +90,7 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
         usename = fixname
     else:
         usename = nameoverride
-    guest.set_name(fixname)
+    guest.set_name(usename)
     guest.set_memory(ram)
     guest.set_vcpus(1)            # FIXME!
     guest.set_graphics(False)
