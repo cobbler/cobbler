@@ -260,8 +260,13 @@ class Koan:
         """
         if self.profile:
             profile_data = self.get_profile_xmlrpc(self.profile)
+            filler = "kickstarts"
         else:
             profile_data = self.get_system_xmlrpc(self.system)
+            filler = "kickstarts_sys"
+        if profile_data.has_key("kickstart"):
+            if profile_data["kickstart"].startswith("/"):
+               profile_data["kickstart"] = "http://%s/cblr/%s/%s/ks.cfg" % (profile_data['server'], filler, profile_data['name'])
         self.get_distro_files(profile_data, download_root)
         after_download(self, profile_data)
 
@@ -354,11 +359,6 @@ class Koan:
         print "- kickstart: %s" % kickstart
         if kickstart is None or kickstart == "":
             return None
-
-        if kickstart.startswith("/") and data.has_key('profile'):
-            kickstart = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (data['server'],data['name'])
-        elif kickstart.startswith("/"):
-            kickstart = "http://%s/cblr/kickstarts/%s/ks.cfg" % (data['server'],data['name'])
 
         if kickstart.startswith("nfs"):
             ndir  = os.path.dirname(kickstart[6:])
