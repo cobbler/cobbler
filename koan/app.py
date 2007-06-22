@@ -258,7 +258,6 @@ class Koan:
         """
         Actually kicks off downloads and auto-ks or virt installs
         """
-        # self.debug("processing profile: %s" % self.profile)
         if self.profile:
             profile_data = self.get_profile_xmlrpc(self.profile)
         else:
@@ -354,16 +353,6 @@ class Koan:
         print "- kickstart: %s" % kickstart
         if kickstart is None or kickstart == "":
             return None
-        if kickstart.startswith("/var/www/cobbler/kickstarts/"):
-            kickstart = kickstart.replace(
-                "/var/www/cobbler/kickstarts",
-                "http://%s/cblr/kickstarts" % self.server
-            )
-        if kickstart.startswith("/var/www/cobbler/kickstarts_sys/"):
-            kickstart = kickstart.replace(
-                "/var/www/cobbler/kickstarts_sys",
-                "http://%s/cblr/kickstarts_sys" % self.server
-           )
         if kickstart.startswith("nfs"):
             ndir  = os.path.dirname(kickstart[6:])
             nfile = os.path.basename(kickstart[6:])
