@@ -428,10 +428,10 @@ class BootSync:
         meta = utils.blender(False, s)
         kickstart_path = utils.find_kickstart(meta["kickstart"])
         if kickstart_path and os.path.exists(kickstart_path):
-            pxe_fn = utils.get_config_filename(s)
+            # pxe_fn = utils.get_config_filename(s)
             copy_path = os.path.join(self.settings.webdir,
                 "kickstarts_sys", # system kickstarts go here
-                pxe_fn
+                s.name
             )
             self.mkdir(copy_path)
             dest = os.path.join(copy_path, "ks.cfg")
@@ -626,8 +626,8 @@ class BootSync:
         if kickstart_path is not None and kickstart_path != "":
 
             if system is not None and kickstart_path.startswith("/"):
-                pxe_fn = utils.get_config_filename(system)
-                kickstart_path = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (self.settings.server, pxe_fn)
+                # pxe_fn = utils.get_config_filename(system)
+                kickstart_path = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (self.settings.server, system.name)
             elif kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
                 kickstart_path = "http://%s/cblr/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)
 
