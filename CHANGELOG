@@ -1,7 +1,7 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Thu May 24 2007 - 0.4.9
+* Wed Jun 24 2007 - 0.5.0
 - Remove hardcode of /var/www/cobbler in cobblerd
 - Improve various warning warning messages
 - cobbler (objecttype) (objectname) now gives info about the object instead of just all objects
