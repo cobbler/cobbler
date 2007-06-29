@@ -637,6 +637,7 @@ class BootSync:
                 append_line = "%s autoyast=%s" % (append_line, kickstart_path)
             elif distro.breed == "debian":
                 append_line = "%s auto=true url=%s" % (append_line, kickstart_path)
+                append_line = append_line.replace("ksdevice","interface")
 
         # ---
         # store variables for templating
