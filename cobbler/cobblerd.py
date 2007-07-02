@@ -10,6 +10,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+import sys
 import socket
 import time
 import os
@@ -21,8 +22,10 @@ import utils
 from rhpl.translate import _, N_, textdomain, utf8
 import xmlrpclib
 
-
 def main():
+   core(logger=None)
+
+def core(logger=None):
 
     bootapi     = cobbler_api.BootAPI()
     settings    = bootapi.settings()
@@ -32,21 +35,29 @@ def main():
     pid = os.fork()
 
     if pid == 0:
-        do_xmlrpc(bootapi, settings, xmlrpc_port)
+        do_xmlrpc(bootapi, settings, xmlrpc_port, logger)
     else:
-        do_syslog(bootapi, settings, syslog_port)
+        do_syslog(bootapi, settings, syslog_port, logger)
 
-def do_xmlrpc(bootapi, settings, port):
+def log(logger,msg):
+    if logger is not None:
+        logger.info(msg)
+    else:
+        print >>sys.stderr, msg
 
-    xinterface = CobblerXMLRPCInterface(bootapi)
+def do_xmlrpc(bootapi, settings, port, logger):
+
+    xinterface = CobblerXMLRPCInterface(bootapi,logger)
     server = CobblerXMLRPCServer(('', port))
+    log(logger, "XMLRPC running on %s" % port)
     server.register_instance(xinterface)
     server.serve_forever()
 
-def do_syslog(bootapi, settings, port):
+def do_syslog(bootapi, settings, port, logger):
 
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.bind(("0.0.0.0", port))
+    log(logger, "syslog running on %s" % port)
 
     buf = 1024
 
@@ -79,8 +90,9 @@ def do_syslog(bootapi, settings, port):
 
 class CobblerXMLRPCInterface:
 
-    def __init__(self,api):
+    def __init__(self,api,logger):
         self.api = api
+        self.logger = logger
 
     def __sorter(self,a,b):
         return cmp(a["name"],b["name"])

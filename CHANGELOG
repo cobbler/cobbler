@@ -1,6 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Mon Jul 02 2007 - 0.5.1
+- Added logging for cobblerd -- /var/log/cobbler/cobblerd.log
+
 * Wed Jun 24 2007 - 0.5.0
 - Remove hardcode of /var/www/cobbler in cobblerd
 - Improve various warning warning messages

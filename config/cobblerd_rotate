@@ -1,0 +1,9 @@
+/var/log/cobbler/cobblerd.log {
+   rotate 4
+   weekly
+   postrotate
+      if [ -f /var/lock/subsys/cobblerd ]; then
+         /etc/init.d/cobblerd restart
+      fi
+   endscript
+}

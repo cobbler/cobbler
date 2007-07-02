@@ -12,6 +12,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
+import sys
 import os
 import re
 import socket
@@ -20,12 +21,24 @@ import sub_process
 import shutil
 import string
 import traceback
+import logging
 from rhpl.translate import _, N_, textdomain, utf8
 
 import api # factor out
 
 _re_kernel = re.compile(r'vmlinuz(.*)')
 _re_initrd = re.compile(r'initrd(.*).img')
+
+
+def log_exc(logger):
+   """
+   Log an exception.
+   """
+   (t, v, tb) = sys.exc_info()
+   logger.info("Exception occured: %s" % t )
+   logger.info("Exception value: %s" % v)
+   logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+
 
 def trace_me():
    x = traceback.extract_stack()

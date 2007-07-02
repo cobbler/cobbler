@@ -17,11 +17,23 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import sys
 import os
 import cobbler.cobblerd as app
+import logging
+import cobbler.utils as utils
+
+logger = logging.getLogger("cobbler.cobblerd")
+logger.setLevel(logging.DEBUG)
+ch = logging.FileHandler("/var/log/cobbler/cobblerd.log")
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 if __name__ == "__main__":
 
     #############################################
+
     # daemonizing code:  http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66012
+    logger.debug("started")
     try: 
         pid = os.fork() 
         if pid > 0:
@@ -29,6 +41,7 @@ if __name__ == "__main__":
             sys.exit(0) 
     except OSError, e: 
         print >>sys.stderr, "fork #1 failed: %d (%s)" % (e.errno, e.strerror) 
+        utils.log_exc(logger)
         sys.exit(1)
 
     # decouple from parent environment
@@ -44,9 +57,13 @@ if __name__ == "__main__":
             sys.exit(0) 
     except OSError, e: 
         print >>sys.stderr, "fork #2 failed: %d (%s)" % (e.errno, e.strerror) 
+        utils.log_exc(logger)
         sys.exit(1) 
 
     #################
 
-    app.main()
+    try:
+        app.core(logger=logger)
+    except:
+        utils.log_exc(logger)
 

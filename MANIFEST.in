@@ -4,6 +4,7 @@ include loaders/menu.c32
 include config/cobbler.conf
 include config/rsync.exclude
 include config/cobblerd
+include config/logrotate
 recursive-include templates *.template
 recursive-include kickstarts *.ks
 include docs/cobbler.1.gz

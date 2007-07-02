@@ -4,7 +4,7 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-VERSION = "0.5.0"
+VERSION = "0.5.1"
 SHORT_DESC = "Boot and update server configurator"
 LONG_DESC = """
 Cobbler is a command line tool for configuration of boot/provisioning, and update servers which is also accessible as a Python library.  Cobbler supports PXE, provisioning virtualized images, and reinstalling machines that are already up and running (over SSH).  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from rsync mirrors, kickstart templating, integrated yum mirroring (and linking repository setup with kickstarts), plus managing dhcpd.conf.
@@ -34,6 +34,7 @@ if __name__ == "__main__":
         vw_links      = "/var/www/cobbler/links"
         tftp_cfg      = "/tftpboot/pxelinux.cfg"
         tftp_images   = "/tftpboot/images"
+        rotpath       = "/etc/logrotate.d"
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -47,6 +48,7 @@ if __name__ == "__main__":
                 ],
                 scripts = ["scripts/cobbler", "scripts/cobblerd"],
                 data_files = [ 
+                                (rotpath,  ['config/cobblerd_rotate']),
                                 (wwwconf,  ['config/cobbler.conf']),
                                 (cobpath,  ['loaders/elilo-3.6-ia64.efi']),
                                 (cobpath,  ['loaders/menu.c32']),
