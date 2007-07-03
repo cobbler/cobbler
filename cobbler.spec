@@ -1,7 +1,7 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.5.0
+Version: 0.5.1
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
