@@ -100,6 +100,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/cobbler/pxesystem.template
 %config(noreplace) /etc/cobbler/pxesystem_ia64.template
 %config(noreplace) /etc/cobbler/rsync.exclude
+%config(noreplace) /etc/logrotate.d/cobblerd_rotate
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/yaml
 %{python_sitelib}/cobbler/*.py*
