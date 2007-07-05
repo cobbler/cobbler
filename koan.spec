@@ -47,7 +47,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Fri Jun 22 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.0-1
+* Wed Jun 27 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.0-1
 - Upstream changes (see CHANGELOG)
 
 * Thu May 31 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.0-1

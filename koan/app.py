@@ -79,7 +79,11 @@ def main():
     p.add_option("-t", "--port",
                  dest="port",
                  help="cobbler xmlrpc port (default 25151)")
-
+    p.add_option("-a", "--autodetect-system",
+				 dest="autodetect",
+				 action="store_true",
+				 help="autodetect system from MAC address")
+   
     (options, args) = p.parse_args()
 
     full_access = 1
@@ -101,6 +105,7 @@ def main():
         k.profile           = options.profile
         k.system            = options.system
         k.verbose           = options.verbose
+        k.autodetect        = options.autodetect
         if options.virtname is not None:
             k.virtname          = options.virtname
         if options.port is not None:
@@ -144,7 +149,8 @@ class Koan:
         self.dryrun            = None
         self.port              = 25151
         self.virtname          = None
-
+        self.autodetect        = None
+    
     def run(self):
         if self.server is None:
             raise InfoException, "no server specified"
@@ -156,16 +162,20 @@ class Koan:
             self.do_list_profiles()
         if (self.list_systems or self.list_profiles):
             return
-        if not self.is_virt and not self.is_auto_kickstart:
+        if self.autodetect and self.system:
+	    raise InfoException, "--autodetect-system and --system are exclusive"
+        if self.autodetect and self.profile:
+	    raise InfoException, "--autodetect-system and --profile are exclusive"
+	if self.autodetect:
+            self.system = self.autodetectsystem()
+	if not self.is_virt and not self.is_auto_kickstart:
             raise InfoException, "must use either --virt or --replace-self"
         if self.is_virt and self.is_auto_kickstart:
             raise InfoException, "must use either --virt or --replace-self"
-        if not self.server:
-            raise InfoException, "no server specified"
         if self.verbose is None:
             self.verbose = True
-        if (not self.profile and not self.system):
-            raise InfoException, "must specify --profile or --system"
+        if (not self.profile and not self.system and not self.autodetect):
+            raise InfoException, "must specify --profile or --system or --autodetect-system"
         if self.profile and self.system:
             raise InfoException, "--profile and --system are exclusive"
 
@@ -174,6 +184,21 @@ class Koan:
             self.do_virt()
         else:
             self.do_auto_kickstart()
+
+    def autodetectsystem(self):
+        fd = os.popen("/sbin/ifconfig")
+	mac = [line.strip() for line in fd.readlines()][0].split()[-1] #this needs to be replaced
+	fd.close()
+	if self.is_mac(mac) == False:
+		raise InfoException, "Mac address not accurately detected"
+	data = self.get_systems_xmlrpc()
+	detectedsystem = [system['name'] for system in data if system['mac_address'].upper() == mac.upper()]
+	if len(detectedsystem) > 1:
+		raise InfoException, "Multiple systems with matching mac addresses"
+	elif len(detectedsystem) == 0:
+		raise InfoException, "No system matching MAC address %s found" % mac
+	elif len(detectedsystem) == 1:
+		return detectedsystem[0]
 
     def urlread(self,url):
         """
