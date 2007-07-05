@@ -60,7 +60,7 @@ def main():
                  dest="virtname",
                  help="force the virtual domain to use this name")
     p.add_option("-r", "--replace-self",
-                 dest="is_auto_kickstart",
+                 dest="is_replace",
                  action="store_true",
                  help="requests re-provisioning of this host")
     p.add_option("-p", "--profile",
@@ -79,10 +79,6 @@ def main():
     p.add_option("-t", "--port",
                  dest="port",
                  help="cobbler xmlrpc port (default 25151)")
-    p.add_option("-a", "--autodetect-system",
-				 dest="autodetect",
-				 action="store_true",
-				 help="autodetect system from MAC address")
    
     (options, args) = p.parse_args()
 
@@ -101,11 +97,10 @@ def main():
         k.list_profiles     = options.list_profiles
         k.server            = options.server
         k.is_virt           = options.is_virt
-        k.is_auto_kickstart = options.is_auto_kickstart
+        k.is_replace        = options.is_replace
         k.profile           = options.profile
         k.system            = options.system
         k.verbose           = options.verbose
-        k.autodetect        = options.autodetect
         if options.virtname is not None:
             k.virtname          = options.virtname
         if options.port is not None:
@@ -145,11 +140,10 @@ class Koan:
         self.list_systems      = None
         self.verbose           = None
         self.is_virt           = None
-        self.is_auto_kickstart = None
+        self.is_replace        = None
         self.dryrun            = None
         self.port              = 25151
         self.virtname          = None
-        self.autodetect        = None
     
     def run(self):
         if self.server is None:
@@ -162,30 +156,25 @@ class Koan:
             self.do_list_profiles()
         if (self.list_systems or self.list_profiles):
             return
-        if self.autodetect and self.system:
-	    raise InfoException, "--autodetect-system and --system are exclusive"
-        if self.autodetect and self.profile:
-	    raise InfoException, "--autodetect-system and --profile are exclusive"
-	if self.autodetect:
-            self.system = self.autodetectsystem()
-	if not self.is_virt and not self.is_auto_kickstart:
-            raise InfoException, "must use either --virt or --replace-self"
-        if self.is_virt and self.is_auto_kickstart:
-            raise InfoException, "must use either --virt or --replace-self"
+	if not self.is_virt and not self.is_replace:
+            raise InfoException, "--virt or --replace-self is required"
+        if self.is_virt and self.is_replace:
+            raise InfoException, "--virt or --replace-self is required"
+        if self.is_virt and not self.profile and not self.system:
+            raise InfoException, "--profile or --system is required"
         if self.verbose is None:
             self.verbose = True
-        if (not self.profile and not self.system and not self.autodetect):
-            raise InfoException, "must specify --profile or --system or --autodetect-system"
+        if (not self.profile and not self.system):
+            self.system = self.autodetect_system()
         if self.profile and self.system:
             raise InfoException, "--profile and --system are exclusive"
-
 
         if self.is_virt:
             self.do_virt()
         else:
-            self.do_auto_kickstart()
+            self.do_replace()
 
-    def autodetectsystem(self):
+    def autodetect_system(self):
         fd = os.popen("/sbin/ifconfig")
 	mac = [line.strip() for line in fd.readlines()][0].split()[-1] #this needs to be replaced
 	fd.close()
@@ -198,7 +187,8 @@ class Koan:
 	elif len(detectedsystem) == 0:
 		raise InfoException, "No system matching MAC address %s found" % mac
 	elif len(detectedsystem) == 1:
-		return detectedsystem[0]
+		print "- Auto detected: %s" % detectedsystem[0]
+                return detectedsystem[0]
 
     def urlread(self,url):
         """
@@ -325,7 +315,7 @@ class Koan:
             self.do_virt_net_install(profile_data)
         return self.do_net_install("/var/lib/xen",after_download)
 
-    def do_auto_kickstart(self):
+    def do_replace(self):
         """
         Handle morphing an existing system through downloading new
         kernel, new initrd, and installing a kickstart in the initrd,
