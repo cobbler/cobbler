@@ -98,6 +98,7 @@ class CobblerXMLRPCInterface:
         return cmp(a["name"],b["name"])
 
     def __get_all(self,collection):
+        self.api.clear() 
         self.api.deserialize()
         data = collection.to_datastruct()
         data.sort(self.__sorter)
@@ -113,6 +114,7 @@ class CobblerXMLRPCInterface:
         return self.__get_all(self.api.systems())
 
     def __get_specific(self,collection,name):
+        self.api.clear() 
         self.api.deserialize()
         item = collection.find(name)
         if item is None:
@@ -133,6 +135,7 @@ class CobblerXMLRPCInterface:
         return self.__get_specific(self.api.repos(),name)
 
     def get_distro_for_koan(self,name):
+        self.api.clear() 
         self.api.deserialize()
         obj = cobbler_api.distros().find(name)
         if obj is not None:
@@ -140,6 +143,7 @@ class CobblerXMLRPCInterface:
         return self.fix_none({})
 
     def get_profile_for_koan(self,name):
+        self.api.clear() 
         self.api.deserialize()
         obj = self.api.profiles().find(name)
         if obj is not None:
@@ -147,6 +151,7 @@ class CobblerXMLRPCInterface:
         return self.fix_none({})
 
     def get_system_for_koan(self,name):
+        self.api.clear() 
         self.api.deserialize()
         obj = self.api.systems().find(name)
         if obj is not None:
@@ -154,6 +159,7 @@ class CobblerXMLRPCInterface:
         return self.fix_none({})
 
     def get_repo_for_koan(self,name):
+        self.api.clear() 
         self.api.deserialize()
         obj = self.api.repos().find(name)
         if obj is not None:
