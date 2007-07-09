@@ -35,6 +35,7 @@ if __name__ == "__main__":
         tftp_cfg      = "/tftpboot/pxelinux.cfg"
         tftp_images   = "/tftpboot/images"
         rotpath       = "/etc/logrotate.d"
+        cgipath       = "/var/www/cgi-bin"
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -48,6 +49,7 @@ if __name__ == "__main__":
                 ],
                 scripts = ["scripts/cobbler", "scripts/cobblerd"],
                 data_files = [ 
+                                (cgipath,  ['scripts/findks.cgi']),
                                 (rotpath,  ['config/cobblerd_rotate']),
                                 (wwwconf,  ['config/cobbler.conf']),
                                 (cobpath,  ['loaders/elilo-3.6-ia64.efi']),

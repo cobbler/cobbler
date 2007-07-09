@@ -11,5 +11,6 @@ include docs/cobbler.1.gz
 include COPYING AUTHORS README CHANGELOG NEWS
 include scripts/watcher.py
 include scripts/cobblerd
+include scripts/findks.cgi
 recursive-include po *.pot
 recursive-include po *.po

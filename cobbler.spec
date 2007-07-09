@@ -68,7 +68,8 @@ fi
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %files
-%defattr(2755,apache,apache)
+%defattr(2744,apache,apache)
+/var/www/cgi-bin/findks.cgi
 %dir /var/log/cobbler
 %dir /var/log/cobbler/kicklog
 %dir /var/www/cobbler/

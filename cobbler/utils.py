@@ -70,7 +70,7 @@ def get_config_filename(sys):
     if mac != None:
         return "01-" + "-".join(mac.split(":")).lower()
     elif ip != None:
-        return utils.get_host_ip(ip)
+        return get_host_ip(ip)
     else:
         return sys.name
 
