@@ -40,6 +40,10 @@ def main():
     Command line stuff...
     """
     p = optparse.OptionParser()
+    p.add_option("-C", "--livecd",
+                 dest="live_cd",
+                 action="store_true",
+                 help="(experimental) indicates running from custom LiveCD")
     p.add_option("-l", "--list-profiles",
                  dest="list_profiles",
                  action="store_true",
@@ -101,6 +105,7 @@ def main():
         k.profile           = options.profile
         k.system            = options.system
         k.verbose           = options.verbose
+        k.live_cd           = options.live_cd
         if options.virtname is not None:
             k.virtname          = options.virtname
         if options.port is not None:
@@ -357,6 +362,8 @@ class Koan:
                     "--args", k_args,
                     "--copy-default"
             ]
+            if self.live_cd:
+               cmd = cmd.append("--bad-image-okay")
             self.subprocess_call(cmd, fake_it=self.dryrun)
 
             if loader == "--lilo":
@@ -365,7 +372,12 @@ class Koan:
                 sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
 
             self.debug("reboot to apply changes")
-        return self.do_net_install("/boot",after_download)
+
+        boot_path = "/boot"
+        if self.live_cd:
+            boot_path = "/tmp/boot/boot"
+
+        return self.do_net_install(boot_path,after_download)
 
     def get_kickstart_data(self,kickstart,data):
         """

@@ -14,6 +14,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 # usage: --server=bootserver.example.com --koan="--profile=FOO"
+# requires latest git://git.fedoraproject.org/git/hosted/livecd
 
 import optparse
 import subprocess
@@ -76,7 +77,7 @@ def main(args):
 
    # write config file
    cfg = open("/tmp/koanlive.cfg","w+")
-   cfg.write(base_config.replace("INSERT_KOAN_ARGS", options.koan))
+   cfg.write(base_config.replace("INSERT_KOAN_ARGS", "/usr/bin/koan %s" % options.koan))
    cfg.close()
 
    # ======
