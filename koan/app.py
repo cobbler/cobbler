@@ -364,8 +364,7 @@ class Koan:
             ]
             if self.live_cd:
                cmd.append("--bad-image-okay")
-               cmd.append("--boot-filesystem=/dev/sda")
-               cmd.append("--config-file /tmp/boot/boot/grub.conf")
+               cmd.append("--boot-filesystem=/dev/sda1")
             self.subprocess_call(cmd, fake_it=self.dryrun)
 
             if loader == "--lilo":
