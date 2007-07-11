@@ -27,8 +27,10 @@ import shutil
 import errno
 import re
 import sys
+from stat import *
 import xmlrpclib
 import string
+import qcreate
 
 """
 koan --virt [--profile=webserver|--system=name] --server=hostname
@@ -61,7 +63,7 @@ def main():
                  action="store_true",
                  help="requests new virtualized image installation")
     p.add_option("-V", "--virtname",
-                 dest="virtname",
+                 dest="virt_name",
                  help="force the virtual domain to use this name")
     p.add_option("-r", "--replace-self",
                  dest="is_replace",
@@ -83,7 +85,13 @@ def main():
     p.add_option("-t", "--port",
                  dest="port",
                  help="cobbler xmlrpc port (default 25151)")
-   
+    p.add_option("-P", "--virtpath",
+                 dest="virt_path",
+                 help="virtual install location (see manpage)")  
+    p.add_option("-T", "--virttype",
+                 dest="virt_type",
+                 help="virtualization install type (xenpv,qemu)")
+ 
     (options, args) = p.parse_args()
 
     full_access = 1
@@ -106,8 +114,10 @@ def main():
         k.system            = options.system
         k.verbose           = options.verbose
         k.live_cd           = options.live_cd
-        if options.virtname is not None:
-            k.virtname          = options.virtname
+        k.virt_path         = options.virt_path
+        k.virt_type         = options.virt_type
+        if options.virt_name is not None:
+            k.virt_name          = options.virt_name
         if options.port is not None:
             k.port              = options.port
         k.run()
@@ -148,8 +158,10 @@ class Koan:
         self.is_replace        = None
         self.dryrun            = None
         self.port              = 25151
-        self.virtname          = None
-    
+        self.virt_name         = None
+        self.virt_type         = None
+        self.virt_path         = None 
+
     def run(self):
         if self.server is None:
             raise InfoException, "no server specified"
@@ -173,6 +185,12 @@ class Koan:
             self.system = self.autodetect_system()
         if self.profile and self.system:
             raise InfoException, "--profile and --system are exclusive"
+        if self.virt_type is not None:
+            if self.virt_type not in [ "qemu", "xenpv" ]:
+               raise InfoException, "--virttype should be qemu or xenpv"
+        else:
+            print "DEBUG: defaulting..."
+            self.virt_type = "xenpv"
 
         if self.is_virt:
             self.do_virt()
@@ -318,7 +336,11 @@ class Koan:
         """
         def after_download(self, profile_data):
             self.do_virt_net_install(profile_data)
-        return self.do_net_install("/var/lib/xen",after_download)
+        if self.virt_type == "xenpv":
+           download = "/var/lib/xen" 
+        else:
+           download = "/var/spool/koan"
+        return self.do_net_install(download,after_download)
 
     def do_replace(self):
         """
@@ -581,11 +603,12 @@ class Koan:
         # parser issues?  lang needs a trailing = and somehow doesn't have it.
         kextra = kextra.replace("lang ","lang= ")
 
-        try:
-            import virtcreate
-        except:
-            print "no virtualization support available, install python-virtinst?"
-            sys.exit(1)
+        if self.virt_type == "xenpv":
+            try:
+                import xencreate
+            except:
+                print "no virtualization support available, install python-virtinst?"
+                sys.exit(1)
 
         # if the object has a "profile" entry, then it's a system
         # and we pass in the name straight.  If it's not, pass in None
@@ -598,25 +621,32 @@ class Koan:
             # this is a profile object, use MAC or override value
             name = None
 
-        results = virtcreate.start_paravirt_install(
-            name=name,
-            ram=self.calc_virt_ram(pd),
-            disk= self.calc_virt_filesize(pd),
-            mac=virtcreate.get_mac(self.calc_virt_mac(pd)),
-            uuid=virtcreate.get_uuid(self.calc_virt_uuid(pd)),
-            kernel=self.safe_load(pd,'kernel_local'),
-            initrd=self.safe_load(pd,'initrd_local'),
-            extra=kextra,
-            nameoverride=self.virtname
+        if self.virt_type == "xenpv":
+            mac     = xencreate.get_mac(self.calc_virt_mac(pd))
+            uuid    = xencreate.get_uuid(self.calc_virt_uuid(pd))
+            creator = xencreate.start_paravirt_install
+        elif self.virt_type == "qemu":
+            mac     = None
+            uuid    = None
+            creator = qcreate.start_install
+
+        results = creator(
+                name         =  name,
+                ram          =  self.calc_virt_ram(pd),
+                disk         =  self.calc_virt_filesize(pd),
+                mac          =  mac,
+                uuid         =  uuid,
+                kernel       =  self.safe_load(pd,'kernel_local'),
+                initrd       =  self.safe_load(pd,'initrd_local'),
+                extra        =  kextra,
+                vcpus        =  self.calc_virt_cpus(pd),
+                path         =  self.set_virt_path(name, mac),
+                nameoverride =  self.virt_name
         )
+
         print results
 
-    def calc_virt_uuid(self,data):
-        # TODO: eventually we may want to allow some koan CLI
-        # option for passing in the UUID.  Until then, it's random.
-        return None
-
-    def calc_virt_filesize(self,data):
+    def calc_virt_filesize(self,data,default_filesize=1):
         """
         Assign a virt filesize if none is given in the profile.
         """
@@ -626,14 +656,14 @@ class Koan:
             int(size)
         except:
             err = True
-        if size is None or size == '' or int(size)<1:
+        if size is None or size == '' or int(size)<default_filesize:
             err = True
         if err:
-            self.debug("invalid file size specified, defaulting to 1 GB")
-            return 1
+            self.debug("invalid file size specified, using defaults")
+            return default_filesize
         return int(size)
 
-    def calc_virt_ram(self,data):
+    def calc_virt_ram(self,data,default_ram=64):
         """
         Assign a virt ram size if none is given in the profile.
         """
@@ -643,11 +673,28 @@ class Koan:
             int(size)
         except:
             err = True
-        if size is None or size == '' or int(size) < 128:
+        if size is None or size == '' or int(size) < default_ram:
             err = True
         if err:
-            self.debug("invalid RAM size specified, defaulting to 256 MB")
-            return 256
+            self.debug("invalid RAM size specified, using defaults.")
+            return default_ram
+        return int(size)
+
+    def calc_virt_cpus(self,data,default_cpus=1):
+        """
+        Assign virtual CPUs if none is given in the profile.
+        """
+        size = self.safe_load(data,'virt_cpus','xen_cpus',0)
+        err = False
+        try:
+            int(size)
+        except:
+            err = True
+        if size is None or size == '' or int(size) < default_cpus:
+            err = True
+        if err:
+            self.debug("invalid number of VCPUS specified, using defaults")
+            return default_cpus
         return int(size)
 
 
@@ -660,6 +707,131 @@ class Koan:
         if self.is_mac(self.system):
             return self.system.upper()
         return None
+
+    def calc_virt_uuid(self,data):
+        # TODO: eventually we may want to allow some koan CLI
+        # option (or cobbler system option) for passing in the UUID.  
+        # Until then, it's random.
+        return None
+        """
+        Assign a UUID if none/invalid is given in the profile.
+        """
+        id = self.safe_load(data,'virt_uuid','xen_uuid',0)
+        uuid_re = re.compile('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
+        err = False
+        try:
+            str(id)
+        except:
+            err = True
+        if id is None or id == '' or not uuid_re.match(id):
+            err = True
+        if err:
+            self.debug("invalid UUID specified.  randomizing...")
+            return None
+        return id
+
+    def set_virt_path(self,name,mac):
+        """
+        Assign virtual disk location.
+        """
+
+        location = self.virt_path
+
+        # For disk images, default paths vary by virt type
+        # or may not be supported -- set or raise exceptions accordingly
+        if self.virt_type == "xenpv":
+            prefix = "/var/lib/xen/images/"
+        elif self.virt_type == "qemu":
+            prefix = "/opt/qemu/"
+            if not os.path.exists(prefix):
+                os.makedirs(prefix)
+        else:
+            prefix = "(NOT USED)"
+
+        # Parse the command line to determine if this is a 
+        # path, a partition, or a volume group parameter
+        #   Ex:   /foo
+        #   Ex:   partition:/dev/foo
+        #   Ex:   volume-group:/dev/foo/
+            
+        # chosing the disk image name (if applicable) is somewhat
+        # complicated ...
+        usename = mac
+        if name is not None:
+            usename = name
+        if self.virt_name is not None:
+            usename = self.virt_name
+
+        # use default location for the virt type
+        if location == None:
+            # FIXME: may not be right for all virt types
+            return "%s/%s" % (prefix, usename)
+
+        if location.find(':') == -1:
+            # No colon syntax, assume disk image
+            # FIXME: can we be smarter here, eliminate this syntax, and
+            # figure out what the device is by asking it?
+            if location.endswith("/"):
+                return "%s/%s%s" % (prefix,location,usename)
+            else:
+                if os.path.isdir("%s/%s" % (prefix,location)):
+                    return "%s/%s/" % (prefix,location)
+                return "%s/%s" % (prefix,location)
+
+        else:
+            # command line indicates partition or volume group
+            # FIXME: pathname may legally include ':'
+
+            count = location.count(':')
+            if count == 1:
+                (type,blk_id)=location.split(':')
+            else:
+                raise InfoException("invalid virt path")
+
+            # for partitions
+            if type == "partition" or type == "part":
+
+                if os.path.exists(blk_id) and S_ISBLK(os.stat(blk_id)[ST_MODE]):
+                    # FIXME: virtinst takes care of freespace checks, others might not
+                    return blk_id
+                else:
+                    raise InfoException, "virt path is not a valid block device"
+
+            # for volume groups and logical volumes
+            if type == "vg" or type == "volume-group":
+            
+                # FIXME: failure checks
+                vgnames = sub_process.Popen([
+                    "vgs", "-o", "vg_name", "--noheadings" 
+                ], stdout=sub_process.PIPE).communicate()[0]
+            
+                if vgnames.find(blk_id) == -1:
+                    raise InfoException, "The volume group [%s] does not exist.  Please respecify virt_path" % blk_id
+            
+                # check free space
+                lv_freespace_str = sub_process.Popen([
+                      "lvs", "--noheadings", "-o", 
+                      "vg_free", "--units", "g", blk_id2
+                ], stdout=sub_process.PIPE).communicate()[0]
+                vg_freespace = int(float(vg_freespace_str.strip()[0:-1]))
+                lv_size = self.safe_load(data,'virt_file_size','xen_file_size',0)
+           
+                if vg_freespace >= int(lv_size):
+            
+                    # Sufficient space
+                    # FIXME: failure checks
+                    lvs_str=sub_process.Popen(["lvs", "--noheadings", "-o", "lv_name", blk_id], stdout=subprocess.PIPE).communicate()[0]
+
+                    if not lvs_str.find(usename):
+                        # FIXME: failure checks
+                        lv_create = sub_process.Popen(["lvcreate", "-L", "%sG" % lv_size, "-n", usename, blk_id], stdout=sub_process.PIPE).communicate()[0]
+                    return "/dev/%s/%s" % (blk_id,usename)
+
+            
+                else:
+                     # insufficient space
+                     raise InfoException, "The volume group [%s] does not have at least %sGB free space." % lv_size
+
 
 if __name__ == "__main__":
     main()

@@ -74,7 +74,9 @@ def get_mac(mac):
 
 
 def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
-                           uuid=None, kernel=None, initrd=None, extra=None, nameoverride=None):
+                           uuid=None, kernel=None, initrd=None, 
+                           extra=None, nameoverride=None, path=None,
+                           vcpus=None):
 
 
     if mac == None:
@@ -92,12 +94,14 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
         usename = nameoverride
     guest.set_name(usename)
     guest.set_memory(ram)
-    guest.set_vcpus(1)            # FIXME!
-    guest.set_graphics(False)
+    if vcpus is None:
+        vcpus = 1
+    guest.set_vcpus(vcpus)
+    guest.set_graphics(False) # FIXME!
     if uuid is not None:
         guest.set_uuid(uuid)
 
-    disk_path = "/var/lib/xen/images/%s" % usename
+    disk_path = path
     disk_obj = virtinst.XenDisk(disk_path, size=disk)
 
     nic_obj = virtinst.XenNetworkInterface(macaddr=mac)
