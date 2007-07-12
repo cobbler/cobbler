@@ -152,7 +152,7 @@ a role for a specific system.
 
 Note that if provisioning via koan and PXE menus alone, it is not required to create system records, though they are useful when system specific templating is required or to establish that a specific system should always recieve a specific software install.  If there is a specific role inteded for a given machine, system records should be created for it.
 
-B<cobbler system add --name=string --profile=string [--mac=macaddress] [--ip=ipaddress] [--hostname=hostname] [--kopts=string] [--ipaddress=string] [--ksmeta=string]>
+B<cobbler system add --name=string --profile=string [--mac=macaddress] [--ip=ipaddress] [--hostname=hostname] [--kopts=string] [--ipaddress=string] [--ksmeta=string] [--netboot-enabled=Y/N>
 
 Adds a cobbler System to the configuration.  Arguments are specified as per "profile add" with
 the following changes:
@@ -189,8 +189,6 @@ Example: ---ip=192.168.1.50
 
 Note for Itanium users:  this setting is always required for IA64 regardless of whether DHCP management is enabled.
 
-=back
-
 =item hostname
 
 If using the DHCP configuration feature (see advanced section) with dnsmasq, use this to define a hostname for the system to
@@ -202,6 +200,11 @@ Example: --hostname=mycomputer.example.com
 =item --kickstart
 
 (optional) While it is recommended that the --kickstart parameter is only used within for the "profile add" command, there are scenarios when an install base switching to cobbler may have kickstarts created on a per-system basis (one kickstart for each system, nothing shared) and may not want to immediately make use of the cobbler templating system.  This allows specifing a kickstart for use on a per-system basis.  Creation of a parent profile is still required.  If the kickstart is a filesystem location, it will still be treated as a cobbler template.
+
+=item --netboot-enabled
+
+If set false, the system will be provisionable through koan but not through
+standard PXE.  This will allow the system to fall back to default PXE boot behavior without deleting the cobbler system object.  The default value allows PXE.
 
 =end
 
