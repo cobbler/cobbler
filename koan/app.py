@@ -1,8 +1,9 @@
 """
 koan = kickstart over a network
 
-a tool for network provisioning of virtualization and network re-provisioning
-of existing Linux systems.  used with 'cobbler'. see manpage for usage.
+a tool for network provisioning of virtualization (xen,kvm/qemu) 
+and network re-provisioning of existing Linux systems.  
+used with 'cobbler'. see manpage for usage.
 
 Copyright 2006-2007 Red Hat, Inc.
 Michael DeHaan <mdehaan@redhat.com>
@@ -62,7 +63,7 @@ def main():
                  dest="is_virt",
                  action="store_true",
                  help="requests new virtualized image installation")
-    p.add_option("-V", "--virtname",
+    p.add_option("-V", "--virt-name",
                  dest="virt_name",
                  help="force the virtual domain to use this name")
     p.add_option("-r", "--replace-self",
@@ -85,10 +86,10 @@ def main():
     p.add_option("-t", "--port",
                  dest="port",
                  help="cobbler xmlrpc port (default 25151)")
-    p.add_option("-P", "--virtpath",
+    p.add_option("-P", "--virt-path",
                  dest="virt_path",
                  help="virtual install location (see manpage)")  
-    p.add_option("-T", "--virttype",
+    p.add_option("-T", "--virt-type",
                  dest="virt_type",
                  help="virtualization install type (xenpv,qemu)")
  
@@ -130,6 +131,7 @@ def main():
         return 3
     return 0
 
+#=======================================================
 
 class InfoException(exceptions.Exception):
     """
@@ -137,10 +139,14 @@ class InfoException(exceptions.Exception):
     """
     pass
 
+#=======================================================
+
 class ServerProxy(xmlrpclib.ServerProxy):
 
     def __init__(self, url=None):
         xmlrpclib.ServerProxy.__init__(self, url, allow_none=True)
+
+#=======================================================
 
 class Koan:
 
@@ -161,6 +167,8 @@ class Koan:
         self.virt_name         = None
         self.virt_type         = None
         self.virt_path         = None 
+
+    #---------------------------------------------------
 
     def run(self):
         if self.server is None:
@@ -188,14 +196,13 @@ class Koan:
         if self.virt_type is not None:
             if self.virt_type not in [ "qemu", "xenpv" ]:
                raise InfoException, "--virttype should be qemu or xenpv"
-        else:
-            print "DEBUG: defaulting..."
-            self.virt_type = "xenpv"
 
         if self.is_virt:
             self.do_virt()
         else:
             self.do_replace()
+    
+    #---------------------------------------------------
 
     def autodetect_system(self):
         fd = os.popen("/sbin/ifconfig")
@@ -212,6 +219,8 @@ class Koan:
 	elif len(detectedsystem) == 1:
 		print "- Auto detected: %s" % detectedsystem[0]
                 return detectedsystem[0]
+    
+    #---------------------------------------------------
 
     def urlread(self,url):
         """
@@ -224,6 +233,8 @@ class Koan:
         fd.close()
         return data
 
+    #---------------------------------------------------
+
     def urlgrab(self,url,saveto):
         """
         like urlread, but saves contents to disk.
@@ -234,55 +245,45 @@ class Koan:
         fd.write(data)
         fd.close()
 
-    def debug(self,msg):
-        """
-        Debug print if verbose is set.
-        """
-        if self.verbose:
-            print "- %s" % msg
-        return msg
+    #---------------------------------------------------
 
     def mkdir(self,path):
         """
         A more verbose and tolerant mkdir
         """
-        self.debug("mkdir: %s" % path)
+        print "mkdir: %s" % path
         try:
             os.mkdir(path)
         except OSError, (err, msg):
             if err != errno.EEXIST:
                 raise
+    
+    #---------------------------------------------------
 
     def rmtree(self,path):
         """
         A more verbose and tolerant rmtree
         """
-        self.debug("removing: %s" % path)
+        print "removing: %s" % path
         try:
             shutil.rmtree(path)
         except OSError, (err, msg):
             if err != errno.ENOENT:
                 raise
 
-    def copyfile(self,src,dest):
-        """
-        A more verbose copyfile
-        """
-        self.debug("copying %s to %s" % (src,dest))
-        return shutil.copyfile(src,dest)
+    #---------------------------------------------------
 
-    def subprocess_call(self,cmd,fake_it=False,ignore_rc=False):
+    def subprocess_call(self,cmd,ignore_rc=False):
         """
         Wrapper around subprocess.call(...)
         """
-        self.debug(cmd)
-        if fake_it:
-            self.debug("(SIMULATED)")
-            return 0
+        print cmd
         rc = sub_process.call(cmd)
         if rc != 0 and not ignore_rc:
             raise InfoException, "command failed (%s)" % rc
         return rc
+
+    #---------------------------------------------------
 
     def safe_load(self,hash,primary_key,alternate_key=None,default=None):
         if hash.has_key(primary_key): 
@@ -291,6 +292,8 @@ class Koan:
             return hash[alternate_key]
         else:
             return default
+
+    #---------------------------------------------------
 
     def do_net_install(self,download_root,after_download):
         """
@@ -308,17 +311,25 @@ class Koan:
         self.get_distro_files(profile_data, download_root)
         after_download(self, profile_data)
 
+    #---------------------------------------------------
+
     def do_list_profiles(self):
         return self.do_list(True)
 
+    #---------------------------------------------------
+
     def do_list_systems(self):
         return self.do_list(False)
+
+    #---------------------------------------------------
 
     def url_read(self,url):
         fd = urllib2.urlopen(url)
         data = fd.read()
         fd.close()
         return data
+    
+    #---------------------------------------------------
 
     def do_list(self,is_profiles):
         if is_profiles:
@@ -329,18 +340,32 @@ class Koan:
             if x.has_key("name"):
                 print x["name"]
         return True
+
+    #---------------------------------------------------
                  
     def do_virt(self):
         """
         Handle virt provisioning.
         """
+
         def after_download(self, profile_data):
             self.do_virt_net_install(profile_data)
+
+        # ensure we have a good virt type choice and know where
+        # to download the kernel/initrd
+        if self.virt_type is None:
+            self.virt_type = self.safe_load(profile_data,'virt_type',default=None)
+        if self.virt_type is None:
+            self.virt_type = 'xenpv'
         if self.virt_type == "xenpv":
-           download = "/var/lib/xen" 
+            download = "/var/lib/xen" 
         else:
-           download = "/var/spool/koan"
+            # FIXME: should use temp dir to allow parallel installs?
+            download = "/var/spool/koan" 
+
         return self.do_net_install(download,after_download)
+
+    #---------------------------------------------------
 
     def do_replace(self):
         """
@@ -395,13 +420,15 @@ class Koan:
                 cmd = [ "/sbin/lilo" ]
                 sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
 
-            self.debug("reboot to apply changes")
+            print "reboot to apply changes"
 
         boot_path = "/boot"
         if self.live_cd:
             boot_path = "/tmp/boot/boot"
 
         return self.do_net_install(boot_path,after_download)
+
+    #---------------------------------------------------
 
     def get_kickstart_data(self,kickstart,data):
         """
@@ -425,15 +452,15 @@ class Koan:
             self.subprocess_call(cmd)
             return data
         elif kickstart.startswith("http") or kickstart.startswith("ftp"):
-            self.debug("urlread %s" % kickstart)
+            print "urlread %s" % kickstart
             try:
-                # FIXME
-                inf = self.urlread(kickstart)
+                return self.urlread(kickstart)
             except:
                 raise InfoException, "Couldn't download: %s" % kickstart
-            return inf
         else:
             raise InfoException, "invalid kickstart URL"
+
+    #---------------------------------------------------
 
     def get_insert_script(self,initrd):
         """
@@ -464,6 +491,8 @@ class Koan:
         fi
         """ % initrd
 
+    #---------------------------------------------------
+
     def build_initrd(self,initrd,kickstart,data):
         """
         Crack open an initrd and install the kickstart file.
@@ -481,10 +510,14 @@ class Koan:
         fd.write(self.get_insert_script(initrd))
         fd.close()
         self.subprocess_call([ "/bin/bash", "/var/spool/koan/insert.sh" ])
-        self.copyfile("/var/spool/koan/initrd_final", initrd)
+        shutil.copyfile("/var/spool/koan/initrd_final", initrd)
+
+    #---------------------------------------------------
 
     def connect_fail(self):
         raise InfoException, "Could not communicate with %s:%s" % (self.server, self.port)
+
+    #---------------------------------------------------
 
     def get_profiles_xmlrpc(self):
         try:
@@ -495,6 +528,8 @@ class Koan:
         if data == {}:
             raise InfoException("No profiles found on cobbler server")
         return data
+
+    #---------------------------------------------------
 
     def get_profile_xmlrpc(self,profile_name):
         """
@@ -509,6 +544,7 @@ class Koan:
             raise InfoException("no cobbler entry for this profile")
         return data
 
+    #---------------------------------------------------
 
     def get_systems_xmlrpc(self):
         try:
@@ -516,6 +552,8 @@ class Koan:
         except:
             traceback.print_exc()
             self.connect_fail()
+
+    #---------------------------------------------------
 
     def is_ip(self,strdata):
         """
@@ -525,6 +563,8 @@ class Koan:
         if re.search(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',strdata):
             return True
         return False
+
+    #---------------------------------------------------
 
     def is_mac(self,strdata):
         """
@@ -536,6 +576,8 @@ class Koan:
         if re.search(r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}',strdata):
             return True
         return False
+
+    #---------------------------------------------------
 
     def get_system_xmlrpc(self,system_name):
         """
@@ -554,6 +596,8 @@ class Koan:
         print system_data
         return system_data
 
+    #---------------------------------------------------
+
     def get_distro_files(self,profile_data, download_root):
         """
         Using distro data (fetched from bootconf tree), determine
@@ -568,20 +612,22 @@ class Koan:
         kernel_save = "%s/%s" % (download_root, kernel_short)
         initrd_save = "%s/%s" % (download_root, initrd_short)
         try:
-            self.debug("downloading initrd %s to %s" % (initrd_short, initrd_save))
+            print "downloading initrd %s to %s" % (initrd_short, initrd_save))
             url = "http://%s/cobbler/images/%s/%s" % (self.server, distro, initrd_short)
-            self.debug("url=%s" % url)
+            print "url=%s" % url
             self.urlgrab(url,initrd_save)
-            self.debug("downloading kernel %s to %s" % (kernel_short, kernel_save))
+            print "downloading kernel %s to %s" % (kernel_short, kernel_save))
             url = "http://%s/cobbler/images/%s/%s" % (self.server, distro, kernel_short)
-            self.debug("url=%s" % url)
+            print "url=%s" % url
             self.urlgrab(url,kernel_save)
         except:
             raise InfoException, "error downloading files"
         profile_data['kernel_local'] = kernel_save
-        self.debug("kernel saved = %s" % kernel_save)
+        print "kernel saved = %s" % kernel_save
         profile_data['initrd_local'] = initrd_save
-        self.debug("initrd saved = %s" % initrd_save)
+        print "initrd saved = %s" % initrd_save
+
+    #---------------------------------------------------
 
     def do_virt_net_install(self,profile_data):
         """
@@ -626,6 +672,7 @@ class Koan:
             uuid    = xencreate.get_uuid(self.calc_virt_uuid(pd))
             creator = xencreate.start_paravirt_install
         elif self.virt_type == "qemu":
+            # FIXME: currently don't pay attention to some attributes
             mac     = None
             uuid    = None
             creator = qcreate.start_install
@@ -640,11 +687,13 @@ class Koan:
                 initrd       =  self.safe_load(pd,'initrd_local'),
                 extra        =  kextra,
                 vcpus        =  self.calc_virt_cpus(pd),
-                path         =  self.set_virt_path(name, mac),
+                path         =  self.set_virt_path(pd, name, mac),
                 nameoverride =  self.virt_name
         )
 
         print results
+
+    #---------------------------------------------------
 
     def calc_virt_filesize(self,data,default_filesize=1):
         """
@@ -659,9 +708,11 @@ class Koan:
         if size is None or size == '' or int(size)<default_filesize:
             err = True
         if err:
-            self.debug("invalid file size specified, using defaults")
+            print "invalid file size specified, using defaults"
             return default_filesize
         return int(size)
+
+    #---------------------------------------------------
 
     def calc_virt_ram(self,data,default_ram=64):
         """
@@ -676,9 +727,11 @@ class Koan:
         if size is None or size == '' or int(size) < default_ram:
             err = True
         if err:
-            self.debug("invalid RAM size specified, using defaults.")
+            print "invalid RAM size specified, using defaults."
             return default_ram
         return int(size)
+
+    #---------------------------------------------------
 
     def calc_virt_cpus(self,data,default_cpus=1):
         """
@@ -693,20 +746,20 @@ class Koan:
         if size is None or size == '' or int(size) < default_cpus:
             err = True
         if err:
-            self.debug("invalid number of VCPUS specified, using defaults")
+            print "invalid number of VCPUS specified, using defaults"
             return default_cpus
         return int(size)
 
+    #---------------------------------------------------
 
     def calc_virt_mac(self,data):
-        """
-        For now, we have no preference.
-        """
         if not self.is_virt:
             return None
         if self.is_mac(self.system):
             return self.system.upper()
         return None
+
+    #---------------------------------------------------
 
     def calc_virt_uuid(self,data):
         # TODO: eventually we may want to allow some koan CLI
@@ -725,17 +778,24 @@ class Koan:
             err = True
         if id is None or id == '' or not uuid_re.match(id):
             err = True
-        if err:
-            self.debug("invalid UUID specified.  randomizing...")
+        if err and id is not None:
+            print "invalid UUID specified.  randomizing..."
             return None
         return id
 
-    def set_virt_path(self,name,mac):
+    #---------------------------------------------------
+
+    def set_virt_path(self,pd,name,mac):
         """
         Assign virtual disk location.
         """
 
         location = self.virt_path
+        if location is None:
+            location = self.safe_load(pd, 'virt_path', default=None)
+        if location == "":  
+            # not set in Cobbler either...
+            location = None            
 
         # For disk images, default paths vary by virt type
         # or may not be supported -- set or raise exceptions accordingly
