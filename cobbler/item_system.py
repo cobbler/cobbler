@@ -200,7 +200,7 @@ class System(item.Item):
         Use of this option does not affect the ability to use PXE menus.  If an admin has machines 
         set up to PXE only after local boot fails, this option isn't even relevant.
         """
-        if netboot_enabled in [ True, "True", "true", 1, "on", "yes", "y", "ON", "YES", "Y" ]:
+        if netboot_enabled in [ True, "True", "true", 1, "1", "on", "yes", "y", "ON", "YES", "Y" ]:
             # this is a bit lame, though we don't know what the user will enter YAML wise...
             self.netboot_enabled = 1
         else:

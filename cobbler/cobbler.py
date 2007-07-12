@@ -501,7 +501,8 @@ class BootCLI:
            '--mac-address' :  lambda(a) : sys.set_mac_address(a),
            '--mac'         :  lambda(a) : sys.set_mac_address(a), # alias
            '--kickstart'   :  lambda(a) : sys.set_kickstart(a),
-           '--kick-start'  :  lambda(a) : sys.set_kickstart(a)
+           '--kick-start'  :  lambda(a) : sys.set_kickstart(a),
+           '--netboot-enabled' : lambda(a) : sys.set_netboot_enabled(a)
         }
         def on_ok():
             self.api.systems().add(sys, with_copy=self.api.sync_flag)
