@@ -1,6 +1,6 @@
 =head1 NAME
 
-cobbler is a command line tool for configuring a provisioning and update server.  It supports provisioning via PXE (network booting), virtualization (Xen), and re-installs of existing Linux systems.  The latter two features are enabled by usage of 'koan' on the remote system.  Update server features include yum mirroring and integration of those mirrors with kickstart.
+cobbler is a command line tool for configuring a provisioning and update server.  It supports provisioning via PXE (network booting), virtualization (Xen or QEMU/KVM), and re-installs of existing Linux systems.  The latter two features are enabled by usage of 'koan' on the remote system.  Update server features include yum mirroring and integration of those mirrors with kickstart.
 
 =head1 SYNOPSIS
 
@@ -100,7 +100,7 @@ The file used for the answer file, regardless of the breed setting, is the value
 
 A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.  A profile might represent, for instance, a web server or desktop configuration.  In this way, profiles define a role to be performed.
 
-B<cobbler profile add --name=string --distro=string [--kickstart=url] [--kopts=string] [--ksmeta=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes]>
+B<cobbler profile add --name=string --distro=string [--kickstart=url] [--kopts=string] [--ksmeta=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-path=string]>
 
 Arguments are as listed for distributions, save for the removal of "arch" and "breed", and with the additions listed below:
 
@@ -127,6 +127,16 @@ If this parameter is not provided, the kickstart file will default to /etc/cobbl
 =item virt-ram
 
 (optional) (Virt-only) how many megabytes of RAM to consume.  The default is 512 MB.
+
+=item virt-types
+
+(optional) (Virt-only) koan can install images using either Xen paravirt ("xenpv") or QEMU/KVM ("qemu").  Choose one or the other strings to specify, or values will default to the value given for "default_virt_type" in /var/lib/cobbler/settings.  If you have not changed this setting, the default is "xenpv".   See the "koan" manpage for more documentation.
+
+=item virt-path
+
+(optional) (Virt-only) where to store the virtual image.  Except for advanced cases, this parameter can usually be ommitted For disk images, the value is an
+absolute path to an existing directory (recommended) or a full path to a file name in an existing directory.  There
+is also some experimental support for the syntax of "partition:/dev/device" or "volume-group:/dev/device", though these forms are currently only valid for virt-types of "xenpv" -- these serve as an alternative to placing disk images on the filesystem.
 
 =item repos
 

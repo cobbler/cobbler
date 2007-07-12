@@ -39,6 +39,8 @@ class System(item.Item):
         self.hostname        = ("",       '<<inheirt>>')[is_subobject]
         self.depth           = 2
         self.kickstart       = "<<inherit>>"   # use value in profile
+        self.virt_path       = "<<inherit>>"   # use value in profile
+        self.virt_type       = "<<inherit>>"   # use value in profile 
 
     def from_datastruct(self,seed_data):
 
@@ -49,7 +51,9 @@ class System(item.Item):
         self.ks_meta         = self.load_item(seed_data, 'ks_meta', {})
         self.depth           = self.load_item(seed_data, 'depth', 2)        
         self.kickstart       = self.load_item(seed_data, 'kickstart', '<<inherit>>')
- 
+        self.virt_path       = self.load_item(seed_data, 'virt_path', '<<inherit>>') 
+        self.virt_type       = self.load_item(seed_data, 'virt_type', '<<inherit>>')
+
         # backwards compat, load --ip-address from two possible sources.
         # the old --pxe-address was a bit of a misnomer, new value is --ip-address
 
@@ -186,6 +190,22 @@ class System(item.Item):
             return True
         raise CX(_("invalid profile name"))
 
+    def set_virt_path(self,path):
+        """
+        Virtual storage location suggestion, can be overriden by koan.
+        """
+        self.virt_path = path
+        return True
+
+    def set_virt_type(self,vtype):
+        """
+        Virtualization preference, can be overridden by koan.
+        """
+        if vtype.lower() not in [ "qemu", "xenpv" ]:
+            raise CX(_("invalid virt type"))
+        self.virt_type = vtype
+        return True
+
     def set_netboot_enabled(self,netboot_enabled):
         """
         If true, allows per-system PXE files to be generated on sync (or add).  If false,
@@ -251,7 +271,9 @@ class System(item.Item):
            'mac_address'     : self.mac_address,
            'parent'          : self.parent,
            'depth'           : self.depth,
-           'kickstart'       : self.kickstart
+           'kickstart'       : self.kickstart,
+           'virt_type'       : self.virt_type,
+           'virt_path'       : self.virt_path
         }
 
     def printable(self):
@@ -266,5 +288,7 @@ class System(item.Item):
         buf = buf + _("config id        : %s\n") % utils.get_config_filename(self)
         buf = buf + _("netboot enabled? : %s\n") % self.netboot_enabled 
         buf = buf + _("kickstart        : %s\n") % self.kickstart
+        buf = buf + _("virt type        : %s\n") % self.virt_type
+        buf = buf + _("virt path        : %s\n") % self.virt_path
         return buf
 

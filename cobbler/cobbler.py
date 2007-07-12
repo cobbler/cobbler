@@ -436,7 +436,9 @@ class BootCLI:
             '--virt-file-size'  :  lambda(a) : profile.set_virt_file_size(a),
             '--virt-ram'        :  lambda(a) : profile.set_virt_ram(a),
             '--ksmeta'          :  lambda(a) : profile.set_ksmeta(a),
-            '--repos'           :  lambda(a) : profile.set_repos(a)
+            '--repos'           :  lambda(a) : profile.set_repos(a),
+            '--virt-path'       :  lambda(a) : profile.set_virt_path(a),
+            '--virt-type'       :  lambda(a) : profile.set_virt_type(a)
         }
         def on_ok():
             if newname is not None:
@@ -502,7 +504,9 @@ class BootCLI:
            '--mac'         :  lambda(a) : sys.set_mac_address(a), # alias
            '--kickstart'   :  lambda(a) : sys.set_kickstart(a),
            '--kick-start'  :  lambda(a) : sys.set_kickstart(a),
-           '--netboot-enabled' : lambda(a) : sys.set_netboot_enabled(a)
+           '--netboot-enabled' : lambda(a) : sys.set_netboot_enabled(a),
+           '--virt-path'   :  lambda(a) : sys.set_virt_path(a),
+           '--virt-type'   :  lambda(a) : sys.set_virt_type(a)
         }
         def on_ok():
             self.api.systems().add(sys, with_copy=self.api.sync_flag)

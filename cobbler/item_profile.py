@@ -33,14 +33,16 @@ class Profile(item.Item):
         Reset this object.
         """
         self.name            = None
-        self.distro          = (None,                            '<<inherit>>')[is_subobject]
-        self.kickstart       = (self.settings.default_kickstart, '<<inherit>>')[is_subobject]    
-        self.kernel_options  = ({},                              '<<inherit>>')[is_subobject]
-        self.ks_meta         = ({},                              '<<inherit>>')[is_subobject]
-        self.virt_file_size  = (5,                               '<<inherit>>')[is_subobject]
-        self.virt_ram        = (512,                             '<<inherit>>')[is_subobject]
-        self.repos           = ("",                              '<<inherit>>')[is_subobject]
+        self.distro          = (None,                             '<<inherit>>')[is_subobject]
+        self.kickstart       = (self.settings.default_kickstart , '<<inherit>>')[is_subobject]    
+        self.kernel_options  = ({},                               '<<inherit>>')[is_subobject]
+        self.ks_meta         = ({},                               '<<inherit>>')[is_subobject]
+        self.virt_file_size  = (5,                                '<<inherit>>')[is_subobject]
+        self.virt_ram        = (512,                              '<<inherit>>')[is_subobject]
+        self.repos           = ("",                               '<<inherit>>')[is_subobject]
         self.depth           = 1
+        self.virt_type       = (self.settings.default_virt_type,  '<<inherit>>')[is_subobject]
+        self.virt_path       = ("",                               '<<inherit>>')[is_subobject]
 
     def from_datastruct(self,seed_data):
         """
@@ -63,6 +65,8 @@ class Profile(item.Item):
         # virt specific 
         self.virt_ram        = self.load_item(seed_data,'virt_ram')
         self.virt_file_size  = self.load_item(seed_data,'virt_file_size')
+        self.virt_path       = self.load_item(seed_data,'virt_path')
+        self.virt_type       = self.load_item(seed_data,'virt_type')
 
         # backwards compatibility -- convert string entries to dicts for storage
         if self.kernel_options != "<<inherit>>" and type(self.kernel_options) != dict:
@@ -178,6 +182,22 @@ class Profile(item.Item):
         except:
             return CX(_("invalid virt ram size"))
 
+    def set_virt_type(self,vtype):
+        """
+        Virtualization preference, can be overridden by koan.
+        """
+        if vtype.lower() not in [ "qemu", "xenpv" ]:
+            raise CX(_("invalid virt type"))
+        self.virt_type = vtype
+        return True
+
+    def set_virt_path(self,path):
+        """
+        Virtual storage location suggestion, can be overriden by koan.
+        """
+        self.virt_path = path
+        return True
+
     def get_parent(self):
         """
         Return object next highest up the tree.
@@ -223,7 +243,9 @@ class Profile(item.Item):
             'ks_meta'          : self.ks_meta,
             'repos'            : self.repos,
             'parent'           : self.parent,
-            'depth'            : self.depth
+            'depth'            : self.depth,
+            'virt_type'        : self.virt_type,
+            'virt_path'        : self.virt_path
         }
 
     def printable(self):
@@ -237,6 +259,8 @@ class Profile(item.Item):
         buf = buf + _("ks metadata     : %s\n") % self.ks_meta
         buf = buf + _("virt file size  : %s\n") % self.virt_file_size
         buf = buf + _("virt ram        : %s\n") % self.virt_ram
+        buf = buf + _("virt type       : %s\n") % self.virt_type
+        buf = buf + _("virt path       : %s\n") % self.virt_path
         buf = buf + _("repos           : %s\n") % self.repos
         return buf
 
