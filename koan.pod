@@ -1,36 +1,119 @@
 =head1 NAME
 
-koan stands for "kickstart-over-a-network" and allows for both network provisioning of new virtualized guests and destructive provisioning of any existing system.  For use with a boot-server configured with 'cobbler'.
+koan stands for "kickstart-over-a-network" and allows for both network provisioning of new virtualized guests (Xen, QEMU/KVM) and re-installation of an existing system.  koan is a client side application used with a Cobbler boot server.
 
 =head1 SYNOPSIS
 
-koan --server=<host> --list-profiles
+koan --server=<host> [--list-profiles|--list-systems]
 
-koan --server=<host> --list-systems
+koan --server=<host> --virt [--profile=<name>|--system=<name>] [--virt-name=<name>] [--virt-path=<path>] [--virt-type=<type>]
 
-koan --virt --server=<host> --profile=<name> [--virtname=<name>]
-
-koan --virt --server=<host> --system=<name> [--virtname=<name>]
-
-koan --replace-self --server=<host> --profile=<name>
-
-koan --replace-self --server=<host> --system=<name>
-
-koan --replace-self --server=<host>
+koan --server=<host> --replace-self [--profile=<name>|--system=<name>]
 
 =head1 DESCRIPTION
 
-When invoked, koan requests profile information from a remote boot server that has been configured with cobbler.   What koan does with the profile data depends on whether it was invoked with --virt or --replace-self.
+When invoked, koan requests install information from a remote cobbler boot server.   What koan does with the profile data depends on whether it was invoked with --virt or --replace-self.
 
-For --virt, cobbler will create new virtualized guests on a machine in accordance to the orders from cobbler.  You can then, once finished, use "virsh" and "xm" commands on the guest.  Cobbler automatically names domains based on their mac addresses.  To install using a more descriptive name, specify one with --virtname.
+=head1 COMMON ARGUMENTS
 
-For re-kickstarting ('--replace-self'), cobbler will reprovisioning the system, blowing away any current data and replacing it with the results of a network install.  Specify a specific item from cobbler with --system or --profile, otherwise cobbler will try to see if there is a cobbler system record that matches a MAC address on the system.
+=over 
+
+=item --server
+
+Indicates the hostname of the Cobbler boot server to be contacted.  Successful
+communication requires that no firewalls are blocking the cobbler XMLRPC port,
+which is usually 25151, and that "cobblerd" is running on the cobbler server.
+
+=item --list-profiles
+
+Shows a list of profiles that can be remotely installed from the cobbler server.
+
+=item --list-systems
+
+Shows a list of systems that can be remotely installed from the cobbler server.  Systems contain the same information as profiles but may be further customized in terms of parameters or kickstart information.  The level of customization varies depending on what has been specified on the cobbler server.
+
+=item --profile
+
+Names a profile, known to cobbler, that is to be installed.
+
+=item --system
+
+Names a system, known to cobbler, that is to be installed.  --system cannot
+be used at the same time as --profile; pick one or the other.
+
+=back
+
+=head1 VIRTUALIZED INSTALLS
+
+When using --virt, koan will create new virtualized guests on a machine in accordance to the orders from cobbler.  You can then, once finished, use "virsh" and "xm" commands to access the guest.  These can be Xen or QEMU/KVM guests.
+
+If --profile is specified, cobbler will default to naming domains based on their mac addresses, using --system will use the exact name given to the cobbler system object.  To install using a more descriptive name, specify one with --virtname.  
+
+The additional parameters --virt-path, and --virt-type allow overriding certain defaults that are ordinarily defined by the remote cobbler server.
+
+Optional advanced-configuration parameters for --virt:
+
+=over
+
+=item --virt-name
+
+Overrides the name of the virtual machine.   This name must not conflict with
+other virtual machines running on the same system.   If not specified, cobbler
+will provide reasonable defaults.
+
+=item --virt-path
+
+(optional) This path is usually the absolute path of a directory in which to store the image, where it will be named accordingly based on the definitions given in cobbler or overridden by --virt-name.  There is also experimental support for specifying "partition:/dev/device" or "volume-group:/dev/device".  If not specified, koan will use the location defined in cobbler, or if none is specified there, a reasonable default that is suitable based on the value given to --virt-type.
+
+=item --virt-type
+
+(optional) Koan can install virtual guests for Xen (paravirtualized), or QEMU/KVM (paravirtualized or fully virtualized based on hardware support).  Use --virt-type="kvm" or --virt-type="xenpv" to override the values already defined in cobbler.  Since this parameter can be set in the cobbler profile, it's best to just set it there.  See the cobbler manpage for more documentation.
+
+=back
+
+=head1 REINSTALLATION 
+
+When using '--replace-self', cobbler will reprovision the system, blowing away any current data and replacing it with the results of a network install.  Specify a specific item from cobbler with --system or --profile, otherwise cobbler will try to see if there is a cobbler system record that matches a MAC address on the system.
+
+This is useful to reinstall systems in conditions where ordinary PXE is not possible.
+
+After using this feature, run "/sbin/reboot" to initiate the fully automatic reinstallation.
 
 =head1 NOTES FOR USERS OF COBBLER TEMPLATING
 
-Cobbler contains an advanced templating feature that allows a single kickstart file to be customized on a per-system basis.  See the cobbler manpage for more details.
+Cobbler contains a templating feature that allows a single kickstart file to be customized on a per-system basis.  See the cobbler manpage for more details.
 
-If you have system specific customizations in your kickstarts and have cobbler system definitions defined server side for those systems, use --system and not --profile.
+If you have system specific customizations in your kickstarts and have cobbler system definitions defined server side for those systems, use --system and not --profile, to request the more specific per-system information from Cobbler.
+
+=head1 NEW LIVE CD
+
+Koan's source checkout (see http://cobbler.et.redhat.com) can be used to build
+a live CD for use with koan.  This live CD serves the purpose of running
+--replace-self with no OS present -- bare metal installation.  This tool may prove useful to emulate a PXE environment with a cobbler server, when no local DHCPconfiguration is not feasible or otherwise undesired.
+
+To build a CD (on Fedora 7):
+
+yum install livecd-tools
+
+git clone git://et.redhat.com/koan
+
+cd /checkout/koan
+
+make
+
+cd /checkout/koan/live
+
+python build.py --server=cobbler.example.org --koan="--profile=foo"
+
+# OR (for auto-detection)
+
+python build.py --server=cobbler.example.org --koan=""
+
+# burn the CD, and insert it in a bare metal machine
+
+The koan live CD is in the early stages of development and may not
+support all direct attached storage.  NOTE: Usage of the Live CD will
+erase all data on the first DASD disk during the course of provisioning.
 
 =head1 ADDITIONAL
 
