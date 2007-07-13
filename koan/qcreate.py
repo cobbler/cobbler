@@ -66,16 +66,19 @@ def start_install(name=None, ram=None, disk=None, mac=None,
     if rc != 0:
        return "image creation failed"
 
+    print "- starting background install to %s" % path
     if not virt_graphics:
-        print "- access your installation with vnc :0"
+        print "- access your installation with vncviewer :0"
+    print "- restart with qemu-kvm -hda %s -M %s" % (path, ram)
 
     cmd2 = "qemu -m %s -hda %s" % (ram,path)
     cmd2 = cmd2  + " -kernel %s" % (kernel)
     cmd2 = cmd2  + " -initrd %s" % (initrd)
-    cmd2 = cmd2  + " -net nic,macaddr=%s -vnc :0" % (mac)
+    cmd2 = cmd2  + " -net nic,macaddr=%s -net user" % (mac)
     cmd2 = cmd2  + " -daemonize -append \"%s\"" % (extra)
 
     if virt_graphics:
+        # FIXME: detect vnc collisions?
         cmd2 = cmd2  + " -vnc :0 -serial vc -monitor vc"
 
     print cmd2
