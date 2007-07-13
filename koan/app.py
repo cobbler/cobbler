@@ -612,11 +612,11 @@ class Koan:
         kernel_save = "%s/%s" % (download_root, kernel_short)
         initrd_save = "%s/%s" % (download_root, initrd_short)
         try:
-            print "downloading initrd %s to %s" % (initrd_short, initrd_save))
+            print "downloading initrd %s to %s" % (initrd_short, initrd_save)
             url = "http://%s/cobbler/images/%s/%s" % (self.server, distro, initrd_short)
             print "url=%s" % url
             self.urlgrab(url,initrd_save)
-            print "downloading kernel %s to %s" % (kernel_short, kernel_save))
+            print "downloading kernel %s to %s" % (kernel_short, kernel_save)
             url = "http://%s/cobbler/images/%s/%s" % (self.server, distro, kernel_short)
             print "url=%s" % url
             self.urlgrab(url,kernel_save)
