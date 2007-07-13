@@ -21,7 +21,6 @@ import api as cobbler_api
 import utils
 from rhpl.translate import _, N_, textdomain, utf8
 import xmlrpclib
-import thread
 
 def main():
    core(logger=None)
@@ -58,7 +57,7 @@ def do_xmlrpc(bootapi, settings, port, logger):
             server.serve_forever()
         except IOError:
             # interrupted? try to serve again
-            thread.sleep(0.5)
+            time.sleep(0.5)
              
 
 def do_syslog(bootapi, settings, port, logger):
