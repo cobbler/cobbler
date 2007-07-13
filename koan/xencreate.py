@@ -76,7 +76,7 @@ def get_mac(mac):
 def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
                            uuid=None, kernel=None, initrd=None, 
                            extra=None, nameoverride=None, path=None,
-                           vcpus=None):
+                           vcpus=None, virt_graphics=False):
 
 
     if mac == None:
@@ -97,7 +97,7 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
     if vcpus is None:
         vcpus = 1
     guest.set_vcpus(vcpus)
-    guest.set_graphics(False) # FIXME!
+    guest.set_graphics(virt_graphics)
     if uuid is not None:
         guest.set_uuid(uuid)
 

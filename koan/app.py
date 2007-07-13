@@ -97,7 +97,10 @@ def main():
     p.add_option("-T", "--virt-type",
                  dest="virt_type",
                  help="virtualization install type (xenpv,qemu)")
- 
+    p.add_option("-g", "--virt-graphics",
+                 action="store_true",
+                 dest="virt_graphics",
+                 help="enable virt graphics (varies with --virt-type)")
     (options, args) = p.parse_args()
 
     if not os.getuid() == 0:
@@ -117,6 +120,7 @@ def main():
         k.live_cd           = options.live_cd
         k.virt_path         = options.virt_path
         k.virt_type         = options.virt_type
+        k.virt_graphics     = options.virt_graphics
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
         if options.port is not None:
@@ -166,6 +170,7 @@ class Koan:
         self.virt_name         = None
         self.virt_type         = None
         self.virt_path         = None 
+        self.virt_graphics     = None
 
     #---------------------------------------------------
 
@@ -321,7 +326,7 @@ class Koan:
             # to download the kernel/initrd
             if self.virt_type is None:
                 self.virt_type = self.safe_load(profile_data,'virt_type',default=None)
-            if self.virt_type is None:
+            if self.virt_type is None or self.virt_type == "":
                 self.virt_type = 'xenpv'
 
             if self.virt_type == "xenpv":
@@ -699,17 +704,18 @@ class Koan:
             raise InfoException, "Unspecified virt type: %s" % self.virt_type
 
         results = creator(
-                name         =  name,
-                ram          =  self.calc_virt_ram(pd),
-                disk         =  self.calc_virt_filesize(pd),
-                mac          =  mac,
-                uuid         =  uuid,
-                kernel       =  self.safe_load(pd,'kernel_local'),
-                initrd       =  self.safe_load(pd,'initrd_local'),
-                extra        =  kextra,
-                vcpus        =  self.calc_virt_cpus(pd),
-                path         =  self.set_virt_path(pd, name, mac),
-                nameoverride =  self.virt_name
+                name          =  name,
+                ram           =  self.calc_virt_ram(pd),
+                disk          =  self.calc_virt_filesize(pd),
+                mac           =  mac,
+                uuid          =  uuid,
+                kernel        =  self.safe_load(pd,'kernel_local'),
+                initrd        =  self.safe_load(pd,'initrd_local'),
+                extra         =  kextra,
+                vcpus         =  self.calc_virt_cpus(pd),
+                path          =  self.set_virt_path(pd, name, mac),
+                nameoverride  =  self.virt_name,
+                virt_graphics =  self.virt_graphics
         )
 
         print results
@@ -849,19 +855,22 @@ class Koan:
             return "%s/%s" % (prefix, usename)
 
         if location.find(':') == -1:
-            # No colon syntax, assume disk image
+            # this is a disk location
             # FIXME: can we be smarter here, eliminate this syntax, and
             # figure out what the device is by asking it?
-            if location.endswith("/"):
-                return "%s/%s%s" % (prefix,location,usename)
+            if os.path.isdir(location):
+                # existing directory
+                return "%s/%s" % (location, usename)
+            elif not os.path.exists(location) and os.path.isdir(os.path.dirname(location)):
+                # non-existing file in existing directory
+                return location
             else:
-                if os.path.isdir("%s/%s" % (prefix,location)):
-                    return "%s/%s/" % (prefix,location)
-                return "%s/%s" % (prefix,location)
-
+                raise InfoException, "invalid location: %s" % location                
         else:
             # command line indicates partition or volume group
             # FIXME: pathname may legally include ':'
+            # FIXME: not well tested at this point
+            print "warning: experimental --virt-path usage"
 
             count = location.count(':')
             if count == 1:

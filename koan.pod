@@ -6,7 +6,7 @@ koan stands for "kickstart-over-a-network" and allows for both network provision
 
 koan --server=<host> [--list-profiles|--list-systems]
 
-koan --server=<host> [--virt|--replace-self|--display] [--profile=<name>|--system=<name>] [--virt-name=<name>] [--virt-path=<path>] [--virt-type=<type>]
+koan --server=<host> [--virt|--replace-self|--display] [--profile=<name>|--system=<name>] [--virt-name=<name>] [--virt-path=<path>] [--virt-type=<type>] [--virt-graphics]
 
 =head1 DESCRIPTION
 
@@ -99,6 +99,10 @@ will provide reasonable defaults.
 =item --virt-type
 
 (optional) Koan can install virtual guests for Xen (paravirtualized), or QEMU/KVM (paravirtualized or fully virtualized based on hardware support).  Use --virt-type="kvm" or --virt-type="xenpv" to override the values already defined in cobbler.  Since this parameter can be set in the cobbler profile, it's best to just set it there.  See the cobbler manpage for more documentation.
+
+=item --virt-graphics
+
+(optional) This enables VNC graphics for virtual installs.  
 
 =back
 
