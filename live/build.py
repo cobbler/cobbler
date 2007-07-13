@@ -72,8 +72,9 @@ def main(args):
    # create the local repo so we can have the latest koan
    # even if it's not in Fedora yet
    subprocess.call("createrepo ../rpm-build",shell=True)
-   subprocess.call("mkdir -p /var/www/html/newkoan", shell=True) 
-   subprocess.call("cp -r ../rpm-build/* /var/www/html/newkoan/",shell=True) 
+
+   subprocess.call("mkdir -p /tmp/newkoan", shell=True) 
+   subprocess.call("cp -r ../rpm-build/* /tmp/newkoan/",shell=True) 
 
    # write config file
    cfg = open("/tmp/koanlive.cfg","w+")
@@ -85,9 +86,6 @@ def main(args):
    cmd = "livecd-creator"
    cmd = cmd + " --fslabel=koan-live-cd"
    cmd = cmd + " --config=/tmp/koanlive.cfg"
-   #cmd = cmd = cmd + " --repo=newkoan,%s" % os.path.join(os.getcwd()[0:-1], "rpm-build")
-
-   #cmd = cmd + " --repo=allofeverything,http://download.fedora.redhat.com/pub/fedora/linux/releases/7/Everything/i386/os/Fedora/"
    
 
    for x in packages:
