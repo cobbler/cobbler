@@ -6,15 +6,13 @@ koan stands for "kickstart-over-a-network" and allows for both network provision
 
 koan --server=<host> [--list-profiles|--list-systems]
 
-koan --server=<host> --virt [--profile=<name>|--system=<name>] [--virt-name=<name>] [--virt-path=<path>] [--virt-type=<type>]
-
-koan --server=<host> --replace-self [--profile=<name>|--system=<name>]
+koan --server=<host> [--virt|--replace-self|--display] [--profile=<name>|--system=<name>] [--virt-name=<name>] [--virt-path=<path>] [--virt-type=<type>]
 
 =head1 DESCRIPTION
 
 When invoked, koan requests install information from a remote cobbler boot server.   What koan does with the profile data depends on whether it was invoked with --virt or --replace-self.
 
-=head1 COMMON ARGUMENTS
+=head1 THE COBBLER SERVER
 
 =over 
 
@@ -24,6 +22,16 @@ Indicates the hostname of the Cobbler boot server to be contacted.  Successful
 communication requires that no firewalls are blocking the cobbler XMLRPC port,
 which is usually 25151, and that "cobblerd" is running on the cobbler server.
 
+This argument must be specified for all koan commands.
+
+=back
+
+=head1 LISTING AVAILABLE RESOURCES
+
+Lists of the resources that can be installed from a remote server can be obtained by using the following commands:
+
+=over
+
 =item --list-profiles
 
 Shows a list of profiles that can be remotely installed from the cobbler server.
@@ -31,6 +39,18 @@ Shows a list of profiles that can be remotely installed from the cobbler server.
 =item --list-systems
 
 Shows a list of systems that can be remotely installed from the cobbler server.  Systems contain the same information as profiles but may be further customized in terms of parameters or kickstart information.  The level of customization varies depending on what has been specified on the cobbler server.
+
+=back
+
+Example:  koan --server=cobbler.example.org --list-systems
+
+=back
+
+=head1 MAIN COMMANDS
+
+The commands --virt, --replace-self, and --display all take the following arguments:
+
+=over
 
 =item --profile
 
@@ -43,9 +63,20 @@ be used at the same time as --profile; pick one or the other.
 
 =back
 
+=head1 VIEWING THE INSTALLATION DATA
+
+In depth data about what is being installed can be viewed prior to
+kicking off an installation.  Use --display instead of --virt or
+--replace-self.  When using this argument, specify the data to display
+with --profile or --system.
+
+Example:  koan --server=cobbler.example.org --display --profile=fedora7-xen-i386
+
 =head1 VIRTUALIZED INSTALLS
 
 When using --virt, koan will create new virtualized guests on a machine in accordance to the orders from cobbler.  You can then, once finished, use "virsh" and "xm" commands to access the guest.  These can be Xen or QEMU/KVM guests.
+
+Example:  koan --server=cobbler.example.org --virt --profile=fedora7-xen-i386
 
 If --profile is specified, cobbler will default to naming domains based on their mac addresses, using --system will use the exact name given to the cobbler system object.  To install using a more descriptive name, specify one with --virtname.  
 
@@ -71,6 +102,8 @@ will provide reasonable defaults.
 
 =back
 
+Example:  koan --server=cobbler.example.org --virt --profile=rhel5-x86_64 --virt-type="qemu" --virt-path="/home/username/qemu/" --virt-name="test_setup"
+
 =head1 REINSTALLATION 
 
 When using '--replace-self', cobbler will reprovision the system, blowing away any current data and replacing it with the results of a network install.  Specify a specific item from cobbler with --system or --profile, otherwise cobbler will try to see if there is a cobbler system record that matches a MAC address on the system.
@@ -78,6 +111,10 @@ When using '--replace-self', cobbler will reprovision the system, blowing away a
 This is useful to reinstall systems in conditions where ordinary PXE is not possible.
 
 After using this feature, run "/sbin/reboot" to initiate the fully automatic reinstallation.
+
+Example:  koan --server=cobbler.example.org --profile=fedora7-xen-i386 --replace-self
+
+Example:  koan --server=cobbler.example.org --replace-self
 
 =head1 NOTES FOR USERS OF COBBLER TEMPLATING
 

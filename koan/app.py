@@ -38,6 +38,15 @@ koan --virt [--profile=webserver|--system=name] --server=hostname
 koan --replace-self --profile=foo --server=hostname
 """
 
+DISPLAY_PARAMS = [
+   "name",
+   "distro","profile",
+   "kernel","initrd",
+   "kernel_options","kickstart","ks_meta",
+   "repos",
+   "virt_ram","virt_disk","virt_type", "virt_path"
+]
+
 def main():
     """
     Command line stuff...
@@ -55,10 +64,6 @@ def main():
                  dest="list_systems",
                  action="store_true",
                  help="list systems the server can provision")
-    p.add_option("-x", "--xen",
-                 dest="is_virt",
-                 action="store_true",
-                 help="alias for --virt")
     p.add_option("-v", "--virt",
                  dest="is_virt",
                  action="store_true",
@@ -70,6 +75,10 @@ def main():
                  dest="is_replace",
                  action="store_true",
                  help="requests re-provisioning of this host")
+    p.add_option("-D", "--display",
+                 dest="is_display",
+                 action="store_true",
+                 help="display the configuration, don't install it")
     p.add_option("-p", "--profile",
                  dest="profile",
                  help="cobbler profile to install")
@@ -79,10 +88,6 @@ def main():
     p.add_option("-s", "--server",
                  dest="server",
                  help="specify the cobbler server")
-    p.add_option("-q", "--quiet",
-                 dest="verbose",
-                 action="store_false",
-                 help="run (more) quietly")
     p.add_option("-t", "--port",
                  dest="port",
                  help="cobbler xmlrpc port (default 25151)")
@@ -95,13 +100,8 @@ def main():
  
     (options, args) = p.parse_args()
 
-    full_access = 1
-    for x in [ "/etc", "/boot", "/var/spool"]:
-        if not os.access(x, os.O_RDWR):
-            print "Unable to write to %s (which usually means root)" % x
-            full_access = 0
-
-    if not full_access:
+    if not os.getuid() == 0:
+        print "koan requires root access"
         return 3
 
     try:
@@ -111,9 +111,9 @@ def main():
         k.server            = options.server
         k.is_virt           = options.is_virt
         k.is_replace        = options.is_replace
+        k.is_display        = options.is_display
         k.profile           = options.profile
         k.system            = options.system
-        k.verbose           = options.verbose
         k.live_cd           = options.live_cd
         k.virt_path         = options.virt_path
         k.virt_type         = options.virt_type
@@ -159,7 +159,6 @@ class Koan:
         self.profile           = None
         self.list_profiles     = None
         self.list_systems      = None
-        self.verbose           = None
         self.is_virt           = None
         self.is_replace        = None
         self.dryrun            = None
@@ -177,30 +176,32 @@ class Koan:
         self.xmlrpc_server = ServerProxy(url)
         if self.list_systems:
             self.do_list_systems()
+            return
         if self.list_profiles:
             self.do_list_profiles()
+            return
         if (self.list_systems or self.list_profiles):
             return
-	if not self.is_virt and not self.is_replace:
-            raise InfoException, "--virt or --replace-self is required"
-        if self.is_virt and self.is_replace:
-            raise InfoException, "--virt or --replace-self is required"
-        if self.is_virt and not self.profile and not self.system:
-            raise InfoException, "--profile or --system is required"
-        if self.verbose is None:
-            self.verbose = True
+        found = 0
+        for x in (self.is_virt, self.is_replace, self.is_display):
+            if x:
+               found = found+1
+        if found != 1:
+            raise InfoException, "choose: --virt, --replace-self or --display"
+
         if (not self.profile and not self.system):
             self.system = self.autodetect_system()
-        if self.profile and self.system:
-            raise InfoException, "--profile and --system are exclusive"
+
         if self.virt_type is not None:
             if self.virt_type not in [ "qemu", "xenpv" ]:
                raise InfoException, "--virttype should be qemu or xenpv"
 
         if self.is_virt:
             self.do_virt()
-        else:
+        elif self.is_replace:
             self.do_replace()
+        else:
+            self.do_display()
     
     #---------------------------------------------------
 
@@ -249,9 +250,8 @@ class Koan:
 
     def mkdir(self,path):
         """
-        A more verbose and tolerant mkdir
+        A more tolerant mkdir
         """
-        print "mkdir: %s" % path
         try:
             os.mkdir(path)
         except OSError, (err, msg):
@@ -262,9 +262,8 @@ class Koan:
 
     def rmtree(self,path):
         """
-        A more verbose and tolerant rmtree
+        A more tolerant rmtree
         """
-        print "removing: %s" % path
         try:
             shutil.rmtree(path)
         except OSError, (err, msg):
@@ -277,7 +276,7 @@ class Koan:
         """
         Wrapper around subprocess.call(...)
         """
-        print cmd
+        print "- %s" % cmd
         rc = sub_process.call(cmd)
         if rc != 0 and not ignore_rc:
             raise InfoException, "command failed (%s)" % rc
@@ -295,10 +294,12 @@ class Koan:
 
     #---------------------------------------------------
 
-    def do_net_install(self,download_root,after_download):
+    def do_net_install(self,after_download):
         """
         Actually kicks off downloads and auto-ks or virt installs
         """
+
+        # load the data via XMLRPC
         if self.profile:
             profile_data = self.get_profile_xmlrpc(self.profile)
             filler = "kickstarts"
@@ -308,7 +309,32 @@ class Koan:
         if profile_data.has_key("kickstart"):
             if profile_data["kickstart"].startswith("/"):
                profile_data["kickstart"] = "http://%s/cblr/%s/%s/ks.cfg" % (profile_data['server'], filler, profile_data['name'])
-        self.get_distro_files(profile_data, download_root)
+       
+        # find the correct file download location 
+        if not self.is_virt:
+            download = "/boot"
+            if self.live_cd:
+                download = "/tmp/boot/boot"
+
+        else:
+            # ensure we have a good virt type choice and know where
+            # to download the kernel/initrd
+            if self.virt_type is None:
+                self.virt_type = self.safe_load(profile_data,'virt_type',default=None)
+            if self.virt_type is None:
+                self.virt_type = 'xenpv'
+
+            if self.virt_type == "xenpv":
+                download = "/var/lib/xen" 
+            else:
+                # FIXME: should use temp dir to allow parallel installs?
+                download = "/var/spool/koan" 
+
+        # download required files
+        if not self.is_display:
+           self.get_distro_files(profile_data, download)
+  
+        # perform specified action
         after_download(self, profile_data)
 
     #---------------------------------------------------
@@ -342,6 +368,15 @@ class Koan:
         return True
 
     #---------------------------------------------------
+
+    def do_display(self):
+        def after_download(self, profile_data):
+            for x in DISPLAY_PARAMS:
+                if profile_data.has_key(x):
+                    print "%20s  : %s" % (x, profile_data[x])
+        return self.do_net_install(after_download)
+
+    #---------------------------------------------------
                  
     def do_virt(self):
         """
@@ -351,19 +386,7 @@ class Koan:
         def after_download(self, profile_data):
             self.do_virt_net_install(profile_data)
 
-        # ensure we have a good virt type choice and know where
-        # to download the kernel/initrd
-        if self.virt_type is None:
-            self.virt_type = self.safe_load(profile_data,'virt_type',default=None)
-        if self.virt_type is None:
-            self.virt_type = 'xenpv'
-        if self.virt_type == "xenpv":
-            download = "/var/lib/xen" 
-        else:
-            # FIXME: should use temp dir to allow parallel installs?
-            download = "/var/spool/koan" 
-
-        return self.do_net_install(download,after_download)
+        return self.do_net_install(after_download)
 
     #---------------------------------------------------
 
@@ -413,20 +436,17 @@ class Koan:
                cmd.append("--bad-image-okay")
                cmd.append("--boot-filesystem=/dev/sda1")
                cmd.append("--config-file=/tmp/boot/boot/grub/grub.conf")
-            self.subprocess_call(cmd, fake_it=self.dryrun)
+            self.subprocess_call(cmd)
 
             if loader == "--lilo":
                 print "- applying lilo changes"
                 cmd = [ "/sbin/lilo" ]
                 sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
 
-            print "reboot to apply changes"
+            print "- reboot to apply changes"
 
-        boot_path = "/boot"
-        if self.live_cd:
-            boot_path = "/tmp/boot/boot"
 
-        return self.do_net_install(boot_path,after_download)
+        return self.do_net_install(after_download)
 
     #---------------------------------------------------
 
@@ -452,7 +472,7 @@ class Koan:
             self.subprocess_call(cmd)
             return data
         elif kickstart.startswith("http") or kickstart.startswith("ftp"):
-            print "urlread %s" % kickstart
+            print "- downloading %s" % kickstart
             try:
                 return self.urlread(kickstart)
             except:
@@ -593,7 +613,6 @@ class Koan:
             self.connect_fail()
         if system_data == {}:
             raise InfoException("no cobbler entry for system")        
-        print system_data
         return system_data
 
     #---------------------------------------------------
@@ -676,6 +695,8 @@ class Koan:
             mac     = None
             uuid    = None
             creator = qcreate.start_install
+        else:
+            raise InfoException, "Unspecified virt type: %s" % self.virt_type
 
         results = creator(
                 name         =  name,
