@@ -876,16 +876,12 @@ class Koan:
             else:
                 raise InfoException, "invalid location: %s" % location                
         elif location.startswith("/dev/"):
-            #if self.virt_type != "xenpv":
-            #    raise InfoException, "partition storage not supported for this virt type"
             # partition
             if os.path.exists(location):
                 return (location, True)
             else:
                 raise InfoException, "virt path is not a valid block device"
         else:
-            #if self.virt_type != "xenpv":
-            #    raise InfoException, "LVM storage not supported for this virt type"
             # it's a volume group, verify that it exists
             args = "/usr/sbin/vgs -o vg_name"
             print "%s" % args
