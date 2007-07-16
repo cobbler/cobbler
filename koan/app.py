@@ -693,6 +693,7 @@ class Koan:
             raise InfoException, "Unspecified virt type: %s" % self.virt_type
 
         virtname = self.calc_virt_name(pd,mac)
+        (special, path)       =  self.calc_virt_path(pd, virtname),
 
         results = creator(
                 name          =  virtname,
@@ -704,8 +705,9 @@ class Koan:
                 initrd        =  self.safe_load(pd,'initrd_local'),
                 extra         =  kextra,
                 vcpus         =  self.calc_virt_cpus(pd),
-                path          =  self.calc_virt_path(pd, virtname),
-                virt_graphics =  self.virt_graphics
+                path          =  path,
+                virt_graphics =  self.virt_graphics,
+                special_disk  =  special
         )
 
         print results
@@ -852,7 +854,7 @@ class Koan:
                     prefix = "/opt/qemu/"
                 if not os.path.exists(prefix):
                     os.makedirs(prefix)
-                return "%s/%s" % (prefix, name)
+                return ("%s/%s" % (prefix, name), False)
 
         # Parse the command line to determine if this is a 
         # path, a partition, or a volume group parameter
@@ -868,18 +870,22 @@ class Koan:
         if not location.startswith("/dev/") and location.startswith("/"):
             # filesystem path
             if os.path.isdir(location):
-                return "%s/%s" % (location, name)
+                return ("%s/%s" % (location, name), False)
             elif not os.path.exists(location) and os.path.isdir(os.path.dirname(location)):
-                return location
+                return (location, False)
             else:
                 raise InfoException, "invalid location: %s" % location                
         elif location.startswith("/dev/"):
+            if self.virt_type != "xenpv":
+                raise InfoException, "partition storage not supported for this virt type"
             # partition
             if os.path.exists(location):
-                return location
+                return (location, True)
             else:
                 raise InfoException, "virt path is not a valid block device"
         else:
+            if self.virt_type != "xenpv":
+                raise InfoException, "partition storage not supported for this virt type"
             # it's a volume group, verify that it exists
             args = "/usr/sbin/vgs -o vg_name"
             print "%s" % args
@@ -918,7 +924,7 @@ class Koan:
                         raise InfoException, "LVM creation failed"
 
                 # return partition location
-                return "/dev/%s/%s" % (location,name)
+                return ("/dev/%s/%s" % (location,name), True)
             else:
                 raise InfoException, "volume group [%s] needs %s GB free space." % virt_size
 

@@ -53,7 +53,7 @@ def get_uuid(uuid):
 def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
                            uuid=None, kernel=None, initrd=None, 
                            extra=None, path=None,
-                           vcpus=None, virt_graphics=False):
+                           vcpus=None, virt_graphics=False, special_disk=False):
 
 
     guest = virtinst.ParaVirtGuest()

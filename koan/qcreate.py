@@ -24,7 +24,7 @@ class VirtCreateException(exceptions.Exception):
 def start_install(name=None, ram=None, disk=None, mac=None,
                   uuid=None, kernel=None, initrd=None, 
                   extra=None, path=None,
-                  vcpus=None, virt_graphics=None):
+                  vcpus=None, virt_graphics=None, special_disk=False):
 
     if os.path.isdir(path):
        path = os.path.join(path, name)
@@ -36,8 +36,9 @@ def start_install(name=None, ram=None, disk=None, mac=None,
        msg = msg + "However, koan will not overwrite an existing file."
        return msg
 
-    cmd = "qemu-img create -f qcow2 %s %sG" % (path, disk)
-    rc = os.system(cmd)
+    if not special_disk:
+        cmd = "qemu-img create -f qcow2 %s %sG" % (path, disk)
+        rc = os.system(cmd)
 
     if rc != 0:
        return "image creation failed"
