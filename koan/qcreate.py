@@ -43,11 +43,11 @@ def start_install(name=None, ram=None, disk=None, mac=None,
        return "image creation failed"
 
     print "- starting background install to %s" % path
-    if not virt_graphics:
+    if virt_graphics:
         print "- access your installation with vncviewer :0"
     print "- restart with qemu-kvm -hda %s -M %s" % (path, ram)
 
-    cmd2 = "qemu -m %s -hda %s" % (ram,path)
+    cmd2 = "qemu-kvm -m %s -hda %s" % (ram,path)
     cmd2 = cmd2  + " -kernel %s" % (kernel)
     cmd2 = cmd2  + " -initrd %s" % (initrd)
     cmd2 = cmd2  + " -net nic,macaddr=%s -net user" % (mac)
