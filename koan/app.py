@@ -925,7 +925,7 @@ class Koan:
 
                 # return partition location
                 return ("/dev/mapper/location-%s" % (location,name), True)
-        bin   else:
+            else:
                 raise InfoException, "volume group [%s] needs %s GB free space." % virt_size
 
 
