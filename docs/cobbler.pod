@@ -134,9 +134,10 @@ If this parameter is not provided, the kickstart file will default to /etc/cobbl
 
 =item virt-path
 
-(optional) (Virt-only) where to store the virtual image.  Except for advanced cases, this parameter can usually be ommitted For disk images, the value is an
-absolute path to an existing directory (recommended) or a full path to a file name in an existing directory.  There
-is also some experimental support for the syntax of "partition:/dev/device" or "volume-group:/dev/device", though these forms are currently only valid for virt-types of "xenpv" -- these serve as an alternative to placing disk images on the filesystem.
+(optional) (Virt-only) where to store the virtual image.  Except for advanced cases, this parameter can usually be omitted. For disk images, the value is an
+absolute path to an existing directory with an optional file name component.  
+
+There is also some experimental support for specifying partitions "/dev/sda4" or volume groups "VolGroup00", etc.
 
 =item repos
 
