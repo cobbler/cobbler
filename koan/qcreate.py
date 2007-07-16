@@ -18,40 +18,16 @@ import exceptions
 import errno
 import re
 
-def randomMAC():
-    """
-    from xend/server/netif.py
-    Generate a random MAC address.
-    Uses OUI 00-16-3E, allocated to
-    Xensource, Inc.  Last 3 fields are random.
-    return: MAC address string
-    """
-    mac = [ 0x00, 0x16, 0x3e,
-            random.randint(0x00, 0x7f),
-            random.randint(0x00, 0xff),
-            random.randint(0x00, 0xff) ]
-    return ':'.join(map(lambda x: "%02x" % x, mac))
-
-
 class VirtCreateException(exceptions.Exception):
     pass
 
 def start_install(name=None, ram=None, disk=None, mac=None,
                   uuid=None, kernel=None, initrd=None, 
-                  extra=None, nameoverride=None, path=None,
+                  extra=None, path=None,
                   vcpus=None, virt_graphics=None):
 
-    usename = name
-    if nameoverride is not None:
-       usename = nameoverride
-
-    if mac is None:
-       mac = randomMAC()
-    print "using MAC: %s" % mac
-
-
     if os.path.isdir(path):
-       path = os.path.join(path, usename)
+       path = os.path.join(path, name)
      
     if os.path.exists(path):
        msg = "ERROR: disk path (%s) exists. " % path
@@ -80,6 +56,8 @@ def start_install(name=None, ram=None, disk=None, mac=None,
     if virt_graphics:
         # FIXME: detect vnc collisions?
         cmd2 = cmd2  + " -vnc :0 -serial vc -monitor vc"
+    else:
+        cmd2 = cmd2  + " -nographic"
 
     print cmd2
 

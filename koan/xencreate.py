@@ -28,20 +28,6 @@ import virtinst
 class VirtCreateException(exceptions.Exception):
     pass
 
-def randomMAC():
-    """
-    from xend/server/netif.py
-    Generate a random MAC address.
-    Uses OUI 00-16-3E, allocated to
-    Xensource, Inc.  Last 3 fields are random.
-    return: MAC address string
-    """
-    mac = [ 0x00, 0x16, 0x3e,
-            random.randint(0x00, 0x7f),
-            random.randint(0x00, 0xff),
-            random.randint(0x00, 0xff) ]
-    return ':'.join(map(lambda x: "%02x" % x, mac))
-
 def randomUUID():
     """
     Generate a random UUID.  Copied from xend/uuid.py
@@ -64,35 +50,16 @@ def get_uuid(uuid):
        return uuid
     return uuidToString(randomUUID())
 
-def get_mac(mac):
-    """
-    return the passed-in MAC, or a random one if it's not set.
-    """
-    if mac:
-       return mac
-    return randomMAC()
-
-
 def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
                            uuid=None, kernel=None, initrd=None, 
-                           extra=None, nameoverride=None, path=None,
+                           extra=None, path=None,
                            vcpus=None, virt_graphics=False):
 
-
-    if mac == None:
-       mac = randomMAC()
-    if name == None:
-       name = mac
-    fixname = name.replace(":","_").upper()
 
     guest = virtinst.ParaVirtGuest()
     guest.set_boot((kernel,initrd))
     guest.set_extra_args(extra)
-    if nameoverride is None:
-        usename = fixname
-    else:
-        usename = nameoverride
-    guest.set_name(usename)
+    guest.set_name(name)
     guest.set_memory(ram)
     if vcpus is None:
         vcpus = 1
@@ -111,5 +78,5 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
 
     guest.start_install()
     
-    return "reconnect with xm console %s" % usename 
+    return "reconnect with xm console %s" % name 
      

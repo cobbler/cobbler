@@ -16,6 +16,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
+import random
 import os
 import traceback
 import tempfile
@@ -28,7 +29,6 @@ import shutil
 import errno
 import re
 import sys
-from stat import *
 import xmlrpclib
 import string
 import qcreate
@@ -55,7 +55,7 @@ def main():
     p.add_option("-C", "--livecd",
                  dest="live_cd",
                  action="store_true",
-                 help="(experimental) indicates running from custom LiveCD")
+                 help="indicates koan is running from custom LiveCD")
     p.add_option("-l", "--list-profiles",
                  dest="list_profiles",
                  action="store_true",
@@ -70,7 +70,7 @@ def main():
                  help="requests new virtualized image installation")
     p.add_option("-V", "--virt-name",
                  dest="virt_name",
-                 help="force the virtual domain to use this name")
+                 help="create the virtual guest with this name")
     p.add_option("-r", "--replace-self",
                  dest="is_replace",
                  action="store_true",
@@ -96,7 +96,7 @@ def main():
                  help="virtual install location (see manpage)")  
     p.add_option("-T", "--virt-type",
                  dest="virt_type",
-                 help="virtualization install type (xenpv,qemu)")
+                 help="specify virtualization install type (xenpv,qemu)")
     p.add_option("-g", "--virt-graphics",
                  action="store_true",
                  dest="virt_graphics",
@@ -175,18 +175,26 @@ class Koan:
     #---------------------------------------------------
 
     def run(self):
+        """
+        koan's main function...
+        """
+
+        # set up XMLRPC connection
         if self.server is None:
             raise InfoException, "no server specified"
         url = "http://%s:%s" % (self.server, self.port)
         self.xmlrpc_server = ServerProxy(url)
+
+        # if command line input was just for listing commands,
+        # run them now and quit
         if self.list_systems:
-            self.do_list_systems()
+            self.list(False)
             return
         if self.list_profiles:
-            self.do_list_profiles()
+            self.list(True)
             return
-        if (self.list_systems or self.list_profiles):
-            return
+
+        # check to see that exclusive arguments weren't used together
         found = 0
         for x in (self.is_virt, self.is_replace, self.is_display):
             if x:
@@ -194,23 +202,32 @@ class Koan:
         if found != 1:
             raise InfoException, "choose: --virt, --replace-self or --display"
 
+        # if both --profile and --system were ommitted, autodiscover
         if (not self.profile and not self.system):
             self.system = self.autodetect_system()
 
+        # if --virt-type was specified and invalid, then fail
         if self.virt_type is not None:
             if self.virt_type not in [ "qemu", "xenpv" ]:
                raise InfoException, "--virttype should be qemu or xenpv"
 
+        # perform one of three key operations
         if self.is_virt:
-            self.do_virt()
+            self.virt()
         elif self.is_replace:
-            self.do_replace()
+            self.replace()
         else:
-            self.do_display()
+            self.display()
     
     #---------------------------------------------------
 
     def autodetect_system(self):
+        """
+        Determine the name of the cobbler system record that
+        matches this MAC address.  FIXME: should use IP 
+        matching as secondary lookup eventually to be more PXE-like
+        """
+
         fd = os.popen("/sbin/ifconfig")
 	mac = [line.strip() for line in fd.readlines()][0].split()[-1] #this needs to be replaced
 	fd.close()
@@ -253,30 +270,6 @@ class Koan:
 
     #---------------------------------------------------
 
-    def mkdir(self,path):
-        """
-        A more tolerant mkdir
-        """
-        try:
-            os.mkdir(path)
-        except OSError, (err, msg):
-            if err != errno.EEXIST:
-                raise
-    
-    #---------------------------------------------------
-
-    def rmtree(self,path):
-        """
-        A more tolerant rmtree
-        """
-        try:
-            shutil.rmtree(path)
-        except OSError, (err, msg):
-            if err != errno.ENOENT:
-                raise
-
-    #---------------------------------------------------
-
     def subprocess_call(self,cmd,ignore_rc=False):
         """
         Wrapper around subprocess.call(...)
@@ -299,7 +292,7 @@ class Koan:
 
     #---------------------------------------------------
 
-    def do_net_install(self,after_download):
+    def net_install(self,after_download):
         """
         Actually kicks off downloads and auto-ks or virt installs
         """
@@ -344,16 +337,6 @@ class Koan:
 
     #---------------------------------------------------
 
-    def do_list_profiles(self):
-        return self.do_list(True)
-
-    #---------------------------------------------------
-
-    def do_list_systems(self):
-        return self.do_list(False)
-
-    #---------------------------------------------------
-
     def url_read(self,url):
         fd = urllib2.urlopen(url)
         data = fd.read()
@@ -362,7 +345,7 @@ class Koan:
     
     #---------------------------------------------------
 
-    def do_list(self,is_profiles):
+    def list(self,is_profiles):
         if is_profiles:
             data = self.get_profiles_xmlrpc()
         else:
@@ -374,35 +357,43 @@ class Koan:
 
     #---------------------------------------------------
 
-    def do_display(self):
+    def display(self):
         def after_download(self, profile_data):
             for x in DISPLAY_PARAMS:
                 if profile_data.has_key(x):
                     print "%20s  : %s" % (x, profile_data[x])
-        return self.do_net_install(after_download)
+        return self.net_install(after_download)
 
     #---------------------------------------------------
                  
-    def do_virt(self):
+    def virt(self):
         """
         Handle virt provisioning.
         """
 
         def after_download(self, profile_data):
-            self.do_virt_net_install(profile_data)
+            self.virt_net_install(profile_data)
 
-        return self.do_net_install(after_download)
+        return self.net_install(after_download)
 
     #---------------------------------------------------
 
-    def do_replace(self):
+    def replace(self):
         """
         Handle morphing an existing system through downloading new
         kernel, new initrd, and installing a kickstart in the initrd,
         then manipulating grub.
         """
-        self.rmtree("/var/spool/koan")
-        self.mkdir("/var/spool/koan")
+        try:
+            shutil.rmtree("/var/spool/koan")
+        except OSError, (err, msg):
+            if err != errno.ENOENT:
+                raise
+        try:
+            os.mkdir("/var/spool/koan")
+        except OSError, (err, msg):
+            if err != errno.EEXIST:
+                raise
 
         def after_download(self, profile_data):
             if not os.path.exists("/sbin/grubby"):
@@ -451,7 +442,7 @@ class Koan:
             print "- reboot to apply changes"
 
 
-        return self.do_net_install(after_download)
+        return self.net_install(after_download)
 
     #---------------------------------------------------
 
@@ -653,7 +644,7 @@ class Koan:
 
     #---------------------------------------------------
 
-    def do_virt_net_install(self,profile_data):
+    def virt_net_install(self,profile_data):
         """
         Invoke virt guest-install (or tweaked copy thereof)
         """
@@ -691,20 +682,20 @@ class Koan:
             # this is a profile object, use MAC or override value
             name = None
 
+        mac = self.calc_virt_mac(pd)
         if self.virt_type == "xenpv":
-            mac     = xencreate.get_mac(self.calc_virt_mac(pd))
             uuid    = xencreate.get_uuid(self.calc_virt_uuid(pd))
             creator = xencreate.start_paravirt_install
         elif self.virt_type == "qemu":
-            # FIXME: currently don't pay attention to some attributes
-            mac     = None
             uuid    = None
             creator = qcreate.start_install
         else:
             raise InfoException, "Unspecified virt type: %s" % self.virt_type
 
+        virtname = self.calc_virt_name(pd,mac)
+
         results = creator(
-                name          =  name,
+                name          =  virtname,
                 ram           =  self.calc_virt_ram(pd),
                 disk          =  self.calc_virt_filesize(pd),
                 mac           =  mac,
@@ -713,12 +704,23 @@ class Koan:
                 initrd        =  self.safe_load(pd,'initrd_local'),
                 extra         =  kextra,
                 vcpus         =  self.calc_virt_cpus(pd),
-                path          =  self.set_virt_path(pd, name, mac),
-                nameoverride  =  self.virt_name,
+                path          =  self.calc_virt_path(pd, virtname),
                 virt_graphics =  self.virt_graphics
         )
 
         print results
+
+    #---------------------------------------------------
+
+    def calc_virt_name(self,profile_data,mac):
+        if self.virt_name is not None:
+           # explicit override
+           return self.virt_name
+        if profile_data.has_key("mac_address"):
+           # this is a system object, just use the name
+           return profile_data["name"]
+        # just use the MAC, which we might have generated
+        return mac.replace(":","_").upper()
 
     #---------------------------------------------------
 
@@ -781,10 +783,10 @@ class Koan:
 
     def calc_virt_mac(self,data):
         if not self.is_virt:
-            return None
+            return None # irrelevant 
         if self.is_mac(self.system):
             return self.system.upper()
-        return None
+        return self.random_mac()
 
     #---------------------------------------------------
 
@@ -812,28 +814,43 @@ class Koan:
 
     #---------------------------------------------------
 
-    def set_virt_path(self,pd,name,mac):
+    def random_mac(self):
+        """
+        from xend/server/netif.py
+        Generate a random MAC address.
+        Uses OUI 00-16-3E, allocated to
+        Xensource, Inc.  Last 3 fields are random.
+        return: MAC address string
+        """
+        mac = [ 0x00, 0x16, 0x3e,
+            random.randint(0x00, 0x7f),
+            random.randint(0x00, 0xff),
+            random.randint(0x00, 0xff) ]
+        return ':'.join(map(lambda x: "%02x" % x, mac))
+
+
+    #---------------------------------------------------
+
+    def calc_virt_path(self,pd,name):
         """
         Assign virtual disk location.
         """
 
-        location = self.virt_path
-        if location is None:
+        # determine if any suggested location info is available
+        if self.virt_path is None:
+            # no explicit CLI override, what did the cobbler server say?
             location = self.safe_load(pd, 'virt_path', default=None)
-        if location == "":  
-            # not set in Cobbler either...
+        if location is None or location == "":  
+            # not set in cobbler either? then assume reasonable defaults
             location = None            
-
-        # For disk images, default paths vary by virt type
-        # or may not be supported -- set or raise exceptions accordingly
-        if self.virt_type == "xenpv":
-            prefix = "/var/lib/xen/images/"
-        elif self.virt_type == "qemu":
-            prefix = "/opt/qemu/"
-            if not os.path.exists(prefix):
-                os.makedirs(prefix)
-        else:
-            prefix = "(NOT USED)"
+            if location == None:
+                if self.virt_type == "xenpv":
+                    prefix = "/var/lib/xen/images/"
+                elif self.virt_type == "qemu":
+                    prefix = "/opt/qemu/"
+                if not os.path.exists(prefix):
+                    os.makedirs(prefix)
+                return "%s/%s" % (prefix, name)
 
         # Parse the command line to determine if this is a 
         # path, a partition, or a volume group parameter
@@ -843,84 +860,62 @@ class Koan:
             
         # chosing the disk image name (if applicable) is somewhat
         # complicated ...
-        usename = mac
-        if name is not None:
-            usename = name
-        if self.virt_name is not None:
-            usename = self.virt_name
 
         # use default location for the virt type
-        if location == None:
-            # FIXME: may not be right for all virt types
-            return "%s/%s" % (prefix, usename)
 
-        if location.find(':') == -1:
-            # this is a disk location
-            # FIXME: can we be smarter here, eliminate this syntax, and
-            # figure out what the device is by asking it?
+        if not location.startswith("/dev/") and location.startswith("/"):
+            # filesystem path
             if os.path.isdir(location):
-                # existing directory
-                return "%s/%s" % (location, usename)
+                return "%s/%s" % (location, name)
             elif not os.path.exists(location) and os.path.isdir(os.path.dirname(location)):
-                # non-existing file in existing directory
                 return location
             else:
                 raise InfoException, "invalid location: %s" % location                
-        else:
-            # command line indicates partition or volume group
-            # FIXME: pathname may legally include ':'
-            # FIXME: not well tested at this point
-            print "warning: experimental --virt-path usage"
-
-            count = location.count(':')
-            if count == 1:
-                (type,blk_id)=location.split(':')
+        elif location.startswith("/dev/"):
+            # partition
+            if os.path.exists(location):
+                return location
             else:
-                raise InfoException("invalid virt path")
+                raise InfoException, "virt path is not a valid block device"
+        else:
+            # it's a volume group, verify that it exists
+            args = "/usr/sbin/vgs -o vg_name"
+            print "%s" % args
+            vgnames = sub_process.Popen(args, shell=True, stdout=sub_process.PIPE).communicate()[0]
+            print vgnames
 
-            # for partitions
-            if type == "partition" or type == "part":
-
-                if os.path.exists(blk_id) and S_ISBLK(os.stat(blk_id)[ST_MODE]):
-                    # FIXME: virtinst takes care of freespace checks, others might not
-                    return blk_id
-                else:
-                    raise InfoException, "virt path is not a valid block device"
-
-            # for volume groups and logical volumes
-            if type == "vg" or type == "volume-group":
+            if vgnames.find(location) == -1:
+                raise InfoException, "The volume group [%s] does not exist." % location
             
-                # FIXME: failure checks
-                vgnames = sub_process.Popen([
-                    "vgs", "-o", "vg_name", "--noheadings" 
-                ], stdout=sub_process.PIPE).communicate()[0]
-            
-                if vgnames.find(blk_id) == -1:
-                    raise InfoException, "The volume group [%s] does not exist.  Please respecify virt_path" % blk_id
-            
-                # check free space
-                lv_freespace_str = sub_process.Popen([
-                      "lvs", "--noheadings", "-o", 
-                      "vg_free", "--units", "g", blk_id2
-                ], stdout=sub_process.PIPE).communicate()[0]
-                vg_freespace = int(float(vg_freespace_str.strip()[0:-1]))
-                lv_size = self.safe_load(data,'virt_file_size','xen_file_size',0)
+            # check free space
+            args = "/usr/sbin/lvs --noheadings -o vg_free --units g %s" % location
+            print args
+            cmd = sub_process.Popen(args, stdout=sub_process.PIPE, shell=True)
+            freespace_str = cmd.communicate()[0]
+            print freespace_str
+            freespace = int(float(freespace_str.strip()[0:-1]))
+            virt_size = self.safe_load(data,'virt_file_size','xen_file_size',0)
            
-                if vg_freespace >= int(lv_size):
+            if freespace >= int(virt_size):
             
-                    # Sufficient space
-                    # FIXME: failure checks
-                    lvs_str=sub_process.Popen(["lvs", "--noheadings", "-o", "lv_name", blk_id], stdout=subprocess.PIPE).communicate()[0]
+                # look for LVM partition named foo, create if doesn't exist
+                args = "/usr/sbin/lvs -o lv_name %s" % location
+                print "%s" % args
+                lvs_str=sub_process.Popen(args, stdout=sub_process.PIPE, shell=True).communicate()[0]
+                print lvs_str
+          
+                # have to create it?
+                if not lvs_str.find(name):
+                    args = "/usr/sbin/lvcreate -L %sG -n %s %s" % (virt_size, name, location)
+                    print "%s" % args
+                    lv_create = sub_process.call(args, shell=True)
+                    if lv_create != 0:
+                        raise InfoException, "LVM creation failed"
 
-                    if not lvs_str.find(usename):
-                        # FIXME: failure checks
-                        lv_create = sub_process.Popen(["lvcreate", "-L", "%sG" % lv_size, "-n", usename, blk_id], stdout=sub_process.PIPE).communicate()[0]
-                    return "/dev/%s/%s" % (blk_id,usename)
-
-            
-                else:
-                     # insufficient space
-                     raise InfoException, "The volume group [%s] does not have at least %sGB free space." % lv_size
+                # return partition location
+                return "/dev/%s/%s" % (location,name)
+            else:
+                raise InfoException, "volume group [%s] needs %s GB free space." % virt_size
 
 
 if __name__ == "__main__":

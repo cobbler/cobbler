@@ -94,7 +94,9 @@ will provide reasonable defaults.
 
 =item --virt-path
 
-(optional) This path is usually the absolute path of a directory in which to store the image, where it will be named accordingly based on the definitions given in cobbler or overridden by --virt-name.  There is also experimental support for specifying "partition:/dev/device" or "volume-group:/dev/device".  If not specified, koan will use the location defined in cobbler, or if none is specified there, a reasonable default that is suitable based on the value given to --virt-type.
+(optional) Specifies the storage for the virtual image.  This path must be an absolute path of an existing directory in which to store the image, with an optional filename component.  
+
+There is also experimental support for specifying partitions such as "/dev/sda4".  Volume Groups with available free space can also be used by specifying a group name such as "VolGroup00".  Partitions should always start with /dev and Volume Groups should be represented by their names.
 
 =item --virt-type
 
