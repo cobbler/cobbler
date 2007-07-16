@@ -45,7 +45,7 @@ def start_install(name=None, ram=None, disk=None, mac=None,
     print "- starting background install to %s" % path
     if virt_graphics:
         print "- access your installation with vncviewer :0"
-    print "- restart with qemu-kvm -hda %s -M %s" % (path, ram)
+    print "- restart with qemu-kvm -hda %s -m %s" % (path, ram)
 
     cmd2 = "qemu-kvm -m %s -hda %s" % (ram,path)
     cmd2 = cmd2  + " -kernel %s" % (kernel)
