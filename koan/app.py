@@ -884,8 +884,8 @@ class Koan:
             else:
                 raise InfoException, "virt path is not a valid block device"
         else:
-            if self.virt_type != "xenpv":
-                raise InfoException, "LVM storage not supported for this virt type"
+            #if self.virt_type != "xenpv":
+            #    raise InfoException, "LVM storage not supported for this virt type"
             # it's a volume group, verify that it exists
             args = "/usr/sbin/vgs -o vg_name"
             print "%s" % args
@@ -916,7 +916,7 @@ class Koan:
                 print lvs_str
           
                 # have to create it?
-                if not lvs_str.find(name):
+                if lvs_str.find(name) == -1:
                     args = "/usr/sbin/lvcreate -L %sG -n %s %s" % (virt_size, name, location)
                     print "%s" % args
                     lv_create = sub_process.call(args, shell=True)
@@ -924,8 +924,8 @@ class Koan:
                         raise InfoException, "LVM creation failed"
 
                 # return partition location
-                return ("/dev/%s/%s" % (location,name), True)
-            else:
+                return ("/dev/mapper/location-%s" % (location,name), True)
+        bin   else:
                 raise InfoException, "volume group [%s] needs %s GB free space." % virt_size
 
 
