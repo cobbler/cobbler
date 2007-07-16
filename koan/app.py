@@ -693,7 +693,7 @@ class Koan:
             raise InfoException, "Unspecified virt type: %s" % self.virt_type
 
         virtname = self.calc_virt_name(pd,mac)
-        (special, path)       =  self.calc_virt_path(pd, virtname),
+        (path, special)       =  self.calc_virt_path(pd, virtname)
 
         results = creator(
                 name          =  virtname,
