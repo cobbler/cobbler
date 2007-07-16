@@ -26,6 +26,7 @@ if __name__ == "__main__":
                 packages = ["koan"],
                 scripts = ["koan/koan"],
                 data_files = [
+				("/var/spool/koan", []),
 				(manpath, ['koan.1.gz']),
                              ],
                 description = SHORT_DESC,

@@ -390,7 +390,7 @@ class Koan:
             if err != errno.ENOENT:
                 raise
         try:
-            os.mkdir("/var/spool/koan")
+            os.makedirs("/var/spool/koan")
         except OSError, (err, msg):
             if err != errno.EEXIST:
                 raise
@@ -836,8 +836,10 @@ class Koan:
         Assign virtual disk location.
         """
 
+        location = self.virt_path
+
         # determine if any suggested location info is available
-        if self.virt_path is None:
+        if location is None:
             # no explicit CLI override, what did the cobbler server say?
             location = self.safe_load(pd, 'virt_path', default=None)
         if location is None or location == "":  
@@ -892,9 +894,12 @@ class Koan:
             print args
             cmd = sub_process.Popen(args, stdout=sub_process.PIPE, shell=True)
             freespace_str = cmd.communicate()[0]
-            print freespace_str
-            freespace = int(float(freespace_str.strip()[0:-1]))
-            virt_size = self.safe_load(data,'virt_file_size','xen_file_size',0)
+            freespace_str = freespace_str.split("\n")[0].strip()
+            freespace_str = freespace_str.replace("G","") # remove gigabytes
+            print "(%s)" % freespace_str
+            freespace = int(float(freespace_str))
+
+            virt_size = self.safe_load(pd,'virt_file_size','xen_file_size',5)
            
             if freespace >= int(virt_size):
             

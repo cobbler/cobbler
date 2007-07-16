@@ -38,6 +38,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
+%dir /var/spool/koan
 %{_bindir}/koan
 %dir %{python_sitelib}/koan
 %{python_sitelib}/koan/*.py*
