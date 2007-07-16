@@ -29,7 +29,7 @@ def start_install(name=None, ram=None, disk=None, mac=None,
     if os.path.isdir(path):
        path = os.path.join(path, name)
      
-    if os.path.exists(path):
+    if not special_disk and os.path.exists(path):
        msg = "ERROR: disk path (%s) exists. " % path
        msg = msg + "You can delete it, try a "
        msg = msg + "different --virt-path, or specify a different --virt-name."
@@ -40,8 +40,8 @@ def start_install(name=None, ram=None, disk=None, mac=None,
         cmd = "qemu-img create -f qcow2 %s %sG" % (path, disk)
         rc = os.system(cmd)
 
-    if rc != 0:
-       return "image creation failed"
+        if rc != 0:
+            return "image creation failed"
 
     print "- starting background install to %s" % path
     if virt_graphics:
