@@ -3,7 +3,7 @@
 <h3>Download Cobbler</h3>
 
 <h4>Latest Source</h4>
-<p>The latest source code (Python and Ruby-on-Rails) is available through git:</p>
+<p>The latest source code (it's all Python) is available through git:</p>
 
 <blockquote>
 git clone git://et.redhat.com/cobbler<br/>
@@ -18,45 +18,62 @@ Source RPMS and tarballs are available <A HREF="http://cobbler.et.redhat.com/dow
 </blockquote>
 <p>
 
-<h4>Downloading Binaries for Fedora Users</h4>
+<h4>Installing For Fedora Users</h4>
 <p>
 <blockquote>
-yum install cobbler   # on the boot server</br>
+yum install cobbler   # on the boot server<br/>
 yum install koan      # on target systems
 </blockquote>
 </p>
 
 
-<h4>Build Instructions for RHEL4</h4>
+<h4>Installing For RHEL Users</h4>
 <p>
 <blockquote>
+The lastest stable releases of Cobbler and Koan are included in <A HREF="http://fedoraproject.org/wiki/EPEL">Extras Packages For Enterprise Linux</A> and can be installed with yum.
+</blockquote>
+</p>
+
+<h4>Installing For Centos Users</h4>
+<p>
+<blockquote>
+Centos users can use the EPEL repositories linked in the RHEL instructions.  Cobbler for Centos 5 is also included in <A HREF="http://dev.centos.org/">Centos Extras</A> (which also tracks stable releases) and can be installed from there with yum.
+</blockquote>
+</p>
+
+<h4>Source RPM Build Instructions for RHEL4</h4>
+<p>
+<font size="-1">
+<blockquote>
     <ul>
-    <li>wget http://www.python.org/pyvault/centos-4-i386/python-cheetah-0.9.18-1.el4.pyv.i386.rpm</li>
     <li>wget http://www.python.org/pyvault/centos-4-i386/python23-cheetah-0.9.18-1.el4.pyv.i386.rpm</li>
-    <li>rpm -i python*cheetah*.rpm</li>
+    <li>wget ftp://ftp.freshrpms.net/pub/dag/redhat/el4/en/i386/dag/RPMS/syslinux-3.50-1.el4.rf.i386.rpm</li>
+    <li>rpm -i python*cheetah*.rpm</i>
+    <li>rpm -Uvh syslinux*.rpm</li>
     <li>wget http://cobbler.et.redhat.com/download/cobbler-$version.src.rpm</li>
     <li>rpmbuild --rebuild cobbler-$version.src.rpm</li>
     <li>rpm -i /usr/src/redhat/RPMS/noarch/cobbler-$version.src.rpm</li>
     </ul>
 </blockquote>
+</font>
+</p>
 
-<h4>Build Instructions for RHEL5</h4>
+<h4>Source RPM Build Instructions for RHEL5</h4>
 <p>
+<font size="-1">
 <blockquote>
     <ul>
+<!--
+    <li>wget ftp://ftp.freshrpms.net/pub/dag/redhat/el5/en/i386/RPMS.dag/syslinux-3.50-1.el5.rf.i386.rpm</i>
+    <li>rpm -Uvh syslinux*.rpm</li>
+-->
     <li>Grab python-setuputils from <A HREF="ftp://rpmfind.net/linux/fedora/extras/6/SRPMS/python-setuptools-0.6c5-1.fc6.src.rpm">here</A></li>
     <li>Grab python-cheetah and yum-utils from here: <A HREF="ftp://mirror.linux.duke.edu/pub/fedora/linux/extras/6/SRPMS/">here</A></li>
     <li>rpmbuild --rebuild those RPMs and then install them</li>
     <li>now rebuild --rebuild and install Cobbler from it's source RPM</li>
     </ul>
 </blockquote>
-</p>
-
-<h4>Centos Users</h4>
-<p>
-<blockquote>
-Cobbler for Centos 5 is included in <A HREF="http://dev.centos.org/">Centos Extras</A>.  Centos 4 users can use the RHEL 4 build instructions.
-</blockquote>
+</font>
 </p>
 
 

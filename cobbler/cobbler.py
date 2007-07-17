@@ -719,7 +719,7 @@ def main():
             try:
                 lockfile = open(LOCKFILE,"w+")
             except:
-                raise CX(_("Cobbler could not create the lockfile %(lockfile)s. Are you root?") % { "lockfile" : lockfile })
+                raise CX(_("Cobbler could not create the lockfile %(lockfile)s. Are you root?") % { "lockfile" : LOCKFILE })
             lockfile.close()
         BootCLI(sys.argv).run()
     except CobblerException, exc:
