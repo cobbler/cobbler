@@ -54,9 +54,10 @@ class Repos(collection.Collection):
         # but is left in for consistancy in the API.  Unused.
         name = name.lower()
         if self.find(name):
-            self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/repo/pre/*")
+            if with_delete:
+                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/repo/pre/*")
+                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/repo/post/*")
             del self.listing[name]
-            self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/repo/post/*")
             return True
         raise CX(_("cannot delete an object that does not exist"))
 
