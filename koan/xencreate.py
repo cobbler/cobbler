@@ -67,14 +67,18 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
     if virt_graphics:
         guest.set_graphics("vnc")
     else:
-        guest.set_graphics(None)
+        guest.set_graphics(False)
     if uuid is not None:
         guest.set_uuid(uuid)
 
     disk_path = path
     disk_obj = virtinst.XenDisk(disk_path, size=disk)
 
-    nic_obj = virtinst.XenNetworkInterface(macaddr=mac)
+    try:
+        nic_obj = virtinst.XenNetworkInterface(macaddr=mac, type="user")
+    except:
+        # try to be backward compatible
+        nic_obj = virtinst.XenNetworkInterface(macaddr=mac)
 
     guest.disks.append(disk_obj)
     guest.nics.append(nic_obj)
