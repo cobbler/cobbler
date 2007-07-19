@@ -718,7 +718,7 @@ class Koan:
         if self.virt_name is not None:
            # explicit override
            name = self.virt_name
-        elsif profile_data.has_key("mac_address"):
+        elif profile_data.has_key("mac_address"):
            # this is a system object, just use the name
            name = profile_data["name"]
         else:
