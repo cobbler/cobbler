@@ -717,12 +717,15 @@ class Koan:
     def calc_virt_name(self,profile_data,mac):
         if self.virt_name is not None:
            # explicit override
-           return self.virt_name
-        if profile_data.has_key("mac_address"):
+           name = self.virt_name
+        elsif profile_data.has_key("mac_address"):
            # this is a system object, just use the name
-           return profile_data["name"]
-        # just use the MAC, which we might have generated
-        return mac.replace(":","_").upper()
+           name = profile_data["name"]
+        else:
+           # just use the MAC, which we might have generated
+           name = mac.upper()
+        return name.replace(":","_") # keep libvirt happy
+
 
     #---------------------------------------------------
 
