@@ -47,7 +47,7 @@ d2=\$3
 cat << EOF >> /tmp/partinfo
 part / --fstype ext3 --size=1024 --grow --ondisk=\$d1 --asprimary
 part swap --size=1024 --ondisk=\$d1 --asprimary
-#EOF
+EOF
 
 %packages
 
