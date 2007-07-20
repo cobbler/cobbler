@@ -10,6 +10,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+# module for creating fullvirt guests via KVM/kqemu/qemu
+# requires python-virtinst-0.200.
+
 import os, sys, time, stat
 import tempfile
 import random
@@ -17,54 +20,58 @@ from optparse import OptionParser
 import exceptions
 import errno
 import re
+import virtinst
 
 class VirtCreateException(exceptions.Exception):
     pass
 
 def start_install(name=None, ram=None, disk=None, mac=None,
-                  uuid=None, kernel=None, initrd=None, 
+                  uuid=None,  
                   extra=None, path=None,
-                  vcpus=None, virt_graphics=None, special_disk=False):
+                  vcpus=None, virt_graphics=None, 
+                  special_disk=False, profile_data=None):
 
-    if os.path.isdir(path):
-       path = os.path.join(path, name)
-     
-    if not special_disk and os.path.exists(path):
-       msg = "ERROR: disk path (%s) exists. " % path
-       msg = msg + "You can delete it, try a "
-       msg = msg + "different --virt-path, or specify a different --virt-name."
-       msg = msg + "However, koan will not overwrite an existing file."
-       return msg
+    type = "qemu"
+    if virtinst.util.is_kvm_capable():
+       type = "kvm"
+    elif virtinst.util.is_kqemu_capable():
+       type = "kqemu"
+    print "type=%s" % type
 
-    if not special_disk:
-        cmd = "qemu-img create -f qcow2 %s %sG" % (path, disk)
-        rc = os.system(cmd)
+    guest = virtinst.FullVirtGuest(hypervisorURI="qemu:///system",type=type)
+    guest.set_location(profile_data["install_tree"])
+    guest.extraargs = extra
 
-        if rc != 0:
-            return "image creation failed"
+    guest.set_name(name)
+    guest.set_memory(ram)
+    if vcpus is None:
+        vcpus = 1
+    guest.set_vcpus(vcpus)
+    
+    
+    # -- FIXME: workaround for bugzilla 249072 
+    #if virt_graphics:
+    #    guest.set_graphics("vnc")
+    #else:
+    #    guest.set_graphics(False)
+    guest.set_graphics("vnc")
 
-    print "- starting background install to %s" % path
-    if virt_graphics:
-        print "- access your installation with vncviewer :0"
-    print "- restart with qemu-kvm -hda %s -m %s" % (path, ram)
+    if uuid is not None:
+        guest.set_uuid(uuid)
 
-    cmd2 = "qemu-kvm -m %s -hda %s" % (ram,path)
-    cmd2 = cmd2  + " -kernel %s" % (kernel)
-    cmd2 = cmd2  + " -initrd %s" % (initrd)
-    cmd2 = cmd2  + " -net nic,macaddr=%s -net user" % (mac)
-    cmd2 = cmd2  + " -daemonize -append \"%s\"" % (extra)
+    disk_path = path
+    disk_obj = virtinst.VirtualDisk(disk_path, size=disk)
 
-    if virt_graphics:
-        # FIXME: detect vnc collisions?
-        cmd2 = cmd2  + " -vnc :0 -serial vc -monitor vc"
-    else:
-        cmd2 = cmd2  + " -nographic"
+    try:
+        nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac, type="user")
+    except:
+        # try to be backward compatible
+        nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac)
 
-    print cmd2
+    guest.disks.append(disk_obj)
+    guest.nics.append(nic_obj)
 
-    rc2 = os.system(cmd2)
-    if rc2 != 0:
-       return "installation failed"
+    guest.start_install()
 
-    return "installation complete"
+    return "use virt-manager and connect to qemu to manage guest: %s" % name
 

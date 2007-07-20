@@ -19,7 +19,6 @@
 import os, sys, time, stat
 import tempfile
 import random
-from optparse import OptionParser
 import exceptions
 import errno
 import re
@@ -28,37 +27,16 @@ import virtinst
 class VirtCreateException(exceptions.Exception):
     pass
 
-def randomUUID():
-    """
-    Generate a random UUID.  Copied from xend/uuid.py
-    """
-    return [ random.randint(0, 255) for x in range(0, 16) ]
-
-
-def uuidToString(u):
-    """
-    return uuid as a string
-    """
-    return "-".join(["%02x" * 4, "%02x" * 2, "%02x" * 2, "%02x" * 2,
-                     "%02x" * 6]) % tuple(u)
-
-def get_uuid(uuid):
-    """
-    return the passed-in uuid, or a random one if it's not set.
-    """
-    if uuid:
-       return uuid
-    return uuidToString(randomUUID())
-
 def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
-                           uuid=None, kernel=None, initrd=None, 
+                           uuid=None,  
                            extra=None, path=None,
-                           vcpus=None, virt_graphics=False, special_disk=False):
+                           vcpus=None, virt_graphics=False, 
+                           special_disk=False, profile_data=None):
 
 
     guest = virtinst.ParaVirtGuest()
-    guest.set_boot((kernel,initrd))
-    guest.set_extra_args(extra)
+    guest.set_location(profile_data["install_tree"]) 
+    guest.extraargs = extra
     guest.set_name(name)
     guest.set_memory(ram)
     if vcpus is None:
@@ -71,8 +49,7 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
     if uuid is not None:
         guest.set_uuid(uuid)
 
-    disk_path = path
-    disk_obj = virtinst.XenDisk(disk_path, size=disk)
+    disk_obj = virtinst.XenDisk(path, size=disk)
 
     try:
         nic_obj = virtinst.XenNetworkInterface(macaddr=mac, type="user")
@@ -85,5 +62,5 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
 
     guest.start_install()
     
-    return "reconnect with xm console %s" % name 
+    return "use virt-manager or reconnect with virsh console %s" % name 
      

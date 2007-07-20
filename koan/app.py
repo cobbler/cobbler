@@ -31,7 +31,7 @@ import re
 import sys
 import xmlrpclib
 import string
-import qcreate
+import re
 
 """
 koan --virt [--profile=webserver|--system=name] --server=hostname
@@ -307,7 +307,20 @@ class Koan:
         if profile_data.has_key("kickstart"):
             if profile_data["kickstart"].startswith("/"):
                profile_data["kickstart"] = "http://%s/cblr/%s/%s/ks.cfg" % (profile_data['server'], filler, profile_data['name'])
-       
+                
+               # find_kickstart source tree in the kickstart file
+               raw = self.urlread(profile_data["kickstart"])
+               print "read: %s" % raw
+               lines = raw.split("\n")
+               for line in lines:
+                   reg = re.compile("--url=(.*)")
+                   matches = reg.findall(raw)
+                   if len(matches) != 0:
+                       profile_data["install_tree"] = matches[0].strip()
+
+        if not profile_data.has_key("install_tree"):
+            raise InfoException("Unable to find install source in kickstart")
+
         # find the correct file download location 
         if not self.is_virt:
             download = "/boot"
@@ -322,14 +335,15 @@ class Koan:
             if self.virt_type is None or self.virt_type == "":
                 self.virt_type = 'xenpv'
 
-            if self.virt_type == "xenpv":
-                download = "/var/lib/xen" 
-            else:
-                # FIXME: should use temp dir to allow parallel installs?
-                download = "/var/spool/koan" 
+            #if self.virt_type == "xenpv":
+            #    download = "/var/lib/xen" 
+            #else:
+            #    # FIXME: should use temp dir to allow parallel installs?
+            #    download = "/var/spool/koan" 
+            download = None
 
         # download required files
-        if not self.is_display:
+        if not self.is_display and download is not None:
            self.get_distro_files(profile_data, download)
   
         # perform specified action
@@ -638,9 +652,7 @@ class Koan:
         except:
             raise InfoException, "error downloading files"
         profile_data['kernel_local'] = kernel_save
-        print "kernel saved = %s" % kernel_save
         profile_data['initrd_local'] = initrd_save
-        print "initrd saved = %s" % initrd_save
 
     #---------------------------------------------------
 
@@ -664,9 +676,10 @@ class Koan:
         # parser issues?  lang needs a trailing = and somehow doesn't have it.
         kextra = kextra.replace("lang ","lang= ")
 
-        if self.virt_type == "xenpv":
+        if self.virt_type in [ "xenpv", "qemu", "pv", "fv" ] :
             try:
                 import xencreate
+                import qcreate
             except:
                 print "no virtualization support available, install python-virtinst?"
                 sys.exit(1)
@@ -684,7 +697,7 @@ class Koan:
 
         mac = self.calc_virt_mac(pd)
         if self.virt_type == "xenpv":
-            uuid    = xencreate.get_uuid(self.calc_virt_uuid(pd))
+            uuid    = self.get_uuid(self.calc_virt_uuid(pd))
             creator = xencreate.start_paravirt_install
         elif self.virt_type == "qemu":
             uuid    = None
@@ -701,13 +714,12 @@ class Koan:
                 disk          =  self.calc_virt_filesize(pd),
                 mac           =  mac,
                 uuid          =  uuid,
-                kernel        =  self.safe_load(pd,'kernel_local'),
-                initrd        =  self.safe_load(pd,'initrd_local'),
                 extra         =  kextra,
                 vcpus         =  self.calc_virt_cpus(pd),
                 path          =  path,
                 virt_graphics =  self.virt_graphics,
-                special_disk  =  special
+                special_disk  =  special,
+                profile_data  =  profile_data
         )
 
         print results
@@ -926,6 +938,29 @@ class Koan:
                 return ("/dev/mapper/%s-%s" % (location,name), True)
             else:
                 raise InfoException, "volume group [%s] needs %s GB free space." % virt_size
+
+
+    def randomUUID():
+        """
+        Generate a random UUID.  Copied from xend/uuid.py
+        """
+        return [ random.randint(0, 255) for x in range(0, 16) ]
+
+
+    def uuidToString(u):
+        """
+        return uuid as a string
+        """
+        return "-".join(["%02x" * 4, "%02x" * 2, "%02x" * 2, "%02x" * 2,
+            "%02x" * 6]) % tuple(u)
+
+    def get_uuid(uuid):
+        """
+        return the passed-in uuid, or a random one if it's not set.
+        """
+        if uuid:
+            return uuid
+        return uuidToString(self.randomUUID())
 
 
 if __name__ == "__main__":
