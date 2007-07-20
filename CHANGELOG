@@ -1,6 +1,6 @@
 Koan CHANGELOG
 
-* Mon Jul 16 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.1-1
+* Fri Jul 20 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.1-1
 - added qemu/kvm with --virt-type
 - --virt-path support
 - added --display to dump cobbler objects without taking action
