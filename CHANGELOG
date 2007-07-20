@@ -1,10 +1,12 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Mon Jul 09 2007 - 0.5.1
+* Fri Jul 20 2007 - 0.5.1
 - Added logging for cobblerd -- /var/log/cobbler/cobblerd.log
+- Cobblerd now ignores XMLRPC IOError
 - Added findks.cgi
 - Misc bugfixing
+- Added --virt-path, --virt-type
 
 * Wed Jun 24 2007 - 0.5.0
 - Remove hardcode of /var/www/cobbler in cobblerd
