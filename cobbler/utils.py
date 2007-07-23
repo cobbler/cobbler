@@ -278,7 +278,13 @@ def blender(remove_hashes, root_obj):
     if settings.syslog_port != 0:
         if not results.has_key("kernel_options"):
             results["kernel_options"] = {}
-        results["kernel_options"]["syslog"] = "%s:%s" % (settings.server, settings.syslog_port)
+        syslog = "%s:%s" % (settings.server, settings.syslog_port)
+        results["kernel_options"]["syslog"] = syslog
+
+    # determine if we have room to add kssendmac to the kernel options line
+    kernel_txt = hash_to_string(results["kernel_options"])
+    if len(kernel_txt) < 244:
+        results["kernel_options"]["kssendmac"] = None
 
     # sanitize output for koan and kernel option lines, etc
     if remove_hashes:
