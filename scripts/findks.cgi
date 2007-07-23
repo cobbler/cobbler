@@ -45,26 +45,55 @@ def parse_query():
         type = "profile"
     else:
         type = "system"
-        name = autodetect_ip()
+        name = autodetect()
     return (name,type)
 
 #----------------------------------------------------------------------
 
-def autodetect_ip():
+def autodetect():
 
+    # connect to cobblerd and get the list of systems
+    
+    try:
+        xmlrpc_server = ServerProxy(XMLRPC_SERVER)
+        systems = xmlrpc_server.get_systems()
+    except:
+        print "# could not contact cobblerd at %s" % XMLRPC_SERVER
+        sys.exit(1)
+
+    # if kssendmac was in the kernel options line, see
+    # if a system can be found matching the MAC address.  This
+    # is more specific than an IP match.
+
+    if os.environ.has_key("HTTP_X_RHN_PROVISIONING_MAC_0"):
+        # FIXME: will not key off other NICs
+        devicepair = os.environ["HTTP_X_RHN_PROVISIONING_MAC_0"]
+        mac = devicepair.split()[1].strip()
+        # mac is the macaddress of the first nic reported by anaconda
+        candidates = [system['name'] for system in systems if system['mac_address'].lower() == mac.lower()]
+        if len(candidates) == 0:
+	    print "# no system entries with MAC %s found" % mac
+	    print "# trying IP lookup"
+        elif len(candidates) > 1:
+	    print "# multiple system entries with MAC %s found" % mac
+	    sys.exit(1)
+        elif len(candidates) == 1:
+            print "# kickstart matched by MAC: %s" % mac
+	    return candidates[0]
+
+    # attempt to match by the IP.
+    
     ip = os.environ["REMOTE_ADDR"]
-    xmlrpc_server = ServerProxy(XMLRPC_SERVER)
-    systems = xmlrpc_server.get_systems()
     candidates = [system['name'] for system in systems if system['ip_address'] == ip]
 
     if len(candidates) == 0:
-	print "# No system entries with ip %s found" % ip
-	sys.exit(1)
+        print "# no system entries with ip %s found" % ip
+        sys.exit(1)
     elif len(candidates) > 1:
-	print "# Multiple system entries with ip %s found" % ip
-	sys.exit(1)
+        print "# multiple system entries with ip %s found" % ip
+        sys.exit(1)
     elif len(candidates) == 1:
-	return candidates[0]
+        return candidates[0]
 
 #----------------------------------------------------------------------
 
@@ -81,7 +110,7 @@ def serve_file(name):
         ks_path = "%s/kickstarts/%s/ks.cfg" % (COBBLER_BASE, name)
 
     if not os.path.exists(ks_path):
-        print "# No such cobbler object"
+        print "# no such cobbler object"
         sys.exit(1)
 
     try:
@@ -99,6 +128,8 @@ def serve_file(name):
 def header():
     print "Content-type: text/plain"
     print
+    print "# kickstart managed by Cobbler -- http://cobbler.et.redhat.com"
+    print "# served on %s" % time.ctime() 
 
 #----------------------------------------------------------------------
 
@@ -106,8 +137,7 @@ if __name__ == "__main__":
     cgitb.enable(format='text')
     header()
     (name, type) = parse_query()
-    print "# kickstart for cobbler %s %s" % (type,name)
-    print "# served on %s" % time.ctime() 
+    print "# %s %s" % (type,name)
     print "# requestor ip = %s" % os.environ["REMOTE_ADDR"]
     print "# ============================="
     print " "
