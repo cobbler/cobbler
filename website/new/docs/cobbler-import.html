@@ -75,7 +75,7 @@ Done.
 <a name="#pxe">
 <h2>Using That Server For PXE</h2>
 <p>
-Note that so far we've only mentioned reinstalling and doing virtualized installs. PXE is easy too. If you want PXE, you have two options. If you want to run dhcp locally, just set manage_dhcp to 1 in /var/lib/cobbler/settings on the boot server, edit /etc/dhcp.template to change some defaults, and re run "cobbler sync". You're good. Cobbler will keep track of your dhcp files for you, and you'll never have to hand edit them.  <a href="./docs/cobbler-dhcp.php">Read more about DHCP management here</A>.
+Note that so far we've only mentioned reinstalling and doing virtualized installs. PXE is easy too. If you want PXE, you have two options. If you want to run dhcp locally, just set manage_dhcp to 1 in /var/lib/cobbler/settings on the boot server, edit /etc/dhcp.template to change some defaults, and re run "cobbler sync". You're good. Cobbler will keep track of your dhcp files for you, and you'll never have to hand edit them.  <a href="./cobbler-dhcp.php">Read more about DHCP management here</A>.
 </p>
 <p>
 If the dhcp server is somewhere else, you can get your dhcp server admin to point at your box as a "next-server". Easy enough.
