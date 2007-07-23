@@ -305,20 +305,23 @@ class Koan:
             profile_data = self.get_system_xmlrpc(self.system)
             filler = "kickstarts_sys"
         if profile_data.has_key("kickstart"):
+
+            # fix URLs
             if profile_data["kickstart"].startswith("/"):
                profile_data["kickstart"] = "http://%s/cblr/%s/%s/ks.cfg" % (profile_data['server'], filler, profile_data['name'])
                 
-               # find_kickstart source tree in the kickstart file
-               raw = self.urlread(profile_data["kickstart"])
-               print "read: %s" % raw
-               lines = raw.split("\n")
-               for line in lines:
-                   reg = re.compile("--url=(.*)")
-                   matches = reg.findall(raw)
-                   if len(matches) != 0:
-                       profile_data["install_tree"] = matches[0].strip()
+            # find_kickstart source tree in the kickstart file
+            raw = self.urlread(profile_data["kickstart"])
+            print "read: %s" % raw
+            lines = raw.split("\n")
+            for line in lines:
+               reg = re.compile("--url=(.*)")
+               matches = reg.findall(raw)
+               if len(matches) != 0:
+                   profile_data["install_tree"] = matches[0].strip()
 
-        if not profile_data.has_key("install_tree"):
+
+        if self.is_virt and not profile_data.has_key("install_tree"):
             raise InfoException("Unable to find install source in kickstart")
 
         # find the correct file download location 
@@ -335,12 +338,10 @@ class Koan:
             if self.virt_type is None or self.virt_type == "":
                 self.virt_type = 'xenpv'
 
-            #if self.virt_type == "xenpv":
-            #    download = "/var/lib/xen" 
-            #else:
-            #    # FIXME: should use temp dir to allow parallel installs?
-            #    download = "/var/spool/koan" 
-            download = None
+            if self.virt_type == "xenpv":
+                download = "/var/lib/xen" 
+            else:
+                download = None # fullvirt, can use set_location
 
         # download required files
         if not self.is_display and download is not None:
@@ -940,27 +941,27 @@ class Koan:
                 raise InfoException, "volume group [%s] needs %s GB free space." % virt_size
 
 
-    def randomUUID():
+    def randomUUID(self):
         """
         Generate a random UUID.  Copied from xend/uuid.py
         """
         return [ random.randint(0, 255) for x in range(0, 16) ]
 
 
-    def uuidToString(u):
+    def uuidToString(self, u):
         """
         return uuid as a string
         """
         return "-".join(["%02x" * 4, "%02x" * 2, "%02x" * 2, "%02x" * 2,
             "%02x" * 6]) % tuple(u)
 
-    def get_uuid(uuid):
+    def get_uuid(self,uuid):
         """
         return the passed-in uuid, or a random one if it's not set.
         """
         if uuid:
             return uuid
-        return uuidToString(self.randomUUID())
+        return self.uuidToString(self.randomUUID())
 
 
 if __name__ == "__main__":

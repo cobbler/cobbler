@@ -35,7 +35,8 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
 
 
     guest = virtinst.ParaVirtGuest()
-    guest.set_location(profile_data["install_tree"]) 
+    #guest.set_location(profile_data["install_tree"]) 
+    guest.set_boot((profile_data["kernel_local"], profile_data["initrd_local"]))
     guest.extraargs = extra
     guest.set_name(name)
     guest.set_memory(ram)
