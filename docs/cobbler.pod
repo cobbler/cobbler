@@ -128,9 +128,9 @@ If this parameter is not provided, the kickstart file will default to /etc/cobbl
 
 (optional) (Virt-only) how many megabytes of RAM to consume.  The default is 512 MB.
 
-=item virt-types
+=item virt-type
 
-(optional) (Virt-only) koan can install images using either Xen paravirt ("xenpv") or QEMU/KVM ("qemu").  Choose one or the other strings to specify, or values will default to the value given for "default_virt_type" in /var/lib/cobbler/settings.  If you have not changed this setting, the default is "xenpv".   See the "koan" manpage for more documentation.
+(optional) (Virt-only) koan can install images using either Xen paravirt ("xenpv") or QEMU/KVM ("qemu").  Choose one or the other strings to specify, or values will default to attempting to find a compatible installation type on the client system ("auto").  See the "koan" manpage for more documentation.
 
 =item virt-path
 
