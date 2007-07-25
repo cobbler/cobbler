@@ -208,8 +208,8 @@ class Koan:
 
         # if --virt-type was specified and invalid, then fail
         if self.virt_type is not None:
-            if self.virt_type not in [ "qemu", "xenpv" ]:
-               raise InfoException, "--virttype should be qemu or xenpv"
+            if self.virt_type not in [ "qemu", "xenpv", "auto" ]:
+               raise InfoException, "--virttype should be qemu, xenpv, or auto"
 
         # perform one of three key operations
         if self.is_virt:
@@ -312,7 +312,6 @@ class Koan:
                 
             # find_kickstart source tree in the kickstart file
             raw = self.urlread(profile_data["kickstart"])
-            print "read: %s" % raw
             lines = raw.split("\n")
             for line in lines:
                reg = re.compile("--url=(.*)")
@@ -322,7 +321,7 @@ class Koan:
 
 
         if self.is_virt and not profile_data.has_key("install_tree"):
-            raise InfoException("Unable to find install source in kickstart")
+            raise InfoException("Unable to find network install source (--url) in kickstart file")
 
         # find the correct file download location 
         if not self.is_virt:
@@ -336,12 +335,61 @@ class Koan:
             if self.virt_type is None:
                 self.virt_type = self.safe_load(profile_data,'virt_type',default=None)
             if self.virt_type is None or self.virt_type == "":
-                self.virt_type = 'xenpv'
+                self.virt_type = "auto"
+
+            # if virt type is auto, reset it to a value we can actually use
+            if self.virt_type == "auto":
+                # BOOKMARK
+                cmd = sub_process.Popen("/bin/uname -r", stdout=sub_process.PIPE, shell=True)
+                uname_str = cmd.communicate()[0]
+                if uname_str.find("xen") != -1:
+                    self.virt_type = "xenpv"
+                elif os.path.exists("/usr/bin/qemu-img"):
+                    self.virt_type = "qemu"
+                else:
+                    # assume Xen, we'll check to see if virt-type is really usable later.
+                    raise InfoException, "Not running a Xen kernel and qemu is not installed"
+                print "no virt-type specified, auto-selecting %s" % self.virt_type
+
+            # now that we've figured out our virt-type, let's see if it is really usable
+            # rather than showing obscure error messages from Xen to the user :)
+
+            if self.virt_type == "xenpv":
+                cmd = sub_process.Popen("uname -r", stdout=sub_process.PIPE, shell=True)
+                uname_str = cmd.communicate()[0]
+                # correct kernel on dom0?
+                if uname_str.find("xen") != -1:
+                   raise InfoException("kernel-xen needs to be in use")
+                # xend installed?
+                if not os.path.exists("/usr/sbin/xend"):
+                   raise InfoException("xen package needs to be installed")
+                # xend running?
+                rc = sub_process.call("/usr/sbin/xend status", stdout=None, shell=True)
+                if rc != 0:
+                   raise InfoException("xend needs to be started")
+
+            # for qemu
+            if self.virt_type == "qemu":
+                # qemu package installed?
+                if not os.path.exists("/usr/bin/qemu-img"):
+                    raise InfoException("qemu package needs to be installed")
+                # is libvirt new enough?
+                cmd = sub_process.Popen("rpm -q python-virtinst", stdout=sub_process.PIPE, shell=True)
+                version_str = cmd.communicate()[0]
+                if version_str.find("virtinst-0.1") != -1 or version_str.find("virtinst-0.0") != -1:
+                    raise InfoException("need python-virtinst >= 0.2 to do net installs for qemu/kvm")
+
+            # for both virt types
+            rc = sub_process.call("/sbin/service libvirtd status", stdout=None, shell=True)
+            if rc != 0:
+                # libvirt running?
+                raise InfoException("libvirtd needs to be running")
+
 
             if self.virt_type == "xenpv":
                 download = "/var/lib/xen" 
-            else:
-                download = None # fullvirt, can use set_location
+            else: # qemu
+                download = None # fullvirt, can use set_location in virtinst library, no D/L needed yet
 
         # download required files
         if not self.is_display and download is not None:
