@@ -83,6 +83,8 @@ class BootCLI:
             'sync'    :  self.reposync
         }
         self.commands['toplevel'] = {
+            '-v'           : self.version,
+            '--version'    : self.version,
             'check'        : self.check,
             'validateks'   : self.validateks,  
             'list'         : self.list,
@@ -586,6 +588,10 @@ class BootCLI:
         Scan rendered kickstarts for potential errors, before actual install
         """
         return self.api.validateks()
+
+    def version(self,args):
+        print self.api.version()
+        return True
 
     def check(self,args):
         """

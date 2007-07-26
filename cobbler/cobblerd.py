@@ -111,6 +111,9 @@ class CobblerXMLRPCInterface:
         data.sort(self.__sorter)
         return self.fix_none(data)
 
+    def version(self):
+        return self.api.version()
+
     def get_distros(self):
         return self.__get_all(self.api.distros())
 

@@ -23,6 +23,7 @@ import action_import
 import action_reposync
 import action_status
 import action_validate
+import sub_process
 
 class BootAPI:
 
@@ -41,6 +42,19 @@ class BootAPI:
             self.deserialize()
             self.__settings = self._config.settings()
             self.sync_flag = self.__settings.minimize_syncs
+
+    def version(self):
+        """
+        What version is cobbler?
+        Currently checks the RPM DB, which is not perfect.
+        Will return "?" if not installed.
+        """
+        cmd = sub_process.Popen("/bin/rpm -q cobbler", stdout=sub_process.PIPE, shell=True)
+        result = cmd.communicate()[0].replace("cobbler-","")
+        if result.find("not installed") != -1:
+            return "?"
+        return result[:result.rfind(".")]
+
 
     def clear(self):
         """
@@ -181,5 +195,10 @@ class BootAPI:
         Load the current configuration from config file(s)
         """
         return self._config.deserialize()
+
+if __name__ == "__main__":
+    api = BootAPI()
+    print api.version()
+
 
 

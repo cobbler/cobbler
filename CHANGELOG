@@ -4,6 +4,7 @@ Cobbler CHANGELOG
 * Thr Jul 26 2007 - 0.5.2 (RC)
 - Have cobbler check ensure services are started
 - Add cobbler validateks command to look for broken rendered kickstarts
+- Added -v/--version
 
 * Fri Jul 20 2007 - 0.5.1
 - Added logging for cobblerd -- /var/log/cobbler/cobblerd.log
