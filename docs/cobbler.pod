@@ -482,6 +482,10 @@ When working with Cheetah, be sure to escape any shell macros that look like "$(
 
 Should you want to express larger sections of templating (more that can be decently expressed on the command line), you may want to edit /var/lib/cobbler/ files directly.  Keep in mind that changes need to be valid YAML 1.0 syntax and "cobbler sync" should be run after making any changes to those files.
 
+=head2 KICKSTART VALIDATION
+
+To check for potential errors in kickstarts, prior to installation, use "cobbler validateks".  This function will check all profile and system kickstarts for detectable errors.  Since pykickstart is not future-Anaconda-version aware, there may be some false positives.  It should be noted that "cobbler validateks" runs on the rendered kickstart output, not kickstart templates themselves.
+
 =head2 DHCP CONFIGURATION MANAGEMENT
 
 Cobbler can optionally help you manage DHCP and (depending on how used) DNS as it relates

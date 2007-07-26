@@ -84,6 +84,7 @@ class BootCLI:
         }
         self.commands['toplevel'] = {
             'check'        : self.check,
+            'validateks'   : self.validateks,  
             'list'         : self.list,
             'report'       : self.report,
             'distros'      : self.distro,
@@ -579,6 +580,12 @@ class BootCLI:
         """
         self.api.reposync()
         return True
+
+    def validateks(self,args):
+        """
+        Scan rendered kickstarts for potential errors, before actual install
+        """
+        return self.api.validateks()
 
     def check(self,args):
         """

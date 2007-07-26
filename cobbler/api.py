@@ -22,6 +22,7 @@ import action_enchant
 import action_import
 import action_reposync
 import action_status
+import action_validate
 
 class BootAPI:
 
@@ -116,6 +117,18 @@ class BootAPI:
         """
         check = action_check.BootCheck(self._config)
         return check.run()
+
+    def validateks(self):
+        """
+        Use ksvalidator (from pykickstart, if available) to determine
+        whether the cobbler kickstarts are going to be (likely) well
+        accepted by Anaconda.  Presence of an error does not indicate
+        the kickstart is bad, only that the possibility exists.  ksvalidator
+        is not available on all platforms and can not detect "future"
+        kickstart format correctness.
+        """
+        validator = action_validate.Validate(self._config)
+        return validator.run()
 
     def sync(self):
         """
