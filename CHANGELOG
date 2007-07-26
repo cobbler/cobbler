@@ -1,5 +1,8 @@
 Koan CHANGELOG
 
+* Thu Jul 26 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.2-1
+- added XMLRPC version checking with cobbler server
+
 * Fri Jul 20 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.1-1
 - added qemu/kvm with --virt-type
 - --virt-path support

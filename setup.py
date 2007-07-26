@@ -4,8 +4,8 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-VERSION = "0.5.1"
-SHORT_DESC = "Network provisioning tool for Virtualized Images and Existing Non-Bare Metal"
+VERSION = "0.5.2"
+SHORT_DESC = "Network provisioning tool for use with Cobbler"
 LONG_DESC = """
 koan stands for "kickstart-over-a-network" and allows for both
 network provisioning of new virtualized guests and destructive provisioning of
