@@ -15,6 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import os
 import re
+import sub_process
 import action_sync
 from rhpl.translate import _, N_, textdomain, utf8
 
@@ -40,8 +41,10 @@ class BootCheck:
            if mode == "isc": 
                self.check_dhcpd_bin(status)
                self.check_dhcpd_conf(status)
+               self.check_service(status,"dhcpd")
            elif mode == "dnsmasq":
                self.check_dnsmasq_bin(status)
+               self.check_service(status,"dnsmasq")
            else:
                status.append(_("manage_dhcp_mode in /var/lib/cobbler/settings should be 'isc' or 'dnsmasq'"))
                
@@ -52,6 +55,12 @@ class BootCheck:
        self.check_httpd(status)
 
        return status
+
+   def check_service(self, status, which):
+       if os.path.exists("/etc/rc.d/init.d/%s" % which):
+           rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True)
+           if rc != 0:
+               status.append(_("service %s is not running") % which)
 
    def check_name(self,status):
        """
@@ -70,6 +79,8 @@ class BootCheck:
        """
        if not os.path.exists(self.settings.httpd_bin):
            status.append(_("Apache doesn't appear to be installed"))
+       else:
+           self.check_service(status,"httpd")
 
 
    def check_dhcpd_bin(self,status):
@@ -102,6 +113,8 @@ class BootCheck:
        """
        if not os.path.exists(self.settings.tftpd_bin):
           status.append(_("tftp-server is not installed."))
+       else:
+          self.check_service(status,"xinetd")
 
    def check_tftpd_dir(self,status):
        """
