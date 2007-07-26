@@ -21,7 +21,7 @@ import os
 import traceback
 import tempfile
 import urllib2
-import optparse
+import opt_parse  # importing this for backwards compat with 2.2
 import exceptions
 import sub_process
 import time
@@ -51,7 +51,7 @@ def main():
     """
     Command line stuff...
     """
-    p = optparse.OptionParser()
+    p = opt_parse.OptionParser()
     p.add_option("-C", "--livecd",
                  dest="live_cd",
                  action="store_true",
