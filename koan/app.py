@@ -33,6 +33,10 @@ import xmlrpclib
 import string
 import re
 
+# the version of cobbler needed to interact with this version of koan
+# this is an decimal value (major + 0.1 * minor + 0.01 * maint)
+COBBLER_REQUIRED = 0.502
+
 """
 koan --virt [--profile=webserver|--system=name] --server=hostname
 koan --replace-self --profile=foo --server=hostname
@@ -184,6 +188,31 @@ class Koan:
             raise InfoException, "no server specified"
         url = "http://%s:%s" % (self.server, self.port)
         self.xmlrpc_server = ServerProxy(url)
+ 
+        # make a sample call to check for connectivity
+        # we use this as opposed to version as version was not
+        # in the original API
+        try:
+           self.xmlrpc_server.get_profiles()
+        except:
+           self.connect_fail()
+        
+        # now check for the cobbler version
+
+        version = None
+        try:
+            version = self.xmlrpc_server.version()
+        except:
+            raise InfoException("cobbler server is downlevel and needs to be updated")
+         
+        if version == "?": 
+            print "warning: cobbler server did not report a version"
+            print "         will attempt to proceed."
+
+        elif COBBLER_REQUIRED > version:
+            raise InfoException("cobbler server is downlevel, need version >= %s, have %s" % (COBBLER_REQUIRED, version))
+
+
 
         # if command line input was just for listing commands,
         # run them now and quit
