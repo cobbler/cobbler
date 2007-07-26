@@ -54,6 +54,7 @@ class BootCheck:
        self.check_tftpd_dir(status)
        self.check_tftpd_conf(status)
        self.check_httpd(status)
+       self.check_iptables(status)
 
        return status
 
@@ -62,6 +63,12 @@ class BootCheck:
            rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True)
            if rc != 0:
                status.append(_("service %s is not running") % which)
+
+   def check_iptables(self, status):
+       if os.path.exists("/etc/rc.d/init.d/iptables"):
+           rc = sub_process.call("/sbin/service iptables status >/dev/null 2>/dev/null", shell=True)
+           if rc == 0:
+              status.append(_("since iptables may be running, ensure 69, 80, %s, and %s are unblocked") % (self.settings.syslog_port, self.settings.xmlrpc_port))
 
    def check_name(self,status):
        """
