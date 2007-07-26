@@ -47,7 +47,8 @@ class BootCheck:
                self.check_service(status,"dnsmasq")
            else:
                status.append(_("manage_dhcp_mode in /var/lib/cobbler/settings should be 'isc' or 'dnsmasq'"))
-               
+       self.check_service(status, "cobblerd")
+    
        self.check_bootloaders(status)
        self.check_tftpd_bin(status)
        self.check_tftpd_dir(status)

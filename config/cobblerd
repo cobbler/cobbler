@@ -54,7 +54,7 @@ mystatus() {
     fi
     echo "cobblerd is stopped"
     echo
-    return 0
+    return 3 
 }
 
 # See how we were called.
