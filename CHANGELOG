@@ -1,6 +1,10 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Thr Jul 26 2007 - 0.6.0 (RC)
+- Have cobbler check ensure services are started
+- Add cobbler validateks command to look for broken rendered kickstarts
+
 * Fri Jul 20 2007 - 0.5.1
 - Added logging for cobblerd -- /var/log/cobbler/cobblerd.log
 - Cobblerd now ignores XMLRPC IOError
