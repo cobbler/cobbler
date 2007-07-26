@@ -1,7 +1,7 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.5.1
+Version: 0.5.2
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -29,15 +29,16 @@ Url: http://cobbler.et.redhat.com
 
 %description
 
-Cobbler is a network boot and update server.
-It can also be used as a Python library.  
-Cobbler supports PXE, provisioning virtualized images,
-and reinstalling machines that are already running (over SSH).
-The last two modes require a helper tool called 'koan' that
-integrates with cobbler.  Cobbler's advanced features include
-importing distributions from DVDs and rsync mirrors, kickstart templating,
-integrated yum mirroring, kickstart monitoring, and auto-managing
-DHCP configurations for ISC dhcpd and dnsmasq.
+Cobbler is a network boot and update server.  Cobbler 
+supports PXE, provisioning virtualized images, and 
+reinstalling existing Linux machines.  The last two 
+modes require a helper tool called 'koan' that 
+integrates with cobbler.  Cobbler's advanced features 
+include importing distributions from DVDs and rsync 
+mirrors, kickstart templating, integrated yum 
+mirroring, and built-in DHCP Management.  Cobbler has 
+a Python API for integration with other GPL systems 
+management applications.
 
 %prep
 %setup -q
@@ -135,6 +136,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+
+* Thu Jul 26 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.2-1
+- Upstream changes (see CHANGELOG)
+- Tweaked description
 
 * Fri Jul 20 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.1-1
 - Upstream changes (see CHANGELOG)
