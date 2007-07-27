@@ -35,6 +35,7 @@ DEFAULTS = {
     "tftpd_conf"         : "/etc/xinetd.d/tftp",
     "tftpboot"           : "/tftpboot",
     "webdir"             : "/var/www/cobbler",
+    "snippetsdir"        : "/var/lib/cobbler/snippets",
     "default_kickstart"  : "/etc/cobbler/default.ks",
     "manage_dhcp"        : 0,
     "manage_dhcp_mode"   : "isc",

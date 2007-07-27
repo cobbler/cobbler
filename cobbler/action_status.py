@@ -113,7 +113,7 @@ class BootStatusReport:
         time_collisions = 0
         
         #header = ("Address", "State", "Started", "Last Request", "Seconds", "Log Entries")
-        print _("%-20s | %-15s | %-25s | %-25s | %-10s | %-6s") % (
+        print "%-20s | %-15s | %-25s | %-25s | %-10s | %-6s" % (
            _("Address"),
            _("State"),
            _("Last Request"),

@@ -68,7 +68,7 @@ class BootCheck:
        if os.path.exists("/etc/rc.d/init.d/iptables"):
            rc = sub_process.call("/sbin/service iptables status >/dev/null 2>/dev/null", shell=True)
            if rc == 0:
-              status.append(_("since iptables may be running, ensure 69, 80, %s, and %s are unblocked") % (self.settings.syslog_port, self.settings.xmlrpc_port))
+              status.append(_("since iptables may be running, ensure 69, 80, %(syslog)s, and %(xmlrpc)s are unblocked") % { "syslog" : self.settings.syslog_port, "xmlrpc" : self.settings.xmlrpc_port })
 
    def check_name(self,status):
        """

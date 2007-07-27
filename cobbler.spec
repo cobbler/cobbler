@@ -129,6 +129,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/triggers/delete/system/post
 %dir /var/lib/cobbler/triggers/delete/repo/pre
 %dir /var/lib/cobbler/triggers/delete/repo/post
+%dir /var/lib/cobbler/snippets/
+%config(noreplace) /var/lib/cobbler/snippets/partition_select
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/lib/cobbler/menu.c32
 %defattr(-,root,root)

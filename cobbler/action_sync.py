@@ -60,8 +60,7 @@ class BootSync:
         """
         if not os.path.exists(self.settings.tftpboot):
             raise CX(_("cannot find directory: %s") % self.settings.tftpboot)
-        # not having a /var/www/cobbler is ok, the app will create it since
-        # no other package has to own it.
+        self.load_snippet_cache()
         self.clean_trees()
         self.copy_koan()
         self.copy_bootloaders()
@@ -279,9 +278,9 @@ class BootSync:
             kernel = utils.find_kernel(d.kernel) # full path
             initrd = utils.find_initrd(d.initrd) # full path
             if kernel is None or not os.path.isfile(kernel):
-                raise CX(_("kernel not found: %s, distro: %s"), d.kernel, d.name)
+                raise CX(_("kernel not found: %(file)s, distro: %(distro)s") % { "file" : d.kernel, "distro" : d.name })
             if initrd is None or not os.path.isfile(initrd):
-                raise CX(_("initrd not found: %s, distro: %s"), d.initrd, d.name)
+                raise CX(_("initrd not found: %(file)s, distro: %(distro)s") % { "file" : d.initrd, "distro" : d.name })
             b_kernel = os.path.basename(kernel)
             b_initrd = os.path.basename(initrd)
             self.copyfile(kernel, os.path.join(distro_dir, b_kernel))
@@ -448,14 +447,29 @@ class BootSync:
                 self.apply_template(kfile, meta, dest)
                 kfile.close()
             except:
-                raise CX(_("Error templating file %s to %s") % { "src" : meta["kickstart"], "dest" : dest })
+                raise CX(_("Error templating file %(src)s to %(dest)s") % { "src" : meta["kickstart"], "dest" : dest })
+
+    def load_snippet_cache(self):
+
+        # first load all of the files in /var/lib/cobbler/snippets and load them, for use
+        # in adding long bits to kickstart templates without having to have them hard coded
+        # inside the sync code.
+
+        snippet_cache = {} 
+        snippets = glob.glob("%s/*" % self.settings.snippetsdir)
+        for snip in snippets:
+           snip_file = open(snip)
+           data = snip_file.read()
+           snip_file.close()
+           snippet_cache[os.path.basename(snip)] = data
+        self.snippet_cache = snippet_cache
+
 
     def apply_template(self, data_input, metadata, out_path):
         """
         Take filesystem file kickstart_input, apply metadata using
         Cheetah and save as out_path.
         """
-
 
         if type(data_input) != str:
            data = data_input.read()
@@ -466,10 +480,19 @@ class BootSync:
         # template syntax.
         data = data.replace("TEMPLATE::","$")
 
+        # replace contents of the data stream with items from the snippet cache
+        # do not use Cheetah yet, Cheetah can't really be run twice on the same
+        # stream and be expected to do the right thing
+        for x in self.snippet_cache:
+            data = data.replace("SNIPPET::%s" % x, self.snippet_cache[x])      
+ 
+        # tell Cheetah not to blow up if it can't find a symbol for something
         data = "#errorCatcher Echo\n" + data
-       
+
+        # now do full templating scan, where we will also templatify the snippet insertions
         t = Template(source=data, searchList=[metadata])
         data_out = str(t)
+
         if out_path is not None:
             self.mkdir(os.path.dirname(out_path))
             fd = open(out_path, "w+")
@@ -506,10 +529,10 @@ class BootSync:
 
         profile = system.get_conceptual_parent()
         if profile is None:
-            raise CX(_("system %s references a missing profile %s") % { "system" : system.name, "profile" : system.profile})
+            raise CX(_("system %(system)s references a missing profile %(profile)s") % { "system" : system.name, "profile" : system.profile})
         distro = profile.get_conceptual_parent()
         if distro is None:
-            raise CX(_("profile %s references a missing distro %s") % { "profile" : system.profile, "distro" : profile.distro})
+            raise CX(_("profile %(profile)s references a missing distro %(distro)s") % { "profile" : system.profile, "distro" : profile.distro})
         f1 = utils.get_config_filename(system)
         # tftp only
 

@@ -345,7 +345,7 @@ class Importer:
                p1 = os.path.join(comps_path, "repodata", "comps.xml")
                p2 = os.path.join(comps_path, "base", "comps.xml")
                if os.path.exists(p1) and os.path.exists(p2):
-                   print _("- cp %s %s") % (p1, p2)
+                   print _("- cp %(p1)s %(p2)s") % { "p1" : p1, "p2" : p2 }
                    shutil.copyfile(p1,p2)
 
        except:

@@ -21,6 +21,7 @@ if __name__ == "__main__":
         logpath  = "/var/log/cobbler/"
         logpath2 = "/var/log/cobbler/kicklog"
         logpath3 = "/var/log/cobbler/syslog"
+        snippets = "/var/lib/cobbler/snippets"
         vw_localmirror = "/var/www/cobbler/localmirror"
         vw_kickstarts  = "/var/www/cobbler/kickstarts"
         vw_kickstarts_sys  = "/var/www/cobbler/kickstarts_sys"
@@ -64,6 +65,7 @@ if __name__ == "__main__":
 				(etcpath,  ['templates/pxesystem.template']),
 				(etcpath,  ['templates/pxesystem_ia64.template']),
 				(etcpath,  ['templates/pxeprofile.template']),
+                                (snippets, ['snippets/partition_select']),
                                 (manpath,  ['docs/cobbler.1.gz']),
                                 (etcpath,  ['config/rsync.exclude']),
                                 (initpath, ['config/cobblerd']),
