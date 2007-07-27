@@ -52,6 +52,7 @@ class BootSync:
         self.systems  = config.systems()
         self.settings = config.settings()
         self.repos    = config.repos()
+        self.load_snippet_cache()
 
     def run(self):
         """
@@ -60,7 +61,6 @@ class BootSync:
         """
         if not os.path.exists(self.settings.tftpboot):
             raise CX(_("cannot find directory: %s") % self.settings.tftpboot)
-        self.load_snippet_cache()
         self.clean_trees()
         self.copy_koan()
         self.copy_bootloaders()
