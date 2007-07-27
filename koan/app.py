@@ -387,7 +387,7 @@ class Koan:
                 cmd = sub_process.Popen("uname -r", stdout=sub_process.PIPE, shell=True)
                 uname_str = cmd.communicate()[0]
                 # correct kernel on dom0?
-                if uname_str.find("xen") != -1:
+                if uname_str.find("xen") == -1:
                    raise InfoException("kernel-xen needs to be in use")
                 # xend installed?
                 if not os.path.exists("/usr/sbin/xend"):
