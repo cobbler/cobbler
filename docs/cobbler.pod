@@ -480,7 +480,9 @@ Templated kickstart files are processed by the templating program/package Cheeta
 
 When working with Cheetah, be sure to escape any shell macros that look like "$(this)" with something like "\$(this)" or errors may show up during the sync process.
 
-Should you want to express larger sections of templating (more that can be decently expressed on the command line), you may want to edit /var/lib/cobbler/ files directly.  Keep in mind that changes need to be valid YAML 1.0 syntax and "cobbler sync" should be run after making any changes to those files.
+=head2 KICKSTART SNIPPETS
+
+Anywhere a kickstart template mentions SNIPPET::snippet_name, the file named /var/lib/cobbler/snippet/snippet_name (if present) will be included automatically in the kickstart template.  This serves as a way to recycle frequently used kickstart snippets without duplication.  Snippets can contain templating variables, and the variables will be evaluated according to the profile and/or system as one would expect.
 
 =head2 KICKSTART VALIDATION
 
