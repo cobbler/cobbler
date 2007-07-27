@@ -72,11 +72,11 @@ Example:  koan --server=cobbler.example.org --display --profile=fedora7-xen-i386
 
 =head1 VIRTUALIZED INSTALLS
 
-When using --virt, koan will create new virtualized guests on a machine in accordance to the orders from cobbler.  You can then, once finished, use "virsh" or "virt-manager" to access the guest.  These can be Xen or QEMU/KVM guests.
+When using --virt, koan will create new virtualized guests on a machine in accordance to the orders from cobbler.  These can be Xen or QEMU/KVM guests depending on --virt-type.  Once created, use "virsh" to control the guests.  Virsh may need a connection string like "virsh --connect qemu:///system".
 
 Example:  koan --server=cobbler.example.org --virt --profile=fedora7-xen-i386
 
-If --profile is specified, cobbler will default to naming domains based on their mac addresses, using --system will use the exact name given to the cobbler system object.  To install using a more descriptive name, specify one with --virtname.  
+If --profile is specified, cobbler will default to naming domains based on their mac addresses; using --system will use the exact name given to the cobbler system object.  To install using an alternate descriptive name, specify one with --virtname.  
 
 The additional parameters --virt-path, and --virt-type allow overriding certain defaults that are ordinarily defined by the remote cobbler server.
 
