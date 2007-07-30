@@ -985,7 +985,7 @@ class Koan:
                 raise InfoException, "The volume group [%s] does not exist." % location
             
             # check free space
-            args = "/usr/sbin/lvs --noheadings -o vg_free --units g %s" % location
+            args = "/usr/sbin/vgs --noheadings -o vg_free --units g %s" % location
             print args
             cmd = sub_process.Popen(args, stdout=sub_process.PIPE, shell=True)
             freespace_str = cmd.communicate()[0]
