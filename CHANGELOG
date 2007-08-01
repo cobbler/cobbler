@@ -6,6 +6,7 @@ Cobbler CHANGELOG
 - Add cobbler validateks command to look for broken rendered kickstarts
 - Added -v/--version
 - Added SNIPPET::foo capability to pull /var/lib/cobbler/snippets/foo into templates (anywhere)
+- Import can now take an --available-as=nfs://server:/mount/point to do cobbler import without mirroring
 
 * Fri Jul 20 2007 - 0.5.1
 - Added logging for cobblerd -- /var/log/cobbler/cobblerd.log
