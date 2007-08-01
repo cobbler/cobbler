@@ -26,7 +26,7 @@ import shutil
 from rhpl.translate import _, N_, textdomain, utf8
 
 WGET_CMD = "wget --mirror --no-parent --no-host-directories --directory-prefix %s/%s %s"
-RSYNC_CMD =  "rsync -a %s %s %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --delete --delete-excluded --progress"
+RSYNC_CMD =  "rsync -a %s %s %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --progress"
 
 TRY_LIST = [
    "Fedora", "RedHat", "Client", "Server", "Centos", "CentOS",
@@ -36,11 +36,22 @@ TRY_LIST = [
 
 class Importer:
 
-   def __init__(self,api,config,mirror,mirror_name):
+   def __init__(self,api,config,mirror,mirror_name,network_root=None):
+       """
+       Performs an import of a install tree (or trees) from the given
+       mirror address.  The prefix of the distro is to be specified
+       by mirror name.  For instance, if FC-6 is given, FC-6-xen-i386
+       would be a potential distro that could be created.  For content
+       available on external servers via a known nfs:// or ftp:// or
+       http:// path, we can import without doing rsync mirorring to 
+       cobbler's http directory.  This is explained in more detail 
+       in the manpage.  Leave network_root to None if want mirroring.
+       """
        self.api = api
        self.config = config
        self.mirror = mirror
        self.mirror_name = mirror_name
+       self.network_root = network_root 
        self.distros  = config.distros()
        self.profiles = config.profiles()
        self.systems  = config.systems()
@@ -58,33 +69,53 @@ class Importer:
        if self.mirror_name is None:
            raise CX(_("import failed.  no --name specified"))
        
-       # make the output path
-       self.path = "%s/ks_mirror/%s" % (self.settings.webdir, self.mirror_name)
-       self.mkdir(self.path)
+       # make the output path and mirror content but only if not specifying that a network
+       # accessible support location already exists
 
-       # prevent rsync from creating the directory name twice
-       if not self.mirror.endswith("/"):
-           self.mirror = "%s/" % self.mirror 
+       if self.network_root is None:
+           self.path = "%s/ks_mirror/%s" % (self.settings.webdir, self.mirror_name)
+           self.mkdir(self.path)
 
-       if self.mirror.startswith("http://"):
-           # http mirrors are kind of primative.  rsync is better.
-           self.run_this(WGET_CMD, (self.settings.webdir, self.mirror_name, self.mirror))
-       else:
-           # use rsync.. no SSH for public mirrors and local files.
-           # presence of user@host syntax means use SSH
-           spacer = ""
-           if not self.mirror.startswith("rsync://") and not self.mirror.startswith("/"):
-               spacer = ' -e "ssh" '
-           self.run_this(RSYNC_CMD, (spacer, self.mirror, self.settings.webdir, self.mirror_name))
+           # prevent rsync from creating the directory name twice
+           if not self.mirror.endswith("/"):
+               self.mirror = "%s/" % self.mirror 
 
+           if self.mirror.startswith("http://"):
+               # http mirrors are kind of primative.  rsync is better.
+               # that's why this isn't documented in the manpage.
+               # TODO: how about adding recursive FTP as an option?
+               self.run_this(WGET_CMD, (self.settings.webdir, self.mirror_name, self.mirror))
+           else:
+               # use rsync.. no SSH for public mirrors and local files.
+               # presence of user@host syntax means use SSH
+               spacer = ""
+               if not self.mirror.startswith("rsync://") and not self.mirror.startswith("/"):
+                   spacer = ' -e "ssh" '
+               self.run_this(RSYNC_CMD, (spacer, self.mirror, self.settings.webdir, self.mirror_name))
+
+       # see that the root given is valid
+
+       if self.network_root is not None:
+           if not self.network_root.endswith("/"):
+               self.network_root = self.network_root + "/"
+           self.path = self.mirror
+           found_root = False
+           valid_roots = [ "nfs://", "ftp://", "http://" ]
+           for valid_root in valid_roots:
+               if self.network_root.startswith(valid_root):
+                   found_root = True
+           if not found_root:
+               raise CX(_("Network root given to --available-as must be nfs://, ftp://, or http://"))
 
        self.processed_repos = {}
 
        print _("---------------- (adding distros)")
        os.path.walk(self.path, self.distro_adder, {})
 
-       print _("---------------- (associating repos)")
-       self.repo_finder()
+       if self.network_root is None:
+           print _("---------------- (associating repos)")
+           # FIXME: this automagic is not possible (yet) without mirroring 
+           self.repo_finder()
 
        print _("---------------- (associating kickstarts)")
        self.kickstart_finder() 
@@ -114,7 +145,6 @@ class Importer:
    # ----------------------------------------------------------------------
 
    def kickstart_finder(self):
-
        """
        For all of the profiles in the config w/o a kickstart, look
        at the kernel path, from that, see if we can guess the distro,
@@ -126,10 +156,13 @@ class Importer:
            if distro is None or not (distro in self.distros_added):
                print _("- skipping distro %s since it wasn't imported this time") % profile.distro
                continue
-           if not distro.kernel.startswith("%s/ks_mirror/" % self.settings.webdir):
-               # this isn't a mirrored profile, so we won't touch it
-               print _("- skipping %s since profile isn't mirrored") % profile.name
-               continue
+
+           # THIS IS OBSOLETE:
+           #
+           #if not distro.kernel.startswith("%s/ks_mirror/" % self.settings.webdir):
+           #    # this isn't a mirrored profile, so we won't touch it
+           #    print _("- skipping %s since profile isn't mirrored") % profile.name
+           #    continue
  
            kdir = os.path.dirname(distro.kernel)   
            base_dir = "/".join(kdir.split("/")[0:-2])
@@ -145,9 +178,8 @@ class Importer:
                        if results is None:
                            continue
                        (flavor, major, minor) = results
-                       print _("- determining best kickstart for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
+                       print _("- finding default kickstart template for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
                        kickstart = self.set_kickstart(profile, flavor, major, minor)
-                       print _("- kickstart=%s") % kickstart
                        self.configure_tree_location(distro)
                        self.distros.add(distro) # re-save
                        self.api.serialize()
@@ -161,18 +193,52 @@ class Importer:
        tokens = tokens[:-2]
        base = "/".join(tokens)
        dest_link = os.path.join(self.settings.webdir, "links", distro.name)
-       if not os.path.exists(dest_link):
-           try:
-               os.symlink(base, dest_link)
-           except:
-               # this shouldn't happen but I've seen it ... debug ...
-               print _("- symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
-       base = base.replace(self.settings.webdir,"")
+
+       # create the links directory only if we are mirroring because with
+       # SELinux Apache can't symlink to NFS (without some doing)
+
+       if self.network_root is None:
+           if not os.path.exists(dest_link):
+               try:
+                   os.symlink(base, dest_link)
+               except:
+                   # this shouldn't happen but I've seen it ... debug ...
+                   print _("- symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
+
+           # FIXME: looks like "base" isn't used later.  remove?
+           base = base.replace(self.settings.webdir,"")
        
        meta = distro.ks_meta
-       meta["tree"] = "http://%s/cblr/links/%s" % (self.settings.server, distro.name)
+
+       # how we set the tree depends on whether an explicit network_root was specified
+       if self.network_root is None:
+           meta["tree"] = "http://%s/cblr/links/%s" % (self.settings.server, distro.name)
+       else:
+           # where we assign the kickstart source is relative to our current directory
+           # and the input start directory in the crawl.  We find the path segments
+           # between and tack them on the network source path to find the explicit
+           # network path to the distro that Anaconda can digest.  
+           tail = self.path_tail(self.mirror, base)
+           meta["tree"] = self.network_root
+           if meta["tree"].endswith("/"):
+              meta["tree"] = self.network_root[:-1]
+           meta["tree"] = meta["tree"] + tail.rstrip()
+
        print _("- tree: %s") % meta["tree"]
        distro.set_ksmeta(meta)
+
+   # ---------------------------------------------------------------------
+
+   def path_tail(self, apath, bpath):
+       """ 
+       Given two paths (B is longer than A), find the part in B not in A
+       """
+       position = bpath.find(apath)
+       if position != 0:
+           print "%s, %s, %s" % (apath, bpath, position)
+           raise CX(_("Error: possible symlink traversal?: %s") % bpath)
+       rposition = position + len(self.mirror)
+       return bpath[rposition:]
 
    # ---------------------------------------------------------------------
 
@@ -395,9 +461,15 @@ class Importer:
        archname = pxe_arch
        if archname == "x86":
           archname = "i386"
-       name = "-".join(dirname.split("/"))
+       # FIXME: this is new, needs testing ...
+       if self.network_root is not None:
+          name = "-".join(self.path_tail(self.path,dirname).split("/"))
+       else:
+          # remove the part that says /var/www/cobbler/ks_mirror/name
+          name = "-".join(dirname.split("/")[6:])
        if name.startswith("-"):
           name = name[1:]
+       name = self.mirror_name + "-" + name
        name = name.replace("-os","")
        name = name.replace("-images","")
        name = name.replace("-tree","")

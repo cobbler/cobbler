@@ -671,19 +671,25 @@ class BootCLI:
         """
         self.temp_mirror = None
         self.temp_mirror_name = None
+        self.temp_network_root = None
         def set_mirror_name(a):
             self.temp_mirror_name = a
         def set_mirror(a):
             self.temp_mirror = a
+        def set_network_root(a):
+            self.temp_network_root = a
         def go_import():
             return self.api.import_tree(
                 self.temp_mirror,
-                self.temp_mirror_name)
+                self.temp_mirror_name,
+                network_root=self.temp_network_root
+            )
         commands = {
             '--path'         : lambda(a): set_mirror(a),
             '--mirror'       : lambda(a): set_mirror(a),
             '--mirror-name'  : lambda(a): set_mirror_name(a),
-            '--name'         : lambda(a): set_mirror_name(a)
+            '--name'         : lambda(a): set_mirror_name(a),
+            '--available-as' : lambda(a): set_network_root(a)
         }
         on_ok = lambda: go_import()
         return self.apply_args(args,commands,on_ok)

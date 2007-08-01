@@ -42,7 +42,7 @@ in network booting via PXE and just want to use koan to install virtual systems,
 
 This first step towards configurating what you want to provision is to add a distribution to the cobbler's configuration.  
 
-If there is an rsync mirror, DVD, or filesystem tree available that you would rather import instead, skip down to the documentation about the "import" command.  It's really a lot easier, and it only requires waiting for the mirror content to be copied.  Imported mirrors also save time during install since they don't have to hit external install sources.   However if you have the content locally already and don't want to create another copy of it, you'll want to use the manual distro add commands.
+If there is an rsync mirror, DVD, NFS, or filesystem tree available that you would rather import instead, skip down to the documentation about the "import" command.  It's really a lot easier, and it only requires waiting for the mirror content to be copied.  Imported mirrors also save time during install since they don't have to hit external install sources.   However if you have the content locally already and don't want to create another copy of it, you'll want to use the manual distro add commands.
 
 B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--ksmeta=string] [--arch=x86|x86_64|ia64] [--breed=redhat|debian|suse]>
 
@@ -364,15 +364,20 @@ This example shows how to create a provisioning infrastructure from a distributi
 Then a default PXE configuration is created, so that by default systems will PXE boot into 
 a fully automated install process for that distribution.
 
-You can use a network rsync mirror or a mounted DVD location.
+You can use a network rsync mirror, a mounted DVD location, or a tree you have available
+via a network filesystem.
 
 B<cobbler check>
 
-B<cobbler import --mirror=rsync://yourfavoritemirror.com/foo --name=anyname>
+B<cobbler import --path=rsync://yourfavoritemirror.com/foo --name=anyname>
 
 # OR 
 
-B<cobbler import --mirror=/mnt/dvd --name=anyname>
+B<cobbler import --path=/mnt/dvd --name=anyname>
+
+# OR (using an eternal NAS box without mirroring)
+
+B<cobbler import --path=/path/where/filer/is/mounted --name=anyname --available-as=nfs://nfs.example.org:/where/mounted/>
 
 # wait for mirror to rsync...
 
@@ -540,7 +545,7 @@ Enterprising users will notice this is not much more than a wrapper around SSH c
 =head2 IMPORTING TREES
 
 
-Cobbler can auto-add distributions and profiles from remote sources, whether this is a filesystem path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.  This is a feature that many users will want to take advantage of, and is very simple to use.
+Cobbler can auto-add distributions and profiles from remote sources, whether this is a filesystem path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.  Import is a feature that many users will want to take advantage of, and is very simple to use.
   
 After an import is run, cobbler will try to detect the distribution type and automatically assign kickstarts.  By default, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of "cobbler".  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting after cobbler creates the profile.
 
@@ -554,9 +559,13 @@ Example3:  B<cobbler import --mirror=/mnt/dvd --name=baz>
 
 Example4:  B<cobbler import --mirror=/path/to/stuff --name=glorp>
 
+Example5:  B<cobbler import --path=/path/where/filer/is/mounted --name=anyname --available-as=nfs://nfs.example.org:/where/mounted/>
+
 Once imported, run a "cobbler list" or "cobbler report" to see what you've added.
 
 By default, the rsync operations will exclude PPC content, debug RPMs, and ISO images -- to change what is excluded during an import, see /etc/cobbler/rsync.exclude.
+
+Note that all of the import commands will mirror install tree content into /var/www/cobbler unless a network accessible location is given with --available-as.  --available-as will be primarily used when importing distros stored on an external NAS box, or potentially on another partition on the same machine that is already accessible via http:// or ftp://.
 
 =head2 DEFAULT PXE BOOT BEHAVIOR
 

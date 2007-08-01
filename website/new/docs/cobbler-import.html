@@ -5,7 +5,7 @@
 <a name="import">
 <h2>About</h2>
 <p>
-Suppose you want to set up a network boot server for a given distro, really really quickly. For this example, we'll use Fedora Core 6 as an example. What's the best way to do this? It's a command called "cobbler import", that can mirror content based on a DVD image or even an external rsync mirror or SSH location.
+Suppose you want to set up a network boot server for a given distro, really really quickly. For this example, we'll use Fedora Core 6 as an example. What's the best way to do this? It's a command called "cobbler import", that can mirror content based on a DVD image, a tree on a filesystem, or even an external rsync mirror or SSH location.
 </p>
 
 <a name="provserver">
@@ -37,6 +37,16 @@ This would mirror from a public rsync server without needing the DVD image.
 <p>
 The kickstarts used above will provision machines with a default password of "cobbler" and a really basic set of packages. For something more complicated, you may wish to edit the default kickstarts in /etc/cobbler and then re-run "cobbler sync" to apply those changes.
 </p>
+<p>
+What if you don't want to mirror the content?  Say you already have the trees from all your DVDs and/or CDs extracted on a Filer mounted over NFS somewhere.  This works too, with the addition of one more argument, in versions 0.5.3 and later...
+</p>
+<p>
+<blockquote>
+cobbler import --mirror=/path/where/filer/is/mounted --name=filer --available-as=nfs://nfsserver.example.org:/is/mounted/here
+</blockquote>
+</p>
+<p>
+The above command will set up cobbler automatically using all of the above distros (stored on the filer) as a basis -- but will keep the trees on NFS.  This saves disk space on the Cobbler server.  As you add more distros over time to the filer, you can keep running the above commands to add them to Cobbler.  So, whether using some data you already have on the network, or letting cobbler create an install mirror for you, there are lots of useful options.  </p>
 
 <a name="#reinstalls">
 <h2>Using That Server For Reinstallation</h2>
