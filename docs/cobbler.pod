@@ -163,7 +163,7 @@ a role for a specific system.
 
 Note that if provisioning via koan and PXE menus alone, it is not required to create system records, though they are useful when system specific templating is required or to establish that a specific system should always recieve a specific software install.  If there is a specific role inteded for a given machine, system records should be created for it.
 
-B<cobbler system add --name=string --profile=string [--mac=macaddress] [--ip=ipaddress] [--hostname=hostname] [--kopts=string] [--ipaddress=string] [--ksmeta=string] [--netboot-enabled=Y/N>
+B<cobbler system add --name=string --profile=string [--mac=macaddress] [--ip=ipaddress] [--hostname=hostname] [--kopts=string] [--ksmeta=string] [--netboot-enabled=Y/N>
 
 Adds a cobbler System to the configuration.  Arguments are specified as per "profile add" with
 the following changes:
@@ -515,10 +515,10 @@ In summary, if this manage_dhcp bit is enabled, the following features are enabl
 (B) relatively seamless mixing of Itanium and x86/x86_64 machines in a PXE environment (ISC only)
 (C) assigning hostnames to MAC addresses using DNS (dnsmasq only).
 
-These options are all enabled by using the --hostname and --ip-address options when using the "cobbler system add" command.
+These options are all enabled by using the --hostname and --ip options when using the "cobbler system add" command.
 
 Itanium systems names also need to be assigned to a distro that was created with the "--arch=ia64" parameter. If you have Itanium systems, you must (for now) choose 'isc' for
-'manage_dhcp_mode' in the /var/lib/cobbler/settings file, and are required to use --ip-address when creating the system object in order for those systems to PXE.
+'manage_dhcp_mode' in the /var/lib/cobbler/settings file, and are required to use --ip when creating the system object in order for those systems to PXE.
 
 The dhcpd.conf file will be updated each time "cobbler sync" is run, and not until then, so it is important to remember to use "cobbler sync" when using this feature.  Support for online updates to DHCP (and DNS, in this dnsmasq case) are pending.
 
