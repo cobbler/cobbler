@@ -338,7 +338,7 @@ class BootSync:
                 meta.update(ksmeta) # make available at top level
                 meta["yum_repo_stanza"] = self.generate_repo_stanza(g)
                 meta["yum_config_stanza"] = self.generate_config_stanza(g)
-                meta["kickstart_done"] = self.generate_kickstart_signal(g, is_system=False)
+                meta["kickstart_done"] = self.generate_kickstart_signal(g, None)
                 meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
                 kfile = open(kickstart_path)
                 self.apply_template(kfile, meta, dest)
@@ -348,12 +348,17 @@ class BootSync:
                 msg = "err_kickstart2"
                 raise CX(_("Error copying kickstart file %(src)s to %(dest)s") % { "src" : kickstart_path, "dest" : dest })
 
-    def generate_kickstart_signal(self, obj, is_system=False):
-        pattern = "wget http://%s/cblr/watcher.py?%s_%s=%s -b"
-        if is_system:
-            return pattern % (self.settings.server, "system", "done", obj.name)
+    def generate_kickstart_signal(self, profile, system=None):
+        pattern1 = "wget http://%s/cblr/watcher.py?%s_%s=%s -b"
+        pattern2 = "wget http://%s/cgi-bin/nopxe.cgi?system=%s -b"
+        buf = ""
+        if system is not None:
+            buf = buf + pattern1 % (self.settings.server, "system", "done", system.name)
+            if str(self.settings.pxe_just_once).upper() in [ "1", "Y", "YES", "TRUE" ]:
+                buf = buf + "\n" + pattern2 % (self.settings.server, system.name)
         else:
-            return pattern % (self.settings.server, "profile", "done", obj.name)
+            buf = buf + pattern1 % (self.settings.server, "profile", "done", profile.name)
+        return buf
 
     def generate_repo_stanza(self, profile):
         # returns the line of repo additions (Anaconda supports in FC-6 and later) that adds
@@ -441,7 +446,7 @@ class BootSync:
                 meta.update(ksmeta) # make available at top level
                 meta["yum_repo_stanza"] = self.generate_repo_stanza(profile)
                 meta["yum_config_stanza"] = self.generate_config_stanza(profile)
-                meta["kickstart_done"]  = self.generate_kickstart_signal(profile, is_system=True)
+                meta["kickstart_done"]  = self.generate_kickstart_signal(profile, s)
                 meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
                 kfile = open(kickstart_path)
                 self.apply_template(kfile, meta, dest)

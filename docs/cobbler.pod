@@ -620,6 +620,16 @@ outside world.  If this feature is desirable, it can be turned on by setting yum
 to 1 in /var/lib/cobbler/settings (and rerunning "cobbler sync").  You should not enable this feature
 if machines are provisioned on a different VLAN/network than production.
 
+=head2 PXE BOOT LOOP PREVENTION
+
+If you have your machines set to PXE first in the boot order (ahead of hard drives), change
+the "pxe_just_once" flag in /var/lib/cobbler/settings to 1.  This will set the machines
+to not PXE on successive boots once they complete one install.
+
+To re-enable PXE for a specific system, run the following command:
+
+B<cobbler system edit --name=name --netboot-enabled=1>
+
 =head2 KICKSTART TRACKING
 
 Cobbler knows how to keep track of the status of kickstarting machines.   

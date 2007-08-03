@@ -104,6 +104,28 @@ class CobblerXMLRPCInterface:
     def __sorter(self,a,b):
         return cmp(a["name"],b["name"])
 
+    def get_settings(self):
+        self.api.clear()
+        self.api.deserialize()
+        data = self.api.settings().to_datastruct()
+        return self.fix_none(data)
+ 
+    def disable_netboot(self,name):
+        # used by nopxe.cgi
+        self.api.clear()
+        self.api.deserialize()
+        if not self.api.settings().pxe_just_once:
+            # feature disabled!
+            return False
+        systems = self.api.systems()
+        obj = systems.find(name)
+        if obj == None:
+            # system not found!
+            return False
+        obj.set_netboot_enabled(0)
+        systems.add(obj,with_copy=True)
+        return True
+
     def __get_all(self,collection):
         self.api.clear() 
         self.api.deserialize()

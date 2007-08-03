@@ -50,7 +50,7 @@ if __name__ == "__main__":
                 ],
                 scripts = ["scripts/cobbler", "scripts/cobblerd"],
                 data_files = [ 
-                                (cgipath,  ['scripts/findks.cgi']),
+                                (cgipath,  ['scripts/findks.cgi', 'scripts/nopxe.cgi']),
                                 (rotpath,  ['config/cobblerd_rotate']),
                                 (wwwconf,  ['config/cobbler.conf']),
                                 (cobpath,  ['loaders/elilo-3.6-ia64.efi']),

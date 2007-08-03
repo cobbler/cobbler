@@ -7,6 +7,7 @@ Cobbler CHANGELOG
 - Added -v/--version
 - Added SNIPPET::foo capability to pull /var/lib/cobbler/snippets/foo into templates (anywhere)
 - Import can now take an --available-as=nfs://server:/mount/point to do cobbler import without mirroring
+- Feature to enable "pxe_just_once" for boot loop prevention
 
 * Fri Jul 20 2007 - 0.5.1
 - Added logging for cobblerd -- /var/log/cobbler/cobblerd.log

@@ -48,7 +48,8 @@ DEFAULTS = {
     "xmlrpc_port"                 : 25151,
     "minimize_syncs"              : 1,
     "yum_core_mirror_from_server" : 0,
-    "default_virt_type"           : "auto"
+    "default_virt_type"           : "auto",
+    "pxe_just_once"               : 0
 }
 
 
