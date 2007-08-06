@@ -503,7 +503,7 @@ class BootSync:
                    line = "nfs --server %s --dir %s" % (server,dir)
                    # but put the URL part back in so koan can still see
                    # what the original value was
-                   line = line + "\n" + "#url --url %s" % metadata["tree"]
+                   line = line + "\n" + "#url --url=%s" % metadata["tree"]
                newdata = newdata + line + "\n"
         data = newdata 
 
