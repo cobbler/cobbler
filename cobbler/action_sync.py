@@ -495,7 +495,7 @@ class BootSync:
         # case this is likely WRONG for kickstart, which needs the NFS
         # directive instead.  Do this to make the templates work.
         newdata = ""
-        if metadata.has_key("tree"): 
+        if metadata.has_key("tree") and metadata["tree"].startswith("nfs://"): 
             for line in data.split("\n"):
                if line.find("--url") != -1 and line.find("url ") != -1:
                    rest = metadata["tree"][6:] # strip off "nfs://" part
@@ -505,7 +505,7 @@ class BootSync:
                    # what the original value was
                    line = line + "\n" + "#url --url=%s" % metadata["tree"]
                newdata = newdata + line + "\n"
-        data = newdata 
+            data = newdata 
 
         # tell Cheetah not to blow up if it can't find a symbol for something
         data = "#errorCatcher Echo\n" + data
