@@ -490,7 +490,23 @@ class BootSync:
         # stream and be expected to do the right thing
         for x in self.snippet_cache:
             data = data.replace("SNIPPET::%s" % x, self.snippet_cache[x])      
- 
+
+        # HACK:  the ksmeta field may contain nfs://server:/mount in which
+        # case this is likely WRONG for kickstart, which needs the NFS
+        # directive instead.  Do this to make the templates work.
+        newdata = ""
+        if metadata.has_key("tree"): 
+            for line in data.split("\n"):
+               if line.find("--url") != -1 and line.find("url ") != -1:
+                   rest = metadata["tree"][6:] # strip off "nfs://" part
+                   (server, dir) = rest.split(":",2)
+                   line = "nfs --server %s --dir %s" % (server,dir)
+                   # but put the URL part back in so koan can still see
+                   # what the original value was
+                   line = line + "\n" + "#url --url %s" % metadata["tree"]
+               newdata = newdata + line + "\n"
+        data = newdata 
+
         # tell Cheetah not to blow up if it can't find a symbol for something
         data = "#errorCatcher Echo\n" + data
 
