@@ -43,6 +43,10 @@ def start_install(name=None, ram=None, disk=None, mac=None,
     if not profile_data["install_tree"].endswith("/"):
        profile_data["install_tree"] = profile_data["install_tree"] + "/"
 
+    # virt manager doesn't like nfs:// and just wants nfs:
+    # (which cobbler should fix anyway)
+    profile_data["install_tree"] = profile_data["install_tree"].replace("nfs://","nfs:")
+
     guest.location = profile_data["install_tree"]
    
      

@@ -350,7 +350,7 @@ class Koan:
 
 
         if self.is_virt and not profile_data.has_key("install_tree"):
-            raise InfoException("Unable to find network install source (--url) in kickstart file")
+            raise InfoException("Unable to find network install source (--url) in kickstart file: %s" % profile_data["kickstart"])
 
         # find the correct file download location 
         if not self.is_virt:
