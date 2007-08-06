@@ -238,7 +238,10 @@ class Importer:
            print "%s, %s, %s" % (apath, bpath, position)
            raise CX(_("Error: possible symlink traversal?: %s") % bpath)
        rposition = position + len(self.mirror)
-       return bpath[rposition:]
+       result = bpath[rposition:]
+       if not result.startswith("/"):
+           result = "/" + result
+       return result
 
    # ---------------------------------------------------------------------
 
