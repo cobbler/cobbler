@@ -39,8 +39,13 @@ def start_install(name=None, ram=None, disk=None, mac=None,
     print "type=%s" % type
 
     guest = virtinst.FullVirtGuest(hypervisorURI="qemu:///system",type=type)
+    
+    if not profile_data["install_tree"].endswith("/"):
+       profile_data["install_tree"] = profile_data["install_tree"] + "/"
+
     guest.location = profile_data["install_tree"]
-        
+   
+     
     guest.extraargs = extra
 
     guest.set_name(name)
