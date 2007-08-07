@@ -96,6 +96,9 @@ class Importer:
        # see that the root given is valid
 
        if self.network_root is not None:
+           if not os.path.exists(self.mirror):
+               raise CX(_("path does not exist: %s") % self.mirror)
+
            if not self.network_root.endswith("/"):
                self.network_root = self.network_root + "/"
            self.path = self.mirror
