@@ -55,6 +55,7 @@ if __name__ == "__main__":
                                 (wwwconf,  ['config/cobbler.conf']),
                                 (cobpath,  ['loaders/elilo-3.6-ia64.efi']),
                                 (cobpath,  ['loaders/menu.c32']),
+                                (cobpath,  ['config/cobbler_hosts']),
                                 (etcpath,  ['kickstarts/kickstart_fc5.ks']),
                                 (etcpath,  ['kickstarts/kickstart_fc6.ks']),
                                 (etcpath,  ['kickstarts/kickstart_fc6_domU.ks']),

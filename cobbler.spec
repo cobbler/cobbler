@@ -134,6 +134,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/snippets/partition_select
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/lib/cobbler/menu.c32
+%defattr(2755,root,root)
+%config(noreplace) /var/lib/cobbler/cobbler_hosts
 %defattr(-,root,root)
 %doc AUTHORS CHANGELOG NEWS README COPYING
 
