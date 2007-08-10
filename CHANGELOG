@@ -2,6 +2,7 @@ Koan CHANGELOG
 
 * Thu Aug 09 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.0-1
 - stable release
+- don't check for libvirtd running if doesn't exist
 
 * Thu Jul 26 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.2-1
 - added XMLRPC version checking with cobbler server
