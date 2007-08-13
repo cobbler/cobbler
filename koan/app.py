@@ -32,6 +32,8 @@ import sys
 import xmlrpclib
 import string
 import re
+import logging
+import logging.handlers
 
 # the version of cobbler needed to interact with this version of koan
 # this is an decimal value (major + 0.1 * minor + 0.01 * maint)
@@ -51,10 +53,46 @@ DISPLAY_PARAMS = [
    "virt_ram","virt_disk","virt_type", "virt_path"
 ]
 
+def setupLogging(appname, debug=False):
+    # set up logging
+    vi_dir = os.path.expanduser("~/.koan")
+    if not os.access(vi_dir,os.W_OK):
+        try:
+            os.mkdir(vi_dir)
+        except IOError, e:
+            raise RuntimeError, "Could not create %d directory: " % vi_dir, e
+
+    dateFormat = "%a, %d %b %Y %H:%M:%S"
+    fileFormat = "[%(asctime)s " + appname + " %(process)d] %(levelname)s (%(module)s:%(lineno)d) %(message)s"
+    streamFormat = "%(asctime)s %(levelname)-8s %(message)s"
+    filename = os.path.join(vi_dir, appname + ".log")
+
+    rootLogger = logging.getLogger()
+    rootLogger.setLevel(logging.DEBUG)
+    fileHandler = logging.handlers.RotatingFileHandler(filename, "a",
+                                                       1024*1024, 5)
+
+    fileHandler.setFormatter(logging.Formatter(fileFormat,
+                                               dateFormat))
+    rootLogger.addHandler(fileHandler)
+
+    streamHandler = logging.StreamHandler(sys.stderr)
+    streamHandler.setFormatter(logging.Formatter(streamFormat,
+                                                 dateFormat))
+    if debug:
+        streamHandler.setLevel(logging.DEBUG)
+    else:
+        streamHandler.setLevel(logging.ERROR)
+    rootLogger.addHandler(streamHandler)
+
+
 def main():
     """
     Command line stuff...
     """
+
+    setupLogging("koan")
+
     p = opt_parse.OptionParser()
     p.add_option("-C", "--livecd",
                  dest="live_cd",

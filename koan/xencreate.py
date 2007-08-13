@@ -53,7 +53,7 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
     disk_obj = virtinst.XenDisk(path, size=disk)
 
     try:
-        nic_obj = virtinst.XenNetworkInterface(macaddr=mac, type="user")
+        nic_obj = virtinst.XenNetworkInterface(macaddr=mac, type="bridged")
     except:
         # try to be backward compatible
         nic_obj = virtinst.XenNetworkInterface(macaddr=mac)
