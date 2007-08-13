@@ -447,10 +447,11 @@ class Koan:
                     raise InfoException("need python-virtinst >= 0.2 to do net installs for qemu/kvm")
 
             # for both virt types
-            rc = sub_process.call("/sbin/service libvirtd status", stdout=None, shell=True)
-            if rc != 0:
-                # libvirt running?
-                raise InfoException("libvirtd needs to be running")
+            if os.path.exists("/etc/rc.d/init.d/libvirtd"):
+                rc = sub_process.call("/sbin/service libvirtd status", stdout=None, shell=True)
+                if rc != 0:
+                    # libvirt running?
+                    raise InfoException("libvirtd needs to be running")
 
 
             if self.virt_type == "xenpv":
