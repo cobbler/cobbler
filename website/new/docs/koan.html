@@ -1,3 +1,13 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>NAME</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
 
 <p><a name="__index__"></a></p>
 <!-- INDEX BEGIN -->
@@ -7,7 +17,15 @@
 	<li><a href="#name">NAME</a></li>
 	<li><a href="#synopsis">SYNOPSIS</a></li>
 	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#the_cobbler_server">THE COBBLER SERVER</a></li>
+	<li><a href="#listing_available_resources">LISTING AVAILABLE RESOURCES</a></li>
+	<li><a href="#main_commands">MAIN COMMANDS</a></li>
+	<li><a href="#viewing_the_installation_data">VIEWING THE INSTALLATION DATA</a></li>
+	<li><a href="#virtualized_installs">VIRTUALIZED INSTALLS</a></li>
+	<li><a href="#reinstallation">REINSTALLATION</a></li>
 	<li><a href="#notes_for_users_of_cobbler_templating">NOTES FOR USERS OF COBBLER TEMPLATING</a></li>
+	<li><a href="#new_live_cd">NEW LIVE CD</a></li>
+	<li><a href="#post_installation_management_of_virt_guests">POST INSTALLATION MANAGEMENT OF VIRT GUESTS</a></li>
 	<li><a href="#additional">ADDITIONAL</a></li>
 	<li><a href="#author">AUTHOR</a></li>
 </ul>
@@ -17,39 +35,183 @@
 <p>
 </p>
 <h1><a name="name">NAME</a></h1>
-<p>koan stands for ``kickstart-over-a-network'' and allows for both network provisioning of new virtualized guests and destructive provisioning of any existing system.  For use with a boot-server configured with 'cobbler'.</p>
+<p>koan stands for ``kickstart-over-a-network'' and allows for both network provisioning of new virtualized guests (Xen, QEMU/KVM) and re-installation of an existing system.  koan is a client side application used with a Cobbler boot server.</p>
 <p>
 </p>
 <hr />
 <h1><a name="synopsis">SYNOPSIS</a></h1>
-<p>koan --server=&lt;host&gt; --list-profiles</p>
-<p>koan --server=&lt;host&gt; --list-systems</p>
-<p>koan --virt --server=&lt;host&gt; --profile=&lt;name&gt; [--virtname=&lt;name&gt;]</p>
-<p>koan --virt --server=&lt;host&gt; --system=&lt;name&gt; [--virtname=&lt;name&gt;]</p>
-<p>koan --replace-self --server=&lt;host&gt; --profile=&lt;name&gt;</p>
-<p>koan --replace-self --server=&lt;host&gt; --system=&lt;name&gt;</p>
+<p>koan --server=&lt;host&gt; [--list-profiles|--list-systems]</p>
+<p>koan --server=&lt;host&gt; [--virt|--replace-self|--display] [--profile=&lt;name&gt;|--system=&lt;name&gt;] [--virt-name=&lt;name&gt;] [--virt-path=&lt;path&gt;] [--virt-type=&lt;type&gt;] [--virt-graphics]</p>
 <p>
 </p>
 <hr />
 <h1><a name="description">DESCRIPTION</a></h1>
-<p>When invoked, koan requests profile information from a remote boot server that has been configured with cobbler.   What koan does with the profile data depends on whether it was invoked with --virt or --replace-self.</p>
-<p>For --virt, cobbler will create new virtualized guests on a machine in accordance to the orders from cobbler.  You can then, once finished, use ``virsh'' and ``xm'' commands on the guest.  Cobbler automatically names domains based on their mac addresses.  To install using a more descriptive name, specify one with --virtname.</p>
-<p>For re-kickstarting ('--replace-self'), cobbler will reprovisioning the system, blowing away any current data and replacing it with the results of a network install.</p>
+<p>When invoked, koan requests install information from a remote cobbler boot server.   What koan does with the profile data depends on whether it was invoked with --virt or --replace-self.</p>
+<p>
+</p>
+<hr />
+<h1><a name="the_cobbler_server">THE COBBLER SERVER</a></h1>
+<dl>
+<dt><strong><a name="item__2d_2dserver">--server</a></strong>
+
+<dd>
+<p>Indicates the hostname of the Cobbler boot server to be contacted.  Successful
+communication requires that no firewalls are blocking the cobbler XMLRPC port,
+which is usually 25151, and that ``cobblerd'' is running on the cobbler server.</p>
+</dd>
+<dd>
+<p>This argument must be specified for all koan commands.</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="listing_available_resources">LISTING AVAILABLE RESOURCES</a></h1>
+<p>Lists of the resources that can be installed from a remote server can be obtained by using the following commands:</p>
+<dl>
+<dt><strong><a name="item__2d_2dlist_2dprofiles">--list-profiles</a></strong>
+
+<dd>
+<p>Shows a list of profiles that can be remotely installed from the cobbler server.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2d_2dlist_2dsystems">--list-systems</a></strong>
+
+<dd>
+<p>Shows a list of systems that can be remotely installed from the cobbler server.  Systems contain the same information as profiles but may be further customized in terms of parameters or kickstart information.  The level of customization varies depending on what has been specified on the cobbler server.</p>
+</dd>
+</li>
+</dl>
+<p>Example:  koan --server=cobbler.example.org --list-systems</p>
+<p>
+</p>
+<hr />
+<h1><a name="main_commands">MAIN COMMANDS</a></h1>
+<p>The commands --virt, --replace-self, and --display all take the following arguments:</p>
+<dl>
+<dt><strong><a name="item__2d_2dprofile">--profile</a></strong>
+
+<dd>
+<p>Names a profile, known to cobbler, that is to be installed.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2d_2dsystem">--system</a></strong>
+
+<dd>
+<p>Names a system, known to cobbler, that is to be installed.  --system cannot
+be used at the same time as --profile; pick one or the other.</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="viewing_the_installation_data">VIEWING THE INSTALLATION DATA</a></h1>
+<p>In depth data about what is being installed can be viewed prior to
+kicking off an installation.  Use --display instead of --virt or
+--replace-self.  When using this argument, specify the data to display
+with --profile or --system.</p>
+<p>Example:  koan --server=cobbler.example.org --display --profile=fedora7-xen-i386</p>
+<p>
+</p>
+<hr />
+<h1><a name="virtualized_installs">VIRTUALIZED INSTALLS</a></h1>
+<p>When using --virt, koan will create new virtualized guests on a machine in accordance to the orders from cobbler.  These can be Xen or QEMU/KVM guests depending on --virt-type.  Once created, use ``virsh'' to control the guests.  Virsh may need a connection string like ``virsh --connect qemu:///system''.</p>
+<p>Example:  koan --server=cobbler.example.org --virt --profile=fedora7-xen-i386</p>
+<p>If --profile is specified, cobbler will default to naming domains based on their mac addresses; using --system will use the exact name given to the cobbler system object.  To install using an alternate descriptive name, specify one with --virtname.</p>
+<p>The additional parameters --virt-path, and --virt-type allow overriding certain defaults that are ordinarily defined by the remote cobbler server.</p>
+<p>Optional advanced-configuration parameters for --virt:</p>
+<dl>
+<dt><strong><a name="item__2d_2dvirt_2dname">--virt-name</a></strong>
+
+<dd>
+<p>(optional) Overrides the name of the virtual machine.   This name must not conflict with
+other virtual machines running on the same system.   If not specified, cobbler
+will provide reasonable defaults.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2d_2dvirt_2dpath">--virt-path</a></strong>
+
+<dd>
+<p>(optional) Specifies the storage for the virtual image.  This path must be an absolute path of an existing directory in which to store the image, with an optional filename component.</p>
+</dd>
+<dd>
+<p>There is also experimental support for specifying partitions such as ``/dev/sda4''.  Volume Groups with available free space can also be used by specifying a group name such as ``VolGroup00''.  Partitions should always start with /dev and Volume Groups should be represented by their names.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2d_2dvirt_2dtype">--virt-type</a></strong>
+
+<dd>
+<p>(optional) Koan can install virtual guests for Xen (paravirtualized), or QEMU/KVM (paravirtualized or fully virtualized based on hardware support).  Use --virt-type=``qemu'' or --virt-type=``xenpv'' to override the values already defined in cobbler.  Since this parameter can be set in the cobbler profile, it's best to just set it there.  See the cobbler manpage for more documentation.</p>
+</dd>
+<dd>
+<p>qemu installs will select kvm, kqemu, or qemu, based on available hardware support.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2d_2dvirt_2dgraphics">--virt-graphics</a></strong>
+
+<dd>
+<p>(optional) This enables VNC graphics for virtual installs.  Currently qemu-based installs ignore this parameter and always enable VNC.  With VNC on, it is assumed a firewall is blocking remote access to the server. In the future, qemu installs may respect the presence/absense of this parameter as Xen installs currently do.</p>
+</dd>
+</li>
+</dl>
+<p>Example:  koan --server=cobbler.example.org --virt --profile=rhel5-x86_64 --virt-type=``qemu'' --virt-path=``/home/username/qemu/'' --virt-name=``test_setup''</p>
+<p>
+</p>
+<hr />
+<h1><a name="reinstallation">REINSTALLATION</a></h1>
+<p>When using '--replace-self', cobbler will reprovision the system, blowing away any current data and replacing it with the results of a network install.  Specify a specific item from cobbler with --system or --profile, otherwise cobbler will try to see if there is a cobbler system record that matches a MAC address on the system.</p>
+<p>This is useful to reinstall systems in conditions where ordinary PXE is not possible.</p>
+<p>After using this feature, run ``/sbin/reboot'' to initiate the fully automatic reinstallation.</p>
+<p>Example:  koan --server=cobbler.example.org --profile=fedora7-xen-i386 --replace-self</p>
+<p>Example:  koan --server=cobbler.example.org --replace-self</p>
 <p>
 </p>
 <hr />
 <h1><a name="notes_for_users_of_cobbler_templating">NOTES FOR USERS OF COBBLER TEMPLATING</a></h1>
-<p>Cobbler contains an advanced templating feature that allows a single kickstart file to be customized on a per-system basis.  See the cobbler manpage for more details.</p>
-<p>If you have system specific customizations in your kickstarts and have cobbler system definitions defined server side for those systems, use --system and not --profile.</p>
+<p>Cobbler contains a templating feature that allows a single kickstart file to be customized on a per-system basis.  See the cobbler manpage for more details.</p>
+<p>If you have system specific customizations in your kickstarts and have cobbler system definitions defined server side for those systems, use --system and not --profile, to request the more specific per-system information from Cobbler.</p>
+<p>
+</p>
+<hr />
+<h1><a name="new_live_cd">NEW LIVE CD</a></h1>
+<p>Koan's source checkout (see <a href="http://cobbler.et.redhat.com)">http://cobbler.et.redhat.com)</a> can be used to build
+a live CD for use with koan.  This live CD serves the purpose of running
+--replace-self with no OS present -- bare metal installation.  This tool may prove useful to emulate a PXE environment with a cobbler server, when no local DHCPconfiguration is not feasible or otherwise undesired.</p>
+<p>To build a CD (on Fedora 7):</p>
+<p>yum install livecd-tools</p>
+<p>git clone <a href="git://et.redhat.com/koan">git://et.redhat.com/koan</a></p>
+<p>cd /checkout/koan</p>
+<p>make</p>
+<p>cd /checkout/koan/live</p>
+<p>python build.py --server=cobbler.example.org --koan=``--profile=foo''</p>
+<p># OR (for auto-detection)</p>
+<p>python build.py --server=cobbler.example.org --koan=``''</p>
+<p># burn the CD, and insert it in a bare metal machine</p>
+<p>The koan live CD is in the early stages of development and may not
+support all direct attached storage.  NOTE: Usage of the Live CD will
+erase all data on the first DASD disk during the course of provisioning.</p>
+<p>
+</p>
+<hr />
+<h1><a name="post_installation_management_of_virt_guests">POST INSTALLATION MANAGEMENT OF VIRT GUESTS</a></h1>
+<p>The best tools to use after automatically installing a virt guest with koan are SSH (once installed and running), virsh, or virt-manager.  If VNC graphics are
+available, virt-manager will allow access to the guest as if logged in directly
+to it.  For Xen guests, ``virsh console &lt;name&gt;'' will also allow access to the 
+guests.  There is no QEMU console support at this time (use virt-manager with VNC or SSH).</p>
+<p>Various additional commands are available through virsh.  See the virsh manpage for details.  Depending on virt type, start virsh with either just ``virsh'' (for Xen) or ``virsh --connect=qemu:///system'' (for QEMU).</p>
 <p>
 </p>
 <hr />
 <h1><a name="additional">ADDITIONAL</a></h1>
-<p>Consult the man page for cobbler for more information.</p>
+<p>Also see the cobbler manpage.  It is both entertaining and educational.</p>
 <p>
 </p>
 <hr />
 <h1><a name="author">AUTHOR</a></h1>
 <p>Michael DeHaan &lt;<a href="mailto:mdehaan@redhat.com">mdehaan@redhat.com</a>&gt;</p>
 
+</body>
 
+</html>

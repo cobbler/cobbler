@@ -4,7 +4,7 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-VERSION = "0.5.2"
+VERSION = "0.6.0"
 SHORT_DESC = "Network Boot and Update Server"
 LONG_DESC = """
 Cobbler is a network boot and update server.  Cobbler supports PXE, provisioning virtualized images, and reinstalling existing Linux machines.  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP Management.  Cobbler has a Python API for integration with other GPL systems management applications.
@@ -55,6 +55,7 @@ if __name__ == "__main__":
                                 (wwwconf,  ['config/cobbler.conf']),
                                 (cobpath,  ['loaders/elilo-3.6-ia64.efi']),
                                 (cobpath,  ['loaders/menu.c32']),
+                                (cobpath,  ['config/cobbler_hosts']),
                                 (etcpath,  ['kickstarts/kickstart_fc5.ks']),
                                 (etcpath,  ['kickstarts/kickstart_fc6.ks']),
                                 (etcpath,  ['kickstarts/kickstart_fc6_domU.ks']),

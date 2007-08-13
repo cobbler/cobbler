@@ -147,7 +147,7 @@ class BootCheck:
              if line.find("-s %s" % self.settings.tftpboot) != -1:
                  found_bootdir = True
           if not found_bootdir:
-              status.append(_("change 'server_args' to '-s %(args)' in %(file)s") % { "file" : self.settings.tftpboot, "args" : self.settings.tftpboot })
+              status.append(_("change 'server_args' to '-s %(args)s' in %(file)s") % { "file" : "/etc/xinetd.d/tftp", "args" : self.settings.tftpboot })
 
        else:
           status.append(_("file %(file)s does not exist") % { "file" : self.settings.tftpd_conf })

@@ -1,6 +1,10 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Thu Aug 09 2007 - 0.6.0 
+- bugfix in error path in "cobbler check"
+- stable release for 0.5.x
+
 * Thr Jul 26 2007 - 0.5.2 (RC)
 - Have cobbler check ensure services are started
 - Add cobbler validateks command to look for broken rendered kickstarts
