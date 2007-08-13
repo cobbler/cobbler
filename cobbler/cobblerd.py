@@ -169,7 +169,7 @@ class CobblerXMLRPCInterface:
     def get_distro_for_koan(self,name):
         self.api.clear() 
         self.api.deserialize()
-        obj = cobbler_api.distros().find(name)
+        obj = self.api.distros().find(name)
         if obj is not None:
             return self.fix_none(utils.blender(True, obj))
         return self.fix_none({})
