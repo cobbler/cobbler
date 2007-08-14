@@ -29,7 +29,7 @@ def start_install(name=None, ram=None, disk=None, mac=None,
                   uuid=None,  
                   extra=None, path=None,
                   vcpus=None, virt_graphics=None, 
-                  special_disk=False, profile_data=None):
+                  special_disk=False, profile_data=None, bridge=None):
 
     type = "qemu"
     if virtinst.util.is_kvm_capable():
@@ -73,9 +73,10 @@ def start_install(name=None, ram=None, disk=None, mac=None,
     disk_obj = virtinst.VirtualDisk(disk_path, size=disk)
 
     try:
-        nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac, type="user")
+        nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac, type="bridge", bridge=bridge)
     except:
         # try to be backward compatible
+        print "- trying old style network setup"
         nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac)
 
     guest.disks.append(disk_obj)
