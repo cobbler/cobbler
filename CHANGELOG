@@ -1,5 +1,8 @@
 Koan CHANGELOG
 
+* Tue Aug 14 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.1-1
+- Bridged networking control options (--virt-bridge)
+
 * Thu Aug 09 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.0-1
 - stable release
 - don't check for libvirtd running if doesn't exist

@@ -2,7 +2,7 @@
 
 Summary: Network provisioning tool for Xen and Bare Metal Machines 
 Name: koan
-Version: 0.6.0
+Version: 0.6.1
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -14,6 +14,7 @@ BuildRequires: python-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 ExcludeArch: ppc
+ExcludeArch: ppc64
 Url: http://cobbler.et.redhat.com/
 
 %description
@@ -47,6 +48,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING CHANGELOG README NEWS
 
 %changelog
+
+* Tue Aug 11 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.1-1
+- Upstream changes (see CHANGELOG)
 
 * Thu Aug 09 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.0-1
 - Upstream changes (see CHANGELOG)
