@@ -53,7 +53,7 @@ class Repos(collection.Collection):
         # NOTE: with_delete isn't currently meaningful for repos
         # but is left in for consistancy in the API.  Unused.
         name = name.lower()
-        if self.find(name):
+        if self.find(name=name):
             if with_delete:
                 self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/repo/pre/*")
                 self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/repo/post/*")

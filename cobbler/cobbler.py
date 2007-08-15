@@ -200,7 +200,7 @@ class BootCLI:
 
     def __list_names2(self, collection, args):
         for p in args:
-            obj = collection.find(p)
+            obj = collection.find(name=p)
             if obj is not None:
                 print obj.printable()
         return True
@@ -269,7 +269,7 @@ class BootCLI:
         control_fn(args,obj)
 
     def __generic_edit(self,args,collection_fn,control_fn,exc_msg):
-        obj = collection_fn().find(self.find_arg(args,"--name"))
+        obj = collection_fn().find(name=self.find_arg(args,"--name"))
         name2 = self.find_arg(args,"--newname")
         if name2 is not None:
             raise CX("objects cannot be renamed with the edit command, use 'rename'")
@@ -278,7 +278,7 @@ class BootCLI:
         control_fn(args,obj)
 
     def __generic_copy(self,args,collection_fn,control_fn,exc_msg):
-        obj = collection_fn().find(self.find_arg(args,"--name"))
+        obj = collection_fn().find(name=self.find_arg(args,"--name"))
         obj2 = self.find_arg(args,"--newname")
         if obj is None:
             raise CX(exc_msg)

@@ -84,20 +84,20 @@ class BootTest(unittest.TestCase):
         self.assertTrue(distro.set_kernel(self.fk_kernel))
         self.assertTrue(distro.set_initrd(self.fk_initrd))
         self.assertTrue(self.api.distros().add(distro))
-        self.assertTrue(self.api.distros().find("testdistro0"))
+        self.assertTrue(self.api.distros().find(name="testdistro0"))
 
         profile = self.api.new_profile()
         self.assertTrue(profile.set_name("testprofile0"))
         self.assertTrue(profile.set_distro("testdistro0"))
         self.assertTrue(profile.set_kickstart(FAKE_KICKSTART))
         self.assertTrue(self.api.profiles().add(profile))
-        self.assertTrue(self.api.profiles().find("testprofile0"))
+        self.assertTrue(self.api.profiles().find(name="testprofile0"))
 
         system = self.api.new_system()
         self.assertTrue(system.set_name(self.hostname))
         self.assertTrue(system.set_profile("testprofile0"))
         self.assertTrue(self.api.systems().add(system))
-        self.assertTrue(self.api.systems().find(self.hostname))
+        self.assertTrue(self.api.systems().find(name=self.hostname))
 
 class Utilities(BootTest):
 
@@ -140,8 +140,20 @@ class Utilities(BootTest):
 
 class Additions(BootTest):
 
-    def test_basics(self):
-        self.make_basic_config()
+    def test_some_random_find_commands(self):
+        # initial setup...
+        self.test_system_name_is_a_MAC()
+        # search for a parameter that isn't real, want an error
+        self.failUnlessRaises(CobblerException,self.api.systems().find, pond="mcelligots")
+        # search for a parameter with a bad value, want None
+        self.assertFalse(self.api.systems().find(name="horton"))
+        # one valid parameter another invalid is still an error
+        self.failUnlessRaises(CobblerException,self.api.systems().find, name="onefish",pond="mcelligots")
+        # searching with no args is ALSO an error
+        self.failUnlessRaises(CobblerException, self.api.systems().find)
+        # searching for a list returns a list of correct length
+        self.assertTrue(len(self.api.systems().find(mac_address="00:16:41:14:B7:71",return_list=True))==1)
+
 
     def test_invalid_distro_non_referenced_kernel(self):
         distro = self.api.new_distro()
@@ -149,7 +161,7 @@ class Additions(BootTest):
         self.failUnlessRaises(CobblerException,distro.set_kernel,"filedoesntexist")
         self.assertTrue(distro.set_initrd(self.fk_initrd))
         self.failUnlessRaises(CobblerException, self.api.distros().add, distro)
-        self.assertFalse(self.api.distros().find("testdistro2"))
+        self.assertFalse(self.api.distros().find(name="testdistro2"))
 
     def test_invalid_distro_non_referenced_initrd(self):
         distro = self.api.new_distro()
@@ -157,7 +169,7 @@ class Additions(BootTest):
         self.assertTrue(distro.set_kernel(self.fk_kernel))
         self.failUnlessRaises(CobblerException, distro.set_initrd, "filedoesntexist")
         self.failUnlessRaises(CobblerException, self.api.distros().add, distro)
-        self.assertFalse(self.api.distros().find("testdistro3"))
+        self.assertFalse(self.api.distros().find(name="testdistro3"))
 
     def test_invalid_profile_non_referenced_distro(self):
         profile = self.api.new_profile()
@@ -165,7 +177,7 @@ class Additions(BootTest):
         self.failUnlessRaises(CobblerException, profile.set_distro, "distrodoesntexist")
         self.assertTrue(profile.set_kickstart(FAKE_KICKSTART))
         self.failUnlessRaises(CobblerException, self.api.profiles().add, profile)
-        self.assertFalse(self.api.profiles().find("testprofile2"))
+        self.assertFalse(self.api.profiles().find(name="testprofile2"))
 
     def test_invalid_profile_kickstart_not_url(self):
         profile = self.api.new_profile()
@@ -174,7 +186,7 @@ class Additions(BootTest):
         self.failUnlessRaises(CobblerException, profile.set_kickstart, "kickstartdoesntexist")
         # since kickstarts are optional, you can still add it
         self.assertTrue(self.api.profiles().add(profile))
-        self.assertTrue(self.api.profiles().find("testprofile12"))
+        self.assertTrue(self.api.profiles().find(name="testprofile12"))
         # now verify the other kickstart forms would still work
         self.assertTrue(profile.set_kickstart("http://bar"))
         self.assertTrue(profile.set_kickstart("ftp://bar"))
@@ -199,7 +211,9 @@ class Additions(BootTest):
         self.assertTrue(system.set_name(name))
         self.assertTrue(system.set_profile("testprofile0"))
         self.assertTrue(self.api.systems().add(system))
-        self.assertTrue(self.api.systems().find(name))
+        self.assertTrue(self.api.systems().find(name=name))
+        self.assertTrue(self.api.systems().find(mac_address="00:16:41:14:B7:71"))
+        self.assertFalse(self.api.systems().find(mac_address="thisisnotamac"))
 
     def test_system_name_is_an_IP(self):
         system = self.api.new_system()
@@ -207,7 +221,7 @@ class Additions(BootTest):
         self.assertTrue(system.set_name(name))
         self.assertTrue(system.set_profile("testprofile0"))
         self.assertTrue(self.api.systems().add(system))
-        self.assertTrue(self.api.systems().find(name))
+        self.assertTrue(self.api.systems().find(name=name))
 
     def test_invalid_system_non_referenced_profile(self):
         system = self.api.new_system()
@@ -241,9 +255,9 @@ class Deletions(BootTest):
         self.api.serialize()
         self.assertTrue(self.api.profiles().remove("testprofile0"))
         self.assertTrue(self.api.distros().remove("testdistro0"))
-        self.assertFalse(self.api.systems().find(self.hostname))
-        self.assertFalse(self.api.profiles().find("testprofile0"))
-        self.assertFalse(self.api.distros().find("testdistro0"))
+        self.assertFalse(self.api.systems().find(name=self.hostname))
+        self.assertFalse(self.api.profiles().find(name="testprofile0"))
+        self.assertFalse(self.api.distros().find(name="testdistro0"))
 
 class TestCheck(BootTest):
 

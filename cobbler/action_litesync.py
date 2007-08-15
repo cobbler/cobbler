@@ -53,7 +53,7 @@ class BootLiteSync:
 
     def add_single_distro(self, name):
         # get the distro record
-        distro = self.distros.find(name)
+        distro = self.distros.find(name=name)
         if distro is None:
             raise CX(_("error in distro lookup: %s") % name)
         # generate YAML file in distros/$name in webdir
@@ -73,7 +73,7 @@ class BootLiteSync:
 
     def add_single_profile(self, name):
         # get the profile object:
-        profile = self.profiles.find(name)
+        profile = self.profiles.find(name=name)
         if profile is None:
             raise CX(_("error in profile lookup"))
         # rebuild profile_list YAML file in webdir
@@ -93,7 +93,7 @@ class BootLiteSync:
     
     def add_single_system(self, name):
         # get the system object:
-        system = self.systems.find(name)
+        system = self.systems.find(name=name)
         if system is None:
             raise CX(_("error in system lookup for %s") % name)
         # rebuild system_list file in webdir
@@ -106,7 +106,7 @@ class BootLiteSync:
         self.sync.validate_kickstart_for_specific_system(system)
 
     def remove_single_system(self, name):
-        system_record = self.systems.find(name)
+        system_record = self.systems.find(name=name)
         # rebuild system_list file in webdir
         self.sync.write_listings()
         # delete system YAML file in systems/$name in webdir
@@ -118,11 +118,11 @@ class BootLiteSync:
         
         # delete PXE Linux configuration file (which might be in one of two places)
         itanic = False
-        system_record = self.systems.find(name)
-        profile = self.profiles.find(system_record.profile)
+        system_record = self.systems.find(name=name)
+        profile = self.profiles.find(name=system_record.profile)
         # allow cobbler deletes to still work in the cobbler config is discombobulated
         if profile is not None:
-            distro = self.distros.find(profile.distro)
+            distro = self.distros.find(name=profile.distro)
             if distro is not None and distro in [ "ia64", "IA64"]:
                 itanic = True
         if not itanic:

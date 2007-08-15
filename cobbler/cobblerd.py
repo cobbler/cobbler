@@ -71,10 +71,11 @@ def do_syslog(bootapi, settings, port, logger):
     while 1:
         data, addr = s.recvfrom(buf)
         (ip, port) = addr
-        if not data:
+        name = bootapi.systems().find(ip_address = ip)
+        if not data and name:
             break
         else:
-            logfile = open("/var/log/cobbler/syslog/%s" % ip, "a+")
+            logfile = open("/var/log/cobbler/syslog/%s" % name, "a+")
             t = time.localtime()
             # write numeric time
             seconds = str(time.mktime(t))
@@ -118,7 +119,7 @@ class CobblerXMLRPCInterface:
             # feature disabled!
             return False
         systems = self.api.systems()
-        obj = systems.find(name)
+        obj = systems.find(name=name)
         if obj == None:
             # system not found!
             return False
@@ -148,7 +149,7 @@ class CobblerXMLRPCInterface:
     def __get_specific(self,collection,name):
         self.api.clear() 
         self.api.deserialize()
-        item = collection.find(name)
+        item = collection.find(name=name)
         if item is None:
             return self.fix_none({})
         return self.fix_none(item.to_datastruct())
@@ -169,7 +170,7 @@ class CobblerXMLRPCInterface:
     def get_distro_for_koan(self,name):
         self.api.clear() 
         self.api.deserialize()
-        obj = self.api.distros().find(name)
+        obj = self.api.distros().find(name=name)
         if obj is not None:
             return self.fix_none(utils.blender(True, obj))
         return self.fix_none({})
@@ -177,7 +178,7 @@ class CobblerXMLRPCInterface:
     def get_profile_for_koan(self,name):
         self.api.clear() 
         self.api.deserialize()
-        obj = self.api.profiles().find(name)
+        obj = self.api.profiles().find(name=name)
         if obj is not None:
             return self.fix_none(utils.blender(True, obj))
         return self.fix_none({})
@@ -185,7 +186,7 @@ class CobblerXMLRPCInterface:
     def get_system_for_koan(self,name):
         self.api.clear() 
         self.api.deserialize()
-        obj = self.api.systems().find(name)
+        obj = self.api.systems().find(name=name)
         if obj is not None:
            return self.fix_none(utils.blender(True, obj))
         return self.fix_none({})
@@ -193,7 +194,7 @@ class CobblerXMLRPCInterface:
     def get_repo_for_koan(self,name):
         self.api.clear() 
         self.api.deserialize()
-        obj = self.api.repos().find(name)
+        obj = self.api.repos().find(name=name)
         if obj is not None:
             return self.fix_none(utils.blender(True, obj))
         return self.fix_none({})

@@ -40,9 +40,9 @@ class Enchant:
            raise CX(_("enchant failed. no address specified"))
        if system is None and profile is None:
            raise CX(_("enchant failed. no profile specified"))
-       if system is not None and self.config.systems().find(system) is None:
+       if system is not None and self.config.systems().find(name=system) is None:
            raise CX(_("enchant failed. system not found"))
-       if profile is not None and self.config.profiles().find(profile) is None:
+       if profile is not None and self.config.profiles().find(name=profile) is None:
            raise CX(_("enchant failed. profile name not found"))
 
 

@@ -30,8 +30,8 @@ class Collection(serializable.Serializable):
 
     def __init__(self,config):
         """
-	Constructor.
-	"""
+        Constructor.
+        """
         self.config = config
         self.clear()
 
@@ -54,17 +54,71 @@ class Collection(serializable.Serializable):
         """
         self.listing = {}
 
-    def find(self,name):
+    def find(self, name=None, return_list=False, **kargs):
         """
-        Return anything named 'name' in the collection, else return None if
-        no objects can be found.
+        Return first object in the collection that maches all item='value'
+        pairs passed, else return None if no objects can be found.
         """
-        n1 = name.lower()
-        listing = self.listing
-        if listing.has_key(n1):
-            return self.listing[n1]
+
+        matches = []
+
+        # support the old style innovation without kwargs
+        if name is not None:
+            kargs["name"] = name
+
+        # no arguments is an error, so we don't return a false match
+        if len(kargs) == 0:
+            raise CX(_("calling find with no arguments"))
+
+        # performance: if the only key is name we can skip the whole loop
+        if len(kargs) == 1 and kargs.has_key("name") and not return_list:
+            return self.listing.get(kargs["name"].lower(), None)
+
+        argument_check_made = False
+
+        # for each item in the collection
+        for name in self.listing:
+
+            # used to flag that this particular object is not a match
+            failed  = False
+            obj     = self.listing[name]
+            objdata = self.listing[name].to_datastruct()
+
+            # make sure that the object being queried actually has
+            # the property being queried -- only need to be run once
+            # this will ensure the user gets no unexpected false
+            # positives
+
+            if not argument_check_made:
+                fields = objdata.keys()
+                for x in kargs.keys():
+                    if not x in fields:
+                        raise CX(_("queried object has no field: %s") % x)
+            argument_check_made = True
+
+            # now do the comparision...
+            # for each key in the object's data
+
+            for key in objdata.keys():
+
+                # if the key was specified as an arg to find
+                if kargs.has_key(key):
+
+                    # reject if it doesn't match
+                    if str(kargs[key]).lower() != str(objdata[key]).lower():
+                        failed = True
+                        continue
+
+            # if no matches failed, this is our item
+            if not failed:
+                matches.append(obj)
+
+        if not return_list:
+            if len(matches) == 0:
+                return None
+            return matches[0]
         else:
-            return None
+            return matches
 
     def to_datastruct(self):
         """
