@@ -71,11 +71,11 @@ def do_syslog(bootapi, settings, port, logger):
     while 1:
         data, addr = s.recvfrom(buf)
         (ip, port) = addr
-        name = bootapi.systems().find(ip_address = ip)
-        if not data and name:
+        system = bootapi.systems().find(ip_address = ip)
+        if not data and system:
             break
         else:
-            logfile = open("/var/log/cobbler/syslog/%s" % name, "a+")
+            logfile = open("/var/log/cobbler/syslog/%s" % system.name, "a+")
             t = time.localtime()
             # write numeric time
             seconds = str(time.mktime(t))
