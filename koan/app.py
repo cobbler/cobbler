@@ -32,8 +32,7 @@ import sys
 import xmlrpclib
 import string
 import re
-import logging
-import logging.handlers
+import glob
 
 # the version of cobbler needed to interact with this version of koan
 # this is an decimal value (major + 0.1 * minor + 0.01 * maint)
@@ -54,7 +53,11 @@ DISPLAY_PARAMS = [
 ]
 
 def setupLogging(appname, debug=False):
-    # set up logging
+    """
+    set up logging ... code borrowed/adapted from virt-manager
+    """
+    import logging
+    import logging.handlers
     vi_dir = os.path.expanduser("~/.koan")
     if not os.access(vi_dir,os.W_OK):
         try:
@@ -91,7 +94,10 @@ def main():
     Command line stuff...
     """
 
-    setupLogging("koan")
+    try:
+        setupLogging("koan")
+    except:
+        print "- logging setup failed.  will ignore."
 
     p = opt_parse.OptionParser()
     p.add_option("-C", "--livecd",
@@ -138,11 +144,15 @@ def main():
                  help="virtual install location (see manpage)")  
     p.add_option("-T", "--virt-type",
                  dest="virt_type",
-                 help="specify virtualization install type (xenpv,qemu)")
+                 help="virtualization install type (xenpv,qemu)")
     p.add_option("-g", "--virt-graphics",
                  action="store_true",
                  dest="virt_graphics",
-                 help="enable virt graphics (varies with --virt-type)")
+                 help="enables VNC virt graphics")
+    p.add_option("-b", "--virt-bridge",
+                 dest="virt_bridge",
+                 help="which network bridge to use")
+
     (options, args) = p.parse_args()
 
     if not os.getuid() == 0:
@@ -163,6 +173,7 @@ def main():
         k.virt_path         = options.virt_path
         k.virt_type         = options.virt_type
         k.virt_graphics     = options.virt_graphics
+        k.virt_bridge       = options.virt_bridge
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
         if options.port is not None:
@@ -213,6 +224,7 @@ class Koan:
         self.virt_type         = None
         self.virt_path         = None 
         self.virt_graphics     = None
+        self.virt_bridge       = None
 
     #---------------------------------------------------
 
@@ -278,6 +290,9 @@ class Koan:
             if self.virt_type not in [ "qemu", "xenpv", "auto" ]:
                raise InfoException, "--virttype should be qemu, xenpv, or auto"
 
+        if self.virt_bridge is None and self.is_virt:
+            self.virt_bridge = self.autodetect_bridge()
+
         # perform one of three key operations
         if self.is_virt:
             self.virt()
@@ -309,6 +324,49 @@ class Koan:
 	elif len(detectedsystem) == 1:
 		print "- Auto detected: %s" % detectedsystem[0]
                 return detectedsystem[0]
+
+    #---------------------------------------------------
+
+    def autodetect_bridge(self):
+        """
+        If the user did not specify a --virt-bridge to use
+        then try to find bridges that may be useful.  This will
+        always be less reliable than using --virt-bridge but
+        for many folks they will only have one or they will
+        have xenbr0.  This attempts to do the right thing
+        for both Xen and qemu/KVM.
+        """
+
+        found = None
+
+        # see if the one Xen usually creates is there
+        # if there, use it
+        cmd = sub_process.Popen("/sbin/ifconfig",shell=True,stdout=sub_process.PIPE)
+        data = cmd.communicate()[0]
+        if data.find("xenbr0") != -1:
+            # commonly found in Xen installs, just use that
+            found = "xenbr0"
+
+        # if not, look for one the user might have created according
+        # to convention. 
+        if found is None:
+            for x in range(0,10):
+                pattern = "/etc/sysconfig/network-scripts/ifcfg-%s%s" 
+                if os.path.exists(pattern % ("eth", x)):
+                    if os.path.exists(pattern % ("peth", x)):
+                        found = "eth%s" % x
+                        break
+
+        # no more places to look, either return it or explain
+        # to the user how they can resolve the problem.
+        if found is None:
+            raise InfoException, "specific --virt-bridge not specified and could not guess which one to use, please see manpage for further instructions."
+        else:
+            print "- warning: explicit usage of --virt-bridge is recommended"
+            print "- trying to use %s as the bridge" % found
+
+        return found
+
     
     #---------------------------------------------------
 
@@ -836,7 +894,8 @@ class Koan:
                 path          =  path,
                 virt_graphics =  self.virt_graphics,
                 special_disk  =  special,
-                profile_data  =  profile_data
+                profile_data  =  profile_data,
+                bridge        =  self.virt_bridge
         )
 
         print results

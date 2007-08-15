@@ -106,6 +106,10 @@ qemu installs will select kvm, kqemu, or qemu, based on available hardware suppo
 
 (optional) This enables VNC graphics for virtual installs.  Currently qemu-based installs ignore this parameter and always enable VNC.  With VNC on, it is assumed a firewall is blocking remote access to the server. In the future, qemu installs may respect the presence/absense of this parameter as Xen installs currently do.
 
+=item --virt-bridge
+
+(strongly suggested)  This option specifies what bridge to use for virtual networking.  Bridged networking modes are needed to ensure that networking for the guests will work in both directions.   Hypothetically, if you have a physical NIC peth0 and a bridge eth0, you would want to specify --virt-bridge=eth0.  For Xen, it might be "xenbr0" if that exists.  koan will try to look for an already existing bridge if one exists, but to ensure it picks the right one, usage of --virt-bridge is recommended if you already know the correct one.  More information can be obtained at https://hosted.fedoraproject.org/projects/cobbler/wiki/VirtNetworkingSetupForUseWithKoan. 
+
 =back
 
 Example:  koan --server=cobbler.example.org --virt --profile=rhel5-x86_64 --virt-type="qemu" --virt-path="/home/username/qemu/" --virt-name="test_setup"

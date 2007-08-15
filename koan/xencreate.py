@@ -31,7 +31,7 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
                            uuid=None,  
                            extra=None, path=None,
                            vcpus=None, virt_graphics=False, 
-                           special_disk=False, profile_data=None):
+                           special_disk=False, profile_data=None, bridge=None):
 
 
     guest = virtinst.ParaVirtGuest()
@@ -53,9 +53,10 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
     disk_obj = virtinst.XenDisk(path, size=disk)
 
     try:
-        nic_obj = virtinst.XenNetworkInterface(macaddr=mac, type="bridged")
+        nic_obj = virtinst.XenNetworkInterface(macaddr=mac, type="bridged", bridge=bridge)
     except:
         # try to be backward compatible
+        print "- trying old style network setup"
         nic_obj = virtinst.XenNetworkInterface(macaddr=mac)
 
     guest.disks.append(disk_obj)
