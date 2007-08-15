@@ -153,9 +153,12 @@ class BootStatusReport:
                     else:
                         entries[logtime] = "1"
 
-            name = api.systems().find(ip_address=ip).name
-            self.generate_report(entries,name)
+            obj = api.systems().find(ip_address=ip)
 
+            if obj is not None:
+                self.generate_report(entries,obj.name)
+            else:
+                self.generate_report(entries,ip)
 
         return True
 
