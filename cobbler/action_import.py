@@ -80,11 +80,11 @@ class Importer:
            if not self.mirror.endswith("/"):
                self.mirror = "%s/" % self.mirror 
 
-           if self.mirror.startswith("http://"):
+           if self.mirror.startswith("http://") or self.mirror.startswith("ftp://") or self.mirror.startswith("nfs://"):
                # http mirrors are kind of primative.  rsync is better.
                # that's why this isn't documented in the manpage.
                # TODO: how about adding recursive FTP as an option?
-               self.run_this(WGET_CMD, (self.settings.webdir, self.mirror_name, self.mirror))
+               raise CX(_("unsupported protocol"))
            else:
                # use rsync.. no SSH for public mirrors and local files.
                # presence of user@host syntax means use SSH
@@ -310,11 +310,22 @@ class Importer:
        
        initrd = None
        kernel = None
-
-       if not self.is_relevant_dir(dirname):
-           return
+       
+       # NOTE: can't make this optomization anymore since we may have to re-invoke
+       # walk for symlinks.
+       #
+       #
+       #if not self.is_relevant_dir(dirname):
+       #    print "DEBUG: %s is not relevant" % dirname
+       #    return
 
        for x in fnames:
+
+           fullname = os.path.join(dirname,x)
+           if os.path.islink(fullname) and os.path.isdir(fullname):
+              print "- following symlink: %s" % fullname
+              os.path.walk(fullname, self.distro_adder, {})
+
            if x.startswith("initrd"):
                initrd = os.path.join(dirname,x)
            if x.startswith("vmlinuz"):
@@ -323,6 +334,8 @@ class Importer:
                self.add_entry(dirname,kernel,initrd)
                path_parts = kernel.split("/")[:-2]
                comps_path = "/".join(path_parts)
+
+
 
    # ----------------------------------------------------------------------
    
@@ -342,6 +355,7 @@ class Importer:
 
    def repo_scanner(self,distro,dirname,fnames):
        
+       print "DEBUG: repo scanner for %s" % dirname
        for x in fnames:
            if x == "base": # don't do "repodata"
                self.process_comps_file(dirname, distro)

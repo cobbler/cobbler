@@ -158,7 +158,13 @@ class BootSync:
             systxt = "" 
             if mode == "isc":
 
-                systxt = "\nhost label%d {\n" % counter
+                # the label the entry after the hostname if possible
+                host = system.hostname
+                if host is not None and host != "":
+                    systxt = "\nhost %s {\n" % host
+                else:
+                    systxt = "\nhost generic%d {\n" % counter
+
                 profile = system.get_conceptual_parent()
                 distro  = profile.get_conceptual_parent()
                 if distro.arch == "ia64":
