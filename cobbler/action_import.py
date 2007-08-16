@@ -155,7 +155,7 @@ class Importer:
        """
 
        for profile in self.profiles:
-           distro = self.distros.find(profile.distro)
+           distro = self.distros.find(name=profile.distro)
            if distro is None or not (distro in self.distros_added):
                print _("- skipping distro %s since it wasn't imported this time") % profile.distro
                continue
@@ -443,7 +443,7 @@ class Importer:
        pxe_arch = self.get_pxe_arch(dirname)
        name = self.get_proposed_name(dirname, pxe_arch)
 
-       existing_distro = self.distros.find(name)
+       existing_distro = self.distros.find(name=name)
 
        if existing_distro is not None:
            print _("- modifying existing distro: %s") % name
@@ -460,7 +460,7 @@ class Importer:
        self.distros.add(distro)
        self.distros_added.append(distro)       
 
-       existing_profile = self.profiles.find(name) 
+       existing_profile = self.profiles.find(name=name) 
 
        if existing_profile is None:
            print _("- creating new profile: %s") % name 

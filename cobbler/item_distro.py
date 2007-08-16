@@ -55,7 +55,7 @@ class Distro(item.Item):
         if self.parent is None or self.parent == '':
             return None
         else:
-            return self.config.distros().find(self.parent)
+            return self.config.distros().find(name=self.parent)
 
     def from_datastruct(self,seed_data):
         """

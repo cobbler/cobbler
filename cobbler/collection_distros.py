@@ -51,7 +51,7 @@ class Distros(collection.Collection):
         for v in self.config.profiles():
             if v.distro == name:
                raise CX(_("removal would orphan profile: %s") % v.name)
-        if self.find(name):
+        if self.find(name=name):
             if with_delete:
                 self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/distro/pre/*")
                 lite_sync = action_litesync.BootLiteSync(self.config)

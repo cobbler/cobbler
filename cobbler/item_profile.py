@@ -91,7 +91,7 @@ class Profile(item.Item):
            # check must be done in two places as set_parent could be called before/after
            # set_name...
            raise CX(_("self parentage is weird"))
-        found = self.config.profiles().find(parent_name)
+        found = self.config.profiles().find(name=parent_name)
         if found is None:
            raise CX(_("profile %s not found, inheritance not possible") % parent_name)
         self.parent = parent_name       
@@ -102,7 +102,7 @@ class Profile(item.Item):
 	Sets the distro.  This must be the name of an existing
 	Distro object in the Distros collection.
 	"""
-        d = self.config.distros().find(distro_name)
+        d = self.config.distros().find(name=distro_name)
         if d is not None:
             self.distro = distro_name
             self.depth  = d.depth +1 # reset depth if previously a subprofile and now top-level
@@ -125,7 +125,7 @@ class Profile(item.Item):
         except:
             pass
         for r in repolist:
-            if not self.config.repos().find(r):
+            if not self.config.repos().find(name=r):
                 ok = False 
                 break
         if ok:
@@ -203,9 +203,9 @@ class Profile(item.Item):
         Return object next highest up the tree.
         """
         if self.parent is None or self.parent == '':
-            result = self.config.distros().find(self.distro)
+            result = self.config.distros().find(name=self.distro)
         else:
-            result = self.config.profiles().find(self.parent)
+            result = self.config.profiles().find(name=self.parent)
         return result
 
     def is_valid(self):

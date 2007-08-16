@@ -93,9 +93,9 @@ class System(item.Item):
         Return object next highest up the tree.
         """
         if self.parent is None or self.parent == '':
-            return self.config.profiles().find(self.profile)
+            return self.config.profiles().find(name=self.profile)
         else:
-            return self.config.systems().find(self.parent)
+            return self.config.systems().find(name=self.parent)
 
     def set_name(self,name):
         """
@@ -180,10 +180,10 @@ class System(item.Item):
 
     def set_profile(self,profile_name):
         """
-	Set the system to use a certain named profile.  The profile
-	must have already been loaded into the Profiles collection.
-	"""
-        p = self.config.profiles().find(profile_name)
+        Set the system to use a certain named profile.  The profile
+        must have already been loaded into the Profiles collection.
+        """
+        p = self.config.profiles().find(name=profile_name)
         if p is not None:
             self.profile = profile_name
             self.depth = p.depth + 1 # subprofiles have varying depths.
@@ -229,8 +229,8 @@ class System(item.Item):
 
     def is_valid(self):
         """
-	A system is valid when it contains a valid name and a profile.
-	"""
+        A system is valid when it contains a valid name and a profile.
+        """
         # NOTE: this validation code does not support inheritable distros at this time.
         # this is by design as inheritable systems don't make sense.
         if self.name is None:

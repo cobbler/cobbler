@@ -373,7 +373,7 @@ class BootSync:
         buf = ""
         repos = profile.repos
         for r in repos:
-            repo = self.repos.find(r)
+            repo = self.repos.find(name=r)
             if repo is None:
                 continue
             http_url = "http://%s/cblr/repo_mirror/%s" % (self.settings.server, repo.name)
@@ -395,7 +395,7 @@ class BootSync:
         repos = profile.repos
         buf = ""
         for r in repos:
-            repo = self.repos.find(r)
+            repo = self.repos.find(name=r)
             if repo is None: 
                 continue
             repo.local_filename = repo.local_filename.replace(".repo","")
@@ -592,7 +592,7 @@ class BootSync:
         
     def make_pxe_menu(self):
         # only do this if there is NOT a system named default.
-        default = self.systems.find("default")
+        default = self.systems.find(name="default")
         if default is not None:
             return
         
@@ -680,7 +680,7 @@ class BootSync:
             if system is not None and kickstart_path.startswith("/"):
                 # pxe_fn = utils.get_config_filename(system)
                 kickstart_path = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (self.settings.server, system.name)
-            elif kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
+            elif kickstart_path.startswith("/") or kickstart_path.find(name="/cobbler/kickstarts/") != -1:
                 kickstart_path = "http://%s/cblr/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)
 
             if distro.breed is None or distro.breed == "redhat":

@@ -49,7 +49,7 @@ class Systems(collection.Collection):
         Remove element named 'name' from the collection
         """
         name = name.lower()
-        if self.find(name):
+        if self.find(name=name):
             if with_delete:
                 self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/system/pre/*")
                 lite_sync = action_litesync.BootLiteSync(self.config)

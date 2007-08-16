@@ -17,6 +17,7 @@ import os
 import os.path
 import glob
 import time
+import api as cobbler_api
 
 from rhpl.translate import _, N_, textdomain, utf8
 
@@ -99,6 +100,8 @@ class BootStatusReport:
         tracking will be incomplete.  This should be noted in the docs.
         """
 
+        api = cobbler_api.BootAPI()
+
         apache_results = self.scan_apache_logfiles()
         syslog_results = self.scan_syslog_logfiles()
         ips = apache_results.keys()
@@ -112,9 +115,9 @@ class BootStatusReport:
         last_recorded_time = 0
         time_collisions = 0
         
-        #header = ("Address", "State", "Started", "Last Request", "Seconds", "Log Entries")
+        #header = ("Name", "State", "Started", "Last Request", "Seconds", "Log Entries")
         print "%-20s | %-15s | %-25s | %-25s | %-10s | %-6s" % (
-           _("Address"),
+           _("Name"),
            _("State"),
            _("Last Request"),
            _("Started"),
@@ -150,20 +153,22 @@ class BootStatusReport:
                     else:
                         entries[logtime] = "1"
 
+            obj = api.systems().find(ip_address=ip)
 
-            self.generate_report(entries,ip)
-
+            if obj is not None:
+                self.generate_report(entries,obj.name)
+            else:
+                self.generate_report(entries,ip)
 
         return True
 
      #-----------------------------------------
 
-    def generate_report(self,entries,ip):
+    def generate_report(self,entries,name):
         """
         Given the information about transferred files and kickstart finish times, attempt
         to produce a report that most describes the state of the system.
         """
-        
         # sort the access times
         rtimes = entries.keys()
         rtimes.sort()
@@ -175,7 +180,7 @@ class BootStatusReport:
         fcount = 0
 
         if len(rtimes) == 0:
-            print _("%s: ?") % ip
+            print _("%s: ?") % name
             return
 
         # for each request time the machine has made
@@ -215,7 +220,7 @@ class BootStatusReport:
   
         # print the status line for this IP address
         print "%-20s | %-15s | %-25s | %-25s | %-10s | %-6s" % (
-            ip, 
+            name, 
             install_state, 
             display_start, 
             display_last, 

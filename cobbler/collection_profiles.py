@@ -49,7 +49,7 @@ class Profiles(collection.Collection):
         for v in self.config.systems():
            if v.profile == name:
                raise CX(_("removal would orphan system: %s") % v.name)
-        if self.find(name):
+        if self.find(name=name):
             if with_delete:
                 self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/profile/pre/*")
                 lite_sync = action_litesync.BootLiteSync(self.config)

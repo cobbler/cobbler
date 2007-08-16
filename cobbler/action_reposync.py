@@ -129,10 +129,9 @@ class RepoSync:
                 if not os.path.exists(dest_path):
                    os.makedirs(dest_path)
 
-                # if we only want certain RPMs, use yumdownloader (likely more than once)
-                # FIXME: yumdownloader has a current bug where --resolve blows up
-                # removing --resolve until I get the email from bugzilla saying it's fixed.
-                cmd = "/usr/bin/yumdownloader -c %s --destdir=%s %s" %(temp_file, dest_path, " ".join(repo.rpm_list))
+                # older yumdownloader sometimes explodes on --resolvedeps
+                # if this happens to you, upgrade yum & yum-utils
+                cmd = "/usr/bin/yumdownloader --resolve -c %s --destdir=%s %s" %(temp_file, dest_path, " ".join(repo.rpm_list))
                 print _("- %s") % cmd
                 cmds.append(cmd)
         else:
