@@ -15,12 +15,14 @@ import socket
 import time
 import os
 import SimpleXMLRPCServer
-import yaml # Howell Clark version
 import glob
-import api as cobbler_api
-import utils
 from rhpl.translate import _, N_, textdomain, utf8
 import xmlrpclib
+
+import api as cobbler_api
+import yaml # Howell Clark version
+import utils
+import sub_process
 
 def main():
    core(logger=None)
@@ -37,13 +39,32 @@ def core(logger=None):
     if pid == 0:
         do_xmlrpc(bootapi, settings, xmlrpc_port, logger)
     else:
-        do_syslog(bootapi, settings, syslog_port, logger)
+        if os.path.exists("/usr/bin/avahi-publish-service"):
+           pid2 = os.fork()
+           if pid2 == 0:
+               do_syslog(bootapi, settings, syslog_port, logger)
+           else:
+               do_avahi(bootapi, settings, logger)
+        else:
+           do_syslog(bootapi, settings, syslog_port, logger)
+
 
 def log(logger,msg):
     if logger is not None:
         logger.info(msg)
     else:
         print >>sys.stderr, msg
+
+def do_avahi(bootapi, settings, logger):
+    # publish via zeroconf.  This command will not terminate
+    log(logger, "publishing avahi service")
+    cmd = [ "/usr/bin/avahi-publish-service",
+            "cobblerd",
+            "_http._tcp",
+            "%s" % settings.xmlrpc_port ]
+    result = sub_process.call(cmd, shell=False)
+    log(logger, "avahi service terminated: %d" % result) 
+
 
 def do_xmlrpc(bootapi, settings, port, logger):
 
