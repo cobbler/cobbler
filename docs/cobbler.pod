@@ -520,27 +520,12 @@ These options are all enabled by using the --hostname and --ip options when usin
 Itanium systems names also need to be assigned to a distro that was created with the "--arch=ia64" parameter. If you have Itanium systems, you must (for now) choose 'isc' for
 'manage_dhcp_mode' in the /var/lib/cobbler/settings file, and are required to use --ip when creating the system object in order for those systems to PXE.
 
-The dhcpd.conf file will be updated each time "cobbler sync" is run, and not until then, so it is important to remember to use "cobbler sync" when using this feature.  Support for online updates to DHCP (and DNS, in this dnsmasq case) are pending.
+The dhcpd.conf file will be updated each time "cobbler sync" is run, and not until then, so it is important to remember to use "cobbler sync" when using this feature.
 
-=head2 ENCHANT
+=head2 SERVICE DISCOVERY (AVAHI)
 
-While the normal provisioning procedure is either to PXE bare-metal, or use koan to do something else (kickstart an existing system or deploy Virt), cobbler contains yet another option, called "enchant".
-
-Enchant takes a configuration that has already been defined (be sure to run "cobbler sync" before using "cobbler enchant") and applies it to a remote system that might not have koan installed.  Users might want to use this command to replace a server that is being repurposed, or when no PXE environment can be created.
-
-Essentially what enchant does is allow koan to be executed remotely from the cobbler server.  Running "enchant" in it's normal mode will replace the operating system of the target machine, so use it with caution. 
-
-Usage:  B<cobbler enchant --address=ip|hostname --profile=string>
-Usage:  B<cobbler enchant --address=ip|hostname --system=string>
-
-Adding a "--virt=yes" to either form will provision a virtualized image rather than reprovisioning
-the remote machine.   The default behavior is machine (not virtual) re-provisioning.
-
-Example:  B<cobbler enchant --virt=yes --address=192.168.10.10 --profile=fc6xen>
-
-Before using enchant, configure the location of the koan noarch RPM in /var/lib/cobbler/settings (a local path) and re-run "cobbler sync".
-
-Enterprising users will notice this is not much more than a wrapper around SSH commands to koan, but it's OS version agnostic and gets koan installed even if it's not available via up2date/yum.
+If the avahi-tools package is installed, cobblerd will broadcast it's presence on the network, allowing it to be discovered by koan
+with the koan --server=DISCOVER parameter.
 
 =head2 IMPORTING TREES
 
