@@ -34,3 +34,17 @@ rpms:  sdist
 	--define "_sourcedir  %{_topdir}" \
 	-ba koan.spec
 
+srpm: manpage sdist
+	mkdir -p rpm-build
+	cp dist/*.gz rpm-build/
+	rpmbuild --define "_topdir %(pwd)/rpm-build" \
+	--define "_builddir %{_topdir}" \
+	--define "_rpmdir %{_topdir}" \
+	--define "_srcrpmdir %{_topdir}" \
+	--define '_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm' \
+	--define "_specdir %{_topdir}" \
+	--define "_sourcedir  %{_topdir}" \
+	-bs --nodeps koan.spec
+
+
+
