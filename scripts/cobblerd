@@ -28,8 +28,7 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-#if __name__ == "__main__":
-def start_service
+if __name__ == "__main__":
 
     #############################################
 
@@ -64,7 +63,7 @@ def start_service
     #################
 
     try:
-        app.core(logger=logger,mode=mode)
+        app.core(logger=logger)
     except:
         utils.log_exc(logger)
 
