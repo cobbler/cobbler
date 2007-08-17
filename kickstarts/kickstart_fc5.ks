@@ -1,4 +1,5 @@
 #platform=x86, AMD64, or Intel EM64T
+langsupport --default=en_US en_US
 # System authorization information
 auth  --useshadow  --enablemd5
 # System bootloader configuration
