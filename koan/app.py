@@ -235,19 +235,66 @@ class Koan:
 
         # set up XMLRPC connection
         if self.server is None:
-            raise InfoException, "no server specified"
-        url = "http://%s:%s" % (self.server, self.port)
-        self.xmlrpc_server = ServerProxy(url)
- 
-        # make a sample call to check for connectivity
-        # we use this as opposed to version as version was not
-        # in the original API
-        try:
-           self.xmlrpc_server.get_profiles()
-        except:
-           self.connect_fail()
+                raise InfoException, "no server specified"
         
-        # now check for the cobbler version
+        # server name can either be explicit or DISCOVER, which
+        # means "check zeroconf" instead.
+
+        uses_avahi = False
+        if self.server == "DISCOVER": 
+            uses_avahi = True
+            if not os.path.exists("/usr/bin/avahi-browse"):
+                raise InfoException, "avahi-tools is not installed"
+            potential_servers = self.avahi_search()
+        else:
+            potential_servers = [ self.server ]
+
+        # zeroconf could have returned more than one server.
+        # either way, let's see that we can connect to the servers
+        # we might have gotten back -- occasionally zeroconf
+        # does stupid things and publishes internal or 
+        # multiple addresses
+
+        connect_ok = False
+        for server in potential_servers:
+
+            # assume for now we are connected to the server
+            # that we should be connected to
+
+            self.server = server
+            url = "http://%s:%s" % (server, self.port)
+ 
+            # make a sample call to check for connectivity
+            # we use this as opposed to version as version was not
+            # in the original API
+
+            try:
+                if uses_avahi:
+                    print "- attempting to connect to: %s" % server
+                self.xmlrpc_server = ServerProxy(url)
+                self.xmlrpc_server.get_profiles()
+                connect_ok = True
+                break
+            except:
+                pass
+            
+        # if connect_ok is still off, that means we never found
+        # a match in the server list.  This is bad.
+
+        if not connect_ok:
+            self.connect_fail()
+             
+        # ok, we have a valid connection.
+        # if we discovered through zeroconf, show the user what they've 
+        # connected to ...
+
+        if uses_avahi:
+            print "- connected to: %s" % self.server        
+
+        # now check for the cobbler version.  Ideally this should be done
+        # for each server, but if there is more than one cobblerd on the
+        # network someone should REALLY be explicit anyhow.  So we won't
+        # handle that and leave it to the network admins for now.
 
         version = None
         try:
@@ -262,10 +309,9 @@ class Koan:
         elif COBBLER_REQUIRED > version:
             raise InfoException("cobbler server is downlevel, need version >= %s, have %s" % (COBBLER_REQUIRED, version))
 
-
-
         # if command line input was just for listing commands,
-        # run them now and quit
+        # run them now and quit, no need for further work
+
         if self.list_systems:
             self.list(False)
             return
@@ -274,6 +320,8 @@ class Koan:
             return
 
         # check to see that exclusive arguments weren't used together
+        # FIXME: these checks can be moved up before the network parts
+ 
         found = 0
         for x in (self.is_virt, self.is_replace, self.is_display):
             if x:
@@ -282,6 +330,8 @@ class Koan:
             raise InfoException, "choose: --virt, --replace-self or --display"
 
         # if both --profile and --system were ommitted, autodiscover
+        # FIXME: can be moved up before the network parts
+
         if (not self.profile and not self.system):
             self.system = self.autodetect_system()
 
@@ -376,6 +426,7 @@ class Koan:
         parts of urlread and urlgrab from urlgrabber, in ways that
         are less cool and less efficient.
         """
+        print "- %s" % url # DEBUG
         fd = urllib2.urlopen(url)
         data = fd.read()
         fd.close()
@@ -1138,6 +1189,35 @@ class Koan:
             return uuid
         return self.uuidToString(self.randomUUID())
 
+    def avahi_search(self):
+        """
+        If no --server is specified, attempt to scan avahi (mDNS) to find one
+        """
+
+        matches = []
+
+        cmd = [ "/usr/bin/avahi-browse", "--all", "--terminate", "--resolve" ]
+        print "- running: %s" % " ".join(cmd)
+        cmdp = sub_process.Popen(cmd, shell=False, stdout=sub_process.PIPE)
+        print "- analyzing zeroconf scan results"
+        data = cmdp.communicate()[0]
+        lines = data.split("\n")
+        
+        # FIXME: should switch to Python bindings at some point.
+        match_mode = False
+        for line in lines:
+            if line.startswith("="):
+                if line.find("cobblerd") != -1:
+                   match_mode = True
+                else:
+                   match_mode = False
+            if match_mode and line.find("address") != -1 and line.find("[") != -1:
+                (first, last) = line.split("[",1)
+                (addr, junk) = last.split("]",1)
+                print "- zeroconf potential match: %s" % addr
+                matches.append(addr.strip())
+
+        return matches
 
 if __name__ == "__main__":
     main()

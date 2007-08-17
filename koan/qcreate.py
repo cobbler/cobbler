@@ -73,7 +73,13 @@ def start_install(name=None, ram=None, disk=None, mac=None,
     disk_obj = virtinst.VirtualDisk(disk_path, size=disk)
 
     try:
-        nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac, type="bridge", bridge=bridge)
+        # undocumented testing feature:
+        # if we want another networking type we can specify --virt-bridge=OFF
+        if bridge != "OFF":
+            nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac, type="bridge", bridge=bridge)
+        else:        
+            nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac, type="user")
+
     except:
         # try to be backward compatible
         print "- trying old style network setup"

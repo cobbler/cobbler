@@ -24,6 +24,10 @@ which is usually 25151, and that "cobblerd" is running on the cobbler server.
 
 This argument must be specified for all koan commands.
 
+Specifying "DISCOVER" for the server in all caps will request automatic discovery
+of a nearby cobbler server using Avahi.  The avahi-tools package must be installed
+to use this functionality.
+
 =back
 
 =head1 LISTING AVAILABLE RESOURCES
