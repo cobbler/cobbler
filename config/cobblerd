@@ -1,10 +1,24 @@
 #!/bin/sh
 #
 # cobblerd    Cobbler helper daemon
-#
+###################################
+
+# LSB header
+
+### BEGIN INIT INFO
+# Provides: cobblerd
+# Requires: network
+# Default-Start: 3 4 5
+# Short-Description: daemon for libvirt virtualization API
+# Description: This is a daemon that a provides remote cobbler API
+#              and status tracking
+### END INIT INFO
+
+# chkconfig header
+
 # chkconfig: 345 99 99 
-# description:  This is a daemon that provides remote cobbler info to koan
-#               clients and also logs installer yslog activitity. 
+# description:  This is a daemon that provides a remote cobbler API
+#               and status tracking
 #
 # processname: /usr/bin/cobblerd
 
@@ -14,70 +28,48 @@
 # Source function library.
 . /etc/rc.d/init.d/functions
 
+SERVICE=cobblerd
+PROCESS=cobblerd
+CONFIG_ARGS=" "
+
 RETVAL=0
 
 start() {
     echo -n $"Starting cobbler daemon: "
-    if test -f /var/lock/subsys/cobblerd ; then
-        echo_failure
-        echo
-        return 1
-    fi
-    /usr/bin/cobblerd
+    daemon --check $SERVICE $PROCESS --daemon $CONFIG_ARGS
     RETVAL=$?
-    echo_success
     echo
-    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/cobblerd
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$SERVICE
     return $RETVAL
 }
-
 
 stop() {
     echo -n $"Stopping cobbler daemon: "
-    if ! test -f /var/lock/subsys/cobblerd ; then
-        echo_failure
-        echo
-        return 1
-    fi
-    rm /var/lock/subsys/cobblerd
-    echo_success
-    echo
-    pkill -9 cobblerd >/dev/null 2>/dev/null
+    killproc $PROCESS
     RETVAL=$?
-    return $RETVAL
+    echo
+    if [ $RETVAL -eq 0 ]; then
+	rm -f /var/lock/subsys/$SERVICE
+        rm -f /var/run/$SERVICE.pid
+    fi
 }
 
-mystatus() {
-    if test -f /var/lock/subsys/cobblerd ; then
-        echo "cobbblerd is running..."
-        return 0
-    fi
-    echo "cobblerd is stopped"
-    echo
-    return 3 
+restart() {
+   stop
+   start
 }
 
 # See how we were called.
 case "$1" in
-    start)
-        start
-        ;;
-    stop)
-        stop
+    start|stop|restart)
+        $1
         ;;
     status)
-        mystatus
+        status $PROCESS
         RETVAL=$?
         ;;
-    restart)
-        stop
-        start
-        ;;
     condrestart)
-        if [ -f /var/lock/subsys/cobblerd ]; then
-            stop
-            start
-        fi
+        [ -f /var/lock/subsys/$SERVICE ] && restart || :
         ;;
     reload)
         echo "can't reload configuration, you have to restart it"
@@ -85,6 +77,7 @@ case "$1" in
         ;;
     *)
         echo $"Usage: $0 {start|stop|status|restart|condrestart|reload}"
+        exit 1
         ;;
 esac
 exit $RETVAL
