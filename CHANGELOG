@@ -1,9 +1,12 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Mon Aug 10 2007 - 0.6.1
+* Fri Aug 17 2007 - 0.6.1
 - re enable --resolve in yumdownloader
 - fix get_distros_for_koan API function in cobblerd (not used by koan)
+- allow find API to search by arbitrary fields
+- status and logging now shows system names
+- upgraded init scripts
 
 * Thu Aug 09 2007 - 0.6.0 
 - bugfix in error path in "cobbler check"
