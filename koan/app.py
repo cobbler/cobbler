@@ -1214,8 +1214,10 @@ class Koan:
             if match_mode and line.find("address") != -1 and line.find("[") != -1:
                 (first, last) = line.split("[",1)
                 (addr, junk) = last.split("]",1)
-                print "- zeroconf potential match: %s" % addr
-                matches.append(addr.strip())
+                if addr.find(":") == -1:
+                    # exclude IPv6 and MAC addrs that sometimes show up in results
+                    # FIXME: shouldn't exclude IPv6?
+                    matches.append(addr.strip())
 
         return matches
 
