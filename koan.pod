@@ -166,6 +166,9 @@ The koan live CD is in the early stages of development and may not
 support all direct attached storage.  NOTE: Usage of the Live CD will
 erase all data on the first DASD disk during the course of provisioning.
 
+The live CD should be very useful when used with the --server=DISCOVER
+switch.
+
 =head1 POST INSTALLATION MANAGEMENT OF VIRT GUESTS
 
 The best tools to use after automatically installing a virt guest with koan are SSH (once installed and running), virsh, or virt-manager.  If VNC graphics are
