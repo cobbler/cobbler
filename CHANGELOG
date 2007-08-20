@@ -7,6 +7,7 @@ Cobbler CHANGELOG
 - allow find API to search by arbitrary fields
 - status and logging now shows system names
 - upgraded init scripts
+- zeroconf/avahi publishing for cobblerd service
 
 * Thu Aug 09 2007 - 0.6.0 
 - bugfix in error path in "cobbler check"

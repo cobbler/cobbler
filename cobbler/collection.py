@@ -58,6 +58,8 @@ class Collection(serializable.Serializable):
         """
         Return first object in the collection that maches all item='value'
         pairs passed, else return None if no objects can be found.
+        When return_list is set, can also return a list.  Empty list
+        would be returned instead of None in that case.
         """
 
         matches = []
