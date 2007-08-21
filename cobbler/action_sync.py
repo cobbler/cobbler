@@ -494,8 +494,13 @@ class BootSync:
         # replace contents of the data stream with items from the snippet cache
         # do not use Cheetah yet, Cheetah can't really be run twice on the same
         # stream and be expected to do the right thing
-        for x in self.snippet_cache:
-            data = data.replace("SNIPPET::%s" % x, self.snippet_cache[x])      
+        newdata = ""
+        for line in data.split("\n"):
+            for x in self.snippet_cache:
+                if not line.startswith("#"):
+                    line = line.replace("SNIPPET::%s" % x, self.snippet_cache[x])
+            newdata = "\n".join((newdata, line))
+        data = newdata
 
         # HACK:  the ksmeta field may contain nfs://server:/mount in which
         # case this is likely WRONG for kickstart, which needs the NFS
