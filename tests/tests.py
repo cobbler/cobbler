@@ -153,7 +153,9 @@ class Additions(BootTest):
         self.failUnlessRaises(CobblerException, self.api.systems().find)
         # searching for a list returns a list of correct length
         self.assertTrue(len(self.api.systems().find(mac_address="00:16:41:14:B7:71",return_list=True))==1)
-
+        # make sure we can still search without an explicit keyword arg
+        self.assertTrue(len(self.api.systems().find("00:16:41:14:B7:71",return_list=True))==1)
+        self.assertTrue(self.api.systems().find("00:16:41:14:B7:71"))
 
     def test_invalid_distro_non_referenced_kernel(self):
         distro = self.api.new_distro()
