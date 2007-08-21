@@ -149,7 +149,8 @@ class BootSync:
         system_definitions = ""
         counter = 0
         for system in self.systems:
-            if not system.get_mac_address() != "":
+            mac = system.get_mac_address()
+            if mac is None or mac == "":
                 # can't write a DHCP entry for this system
                 # FIXME: should this be a warning?
                 pass
@@ -170,7 +171,7 @@ class BootSync:
                 if distro.arch == "ia64":
                     # can't use pxelinux.0 anymore
                     systxt = systxt + "    filename \"/%s\";\n" % elilo
-                systxt = systxt + "    hardware ethernet %s;\n" % system.get_mac_address()
+                systxt = systxt + "    hardware ethernet %s;\n" % mac
                 if system.get_ip_address() != None:
                     systxt = systxt + "    fixed-address %s;\n" % system.get_ip_address()
                 systxt = systxt + "    next-server %s;\n" % self.settings.next_server
