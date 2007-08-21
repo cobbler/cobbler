@@ -112,15 +112,17 @@ class BootLiteSync:
         # delete system YAML file in systems/$name in webdir
         self.sync.rmfile(os.path.join(self.settings.webdir, "systems", name))
         # delete contents of kickstarts_sys/$name in webdir
-        if system_record.is_pxe_supported():
-            filename = utils.get_config_filename(system_record)
-            self.sync.rmtree(os.path.join(self.settings.webdir, "kickstarts_sys", filename))
+        system_record = self.systems.find(name=name)
+        filename = utils.get_config_filename(system_record)
+        self.sync.rmtree(os.path.join(self.settings.webdir, "kickstarts_sys", filename))
+
+        if not system_record.is_pxe_supported():
+            # no need to go any further with PXE cleanup
+            return
         
         # delete PXE Linux configuration file (which might be in one of two places)
         itanic = False
-        system_record = self.systems.find(name=name)
         profile = self.profiles.find(name=system_record.profile)
-        # allow cobbler deletes to still work in the cobbler config is discombobulated
         if profile is not None:
             distro = self.distros.find(name=profile.distro)
             if distro is not None and distro in [ "ia64", "IA64"]:

@@ -686,7 +686,7 @@ class BootSync:
             if system is not None and kickstart_path.startswith("/"):
                 # pxe_fn = utils.get_config_filename(system)
                 kickstart_path = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (self.settings.server, system.name)
-            elif kickstart_path.startswith("/") or kickstart_path.find(name="/cobbler/kickstarts/") != -1:
+            elif kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
                 kickstart_path = "http://%s/cblr/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)
 
             if distro.breed is None or distro.breed == "redhat":
