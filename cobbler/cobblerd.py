@@ -70,6 +70,7 @@ def do_xmlrpc(bootapi, settings, port, logger):
 
     xinterface = CobblerXMLRPCInterface(bootapi,logger)
     server = CobblerXMLRPCServer(('', port))
+    server.logRequests = 0  # don't print stuff
     log(logger, "XMLRPC running on %s" % port)
     server.register_instance(xinterface)
 

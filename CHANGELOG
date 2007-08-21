@@ -8,6 +8,7 @@ Cobbler CHANGELOG
 - status and logging now shows system names
 - upgraded init scripts
 - zeroconf/avahi publishing for cobblerd service
+- logRequests = 0 for XMLRPC.  Make it be quiet.
 
 * Thu Aug 09 2007 - 0.6.0 
 - bugfix in error path in "cobbler check"
