@@ -31,7 +31,7 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
                            uuid=None,  
                            extra=None, path=None,
                            vcpus=None, virt_graphics=False, 
-                           special_disk=False, profile_data=None, bridge=None):
+                           special_disk=False, profile_data=None, bridge=None, arch=None):
 
 
     guest = virtinst.ParaVirtGuest()

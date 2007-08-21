@@ -29,7 +29,7 @@ def start_install(name=None, ram=None, disk=None, mac=None,
                   uuid=None,  
                   extra=None, path=None,
                   vcpus=None, virt_graphics=None, 
-                  special_disk=False, profile_data=None, bridge=None):
+                  special_disk=False, profile_data=None, bridge=None, arch=None):
 
     type = "qemu"
     if virtinst.util.is_kvm_capable():
@@ -38,7 +38,7 @@ def start_install(name=None, ram=None, disk=None, mac=None,
        type = "kqemu"
     print "type=%s" % type
 
-    guest = virtinst.FullVirtGuest(hypervisorURI="qemu:///system",type=type)
+    guest = virtinst.FullVirtGuest(hypervisorURI="qemu:///system",type=type, arch=arch)
     
     if not profile_data["install_tree"].endswith("/"):
        profile_data["install_tree"] = profile_data["install_tree"] + "/"

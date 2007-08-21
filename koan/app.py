@@ -891,6 +891,8 @@ class Koan:
         kextra = ""
         lkickstart = self.safe_load(pd,'kickstart')
         loptions   = self.safe_load(pd,'kernel_options')
+        arch       = self.safe_load(pd,'arch','x86')
+
         if lkickstart != "" or loptions != "":
             if lkickstart != "":
                 kextra = kextra + "ks=" + lkickstart
@@ -946,7 +948,8 @@ class Koan:
                 virt_graphics =  self.virt_graphics,
                 special_disk  =  special,
                 profile_data  =  profile_data,
-                bridge        =  self.virt_bridge
+                bridge        =  self.virt_bridge,
+                arch          =  arch
         )
 
         print results
