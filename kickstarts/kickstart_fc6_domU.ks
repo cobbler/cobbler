@@ -34,6 +34,7 @@ nfs-utils
 openssh-clients
 openssh-server
 yum
+wget
 
 %post
 $yum_config_stanza
