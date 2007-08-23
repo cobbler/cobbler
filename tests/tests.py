@@ -222,6 +222,7 @@ class Additions(BootTest):
         self.assertTrue(profile.set_distro("testdistro0"))
         self.assertTrue(profile.set_kickstart("http://127.0.0.1/foo"))
         self.assertTrue(self.api.profiles().add(profile))
+        self.api.sync()
         system = self.api.new_system()
         self.assertTrue(system.set_name("foo"))
         self.assertTrue(system.set_profile("testprofile12b2"))
@@ -240,6 +241,7 @@ class Additions(BootTest):
         profile2.set_name("testprofile12b3")
         profile2.set_parent("testprofile12b2")
         self.assertTrue(self.api.profiles().add(profile2))
+        self.api.sync()
 
         # FIXME: now add a system to the inherited profile
         # and set a attribute on it that we will later check for
@@ -249,6 +251,7 @@ class Additions(BootTest):
         self.assertTrue(system2.set_profile("testprofile12b3"))
         self.assertTrue(system2.set_ksmeta({"narf" : "troz"}))
         self.assertTrue(self.api.systems().add(system2))
+        self.api.sync()
 
         # now see if the profile does NOT have the ksmeta attribute
         # this is part of our test against upward propogation
@@ -261,16 +264,17 @@ class Additions(BootTest):
 
         profile = self.api.profiles().find("testprofile12b2")
         self.assertTrue(type(profile.ks_meta) == type({}))
-        self.assertFalse(profile.ks_meta.has_key("narf"))
+        print "DEBUG2: %s" % profile.ks_meta
+        self.api.sync()
+        self.assertFalse(profile.ks_meta.has_key("narf"), "profile does not have the system ksmeta")
 
-        # be extra careful
         self.api.sync()
 
         # verify that the distro did not acquire the property
         # we just set on the leaf system
         distro = self.api.distros().find("testdistro0")
         self.assertTrue(type(distro.ks_meta) == type({}))
-        self.assertFalse(distro.ks_meta.has_key("narf"))
+        self.assertFalse(distro.ks_meta.has_key("narf"), "distro does not have the system ksmeta")
 
         # STEP THREE: verify that inheritance appears to work    
         # by setting ks_meta on the subprofile and seeing
@@ -280,10 +284,10 @@ class Additions(BootTest):
         profile2 = self.api.profiles().find("testprofile12b3")
         profile2.set_ksmeta({"canyouseethis" : "yes" })
         self.assertTrue(self.api.profiles().add(profile2))
-        system2 = self.api.systems().get("foo2")
+        system2 = self.api.systems().find("foo2")
         data = utils.blender(False, system2)
-        assertTrue(data.has_key("ks_meta"))
-        assertTrue(data["ks_meta"].has_key("canyouseethis"))
+        self.assertTrue(data.has_key("ks_meta"))
+        self.assertTrue(data["ks_meta"].has_key("canyouseethis"))
         
         # STEP FOUR: do the same on the superprofile and see
         # if that propogates
@@ -291,20 +295,20 @@ class Additions(BootTest):
         profile = self.api.profiles().find("testprofile12b2")
         profile.set_ksmeta({"canyouseethisalso" : "yes" })
         self.assertTrue(self.api.profiles().add(profile))
-        system2 = self.api.systems().get("foo2")
+        system2 = self.api.systems().find("foo2")
         data = utils.blender(False, system2)
-        assertTrue(data.has_key("ks_meta"))
-        assertTrue(data["ks_meta"].has_key("canyouseethisalso"))
+        self.assertTrue(data.has_key("ks_meta"))
+        self.assertTrue(data["ks_meta"].has_key("canyouseethisalso"))
 
         # STEP FIVE: see if distro attributes propogate
 
         distro = self.api.distros().find("testdistro0")
         distro.set_ksmeta({"alsoalsowik" : "moose" })
-        self.assertTrue(self.api.systems().add(distro))
-        system2 = self.api.systems().get("foo2")
+        self.assertTrue(self.api.distros().add(distro))
+        system2 = self.api.systems().find("foo2")
         data = utils.blender(False, system2)
-        assertTrue(data.has_key("ks_meta"))
-        assertTrue(data["ks_meta"].has_key("alsoalsowik"))
+        self.assertTrue(data.has_key("ks_meta"))
+        self.assertTrue(data["ks_meta"].has_key("alsoalsowik"))
         
         # STEP SIX:  see if settings changes also propogate
         # TBA 

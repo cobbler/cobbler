@@ -21,6 +21,7 @@ from rhpl.translate import _, N_, textdomain, utf8
 class System(item.Item):
 
     TYPE_NAME = _("system")
+    COLLECTION_TYPE = "system"
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -70,9 +71,9 @@ class System(item.Item):
         # backwards compatibility -- convert string entries to dicts for storage
         # this allows for better usage from the API.
 
-        if type(self.kernel_options) != dict:
+        if self.kernel_options != "<<inherit>>" and type(self.kernel_options) != dict:
             self.set_kernel_options(self.kernel_options)
-        if type(self.ks_meta) != dict:
+        if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
             self.set_ksmeta(self.ks_meta)
 
         # backwards compatibility -- if name is an IP or a MAC, set appropriate fields

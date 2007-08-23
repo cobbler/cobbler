@@ -154,6 +154,10 @@ class Collection(serializable.Serializable):
         """
         if ref is None or not ref.is_valid():
             raise CX(_("insufficient or invalid arguments supplied"))
+
+        if ref.COLLECTION_TYPE != self.collection_type():
+            raise CX(_("API error: storing wrong data type in collection"))
+
         if not with_copy:
             # don't need to run triggers, so add it already ...
             self.listing[ref.name.lower()] = ref

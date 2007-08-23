@@ -21,7 +21,8 @@ from rhpl.translate import _, N_, textdomain, utf8
 class Profile(item.Item):
 
     TYPE_NAME = _("profile")
-
+    COLLECTION_TYPE = "profile"
+ 
     def make_clone(self):
         ds = self.to_datastruct()
         cloned = Profile(self.config)
