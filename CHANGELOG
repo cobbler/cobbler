@@ -11,6 +11,7 @@ Cobbler CHANGELOG
 - logRequests = 0 for XMLRPC.  Make it be quiet.
 - ignore subdirectories of /var/lib/cobbler/snippets
 - fixed bug in graph rendering that allowed for upward property propogation in some cases
+- fixed bug that did not correctly evaluate repository settings of inherited sub-profiles/objects
 - tweaked domU sample kickstart to include wget
 - added some more unit tests
 
