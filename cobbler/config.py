@@ -54,22 +54,22 @@ class Config:
 
        self.api           = api
        self._distros      = distros.Distros(weakref.proxy(self))
+       self._repos        = repos.Repos(weakref.proxy(self))
        self._profiles     = profiles.Profiles(weakref.proxy(self))
        self._systems      = systems.Systems(weakref.proxy(self))
        self._settings     = settings.Settings() # not a true collection
-       self._repos        = repos.Repos(weakref.proxy(self))
        self._classes = [
           self._settings,
           self._distros,
+          self._repos,
           self._profiles,
-          self._systems,
-          self._repos
+          self._systems
        ]
        self._graph_classes = [
           self._distros,
+          self._repos,
           self._profiles,
-          self._systems,
-          self._repos
+          self._systems
        ]
        self.file_check()
 

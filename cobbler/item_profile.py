@@ -113,28 +113,38 @@ class Profile(item.Item):
         raise CX(_("distribution not found"))
 
     def set_repos(self,repos):
+
+        # allow the magic inherit string to persist
         if repos == "<<inherit>>":
             self.repos = "<<inherit>>"
             return
 
-        if type(repos) != list:
+        # store as an array regardless of input type
+        if repos is None:
+            repolist = []
+        elif type(repos) != list:
             # allow backwards compatibility support of string input
             repolist = repos.split(None)
         else:
             repolist = repos
-        ok = True
+
+        
+        # make sure there are no empty strings
         try:
 	    repolist.remove('')
         except:
             pass
+
+        self.repos = []
+
+        # if any repos don't exist, fail the operation
+        ok = True
         for r in repolist:
-            if not self.config.repos().find(name=r):
-                ok = False 
-                break
-        if ok:
-            self.repos = repolist
-        else:
-            raise CX(_("repository not found"))
+            if self.config.repos().find(name=r) is not None:
+                self.repos.append(r)
+            else:
+                print _("warning: repository not found: %s" % r)
+
         return True
 
     def set_kickstart(self,kickstart):

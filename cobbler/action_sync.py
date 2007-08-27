@@ -372,7 +372,7 @@ class BootSync:
         # the list of repos to things that Anaconda can install from.  This corresponds
         # will replace "TEMPLATE::yum_repo_stanza" in a cobbler kickstart file.
         buf = ""
-        repos = profile.repos
+        repos = utils.blender(False, profile)["repos"]
         for r in repos:
             repo = self.repos.find(name=r)
             if repo is None:
@@ -393,7 +393,7 @@ class BootSync:
 
     def generate_config_stanza(self, profile):
         # returns the line in post that would configure yum to use repos added with "cobbler repo add"
-        repos = profile.repos
+        repos = utils.blender(False,profile)["repos"]
         buf = ""
         for r in repos:
             repo = self.repos.find(name=r)

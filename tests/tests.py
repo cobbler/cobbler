@@ -286,9 +286,15 @@ class Additions(BootTest):
         profile2.set_repos("testrepo2")       
         self.api.profiles().add(profile2) # save it 
 
+        # random bug testing: run sync several times and ensure cardinality doesn't change
+        self.api.sync()
+        self.api.sync()
+        self.api.sync()
+
         data = utils.blender(False, system2)
         self.assertTrue("testrepo" in data["repos"])
         self.assertTrue("testrepo2" in data["repos"])
+        self.assertTrue(len(data["repos"]) == 2)
         self.assertTrue(self.api.profiles().find(system2.profile).repos == ["testrepo2"])
 
         # now double check that the parent profile still only has one repo in it.
@@ -310,7 +316,6 @@ class Additions(BootTest):
 
         profile = self.api.profiles().find("testprofile12b2")
         self.assertTrue(type(profile.ks_meta) == type({}))
-        print "DEBUG2: %s" % profile.ks_meta
         self.api.sync()
         self.assertFalse(profile.ks_meta.has_key("narf"), "profile does not have the system ksmeta")
 
