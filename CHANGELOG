@@ -2,13 +2,14 @@ Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
 * Fri Aug 17 2007 - 0.6.1
-- re enable --resolve in yumdownloader
+- re enable --resolve in yumdownloader (cobbler repo mgmt feature)
 - fix get_distros_for_koan API function in cobblerd (not used by koan)
 - allow find API to search by arbitrary fields
 - status and logging now shows system names
 - upgraded init scripts
 - zeroconf/avahi publishing for cobblerd service
 - logRequests = 0 for XMLRPC.  Make it be quiet.
+- ignore subdirectories of /var/lib/cobbler/snippets
 
 * Thu Aug 09 2007 - 0.6.0 
 - bugfix in error path in "cobbler check"

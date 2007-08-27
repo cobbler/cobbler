@@ -470,6 +470,8 @@ class BootSync:
         snippet_cache = {} 
         snippets = glob.glob("%s/*" % self.settings.snippetsdir)
         for snip in snippets:
+           if os.path.isdir(snip):
+               continue
            snip_file = open(snip)
            data = snip_file.read()
            snip_file.close()
