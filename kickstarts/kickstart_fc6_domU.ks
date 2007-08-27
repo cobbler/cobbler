@@ -5,7 +5,6 @@
 install
 reboot
 url --url=$tree
-langsupport --default=en_US en_US
 
 lang en_US.UTF-8
 keyboard us
