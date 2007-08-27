@@ -110,7 +110,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/cobbler/yaml/*.py*
 %{_mandir}/man1/cobbler.1.gz
 /etc/init.d/cobblerd
-/etc/httpd/conf.d/cobbler.conf
+%config(noreplace) /etc/httpd/conf.d/cobbler.conf
 %dir /var/log/cobbler/syslog
 %defattr(2550,root,root)
 %dir /var/lib/cobbler

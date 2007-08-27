@@ -2,13 +2,15 @@
 #
 # Michael DeHaan <mdehaan@redhat.com>
 
+TRY_GRAPH = False
 HAS_GRAPH = False
 
-try:
-   import pycallgraph_mod as pycallgraph
-   HAS_GRAPH = True
-except:
-   pass
+if TRY_GRAPH:
+   try:
+      import pycallgraph_mod as pycallgraph
+      HAS_GRAPH = True
+   except:
+      pass
 
 import sys
 import unittest
@@ -206,6 +208,110 @@ class Additions(BootTest):
         # self.failUnlessRaises(CobblerException, profile.set_virt_file_size, "huge")
         # self.failUnlessRaises(CobblerException, profile.set_virt_file_size, "54321.23")
         self.assertTrue(self.api.profiles().add(profile))
+
+    def test_inheritance_and_variable_propogation(self):
+
+        # STEP ONE: verify that non-inherited objects behave
+        # correctly with ks_meta (we picked this attribute
+        # because it's a hash and it's a bit harder to handle
+        # than strings).  It should be passed down the render
+        # tree to all subnodes
+
+        profile = self.api.new_profile()
+        self.assertTrue(profile.set_name("testprofile12b2"))
+        self.assertTrue(profile.set_distro("testdistro0"))
+        self.assertTrue(profile.set_kickstart("http://127.0.0.1/foo"))
+        self.assertTrue(self.api.profiles().add(profile))
+        self.api.sync()
+        system = self.api.new_system()
+        self.assertTrue(system.set_name("foo"))
+        self.assertTrue(system.set_profile("testprofile12b2"))
+        self.assertTrue(system.set_ksmeta({"asdf" : "jkl" }))
+        self.assertTrue(self.api.systems().add(system))
+        profile = self.api.profiles().find("testprofile12b2")
+        ksmeta = profile.ks_meta
+        self.assertFalse(ksmeta.has_key("asdf"))
+
+        # FIXME: do the same for inherited profiles
+        # now verify the same for an inherited profile
+        # and this time walk up the tree to verify it wasn't
+        # applied to any other object except the base.
+
+        profile2 = self.api.new_profile(is_subobject=True)
+        profile2.set_name("testprofile12b3")
+        profile2.set_parent("testprofile12b2")
+        self.assertTrue(self.api.profiles().add(profile2))
+        self.api.sync()
+
+        # FIXME: now add a system to the inherited profile
+        # and set a attribute on it that we will later check for
+
+        system2 = self.api.new_system()
+        self.assertTrue(system2.set_name("foo2"))
+        self.assertTrue(system2.set_profile("testprofile12b3"))
+        self.assertTrue(system2.set_ksmeta({"narf" : "troz"}))
+        self.assertTrue(self.api.systems().add(system2))
+        self.api.sync()
+
+        # now see if the profile does NOT have the ksmeta attribute
+        # this is part of our test against upward propogation
+
+        profile2 = self.api.profiles().find("testprofile12b3")
+        self.assertTrue(type(profile2.ks_meta) == type(""))
+        self.assertTrue(profile2.ks_meta == "<<inherit>>")
+
+        # now see if the profile above this profile still doesn't have it
+
+        profile = self.api.profiles().find("testprofile12b2")
+        self.assertTrue(type(profile.ks_meta) == type({}))
+        print "DEBUG2: %s" % profile.ks_meta
+        self.api.sync()
+        self.assertFalse(profile.ks_meta.has_key("narf"), "profile does not have the system ksmeta")
+
+        self.api.sync()
+
+        # verify that the distro did not acquire the property
+        # we just set on the leaf system
+        distro = self.api.distros().find("testdistro0")
+        self.assertTrue(type(distro.ks_meta) == type({}))
+        self.assertFalse(distro.ks_meta.has_key("narf"), "distro does not have the system ksmeta")
+
+        # STEP THREE: verify that inheritance appears to work    
+        # by setting ks_meta on the subprofile and seeing
+        # if it appears on the leaf system ... must use
+        # blender functions
+
+        profile2 = self.api.profiles().find("testprofile12b3")
+        profile2.set_ksmeta({"canyouseethis" : "yes" })
+        self.assertTrue(self.api.profiles().add(profile2))
+        system2 = self.api.systems().find("foo2")
+        data = utils.blender(False, system2)
+        self.assertTrue(data.has_key("ks_meta"))
+        self.assertTrue(data["ks_meta"].has_key("canyouseethis"))
+        
+        # STEP FOUR: do the same on the superprofile and see
+        # if that propogates
+        
+        profile = self.api.profiles().find("testprofile12b2")
+        profile.set_ksmeta({"canyouseethisalso" : "yes" })
+        self.assertTrue(self.api.profiles().add(profile))
+        system2 = self.api.systems().find("foo2")
+        data = utils.blender(False, system2)
+        self.assertTrue(data.has_key("ks_meta"))
+        self.assertTrue(data["ks_meta"].has_key("canyouseethisalso"))
+
+        # STEP FIVE: see if distro attributes propogate
+
+        distro = self.api.distros().find("testdistro0")
+        distro.set_ksmeta({"alsoalsowik" : "moose" })
+        self.assertTrue(self.api.distros().add(distro))
+        system2 = self.api.systems().find("foo2")
+        data = utils.blender(False, system2)
+        self.assertTrue(data.has_key("ks_meta"))
+        self.assertTrue(data["ks_meta"].has_key("alsoalsowik"))
+        
+        # STEP SIX:  see if settings changes also propogate
+        # TBA 
 
     def test_system_name_is_a_MAC(self):
         system = self.api.new_system()

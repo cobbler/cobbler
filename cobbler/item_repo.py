@@ -20,6 +20,7 @@ from rhpl.translate import _, N_, textdomain, utf8
 class Repo(item.Item):
 
     TYPE_NAME = _("repo")
+    COLLECTION_TYPE = "repo"
 
     def make_clone(self):
         ds = self.to_datastruct()

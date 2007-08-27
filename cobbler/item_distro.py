@@ -25,6 +25,7 @@ from rhpl.translate import _, N_, textdomain, utf8
 class Distro(item.Item):
 
     TYPE_NAME = _("distro")
+    COLLECTION_TYPE = "distro"
 
     def clear(self,is_subobject=False):
         """
@@ -49,13 +50,9 @@ class Distro(item.Item):
     def get_parent(self):
         """
         Return object next highest up the tree.
-        NOTE: conceptually there is no need for subdistros, but it's implemented
-        anyway for testing purposes
+        NOTE: conceptually there is no need for subdistros
         """
-        if self.parent is None or self.parent == '':
-            return None
-        else:
-            return self.config.distros().find(name=self.parent)
+        return None
 
     def from_datastruct(self,seed_data):
         """
@@ -73,10 +70,11 @@ class Distro(item.Item):
         self.depth          = self.load_item(seed_data,'depth',0)
 
         # backwards compatibility -- convert string entries to dicts for storage
-        if type(self.kernel_options) != dict:
+        if self.kernel_options != "<<inherit>>" and type(self.kernel_options) != dict:
             self.set_kernel_options(self.kernel_options)
-        if type(self.ks_meta) != dict:
+        if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
             self.set_ksmeta(self.ks_meta)
+
         return self
 
     def set_kernel(self,kernel):

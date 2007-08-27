@@ -307,7 +307,10 @@ def __consolidate(node,results):
     for key in node_data:
        value = node_data[key]
        if value != "<<inherit>>":
-          node_data_copy[key] = value
+          if type(value) == type({}):
+              node_data_copy[key] = value.copy()
+          else:
+              node_data_copy[key] = value
 
     for field in node_data_copy:
 
@@ -328,7 +331,7 @@ def __consolidate(node,results):
           # or scalar.
           if type(data_item) == dict:
              # interweave hash results
-             results[field].update(data_item)
+             results[field].update(data_item.copy())
           elif type(data_item) == list or type(data_item) == tuple:
              # add to lists (cobbler doesn't have many lists)
              # FIXME: should probably uniqueify list after doing this
