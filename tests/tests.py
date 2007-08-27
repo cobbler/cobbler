@@ -211,16 +211,27 @@ class Additions(BootTest):
 
     def test_inheritance_and_variable_propogation(self):
 
+
         # STEP ONE: verify that non-inherited objects behave
         # correctly with ks_meta (we picked this attribute
         # because it's a hash and it's a bit harder to handle
         # than strings).  It should be passed down the render
         # tree to all subnodes
 
+        repo = self.api.new_repo()
+        try:
+            os.path.makedirs("/tmp/test_cobbler_repo")
+        except:
+            pass
+        self.assertTrue(repo.set_name("testrepo"))
+        self.assertTrue(repo.set_mirror("/tmp"))
+        self.assertTrue(self.api.repos().add(repo))
+
         profile = self.api.new_profile()
         self.assertTrue(profile.set_name("testprofile12b2"))
         self.assertTrue(profile.set_distro("testdistro0"))
         self.assertTrue(profile.set_kickstart("http://127.0.0.1/foo"))
+        self.assertTrue(profile.set_repos(["testrepo"]))
         self.assertTrue(self.api.profiles().add(profile))
         self.api.sync()
         system = self.api.new_system()
@@ -253,7 +264,42 @@ class Additions(BootTest):
         self.assertTrue(self.api.systems().add(system2))
         self.api.sync()
 
-        # now see if the profile does NOT have the ksmeta attribute
+        # FIXME: now evaluate the system object and make sure  
+        # that it has inherited the repos value from the superprofile
+        # above it's actual profile.  This should NOT be present in the
+        # actual object, which we have not modified yet.
+
+        data = utils.blender(False, system2)
+        self.assertTrue(data["repos"] == ["testrepo"])
+        self.assertTrue(self.api.profiles().find(system2.profile).repos == "<<inherit>>")
+
+        # now if we set the repos object of the system to an additional
+        # repo we should verify it now contains two repos.
+        # (FIXME)
+        
+        repo2 = self.api.new_repo()
+        self.assertTrue(repo2.set_name("testrepo2"))
+        self.assertTrue(repo2.set_mirror("/tmp"))
+        self.assertTrue(self.api.repos().add(repo2))
+        profile2 = self.api.profiles().find("testprofile12b3")
+        # note: side check to make sure we can also set to string values
+        profile2.set_repos("testrepo2")       
+        self.api.profiles().add(profile2) # save it 
+
+        data = utils.blender(False, system2)
+        self.assertTrue("testrepo" in data["repos"])
+        self.assertTrue("testrepo2" in data["repos"])
+        self.assertTrue(self.api.profiles().find(system2.profile).repos == ["testrepo2"])
+
+        # now double check that the parent profile still only has one repo in it.
+        # this is part of our test against upward propogation
+
+        profile = self.api.profiles().find("testprofile12b2")
+        print profile.repos
+        self.assertTrue(len(profile.repos) == 1)
+        self.assertTrue(profile.repos == ["testrepo"])
+
+        # now see if the subprofile does NOT have the ksmeta attribute
         # this is part of our test against upward propogation
 
         profile2 = self.api.profiles().find("testprofile12b3")
@@ -310,7 +356,10 @@ class Additions(BootTest):
         self.assertTrue(data.has_key("ks_meta"))
         self.assertTrue(data["ks_meta"].has_key("alsoalsowik"))
         
-        # STEP SIX:  see if settings changes also propogate
+        
+
+
+        # STEP SEVEN:  see if settings changes also propogate
         # TBA 
 
     def test_system_name_is_a_MAC(self):

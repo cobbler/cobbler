@@ -40,7 +40,7 @@ class Profile(item.Item):
         self.ks_meta         = ({},                               '<<inherit>>')[is_subobject]
         self.virt_file_size  = (5,                                '<<inherit>>')[is_subobject]
         self.virt_ram        = (512,                              '<<inherit>>')[is_subobject]
-        self.repos           = ("",                               '<<inherit>>')[is_subobject]
+        self.repos           = ([],                               '<<inherit>>')[is_subobject]
         self.depth           = 1
         self.virt_type       = (self.settings.default_virt_type,  '<<inherit>>')[is_subobject]
         self.virt_path       = ("",                               '<<inherit>>')[is_subobject]
@@ -74,6 +74,8 @@ class Profile(item.Item):
             self.set_kernel_options(self.kernel_options)
         if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
             self.set_ksmeta(self.ks_meta)
+        if self.repos != "<<inherit>>" and type(self.ks_meta) != list:
+            self.set_repos(self.repos)
 
         return self
 
@@ -133,6 +135,7 @@ class Profile(item.Item):
             self.repos = repolist
         else:
             raise CX(_("repository not found"))
+        return True
 
     def set_kickstart(self,kickstart):
         """

@@ -309,6 +309,8 @@ def __consolidate(node,results):
        if value != "<<inherit>>":
           if type(value) == type({}):
               node_data_copy[key] = value.copy()
+          elif type(value) == type([]):
+              node_data_copy[key] = value[:]
           else:
               node_data_copy[key] = value
 
