@@ -240,8 +240,7 @@ class RepoSync:
         """
         Used to run createrepo on a copied mirror.
         """
-        target_dir = os.path.dirname(dirname).split("/")[-1]
-        if target_dir.lower() in [ "i386", "x86_64", "ia64" ] or not repo.is_rsync_mirror():
+        if os.path.exists(os.path.join(dirname,"RPMS")) or not repo.is_rsync_mirror():
             utils.remove_yum_olddata(dirname)
             try:
                 cmd = "createrepo %s %s" % (repo.createrepo_flags, dirname)

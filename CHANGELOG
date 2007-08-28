@@ -1,7 +1,7 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Fri Aug 17 2007 - 0.6.1
+* Tue Aug 28 2007 - 0.6.1
 - re enable --resolve in yumdownloader (cobbler repo mgmt feature)
 - fix get_distros_for_koan API function in cobblerd (not used by koan)
 - allow find API to search by arbitrary fields
@@ -15,6 +15,7 @@ Cobbler CHANGELOG
 - tweaked domU sample kickstart to include wget
 - added some more unit tests
 - fix typo down one error path in cobbler sync.
+- fix reposync handling when using rsync protocol and directory paths do not contain arch
 
 * Thu Aug 09 2007 - 0.6.0 
 - bugfix in error path in "cobbler check"
