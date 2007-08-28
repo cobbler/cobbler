@@ -215,7 +215,7 @@ class Importer:
 
        # how we set the tree depends on whether an explicit network_root was specified
        if self.network_root is None:
-           meta["tree"] = "http://%s/cblr/links/%s" % (self.settings.server, distro.name)
+           meta["tree"] = "http://@@server@@/cblr/links/%s" % (distro.name)
        else:
            # where we assign the kickstart source is relative to our current directory
            # and the input start directory in the crawl.  We find the path segments
@@ -403,9 +403,9 @@ class Importer:
                dotrepo = "%s-%s.repo" % (distro.name, counter)
 
            fname = os.path.join(self.settings.webdir, "ks_mirror", "config", "%s-%s.repo" % (distro.name, counter))
-           repo_url = "http://%s/cobbler/ks_mirror/config/%s-%s.repo" % (self.settings.server, distro.name, counter)
+           repo_url = "http://@@server@@/cobbler/ks_mirror/config/%s-%s.repo" % (distro.name, counter)
          
-           repo_url2 = "http://%s/cobbler/ks_mirror/%s" % (self.settings.server, urlseg) 
+           repo_url2 = "http://@@server@@/cobbler/ks_mirror/%s" % (urlseg) 
 
            distro.source_repos.append([repo_url,repo_url2])
 
@@ -413,7 +413,7 @@ class Importer:
            config_file = open(fname, "w+")
            config_file.write("[%s]\n" % "core-%s" % counter)
            config_file.write("name=%s\n" % "core-%s " % counter)
-           config_file.write("baseurl=http://%s/cobbler/ks_mirror/%s\n" % (self.settings.server, urlseg))
+           config_file.write("baseurl=http://@@server@@/cobbler/ks_mirror/%s\n" % (urlseg))
            config_file.write("enabled=1\n")
            config_file.write("gpgcheck=0\n")
            config_file.close()

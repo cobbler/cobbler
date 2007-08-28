@@ -528,11 +528,20 @@ class BootSync:
         t = Template(source=data, searchList=[metadata])
         data_out = str(t)
 
+        # now apply some magic post-filtering that is used by cobbler import and some
+        # other places, but doesn't use Cheetah.  Forcing folks to double escape
+        # things would be very unwelcome.
+
+        for x in metadata:
+           if type(metadata[x]) == str:
+               data_out = data_out.replace("@@%s@@" % x, metadata[x])
+
         if out_path is not None:
             self.mkdir(os.path.dirname(out_path))
             fd = open(out_path, "w+")
             fd.write(data_out)
             fd.close()
+
         return data_out
 
     def build_trees(self):
