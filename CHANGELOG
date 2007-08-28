@@ -14,6 +14,7 @@ Cobbler CHANGELOG
 - fixed bug that did not correctly evaluate repository settings of inherited sub-profiles/objects
 - tweaked domU sample kickstart to include wget
 - added some more unit tests
+- fix typo down one error path in cobbler sync.
 
 * Thu Aug 09 2007 - 0.6.0 
 - bugfix in error path in "cobbler check"

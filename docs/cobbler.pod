@@ -487,7 +487,7 @@ When working with Cheetah, be sure to escape any shell macros that look like "$(
 
 =head2 KICKSTART SNIPPETS
 
-Anywhere a kickstart template mentions SNIPPET::snippet_name, the file named /var/lib/cobbler/snippet/snippet_name (if present) will be included automatically in the kickstart template.  This serves as a way to recycle frequently used kickstart snippets without duplication.  Snippets can contain templating variables, and the variables will be evaluated according to the profile and/or system as one would expect.
+Anywhere a kickstart template mentions SNIPPET::snippet_name, the file named /var/lib/cobbler/snippets/snippet_name (if present) will be included automatically in the kickstart template.  This serves as a way to recycle frequently used kickstart snippets without duplication.  Snippets can contain templating variables, and the variables will be evaluated according to the profile and/or system as one would expect.
 
 =head2 KICKSTART VALIDATION
 
