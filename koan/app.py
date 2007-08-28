@@ -1030,7 +1030,6 @@ class Koan:
         if size is None or size == '' or int(size) < default_cpus:
             err = True
         if err:
-            print "invalid number of VCPUS specified, using defaults"
             return default_cpus
         return int(size)
 

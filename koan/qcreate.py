@@ -38,6 +38,9 @@ def start_install(name=None, ram=None, disk=None, mac=None,
        type = "kqemu"
     print "type=%s" % type
 
+    if arch is not None and arch.lower() == "x86":
+        arch = "i686"
+
     guest = virtinst.FullVirtGuest(hypervisorURI="qemu:///system",type=type, arch=arch)
     
     if not profile_data["install_tree"].endswith("/"):

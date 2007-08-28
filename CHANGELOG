@@ -5,6 +5,8 @@ Koan CHANGELOG
 - avahi support (--server=DISCOVER)
 - do not allow autodetection of mac with --virt
 - allow "xen" as alias for "xenpv" for --virt-type 
+- correct arch name when passing to qemu hypervisor 
+- don't complain when using default vcpu setting
 
 * Thu Aug 09 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.0-1
 - stable release
