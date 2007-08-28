@@ -781,12 +781,10 @@ class BootSync:
         fd.close()
 
     def copyfile(self,src,dst):
-        if self.verbose:
-            print _("copy: %(src)s -> %(dst)s") % { "src" : src, "dest" : dst }
         try:
             return shutil.copyfile(src,dst)
         except IOError, ioe:
-            raise CX(_("Error copying %(src) to %(dst)") % { "src" : src, "dst" : dst})
+            raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
     def rmfile(self,path):
         try:
@@ -804,8 +802,6 @@ class BootSync:
            self.rmtree(x)
 
     def rmtree(self,path):
-       if self.verbose:
-           print _("del %s") % (path)
        try:
            if os.path.isfile(path):
                return self.rmfile(path)
@@ -818,8 +814,6 @@ class BootSync:
            return True
 
     def mkdir(self,path,mode=0777):
-       if self.verbose:
-           print _("mkdir %s") % (path)
        try:
            return os.makedirs(path,mode)
        except OSError, oe:
@@ -834,7 +828,5 @@ class BootSync:
         """
 
         cmd = "/sbin/service %s %s" % (name, action)
-        if self.verbose:
-            print cmd
         return sub_process.call(cmd, shell=True)
 
