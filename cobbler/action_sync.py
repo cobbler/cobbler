@@ -400,7 +400,7 @@ class BootSync:
             if repo is None: 
                 continue
             repo.local_filename = repo.local_filename.replace(".repo","")
-            if not (repo.local_filename is None) or (repo.local_filename == ""):
+            if not (repo.local_filename is None) and not (repo.local_filename == ""):
                 buf = buf + "wget http://%s/cblr/repo_mirror/%s/config.repo --output-document=/etc/yum.repos.d/%s.repo\n" % (self.settings.server, repo.name, repo.local_filename)    
 
         # now install the core repos
