@@ -332,12 +332,20 @@ class Koan:
         # if both --profile and --system were ommitted, autodiscover
         # FIXME: can be moved up before the network parts
 
-        if (not self.profile and not self.system):
-            self.system = self.autodetect_system()
+        if self.is_virt:
+            if (self.profile is None and self.system is None):
+                raise InfoException, "must specify --profile or --system"
+        else:
+            if (self.profile is None and self.system is None):
+                self.system = self.autodetect_system()
+
 
         # if --virt-type was specified and invalid, then fail
         if self.virt_type is not None:
-            if self.virt_type not in [ "qemu", "xenpv", "auto" ]:
+            self.virt_type = self.virt_type.lower()
+            if self.virt_type not in [ "qemu", "xenpv", "xen", "auto" ]:
+               if self.virt_type == "xen":
+                   self.virt_type = "xenpv"
                raise InfoException, "--virttype should be qemu, xenpv, or auto"
 
         if self.virt_bridge is None and self.is_virt:
