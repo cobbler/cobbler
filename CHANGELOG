@@ -16,6 +16,7 @@ Cobbler CHANGELOG
 - added some more unit tests
 - fix typo down one error path in cobbler sync.
 - fix reposync handling when using rsync protocol and directory paths do not contain arch
+- allow basic usage of Cheetah variables in config files @@server@@, etc.
 
 * Thu Aug 09 2007 - 0.6.0 
 - bugfix in error path in "cobbler check"
