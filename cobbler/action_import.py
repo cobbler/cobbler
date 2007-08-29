@@ -311,14 +311,6 @@ class Importer:
        initrd = None
        kernel = None
        
-       # NOTE: can't make this optomization anymore since we may have to re-invoke
-       # walk for symlinks.
-       #
-       #
-       #if not self.is_relevant_dir(dirname):
-       #    print "DEBUG: %s is not relevant" % dirname
-       #    return
-
        for x in fnames:
 
            fullname = os.path.join(dirname,x)
@@ -355,9 +347,10 @@ class Importer:
 
    def repo_scanner(self,distro,dirname,fnames):
        
-       print "DEBUG: repo scanner for %s" % dirname
+       print "- processing: %s" % dirname
        for x in fnames:
-           if x == "base": # don't do "repodata"
+          if x == "base" or x == "repodata":
+               print "- need to process repo/comps: %s" % dirname
                self.process_comps_file(dirname, distro)
                continue
 
@@ -390,11 +383,13 @@ class Importer:
            # store the yum configs on the filesystem so we can use them later.
            # and configure them in the kickstart post, etc
 
+           print "- possible source repo match"
            counter = len(distro.source_repos)
 
            # find path segment for yum_url (changing filesystem path to http:// trailing fragment)
            seg = comps_path.rfind("ks_mirror")
            urlseg = comps_path[seg+10:]
+           print "- segment: %s" % urlseg
 
            # write a yum config file that shows how to use the repo.
            if counter == 0:

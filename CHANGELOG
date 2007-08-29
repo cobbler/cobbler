@@ -17,6 +17,7 @@ Cobbler CHANGELOG
 - fix typo down one error path in cobbler sync.
 - fix reposync handling when using rsync protocol and directory paths do not contain arch
 - allow basic usage of Cheetah variables in config files @@server@@, etc.
+- fix auto-repo attachment for distros with split trees (i.e. RHEL5)
 
 * Thu Aug 09 2007 - 0.6.0 
 - bugfix in error path in "cobbler check"
@@ -260,4 +261,5 @@ Cobbler CHANGELOG
 
 * Tue Jun 28 2006 - 0.1.0-1
 - rpm genesis
+
 
