@@ -1,6 +1,6 @@
 Koan CHANGELOG
 
-* Tue Aug 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.1-1
+* Thu Aug 30 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.1-1
 - Bridged networking control options (--virt-bridge)
 - avahi support (--server=DISCOVER)
 - do not allow autodetection of mac with --virt
