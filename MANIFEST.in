@@ -9,7 +9,7 @@ include config/cobbler_hosts
 recursive-include templates *.template
 recursive-include kickstarts *.ks
 include docs/cobbler.1.gz
-include COPYING AUTHORS README CHANGELOG NEWS
+include COPYING AUTHORS README CHANGELOG
 include scripts/watcher.py
 include scripts/cobblerd
 include scripts/findks.cgi

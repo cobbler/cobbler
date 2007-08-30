@@ -137,7 +137,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(2755,root,root)
 %config(noreplace) /var/lib/cobbler/cobbler_hosts
 %defattr(-,root,root)
-%doc AUTHORS CHANGELOG NEWS README COPYING
+%doc AUTHORS CHANGELOG README COPYING
 
 
 %changelog
