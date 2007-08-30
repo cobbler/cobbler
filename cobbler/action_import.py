@@ -29,7 +29,7 @@ WGET_CMD = "wget --mirror --no-parent --no-host-directories --directory-prefix %
 RSYNC_CMD =  "rsync -a %s %s %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --progress"
 
 TRY_LIST = [
-   "Fedora", "RedHat", "Client", "Server", "Centos", "CentOS",
+   "Fedora", "Packages", "RedHat", "Client", "Server", "Centos", "CentOS",
    "Fedora/RPMS", "RedHat/RPMS", "Client/RPMS", "Server/RPMS", "Centos/RPMS",
    "CentOS/RPMS", "RPMS"
 ]
