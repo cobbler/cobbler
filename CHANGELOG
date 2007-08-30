@@ -1,7 +1,7 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Tue Aug 28 2007 - 0.6.1
+* Thu Aug 30 2007 - 0.6.1
 - re enable --resolve in yumdownloader (cobbler repo mgmt feature)
 - fix get_distros_for_koan API function in cobblerd (not used by koan)
 - allow find API to search by arbitrary fields
