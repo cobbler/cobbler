@@ -121,6 +121,41 @@ class BootAPI:
         """
         return self._config.new_repo(is_subobject=is_subobject)
 
+    def auto_add_repos(self):
+        """
+        Import any repos this server knows about and mirror them.
+        Credit: Seth Vidal.
+        """
+        try:
+            import yum
+        except:
+            raise CX(_("yum is not installed"))
+
+        version = yum.__version__
+        (a,b,c) = version.split(".")
+        version = a* 1000 + b*100 + c
+        if version < 324:
+            raise CX(_("need yum > 3.2.4 to proceed"))
+
+        base = yum.YumBase()
+        base.doRepoSetup()
+        repos = base.repos.listEnabled()
+        if len(repos) == 0:
+            raise CX(_("no repos enabled/available -- giving up."))
+
+        for repo in repos:
+            url = repo.urls[0]
+            cobbler_repo = self.new_repo()
+            auto_name = repo.name.replace(" ","")
+            # FIXME: probably doesn't work for yum-rhn-plugin ATM
+            cobbler_repo.set_mirror(url)
+            cobbler_repo.set_name(auto_name)
+            print "auto adding: %s (%s)" % (auto_name, url)
+            self._config.repos().add(cobbler_repo,with_copy=True)
+
+        print "run cobbler reposync to apply changes"
+        return True 
+ 
     def check(self):
         """
         See if all preqs for network booting are valid.  This returns

@@ -23,6 +23,7 @@ import action_litesync
 import item_system
 import item_profile
 import item_distro
+import item_repo
 
 from rhpl.translate import _, N_, textdomain, utf8
 
@@ -176,6 +177,8 @@ class Collection(serializable.Serializable):
                 lite_sync.add_single_profile(ref.name) 
             elif isinstance(ref, item_distro.Distro):
                 lite_sync.add_single_distro(ref.name)
+            elif isinstance(ref, item_repo.Repo):
+                pass
             else:
                 print _("Internal error. Object type not recognized: %s") % type(ref)
         

@@ -251,6 +251,11 @@ a fast local mirror.  The mirror syntax for this is --mirror=rhn://channel-name 
 have entitlements for this to work.  This requires the cobbler server to be installed on RHEL5
 or later.
 
+Additionally, if you are running yum 3.2.4 or later, you can also automatically
+tell cobbler to mirror any yum repository that the boot server itself is
+configured to use.  This command is "cobbler repo auto-add" and is also
+somewhat experimental.  
+
 =item name
 
 This name is used as the save location for the mirror.  If the mirror represented, say, Fedora Core

@@ -72,15 +72,16 @@ class BootCLI:
             'report'  :  self.system_report
         }
         self.commands['repo'] = {
-            'add'     :  self.repo_add,
-            'edit'    :  self.repo_edit,
-            'rename'  :  self.repo_rename,
-            'copy'    :  self.repo_copy,
-            'delete'  :  self.repo_remove,
-            'remove'  :  self.repo_remove,
-            'list'    :  self.repo_list,
-            'report'  :  self.repo_report,
-            'sync'    :  self.reposync
+            'auto-add' :  self.repo_auto_add,
+            'add'      :  self.repo_add,
+            'edit'     :  self.repo_edit,
+            'rename'   :  self.repo_rename,
+            'copy'     :  self.repo_copy,
+            'delete'   :  self.repo_remove,
+            'remove'   :  self.repo_remove,
+            'list'     :  self.repo_list,
+            'report'   :  self.repo_report,
+            'sync'     :  self.reposync
         }
         self.commands['toplevel'] = {
             '-v'           : self.version,
@@ -413,6 +414,9 @@ class BootCLI:
     def system_add(self,args):
         does_inherit = self.__prescan_for_inheritance_args(args)
         self.__generic_add(args,self.api.new_system,self.__system_control,does_inherit)
+
+    def repo_auto_add(self, args):
+        self.api.auto_add_repos()
 
     def repo_add(self,args):
         does_inherit = self.__prescan_for_inheritance_args(args)
