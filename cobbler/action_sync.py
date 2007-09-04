@@ -353,7 +353,7 @@ class BootSync:
            except:
                 traceback.print_exc() # leave this in, for now...
                 msg = "err_kickstart2"
-                raise CX(_("Error copying kickstart file %(src)s to %(dest)s") % { "src" : kickstart_path, "dest" : dest })
+                raise CX(_("Error while rendering kickstart file %(src)s to %(dest)s") % { "src" : kickstart_path, "dest" : dest })
 
     def generate_kickstart_signal(self, profile, system=None):
         """
@@ -547,7 +547,12 @@ class BootSync:
 
         # now do full templating scan, where we will also templatify the snippet insertions
         t = Template(source=data, searchList=[metadata])
-        data_out = str(t)
+        try:
+            data_out = str(t)
+        except:
+            print _("There appears to be an formatting error in the template file.")
+            print _("For completeness, the traceback from Cheetah has been included below.")
+            raise
 
         # now apply some magic post-filtering that is used by cobbler import and some
         # other places, but doesn't use Cheetah.  Forcing folks to double escape
