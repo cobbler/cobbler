@@ -356,15 +356,27 @@ class BootSync:
                 raise CX(_("Error copying kickstart file %(src)s to %(dest)s") % { "src" : kickstart_path, "dest" : dest })
 
     def generate_kickstart_signal(self, profile, system=None):
+        """
+        Do things that we do at the end of kickstarts...
+        * signal the status watcher we're done
+        * disable PXE if needed
+        * save the original kickstart file for debug
+        """
         pattern1 = "wget http://%s/cblr/watcher.py?%s_%s=%s -b"
         pattern2 = "wget http://%s/cgi-bin/nopxe.cgi?system=%s -b"
+        pattern3 = "wget http://%s/cobbler/%s/%s/ks.cfg -O /root/cobbler.ks"
+
         buf = ""
         if system is not None:
             buf = buf + pattern1 % (self.settings.server, "system", "done", system.name)
             if str(self.settings.pxe_just_once).upper() in [ "1", "Y", "YES", "TRUE" ]:
                 buf = buf + "\n" + pattern2 % (self.settings.server, system.name)
+            buf = buf + "\n" + pattern3 % (self.settings.server, "kickstarts_sys", system.name)
+
         else:
             buf = buf + pattern1 % (self.settings.server, "profile", "done", profile.name)
+            buf = buf + "\n" + pattern3 % (self.settings.server, "kickstarts", profile.name)
+
         return buf
 
     def generate_repo_stanza(self, profile):
