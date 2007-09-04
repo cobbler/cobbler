@@ -366,17 +366,26 @@ class BootSync:
         pattern2 = "wget http://%s/cgi-bin/nopxe.cgi?system=%s -b"
         pattern3 = "wget http://%s/cobbler/%s/%s/ks.cfg -O /root/cobbler.ks"
 
+        blend_this = profile
+        if system:
+            blend_this = system
+
+        blended = utils.blender(False, blend_this)
+        kickstart = blended.get("kickstart",None)
+
         buf = ""
         if system is not None:
             buf = buf + pattern1 % (self.settings.server, "system", "done", system.name)
             if str(self.settings.pxe_just_once).upper() in [ "1", "Y", "YES", "TRUE" ]:
                 buf = buf + "\n" + pattern2 % (self.settings.server, system.name)
-            buf = buf + "\n" + pattern3 % (self.settings.server, "kickstarts_sys", system.name)
+            if kickstart and os.path.exists(kickstart):
+                buf = buf + "\n" + pattern3 % (self.settings.server, "kickstarts_sys", system.name)
 
         else:
             buf = buf + pattern1 % (self.settings.server, "profile", "done", profile.name)
-            buf = buf + "\n" + pattern3 % (self.settings.server, "kickstarts", profile.name)
-
+            if kickstart and os.path.exists(kickstart):
+                buf = buf + "\n" + pattern3 % (self.settings.server, "kickstarts", profile.name)
+            
         return buf
 
     def generate_repo_stanza(self, profile):
