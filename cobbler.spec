@@ -106,8 +106,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/logrotate.d/cobblerd_rotate
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/yaml
+%dir %{python_sitelib}/cobbler/modules
 %{python_sitelib}/cobbler/*.py*
 %{python_sitelib}/cobbler/yaml/*.py*
+%{python_sitelib}/cobbler/modules/*.py*
 %{_mandir}/man1/cobbler.1.gz
 /etc/init.d/cobblerd
 %config(noreplace) /etc/httpd/conf.d/cobbler.conf

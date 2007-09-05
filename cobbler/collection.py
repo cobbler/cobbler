@@ -169,7 +169,9 @@ class Collection(serializable.Serializable):
             # failure of a pre trigger will prevent the object from being added
             self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
             self.listing[ref.name.lower()] = ref
+
             self.config.api.serialize()
+
             lite_sync = action_litesync.BootLiteSync(self.config)
             if isinstance(ref, item_system.System):
                 lite_sync.add_single_system(ref.name)

@@ -27,11 +27,11 @@ import yaml   # Howell-Clark version
 from cexceptions import *
 import os
 
-def register(obj):
+def register():
     """
     The mandatory cobbler module registration hook.
     """
-    pass
+    return True 
 
 def serialize(obj):
     """
@@ -82,7 +82,7 @@ def deserialize(obj,topological=False):
     datastruct = yaml.load(data).next()  # first record
     fd.close()
 
-    if topological:
+    if topological and type(datastruct) == list:
        # in order to build the graph links from the flat list, sort by the
        # depth of items in the graph.  If an object doesn't have a depth, sort it as
        # if the depth were 0.  It will be assigned a proper depth at serialization

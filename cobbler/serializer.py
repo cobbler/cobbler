@@ -22,6 +22,7 @@ import yaml                # Howell-Clark version
 from cexceptions import *
 import utils
 import api as cobbler_api
+import modules.serializer_yaml as serializer_yaml
 
 MODULE_CACHE = {}
 
@@ -40,19 +41,9 @@ def deserialize(obj,topological=False):
     storage_module = __get_storage_module(obj.collection_type())
     return storage_module.deserialize(obj,topological)
 
-
 def __get_storage_module(collection_type):
 
-    if MODULE_CACHE.has_key(collection_type):
-        return MODULE_CACHE[collection_type]
-    config = cobbler_api.BootAPI()._config
-    settings = config.settings()
-    storage_module_name = settings.storage_modules.get(collection_type, None)
-    if not storage_module_name:
-        raise CX(_("Storage module not set for objects of type %s") % collection_type)
-    storage_module = config.modules.get(storage_module_name, None)
-    if not storage_module:
-        raise CX(_("Storage module %s not present") % storage_module_name)
-    MODULE_CACHE[collection_type] = storage_module
-    return storage_module
+    # FIXME: this is always fixed currently, and should not be.
+    return cobbler_api.BootAPI().modules["serializer_yaml"]
+
   

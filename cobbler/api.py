@@ -23,6 +23,7 @@ import action_reposync
 import action_status
 import action_validate
 import sub_process
+import module_loader
 
 class BootAPI:
 
@@ -36,10 +37,10 @@ class BootAPI:
 
         self.__dict__ = self.__shared_state
         if not BootAPI.has_loaded:
-            BootAPI.has_loaded = True
-            self._config = config.Config(self)
+            BootAPI.has_loaded   = True
+            self.modules         = module_loader.load_modules()
+            self._config         = config.Config(self)
             self.deserialize()
-            self.__settings = self._config.settings()
 
     def version(self):
         """

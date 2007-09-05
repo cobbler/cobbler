@@ -41,12 +41,6 @@ DEFAULTS = {
     "pxe_just_once"               : 0,
     "server"                      : "127.0.0.1",
     "snippetsdir"                 : "/var/lib/cobbler/snippets",
-    "storage_modules"             : {
-        "distro"                  : 'serializer_yaml',
-        "profile"                 : 'serializer_yaml',
-        "system"                  : 'serializer_yaml',
-        "repo"                    : 'serializer_yaml',
-    },
     "syslog_port"                 : 25150,
     "tftpboot"                    : "/tftpboot",
     "tftpd_bin"                   : "/usr/sbin/in.tftpd",
@@ -67,6 +61,9 @@ class Settings(serializable.Serializable):
            return "/var/lib/cobbler/test/settings"
        else:
            return "/var/lib/cobbler/settings"
+
+   def collection_type(self):
+       return "settings"
 
    def __init__(self):
        """
