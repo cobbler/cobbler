@@ -36,7 +36,7 @@ def start_install(name=None, ram=None, disks=None, mac=None,
        type = "kvm"
     elif virtinst.util.is_kqemu_capable():
        type = "kqemu"
-    print "type=%s" % type
+    print "- using qemu hypervisor, type=%s" % type
 
     if arch is not None and arch.lower() == "x86":
         arch = "i686"

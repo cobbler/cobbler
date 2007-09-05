@@ -533,7 +533,7 @@ class Koan:
                 else:
                     # assume Xen, we'll check to see if virt-type is really usable later.
                     raise InfoException, "Not running a Xen kernel and qemu is not installed"
-                print "no virt-type specified, auto-selecting %s" % self.virt_type
+                print "- no virt-type specified, auto-selecting %s" % self.virt_type
 
             # now that we've figured out our virt-type, let's see if it is really usable
             # rather than showing obscure error messages from Xen to the user :)
@@ -548,7 +548,7 @@ class Koan:
                 if not os.path.exists("/usr/sbin/xend"):
                    raise InfoException("xen package needs to be installed")
                 # xend running?
-                rc = sub_process.call("/usr/sbin/xend status", stdout=None, shell=True)
+                rc = sub_process.call("/usr/sbin/xend status", stderr=None, stdout=None, shell=True)
                 if rc != 0:
                    raise InfoException("xend needs to be started")
 
