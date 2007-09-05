@@ -4,6 +4,7 @@ Cobbler CHANGELOG
 * Fri Aug 31 2007 - 0.6.2
 - cobbler repo auto-add to discover yum repos automatically
 - kickstarts automatically save kickstart file used to /root/cobbler.ks
+- allow multiple (comma-seperated) values for --virt-size
 
 * Thu Aug 30 2007 - 0.6.1
 - re enable --resolve in yumdownloader (cobbler repo mgmt feature)
