@@ -3,7 +3,7 @@
 """
 Koan wrapper script.  See 'man koan' for details.
 
-Copyright 2006 Red Hat, Inc.
+Copyright 2006-2007 Red Hat, Inc.
 Michael DeHaan <mdehaan@redhat.com>
 
 This software may be freely redistributed under the terms of the GNU
@@ -15,24 +15,5 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import sys
-
-# ok, about this sys.path voodoo...
-# ordinarily cobbler and koan are intended for FC-5/6 and derivs
-#
-# this hack makes "cobbler enchant" using FC-5 RPMs work on 
-# python 2.3 distros as well when installed with --nodeps.
-# yes, I know it looks evil.  It IS evil.
-#
-# though since "enchant" is there to blow away a system, evil is allowed.
-# eventually "cobbler enchant" may be modified to not need the koan rpm.
-#
-# when using koan normally, the RPM will be built for the proper distro
-# and this code will be mostly harmless.
-
-for version in [ "2.2", "2.3", "2.4", "2.5" ]:
-    for arch in [ "lib", "lib64" ]:
-        append = "/usr/%s/python%s/site-packages" % (arch,version)
-        sys.path.append(append)
-
 import koan.app as app
 sys.exit(app.main() or 0)

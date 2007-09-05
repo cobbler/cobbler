@@ -4,6 +4,7 @@ Koan CHANGELOG
 - Allow for multiple values (comma seperated) to --virt-path
 - Allow for multiple virt file sizes
 - Refactoring around the virt bits
+- Remove legacy sys.path hack as enchant has been removed (just use SSH)
 
 * Thu Aug 30 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.1-1
 - Bridged networking control options (--virt-bridge)
