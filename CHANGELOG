@@ -1,5 +1,10 @@
 Koan CHANGELOG
 
+* Mon Sep 04 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.2-1
+- Allow for multiple values (comma seperated) to --virt-path
+- Allow for multiple virt file sizes
+- Refactoring around the virt bits
+
 * Thu Aug 30 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.1-1
 - Bridged networking control options (--virt-bridge)
 - avahi support (--server=DISCOVER)
