@@ -1,7 +1,8 @@
 """
 Serializer code for cobbler
+Now adapted to support different storage backends
 
-Copyright 2006, Red Hat, Inc
+Copyright 2006-2007, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This software may be freely redistributed under the terms of the GNU
@@ -12,78 +13,46 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-import yaml   # Howell-Clark version
 import errno
 import os
+from rhpl.translate import _, N_, textdomain, utf8
+
+import yaml                # Howell-Clark version
 
 from cexceptions import *
 import utils
+import api as cobbler_api
 
-from rhpl.translate import _, N_, textdomain, utf8
+MODULE_CACHE = {}
 
 def serialize(obj):
     """
-    Save an object to disk.  Object must "implement" Serializable.
-    Will create intermediate paths if it can.  Returns True on Success,
-    False on permission errors.
+    Save a collection to disk or other storage.  
     """
-    filename = obj.filename()
-    try:
-        fd = open(filename,"w+")
-    except IOError, ioe:
-        dirname = os.path.dirname(filename)
-        if not os.path.exists(dirname):
-           try:
-               os.makedirs(dirname)
-               # evidentally this doesn't throw exceptions.
-           except OSError, ose:
-               pass
-        try:
-           fd = open(filename,"w+")
-        except IOError, ioe3:
-           raise CX(_("Need permissions to write to %s") % filename)
-           return False
-    datastruct = obj.to_datastruct()
-    encoded = yaml.dump(datastruct)
-    fd.write(encoded)
-    fd.close()
+    storage_module = __get_storage_module(obj.collection_type())
+    storage_module.serialize(obj)
     return True
 
 def deserialize(obj,topological=False):
     """
-    Populate an existing object with the contents of datastruct.
-    Object must "implement" Serializable.  Returns True assuming
-    files could be read and contained decent YAML.  Otherwise returns
-    False.
+    Fill in an empty collection from disk or other storage
     """
-    filename = obj.filename()
-    try:
-        fd = open(filename,"r")
-    except IOError, ioe:
-        # if it doesn't exist, that's cool -- it's not a bug until we try
-        # to write the file and can't create it.
-        if not os.path.exists(filename):
-            return True
-        else:
-            raise CX(_("Need permissions to read %s") % obj.filename())
-    data = fd.read()
-    datastruct = yaml.load(data).next()  # first record
-    fd.close()
+    storage_module = __get_storage_module(obj.collection_type())
+    return storage_module.deserialize(obj,topological)
 
-    if topological:
-       # in order to build the graph links from the flat list, sort by the
-       # depth of items in the graph.  If an object doesn't have a depth, sort it as
-       # if the depth were 0.  It will be assigned a proper depth at serialization
-       # time.  This is a bit cleaner implementation wise than a topological sort,
-       # though that would make a shiny upgrade.
-       datastruct.sort(__depth_cmp)
-    obj.from_datastruct(datastruct)
-    return True
 
-def __depth_cmp(item1, item2):
-    if not item1.has_key("depth"):
-       return 1
-    if not item2.has_key("depth"):
-       return -1
-    return cmp(item1["depth"],item2["depth"])
+def __get_storage_module(collection_type):
 
+    if MODULE_CACHE.has_key(collection_type):
+        return MODULE_CACHE[collection_type]
+    config = cobbler_api.BootAPI()._config
+    settings = config.settings()
+    storage_module_name = settings.storage_modules.get(collection_type, None)
+    if not storage_module_name:
+        raise CX(_("Storage module not set for objects of type %s") % collection_type)
+    storage_module = config.modules.get(storage_module_name, None)
+    if not storage_module:
+        raise CX(_("Storage module %s not present") % storage_module_name)
+    MODULE_CACHE[collection_type] = storage_module
+    return storage_module
+  

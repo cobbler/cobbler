@@ -46,7 +46,8 @@ if __name__ == "__main__":
                 license = "GPL",
                 packages = [
                     "cobbler",
-                    "cobbler/yaml" 
+                    "cobbler/yaml",
+                    "cobbler/modules", 
                 ],
                 scripts = ["scripts/cobbler", "scripts/cobblerd"],
                 data_files = [ 

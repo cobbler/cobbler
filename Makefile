@@ -13,7 +13,7 @@ manpage:
 	pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz
 	pod2html ./docs/cobbler.pod > ./docs/cobbler.html
  
-test:
+test: install
 	python tests/tests.py
 	-rm -rf /tmp/_cobbler-*
 

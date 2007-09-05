@@ -294,13 +294,13 @@ class BootCLI:
             raise CX(_("at least one required parameter is missing.  See 'man cobbler'."))
         self.__generic_copy(args,collection_fn,control_fn,exc_msg)
         if objname != objname2:
-            collection_fn().remove(objname, with_delete=self.api.sync_flag)
+            collection_fn().remove(objname, with_delete=True)
         self.api.serialize()
 
     def __generic_remove(self,args,alias1,alias2,collection_fn):
         commands = {
-            "--%s" % alias1 : lambda(a):  collection_fn().remove(a, with_delete=self.api.sync_flag),
-            "--%s" % alias2 : lambda(a):  collection_fn().remove(a, with_delete=self.api.sync_flag)
+            "--%s" % alias1 : lambda(a):  collection_fn().remove(a, with_delete=True),
+            "--%s" % alias2 : lambda(a):  collection_fn().remove(a, with_delete=True)
         }
         on_ok = lambda: True
         return self.apply_args(args,commands,on_ok)
@@ -447,7 +447,7 @@ class BootCLI:
         def on_ok():
             if newname is not None:
                 profile.set_name(newname)
-            self.api.profiles().add(profile, with_copy=self.api.sync_flag)
+            self.api.profiles().add(profile, with_copy=True)
         return self.apply_args(args,commands,on_ok)
 
     def __repo_control(self,args,repo,newname=None):
@@ -486,7 +486,7 @@ class BootCLI:
             '--breed'     :  lambda(a) : distro.set_breed(a)
         }
         def on_ok():
-            self.api.distros().add(distro, with_copy=self.api.sync_flag)
+            self.api.distros().add(distro, with_copy=True)
         return self.apply_args(args,commands,on_ok)
 
     def __system_control(self,args,sys):
@@ -513,7 +513,7 @@ class BootCLI:
            '--virt-type'   :  lambda(a) : sys.set_virt_type(a)
         }
         def on_ok():
-            self.api.systems().add(sys, with_copy=self.api.sync_flag)
+            self.api.systems().add(sys, with_copy=True)
         return self.apply_args(args,commands,on_ok)
 
     ###################################################################################

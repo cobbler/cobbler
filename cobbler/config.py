@@ -24,6 +24,9 @@ import collection_distros as distros
 import collection_profiles as profiles
 import collection_systems as systems
 import collection_repos as repos
+import modules.serializer_yaml as serializer_yaml
+
+import module_loader as loader
 
 import settings
 import serializer
@@ -52,26 +55,23 @@ class Config:
 
        Config.has_loaded  = True
 
+       self.modules       = loader.load_modules()
+
+       print "DEBUG: You've got modules!: %s" % self.modules
+
        self.api           = api
        self._distros      = distros.Distros(weakref.proxy(self))
        self._repos        = repos.Repos(weakref.proxy(self))
        self._profiles     = profiles.Profiles(weakref.proxy(self))
        self._systems      = systems.Systems(weakref.proxy(self))
        self._settings     = settings.Settings() # not a true collection
-       self._classes = [
-          self._settings,
-          self._distros,
-          self._repos,
-          self._profiles,
-          self._systems
-       ]
        self._graph_classes = [
           self._distros,
           self._repos,
           self._profiles,
           self._systems
        ]
-       self.file_check()
+       # self.file_check()
 
    def __cmp(self,a,b):
        return cmp(a.name,b.name)
@@ -134,27 +134,29 @@ class Config:
        """
        Forget about all loaded configuration data
        """
-       for x in self._classes:
+       for x in self._graph_classes:
           x.clear()
        return True
 
-   def file_check(self):
-       """
-       Serialize any files that do not yet exist.  This is useful for bringing the
-       app up to a working state on first run or if files are deleted.  See api.py
-       """
-       for x in self._classes:
-          if not os.path.exists(x.filename()):
-              if not serializer.serialize(x):
-                  return False
-       return True
+   #def file_check(self):
+   #    """
+   #    Serialize any files that do not yet exist.  This is useful for bringing the
+   #    app up to a working state on first run or if files are deleted.  See api.py
+   #    """
+   #    for x in self._classes:
+   #       if not os.path.exists(x.filename()):
+   #           if not serializer.serialize(x):
+   #               return False
+   #    return True
 
 
    def serialize(self):
        """
        Save the object hierarchy to disk, using the filenames referenced in each object.
        """
-       for x in self._classes:
+       if not serializer_yaml.serialize(self._settings):
+          return False
+       for x in self._graph_classes:
           if not serializer.serialize(x):
               return False
        return True
@@ -163,7 +165,7 @@ class Config:
        """
        Load the object hierachy from disk, using the filenames referenced in each object.
        """
-       if not serializer.deserialize(self._settings,topological=False):
+       if not serializer_yaml.deserialize(self._settings,topological=False):
           return False
        for x in self._graph_classes:
           if not serializer.deserialize(x,topological=True):
