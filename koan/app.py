@@ -1141,7 +1141,7 @@ class Koan:
                prefix = "/opt/qemu/"
            if not os.path.exists(prefix):
                os.makedirs(prefix)
-           return [ "%s/%s" % (prefix, name) ]
+           return [ "%s/%s-disk0" % (prefix, name) ]
 
         # ok, so now we have a user that either through cobbler or some other
         # source *did* specify a location.   It might be a list.
@@ -1176,7 +1176,7 @@ class Koan:
         if not location.startswith("/dev/") and location.startswith("/"):
             # filesystem path
             if os.path.isdir(location):
-                return "%s/%s" % (location, name)
+                return "%s/%s-disk%s" % (location, name, offset)
             elif not os.path.exists(location) and os.path.isdir(os.path.dirname(location)):
                 return location
             else:
