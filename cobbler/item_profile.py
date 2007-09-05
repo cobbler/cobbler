@@ -169,7 +169,7 @@ class Profile(item.Item):
         # num is a non-negative integer (0 means default)
         # can also be a comma seperated list -- for usage with multiple disks
 
-        if num.find(",") != -1:
+        if type(num) == str and num.find(",") != -1:
             tokens = num.split(",")
             for t in tokens:
                 # hack to run validation on each
