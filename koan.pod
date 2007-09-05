@@ -96,9 +96,11 @@ will provide reasonable defaults.
 
 =item --virt-path
 
-(optional) Specifies the storage for the virtual image.  This path must be an absolute path of an existing directory in which to store the image, with an optional filename component.  
+(optional) Specifies the storage for the virtual image, as a forced override over a storage location that might be set on the cobbler server.  This path must be an absolute path of an existing directory in which to store the image, with an optional filename component.  
 
-There is also experimental support for specifying partitions such as "/dev/sda4".  Volume Groups with available free space can also be used by specifying a group name such as "VolGroup00".  Partitions should always start with /dev and Volume Groups should be represented by their names.
+Advanced usage: There is also support for specifying partitions such as "/dev/sda4".  Volume Groups with available free space can also be used by specifying a group name such as "VolGroup00".  Partitions should always start with /dev and Volume Groups should be represented by their names.
+
+If you want to specify the location for more than one disk image, seperate the values with commas, such as "/opt/foo/a,/opt/foo/b".  
 
 =item --virt-type
 
