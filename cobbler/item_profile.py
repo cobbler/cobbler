@@ -167,6 +167,17 @@ class Profile(item.Item):
 	size you want.
 	"""
         # num is a non-negative integer (0 means default)
+        # can also be a comma seperated list -- for usage with multiple disks
+
+        if num.find(",") != -1:
+            tokens = num.split(",")
+            for t in tokens:
+                # hack to run validation on each
+                self.set_virt_file_size(t)
+            # if no exceptions raised, good enough
+            self.virt_file_size = num
+            return True
+
         try:
             inum = int(num)
             if inum != float(num):

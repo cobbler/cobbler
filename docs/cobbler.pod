@@ -123,6 +123,8 @@ If this parameter is not provided, the kickstart file will default to /etc/cobbl
 =item virt-file-size
 
 (optional) (Virt-only) how large the disk image should be in gigabytes.  The default is "5".
+This can be a comma seperated list (ex: "5,6,7") to allow for multiple disks of different sizes
+depending on what is given to --virt-path.
 
 =item virt-ram
 
@@ -138,6 +140,8 @@ If this parameter is not provided, the kickstart file will default to /etc/cobbl
 absolute path to an existing directory with an optional file name component.  
 
 There is also some experimental support for specifying partitions "/dev/sda4" or volume groups "VolGroup00", etc.
+
+For multiple disks, seperate the values with commas such as "VolGroup00,VolGroup00" or "/dev/sda4,/dev/sda5".  Both those examples would create two disks for the VM.
 
 =item repos
 

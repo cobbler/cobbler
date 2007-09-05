@@ -353,18 +353,39 @@ class BootSync:
            except:
                 traceback.print_exc() # leave this in, for now...
                 msg = "err_kickstart2"
-                raise CX(_("Error copying kickstart file %(src)s to %(dest)s") % { "src" : kickstart_path, "dest" : dest })
+                raise CX(_("Error while rendering kickstart file %(src)s to %(dest)s") % { "src" : kickstart_path, "dest" : dest })
 
     def generate_kickstart_signal(self, profile, system=None):
+        """
+        Do things that we do at the end of kickstarts...
+        * signal the status watcher we're done
+        * disable PXE if needed
+        * save the original kickstart file for debug
+        """
         pattern1 = "wget http://%s/cblr/watcher.py?%s_%s=%s -b"
         pattern2 = "wget http://%s/cgi-bin/nopxe.cgi?system=%s -b"
+        pattern3 = "wget http://%s/cobbler/%s/%s/ks.cfg -O /root/cobbler.ks"
+
+        blend_this = profile
+        if system:
+            blend_this = system
+
+        blended = utils.blender(False, blend_this)
+        kickstart = blended.get("kickstart",None)
+
         buf = ""
         if system is not None:
             buf = buf + pattern1 % (self.settings.server, "system", "done", system.name)
             if str(self.settings.pxe_just_once).upper() in [ "1", "Y", "YES", "TRUE" ]:
                 buf = buf + "\n" + pattern2 % (self.settings.server, system.name)
+            if kickstart and os.path.exists(kickstart):
+                buf = buf + "\n" + pattern3 % (self.settings.server, "kickstarts_sys", system.name)
+
         else:
             buf = buf + pattern1 % (self.settings.server, "profile", "done", profile.name)
+            if kickstart and os.path.exists(kickstart):
+                buf = buf + "\n" + pattern3 % (self.settings.server, "kickstarts", profile.name)
+            
         return buf
 
     def generate_repo_stanza(self, profile):
@@ -526,7 +547,12 @@ class BootSync:
 
         # now do full templating scan, where we will also templatify the snippet insertions
         t = Template(source=data, searchList=[metadata])
-        data_out = str(t)
+        try:
+            data_out = str(t)
+        except:
+            print _("There appears to be an formatting error in the template file.")
+            print _("For completeness, the traceback from Cheetah has been included below.")
+            raise
 
         # now apply some magic post-filtering that is used by cobbler import and some
         # other places, but doesn't use Cheetah.  Forcing folks to double escape
