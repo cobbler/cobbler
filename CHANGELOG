@@ -6,6 +6,8 @@ Cobbler CHANGELOG
 - fix bug that allows empty mac addresses (None) in dhcpd.conf
 - kickstarts automatically save kickstart file used to /root/cobbler.ks
 - allow multiple (comma-seperated) values for --virt-size
+- removed deprecated 'enchant' function (use SSH and koan instead)
+- cleanup of a few unused settings
 
 * Thu Aug 30 2007 - 0.6.1
 - re enable --resolve in yumdownloader (cobbler repo mgmt feature)
