@@ -1153,7 +1153,7 @@ class Koan:
         count = -1
         for x in path_splitted:
             count = count + 1
-            path = self.calc_virt_path2(pd,name,count,location=x,sizes=virt_sizes)
+            path = self.calc_virt_path2(pd,name,offset=count,location=x,sizes=virt_sizes)
             paths.append(path)
         return paths
 
@@ -1219,7 +1219,9 @@ class Koan:
                 print "%s" % args
                 lvs_str=sub_process.Popen(args, stdout=sub_process.PIPE, shell=True).communicate()[0]
                 print lvs_str
-          
+         
+                name = "%s-disk%s" % (name,offset)
+ 
                 # have to create it?
                 if lvs_str.find(name) == -1:
                     args = "/usr/sbin/lvcreate -L %sG -n %s %s" % (virt_size, name, location)
