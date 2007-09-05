@@ -153,7 +153,7 @@ class BootSync:
             if mac is None or mac == "":
                 # can't write a DHCP entry for this system
                 # FIXME: should this be a warning?
-                pass
+                continue 
  
             counter = counter + 1
             systxt = "" 
