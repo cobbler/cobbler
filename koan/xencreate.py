@@ -27,15 +27,14 @@ import virtinst
 class VirtCreateException(exceptions.Exception):
     pass
 
-def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
+def start_paravirt_install(name=None, ram=None, disks=None, mac=None,
                            uuid=None,  
-                           extra=None, path=None,
+                           extra=None, 
                            vcpus=None, virt_graphics=False, 
-                           special_disk=False, profile_data=None, bridge=None, arch=None):
+                           profile_data=None, bridge=None, arch=None):
 
 
     guest = virtinst.ParaVirtGuest()
-    #guest.set_location(profile_data["install_tree"]) 
     guest.set_boot((profile_data["kernel_local"], profile_data["initrd_local"]))
     guest.extraargs = extra
     guest.set_name(name)
@@ -50,7 +49,8 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
     if uuid is not None:
         guest.set_uuid(uuid)
 
-    disk_obj = virtinst.XenDisk(path, size=disk)
+    for d in disks:
+        guest.disks.append(virtinst.XenDisk(d[0], size=d[1]))
 
     try:
         nic_obj = virtinst.XenNetworkInterface(macaddr=mac, type="bridged", bridge=bridge)
@@ -59,7 +59,6 @@ def start_paravirt_install(name=None, ram=None, disk=None, mac=None,
         print "- trying old style network setup"
         nic_obj = virtinst.XenNetworkInterface(macaddr=mac)
 
-    guest.disks.append(disk_obj)
     guest.nics.append(nic_obj)
 
     guest.start_install()

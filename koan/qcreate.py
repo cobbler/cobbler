@@ -25,11 +25,11 @@ import virtinst
 class VirtCreateException(exceptions.Exception):
     pass
 
-def start_install(name=None, ram=None, disk=None, mac=None,
+def start_install(name=None, ram=None, disks=None, mac=None,
                   uuid=None,  
-                  extra=None, path=None,
+                  extra=None,
                   vcpus=None, virt_graphics=None, 
-                  special_disk=False, profile_data=None, bridge=None, arch=None):
+                  profile_data=None, bridge=None, arch=None):
 
     type = "qemu"
     if virtinst.util.is_kvm_capable():
@@ -72,8 +72,9 @@ def start_install(name=None, ram=None, disk=None, mac=None,
     if uuid is not None:
         guest.set_uuid(uuid)
 
-    disk_path = path
-    disk_obj = virtinst.VirtualDisk(disk_path, size=disk)
+    for d in disks:
+        print "- adding disk: %s of size %s" % (d[0], d[1])
+        guest.disks.append(virtinst.VirtualDisk(d[0], size=d[1]))
 
     try:
         # undocumented testing feature:
@@ -88,7 +89,6 @@ def start_install(name=None, ram=None, disk=None, mac=None,
         print "- trying old style network setup"
         nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac)
 
-    guest.disks.append(disk_obj)
     guest.nics.append(nic_obj)
 
     guest.start_install()

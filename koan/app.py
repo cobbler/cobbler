@@ -890,77 +890,100 @@ class Koan:
 
     #---------------------------------------------------
 
+    def calc_kernel_args(self, pd):
+        kickstart = self.safe_load(pd,'kickstart')
+        options   = self.safe_load(pd,'kernel_options')
+        kextra    = ""
+        if kickstart != "":
+            kextra = kextra + "ks=" + kickstart
+        if kickstart != "" and options !="":
+            kextra = kextra + " "
+        if options != "":
+            kextra = kextra + options
+        # parser issues?  lang needs a trailing = and somehow doesn't have it.
+        kextra = kextra.replace("lang ","lang= ")
+        return kextra
+
+    #---------------------------------------------------
+
     def virt_net_install(self,profile_data):
         """
         Invoke virt guest-install (or tweaked copy thereof)
         """
         pd = profile_data
+        self.load_virt_modules()
 
-        kextra = ""
-        lkickstart = self.safe_load(pd,'kickstart')
-        loptions   = self.safe_load(pd,'kernel_options')
-        arch       = self.safe_load(pd,'arch','x86')
+        arch                = self.safe_load(pd,'arch','x86')
+        kextra              = self.calc_kernel_args(pd)
+        mac                 = self.calc_virt_mac(pd)
+        (uuid, create_func) = self.virt_choose(pd)
+        virtname            = self.calc_virt_name(pd,mac)
+        ram                 = self.calc_virt_ram(pd)
+        vcpus               = self.calc_virt_cpus(pd)
+        path_list           = self.calc_virt_path(pd, virtname)
+        size_list           = self.calc_virt_filesize(pd)
+        disks               = self.merge_disk_data(path_list,size_list)
 
-        if lkickstart != "" or loptions != "":
-            if lkickstart != "":
-                kextra = kextra + "ks=" + lkickstart
-            if lkickstart !="" and loptions !="":
-                kextra = kextra + " "
-            if loptions != "":
-                kextra = kextra + loptions
-
-        # parser issues?  lang needs a trailing = and somehow doesn't have it.
-        kextra = kextra.replace("lang ","lang= ")
-
-        if self.virt_type in [ "xenpv", "qemu", "pv", "fv" ] :
-            try:
-                import xencreate
-                import qcreate
-            except:
-                print "no virtualization support available, install python-virtinst?"
-                sys.exit(1)
-
-        # if the object has a "profile" entry, then it's a system
-        # and we pass in the name straight.  If it's not, pass in None
-        # for the Name, such that we can use the MAC or the override value.
-        pro = self.safe_load(pd,'profile')
-        if pro is None or pro == "":
-            # this is a system object, use name as entered
-            name = self.safe_load(pd,'name')
-        else:
-            # this is a profile object, use MAC or override value
-            name = None
-
-        mac = self.calc_virt_mac(pd)
-        if self.virt_type == "xenpv":
-            uuid    = self.get_uuid(self.calc_virt_uuid(pd))
-            creator = xencreate.start_paravirt_install
-        elif self.virt_type == "qemu":
-            uuid    = None
-            creator = qcreate.start_install
-        else:
-            raise InfoException, "Unspecified virt type: %s" % self.virt_type
-
-        virtname = self.calc_virt_name(pd,mac)
-        (path, special)       =  self.calc_virt_path(pd, virtname)
-
-        results = creator(
+        results = create_func(
                 name          =  virtname,
-                ram           =  self.calc_virt_ram(pd),
-                disk          =  self.calc_virt_filesize(pd),
-                mac           =  mac,
-                uuid          =  uuid,
+                ram           =  ram,
+                disks         =  disks,
+                mac           =  mac,  
+                uuid          =  uuid, 
                 extra         =  kextra,
-                vcpus         =  self.calc_virt_cpus(pd),
-                path          =  path,
-                virt_graphics =  self.virt_graphics,
-                special_disk  =  special,
-                profile_data  =  profile_data,
-                bridge        =  self.virt_bridge,
-                arch          =  arch
+                vcpus         =  vcpus,
+                virt_graphics =  self.virt_graphics, 
+                profile_data  =  profile_data,       
+                bridge        =  self.virt_bridge,   
+                arch          =  arch         
         )
 
         print results
+        return results
+
+    #---------------------------------------------------
+
+    def load_virt_modules(self):
+        try:
+            import xencreate
+            import qcreate
+        except:
+            print "no virtualization support available, install python-virtinst?"
+            sys.exit(1)
+
+    #---------------------------------------------------
+
+    def virt_choose(self, pd):
+        if self.virt_type == "xenpv":
+            uuid    = self.get_uuid(self.calc_virt_uuid(pd))
+            import xencreate
+            creator = xencreate.start_paravirt_install
+        elif self.virt_type == "qemu":
+            uuid    = None
+            import qcreate
+            creator = qcreate.start_install
+        else:
+            raise InfoException, "Unspecified virt type: %s" % self.virt_type
+        return (uuid, creator)
+
+    #---------------------------------------------------
+
+    def merge_disk_data(self, paths, sizes):
+        counter = 0
+        disks = []
+        for p in paths:
+            path = paths[counter]
+            if counter >= len(sizes): 
+                size = sizes[-1]
+            else:
+                size = sizes[counter]
+            disks.append([path,size])
+            counter = counter + 1
+        if len(disks) == 0:
+            print "paths: ", paths
+            print "sizes: ", sizes
+            raise InfoException, "Disk configuration not resolvable!"
+        return disks
 
     #---------------------------------------------------
 
@@ -977,13 +1000,26 @@ class Koan:
         return name.replace(":","_") # keep libvirt happy
 
 
+    #--------------------------------------------------
+
+    def calc_virt_filesize(self,data,default_filesize=0):
+
+        # MAJOR FIXME: are there overrides?  
+        size = self.safe_load(data,'virt_file_size','xen_file_size',0)
+
+        tokens = str(size).split(",")
+        accum = []
+        for t in tokens:
+            accum.append(self.calc_virt_filesize2(data,size=t))
+        return accum
+
     #---------------------------------------------------
 
-    def calc_virt_filesize(self,data,default_filesize=1):
+    def calc_virt_filesize2(self,data,default_filesize=1,size=0):
         """
         Assign a virt filesize if none is given in the profile.
         """
-        size = self.safe_load(data,'virt_file_size','xen_file_size',0)
+
         err = False
         try:
             int(size)
@@ -1030,7 +1066,7 @@ class Koan:
         if size is None or size == '' or int(size) < default_cpus:
             err = True
         if err:
-            return default_cpus
+            return int(default_cpus)
         return int(size)
 
     #---------------------------------------------------
@@ -1083,30 +1119,48 @@ class Koan:
         return ':'.join(map(lambda x: "%02x" % x, mac))
 
 
-    #---------------------------------------------------
+    #----------------------------------------------------
 
     def calc_virt_path(self,pd,name):
-        """
-        Assign virtual disk location.
-        """
+
+        # input is either a single item or a string list
+        # it's not in the arguments to this function .. it's from one of many
+        # potential sources
 
         location = self.virt_path
 
-        # determine if any suggested location info is available
         if location is None:
-            # no explicit CLI override, what did the cobbler server say?
-            location = self.safe_load(pd, 'virt_path', default=None)
-        if location is None or location == "":  
-            # not set in cobbler either? then assume reasonable defaults
-            location = None            
-            if location == None:
-                if self.virt_type == "xenpv":
-                    prefix = "/var/lib/xen/images/"
-                elif self.virt_type == "qemu":
-                    prefix = "/opt/qemu/"
-                if not os.path.exists(prefix):
-                    os.makedirs(prefix)
-                return ("%s/%s" % (prefix, name), False)
+           # no explicit CLI override, what did the cobbler server say?
+           location = self.safe_load(pd, 'virt_path', default=None)
+
+        if location is None or location == "":
+           # not set in cobbler either? then assume reasonable defaults
+           if self.virt_type == "xenpv":
+               prefix = "/var/lib/xen/images/"
+           elif self.virt_type == "qemu":
+               prefix = "/opt/qemu/"
+           if not os.path.exists(prefix):
+               os.makedirs(prefix)
+           return [ "%s/%s" % (prefix, name) ]
+
+        # ok, so now we have a user that either through cobbler or some other
+        # source *did* specify a location.   It might be a list.
+            
+        virt_sizes = self.calc_virt_filesize(pd)
+
+        path_splitted = location.split(",")
+        paths = []
+        count = -1
+        for x in path_splitted:
+            count = count + 1
+            path = self.calc_virt_path2(pd,name,count,location=x,sizes=virt_sizes)
+            paths.append(path)
+        return paths
+
+
+    #---------------------------------------------------
+
+    def calc_virt_path2(self,pd,name,offset=0,location=None,sizes=[]):
 
         # Parse the command line to determine if this is a 
         # path, a partition, or a volume group parameter
@@ -1122,15 +1176,15 @@ class Koan:
         if not location.startswith("/dev/") and location.startswith("/"):
             # filesystem path
             if os.path.isdir(location):
-                return ("%s/%s" % (location, name), False)
+                return "%s/%s" % (location, name)
             elif not os.path.exists(location) and os.path.isdir(os.path.dirname(location)):
-                return (location, False)
+                return location
             else:
                 raise InfoException, "invalid location: %s" % location                
         elif location.startswith("/dev/"):
             # partition
             if os.path.exists(location):
-                return (location, True)
+                return location
             else:
                 raise InfoException, "virt path is not a valid block device"
         else:
@@ -1153,8 +1207,11 @@ class Koan:
             print "(%s)" % freespace_str
             freespace = int(float(freespace_str))
 
-            virt_size = self.safe_load(pd,'virt_file_size','xen_file_size',5)
-           
+            if len(virt_size) > offset:
+                virt_size = sizes[offset] 
+            else:
+                return sizes[-1]
+
             if freespace >= int(virt_size):
             
                 # look for LVM partition named foo, create if doesn't exist
@@ -1172,7 +1229,7 @@ class Koan:
                         raise InfoException, "LVM creation failed"
 
                 # return partition location
-                return ("/dev/mapper/%s-%s" % (location,name), True)
+                return "/dev/mapper/%s-%s" % (location,name)
             else:
                 raise InfoException, "volume group [%s] needs %s GB free space." % virt_size
 
