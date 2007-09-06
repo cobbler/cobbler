@@ -18,7 +18,6 @@ import config
 import utils
 import action_sync
 import action_check
-import action_enchant
 import action_import
 import action_reposync
 import action_status
@@ -41,7 +40,6 @@ class BootAPI:
             self._config = config.Config(self)
             self.deserialize()
             self.__settings = self._config.settings()
-            self.sync_flag = self.__settings.minimize_syncs
 
     def version(self):
         """
@@ -197,16 +195,6 @@ class BootAPI:
         """
         reposync = action_reposync.RepoSync(self._config)
         return reposync.run()
-
-    def enchant(self,address,profile,systemdef,is_virt):
-        """
-        Re-kickstart a running system.
-        Either profile or systemdef should be a name of a
-        profile or system definition, the other should be None.  address is an
-        address reachable by SSH.
-        """
-        enchanter = action_enchant.Enchant(self._config,address,profile,systemdef,is_virt)
-        return enchanter.run()
 
     def status(self,mode):
         statusifier = action_status.BootStatusReport(self._config, mode)

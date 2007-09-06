@@ -101,9 +101,6 @@ class BootCLI:
             'sync'         : self.sync,
             'reposync'     : self.reposync,
             'import'       : self.import_tree,
-            'enchant'      : self.enchant,
-            'clobber'      : self.enchant,
-            'transmogrify' : self.enchant,
             'status'       : self.status,
             'reserialize'  : self.reserialize,
             'help'         : self.usage,
@@ -634,39 +631,6 @@ class BootCLI:
         def go_status():
             return self.api.status(self.mode)
         return self.apply_args(args, commands, go_status)
-
-    def enchant(self,args):
-        """
-        Reinstall a system:
-        'cobbler system enchant --name='foo' [--password='foo']
-        """
-        self.temp_profile = None
-        self.temp_system = None
-        self.temp_address = None
-        self.is_virt = False
-        def set_is_virt(a):
-           if a.lower() in [ "0", "false", "no", "n", "off" ]:
-               self.is_virt = False
-           elif a.lower() in [ "1", "true", "yes", "y", "on" ]:
-               self.is_virt = True
-           else:
-               raise CX("reject_arg","virt")
-        def set_profile(a):
-           self.temp_profile = a
-        def set_system(a):
-           self.temp_system = a
-        def set_address(a):
-           self.temp_address = a
-        def go_enchant():
-           return self.api.enchant(self.temp_address,self.temp_profile,self.temp_system,self.is_virt)
-        commands = {
-           '--address'  :  lambda(a): set_address(a),
-           '--profile'  :  lambda(a): set_profile(a),
-           '--system'   :  lambda(a): set_system(a),
-           '--virt'     :  lambda(a): set_is_virt(a)
-        }
-        on_ok = lambda: go_enchant()
-        return self.apply_args(args,commands,on_ok)
 
     def import_tree(self,args):
         """

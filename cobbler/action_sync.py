@@ -62,7 +62,6 @@ class BootSync:
         if not os.path.exists(self.settings.tftpboot):
             raise CX(_("cannot find directory: %s") % self.settings.tftpboot)
         self.clean_trees()
-        self.copy_koan()
         self.copy_bootloaders()
         self.copy_distros()
         self.validate_kickstarts()
@@ -92,20 +91,6 @@ class BootSync:
                 print _("Warning: %s restart failed") % service
         except OSError, e:
             print _("Warning: %s restart failed: ") % service, e
-
-    def copy_koan(self):
-        """
-        This is just for the "enchant" feature which a lot of folks
-        probably don't use... enchant automates an SSH into a remote
-        system, including koan installation if need be.
-        """
-        koan_path = self.settings.koan_path
-        if koan_path is None or koan_path == "":
-            return
-        if not os.path.isfile(koan_path):
-            raise CX(_("missing koan, check koan_path in /var/lib/cobbler/settings"))
-        base = os.path.basename(koan_path)
-        self.copyfile(koan_path, os.path.join(self.settings.webdir, base))
 
     def copy_bootloaders(self):
         """
@@ -153,7 +138,7 @@ class BootSync:
             if mac is None or mac == "":
                 # can't write a DHCP entry for this system
                 # FIXME: should this be a warning?
-                pass
+                continue 
  
             counter = counter + 1
             systxt = "" 

@@ -19,37 +19,41 @@ from rhpl.translate import _, N_, textdomain, utf8
 TESTMODE = False
 
 DEFAULTS = {
-    "httpd_bin"          : "/usr/sbin/httpd",
-    "dhcpd_conf"         : "/etc/dhcpd.conf",
-    "dnsmasq_conf"       : "/etc/dnsmasq.conf",
-    "tftpd_bin"          : "/usr/sbin/in.tftpd",
-    "server"             : "127.0.0.1",
-    "next_server"        : "127.0.0.1",
-    "dhcpd_bin"          : "/usr/sbin/dhcpd",
-    "dnsmasq_bin"        : "/usr/sbin/dnsmasq",
-    "kernel_options"     : {
-        "lang"           : " ",
-        "text"           : None,
-        "ksdevice"       : "eth0",
+    "bootloaders"                 : {
+        "standard"                : "/usr/lib/syslinux/pxelinux.0",
+        "ia64"                    : "/var/lib/cobbler/elilo-3.6-ia64.efi"
     },
-    "tftpd_conf"         : "/etc/xinetd.d/tftp",
-    "tftpboot"           : "/tftpboot",
-    "webdir"             : "/var/www/cobbler",
-    "snippetsdir"        : "/var/lib/cobbler/snippets",
-    "default_kickstart"  : "/etc/cobbler/default.ks",
-    "manage_dhcp"        : 0,
-    "manage_dhcp_mode"   : "isc",
-    "koan_path"          : "",
-    "bootloaders"        : {
-        "standard"       : "/usr/lib/syslinux/pxelinux.0",
-        "ia64"           : "/var/lib/cobbler/elilo-3.6-ia64.efi"
+    "default_kickstart"           : "/etc/cobbler/default.ks",
+    "default_virt_type"           : "auto",
+    "dhcpd_conf"                  : "/etc/dhcpd.conf",
+    "dhcpd_bin"                   : "/usr/sbin/dhcpd",
+    "dnsmasq_bin"                 : "/usr/sbin/dnsmasq",
+    "dnsmasq_conf"                : "/etc/dnsmasq.conf",
+    "httpd_bin"                   : "/usr/sbin/httpd",
+    "kernel_options"              : {
+        "lang"                    : " ",
+        "text"                    : None,
+        "ksdevice"                : "eth0",
+    },
+    "manage_dhcp"                 : 0,
+    "manage_dhcp_mode"            : "isc",
+    "next_server"                 : "127.0.0.1",
+    "pxe_just_once"               : 0,
+    "server"                      : "127.0.0.1",
+    "snippetsdir"                 : "/var/lib/cobbler/snippets",
+    "storage_modules"             : {
+        "distros"                 : [ 'yaml' ],
+        "profiles"                : [ 'yaml' ],
+        "systems"                 : [ 'yaml' ],
+        "repos"                   : [ 'yaml' ],
     },
     "syslog_port"                 : 25150,
+    "tftpboot"                    : "/tftpboot",
+    "tftpd_bin"                   : "/usr/sbin/in.tftpd",
+    "tftpd_conf"                  : "/etc/xinetd.d/tftp",
+    "webdir"                      : "/var/www/cobbler",
     "xmlrpc_port"                 : 25151,
-    "minimize_syncs"              : 1,
-    "yum_core_mirror_from_server" : 0,
-    "default_virt_type"           : "auto",
-    "pxe_just_once"               : 0
+    "yum_core_mirror_from_server" : 0
 }
 
 
