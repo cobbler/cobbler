@@ -603,10 +603,14 @@ add repos and never run "cobbler reposync", the repos will never be mirrored.  T
 you would want to put on a crontab, though the frequency of that crontab and where the output
 goes is left up to the systems administrator.
 
-For those familiar with yum's reposync, cobbler's reposync is a wrapper around the yum command.  Please
-use "cobbler reposync" to update cobbler mirrors, as reposync does not perform all required steps.  Also
-cobbler adds support for rsync and SSH locations, where as yum's reposync only supports what yum supports
-(http/ftp).
+For those familiar with yum's reposync, cobbler's reposync is (in most uses) a wrapper around the yum command.  Please use "cobbler reposync" to update cobbler mirrors, as yum's reposync does not perform all required steps.  Also cobbler adds support for rsync and SSH locations, where as yum's reposync only supports what yum supports (http/ftp).
+
+If you ever want to update just a few repositories, and not all of them managed by cobbler, you can
+run:
+
+B<cobbler reposync reponame1 reponame2 ...>
+
+When updating repos by name, a repo will be updated even if it is set to be not updated during a regular reposync operation (ex: cobbler repo edit --name=reponame1 --keep-updated=0).
 
 Note that if a cobbler import provides enough information to use the boot server as a yum mirror for
 core packages, cobbler can set up kickstarts to use the cobbler server as a mirror instead of the 
