@@ -581,7 +581,7 @@ class BootCLI:
         Sync the repo-specific portions of the config with the filesystem.
         'cobbler reposync'.  Intended to be run on cron.
         """
-        self.api.reposync()
+        self.api.reposync(args)
         return True
 
     def validateks(self,args):

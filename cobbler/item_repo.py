@@ -47,6 +47,10 @@ class Repo(item.Item):
         self.rpm_list         = self.load_item(seed_data, 'rpm_list')
         self.createrepo_flags = self.load_item(seed_data, 'createrepo_flags', '-c cache')
         self.depth            = self.load_item(seed_data, 'depth', 2)
+
+        # force this to be saved as a boolean 
+        self.set_keep_updated(self.keep_updated)
+
         return self
 
     def set_name(self,name):
@@ -69,7 +73,10 @@ class Repo(item.Item):
         """
 	This allows the user to disable updates to a particular repo for whatever reason.
 	"""
-        if not keep_updated.lower() in ["yes","y","yup","yeah","1"]:  
+        if type(keep_updated) == bool:
+            self.keep_updated = keep_updated
+            return True
+        if not keep_updated.lower() in ["yes","y","yup","yeah","1","true"]:  
             self.keep_updated = False
         else:
             self.keep_updated = True

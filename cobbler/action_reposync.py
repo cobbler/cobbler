@@ -38,25 +38,33 @@ class RepoSync:
         """
         Constructor
         """
-        self.verbose  = True
-        self.config   = config
-        self.distros  = config.distros()
-        self.profiles = config.profiles()
-        self.systems  = config.systems()
-        self.settings = config.settings()
-        self.repos    = config.repos()
+        self.verbose   = True
+        self.config    = config
+        self.distros   = config.distros()
+        self.profiles  = config.profiles()
+        self.systems   = config.systems()
+        self.settings  = config.settings()
+        self.repos     = config.repos()
 
-    # ==================================================================================
 
-    def run(self,verbose=True):
+    # ===================================================================
+
+    def run(self, args=[], verbose=True):
         """
         Syncs the current repo configuration file with the filesystem.
         """
 
         self.verbose = verbose
         for repo in self.repos:
+            if args != [] and repo.name not in args:
+                continue
+            elif args == [] and not repo.keep_updated:
+                print _("- %s is set to not be updated") % repo.name
+                continue
+
             repo_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
             mirror = repo.mirror
+
             if not os.path.isdir(repo_path) and not repo.mirror.lower().startswith("rhn://"):
                 os.makedirs(repo_path)
             
@@ -67,7 +75,7 @@ class RepoSync:
 
         return True
     
-    # ==================================================================================
+    # ==================================================================
   
     def do_reposync(self,repo):
 
@@ -91,13 +99,6 @@ class RepoSync:
             is_rhn = True
         if repo.rpm_list != "":
             has_rpm_list = True
-
-        # user might have disabled repo updates in the config file for whatever reason.
-        # if so, don't update this one.
-
-        if not repo.keep_updated:
-            print _("- %s is set to not be updated") % repo.name
-            return True
 
         # create yum config file for use by reposync
         store_path = os.path.join(self.settings.webdir, "repo_mirror")
@@ -188,9 +189,6 @@ class RepoSync:
         Handle copying of rsync:// and rsync-over-ssh repos.
         """
 
-        if not repo.keep_updated:
-            print _("- %s is set to not be updated") % repo.name
-            return True
         if repo.rpm_list != "":
             print _("- warning: --rpm-list is not supported for rsync'd repositories")
         dest_path = os.path.join(self.settings.webdir, "repo_mirror", repo.name)
