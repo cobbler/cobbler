@@ -8,7 +8,7 @@ Cobbler CHANGELOG
 - allow multiple (comma-seperated) values for --virt-size
 - removed deprecated 'enchant' function (use SSH and koan instead)
 - cleanup of a few unused settings
-- backend work to allow for multiple config file formats/loaders/serializers
+- allow for serialization modules to be selected in /etc/cobbler/modules.conf
 
 * Thu Aug 30 2007 - 0.6.1
 - re enable --resolve in yumdownloader (cobbler repo mgmt feature)

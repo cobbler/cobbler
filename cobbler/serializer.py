@@ -23,8 +23,11 @@ from cexceptions import *
 import utils
 import api as cobbler_api
 import modules.serializer_yaml as serializer_yaml
+import ConfigParser
 
 MODULE_CACHE = {}
+cp = ConfigParser.ConfigParser()
+cp.read("/etc/cobbler/modules.conf")
 
 def serialize(obj):
     """
@@ -43,7 +46,16 @@ def deserialize(obj,topological=False):
 
 def __get_storage_module(collection_type):
 
+
+    if not MODULE_CACHE.has_key(collection_type):
+         value = cp.get("serializers",collection_type)
+         module = cobbler_api.BootAPI().modules[value]
+         MODULE_CACHE[collection_type] = module
+         return module
+    else:
+         return MODULE_CACHE[collection_type]
+
     # FIXME: this is always fixed currently, and should not be.
-    return cobbler_api.BootAPI().modules["serializer_yaml"]
+    return 
 
   

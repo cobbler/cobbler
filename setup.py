@@ -67,6 +67,7 @@ if __name__ == "__main__":
 				(etcpath,  ['templates/pxesystem.template']),
 				(etcpath,  ['templates/pxesystem_ia64.template']),
 				(etcpath,  ['templates/pxeprofile.template']),
+                                (etcpath,  ['config/modules.conf']),
                                 (snippets, ['snippets/partition_select']),
                                 (manpath,  ['docs/cobbler.1.gz']),
                                 (etcpath,  ['config/rsync.exclude']),
