@@ -10,6 +10,7 @@ Cobbler CHANGELOG
 - cleanup of a few unused settings
 - allow for serialization modules to be selected in /etc/cobbler/modules.conf
 - patch to allow for reposync of specific repos, even if not set to update
+- added --dhcp-tag section for better DHCP customization (esp with multiple subnets)
 
 * Thu Aug 30 2007 - 0.6.1
 - re enable --resolve in yumdownloader (cobbler repo mgmt feature)

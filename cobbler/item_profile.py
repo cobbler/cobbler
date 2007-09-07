@@ -44,6 +44,7 @@ class Profile(item.Item):
         self.depth           = 1
         self.virt_type       = (self.settings.default_virt_type,  '<<inherit>>')[is_subobject]
         self.virt_path       = ("",                               '<<inherit>>')[is_subobject]
+        self.dhcp_tag        = ("default",                        '<<inherit>>')[is_subobject]
 
     def from_datastruct(self,seed_data):
         """
@@ -58,6 +59,7 @@ class Profile(item.Item):
         self.ks_meta         = self.load_item(seed_data,'ks_meta')
         self.repos           = self.load_item(seed_data,'repos', [])
         self.depth           = self.load_item(seed_data,'depth', 1)     
+        self.dhcp_tag        = self.load_item(seed_data,'dhcp_tag', 'default')
  
         # backwards compatibility
         if type(self.repos) != list:
@@ -111,6 +113,10 @@ class Profile(item.Item):
             self.depth  = d.depth +1 # reset depth if previously a subprofile and now top-level
             return True
         raise CX(_("distribution not found"))
+
+    def set_dhcp_tag(self,dhcp_tag):
+        self.dhcp_tag = dhcp_tag
+        return True
 
     def set_repos(self,repos):
 
@@ -270,7 +276,8 @@ class Profile(item.Item):
             'parent'           : self.parent,
             'depth'            : self.depth,
             'virt_type'        : self.virt_type,
-            'virt_path'        : self.virt_path
+            'virt_path'        : self.virt_path,
+            'dhcp_tag'         : self.dhcp_tag
         }
 
     def printable(self):
@@ -287,5 +294,6 @@ class Profile(item.Item):
         buf = buf + _("virt type       : %s\n") % self.virt_type
         buf = buf + _("virt path       : %s\n") % self.virt_path
         buf = buf + _("repos           : %s\n") % self.repos
+        buf = buf + _("dhcp tag        : %s\n") % self.dhcp_tag
         return buf
 

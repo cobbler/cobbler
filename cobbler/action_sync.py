@@ -131,7 +131,8 @@ class BootSync:
         # from those that care about Itanium.
         elilo = os.path.basename(self.settings.bootloaders["ia64"])
 
-        system_definitions = ""
+
+        system_definitions = {}
         counter = 0
         for system in self.systems:
             mac = system.get_mac_address()
@@ -178,15 +179,24 @@ class BootSync:
                     else:
                         systxt = ""
 
-            system_definitions = system_definitions + systxt
+            if not system_definitions.has_key(system.dhcp_tag):
+                system_definitions[system.dhcp_tag] = ""
+            system_definitions[system.dhcp_tag] = system_definitions[system.dhcp_tag] + systxt
 
         metadata = {
-           "insert_cobbler_system_definitions" : system_definitions,
+           "insert_cobbler_system_definitions" : system_definitions.get("default",""),
            "date"           : time.asctime(time.gmtime()),
            "cobbler_server" : self.settings.server,
            "next_server"    : self.settings.next_server,
            "elilo"          : elilo
         }
+
+        # now add in other DHCP expansions that are not tagged with "default"
+        for x in system_definitions.keys():
+            if x == "default":
+                continue
+            metadata["insert_cobbler_system_definitions_%s" % x] = system_definitions[x]   
+
         self.apply_template(template_data, metadata, settings_file)
 
     def regen_ethers(self):

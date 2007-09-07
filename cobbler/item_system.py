@@ -39,6 +39,7 @@ class System(item.Item):
         self.netboot_enabled = (1,        '<<inherit>>')[is_subobject] 
         self.hostname        = ("",       '<<inheirt>>')[is_subobject]
         self.depth           = 2
+        self.dhcp_tag        = "default"
         self.kickstart       = "<<inherit>>"   # use value in profile
         self.virt_path       = "<<inherit>>"   # use value in profile
         self.virt_type       = "<<inherit>>"   # use value in profile 
@@ -54,6 +55,7 @@ class System(item.Item):
         self.kickstart       = self.load_item(seed_data, 'kickstart', '<<inherit>>')
         self.virt_path       = self.load_item(seed_data, 'virt_path', '<<inherit>>') 
         self.virt_type       = self.load_item(seed_data, 'virt_type', '<<inherit>>')
+        self.dhcp_tag        = self.load_item(seed_data, 'dhcp_tag', 'default')
 
         # backwards compat, load --ip-address from two possible sources.
         # the old --pxe-address was a bit of a misnomer, new value is --ip-address
@@ -153,6 +155,10 @@ class System(item.Item):
         ip  = self.get_ip_address()
         if mac is None and ip is None:
            return False
+        return True
+
+    def set_dhcp_tag(self,dhcp_tag):
+        self.dhcp_tag = dhcp_tag
         return True
 
     def set_hostname(self,hostname):
@@ -274,7 +280,8 @@ class System(item.Item):
            'depth'           : self.depth,
            'kickstart'       : self.kickstart,
            'virt_type'       : self.virt_type,
-           'virt_path'       : self.virt_path
+           'virt_path'       : self.virt_path,
+           'dhcp_tag'        : self.dhcp_tag
         }
 
     def printable(self):
@@ -291,5 +298,6 @@ class System(item.Item):
         buf = buf + _("kickstart        : %s\n") % self.kickstart
         buf = buf + _("virt type        : %s\n") % self.virt_type
         buf = buf + _("virt path        : %s\n") % self.virt_path
+        buf = buf + _("dhcp tag         : %s\n") % self.dhcp_tag
         return buf
 

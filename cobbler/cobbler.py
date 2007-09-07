@@ -442,7 +442,8 @@ class BootCLI:
             '--ksmeta'          :  lambda(a) : profile.set_ksmeta(a),
             '--repos'           :  lambda(a) : profile.set_repos(a),
             '--virt-path'       :  lambda(a) : profile.set_virt_path(a),
-            '--virt-type'       :  lambda(a) : profile.set_virt_type(a)
+            '--virt-type'       :  lambda(a) : profile.set_virt_type(a),
+            '--dhcp-tag'        :  lambda(a) : profile.set_dhcp_tag(a)
         }
         def on_ok():
             if newname is not None:
@@ -494,23 +495,24 @@ class BootCLI:
         Create/Edit a system:  'cobbler system edit --name='foo' ...
         """
         commands = {
-           '--name'        :  lambda(a) : sys.set_name(a),
-           '--newname'     :  lambda(a) : True,
-           '--system'      :  lambda(a) : sys.set_name(a),
-           '--profile'     :  lambda(a) : sys.set_profile(a),
-           '--kopts'       :  lambda(a) : sys.set_kernel_options(a),
-           '--ksmeta'      :  lambda(a) : sys.set_ksmeta(a),
-           '--hostname'    :  lambda(a) : sys.set_hostname(a),
-           '--pxe-address' :  lambda(a) : sys.set_ip_address(a),  # deprecated
-           '--ip-address'  :  lambda(a) : sys.set_ip_address(a),
-           '--ip'          :  lambda(a) : sys.set_ip_address(a),  # alias
-           '--mac-address' :  lambda(a) : sys.set_mac_address(a),
-           '--mac'         :  lambda(a) : sys.set_mac_address(a), # alias
-           '--kickstart'   :  lambda(a) : sys.set_kickstart(a),
-           '--kick-start'  :  lambda(a) : sys.set_kickstart(a),
+           '--name'        :     lambda(a) : sys.set_name(a),
+           '--newname'     :     lambda(a) : True,
+           '--system'      :     lambda(a) : sys.set_name(a),
+           '--profile'     :     lambda(a) : sys.set_profile(a),
+           '--kopts'       :     lambda(a) : sys.set_kernel_options(a),
+           '--ksmeta'      :     lambda(a) : sys.set_ksmeta(a),
+           '--hostname'    :     lambda(a) : sys.set_hostname(a),
+           '--pxe-address' :     lambda(a) : sys.set_ip_address(a),  # deprecated
+           '--ip-address'  :     lambda(a) : sys.set_ip_address(a),
+           '--ip'          :     lambda(a) : sys.set_ip_address(a),  # alias
+           '--mac-address' :     lambda(a) : sys.set_mac_address(a),
+           '--mac'         :     lambda(a) : sys.set_mac_address(a), # alias
+           '--kickstart'   :     lambda(a) : sys.set_kickstart(a),
+           '--kick-start'  :     lambda(a) : sys.set_kickstart(a),
            '--netboot-enabled' : lambda(a) : sys.set_netboot_enabled(a),
-           '--virt-path'   :  lambda(a) : sys.set_virt_path(a),
-           '--virt-type'   :  lambda(a) : sys.set_virt_type(a)
+           '--virt-path'   :     lambda(a) : sys.set_virt_path(a),
+           '--virt-type'   :     lambda(a) : sys.set_virt_type(a),
+           '--dhcp-tag'    :     lambda(a) : sys.set_dhcp_tag(a)
         }
         def on_ok():
             self.api.systems().add(sys, with_copy=True)
