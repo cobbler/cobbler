@@ -219,7 +219,7 @@ class Koan:
         self.is_virt           = None
         self.is_replace        = None
         self.dryrun            = None
-        self.port              = 25151
+        self.port              = 25151 
         self.virt_name         = None
         self.virt_type         = None
         self.virt_path         = None 
@@ -262,7 +262,7 @@ class Koan:
             # that we should be connected to
 
             self.server = server
-            url = "http://%s:%s" % (server, self.port)
+            url = "http://%s:80/cobbler_api" % (server)
  
             # make a sample call to check for connectivity
             # we use this as opposed to version as version was not
@@ -270,9 +270,17 @@ class Koan:
 
             try:
                 if uses_avahi:
-                    print "- attempting to connect to: %s" % server
-                self.xmlrpc_server = ServerProxy(url)
-                self.xmlrpc_server.get_profiles()
+                    print "- connecting to: %s" % server
+                try:
+                    # first try port 80
+                    self.xmlrpc_server = ServerProxy(url)
+                    self.xmlrpc_server.get_profiles()
+                except:
+                    # now try specified port in case Apache proxying
+                    # is not configured
+                    url = "http://%s:%s" % (server, self.port)
+                    self.xmlrpc_server = ServerProxy(url)
+                    self.xmlrpc_server.get_profiles()
                 connect_ok = True
                 break
             except:

@@ -5,6 +5,7 @@ Koan CHANGELOG
 - Allow for multiple virt file sizes
 - Refactoring around the virt bits
 - Remove legacy sys.path hack as enchant has been removed (just use SSH)
+- Try port 80 proxied XMLRPC by default (first) before trying 25151 
 
 * Thu Aug 30 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.1-1
 - Bridged networking control options (--virt-bridge)
