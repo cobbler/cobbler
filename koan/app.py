@@ -1207,6 +1207,8 @@ class Koan:
             print "(%s)" % freespace_str
             freespace = int(float(freespace_str))
 
+            virt_size = self.calc_virt_filesize(pd)
+
             if len(virt_size) > offset:
                 virt_size = sizes[offset] 
             else:
