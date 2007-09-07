@@ -76,7 +76,7 @@ class Repo(item.Item):
         if type(keep_updated) == bool:
             self.keep_updated = keep_updated
             return True
-        if not keep_updated.lower() in ["yes","y","yup","yeah","1","true"]:  
+        if not str(keep_updated).lower() in ["yes","y","yup","yeah","1","true"]:  
             self.keep_updated = False
         else:
             self.keep_updated = True
