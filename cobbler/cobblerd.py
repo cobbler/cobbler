@@ -111,7 +111,7 @@ def do_xmlrpc(bootapi, settings, port, logger):
 def do_xmlrpc_rw(bootapi,settings,port,logger):
    
     xinterface = remote.CobblerReadWriteXMLRPCInterface(bootapi,logger)
-    server = remote.CobblerReadWriteXMLRPCServer(('', port))
+    server = remote.CobblerReadWriteXMLRPCServer(('127.0.0.1', port))
     server.logRequests = 0  # don't print stuff
     log(logger, "XMLRPC (read-write variant) running on %s" % port)
     server.register_instance(xinterface)
