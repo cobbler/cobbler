@@ -12,6 +12,7 @@ Cobbler CHANGELOG
 - patch to allow for reposync of specific repos, even if not set to update
 - added --dhcp-tag section for better DHCP customization (esp with multiple subnets)
 - added Apache proxying around XMLRPC port for wider network access
+- refactor XMLRPC API and provide for a read-write API
  
 * Thu Aug 30 2007 - 0.6.1
 - re enable --resolve in yumdownloader (cobbler repo mgmt feature)

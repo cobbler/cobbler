@@ -23,30 +23,52 @@ import api as cobbler_api
 import yaml # Howell Clark version
 import utils
 import sub_process
+import remote
 
 def main():
    core(logger=None)
 
 def core(logger=None):
 
-    bootapi     = cobbler_api.BootAPI()
-    settings    = bootapi.settings()
-    syslog_port = settings.syslog_port
-    xmlrpc_port = settings.xmlrpc_port
+    bootapi      = cobbler_api.BootAPI()
+    settings     = bootapi.settings()
+    syslog_port  = settings.syslog_port
+    xmlrpc_port  = settings.xmlrpc_port
+    xmlrpc_port2 = settings.xmlrpc_rw_port
 
     pid = os.fork()
 
     if pid == 0:
-        do_xmlrpc(bootapi, settings, xmlrpc_port, logger)
+        # part one: XMLRPC -- which may be just read-only or both read-only and read-write
+        do_xmlrpc_tasks(bootapi, settings, xmlrpc_port, xmlrpc_port2, logger)
     else:
-        if os.path.exists("/usr/bin/avahi-publish-service"):
-           pid2 = os.fork()
-           if pid2 == 0:
-               do_syslog(bootapi, settings, syslog_port, logger)
-           else:
-               do_avahi(bootapi, settings, logger)
+        # part two: syslog, or syslog+avahi if avahi is installed
+        do_other_tasks(bootapi, settings, syslog_port, logger)
+
+def do_xmlrpc_tasks(bootapi, settings, xmlrpc_port, xmlrpc_port2, logger):
+    if str(settings.xmlrpc_rw_enabled) != "0":
+        pid2 = os.fork()
+        if pid2 == 0:
+            do_xmlrpc(bootapi, settings, xmlrpc_port, logger)
         else:
+            do_xmlrpc_rw(bootapi, settings, xmlrpc_port2, logger)
+    else:
+        do_xmlrpc(bootapi, settings, xmlrpc_port, logger)
+
+
+def do_other_tasks(bootapi, settings, syslog_port, logger):
+
+    # FUTURE: this should also start the Web UI, if the dependencies
+    # are available.
+ 
+    if os.path.exists("/usr/bin/avahi-publish-service"):
+        pid2 = os.fork()
+        if pid2 == 0:
            do_syslog(bootapi, settings, syslog_port, logger)
+        else:
+           do_avahi(bootapi, settings, logger)
+    else:
+        do_syslog(bootapi, settings, syslog_port, logger)
 
 
 def log(logger,msg):
@@ -69,8 +91,11 @@ def do_avahi(bootapi, settings, logger):
 
 def do_xmlrpc(bootapi, settings, port, logger):
 
-    xinterface = CobblerXMLRPCInterface(bootapi,logger)
-    server = CobblerXMLRPCServer(('', port))
+    # This is the simple XMLRPC API we provide to koan and other
+    # apps that do not need to manage Cobbler's config
+
+    xinterface = remote.CobblerXMLRPCInterface(bootapi,logger)
+    server = remote.CobblerXMLRPCServer(('', port))
     server.logRequests = 0  # don't print stuff
     log(logger, "XMLRPC running on %s" % port)
     server.register_instance(xinterface)
@@ -81,7 +106,21 @@ def do_xmlrpc(bootapi, settings, port, logger):
         except IOError:
             # interrupted? try to serve again
             time.sleep(0.5)
-             
+
+def do_xmlrpc_rw(bootapi,settings,port,logger):
+   
+    xinterface = remote.CobblerReadWriteXMLRPCInterface(bootapi,logger)
+    server = remote.CobblerReadWriteXMLRPCServer(('', port))
+    server.logRequests = 0  # don't print stuff
+    log(logger, "XMLRPC (read-write variant) running on %s" % port)
+    server.register_instance(xinterface)
+
+    while True:
+        try:
+            server.serve_forever()
+        except IOError:
+            # interrupted? try to serve again
+            time.sleep(0.5)
 
 def do_syslog(bootapi, settings, port, logger):
 
@@ -115,139 +154,6 @@ def do_syslog(bootapi, settings, port, logger):
             logfile.write(data)
             logfile.write("\n")
             logfile.close()
-
-# FIXME: somewhat inefficient as it reloads the configs each time
-# better to watch files for changes?
-
-class CobblerXMLRPCInterface:
-
-    def __init__(self,api,logger):
-        self.api = api
-        self.logger = logger
-
-    def __sorter(self,a,b):
-        return cmp(a["name"],b["name"])
-
-    def get_settings(self):
-        self.api.clear()
-        self.api.deserialize()
-        data = self.api.settings().to_datastruct()
-        return self.fix_none(data)
- 
-    def disable_netboot(self,name):
-        # used by nopxe.cgi
-        self.api.clear()
-        self.api.deserialize()
-        if not self.api.settings().pxe_just_once:
-            # feature disabled!
-            return False
-        systems = self.api.systems()
-        obj = systems.find(name=name)
-        if obj == None:
-            # system not found!
-            return False
-        obj.set_netboot_enabled(0)
-        systems.add(obj,with_copy=True)
-        return True
-
-    def __get_all(self,collection):
-        self.api.clear() 
-        self.api.deserialize()
-        data = collection.to_datastruct()
-        data.sort(self.__sorter)
-        return self.fix_none(data)
-
-    def version(self):
-        return self.api.version()
-
-    def get_distros(self):
-        return self.__get_all(self.api.distros())
-
-    def get_profiles(self):
-        return self.__get_all(self.api.profiles())
-
-    def get_systems(self):
-        return self.__get_all(self.api.systems())
-
-    def __get_specific(self,collection,name):
-        self.api.clear() 
-        self.api.deserialize()
-        item = collection.find(name=name)
-        if item is None:
-            return self.fix_none({})
-        return self.fix_none(item.to_datastruct())
-
-    def get_distro(self,name):
-        return self.__get_specific(self.api.distros(),name)
-
-    def get_profile(self,name):
-        return self.__get_specific(self.api.profiles(),name)
-
-    def get_system(self,name):
-        name = self.fix_system_name(name)
-        return self.__get_specific(self.api.systems(),name)
-
-    def get_repo(self,name):
-        return self.__get_specific(self.api.repos(),name)
-
-    def get_distro_for_koan(self,name):
-        self.api.clear() 
-        self.api.deserialize()
-        obj = self.api.distros().find(name=name)
-        if obj is not None:
-            return self.fix_none(utils.blender(True, obj))
-        return self.fix_none({})
-
-    def get_profile_for_koan(self,name):
-        self.api.clear() 
-        self.api.deserialize()
-        obj = self.api.profiles().find(name=name)
-        if obj is not None:
-            return self.fix_none(utils.blender(True, obj))
-        return self.fix_none({})
-
-    def get_system_for_koan(self,name):
-        self.api.clear() 
-        self.api.deserialize()
-        obj = self.api.systems().find(name=name)
-        if obj is not None:
-           return self.fix_none(utils.blender(True, obj))
-        return self.fix_none({})
-
-    def get_repo_for_koan(self,name):
-        self.api.clear() 
-        self.api.deserialize()
-        obj = self.api.repos().find(name=name)
-        if obj is not None:
-            return self.fix_none(utils.blender(True, obj))
-        return self.fix_none({})
-
-    def fix_none(self,data,recurse=False):
-        """
-        Convert None in XMLRPC to just '~'.  Above hack should
-        do this, but let's make extra sure.
-        """
-
-        if data is None:
-            data = '~'
-
-        elif type(data) == list:
-            data = [ self.fix_none(x,recurse=True) for x in data ]
-
-        elif type(data) == dict:
-            for key in data.keys():
-               data[key] = self.fix_none(data[key],recurse=True)
-
-        return data
-
-
-
-class CobblerXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
-
-    def __init__(self, args):
-        self.allow_reuse_address = True
-        SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self,args)
-
 
 if __name__ == "__main__":
 
