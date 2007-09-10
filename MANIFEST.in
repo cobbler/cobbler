@@ -7,6 +7,7 @@ include config/cobblerd
 include config/cobblerd_rotate
 include config/cobbler_hosts
 include config/modules.conf
+include config/auth.conf
 recursive-include templates *.template
 recursive-include kickstarts *.ks
 include docs/cobbler.1.gz

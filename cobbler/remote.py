@@ -23,12 +23,21 @@ from rhpl.translate import _, N_, textdomain, utf8
 import xmlrpclib
 import logging
 import base64
+import ConfigParser
 
 import api as cobbler_api
 import yaml # Howell Clark version
 import utils
 from cexceptions import *
 import sub_process
+
+config_parser = ConfigParser.ConfigParser()
+auth_conf = open("/etc/cobbler/auth.conf")
+config_parser.readfp(auth_conf)
+auth_conf.close()
+
+user_database = config_parser.items("xmlrpc_service_users")
+
 
 # FIXME: make configurable?
 TOKEN_TIMEOUT = 60*60 # 60 minutes
@@ -281,10 +290,15 @@ class CobblerReadWriteXMLRPCInterface:
         Returns whether this user/pass combo should be given
         access to the cobbler read-write API.
 
-        FIXME: always returns True, implement this.
+        FIXME: currently looks for users in /etc/cobbler/auth.conf
+        Would be very nice to allow for PAM and/or just Kerberos.
         """
-        if user == "exampleuser":
-            return True
+        for x in user_database:
+            (db_user,db_password) = x
+            db_user     = db_user.strip()
+            db_password = db_password.strip()
+            if db_user == user and db_password == password and db_password.lower() != "disabled":
+                return True
         else:
             return False
 
@@ -334,6 +348,9 @@ class CobblerReadWriteXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
 
 if __name__ == "__main__":
 
+    testuser = "mdehaan"
+    testpass = "llamas2007"
+
     logger = logging.getLogger("cobbler.cobblerd")
     logger.setLevel(logging.DEBUG)
     ch = logging.FileHandler("/var/log/cobbler/cobblerd.log")
@@ -344,7 +361,7 @@ if __name__ == "__main__":
     api = cobbler_api.BootAPI()
 
     remote = CobblerReadWriteXMLRPCInterface(api,logger)
-    token = remote.login("exampleuser","examplepass")
+    token = remote.login(testuser,testpass)
     print token
     rc = remote.test(token)
     print "test result: %s" % rc
