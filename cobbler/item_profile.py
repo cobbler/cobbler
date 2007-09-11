@@ -297,3 +297,20 @@ class Profile(item.Item):
         buf = buf + _("dhcp tag        : %s\n") % self.dhcp_tag
         return buf
 
+    def remote_methods(self):
+        return {           
+            'name'            :  self.set_name,
+            'inherit'         :  self.set_parent,
+            'profile'         :  self.set_name,
+            'distro'          :  self.set_distro,
+            'kickstart'       :  self.set_kickstart,
+            'kopts'           :  self.set_kernel_options,
+            'virt-file-size'  :  self.set_virt_file_size,
+            'virt-ram'        :  self.set_virt_ram,
+            'ksmeta'          :  self.set_ksmeta,
+            'repos'           :  self.set_repos,
+            'virt-path'       :  self.set_virt_path,
+            'virt-type'       :  self.set_virt_type,
+            'dhcp-tag'        :  self.set_dhcp_tag
+        }
+

@@ -170,3 +170,13 @@ class Repo(item.Item):
         else:
             return True
 
+    def remote_methods(self):
+        return {
+            'name'             :  self.set_name,
+            'mirror-name'      :  self.set_name,
+            'mirror'           :  self.set_mirror,
+            'keep-updated'     :  self.set_keep_updated,
+            'local-filename'   :  self.set_local_filename,
+            'rpm-list'         :  self.set_rpm_list,
+            'createrepo-flags' :  self.set_createrepo_flags
+        }

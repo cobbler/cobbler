@@ -160,7 +160,8 @@ class BootSync:
                 systxt = systxt + "    hardware ethernet %s;\n" % mac
                 if system.get_ip_address() != None:
                     systxt = systxt + "    fixed-address %s;\n" % system.get_ip_address()
-                systxt = systxt + "    next-server %s;\n" % self.settings.next_server
+                # not needed, as it's in the template.
+                # systxt = systxt + "    next-server %s;\n" % self.settings.next_server
                 systxt = systxt + "}\n"
 
             else:

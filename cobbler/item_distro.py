@@ -180,3 +180,15 @@ class Distro(item.Item):
         buf = buf + _("breed           : %s\n") % self.breed
         return buf
 
+    def remote_methods(self):
+        return {
+            'name'    :  self.set_name,
+            'kernel'  :  self.set_kernel,
+            'initrd'  :  self.set_initrd,
+            'kopts'   :  self.set_kernel_options,
+            'arch'    :  self.set_arch,
+            'ksmeta'  :  self.set_ksmeta,
+            'breed'   :  self.set_breed
+        }
+
+

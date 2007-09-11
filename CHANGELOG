@@ -12,7 +12,7 @@ Cobbler CHANGELOG
 - patch to allow for reposync of specific repos, even if not set to update
 - added --dhcp-tag section for better DHCP customization (esp with multiple subnets)
 - added Apache proxying around XMLRPC port for wider network access
-- refactor XMLRPC API and provide for a read-write API
+- refactor XMLRPC API and establish a read-write API
 - allow for configuring of read-write XMLRPC users in /etc/cobbler/auth.conf
  
 * Thu Aug 30 2007 - 0.6.1

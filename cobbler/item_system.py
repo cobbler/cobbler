@@ -301,3 +301,21 @@ class System(item.Item):
         buf = buf + _("dhcp tag         : %s\n") % self.dhcp_tag
         return buf
 
+    def remote_methods(self):
+        return {
+           'name'            : self.set_name,
+           'profile'         : self.set_profile,
+           'kopts'           : self.set_kernel_options,
+           'ksmeta'          : self.set_ksmeta,
+           'hostname'        : self.set_hostname,
+           'ip-address'      : self.set_ip_address,
+           'ip'              : self.set_ip_address,  # alias
+           'mac-address'     : self.set_mac_address,
+           'mac'             : self.set_mac_address, # alias
+           'kickstart'       : self.set_kickstart,
+           'netboot-enabled' : self.set_netboot_enabled,
+           'virt-path'       : self.set_virt_path,
+           'virt-type'       : self.set_virt_type,
+           'dhcp-tag'        : self.set_dhcp_tag
+        }
+
