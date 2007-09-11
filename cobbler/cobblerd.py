@@ -87,7 +87,7 @@ def do_avahi(bootapi, settings, logger):
             "%s" % settings.xmlrpc_port ]
     proc = sub_process.Popen(cmd, shell=False, stderr=sub_process.PIPE, stdout=sub_process.PIPE)
     proc.communicate()[0]
-    log(logger, "avahi service terminated: %d" % result) 
+    log(logger, "avahi service terminated") 
 
 
 def do_xmlrpc(bootapi, settings, port, logger):

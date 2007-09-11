@@ -696,16 +696,6 @@ if __name__ == "__main__":
     testuser = "testuser"
     testpass = "llamas2007"
 
-    logger = logging.getLogger("cobbler.cobblerd")
-    logger.setLevel(logging.DEBUG)
-    ch = logging.FileHandler("/var/log/cobbler/cobblerd.log")
-    ch.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-    api = cobbler_api.BootAPI()
-
-    remote = CobblerReadWriteXMLRPCInterface(api,logger)
     token = remote.login(testuser,testpass)
     print token
     rc = remote.test(token)
@@ -760,10 +750,6 @@ if __name__ == "__main__":
 
     # now simulate hitting a "sync" button in a WebUI
     print remote.sync(token)
-
-    # some debug that isn't possible with a real remote connection
-    print remote.object_cache
-    print remote.token_cache
 
     # the following code just tests a failed connection:
     #remote = CobblerReadWriteXMLRPCInterface(api,logger)
