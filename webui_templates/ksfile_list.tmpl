@@ -1,0 +1,33 @@
+#extends cobbler.webui.master
+
+#block body
+<table class="sortable">
+    <thead>
+        <caption>Cobbler Kickstart Files</caption>
+        <tr>
+            <th class="text">Name</th>
+            <th> </th>
+        </tr>
+    </thead>
+    <tbody>
+        #set $evenodd = 1
+        #for $ksfile in $ksfiles
+        #if $evenodd % 2 == 0
+            #set $tr_class = "roweven"
+        #else
+            #set $tr_class = "rowodd"
+        #end if
+        #set $evenodd += 1
+
+        <tr class="$tr_class">
+            <td>$ksfile</td>
+            <td><!-- 
+                <a href="/ksfile_edit?ksfile=$ksfile">edit</a>
+                <a href="/ksfile_view?ksfile=$ksfile">view</a>
+                -->
+            </td>
+        </tr>
+        #end for
+    </tbody>
+</table>
+#end block body

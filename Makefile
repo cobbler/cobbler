@@ -20,7 +20,7 @@ test: install
 build: clean messages
 	python setup.py build -f
 
-install: clean
+install: clean manpage
 	python setup.py install -f
 
 sdist: clean messages

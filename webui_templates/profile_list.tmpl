@@ -1,0 +1,33 @@
+#extends cobbler.webui.master
+
+#block body
+<table class="sortable">
+    <thead>
+        <caption>Cobbler Profiles</caption>
+        <tr>
+            <th class="text">Name</th>
+            <th class="text">Distribution</th>
+            <th class="text">KS File</th>
+        </tr>
+    </thead>
+    <tbody>
+        #set $evenodd = 1
+        #for $profile in $profiles
+        #if $evenodd % 2 == 0
+            #set $tr_class = "roweven"
+        #else
+            #set $tr_class = "rowodd"
+        #end if
+        #set $evenodd += 1
+
+        <tr class="$tr_class">
+            <td>$profile.name</td>
+            <td>
+                <a href="$base_url/distro_view?distribution=$profile.distro">$profile.distro</a>
+            </td>
+            <td>$profile.kickstart</td>
+        </tr>
+        #end for
+    </tbody>
+</table>
+#end block body

@@ -72,6 +72,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(2744,apache,apache)
 /var/www/cgi-bin/findks.cgi
 /var/www/cgi-bin/nopxe.cgi
+/var/www/cgi-bin/cobbler_webui.cgi
+%dir /usr/share/cobbler/webui_templates
+/usr/share/cobbler/webui_templates/*.tmpl
 %dir /var/log/cobbler
 %dir /var/log/cobbler/kicklog
 %dir /var/www/cobbler/
@@ -86,6 +89,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cobbler/profiles
 %dir /var/www/cobbler/systems
 %dir /var/www/cobbler/links
+%dir /var/www/cobbler/webui
+/var/www/cobbler/webui/*.css
+/var/www/cobbler/webui/*.png
 %defattr(-,root,root)
 %dir /tftpboot/pxelinux.cfg
 %dir /tftpboot/images
@@ -105,12 +111,15 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/cobbler/rsync.exclude
 %config(noreplace) /etc/logrotate.d/cobblerd_rotate
 %config(noreplace) /etc/cobbler/modules.conf
+%config(noreplace) /etc/cobbler/webui-cherrypy.cfg
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/yaml
 %dir %{python_sitelib}/cobbler/modules
+%dir %{python_sitelib}/cobbler/webui
 %{python_sitelib}/cobbler/*.py*
 %{python_sitelib}/cobbler/yaml/*.py*
 %{python_sitelib}/cobbler/modules/*.py*
+%{python_sitelib}/cobbler/webui/*.py*
 %{_mandir}/man1/cobbler.1.gz
 /etc/init.d/cobblerd
 %config(noreplace) /etc/httpd/conf.d/cobbler.conf

@@ -1,0 +1,35 @@
+#extends cobbler.webui.master
+
+#block body
+<table class="sortable">
+    <thead>
+        <caption>Cobbler Systems</caption>
+        <tr>
+            <th class="text">Name</th>
+            <th class="text">Distribution</th>
+            <th class="nosort"> </th>
+        </tr>
+    </thead>
+    <tbody>
+        #set $evenodd = 1
+        #for $system in $systems
+        #if $evenodd % 2 == 0
+            #set $tr_class = "roweven"
+        #else
+            #set $tr_class = "rowodd"
+        #end if
+        #set $evenodd += 1
+
+        <tr class="$tr_class">
+            <td>${system.name}</td>
+            <td>
+                <a href="$base_url/distro_view?distribution=${system.distro}">${system.distro}</a>
+            </td>
+            <td>
+                <a href="$base_url/system_edit?name=${system.name}">edit</a>
+            </td>
+        </tr>
+        #end for
+    </tbody>
+</table>
+#end block body

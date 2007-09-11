@@ -17,11 +17,13 @@ if __name__ == "__main__":
         etcpath  = "/etc/cobbler/"
         wwwconf  = "/etc/httpd/conf.d/"
         wwwpath  = "/var/www/cobbler/"
+        wwwgfx   = "/var/www/cobbler/webui/"
         initpath = "/etc/init.d/"
         logpath  = "/var/log/cobbler/"
         logpath2 = "/var/log/cobbler/kicklog"
         logpath3 = "/var/log/cobbler/syslog"
         snippets = "/var/lib/cobbler/snippets"
+        wwwtmpl  = "/usr/share/cobbler/webui_templates/"
         vw_localmirror = "/var/www/cobbler/localmirror"
         vw_kickstarts  = "/var/www/cobbler/kickstarts"
         vw_kickstarts_sys  = "/var/www/cobbler/kickstarts_sys"
@@ -48,34 +50,55 @@ if __name__ == "__main__":
                     "cobbler",
                     "cobbler/yaml",
                     "cobbler/modules", 
+                    "cobbler/webui",
                 ],
                 scripts = ["scripts/cobbler", "scripts/cobblerd"],
                 data_files = [ 
+                                
+                                # cgi files
                                 (cgipath,  ['scripts/findks.cgi', 'scripts/nopxe.cgi']),
+                                (cgipath,  ['scripts/cobbler_webui.cgi']),
+ 
+                                # miscellaneous config files
                                 (rotpath,  ['config/cobblerd_rotate']),
                                 (wwwconf,  ['config/cobbler.conf']),
+                                (cobpath,  ['config/cobbler_hosts']),
+                                (etcpath,  ['config/modules.conf']),
+                                (etcpath,  ['config/auth.conf']),
+                                (etcpath,  ['config/webui-cherrypy.cfg']),
+                                (etcpath,  ['config/rsync.exclude']),
+                                (initpath, ['config/cobblerd']),
+
+                                # bootloaders and syslinux support files
                                 (cobpath,  ['loaders/elilo-3.6-ia64.efi']),
                                 (cobpath,  ['loaders/menu.c32']),
-                                (cobpath,  ['config/cobbler_hosts']),
+
+                                # sample kickstart files
                                 (etcpath,  ['kickstarts/kickstart_fc5.ks']),
                                 (etcpath,  ['kickstarts/kickstart_fc6.ks']),
                                 (etcpath,  ['kickstarts/kickstart_fc6_domU.ks']),
                                 (etcpath,  ['kickstarts/default.ks']),
+ 
+                                # templates for DHCP and syslinux configs
 				(etcpath,  ['templates/dhcp.template']),
 				(etcpath,  ['templates/dnsmasq.template']),
 				(etcpath,  ['templates/pxedefault.template']),
 				(etcpath,  ['templates/pxesystem.template']),
 				(etcpath,  ['templates/pxesystem_ia64.template']),
 				(etcpath,  ['templates/pxeprofile.template']),
-                                (etcpath,  ['config/modules.conf']),
-                                (etcpath,  ['config/auth.conf']),
+
+                                # useful kickstart snippets that we ship
                                 (snippets, ['snippets/partition_select']),
+
+                                # documentation
                                 (manpath,  ['docs/cobbler.1.gz']),
-                                (etcpath,  ['config/rsync.exclude']),
-                                (initpath, ['config/cobblerd']),
+
+                                # logfiles
                                 (logpath,  []),
                                 (logpath2, []),
                                 (logpath3, []),
+
+                                # web page directories that we own
                                 (vw_localmirror,    []),
                                 (vw_kickstarts,     []),
                                 (vw_kickstarts_sys, []),
@@ -87,8 +110,39 @@ if __name__ == "__main__":
                                 (vw_systems,        []),
                                 (vw_profiles,       []),
                                 (vw_links,          []),
+
+                                # tftp directories that we own
                                 (tftp_cfg,          []),
                                 (tftp_images,       []),
+
+                                # Web UI templates for object viewing & modification
+                                # FIXME: other templates to add as they are created.
+                                # slurp in whole directory?
+                                (wwwtmpl,           ['webui_templates/distro_list.tmpl']),
+                                (wwwtmpl,           ['webui_templates/profile_list.tmpl']),
+                                (wwwtmpl,           ['webui_templates/profile_add.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_list.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_edit.tmpl']),
+                                #(wwwtmpl,           ['webui_templates/repo_list.tmpl']),
+
+                                # Web UI common templates 
+                                (wwwtmpl,           ['webui_templates/error_page.tmpl']),
+                                (wwwtmpl,           ['webui_templates/master.tmpl']),
+                                (wwwtmpl,           ['webui_templates/item.tmpl']),
+                                (wwwtmpl,           ['webui_templates/index.tmpl']),
+
+                                # Web UI kickstart file editing
+                                (wwwtmpl,           ['webui_templates/ksfile_edit.tmpl']),
+                                (wwwtmpl,           ['webui_templates/ksfile_list.tmpl']),
+                                (wwwtmpl,           ['webui_templates/ksfile_view.tmpl']),
+
+                                # Web UI support files
+                                (wwwgfx,            []),
+                                (wwwgfx,            ['webui_content/style.css']),
+                                (wwwgfx,            ['webui_content/logo-cobbler.png']),
+                                (wwwgfx,            ['webui_content/cobblerweb.css']),
+ 
+                                # Directories to hold cobbler triggers
                                 ("/var/lib/cobbler/triggers/add/distro/pre",      []),
                                 ("/var/lib/cobbler/triggers/add/distro/post",     []),
                                 ("/var/lib/cobbler/triggers/add/profile/pre",     []),

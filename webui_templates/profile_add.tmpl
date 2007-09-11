@@ -1,0 +1,45 @@
+#extends cobbler.webui.master
+
+#block body
+<form method="post" action="/profile_save">
+<fieldset id="cform">
+    <legend>Add a Profile</legend>
+
+<!--
+       cobbler profile add -name=string -distro=string [-kickstart=url]
+       [-kopts=string] [-ksmeta=string] [-virt-file-size=gigabytes]
+       [-virt-ram=megabytes] [-virt-type=string] [-virt-path=string]
+-->
+
+    <label for="name">Profile Name</label>
+    <input type="text" size="32" style="width: 150px;" name="name" id="name"/>
+    <br/>
+
+    <label for="distro">Distribution</label>
+    <select name="distro" id="distro">
+        #for $distro in $distros:
+        <option name="$distro.name">$distro.name</option>
+        #end for
+    </select>
+    <br/>
+
+    <label for="ksfile">Kickstart File</label>
+    <select name="ksfile" id="ksfile">
+        #for $ksfile in $ksfiles:
+        <option name="$ksfile">$ksfile</option>
+        #end for
+    </select>
+    <br/>
+
+    <label for="kopts">Kernel Options</label>
+    <input type="text" size="128" style="width: 150px;" name="kopts" id="kopts"/>
+    <br/>
+
+    <label for="ksmeta">Kickstart Metadata</label>
+    <input type="text" size="128" style="width: 150px;" name="ksmeta" id="ksmeta"/>
+    <br/>
+
+    <input type="submit" name="submit" value="Save"/>
+    <input type="reset" name="reset" value="Reset"/>
+</fieldset>
+#end block body

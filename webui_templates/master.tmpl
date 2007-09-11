@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xml:lang="en" lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+#attr $title = "Cobbler Web Interface"
+    <title>$title</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+
+    <link rel="stylesheet" type="text/css" media="all" href="/cobbler/webui/style.css" />
+    <link rel="stylesheet" type="text/css" media="all" href="/cobbler/webui/cobblerweb.css" />
+</head>
+
+<body>
+
+<div id="wrap">
+    <h1 id="masthead">
+        <a href="$base_url/index">
+            <img alt="Cobbler Logo"
+                 src="/cobbler/webui/logo-cobbler.png"/>
+        </a>
+    </h1>
+</div>
+
+<div id="main">
+
+<div id="sidebar">
+    <ul id="nav">
+        <li>
+            <select name="cobbler_server" style="text-transform: none;">
+                <option value="http://localhost:25151">http://localhost:25151</option>
+            </select>
+        </li>
+        <li><hr/></li>
+        <li><a href="$base_url/settings_view" class="menu">Cobbler Settings</a></li>
+        <li><hr/></li>
+        <li><a href="$base_url/profile_list" class="menu">List Profiles</a></li>
+        <li><a href="$base_url/distro_list" class="menu">List Distros</a></li>
+        <li><a href="$base_url/system_list" class="menu">List Systems</a></li>
+        <li><a href="$base_url/ksfile_list" class="menu">List KS Files</a></li>
+        <li><hr/></li>
+        <li><a href="$base_url/system_add" class="menu">Add System</a></li>
+        <li><a href="$base_url/profile_add" class="menu">Add Profile</a></li>
+    </ul>
+</div>
+
+<div id="content">
+#block body
+
+    <h1 style="color: red;">Template Failure</h1>
+
+#end block body
+</div><!-- content -->
+</div><!-- main -->
+
+</body>
+</html>

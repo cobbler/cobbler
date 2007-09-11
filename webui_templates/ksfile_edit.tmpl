@@ -1,0 +1,17 @@
+#extends cobbler.webui.master
+#attr $title = "Cobbler: Edit Kickstart File $ksfile"
+
+#block body
+<form method="post" action="$base_url/ksfile_save">
+    <input type="hidden" name="ksfile" value="$ksfile"/>
+    <fieldset id="cform">
+        <legend>Edit Kickstart File</legend>
+
+        <pre><textarea rows="40" cols="120" name="ksdata">$ksdata</textarea></pre>
+        <br/>
+
+        <input type="submit" name="submit" value="Save"/>
+        <input type="reset" name="reset" value="Reset"/>
+    </fieldset>
+</form>
+#end block body

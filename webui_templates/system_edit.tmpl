@@ -1,0 +1,48 @@
+#extends cobbler.webui.master
+
+#block body
+<form method="post" action="$base_url/system_save">
+<fieldset id="cform">
+    <legend>Add a System</legend>
+
+    <label for="name">System Name</label>
+    <input type="text" size="32" style="width: 150px;" name="name" id="name"/>
+    <br/>
+
+    <label for="profile">Profile</label>
+    <select name="profile" id="profile">
+        #for $profile in $profiles:
+        <option name="$profile.name">$profile.name</option>
+        #end for
+    </select>
+    <br/>
+
+    <label for="mac">MAC</label>
+    <input type="text" size="18" style="width: 150px;" name="mac" id="mac"/>
+    <br/>
+
+    <label for="ip">IP</label>
+    <input type="text" size="15" style="width: 150px;" name="ip" id="ip"/>
+    <br/>
+
+    <label for="hostname">Hostname</label>
+    <input type="text" size="128" style="width: 150px;" name="hostname" id="hostname"/>
+    <br/>
+
+    <label for="kopts">Kernel Options</label>
+    <input type="text" size="128" style="width: 150px;" name="kopts" id="kopts"/>
+    <br/>
+
+    <label for="ksmeta">Kickstart Metadata</label>
+    <input type="text" size="128" style="width: 150px;" name="ksmeta" id="ksmeta"/>
+    <br/>
+
+    <label for="netboot">Netboot Enabled</label>
+    <input type="radio" name="netboot" value="y"/>Yes <input type="radio" name="netboot" value="n" checked="1"/> No
+    <br/>
+
+    <input type="submit" name="submit" value="Save"/>
+    <input type="reset" name="reset" value="Reset"/>
+</fieldset>
+</form>
+#end block body

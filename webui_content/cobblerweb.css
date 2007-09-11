@@ -1,0 +1,34 @@
+
+fieldset#cform label {
+    display: block;
+    width: 150px;
+    margin-bottom: 10px;
+    float: left;
+    padding-right: 4em;
+}
+
+pre.config_data {
+    font-family: monospace;
+    background: white;
+    color: black;
+    width: 640px;
+    min-height: 480px;
+}
+
+br {
+    clear: both;
+}
+
+tr.rowodd  { background-color: #212121; }
+tr.roweven { background-color: #3f3d3d; }
+
+table.sortable th {
+    background-color: #363a4e;
+    margin: 0;
+}
+
+table.sortable caption {
+    background-color: #202331;
+    margin: 0;
+}
+
