@@ -112,7 +112,10 @@ class BootCheck:
        for loader in self.settings.bootloaders.keys():
           filename = self.settings.bootloaders[loader]
           if not os.path.exists(filename):
-              status.append(_("missing 1 or more bootloader files listed in /var/lib/cobbler/settings"))
+              if filename.find("pxelinux") != -1:
+                 status.append(_("syslinux should be installed but is not, expecting to find something at %s" % filename))
+              else:
+                 status.append(_("bootloader missing: %s" % filename))
               return
 
    def check_tftpd_bin(self,status):

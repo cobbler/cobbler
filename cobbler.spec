@@ -159,6 +159,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 * Fri Aug 31 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.2-1
 - Upstream changes (see CHANGELOG)
+- removed syslinux as a requirement
 
 * Thu Aug 30 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.1-2
 - Upstream changes (see CHANGELOG)
