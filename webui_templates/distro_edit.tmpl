@@ -1,0 +1,59 @@
+#extends cobbler.webui.master
+
+#block body
+<form method="post" action="$base_url/distro_save">
+<fieldset id="cform">
+    <legend>Edit a Distro</legend>
+
+    <label for="name">Name</label>
+    <input type="text" size="32" style="width: 150px;" name="name" id="name"
+        #if $distro
+            value="$distro.name"
+        #end if
+    />
+    <br/>
+
+    <label for="kernel">Kernel</label>
+    <input type="text" size="32" style="width: 150px;" name="kernel" id="kernel"
+        #if $distro
+            value="$distro.kernel"
+        #end if
+    />
+    <br/>
+
+    <label for="initrd">Initrd</label>
+    <input type="text" size="32" style="width: 150px;" name="initrd" id="initrd"
+        #if $distro
+            value="$distro.initrd"
+        #end if
+    />
+    <br/>
+
+    <label for="kopts">Kernel Options</label>
+    <input type="text" size="32" style="width: 150px;" name="kopts" id="kopts"
+        #if $distro
+            value="$distro.kopts"
+        #end if
+    />
+    <br/>
+
+    <label for="ksmeta">Kickstart Metadata</label>
+    <input type="text" size="32" style="width: 150px;" name="ksmeta" id="ksmeta"
+        #if $distro
+            value="$distro.ks_meta"
+        #end if
+    />
+    <br/>
+
+    <label for="breed">Breed</label>
+    <input type="text" size="32" style="width: 150px;" name="breed" id="breed"
+        #if $distro
+            value="$distro.breed"
+        #end if
+    />
+
+    <input type="submit" name="submit" value="Save"/>
+    <input type="reset" name="reset" value="Reset"/>
+</fieldset>
+</form>
+#end block body
