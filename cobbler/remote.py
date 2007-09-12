@@ -436,10 +436,10 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         this:
               token = remote.login("user","pass")
               distro_id = remote.new_distro(token)
-              remote.modify_distro(distro_id, 'name', 'example-distro')
-              remote.modify_distro(distro_id, 'kernel', '/foo/vmlinuz')
-              remote.modify_distro(distro_id, 'initrd', '/foo/initrd.img')
-              remote.save_distro(distro_id)
+              remote.modify_distro(distro_id, 'name', 'example-distro', token)
+              remote.modify_distro(distro_id, 'kernel', '/foo/vmlinuz', token)
+              remote.modify_distro(distro_id, 'initrd', '/foo/initrd.img', token)
+              remote.save_distro(distro_id, token)
         """      
         self.__validate_token(token)
         return self.__store_object(item_distro.Distro(self.api._config))

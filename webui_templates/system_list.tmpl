@@ -6,7 +6,7 @@
         <caption>Cobbler Systems</caption>
         <tr>
             <th class="text">Name</th>
-            <th class="text">Distribution</th>
+            <th class="text">Profile</th>
             <th class="nosort"> </th>
         </tr>
     </thead>
@@ -23,7 +23,7 @@
         <tr class="$tr_class">
             <td>${system.name}</td>
             <td>
-                <a href="$base_url/distro_view?distribution=${system.distro}">${system.distro}</a>
+                <a href="$base_url/profile_view?profile=${system.profile}">${system.profile}</a>
             </td>
             <td>
                 <a href="$base_url/system_edit?name=${system.name}">edit</a>

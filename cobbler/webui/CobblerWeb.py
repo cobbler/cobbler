@@ -1,18 +1,56 @@
-#!/usr/bin/env python
+# Web Interface for Cobbler - Model
+#
+# Copyright 2007 Albert P. Tobey <tobert@gmail.com>
+# 
+# This software may be freely redistributed under the terms of the GNU
+# general public license.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+import exceptions
 import xmlrpclib
 from Cheetah.Template import Template
 import os
+from cobbler.utils import *
 
 class CobblerWeb(object):
-    def __init__(self, server=None, base_url='/'):
+    """
+    The Cobbler web interface uses a MVC-style pattern.  This is the model.
+    The view uses Cheetah templates.  The controller is a small shim to make
+    it all run either under cgi-bin or CherryPy.  Supporting other Python
+    frameworks should be trivial.
+    """
+    def __init__(self, server=None, base_url='/', username=None, password=None):
         self.server = server
         self.base_url = base_url
+        self.remote = None
+        self.token = None
 
-    def xmlrpc(self):
-        return xmlrpclib.ServerProxy(self.server, allow_none=True)
+        if username is None or password is None:
+            raise CobblerWebAuthException( "Must provide username and password for Cobbler r/w XMLRPC Interface!" )
+
+        self.username = username
+        self.password = password
+
+    def __xmlrpc(self):
+        """
+        Sets up the connection to the Cobbler XMLRPC server.  Right now, the
+        r/w server is required.   In the future, it may be possible to instantiate
+        a r/o webui that doesn't need to login.
+        """
+        if self.remote is None:
+            self.remote = xmlrpclib.Server(self.server, allow_none=True)
+        if self.token is None:
+            self.token = self.remote.login( self.username, self.password )
+        return self.remote
 
     def __render(self, template, data):
+        """
+        Call the templating engine (Cheetah), wrapping up the location
+        of files while we're at it.
+        """
         data['base_url'] = self.base_url
         #filepath = "%s/%s" % (os.path.dirname(__file__), template)
         filepath = os.path.join("/usr/share/cobbler/webui_templates/",template)
@@ -20,6 +58,11 @@ class CobblerWeb(object):
         return str(tmpl)
 
     def modes(self):
+        """
+        Returns a list of methods in this object that can be run as web
+        modes.   In the background, it is using function attributes similarly 
+        to how CherryPy does.
+        """
         retval = list()
         for m in dir(self):
             func = getattr( self, m )
@@ -38,7 +81,7 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
     def settings_view(self):
         return self.__render( 'item.tmpl', {
-            'item_data': self.xmlrpc().get_settings(),
+            'item_data': self.__xmlrpc().get_settings(),
             'caption':   "Cobbler Settings"
         } )
 
@@ -47,15 +90,15 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
     def distro_view(self, distribution):
         # get_distro_for_koan() flattens out the inherited options
-        #distro = self.xmlrpc().get_distro_for_koan(distribution)
+        #distro = self.__xmlrpc().get_distro_for_koan(distribution)
         return  self.__render( 'item.tmpl', {
-            'item_data': self.xmlrpc().get_distro(distribution),
+            'item_data': self.__xmlrpc().get_distro(distribution),
             'caption':   "Distribution \"%s\" Details" % distribution
         } )
 
     def distro_list(self):
         return self.__render( 'distro_list.tmpl', {
-            'distros': self.xmlrpc().get_distros()
+            'distros': self.__xmlrpc().get_distros()
         } )
 
     # ------------------------------------------------------------------------ #
@@ -65,21 +108,22 @@ class CobblerWeb(object):
     # iterator so the list doesn't get copied around
     def system_list(self):
         return self.__render( 'system_list.tmpl', {
-            'systems': self.xmlrpc().get_systems()
+            'systems': self.__xmlrpc().get_systems()
         } )
 
     def system_add(self):
         return self.__render( 'system_edit.tmpl', {
-            'profiles': self.xmlrpc().get_profiles()
+            'system': None,
+            'profiles': self.__xmlrpc().get_profiles()
         } )
 
     def system_view(self, name):
         return self.__render( 'item.tmpl', {
-            'item_data': self.xmlrpc().get_profile(name),
+            'item_data': self.__xmlrpc().get_system(name),
             'caption':   "Profile %s Settings" % name
         } )
 
-    def system_save(self, name, profile, submit, new_or_edit, mac=None, ip=None, hostname=None, kopts=None, ksmeta=None, netboot='n'):
+    def system_save(self, name=None, profile=None, new_or_edit=None, mac=None, ip=None, hostname=None, kopts=None, ksmeta=None, netboot='n', **args):
         # parameter checking
         if name is None:
             return self.error_page("System name parameter is REQUIRED.")
@@ -97,26 +141,36 @@ class CobblerWeb(object):
         if ip and not is_ip( ip ):
             return self.error_page("The provided IP address appears to be invalid.")
 
+        # set up XMLRPC - token is in self.token
+        self.__xmlrpc()
+
         if new_or_edit == "edit":
-            system = self.xmlrpc().get_system(name)
+            system = self.remote.get_system_handle( name, self.token )
         else:
-            # FIXME: convert to r/w xmlrpc
-            system = None
-            #system = self.api.new_system()
-            system.set_name( name )
-            self.api.systems().add( system )
+            system = self.remote.new_system( self.token )
+            self.remote.modify_system( system, 'name', name, self.token )
 
-        system.set_profile( profile )
+        if profile:
+            self.remote.modify_system(system, 'profile',  profile,  self.token)
+        if mac:
+            self.remote.modify_system(system, 'mac',      mac,      self.token)
+        if ip:
+            self.remote.modify_system(system, 'ip',       ip,       self.token)
+        if hostname:
+            self.remote.modify_system(system, 'hostname', hostname, self.token)
+        if kopts:
+            self.remote.modify_system(system, 'kopts',    kopts,    self.token)
+        if ksmeta:
+            self.remote.modify_system(system, 'ksmeta',   ksmeta,   self.token)
 
-        return self.__render( 'item.tmpl', {
-            'item_data': system,
-            'caption':   "Profile %s Settings" % name
-        } )
+        self.remote.save_system( system, self.token )
+
+        return self.system_view( name=name )
 
     def system_edit(self, name):
         return self.__render( 'system_edit.tmpl', {
-            'system': self.xmlrpc().get_system(name),
-            'profiles': self.xmlrpc().get_profiles()
+            'system': self.__xmlrpc().get_system(name),
+            'profiles': self.__xmlrpc().get_profiles()
         } )
 
     # ------------------------------------------------------------------------ #
@@ -124,12 +178,12 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
     def profile_list(self):
         return self.__render( 'profile_list.tmpl', {
-            'profiles': self.xmlrpc().get_profiles()
+            'profiles': self.__xmlrpc().get_profiles()
         } )
 
     def profile_add(self):
         return self.__render( 'profile_add.tmpl', {
-            'distros': self.xmlrpc().get_distros(),
+            'distros': self.__xmlrpc().get_distros(),
             'ksfiles': self.__ksfiles()
         } )
 
@@ -152,7 +206,7 @@ class CobblerWeb(object):
 
     def __ksfiles(self):
         ksfiles = list()
-        for profile in self.xmlrpc().get_profiles():
+        for profile in self.__xmlrpc().get_profiles():
             ksfile = profile['kickstart']
             if not ksfile in ksfiles:
                 ksfiles.append( ksfile )
@@ -189,3 +243,5 @@ class CobblerWeb(object):
     ksfile_view.exposed = True
     ksfile_list.exposed = True
 
+class CobblerWebAuthException(exceptions.Exception):
+    pass
