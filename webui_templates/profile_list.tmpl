@@ -7,7 +7,7 @@
         <tr>
             <th class="text">Name</th>
             <th class="text">Distribution</th>
-            <th class="text">KS File</th>
+            <th class="text">Kickstart</th>
         </tr>
     </thead>
     <tbody>
@@ -21,9 +21,11 @@
         #set $evenodd += 1
 
         <tr class="$tr_class">
-            <td>$profile.name</td>
             <td>
-                <a href="$base_url/distro_view?distribution=$profile.distro">$profile.distro</a>
+                <a href="$base_url/profile_edit?name=$profile.name">$profile.name</a>
+            </td>
+            <td>
+                <a href="$base_url/distro_edit?name=$profile.distro">$profile.distro</a>
             </td>
             <td>$profile.kickstart</td>
         </tr>

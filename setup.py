@@ -120,7 +120,7 @@ if __name__ == "__main__":
                                 # slurp in whole directory?
                                 (wwwtmpl,           ['webui_templates/distro_list.tmpl']),
                                 (wwwtmpl,           ['webui_templates/profile_list.tmpl']),
-                                (wwwtmpl,           ['webui_templates/profile_add.tmpl']),
+                                (wwwtmpl,           ['webui_templates/profile_edit.tmpl']),
                                 (wwwtmpl,           ['webui_templates/system_list.tmpl']),
                                 (wwwtmpl,           ['webui_templates/system_edit.tmpl']),
                                 #(wwwtmpl,           ['webui_templates/repo_list.tmpl']),

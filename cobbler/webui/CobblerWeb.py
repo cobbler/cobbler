@@ -98,12 +98,14 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
     # Index
     # ------------------------------------------------------------------------ #
+
     def index(self):
         return self.__render( 'index.tmpl', dict() )
 
     # ------------------------------------------------------------------------ #
     # Settings
     # ------------------------------------------------------------------------ #
+
     def settings_view(self):
         self.__xmlrpc_setup()
         return self.__render( 'item.tmpl', {
@@ -114,12 +116,13 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
     # Distributions
     # ------------------------------------------------------------------------ #
-    def distro_view(self, distribution):
-        self.__xmlrpc_setup()
-        return  self.__render( 'item.tmpl', {
-            'item_data': self.remote.get_distro(distribution,True),
-            'caption':   "Distribution \"%s\" Details" % distribution
-        } )
+
+    #def distro_view(self, distribution):
+    #    self.__xmlrpc_setup()
+    #    return  self.__render( 'item.tmpl', {
+    #        'item_data': self.remote.get_distro(distribution,True),
+    #        'caption':   "Distribution \"%s\" Details" % distribution
+    #    } )
 
     def distro_list(self):
         self.__xmlrpc_setup()
@@ -145,12 +148,13 @@ class CobblerWeb(object):
             'profiles': self.remote.get_profiles()
         } )
 
-    def system_view(self, name):
-        self.__xmlrpc_setup()
-        return self.__render( 'item.tmpl', {
-            'item_data': self.remote.get_system(name,True),
-            'caption':   "Profile %s Settings" % name
-        } )
+    # FIXME: this should use the same template as system_edit
+    #def system_view(self, name):
+    #    self.__xmlrpc_setup()
+    #    return self.__render( 'item.tmpl', {
+    #        'item_data': self.remote.get_system(name,True),
+    #        'caption':   "Profile %s Settings" % name
+    #    } )
 
     def system_save(self, name=None, profile=None, new_or_edit=None, mac=None, ip=None, hostname=None, kopts=None, ksmeta=None, netboot='n', dhcp_tag=None, **args):
         self.__xmlrpc_setup()
@@ -199,12 +203,7 @@ class CobblerWeb(object):
             # FIXME: get the exact error message and display to the user.
             log_exc()
             return self.error_page("Error while saving system: %s" % str(e))
-        return self.system_view( name=name )
-
-
-    #def tb2str(self,tb):
-    #    print " ".join(traceback.format_list(traceback.extract_tb(tb)))
-    #    return ""
+        return self.system_edit( name=name )
 
     def system_edit(self, name):
         self.__xmlrpc_setup()
@@ -224,10 +223,19 @@ class CobblerWeb(object):
 
     def profile_add(self):
         self.__xmlrpc_setup()
-        return self.__render( 'profile_add.tmpl', {
+        return self.__render( 'profile_edit.tmpl', {
             'distros': self.remote.get_distros(),
             'ksfiles': self.__ksfiles()
         } )
+
+    def profile_edit(self, name):
+        self.__xmlrpc_setup()
+        return self.__render( 'profile_edit.tmpl', {
+            'profile': self.remote.get_profile(name,True),
+            'distros': self.remote.get_distros(),
+            'ksfiles': self.__ksfiles()
+        } )
+
 
     def profile_save(self):
         pass
@@ -272,17 +280,17 @@ class CobblerWeb(object):
     modes.exposed = False
     error_page.exposed = False
     distro_list.exposed = True
-    distro_view.exposed = True
+    #distro_view.exposed = True
     index.exposed = True
-    profile_add.exposed = True
+    profile_edit.exposed = True
     profile_list.exposed = True
     profile_save.exposed = True
-    settings_view.exposed = True
+    #settings_view.exposed = True
     system_add.exposed = True
     system_edit.exposed = True
     system_list.exposed = True
     system_save.exposed = True
-    system_view.exposed = True
+    #system_view.exposed = True
     ksfile_view.exposed = True
     ksfile_list.exposed = True
 
