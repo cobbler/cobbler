@@ -69,12 +69,13 @@ fi
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %files
-%defattr(2744,apache,apache)
+%defattr(744,apache,apache)
 /var/www/cgi-bin/findks.cgi
 /var/www/cgi-bin/nopxe.cgi
 /var/www/cgi-bin/cobbler_webui.cgi
 %dir /usr/share/cobbler/webui_templates
 /usr/share/cobbler/webui_templates/*.tmpl
+%defattr(2744,apache,apache)
 %dir /var/log/cobbler
 %dir /var/log/cobbler/kicklog
 %dir /var/www/cobbler/
