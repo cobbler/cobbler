@@ -118,7 +118,9 @@ if __name__ == "__main__":
                                 # Web UI templates for object viewing & modification
                                 # FIXME: other templates to add as they are created.
                                 # slurp in whole directory?
+
                                 (wwwtmpl,           ['webui_templates/distro_list.tmpl']),
+                                (wwwtmpl,           ['webui_templates/distro_edit.tmpl']),
                                 (wwwtmpl,           ['webui_templates/profile_list.tmpl']),
                                 (wwwtmpl,           ['webui_templates/profile_edit.tmpl']),
                                 (wwwtmpl,           ['webui_templates/system_list.tmpl']),

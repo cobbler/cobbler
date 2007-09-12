@@ -129,12 +129,25 @@ class CobblerWeb(object):
         return self.__render( 'distro_list.tmpl', {
             'distros': self.remote.get_distros()
         } )
+    
+
+    def distro_edit(self, name):
+        self.__xmlrpc_setup()
+        return self.__render( 'distro_edit.tmpl', {
+            'distro': self.remote.get_distro(name,True),
+        } )
+
+    # FIXME: implement distro_save
+    def distro_save(self):
+        pass
+ 
 
     # ------------------------------------------------------------------------ #
     # Systems
     # ------------------------------------------------------------------------ #
     # if the system list is huge, this will probably need to use an
     # iterator so the list doesn't get copied around
+
     def system_list(self):
         self.__xmlrpc_setup()
         return self.__render( 'system_list.tmpl', {
@@ -236,7 +249,7 @@ class CobblerWeb(object):
             'ksfiles': self.__ksfiles()
         } )
 
-
+    # FIXME: implement this function
     def profile_save(self):
         pass
 
@@ -254,6 +267,8 @@ class CobblerWeb(object):
             'ksfile': ksfile
         } )
 
+    # FIXME: modify to detect per-system kickstart files (seldom used feature) also
+
     def __ksfiles(self):
         self.__xmlrpc_setup()
         ksfiles = []
@@ -263,12 +278,15 @@ class CobblerWeb(object):
                 ksfiles.append( ksfile )
         return ksfiles
 
+    # FIXME: implement backend feature for modifying kickstart files in text box
+
     def __ksfile_data(self, ksfile):
         pass
 
     # ------------------------------------------------------------------------ #
     # Miscellaneous
     # ------------------------------------------------------------------------ #
+
     def error_page(self, message):
         return self.__render( 'error_page.tmpl', {
             'message': message
@@ -277,22 +295,31 @@ class CobblerWeb(object):
     # make CherryPy and related frameworks able to use this module easily
     # by borrowing the 'exposed' function attritbute standard and using
     # it for the modes() method
+
     modes.exposed = False
     error_page.exposed = False
-    distro_list.exposed = True
-    #distro_view.exposed = True
     index.exposed = True
+
+    distro_edit.exposed = True
+    distro_list.exposed = True
+    distro_save.exposed = True
+    #distro_view.exposed = True
+
     profile_edit.exposed = True
     profile_list.exposed = True
     profile_save.exposed = True
-    #settings_view.exposed = True
-    system_add.exposed = True
+    #profile_view.exposed = True
+
     system_edit.exposed = True
     system_list.exposed = True
     system_save.exposed = True
     #system_view.exposed = True
+
+    settings_view.exposed = True
     ksfile_view.exposed = True
     ksfile_list.exposed = True
 
 class CobblerWebAuthException(exceptions.Exception):
     pass
+
+

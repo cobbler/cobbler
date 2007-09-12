@@ -32,7 +32,7 @@
     <label for="kopts">Kernel Options</label>
     <input type="text" size="32" style="width: 150px;" name="kopts" id="kopts"
         #if $distro
-            value="$distro.kopts"
+            value="$distro.kernel_options"
         #end if
     />
     <br/>
@@ -51,6 +51,7 @@
             value="$distro.breed"
         #end if
     />
+    <br/>
 
     <input type="submit" name="submit" value="Save"/>
     <input type="reset" name="reset" value="Reset"/>
