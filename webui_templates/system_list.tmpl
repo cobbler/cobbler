@@ -7,7 +7,9 @@
         <tr>
             <th class="text">Name</th>
             <th class="text">Profile</th>
-            <th class="nosort"> </th>
+            <th class="text">MAC</th>
+            <th class="text">IP</th>
+            <th class="text">Hostname</th>
         </tr>
     </thead>
     <tbody>
@@ -21,13 +23,15 @@
         #set $evenodd += 1
 
         <tr class="$tr_class">
-            <td>${system.name}</td>
+            <td>
+                <a href="$base_url/system_edit?name=${system.name}">${system.name}</a>
+            </td>
             <td>
                 <a href="$base_url/profile_view?profile=${system.profile}">${system.profile}</a>
             </td>
-            <td>
-                <a href="$base_url/system_edit?name=${system.name}">edit</a>
-            </td>
+            <td> ${system.mac_address} </td>
+            <td> ${system.ip_address} </td>
+            <td> ${system.hostname} </td>
         </tr>
         #end for
     </tbody>
