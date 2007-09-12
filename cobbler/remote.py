@@ -146,7 +146,7 @@ class CobblerXMLRPCInterface:
         """
         return self.__get_all(self.api.repos())
 
-    def __get_specific(self,collection,name):
+    def __get_specific(self,collection,name,flatten=False):
         """
         Internal function to return a hash representation of a given object if it exists,
         otherwise an empty hash will be returned.
@@ -155,31 +155,34 @@ class CobblerXMLRPCInterface:
         item = collection.find(name=name)
         if item is None:
             return self._fix_none({})
-        return self._fix_none(item.to_datastruct())
+        result = item.to_datastruct()
+        if flatten:
+            result = utils.flatten(result)
+        return self._fix_none(result)
 
-    def get_distro(self,name,token=None):
+    def get_distro(self,name,flatten=False,token=None):
         """
         Returns the distro named "name" as a hash.
         """
-        return self.__get_specific(self.api.distros(),name)
+        return self.__get_specific(self.api.distros(),name,flatten=flatten)
 
-    def get_profile(self,name,token=None):
+    def get_profile(self,name,flatten=False,token=None):
         """
         Returns the profile named "name" as a hash.
         """
-        return self.__get_specific(self.api.profiles(),name)
+        return self.__get_specific(self.api.profiles(),name,flatten=flatten)
 
-    def get_system(self,name,token=None):
+    def get_system(self,name,flatten=False,token=None):
         """
         Returns the system named "name" as a hash.
         """
-        return self.__get_specific(self.api.systems(),name)
+        return self.__get_specific(self.api.systems(),name,flatten=flatten)
 
-    def get_repo(self,name,token=None):
+    def get_repo(self,name,flatten=False,token=None):
         """
         Returns the repo named "name" as a hash.
         """
-        return self.__get_specific(self.api.repos(),name)
+        return self.__get_specific(self.api.repos(),name,flatten=flatten)
 
     def get_distro_as_rendered(self,name,token=None):
         """
@@ -747,6 +750,8 @@ if __name__ == "__main__":
     print remote.get_profiles()
     print remote.get_systems()
     print remote.get_repos()
+
+    print remote.get_system("AA:BB:AA:BB:AA:BB",True) # flattened
 
     # now simulate hitting a "sync" button in a WebUI
     print remote.sync(token)

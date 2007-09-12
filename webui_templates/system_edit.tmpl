@@ -65,6 +65,22 @@
     />
     <br/>
 
+    <label for="netboot">Netboot Enabled</label>
+    #if $system
+    <input type="checkbox" checked="$system.netboot_enabled" name="netboot" id="netboot">
+    #else
+    <input type="checkbox" checked="True" name="netboot" id="netboot">
+    #end if
+    <br/>
+
+    <label for="dhcp_tag">DHCP Tag</label>
+    <input type="text" size="128" style="width: 150px;" name="dhcp_tag" id="dhcp_tag"
+        #if $system
+           value="$system.dhcp_tag"
+        #end if
+    /> 
+    <br/> 
+
     <input type="submit" name="submit" value="Save"/>
     <input type="reset" name="reset" value="Reset"/>
 </fieldset>

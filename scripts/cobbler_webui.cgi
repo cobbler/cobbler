@@ -35,6 +35,9 @@ def base_url():
     return os.environ.get('SCRIPT_NAME', '')
 
 def main():
+
+    cgitb.enable()
+
     print "Content-type: text/html"
     print
 

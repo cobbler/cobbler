@@ -22,6 +22,7 @@ import shutil
 import string
 import traceback
 import logging
+from cexceptions import *
 from rhpl.translate import _, N_, textdomain, utf8
 
 import api # factor out
@@ -231,7 +232,9 @@ def input_string_or_hash(options,delim=","):
     """
     if options is None:
         return (True, {})
-    elif type(options) != dict:
+    elif type(options) == list:
+        raise CX(_("No idea what to do with list: %s") % options)
+    elif type(options) == str:
         new_dict = {}
         tokens = options.split(delim)
         for t in tokens:
@@ -244,9 +247,11 @@ def input_string_or_hash(options,delim=","):
                 return (False, {})
         new_dict.pop('', None)
         return (True, new_dict)
-    else:
+    elif type(options) == dict:
         options.pop('',None)
         return (True, options)
+    else:
+        raise CX(_("Foreign options type"))
 
 def grab_tree(obj):
     """
@@ -288,10 +293,17 @@ def blender(remove_hashes, root_obj):
 
     # sanitize output for koan and kernel option lines, etc
     if remove_hashes:
-        results["kernel_options"] = hash_to_string(results["kernel_options"])
-        results["ks_meta"] = hash_to_string(results["ks_meta"])
+        results = flatten(results)
 
     return results
+
+def flatten(data):
+    # convert certain nested hashes to strings.
+    if data.has_key("kernel_options"):
+        data["kernel_options"] = hash_to_string(data["kernel_options"])
+    if data.has_key("ks_meta"):
+        data["ks_meta"] = hash_to_string(data["ks_meta"])
+    return data
 
 def __consolidate(node,results):
     """
