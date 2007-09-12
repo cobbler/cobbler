@@ -3,7 +3,7 @@
 #block body
 <form method="post" action="/profile_save">
 <fieldset id="cform">
-    <legend>Add a Profile</legend>
+    <legend>Edit a Profile</legend>
 
 <!--
        cobbler profile add -name=string -distro=string [-kickstart=url]
@@ -12,34 +12,101 @@
 -->
 
     <label for="name">Profile Name</label>
-    <input type="text" size="32" style="width: 150px;" name="name" id="name"/>
+    <input type="text" size="32" style="width: 150px;" name="name" id="name"
+        #if $profile
+            value="$profile.name"
+        #end if
+    />
     <br/>
 
     <label for="distro">Distribution</label>
     <select name="distro" id="distro">
         #for $distro in $distros:
-        <option name="$distro.name">$distro.name</option>
+        <option name="$distro.name"
+             #if $profile and $profile.distro == $distro
+                 selected="true"
+             #end if
+        >$distro.name
+        </option>
         #end for
     </select>
     <br/>
 
+    <!-- should allow freeform input but still show a list of choices? -->
+    <!-- probably should implement a combo box eventually -->
+
     <label for="ksfile">Kickstart File</label>
-    <select name="ksfile" id="ksfile">
-        #for $ksfile in $ksfiles:
-        <option name="$ksfile">$ksfile</option>
-        #end for
-    </select>
+    <input type="text" size="128" style="width: 150px;" name="kopts" id="kopts"
+        #if $profile
+            value="$profile.kickstart" 
+        #end if
+    />
     <br/>
 
     <label for="kopts">Kernel Options</label>
-    <input type="text" size="128" style="width: 150px;" name="kopts" id="kopts"/>
+    <input type="text" size="128" style="width: 150px;" name="kopts" id="kopts"
+    />
     <br/>
 
     <label for="ksmeta">Kickstart Metadata</label>
-    <input type="text" size="128" style="width: 150px;" name="ksmeta" id="ksmeta"/>
+    <input type="text" size="128" style="width: 150px;" name="ksmeta" id="ksmeta"
+        #if $profile
+           value="$profile.ks_meta"
+        #end if
+    />
     <br/>
+
+    <label for="virtfilesize">Virt File Size (GB)</label>
+    <input type="text" size="128" style="width: 150px;" name="virtfilesize" id="virtfilesize"
+        #if $profile
+           value="$profile.virt_file_size"
+        #end if
+    />
+    <br/>
+
+    <label for="virtram">Virt RAM (MB)</label>
+    <input type="text" size="128" style="width: 150px;" name="virtram" id="virtram"
+        #if $profile
+           value="$profile.virt_ram"
+        #end if
+    />
+    <br/>
+
+    <label for="virttype">Virt Type (xenpv, qemu)</label>
+    <input type="text" size="128" style="width: 150px;" name="virttype" id="virttype"
+        #if $profile
+           value="$profile.virt_type"
+        #end if
+    />
+    <br/>
+
+    <label for="virtpath">Virt Path</label>
+    <input type="text" size="128" style="width: 150px;" name="virtpath" id="virtpath"
+        #if $profile
+           value="$profile.virt_path"
+        #end if
+    />
+    <br/>
+
+    <label for="repos">Repo Names</label>
+    <input type="text" size="128" style="width: 150px;" name="repos" id="repos"
+        #if $profile
+           value="$profile.repos"
+        #end if
+    />
+    <br/>
+
+    <label for="dhcptag">DHCP Tag</label>
+    <input type="text" size="128" style="width: 150px;" name="dhcptag" id="dhcptag"
+        #if $profile
+           value="$profile.dhcp_tag" 
+        #end if
+    />
+    <br/>
+
 
     <input type="submit" name="submit" value="Save"/>
     <input type="reset" name="reset" value="Reset"/>
+
 </fieldset>
 #end block body

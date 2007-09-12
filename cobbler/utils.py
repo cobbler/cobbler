@@ -303,6 +303,8 @@ def flatten(data):
         data["kernel_options"] = hash_to_string(data["kernel_options"])
     if data.has_key("ks_meta"):
         data["ks_meta"] = hash_to_string(data["ks_meta"])
+    if data.has_key("repos") and type(data["repos"]) == list:
+        data["repos"]   = " ".join(data["repos"])
     return data
 
 def __consolidate(node,results):
