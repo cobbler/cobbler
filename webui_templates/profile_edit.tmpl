@@ -1,7 +1,7 @@
 #extends cobbler.webui.master
 
 #block body
-<form method="post" action="/profile_save">
+<form method="post" action="$base_url/profile_save">
 <fieldset id="cform">
     <legend>Edit a Profile</legend>
 
@@ -35,8 +35,8 @@
     <!-- should allow freeform input but still show a list of choices? -->
     <!-- probably should implement a combo box eventually -->
 
-    <label for="ksfile">Kickstart File</label>
-    <input type="text" size="128" style="width: 150px;" name="kopts" id="kopts"
+    <label for="kickstart">Kickstart File</label>
+    <input type="text" size="128" style="width: 150px;" name="kickstart" id="kickstart"
         #if $profile
             value="$profile.kickstart" 
         #end if
@@ -45,6 +45,9 @@
 
     <label for="kopts">Kernel Options</label>
     <input type="text" size="128" style="width: 150px;" name="kopts" id="kopts"
+        #if $profile
+            value="$profile.kernel_options"
+        #end if
     />
     <br/>
 

@@ -138,7 +138,7 @@ class CobblerWeb(object):
         } )
 
     # FIXME: implement distro_save
-    def distro_save(self):
+    def distro_save(self,name=None,kernel=None,initrd=None,kopts=None,ksmeta=None,breed=None,**args):
         pass
  
 
@@ -250,8 +250,56 @@ class CobblerWeb(object):
         } )
 
     # FIXME: implement this function
-    def profile_save(self):
-        pass
+    def profile_save(self,new_or_edit=None, name=None,distro=None,kickstart=None,kopts=None,
+                     ksmeta=None,virtfilesize=None,virtram=None,virttype=None,
+                     virtpath=None,repos=None,dhcptag=None,**args):
+
+        self.__xmlrpc_setup()
+
+        # pre-command parameter checking 
+        if name is None:
+            return self.error_page("name is required")
+        if distro is None:
+            return self.error_page("distro is required")
+        
+        # grab a reference to the object
+        if new_or_edit == "edit":
+            try:
+                profile = self.remote.get_profile_handle( name, self.token )
+            except:
+                return self.error_page("Failed to lookup profile: %s" % name)
+        else:
+            profile = self.remote.new_profile(self.token)
+
+        try:
+            self.remote.modify_profile(profile, 'name', name, self.token)
+            self.remote.modify_profile(profile,  'distro', distro, self.token)
+            if kickstart:
+                self.remote.modify_profile(profile, 'kickstart', kickstart, self.token)
+            if kopts:
+                self.remote.modify_profile(profile, 'kopts', kopts, self.token)
+            if ksmeta:
+                self.remote.modify_profile(profile, 'ksmeta', ksmeta, self.token)
+            if virtfilesize:
+                self.remote.modify_profile(profile, 'virt-file-size', virtfilesize, self.token)
+            if virtram:
+                self.remote.modify_profile(profile, 'virt-ram', virtram, self.token)
+            if virttype:
+                self.remote.modify_profile(profile, 'virt-type', virttype, self.token)
+            if virtpath:
+                self.remote.modify_profile(profile, 'virt-path', virtpath, self.token)
+            if repos:
+                self.remote.modify_profile(profile, 'repos', repos, self.token)
+            if dhcptag:
+                self.remote.modify_profile(profile, 'dhcp-tag', dhcptag, self.token)
+            self.remote.save_profile(profile,self.token)
+        except Exception, e:
+            log_exc()
+            return self.error_page("Error while saving profile: %s" % str(e))
+
+        return self.profile_edit(name=name)
+
+
 
     # ------------------------------------------------------------------------ #
     # Kickstart files
