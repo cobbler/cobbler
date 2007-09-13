@@ -122,10 +122,14 @@ class CobblerWeb(object):
 
     def distro_list(self):
         self.__xmlrpc_setup()
-        return self.__render( 'distro_list.tmpl', {
-            'distros': self.remote.get_distros()
-        } )
-    
+        distros = self.remote.get_distros()
+        if len(distros) > 0:
+            return self.__render( 'distro_list.tmpl', {
+                'distros': distros
+            })
+        else:
+            return self.__render('empty.tmpl', {})  
+  
     def distro_edit(self, name=None):
         self.__xmlrpc_setup()
          
@@ -186,9 +190,13 @@ class CobblerWeb(object):
 
     def system_list(self):
         self.__xmlrpc_setup()
-        return self.__render( 'system_list.tmpl', {
-            'systems': self.remote.get_systems()
-        } )
+        systems = self.remote.get_systems()
+        if len(systems) > 0:
+            return self.__render( 'system_list.tmpl', {
+                'systems': systems
+            } )
+        else:
+            return self.__render('empty.tmpl',{})
 
     # FIXME: implement handling of delete1, delete2 + renames
     def system_save(self, name=None, profile=None, new_or_edit=None, mac=None, ip=None, hostname=None, 
@@ -261,9 +269,13 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
     def profile_list(self):
         self.__xmlrpc_setup()
-        return self.__render( 'profile_list.tmpl', {
-            'profiles': self.remote.get_profiles()
-        } )
+        profiles = self.remote.get_profiles()
+        if len(profiles) > 0:
+            return self.__render( 'profile_list.tmpl', {
+                'profiles': profiles
+            } )
+        else:
+            return self.__render('empty.tmpl', {})
 
     # FIXME: implement handling of delete1, delete2 + renames
     def profile_edit(self, name=None):
