@@ -17,13 +17,13 @@ test: install
 	python tests/tests.py
 	-rm -rf /tmp/_cobbler-*
 
-build: clean messages
+build: clean updatewui messages
 	python setup.py build -f
 
 install: clean manpage
 	python setup.py install -f
 
-sdist: clean messages
+sdist: clean messages updatewui
 	python setup.py sdist
 
 messages: cobbler/*.py
@@ -54,4 +54,9 @@ srpm: manpage sdist
 	--define "_specdir %{_topdir}" \
 	--define "_sourcedir  %{_topdir}" \
 	-bs --nodeps cobbler.spec
+
+updatewui:
+	cheetah-compile ./webui_templates/master.tmpl
+	-(rm ./webui_templates/*.bak)
+	mv ./webui_templates/master.py ./cobbler/webui
 

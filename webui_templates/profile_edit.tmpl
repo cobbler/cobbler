@@ -3,13 +3,21 @@
 #block body
 <form method="post" action="$base_url/profile_save">
 <fieldset id="cform">
-    <legend>Edit a Profile</legend>
 
 <!--
        cobbler profile add -name=string -distro=string [-kickstart=url]
        [-kopts=string] [-ksmeta=string] [-virt-file-size=gigabytes]
        [-virt-ram=megabytes] [-virt-type=string] [-virt-path=string]
 -->
+
+    #if $profile
+        <legend>Editing Profile</legend>
+        <input type="hidden" name="new_or_edit" value="edit"/>
+    #else
+        <legend>Adding a Profile</legend>
+        <input type="hidden" name="new_or_edit" value="new"/>
+    #end if
+
 
     <label for="name">Profile Name</label>
     <input type="text" size="32" style="width: 150px;" name="name" id="name"
@@ -106,6 +114,14 @@
         #end if
     />
     <br/>
+
+    #if $profile
+    <label for="delete">Delete</label>
+       <input type="checkbox" name="delete1" value="delete1">Yes
+       <input type="checkbox" name="delete2" value="delete2">Really
+    <br/>
+    #end if
+
 
 
     <input type="submit" name="submit" value="Save"/>

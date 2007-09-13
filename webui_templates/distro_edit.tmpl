@@ -3,7 +3,14 @@
 #block body
 <form method="post" action="$base_url/distro_save">
 <fieldset id="cform">
-    <legend>Edit a Distro</legend>
+
+    #if $distro
+        <legend>Editing Distro</legend>
+        <input type="hidden" name="new_or_edit" value="edit"/>
+    #else
+        <legend>Adding a Distro</legend>
+        <input type="hidden" name="new_or_edit" value="new"/>
+    #end if
 
     <label for="name">Name</label>
     <input type="text" size="32" style="width: 150px;" name="name" id="name"
@@ -25,6 +32,14 @@
     <input type="text" size="32" style="width: 150px;" name="initrd" id="initrd"
         #if $distro
             value="$distro.initrd"
+        #end if
+    />
+    <br/>
+
+    <label for="arch">Architecture</label>
+    <input type="text" size="32" style="width: 150px;" name="arch" id="arch"
+        #if $distro
+            value="$distro.arch"
         #end if
     />
     <br/>
@@ -52,6 +67,14 @@
         #end if
     />
     <br/>
+
+    #if $distro
+    <label for="delete">Delete</label>
+       <input type="checkbox" name="delete1" value="delete1">Yes
+       <input type="checkbox" name="delete2" value="delete2">Really
+    <br/>
+    #end if
+
 
     <input type="submit" name="submit" value="Save"/>
     <input type="reset" name="reset" value="Reset"/>

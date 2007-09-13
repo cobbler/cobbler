@@ -613,7 +613,7 @@ class BootSync:
                 print _("Warning: Itanium system object (%s) needs an IP address to PXE") % system.name
 
 
-            filename = "%s.conf" % self.utils_config_filename(system)
+            filename = "%s.conf" % utils.get_config_filename(system)
             f2 = os.path.join(self.settings.tftpboot, filename)
 
         f3 = os.path.join(self.settings.webdir, "systems", f1)

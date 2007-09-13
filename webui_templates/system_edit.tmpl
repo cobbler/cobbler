@@ -3,6 +3,13 @@
 #block body
 <form method="post" action="$base_url/system_save">
 <fieldset id="cform">
+   
+    #if $system
+        <input type="hidden" name="new_or_edit" value="edit"/>
+    #else
+        <input type="hidden" name="new_or_edit" value="new"/>
+    #end if
+
     <legend>Edit a System</legend>
 
     <label for="name">System Name</label>
@@ -80,6 +87,14 @@
         #end if
     /> 
     <br/> 
+
+    #if $system
+    <label for="delete">Delete</label> 
+       <input type="checkbox" name="delete1" value="delete1">Yes
+       <input type="checkbox" name="delete2" value="delete2">Really
+    <br/>
+    #end if
+
 
     <input type="submit" name="submit" value="Save"/>
     <input type="reset" name="reset" value="Reset"/>

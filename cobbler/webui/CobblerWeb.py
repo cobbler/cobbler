@@ -78,7 +78,6 @@ class CobblerWeb(object):
             tmpl = Template( file=filepath, searchList=data )
             return str(tmpl)
         except:
-            logger.error("An error has occurred.") # FIXME: remove
             log_exc()
             return self.error_page("Error while rendering page.  See /var/log/cobbler/webui.log")
 
@@ -106,6 +105,10 @@ class CobblerWeb(object):
     # Settings
     # ------------------------------------------------------------------------ #
 
+    # FIXME: does it make sense to be able to edit settings?  Probably not,
+    # as you could disable a lot of functionality if you aren't careful
+    # including your ability to fix it back.
+
     def settings_view(self):
         self.__xmlrpc_setup()
         return self.__render( 'item.tmpl', {
@@ -117,30 +120,63 @@ class CobblerWeb(object):
     # Distributions
     # ------------------------------------------------------------------------ #
 
-    #def distro_view(self, distribution):
-    #    self.__xmlrpc_setup()
-    #    return  self.__render( 'item.tmpl', {
-    #        'item_data': self.remote.get_distro(distribution,True),
-    #        'caption':   "Distribution \"%s\" Details" % distribution
-    #    } )
-
     def distro_list(self):
         self.__xmlrpc_setup()
         return self.__render( 'distro_list.tmpl', {
             'distros': self.remote.get_distros()
         } )
     
-
-    def distro_edit(self, name):
+    def distro_edit(self, name=None):
         self.__xmlrpc_setup()
+         
+        input_distro = None
+        if name is not None:
+            input_distro = self.remote.get_distro(name, True)
+
         return self.__render( 'distro_edit.tmpl', {
-            'distro': self.remote.get_distro(name,True),
+            'edit' : True,
+            'distro': input_distro,
         } )
 
-    # FIXME: implement distro_save
-    def distro_save(self,name=None,kernel=None,initrd=None,kopts=None,ksmeta=None,breed=None,**args):
-        pass
+    # FIXME: implement handling of delete1, delete2 + renames
+    def distro_save(self,name=None,new_or_edit=None,kernel=None,initrd=None,kopts=None,ksmeta=None,arch=None,breed=None,**args):
+        self.__xmlrpc_setup()
+        
+        # pre-command paramter checking
+        if name is None:
+            return self.error_page("name is required")
+        if kernel is None or not str(kernel).startswith("/"):
+            return self.error_page("kernel must be specified as an absolute path")
+        if initrd is None or not str(initrd).startswith("/"):
+            return self.error_page("initrd must be specified as an absolute path")
  
+        # grab a reference to the object
+        if new_or_edit == "edit":
+            try:
+                distro = self.remote.get_distro_handle( name, self.token)
+            except:
+                return self.error_page("Failed to lookup distro: %s" % name)
+        else:
+            distro = self.remote.new_distro(self.token)
+
+        try:
+            self.remote.modify_distro(distro, 'name', name, self.token)
+            self.remote.modify_distro(distro, 'kernel', kernel, self.token)
+            self.remote.modify_distro(distro, 'initrd', initrd, self.token)
+            if kopts:
+                self.remote.modify_distro(distro, 'kopts', kopts, self.token)
+            if ksmeta:
+                self.remote.modify_distro(distro, 'ksmeta', ksmeta, self.token)
+            if arch:
+                self.remote.modify_distro(distro, 'arch', arch, self.token)
+            if breed:
+                self.remote.modify_distro(distro, 'breed', breed, self.token)
+            self.remote.save_distro(distro, self.token)
+        except Exception, e:
+            log_exc()
+            return self.error_page("Error while saving distro: %s" % str(e))
+
+        return self.distro_edit(name=name)
 
     # ------------------------------------------------------------------------ #
     # Systems
@@ -154,22 +190,10 @@ class CobblerWeb(object):
             'systems': self.remote.get_systems()
         } )
 
-    def system_add(self):
-        self.__xmlrpc_setup()
-        return self.__render( 'system_edit.tmpl', {
-            'system': None,
-            'profiles': self.remote.get_profiles()
-        } )
+    # FIXME: implement handling of delete1, delete2 + renames
+    def system_save(self, name=None, profile=None, new_or_edit=None, mac=None, ip=None, hostname=None, 
+                    kopts=None, ksmeta=None, netboot='n', dhcp_tag=None, **args):
 
-    # FIXME: this should use the same template as system_edit
-    #def system_view(self, name):
-    #    self.__xmlrpc_setup()
-    #    return self.__render( 'item.tmpl', {
-    #        'item_data': self.remote.get_system(name,True),
-    #        'caption':   "Profile %s Settings" % name
-    #    } )
-
-    def system_save(self, name=None, profile=None, new_or_edit=None, mac=None, ip=None, hostname=None, kopts=None, ksmeta=None, netboot='n', dhcp_tag=None, **args):
         self.__xmlrpc_setup()
 
         # parameter checking
@@ -216,12 +240,19 @@ class CobblerWeb(object):
             # FIXME: get the exact error message and display to the user.
             log_exc()
             return self.error_page("Error while saving system: %s" % str(e))
-        return self.system_edit( name=name )
+        return self.system_edit( name=name)
 
-    def system_edit(self, name):
+    def system_edit(self, name=None):
+
         self.__xmlrpc_setup()
+
+        input_system = None
+        if name is not None:
+            input_system = self.remote.get_system(name,True)
+
         return self.__render( 'system_edit.tmpl', {
-            'system': self.remote.get_system(name,True),
+            'edit' : True,
+            'system': input_system,
             'profiles': self.remote.get_profiles()
         } )
 
@@ -234,22 +265,22 @@ class CobblerWeb(object):
             'profiles': self.remote.get_profiles()
         } )
 
-    def profile_add(self):
+    # FIXME: implement handling of delete1, delete2 + renames
+    def profile_edit(self, name=None):
+
         self.__xmlrpc_setup()
+
+        input_profile = None
+        if name is not None:
+             input_profile = self.remote.get_profile(name,True)
+
         return self.__render( 'profile_edit.tmpl', {
+            'edit' : True,
+            'profile': input_profile,
             'distros': self.remote.get_distros(),
             'ksfiles': self.__ksfiles()
         } )
 
-    def profile_edit(self, name):
-        self.__xmlrpc_setup()
-        return self.__render( 'profile_edit.tmpl', {
-            'profile': self.remote.get_profile(name,True),
-            'distros': self.remote.get_distros(),
-            'ksfiles': self.__ksfiles()
-        } )
-
-    # FIXME: implement this function
     def profile_save(self,new_or_edit=None, name=None,distro=None,kickstart=None,kopts=None,
                      ksmeta=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,**args):
@@ -299,11 +330,16 @@ class CobblerWeb(object):
 
         return self.profile_edit(name=name)
 
+    # ------------------------------------------------------------------------ #
+    # Repos
+    # ------------------------------------------------------------------------ #
 
+    # integrate repository adding/editing as with the other objects.
 
     # ------------------------------------------------------------------------ #
     # Kickstart files
     # ------------------------------------------------------------------------ #
+
     def ksfile_list(self):
         return self.__render( 'ksfile_list.tmpl', {
             'ksfiles': self.__ksfiles()
@@ -351,17 +387,14 @@ class CobblerWeb(object):
     distro_edit.exposed = True
     distro_list.exposed = True
     distro_save.exposed = True
-    #distro_view.exposed = True
 
     profile_edit.exposed = True
     profile_list.exposed = True
     profile_save.exposed = True
-    #profile_view.exposed = True
 
     system_edit.exposed = True
     system_list.exposed = True
     system_save.exposed = True
-    #system_view.exposed = True
 
     settings_view.exposed = True
     ksfile_view.exposed = True
