@@ -59,6 +59,12 @@ class Config:
        self._profiles     = profiles.Profiles(weakref.proxy(self))
        self._systems      = systems.Systems(weakref.proxy(self))
        self._settings     = settings.Settings() # not a true collection
+       self._serialize_graph_classes = [
+          self._distros,
+          self._repos,
+          self._profiles,
+          self._systems
+       ]
        self._graph_classes = [
           self._settings,
           self._distros,
@@ -66,7 +72,6 @@ class Config:
           self._profiles,
           self._systems
        ]
-
        
        self.file_check()
 
@@ -141,7 +146,7 @@ class Config:
        app up to a working state on first run or if files are deleted.  See api.py
        FIXME: will require some tweaks when serializer modes aren't all file based
        """
-       for x in self._graph_classes:
+       for x in self._serialize_graph_classes:
           if not os.path.exists(x.filename()):
               if not serializer.serialize(x):
                   return False
@@ -152,7 +157,7 @@ class Config:
        """
        Save the object hierarchy to disk, using the filenames referenced in each object.
        """
-       for x in self._graph_classes:
+       for x in self._serialize_graph_classes:
           if not serializer.serialize(x):
               return False
        return True

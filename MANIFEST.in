@@ -9,6 +9,7 @@ include config/cobbler_hosts
 include config/modules.conf
 include config/auth.conf
 include config/webui-cherrypy.cfg
+include config/settings
 recursive-include templates *.template
 recursive-include kickstarts *.ks
 include docs/cobbler.1.gz

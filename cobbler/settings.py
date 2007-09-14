@@ -18,6 +18,9 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 TESTMODE = False
 
+# defaults is to be used if the config file doesn't contain the value
+# we need.
+
 DEFAULTS = {
     "bootloaders"                 : {
         "standard"                : "/usr/lib/syslinux/pxelinux.0",
@@ -116,3 +119,11 @@ class Settings(serializable.Serializable):
        else:
            raise AttributeError, name
 
+if __name__ == "__main__":
+    # used to save a settings file to /var/lib/cobbler/settings, for purposes of
+    # including a new updated settings file in the RPM without remembering how
+    # to format lots of YAML.
+    import yaml
+    print yaml.dump(DEFAULTS)
+
+ 

@@ -1,0 +1,31 @@
+---
+bootloaders:
+    ia64: /var/lib/cobbler/elilo-3.6-ia64.efi
+    standard: /usr/lib/syslinux/pxelinux.0
+default_kickstart: /etc/cobbler/default.ks
+default_virt_type: auto
+dhcpd_bin: /usr/sbin/dhcpd
+dhcpd_conf: /etc/dhcpd.conf
+dnsmasq_bin: /usr/sbin/dnsmasq
+dnsmasq_conf: /etc/dnsmasq.conf
+httpd_bin: /usr/sbin/httpd
+kernel_options:
+    ksdevice: eth0
+    lang: ' '
+    text: ~
+manage_dhcp: 0
+manage_dhcp_mode: isc
+next_server: '127.0.0.1'
+pxe_just_once: 0
+server: '127.0.0.1'
+snippetsdir: /var/lib/cobbler/snippets
+syslog_port: 25150
+tftpboot: /tftpboot
+tftpd_bin: /usr/sbin/in.tftpd
+tftpd_conf: /etc/xinetd.d/tftp
+webdir: /var/www/cobbler
+xmlrpc_port: 25151
+xmlrpc_rw_enabled: 0
+xmlrpc_rw_port: 25152
+yum_core_mirror_from_server: 0
+

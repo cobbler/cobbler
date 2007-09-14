@@ -68,6 +68,7 @@ if __name__ == "__main__":
                                 (etcpath,  ['config/webui-cherrypy.cfg']),
                                 (etcpath,  ['config/rsync.exclude']),
                                 (initpath, ['config/cobblerd']),
+                                (cobpath,  ['config/settings']),
 
                                 # bootloaders and syslinux support files
                                 (cobpath,  ['loaders/elilo-3.6-ia64.efi']),

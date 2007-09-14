@@ -71,13 +71,18 @@ fi
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %files
-%defattr(744,apache,apache)
+
+%defattr(755,apache,apache)
 /var/www/cgi-bin/findks.cgi
 /var/www/cgi-bin/nopxe.cgi
 /var/www/cgi-bin/cobbler_webui.cgi
+
+%defattr(755,apache,apache)
 %dir /usr/share/cobbler/webui_templates
+%defattr(444,apache,apache)
 /usr/share/cobbler/webui_templates/*.tmpl
-%defattr(2744,apache,apache)
+
+%defattr(1755,apache,apache)
 %dir /var/log/cobbler
 %dir /var/log/cobbler/kicklog
 %dir /var/www/cobbler/
@@ -92,9 +97,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cobbler/profiles
 %dir /var/www/cobbler/systems
 %dir /var/www/cobbler/links
+%defattr(755,apache,apache)
 %dir /var/www/cobbler/webui
+%defattr(444,apache,apache)
 /var/www/cobbler/webui/*.css
 /var/www/cobbler/webui/*.png
+
 %defattr(-,root,root)
 %dir /tftpboot/pxelinux.cfg
 %dir /tftpboot/images
@@ -127,7 +135,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /etc/init.d/cobblerd
 %config(noreplace) /etc/httpd/conf.d/cobbler.conf
 %dir /var/log/cobbler/syslog
-%defattr(2550,root,root)
+
+%defattr(755,root,root)
 %dir /var/lib/cobbler
 %dir /var/lib/cobbler/triggers/add/distro/pre
 %dir /var/lib/cobbler/triggers/add/distro/post
@@ -146,13 +155,17 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/triggers/delete/repo/pre
 %dir /var/lib/cobbler/triggers/delete/repo/post
 %dir /var/lib/cobbler/snippets/
+
+%defattr(664,root,root)
+%config(noreplace) /var/lib/cobbler/settings
 %config(noreplace) /var/lib/cobbler/snippets/partition_select
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/lib/cobbler/menu.c32
-%defattr(2660,root,root)
 %config(noreplace) /etc/cobbler/auth.conf 
-%defattr(2755,root,root)
+
+%defattr(664,root,root)
 %config(noreplace) /var/lib/cobbler/cobbler_hosts
+
 %defattr(-,root,root)
 %doc AUTHORS CHANGELOG README COPYING
 
@@ -161,7 +174,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 * Fri Aug 31 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.2-1
 - Upstream changes (see CHANGELOG)
-- removed syslinux as a requirement
+- removed syslinux as a requirement (cobbler check will detect absense)
+- packaged /var/lib/cobbler/settings as a config file
+- added BuildRequires of redhat-rpm-config to help src RPM rebuilds on other platforms
+- permissions cleanup
 
 * Thu Aug 30 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.1-2
 - Upstream changes (see CHANGELOG)
