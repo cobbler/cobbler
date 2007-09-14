@@ -4,7 +4,7 @@ Name: cobbler
 Version: 0.6.2
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
-License: GPL
+License: GPLv2+
 Group: Applications/System
 Requires: python >= 2.3
 Requires: httpd
@@ -82,7 +82,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(444,apache,apache)
 /usr/share/cobbler/webui_templates/*.tmpl
 
-%defattr(1755,apache,apache)
+%defattr(4755,apache,apache)
 %dir /var/log/cobbler
 %dir /var/log/cobbler/kicklog
 %dir /var/www/cobbler/
@@ -178,6 +178,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 - packaged /var/lib/cobbler/settings as a config file
 - added BuildRequires of redhat-rpm-config to help src RPM rebuilds on other platforms
 - permissions cleanup
+- make license field conform to rpmlint
 
 * Thu Aug 30 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.1-2
 - Upstream changes (see CHANGELOG)

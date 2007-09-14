@@ -7,7 +7,7 @@
 
 ### BEGIN INIT INFO
 # Provides: cobblerd
-# Requires: network
+# Required-Start: network, xinetd, httpd
 # Default-Start: 3 4 5
 # Short-Description: daemon for libvirt virtualization API
 # Description: This is a daemon that a provides remote cobbler API
