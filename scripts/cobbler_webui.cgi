@@ -13,7 +13,6 @@
 
 import cgi
 import cgitb
-import wsgiref
 import os
 import sys
 from cobbler.webui.CobblerWeb import CobblerWeb
