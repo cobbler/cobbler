@@ -1,0 +1,15 @@
+Things to do on the Web User Interface
+
+- finish up auth bits
+- make fields wider that need to be wider (most can probably be ~128?  Ksmeta/Kopts min 255)
+- modify form fields that should be radio boxes, etc (things like arch, breed)
+- rename support for all distro, profile, system, repo objects
+  -- just detect when name changes, should not require a new form
+- delete support for all distro, profile, system, repo objects
+  -- when both checkboxes are checked, process on same form
+- kickstart file editing and new kickstart file creation (if in /var/lib/cobbler/kickstarts)
+- sync button -- hook up to API.
+- ???
+- quick docs for Wiki
+- testing
+
