@@ -299,12 +299,15 @@ def blender(remove_hashes, root_obj):
 
 def flatten(data):
     # convert certain nested hashes to strings.
+    # FIXME: this function should be made more generic
     if data.has_key("kernel_options"):
         data["kernel_options"] = hash_to_string(data["kernel_options"])
     if data.has_key("ks_meta"):
         data["ks_meta"] = hash_to_string(data["ks_meta"])
     if data.has_key("repos") and type(data["repos"]) == list:
         data["repos"]   = " ".join(data["repos"])
+    if data.has_key("rpm_list") and type(data["rpm_list"]) == list:
+        data["rpm_list"] = " ".join(data["rpm_list"])
     return data
 
 def __consolidate(node,results):

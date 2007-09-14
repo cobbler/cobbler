@@ -113,6 +113,7 @@ class Repo(item.Item):
         except:
             pass
         self.rpm_list = rpmlist 
+        return True
 
     def set_createrepo_flags(self,createrepo_flags):
         """

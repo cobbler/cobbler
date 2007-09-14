@@ -1,0 +1,95 @@
+#extends cobbler.webui.master
+
+#block body
+
+<form method="post" action="$base_url/repo_save">
+<fieldset id="cform">
+
+    #if $repo
+        <legend>Editing Repo</legend>
+        <input type="hidden" name="new_or_edit" value="edit"/>
+    #else
+        <legend>Adding a Repo</legend>
+        <input type="hidden" name="new_or_edit" value="new"/>
+    #end if
+
+    <label for="name">Name</label>
+    <input type="text" size="32" style="width: 150px;" name="name" id="name"
+        #if $repo
+            value="$repo.name"
+        #end if
+    />
+    <br/>
+
+    <label for="mirror">Mirror Location (http/ftp/rsync)</label>
+    <input type="text" size="32" style="width: 150px;" name="mirror" id="mirror"
+        #if $repo
+            value="$repo.mirror"
+        #end if
+    />
+    <br/>
+
+    <label for="keepupdated">Keep Updated</label>
+    <input type="checkbox" name="keepupdated" id="keepupdated"
+        #if $repo
+            #if $repo.keep_updated
+                selected="True"
+            #else
+                selected="False"
+            #end if
+        #else
+            selected = "True"  
+        #end if
+    />
+    <br/>
+
+    <label for="localfilename">Local Filename</label>
+    <input type="text" size="32" style="width: 150px;" name="localfilename" id="localfilename"
+        #if $repo
+            value="$repo.local_filename"
+        #end if
+    />
+
+
+    <br/>
+
+    ## FIXME: input field sizes should be larger (universally)
+    ## FIXME: make this a text area?
+    <label for="rpmlist">RPM List</label>
+    <input type="text" size="32" style="width: 150px;" name="rpmlist" id="rpmlist"
+        #if $repo
+            value="$repo.rpm_list"
+        #end if
+    />
+    <br/>
+
+    <label for="createrepo_flags">createrepo flags</label>
+    <input type="text" size="32" style="width: 150px;" name="creatrepoflags" id="createrepoflags"
+        #if $repo
+            value="$repo.createrepo_flags"
+        #end if
+    />
+    <br/>
+
+    #if $repo
+    <label for="delete">Delete</label>
+       <input type="checkbox" name="delete1" value="delete1">Yes
+       <input type="checkbox" name="delete2" value="delete2">Really
+    <br/>
+    #end if
+
+    <input type="submit" name="submit" value="Save"/>
+    <input type="reset" name="reset" value="Reset"/>
+</fieldset>
+</form>
+<br/>    
+
+<blockquote>
+Note:  Newly added repos contain no package content until "cobbler reposync" is run
+from the command line, which means that profiles relying on these repositories will
+not install.  Placing "cobbler reposync" on a crontab to ensure frequent updates
+is recommended procedure.
+</blockquote>
+
+<br/>
+#end block body

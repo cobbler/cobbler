@@ -21,6 +21,7 @@ Requires: syslinux
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
+BuildRequires: redhat-rpm-config
 BuildRequires: python-devel
 BuildRequires: python-cheetah
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot

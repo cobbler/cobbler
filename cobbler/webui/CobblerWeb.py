@@ -346,7 +346,64 @@ class CobblerWeb(object):
     # Repos
     # ------------------------------------------------------------------------ #
 
-    # integrate repository adding/editing as with the other objects.
+    def repo_list(self):
+        self.__xmlrpc_setup()
+        repos = self.remote.get_repos()
+        if len(repos) > 0:
+            return self.__render( 'repo_list.tmpl', {
+                'repos': repos
+            })
+        else:
+            return self.__render('empty.tmpl', {})
+
+    def repo_edit(self, name=None):
+        self.__xmlrpc_setup()
+
+        input_repo = None
+        if name is not None:
+            input_repo = self.remote.get_repo(name, True)
+
+        return self.__render( 'repo_edit.tmpl', {
+            'repo': input_repo,
+        } )
+
+    def repo_save(self,name=None,new_or_edit=None,mirror=None,keepupdated=None,localfilename=None,rpmlist=None,createrepoflags=None,**args):
+        self.__xmlrpc_setup()
+
+        # pre-command parameter checking
+        if name is None:
+            return self.error_page("name is required")
+        if mirror is None:
+            return self.error_page("mirror is required")
+
+        # grab a reference to the object
+        if new_or_edit == "edit":
+            try:
+                repo = self.remote.get_repo_handle( name, self.token)
+            except:
+                return self.error_page("Failed to lookup repo: %s" % name)
+        else:
+            repo = self.remote.new_repo(self.token)
+
+        try:
+            self.remote.modify_repo(repo, 'name', name, self.token)
+            self.remote.modify_repo(repo, 'mirror', mirror, self.token)
+            if keepupdated:
+                self.remote.modify_repo(repo, 'keep-updated', keepupdated, self.token)
+            if localfilename:
+                self.remote.modify_repo(repo, 'local-filename', localfilename, self.token)
+            if rpmlist:
+                self.remote.modify_repo(repo, 'rpm-list', rpmlist, self.token)
+            if createrepoflags:
+                self.remote.modify_distro(repo, 'createrepo-flags', createrepoflags, self.token)
+            self.remote.save_repo(repo, self.token)
+        except Exception, e:
+            log_exc()
+            return self.error_page("Error while saving repo: %s" % str(e))
+
+        return self.repo_edit(name=name)
+
+
 
     # ------------------------------------------------------------------------ #
     # Kickstart files
@@ -407,6 +464,10 @@ class CobblerWeb(object):
     system_edit.exposed = True
     system_list.exposed = True
     system_save.exposed = True
+
+    repo_edit.exposed = True
+    repo_list.exposed = True
+    repo_save.exposed = True
 
     settings_view.exposed = True
     ksfile_view.exposed = True

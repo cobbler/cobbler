@@ -126,7 +126,8 @@ if __name__ == "__main__":
                                 (wwwtmpl,           ['webui_templates/profile_edit.tmpl']),
                                 (wwwtmpl,           ['webui_templates/system_list.tmpl']),
                                 (wwwtmpl,           ['webui_templates/system_edit.tmpl']),
-                                #(wwwtmpl,           ['webui_templates/repo_list.tmpl']),
+                                (wwwtmpl,           ['webui_templates/repo_list.tmpl']),
+                                (wwwtmpl,           ['webui_templates/repo_edit.tmpl']),
 
                                 # Web UI common templates 
                                 (wwwtmpl,           ['webui_templates/error_page.tmpl']),
