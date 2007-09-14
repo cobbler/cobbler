@@ -417,7 +417,7 @@ class CobblerWeb(object):
 
     def ksfile_edit(self, name=None):
         self.__xmlrpc_setup()
-        return self.__render( 'ksfile_view.tmpl', {
+        return self.__render( 'ksfile_edit.tmpl', {
             'ksfile': name,
             'ksdata': self.remote.read_or_write_kickstart_template(self,name,True,"",self.token)
 
