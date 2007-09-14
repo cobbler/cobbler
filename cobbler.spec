@@ -138,6 +138,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(755,root,root)
 %dir /var/lib/cobbler
+%dir /var/lib/cobbler/kickstarts/
 %dir /var/lib/cobbler/triggers/add/distro/pre
 %dir /var/lib/cobbler/triggers/add/distro/post
 %dir /var/lib/cobbler/triggers/add/profile/pre

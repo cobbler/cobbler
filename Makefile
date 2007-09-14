@@ -16,12 +16,16 @@ manpage:
 test: install
 	python tests/tests.py
 	-rm -rf /tmp/_cobbler-*
-
 build: clean updatewui messages
 	python setup.py build -f
 
 install: clean manpage
 	python setup.py install -f
+
+devinstall:
+	cp /var/lib/cobbler/settings /tmp/cobbler_settings
+	make install
+	cp /tmp/cobbler_settings /var/lib/cobbler/settings
 
 sdist: clean messages updatewui
 	python setup.py sdist

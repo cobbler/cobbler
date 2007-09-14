@@ -5,8 +5,8 @@
     <thead>
         <caption>Cobbler Kickstart Files</caption>
         <tr>
-            <th class="text">Name</th>
-            <th> </th>
+            <th class="text">File</th>
+            <th class="text">Edit/View</th>
         </tr>
     </thead>
     <tbody>
@@ -21,11 +21,15 @@
 
         <tr class="$tr_class">
             <td>$ksfile</td>
-            <td><!-- 
-                <a href="/ksfile_edit?ksfile=$ksfile">edit</a>
-                <a href="/ksfile_view?ksfile=$ksfile">view</a>
-                -->
-            </td>
+            #if $ksfile.startswith("/var/lib/cobbler/kickstarts")
+                <td><a href="/ksfile_edit?name=$ksfile">edit</a></td>
+            #else if $ksfile.startswith("/etc/cobbler")
+                <td><a href="/ksfile_edit?name=$ksfile">edit</a></td>
+            #else if $ksfile.startswith("http://")
+                <td><a href="$ksfile">view</A></td>
+            #else
+                <td>N/A</td>
+            #end if 
         </tr>
         #end for
     </tbody>

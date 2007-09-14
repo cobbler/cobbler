@@ -410,31 +410,26 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
 
     def ksfile_list(self):
-        return self.__render( 'ksfile_list.tmpl', {
-            'ksfiles': self.__ksfiles()
-        } )
-
-    def ksfile_view(self, ksfile):
-        return self.__render( 'ksfile_view.tmpl', {
-            'ksdata': self.__ksfile_data( ksfile ),
-            'ksfile': ksfile
-        } )
-
-    # FIXME: modify to detect per-system kickstart files (seldom used feature) also
-
-    def __ksfiles(self):
         self.__xmlrpc_setup()
-        ksfiles = []
-        for profile in self.remote.get_profiles():
-            ksfile = profile['kickstart']
-            if not ksfile in ksfiles:
-                ksfiles.append( ksfile )
-        return ksfiles
+        return self.__render( 'ksfile_list.tmpl', {
+            'ksfiles': self.remote.get_kickstart_templates(self.token)
+        } )
 
-    # FIXME: implement backend feature for modifying kickstart files in text box
+    def ksfile_edit(self, name=None):
+        self.__xmlrpc_setup()
+        return self.__render( 'ksfile_view.tmpl', {
+            'ksfile': name,
+            'ksdata': self.remote.read_or_write_kickstart_template(self,name,True,"",self.token)
 
-    def __ksfile_data(self, ksfile):
-        pass
+        } )
+
+    def ksfile_save(self, name=None, data=None):
+        self.__xmlrpc_setup()
+        try:
+            self.remote.read_or_write_kickstart_template(self,name,False,data,self.token)
+        except Exception, e:
+            return self.error_page("error with kickstart: %s" % str(e))
+        return self.ksfile_edit(name=ksfile)
 
     # ------------------------------------------------------------------------ #
     # Miscellaneous
@@ -470,7 +465,8 @@ class CobblerWeb(object):
     repo_save.exposed = True
 
     settings_view.exposed = True
-    ksfile_view.exposed = True
+    ksfile_edit.exposed = True
+    ksfile_save.exposed = True
     ksfile_list.exposed = True
 
 class CobblerWebAuthException(exceptions.Exception):

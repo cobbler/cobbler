@@ -116,9 +116,12 @@ the name of a previously defined cobbler distribution
 
 =item kickstart
 
-Local filesystem path to a kickstart file.  
+Local filesystem path to a kickstart file.  http:// URLs (even CGI's) are also accepted, but a local file path is recommended, so that the kickstart templating engine can be taken advantage of.
 
 If this parameter is not provided, the kickstart file will default to /etc/cobbler/default.ks.  This file is initially blank, meaning default kickstarts are not automated "out of the box".  Admins can change the default.ks if they desire..
+
+When using kickstart files, they can be placed anywhere on the filesystem, but the recommended path is /var/lib/cobbler/kickstarts.
+
 
 =item virt-file-size
 

@@ -650,7 +650,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.__validate_token(token)
         return self.api.sync() 
 
-    def reposync(self,token,repos=[]):
+    def reposync(self,repos=[],token=None):
         """
         Updates one or more mirrored yum repositories.
         reposync is very slow and probably should not be used
@@ -659,7 +659,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.__validate_token(token)
         return self.api.reposync(repos)
 
-    def import_tree(self,mirror_url,mirror_name,network_root=None):
+    def import_tree(self,mirror_url,mirror_name,network_root=None,token=None):
         """
         I'm exposing this in the XMLRPC API for consistancy but as this
         can be a very long running operation usage is /not/ recommended.
@@ -668,6 +668,58 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self.__validate_token(token)
         return self.api.import_tree(mirror_url,mirror_name,network_root)
+
+    def get_kickstart_templates(self,token):
+        """
+        Returns all of the kickstarts that are in use by the system.
+        """
+        self.__validate_token(token)
+        files = {} 
+        for x in self.api.profiles():
+           if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
+              files[x.kickstart] = 1
+        for x in self.api.systems():
+           if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
+              files[x.kickstart] = 1
+        return files.keys() 
+
+
+    def read_or_write_kickstart_template(self,kickstart_file,is_read,new_data,token):
+        """ 
+        Allows the WebUI to be used as a kickstart file editor.  For security
+        reasons we will only allow kickstart files to be edited if they reside in
+        /var/lib/cobbler/kickstarts/ or /etc/cobbler.  This limits the damage
+        doable by Evil who has a cobbler password but not a system password.
+        Also if living in /etc/cobbler the file must be a kickstart file.
+        """
+
+        self.__validate_token(token)
+ 
+        if kickstart_file.find("..") != -1 or not kickstart_file.startswith("/"):
+            raise CX(_("tainted file location"))
+
+        if not kickstart_file.startswith("/etc/cobbler/") and not kickstart_file.startswith("/var/lib/cobbler/kickstarts"):
+            raise CX(_("unable to view or edit kickstart in this location"))
+        
+        if kickstart_file.startswith("/etc/cobbler/"):
+           if not kickstart_file.endswith(".ks"):
+              # take care to not allow config files to be altered.
+              raise CX(_("this does not seem to be a kickstart file"))
+           if not is_read and not os.path.exists(kickstart_file):
+              raise CX(_("new files must go in /var/lib/cobbler/kickstarts"))
+        
+        if is_read:
+            fileh = open(kickstart_file,"r")
+            data = fileh.read()
+            fileh.close()
+            return data
+        else:
+            fileh = open(kickstart_file,"w+")
+            fileh.write(new_data)
+            fileh.close()
+            return True
+
+
 
 # *********************************************************************************
 # *********************************************************************************
