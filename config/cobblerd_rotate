@@ -1,4 +1,6 @@
 /var/log/cobbler/cobblerd.log {
+   missingok
+   notifempty
    rotate 4
    weekly
    postrotate
