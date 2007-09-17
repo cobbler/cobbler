@@ -67,6 +67,9 @@ class CobblerXMLRPCInterface:
     def __sorter(self,a,b):
         return cmp(a["name"],b["name"])
 
+    def ping(self):
+        return True
+
     def get_settings(self,token=None):
         """
         Return the contents of /var/lib/cobbler/settings, which is a hash.
@@ -403,14 +406,12 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
             return True
         return False    
 
-    def test(self,token):
+    def token_check(self,token):
         """
         This is a demo function that does not return anything useful.
         """
         self.__validate_token(token)
-        return "passed"
-
-
+        return True
 
     def __store_object(self,reference):
         """

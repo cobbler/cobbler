@@ -1,6 +1,5 @@
 Things to do on the Web User Interface
 
-- finish up auth bits
 - make fields wider that need to be wider (most can probably be ~128?  Ksmeta/Kopts min 255)
 - modify form fields that should be radio boxes, etc (things like arch, breed)
 - rename support for all distro, profile, system, repo objects

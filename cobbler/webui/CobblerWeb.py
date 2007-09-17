@@ -19,6 +19,7 @@ from cobbler.utils import *
 import logging
 import sys
 import Cookie
+import time
 
 # set up logging
 
@@ -46,70 +47,101 @@ class CobblerWeb(object):
     it all run either under cgi-bin or CherryPy.  Supporting other Python
     frameworks should be trivial.
     """
-    def __init__(self, server=None, base_url='/', username=None, password=None, token=None, token_cookie_name='cobbler_xmlrpc_token'):
+    def __init__(self, server=None, base_url='/', username=None, password=None, token=None):
         self.server = server
         self.base_url = base_url
         self.remote = None
         self.token = token
         self.username = username
         self.password = password
-        self.token_cookie_name = token_cookie_name
         self.logout = None
+        self.__cookies = Cookie.SimpleCookie(Cookie.SimpleCookie(os.environ.get("HTTP_COOKIE","")))
 
-    def __xmlrpc_setup(self):
+    def __xmlrpc_setup(self,is_login=False):
         """
         Sets up the connection to the Cobbler XMLRPC server.  Right now, the
         r/w server is required.   In the future, it may be possible to instantiate
         a r/o webui that doesn't need to login.
         """
-        if self.remote is None:
-            self.remote = xmlrpclib.Server(self.server, allow_none=True)
+    
+        # changed to always create a new connection object
+        self.remote = xmlrpclib.Server(self.server, allow_none=True)
 
+        # if we do not have a token in memory, is it in a cookie?
         if self.token is None:
-            self.token = self.remote.login( self.username, self.password )
-            self.password = None # don't need it anymore, get rid of it
+            self.token = self.__get_cookie_token()
 
-        return self.remote
+        # if we have don't have a token, login for the first time
+        if self.token is None:
+            try:
+                self.token = self.remote.login( self.username, self.password )
+            except Exception, e:
+                logger.info("login failed for: %s" % self.username)
+                log_exc()
+                return False
+            self.__cookie_login(self.token) # save what we've got
+            self.password = None # don't need it anymore, get rid of it
+            return True
+
+        # else if we do have a token, try to use it...
+        else:
+            # validate that our token is still good
+            try:
+                self.remote.token_check(self.token)
+            except Exception, e:
+                # FIXME: check exception type to see that it is login related
+                logger.info("token timeout for: %s" % self.username)
+                log_exc()
+                self.token = None
+                # this should put us back to the login screen
+                self.__cookie_logout()
+                return False 
+            return True
+
 
     def __render(self, template, data):
         """
         Call the templating engine (Cheetah), wrapping up the location
         of files while we're at it.
         """
-        try:
-            data['base_url'] = self.base_url
 
-            # used by master.tmpl to determine whether or not to show login/logout links
-            if self.token:
-                data['logged_in'] = 1
-            elif self.username and self.password:
-                data['logged_in'] = 'configured'
-            else:
-                data['logged_in'] = None
+        data['base_url'] = self.base_url
 
-            filepath = os.path.join("/usr/share/cobbler/webui_templates/",template)
-            tmpl = Template( file=filepath, searchList=data )
-            return str(tmpl)
-        except:
-            log_exc()
-            return self.error_page("Error while rendering page.  See /var/log/cobbler/webui.log")
+        # used by master.tmpl to determine whether or not to show login/logout links
+        if self.token is not None:
+            data['logged_in'] = 1
+        elif self.username and self.password:
+            data['logged_in'] = 'configured'
+        else:
+            data['logged_in'] = None
+
+        filepath = os.path.join("/usr/share/cobbler/webui_templates/",template)
+        tmpl = Template( file=filepath, searchList=data )
+        return str(tmpl)
 
     def cookies(self):
         """
         Returns a Cookie.SimpleCookie object with all of CobblerWeb's cookies.
         Mmmmm cookies!
         """
-        cookies = Cookie.SimpleCookie()
+        return self.__cookies
 
-        if self.logout:
-            cookies[self.token_cookie_name] = "null"
-            cookies[self.token_cookie_name]['expires'] = 0
-            self.logout = None
+    def __cookie_logout(self,):
+        self.__cookies["cobbler_xmlrpc_token"] = "null"
+        self.__cookies["cobbler_xmlrpc_token"]['expires'] = 0
+        return self.cookies
 
-        elif self.token:
-            cookies[self.token_cookie_name] = self.token
-
-        return cookies
+    def __cookie_login(self,token):
+        self.__cookies["cobbler_xmlrpc_token"] = token
+        self.__cookies["cobbler_xmlrpc_token"]['expires'] = time.time() + 29*60
+        return self.cookies 
+         
+    def __get_cookie_token(self):
+        if self.__cookies.has_key("cobbler_xmlrpc_token"):
+            value = self.__cookies["cobbler_xmlrpc_token"]
+            logger.debug("loading token from cookie: %s" % value.value)
+            return value.value
+        return None
 
     def modes(self):
         """
@@ -147,13 +179,14 @@ class CobblerWeb(object):
         self.username = username
         self.password = password
 
-        self.__xmlrpc_setup()
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
 
         return self.index()
 
     def logout_submit(self):
         self.token = None
-        self.logout = 1
+        self.__cookie_logout()
         return self.login()
 
     # ------------------------------------------------------------------------ #
@@ -165,7 +198,9 @@ class CobblerWeb(object):
     # including your ability to fix it back.
 
     def settings_view(self):
-        self.__xmlrpc_setup()
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
+
         return self.__render( 'item.tmpl', {
             'item_data': self.remote.get_settings(),
             'caption':   "Cobbler Settings"
@@ -176,7 +211,8 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
 
     def distro_list(self):
-        self.__xmlrpc_setup()
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
         distros = self.remote.get_distros()
         if len(distros) > 0:
             return self.__render( 'distro_list.tmpl', {
@@ -186,7 +222,9 @@ class CobblerWeb(object):
             return self.__render('empty.tmpl', {})  
   
     def distro_edit(self, name=None):
-        self.__xmlrpc_setup()
+
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
          
         input_distro = None
         if name is not None:
@@ -197,10 +235,19 @@ class CobblerWeb(object):
             'distro': input_distro,
         } )
 
-    # FIXME: implement handling of delete1, delete2 + renames
+    # FIXME: deletes and renames
     def distro_save(self,name=None,new_or_edit=None,kernel=None,initrd=None,kopts=None,ksmeta=None,arch=None,breed=None,**args):
-        self.__xmlrpc_setup()
-        
+
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
+
+        #if delete1 and delete2:
+        #    try:     
+        #        self.remote.distro_remove(name)   
+        #    except Exception, e:
+        #        self.error_page("could not delete %s, %s" % str(e))
+        #    return self.distro_edit(name=name)
+
         # pre-command paramter checking
         if name is None:
             return self.error_page("name is required")
@@ -214,6 +261,7 @@ class CobblerWeb(object):
             try:
                 distro = self.remote.get_distro_handle( name, self.token)
             except:
+                log_exc()
                 return self.error_page("Failed to lookup distro: %s" % name)
         else:
             distro = self.remote.new_distro(self.token)
@@ -244,7 +292,10 @@ class CobblerWeb(object):
     # iterator so the list doesn't get copied around
 
     def system_list(self):
-        self.__xmlrpc_setup()
+
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
+
         systems = self.remote.get_systems()
         if len(systems) > 0:
             return self.__render( 'system_list.tmpl', {
@@ -257,7 +308,8 @@ class CobblerWeb(object):
     def system_save(self, name=None, profile=None, new_or_edit=None, mac=None, ip=None, hostname=None, 
                     kopts=None, ksmeta=None, netboot='n', dhcp_tag=None, **args):
 
-        self.__xmlrpc_setup()
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
 
         # parameter checking
         if name is None:
@@ -307,7 +359,8 @@ class CobblerWeb(object):
 
     def system_edit(self, name=None):
 
-        self.__xmlrpc_setup()
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
 
         input_system = None
         if name is not None:
@@ -323,7 +376,8 @@ class CobblerWeb(object):
     # Profiles
     # ------------------------------------------------------------------------ #
     def profile_list(self):
-        self.__xmlrpc_setup()
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
         profiles = self.remote.get_profiles()
         if len(profiles) > 0:
             return self.__render( 'profile_list.tmpl', {
@@ -335,7 +389,8 @@ class CobblerWeb(object):
     # FIXME: implement handling of delete1, delete2 + renames
     def profile_edit(self, name=None):
 
-        self.__xmlrpc_setup()
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
 
         input_profile = None
         if name is not None:
@@ -352,7 +407,8 @@ class CobblerWeb(object):
                      ksmeta=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,**args):
 
-        self.__xmlrpc_setup()
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
 
         # pre-command parameter checking 
         if name is None:
@@ -402,7 +458,8 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
 
     def repo_list(self):
-        self.__xmlrpc_setup()
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
         repos = self.remote.get_repos()
         if len(repos) > 0:
             return self.__render( 'repo_list.tmpl', {
@@ -412,7 +469,8 @@ class CobblerWeb(object):
             return self.__render('empty.tmpl', {})
 
     def repo_edit(self, name=None):
-        self.__xmlrpc_setup()
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
 
         input_repo = None
         if name is not None:
@@ -423,7 +481,8 @@ class CobblerWeb(object):
         } )
 
     def repo_save(self,name=None,new_or_edit=None,mirror=None,keepupdated=None,localfilename=None,rpmlist=None,createrepoflags=None,**args):
-        self.__xmlrpc_setup()
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
 
         # pre-command parameter checking
         if name is None:
@@ -465,13 +524,15 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
 
     def ksfile_list(self):
-        self.__xmlrpc_setup()
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
         return self.__render( 'ksfile_list.tmpl', {
             'ksfiles': self.remote.get_kickstart_templates(self.token)
         } )
 
     def ksfile_edit(self, name=None):
-        self.__xmlrpc_setup()
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
         return self.__render( 'ksfile_edit.tmpl', {
             'ksfile': name,
             'ksdata': self.remote.read_or_write_kickstart_template(self,name,True,"",self.token)
@@ -479,7 +540,8 @@ class CobblerWeb(object):
         } )
 
     def ksfile_save(self, name=None, data=None):
-        self.__xmlrpc_setup()
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
         try:
             self.remote.read_or_write_kickstart_template(self,name,False,data,self.token)
         except Exception, e:

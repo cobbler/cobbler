@@ -40,10 +40,9 @@ def configure():
         'token':             None,
         'server':            None,
         'base_url':          None,
-        'token_cookie_name': None,
         'username':          None,
         'password':          None,
-        'cgitb_enabled':     0 
+        'cgitb_enabled':     1     
     }
     #config.username = 'testuser',
     #config.password = 'llamas2007'
@@ -54,9 +53,6 @@ def configure():
 
     if config['base_url'] is None:
         config['base_url'] = base_url()
-
-    if config['token_cookie_name'] is None:
-        config['token_cookie_name'] = 'cobbler_xmlrpc_token'
 
     return config
 
@@ -72,10 +68,6 @@ def main():
         cgitb.enable()
     cw_conf.pop('cgitb_enabled')
 
-    # look for the token cookie and put it in the config dict if found
-    if cookies.has_key( cw_conf['token_cookie_name'] ):
-        cw_conf['token'] = cookies[ cw_conf['token_cookie_name'] ].value
-
     # exchnage single-element arrays in the 'form' dictionary for just that item
     # so there isn't a ton of 'foo[0]' craziness where 'foo' should suffice
     # - may be bad for form elements that are sometimes lists and sometimes
@@ -88,23 +80,16 @@ def main():
     # instantiate a CobblerWeb object
     cw = CobblerWeb( **cw_conf )
 
-    if not path.startswith('login') and (cw_conf['token'] is None and (cw_conf['username'] is None or cw_conf['password'] is None)):
-        func = getattr( cw, 'login' )
-        content = func( message="Authentication Required." )
+    # FIXME: allow for direct URL access and pages will redirect appropriately.
+
+    #if not path.startswith('login') and (cw_conf['token'] is None and (cw_conf['username'] is None or cw_conf['password'] is None)):
+    #    func = getattr( cw, 'login' )
+    #    content = func( message="Authentication Required." )
 
     # check for a valid path/mode
-    elif path in cw.modes():
+    if path in cw.modes():
         func = getattr( cw, path )
-        try:
-            content = func( **form )
-        # handle failed authentication gracefully
-        except Exception, e:
-            if str(e).find('login failed:') > 0:
-                func = getattr( cw, 'login' )
-                content = func( message="Authentication failed." )
-            # everything else is a bug?
-            else:
-                raise e
+        content = func( **form )
             
     # handle invalid paths gracefully
     else:
