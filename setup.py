@@ -135,6 +135,7 @@ if __name__ == "__main__":
                                 (wwwtmpl,           ['webui_templates/master.tmpl']),
                                 (wwwtmpl,           ['webui_templates/item.tmpl']),
                                 (wwwtmpl,           ['webui_templates/index.tmpl']),
+                                (wwwtmpl,           ['webui_templates/login.tmpl']),
 
                                 # Web UI kickstart file editing
                                 (wwwtmpl,           ['webui_templates/ksfile_edit.tmpl']),

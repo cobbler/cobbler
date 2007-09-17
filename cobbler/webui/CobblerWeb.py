@@ -18,6 +18,9 @@ import string
 from cobbler.utils import *
 import logging
 import sys
+import Cookie
+
+# set up logging
 
 logger = logging.getLogger("cobbler.webui")
 logger.setLevel(logging.DEBUG)
@@ -28,12 +31,13 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 def log_exc():
+   """
+   Log active traceback to logfile.
+   """
    (t, v, tb) = sys.exc_info()
    logger.info("Exception occured: %s" % t )
    logger.info("Exception value: %s" % v)
    logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
-
-
 
 class CobblerWeb(object):
     """
@@ -42,17 +46,15 @@ class CobblerWeb(object):
     it all run either under cgi-bin or CherryPy.  Supporting other Python
     frameworks should be trivial.
     """
-    def __init__(self, server=None, base_url='/', username=None, password=None):
+    def __init__(self, server=None, base_url='/', username=None, password=None, token=None, token_cookie_name='cobbler_xmlrpc_token'):
         self.server = server
         self.base_url = base_url
         self.remote = None
-        self.token = None
-
-        if username is None or password is None:
-            raise CobblerWebAuthException( "Must provide username and password for Cobbler r/w XMLRPC Interface!" )
-
+        self.token = token
         self.username = username
         self.password = password
+        self.token_cookie_name = token_cookie_name
+        self.logout = None
 
     def __xmlrpc_setup(self):
         """
@@ -62,8 +64,11 @@ class CobblerWeb(object):
         """
         if self.remote is None:
             self.remote = xmlrpclib.Server(self.server, allow_none=True)
+
         if self.token is None:
             self.token = self.remote.login( self.username, self.password )
+            self.password = None # don't need it anymore, get rid of it
+
         return self.remote
 
     def __render(self, template, data):
@@ -73,13 +78,38 @@ class CobblerWeb(object):
         """
         try:
             data['base_url'] = self.base_url
-            #filepath = "%s/%s" % (os.path.dirname(__file__), template)
+
+            # used by master.tmpl to determine whether or not to show login/logout links
+            if self.token:
+                data['logged_in'] = 1
+            elif self.username and self.password:
+                data['logged_in'] = 'configured'
+            else:
+                data['logged_in'] = None
+
             filepath = os.path.join("/usr/share/cobbler/webui_templates/",template)
             tmpl = Template( file=filepath, searchList=data )
             return str(tmpl)
         except:
             log_exc()
             return self.error_page("Error while rendering page.  See /var/log/cobbler/webui.log")
+
+    def cookies(self):
+        """
+        Returns a Cookie.SimpleCookie object with all of CobblerWeb's cookies.
+        Mmmmm cookies!
+        """
+        cookies = Cookie.SimpleCookie()
+
+        if self.logout:
+            cookies[self.token_cookie_name] = "null"
+            cookies[self.token_cookie_name]['expires'] = 0
+            self.logout = None
+
+        elif self.token:
+            cookies[self.token_cookie_name] = self.token
+
+        return cookies
 
     def modes(self):
         """
@@ -100,6 +130,31 @@ class CobblerWeb(object):
 
     def index(self):
         return self.__render( 'index.tmpl', dict() )
+
+    # ------------------------------------------------------------------------ #
+    # Authentication
+    # ------------------------------------------------------------------------ #
+
+    def login(self, message=None):
+        return self.__render( 'login.tmpl', {'message': message} )
+
+    def login_submit(self, username=None, password=None, submit=None):
+        if username is None:
+            return self.error_page( "No username supplied." )
+        if password is None:
+            return self.error_page( "No password supplied." )
+
+        self.username = username
+        self.password = password
+
+        self.__xmlrpc_setup()
+
+        return self.index()
+
+    def logout_submit(self):
+        self.token = None
+        self.logout = 1
+        return self.login()
 
     # ------------------------------------------------------------------------ #
     # Settings
@@ -447,6 +502,11 @@ class CobblerWeb(object):
     modes.exposed = False
     error_page.exposed = False
     index.exposed = True
+
+    login.exposed = True
+    login_submit.exposed = True
+    logout_submit.exposed = True
+    cookies.exposed = False
 
     distro_edit.exposed = True
     distro_list.exposed = True

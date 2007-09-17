@@ -24,12 +24,6 @@
 
 <div id="sidebar">
     <ul id="nav">
-        <li>
-            <select name="cobbler_server" style="text-transform: none;">
-                <option value="http://localhost:25151">http://localhost:25151</option>
-            </select>
-        </li>
-        <li><hr/></li>
         <li><a href="$base_url/settings_view" class="menu">Settings</a></li>
         <li><hr/></li>
         <li>LIST</li>
@@ -45,7 +39,15 @@
         <li><a href="$base_url/system_edit" class="menu">System</a></li>
         <li><a href="$base_url/repo_edit" class="menu">Repo</a></li>
         <li><hr/></li>
-        <li>&lt;Sync&gt;</li>
+         #if $logged_in != 'configured'
+            #if $logged_in
+                <li><a href="$base_url/logout_submit" class="menu">Log Out</a></li>
+            #else
+                <li><a href="$base_url/login" class="menu">Log In</a></li>
+            #end if
+            <li><hr/></li>
+        #end if
+       <li>&lt;Sync&gt;</li>
     </ul>
 </div>
 
