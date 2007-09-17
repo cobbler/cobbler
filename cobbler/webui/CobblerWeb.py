@@ -290,7 +290,7 @@ class CobblerWeb(object):
             'edit' : True,
             'profile': input_profile,
             'distros': self.remote.get_distros(),
-            'ksfiles': self.__ksfiles()
+            'ksfiles': self.remote.get_kickstart_templates(self.token) 
         } )
 
     def profile_save(self,new_or_edit=None, name=None,distro=None,kickstart=None,kopts=None,
