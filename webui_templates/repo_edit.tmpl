@@ -1,6 +1,18 @@
 #extends cobbler.webui.master
-
 #block body
+
+#if $repo
+<script language="javascript">
+function disablename(value)
+{
+   document.getElementById("name").disabled=value;
+   if (value) {
+       document.getElementById("name").value = "$repo.name";
+   }
+}
+</script>
+#end if
+
 
 <form method="post" action="$base_url/repo_save">
 <fieldset id="cform">
@@ -8,18 +20,32 @@
     #if $repo
         <legend>Editing Repo</legend>
         <input type="hidden" name="new_or_edit" value="edit"/>
+        <input type="hidden" name="oldname" value="$repo.name"/>
     #else
         <legend>Adding a Repo</legend>
         <input type="hidden" name="new_or_edit" value="new"/>
     #end if
 
     <label for="name">Name</label>
+    #if $repo
+    <input type="text" size="32" style="width: 150px;" name="name" id="name" disabled="true"
+    #else
     <input type="text" size="32" style="width: 150px;" name="name" id="name"
+    #end if
         #if $repo
             value="$repo.name"
         #end if
     />
     <br/>
+
+    #if $repo
+    <label for="mode">Edit Mode</label>
+    <input type="radio" name="editmode" value="edit" checked onclick="javascript:disablename(true)">Edit
+    <input type="radio" name="editmode" value="rename" onclick="javascript:disablename(false)">Rename + Edit
+    <input type="radio" name="editmode" value="copy" onclick="javascript:disablename(false)">Copy + Edit
+    <br/>
+    #end if
+
 
     <label for="mirror">Mirror Location (http/ftp/rsync)</label>
     <input type="text" size="32" style="width: 150px;" name="mirror" id="mirror"

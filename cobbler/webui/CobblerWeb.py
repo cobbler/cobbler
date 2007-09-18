@@ -238,7 +238,9 @@ class CobblerWeb(object):
         } )
 
     # FIXME: deletes and renames
-    def distro_save(self,name=None,new_or_edit=None,kernel=None,initrd=None,kopts=None,ksmeta=None,arch=None,breed=None,delete1=None,delete2=None,**args):
+    def distro_save(self,name=None,oldname=None,new_or_edit=None,editmode='edit',kernel=None,
+                    initrd=None,kopts=None,ksmeta=None,arch=None,breed=None,
+                    delete1=None,delete2=None,**args):
 
         if not self.__xmlrpc_setup():
             return self.login(message="")
@@ -258,9 +260,11 @@ class CobblerWeb(object):
             return self.error_page("kernel must be specified as an absolute path")
         if initrd is None or not str(initrd).startswith("/"):
             return self.error_page("initrd must be specified as an absolute path")
+        if (editmode == 'rename' or editmode == 'copy') and name == oldname:
+            return self.error_page("The name has not been changed.")
  
         # grab a reference to the object
-        if new_or_edit == "edit":
+        if new_or_edit == "edit" and editmode == "edit":
             try:
                 distro = self.remote.get_distro_handle( name, self.token)
             except:
@@ -286,6 +290,13 @@ class CobblerWeb(object):
             log_exc()
             return self.error_page("Error while saving distro: %s" % str(e))
 
+        if editmode == "rename" and name != oldname:
+            try:
+                self.remote.distro_remove(oldname, self.token)
+            except Exception, e:
+                return self.error_page("Rename unsuccessful. Object %s was copied instead, and the old copy (%s) still remains. Reason: %s" % (name, oldname, str(e)))
+
+
         return self.distro_list()
 
     # ------------------------------------------------------------------------ #
@@ -308,8 +319,10 @@ class CobblerWeb(object):
             return self.__render('empty.tmpl',{})
 
     # FIXME: implement handling of delete1, delete2 + renames
-    def system_save(self, name=None, profile=None, new_or_edit=None, mac=None, ip=None, hostname=None, 
-                    kopts=None, ksmeta=None, netboot='n', dhcp_tag=None, delete1=None, delete2=None, **args):
+    def system_save(self,name=None,oldname=None,editmode="edit",profile=None,
+                    new_or_edit=None, mac=None, ip=None, hostname=None, 
+                    kopts=None, ksmeta=None, netboot='n', dhcp_tag=None, 
+                    delete1=None, delete2=None, **args):
 
         if not self.__xmlrpc_setup():
             return self.login(message="")
@@ -317,6 +330,8 @@ class CobblerWeb(object):
         # parameter checking
         if name is None:
             return self.error_page("System name parameter is REQUIRED.")
+        if (editmode == 'rename' or editmode == 'copy') and name == oldname:
+            return self.error_page("The name has not been changed.")
 
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
@@ -327,7 +342,7 @@ class CobblerWeb(object):
             return self.system_list()
 
         # more parameter checking
-        if mac is None and ip is None and hostname is None and not is_mac(name):
+        if mac is None and ip is None and hostname is None and not is_mac(name) and not is_ip(name):
             return self.error_page("System must have at least one of MAC/IP/hostname.")
         if hostname and not ip:
             ip = resolve_ip( hostname )
@@ -337,7 +352,7 @@ class CobblerWeb(object):
             return self.error_page("The provided IP address appears to be invalid.")
 
         # grab a reference to the object
-        if new_or_edit == "edit":
+        if new_or_edit == "edit" and editmode == "edit":
             try:
                 system = self.remote.get_system_handle( name, self.token )
             except:
@@ -368,7 +383,15 @@ class CobblerWeb(object):
             # FIXME: get the exact error message and display to the user.
             log_exc()
             return self.error_page("Error while saving system: %s" % str(e))
+
+        if editmode == "rename" and name != oldname:
+            try:
+                self.remote.system_remove(oldname, self.token)
+            except Exception, e:
+                return self.error_page("Rename unsuccessful. Object %s was copied instead, and the old copy (%s) still remains. Reason: %s" % (name, oldname, str(e)))
+        
         return self.system_list()
+
 
     def system_edit(self, name=None):
 
@@ -416,7 +439,8 @@ class CobblerWeb(object):
             'ksfiles': self.remote.get_kickstart_templates(self.token) 
         } )
 
-    def profile_save(self,new_or_edit=None, name=None,distro=None,kickstart=None,kopts=None,
+    def profile_save(self,new_or_edit=None,editmode='edit',name=None,oldname=None,
+                     distro=None,kickstart=None,kopts=None,
                      ksmeta=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,**args):
 
@@ -428,7 +452,9 @@ class CobblerWeb(object):
             return self.error_page("name is required")
         if distro is None:
             return self.error_page("distro is required")
-        
+        if (editmode == 'rename' or editmode == 'copy') and name == oldname:
+            return self.error_page("The name has not been changed")
+    
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:
@@ -438,7 +464,7 @@ class CobblerWeb(object):
             return self.profile_list()
 
         # grab a reference to the object
-        if new_or_edit == "edit":
+        if new_or_edit == "edit" and editmode == "edit":
             try:
                 profile = self.remote.get_profile_handle( name, self.token )
             except:
@@ -472,6 +498,13 @@ class CobblerWeb(object):
             log_exc()
             return self.error_page("Error while saving profile: %s" % str(e))
 
+        if editmode == "rename" and name != oldname:
+            try:
+                self.remote.profile_remove(oldname, self.token)
+            except Exception, e:
+                return self.error_page("Rename unsuccessful. Object %s was copied instead, and the old copy (%s) still remains. Reason: %s" % (name, oldname, str(e)))
+
+
         return self.profile_list()
 
     # ------------------------------------------------------------------------ #
@@ -501,13 +534,18 @@ class CobblerWeb(object):
             'repo': input_repo,
         } )
 
-    def repo_save(self,name=None,new_or_edit=None,mirror=None,keepupdated=None,localfilename=None,rpmlist=None,createrepoflags=None,**args):
+    def repo_save(self,name=None,oldname=None,new_or_edit=None,editmode="edit",
+                  mirror=None,keepupdated=None,localfilename=None,
+                  rpmlist=None,createrepoflags=None,delete1=None,delete2=None,**args):
         if not self.__xmlrpc_setup():
             return self.login(message="")
 
         # pre-command parameter checking
         if name is None:
             return self.error_page("name is required")
+        if (editmode == 'rename' or editmode == 'copy') and name == oldname:
+            return self.error_page("The name has not been changed.")
+
 
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
@@ -522,7 +560,7 @@ class CobblerWeb(object):
             return self.error_page("mirror is required")
 
         # grab a reference to the object
-        if new_or_edit == "edit":
+        if new_or_edit == "edit" and editmode == "edit":
             try:
                 repo = self.remote.get_repo_handle( name, self.token)
             except:
@@ -545,6 +583,13 @@ class CobblerWeb(object):
         except Exception, e:
             log_exc()
             return self.error_page("Error while saving repo: %s" % str(e))
+
+        if editmode == "rename" and name != oldname:
+            try:
+                self.remote.repo_remove(oldname, self.token)
+            except Exception, e:
+                return self.error_page("Rename unsuccessful. Object %s was copied instead, and the old copy (%s) still remains. Reason: %s" % (name, oldname, str(e)))
+
 
         return self.repo_list()
 

@@ -1,6 +1,18 @@
 #extends cobbler.webui.master
-
 #block body
+
+#if $profile
+<script language="javascript">
+function disablename(value)
+{
+    document.getElementById("name").disabled=value;
+    if (value) {
+        document.getElementById("name").value = "$profile.name";
+    }
+}
+</script>
+#end if
+
 <form method="post" action="$base_url/profile_save">
 <fieldset id="cform">
 
@@ -13,6 +25,7 @@
     #if $profile
         <legend>Editing Profile</legend>
         <input type="hidden" name="new_or_edit" value="edit"/>
+        <input type="hidden" name="oldname" value="$profile.name"/>
     #else
         <legend>Adding a Profile</legend>
         <input type="hidden" name="new_or_edit" value="new"/>
@@ -20,12 +33,25 @@
 
 
     <label for="name">Profile Name</label>
+    #if $profile
+    <input type="text" size="32" style="width: 150px;" name="name" id="name" disabled="true"
+    #else
     <input type="text" size="32" style="width: 150px;" name="name" id="name"
+    #end if
         #if $profile
             value="$profile.name"
         #end if
     />
     <br/>
+
+    #if $profile
+    <label for="mode">Edit Mode</label>
+    <input type="radio" name="editmode" value="edit" checked onclick="javascript:disablename(true)">Edit
+    <input type="radio" name="editmode" value="rename" onclick="javascript:disablename(false)">Rename + Edit
+    <input type="radio" name="editmode" value="copy" onclick="javascript:disablename(false)">Copy + Edit
+    <br/>
+    #end if
+
 
     <label for="distro">Distribution</label>
     <select name="distro" id="distro">

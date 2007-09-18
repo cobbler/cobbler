@@ -1,24 +1,50 @@
 #extends cobbler.webui.master
-
 #block body
+
+#if $distro
+<script language="javascript">
+function disablename(value)
+{
+    document.getElementById("name").disabled=value;
+    if (value) {
+        document.getElementById("name").value = "$distro.name";
+    }
+}
+</script>
+#end if 
+
 <form method="post" action="$base_url/distro_save">
 <fieldset id="cform">
 
     #if $distro
         <legend>Editing Distro</legend>
         <input type="hidden" name="new_or_edit" value="edit"/>
+        <input type="hidden" name="oldname" value="$distro.name"/>
     #else
         <legend>Adding a Distro</legend>
         <input type="hidden" name="new_or_edit" value="new"/>
     #end if
 
     <label for="name">Name</label>
+    #if $distro
+    <input type="text" size="32" style="width: 150px;" name="name" id="name" disabled="true"
+    #else
     <input type="text" size="32" style="width: 150px;" name="name" id="name"
+    #end if
         #if $distro
             value="$distro.name"
         #end if
     />
     <br/>
+
+    #if $distro
+    <label for="mode">Edit Mode</label>
+    <input type="radio" name="editmode" value="edit" checked onclick="javascript:disablename(true)">Edit
+    <input type="radio" name="editmode" value="rename" onclick="javascript:disablename(false)">Rename + Edit
+    <input type="radio" name="editmode" value="copy" onclick="javascript:disablename(false)">Copy + Edit
+    <br/>
+    #end if
+
 
     <label for="kernel">Kernel</label>
     <input type="text" size="32" style="width: 150px;" name="kernel" id="kernel"

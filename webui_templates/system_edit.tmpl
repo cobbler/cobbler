@@ -1,11 +1,26 @@
 #extends cobbler.webui.master
 
+
 #block body
+
+#if $system
+<script language="javascript">
+function disablename(value)
+{
+    document.getElementById("name").disabled=value;
+    if (value) {
+        document.getElementById("name").value = "$system.name";
+    }
+}
+</script>
+#end if
+
 <form method="post" action="$base_url/system_save">
 <fieldset id="cform">
    
     #if $system
         <input type="hidden" name="new_or_edit" value="edit"/>
+        <input type="hidden" name="oldname" value="$system.name"/>
     #else
         <input type="hidden" name="new_or_edit" value="new"/>
     #end if
@@ -13,12 +28,24 @@
     <legend>Edit a System</legend>
 
     <label for="name">System Name</label>
+    #if $system
+    <input type="text" size="32" style="width: 150px;" name="name" id="name" disabled="true"
+    #else
     <input type="text" size="32" style="width: 150px;" name="name" id="name"
+    #end if
         #if $system
             value="$system.name"
         #end if
     />
     <br/>
+
+    #if $system
+    <label for="mode">Edit Mode</label>
+    <input type="radio" name="editmode" value="edit" checked onclick="javascript:disablename(true)">Edit
+    <input type="radio" name="editmode" value="rename" onclick="javascript:disablename(false)">Rename + Edit
+    <input type="radio" name="editmode" value="copy" onclick="javascript:disablename(false)">Copy + Edit
+    <br/>
+    #end if
 
     <label for="profile">Profile</label>
     <select name="profile" id="profile">
