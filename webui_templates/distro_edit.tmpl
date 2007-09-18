@@ -63,11 +63,26 @@ function disablename(value)
     <br/>
 
     <label for="arch">Architecture</label>
-    <input type="text" size="32" style="width: 150px;" name="arch" id="arch"
-        #if $distro
-            value="$distro.arch"
-        #end if
-    />
+
+    #if $distro and $distro.arch == "x86"
+        <input type="radio" size="32" name="arch" id="arch" value="x86" checked>x86
+    #else
+        <input type="radio" size="32" name="arch" id="arch" value="x86">x86
+    #end if
+    #if $distro and $distro.arch == "x86_64"
+        <input type="radio" size="32" name="arch" id="arch" value="x86_64" checked>x86_64
+    #else
+        <input type="radio" size="32" name="arch" id="arch" value="x86_64">x86_64
+    #end if
+    #if $distro and $distro.arch == "ia64"
+        <input type="radio" size="32" name="arch" id="arch" value="ia64" checked>ia64
+    #else
+        <input type="radio" size="32" name="arch" id="arch" value="ia64">ia64
+    #end if
+
+
+
+
     <br/>
 
     <label for="kopts">Kernel Options</label>
@@ -87,11 +102,26 @@ function disablename(value)
     <br/>
 
     <label for="breed">Breed</label>
-    <input type="text" size="32" style="width: 150px;" name="breed" id="breed"
-        #if $distro
-            value="$distro.breed"
+    #if $distro and $distro.breed == "redhat"
+        <input type="radio" size="32" name="breed" id="breed" value="redhat" checked>Red Hat Based
+    #else
+        #if $distro and $distro.breed != "redhat"
+            <input type="radio" size="32" name="breed" id="breed" value="redhat">Red Hat Based
+        #else
+            <input type="radio" size="32" name="breed" id="breed" value="redhat" checked>Red Hat Based
         #end if
-    />
+    #end if
+    #if $distro and $distro.breed == "debian"
+        <input type="radio" size="32" name="breed" id="breed" value="debian" checked>Debian
+    #else
+        <input type="radio" size="32" name="breed" id="breed" value="debian">Debian
+    #end if
+    #if $distro and $distro.breed == "suse"
+        <input type="radio" size="32" name="breed" id="breed" value="suse" checked>SuSE
+    #else
+        <input type="radio" size="32" name="breed" id="breed" value="suse">SuSE
+    #end if
+
     <br/>
 
     #if $distro

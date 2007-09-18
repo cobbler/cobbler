@@ -254,6 +254,8 @@ class CobblerWeb(object):
             return self.distro_list()
 
         # pre-command paramter checking
+        if name is None and editmode=='edit' and oldname is not None:
+            name = oldname
         if name is None:
             return self.error_page("name is required")
         if kernel is None or not str(kernel).startswith("/"):
@@ -328,6 +330,8 @@ class CobblerWeb(object):
             return self.login(message="")
 
         # parameter checking
+        if name is None and editmode=='edit' and oldname is not None:
+            name = oldname
         if name is None:
             return self.error_page("System name parameter is REQUIRED.")
         if (editmode == 'rename' or editmode == 'copy') and name == oldname:
@@ -448,6 +452,8 @@ class CobblerWeb(object):
             return self.login(message="")
 
         # pre-command parameter checking 
+        if name is None and editmode=='edit' and oldname is not None:
+            name = oldname
         if name is None:
             return self.error_page("name is required")
         if distro is None:
@@ -541,6 +547,9 @@ class CobblerWeb(object):
             return self.login(message="")
 
         # pre-command parameter checking
+
+        if name is None and editmode=='edit' and oldname is not None:
+            name = oldname
         if name is None:
             return self.error_page("name is required")
         if (editmode == 'rename' or editmode == 'copy') and name == oldname:
