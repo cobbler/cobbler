@@ -39,7 +39,7 @@ ul#nav {
 }
 
 ul#nav li a {
-  color: #59cbe1;
+  color: #C88800;
   text-decoration: none;
 }
 
@@ -73,8 +73,8 @@ div#feed ul {
 
 div#main {
   background-color: #212121;
-  border-top: 1px solid #59cbe1;
-  border-bottom: 1px solid #59cbe1;
+  border-top: 1px solid #C88800;
+  border-bottom: 1px solid #C88800;
   overflow: auto;
   padding: 20px 0px;
 }
@@ -97,7 +97,7 @@ div#content h2 {
 }
 
 div#content h3 {
-  color: #59cbe1;
+  color: #C88800;
 }
 
 
@@ -107,7 +107,7 @@ div#content p {
 }
 
 a:link {
-  color: #59cbe1;
+  color: #C88800;
 }
 
 a:hover {
