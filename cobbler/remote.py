@@ -611,7 +611,9 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         of the distro, not a handle.
         """
         self.__validate_token(token)
-        return self.api._config.distros().remove(name)
+        rc = self.api._config.distros().remove(name)
+        self.api.serialize()
+        return rc
 
     def profile_remove(self,name,token):
         """
@@ -619,7 +621,9 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         of the profile, not a handle.
         """
         self.__validate_token(token)
-        return self.api._config.profiles().remove(name)
+        rc = self.api._config.profiles().remove(name)
+        self.api.serialize()
+        return rc
 
     def system_remove(self,name,token):
         """
@@ -627,7 +631,9 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         of the system, not a handle.
         """
         self.__validate_token(token)
-        return self.api._config.systems().remove(name)
+        rc = self.api._config.systems().remove(name)
+        self.api.serialize()
+        return rc
 
     def repo_remove(self,name,token):
         """
@@ -635,7 +641,9 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         of the repo, not a handle.
         """
         self.__validate_token(token)
-        return self.api._config.repos().remove(name)
+        rc = self.api._config.repos().remove(name)
+        self.api.serialize()
+        return rc
 
     def sync(self,token): 
         """

@@ -243,6 +243,7 @@ class CobblerWeb(object):
         if not self.__xmlrpc_setup():
             return self.login(message="")
 
+        # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:     
                 self.remote.distro_remove(name,self.token)   
@@ -285,7 +286,7 @@ class CobblerWeb(object):
             log_exc()
             return self.error_page("Error while saving distro: %s" % str(e))
 
-        return self.distro_edit(name=name)
+        return self.distro_list()
 
     # ------------------------------------------------------------------------ #
     # Systems
@@ -308,7 +309,7 @@ class CobblerWeb(object):
 
     # FIXME: implement handling of delete1, delete2 + renames
     def system_save(self, name=None, profile=None, new_or_edit=None, mac=None, ip=None, hostname=None, 
-                    kopts=None, ksmeta=None, netboot='n', dhcp_tag=None, **args):
+                    kopts=None, ksmeta=None, netboot='n', dhcp_tag=None, delete1=None, delete2=None, **args):
 
         if not self.__xmlrpc_setup():
             return self.login(message="")
@@ -316,6 +317,16 @@ class CobblerWeb(object):
         # parameter checking
         if name is None:
             return self.error_page("System name parameter is REQUIRED.")
+
+        # handle deletes as a special case
+        if new_or_edit == 'edit' and delete1 and delete2:
+            try:
+                self.remote.system_remove(name,self.token)
+            except Exception, e:
+                return self.error_page("could not delete %s, %s" % (name,str(e)))
+            return self.system_list()
+
+        # more parameter checking
         if mac is None and ip is None and hostname is None and not is_mac(name):
             return self.error_page("System must have at least one of MAC/IP/hostname.")
         if hostname and not ip:
@@ -357,7 +368,7 @@ class CobblerWeb(object):
             # FIXME: get the exact error message and display to the user.
             log_exc()
             return self.error_page("Error while saving system: %s" % str(e))
-        return self.system_edit( name=name)
+        return self.system_list()
 
     def system_edit(self, name=None):
 
@@ -407,7 +418,7 @@ class CobblerWeb(object):
 
     def profile_save(self,new_or_edit=None, name=None,distro=None,kickstart=None,kopts=None,
                      ksmeta=None,virtfilesize=None,virtram=None,virttype=None,
-                     virtpath=None,repos=None,dhcptag=None,**args):
+                     virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,**args):
 
         if not self.__xmlrpc_setup():
             return self.login(message="")
@@ -418,6 +429,14 @@ class CobblerWeb(object):
         if distro is None:
             return self.error_page("distro is required")
         
+        # handle deletes as a special case
+        if new_or_edit == 'edit' and delete1 and delete2:
+            try:
+                self.remote.profile_remove(name,self.token)
+            except Exception, e:
+                return self.error_page("could not delete %s, %s" % (name,str(e)))
+            return self.profile_list()
+
         # grab a reference to the object
         if new_or_edit == "edit":
             try:
@@ -453,7 +472,7 @@ class CobblerWeb(object):
             log_exc()
             return self.error_page("Error while saving profile: %s" % str(e))
 
-        return self.profile_edit(name=name)
+        return self.profile_list()
 
     # ------------------------------------------------------------------------ #
     # Repos
@@ -489,6 +508,16 @@ class CobblerWeb(object):
         # pre-command parameter checking
         if name is None:
             return self.error_page("name is required")
+
+        # handle deletes as a special case
+        if new_or_edit == 'edit' and delete1 and delete2:
+            try:
+                self.remote.repo_remove(name,self.token)
+            except Exception, e:
+                return self.error_page("could not delete %s, %s" % (name,str(e)))
+            return self.repo_list()
+
+        # more parameter checking
         if mirror is None:
             return self.error_page("mirror is required")
 
@@ -517,7 +546,7 @@ class CobblerWeb(object):
             log_exc()
             return self.error_page("Error while saving repo: %s" % str(e))
 
-        return self.repo_edit(name=name)
+        return self.repo_list()
 
 
 
