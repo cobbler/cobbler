@@ -2,10 +2,7 @@ Things to do on the Web User Interface
 
 - make fields wider that need to be wider (most can probably be ~128?  Ksmeta/Kopts min 255)
 - modify form fields that should be radio boxes, etc (things like arch, breed)
-- rename (and/or copy?) support for all distro, profile, system, repo objects
-  -- just detect when name changes, should not require a new form
 - kickstart file editing and new kickstart file creation (if in /var/lib/cobbler/kickstarts)
-- sync button -- hook up to API.
 - ???
 - quick docs for Wiki
 - testing

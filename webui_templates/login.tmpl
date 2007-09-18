@@ -1,0 +1,28 @@
+#extends cobbler.webui.master
+
+#block body
+<form method="post" action="$base_url/login_submit">
+
+#if $message
+    <h1>$message</h1>
+#end if
+
+<fieldset id="login">
+    <legend>Log In</legend>
+
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" style="width: 150px;" value="" size="16"/>
+
+    <br/>
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" style="width: 150px;" value="" size="16"/>
+
+    <br/>
+
+    <input type="submit" name="submit" value="Login"/>
+
+</fieldset>
+</form>
+#end block body
+

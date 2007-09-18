@@ -627,6 +627,23 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
     # Miscellaneous
     # ------------------------------------------------------------------------ #
+ 
+    def sync(self):
+        if not self.__xmlrpc_setup():
+            return self.login(message="")
+
+        try:
+            rc = self.remote.sync(self.token)
+            if not rc:
+                return self.error_page("Sync failed.  Try debugging locally.")
+        except Exception, e:
+            log_exc()
+            return self.error_page("Sync encountered an exception: %s" % str(e))
+
+        return self.__render('message.tmpl', {
+            'message1' : "Sync complete.",
+            'message2' : "Cobbler config has been applied to filesystem."
+        }) 
 
     def error_page(self, message):
         return self.__render( 'error_page.tmpl', {
@@ -666,6 +683,8 @@ class CobblerWeb(object):
     ksfile_edit.exposed = True
     ksfile_save.exposed = True
     ksfile_list.exposed = True
+
+    sync.exposed = True
 
 class CobblerWebAuthException(exceptions.Exception):
     pass
