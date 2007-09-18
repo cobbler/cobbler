@@ -181,3 +181,22 @@ tt {
   padding-top: 16px;
   padding-bottom: 16px;
 }
+
+span.tip {
+        padding:                2px 8px;
+}
+
+span.tip p {
+        color:                  black;
+        font-weight:            bolder;
+        font-size:              small;
+        text-transform:         uppercase;
+        padding:                0px;
+        margin:                 0px;
+        padding-left:           42px;
+
+        background-image:       url('icon-tip.png');
+        background-repeat:      no-repeat;
+}
+
+

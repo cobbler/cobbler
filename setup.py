@@ -23,6 +23,7 @@ if __name__ == "__main__":
         logpath2 = "/var/log/cobbler/kicklog"
         logpath3 = "/var/log/cobbler/syslog"
         snippets = "/var/lib/cobbler/snippets"
+        vl_kick  = "/var/lib/cobbler/kickstarts"
         wwwtmpl  = "/usr/share/cobbler/webui_templates/"
         vw_localmirror = "/var/www/cobbler/localmirror"
         vw_kickstarts  = "/var/www/cobbler/kickstarts"
@@ -88,6 +89,9 @@ if __name__ == "__main__":
 				(etcpath,  ['templates/pxesystem_ia64.template']),
 				(etcpath,  ['templates/pxeprofile.template']),
 
+                                # kickstart dir
+                                (vl_kick,  []),
+
                                 # useful kickstart snippets that we ship
                                 (snippets, ['snippets/partition_select']),
 
@@ -145,6 +149,7 @@ if __name__ == "__main__":
 
                                 # Web UI support files
                                 (wwwgfx,            []),
+                                (wwwgfx,            ['webui_content/icon-tip.png']),
                                 (wwwgfx,            ['webui_content/style.css']),
                                 (wwwgfx,            ['webui_content/logo-cobbler.png']),
                                 (wwwgfx,            ['webui_content/cobblerweb.css']),
