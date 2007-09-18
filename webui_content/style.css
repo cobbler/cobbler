@@ -4,6 +4,11 @@ body, html {
   padding: 0;
 }
 
+td {
+  vertical-align: top;
+  text-align: left;
+}
+
 body {
   min-width: 750px;
 }

@@ -10,12 +10,15 @@ function disablename(value)
         document.getElementById("name").value = "$distro.name";
     }
 }
+
+
 </script>
 #end if 
 
 <form method="post" action="$base_url/distro_save">
 <fieldset id="cform">
 
+     
     #if $distro
         <legend>Editing Distro</legend>
         <input type="hidden" name="new_or_edit" value="edit"/>
@@ -25,7 +28,13 @@ function disablename(value)
         <input type="hidden" name="new_or_edit" value="new"/>
     #end if
 
+    <table border=0>
+
+    <tr>
+    <td>
     <label for="name">Name</label>
+    </td>
+    <td>
     #if $distro
     <input type="text" size="32" style="width: 150px;" name="name" id="name" disabled="true"
     #else
@@ -35,38 +44,58 @@ function disablename(value)
             value="$distro.name"
         #end if
     />
-    <br/>
+    <p class="context-tip">Example: RHEL-5-i386</p>
+    </td>
+    </tr>
 
     #if $distro
+    <tr>
+    <td>
     <label for="mode">Edit Mode</label>
+    </td>
+    <td>
     <input type="radio" name="editmode" value="edit" checked onclick="javascript:disablename(true)">Edit
     <input type="radio" name="editmode" value="rename" onclick="javascript:disablename(false)">Rename + Edit
     <input type="radio" name="editmode" value="copy" onclick="javascript:disablename(false)">Copy + Edit
-    <br/>
+    <p class="context-tip">How do you want to modify this object?</p>
+    </td>
+    </tr>
     #end if
 
 
+    <tr>
+    <td>
     <label for="kernel">Kernel</label>
+    </td>
+    <td>
     <input type="text" size="32" style="width: 150px;" name="kernel" id="kernel"
         #if $distro
             value="$distro.kernel"
         #end if
     />
-    <span class="tooltip">
-    <p>This is an absolute filesystem path.</p>
-    </span>
-    <br/>
+    <p class="context-tip">Absolute filesystem path to a kernel file</p>
+    </td>
+    </tr>
 
+    <tr>
+    <td>
     <label for="initrd">Initrd</label>
+    </td>
+    <td>
     <input type="text" size="32" style="width: 150px;" name="initrd" id="initrd"
         #if $distro
             value="$distro.initrd"
         #end if
     />
-    <br/>
+    <p class="context-tip">Absolute filesystem path to an initrd file</p>
+    </td>
+    </tr>
 
+    <tr>
+    <td>
     <label for="arch">Architecture</label>
-
+    </td>
+    <td>
     #if $distro and $distro.arch == "x86"
         <input type="radio" size="32" name="arch" id="arch" value="x86" checked>x86
     #else
@@ -82,29 +111,43 @@ function disablename(value)
     #else
         <input type="radio" size="32" name="arch" id="arch" value="ia64">ia64
     #end if
+    <p class="context-tip">This determines what bootloader to use</p> 
+    </td>
+    </tr>
 
-
-
-
-    <br/>
-
+    <tr>
+    <td>
     <label for="kopts">Kernel Options</label>
+    </td>
+    <td>
     <input type="text" size="32" style="width: 150px;" name="kopts" id="kopts"
         #if $distro
             value="$distro.kernel_options"
         #end if
     />
-    <br/>
+    <p class="context-tip">Example: noipv6 magic=foo</p>
+    </td>
+    </tr>
 
+    <tr>
+    <td>
     <label for="ksmeta">Kickstart Metadata</label>
+    </td>
+    <td>
     <input type="text" size="32" style="width: 150px;" name="ksmeta" id="ksmeta"
         #if $distro
             value="$distro.ks_meta"
         #end if
     />
-    <br/>
+    <p class="context-tip">Example: dog=fido gnome=yes</p>
+    </td>
+    </tr>
 
+    <tr>
+    <td>
     <label for="breed">Breed</label>
+    </td>
+    <td>
     #if $distro and $distro.breed == "redhat"
         <input type="radio" size="32" name="breed" id="breed" value="redhat" checked>Red Hat Based
     #else
@@ -124,19 +167,33 @@ function disablename(value)
     #else
         <input type="radio" size="32" name="breed" id="breed" value="suse">SuSE
     #end if
-
-    <br/>
+    <p class="context-tip">This option determines how kernel options are prepared</p>
+    </td>
+    </tr>
 
     #if $distro
+    <tr>
+    <td>
     <label for="delete">Delete</label>
+    </td>
+    <td>
        <input type="checkbox" name="delete1" value="delete1">Yes
        <input type="checkbox" name="delete2" value="delete2">Really
-    <br/>
+       <p class="context-tip">Check both buttons and click Save to delete this system</p>
+    </td>
+    </tr>
     #end if
 
-
+    <tr>
+    <td>
+    </td>
+    <td>
     <input type="submit" name="submit" value="Save"/>
     <input type="reset" name="reset" value="Reset"/>
+    </td>
+    </tr>
+
+</table>
 </fieldset>
 </form>
 #end block body
