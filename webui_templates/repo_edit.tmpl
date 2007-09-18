@@ -25,8 +25,14 @@ function disablename(value)
         <legend>Adding a Repo</legend>
         <input type="hidden" name="new_or_edit" value="new"/>
     #end if
-
+ 
+    <table border=0>
+    
+    <tr>
+    <td>
     <label for="name">Name</label>
+    </td>
+    <td>
     #if $repo
     <input type="text" size="32" style="width: 150px;" name="name" id="name" disabled="true"
     #else
@@ -36,26 +42,43 @@ function disablename(value)
             value="$repo.name"
         #end if
     />
-    <br/>
+    <p class="context-tip">Example: EL-5-i386-EPEL-testing</p>
+    </td>
+    </tr>
 
     #if $repo
+    <tr>
+    <td>
     <label for="mode">Edit Mode</label>
+    </td>
+    <td>
     <input type="radio" name="editmode" value="edit" checked onclick="javascript:disablename(true)">Edit
     <input type="radio" name="editmode" value="rename" onclick="javascript:disablename(false)">Rename + Edit
     <input type="radio" name="editmode" value="copy" onclick="javascript:disablename(false)">Copy + Edit
-    <br/>
+    <p class="context-tip">How do you want to modify this object?</p>
+    </td>
+    </tr>
     #end if
 
-
+    <tr>
+    <td>
     <label for="mirror">Mirror Location (http/ftp/rsync)</label>
+    </td>
+    <td>
     <input type="text" size="32" style="width: 150px;" name="mirror" id="mirror"
         #if $repo
             value="$repo.mirror"
         #end if
     />
-    <br/>
+    <p class="context-tip">Full and EXACT url path (see docs).  Can be http://, ftp://, local, or rsync://</p>
+    </td>
+    </tr>
 
+    <tr>
+    <td>
     <label for="keepupdated">Keep Updated</label>
+    </td>
+    <td>
     <input type="checkbox" name="keepupdated" id="keepupdated"
         #if $repo
             #if $repo.keep_updated
@@ -67,45 +90,79 @@ function disablename(value)
             selected = "True"  
         #end if
     />
-    <br/>
+    <p class="context-tip">Disable to prevent the mirror from being updated.</p>    
+    </td>
+    </tr>
 
+    <tr>
+    <td>
     <label for="localfilename">Local Filename</label>
+    </td>
+    <td>
     <input type="text" size="32" style="width: 150px;" name="localfilename" id="localfilename"
         #if $repo
             value="$repo.local_filename"
         #end if
     />
-
+    <p class="context-tip">To auto-configure mirror usage by provisioned systems, name the repo.</p>
+    </td>
+    </tr>
 
     <br/>
 
     ## FIXME: input field sizes should be larger (universally)
     ## FIXME: make this a text area?
+
+    <tr>
+    <td>
     <label for="rpmlist">RPM List</label>
+    </td>
+    <td>
     <input type="text" size="32" style="width: 150px;" name="rpmlist" id="rpmlist"
         #if $repo
             value="$repo.rpm_list"
         #end if
     />
-    <br/>
+    <p class="context-tip">Blank, or a list of specific RPMs (and only those RPMs) to mirror.</p>
+    </td>
+    </tr>
 
+    <tr>
+    <td>
     <label for="createrepo_flags">createrepo flags</label>
+    </td>
+    <td>
     <input type="text" size="32" style="width: 150px;" name="creatrepoflags" id="createrepoflags"
         #if $repo
             value="$repo.createrepo_flags"
         #end if
     />
-    <br/>
+    <p class="context-tip">Additional flags to pass to yum's createrepo if http or ftp.</p>
+    </td>
+    </tr>
 
     #if $repo
+    <tr>
+    <td>
     <label for="delete">Delete</label>
+    </td>
+    <td>
        <input type="checkbox" name="delete1" value="delete1">Yes
        <input type="checkbox" name="delete2" value="delete2">Really
-    <br/>
+    <p class="context-tip">Check both buttons and click save to delete this object.</p>
+    </td>
+    </tr>
     #end if
 
+    <tr>
+    <td>
+    </td>
+    <td>
     <input type="submit" name="submit" value="Save"/>
     <input type="reset" name="reset" value="Reset"/>
+    </tr>
+ 
+</table>
 </fieldset>
 </form>
 <br/>    
