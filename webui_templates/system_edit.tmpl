@@ -27,7 +27,13 @@ function disablename(value)
 
     <legend>Edit a System</legend>
 
+    <table border=0>
+
+    <tr>
+    <td>
     <label for="name">System Name</label>
+    </td>
+    <td>
     #if $system
     <input type="text" size="32" style="width: 150px;" name="name" id="name" disabled="true"
     #else
@@ -37,17 +43,29 @@ function disablename(value)
             value="$system.name"
         #end if
     />
-    <br/>
+    <p class="context-tip">Example: vanhalen</p>
+    </td>
+    </tr>
 
     #if $system
+    <tr>
+    <td>
     <label for="mode">Edit Mode</label>
+    </td>
+    <td>
     <input type="radio" name="editmode" value="edit" checked onclick="javascript:disablename(true)">Edit
     <input type="radio" name="editmode" value="rename" onclick="javascript:disablename(false)">Rename + Edit
     <input type="radio" name="editmode" value="copy" onclick="javascript:disablename(false)">Copy + Edit
-    <br/>
+    <p class="context-tip">How do you want to modify this object?</p>
+    </td>
+    </tr>
     #end if
 
+    <tr>
+    <td>
     <label for="profile">Profile</label>
+    </td>
+    <td>
     <select name="profile" id="profile">
         #for $profile in $profiles:
         <option name="$profile.name"
@@ -57,74 +75,130 @@ function disablename(value)
         >$profile.name</option>
         #end for
     </select>
-    <br/>
+    <p class="context-tip">What profile should be installed on this system?</p>
+    </td>
+    </tr>
 
+    <tr>
+    <td>
     <label for="mac">MAC</label>
+    </td>
+    <td>
     <input type="text" size="18" style="width: 150px;" name="mac" id="mac"
         #if $system
             value="$system.mac_address"
         #end if
     />
-    <br/>
+    <p class="context-tip">Example: AA:BB:CC:DD:EE:FF</p>
+    </td>
+    </tr>
 
+    <tr>
+    <td>
     <label for="ip">IP</label>
+    </td>
+    <td>
     <input type="text" size="15" style="width: 150px;" name="ip" id="ip"
         #if $system
             value="$system.ip_address"
         #end if
     />
-    <br/>
+    <p class="context-tip">Optional.  Example: 192.168.10.15</p>
+    </td>
+    </tr>
 
+    <tr>
+    <td>
     <label for="hostname">Hostname</label>
+    </td>
+    <td>
     <input type="text" size="128" style="width: 150px;" name="hostname" id="hostname"
         #if $system
             value="$system.hostname"
         #end if
     />
-    <br/>
+    <p class="context-tip">Optional.  Example: vanhalen.example.org</p>
+    </td>
+    </tr>
 
+    <tr>
+    <td>
     <label for="kopts">Kernel Options</label>
+    </td>
+    <td>
     <input type="text" size="128" style="width: 150px;" name="kopts" id="kopts"
         #if $system
             value="$system.kernel_options"
         #end if
     />
-    <br/>
+    <p class="context-tip">Example: noipv6 magic=foo</p>
+    </td>
+    </tr>
 
+    <tr>
+    <td>
     <label for="ksmeta">Kickstart Metadata</label>
+    </td>
+    <td>
     <input type="text" size="128" style="width: 150px;" name="ksmeta" id="ksmeta"
         #if $system
             value="$system.ks_meta"
         #end if
     />
-    <br/>
+    <p class="context-tip">Example: dog=fido gnome=yes</p>
+    </td>
+    </tr>
 
+    <tr>
+    <td>
     <label for="netboot">Netboot Enabled</label>
     #if $system
+    </td>
+    <td>
     <input type="checkbox" checked="$system.netboot_enabled" name="netboot" id="netboot">
     #else
     <input type="checkbox" checked="True" name="netboot" id="netboot">
     #end if
-    <br/>
+    <p class="context-tip">Deselect to keep this system from PXE booting</p>
+    </td>
+    </tr>
 
+    <tr>
+    <td>
     <label for="dhcp_tag">DHCP Tag</label>
+    </td>
+    <td>
     <input type="text" size="128" style="width: 150px;" name="dhcp_tag" id="dhcp_tag"
         #if $system
            value="$system.dhcp_tag"
         #end if
     /> 
-    <br/> 
+    <p class="context-tip">Selects alternative subnets, see manpage or leave blank</p>
+    </td>
+    </tr>
 
     #if $system
+    <tr>
+    <td>
     <label for="delete">Delete</label> 
+    </td>
+    <td>
        <input type="checkbox" name="delete1" value="delete1">Yes
        <input type="checkbox" name="delete2" value="delete2">Really
-    <br/>
+    <p class="context-tip">Check both buttons and click save to delete this object</p>
+    </td>
+    </tr>
     #end if
 
-
+    <tr>
+    <td>
+    </td>
+    <td>
     <input type="submit" name="submit" value="Save"/>
     <input type="reset" name="reset" value="Reset"/>
+    </td>
+    </tr>
+
 </fieldset>
 </form>
 #end block body
