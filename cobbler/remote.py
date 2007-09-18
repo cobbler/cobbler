@@ -109,12 +109,12 @@ class CobblerXMLRPCInterface:
         self.api.clear() 
         self.api.deserialize()
 
-    def __get_all(self,collection):
+    def __get_all(self,collection_fn):
         """
         Internal function to return an array of hashes from a particular collection object.
         """
         self._refresh()
-        data = collection.to_datastruct()
+        data = collection_fn().to_datastruct()
         data.sort(self.__sorter)
         return self._fix_none(data)
 
@@ -129,33 +129,33 @@ class CobblerXMLRPCInterface:
         """
         Returns all cobbler distros as an array of hashes.
         """
-        return self.__get_all(self.api.distros())
+        return self.__get_all(self.api.distros)
 
     def get_profiles(self,token=None):
         """
         Returns all cobbler profiles as an array of hashes.
         """
-        return self.__get_all(self.api.profiles())
+        return self.__get_all(self.api.profiles)
 
     def get_systems(self,token=None):
         """
         Returns all cobbler systems as an array of hashes.
         """
-        return self.__get_all(self.api.systems())
+        return self.__get_all(self.api.systems)
 
     def get_repos(self,token=None):
         """
         Returns all cobbler repos as an array of hashes.
         """
-        return self.__get_all(self.api.repos())
+        return self.__get_all(self.api.repos)
 
-    def __get_specific(self,collection,name,flatten=False):
+    def __get_specific(self,collection_fn,name,flatten=False):
         """
         Internal function to return a hash representation of a given object if it exists,
         otherwise an empty hash will be returned.
         """
         self._refresh()
-        item = collection.find(name=name)
+        item = collection_fn().find(name=name)
         if item is None:
             return self._fix_none({})
         result = item.to_datastruct()
@@ -167,25 +167,25 @@ class CobblerXMLRPCInterface:
         """
         Returns the distro named "name" as a hash.
         """
-        return self.__get_specific(self.api.distros(),name,flatten=flatten)
+        return self.__get_specific(self.api.distros,name,flatten=flatten)
 
     def get_profile(self,name,flatten=False,token=None):
         """
         Returns the profile named "name" as a hash.
         """
-        return self.__get_specific(self.api.profiles(),name,flatten=flatten)
+        return self.__get_specific(self.api.profiles,name,flatten=flatten)
 
     def get_system(self,name,flatten=False,token=None):
         """
         Returns the system named "name" as a hash.
         """
-        return self.__get_specific(self.api.systems(),name,flatten=flatten)
+        return self.__get_specific(self.api.systems,name,flatten=flatten)
 
     def get_repo(self,name,flatten=False,token=None):
         """
         Returns the repo named "name" as a hash.
         """
-        return self.__get_specific(self.api.repos(),name,flatten=flatten)
+        return self.__get_specific(self.api.repos,name,flatten=flatten)
 
     def get_distro_as_rendered(self,name,token=None):
         """
@@ -605,7 +605,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         obj = self.__get_object(object_id)
         return self.__call_method(obj, attribute, arg)
 
-    def distro_remove(self,name):
+    def distro_remove(self,name,token):
         """
         Deletes a distro from a collection.  Note that this just requires the name
         of the distro, not a handle.
@@ -613,7 +613,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.__validate_token(token)
         return self.api._config.distros().remove(name)
 
-    def profile_remove(self,name):
+    def profile_remove(self,name,token):
         """
         Deletes a profile from a collection.  Note that this just requires the name
         of the profile, not a handle.
@@ -621,7 +621,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.__validate_token(token)
         return self.api._config.profiles().remove(name)
 
-    def system_remove(self,name):
+    def system_remove(self,name,token):
         """
         Deletes a system from a collection.  Note that this just requires the name
         of the system, not a handle.
@@ -629,7 +629,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.__validate_token(token)
         return self.api._config.systems().remove(name)
 
-    def repo_remove(self,name):
+    def repo_remove(self,name,token):
         """
         Deletes a repo from a collection.  Note that this just requires the name
         of the repo, not a handle.

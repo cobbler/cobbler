@@ -71,8 +71,22 @@ class CobblerWeb(object):
         if self.token is None:
             self.token = self.__get_cookie_token()
 
-        # if we have don't have a token, login for the first time
-        if self.token is None:
+        # else if we do have a token, try to use it...
+        if self.token is not None:
+            # validate that our token is still good
+            try:
+                self.remote.token_check(self.token)
+                return True
+            except Exception, e:
+                # FIXME: check exception type to see that it is login related
+                logger.info("token timeout for: %s" % self.username)
+                log_exc()
+                self.token = None
+                # this should put us back to the login screen
+                self.__cookie_logout()
+        
+        # if we (still) don't have a token, login for the first time
+        if self.token is None and is_login:
             try:
                 self.token = self.remote.login( self.username, self.password )
             except Exception, e:
@@ -82,21 +96,9 @@ class CobblerWeb(object):
             self.__cookie_login(self.token) # save what we've got
             self.password = None # don't need it anymore, get rid of it
             return True
-
-        # else if we do have a token, try to use it...
-        else:
-            # validate that our token is still good
-            try:
-                self.remote.token_check(self.token)
-            except Exception, e:
-                # FIXME: check exception type to see that it is login related
-                logger.info("token timeout for: %s" % self.username)
-                log_exc()
-                self.token = None
-                # this should put us back to the login screen
-                self.__cookie_logout()
-                return False 
-            return True
+        
+        # login failed
+        return False
 
 
     def __render(self, template, data):
@@ -128,12 +130,12 @@ class CobblerWeb(object):
 
     def __cookie_logout(self,):
         self.__cookies["cobbler_xmlrpc_token"] = "null"
-        self.__cookies["cobbler_xmlrpc_token"]['expires'] = 0
+        # self.__cookies["cobbler_xmlrpc_token"]['expires'] = time.time() - 9999 
         return self.cookies
 
     def __cookie_login(self,token):
         self.__cookies["cobbler_xmlrpc_token"] = token
-        self.__cookies["cobbler_xmlrpc_token"]['expires'] = time.time() + 29*60
+        # self.__cookies["cobbler_xmlrpc_token"]['expires'] = time.time() + 29*60
         return self.cookies 
          
     def __get_cookie_token(self):
@@ -179,7 +181,7 @@ class CobblerWeb(object):
         self.username = username
         self.password = password
 
-        if not self.__xmlrpc_setup():
+        if not self.__xmlrpc_setup(is_login=True):
             return self.login(message="")
 
         return self.index()
@@ -236,17 +238,17 @@ class CobblerWeb(object):
         } )
 
     # FIXME: deletes and renames
-    def distro_save(self,name=None,new_or_edit=None,kernel=None,initrd=None,kopts=None,ksmeta=None,arch=None,breed=None,**args):
+    def distro_save(self,name=None,new_or_edit=None,kernel=None,initrd=None,kopts=None,ksmeta=None,arch=None,breed=None,delete1=None,delete2=None,**args):
 
         if not self.__xmlrpc_setup():
             return self.login(message="")
 
-        #if delete1 and delete2:
-        #    try:     
-        #        self.remote.distro_remove(name)   
-        #    except Exception, e:
-        #        self.error_page("could not delete %s, %s" % str(e))
-        #    return self.distro_edit(name=name)
+        if new_or_edit == 'edit' and delete1 and delete2:
+            try:     
+                self.remote.distro_remove(name,self.token)   
+            except Exception, e:
+                return self.error_page("could not delete %s, %s" % (name,str(e)))
+            return self.distro_list()
 
         # pre-command paramter checking
         if name is None:
