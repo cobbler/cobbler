@@ -34,9 +34,9 @@ function disablename(value)
     </td>
     <td>
     #if $repo
-    <input type="text" size="32" style="width: 150px;" name="name" id="name" disabled="true"
+    <input type="text" size="128" style="width: 150px;" name="name" id="name" disabled="true"
     #else
-    <input type="text" size="32" style="width: 150px;" name="name" id="name"
+    <input type="text" size="128" style="width: 150px;" name="name" id="name"
     #end if
         #if $repo
             value="$repo.name"
@@ -65,7 +65,7 @@ function disablename(value)
     <label for="mirror">Mirror Location (http/ftp/rsync)</label>
     </td>
     <td>
-    <input type="text" size="32" style="width: 150px;" name="mirror" id="mirror"
+    <input type="text" size="255" style="width: 150px;" name="mirror" id="mirror"
         #if $repo
             value="$repo.mirror"
         #end if
@@ -99,7 +99,7 @@ function disablename(value)
     <label for="localfilename">Local Filename</label>
     </td>
     <td>
-    <input type="text" size="32" style="width: 150px;" name="localfilename" id="localfilename"
+    <input type="text" size="128" style="width: 150px;" name="localfilename" id="localfilename"
         #if $repo
             value="$repo.local_filename"
         #end if
@@ -118,7 +118,7 @@ function disablename(value)
     <label for="rpmlist">RPM List</label>
     </td>
     <td>
-    <input type="text" size="32" style="width: 150px;" name="rpmlist" id="rpmlist"
+    <input type="text" size="512" style="width: 150px;" name="rpmlist" id="rpmlist"
         #if $repo
             value="$repo.rpm_list"
         #end if
@@ -132,7 +132,7 @@ function disablename(value)
     <label for="createrepo_flags">createrepo flags</label>
     </td>
     <td>
-    <input type="text" size="32" style="width: 150px;" name="creatrepoflags" id="createrepoflags"
+    <input type="text" size="255" style="width: 150px;" name="creatrepoflags" id="createrepoflags"
         #if $repo
             value="$repo.createrepo_flags"
         #end if

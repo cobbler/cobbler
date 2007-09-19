@@ -35,9 +35,9 @@ function disablename(value)
     </td>
     <td>
     #if $system
-    <input type="text" size="32" style="width: 150px;" name="name" id="name" disabled="true"
+    <input type="text" size="128" style="width: 150px;" name="name" id="name" disabled="true"
     #else
-    <input type="text" size="32" style="width: 150px;" name="name" id="name"
+    <input type="text" size="128" style="width: 150px;" name="name" id="name"
     #end if
         #if $system
             value="$system.name"
@@ -84,7 +84,7 @@ function disablename(value)
     <label for="mac">MAC</label>
     </td>
     <td>
-    <input type="text" size="18" style="width: 150px;" name="mac" id="mac"
+    <input type="text" size="64" style="width: 150px;" name="mac" id="mac"
         #if $system
             value="$system.mac_address"
         #end if
@@ -98,7 +98,7 @@ function disablename(value)
     <label for="ip">IP</label>
     </td>
     <td>
-    <input type="text" size="15" style="width: 150px;" name="ip" id="ip"
+    <input type="text" size="64" style="width: 150px;" name="ip" id="ip"
         #if $system
             value="$system.ip_address"
         #end if
@@ -112,7 +112,7 @@ function disablename(value)
     <label for="hostname">Hostname</label>
     </td>
     <td>
-    <input type="text" size="128" style="width: 150px;" name="hostname" id="hostname"
+    <input type="text" size="255" style="width: 150px;" name="hostname" id="hostname"
         #if $system
             value="$system.hostname"
         #end if
@@ -126,7 +126,7 @@ function disablename(value)
     <label for="kopts">Kernel Options</label>
     </td>
     <td>
-    <input type="text" size="128" style="width: 150px;" name="kopts" id="kopts"
+    <input type="text" size="255" style="width: 150px;" name="kopts" id="kopts"
         #if $system
             value="$system.kernel_options"
         #end if
@@ -140,7 +140,7 @@ function disablename(value)
     <label for="ksmeta">Kickstart Metadata</label>
     </td>
     <td>
-    <input type="text" size="128" style="width: 150px;" name="ksmeta" id="ksmeta"
+    <input type="text" size="255" style="width: 150px;" name="ksmeta" id="ksmeta"
         #if $system
             value="$system.ks_meta"
         #end if

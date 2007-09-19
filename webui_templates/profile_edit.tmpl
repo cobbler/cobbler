@@ -39,9 +39,9 @@ function disablename(value)
     </td>
     <td>
     #if $profile
-    <input type="text" size="32" style="width: 150px;" name="name" id="name" disabled="true"
+    <input type="text" size="128" style="width: 150px;" name="name" id="name" disabled="true"
     #else
-    <input type="text" size="32" style="width: 150px;" name="name" id="name"
+    <input type="text" size="128" style="width: 150px;" name="name" id="name"
     #end if
         #if $profile
             value="$profile.name"
@@ -92,7 +92,7 @@ function disablename(value)
     <label for="kickstart">Kickstart File</label>
     </td>
     <td>
-    <input type="text" size="128" style="width: 150px;" name="kickstart" id="kickstart"
+    <input type="text" size="255" style="width: 150px;" name="kickstart" id="kickstart"
         #if $profile
             value="$profile.kickstart" 
         #end if
@@ -106,7 +106,7 @@ function disablename(value)
     <label for="kopts">Kernel Options</label>
     </td>
     <td>
-    <input type="text" size="128" style="width: 150px;" name="kopts" id="kopts"
+    <input type="text" size="255" style="width: 150px;" name="kopts" id="kopts"
         #if $profile
             value="$profile.kernel_options"
         #end if
@@ -120,7 +120,7 @@ function disablename(value)
     <label for="ksmeta">Kickstart Metadata</label>
     </td>
     <td>
-    <input type="text" size="128" style="width: 150px;" name="ksmeta" id="ksmeta"
+    <input type="text" size="255" style="width: 150px;" name="ksmeta" id="ksmeta"
         #if $profile
            value="$profile.ks_meta"
         #end if
@@ -134,7 +134,7 @@ function disablename(value)
     <label for="virtfilesize">Virt File Size (GB)</label>
     </td>
     <td>
-    <input type="text" size="128" style="width: 150px;" name="virtfilesize" id="virtfilesize"
+    <input type="text" size="5" style="width: 150px;" name="virtfilesize" id="virtfilesize"
         #if $profile
            value="$profile.virt_file_size"
         #end if
@@ -148,7 +148,7 @@ function disablename(value)
     <label for="virtram">Virt RAM (MB)</label>
     </td>
     <td>
-    <input type="text" size="128" style="width: 150px;" name="virtram" id="virtram"
+    <input type="text" size="5" style="width: 150px;" name="virtram" id="virtram"
         #if $profile
            value="$profile.virt_ram"
         #end if
@@ -190,7 +190,7 @@ function disablename(value)
     <label for="virtpath">Virt Path</label>
     </td>
     <td>
-    <input type="text" size="128" style="width: 150px;" name="virtpath" id="virtpath"
+    <input type="text" size="255" style="width: 150px;" name="virtpath" id="virtpath"
         #if $profile
            value="$profile.virt_path"
         #end if
@@ -205,7 +205,7 @@ function disablename(value)
     <label for="repos">Repo Names</label>
     </td>
     <td>
-    <input type="text" size="128" style="width: 150px;" name="repos" id="repos"
+    <input type="text" style="width: 150px;" name="repos" id="repos"
         #if $profile
            value="$profile.repos"
         #end if

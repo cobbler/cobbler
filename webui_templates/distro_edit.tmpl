@@ -36,9 +36,9 @@ function disablename(value)
     </td>
     <td>
     #if $distro
-    <input type="text" size="32" style="width: 150px;" name="name" id="name" disabled="true"
+    <input type="text" size="128" style="width: 150px;" name="name" id="name" disabled="true"
     #else
-    <input type="text" size="32" style="width: 150px;" name="name" id="name"
+    <input type="text" size="128" style="width: 150px;" name="name" id="name"
     #end if
         #if $distro
             value="$distro.name"
@@ -68,7 +68,7 @@ function disablename(value)
     <label for="kernel">Kernel</label>
     </td>
     <td>
-    <input type="text" size="32" style="width: 150px;" name="kernel" id="kernel"
+    <input type="text" size="255" style="width: 150px;" name="kernel" id="kernel"
         #if $distro
             value="$distro.kernel"
         #end if
@@ -82,7 +82,7 @@ function disablename(value)
     <label for="initrd">Initrd</label>
     </td>
     <td>
-    <input type="text" size="32" style="width: 150px;" name="initrd" id="initrd"
+    <input type="text" size="255" style="width: 150px;" name="initrd" id="initrd"
         #if $distro
             value="$distro.initrd"
         #end if
@@ -97,19 +97,19 @@ function disablename(value)
     </td>
     <td>
     #if $distro and $distro.arch == "x86"
-        <input type="radio" size="32" name="arch" id="arch" value="x86" checked>x86
+        <input type="radio"  name="arch" id="arch" value="x86" checked>x86
     #else
-        <input type="radio" size="32" name="arch" id="arch" value="x86">x86
+        <input type="radio" name="arch" id="arch" value="x86">x86
     #end if
     #if $distro and $distro.arch == "x86_64"
-        <input type="radio" size="32" name="arch" id="arch" value="x86_64" checked>x86_64
+        <input type="radio" name="arch" id="arch" value="x86_64" checked>x86_64
     #else
-        <input type="radio" size="32" name="arch" id="arch" value="x86_64">x86_64
+        <input type="radio" name="arch" id="arch" value="x86_64">x86_64
     #end if
     #if $distro and $distro.arch == "ia64"
-        <input type="radio" size="32" name="arch" id="arch" value="ia64" checked>ia64
+        <input type="radio" name="arch" id="arch" value="ia64" checked>ia64
     #else
-        <input type="radio" size="32" name="arch" id="arch" value="ia64">ia64
+        <input type="radio" name="arch" id="arch" value="ia64">ia64
     #end if
     <p class="context-tip">This determines what bootloader to use</p> 
     </td>
@@ -120,7 +120,7 @@ function disablename(value)
     <label for="kopts">Kernel Options</label>
     </td>
     <td>
-    <input type="text" size="32" style="width: 150px;" name="kopts" id="kopts"
+    <input type="text" size="255" style="width: 150px;" name="kopts" id="kopts"
         #if $distro
             value="$distro.kernel_options"
         #end if
@@ -134,7 +134,7 @@ function disablename(value)
     <label for="ksmeta">Kickstart Metadata</label>
     </td>
     <td>
-    <input type="text" size="32" style="width: 150px;" name="ksmeta" id="ksmeta"
+    <input type="text" size="255" style="width: 150px;" name="ksmeta" id="ksmeta"
         #if $distro
             value="$distro.ks_meta"
         #end if
@@ -149,23 +149,23 @@ function disablename(value)
     </td>
     <td>
     #if $distro and $distro.breed == "redhat"
-        <input type="radio" size="32" name="breed" id="breed" value="redhat" checked>Red Hat Based
+        <input type="radio" name="breed" id="breed" value="redhat" checked>Red Hat Based
     #else
         #if $distro and $distro.breed != "redhat"
-            <input type="radio" size="32" name="breed" id="breed" value="redhat">Red Hat Based
+            <input type="radio" name="breed" id="breed" value="redhat">Red Hat Based
         #else
-            <input type="radio" size="32" name="breed" id="breed" value="redhat" checked>Red Hat Based
+            <input type="radio"  name="breed" id="breed" value="redhat" checked>Red Hat Based
         #end if
     #end if
     #if $distro and $distro.breed == "debian"
-        <input type="radio" size="32" name="breed" id="breed" value="debian" checked>Debian
+        <input type="radio"  name="breed" id="breed" value="debian" checked>Debian
     #else
-        <input type="radio" size="32" name="breed" id="breed" value="debian">Debian
+        <input type="radio" name="breed" id="breed" value="debian">Debian
     #end if
     #if $distro and $distro.breed == "suse"
-        <input type="radio" size="32" name="breed" id="breed" value="suse" checked>SuSE
+        <input type="radio" name="breed" id="breed" value="suse" checked>SuSE
     #else
-        <input type="radio" size="32" name="breed" id="breed" value="suse">SuSE
+        <input type="radio" name="breed" id="breed" value="suse">SuSE
     #end if
     <p class="context-tip">This option determines how kernel options are prepared</p>
     </td>
