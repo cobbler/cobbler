@@ -103,7 +103,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(444,apache,apache)
 /var/www/cobbler/webui/*.css
 /var/www/cobbler/webui/*.png
-
+/var/www/cobbler/webui/*.html
 %defattr(-,root,root)
 %dir /tftpboot/pxelinux.cfg
 %dir /tftpboot/images

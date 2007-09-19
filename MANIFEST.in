@@ -13,6 +13,8 @@ include config/settings
 recursive-include templates *.template
 recursive-include kickstarts *.ks
 include docs/cobbler.1.gz
+include docs/cobbler.html
+include docs/wui.html
 include COPYING AUTHORS README CHANGELOG
 include scripts/watcher.py
 include scripts/cobblerd

@@ -148,7 +148,9 @@ if __name__ == "__main__":
                                 (wwwtmpl,           ['webui_templates/ksfile_view.tmpl']),
 
                                 # Web UI support files
-                                (wwwgfx,            []),
+				(wwwgfx,            ['docs/wui.html']),
+                                (wwwgfx,            ['docs/cobbler.html']),
+				(wwwgfx,            []),
                                 (wwwgfx,            ['webui_content/icon-tip.png']),
                                 (wwwgfx,            ['webui_content/style.css']),
                                 (wwwgfx,            ['webui_content/logo-cobbler.png']),

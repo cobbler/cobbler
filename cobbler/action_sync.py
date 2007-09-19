@@ -357,7 +357,7 @@ class BootSync:
         * signal the status watcher we're done
         * disable PXE if needed
         * save the original kickstart file for debug
-        ""
+        """
 
         # FIXME: watcher is more of a request than a packaged file
         # we should eventually package something and let it do something important"
