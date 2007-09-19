@@ -18,7 +18,7 @@ include scripts/watcher.py
 include scripts/cobblerd
 include scripts/findks.cgi
 include scripts/nopxe.cgi
-include scripts/cobbler_webui.cgi
+include scripts/webui.cgi
 include snippets/*
 recursive-include po *.pot
 recursive-include po *.po

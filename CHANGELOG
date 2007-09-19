@@ -17,6 +17,7 @@ Cobbler CHANGELOG
 - WebUI
 - packaged /var/lib/cobbler/settings as a config file
 - added BuildRequires to help build on other platforms
+- relocate cgi-bin files to cgi-bin/cobbler for namespacing
  
 * Thu Aug 30 2007 - 0.6.1
 - re enable --resolve in yumdownloader (cobbler repo mgmt feature)

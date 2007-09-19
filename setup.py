@@ -39,7 +39,7 @@ if __name__ == "__main__":
         tftp_cfg      = "/tftpboot/pxelinux.cfg"
         tftp_images   = "/tftpboot/images"
         rotpath       = "/etc/logrotate.d"
-        cgipath       = "/var/www/cgi-bin"
+        cgipath       = "/var/www/cgi-bin/cobbler"
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -58,7 +58,7 @@ if __name__ == "__main__":
                                 
                                 # cgi files
                                 (cgipath,  ['scripts/findks.cgi', 'scripts/nopxe.cgi']),
-                                (cgipath,  ['scripts/cobbler_webui.cgi']),
+                                (cgipath,  ['scripts/webui.cgi']),
  
                                 # miscellaneous config files
                                 (rotpath,  ['config/cobblerd_rotate']),

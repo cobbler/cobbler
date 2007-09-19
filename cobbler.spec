@@ -73,9 +73,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %files
 
 %defattr(755,apache,apache)
-/var/www/cgi-bin/findks.cgi
-/var/www/cgi-bin/nopxe.cgi
-/var/www/cgi-bin/cobbler_webui.cgi
+%dir /var/www/cgi-bin/cobbler/
+/var/www/cgi-bin/cobbler/findks.cgi
+/var/www/cgi-bin/cobbler/nopxe.cgi
+/var/www/cgi-bin/cobbler/webui.cgi
 
 %defattr(755,apache,apache)
 %dir /usr/share/cobbler/webui_templates
@@ -180,6 +181,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 - added BuildRequires of redhat-rpm-config to help src RPM rebuilds on other platforms
 - permissions cleanup
 - make license field conform to rpmlint
+- relocate cgi-bin files to cobbler subdirectory 
 
 * Thu Aug 30 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.1-2
 - Upstream changes (see CHANGELOG)

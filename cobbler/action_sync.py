@@ -357,9 +357,12 @@ class BootSync:
         * signal the status watcher we're done
         * disable PXE if needed
         * save the original kickstart file for debug
-        """
+        ""
+
+        # FIXME: watcher is more of a request than a packaged file
+        # we should eventually package something and let it do something important"
         pattern1 = "wget http://%s/cblr/watcher.py?%s_%s=%s -b"
-        pattern2 = "wget http://%s/cgi-bin/nopxe.cgi?system=%s -b"
+        pattern2 = "wget http://%s/cgi-bin/cobbler/nopxe.cgi?system=%s -b"
         pattern3 = "wget http://%s/cobbler/%s/%s/ks.cfg -O /root/cobbler.ks"
 
         blend_this = profile
