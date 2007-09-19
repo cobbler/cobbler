@@ -1,6 +1,6 @@
 =head1 NAME
 
-cobbler is a command line tool for configuring a provisioning and update server.  It supports provisioning via PXE (network booting), virtualization (Xen or QEMU/KVM), and re-installs of existing Linux systems.  The latter two features are enabled by usage of 'koan' on the remote system.  Update server features include yum mirroring and integration of those mirrors with kickstart.
+cobbler is a provisioning and update server.  It supports deployments via PXE (network booting), virtualization (Xen or QEMU/KVM), and re-installs of existing Linux systems.  The latter two features are enabled by usage of 'koan' on the remote system.  Update server features include yum mirroring and integration of those mirrors with kickstart.  Cobbler has a command line interface, Web UI, and extensive Python and XMLRPC APIs for integration with external scripts and applications.
 
 =head1 SYNOPSIS
 
@@ -20,9 +20,16 @@ Repositories contain yum mirror information.  Using cobbler to mirror repositori
 
 The main advantage of cobbler is that it glues together a lot of disjoint technologies and concepts and abstracts the user from the need to understand them.   It allows the systems administrator to concentrate on what he needs to do, and not how it is done. 
 
+This manpage will focus on the cobbler command line tool for use in configuring cobbler.  There is also mention
+of the Cobbler WebUI which is usable for day-to-day operation of Cobbler once installed/configured.  Docs on
+the API and XMLRPC components are available online at http://cobbler.et.redhat.com and the companion Wiki:
+https://hosted.fedoraproject.org/projects/cobbler/.
+
 =head1 SEE ALSO
 
 For help in building kickstarts, try using the "system-config-kickstart" tool, or install a new system and look at the /root/anaconda-ks.cfg file left over from the installer.  General kickstart questions can also be asked at kickstart-list@redhat.com.  Cobbler ships some kickstart templates in /etc/cobbler that may also prove helpful.
+
+Also see the aforementioned webpages for additional documentation, user contributed tips, and so on.
 
 =head1 COBBLER USAGE
 
@@ -675,6 +682,19 @@ When adding a distro, profile, system, or repo, all scripts in /var/lib/cobbler/
 
 Cobbler also makes itself available as a Python API for use by higher level management software.
 Learn more at http://cobbler.et.redhat.com
+
+=head2 WEB USER INTERFACE
+
+Most of the day-to-day actions in cobbler's command line can be performed in Cobbler's Web UI.  To enable the WebUI, set
+xmlrpc_rw_enabled to 1 in /var/lib/cobbler/settings, add some users in /etc/cobbler/auth.conf, and do
+a /sbin/service cobblerd restart.
+
+SELinux users may also have to run:
+
+"setsebool httpd_can_network_connect true"
+
+Users can then log-in at http://bootserver.example.org/cgi-bin/cobbler/webui.cgi.
+
 
 =head1 EXIT_STATUS
 
