@@ -1,2 +1,84 @@
-...
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xml:lang="en" lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Cobbler Web Interface</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+
+    <link rel="stylesheet" type="text/css" media="all" href="/cobbler/webui/style.css" />
+    <link rel="stylesheet" type="text/css" media="all" href="/cobbler/webui/cobblerweb.css" />
+</head>
+
+<body>
+
+<div id="wrap">
+    <h1 id="masthead">
+        <a href="/cgi-bin/cobbler/webui.cgi/index">
+            <img alt="Cobbler Logo"
+                 src="/cobbler/webui/logo-cobbler.png"/>
+        </a>
+    </h1>
+</div>
+
+<div id="main">
+
+<div id="content">
+
+<h4>Welcome</h4>
+
+<p>
+This is the Web UI for your local <A HREF="http://cobbler.et.redhat.com">Cobbler</A> Server.
+</p>
+
+<p>
+The Cobbler WebUI is designed for day-to-day usage of the Cobbler provisioning server.  It performs
+<i>most</i> but not <i>all</i> of the functions Cobbler can perform.  Nearly all of what you would
+need for routine maintaince of your deployment setups can be done through the web.  If you have
+not already done so, you may be interested to read more about Cobbler at <A HREF="http://cobbler.et.redhat.com">
+cobbler.et.redhat.com</A> and <A HREF="https://hosted.fedoraproject.org/projects/cobbler/">hosted.fedoraproject.org</A>.
+Those pages contain further documentation, tips & tricks, and links to the mailing list and users/developers
+IRC channel.
+</p>
+
+<p>
+It is expected that you have read the <A HREF="<A HREF="/cobbler/webui/cobbler.html">Cobbler manpage</A>, which for the most part focuses on cobbler as run from the command line.  You will need to use the command line some, so please do read the docs.  For starters, you should have started your cobbler install with running "cobbler check" locally.  If not,
+please do so now before continuing.   This will make sure your installation is configured and ready to go.  The rest
+of this document will mainly be detailing the differences between the CLI (as described in the manpage) and the Web interface.
+</p>
+
+<p>
+While you can run the equivalent of "cobbler distro add" commands from the manpage, you can not run
+the very powerful "cobbler import".  So, if you want to start off your boot server using some
+content from a DVD or an rsync mirror -- running cobbler import locally is also a good bet.
+</p>
+
+<p>
+Another command that you cannot run locally is "cobbler reposync", which is a fairly long-running operation
+that you may want to put on a crontab.  You also cannot edit the cobbler settings file (this is more
+of a precaution against locking yourself out of the WebUI), but you can view it.  For instance this means
+that if you want Cobbler to help manage your DHCP config (great!) you can do that through the Web UI
+but you have to turn that on in the settings file.  Furthermore, files like /etc/cobbler/dhcp.template
+have to be edited locally.
+</p>
+
+<p>
+For more information about all that Cobbler can do, please see the <A HREF="/cobbler/webui/cobbler.html">manpage documentation</A>.  Details on setup of this web user interface are also included in the manpage documentation.   For commands like
+"cobbler distro add" and "cobbler distro edit" (etc) the concepts presented in the manpage documentation translate
+to what you see in the Web UI in a one-to-one relationship.  The syntax, values, and meanings of commands and
+variables are all the same. 
+</p>
+
+<br/>
+<br/>
+
+Great.  <A HREF="/cgi-bin/cobbler/webui.cgi">Let's start deploying.</A>
+
+
+</div><!-- content -->
+</div><!-- main -->
+
+</body>
+</html>
+
+
+
 
