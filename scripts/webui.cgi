@@ -49,7 +49,7 @@ def configure():
 
     # defaults
     if config['server'] is None:
-       config['server'] = "http://localhost/cobbler_api_rw"
+       config['server'] = "http://127.0.0.1/cobbler_api_rw"
 
     if config['base_url'] is None:
         config['base_url'] = base_url()
