@@ -73,7 +73,7 @@ function disablename(value)
     <select name="distro" id="distro">
         #for $distro in $distros:
         <option name="$distro.name"
-             #if $profile and $profile.distro == $distro
+             #if $profile and $profile.distro == $distro.name
                  selected="true"
              #end if
         >$distro.name
