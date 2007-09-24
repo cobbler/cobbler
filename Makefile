@@ -8,9 +8,9 @@ clean:
 	-rm -rf cobbler-* dist build
 	-rm -rf *~
 	-rm -rf rpm-build/
-	-rm -f docs/cobbler.1.gz
-	-rm -f docs/cobbler.html
-	-rm -f po/messages.pot*
+	#-rm -f docs/cobbler.1.gz
+	#-rm -f docs/cobbler.html
+	#-rm -f po/messages.pot*
 
 manpage:
 	pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz
