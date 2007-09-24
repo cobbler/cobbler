@@ -22,7 +22,7 @@ import Cookie
 import time
 
 COOKIE_TIMEOUT=29*60
-INVALID_CREDS="Invalid credentials.  Please log in."
+INVALID_CREDS="Login Required"
 
 # set up logging
 logger = logging.getLogger("cobbler.webui")
