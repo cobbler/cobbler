@@ -458,8 +458,7 @@ class CobblerWeb(object):
         input_system = None
         if name is not None:
             input_system = self.remote.get_system(name,True)
-
-        input_system['netboot_enabled'] = self.__truth(input_system['netboot_enabled'])
+            input_system['netboot_enabled'] = self.__truth(input_system['netboot_enabled'])
 
         return self.__render( 'system_edit.tmpl', {
             'edit' : True,
@@ -590,8 +589,7 @@ class CobblerWeb(object):
         input_repo = None
         if name is not None:
             input_repo = self.remote.get_repo(name, True)
-
-        input_repo['keep_updated'] = self.__truth(input_repo['keep_updated'])
+            input_repo['keep_updated'] = self.__truth(input_repo['keep_updated'])
 
         return self.__render( 'repo_edit.tmpl', {
             'repo': input_repo,
