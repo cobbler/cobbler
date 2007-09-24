@@ -3,8 +3,8 @@
 
 #block body
 
-#if $system
 <script language="javascript">
+#if $system
 function disablename(value)
 {
     document.getElementById("name").disabled=value;
@@ -12,8 +12,21 @@ function disablename(value)
         document.getElementById("name").value = "$system.name";
     }
 }
-</script>
+#else
+function get_random_mac()
+{
+    xmlHttp = new XMLHttpRequest();
+    xmlHttp.open("GET", "$base_url/random_mac", true);
+    xmlHttp.onreadystatechange = function () {
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+            var mac_field = document.getElementById("mac")
+            mac_field.value = xmlHttp.responseText;
+        }
+    };
+    xmlHttp.send(null);
+}
 #end if
+</script>
 
 <form method="post" action="$base_url/system_save">
 <fieldset id="cform">
@@ -89,6 +102,7 @@ function disablename(value)
             value="$system.mac_address"
         #end if
     />
+    <a href="javascript: get_random_mac()" style="font-size: 0.8em;">random</a>
     <p class="context-tip">Example: AA:BB:CC:DD:EE:FF</p>
     </td>
     </tr>
@@ -152,13 +166,13 @@ function disablename(value)
     <tr>
     <td>
     <label for="netboot">Netboot Enabled</label>
-    #if $system
     </td>
     <td>
-    <input type="checkbox" checked="$system.netboot_enabled" name="netboot" id="netboot">
-    #else
-    <input type="checkbox" checked="True" name="netboot" id="netboot">
+    <input type="checkbox" name="netboot" id="netboot"
+    #if not $system or $system.netboot_enabled is True
+        checked="True"
     #end if
+    >
     <p class="context-tip">Deselect to keep this system from PXE booting</p>
     </td>
     </tr>
@@ -201,4 +215,5 @@ function disablename(value)
 
 </fieldset>
 </form>
+
 #end block body

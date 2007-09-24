@@ -21,8 +21,10 @@ import sys
 import Cookie
 import time
 
-# set up logging
+COOKIE_TIMEOUT=29*60
+INVALID_CREDS="Invalid credentials.  Please log in."
 
+# set up logging
 logger = logging.getLogger("cobbler.webui")
 logger.setLevel(logging.DEBUG)
 ch = logging.FileHandler("/var/log/cobbler/webui.log")
@@ -78,12 +80,14 @@ class CobblerWeb(object):
                 self.remote.token_check(self.token)
                 return True
             except Exception, e:
-                # FIXME: check exception type to see that it is login related
-                logger.info("token timeout for: %s" % self.username)
-                log_exc()
-                self.token = None
-                # this should put us back to the login screen
-                self.__cookie_logout()
+                if str(e).find("invalid token") != -1:
+                    logger.info("token timeout for: %s" % self.username)
+                    log_exc()
+                    self.token = None
+                    # this should put us back to the login screen
+                    self.__cookie_logout()
+                else:
+                    raise e
         
         # if we (still) don't have a token, login for the first time
         if self.token is None and is_login:
@@ -121,22 +125,71 @@ class CobblerWeb(object):
         tmpl = Template( file=filepath, searchList=data )
         return str(tmpl)
 
+    def __truth(self,value):
+        """
+        Convert 0/1, True/False, "true"/"false", etc. to Python booleans.
+        """
+
+        if value is None:
+            return False
+
+        if type(value) == type(bool()):
+            return value
+
+        if type(value) == type(int()):
+            if value > 0:
+                return True
+            else:
+                return False
+
+        # from item_repo.py
+        if not str(value).lower() in ["yes","y","yup","yeah","true"]:
+            return False
+        else:
+            return True
+
+        raise Exception("Could not determine truth of value %s" % str(value))
+
     def cookies(self):
         """
         Returns a Cookie.SimpleCookie object with all of CobblerWeb's cookies.
         Mmmmm cookies!
         """
+        # The browser doesn't maintain expires for us, which is fine since
+        # cobblerd will continue to refresh a token as long as it's being
+        # accessed.
+        if self.token and self.__cookies["cobbler_xmlrpc_token"]:
+            self.__setcookie( self.token, COOKIE_TIMEOUT )
+
         return self.__cookies
 
-    def __cookie_logout(self,):
-        self.__cookies["cobbler_xmlrpc_token"] = "null"
-        # self.__cookies["cobbler_xmlrpc_token"]['expires'] = time.time() - 9999 
-        return self.cookies
+    def __setcookie(self,token,exp_offset):
+        """
+        Does all of the cookie setting in one place.
+        """
+        # HTTP cookie RFC:
+        # http://www.w3.org/Protocols/rfc2109/rfc2109
+        #
+        # Cookie.py does not let users explicitely set cookies' expiration time.
+        # Instead, it runs the 'expires' member of the dictionary through its
+        # _getdate() function.   As of this writing, the signature is:
+        # _getdate(future=0, weekdayname=_weekdayname, monthname=_monthname)
+        # When it is called to generate output, the value of 'expires' is passed
+        # in as a _positional_ parameter in the first slot.
+        # In order to get a time in the past, it appears that a negative number
+        # can be passed through, which is what we do here.
+        self.__cookies["cobbler_xmlrpc_token"] = token
+        self.__cookies["cobbler_xmlrpc_token"]['expires'] = exp_offset
+
+    def __cookie_logout(self):
+        # set the cookie's expiration to this time, yesterday, which results
+        # in it being deleted
+        self.__setcookie( 'null', -86400 )
+        return self.__cookies
 
     def __cookie_login(self,token):
-        self.__cookies["cobbler_xmlrpc_token"] = token
-        # self.__cookies["cobbler_xmlrpc_token"]['expires'] = time.time() + 29*60
-        return self.cookies 
+        self.__setcookie( token, COOKIE_TIMEOUT )
+        return self.__cookies
          
     def __get_cookie_token(self):
         if self.__cookies.has_key("cobbler_xmlrpc_token"):
@@ -182,7 +235,7 @@ class CobblerWeb(object):
         self.password = password
 
         if not self.__xmlrpc_setup(is_login=True):
-            return self.login(message="")
+            return self.login(message="XMLRPC Login Failed.")
 
         return self.index()
 
@@ -201,7 +254,7 @@ class CobblerWeb(object):
 
     def settings_view(self):
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
 
         return self.__render( 'item.tmpl', {
             'item_data': self.remote.get_settings(),
@@ -214,7 +267,7 @@ class CobblerWeb(object):
 
     def distro_list(self):
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
         distros = self.remote.get_distros()
         if len(distros) > 0:
             return self.__render( 'distro_list.tmpl', {
@@ -226,7 +279,7 @@ class CobblerWeb(object):
     def distro_edit(self, name=None):
 
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
          
         input_distro = None
         if name is not None:
@@ -243,7 +296,7 @@ class CobblerWeb(object):
                     delete1=None,delete2=None,**args):
 
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
 
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
@@ -310,7 +363,7 @@ class CobblerWeb(object):
     def system_list(self):
 
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
 
         systems = self.remote.get_systems()
         if len(systems) > 0:
@@ -327,7 +380,7 @@ class CobblerWeb(object):
                     delete1=None, delete2=None, **args):
 
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
 
         # parameter checking
         if name is None and editmode=='edit' and oldname is not None:
@@ -400,11 +453,13 @@ class CobblerWeb(object):
     def system_edit(self, name=None):
 
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
 
         input_system = None
         if name is not None:
             input_system = self.remote.get_system(name,True)
+
+        input_system['netboot_enabled'] = self.__truth(input_system['netboot_enabled'])
 
         return self.__render( 'system_edit.tmpl', {
             'edit' : True,
@@ -417,7 +472,7 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
     def profile_list(self):
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
         profiles = self.remote.get_profiles()
         if len(profiles) > 0:
             return self.__render( 'profile_list.tmpl', {
@@ -430,7 +485,7 @@ class CobblerWeb(object):
     def profile_edit(self, name=None):
 
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
 
         input_profile = None
         if name is not None:
@@ -449,7 +504,7 @@ class CobblerWeb(object):
                      virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,**args):
 
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
 
         # pre-command parameter checking 
         if name is None and editmode=='edit' and oldname is not None:
@@ -519,7 +574,7 @@ class CobblerWeb(object):
 
     def repo_list(self):
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
         repos = self.remote.get_repos()
         if len(repos) > 0:
             return self.__render( 'repo_list.tmpl', {
@@ -530,31 +585,31 @@ class CobblerWeb(object):
 
     def repo_edit(self, name=None):
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
 
         input_repo = None
         if name is not None:
             input_repo = self.remote.get_repo(name, True)
+
+        input_repo['keep_updated'] = self.__truth(input_repo['keep_updated'])
 
         return self.__render( 'repo_edit.tmpl', {
             'repo': input_repo,
         } )
 
     def repo_save(self,name=None,oldname=None,new_or_edit=None,editmode="edit",
-                  mirror=None,keepupdated=None,localfilename=None,
-                  rpmlist=None,createrepoflags=None,delete1=None,delete2=None,**args):
+                  mirror=None,keep_updated=None,local_filename=None,
+                  rpm_list=None,createrepo_flags=None,delete1=None,delete2=None,**args):
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
 
         # pre-command parameter checking
-
         if name is None and editmode=='edit' and oldname is not None:
             name = oldname
         if name is None:
             return self.error_page("name is required")
         if (editmode == 'rename' or editmode == 'copy') and name == oldname:
             return self.error_page("The name has not been changed.")
-
 
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
@@ -580,14 +635,16 @@ class CobblerWeb(object):
         try:
             self.remote.modify_repo(repo, 'name', name, self.token)
             self.remote.modify_repo(repo, 'mirror', mirror, self.token)
-            if keepupdated:
-                self.remote.modify_repo(repo, 'keep-updated', keepupdated, self.token)
-            if localfilename:
-                self.remote.modify_repo(repo, 'local-filename', localfilename, self.token)
-            if rpmlist:
-                self.remote.modify_repo(repo, 'rpm-list', rpmlist, self.token)
-            if createrepoflags:
-                self.remote.modify_distro(repo, 'createrepo-flags', createrepoflags, self.token)
+
+            keep_updated = self.__truth( keep_updated )
+            self.remote.modify_repo(repo, 'keep-updated', keep_updated, self.token)
+
+            if local_filename:
+                self.remote.modify_repo(repo, 'local-filename', local_filename, self.token)
+            if rpm_list:
+                self.remote.modify_repo(repo, 'rpm-list', rpm_list, self.token)
+            if createrepo_flags:
+                self.remote.modify_distro(repo, 'createrepo-flags', createrepo_flags, self.token)
             self.remote.save_repo(repo, self.token)
         except Exception, e:
             log_exc()
@@ -599,10 +656,7 @@ class CobblerWeb(object):
             except Exception, e:
                 return self.error_page("Rename unsuccessful. Object %s was copied instead, and the old copy (%s) still remains. Reason: %s" % (name, oldname, str(e)))
 
-
         return self.repo_list()
-
-
 
     # ------------------------------------------------------------------------ #
     # Kickstart files
@@ -610,28 +664,27 @@ class CobblerWeb(object):
 
     def ksfile_list(self):
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
         return self.__render( 'ksfile_list.tmpl', {
             'ksfiles': self.remote.get_kickstart_templates(self.token)
         } )
 
     def ksfile_edit(self, name=None):
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
         return self.__render( 'ksfile_edit.tmpl', {
-            'ksfile': name,
-            'ksdata': self.remote.read_or_write_kickstart_template(self,name,True,"",self.token)
-
+            'name': name,
+            'ksdata': self.remote.read_or_write_kickstart_template(name,True,"",self.token)
         } )
 
-    def ksfile_save(self, name=None, data=None):
+    def ksfile_save(self, name=None, ksdata=None, **args):
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
         try:
-            self.remote.read_or_write_kickstart_template(self,name,False,data,self.token)
+            self.remote.read_or_write_kickstart_template(name,False,ksdata,self.token)
         except Exception, e:
-            return self.error_page("error with kickstart: %s" % str(e))
-        return self.ksfile_edit(name=ksfile)
+            return self.error_page("An error occurred while trying to save kickstart file %s:<br/><br/>%s" % (name,str(e)))
+        return self.ksfile_edit(name=name)
 
     # ------------------------------------------------------------------------ #
     # Miscellaneous
@@ -639,7 +692,7 @@ class CobblerWeb(object):
  
     def sync(self):
         if not self.__xmlrpc_setup():
-            return self.login(message="")
+            return self.login(message=INVALID_CREDS)
 
         try:
             rc = self.remote.sync(self.token)
@@ -653,6 +706,12 @@ class CobblerWeb(object):
             'message1' : "Sync complete.",
             'message2' : "Cobbler config has been applied to filesystem."
         }) 
+
+    def random_mac(self):
+        if not self.__xmlrpc_setup():
+            return self.login(message=INVALID_CREDS)
+        mac = self.remote.get_random_mac()
+        return mac
 
     def error_page(self, message):
         return self.__render( 'error_page.tmpl', {
@@ -694,6 +753,7 @@ class CobblerWeb(object):
     ksfile_list.exposed = True
 
     sync.exposed = True
+    random_mac.exposed = True
 
 class CobblerWebAuthException(exceptions.Exception):
     pass

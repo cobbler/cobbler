@@ -76,18 +76,12 @@ function disablename(value)
 
     <tr>
     <td>
-    <label for="keepupdated">Keep Updated</label>
+    <label for="keep_updated">Keep Updated</label>
     </td>
     <td>
-    <input type="checkbox" name="keepupdated" id="keepupdated"
-        #if $repo
-            #if $repo.keep_updated
-                selected="True"
-            #else
-                selected="False"
-            #end if
-        #else
-            selected = "True"  
+    <input type="checkbox" name="keep_updated" id="keep_updated"
+        #if not $repo or $repo.keep_updated is True
+            checked="true"  
         #end if
     />
     <p class="context-tip">Disable to prevent the mirror from being updated.</p>    
@@ -115,10 +109,10 @@ function disablename(value)
 
     <tr>
     <td>
-    <label for="rpmlist">RPM List</label>
+    <label for="rpm_list">RPM List</label>
     </td>
     <td>
-    <input type="text" size="512" style="width: 150px;" name="rpmlist" id="rpmlist"
+    <input type="text" size="512" style="width: 150px;" name="rpm_list" id="rpm_list"
         #if $repo
             value="$repo.rpm_list"
         #end if

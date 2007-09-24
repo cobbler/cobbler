@@ -1,10 +1,18 @@
-
 fieldset#cform label {
     display: block;
     width: 150px;
     margin-bottom: 10px;
     float: left;
     padding-right: 4em;
+}
+
+fieldset#cform {
+    width: 98%;
+}
+
+textarea#ksdata {
+    width: 100%;
+    height: 100%;
 }
 
 pre.config_data {

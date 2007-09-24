@@ -3,11 +3,11 @@
 
 #block body
 <form method="post" action="$base_url/ksfile_save">
-    <input type="hidden" name="ksfile" value="$ksfile"/>
+    <input type="hidden" name="name" value="$name"/>
     <fieldset id="cform">
         <legend>Edit Kickstart File</legend>
 
-        <pre><textarea rows="40" cols="120" name="ksdata">$ksdata</textarea></pre>
+        <pre><textarea rows="40" cols="120" name="ksdata" id="ksdata">$ksdata</textarea></pre>
         <br/>
 
         <input type="submit" name="submit" value="Save"/>
