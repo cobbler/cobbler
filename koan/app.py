@@ -506,7 +506,7 @@ class Koan:
             raw = self.urlread(profile_data["kickstart"])
             lines = raw.split("\n")
             for line in lines:
-               reg = re.compile("--url=(.*)")
+               reg = re.compile("--url.(.*)")
                matches = reg.findall(raw)
                if len(matches) != 0:
                    profile_data["install_tree"] = matches[0].strip()
