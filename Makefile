@@ -27,8 +27,10 @@ install: clean manpage
 
 devinstall:
 	cp /var/lib/cobbler/settings /tmp/cobbler_settings
+	cp /etc/cobbler/auth.conf /tmp/cobbler_auth.conf
 	make install
 	cp /tmp/cobbler_settings /var/lib/cobbler/settings
+	cp /tmp/cobbler_auth.conf /etc/cobbler/auth.conf
 
 sdist: clean messages updatewui
 	python setup.py sdist
