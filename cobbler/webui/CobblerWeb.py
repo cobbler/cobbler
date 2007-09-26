@@ -27,7 +27,7 @@ INVALID_CREDS="Login Required"
 # set up logging
 logger = logging.getLogger("cobbler.webui")
 logger.setLevel(logging.DEBUG)
-ch = logging.FileHandler("/var/log/cobbler/webui.log")
+ch = logging.FileHandler("/var/log/httpd/cobbler_webui.log")
 ch.setLevel(logging.DEBUG)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 ch.setFormatter(formatter)

@@ -5,7 +5,15 @@
    weekly
    postrotate
       if [ -f /var/lock/subsys/cobblerd ]; then
-         /etc/init.d/cobblerd restart
+         /etc/init.d/cobblerd condrestart
       fi
    endscript
 }
+
+/var/log/httpd/cobbler_wui.log {
+   missingok
+   notifempty
+   rotate 4
+   weekly
+}
+
