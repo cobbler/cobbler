@@ -122,7 +122,7 @@ class CobblerWeb(object):
             data['logged_in'] = None
 
         filepath = os.path.join("/usr/share/cobbler/webui_templates/",template)
-        tmpl = Template( file=filepath, searchList=data )
+        tmpl = Template( file=filepath, searchList=[data] )
         return str(tmpl)
 
     def __truth(self,value):
