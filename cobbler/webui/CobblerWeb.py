@@ -737,6 +737,13 @@ class CobblerWeb(object):
         return mac
 
     def error_page(self, message):
+
+        # hack to remove some junk from remote fault errors so they
+        # look as if they were locally generated and not exception-based.
+        if message.endswith(">"):
+            message = message[:-2]
+            message = message.replace(":","")
+
         return self.__render( 'error_page.tmpl', {
             'message': message
         } )
