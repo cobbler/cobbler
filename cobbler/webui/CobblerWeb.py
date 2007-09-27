@@ -251,7 +251,7 @@ class CobblerWeb(object):
         self.password = password
 
         if not self.__xmlrpc_setup(is_login=True):
-            return self.login(message="XMLRPC Login Failed.")
+            return self.login(message="Login Failed.")
 
         return self.menu()
 
