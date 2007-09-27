@@ -510,6 +510,7 @@ class CobblerWeb(object):
             'edit' : True,
             'profile': input_profile,
             'distros': self.remote.get_distros(),
+            'repos':   self.remote.get_repos(),
             'ksfiles': self.remote.get_kickstart_templates(self.token) 
         } )
 
@@ -565,8 +566,16 @@ class CobblerWeb(object):
                 self.remote.modify_profile(profile, 'virt-type', virttype, self.token)
             if virtpath:
                 self.remote.modify_profile(profile, 'virt-path', virtpath, self.token)
-            if repos:
+
+            if repos is None:
+                repos = []
+            if type(repos) == type(str()):
+                repos = [ repos ]
+            if type(repos) == type([]):
+                if '--none--' in repos:
+                    repos.remove( '--none--' )
                 self.remote.modify_profile(profile, 'repos', repos, self.token)
+
             if dhcptag:
                 self.remote.modify_profile(profile, 'dhcp-tag', dhcptag, self.token)
             self.remote.save_profile(profile,self.token)

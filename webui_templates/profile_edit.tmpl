@@ -199,18 +199,23 @@ function disablename(value)
     </td>
     </tr>
 
-    ## FIXME: this should be a multi-select
     <tr>
     <td>
     <label for="repos">Repo Names</label>
     </td>
     <td>
-    <input type="text" style="width: 150px;" name="repos" id="repos"
-        #if $profile
-           value="$profile.repos"
-        #end if
-    />
-    <p class="context-tip">Example: "el5i386updates el5epeltesting el5mycontent"</p>
+
+    <select name="repos" id="repos" multiple="1">
+    <option value="--none--"> -- none -- </option>
+    #for $repo in $repos:
+        <option value="$repo.name"
+            #if $profile and $repo.name in $profile.repos
+                selected="1"
+            #end if
+        >$repo.name</option>
+    #end for 
+    </select>
+    <p class="context-tip">Select one or many additional repos to automatically assign to the target system.   (this is a good place to include an updates repo)</p>
     </td>
     </tr>
 

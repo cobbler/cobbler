@@ -15,6 +15,11 @@ textarea#ksdata {
     height: 100%;
 }
 
+select#repos {
+    width: 256px;
+    height: 8em;
+}
+
 pre.config_data {
     font-family: monospace;
     background: white;
