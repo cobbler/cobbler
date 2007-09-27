@@ -21,22 +21,29 @@ import sys
 import Cookie
 import time
 
+LOGGING_ENABLED = True
 COOKIE_TIMEOUT=29*60
-INVALID_CREDS="Login Required"
 
-# set up logging
-logger = logging.getLogger("cobbler.webui")
-logger.setLevel(logging.DEBUG)
-ch = logging.FileHandler("/var/log/httpd/cobbler_webui.log")
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+if LOGGING_ENABLED:
+    # set up logging
+    logger = logging.getLogger("cobbler.webui")
+    logger.setLevel(logging.DEBUG)
+    ch = logging.FileHandler("/var/log/cobbler/webui.log")
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+else:
+    logger = None
+
+INVALID_CREDS="Login Required"
 
 def log_exc():
    """
    Log active traceback to logfile.
    """
+   if not LOGGING_ENABLED:
+       return
    (t, v, tb) = sys.exc_info()
    logger.info("Exception occured: %s" % t )
    logger.info("Exception value: %s" % v)
@@ -81,8 +88,9 @@ class CobblerWeb(object):
                 return True
             except Exception, e:
                 if str(e).find("invalid token") != -1:
-                    logger.info("token timeout for: %s" % self.username)
-                    log_exc()
+                    if LOGGING_ENABLED:
+                        logger.info("token timeout for: %s" % self.username)
+                        log_exc()
                     self.token = None
                     # this should put us back to the login screen
                     self.__cookie_logout()
@@ -94,7 +102,8 @@ class CobblerWeb(object):
             try:
                 self.token = self.remote.login( self.username, self.password )
             except Exception, e:
-                logger.info("login failed for: %s" % self.username)
+                if LOGGING_ENABLED:
+                    logger.info("login failed for: %s" % self.username)
                 log_exc()
                 return False
             self.__cookie_login(self.token) # save what we've got
@@ -194,7 +203,8 @@ class CobblerWeb(object):
     def __get_cookie_token(self):
         if self.__cookies.has_key("cobbler_xmlrpc_token"):
             value = self.__cookies["cobbler_xmlrpc_token"]
-            logger.debug("loading token from cookie: %s" % value.value)
+            if LOGGING_ENABLED:
+                logger.debug("loading token from cookie: %s" % value.value)
             return value.value
         return None
 

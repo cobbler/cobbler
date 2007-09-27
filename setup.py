@@ -22,6 +22,7 @@ if __name__ == "__main__":
         logpath  = "/var/log/cobbler/"
         logpath2 = "/var/log/cobbler/kicklog"
         logpath3 = "/var/log/cobbler/syslog"
+        logpath4 = "/var/log/httpd/cobbler"
         snippets = "/var/lib/cobbler/snippets"
         vl_kick  = "/var/lib/cobbler/kickstarts"
         wwwtmpl  = "/usr/share/cobbler/webui_templates/"
@@ -102,6 +103,7 @@ if __name__ == "__main__":
                                 (logpath,  []),
                                 (logpath2, []),
                                 (logpath3, []),
+				(logpath4, []),
 
                                 # web page directories that we own
                                 (vw_localmirror,    []),
