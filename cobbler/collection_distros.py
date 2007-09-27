@@ -49,7 +49,7 @@ class Distros(collection.Collection):
         name = name.lower()
         # first see if any Groups use this distro
         for v in self.config.profiles():
-            if v.distro == name:
+            if v.distro.lower() == name:
                raise CX(_("removal would orphan profile: %s") % v.name)
         if self.find(name=name):
             if with_delete:

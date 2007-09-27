@@ -47,7 +47,7 @@ class Profiles(collection.Collection):
         """
         name = name.lower()
         for v in self.config.systems():
-           if v.profile == name:
+           if v.profile.lower() == name:
                raise CX(_("removal would orphan system: %s") % v.name)
         if self.find(name=name):
             if with_delete:
