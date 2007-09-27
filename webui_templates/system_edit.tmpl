@@ -20,7 +20,10 @@ function get_random_mac()
     xmlHttp.onreadystatechange = function () {
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
             var mac_field = document.getElementById("mac")
-            mac_field.value = xmlHttp.responseText;
+            var result = xmlHttp.responseText;
+            if (result.charAt(2) == ':' && result.charAt(5) == ':') {
+                mac_field.value = result;
+            }
         }
     };
     xmlHttp.send(null);

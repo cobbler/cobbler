@@ -94,6 +94,7 @@ class CobblerWeb(object):
                     self.token = None
                     # this should put us back to the login screen
                     self.__cookie_logout()
+                    return False
                 else:
                     raise e
         
