@@ -275,7 +275,7 @@ class CobblerXMLRPCInterface:
             random.randint(0x00, 0xff) ]
         mac = ':'.join(map(lambda x: "%02x" % x, mac))
         systems = self.api.systems()
-        while ( systems.find(mac=mac) ):
+        while ( systems.find(mac_address=mac) ):
             mac = self.random_mac()
 
         return mac

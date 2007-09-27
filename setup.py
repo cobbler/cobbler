@@ -127,6 +127,7 @@ if __name__ == "__main__":
                                 # slurp in whole directory?
 
                                 (wwwtmpl,           ['webui_templates/empty.tmpl']),
+                                (wwwtmpl,           ['webui_templates/blank.tmpl']),
                                 (wwwtmpl,           ['webui_templates/distro_list.tmpl']),
                                 (wwwtmpl,           ['webui_templates/distro_edit.tmpl']),
                                 (wwwtmpl,           ['webui_templates/profile_list.tmpl']),
@@ -153,7 +154,7 @@ if __name__ == "__main__":
 				(wwwgfx,            ['docs/wui.html']),
                                 (wwwgfx,            ['docs/cobbler.html']),
 				(wwwgfx,            []),
-                                (wwwgfx,            ['webui_content/icon-tip.png']),
+                                (wwwgfx,            ['webui_content/icon_16_sync.png']),
                                 (wwwgfx,            ['webui_content/style.css']),
                                 (wwwgfx,            ['webui_content/logo-cobbler.png']),
                                 (wwwgfx,            ['webui_content/cobblerweb.css']),

@@ -1,3 +1,21 @@
+.button {
+  border: 1px solid #d0d0d0;
+  -moz-border-radius: 6px;
+  background-color: #717171;
+  padding: 2px 16px;
+  padding-left: 32px;
+  background-image: url('/cobbler/webui/icon_16_sync.png');
+  background-position: 15%;
+  background-repeat: no-repeat;
+}
+
+a.button, a.button:link, a.button:visited, a.button:active {
+  text-decoration: none;
+  color: #444;
+  font-weight: bold;
+  font-family: sans-serif;
+}
+
 body, html {
   background-color: black;
   margin: 0;

@@ -24,32 +24,30 @@
 
 <div id="sidebar">
     <ul id="nav">
-        <li><a href="/cobbler/webui/wui.html" class="menu">Docs</a></li>
-        <li><hr/></li>
-        <li><a href="$base_url/settings_view" class="menu">Settings</a></li>
-        <li><hr/></li>
-        <li>LIST</li>
-        <li><a href="$base_url/distro_list" class="menu">Distros</a></li>
-        <li><a href="$base_url/profile_list" class="menu">Profiles</a></li>
-        <li><a href="$base_url/system_list" class="menu">Systems</a></li>
-        <li><a href="$base_url/ksfile_list" class="menu">Kickstarts</a></li>
-        <li><a href="$base_url/repo_list" class="menu">Repos</a></li>
-        <li><hr/></li>
-        <li>ADD</li>
-        <li><a href="$base_url/distro_edit" class="menu">Distro</a></li>
-        <li><a href="$base_url/profile_edit" class="menu">Profile</a></li>
-        <li><a href="$base_url/system_edit" class="menu">System</a></li>
-        <li><a href="$base_url/repo_edit" class="menu">Repo</a></li>
-        <li><hr/></li>
-         #if $logged_in != 'configured'
-            #if $logged_in
-                <li><a href="$base_url/logout_submit" class="menu">Log Out</a></li>
-            #else
-                <li><a href="$base_url/login" class="menu">Log In</a></li>
-            #end if
+        #if not $logged_in 
+            <li><a href="$base_url/login" class="menu">Log In</a></li>
+        #else
+            <li><a href="/cobbler/webui/wui.html" class="menu">Docs</a></li>
+            <li><a href="$base_url/settings_view" class="menu">Settings</a></li>
+            <li><a href="$base_url/logout_submit" class="menu">Log Out</a></li>
             <li><hr/></li>
+            <li>LIST</li>
+            <li><a href="$base_url/distro_list" class="menu">Distros</a></li>
+            <li><a href="$base_url/profile_list" class="menu">Profiles</a></li>
+            <li><a href="$base_url/system_list" class="menu">Systems</a></li>
+            <li><a href="$base_url/ksfile_list" class="menu">Kickstarts</a></li>
+            <li><a href="$base_url/repo_list" class="menu">Repos</a></li>
+            <li><hr/></li>
+            <li>ADD</li>
+            <li><a href="$base_url/distro_edit" class="menu">Distro</a></li>
+            <li><a href="$base_url/profile_edit" class="menu">Profile</a></li>
+            <li><a href="$base_url/system_edit" class="menu">System</a></li>
+            <li><a href="$base_url/repo_edit" class="menu">Repo</a></li>
+            <li><hr/><br/></li>
+            <li><a class="button sync" href="$base_url/sync">Sync</a></li>
         #end if
-       <li><a href="$base_url/sync" class="menu">Sync</A></li>
+
+
     </ul>
 </div>
 

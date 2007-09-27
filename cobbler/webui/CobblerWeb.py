@@ -123,7 +123,9 @@ class CobblerWeb(object):
         data['base_url'] = self.base_url
 
         # used by master.tmpl to determine whether or not to show login/logout links
-        if self.token is not None:
+        if data.has_key("hide_links"):
+            data['logged_in'] = None
+        elif self.token is not None:
             data['logged_in'] = 1
         elif self.username and self.password:
             data['logged_in'] = 'configured'
@@ -226,14 +228,18 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
 
     def index(self):
-        return self.__render( 'index.tmpl', dict() )
+        return self.__render( 'index.tmpl', { "hide_links" : True } )
+
+    def menu(self):
+        return self.__render( 'blank.tmpl', { } )
+   
 
     # ------------------------------------------------------------------------ #
     # Authentication
     # ------------------------------------------------------------------------ #
 
     def login(self, message=None):
-        return self.__render( 'login.tmpl', {'message': message} )
+        return self.__render( 'login.tmpl', {'message': message, "hide_links" : True } )
 
     def login_submit(self, username=None, password=None, submit=None):
         if username is None:
@@ -247,7 +253,7 @@ class CobblerWeb(object):
         if not self.__xmlrpc_setup(is_login=True):
             return self.login(message="XMLRPC Login Failed.")
 
-        return self.index()
+        return self.menu()
 
     def logout_submit(self):
         self.token = None
@@ -733,6 +739,7 @@ class CobblerWeb(object):
     modes.exposed = False
     error_page.exposed = False
     index.exposed = True
+    menu.exposed = True
 
     login.exposed = True
     login_submit.exposed = True
