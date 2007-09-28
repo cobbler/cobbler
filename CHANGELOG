@@ -1,7 +1,7 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Fri Aug 31 2007 - 0.6.2
+* Fri Sep 28 2007 - 0.6.2
 - cobbler repo auto-add to discover yum repos automatically
 - fix bug that allows empty mac addresses (None) in dhcpd.conf
 - kickstarts automatically save kickstart file used to /root/cobbler.ks

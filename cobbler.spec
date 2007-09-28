@@ -2,7 +2,7 @@
 Summary: Boot server configurator
 Name: cobbler
 Version: 0.6.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -174,7 +174,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Fri Aug 31 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.2-1
+* Fri Sep 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.2-2
 - Upstream changes (see CHANGELOG)
 - removed syslinux as a requirement (cobbler check will detect absense)
 - packaged /var/lib/cobbler/settings as a config file
@@ -182,6 +182,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 - permissions cleanup
 - make license field conform to rpmlint
 - relocate cgi-bin files to cobbler subdirectory 
+- include the WUI!
 
 * Thu Aug 30 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.1-2
 - Upstream changes (see CHANGELOG)

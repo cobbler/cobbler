@@ -276,7 +276,7 @@ class CobblerXMLRPCInterface:
         mac = ':'.join(map(lambda x: "%02x" % x, mac))
         systems = self.api.systems()
         while ( systems.find(mac_address=mac) ):
-            mac = self.random_mac()
+            mac = self.get_random_mac()
 
         return mac
 
