@@ -224,9 +224,12 @@ class RepoSync:
         config_file.write("[%s]\n" % repo.name)
         config_file.write("name=%s\n" % repo.name)
         if output:
-            config_file.write("baseurl=http://%s/cobbler/repo_mirror/%s\n" % (self.settings.server, repo.name))
+            line = "baseurl=http://%s/cobbler/repo_mirror/%s\n" % (self.settings.server, repo.name)
+            config_file.write(line)
         else:
-            config_file.write("baseurl=%s\n" % repo.mirror)
+            line = "baseurl=%s\n" % repo.mirror
+            line = line.replace("@@server@@",self.settings.server)
+            config_file.write(line)
         config_file.write("enabled=1\n")
         config_file.write("gpgcheck=0\n")
         config_file.close()
