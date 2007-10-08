@@ -622,38 +622,45 @@ class BootSync:
         if distro is None:
             raise CX(_("profile %(profile)s references a missing distro %(distro)s") % { "profile" : system.profile, "distro" : profile.distro})
 
-        # FIXME: make this understand multiple interfaces:
-        f1 = utils.get_config_filename(system)
-        # tftp only
+        # this used to just generate a single PXE config file, but now must
+        # generate one record for each described NIC ...
+ 
+        counter = 0
+        for interface in system.interfaces:
 
+            ip = interface["ip_address"]
 
-        if distro.arch in [ "x86", "x86_64", "standard"]:
-            # pxelinux wants a file named $name under pxelinux.cfg
-            f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
-        if distro.arch == "ia64":
-            # elilo expects files to be named "$name.conf" in the root
-            # and can not do files based on the MAC address
-            if system.get_ip_address() == None:
-                print _("Warning: Itanium system object (%s) needs an IP address to PXE") % system.name
+            f1 = utils.get_config_filename(system,interface=counter)
 
-            # FIXME: make this understand multiple interfaces 
-            filename = "%s.conf" % utils.get_config_filename(system)
-            f2 = os.path.join(self.settings.tftpboot, filename)
-
-        f3 = os.path.join(self.settings.webdir, "systems", f1)
-
-        # FIXME: make this understand multiple interfaces
-        if system.netboot_enabled and system.is_pxe_supported():
+            # for tftp only ...
             if distro.arch in [ "x86", "x86_64", "standard"]:
-                self.write_pxe_file(f2,system,profile,distro,False)
+                # pxelinux wants a file named $name under pxelinux.cfg
+                f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
             if distro.arch == "ia64":
-                self.write_pxe_file(f2,system,profile,distro,True)
-        else:
-            # ensure the file doesn't exist
-            self.rmfile(f2)
+                # elilo expects files to be named "$name.conf" in the root
+                # and can not do files based on the MAC address
+                if ip is not None and ip != "":
+                    print _("Warning: Itanium system object (%s) needs an IP address to PXE") % system.name
 
-        self.write_system_file(f3,system)
+                filename = "%s.conf" % utils.get_config_filename(system,interface=counter)
+                f2 = os.path.join(self.settings.tftpboot, filename)
+
+            f3 = os.path.join(self.settings.webdir, "systems", f1)
+
+            if system.netboot_enabled and system.is_pxe_supported():
+                if distro.arch in [ "x86", "x86_64", "standard"]:
+                    self.write_pxe_file(f2,system,profile,distro,False)
+                if distro.arch == "ia64":
+                    self.write_pxe_file(f2,system,profile,distro,True)
+            else:
+                # ensure the file doesn't exist
+                self.rmfile(f2)
+
+            self.write_system_file(f3,system)
+
+        counter = counter + 1
         
+
     def make_pxe_menu(self):
         # only do this if there is NOT a system named default.
         default = self.systems.find(name="default")

@@ -70,7 +70,7 @@ def get_config_filename(sys,interface=0):
 
     if sys.name == "default":
         return "default"
-    mac = sys.get_mac_address(nterface)
+    mac = sys.get_mac_address(interface)
     ip  = sys.get_ip_address(interface)
     if mac != None:
         return "01-" + "-".join(mac.split(":")).lower()
@@ -316,11 +316,12 @@ def flatten(data):
         # make interfaces accessible without Cheetah-voodoo in the templates
         # EXAMPLE:  $ip == $ip0, $ip1, $ip2 and so on.
         counter = 0
-        for x in data["interfaces"]:
-            data["%s%d" % (x,counter)] = data["interfaces"][x]
-            # just to keep templates backwards compatibile
-            if counter == 0:
-                data[x] = data["interfaces"][x]
+        for interface in data["interfaces"]:
+            for key in interface.keys():
+                data["%s%d" % (key,counter)] = interface[key]
+                # just to keep templates backwards compatibile
+                if counter == 0:
+                    data[key] = interface[key]
             counter = counter + 1
  
     return data

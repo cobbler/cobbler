@@ -81,9 +81,7 @@ class System(item.Item):
         # now backfill the interface structure with any old values
         # backwards compatibility here is complex/ugly though we don't want to 
         # break anyone.  So this code needs to stay here.
-        if __hostname is not None or 
-           __mac_address is not None or 
-           __ip_address is not None:
+        if len(self.interfaces) == 0 and (__hostname is not None or __mac_address is not None or __ip_address is not None):
            insert_item = {}
            if __hostname is not None and __hostname != "":
                insert_item["hostname"] = __hostname
@@ -97,16 +95,19 @@ class System(item.Item):
 
         # now if no interfaces are STILL defined, add in one only under certain
         # conditions .. this emulates legacy behavior in the new interface format
-        if __mac_address == "" and utils.is_mac(self.name):
-            self.interfaces.append({
-                "mac_address" : self.name
-            })
-        elif __ip_address == "" and utils.is_ip(self.name):
-            self.interfaces.append({
-                "ip_address" : self.ip_address
-            })
+        # FIXME: the following may be a bit ...quirky
+        else:
+            if __mac_address == "" and utils.is_mac(self.name):
+                self.interfaces.append({
+                    "mac_address" : self.name
+                })
+            elif __ip_address == "" and utils.is_ip(self.name):
+                self.interfaces.append({
+                    "ip_address" : self.ip_address
+                })
 
         # now for each interface, if any fields are missing, add them.
+        # if any new interface fields are ever added, they must be duplicated here.
         for x in self.interfaces:
             x.setdefault("mac_address","")
             x.setdefault("ip_address","")
@@ -391,16 +392,15 @@ class System(item.Item):
 
         counter = 0
         for x in self.interfaces:
-            buf = buf + _(" -----------\n")
-            buf = buf + _("interface    : #%d\n") % counter + 1
-            buf = buf + _(" mac address : %s\n") % x.get("mac_address","")
-            buf = buf + _(" ip address  : %s\n") % x.get("ip_address","")
-            buf = buf + _(" hostname    : %s\n") % x.get("hostname","")
-            buf = buf + _(" gateway     : %s\n") % x.get("gateway","")
-            buf = buf + _(" subnet      : %s\n") % x.get("subnet","")
-            buf = buf + _(" virt bridge : %s\n") % x.get("virt_bridge","")
-            buf = buf + _(" dhcp tag    : %s\n") % x.get("dhcp_tag","")
-            buf = buf + _(" config id   : %s\n") % utils.get_config_filename(self,counter)
+            buf = buf + _("interface        : #%s\n") % (counter)
+            buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
+            buf = buf + _("  ip address     : %s\n") % x.get("ip_address","")
+            buf = buf + _("  hostname       : %s\n") % x.get("hostname","")
+            buf = buf + _("  gateway        : %s\n") % x.get("gateway","")
+            buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
+            buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
+            buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
+            buf = buf + _("  config id      : %s\n") % utils.get_config_filename(self,counter)
             counter = counter + 1
          
 
