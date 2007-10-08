@@ -494,6 +494,7 @@ class BootCLI:
         """
         Create/Edit a system:  'cobbler system edit --name='foo' ...
         """
+        # This copy/paste is heinous evil, please forgive me.
         commands = {
            '--name'        :     lambda(a) : sys.set_name(a),
            '--newname'     :     lambda(a) : True,
@@ -502,18 +503,30 @@ class BootCLI:
            '--kopts'       :     lambda(a) : sys.set_kernel_options(a),
            '--ksmeta'      :     lambda(a) : sys.set_ksmeta(a),
            '--hostname'    :     lambda(a) : sys.set_hostname(a),
-           '--pxe-address' :     lambda(a) : sys.set_ip_address(a),  # deprecated
-           '--ip-address'  :     lambda(a) : sys.set_ip_address(a),
-           '--ip'          :     lambda(a) : sys.set_ip_address(a),  # alias
-           '--mac-address' :     lambda(a) : sys.set_mac_address(a),
-           '--mac'         :     lambda(a) : sys.set_mac_address(a), # alias
+           '--ip'          :     lambda(a) : sys.set_ip_address(a,interface=0), 
+           '--mac'         :     lambda(a) : sys.set_mac_address(a,interface=0), 
+           '--gateway'     :     lambda(a) : sys.set_mac_address(a,interface=0), 
+           '--subnet'      :     lambda(a) : sys.set_mac_address(a,interface=0), 
+           '--virt-bridge' :     lambda(a) : sys.set_mac_address(a,interface=0), 
            '--kickstart'   :     lambda(a) : sys.set_kickstart(a),
-           '--kick-start'  :     lambda(a) : sys.set_kickstart(a),
            '--netboot-enabled' : lambda(a) : sys.set_netboot_enabled(a),
            '--virt-path'   :     lambda(a) : sys.set_virt_path(a),
            '--virt-type'   :     lambda(a) : sys.set_virt_type(a),
            '--dhcp-tag'    :     lambda(a) : sys.set_dhcp_tag(a)
         }
+
+        # add some command aliases for additional interfaces.  The default commands
+        # only operate on the first, which are all many folks will need.
+        for count in range(0,7):
+           commands["--hostname%d"    % count] = lambda(a) : sys.set_hostname(a,interface=count)
+           commands["--ip%d"          % count] = lambda(a) : sys.set_ip_address(a,interface=count) 
+           commands["--mac%d"         % count] = lambda(a) : sys.set_mac_address(a,interface=0)
+           commands["--gateway%d"     % count] = lambda(a) : sys.set_gateway(a,interface=0)
+           commands["--subnet%d"      % count] = lambda(a) : sys.set_subnet(a,interface=0)
+           commands["--virt-bridge%d" % count] = lambda(a) : sys.set_virt_bridge(a,interface=0)
+           commands["--dhcp-tag%d"    % count] = lambda(a) : sys.set_dhcp_tag(a,interface=0)
+        
+
         def on_ok():
             self.api.systems().add(sys, with_copy=True)
         return self.apply_args(args,commands,on_ok)

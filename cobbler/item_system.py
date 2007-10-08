@@ -34,12 +34,14 @@ class System(item.Item):
         self.profile         = (None,     '<<inherit>>')[is_subobject]
         self.kernel_options  = ({},       '<<inherit>>')[is_subobject]
         self.ks_meta         = ({},       '<<inherit>>')[is_subobject]
-        self.ip_address      = ("",       '<<inherit>>')[is_subobject]
-        self.mac_address     = ("",       '<<inherit>>')[is_subobject]  
+
+        # these are obsolete:
+        # self.ip_address      = ("",       '<<inherit>>')[is_subobject]
+        # self.mac_address     = ("",       '<<inherit>>')[is_subobject]  
+        # self.hostname        = ("",       '<<inheirt>>')[is_subobject]
+
         self.netboot_enabled = (1,        '<<inherit>>')[is_subobject] 
-        self.hostname        = ("",       '<<inheirt>>')[is_subobject]
         self.depth           = 2
-        self.dhcp_tag        = "default"
         self.kickstart       = "<<inherit>>"   # use value in profile
         self.virt_path       = "<<inherit>>"   # use value in profile
         self.virt_type       = "<<inherit>>"   # use value in profile 
@@ -55,20 +57,68 @@ class System(item.Item):
         self.kickstart       = self.load_item(seed_data, 'kickstart', '<<inherit>>')
         self.virt_path       = self.load_item(seed_data, 'virt_path', '<<inherit>>') 
         self.virt_type       = self.load_item(seed_data, 'virt_type', '<<inherit>>')
-        self.dhcp_tag        = self.load_item(seed_data, 'dhcp_tag', 'default')
+
+        # backwards compat, this is now a per-NIC setting
+        __dhcp_tag           = self.load_item(seed_data, 'dhcp_tag', 'default')
 
         # backwards compat, load --ip-address from two possible sources.
         # the old --pxe-address was a bit of a misnomer, new value is --ip-address
-
-        oldvar  = self.load_item(seed_data, 'pxe_address')
-        if oldvar == "": # newer version, yay
-            self.ip_address = self.load_item(seed_data, 'ip_address')
+        # though the ultimate trick is that we don't even use this parameter anymore for
+        # storage reasons.  We now use self.interfaces which is an array of hashes.
+        __oldvar  = self.load_item(seed_data, 'pxe_address', "")
+        if __oldvar == "": # newer version, yay
+            __ip_address = self.load_item(seed_data, 'ip_address', "")
         else:
-            self.ip_address = oldvar
+            __ip_address = __oldvar
 
+        # the following two parameters are also here for backwards compatibility reasons
+        __hostname        = self.load_item(seed_data, 'hostname', "")
+        __mac_address     = self.load_item(seed_data, 'mac_address', "")
+
+        # now load the new-style interface definition data structure
+        self.interfaces      = self.load_item(seed_data, 'interfaces', [])
+
+        # now backfill the interface structure with any old values
+        # backwards compatibility here is complex/ugly though we don't want to 
+        # break anyone.  So this code needs to stay here.
+        if __hostname is not None or 
+           __mac_address is not None or 
+           __ip_address is not None:
+           insert_item = {}
+           if __hostname is not None and __hostname != "":
+               insert_item["hostname"] = __hostname
+           if __mac_address is not None and __mac_address != "":
+               insert_item["mac_address"] = __mac_address
+           if __ip_address is not None and __ip_address != "":
+               insert_item["ip_address"] = __ip_address
+           if __dhcp_tag is not None and __dhcp_tag != "":
+               insert_item["dhcp_tag"] = __dhcp_tag
+           self.interfaces.append(insert_item)   
+
+        # now if no interfaces are STILL defined, add in one only under certain
+        # conditions .. this emulates legacy behavior in the new interface format
+        if __mac_address == "" and utils.is_mac(self.name):
+            self.interfaces.append({
+                "mac_address" : self.name
+            })
+        elif __ip_address == "" and utils.is_ip(self.name):
+            self.interfaces.append({
+                "ip_address" : self.ip_address
+            })
+
+        # now for each interface, if any fields are missing, add them.
+        for x in self.interfaces:
+            x.setdefault("mac_address","")
+            x.setdefault("ip_address","")
+            x.setdefault("netmask","")
+            x.setdefault("hostname","")
+            x.setdefault("gateway","")
+            x.setdefault("virt_bridge","")
+            x.setdefault("dhcp_tag","default")
+
+        # question: is there any case where we'd want to PXE-enable one interface
+        # but not another.  answer: probably not.
         self.netboot_enabled = self.load_item(seed_data, 'netboot_enabled', 1)
-        self.hostname        = self.load_item(seed_data, 'hostname')
-        self.mac_address     = self.load_item(seed_data, 'mac_address')
 
         # backwards compatibility -- convert string entries to dicts for storage
         # this allows for better usage from the API.
@@ -78,16 +128,7 @@ class System(item.Item):
         if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
             self.set_ksmeta(self.ks_meta)
 
-        # backwards compatibility -- if name is an IP or a MAC, set appropriate fields
-        # this will only happen once, as part of an upgrade path ... 
-        # Explanation -- older cobbler's figured out the MAC and IP
-        # from the system name, newer cobblers allow arbitrary naming but can tell when the
-        # name is an IP or a MAC and use that if that info is not supplied.
 
-        if self.mac_address == "" and utils.is_mac(self.name):
-            self.mac_address = self.name
-        elif self.ip_address == "" and utils.is_ip(self.name):
-            self.ip_address = self.name
 
         return self
 
@@ -117,33 +158,41 @@ class System(item.Item):
 
         return True
 
-    def get_mac_address(self):
+    def get_mac_address(self,interface=0):
         """
         Get the mac address, which may be implicit in the object name or explicit with --mac-address.
         Use the explicit location first.
         """
-        if self.mac_address != "":
-            return self.mac_address
-        elif utils.is_mac(self.name):
+
+        if len(self.interfaces) -1 < interface:
+            raise CX(_("internal error: probing an interface that does not exist"))
+
+        intf = self.interfaces[interface]
+        if intf["mac_address"] != "":
+            return intf["mac_address"]
+        elif utils.is_mac(self.name) and interface == 0:
             return self.name
         else:
-            # no one ever set it, but that might be ok depending on usage.
             return None
 
-    def get_ip_address(self):
+    def get_ip_address(self,interface=0):
         """
         Get the IP address, which may be implicit in the object name or explict with --ip-address.
         Use the explicit location first.
         """
-        if self.ip_address != "": 
-            return self.ip_address
-        elif utils.is_ip(self.name):
+
+        if len(self.interfaces) -1 < interface:
+            raise CX(_("internal error: probing an interface that does not exist"))
+
+        intf = self.interfaces[interface]
+        if intf["ip_address"] != "": 
+            return intf["ip_address"]
+        elif utils.is_ip(self.name) and interface == 0:
             return self.name
         else:
-            # no one ever set it, but that might be ok depending on usage.
             return None
 
-    def is_pxe_supported(self):
+    def is_pxe_supported(self,interface=0):
         """
         Can only add system PXE records if a MAC or IP address is available, else it's a koan
         only record.  Actually Itanium goes beyond all this and needs the IP all of the time
@@ -151,39 +200,83 @@ class System(item.Item):
         """
         if self.name == "default":
            return True
-        mac = self.get_mac_address()
-        ip  = self.get_ip_address()
+        counter = 0
+        mac = self.get_mac_address(counter)
+        ip  = self.get_ip_address(counter)
         if mac is None and ip is None:
            return False
         return True
 
-    def set_dhcp_tag(self,dhcp_tag):
-        self.dhcp_tag = dhcp_tag
+    def __get_interface(self,interface=0,enforcing=False):
+        if not ( interface <= len(self.interfaces) -1 ):
+           if enforcing:
+               raise CX(_("internal error: accessing interface that does not exist: %s" % interface))
+           else:
+               # if there are two interfaces and the API requests the fifth, that's an error.
+               # you can't set an interface that is more than +1 away from the current count.
+               # FIXME: this may cause problems.
+               # FIXME: there should be a function that generates this.
+               new_item = {
+                   "hostname" : "",
+                   "ip_address" : "",
+                   "mac_address" : "",
+                   "subnet" : "",
+                   "netmask" : "",
+                   "virt_bridge" : "",
+                   "dhcp_tag" : ""
+               }
+               self.interfaces.append(new_item)
+               return new_item
+
+        return self.interfaces[interface]
+
+    def set_dhcp_tag(self,dhcp_tag,interface=0):
+        intf = self.__get_interface(interface)
+        intf["dhcp_tag"] = dhcp_tag
         return True
 
-    def set_hostname(self,hostname):
-        self.hostname = hostname
+    def set_hostname(self,hostname,interface=0):
+        intf = self.__get_interface(interface)
+        intf["hostname"] = hostname
         return True
 
-    def set_ip_address(self,address):
+    def set_ip_address(self,address,interface=0):
         """
         Assign a IP or hostname in DHCP when this MAC boots.
         Only works if manage_dhcp is set in /var/lib/cobbler/settings
         """
+        # FIXME: interface
+        intf = self.__get_interface(interface)
         if utils.is_ip(address):
-           self.ip_address = address
+           intf["ip_address"] = address
            return True
         raise CX(_("invalid format for IP address"))
 
-    def set_mac_address(self,address):
+    def set_mac_address(self,address,interface=0):
+        # FIXME: interface
+        intf = self.__get_interface(interface)
         if utils.is_mac(address):
-           self.mac_address = address
+           intf["mac_address"] = address
            return True
         raise CX(_("invalid format for MAC address"))
 
-    def set_pxe_address(self,address):
-        # backwards compatibility for API users:
-        return self.set_ip_address(address)
+    def set_gateway(self,gateway,interface=0):
+        # FIXME: validate + interface
+        intf = self.__get_interface(interface)
+        intf["gateway"] = gateway
+        return True
+
+    def set_subnet(self,subnet,interface=0):
+        # FIXME: validate + interface
+        intf = self.__get_interface(interface)
+        intf["subnet"] = subnet
+        return True
+    
+    def set_virt_bridge(self,bridge,interface=0):
+        # FIXME: validate + interface
+        intf = self.__get_interface(interface)
+        intf["bridge"] = bridge
+        return True
 
     def set_profile(self,profile_name):
         """
@@ -272,16 +365,17 @@ class System(item.Item):
            'profile'         : self.profile,
            'kernel_options'  : self.kernel_options,
            'ks_meta'         : self.ks_meta,
-           'ip_address'      : self.ip_address,
+           #'ip_address'      : self.ip_address,
            'netboot_enabled' : self.netboot_enabled,
-           'hostname'        : self.hostname,
-           'mac_address'     : self.mac_address,
+           #'hostname'        : self.hostname,
+           #'mac_address'     : self.mac_address,
            'parent'          : self.parent,
            'depth'           : self.depth,
            'kickstart'       : self.kickstart,
            'virt_type'       : self.virt_type,
            'virt_path'       : self.virt_path,
-           'dhcp_tag'        : self.dhcp_tag
+           #'dhcp_tag'        : self.dhcp_tag,
+           'interfaces'      : self.interfaces
         }
 
     def printable(self):
@@ -289,16 +383,27 @@ class System(item.Item):
         buf = buf + _("profile          : %s\n") % self.profile
         buf = buf + _("kernel options   : %s\n") % self.kernel_options
         buf = buf + _("ks metadata      : %s\n") % self.ks_meta
-        buf = buf + _("ip address       : %s\n") % self.get_ip_address()
-        buf = buf + _("mac address      : %s\n") % self.get_mac_address()
-        buf = buf + _("hostname         : %s\n") % self.hostname
-        buf = buf + _("pxe info set?    : %s\n") % self.is_pxe_supported()
-        buf = buf + _("config id        : %s\n") % utils.get_config_filename(self)
+        
         buf = buf + _("netboot enabled? : %s\n") % self.netboot_enabled 
         buf = buf + _("kickstart        : %s\n") % self.kickstart
         buf = buf + _("virt type        : %s\n") % self.virt_type
         buf = buf + _("virt path        : %s\n") % self.virt_path
-        buf = buf + _("dhcp tag         : %s\n") % self.dhcp_tag
+
+        counter = 0
+        for x in self.interfaces:
+            buf = buf + _(" -----------\n")
+            buf = buf + _("interface    : #%d\n") % counter + 1
+            buf = buf + _(" mac address : %s\n") % x.get("mac_address","")
+            buf = buf + _(" ip address  : %s\n") % x.get("ip_address","")
+            buf = buf + _(" hostname    : %s\n") % x.get("hostname","")
+            buf = buf + _(" gateway     : %s\n") % x.get("gateway","")
+            buf = buf + _(" subnet      : %s\n") % x.get("subnet","")
+            buf = buf + _(" virt bridge : %s\n") % x.get("virt_bridge","")
+            buf = buf + _(" dhcp tag    : %s\n") % x.get("dhcp_tag","")
+            buf = buf + _(" config id   : %s\n") % utils.get_config_filename(self,counter)
+            counter = counter + 1
+         
+
         return buf
 
     def remote_methods(self):
@@ -316,6 +421,9 @@ class System(item.Item):
            'netboot-enabled' : self.set_netboot_enabled,
            'virt-path'       : self.set_virt_path,
            'virt-type'       : self.set_virt_type,
-           'dhcp-tag'        : self.set_dhcp_tag
+           'dhcp-tag'        : self.set_dhcp_tag,
+           'gateway'         : self.set_gateway,
+           'virt-bridge'     : self.set_virt_bridge,
+           'subnet'          : self.set_subnet
         }
 

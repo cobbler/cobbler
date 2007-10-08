@@ -460,7 +460,6 @@ class BootSync:
         meta = utils.blender(False, s)
         kickstart_path = utils.find_kickstart(meta["kickstart"])
         if kickstart_path and os.path.exists(kickstart_path):
-            # pxe_fn = utils.get_config_filename(s)
             copy_path = os.path.join(self.settings.webdir,
                 "kickstarts_sys", # system kickstarts go here
                 s.name
@@ -602,6 +601,8 @@ class BootSync:
         distro = profile.get_conceptual_parent()
         if distro is None:
             raise CX(_("profile %(profile)s references a missing distro %(distro)s") % { "profile" : system.profile, "distro" : profile.distro})
+
+        # FIXME: make this understand multiple interfaces:
         f1 = utils.get_config_filename(system)
         # tftp only
 
@@ -615,12 +616,13 @@ class BootSync:
             if system.get_ip_address() == None:
                 print _("Warning: Itanium system object (%s) needs an IP address to PXE") % system.name
 
-
+            # FIXME: make this understand multiple interfaces 
             filename = "%s.conf" % utils.get_config_filename(system)
             f2 = os.path.join(self.settings.tftpboot, filename)
 
         f3 = os.path.join(self.settings.webdir, "systems", f1)
 
+        # FIXME: make this understand multiple interfaces
         if system.netboot_enabled and system.is_pxe_supported():
             if distro.arch in [ "x86", "x86_64", "standard"]:
                 self.write_pxe_file(f2,system,profile,distro,False)
@@ -720,7 +722,6 @@ class BootSync:
         if kickstart_path is not None and kickstart_path != "":
 
             if system is not None and kickstart_path.startswith("/"):
-                # pxe_fn = utils.get_config_filename(system)
                 kickstart_path = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (self.settings.server, system.name)
             elif kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
                 kickstart_path = "http://%s/cblr/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)

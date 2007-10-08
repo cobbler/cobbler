@@ -55,7 +55,7 @@ def get_host_ip(ip):
     results = out.read()
     return results.split(" ")[-1][0:8]
 
-def get_config_filename(sys):
+def get_config_filename(sys,interface=0):
     """
     The configuration file for each system pxe uses is either
     a form of the MAC address of the hex version of the IP.  If none
@@ -64,10 +64,14 @@ def get_config_filename(sys):
     system.is_pxe_supported()).  This same file is used to store
     system config information in the Apache tree, so it's still relevant.
     """
+
+    if interface > len(sys.interfaces) -1:
+        raise CX(_("internal error:  probing an interface that does not exist"))
+
     if sys.name == "default":
         return "default"
-    mac = sys.get_mac_address()
-    ip  = sys.get_ip_address()
+    mac = sys.get_mac_address(nterface)
+    ip  = sys.get_ip_address(interface)
     if mac != None:
         return "01-" + "-".join(mac.split(":")).lower()
     elif ip != None:
@@ -308,6 +312,17 @@ def flatten(data):
         data["repos"]   = " ".join(data["repos"])
     if data.has_key("rpm_list") and type(data["rpm_list"]) == list:
         data["rpm_list"] = " ".join(data["rpm_list"])
+    if data.has_key("interfaces"):
+        # make interfaces accessible without Cheetah-voodoo in the templates
+        # EXAMPLE:  $ip == $ip0, $ip1, $ip2 and so on.
+        counter = 0
+        for x in data["interfaces"]:
+            data["%s%d" % (x,counter)] = data["interfaces"][x]
+            # just to keep templates backwards compatibile
+            if counter == 0:
+                data[x] = data["interfaces"][x]
+            counter = counter + 1
+ 
     return data
 
 def __consolidate(node,results):

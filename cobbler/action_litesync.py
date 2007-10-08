@@ -113,9 +113,11 @@ class BootLiteSync:
         self.sync.rmfile(os.path.join(self.settings.webdir, "systems", name))
         # delete contents of kickstarts_sys/$name in webdir
         system_record = self.systems.find(name=name)
+        # FIXME: make this understand multiple interfaces
         filename = utils.get_config_filename(system_record)
         self.sync.rmtree(os.path.join(self.settings.webdir, "kickstarts_sys", filename))
 
+        # FIXME: make this understand multiple interfaces
         if not system_record.is_pxe_supported():
             # no need to go any further with PXE cleanup
             return

@@ -204,6 +204,8 @@ already looks like a mac address, this is inferred from the system name and does
 
 MAC addresses have the format AA:BB:CC:DD:EE:FF.
 
+If you would like to specify additional MACs, use --mac0=x, --mac1=y and so on.
+
 =item ip
 
 If cobbler is configured to generate a DHCP configuratition (see advanced section), use this
@@ -214,6 +216,8 @@ Example: ---ip=192.168.1.50
 
 Note for Itanium users:  this setting is always required for IA64 regardless of whether DHCP management is enabled.
 
+If you would like to specify additional IPs, use --ip0=x, --ip1=y and so on.
+
 =item hostname
 
 If using the DHCP configuration feature (see advanced section) with dnsmasq, use this to define a hostname for the system to
@@ -221,6 +225,18 @@ recieve from DNS.  If not using DHCP management or not using dnsmasq, this field
 basically ignored.
 
 Example: --hostname=mycomputer.example.com
+
+If you would like to specify additional hostnames, use --hostname0=x, --hostname1=y and so on.
+
+=item --gateway and --subnet
+
+If you are using static IP configurations, you may find it useful to store gateway and subnet
+information inside of cobbler.  These variables are not used internally by cobbler, but are
+made available in cobbler templates, which are described later in this document and on the Wiki.
+For DHCP configurations, these parameters should be left blank.
+
+To describe gateway and subnet information for multiple intefaces, use --gateway0=x, --gateway1=y
+and so on.  Subnets work the same way.
 
 =item --kickstart
 
@@ -236,6 +252,8 @@ standard PXE.  This will allow the system to fall back to default PXE boot behav
 If you are setting up a PXE environment with multiple subnets/gateways, and are using cobbler to manage a DHCP configuration, you will want this option.
 
 By default, the dhcp tag for all systems is "default" and means that in the DHCP template files the systems will expand out where $insert_cobbler_systems_definitions is found in the DHCP template.  However, you may want certain systems to expand out in other places in the file.  Setting --dhcp-tag=subnet2 for instance, will cause that system to expand out where $insert_cobbler_system_definitions_subnet2 is found, allowing you to insert directives to specify different subnets (or other parameters) before the DHCP configuration entries for those particular systems.
+
+If your system has multiple network interfaces, use --dhcp-tag0=x, --dhcp-tag1=y and so on.
 
 =end
 
