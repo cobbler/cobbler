@@ -128,61 +128,74 @@ class BootSync:
 
         # build each per-system definition
         # as configured, this only works for ISC, patches accepted
-        # from those that care about Itanium.
-        elilo = os.path.basename(self.settings.bootloaders["ia64"])
+        # from those that care about Itanium.  elilo seems to be unmaintained
+        # so additional maintaince in other areas may be required to keep
+        # this working.
 
+        elilo = os.path.basename(self.settings.bootloaders["ia64"])
 
         system_definitions = {}
         counter = 0
+
+        # we used to just loop through each system, but now we must loop
+        # through each network interface of each system.
+
         for system in self.systems:
-            mac = system.get_mac_address()
-            if mac is None or mac == "":
-                # can't write a DHCP entry for this system
-                # FIXME: should this be a warning?
-                continue 
+            profile = system.get_conceptual_parent()
+            distro  = profile.get_conceptual_parent()
+            interface_num = 0
+            for interface in system.interfaces:
+                interface_num = interface_num + 1 
+
+                mac  = interface["mac_address"]
+                ip   = interface["ip_address"]
+                host = interface["hostname"]
+
+                if mac is None or mac == "":
+                    # can't write a DHCP entry for this system
+                    # FIXME: should this be a warning?
+                    continue 
  
-            counter = counter + 1
-            systxt = "" 
-            if mode == "isc":
+                counter = counter + 1
+                systxt = "" 
 
-                # the label the entry after the hostname if possible
-                host = system.hostname
-                if host is not None and host != "":
-                    systxt = "\nhost %s {\n" % host
-                else:
-                    systxt = "\nhost generic%d {\n" % counter
+                if mode == "isc":
 
-                profile = system.get_conceptual_parent()
-                distro  = profile.get_conceptual_parent()
-                if distro.arch == "ia64":
-                    # can't use pxelinux.0 anymore
-                    systxt = systxt + "    filename \"/%s\";\n" % elilo
-                systxt = systxt + "    hardware ethernet %s;\n" % mac
-                if system.get_ip_address() != None:
-                    systxt = systxt + "    fixed-address %s;\n" % system.get_ip_address()
-                # not needed, as it's in the template.
-                # systxt = systxt + "    next-server %s;\n" % self.settings.next_server
-                systxt = systxt + "}\n"
-
-            else:
-                # dnsmasq.  don't have to write IP and other info here, but we do tag
-                # each MAC based on the arch of it's distro, if it needs something other
-                # than pxelinux.0 -- for these arches, and these arches only, a dnsmasq
-                # reload (full "cobbler sync") would be required after adding the system
-                # to cobbler, just to tag this relationship.
-
-                profile = system.get_conceptual_parent()
-                distro  = profile.get_conceptual_parent()
-                if system.get_ip_address() != None:
-                    if distro.arch.lower() == "ia64":
-                        systxt = "dhcp-host=net:ia64," + system.get_ip_address() + "\n"
-                    # support for other arches needs modifications here
+                    # the label the entry after the hostname if possible
+                    if host is not None and host != "":
+                        systxt = "\nhost %s {\n" % host
                     else:
-                        systxt = ""
+                        systxt = "\nhost generic%d {\n" % counter
 
-            if not system_definitions.has_key(system.dhcp_tag):
-                system_definitions[system.dhcp_tag] = ""
-            system_definitions[system.dhcp_tag] = system_definitions[system.dhcp_tag] + systxt
+                    if distro.arch == "ia64":
+                        # can't use pxelinux.0 anymore
+                        systxt = systxt + "    filename \"/%s\";\n" % elilo
+                        systxt = systxt + "    hardware ethernet %s;\n" % mac
+                    if ip is not None and ip != "":
+                        systxt = systxt + "    fixed-address %s;\n" % ip
+                    # not needed, as it's in the template.
+                    # systxt = systxt + "    next-server %s;\n" % self.settings.next_server
+                    systxt = systxt + "}\n"
+
+                else:
+                    # dnsmasq.  don't have to write IP and other info here, but we do tag
+                    # each MAC based on the arch of it's distro, if it needs something other
+                    # than pxelinux.0 -- for these arches, and these arches only, a dnsmasq
+                    # reload (full "cobbler sync") would be required after adding the system
+                    # to cobbler, just to tag this relationship.
+
+                    if ip is not None and ip != "":
+                        if distro.arch.lower() == "ia64":
+                            systxt = "dhcp-host=net:ia64," + ip + "\n"
+                        # support for other arches needs modifications here
+                        else:
+                            systxt = ""
+
+                if not system_definitions.has_key(interface["dhcp_tag"]):
+                    system_definitions[interface["dhcp_tag"]] = ""
+                system_definitions[inteface["dhcp_tag"]] = system_definitions[inteface["dhcp_tag"]] + systxt
+
+        # we are now done with the looping through each interface of each system
 
         metadata = {
            "insert_cobbler_system_definitions" : system_definitions.get("default",""),
@@ -206,12 +219,15 @@ class BootSync:
         # read 'man ethers' for format info
         fh = open("/etc/ethers","w+")
         for sys in self.systems:
-            if sys.get_mac_address() == None:
-                # can't write this w/o a MAC address
-                # FIXME -- should this raise a warning?  
-                continue
-            if sys.get_ip_address() != None:
-                fh.write(sys.get_mac_address().upper() + "\t" + sys.get_ip_address() + "\n")
+            for interface in sys.interfaces:
+                mac = interface["mac_address"]
+                ip  = interface["ip_address"]
+                if mac is None or mac == "":
+                    # can't write this w/o a MAC address
+                    # FIXME -- should this raise a warning?  
+                    continue
+                if ip is not None and ip != "":
+                    fh.write(mac.upper() + "\t" + ip + "\n")
         fh.close()
 
     def regen_hosts(self):
@@ -219,10 +235,14 @@ class BootSync:
         # (other things may also make use of this later)
         fh = open("/var/lib/cobbler/cobbler_hosts","w+")
         for sys in self.systems:
-            if sys.get_mac_address() == None:
-                continue
-            if sys.hostname != "" and sys.get_ip_address() != None:
-                fh.write(sys.get_ip_address() + "\t" + sys.hostname + "\n")
+            for interface in sys.interfaces:
+                mac  = interface["mac_address"]
+                host = interface["hostname"]
+                ip   = interface["ip_address"]
+                if mac is None or mac == "":
+                    continue
+                if host is not None and host != "" and ip is not None and ip != "":
+                    fh.write(ip + "\t" + host + "\n")
         fh.close()
 
 
