@@ -35,6 +35,17 @@ class System(item.Item):
         self.kernel_options  = ({},       '<<inherit>>')[is_subobject]
         self.ks_meta         = ({},       '<<inherit>>')[is_subobject]
 
+        # the empty interface is just set up so we don't break anything
+        self.interfaces      = [{
+           "mac_address" : "",
+           "ip_address" : "",
+           "gateway" : "",
+           "hostname" : "",
+           "subnet" : "",
+           "virt_bridge" : "",
+           "dhcp_tag" : ""
+        }]
+
         # these are obsolete:
         # self.ip_address      = ("",       '<<inherit>>')[is_subobject]
         # self.mac_address     = ("",       '<<inherit>>')[is_subobject]  
@@ -47,6 +58,14 @@ class System(item.Item):
         self.virt_type       = "<<inherit>>"   # use value in profile 
 
     def from_datastruct(self,seed_data):
+
+        # I apologize in advance for how gnarly this is, though the intent is to be
+        # able to load a cobbbler config from any version of cobbler, allowing upgrades
+        # as needed.  As such, there is code to perform migrations between data structures.
+        # over time, some flat fields have migrated to lists.  The biggest change is the
+        # consolidating of network related fields under the "interfaces" array to support
+        # multiple NICs.  Most additions of simple flat fields/settings are simple, however
+        # and this expansion should be largely complete.
 
         self.parent          = self.load_item(seed_data, 'parent')
         self.name            = self.load_item(seed_data, 'name')
@@ -76,46 +95,55 @@ class System(item.Item):
         __mac_address     = self.load_item(seed_data, 'mac_address', "")
 
         # now load the new-style interface definition data structure
-        self.interfaces      = self.load_item(seed_data, 'interfaces', [])
+        self.interfaces      = self.load_item(seed_data, 'interfaces', [{
+           "mac_address" : "",
+           "ip_address" : "",
+           "gateway" : "",
+           "hostname" : "",
+           "subnet" : "",
+           "virt_bridge" : "",
+           "dhcp_tag" : ""
+        }])
 
         # now backfill the interface structure with any old values
         # backwards compatibility here is complex/ugly though we don't want to 
         # break anyone.  So this code needs to stay here.
-        if len(self.interfaces) == 0 and (__hostname is not None or __mac_address is not None or __ip_address is not None):
-           insert_item = {}
+        if (__hostname != "" or __mac_address != "" or __ip_address != ""):
            if __hostname is not None and __hostname != "":
-               insert_item["hostname"] = __hostname
+               self.interfaces[0]["hostname"] = __hostname
            if __mac_address is not None and __mac_address != "":
-               insert_item["mac_address"] = __mac_address
+               self.interfaces[0]["mac_address"] = __mac_address
            if __ip_address is not None and __ip_address != "":
-               insert_item["ip_address"] = __ip_address
+               self.interfaces[0]["ip_address"] = __ip_address
            if __dhcp_tag is not None and __dhcp_tag != "":
-               insert_item["dhcp_tag"] = __dhcp_tag
-           self.interfaces.append(insert_item)   
+               self.interfaces[0]["dhcp_tag"] = __dhcp_tag
 
         # now if no interfaces are STILL defined, add in one only under certain
         # conditions .. this emulates legacy behavior in the new interface format
         # FIXME: the following may be a bit ...quirky
-        else:
-            if __mac_address == "" and utils.is_mac(self.name):
-                self.interfaces.append({
-                    "mac_address" : self.name
-                })
-            elif __ip_address == "" and utils.is_ip(self.name):
-                self.interfaces.append({
-                    "ip_address" : self.ip_address
-                })
+        if __mac_address == "" and not self.interfaces[0].has_key("mac_address") and utils.is_mac(self.name):
+                self.interfaces[0]["mac_address"] = self.name
+        elif __ip_address == "" and not self.interfaces[0].has_key("ip_address") and utils.is_ip(self.name):
+                self.interfaces[0]["ip_address"] = self.name
 
         # now for each interface, if any fields are missing, add them.
         # if any new interface fields are ever added, they must be duplicated here.
+        # FIXME: cleanup
         for x in self.interfaces:
-            x.setdefault("mac_address","")
-            x.setdefault("ip_address","")
-            x.setdefault("netmask","")
-            x.setdefault("hostname","")
-            x.setdefault("gateway","")
-            x.setdefault("virt_bridge","")
-            x.setdefault("dhcp_tag","default")
+            if not x.has_key("mac_address"):
+                 x["mac_address"] = ""
+            if not x.has_key("ip_address"):
+                 x["ip_address"] = ""
+            if not x.has_key("subnet"):
+                 x["subnet"] = ""
+            if not x.has_key("hostname"):
+                 x["hostname"] = ""
+            if not x.has_key("gateway"):
+                 x["gateway"] = ""
+            if not x.has_key("virt_bridge"): 
+                 x["virt_bridge"] = ""
+            if not x.has_key("dhcp_tag"):
+                 x["dhcp_tag"] = ""
 
         # question: is there any case where we'd want to PXE-enable one interface
         # but not another.  answer: probably not.
@@ -128,8 +156,6 @@ class System(item.Item):
             self.set_kernel_options(self.kernel_options)
         if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
             self.set_ksmeta(self.ks_meta)
-
-
 
         return self
 
@@ -152,9 +178,11 @@ class System(item.Item):
         # if the name is a hostname though, don't intuit that, as that's hard to determine
 
         if utils.is_mac(name):
-           self.mac_address = name
+           if self.interfaces[0]["mac_address"] == "":
+               self.interfaces[0]["mac_address"] = name
         elif utils.is_ip(name):
-           self.ip_address = name
+           if self.interfaces[0]["ip_address"] == "":
+               self.interfaces[0]["ip_address"] = name
         self.name = name 
 
         return True
@@ -222,7 +250,7 @@ class System(item.Item):
                    "ip_address" : "",
                    "mac_address" : "",
                    "subnet" : "",
-                   "netmask" : "",
+                   "gateway" : "",
                    "virt_bridge" : "",
                    "dhcp_tag" : ""
                }
@@ -251,7 +279,7 @@ class System(item.Item):
         if utils.is_ip(address):
            intf["ip_address"] = address
            return True
-        raise CX(_("invalid format for IP address"))
+        raise CX(_("invalid format for IP address (%s)") % address)
 
     def set_mac_address(self,address,interface=0):
         # FIXME: interface
@@ -259,7 +287,7 @@ class System(item.Item):
         if utils.is_mac(address):
            intf["mac_address"] = address
            return True
-        raise CX(_("invalid format for MAC address"))
+        raise CX(_("invalid format for MAC address (%s)" % address))
 
     def set_gateway(self,gateway,interface=0):
         # FIXME: validate + interface

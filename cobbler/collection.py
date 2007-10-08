@@ -86,7 +86,7 @@ class Collection(serializable.Serializable):
             failed  = False
             obj     = self.listing[name]
             objdata = self.listing[name].to_datastruct()
-
+           
             # make sure that the object being queried actually has
             # the property being queried -- only need to be run once
             # this will ensure the user gets no unexpected false
@@ -96,7 +96,20 @@ class Collection(serializable.Serializable):
                 fields = objdata.keys()
                 for x in kargs.keys():
                     if not x in fields:
-                        raise CX(_("queried object has no field: %s") % x)
+                        ok = False
+                        # 2nd chance ...
+                        # also check all of the intefaces, if there are any present...
+                        if objdata.has_key("interfaces"):
+                            if len(objdata["interfaces"]) == 0:
+                                raise CX(_("internal error: interfaces of zero length"))
+                            for interface in objdata["interfaces"]:
+                                if interface.has_key(x):
+                                    ok = True
+                                    continue
+                        # FIXME: something is possibly wrong with this check.
+                        # disabling for now...
+                        if not ok:
+                            raise CX(_("queried object has no field: %s, %s") % (x,objdata))
             argument_check_made = True
 
             # now do the comparision...
@@ -111,6 +124,19 @@ class Collection(serializable.Serializable):
                     if str(kargs[key]).lower() != str(objdata[key]).lower():
                         failed = True
                         continue
+
+            # now we must also process rejections in the interfaces subobject,
+            # if one exists, as that may have other reasons to reject the key.
+
+            if objdata.has_key("interfaces"):
+                match_ok = False
+                for interface in objdata["interfaces"]:
+                    for key in interface.keys():
+                        if kargs.has_key(key):
+                            if str(kargs[key]).lower() != interface[key].lower():
+                                failed = True
+                                continue
+
 
             # if no matches failed, this is our item
             if not failed:
