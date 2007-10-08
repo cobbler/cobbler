@@ -398,9 +398,18 @@ class Importer:
                dotrepo = "%s-%s.repo" % (distro.name, counter)
 
            fname = os.path.join(self.settings.webdir, "ks_mirror", "config", "%s-%s.repo" % (distro.name, counter))
-           repo_url = "http://@@server@@/cobbler/ks_mirror/config/%s-%s.repo" % (distro.name, counter)
+
+           # NOTE: as these are not processed as templates during sync, the URLs do not move
+           # if the server variable is changed and re-synced (i.e. if using the boot server as
+           # a laptop).  This will only affect EL5+ repos with yum_core_mirror_from_server enabled
+           # when running from a laptop that has a non-constant IP/hostname.  Relatively minor but
+           # a notable FYI should this cause problems.  The actual fix (moving some of this to sync)
+           # is somewhat involved.  Basically this is why self.settings.server is used and not
+           # @@server@@.
+
+           repo_url = "http://%s/cobbler/ks_mirror/config/%s-%s.repo" % (self.settings.server, distro.name, counter)
          
-           repo_url2 = "http://@@server@@/cobbler/ks_mirror/%s" % (urlseg) 
+           repo_url2 = "http://%s/cobbler/ks_mirror/%s" % (self.settings.server, urlseg) 
 
            distro.source_repos.append([repo_url,repo_url2])
 
@@ -408,7 +417,7 @@ class Importer:
            config_file = open(fname, "w+")
            config_file.write("[%s]\n" % "core-%s" % counter)
            config_file.write("name=%s\n" % "core-%s " % counter)
-           config_file.write("baseurl=http://@@server@@/cobbler/ks_mirror/%s\n" % (urlseg))
+           config_file.write("baseurl=http://%s/cobbler/ks_mirror/%s\n" % (self.settings.server,urlseg))
            config_file.write("enabled=1\n")
            config_file.write("gpgcheck=0\n")
            config_file.close()

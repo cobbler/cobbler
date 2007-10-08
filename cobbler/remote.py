@@ -732,7 +732,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
             raise CX(_("unable to view or edit kickstart in this location"))
         
         if kickstart_file.startswith("/etc/cobbler/"):
-           if not kickstart_file.endswith(".ks"):
+           if not kickstart_file.endswith(".ks") and not kickstart_file.endswith(".cfg"):
               # take care to not allow config files to be altered.
               raise CX(_("this does not seem to be a kickstart file"))
            if not is_read and not os.path.exists(kickstart_file):
