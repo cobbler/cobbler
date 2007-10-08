@@ -1,6 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Mon Oct 08 2007 - 0.6.3
+- Replace @@server@@ in repo config files
+
 * Fri Sep 28 2007 - 0.6.2
 - cobbler repo auto-add to discover yum repos automatically
 - fix bug that allows empty mac addresses (None) in dhcpd.conf
