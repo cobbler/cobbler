@@ -23,11 +23,27 @@ import exceptions
 import errno
 import re
 import virtinst
+import traceback
 
 class VirtCreateException(exceptions.Exception):
     pass
 
-def start_paravirt_install(name=None, ram=None, disks=None, mac=None,
+def random_mac():
+    """
+    from xend/server/netif.py
+    Generate a random MAC address.
+    Uses OUI 00-16-3E, allocated to
+    Xensource, Inc.  Last 3 fields are random.
+    return: MAC address string
+    """
+    mac = [ 0x00, 0x16, 0x3e,
+        random.randint(0x00, 0x7f),
+        random.randint(0x00, 0xff),
+        random.randint(0x00, 0xff) ]
+    return ':'.join(map(lambda x: "%02x" % x, mac))
+
+
+def start_paravirt_install(name=None, ram=None, disks=None,
                            uuid=None,  
                            extra=None, 
                            vcpus=None, virt_graphics=False, 
@@ -52,14 +68,33 @@ def start_paravirt_install(name=None, ram=None, disks=None, mac=None,
     for d in disks:
         guest.disks.append(virtinst.XenDisk(d[0], size=d[1]))
 
-    try:
-        nic_obj = virtinst.XenNetworkInterface(macaddr=mac, type="bridge", bridge=bridge)
-    except:
-        # try to be backward compatible
-        print "- trying old style network setup"
-        nic_obj = virtinst.XenNetworkInterface(macaddr=mac)
+    counter = 0
 
-    guest.nics.append(nic_obj)
+    if profile_data.has_key("interfaces"):
+
+        for (name,intf) in profile_data["interfaces"].iteritems():
+
+            mac = intf["mac_address"]
+            if mac == "":
+                mac = random_mac()
+    
+            bridge2 = intf["virt_bridge"]
+            if bridge2 == "":
+                bridge2 = bridge
+
+            nic_obj = virtinst.XenNetworkInterface(macaddr=mac, bridge=bridge2)
+            guest.nics.append(nic_obj)
+            counter = counter + 1
+   
+    else:
+            # for --profile you just get one NIC, go define a system if you want more.
+            # FIXME: can mac still be sent on command line in this case?
+
+            nic_obj = virtinst.XenNetworkInterface(macaddr=random_mac(), bridge=bridge)
+            guest.nics.append(nic_obj)
+            
+        
+
 
     guest.start_install()
     

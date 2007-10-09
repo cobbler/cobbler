@@ -25,23 +25,38 @@ import virtinst
 class VirtCreateException(exceptions.Exception):
     pass
 
+def random_mac():
+    """
+    from xend/server/netif.py
+    Generate a random MAC address.
+    Uses OUI 00-16-3E, allocated to
+    Xensource, Inc.  Last 3 fields are random.
+    return: MAC address string
+    """
+    mac = [ 0x00, 0x16, 0x3e,
+        random.randint(0x00, 0x7f),
+        random.randint(0x00, 0xff),
+        random.randint(0x00, 0xff) ]
+    return ':'.join(map(lambda x: "%02x" % x, mac))
+
+
 def start_install(name=None, ram=None, disks=None, mac=None,
                   uuid=None,  
                   extra=None,
                   vcpus=None, virt_graphics=None, 
                   profile_data=None, bridge=None, arch=None):
 
-    type = "qemu"
+    vtype = "qemu"
     if virtinst.util.is_kvm_capable():
-       type = "kvm"
+       vtype = "kvm"
     elif virtinst.util.is_kqemu_capable():
-       type = "kqemu"
-    print "- using qemu hypervisor, type=%s" % type
+       vtype = "kqemu"
+    print "- using qemu hypervisor, type=%s" % vtype
 
     if arch is not None and arch.lower() == "x86":
         arch = "i686"
 
-    guest = virtinst.FullVirtGuest(hypervisorURI="qemu:///system",type=type, arch=arch)
+    guest = virtinst.FullVirtGuest(hypervisorURI="qemu:///system",type=vtype, arch=arch)
     
     if not profile_data["install_tree"].endswith("/"):
        profile_data["install_tree"] = profile_data["install_tree"] + "/"
@@ -61,7 +76,6 @@ def start_install(name=None, ram=None, disks=None, mac=None,
         vcpus = 1
     guest.set_vcpus(vcpus)
     
-    
     # -- FIXME: workaround for bugzilla 249072 
     #if virt_graphics:
     #    guest.set_graphics("vnc")
@@ -76,20 +90,29 @@ def start_install(name=None, ram=None, disks=None, mac=None,
         print "- adding disk: %s of size %s" % (d[0], d[1])
         guest.disks.append(virtinst.VirtualDisk(d[0], size=d[1]))
 
-    try:
-        # undocumented testing feature:
-        # if we want another networking type we can specify --virt-bridge=OFF
-        if bridge != "OFF":
-            nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac, type="bridge", bridge=bridge)
-        else:        
-            nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac, type="user")
+    if profile_data.has_key("interfaces"):
 
-    except:
-        # try to be backward compatible
-        print "- trying old style network setup"
-        nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac)
+        counter = 0
+        for (name,intf) in profile_data["interfaces"].iteritems():
 
-    guest.nics.append(nic_obj)
+            mac = intf["mac_address"]
+            if mac == "":
+                mac = random_mac()
+
+            bridge2 = intf["virt_bridge"]
+            if bridge2 == "":
+                bridgeg2 = bridge
+
+            nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac, bridge=bridge)
+            guest.nics.append(nic_obj)
+            counter = counter + 1
+
+    else:
+            # for --profile you just get one NIC, go define a system if you want more.
+
+            # FIXME: ever want to allow --virt-mac on the command line?  Too much complexity?
+            nic_obj = virtinst.VirtualNetworkInterface(macaddr=random_mac(), bridge=bridge)
+            guest.nics.append(nic_obj)
 
     guest.start_install()
 

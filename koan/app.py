@@ -36,7 +36,7 @@ import glob
 
 # the version of cobbler needed to interact with this version of koan
 # this is an decimal value (major + 0.1 * minor + 0.01 * maint)
-COBBLER_REQUIRED = 0.502
+COBBLER_REQUIRED = 0.631
 
 """
 koan --virt [--profile=webserver|--system=name] --server=hostname
@@ -98,6 +98,9 @@ def main():
         setupLogging("koan")
     except:
         print "- logging setup failed.  will ignore."
+
+    # FIXME: overrides for --virt-mac have been requested
+    # FIXME: add --virt-cpus (also in cobbler) if not already
 
     p = opt_parse.OptionParser()
     p.add_option("-C", "--livecd",
@@ -235,7 +238,7 @@ class Koan:
 
         # set up XMLRPC connection
         if self.server is None:
-                raise InfoException, "no server specified"
+            raise InfoException, "no server specified"
         
         # server name can either be explicit or DISCOVER, which
         # means "check zeroconf" instead.
@@ -377,19 +380,19 @@ class Koan:
         """
 
         fd = os.popen("/sbin/ifconfig")
-	mac = [line.strip() for line in fd.readlines()][0].split()[-1] #this needs to be replaced
-	fd.close()
-	if self.is_mac(mac) == False:
-		raise InfoException, "Mac address not accurately detected"
-	data = self.get_systems_xmlrpc()
-	detectedsystem = [system['name'] for system in data if system['mac_address'].upper() == mac.upper()]
-	if len(detectedsystem) > 1:
-		raise InfoException, "Multiple systems with matching mac addresses"
-	elif len(detectedsystem) == 0:
-		raise InfoException, "No system matching MAC address %s found" % mac
-	elif len(detectedsystem) == 1:
-		print "- Auto detected: %s" % detectedsystem[0]
-                return detectedsystem[0]
+        mac = [line.strip() for line in fd.readlines()][0].split()[-1] #this needs to be replaced
+        fd.close()
+        if self.is_mac(mac) == False:
+            raise InfoException, "Mac address not accurately detected"
+        data = self.get_systems_xmlrpc()
+        detectedsystem = [system['name'] for system in data if system['mac_address'].upper() == mac.upper()]
+        if len(detectedsystem) > 1:
+            raise InfoException, "Multiple systems with matching mac addresses"
+        elif len(detectedsystem) == 0:
+            raise InfoException, "No system matching MAC address %s found" % mac
+        elif len(detectedsystem) == 1:
+            print "- Auto detected: %s" % detectedsystem[0]
+            return detectedsystem[0]
 
     #---------------------------------------------------
 
@@ -402,6 +405,8 @@ class Koan:
         have xenbr0.  This attempts to do the right thing
         for both Xen and qemu/KVM.
         """
+        # FIXME: this probably does not make sense in the context
+        # where we have multiple NICs.  How to deal with this? 
 
         found = None
 
@@ -923,10 +928,14 @@ class Koan:
 
         arch                = self.safe_load(pd,'arch','x86')
         kextra              = self.calc_kernel_args(pd)
-        mac                 = self.calc_virt_mac(pd)
+        #mac                 = self.calc_virt_mac(pd)
         (uuid, create_func) = self.virt_choose(pd)
-        virtname            = self.calc_virt_name(pd,mac)
+
+        virtname            = self.calc_virt_name(pd)
+
         ram                 = self.calc_virt_ram(pd)
+
+        # FIXME: virt-cpus possibly not processed from cobbler yet?
         vcpus               = self.calc_virt_cpus(pd)
         path_list           = self.calc_virt_path(pd, virtname)
         size_list           = self.calc_virt_filesize(pd)
@@ -936,7 +945,7 @@ class Koan:
                 name          =  virtname,
                 ram           =  ram,
                 disks         =  disks,
-                mac           =  mac,  
+                #mac           =  mac,  
                 uuid          =  uuid, 
                 extra         =  kextra,
                 vcpus         =  vcpus,
@@ -995,7 +1004,7 @@ class Koan:
 
     #---------------------------------------------------
 
-    def calc_virt_name(self,profile_data,mac):
+    def calc_virt_name(self,profile_data):
         if self.virt_name is not None:
            # explicit override
            name = self.virt_name
@@ -1003,9 +1012,11 @@ class Koan:
            # this is a system object, just use the name
            name = profile_data["name"]
         else:
-           # just use the MAC, which we might have generated
-           name = mac.upper()
-        return name.replace(":","_") # keep libvirt happy
+           # just use the time, lacking anything better
+           # FIXME: use string version of the time?
+           name = str(time.time())
+        # keep libvirt happy in case the name was a MAC address
+        return name.replace(":","_") 
 
 
     #--------------------------------------------------
@@ -1096,35 +1107,35 @@ class Koan:
         """
         Assign a UUID if none/invalid is given in the profile.
         """
-        id = self.safe_load(data,'virt_uuid','xen_uuid',0)
+        my_id = self.safe_load(data,'virt_uuid','xen_uuid',0)
         uuid_re = re.compile('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
         err = False
         try:
-            str(id)
+            str(my_id)
         except:
             err = True
-        if id is None or id == '' or not uuid_re.match(id):
+        if my_id is None or my_id == '' or not uuid_re.match(id):
             err = True
-        if err and id is not None:
+        if err and my_id is not None:
             print "invalid UUID specified.  randomizing..."
             return None
-        return id
+        return my_id
 
     #---------------------------------------------------
 
-    def random_mac(self):
-        """
-        from xend/server/netif.py
-        Generate a random MAC address.
-        Uses OUI 00-16-3E, allocated to
-        Xensource, Inc.  Last 3 fields are random.
-        return: MAC address string
-        """
-        mac = [ 0x00, 0x16, 0x3e,
-            random.randint(0x00, 0x7f),
-            random.randint(0x00, 0xff),
-            random.randint(0x00, 0xff) ]
-        return ':'.join(map(lambda x: "%02x" % x, mac))
+    #def random_mac(self):
+    #    """
+    #    from xend/server/netif.py
+    #    Generate a random MAC address.
+    #    Uses OUI 00-16-3E, allocated to
+    #    Xensource, Inc.  Last 3 fields are random.
+    #    return: MAC address string
+    #    """
+    #    mac = [ 0x00, 0x16, 0x3e,
+    #        random.randint(0x00, 0x7f),
+    #        random.randint(0x00, 0xff),
+    #        random.randint(0x00, 0xff) ]
+    #    return ':'.join(map(lambda x: "%02x" % x, mac))
 
 
     #----------------------------------------------------

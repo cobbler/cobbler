@@ -1,6 +1,10 @@
 Koan CHANGELOG
 
-* Mon Sep 04 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.2-1
+* Mon Oct 08 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.3-1
+- Multiple NIC support
+- Added traceback print to detect bridge connection problems, if any
+
+* Fri Sep 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.2-2
 - Allow for multiple values (comma seperated) to --virt-path
 - Allow for multiple virt file sizes
 - Refactoring around the virt bits
