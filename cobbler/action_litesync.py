@@ -114,11 +114,9 @@ class BootLiteSync:
         # delete contents of kickstarts_sys/$name in webdir
         system_record = self.systems.find(name=name)
         # delete any kickstart files related to this system
-        counter = 0
         for (name,interface) in system_record.interfaces.iteritems():
-           filename = utils.get_config_filename(system_record,interface=counter)
+           filename = utils.get_config_filename(system_record,interface=name)
            self.sync.rmtree(os.path.join(self.settings.webdir, "kickstarts_sys", filename))
-           counter = counter + 1
 
         # unneeded
         #if not system_record.is_pxe_supported():

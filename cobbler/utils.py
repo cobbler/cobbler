@@ -300,14 +300,12 @@ def blender(remove_hashes, root_obj):
     # EXAMPLE:  $ip == $ip0, $ip1, $ip2 and so on.
  
     if root_obj.COLLECTION_TYPE == "system":
-        counter = 0
         for (name,interface) in root_obj.interfaces.iteritems():
             for key in interface.keys():
-                results["%s%d" % (key,counter)] = interface[key]
+                results["%s%s" % (key,name)] = interface[key]
                 # just to keep templates backwards compatibile
-                if counter == 0:
+                if name == "0":
                     results[key] = interface[key]
-            counter = counter + 1
 
     # sanitize output for koan and kernel option lines, etc
     if remove_hashes:

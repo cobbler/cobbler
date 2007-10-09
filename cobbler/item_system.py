@@ -41,8 +41,8 @@ class System(item.Item):
         self.virt_path       = "<<inherit>>"   # use value in profile
         self.virt_type       = "<<inherit>>"   # use value in profile 
 
-    def __get_interface(self,n):
-        n = str(n)
+    def __get_interface(self,name):
+        n = "%s" % name
         if not self.interfaces.has_key(n):
             self.interfaces[n] = {
                 "mac_address" : "",
@@ -88,13 +88,13 @@ class System(item.Item):
         # before the upgrade
 
         if __hostname != "":
-            self.set_hostname(__hostname, 0)
+            self.set_hostname(__hostname, "0")
         if __mac_address != "":
-            self.set_mac_address(__mac_address, 0)
+            self.set_mac_address(__mac_address, "0")
         if __ip_address != "":
-            self.set_ip_address(__ip_address, 0)
+            self.set_ip_address(__ip_address, "0")
         if __dhcp_tag != "":
-            self.set_dhcp_tag(__dhcp_tag, 0)
+            self.set_dhcp_tag(__dhcp_tag, "0")
 
         # backwards compatibility -- convert string entries to dicts for storage
         # this allows for better usage from the API.
@@ -123,7 +123,7 @@ class System(item.Item):
         Set the name.  If the name is a MAC or IP, and the first MAC and/or IP is not defined, go ahead
         and fill that value in.  
         """
-        intf = self.__get_interface(0)
+        intf = self.__get_interface("0")
 
         if utils.is_mac(name):
            if intf["mac_address"] == "":
@@ -135,7 +135,7 @@ class System(item.Item):
 
         return True
 
-    def get_mac_address(self,interface=0):
+    def get_mac_address(self,interface="0"):
         """
         Get the mac address, which may be implicit in the object name or explicit with --mac-address.
         Use the explicit location first.
@@ -145,12 +145,12 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         if intf["mac_address"] != "":
             return intf["mac_address"]
-        elif utils.is_mac(self.name) and interface == 0:
+        elif utils.is_mac(self.name) and interface == "0":
             return self.name
         else:
             return None
 
-    def get_ip_address(self,interface=0):
+    def get_ip_address(self,interface="0"):
         """
         Get the IP address, which may be implicit in the object name or explict with --ip-address.
         Use the explicit location first.
@@ -159,12 +159,12 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         if intf["ip_address"] != "": 
             return intf["ip_address"]
-        elif utils.is_ip(self.name) and interface == 0:
+        elif utils.is_ip(self.name) and interface == "0":
             return self.name
         else:
             return None
 
-    def is_pxe_supported(self,interface=0):
+    def is_pxe_supported(self,interface="0"):
         """
         Can only add system PXE records if a MAC or IP address is available, else it's a koan
         only record.  Actually Itanium goes beyond all this and needs the IP all of the time
@@ -172,24 +172,23 @@ class System(item.Item):
         """
         if self.name == "default":
            return True
-        counter = 0
-        mac = self.get_mac_address(counter)
-        ip  = self.get_ip_address(counter)
+        mac = self.get_mac_address(interface)
+        ip  = self.get_ip_address(interface)
         if mac is None and ip is None:
            return False
         return True
 
-    def set_dhcp_tag(self,dhcp_tag,interface=0):
+    def set_dhcp_tag(self,dhcp_tag,interface="0"):
         intf = self.__get_interface(interface)
         intf["dhcp_tag"] = dhcp_tag
         return True
 
-    def set_hostname(self,hostname,interface=0):
+    def set_hostname(self,hostname,interface="0"):
         intf = self.__get_interface(interface)
         intf["hostname"] = hostname
         return True
 
-    def set_ip_address(self,address,interface=0):
+    def set_ip_address(self,address,interface="0"):
         """
         Assign a IP or hostname in DHCP when this MAC boots.
         Only works if manage_dhcp is set in /var/lib/cobbler/settings
@@ -200,24 +199,24 @@ class System(item.Item):
            return True
         raise CX(_("invalid format for IP address (%s)") % address)
 
-    def set_mac_address(self,address,interface=0):
+    def set_mac_address(self,address,interface="0"):
         intf = self.__get_interface(interface)
         if utils.is_mac(address):
            intf["mac_address"] = address
            return True
         raise CX(_("invalid format for MAC address (%s)" % address))
 
-    def set_gateway(self,gateway,interface=0):
+    def set_gateway(self,gateway,interface="0"):
         intf = self.__get_interface(interface)
         intf["gateway"] = gateway
         return True
 
-    def set_subnet(self,subnet,interface=0):
+    def set_subnet(self,subnet,interface="0"):
         intf = self.__get_interface(interface)
         intf["subnet"] = subnet
         return True
     
-    def set_virt_bridge(self,bridge,interface=0):
+    def set_virt_bridge(self,bridge,interface="0"):
         # FIXME: validate
         intf = self.__get_interface(interface)
         intf["virt_bridge"] = bridge
