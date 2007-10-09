@@ -302,7 +302,7 @@ def blender(remove_hashes, root_obj):
     if root_obj.COLLECTION_TYPE == "system":
         for (name,interface) in root_obj.interfaces.iteritems():
             for key in interface.keys():
-                results["%s%s" % (key,name)] = interface[key]
+                results["%s_%s" % (key,name)] = interface[key]
                 # just to keep templates backwards compatibile
                 if name == "0":
                     results[key] = interface[key]
