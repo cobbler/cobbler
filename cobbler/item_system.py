@@ -48,6 +48,7 @@ class System(item.Item):
                 "ip_address"  : "",
                 "dhcp_tag"    : "",
                 "subnet"      : "",
+                "gateway"     : "",
                 "hostname"    : "",
                 "virt_bridge" : ""
             }
@@ -218,7 +219,7 @@ class System(item.Item):
     def set_virt_bridge(self,bridge,interface=0):
         # FIXME: validate
         intf = self.__get_interface(interface)
-        intf["bridge"] = bridge
+        intf["virt_bridge"] = bridge
         return True
 
     def set_profile(self,profile_name):
@@ -342,7 +343,7 @@ class System(item.Item):
             buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
             buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
             buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
-            buf = buf + _("  config id      : %s\n") % utils.get_config_filename(self,counter)
+            # buf = buf + _("  config id      : %s\n") % utils.get_config_filename(self,counter)
             counter = counter + 1
          
 

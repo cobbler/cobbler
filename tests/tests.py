@@ -57,7 +57,6 @@ class BootTest(unittest.TestCase):
         # Create temp dir
         self.topdir = tempfile.mkdtemp(prefix="_cobbler-",dir="/tmp")
         #self.topdir = "/tmp" # only for refactoring, fix later
-        print "using dir = %s" % self.topdir
         self.fk_initrd = os.path.join(self.topdir, FAKE_INITRD)
         self.fk_initrd2 = os.path.join(self.topdir, FAKE_INITRD2)
         self.fk_initrd3 = os.path.join(self.topdir, FAKE_INITRD3)
@@ -67,7 +66,6 @@ class BootTest(unittest.TestCase):
         self.fk_kernel3 = os.path.join(self.topdir, FAKE_KERNEL3)
 
         self.api = api.BootAPI()
-        self.hostname = os.uname()[1]
         create = [ self.fk_initrd, self.fk_initrd2, self.fk_initrd3,
                 self.fk_kernel, self.fk_kernel2, self.fk_kernel3 ]
         for fn in create:
@@ -98,11 +96,56 @@ class BootTest(unittest.TestCase):
         self.assertTrue(self.api.profiles().find(name="testprofile0"))
 
         system = self.api.new_system()
-        self.assertTrue(system.set_name(self.hostname))
+        self.assertTrue(system.set_name("drwily.rdu.redhat.com"))
         self.assertTrue(system.set_profile("testprofile0"))
         self.assertTrue(self.api.systems().add(system))
-        self.assertTrue(self.api.systems().find(name=self.hostname))
+        self.assertTrue(self.api.systems().find(name="drwily.rdu.redhat.com"))
 
+class MultiNIC(BootTest):
+    
+    def test_multi_nic_support(self):
+
+
+        system = self.api.new_system()
+        self.assertTrue(system.set_name("nictest"))
+        self.assertTrue(system.set_profile("testprofile0"))
+        self.assertTrue(system.set_hostname("zero",0))
+        self.assertTrue(system.set_mac_address("EE:FF:DD:CC:DD:CC",1))
+        self.assertTrue(system.set_ip_address("127.0.0.5",2))
+        self.assertTrue(system.set_dhcp_tag("zero",3))
+        self.assertTrue(system.set_virt_bridge("zero",4))
+        self.assertTrue(system.set_gateway("192.168.1.25",4))
+        self.assertTrue(system.set_mac_address("AA:AA:BB:BB:CC:CC",4))
+        self.assertTrue(system.set_hostname("fooserver",4))
+        self.assertTrue(system.set_dhcp_tag("red",4))
+        self.assertTrue(system.set_ip_address("192.168.1.26",4))
+        self.assertTrue(system.set_subnet("255.255.255.0",4))
+        self.assertTrue(system.set_dhcp_tag("tag2",5))
+        self.assertTrue(self.api.systems().add(system))
+        self.assertTrue(self.api.systems().find(hostname="zero"))
+        self.assertTrue(self.api.systems().find(mac_address="EE:FF:DD:CC:DD:CC"))
+        self.assertTrue(self.api.systems().find(ip_address="127.0.0.5"))
+        self.assertTrue(self.api.systems().find(virt_bridge="zero"))
+        self.assertTrue(self.api.systems().find(gateway="192.168.1.25"))
+        self.assertTrue(self.api.systems().find(subnet="255.255.255.0"))
+        self.assertTrue(self.api.systems().find(dhcp_tag="tag2"))
+        self.assertTrue(self.api.systems().find(dhcp_tag="zero"))
+
+        # verify that systems has exactly 5 interfaces
+        self.assertTrue(len(system.interfaces.keys()) == 6)
+
+        # now check one interface to make sure it's exactly right
+        # and we didn't accidentally fill in any other fields elsewhere
+        for (name,intf) in system.interfaces.iteritems():
+            if name == 4:
+                self.assertTrue(intf["gateway"] == "192.168.1.25")
+                self.assertTrue(intf["virt_bridge"] == "zero")
+                self.assertTrue(intf["subnet"] == "255.255.255.0")
+                self.assertTrue(intf["mac_address"] == "AA:AA:BB:BB:CC:CC")
+                self.assertTrue(intf["ip_address"] == "192.168.1.26")
+                self.assertTrue(intf["hostname"] == "fooserver")
+                self.assertTrue(intf["dhcp_tag"] == "red")
+ 
 class Utilities(BootTest):
 
     def _expeq(self, expected, actual):
@@ -136,19 +179,21 @@ class Utilities(BootTest):
         self.assertTrue(utils.is_mac("00:C0:B7:7E:55:50"))
         self.assertTrue(utils.is_mac("00:c0:b7:7E:55:50"))
         self.assertFalse(utils.is_mac("00.D0.B7.7E.55.50"))
-        self.assertFalse(utils.is_mac(self.hostname))
+        self.assertFalse(utils.is_mac("drwily.rdu.redhat.com"))
         self.assertTrue(utils.is_ip("127.0.0.1"))
         self.assertTrue(utils.is_ip("192.168.1.1"))
         self.assertFalse(utils.is_ip("00:C0:B7:7E:55:50"))
-        self.assertFalse(utils.is_ip(self.hostname))
-
-class Additions(BootTest):
+        self.assertFalse(utils.is_ip("drwily.rdu.redhat.com"))
 
     def test_some_random_find_commands(self):
         # initial setup...
         self.test_system_name_is_a_MAC()
         # search for a parameter that isn't real, want an error
         self.failUnlessRaises(CobblerException,self.api.systems().find, pond="mcelligots")
+
+        # verify that even though we have several different NICs search still works
+        self.assertTrue(self.api.systems().find(name="nictest"))
+
         # search for a parameter with a bad value, want None
         self.assertFalse(self.api.systems().find(name="horton"))
         # one valid parameter another invalid is still an error
@@ -303,7 +348,6 @@ class Additions(BootTest):
         # this is part of our test against upward propogation
 
         profile = self.api.profiles().find("testprofile12b2")
-        print profile.repos
         self.assertTrue(len(profile.repos) == 1)
         self.assertTrue(profile.repos == ["testrepo"])
 
@@ -389,7 +433,7 @@ class Additions(BootTest):
 
     def test_invalid_system_non_referenced_profile(self):
         system = self.api.new_system()
-        self.assertTrue(system.set_name(self.hostname))
+        self.assertTrue(system.set_name("drwily.rdu.redhat.com"))
         self.failUnlessRaises(CobblerException, system.set_profile, "profiledoesntexist")
         self.failUnlessRaises(CobblerException, self.api.systems().add, system)
 
@@ -415,11 +459,11 @@ class Deletions(BootTest):
     def test_working_deletes(self):
         self.api.clear()
         self.make_basic_config()
-        self.assertTrue(self.api.systems().remove(self.hostname))
+        self.assertTrue(self.api.systems().remove("drwily.rdu.redhat.com"))
         self.api.serialize()
         self.assertTrue(self.api.profiles().remove("testprofile0"))
         self.assertTrue(self.api.distros().remove("testdistro0"))
-        self.assertFalse(self.api.systems().find(name=self.hostname))
+        self.assertFalse(self.api.systems().find(name="drwily.rdu.redhat.com"))
         self.assertFalse(self.api.profiles().find(name="testprofile0"))
         self.assertFalse(self.api.distros().find(name="testdistro0"))
 

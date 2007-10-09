@@ -174,7 +174,6 @@ class Item(serializable.Serializable):
         data = self.to_datastruct()
         for (key, value) in kwargs.iteritems():
             if not self.find_match_single_key(data,key,value):
-                print "DEBUG: OBJECT: %s does not match %s" % (data,key) 
                 return False
         return True
  
@@ -183,7 +182,7 @@ class Item(serializable.Serializable):
         # special case for systems
         key_found_already = False
         if data.has_key("interfaces"):
-            if key in [ "mac_address", "ip_address", "subnet", "gateway", "dhcp_tag", "hostname" ]:
+            if key in [ "mac_address", "ip_address", "subnet", "gateway", "virt_bridge", "dhcp_tag", "hostname" ]:
                 key_found_already = True
                 for (name, interface) in data["interfaces"].iteritems(): 
                     if interface[key].lower() == value.lower():
@@ -197,6 +196,5 @@ class Item(serializable.Serializable):
         if value.lower() == data[key].lower():
             return True
         else:
-            print "DEBUG: OBJECT: %s key match failed for: %s, %s" % (data,key,value)
             return False
 
