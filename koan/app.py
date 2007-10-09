@@ -153,6 +153,7 @@ def main():
                  dest="virt_graphics",
                  help="enables VNC virt graphics")
     p.add_option("-b", "--virt-bridge",
+                 default=None,
                  dest="virt_bridge",
                  help="which network bridge to use")
 
@@ -177,6 +178,10 @@ def main():
         k.virt_type         = options.virt_type
         k.virt_graphics     = options.virt_graphics
         k.virt_bridge       = options.virt_bridge
+
+        if k.system is not None and k.virt_bridge is not None:
+            raise InfoException("When not provisioning via --profile, virt-bridge declarations must be made in Cobbler.")
+
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
         if options.port is not None:
@@ -359,7 +364,7 @@ class Koan:
                    self.virt_type = "xenpv"
                raise InfoException, "--virttype should be qemu, xenpv, or auto"
 
-        if self.virt_bridge is None and self.is_virt:
+        if self.virt_bridge is None and self.is_virt and self.profile is not None:
             self.virt_bridge = self.autodetect_bridge()
 
         # perform one of three key operations

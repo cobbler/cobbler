@@ -101,9 +101,9 @@ def start_install(name=None, ram=None, disks=None, mac=None,
 
             bridge2 = intf["virt_bridge"]
             if bridge2 == "":
-                bridgeg2 = bridge
+                bridge2 = bridge
 
-            nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac, bridge=bridge)
+            nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac, bridge=bridge2)
             guest.nics.append(nic_obj)
             counter = counter + 1
 
