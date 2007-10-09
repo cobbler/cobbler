@@ -109,18 +109,18 @@ class MultiNIC(BootTest):
         system = self.api.new_system()
         self.assertTrue(system.set_name("nictest"))
         self.assertTrue(system.set_profile("testprofile0"))
-        self.assertTrue(system.set_hostname("zero",0))
-        self.assertTrue(system.set_mac_address("EE:FF:DD:CC:DD:CC",1))
-        self.assertTrue(system.set_ip_address("127.0.0.5",2))
-        self.assertTrue(system.set_dhcp_tag("zero",3))
-        self.assertTrue(system.set_virt_bridge("zero",4))
-        self.assertTrue(system.set_gateway("192.168.1.25",4))
-        self.assertTrue(system.set_mac_address("AA:AA:BB:BB:CC:CC",4))
-        self.assertTrue(system.set_hostname("fooserver",4))
-        self.assertTrue(system.set_dhcp_tag("red",4))
-        self.assertTrue(system.set_ip_address("192.168.1.26",4))
-        self.assertTrue(system.set_subnet("255.255.255.0",4))
-        self.assertTrue(system.set_dhcp_tag("tag2",5))
+        self.assertTrue(system.set_hostname("zero","intf0"))
+        self.assertTrue(system.set_mac_address("EE:FF:DD:CC:DD:CC","intf1"))
+        self.assertTrue(system.set_ip_address("127.0.0.5","intf2"))
+        self.assertTrue(system.set_dhcp_tag("zero","intf3"))
+        self.assertTrue(system.set_virt_bridge("zero","intf4"))
+        self.assertTrue(system.set_gateway("192.168.1.25","intf4"))
+        self.assertTrue(system.set_mac_address("AA:AA:BB:BB:CC:CC","intf4"))
+        self.assertTrue(system.set_hostname("fooserver","intf4"))
+        self.assertTrue(system.set_dhcp_tag("red","intf4"))
+        self.assertTrue(system.set_ip_address("192.168.1.26","intf4"))
+        self.assertTrue(system.set_subnet("255.255.255.0","intf4"))
+        self.assertTrue(system.set_dhcp_tag("tag2","intf5"))
         self.assertTrue(self.api.systems().add(system))
         self.assertTrue(self.api.systems().find(hostname="zero"))
         self.assertTrue(self.api.systems().find(mac_address="EE:FF:DD:CC:DD:CC"))
@@ -137,9 +137,9 @@ class MultiNIC(BootTest):
         # now check one interface to make sure it's exactly right
         # and we didn't accidentally fill in any other fields elsewhere
 
-        self.assertTrue(system.interfaces.has_key("4"))
+        self.assertTrue(system.interfaces.has_key("intf4"))
         for (name,intf) in system.interfaces.iteritems():
-            if name == "4": # xmlrpc dicts must have string keys, so we must also
+            if name == "intf4": # xmlrpc dicts must have string keys, so we must also
                 self.assertTrue(intf["gateway"] == "192.168.1.25")
                 self.assertTrue(intf["virt_bridge"] == "zero")
                 self.assertTrue(intf["subnet"] == "255.255.255.0")

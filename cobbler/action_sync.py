@@ -628,7 +628,7 @@ class BootSync:
 
             ip = interface["ip_address"]
 
-            f1 = utils.get_config_filename(system,interface=counter)
+            f1 = utils.get_config_filename(system,interface=name)
 
             # for tftp only ...
             if distro.arch in [ "x86", "x86_64", "standard"]:
@@ -640,7 +640,7 @@ class BootSync:
                 if ip is not None and ip != "":
                     print _("Warning: Itanium system object (%s) needs an IP address to PXE") % system.name
 
-                filename = "%s.conf" % utils.get_config_filename(system,interface=counter)
+                filename = "%s.conf" % utils.get_config_filename(system,interface=name)
                 f2 = os.path.join(self.settings.tftpboot, filename)
 
             f3 = os.path.join(self.settings.webdir, "systems", f1)

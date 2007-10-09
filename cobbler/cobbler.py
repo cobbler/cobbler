@@ -502,29 +502,29 @@ class BootCLI:
            '--profile'     :     lambda(a) : sys.set_profile(a),
            '--kopts'       :     lambda(a) : sys.set_kernel_options(a),
            '--ksmeta'      :     lambda(a) : sys.set_ksmeta(a),
-           '--hostname'    :     lambda(a) : sys.set_hostname(a),
-           '--ip'          :     lambda(a) : sys.set_ip_address(a,interface=0), 
-           '--mac'         :     lambda(a) : sys.set_mac_address(a,interface=0), 
-           '--gateway'     :     lambda(a) : sys.set_gateway(a,interface=0), 
-           '--subnet'      :     lambda(a) : sys.set_subnet(a,interface=0), 
-           '--virt-bridge' :     lambda(a) : sys.set_virt_bridge(a,interface=0), 
+           '--hostname'    :     lambda(a) : sys.set_hostname(a,interface="intf0"),
+           '--ip'          :     lambda(a) : sys.set_ip_address(a,interface="intf0"), 
+           '--mac'         :     lambda(a) : sys.set_mac_address(a,interface="intf0"), 
+           '--gateway'     :     lambda(a) : sys.set_gateway(a,interface="intf0"), 
+           '--subnet'      :     lambda(a) : sys.set_subnet(a,interface="intf0"), 
+           '--virt-bridge' :     lambda(a) : sys.set_virt_bridge(a,interface="intf0"), 
            '--kickstart'   :     lambda(a) : sys.set_kickstart(a),
            '--netboot-enabled' : lambda(a) : sys.set_netboot_enabled(a),
            '--virt-path'   :     lambda(a) : sys.set_virt_path(a),
            '--virt-type'   :     lambda(a) : sys.set_virt_type(a),
-           '--dhcp-tag'    :     lambda(a) : sys.set_dhcp_tag(a)
+           '--dhcp-tag'    :     lambda(a) : sys.set_dhcp_tag(a,interface="intf0")
         }
 
         # add some command aliases for additional interfaces.  The default commands
         # only operate on the first, which are all many folks will need.
         for count in range(0,7):
-           commands["--hostname%d"    % count] = lambda(a) : sys.set_hostname(a,interface=count)
-           commands["--ip%d"          % count] = lambda(a) : sys.set_ip_address(a,interface=count) 
-           commands["--mac%d"         % count] = lambda(a) : sys.set_mac_address(a,interface=count)
-           commands["--gateway%d"     % count] = lambda(a) : sys.set_gateway(a,interface=count)
-           commands["--subnet%d"      % count] = lambda(a) : sys.set_subnet(a,interface=count)
-           commands["--virt-bridge%d" % count] = lambda(a) : sys.set_virt_bridge(a,interface=count)
-           commands["--dhcp-tag%d"    % count] = lambda(a) : sys.set_dhcp_tag(a,interface=count)
+           commands["--hostname%d"    % count] = lambda(a) : sys.set_hostname(a,interface="intf%s" % count)
+           commands["--ip%d"          % count] = lambda(a) : sys.set_ip_address(a,interface="intf%s" % count) 
+           commands["--mac%d"         % count] = lambda(a) : sys.set_mac_address(a,interface="intf%s" % count)
+           commands["--gateway%d"     % count] = lambda(a) : sys.set_gateway(a,interface="intf%s" % count)
+           commands["--subnet%d"      % count] = lambda(a) : sys.set_subnet(a,interface="intf%s" % count)
+           commands["--virt-bridge%d" % count] = lambda(a) : sys.set_virt_bridge(a,interface="intf%s" % count)
+           commands["--dhcp-tag%d"    % count] = lambda(a) : sys.set_dhcp_tag(a,interface="intf%s" % count)
         
 
         def on_ok():

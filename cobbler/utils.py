@@ -55,7 +55,7 @@ def get_host_ip(ip):
     results = out.read()
     return results.split(" ")[-1][0:8]
 
-def get_config_filename(sys,interface=0):
+def get_config_filename(sys,interface):
     """
     The configuration file for each system pxe uses is either
     a form of the MAC address of the hex version of the IP.  If none
