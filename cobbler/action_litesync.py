@@ -115,15 +115,15 @@ class BootLiteSync:
         system_record = self.systems.find(name=name)
         # delete any kickstart files related to this system
         counter = 0
-        for x in system_record.interfaces:
+        for (name,interface) in system_record.interfaces.iteritems():
            filename = utils.get_config_filename(system_record,interface=counter)
            self.sync.rmtree(os.path.join(self.settings.webdir, "kickstarts_sys", filename))
            counter = counter + 1
 
-        # FIXME: make this understand multiple interfaces
-        if not system_record.is_pxe_supported():
-            # no need to go any further with PXE cleanup
-            return
+        # unneeded
+        #if not system_record.is_pxe_supported():
+        #   # no need to go any further with PXE cleanup
+        #   return
         
         # delete PXE Linux configuration file (which might be in one of two places)
         itanic = False

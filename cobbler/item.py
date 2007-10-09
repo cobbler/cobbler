@@ -52,6 +52,9 @@ class Item(serializable.Serializable):
         self.parent = None            # all objects by default are not subobjects
         self.children = {}            # caching for performance reasons, not serialized
 
+ 
+        
+
     def clear(self):
         raise exceptions.NotImplementedError
 
@@ -166,4 +169,34 @@ class Item(serializable.Serializable):
 	"""
         return False
 
+    def find_match(self,kwargs):
+        # used by find() method in collection.py
+        data = self.to_datastruct()
+        for (key, value) in kwargs.iteritems():
+            if not self.find_match_single_key(data,key,value):
+                print "DEBUG: OBJECT: %s does not match %s" % (data,key) 
+                return False
+        return True
+ 
+
+    def find_match_single_key(self,data,key,value):
+        # special case for systems
+        key_found_already = False
+        if data.has_key("interfaces"):
+            if key in [ "mac_address", "ip_address", "subnet", "gateway", "dhcp_tag", "hostname" ]:
+                key_found_already = True
+                for (name, interface) in data["interfaces"].iteritems(): 
+                    if interface[key].lower() == value.lower():
+                        return True
+
+        if not data.has_key(key):
+            if not key_found_already:
+                raise CX(_("searching for field that does not exist: %s" % key))
+            else:
+                return False
+        if value.lower() == data[key].lower():
+            return True
+        else:
+            print "DEBUG: OBJECT: %s key match failed for: %s, %s" % (data,key,value)
+            return False
 

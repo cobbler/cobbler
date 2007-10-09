@@ -143,9 +143,7 @@ class BootSync:
         for system in self.systems:
             profile = system.get_conceptual_parent()
             distro  = profile.get_conceptual_parent()
-            interface_num = 0
-            for interface in system.interfaces:
-                interface_num = interface_num + 1 
+            for (name, interface) in system.interfaces.iteritems():
 
                 mac  = interface["mac_address"]
                 ip   = interface["ip_address"]
@@ -219,7 +217,7 @@ class BootSync:
         # read 'man ethers' for format info
         fh = open("/etc/ethers","w+")
         for sys in self.systems:
-            for interface in sys.interfaces:
+            for (name, interface) in sys.interfaces.iteritems():
                 mac = interface["mac_address"]
                 ip  = interface["ip_address"]
                 if mac is None or mac == "":
@@ -235,7 +233,7 @@ class BootSync:
         # (other things may also make use of this later)
         fh = open("/var/lib/cobbler/cobbler_hosts","w+")
         for sys in self.systems:
-            for interface in sys.interfaces:
+            for (name, interface) in sys.interfaces.iteritems:
                 mac  = interface["mac_address"]
                 host = interface["hostname"]
                 ip   = interface["ip_address"]
@@ -626,7 +624,7 @@ class BootSync:
         # generate one record for each described NIC ...
  
         counter = 0
-        for interface in system.interfaces:
+        for (name,interface) in system.interfaces.iteritems():
 
             ip = interface["ip_address"]
 

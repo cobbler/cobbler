@@ -65,7 +65,7 @@ def get_config_filename(sys,interface=0):
     system config information in the Apache tree, so it's still relevant.
     """
 
-    if interface > len(sys.interfaces) -1:
+    if not sys.interfaces.has_key(interface):
         raise CX(_("internal error:  probing an interface that does not exist"))
 
     if sys.name == "default":
@@ -316,7 +316,7 @@ def flatten(data):
         # make interfaces accessible without Cheetah-voodoo in the templates
         # EXAMPLE:  $ip == $ip0, $ip1, $ip2 and so on.
         counter = 0
-        for interface in data["interfaces"]:
+        for (name,interface) in data["interfaces"].iteritems():
             for key in interface.keys():
                 data["%s%d" % (key,counter)] = interface[key]
                 # just to keep templates backwards compatibile
