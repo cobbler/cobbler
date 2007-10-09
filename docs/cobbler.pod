@@ -334,10 +334,6 @@ mirror types, such as local paths and rsync:// mirrors.
 Specifies optional flags to feed into the createrepo tool, which is called when "cobbler reposync" is run for the
 given repository.  The defaults are '-c cache'.
 
-=item arch
-
-Specifies what architecture the repository should use.  By default the current system arch (of the server) is used, which may not be desirable.  Using this to override the default arch allows mirroring of source repositories (using --arch=src).
-
 =item keep-updated
 
 Specifies that the named repository should not be updated during a normal "cobbler reposync".    The repo may still be updated by name.   See "cobbler reposync" below.
