@@ -42,6 +42,7 @@ class System(item.Item):
         self.virt_type       = "<<inherit>>"   # use value in profile 
 
     def __get_interface(self,n):
+        n = str(n)
         if not self.interfaces.has_key(n):
             self.interfaces[n] = {
                 "mac_address" : "",

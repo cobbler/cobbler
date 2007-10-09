@@ -65,6 +65,7 @@ def get_config_filename(sys,interface=0):
     system config information in the Apache tree, so it's still relevant.
     """
 
+    interface = str(interface)
     if not sys.interfaces.has_key(interface):
         raise CX(_("internal error:  probing an interface that does not exist"))
 

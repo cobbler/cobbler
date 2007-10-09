@@ -136,8 +136,10 @@ class MultiNIC(BootTest):
 
         # now check one interface to make sure it's exactly right
         # and we didn't accidentally fill in any other fields elsewhere
+
+        self.assertTrue(system.interfaces.has_key("4"))
         for (name,intf) in system.interfaces.iteritems():
-            if name == 4:
+            if name == "4": # xmlrpc dicts must have string keys, so we must also
                 self.assertTrue(intf["gateway"] == "192.168.1.25")
                 self.assertTrue(intf["virt_bridge"] == "zero")
                 self.assertTrue(intf["subnet"] == "255.255.255.0")
