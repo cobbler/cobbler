@@ -520,11 +520,11 @@ class BootCLI:
         for count in range(0,7):
            commands["--hostname%d"    % count] = lambda(a) : sys.set_hostname(a,interface=count)
            commands["--ip%d"          % count] = lambda(a) : sys.set_ip_address(a,interface=count) 
-           commands["--mac%d"         % count] = lambda(a) : sys.set_mac_address(a,interface=0)
-           commands["--gateway%d"     % count] = lambda(a) : sys.set_gateway(a,interface=0)
-           commands["--subnet%d"      % count] = lambda(a) : sys.set_subnet(a,interface=0)
-           commands["--virt-bridge%d" % count] = lambda(a) : sys.set_virt_bridge(a,interface=0)
-           commands["--dhcp-tag%d"    % count] = lambda(a) : sys.set_dhcp_tag(a,interface=0)
+           commands["--mac%d"         % count] = lambda(a) : sys.set_mac_address(a,interface=count)
+           commands["--gateway%d"     % count] = lambda(a) : sys.set_gateway(a,interface=count)
+           commands["--subnet%d"      % count] = lambda(a) : sys.set_subnet(a,interface=count)
+           commands["--virt-bridge%d" % count] = lambda(a) : sys.set_virt_bridge(a,interface=count)
+           commands["--dhcp-tag%d"    % count] = lambda(a) : sys.set_dhcp_tag(a,interface=count)
         
 
         def on_ok():

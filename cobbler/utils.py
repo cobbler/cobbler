@@ -295,6 +295,19 @@ def blender(remove_hashes, root_obj):
     if len(kernel_txt) < 244:
         results["kernel_options"]["kssendmac"] = None
 
+    # make interfaces accessible without Cheetah-voodoo in the templates
+    # EXAMPLE:  $ip == $ip0, $ip1, $ip2 and so on.
+ 
+    if root_obj.COLLECTION_TYPE == "system":
+        counter = 0
+        for (name,interface) in root_obj.interfaces.iteritems():
+            for key in interface.keys():
+                results["%s%d" % (key,counter)] = interface[key]
+                # just to keep templates backwards compatibile
+                if counter == 0:
+                    results[key] = interface[key]
+            counter = counter + 1
+
     # sanitize output for koan and kernel option lines, etc
     if remove_hashes:
         results = flatten(results)
@@ -312,17 +325,9 @@ def flatten(data):
         data["repos"]   = " ".join(data["repos"])
     if data.has_key("rpm_list") and type(data["rpm_list"]) == list:
         data["rpm_list"] = " ".join(data["rpm_list"])
-    if data.has_key("interfaces"):
-        # make interfaces accessible without Cheetah-voodoo in the templates
-        # EXAMPLE:  $ip == $ip0, $ip1, $ip2 and so on.
-        counter = 0
-        for (name,interface) in data["interfaces"].iteritems():
-            for key in interface.keys():
-                data["%s%d" % (key,counter)] = interface[key]
-                # just to keep templates backwards compatibile
-                if counter == 0:
-                    data[key] = interface[key]
-            counter = counter + 1
+
+    # note -- we do not need to flatten "interfaces" as koan does not expect
+    # it to be a string, nor do we use it on a kernel options line, etc...
  
     return data
 

@@ -233,7 +233,7 @@ class BootSync:
         # (other things may also make use of this later)
         fh = open("/var/lib/cobbler/cobbler_hosts","w+")
         for sys in self.systems:
-            for (name, interface) in sys.interfaces.iteritems:
+            for (name, interface) in sys.interfaces.iteritems():
                 mac  = interface["mac_address"]
                 host = interface["hostname"]
                 ip   = interface["ip_address"]
