@@ -55,7 +55,3 @@ def __get_storage_module(collection_type):
     else:
          return MODULE_CACHE[collection_type]
 
-    # FIXME: this is always fixed currently, and should not be.
-    return 
-
-  

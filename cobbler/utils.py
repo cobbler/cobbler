@@ -315,13 +315,17 @@ def blender(remove_hashes, root_obj):
 
 def flatten(data):
     # convert certain nested hashes to strings.
-    # FIXME: this function should be made more generic
+    # this is only really done for the ones koan needs as strings
+    # this should not be done for everything
     if data.has_key("kernel_options"):
         data["kernel_options"] = hash_to_string(data["kernel_options"])
+    # FIXME: why do we flatten this?
     if data.has_key("ks_meta"):
         data["ks_meta"] = hash_to_string(data["ks_meta"])
+    # FIXME: why do we flatten this?
     if data.has_key("repos") and type(data["repos"]) == list:
         data["repos"]   = " ".join(data["repos"])
+    # FIXME: why do we flatten this?
     if data.has_key("rpm_list") and type(data["rpm_list"]) == list:
         data["rpm_list"] = " ".join(data["rpm_list"])
 
@@ -356,16 +360,6 @@ def __consolidate(node,results):
        data_item = node_data_copy[field] 
        if results.has_key(field):
  
-          # FIXME: remove, we're doing this higher up
-          #    for subobjects (child objects), a value of <<inherit>>
-          #    means defer up the stack, and by definition usage of the API
-          #    must ensure the value is valid somewhere up the stack.  So, remove
-          #    any magic values of <<inherit>> prior to blending.
-          #if data_item == '<<inherit>>':
-          #   # don't load into results hash, the parent will have the
-          #   # data we need.
-          #   continue
-
           # now merge data types seperately depending on whether they are hash, list,
           # or scalar.
           if type(data_item) == dict:

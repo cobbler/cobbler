@@ -222,7 +222,6 @@ class System(item.Item):
         return True
     
     def set_virt_bridge(self,bridge,interface="intf0"):
-        # FIXME: validate
         intf = self.__get_interface(interface)
         intf["virt_bridge"] = bridge
         return True
@@ -314,10 +313,7 @@ class System(item.Item):
            'profile'         : self.profile,
            'kernel_options'  : self.kernel_options,
            'ks_meta'         : self.ks_meta,
-           #'ip_address'      : self.ip_address,
            'netboot_enabled' : self.netboot_enabled,
-           #'hostname'        : self.hostname,
-           #'mac_address'     : self.mac_address,
            'parent'          : self.parent,
            'depth'           : self.depth,
            'kickstart'       : self.kickstart,

@@ -151,7 +151,6 @@ class BootSync:
 
                 if mac is None or mac == "":
                     # can't write a DHCP entry for this system
-                    # FIXME: should this be a warning?
                     continue 
  
                 counter = counter + 1
@@ -222,7 +221,6 @@ class BootSync:
                 ip  = interface["ip_address"]
                 if mac is None or mac == "":
                     # can't write this w/o a MAC address
-                    # FIXME -- should this raise a warning?  
                     continue
                 if ip is not None and ip != "":
                     fh.write(mac.upper() + "\t" + ip + "\n")

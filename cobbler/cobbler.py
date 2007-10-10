@@ -396,7 +396,6 @@ class BootCLI:
                 if key == "--inherit":
                    return True
             except:
-                traceback.print_exc() # FIXME: remove
                 pass
         return False
 
