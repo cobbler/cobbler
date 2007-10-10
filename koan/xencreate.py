@@ -55,8 +55,6 @@ def start_paravirt_install(name=None, ram=None, disks=None,
     guest.extraargs = extra
     guest.set_name(name)
     guest.set_memory(ram)
-    if vcpus is None:
-        vcpus = 1
     guest.set_vcpus(vcpus)
     guest.set_graphics("vnc")
     if uuid is not None:

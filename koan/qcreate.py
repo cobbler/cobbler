@@ -72,8 +72,6 @@ def start_install(name=None, ram=None, disks=None, mac=None,
 
     guest.set_name(name)
     guest.set_memory(ram)
-    if vcpus is None:
-        vcpus = 1
     guest.set_vcpus(vcpus)
     guest.set_graphics("vnc")
 

@@ -100,7 +100,6 @@ def main():
         print "- logging setup failed.  will ignore."
 
     # FIXME: overrides for --virt-mac have been requested
-    # FIXME: add --virt-cpus (also in cobbler) if not already
 
     p = opt_parse.OptionParser()
     p.add_option("-C", "--livecd",
@@ -389,7 +388,7 @@ class Koan:
         parts of urlread and urlgrab from urlgrabber, in ways that
         are less cool and less efficient.
         """
-        print "- %s" % url # DEBUG
+        print "- using kickstart from cobbler: %s" % url
         fd = urllib2.urlopen(url)
         data = fd.read()
         fd.close()
@@ -873,14 +872,12 @@ class Koan:
 
         arch                = self.safe_load(pd,'arch','x86')
         kextra              = self.calc_kernel_args(pd)
-        #mac                 = self.calc_virt_mac(pd)
         (uuid, create_func) = self.virt_choose(pd)
 
         virtname            = self.calc_virt_name(pd)
 
         ram                 = self.calc_virt_ram(pd)
 
-        # FIXME: virt-cpus possibly not processed from cobbler yet?
         vcpus               = self.calc_virt_cpus(pd)
         path_list           = self.calc_virt_path(pd, virtname)
         size_list           = self.calc_virt_filesize(pd)
@@ -1019,17 +1016,13 @@ class Koan:
         """
         Assign virtual CPUs if none is given in the profile.
         """
-        size = self.safe_load(data,'virt_cpus','xen_cpus',0)
-        err = False
+        size = self.safe_load(data,'virt_cpus',default=default_cpus)
         try:
-            int(size)
+            isize = int(size)
         except:
-            err = True
-        if size is None or size == '' or int(size) < default_cpus:
-            err = True
-        if err:
-            return int(default_cpus)
-        return int(size)
+            traceback.print_exc()
+            return default_cpus
+        return isize
 
     #---------------------------------------------------
 
