@@ -16,7 +16,7 @@ Profiles associate a Distribution with a kickstart file and optionally customize
 
 Systems associate a MAC, IP, and/or hostname with a distribution and optionally customize the metadata further.
 
-Repositories contain yum mirror information.  Using cobbler to mirror repositories is an optional/advanced 
+Repositories contain yum mirror information.  Using cobbler to mirror repositories is an optional feature, though provisioning and package management share a lot in common.
 
 The main advantage of cobbler is that it glues together a lot of disjoint technologies and concepts and abstracts the user from the need to understand them.   It allows the systems administrator to concentrate on what he needs to do, and not how it is done. 
 
@@ -24,6 +24,8 @@ This manpage will focus on the cobbler command line tool for use in configuring 
 of the Cobbler WebUI which is usable for day-to-day operation of Cobbler once installed/configured.  Docs on
 the API and XMLRPC components are available online at http://cobbler.et.redhat.com and the companion Wiki:
 https://hosted.fedoraproject.org/projects/cobbler/.
+
+Most users will be interested in the Web UI and should set it up, though the command line is needed for initial configuration -- in particular "cobbler check" and "cobbler import".
 
 =head1 SEE ALSO
 
@@ -35,21 +37,22 @@ Also see the aforementioned webpages for additional documentation, user contribu
 
 =head2 SETUP
 
-After installing, run "cobbler check" to verify that cobbler's ecosystem is configured correctly.  This will also create
-an initial settings state file that cobbler will ask you to modify using a text editor.
+After installing, run "cobbler check" to verify that cobbler's ecosystem is configured correctly.   Cobbler check will direct you on how to modify it's config files using a text editor.
 
-Any problems detected should be corrected, with the potential exception of DHCP related warnings.  Run "cobbler sync" after making any changes to the configuration files to ensure those changes are applied.
+Any problems detected should be corrected, with the potential exception of DHCP related warnings where you will need to use your judgement as to whether they apply to your environment.  Run "cobbler sync" after making any changes to the configuration files to ensure those changes are applied to the environment.
 
 It is especially important that the server name field be accurate in /var/lib/cobbler/settings, without this field being correct, kickstart trees will not be found, and automated installtions will fail.
 
-For PXE, if DHCP is to be run from the cobbler server, the dhcp configuration file should be changed as suggested by "cobbler check".  If DHCP is not run locally, the "next-server" field on the DHCP server should point to the cobbler server's IP and the filename should be set to "pxelinux.0".  Alternatively, cobbler can also generate your dhcp configuration file if you want to run dhcp locally -- this is covered in a later section.  If you don't already have a dhcp setup, allowing cobbler to manage it may prove to be useful.  If you already have a setup, moving an existing setup to be managed from within cobbler is relatively painless and is entirely optional.  If you are not interested
-in network booting via PXE and just want to use koan to install virtual systems, DHCP can be totally ignored.
+For PXE, if DHCP is to be run from the cobbler server, the dhcp configuration file should be changed as suggested by "cobbler check".  If DHCP is not run locally, the "next-server" field on the DHCP server should at minimum point to the cobbler server's IP and the filename should be set to "pxelinux.0".  Alternatively, cobbler can also generate your dhcp configuration file if you want to run dhcp locally -- this is covered in a later section.  If you don't already have a DHCP setup managed by some other tool, allowing cobbler to manage DHCP will prove to be useful as it can manage DHCP reservations and other data.  If you already have a DHCP setup, moving an existing setup to be managed from within cobbler is relatively painless -- though usage of the DHCP management feature is entirely optional.  If you are not interested
+in network booting via PXE and just want to use koan to install virtual systems or replace existing ones, DHCP configuration can be totally ignored.  Koan also has a live CD (see koan's manpage) capability that can be used to simulate PXE environments.
 
 =head2 ADDING A DISTRIBUTION
 
 This first step towards configurating what you want to provision is to add a distribution to the cobbler's configuration.  
 
-If there is an rsync mirror, DVD, NFS, or filesystem tree available that you would rather import instead, skip down to the documentation about the "import" command.  It's really a lot easier, and it only requires waiting for the mirror content to be copied.  Imported mirrors also save time during install since they don't have to hit external install sources.   However if you have the content locally already and don't want to create another copy of it, you'll want to use the manual distro add commands.
+If there is an rsync mirror, DVD, NFS, or filesystem tree available that you would rather import instead, skip down to the documentation about the "import" command.  It's really a lot easier, and it only requires waiting for the mirror content to be copied and/or scanned.  Imported mirrors also save time during install since they don't have to hit external install sources.
+
+If you want to be explicit with distribution definition, however, here's how it works:
 
 B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--ksmeta=string] [--arch=x86|x86_64|ia64] [--breed=redhat|debian|suse]>
 
@@ -61,22 +64,22 @@ a string identifying the distribution, this should be something like "rhel4".
 
 =item kernel
 
-an absolute filesystem path to a kernel image
+An absolute filesystem path to a kernel image
 
 =item initrd
 
-an absolute filesystem path to a initrd image
+An absolute filesystem path to a initrd image
 
 =item kopts
 
-sets kernel command-line arguments that the distro, and profiles/systems dependant
+Sets kernel command-line arguments that the distro, and profiles/systems dependant
 on it, will use.
 
 Example: --kopts="foo=bar baz=3 asdf"
 
 =item arch
 
-sets the architecture for the PXE bootloader
+Sets the architecture for the PXE bootloader
 
 The default setting ('standard') will use pxelinux.   Set to 'ia64' to use elilo.
 
@@ -84,7 +87,7 @@ The default setting ('standard') will use pxelinux.   Set to 'ia64' to use elilo
 
 =item ksmeta
 
-This is an advanced feature that sets kickstart variables to substitute, thus enabling kickstart files to be treated as templates.
+This is an advanced feature that sets kickstart variables to substitute, thus enabling kickstart files to be treated as templates.  Templates are powered using Cheetah and are described further along in this manpage as well as on the Cobbler Wiki.
 
 Example: --ksmeta="foo=bar baz=3 asdf"
 
@@ -92,7 +95,7 @@ See the section on "Kickstart Templating" for further information.
 
 =item breed
 
-Defaults to "redhat", which is a suitable value for Fedora and Centos as well.  It means anything redhat based.
+Controls how kernel arguments for automatic installation are to be treated.  Defaults to "redhat", which is a suitable value for Fedora and Centos as well.  It means anything redhat based.
 
 There is limited experimental support for specifying "debian" or "suse", which treats the kickstart file as a different format and changes the kernel
 arguments appropriately.   Support for other types of distributions is possible in the future.  
@@ -103,9 +106,9 @@ The file used for the answer file, regardless of the breed setting, is the value
 
 =head2 ADDING A PROFILE
 
-A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.  A profile might represent, for instance, a web server or desktop configuration.  In this way, profiles define a role to be performed.
+A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.  A profile might represent, for instance, a web server or desktop configuration.  In this way, profiles define a role to be performed.  
 
-B<cobbler profile add --name=string --distro=string [--kickstart=url] [--kopts=string] [--ksmeta=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-path=string]>
+B<cobbler profile add --name=string --distro=string [--kickstart=url] [--kopts=string] [--ksmeta=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-path=string] [--virt-bridge=string]>
 
 Arguments are as listed for distributions, save for the removal of "arch" and "breed", and with the additions listed below:
 
@@ -113,11 +116,11 @@ Arguments are as listed for distributions, save for the removal of "arch" and "b
 
 =item name
 
-a descriptive name.  This could be something like "rhel4webservers" or "fc6desktops".
+A descriptive name.  This could be something like "rhel4webservers" or "fc6desktops".
 
 =item distro
 
-the name of a previously defined cobbler distribution
+The name of a previously defined cobbler distribution
 
 =item kickstart
 
@@ -130,55 +133,52 @@ When using kickstart files, they can be placed anywhere on the filesystem, but t
 
 =item virt-file-size
 
-(Virt-only) how large the disk image should be in gigabytes.  The default is "5".
+(Virt-only) How large the disk image should be in Gigabytes.  The default is "5".
 This can be a comma seperated list (ex: "5,6,7") to allow for multiple disks of different sizes
 depending on what is given to --virt-path.
 
 =item virt-ram
 
-(Virt-only) how many megabytes of RAM to consume.  The default is 512 MB.
+(Virt-only) How many megabytes of RAM to consume.  The default is 512 MB.
 
 =item virt-type
 
-(Virt-only) koan can install images using either Xen paravirt ("xenpv") or QEMU/KVM ("qemu").  Choose one or the other strings to specify, or values will default to attempting to find a compatible installation type on the client system ("auto").  See the "koan" manpage for more documentation.
+(Virt-only) Koan can install images using either Xen paravirt ("xenpv") or QEMU/KVM ("qemu").  Choose one or the other strings to specify, or values will default to attempting to find a compatible installation type on the client system ("auto").  See the "koan" manpage for more documentation.  The default virt-type can be configured in the cobbler settings file such that this parameter does not have to be provided.
 
 =item virt-path
 
-(Virt-only) where to store the virtual image.  Except for advanced cases, this parameter can usually be omitted. For disk images, the value is an
-absolute path to an existing directory with an optional file name component.  
-
-There is also some experimental support for specifying partitions "/dev/sda4" or volume groups "VolGroup00", etc.
+(Virt-only) Where to store the virtual image on the host system.  Except for advanced cases, this parameter can usually be omitted. For disk images, the value is usually an absolute path to an existing directory with an optional file name component.  There is support for specifying partitions "/dev/sda4" or volume groups "VolGroup00", etc.
 
 For multiple disks, seperate the values with commas such as "VolGroup00,VolGroup00" or "/dev/sda4,/dev/sda5".  Both those examples would create two disks for the VM.
 
 =item virt-bridge
 
-(Virt-only) for virtual machines, this specifies the default bridge to use for all systems
-defined under this profile.  If not specified, it will assume the default value in the cobbler settings file, which as shipped in the RPM is 'xenbr0'.  If using KVM, this is most likely not correct.  You may want to override this setting in the system object.
+(Virt-only) This specifies the default bridge to use for all systems defined under this profile.  If not specified, it will assume the default value in the cobbler settings file, which as shipped in the RPM is 'xenbr0'.  If using KVM, this is most likely not correct.  You may want to override this setting in the system object.  Bridge settings are important as they define how outside networking will reach the guest.
+For more information on bridge setup, see the Cobbler Wiki, where there is a section describing koan usage.
 
 =item repos
 
-a space delimited list of all the repos (created with "cobbler repo add" and "cobbler reposync") that this profile
-can make use of during kickstart installation.  For example, an example might be --repos="fc6i386updates fc6i386extras".
+This is a space delimited list of all the repos (created with "cobbler repo add" and updated with "cobbler reposync") that this profile
+can make use of during kickstart installation.  For example, an example might be --repos="fc6i386updates fc6i386extras" if the profile wants to access these two mirrors that are already mirrored on the cobbler server.
 
 =item inherit
 
-profiles may inherit from other profiles in lieu of specifing --distro.  Inherited profiles will override any settings specified in their parent, with the exception of --ksmet(templating) and --kopts (kernel options), which will be blended together.  
+This is an advanced feature.  
+
+Profiles may inherit from other profiles in lieu of specifing --distro.  Inherited profiles will override any settings specified in their parent, with the exception of --ksmeta (templating) and --kopts (kernel options), which will be blended together.  
 
 Example:  If profile A has --kopts="x=7 y=2", B inherits from A, and B has --kopts="x=9 z=2", the actual kernel options that will be used for B are "x=7 y=2 z=2". 
 
 Example:  If profile B has --virt-ram=256 and A has --virt-ram of 512, profile B will use the value 256.  
-
 Example:  If profile A has a --virt-file-size of 5 and B does not specify a size, B will use the value from A.
 
 =back
 
 =head2 ADDING A SYSTEM
 
-System records map a piece of hardware with the cobbler profile to be assigned to run on it.  This may be thought of as chosing
-a role for a specific system.
+System records map a piece of hardware (or a virtual machine) with the cobbler profile to be assigned to run on it.  This may be thought of as chosing a role for a specific system.
 
-Note that if provisioning via koan and PXE menus alone, it is not required to create system records, though they are useful when system specific templating is required or to establish that a specific system should always recieve a specific software install.  If there is a specific role inteded for a given machine, system records should be created for it.
+Note that if provisioning via koan and PXE menus alone, it is not required to create system records, though they are useful when system specific customizations are required.   One such customization would be defining the MAC address.  If there is a specific role inteded for a given machine, system records should be created for it.
 
 B<cobbler system add --name=string --profile=string [--mac=macaddress] [--ip=ipaddress] [--hostname=hostname] [--kopts=string] [--ksmeta=string] [--netboot-enabled=Y/N>
 
@@ -191,29 +191,22 @@ the following changes:
 
 The system name works like the name option for other commands.
 
-If the name looks like a MAC address or an IP, the name will implicitly be used for either --mac or --ip, respectively.
+If the name looks like a MAC address or an IP, the name will implicitly be used for either --mac or --ip of the first interface, respectively.   However, it's usually better to give a descriptive name.
 
-Best practice usage would suggest use a system --name that is a MAC address, because the MAC address is globally
-unique, unchanging, and very explicit.
-
-A system created with name "default" has special semantics.  If a default system object exists, it sets all undefined
-systems to PXE to a specific profile.  Without a "default" system name created, PXE will fall through to 
-local boot for unconfigured systems.
+A system created with name "default" has special semantics.  If a default system object exists, it sets all undefined systems to PXE to a specific profile.  Without a "default" system name created, PXE will fall through to local boot for unconfigured systems.
 
 =item mac
 
-Specifying a mac address via --mac allows the system object to boot via PXE.  If the name of the cobbler system
-already looks like a mac address, this is inferred from the system name and does not need to be specified.  
+Specifying a mac address via --mac allows the system object to boot via PXE.  If the name of the cobbler system already looks like a mac address, this is inferred from the system name and does not need to be specified.  
 
 MAC addresses have the format AA:BB:CC:DD:EE:FF.
 
-If you would like to specify additional MACs, use --mac0=x, --mac1=y and so on.
+If you would like to specify additional interfaces, use --mac0=x, --mac1=y and so on.  Interfaces 0 through 7 are supported.
 
 =item ip
 
 If cobbler is configured to generate a DHCP configuratition (see advanced section), use this
-setting to define a specific IP for this system in DHCP.  Leaving off this parameter will result in no DHCP
-management for this particular system.
+setting to define a specific IP for this system in DHCP.  Leaving off this parameter will result in no DHCP management for this particular system.
 
 Example: ---ip=192.168.1.50
 
@@ -221,11 +214,11 @@ Note for Itanium users:  this setting is always required for IA64 regardless of 
 
 If you would like to specify additional IPs, use --ip0=x, --ip1=y and so on.
 
+If DHCP management is disabled, setting this parameter may still be useful for record keeping, and it is also available in all kickstart templates, so it can be easily used for static IP configuration within kickstarts.
+
 =item hostname
 
-If using the DHCP configuration feature (see advanced section) with dnsmasq, use this to define a hostname for the system to
-recieve from DNS.  If not using DHCP management or not using dnsmasq, this field is treated as a descriptive comment and is
-basically ignored.
+If using the DHCP configuration feature (see advanced section) with dnsmasq, use this to define a hostname for the system to recieve from DNS.  If not using DHCP management or not using dnsmasq, this field is treated as a descriptive comment and is basically ignored other than being made available in templates.
 
 Example: --hostname=mycomputer.example.com
 
@@ -243,7 +236,7 @@ and so on.  Subnets work the same way.
 
 =item --virt-bridge
 
-(Virt-only) While --virt-bridge is present in the profile object (see above), here it works on an interface by interface basis.   For instance it would be possible to have --virt-bridge0=xenbr0 and --virt-bridge1=xenbr1.  If not specified in cobbler for each interface, koan will use the value as specified in the profile for each interface, which may not always be what is intended, but will be sufficient in most cases.
+(Virt-only) While --virt-bridge is present in the profile object (see above), here it works on an interface by interface basis.   For instance it would be possible to have --virt-bridge0=xenbr0 and --virt-bridge1=xenbr1.  If not specified in cobbler for each interface, koan will use the value as specified in the profile for each interface, which may not always be what is intended, but will be sufficient in most cases. 
 
 =item --kickstart
 
@@ -256,18 +249,19 @@ standard PXE.  This will allow the system to fall back to default PXE boot behav
 
 =item --dhcp-tag
 
-If you are setting up a PXE environment with multiple subnets/gateways, and are using cobbler to manage a DHCP configuration, you will want this option.
+If you are setting up a PXE environment with multiple subnets/gateways, and are using cobbler to manage a DHCP configuration, you will probably want this option.
 
 By default, the dhcp tag for all systems is "default" and means that in the DHCP template files the systems will expand out where $insert_cobbler_systems_definitions is found in the DHCP template.  However, you may want certain systems to expand out in other places in the file.  Setting --dhcp-tag=subnet2 for instance, will cause that system to expand out where $insert_cobbler_system_definitions_subnet2 is found, allowing you to insert directives to specify different subnets (or other parameters) before the DHCP configuration entries for those particular systems.
 
 If your system has multiple network interfaces, use --dhcp-tag0=x, --dhcp-tag1=y and so on.
 
+This is described further on the Cobbler Wiki.
+
 =end
 
 =head2 ADDING A REPOSITORY TO MIRROR
 
-Repository mirroring allows cobbler to mirror not only install trees ("cobbler import" does this for you) but
-also optional packages, 3rd party content, and even updates.   Mirroring all of this content locally
+Repository mirroring allows cobbler to mirror not only install trees ("cobbler import" does this for you) but also optional packages, 3rd party content, and even updates.   Mirroring all of this content locally
 on your network will result in faster, more up-to-date installations and faster updates.  If you
 are only provisioning a home setup, this will probably be overkill, though it can be very useful
 for larger setups (labs, datacenters, etc).
@@ -308,8 +302,7 @@ This name is used as the save location for the mirror.  If the mirror represente
 
 This name corresponds with values given to the --repos parameter of "cobbler profile add".  If a profile
 has a --repos value that matches the name here, that repo can be automatically set up during provisioning.
-This means that, if supported by Anaconda, the repo can be used during kickstart install -- and -- either way,
-it can be automatically configured for use by the provisioned clients (see --local-filename).
+This means that, if supported by Anaconda, the repo can be used during kickstart install -- and -- either way, it can be automatically configured for use by the provisioned clients (see --local-filename).
 
 See the documentation on "cobbler profile add" for more information.
 
@@ -320,26 +313,19 @@ what files to populate on provisioned clients in /etc/yum.repos.d.
 
 In other words, if this value is "foo", the repo would be installed on provisioned clients as "/etc/yum.repos.d/foo.repo".  
 
-If you don't want clients to have this repo installed, don't add a name for the repo, and provisioned machines
-will not configure yum to know about this repo -- you can still do it manually if you choose.  The repository will
-still be used for installation, it just won't get installed automatically in /etc/yum.repos.d on the client.
+If you don't want clients to have this repo installed, don't add a name for the repo, and provisioned machines will not configure yum to know about this repo -- you can still do it manually if you choose.  The repository will still be used for installation, it just won't get installed automatically in /etc/yum.repos.d on the client.
 
 See /etc/cobbler/kickstart_fc6.ks for an example of how to employ this within a kickstart template.
 
 =item rpm-list
 
-By specifying a space-delimited list of package names for --rpm-list, one can decide to mirror only a part
-of a repo (the list of packages given, plus dependencies).  This may be helpful in conserving time/space/bandwidth.
-For instance, when mirroring FC6 Extras, it may be desired to mirror just cobbler and koan, and skip all of the
-games.  To do this, use --rpm-list="cobbler koan".
+By specifying a space-delimited list of package names for --rpm-list, one can decide to mirror only a part of a repo (the list of packages given, plus dependencies).  This may be helpful in conserving time/space/bandwidth.  For instance, when mirroring FC6 Extras, it may be desired to mirror just cobbler and koan, and skip all of the game packages.  To do this, use --rpm-list="cobbler koan".
 
-This option only works for http:// and ftp:// repositories.  It will be ignored for other
-mirror types, such as local paths and rsync:// mirrors.
+This option only works for http:// and ftp:// repositories (as it is powered by yumdownloader).  It will be ignored for other mirror types, such as local paths and rsync:// mirrors.
 
 =item createrepo-flags
 
-Specifies optional flags to feed into the createrepo tool, which is called when "cobbler reposync" is run for the
-given repository.  The defaults are '-c cache'.
+Specifies optional flags to feed into the createrepo tool, which is called when "cobbler reposync" is run for the given repository.  The defaults are '-c cache'.
 
 =item keep-updated
 
@@ -401,7 +387,7 @@ B<cobbler sync>
 
 Cobbler sync is used to repair or rebuild the contents /tftpboot or /var/www/cobbler when something has changed behind the scenes.  It brings the filesystem up to date with the configuration as understood by cobbler.   
 
-Sync should be run whenever files in /var/www/cobbler are manually edited or when making changes to kickstart files.  In practice, this should not happen often, though running sync too many times does not cause any adverse effects.  
+Sync should be run whenever files in /var/lib/cobbler are manually edited (which is not recommended except for the settings file) or when making changes to kickstart files.  In practice, this should not happen often, though running sync too many times does not cause any adverse effects.  
 
 If using cobbler to manage a DHCP server (see the advanced section of this manpage), sync does need to be
 run after systems are added to regenerate and reload the DHCP configuration.
@@ -478,19 +464,19 @@ B<cobbler reposync>
 
 B<cobbler profile add --name=p1 --distro=existing_distro_name --kickstart=/etc/cobbler/kickstart_fc6.ks --repos="fc6i386updates fc6i386extras">
 
-=head2 XEN
+=head2 VIRTUALIZATION
 
-For Virt, be sure the distro uses a Virt kernel and initrd and follow similar steps as above, adding additional parameters as desired:
+For Virt, be sure the distro uses the correct kernel (if paravirt) and follow similar steps as above, adding additional parameters as desired:
 
 B<cobbler distro add --name=fc7virt [options...]>
 
 Specify reasonable values for the Virt image size (in GB) and RAM requirements (in MB):
 
-B<cobbler profile add --name=virtwebservers --distro=fc7virt --kickstart=path --virt-file-size=10 --virt-ram=512>
+B<cobbler profile add --name=virtwebservers --distro=fc7virt --kickstart=path --virt-file-size=10 --virt-ram=512 [...]>
 
-Define systems only if desired.  koan can also provision based on the profile name.
+Define systems if desired.  koan can also provision based on the profile name.
 
-B<cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=virtwebservers>
+B<cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=virtwebservers [...]>
 
 If you have just installed cobbler, be sure that the "cobblerd" service is running and that port 25151 is unblocked.
 
@@ -500,36 +486,28 @@ See the manpage for koan for the client side steps.
 
 =head2 PXE MENUS
 
-Cobbler will automatically generate PXE menus for all profiles it has defined.  Running "cobbler sync" is required
-to generate and update these menus. 
+Cobbler will automatically generate PXE menus for all profiles it has defined.  Running "cobbler sync" is required to generate and update these menus. 
 
-To access the menus, type "menu" at the "boot:" prompt while a system is PXE booting.  If nothing is typed, the network boot 
-will default to a local boot.  If "menu" is typed, the user can then choose and provision any cobbler profile the system
-knows about.  
+To access the menus, type "menu" at the "boot:" prompt while a system is PXE booting.  If nothing is typed, the network boot will default to a local boot.  If "menu" is typed, the user can then choose and provision any cobbler profile the system knows about.  
 
-If the association between a system (MAC address) and a profile is already known, it may be more useful to just use
-"system add" commands and declare that relationship in cobbler; however many use cases will prefer having a PXE system, especially when provisioning is done at the same time as installing new physical machines.
+If the association between a system (MAC address) and a profile is already known, it may be more useful to just use "system add" commands and declare that relationship in cobbler; however many use cases will prefer having a PXE system, especially when provisioning is done at the same time as installing new physical machines.
 
 If this behavior is not desired, run "cobbler system add --name=default --profile=plugh" to default all PXE booting machines to get a new copy of the profile "plugh".  To go back to the menu system, run "cobbler system remove --name=default" and then "cobbler sync" to regenerate the menus.
 
 When using PXE menu deployment exclusively, it is not neccessary to make cobbler system records, although the two can easily be mixed.
 
-Additionally, note that all files generated for the pxe menu configurations are templatable, so if you wish to change the color
-scheme or equivalent, see the files in /etc/cobbler.
+Additionally, note that all files generated for the pxe menu configurations are templatable, so if you wish to change the color scheme or equivalent, see the files in /etc/cobbler.
 
 =head2 KICKSTART TEMPLATING
 
 The --ksmeta options above require more explanation.
 
-If and only if --kickstart options reference filesystem URLs, --ksmeta allows for templating of the kickstart files
-to achieve advanced functions.  If the --ksmeta option for a profile read --ksmeta="foo=7 bar=llama", anywhere
-in the kickstart file where the string "$bar" appeared would be replaced with the string "llama".  
+If and only if --kickstart options reference filesystem URLs, --ksmeta allows for templating of the kickstart files to achieve advanced functions.  If the --ksmeta option for a profile read --ksmeta="foo=7 bar=llama", anywhere in the kickstart file where the string "$bar" appeared would be replaced with the string "llama".  
 
 To apply these changes, "cobbler sync" must be run to generate custom kickstarts for each profile/system.
 
 For NFS and HTTP kickstart URLs, the "--ksmeta" options will have no effect. This is a good reason to let
-cobbler manage your kickstart files, though the URL functionality is provided for integration with
-legacy infrastructure, possibly including web apps that already generate kickstarts.
+cobbler manage your kickstart files, though the URL functionality is provided for integration with legacy infrastructure, possibly including web apps that already generate kickstarts.
 
 Templated kickstart files are processed by the templating program/package Cheetah, so anything you can do in a Cheetah template can be done to a kickstart template.  Learn more at http://www.cheetahtemplate.org/learn.html
 
@@ -567,15 +545,13 @@ In summary, if this manage_dhcp bit is enabled, the following features are enabl
 
 These options are all enabled by using the --hostname and --ip options when using the "cobbler system add" command.
 
-Itanium systems names also need to be assigned to a distro that was created with the "--arch=ia64" parameter. If you have Itanium systems, you must (for now) choose 'isc' for
-'manage_dhcp_mode' in the /var/lib/cobbler/settings file, and are required to use --ip when creating the system object in order for those systems to PXE.
+Itanium systems names also need to be assigned to a distro that was created with the "--arch=ia64" parameter. If you have Itanium systems, you must (for now) choose 'isc' for 'manage_dhcp_mode' in the /var/lib/cobbler/settings file, and are required to use --ip when creating the system object in order for those systems to PXE.
 
 The dhcpd.conf file will be updated each time "cobbler sync" is run, and not until then, so it is important to remember to use "cobbler sync" when using this feature.
 
 =head2 SERVICE DISCOVERY (AVAHI)
 
-If the avahi-tools package is installed, cobblerd will broadcast it's presence on the network, allowing it to be discovered by koan
-with the koan --server=DISCOVER parameter.
+If the avahi-tools package is installed, cobblerd will broadcast it's presence on the network, allowing it to be discovered by koan with the koan --server=DISCOVER parameter.
 
 =head2 IMPORTING TREES
 
@@ -604,18 +580,12 @@ Note that all of the import commands will mirror install tree content into /var/
 
 =head2 DEFAULT PXE BOOT BEHAVIOR
 
-What happens when PXE booting a system when cobbler has no record
-of the system being booted?
+What happens when PXE booting a system when cobbler has no record of the system being booted?
 
-By default, cobbler will configure PXE to boot to the contents of
-/etc/cobbler/default.pxe, which (if unmodified) will just fall through
-to the local boot process.  Administrators can modify this file if they
+By default, cobbler will configure PXE to boot to the contents of /etc/cobbler/default.pxe, which (if unmodified) will just fall through to the local boot process.  Administrators can modify this file if they
 like to change that behavior.
 
-An easy way to specify a default cobbler profile to PXE boot is to
-create a system named "default".  This will cause /etc/cobbler/default.pxe
-to be ignored.  To restore the previous behavior do a "cobbler system remove"
-on the "default" system.
+An easy way to specify a default cobbler profile to PXE boot is to create a system named "default".  This will cause /etc/cobbler/default.pxe to be ignored.  To restore the previous behavior do a "cobbler system remove" on the "default" system.
 
 B<cobbler system add --name=default --profile=boot_this>
 
@@ -625,24 +595,14 @@ B<cobbler system remove --name=default>
 
 This has already been covered a good bit in the command reference section.
 
-Yum repository management is an optional feature, and is not required to provision through cobbler.
-However, if cobbler is configured to mirror certain repositories, it can then be used to associate
-profiles with those repositories.  Systems installed under those profiles will then be autoconfigured
-to use these repository mirrors in /etc/yum.repos.d, and if supported (Fedora Core 6 and later) these
-repositories can be leveraged even within Anaconda.  This can be useful if (A) you have a large
-install base, (B) you want fast installation and upgrades for your systems, or (C) have some
-extra software not in a standard repository but want provisioned systems to know about that repository.
+Yum repository management is an optional feature, and is not required to provision through cobbler.  However, if cobbler is configured to mirror certain repositories, it can then be used to associate profiles with those repositories.  Systems installed under those profiles will then be autoconfigured to use these repository mirrors in /etc/yum.repos.d, and if supported (Fedora Core 6 and later) these repositories can be leveraged even within Anaconda.  This can be useful if (A) you have a large install base, (B) you want fast installation and upgrades for your systems, or (C) have some extra software not in a standard repository but want provisioned systems to know about that repository.
 
 Make sure there is plenty of space in cobbler's webdir, which defaults to /var/www/cobbler.
 
 B<cobbler reposync>
 
 Cobbler reposync is the command to use to update repos as configured with "cobbler repo add".  Mirroring
-can take a long time, and usage of cobbler reposync prior to cobbler sync is needed to ensure
-provisioned systems have the files they need to actually use the mirrored repositories.  If you just
-add repos and never run "cobbler reposync", the repos will never be mirrored.  This is probably a command
-you would want to put on a crontab, though the frequency of that crontab and where the output
-goes is left up to the systems administrator.
+can take a long time, and usage of cobbler reposync prior to cobbler sync is needed to ensure provisioned systems have the files they need to actually use the mirrored repositories.  If you just add repos and never run "cobbler reposync", the repos will never be mirrored.  This is probably a command you would want to put on a crontab, though the frequency of that crontab and where the output goes is left up to the systems administrator.
 
 For those familiar with yum's reposync, cobbler's reposync is (in most uses) a wrapper around the yum command.  Please use "cobbler reposync" to update cobbler mirrors, as yum's reposync does not perform all required steps.  Also cobbler adds support for rsync and SSH locations, where as yum's reposync only supports what yum supports (http/ftp).
 
@@ -653,19 +613,11 @@ B<cobbler reposync reponame1 reponame2 ...>
 
 When updating repos by name, a repo will be updated even if it is set to be not updated during a regular reposync operation (ex: cobbler repo edit --name=reponame1 --keep-updated=0).
 
-Note that if a cobbler import provides enough information to use the boot server as a yum mirror for
-core packages, cobbler can set up kickstarts to use the cobbler server as a mirror instead of the 
-outside world.  If this feature is desirable, it can be turned on by setting yum_core_mirror_from_server
-to 1 in /var/lib/cobbler/settings (and rerunning "cobbler sync").  You should not enable this feature
-if machines are provisioned on a different VLAN/network than production.
+Note that if a cobbler import provides enough information to use the boot server as a yum mirror for core packages, cobbler can set up kickstarts to use the cobbler server as a mirror instead of the outside world.  If this feature is desirable, it can be turned on by setting yum_core_mirror_from_server to 1 in /var/lib/cobbler/settings (and rerunning "cobbler sync").  You should not enable this feature if machines are provisioned on a different VLAN/network than production.
 
 =head2 PXE BOOT LOOP PREVENTION
 
-If you have your machines set to PXE first in the boot order (ahead of hard drives), change
-the "pxe_just_once" flag in /var/lib/cobbler/settings to 1.  This will set the machines
-to not PXE on successive boots once they complete one install.
-
-To re-enable PXE for a specific system, run the following command:
+If you have your machines set to PXE first in the boot order (ahead of hard drives), change the "pxe_just_once" flag in /var/lib/cobbler/settings to 1.  This will set the machines to not PXE on successive boots once they complete one install.  To re-enable PXE for a specific system, run the following command:
 
 B<cobbler system edit --name=name --netboot-enabled=1>
 
@@ -675,44 +627,31 @@ Cobbler knows how to keep track of the status of kickstarting machines.
 
 B<cobbler status>
 
-Using the status command will show when cobbler thinks a machine started kickstarting and when it last requested a file.
-This is a good way to track machines that may have gone interactive during kickstarts.  Cobbler will also make a special
-request in the post section of the kickstart to signal when a machine is finished kickstarting.
+Using the status command will show when cobbler thinks a machine started kickstarting and when it last requested a file.  This is a good way to track machines that may have gone interactive during kickstarts.  Cobbler will also make a special request in the post section of the kickstart to signal when a machine is finished kickstarting.
 
-To use this feature, the kickstart tree files need to be served via a http://server/cblr/... URL, which happens
-automatically when using the "cobbler import" command to pull in a kickstart tree from an rsync mirror.
+To use this feature, the kickstart tree files need to be served via a http://server/cblr/... URL, which happens automatically when using the "cobbler import" command to pull in a kickstart tree from an rsync mirror.
 
-If kickstart trees are somewhere else, one can still benefit from the kickstart tracking feature by adding a symlink to 
-/var/www/cobbler/localmirror/distroname will allow the kickstarts to be served through the tracking URL mentioned above.   Be sure to use the http://server/cblr/ URL to point to the kickstart tree for each distro you want to track.
+If kickstart trees are somewhere else, one can still benefit from the kickstart tracking feature by adding a symlink to /var/www/cobbler/localmirror/distroname will allow the kickstarts to be served through the tracking URL mentioned above.   Be sure to use the http://server/cblr/ URL to point to the kickstart tree for each distro you want to track.
 
-Note that kickstart tracking support using syslog requires an Anaconda that supports syslog forwarding.
-RHEL5 is good, as is FC6 and later.  URL tracking currently requires python2.3 or higher on the server
-for the mod_python piece to work.  This will likely be improved later to better support older distros acting
-as a cobbler server.
+Note that kickstart tracking support using syslog requires an Anaconda that supports syslog forwarding.  RHEL5 is good, as is FC6 and later.  URL tracking currently requires python2.3 or higher on the server for the mod_python piece to work.  This will likely be improved later to better support older distros acting as a cobbler server.
 
 =head2 TWEAKING
 
-Enterprising users can edit the files in /var/lib/cobbler directly versus using the command line.  The repair
-mechanism for user error here is to delete the files in /var/lib/cobbler.  There are also a few configuration
-files in /etc/cobbler that can be edited.
+Enterprising users can edit the files in /var/lib/cobbler directly versus using the command line.  The repair mechanism for user error here is to delete the files in /var/lib/cobbler.  There are also a few configuration files in /etc/cobbler that can be edited.
 
 Running "cobbler sync" is required to apply any changes that are made manually.
 
 =head2 TRIGGERS
 
-Triggers provide a way to integrate cobbler with arbitrary 3rd party software without modifying cobbler's code.  
-When adding a distro, profile, system, or repo, all scripts in /var/lib/cobbler/triggers/add are executed for the particular object type.  Each particular file must be executable and it is executed with the name of the item being added as a parameter.  Deletions work similarly -- delete triggers live in /var/lib/cobbler/triggers/delete.  Order of execution is arbitrary, and cobbler does not ship with any triggers by default.
+Triggers provide a way to integrate cobbler with arbitrary 3rd party software without modifying cobbler's code.  When adding a distro, profile, system, or repo, all scripts in /var/lib/cobbler/triggers/add are executed for the particular object type.  Each particular file must be executable and it is executed with the name of the item being added as a parameter.  Deletions work similarly -- delete triggers live in /var/lib/cobbler/triggers/delete.  Order of execution is arbitrary, and cobbler does not ship with any triggers by default.
 
 =head2 API
 
-Cobbler also makes itself available as a Python API for use by higher level management software.
-Learn more at http://cobbler.et.redhat.com
+Cobbler also makes itself available as a Python API for use by higher level management software.  Learn more at http://cobbler.et.redhat.com
 
 =head2 WEB USER INTERFACE
 
-Most of the day-to-day actions in cobbler's command line can be performed in Cobbler's Web UI.  To enable the WebUI, set
-xmlrpc_rw_enabled to 1 in /var/lib/cobbler/settings, add some users in /etc/cobbler/auth.conf, and do
-a /sbin/service cobblerd restart.
+Most of the day-to-day actions in cobbler's command line can be performed in Cobbler's Web UI.  To enable the WebUI, set xmlrpc_rw_enabled to 1 in /var/lib/cobbler/settings, add some users in /etc/cobbler/auth.conf, and do a /sbin/service cobblerd restart.
 
 SELinux users may also have to run:
 
@@ -727,8 +666,13 @@ cobbler's command line returns a zero for success and non-zero for failure.
 
 =head1 ADDITIONAL RESOURCES
 
-Cobbler has a mailing list for user and development-related questions/comments at et-mgmt-tools@redhat.com.
-At the time of writing, there is also a IRC channel on irc.freenode.net (#cobbler).
+Cobbler has a mailing list for user and development-related questions/comments at et-mgmt-tools@redhat.com.  
+
+IRC channel:  irc.freenode.net (#cobbler)
+
+Official web site: http://cobbler.et.redhat.com/
+
+Wiki and user contributed content: https://hosted.fedoraproject.org/projects/cobbler/
 
 =head1 AUTHOR
 
