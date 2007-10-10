@@ -38,6 +38,7 @@ class Profile(item.Item):
         self.kickstart       = (self.settings.default_kickstart ,  '<<inherit>>')[is_subobject]    
         self.kernel_options  = ({},                                '<<inherit>>')[is_subobject]
         self.ks_meta         = ({},                                '<<inherit>>')[is_subobject]
+        self.virt_cpus       = (1,                                 '<<inherit>>')[is_subobject]
         self.virt_file_size  = (5,                                 '<<inherit>>')[is_subobject]
         self.virt_ram        = (512,                               '<<inherit>>')[is_subobject]
         self.repos           = ([],                                '<<inherit>>')[is_subobject]
@@ -67,11 +68,13 @@ class Profile(item.Item):
             self.set_repos(self.repos)
 
         # virt specific 
-        self.virt_ram        = self.load_item(seed_data,'virt_ram',512)
+        self.virt_ram    = self.load_item(seed_data,'virt_ram',512)
         self.virt_file_size  = self.load_item(seed_data,'virt_file_size',5)
-        self.virt_path       = self.load_item(seed_data,'virt_path')
-        self.virt_type       = self.load_item(seed_data,'virt_type',   self.settings.default_virt_type)
-        self.virt_bridge     = self.load_item(seed_data,'virt_bridge', self.settings.default_virt_bridge) 
+        self.virt_path   = self.load_item(seed_data,'virt_path')
+        self.virt_type   = self.load_item(seed_data,'virt_type', self.settings.default_virt_type)
+        self.virt_bridge = self.load_item(seed_data,'virt_bridge', self.settings.default_virt_bridge)        
+        self.virt_cpus   = self.load_item(seed_data,'virt_cpus',1)
+
         # backwards compatibility -- convert string entries to dicts for storage
         if self.kernel_options != "<<inherit>>" and type(self.kernel_options) != dict:
             self.set_kernel_options(self.kernel_options)
@@ -163,6 +166,22 @@ class Profile(item.Item):
             self.kickstart = kickstart
             return True
         raise CX(_("kickstart not found"))
+
+    def set_virt_cpus(self,num):
+        """
+        For Virt only.  Set the number of virtual CPUs to give to the
+        virtual machine.  This is fed to virtinst RAW, so cobbler
+        will not yelp if you try to feed it 9999 CPUs.  No formatting
+        like 9,999 please :)
+        """
+
+        try:
+            num = int(str(num))
+        except:
+            raise CX(_("invalid number of virtual CPUs"))
+
+        self.virt_cpus = num
+        return True
 
     def set_virt_file_size(self,num):
         """
@@ -280,6 +299,7 @@ class Profile(item.Item):
             'virt_file_size'   : self.virt_file_size,
             'virt_ram'         : self.virt_ram,
             'virt_bridge'      : self.virt_bridge,
+            'virt_cpus'        : self.virt_cpus,
             'ks_meta'          : self.ks_meta,
             'repos'            : self.repos,
             'parent'           : self.parent,
@@ -303,6 +323,7 @@ class Profile(item.Item):
         buf = buf + _("virt type       : %s\n") % self.virt_type
         buf = buf + _("virt path       : %s\n") % self.virt_path
         buf = buf + _("virt bridge     : %s\n") % self.virt_bridge
+        buf = buf + _("virt cpus       : %s\n") % self.virt_cpus
         buf = buf + _("repos           : %s\n") % self.repos
         buf = buf + _("dhcp tag        : %s\n") % self.dhcp_tag
         return buf
@@ -323,6 +344,7 @@ class Profile(item.Item):
             'virt-type'       :  self.set_virt_type,
             # FIXME: need to add to WUI
             'virt-bridge'     :  self.set_virt_bridge,
+            'virt-cpus'       :  self.set_virt_cpus,
             'dhcp-tag'        :  self.set_dhcp_tag
         }
 

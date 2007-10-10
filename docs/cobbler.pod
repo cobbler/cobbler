@@ -108,7 +108,7 @@ The file used for the answer file, regardless of the breed setting, is the value
 
 A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.  A profile might represent, for instance, a web server or desktop configuration.  In this way, profiles define a role to be performed.  
 
-B<cobbler profile add --name=string --distro=string [--kickstart=url] [--kopts=string] [--ksmeta=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-path=string] [--virt-bridge=string]>
+B<cobbler profile add --name=string --distro=string [--kickstart=url] [--kopts=string] [--ksmeta=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-cpus=integer] [--virt-path=string] [--virt-bridge=string]>
 
 Arguments are as listed for distributions, save for the removal of "arch" and "breed", and with the additions listed below:
 
@@ -144,6 +144,10 @@ depending on what is given to --virt-path.
 =item virt-type
 
 (Virt-only) Koan can install images using either Xen paravirt ("xenpv") or QEMU/KVM ("qemu").  Choose one or the other strings to specify, or values will default to attempting to find a compatible installation type on the client system ("auto").  See the "koan" manpage for more documentation.  The default virt-type can be configured in the cobbler settings file such that this parameter does not have to be provided.
+
+=item virt-cpus
+
+(Virt-only) How many virtual CPUs should koan give the virtual machine?  The default is 1.
 
 =item virt-path
 

@@ -246,12 +246,14 @@ class Utilities(BootTest):
         self.assertTrue(profile.set_distro("testdistro0"))
         self.assertTrue(profile.set_kickstart("http://127.0.0.1/foo"))
         self.assertTrue(profile.set_virt_bridge("xenbr1"))
-        # no slashes or wildcards in name
         # sizes must be integers
         self.assertTrue(profile.set_virt_file_size("54321"))
-        # temporarily commenting out failing test
-        # self.failUnlessRaises(CobblerException, profile.set_virt_file_size, "huge")
-        # self.failUnlessRaises(CobblerException, profile.set_virt_file_size, "54321.23")
+        self.failUnlessRaises(Exception, profile.set_virt_file_size, "huge")
+        self.failUnlessRaises(Exception, profile.set_virt_file_size, "54.321")
+        # cpus must be integers
+        self.assertTrue(profile.set_virt_cpus("2"))
+        self.failUnlessRaises(Exception, profile.set_virt_cpus, "3.14")
+        self.failUnlessRaises(Exception, profile.set_virt_cpus, "6.02*10^23")
         self.assertTrue(self.api.profiles().add(profile))
 
     def test_inheritance_and_variable_propogation(self):
