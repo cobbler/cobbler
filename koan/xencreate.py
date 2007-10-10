@@ -72,7 +72,7 @@ def start_paravirt_install(name=None, ram=None, disks=None,
 
     if profile_data.has_key("interfaces"):
 
-        for (name,intf) in profile_data["interfaces"].iteritems():
+        for (iname,intf) in profile_data["interfaces"].iteritems():
 
             mac = intf["mac_address"]
             if mac == "":

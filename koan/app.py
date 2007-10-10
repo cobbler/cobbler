@@ -1013,15 +1013,16 @@ class Koan:
         if self.virt_name is not None:
            # explicit override
            name = self.virt_name
-        elif profile_data.has_key("mac_address"):
+        elif profile_data.has_key("interfaces"):
            # this is a system object, just use the name
            name = profile_data["name"]
         else:
-           # just use the time, lacking anything better
-           # FIXME: use string version of the time?
-           name = str(time.time())
-        # keep libvirt happy in case the name was a MAC address
-        return name.replace(":","_") 
+           # just use the time, we used to use the MAC
+           # but that's not really reliable when there are more
+           # than one.
+           name = time.ctime(time.time())
+        # keep libvirt happy with the names
+        return name.replace(":","_").replace(" ","_")
 
 
     #--------------------------------------------------
