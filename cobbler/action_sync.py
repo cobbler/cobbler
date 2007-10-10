@@ -191,7 +191,7 @@ class BootSync:
 
                 if not system_definitions.has_key(interface["dhcp_tag"]):
                     system_definitions[interface["dhcp_tag"]] = ""
-                system_definitions[inteface["dhcp_tag"]] = system_definitions[inteface["dhcp_tag"]] + systxt
+                system_definitions[interface["dhcp_tag"]] = system_definitions[interface["dhcp_tag"]] + systxt
 
         # we are now done with the looping through each interface of each system
 
