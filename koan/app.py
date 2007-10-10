@@ -148,14 +148,6 @@ def main():
     p.add_option("-T", "--virt-type",
                  dest="virt_type",
                  help="virtualization install type (xenpv,qemu)")
-    p.add_option("-g", "--virt-graphics",
-                 action="store_true",
-                 dest="virt_graphics",
-                 help="enables VNC virt graphics")
-    p.add_option("-b", "--virt-bridge",
-                 default=None,
-                 dest="virt_bridge",
-                 help="which network bridge to use")
 
     (options, args) = p.parse_args()
 
@@ -176,11 +168,6 @@ def main():
         k.live_cd           = options.live_cd
         k.virt_path         = options.virt_path
         k.virt_type         = options.virt_type
-        k.virt_graphics     = options.virt_graphics
-        k.virt_bridge       = options.virt_bridge
-
-        if k.system is not None and k.virt_bridge is not None:
-            raise InfoException("When not provisioning via --profile, virt-bridge declarations must be made in Cobbler.")
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -231,8 +218,6 @@ class Koan:
         self.virt_name         = None
         self.virt_type         = None
         self.virt_path         = None 
-        self.virt_graphics     = None
-        self.virt_bridge       = None
 
     #---------------------------------------------------
 
@@ -364,9 +349,6 @@ class Koan:
                    self.virt_type = "xenpv"
                raise InfoException, "--virttype should be qemu, xenpv, or auto"
 
-        if self.virt_bridge is None and self.is_virt and self.profile is not None:
-            self.virt_bridge = self.autodetect_bridge()
-
         # perform one of three key operations
         if self.is_virt:
             self.virt()
@@ -399,51 +381,6 @@ class Koan:
             print "- Auto detected: %s" % detectedsystem[0]
             return detectedsystem[0]
 
-    #---------------------------------------------------
-
-    def autodetect_bridge(self):
-        """
-        If the user did not specify a --virt-bridge to use
-        then try to find bridges that may be useful.  This will
-        always be less reliable than using --virt-bridge but
-        for many folks they will only have one or they will
-        have xenbr0.  This attempts to do the right thing
-        for both Xen and qemu/KVM.
-        """
-        # FIXME: this probably does not make sense in the context
-        # where we have multiple NICs.  How to deal with this? 
-
-        found = None
-
-        # see if the one Xen usually creates is there
-        # if there, use it
-        cmd = sub_process.Popen("/sbin/ifconfig",shell=True,stdout=sub_process.PIPE)
-        data = cmd.communicate()[0]
-        if data.find("xenbr0") != -1:
-            # commonly found in Xen installs, just use that
-            found = "xenbr0"
-
-        # if not, look for one the user might have created according
-        # to convention. 
-        if found is None:
-            for x in range(0,10):
-                pattern = "/etc/sysconfig/network-scripts/ifcfg-%s%s" 
-                if os.path.exists(pattern % ("eth", x)):
-                    if os.path.exists(pattern % ("peth", x)):
-                        found = "eth%s" % x
-                        break
-
-        # no more places to look, either return it or explain
-        # to the user how they can resolve the problem.
-        if found is None:
-            raise InfoException, "specific --virt-bridge not specified and could not guess which one to use, please see manpage for further instructions."
-        else:
-            print "- warning: explicit usage of --virt-bridge is recommended"
-            print "- trying to use %s as the bridge" % found
-
-        return found
-
-    
     #---------------------------------------------------
 
     def urlread(self,url):
@@ -950,13 +887,10 @@ class Koan:
                 name          =  virtname,
                 ram           =  ram,
                 disks         =  disks,
-                #mac           =  mac,  
                 uuid          =  uuid, 
                 extra         =  kextra,
                 vcpus         =  vcpus,
-                virt_graphics =  self.virt_graphics, 
                 profile_data  =  profile_data,       
-                bridge        =  self.virt_bridge,   
                 arch          =  arch         
         )
 

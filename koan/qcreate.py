@@ -43,7 +43,7 @@ def random_mac():
 def start_install(name=None, ram=None, disks=None, mac=None,
                   uuid=None,  
                   extra=None,
-                  vcpus=None, virt_graphics=None, 
+                  vcpus=None, 
                   profile_data=None, bridge=None, arch=None):
 
     vtype = "qemu"
@@ -75,12 +75,6 @@ def start_install(name=None, ram=None, disks=None, mac=None,
     if vcpus is None:
         vcpus = 1
     guest.set_vcpus(vcpus)
-    
-    # -- FIXME: workaround for bugzilla 249072 
-    #if virt_graphics:
-    #    guest.set_graphics("vnc")
-    #else:
-    #    guest.set_graphics(False)
     guest.set_graphics("vnc")
 
     if uuid is not None:
@@ -99,19 +93,26 @@ def start_install(name=None, ram=None, disks=None, mac=None,
             if mac == "":
                 mac = random_mac()
 
-            bridge2 = intf["virt_bridge"]
-            if bridge2 == "":
-                bridge2 = bridge
+            profile_bridge = profile_data["virt_bridge"]
 
-            nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac, bridge=bridge2)
+            intf_bridge = intf["virt_bridge"]
+            if intf_bridge == "":
+                if profile_bridge == "":
+                    raise VirtCreateException("virt-bridge setting is not defined in cobbler")
+                intf_bridge = profile_bridge
+                
+
+            nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac, bridge=intf_bridge)
             guest.nics.append(nic_obj)
             counter = counter + 1
 
     else:
-            # for --profile you just get one NIC, go define a system if you want more.
 
-            # FIXME: ever want to allow --virt-mac on the command line?  Too much complexity?
-            nic_obj = virtinst.VirtualNetworkInterface(macaddr=random_mac(), bridge=bridge)
+            profile_bridge = profile_data["virt_bridge"]
+            if profile_bridge == "":
+                raise VirtCreateException("virt-bridge setting is not defined in cobbler")
+
+            nic_obj = virtinst.VirtualNetworkInterface(macaddr=random_mac(), bridge=profile_bridge)
             guest.nics.append(nic_obj)
 
     guest.start_install()

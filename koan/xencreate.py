@@ -46,8 +46,8 @@ def random_mac():
 def start_paravirt_install(name=None, ram=None, disks=None,
                            uuid=None,  
                            extra=None, 
-                           vcpus=None, virt_graphics=False, 
-                           profile_data=None, bridge=None, arch=None):
+                           vcpus=None,  
+                           profile_data=None, arch=None):
 
 
     guest = virtinst.ParaVirtGuest()
@@ -58,10 +58,7 @@ def start_paravirt_install(name=None, ram=None, disks=None,
     if vcpus is None:
         vcpus = 1
     guest.set_vcpus(vcpus)
-    if virt_graphics:
-        guest.set_graphics("vnc")
-    else:
-        guest.set_graphics(False)
+    guest.set_graphics("vnc")
     if uuid is not None:
         guest.set_uuid(uuid)
 
@@ -77,12 +74,17 @@ def start_paravirt_install(name=None, ram=None, disks=None,
             mac = intf["mac_address"]
             if mac == "":
                 mac = random_mac()
-    
-            bridge2 = intf["virt_bridge"]
-            if bridge2 == "":
-                bridge2 = bridge
 
-            nic_obj = virtinst.XenNetworkInterface(macaddr=mac, bridge=bridge2)
+            profile_bridge = profile_data["virt_bridge"]
+
+            intf_bridge = intf["virt_bridge"]
+            if intf_bridge == "":
+                if profile_bridge == "":
+                    raise VirtCreateException("virt-bridge setting is not defined in cobbler")
+                intf_bridge = profile_bridge
+    
+
+            nic_obj = virtinst.XenNetworkInterface(macaddr=mac, bridge=intf_bridge)
             guest.nics.append(nic_obj)
             counter = counter + 1
    
@@ -90,7 +92,11 @@ def start_paravirt_install(name=None, ram=None, disks=None,
             # for --profile you just get one NIC, go define a system if you want more.
             # FIXME: can mac still be sent on command line in this case?
 
-            nic_obj = virtinst.XenNetworkInterface(macaddr=random_mac(), bridge=bridge)
+            profile_bridge = profile_data["virt_bridge"]
+            if profile_bridge == "":
+                raise VirtCreateException("virt-bridge setting is not defined in cobbler")
+
+            nic_obj = virtinst.XenNetworkInterface(macaddr=random_mac(), bridge=profile_bridge)
             guest.nics.append(nic_obj)
             
         
