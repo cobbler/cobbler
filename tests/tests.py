@@ -19,11 +19,6 @@ import subprocess
 import tempfile
 import shutil
 
-#sys.path.append('../cobbler')
-#sys.path.append('../cobbler/modules')
-#sys.path.append('./cobbler')
-#sys.path.append('./cobbler/modules')
-
 from cobbler import settings
 from cobbler import collection_distros
 from cobbler import collection_profiles
@@ -250,6 +245,7 @@ class Utilities(BootTest):
         self.assertTrue(profile.set_name("testprofile12b"))
         self.assertTrue(profile.set_distro("testdistro0"))
         self.assertTrue(profile.set_kickstart("http://127.0.0.1/foo"))
+        self.assertTrue(profile.set_virt_bridge("xenbr1"))
         # no slashes or wildcards in name
         # sizes must be integers
         self.assertTrue(profile.set_virt_file_size("54321"))

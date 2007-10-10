@@ -439,6 +439,7 @@ class BootCLI:
             '--kopts'           :  lambda(a) : profile.set_kernel_options(a),
             '--virt-file-size'  :  lambda(a) : profile.set_virt_file_size(a),
             '--virt-ram'        :  lambda(a) : profile.set_virt_ram(a),
+            '--virt-bridge'     :  lambda(a) : profile.set_virt_bridge(a),
             '--ksmeta'          :  lambda(a) : profile.set_ksmeta(a),
             '--repos'           :  lambda(a) : profile.set_repos(a),
             '--virt-path'       :  lambda(a) : profile.set_virt_path(a),

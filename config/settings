@@ -3,6 +3,7 @@ bootloaders:
     ia64: /var/lib/cobbler/elilo-3.6-ia64.efi
     standard: /usr/lib/syslinux/pxelinux.0
 default_kickstart: /etc/cobbler/default.ks
+default_virt_bridge: xenbr0
 default_virt_type: auto
 dhcpd_bin: /usr/sbin/dhcpd
 dhcpd_conf: /etc/dhcpd.conf

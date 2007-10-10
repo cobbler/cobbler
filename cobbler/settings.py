@@ -27,6 +27,7 @@ DEFAULTS = {
         "ia64"                    : "/var/lib/cobbler/elilo-3.6-ia64.efi"
     },
     "default_kickstart"           : "/etc/cobbler/default.ks",
+    "default_virt_bridge"         : "xenbr0",
     "default_virt_type"           : "auto",
     "dhcpd_conf"                  : "/etc/dhcpd.conf",
     "dhcpd_bin"                   : "/usr/sbin/dhcpd",
