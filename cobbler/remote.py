@@ -21,7 +21,6 @@ import SimpleXMLRPCServer
 from rhpl.translate import _, N_, textdomain, utf8
 import xmlrpclib
 import logging
-import base64
 import ConfigParser
 import random
 import base64
@@ -333,7 +332,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
 
     def __get_random(self,length):
         urandom = open("/dev/urandom")
-        b64 = base64.b64encode(urandom.read(25))
+        b64 = base64.encodestring(urandom.read(25))
         urandom.close()
         return b64 
 
