@@ -90,14 +90,15 @@ class System(item.Item):
         # now backfill the interface structure with any old values from
         # before the upgrade
 
-        if __hostname != "":
-            self.set_hostname(__hostname, "intf0")
-        if __mac_address != "":
-            self.set_mac_address(__mac_address, "intf0")
-        if __ip_address != "":
-            self.set_ip_address(__ip_address, "intf0")
-        if __dhcp_tag != "":
-            self.set_dhcp_tag(__dhcp_tag, "intf0")
+        if not self.interfaces.has_key("intf0"):
+            if __hostname != "":
+                self.set_hostname(__hostname, "intf0")
+            if __mac_address != "":
+                self.set_mac_address(__mac_address, "intf0")
+            if __ip_address != "":
+                self.set_ip_address(__ip_address, "intf0")
+            if __dhcp_tag != "":
+                self.set_dhcp_tag(__dhcp_tag, "intf0")
 
         # backwards compatibility -- convert string entries to dicts for storage
         # this allows for better usage from the API.
@@ -148,8 +149,9 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         if intf["mac_address"] != "":
             return intf["mac_address"]
-        elif utils.is_mac(self.name) and interface == "intf0":
-            return self.name
+        # obsolete, because we should have updated the mac field already with set_name (?)
+        # elif utils.is_mac(self.name) and interface == "intf0":
+        #    return self.name
         else:
             return None
 
@@ -162,8 +164,8 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         if intf["ip_address"] != "": 
             return intf["ip_address"]
-        elif utils.is_ip(self.name) and interface == "intf0":
-            return self.name
+        #elif utils.is_ip(self.name) and interface == "intf0":
+        #    return self.name
         else:
             return None
 

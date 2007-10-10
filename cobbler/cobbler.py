@@ -494,38 +494,87 @@ class BootCLI:
         """
         Create/Edit a system:  'cobbler system edit --name='foo' ...
         """
-        # This copy/paste is heinous evil, please forgive me.
-        commands = {
-           '--name'        :     lambda(a) : sys.set_name(a),
-           '--newname'     :     lambda(a) : True,
-           '--system'      :     lambda(a) : sys.set_name(a),
-           '--profile'     :     lambda(a) : sys.set_profile(a),
-           '--kopts'       :     lambda(a) : sys.set_kernel_options(a),
-           '--ksmeta'      :     lambda(a) : sys.set_ksmeta(a),
-           '--hostname'    :     lambda(a) : sys.set_hostname(a,interface="intf0"),
-           '--ip'          :     lambda(a) : sys.set_ip_address(a,interface="intf0"), 
-           '--mac'         :     lambda(a) : sys.set_mac_address(a,interface="intf0"), 
-           '--gateway'     :     lambda(a) : sys.set_gateway(a,interface="intf0"), 
-           '--subnet'      :     lambda(a) : sys.set_subnet(a,interface="intf0"), 
-           '--virt-bridge' :     lambda(a) : sys.set_virt_bridge(a,interface="intf0"), 
-           '--kickstart'   :     lambda(a) : sys.set_kickstart(a),
-           '--netboot-enabled' : lambda(a) : sys.set_netboot_enabled(a),
-           '--virt-path'   :     lambda(a) : sys.set_virt_path(a),
-           '--virt-type'   :     lambda(a) : sys.set_virt_type(a),
-           '--dhcp-tag'    :     lambda(a) : sys.set_dhcp_tag(a,interface="intf0")
-        }
 
-        # add some command aliases for additional interfaces.  The default commands
-        # only operate on the first, which are all many folks will need.
-        for count in range(0,7):
-           commands["--hostname%d"    % count] = lambda(a) : sys.set_hostname(a,interface="intf%s" % count)
-           commands["--ip%d"          % count] = lambda(a) : sys.set_ip_address(a,interface="intf%s" % count) 
-           commands["--mac%d"         % count] = lambda(a) : sys.set_mac_address(a,interface="intf%s" % count)
-           commands["--gateway%d"     % count] = lambda(a) : sys.set_gateway(a,interface="intf%s" % count)
-           commands["--subnet%d"      % count] = lambda(a) : sys.set_subnet(a,interface="intf%s" % count)
-           commands["--virt-bridge%d" % count] = lambda(a) : sys.set_virt_bridge(a,interface="intf%s" % count)
-           commands["--dhcp-tag%d"    % count] = lambda(a) : sys.set_dhcp_tag(a,interface="intf%s" % count)
-        
+        # This copy/paste is heinous evil, please forgive me.
+        # there was a loop here but the python optimizers seemed to do wierd
+        # things with the lambda handling.  To be resolved when this
+        # command line gets refactored to use optparse.
+
+        commands = {
+           '--name'            : lambda(a) : sys.set_name(a),
+           '--newname'         : lambda(a) : True,
+           '--system'          : lambda(a) : sys.set_name(a),
+           '--profile'         : lambda(a) : sys.set_profile(a),
+           '--kopts'           : lambda(a) : sys.set_kernel_options(a),
+           '--ksmeta'          : lambda(a) : sys.set_ksmeta(a),
+           '--hostname'        : lambda(a) : sys.set_hostname(a,"intf0"),
+           '--hostname0'       : lambda(a) : sys.set_hostname(a,"intf0"),
+           '--hostname1'       : lambda(a) : sys.set_hostname(a,"intf1"),
+           '--hostname2'       : lambda(a) : sys.set_hostname(a,"intf2"),
+           '--hostname3'       : lambda(a) : sys.set_hostname(a,"intf3"),
+           '--hostname4'       : lambda(a) : sys.set_hostname(a,"intf4"),
+           '--hostname5'       : lambda(a) : sys.set_hostname(a,"intf5"),
+           '--hostname6'       : lambda(a) : sys.set_hostname(a,"intf6"),
+           '--hostname7'       : lambda(a) : sys.set_hostname(a,"intf7"),
+           '--ip'              : lambda(a) : sys.set_ip_address(a,"intf0"), 
+           '--ip0'             : lambda(a) : sys.set_ip_address(a,"intf0"), 
+           '--ip1'             : lambda(a) : sys.set_ip_address(a,"intf1"), 
+           '--ip2'             : lambda(a) : sys.set_ip_address(a,"intf2"), 
+           '--ip3'             : lambda(a) : sys.set_ip_address(a,"intf3"), 
+           '--ip4'             : lambda(a) : sys.set_ip_address(a,"intf4"), 
+           '--ip5'             : lambda(a) : sys.set_ip_address(a,"intf5"), 
+           '--ip6'             : lambda(a) : sys.set_ip_address(a,"intf6"), 
+           '--ip7'             : lambda(a) : sys.set_ip_address(a,"intf7"), 
+           '--mac'             : lambda(a) : sys.set_mac_address(a,"intf0"), 
+           '--mac0'            : lambda(a) : sys.set_mac_address(a,"intf0"), 
+           '--mac1'            : lambda(a) : sys.set_mac_address(a,"intf1"), 
+           '--mac2'            : lambda(a) : sys.set_mac_address(a,"intf2"), 
+           '--mac3'            : lambda(a) : sys.set_mac_address(a,"intf3"), 
+           '--mac4'            : lambda(a) : sys.set_mac_address(a,"intf4"), 
+           '--mac5'            : lambda(a) : sys.set_mac_address(a,"intf5"), 
+           '--mac6'            : lambda(a) : sys.set_mac_address(a,"intf6"), 
+           '--mac7'            : lambda(a) : sys.set_mac_address(a,"intf7"), 
+           '--gateway'         : lambda(a) : sys.set_gateway(a,"intf0"), 
+           '--gateway0'        : lambda(a) : sys.set_gateway(a,"intf0"), 
+           '--gateway1'        : lambda(a) : sys.set_gateway(a,"intf1"), 
+           '--gateway2'        : lambda(a) : sys.set_gateway(a,"intf2"), 
+           '--gateway3'        : lambda(a) : sys.set_gateway(a,"intf3"), 
+           '--gateway4'        : lambda(a) : sys.set_gateway(a,"intf4"), 
+           '--gateway5'        : lambda(a) : sys.set_gateway(a,"intf5"), 
+           '--gateway6'        : lambda(a) : sys.set_gateway(a,"intf6"), 
+           '--gateway7'        : lambda(a) : sys.set_gateway(a,"intf7"), 
+           '--subnet'          : lambda(a) : sys.set_subnet(a,"intf0"), 
+           '--subnet0'         : lambda(a) : sys.set_subnet(a,"intf1"), 
+           '--subnet1'         : lambda(a) : sys.set_subnet(a,"intf2"), 
+           '--subnet2'         : lambda(a) : sys.set_subnet(a,"intf3"), 
+           '--subnet3'         : lambda(a) : sys.set_subnet(a,"intf4"), 
+           '--subnet4'         : lambda(a) : sys.set_subnet(a,"intf5"), 
+           '--subnet5'         : lambda(a) : sys.set_subnet(a,"intf6"), 
+           '--subnet6'         : lambda(a) : sys.set_subnet(a,"intf7"), 
+           '--subnet7'         : lambda(a) : sys.set_subnet(a,"intf8"), 
+           '--virt-bridge'     : lambda(a) : sys.set_virt_bridge(a,"intf0"), 
+           '--virt-bridge0'    : lambda(a) : sys.set_virt_bridge(a,"intf0"), 
+           '--virt-bridge1'    : lambda(a) : sys.set_virt_bridge(a,"intf1"), 
+           '--virt-bridge2'    : lambda(a) : sys.set_virt_bridge(a,"intf2"), 
+           '--virt-bridge3'    : lambda(a) : sys.set_virt_bridge(a,"intf3"), 
+           '--virt-bridge4'    : lambda(a) : sys.set_virt_bridge(a,"intf4"), 
+           '--virt-bridge5'    : lambda(a) : sys.set_virt_bridge(a,"intf5"), 
+           '--virt-bridge6'    : lambda(a) : sys.set_virt_bridge(a,"intf6"), 
+           '--virt-bridge7'    : lambda(a) : sys.set_virt_bridge(a,"intf7"), 
+           '--dhcp-tag'        : lambda(a) : sys.set_dhcp_tag(a,"intf0"),
+           '--dhcp-tag0'       : lambda(a) : sys.set_dhcp_tag(a,"intf0"),
+           '--dhcp-tag1'       : lambda(a) : sys.set_dhcp_tag(a,"intf1"),
+           '--dhcp-tag2'       : lambda(a) : sys.set_dhcp_tag(a,"intf2"),
+           '--dhcp-tag3'       : lambda(a) : sys.set_dhcp_tag(a,"intf3"),
+           '--dhcp-tag4'       : lambda(a) : sys.set_dhcp_tag(a,"intf4"),
+           '--dhcp-tag5'       : lambda(a) : sys.set_dhcp_tag(a,"intf5"),
+           '--dhcp-tag6'       : lambda(a) : sys.set_dhcp_tag(a,"intf6"),
+           '--dhcp-tag7'       : lambda(a) : sys.set_dhcp_tag(a,"intf7"),
+           '--kickstart'       : lambda(a) : sys.set_kickstart(a),
+           '--netboot-enabled' : lambda(a) : sys.set_netboot_enabled(a),
+           '--virt-path'       : lambda(a) : sys.set_virt_path(a),
+           '--virt-type'       : lambda(a) : sys.set_virt_type(a)
+        }
 
         def on_ok():
             self.api.systems().add(sys, with_copy=True)
