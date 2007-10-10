@@ -69,22 +69,20 @@ an absolute filesystem path to a initrd image
 
 =item kopts
 
-(optional) sets kernel command-line arguments that the distro, and profiles/systems dependant
+sets kernel command-line arguments that the distro, and profiles/systems dependant
 on it, will use.
 
 Example: --kopts="foo=bar baz=3 asdf"
 
 =item arch
 
-(optional) sets the architecture for the PXE bootloader
+sets the architecture for the PXE bootloader
 
 The default setting ('standard') will use pxelinux.   Set to 'ia64' to use elilo.
 
 'x86' and 'x86_64' effectively do the same thing as standard.
 
 =item ksmeta
-
-(optional)
 
 This is an advanced feature that sets kickstart variables to substitute, thus enabling kickstart files to be treated as templates.
 
@@ -132,35 +130,40 @@ When using kickstart files, they can be placed anywhere on the filesystem, but t
 
 =item virt-file-size
 
-(optional) (Virt-only) how large the disk image should be in gigabytes.  The default is "5".
+(Virt-only) how large the disk image should be in gigabytes.  The default is "5".
 This can be a comma seperated list (ex: "5,6,7") to allow for multiple disks of different sizes
 depending on what is given to --virt-path.
 
 =item virt-ram
 
-(optional) (Virt-only) how many megabytes of RAM to consume.  The default is 512 MB.
+(Virt-only) how many megabytes of RAM to consume.  The default is 512 MB.
 
 =item virt-type
 
-(optional) (Virt-only) koan can install images using either Xen paravirt ("xenpv") or QEMU/KVM ("qemu").  Choose one or the other strings to specify, or values will default to attempting to find a compatible installation type on the client system ("auto").  See the "koan" manpage for more documentation.
+(Virt-only) koan can install images using either Xen paravirt ("xenpv") or QEMU/KVM ("qemu").  Choose one or the other strings to specify, or values will default to attempting to find a compatible installation type on the client system ("auto").  See the "koan" manpage for more documentation.
 
 =item virt-path
 
-(optional) (Virt-only) where to store the virtual image.  Except for advanced cases, this parameter can usually be omitted. For disk images, the value is an
+(Virt-only) where to store the virtual image.  Except for advanced cases, this parameter can usually be omitted. For disk images, the value is an
 absolute path to an existing directory with an optional file name component.  
 
 There is also some experimental support for specifying partitions "/dev/sda4" or volume groups "VolGroup00", etc.
 
 For multiple disks, seperate the values with commas such as "VolGroup00,VolGroup00" or "/dev/sda4,/dev/sda5".  Both those examples would create two disks for the VM.
 
+=item virt-bridge
+
+(Virt-only) for virtual machines, this specifies the default bridge to use for all systems
+defined under this profile.  If not specified, it will assume the default value in the cobbler settings file, which as shipped in the RPM is 'xenbr0'.  If using KVM, this is most likely not correct.  You may want to override this setting in the system object.
+
 =item repos
 
-(optional) a space delimited list of all the repos (created with "cobbler repo add" and "cobbler reposync") that this profile
+a space delimited list of all the repos (created with "cobbler repo add" and "cobbler reposync") that this profile
 can make use of during kickstart installation.  For example, an example might be --repos="fc6i386updates fc6i386extras".
 
 =item inherit
 
-(optional) profiles may inherit from other profiles in lieu of specifing --distro.  Inherited profiles will override any settings specified in their parent, with the exception of --ksmet(templating) and --kopts (kernel options), which will be blended together.  
+profiles may inherit from other profiles in lieu of specifing --distro.  Inherited profiles will override any settings specified in their parent, with the exception of --ksmet(templating) and --kopts (kernel options), which will be blended together.  
 
 Example:  If profile A has --kopts="x=7 y=2", B inherits from A, and B has --kopts="x=9 z=2", the actual kernel options that will be used for B are "x=7 y=2 z=2". 
 
@@ -238,9 +241,13 @@ For DHCP configurations, these parameters should be left blank.
 To describe gateway and subnet information for multiple intefaces, use --gateway0=x, --gateway1=y
 and so on.  Subnets work the same way.
 
+=item --virt-bridge
+
+(Virt-only) While --virt-bridge is present in the profile object (see above), here it works on an interface by interface basis.   For instance it would be possible to have --virt-bridge0=xenbr0 and --virt-bridge1=xenbr1.  If not specified in cobbler for each interface, koan will use the value as specified in the profile for each interface, which may not always be what is intended, but will be sufficient in most cases.
+
 =item --kickstart
 
-(optional) While it is recommended that the --kickstart parameter is only used within for the "profile add" command, there are scenarios when an install base switching to cobbler may have kickstarts created on a per-system basis (one kickstart for each system, nothing shared) and may not want to immediately make use of the cobbler templating system.  This allows specifing a kickstart for use on a per-system basis.  Creation of a parent profile is still required.  If the kickstart is a filesystem location, it will still be treated as a cobbler template.
+While it is recommended that the --kickstart parameter is only used within for the "profile add" command, there are scenarios when an install base switching to cobbler may have kickstarts created on a per-system basis (one kickstart for each system, nothing shared) and may not want to immediately make use of the cobbler templating system.  This allows specifing a kickstart for use on a per-system basis.  Creation of a parent profile is still required.  If the kickstart is a filesystem location, it will still be treated as a cobbler template.
 
 =item --netboot-enabled
 

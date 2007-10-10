@@ -34,17 +34,18 @@ class Profile(item.Item):
         Reset this object.
         """
         self.name            = None
-        self.distro          = (None,                             '<<inherit>>')[is_subobject]
-        self.kickstart       = (self.settings.default_kickstart , '<<inherit>>')[is_subobject]    
-        self.kernel_options  = ({},                               '<<inherit>>')[is_subobject]
-        self.ks_meta         = ({},                               '<<inherit>>')[is_subobject]
-        self.virt_file_size  = (5,                                '<<inherit>>')[is_subobject]
-        self.virt_ram        = (512,                              '<<inherit>>')[is_subobject]
-        self.repos           = ([],                               '<<inherit>>')[is_subobject]
+        self.distro          = (None,                              '<<inherit>>')[is_subobject]
+        self.kickstart       = (self.settings.default_kickstart ,  '<<inherit>>')[is_subobject]    
+        self.kernel_options  = ({},                                '<<inherit>>')[is_subobject]
+        self.ks_meta         = ({},                                '<<inherit>>')[is_subobject]
+        self.virt_file_size  = (5,                                 '<<inherit>>')[is_subobject]
+        self.virt_ram        = (512,                               '<<inherit>>')[is_subobject]
+        self.repos           = ([],                                '<<inherit>>')[is_subobject]
         self.depth           = 1
-        self.virt_type       = (self.settings.default_virt_type,  '<<inherit>>')[is_subobject]
-        self.virt_path       = ("",                               '<<inherit>>')[is_subobject]
-        self.dhcp_tag        = ("default",                        '<<inherit>>')[is_subobject]
+        self.virt_type       = (self.settings.default_virt_type,   '<<inherit>>')[is_subobject]
+        self.virt_path       = ("",                                '<<inherit>>')[is_subobject]
+        self.virt_bridge     = (self.settings.default_virt_bridge, '<<inherit>>')[is_subobject]
+        self.dhcp_tag        = ("default",                         '<<inherit>>')[is_subobject]
 
     def from_datastruct(self,seed_data):
         """
@@ -60,17 +61,17 @@ class Profile(item.Item):
         self.repos           = self.load_item(seed_data,'repos', [])
         self.depth           = self.load_item(seed_data,'depth', 1)     
         self.dhcp_tag        = self.load_item(seed_data,'dhcp_tag', 'default')
- 
+
         # backwards compatibility
         if type(self.repos) != list:
             self.set_repos(self.repos)
 
         # virt specific 
-        self.virt_ram        = self.load_item(seed_data,'virt_ram')
-        self.virt_file_size  = self.load_item(seed_data,'virt_file_size')
+        self.virt_ram        = self.load_item(seed_data,'virt_ram',512)
+        self.virt_file_size  = self.load_item(seed_data,'virt_file_size',5)
         self.virt_path       = self.load_item(seed_data,'virt_path')
-        self.virt_type       = self.load_item(seed_data,'virt_type')
-
+        self.virt_type       = self.load_item(seed_data,'virt_type',   self.settings.default_virt_type)
+        self.virt_bridge     = self.load_item(seed_data,'virt_bridge', self.settings.default_virt_bridge) 
         # backwards compatibility -- convert string entries to dicts for storage
         if self.kernel_options != "<<inherit>>" and type(self.kernel_options) != dict:
             self.set_kernel_options(self.kernel_options)
@@ -222,6 +223,13 @@ class Profile(item.Item):
         self.virt_type = vtype
         return True
 
+    def set_virt_bridge(self,vbridge):
+        """
+        The default bridge for all virtual interfaces under this profile.
+        """
+        self.virt_bridge = vbridge
+        return True
+
     def set_virt_path(self,path):
         """
         Virtual storage location suggestion, can be overriden by koan.
@@ -271,6 +279,7 @@ class Profile(item.Item):
             'kernel_options'   : self.kernel_options,
             'virt_file_size'   : self.virt_file_size,
             'virt_ram'         : self.virt_ram,
+            'virt_bridge'      : self.virt_bridge,
             'ks_meta'          : self.ks_meta,
             'repos'            : self.repos,
             'parent'           : self.parent,
@@ -293,6 +302,7 @@ class Profile(item.Item):
         buf = buf + _("virt ram        : %s\n") % self.virt_ram
         buf = buf + _("virt type       : %s\n") % self.virt_type
         buf = buf + _("virt path       : %s\n") % self.virt_path
+        buf = buf + _("virt bridge     : %s\n") % self.virt_bridge
         buf = buf + _("repos           : %s\n") % self.repos
         buf = buf + _("dhcp tag        : %s\n") % self.dhcp_tag
         return buf
@@ -311,6 +321,8 @@ class Profile(item.Item):
             'repos'           :  self.set_repos,
             'virt-path'       :  self.set_virt_path,
             'virt-type'       :  self.set_virt_type,
+            # FIXME: need to add to WUI
+            'virt-bridge'     :  self.set_virt_bridge,
             'dhcp-tag'        :  self.set_dhcp_tag
         }
 
