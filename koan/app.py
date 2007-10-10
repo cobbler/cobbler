@@ -450,7 +450,10 @@ class Koan:
                profile_data["kickstart"] = "http://%s/cblr/%s/%s/ks.cfg" % (profile_data['server'], filler, profile_data['name'])
                 
             # find_kickstart source tree in the kickstart file
-            raw = self.urlread(profile_data["kickstart"])
+            try:
+                raw = self.urlread(profile_data["kickstart"])
+            except:
+                raise InfoException("Unable to download kickstart, perhaps cobbler sync was not run recently, Apache is not running, or the server address in the cobbler settings file is wrong.")
             lines = raw.split("\n")
             for line in lines:
                reg = re.compile("--url.(.*)")
