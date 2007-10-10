@@ -3,6 +3,7 @@ Koan CHANGELOG
 * Mon Oct 08 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.3-1
 - Multiple NIC support
 - Added traceback print to detect bridge connection problems, if any
+- Use --virt-cpu setting from Cobbler
 
 * Fri Sep 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.2-2
 - Allow for multiple values (comma seperated) to --virt-path
