@@ -6,6 +6,7 @@ Cobbler CHANGELOG
 - Use server address not @@server in repo config files
 - Add --virt-cpus to profile editing
 - Fix bug where WUI (XMLRPC) auth wasn't supported on EL4
+- Add --virt-bridge to profile editing and NICs
 
 * Fri Sep 28 2007 - 0.6.2
 - cobbler repo auto-add to discover yum repos automatically

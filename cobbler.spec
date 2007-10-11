@@ -177,6 +177,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 * Mon Oct 08 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.3-1
 - Upstream changes (see CHANGELOG)
+- now packaging javascript file(s) seperately for WUI
 
 * Fri Sep 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.2-2
 - Upstream changes (see CHANGELOG)
