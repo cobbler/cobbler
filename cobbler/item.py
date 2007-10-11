@@ -49,7 +49,7 @@ class Item(serializable.Serializable):
         self.config = config
         self.settings = self.config._settings
         self.clear(is_subobject)      # reset behavior differs for inheritance cases
-        self.parent = None            # all objects by default are not subobjects
+        self.parent = ''              # all objects by default are not subobjects
         self.children = {}            # caching for performance reasons, not serialized
 
  

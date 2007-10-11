@@ -40,15 +40,15 @@ else:
 INVALID_CREDS="Login Required"
 
 def log_exc():
-   """
-   Log active traceback to logfile.
-   """
-   if not LOGGING_ENABLED:
-       return
-   (t, v, tb) = sys.exc_info()
-   logger.info("Exception occured: %s" % t )
-   logger.info("Exception value: %s" % v)
-   logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+    """
+    Log active traceback to logfile.
+    """
+    if not LOGGING_ENABLED:
+        return
+    (t, v, tb) = sys.exc_info()
+    logger.info("Exception occured: %s" % t )
+    logger.info("Exception value: %s" % v)
+    logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
 
 class CobblerWeb(object):
     """
@@ -498,7 +498,7 @@ class CobblerWeb(object):
             return self.__render('empty.tmpl', {})
 
     def subprofile_edit(self, name=None):
-        return self.profile_edit(self,name,subprofile=1)
+        return self.profile_edit(name,1)
 
     def profile_edit(self, name=None, subprofile=0):
 
@@ -523,7 +523,7 @@ class CobblerWeb(object):
                      distro=None,kickstart=None,kopts=None,
                      ksmeta=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,
-                     parent=None,subprofile=None,**args):
+                     parent=None,virtcpus=None,virtbridge=None,subprofile=None,**args):
 
         if not self.__xmlrpc_setup():
             return self.login(message=INVALID_CREDS)
@@ -532,9 +532,11 @@ class CobblerWeb(object):
         if name is None and editmode=='edit' and oldname is not None:
             name = oldname
         if name is None:
-            return self.error_page("name is required")
-        if distro is None:
-            return self.error_page("distro is required")
+            return self.error_page("A name has not been specified.")
+        if distro is None and str(subprofile) == "0" :
+            return self.error_page("A distribution has not been specified.")
+        if parent is None and str(subprofile) == "1" :
+            return self.error_page("A parent profile has not been specified.")
         if (editmode == 'rename' or editmode == 'copy') and name == oldname:
             return self.error_page("The name has not been changed")
     
@@ -554,15 +556,16 @@ class CobblerWeb(object):
                 return self.error_page("Failed to lookup profile: %s" % name)
         else:
             if str(subprofile) != "1":
-                profile = self.remote.new_profile(self.token, is_subobject=False)
+                profile = self.remote.new_profile(self.token)
             else:
-                profile = self.remote.new_profile(self.token, is_subobject=True)
+                profile = self.remote.new_subprofile(self.token)
 
         try:
-            self.remote.modify_profile(profile, 'name', name, self.token)
-            if str(subprofile) != "1":
+            if name:
+                self.remote.modify_profile(profile, 'name', name, self.token)
+            if str(subprofile) != "1" and distro:
                 self.remote.modify_profile(profile,  'distro', distro, self.token)
-            else:
+            if str(subprofile) == "1" and parent:
                 self.remote.modify_profile(profile,  'parent', parent, self.token)
             if kickstart:
                 self.remote.modify_profile(profile, 'kickstart', kickstart, self.token)
@@ -578,10 +581,14 @@ class CobblerWeb(object):
                 self.remote.modify_profile(profile, 'virt-type', virttype, self.token)
             if virtpath:
                 self.remote.modify_profile(profile, 'virt-path', virtpath, self.token)
+            if virtbridge:
+                self.remote.modify_profile(profile, 'virt-bridge', virtbridge, self.token)
+            if virtcpus:
+                self.remote.modify_profile(profile, 'virt-cpus', virtcpus, self.token)
 
             if repos is None:
                 repos = []
-            if type(repos) == type(str()):
+            elif type(repos) == type(str()):
                 repos = [ repos ]
             if type(repos) == type([]):
                 if '--none--' in repos:

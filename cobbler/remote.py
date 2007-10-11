@@ -478,6 +478,14 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
 
     def new_subprofile(self,token):
         """
+        Creates a new (unconfigured) subprofile object.  See the documentation
+        for new_distro as it works exactly the same.
+        """
+        self.__validate_token(token)
+        return self.__store_object(item_profile.Profile(self.api._config, is_subobject=True))
+
+    def new_subprofile(self,token):
+        """
         A subprofile is a profile that inherits directly from another profile,
         not a distro.  In addition to the normal profile setup, setting
         the parent variable to the name of an existing profile is also

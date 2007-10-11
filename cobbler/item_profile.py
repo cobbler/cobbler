@@ -47,13 +47,14 @@ class Profile(item.Item):
         self.virt_path       = ("",                                '<<inherit>>')[is_subobject]
         self.virt_bridge     = (self.settings.default_virt_bridge, '<<inherit>>')[is_subobject]
         self.dhcp_tag        = ("default",                         '<<inherit>>')[is_subobject]
+        self.parent          = ''
 
     def from_datastruct(self,seed_data):
         """
         Load this object's properties based on seed_data
         """
 
-        self.parent          = self.load_item(seed_data,'parent')
+        self.parent          = self.load_item(seed_data,'parent','')
         self.name            = self.load_item(seed_data,'name')
         self.distro          = self.load_item(seed_data,'distro')
         self.kickstart       = self.load_item(seed_data,'kickstart')
@@ -66,6 +67,7 @@ class Profile(item.Item):
         # backwards compatibility
         if type(self.repos) != list:
             self.set_repos(self.repos)
+        self.set_parent(self.parent)
 
         # virt specific 
         self.virt_ram    = self.load_item(seed_data,'virt_ram',512)
@@ -96,6 +98,9 @@ class Profile(item.Item):
         work.  So, API users -- make sure you pass is_subobject=True into the
         constructor when using this.
         """
+        if parent_name is None or parent_name == '':
+           self.parent = ''
+           return True
         if parent_name == self.name:
            # check must be done in two places as set_parent could be called before/after
            # set_name...
@@ -105,6 +110,7 @@ class Profile(item.Item):
            raise CX(_("profile %s not found, inheritance not possible") % parent_name)
         self.parent = parent_name       
         self.depth = found.depth + 1
+        return True
 
     def set_distro(self,distro_name):
         """
@@ -126,6 +132,7 @@ class Profile(item.Item):
 
         # allow the magic inherit string to persist
         if repos == "<<inherit>>":
+            # FIXME: this is not inheritable in the WebUI presently ?
             self.repos = "<<inherit>>"
             return
 
@@ -162,6 +169,9 @@ class Profile(item.Item):
 	Sets the kickstart.  This must be a NFS, HTTP, or FTP URL.
 	Or filesystem path.  Minor checking of the URL is performed here.
 	"""
+        if kickstart == "<<inherit>>":
+            self.kickstart = kickstart
+            return True
         if utils.find_kickstart(kickstart):
             self.kickstart = kickstart
             return True
@@ -174,6 +184,9 @@ class Profile(item.Item):
         will not yelp if you try to feed it 9999 CPUs.  No formatting
         like 9,999 please :)
         """
+        if num == "<<inherit>>":
+            self.virt_cpus = "<<inherit>>"
+            return True
 
         try:
             num = int(str(num))
@@ -194,6 +207,10 @@ class Profile(item.Item):
 	"""
         # num is a non-negative integer (0 means default)
         # can also be a comma seperated list -- for usage with multiple disks
+
+        if num == "<<inherit>>":
+            self.virt_file_size = "<<inherit>>"
+            return True
 
         if type(num) == str and num.find(",") != -1:
             tokens = num.split(",")
@@ -221,6 +238,11 @@ class Profile(item.Item):
         Specifies the size of the Virt RAM in MB.
         0 tells Koan to just choose a reasonable default.
         """
+
+        if num == "<<inherit>>":
+            self.virt_ram = "<<inherit>>"
+            return True
+
         # num is a non-negative integer (0 means default)
         try:
             inum = int(num)
@@ -237,6 +259,11 @@ class Profile(item.Item):
         """
         Virtualization preference, can be overridden by koan.
         """
+
+        if vtype == "<<inherit>>":
+            self.virt_type == "<<inherit>>"
+            return True
+
         if vtype.lower() not in [ "qemu", "xenpv", "auto" ]:
             raise CX(_("invalid virt type"))
         self.virt_type = vtype
@@ -314,7 +341,10 @@ class Profile(item.Item):
         A human readable representaton
         """
         buf =       _("profile         : %s\n") % self.name
-        buf = buf + _("distro          : %s\n") % self.distro
+        if self.distro == "<<inherit>>":
+            buf = buf + _("parent          : %s\n") % self.parent
+        else:
+            buf = buf + _("distro          : %s\n") % self.distro
         buf = buf + _("kickstart       : %s\n") % self.kickstart
         buf = buf + _("kernel options  : %s\n") % self.kernel_options
         buf = buf + _("ks metadata     : %s\n") % self.ks_meta
@@ -331,7 +361,7 @@ class Profile(item.Item):
     def remote_methods(self):
         return {           
             'name'            :  self.set_name,
-            'inherit'         :  self.set_parent,
+            'parent'          :  self.set_parent,
             'profile'         :  self.set_name,
             'distro'          :  self.set_distro,
             'kickstart'       :  self.set_kickstart,
@@ -342,7 +372,6 @@ class Profile(item.Item):
             'repos'           :  self.set_repos,
             'virt-path'       :  self.set_virt_path,
             'virt-type'       :  self.set_virt_type,
-            # FIXME: need to add to WUI
             'virt-bridge'     :  self.set_virt_bridge,
             'virt-cpus'       :  self.set_virt_cpus,
             'dhcp-tag'        :  self.set_dhcp_tag

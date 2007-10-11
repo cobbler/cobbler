@@ -41,7 +41,7 @@ function disablename(value)
         #end if
     #else
         <input type="hidden" name="subprofile" value="$subprofile"/> 
-    #end
+    #end if
 
     <table border=0>
 
@@ -112,10 +112,10 @@ function disablename(value)
        </option>
        #end for
        </select>
-       <p class="context-tip">What OS is this profile based on?</p>
+       <p class="context-tip">What OS Distribution is this profile based on?</p>
        </td>
        </tr>
-    #end
+    #end if
 
     <!-- should allow freeform input but still show a list of choices? -->
     <!-- probably should implement a combo box eventually -->
