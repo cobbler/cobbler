@@ -3,7 +3,10 @@
 
 #block body
 
+<script language=javascript" src="/cobbler/webui/showhide.js"/>
+
 <script language="javascript">
+
 #if $system
 function disablename(value)
 {
@@ -30,6 +33,25 @@ function get_random_mac()
 }
 #end if
 </script>
+
+## 
+##   determine a bit about what interfaces should be shown and which should not.
+##
+
+#set $all_interfaces = [ "intf0", "intf1", "intf2", "intf3", "intf4", "intf5", "intf6", "intf7" ]
+#if $system
+    #set $interfaces = $system.interfaces.keys()
+    #set $defined_interfaces = []
+    #for $potential in $all_interfaces
+        #if $potential in $interfaces
+            #set $rc = $defined_interfaces.append($potential)
+        #end if
+    #end for
+#else
+    #set $interfaces = [ "intf0", "intf1", "intf2", "intf3", "intf4", "intf5", "intf6", "intf7" ]
+    #set $defined_interfaces = [ "intf0" ]
+#end if
+
 
 <form method="post" action="$base_url/system_save">
 <fieldset id="cform">
@@ -95,50 +117,139 @@ function get_random_mac()
     </td>
     </tr>
 
-    <tr>
-    <td>
-    <label for="mac">MAC</label>
-    </td>
-    <td>
-    <input type="text" size="64" style="width: 150px;" name="mac" id="mac"
-        #if $system
-            value="$system.mac_address"
-        #end if
-    />
-    #if not $system
-    <a href="javascript: get_random_mac()" style="font-size: 0.8em;">random</a>   
-    #end if
-    <p class="context-tip">Example: AA:BB:CC:DD:EE:FF</p>
-    </td>
-    </tr>
+    ## ====================================== start of looping through interfaces
 
-    <tr>
-    <td>
-    <label for="ip">IP</label>
-    </td>
-    <td>
-    <input type="text" size="64" style="width: 150px;" name="ip" id="ip"
-        #if $system
-            value="$system.ip_address"
-        #end if
-    />
-    <p class="context-tip">Optional.  Example: 192.168.10.15</p>
-    </td>
-    </tr>
+    #for $interface in $all_interfaces
 
-    <tr>
-    <td>
-    <label for="hostname">Hostname</label>
-    </td>
-    <td>
-    <input type="text" size="255" style="width: 150px;" name="hostname" id="hostname"
-        #if $system
-            value="$system.hostname"
+        ## ----------------------------------
+        ## calculate some initial CSS visibility
+        ## ----------------------------------
+
+        #if $interface in $defined_interfaces
+             #set $toggler_visibile = "hidden"
+             #set $panel_visibile   = "visible"
+        #else
+             #set $toggler_visibile = "visible"
+             #set $panel_visibile   = "hidden"
         #end if
-    />
-    <p class="context-tip">Optional.  Example: vanhalen.example.org</p>
-    </td>
-    </tr>
+
+        ## ----------------------------------
+        ## load up initial variable values
+        ## ----------------------------------
+
+        #if $system and $interface in $defined_interfaces
+            #set $macaddress  = $system.interfaces[$interface]["mac_address"]
+            #set $ipaddress   = $system.interfaces[$interface]["ip_address"]
+            #set $hostname    = $system.interfaces[$interface]["hostname"]
+            #set $dhcptag     = $system.interfaces[$interface]["dhcp_tag"]
+            #set $virtbridge  = $system.interfaces[$interface]["virt_bridge"]
+            #set $subnet      = $system.interfaces[$interface]["subnet"]
+            #set $gateway     = $system.interfaces[$interface]["gateway"]
+        #else
+            #set $macaddress  = ""
+            #set $ipaddress   = ""
+            #set $hostname    = ""
+            #set $dhcptag     = ""
+            #set $virtbridge  = ""
+            #set $subnet      = ""
+            #set $gateway     = ""
+        #end if
+
+        ## ----------------------------------------
+        ## render the toggle link to hide the interfaces not yet defined
+        ## ----------------------------------------
+
+        ## FIXME: these tables need CSS classes, don't they?
+        <tr class="listrow" id="$interface">
+        <td>
+        <label>Interface ($interface)
+        </td>
+        <td>
+        <hr width="95%">
+        </td>
+        </tr>
+
+        <tr class="listrow" id="toggle_$interface">
+        <td>
+        <label>Expand</label>
+        </td>
+        <td>
+        <A href="javascript:void('')" onclick="show_interface('$interface');">Click to expand $interface</A>
+        </td>
+        </tr>
+        
+        
+        ## ----------------------------------------
+        ## now show all of the interface fields which may or may not
+        ## be hidden but are always there
+        ## ----------------------------------------
+
+        <tr class="listrow" id="panel_${interface}_mac">
+        <td>
+        <label for="mac-$interface">MAC</label>
+        </td>
+        <td>
+        <input type="text" size="64" style="width: 150px;" name="mac-$interface" id="mac-$interface"
+               value="$macaddress"
+        />
+        #if not $system
+            <a href="javascript: get_random_mac()" style="font-size: 0.8em;">random</a>   
+        #end if
+        <p class="context-tip">Example: AA:BB:CC:DD:EE:FF</p>
+        </td>
+        </tr>
+
+        <tr class="listrow" id="panel_${interface}_ip">
+        <td>
+        <label for="ip-$interface">IP</label>
+        </td>
+        <td>
+        <input type="text" size="64" style="width: 150px;" name="ip-$interface" id="ip-$interface"
+                value="$ipaddress"
+        />
+        <p class="context-tip">Optional.  Example: 192.168.10.15</p>
+        </td>
+        </tr>
+
+        <tr class="listrow" id="panel_${interface}_hostname">
+        <td>
+        <label for="hostname-$interface">Hostname</label>
+        </td>
+        <td>
+        <input type="text" size="255" style="width: 150px;" name="hostname-$interface" id="hostname-$interface"
+                value="$hostname"
+        />
+        <p class="context-tip">Optional.  Example: vanhalen.example.org</p>
+        </td>
+        </tr>
+
+        <tr class="listrow" id="panel_${interface}_dhcptag">
+        <td>
+        <label for="dhcptag-$interface">DHCP Tag</label>
+        </td>
+        <td>
+        <input type="text" size="128" style="width: 150px;" name="dhcptag-$interface" id="dhcptag-$interface"
+               value="$dhcptag"
+        />
+        <p class="context-tip">Selects alternative subnets, see manpage or leave blank</p>
+        </td>
+        </tr>
+
+        ## FIXME: add virt_bridge editing (like above)
+        ## FIXME: add subnet editing (like above)
+        ## FIXME: add gateway editing (like above)
+        ## FIXME: make the save function understand the new fieldname-$interface variables
+        ##        only enable an interface for saving if one of it's fields is non-empty
+        ## FIXME: delete checkboxes and accompanying API method.  No delete for intf0.
+
+    #end for
+    ## ====================================== end of looping through interfaces
+
+    ## now we're back to doing regular fields
+    ## FIXME: should all of these be moved up before the interface section?
+    ## FIXME: make entire interface block seperately collapseable?
+
+    ## restart the table that we un-started for the DIVs
 
     <tr>
     <td>
@@ -182,20 +293,6 @@ function get_random_mac()
     </td>
     </tr>
 
-    <tr>
-    <td>
-    <label for="dhcp_tag">DHCP Tag</label>
-    </td>
-    <td>
-    <input type="text" size="128" style="width: 150px;" name="dhcp_tag" id="dhcp_tag"
-        #if $system
-           value="$system.dhcp_tag"
-        #end if
-    /> 
-    <p class="context-tip">Selects alternative subnets, see manpage or leave blank</p>
-    </td>
-    </tr>
-
     #if $system
     <tr>
     <td>
@@ -217,6 +314,8 @@ function get_random_mac()
     <input type="reset" name="reset" value="Reset"/>
     </td>
     </tr>
+
+    </table>
 
 </fieldset>
 </form>

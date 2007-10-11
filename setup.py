@@ -155,6 +155,7 @@ if __name__ == "__main__":
                                 (wwwgfx,            ['docs/cobbler.html']),
 				(wwwgfx,            []),
                                 (wwwgfx,            ['webui_content/icon_16_sync.png']),
+                                (wwwgfx,            ['webui_content/showhide.js']),
                                 (wwwgfx,            ['webui_content/style.css']),
                                 (wwwgfx,            ['webui_content/logo-cobbler.png']),
                                 (wwwgfx,            ['webui_content/cobblerweb.css']),
