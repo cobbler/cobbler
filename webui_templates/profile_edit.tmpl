@@ -31,6 +31,18 @@ function disablename(value)
         <input type="hidden" name="new_or_edit" value="new"/>
     #end if
 
+    #if $profile
+        #if $profile.distro == "<<inherit>>"
+            #set $subprofile = 1
+            <input type="hidden" name="subprofile" value="1"/> 
+        #else
+            #set $subprofile = 0
+            <input type="hidden" name="subprofile" value="0"/> 
+        #end if
+    #else
+        <input type="hidden" name="subprofile" value="$subprofile"/> 
+    #end
+
     <table border=0>
 
     <tr>
@@ -65,24 +77,45 @@ function disablename(value)
     </tr>
     #end if
 
-    <tr>
-    <td>
-    <label for="distro">Distribution</label>
-    </td>
-    <td>
-    <select name="distro" id="distro">
-        #for $distro in $distros:
-        <option name="$distro.name"
-             #if $profile and $profile.distro == $distro.name
-                 selected="true"
-             #end if
-        >$distro.name
-        </option>
-        #end for
-    </select>
-    <p class="context-tip">What OS is this profile based on?</p>
-    </td>
-    </tr>
+    #if $subprofile
+       <tr>
+       <td>
+       <label for="distro">Parent</label>
+       </td>
+       <td>
+       <select name="parent" id="parent">
+           #for $parentobj in $profiles:
+           <option name="$parentobj.name"
+               #if $profile and $profile.parent == $parentobj.name
+                   selected="true"
+               #end if
+           >$parentobj.name
+       </option>
+       #end for
+       </select>
+       <p class="context-tip">Inherit parameters from what profile?</p>
+       </td>
+       </tr>
+    #else
+       <tr>
+       <td>
+       <label for="distro">Distribution</label>
+       </td>
+       <td>
+       <select name="distro" id="distro">
+           #for $distro in $distros:
+           <option name="$distro.name"
+               #if $profile and $profile.distro == $distro.name
+                   selected="true"
+               #end if
+           >$distro.name
+       </option>
+       #end for
+       </select>
+       <p class="context-tip">What OS is this profile based on?</p>
+       </td>
+       </tr>
+    #end
 
     <!-- should allow freeform input but still show a list of choices? -->
     <!-- probably should implement a combo box eventually -->
@@ -131,7 +164,7 @@ function disablename(value)
 
     <tr>
     <td>
-    <label for="virtfilesize">Virt File Size (GB)</label>
+    <label for="virtfilesize">Virt Disk (GB)</label>
     </td>
     <td>
     <input type="text" size="5" style="width: 150px;" name="virtfilesize" id="virtfilesize"
@@ -201,7 +234,35 @@ function disablename(value)
 
     <tr>
     <td>
-    <label for="repos">Repo Names</label>
+    <label for="virtpath">Virt Bridge</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="virtbridge" id="virtbridge"
+        #if $profile
+           value="$profile.virt_bridge"
+        #end if
+    />
+    <p class="context-tip">Overrides the virtual networking bridge choice in settings.</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="virtpath">Virt CPUs</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="virtcpus" id="virtcpus"
+        #if $profile
+           value="$profile.virt_cpus"
+        #end if
+    />
+    <p class="context-tip">How many virtual CPUs?  This is an integer.</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="repos">Yum Repos</label>
     </td>
     <td>
 

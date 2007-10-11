@@ -6,7 +6,7 @@
         <caption>Cobbler Profiles</caption>
         <tr>
             <th class="text">Name</th>
-            <th class="text">Distribution</th>
+            <th class="text">Parent</th>
             <th class="text">Kickstart</th>
         </tr>
     </thead>
@@ -25,7 +25,11 @@
                 <a href="$base_url/profile_edit?name=$profile.name">$profile.name</a>
             </td>
             <td>
-                <a href="$base_url/distro_edit?name=$profile.distro">$profile.distro</a>
+                #if $profile.distro != "<<inherit>>"
+                    <a href="$base_url/distro_edit?name=$profile.distro">$profile.distro</a>
+                #else
+                    <a href="$base_url/profile_edit?name=$profile.parent">$profile.parent</A>
+                #end if
             </td>
             <td>$profile.kickstart</td>
         </tr>

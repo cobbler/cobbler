@@ -31,6 +31,8 @@ devinstall:
 	make install
 	cp /tmp/cobbler_settings /var/lib/cobbler/settings
 	cp /tmp/cobbler_auth.conf /etc/cobbler/auth.conf
+	/sbin/service cobblerd restart
+	/sbin/service httpd restart
 
 sdist: clean messages updatewui
 	python setup.py sdist

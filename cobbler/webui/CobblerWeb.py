@@ -1,6 +1,7 @@
-# Web Interface for Cobbler - Model
+# Web Interface for Cobbler
 #
 # Copyright 2007 Albert P. Tobey <tobert@gmail.com>
+# additions: Michael DeHaan <mdehaan@redhat.com>
 # 
 # This software may be freely redistributed under the terms of the GNU
 # general public license.
@@ -496,8 +497,10 @@ class CobblerWeb(object):
         else:
             return self.__render('empty.tmpl', {})
 
-    # FIXME: implement handling of delete1, delete2 + renames
-    def profile_edit(self, name=None):
+    def subprofile_edit(self, name=None):
+        return self.profile_edit(self,name,subprofile=1)
+
+    def profile_edit(self, name=None, subprofile=0):
 
         if not self.__xmlrpc_setup():
             return self.login(message=INVALID_CREDS)
@@ -510,14 +513,17 @@ class CobblerWeb(object):
             'edit' : True,
             'profile': input_profile,
             'distros': self.remote.get_distros(),
+            'profiles': self.remote.get_profiles(),
             'repos':   self.remote.get_repos(),
-            'ksfiles': self.remote.get_kickstart_templates(self.token) 
+            'ksfiles': self.remote.get_kickstart_templates(self.token),
+            'subprofile': subprofile
         } )
 
     def profile_save(self,new_or_edit=None,editmode='edit',name=None,oldname=None,
                      distro=None,kickstart=None,kopts=None,
                      ksmeta=None,virtfilesize=None,virtram=None,virttype=None,
-                     virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,**args):
+                     virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,
+                     parent=None,subprofile=None,**args):
 
         if not self.__xmlrpc_setup():
             return self.login(message=INVALID_CREDS)
@@ -547,11 +553,17 @@ class CobblerWeb(object):
             except:
                 return self.error_page("Failed to lookup profile: %s" % name)
         else:
-            profile = self.remote.new_profile(self.token)
+            if str(subprofile) != "1":
+                profile = self.remote.new_profile(self.token, is_subobject=False)
+            else:
+                profile = self.remote.new_profile(self.token, is_subobject=True)
 
         try:
             self.remote.modify_profile(profile, 'name', name, self.token)
-            self.remote.modify_profile(profile,  'distro', distro, self.token)
+            if str(subprofile) != "1":
+                self.remote.modify_profile(profile,  'distro', distro, self.token)
+            else:
+                self.remote.modify_profile(profile,  'parent', parent, self.token)
             if kickstart:
                 self.remote.modify_profile(profile, 'kickstart', kickstart, self.token)
             if kopts:
@@ -766,6 +778,7 @@ class CobblerWeb(object):
     distro_list.exposed = True
     distro_save.exposed = True
 
+    subprofile_edit.exposed = True
     profile_edit.exposed = True
     profile_list.exposed = True
     profile_save.exposed = True
