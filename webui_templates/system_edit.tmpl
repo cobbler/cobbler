@@ -7,7 +7,7 @@
 ###
 ### FIXME: add gateway, subnet, and any other missing fields
 
-#set $fields = [ "mac", "ip", "hostname", "dhcptag", "virtbridge", "subnet", "gateway"]
+#set $fields = [ "macaddress", "ipaddress", "hostname", "dhcptag", "virtbridge", "subnet", "gateway"]
 
 
 <script language="javascript">
@@ -35,7 +35,7 @@ function get_random_mac()
     xmlHttp.open("GET", "$base_url/random_mac", true);
     xmlHttp.onreadystatechange = function () {
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-            var mac_field = document.getElementById("mac")
+            var mac_field = document.getElementById("macaddress")
             var result = xmlHttp.responseText;
             if (result.charAt(2) == ':' && result.charAt(5) == ':') {
                 mac_field.value = result;
@@ -222,12 +222,6 @@ function page_onload() {
             #set $gateway     = ""
         #end if
 
-        #if $macaddress != "" or $ipaddress !="" or $hostname !="" or $dhcptag !="" or $virtbridge !="" or $subnet !="" or $gateway !=""
-            #set $enabled = "selected=1"
-        #else
-            #set $enabled = ""
-        #end if
-
         ## ----------------------------------------
         ## render the toggle link to hide the interfaces not yet defined
         ## ----------------------------------------
@@ -261,10 +255,10 @@ function page_onload() {
 
         <tr class="listrow" id="child-id${counter}-0">
         <td>
-        <label for="mac-$interface">MAC</label>
+        <label for="macaddress-$interface">MAC</label>
         </td>
         <td>
-        <input type="text" size="64" style="width: 150px;" name="mac-$interface" id="mac-$interface"
+        <input type="text" size="64" style="width: 150px;" name="macaddress-$interface" id="macaddress-$interface"
                value="$macaddress"
         />
         #if not $system
@@ -276,13 +270,13 @@ function page_onload() {
 
         <tr class="listrow" id="child-id${counter}-1">
         <td>
-        <label for="ip-$interface">IP</label>
+        <label for="ipaddress-$interface">IP</label>
         </td>
         <td>
-        <input type="text" size="64" style="width: 150px;" name="ip-$interface" id="ip-$interface"
+        <input type="text" size="64" style="width: 150px;" name="ipaddress-$interface" id="ipaddress-$interface"
                 value="$ipaddress"
         />
-        <p class="context-tip">Optional.  Example: 192.168.10.15</p>
+        <p class="context-tip">Example: 192.168.10.15</p>
         </td>
         </tr>
 
@@ -294,7 +288,7 @@ function page_onload() {
         <input type="text" size="255" style="width: 150px;" name="hostname-$interface" id="hostname-$interface"
                 value="$hostname"
         />
-        <p class="context-tip">Optional.  Example: vanhalen.example.org</p>
+        <p class="context-tip">Example: vanhalen.example.org</p>
         </td>
         </tr>
 

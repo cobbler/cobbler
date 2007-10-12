@@ -23,6 +23,9 @@ import Cookie
 import time
 
 LOGGING_ENABLED = True
+
+## FIXME: move to htaccess and eliminate browser cookies?
+
 COOKIE_TIMEOUT=29*60
 
 if LOGGING_ENABLED:
@@ -392,8 +395,8 @@ class CobblerWeb(object):
 
     # FIXME: implement handling of delete1, delete2 + renames
     def system_save(self,name=None,oldname=None,editmode="edit",profile=None,
-                    new_or_edit=None, mac=None, ip=None, hostname=None, 
-                    kopts=None, ksmeta=None, netboot='n', dhcp_tag=None, 
+                    new_or_edit=None,  
+                    kopts=None, ksmeta=None, netboot='n', 
                     delete1=None, delete2=None, **args):
 
         if not self.__xmlrpc_setup():
@@ -415,15 +418,16 @@ class CobblerWeb(object):
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
             return self.system_list()
 
+        # obsolete -- just do this server side
         # more parameter checking
-        if mac is None and ip is None and hostname is None and not is_mac(name) and not is_ip(name):
-            return self.error_page("System must have at least one of MAC/IP/hostname.")
-        if hostname and not ip:
-            ip = resolve_ip( hostname )
-        if mac and not is_mac( mac ):
-            return self.error_page("The provided MAC address appears to be invalid.")
-        if ip and not is_ip( ip ):
-            return self.error_page("The provided IP address appears to be invalid.")
+        #if mac is None and ip is None and hostname is None and not is_mac(name) and not is_ip(name):
+        #    return self.error_page("System must have at least one of MAC/IP/hostname.")
+        #if hostname and not ip:
+        #    ip = resolve_ip( hostname )
+        #if mac and not is_mac( mac ):
+        #    return self.error_page("The provided MAC address appears to be invalid.")
+        #if ip and not is_ip( ip ):
+        #    return self.error_page("The provided IP address appears to be invalid.")
 
         # grab a reference to the object
         if new_or_edit == "edit" and editmode == "edit":
@@ -438,25 +442,59 @@ class CobblerWeb(object):
         try:
             self.remote.modify_system(system, 'name', name, self.token )
             self.remote.modify_system(system, 'profile', profile, self.token)
-            if mac:
-               self.remote.modify_system(system, 'mac', mac, self.token)
-            if ip:
-               self.remote.modify_system(system, 'ip', ip, self.token)
-            if hostname:
-               self.remote.modify_system(system, 'hostname', hostname, self.token)
+            #if mac:
+            #   self.remote.modify_system(system, 'mac', mac, self.token)
+            #if ip:
+            #   self.remote.modify_system(system, 'ip', ip, self.token)
+            #if hostname:
+            #   self.remote.modify_system(system, 'hostname', hostname, self.token)
             if kopts:
                self.remote.modify_system(system, 'kopts', kopts, self.token)
             if ksmeta:
                self.remote.modify_system(system, 'ksmeta', ksmeta, self.token)
             if netboot:
                self.remote.modify_system(system, 'netboot-enabled', netboot, self.token)
-            if dhcp_tag:
-               self.remote.modify_system(system, 'dhcp-tag', dhcp_tag, self.token)
+            #if dhcp_tag:
+            #   self.remote.modify_system(system, 'dhcp-tag', dhcp_tag, self.token)
+
+            # raise str(args)
+
+            for x in range(0,7):
+                interface = "intf%s" % x
+                macaddress = args.get("macaddress-%s" % interface, "")
+                ipaddress  = args.get("ipaddress-%s" % interface, "")
+                hostname   = args.get("hostname-%s" % interface, "")
+                virtbridge = args.get("virtbridge-%s" % interface, "")
+                dhcptag    = args.get("dhcptag-%s" % interface, "")
+                subnet     = args.get("subnet-%s" % interface, "")
+                gateway    = args.get("gateway-%s" % interface, "")
+                if not (macaddress != "" or ipaddress != "" or hostname != "" or virtbridge != "" or dhcptag != "" or subnet != "" or gateway != ""):
+                    # if we have nothing to modify, request that we remove the interface unless it's the
+                    # the first interface, in which case it is NOT removeable
+                    if not interface == "intf0":
+                        self.remote.modify_system(system,'delete-interface', interface, self.token) 
+                else:
+                    # it looks like we have at least one value to submit, just send the ones over that are
+                    # /not/ None (just to be paranoid about XMLRPC and allow-none)
+                    mods = {}
+                    mods["macaddress-%s" % interface] = macaddress
+                    mods["ipaddress-%s" % interface] = ipaddress
+                    mods["hostname-%s" % interface]  = hostname
+                    mods["virtbridge-%s" % interface] = virtbridge
+                    mods["dhcptag-%s" % interface] = dhcptag
+                    mods["subnet-%s" % interface] = subnet
+                    mods["gateway-%s" % interface] = gateway
+                    self.remote.modify_system(system,'modify-interface', mods, self.token)
+
+            # now commit the edits
             self.remote.save_system( system, self.token)
+
         except Exception, e:
             # FIXME: get the exact error message and display to the user.
             log_exc()
             return self.error_page("Error while saving system: %s" % str(e))
+
+       
 
         if editmode == "rename" and name != oldname:
             try:
@@ -761,7 +799,7 @@ class CobblerWeb(object):
         # look as if they were locally generated and not exception-based.
         if message.endswith(">"):
             message = message[:-2]
-            message = message.replace(":","")
+            message = message.replace(":","",1)
 
         return self.__render( 'error_page.tmpl', {
             'message': message

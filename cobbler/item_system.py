@@ -14,7 +14,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import utils
 import item
-import copy
 from cexceptions import *
 from rhpl.translate import _, N_, textdomain, utf8
 
@@ -40,6 +39,20 @@ class System(item.Item):
         self.kickstart       = "<<inherit>>"   # use value in profile
         self.virt_path       = "<<inherit>>"   # use value in profile
         self.virt_type       = "<<inherit>>"   # use value in profile 
+
+    def delete_interface(self,name):
+        """
+        Used to remove an interface.  Not valid for intf0.
+        """
+        if name == "intf0":
+            raise CX(_("the first interface cannot be deleted"))
+        if self.interfaces.has_key(name):
+            del self.interfaces[name]
+        else:
+            # NOTE: raising an exception here would break the WebUI as currently implemented
+            return False
+        return True
+        
 
     def __get_interface(self,name):
 
@@ -199,14 +212,14 @@ class System(item.Item):
         Only works if manage_dhcp is set in /var/lib/cobbler/settings
         """
         intf = self.__get_interface(interface)
-        if utils.is_ip(address):
+        if address == "" or utils.is_ip(address):
            intf["ip_address"] = address
            return True
         raise CX(_("invalid format for IP address (%s)") % address)
 
     def set_mac_address(self,address,interface="intf0"):
         intf = self.__get_interface(interface)
-        if utils.is_mac(address):
+        if address == "" or utils.is_mac(address):
            intf["mac_address"] = address
            return True
         raise CX(_("invalid format for MAC address (%s)" % address))
@@ -349,6 +362,22 @@ class System(item.Item):
 
         return buf
 
+    def modify_interface(self, hash):
+        """
+        Used by the WUI to modify an interface more-efficiently
+        """
+        for (key,value) in hash.iteritems():
+            (field,interface) = key.split("-")
+            if field == "macaddress" : self.set_mac_address(value, interface)
+            if field == "ipaddress"  : self.set_ip_address(value, interface)
+            if field == "hostname"   : self.set_hostname(value, interface)
+            if field == "dhcptag"    : self.set_dhcp_tag(value, interface)
+            if field == "subnet"     : self.set_subnet(value, interface)
+            if field == "gateway"    : self.set_gateway(value, interface)
+            if field == "virtbridge" : self.set_virt_bridge(value, interface)
+        return True
+         
+
     def remote_methods(self):
         return {
            'name'            : self.set_name,
@@ -356,17 +385,11 @@ class System(item.Item):
            'kopts'           : self.set_kernel_options,
            'ksmeta'          : self.set_ksmeta,
            'hostname'        : self.set_hostname,
-           'ip-address'      : self.set_ip_address,
-           'ip'              : self.set_ip_address,  # alias
-           'mac-address'     : self.set_mac_address,
-           'mac'             : self.set_mac_address, # alias
            'kickstart'       : self.set_kickstart,
            'netboot-enabled' : self.set_netboot_enabled,
            'virt-path'       : self.set_virt_path,
            'virt-type'       : self.set_virt_type,
-           'dhcp-tag'        : self.set_dhcp_tag,
-           'gateway'         : self.set_gateway,
-           'virt-bridge'     : self.set_virt_bridge,
-           'subnet'          : self.set_subnet
+           'modify-interface' : self.modify_interface,
+           'delete-interface' : self.delete_interface
         }
 
