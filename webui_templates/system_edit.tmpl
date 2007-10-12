@@ -1,9 +1,6 @@
 #extends cobbler.webui.master
 
-
 #block body
-
-<script language=javascript" src="/cobbler/webui/showhide.js"/>
 
 <script language="javascript">
 
@@ -52,6 +49,34 @@ function get_random_mac()
     #set $defined_interfaces = [ "intf0" ]
 #end if
 
+###
+### here's a list of all the NIC fields we use
+###
+### FIXME: add gateway, subnet, and any other missing fields
+
+#set $fields = [ "mac", "ip", "hostname", "dhcptag"]
+
+
+### 
+### now generate the onload function.
+###
+
+<script language="javascript">
+
+function page_onload() {
+
+    onLoadStuff(1);
+    hideAllRows();
+    #set counter = 0
+    #for $interface in $all_interfaces
+        #if $interface in $defined_interfaces
+            toggleRowVisibility("id${counter}");
+        #end if
+        #set $counter = $counter+1
+    #end for
+
+}
+</script>
 
 <form method="post" action="$base_url/system_save">
 <fieldset id="cform">
@@ -65,9 +90,10 @@ function get_random_mac()
 
     <legend>Edit a System</legend>
 
-    <table border=0>
+    ## FIXME: this ID doesn't make sense but it's there for the javascript
+    <table border=0 id="channel-list">
 
-    <tr>
+    <tr id="id9000">
     <td>
     <label for="name">System Name</label>
     </td>
@@ -86,7 +112,7 @@ function get_random_mac()
     </tr>
 
     #if $system
-    <tr>
+    <tr id="id9001">
     <td>
     <label for="mode">Edit Mode</label>
     </td>
@@ -99,7 +125,7 @@ function get_random_mac()
     </tr>
     #end if
 
-    <tr>
+    <tr id="id9002">
     <td>
     <label for="profile">Profile</label>
     </td>
@@ -119,19 +145,9 @@ function get_random_mac()
 
     ## ====================================== start of looping through interfaces
 
+    #set $counter = -1
     #for $interface in $all_interfaces
-
-        ## ----------------------------------
-        ## calculate some initial CSS visibility
-        ## ----------------------------------
-
-        #if $interface in $defined_interfaces
-             #set $toggler_visibile = "hidden"
-             #set $panel_visibile   = "visible"
-        #else
-             #set $toggler_visibile = "visible"
-             #set $panel_visibile   = "hidden"
-        #end if
+        #set $counter = $counter+1        
 
         ## ----------------------------------
         ## load up initial variable values
@@ -159,32 +175,34 @@ function get_random_mac()
         ## render the toggle link to hide the interfaces not yet defined
         ## ----------------------------------------
 
-        ## FIXME: these tables need CSS classes, don't they?
-        <tr class="listrow" id="$interface">
+        <tr class="listrow" id="1000${counter}">
         <td>
-        <label>Interface ($interface)
+        <label><hr width="95%"/></label>
         </td>
         <td>
-        <hr width="95%">
+        <hr width="95%"/>
         </td>
         </tr>
 
-        <tr class="listrow" id="toggle_$interface">
+##
+##<td><a onclick="toggleRowVisibility('id263');" style="cursor: pointer;"><img name="id263-image" src="/img/list-expand.gif" alt=""/></a><a href="/network/software/channels/details.pxt?cid=263">Red Hat Enterprise Linux (v. 5 for 32-bit x86)</a></td>
+##
+
+        <tr class="listrow" id="id${counter}">
         <td>
-        <label>Expand</label>
+        Interface $interface
         </td>
         <td>
-        <A href="javascript:void('')" onclick="show_interface('$interface');">Click to expand $interface</A>
+        <a onclick="toggleRowVisibility('id${counter}');" style="cursor: pointer;"><img name="id${counter}-image" src="/cobbler/webui/list-expand.png" alt=""/></A>
         </td>
         </tr>
-        
         
         ## ----------------------------------------
         ## now show all of the interface fields which may or may not
         ## be hidden but are always there
         ## ----------------------------------------
 
-        <tr class="listrow" id="panel_${interface}_mac">
+        <tr class="listrow" id="child-id${counter}-0">
         <td>
         <label for="mac-$interface">MAC</label>
         </td>
@@ -199,7 +217,7 @@ function get_random_mac()
         </td>
         </tr>
 
-        <tr class="listrow" id="panel_${interface}_ip">
+        <tr class="listrow" id="child-id${counter}-1">
         <td>
         <label for="ip-$interface">IP</label>
         </td>
@@ -211,7 +229,7 @@ function get_random_mac()
         </td>
         </tr>
 
-        <tr class="listrow" id="panel_${interface}_hostname">
+        <tr class="listrow" id="child-id${counter}-3">
         <td>
         <label for="hostname-$interface">Hostname</label>
         </td>
@@ -223,7 +241,7 @@ function get_random_mac()
         </td>
         </tr>
 
-        <tr class="listrow" id="panel_${interface}_dhcptag">
+        <tr class="listrow" id="child-id${counter}-4">
         <td>
         <label for="dhcptag-$interface">DHCP Tag</label>
         </td>
@@ -251,7 +269,7 @@ function get_random_mac()
 
     ## restart the table that we un-started for the DIVs
 
-    <tr>
+    <tr id="id9004">
     <td>
     <label for="kopts">Kernel Options</label>
     </td>
@@ -265,7 +283,7 @@ function get_random_mac()
     </td>
     </tr>
 
-    <tr>
+    <tr id="id9005">
     <td>
     <label for="ksmeta">Kickstart Metadata</label>
     </td>
@@ -279,7 +297,7 @@ function get_random_mac()
     </td>
     </tr>
 
-    <tr>
+    <tr id="id9006">
     <td>
     <label for="netboot">Netboot Enabled</label>
     </td>
@@ -294,7 +312,7 @@ function get_random_mac()
     </tr>
 
     #if $system
-    <tr>
+    <tr id="id9007">
     <td>
     <label for="delete">Delete</label> 
     </td>
@@ -306,7 +324,7 @@ function get_random_mac()
     </tr>
     #end if
 
-    <tr>
+    <tr id="9008">
     <td>
     </td>
     <td>

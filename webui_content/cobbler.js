@@ -1,9 +1,13 @@
-// Javascript code by Máirín Duffy <duffy@redhat.com>
 
+function global_onload() {
+   if (page_onload) {
+       page_onload();
+   }
+}
 
-IMAGE_COLLAPSED_PATH = '/img/list-expand.gif';
-IMAGE_EXPANDED_PATH  = '/img/list-collapse.gif';
-IMAGE_CHILDLESS_PATH  = '/img/rhn-bullet-parentchannel.gif';
+IMAGE_COLLAPSED_PATH = '/cobbler/webui/list-expand.png';
+IMAGE_EXPANDED_PATH  = '/cobbler/webui/list-collapse.png';
+IMAGE_CHILDLESS_PATH  = '/cobbler/webui/list-parent.png';
 
 var rowHash = new Array();
 var browserType;
@@ -26,7 +30,10 @@ function onLoadStuff(columns) {
 
 function iconifyChildlessParents(rowHash) {
   for (var i in rowHash) {
-    if (!rowHash[i].hasChildren && rowHash[i].image) { rowHash[i].image.src = IMAGE_CHILDLESS_PATH; }
+    if (!rowHash[i].hasChildren && rowHash[i].image) { 
+       // FIXME: not needed in this implementation
+       // rowHash[i].image.src = IMAGE_CHILDLESS_PATH; 
+    }
   }
 }
 
@@ -78,7 +85,8 @@ function Row(cells, image) {
     this.image.src = IMAGE_COLLAPSED_PATH;
 // we start with columnsPerRow, because we want to skip the td cells of the parent tr.
     for (var i = columnsPerRow; i < this.cells.length; i++) {
-      this.cells[i].parentNode.style.display = 'none';
+      // FIXME: this looks suspicious
+      // this.cells[i].parentNode.style.display = 'none';
       this.cells[i].style.display = 'none';
     }
     this.isHidden = 1;
@@ -91,7 +99,8 @@ function Row(cells, image) {
 
     for (var i = 0; i < this.cells.length; i++) {
         this.cells[i].style.display = displayType;
-        this.cells[i].parentNode.style.display = displayType; 
+        // FIXME: also suspicious
+        // this.cells[i].parentNode.style.display = displayType; 
     }
     this.isHidden = 0;
     return;
@@ -146,11 +155,17 @@ function getNodeTagName(node) {
   return tagName.toLowerCase();
 }
 
+// note: parent detection seems to work fine
+// all items are parents if they have an id except if they start with child
 function isParentRowNode(node) {
   var nodeInLowercase = getNodeTagName(node);
   if (nodeInLowercase != 'tr') { return 0; }
   nodeId = node.id;
-  if ((nodeId.indexOf('id')) && !(nodeId.indexOf('child'))) { return 0; }
+  if ((nodeId.indexOf('id')) && !(nodeId.indexOf('child'))) { 
+      //alert("row id: " + nodeId + " is not a parent");
+      return 0; 
+  }
+  //alert("row id: " + nodeId  + "IS A PARENT");
   return 1;
 }
 
@@ -189,3 +204,4 @@ function findRowImageFromCells(cells, id) {
   }
   return null;
 }
+
