@@ -5,8 +5,13 @@ function global_onload() {
    }
 }
 
+// mizmo's fancy list-code <duffy@redhat.com>
+// some adaptations to work better with Cobbler WebUI
+
 IMAGE_COLLAPSED_PATH = '/cobbler/webui/list-expand.png';
 IMAGE_EXPANDED_PATH  = '/cobbler/webui/list-collapse.png';
+
+//not really used:
 IMAGE_CHILDLESS_PATH  = '/cobbler/webui/list-parent.png';
 
 var rowHash = new Array();
@@ -31,7 +36,7 @@ function onLoadStuff(columns) {
 function iconifyChildlessParents(rowHash) {
   for (var i in rowHash) {
     if (!rowHash[i].hasChildren && rowHash[i].image) { 
-       // FIXME: not needed in this implementation
+       // not needed in this implementation
        // rowHash[i].image.src = IMAGE_CHILDLESS_PATH; 
     }
   }
@@ -72,7 +77,8 @@ function Row(cells, image) {
   for (var i = 0; i < cells.length; i++) { this.cells[i] = cells[i]; }
   this.image = image;
   this.hasChildren = 0;
-  this.isHidden = 1; // 1 = hidden; 0 = visible.  all rows are hidden by default
+  this.isHidden = 0; // 1 = hidden; 0 = visible.  all rows are visible by default
+  
 
 // Row object methods below!
   this.toggleVisibility = function() {
@@ -82,12 +88,17 @@ function Row(cells, image) {
   }
 
   this.hide = function hide() {
+
     this.image.src = IMAGE_COLLAPSED_PATH;
-// we start with columnsPerRow, because we want to skip the td cells of the parent tr.
+    // we start with columnsPerRow, because we want to skip the td cells of the parent tr.
     for (var i = columnsPerRow; i < this.cells.length; i++) {
-      // FIXME: this looks suspicious
+      // this looks suspicious
       // this.cells[i].parentNode.style.display = 'none';
-      this.cells[i].style.display = 'none';
+
+      // MPD: I added this:
+      if (! this.isParent) {
+         this.cells[i].style.display = 'none';
+      }
     }
     this.isHidden = 1;
     return;
@@ -98,8 +109,8 @@ function Row(cells, image) {
     this.image.src = IMAGE_EXPANDED_PATH;
 
     for (var i = 0; i < this.cells.length; i++) {
-        this.cells[i].style.display = displayType;
-        // FIXME: also suspicious
+        this.cells[i].style.display = '';
+        // also suspicious
         // this.cells[i].parentNode.style.display = displayType; 
     }
     this.isHidden = 0;
@@ -117,6 +128,13 @@ function createParentRows(channelTable, rowHash) {
       var image = findRowImageFromCells(cells, id)
       if (!image) { continue; }
       rowHash[id] = new Row(cells, image);
+      // MPD: I added this 
+      rowHash[id].isParent = 1
+    }
+    else {
+      // MPD: I added this 
+      rowHash[id].isParent = 0
+
     }
   }
   return;
@@ -128,7 +146,7 @@ function reuniteChildrenWithParents(channelTable, rowHash) {
   var tableChildRowNode;
   for (var i = 0; i < channelTable.rows.length; i++) {
     tableChildRowNode = channelTable.rows[i];
-// when we find a parent, set it as parent for the children after it
+    // when we find a parent, set it as parent for the children after it
     if (isParentRowNode(tableChildRowNode) && tableChildRowNode.id) {
       parentNode = tableChildRowNode;
       continue; 
@@ -137,7 +155,7 @@ function reuniteChildrenWithParents(channelTable, rowHash) {
 
     // it its not a child node we bail here
     if (!isChildRowNode(tableChildRowNode)) { continue; }
-    // FIXME: chceck child id against parent id
+    // check child id against parent id
     if (!rowHash[parentNode.id]) { /*alert('bailing, cant find parent in hash');*/ continue; }
     for (var j = 0; j < tableChildRowNode.cells.length; j++) {
       rowHash[parentNode.id].cells.push(tableChildRowNode.cells[j]);
@@ -155,17 +173,13 @@ function getNodeTagName(node) {
   return tagName.toLowerCase();
 }
 
-// note: parent detection seems to work fine
-// all items are parents if they have an id except if they start with child
 function isParentRowNode(node) {
   var nodeInLowercase = getNodeTagName(node);
   if (nodeInLowercase != 'tr') { return 0; }
   nodeId = node.id;
   if ((nodeId.indexOf('id')) && !(nodeId.indexOf('child'))) { 
-      //alert("row id: " + nodeId + " is not a parent");
       return 0; 
   }
-  //alert("row id: " + nodeId  + "IS A PARENT");
   return 1;
 }
 

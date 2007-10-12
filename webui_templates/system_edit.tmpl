@@ -2,7 +2,23 @@
 
 #block body
 
+###
+### here's a list of all the NIC fields we use
+###
+### FIXME: add gateway, subnet, and any other missing fields
+
+#set $fields = [ "mac", "ip", "hostname", "dhcptag", "virtbridge", "subnet", "gateway"]
+
+
 <script language="javascript">
+
+function delete_interface(num)
+{
+    #for $field in $fields
+    document.getElementById("${field}-intf" + num).value = "";
+    #end for
+    toggleRowVisibility("id" + num);
+}
 
 #if $system
 function disablename(value)
@@ -49,13 +65,6 @@ function get_random_mac()
     #set $defined_interfaces = [ "intf0" ]
 #end if
 
-###
-### here's a list of all the NIC fields we use
-###
-### FIXME: add gateway, subnet, and any other missing fields
-
-#set $fields = [ "mac", "ip", "hostname", "dhcptag"]
-
 
 ### 
 ### now generate the onload function.
@@ -65,7 +74,7 @@ function get_random_mac()
 
 function page_onload() {
 
-    onLoadStuff(1);
+    onLoadStuff(2);
     hideAllRows();
     #set counter = 0
     #for $interface in $all_interfaces
@@ -143,6 +152,48 @@ function page_onload() {
     </td>
     </tr>
 
+    <tr id="id9004">
+    <td>
+    <label for="kopts">Kernel Options</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="kopts" id="kopts"
+        #if $system
+            value="$system.kernel_options"
+        #end if
+    /> 
+    <p class="context-tip">Example: noipv6 magic=foo</p>
+    </td>
+    </tr>
+
+    <tr id="id9005">
+    <td>
+    <label for="ksmeta">Kickstart Metadata</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="ksmeta" id="ksmeta"
+        #if $system
+            value="$system.ks_meta"
+        #end if
+    />
+    <p class="context-tip">Example: dog=fido gnome=yes</p>
+    </td>
+    </tr>
+
+    <tr id="id9006">
+    <td>
+    <label for="netboot">Netboot Enabled</label>
+    </td>
+    <td>
+    <input type="checkbox" name="netboot" id="netboot"
+    #if not $system or $system.netboot_enabled is True
+        checked="True"
+    #end if
+    >
+    <p class="context-tip">Deselect to keep this system from PXE booting</p>
+    </td>
+    </tr>
+
     ## ====================================== start of looping through interfaces
 
     #set $counter = -1
@@ -171,16 +222,22 @@ function page_onload() {
             #set $gateway     = ""
         #end if
 
+        #if $macaddress != "" or $ipaddress !="" or $hostname !="" or $dhcptag !="" or $virtbridge !="" or $subnet !="" or $gateway !=""
+            #set $enabled = "selected=1"
+        #else
+            #set $enabled = ""
+        #end if
+
         ## ----------------------------------------
         ## render the toggle link to hide the interfaces not yet defined
         ## ----------------------------------------
 
         <tr class="listrow" id="1000${counter}">
         <td>
-        <label><hr width="95%"/></label>
+        <hr width="100%"/>
         </td>
         <td>
-        <hr width="95%"/>
+        <hr width="100%"/>
         </td>
         </tr>
 
@@ -190,7 +247,7 @@ function page_onload() {
 
         <tr class="listrow" id="id${counter}">
         <td>
-        Interface $interface
+        Interface $interface.replace("intf","")
         </td>
         <td>
         <a onclick="toggleRowVisibility('id${counter}');" style="cursor: pointer;"><img name="id${counter}-image" src="/cobbler/webui/list-expand.png" alt=""/></A>
@@ -254,8 +311,60 @@ function page_onload() {
         </tr>
 
         ## FIXME: add virt_bridge editing (like above)
+
+        <tr class="listrow" id="child-id${counter}-5">
+        <td>
+        <label for="virtbridge-$interface">Virt Bridge</label>
+        </td>
+        <td>
+        <input type="text" size="20" style="width: 150px;" name="virtbridge-$interface" id="virtbridge-$interface"
+                value="$virtbridge"
+        />
+        <p class="context-tip">Example: 'xenbr0' or 'virbr0'.  Can be blank if set in profile or settings.</p>
+        </td>
+        </tr>
+
         ## FIXME: add subnet editing (like above)
+
+        <tr class="listrow" id="child-id${counter}-6">
+        <td>
+        <label for="subnet-$interface">Subnet</label>
+        </td>
+        <td>
+        <input type="text" size="64" style="width: 150px;" name="subnet-$interface" id="subnet-$interface"
+                value="$subnet"
+        />
+        <p class="context-tip">Ex: "255.255.255.0".  For use in kickstart templates for static IPs.</p>
+        </td>
+        </tr>
+
         ## FIXME: add gateway editing (like above)
+
+        <tr class="listrow" id="child-id${counter}-7">
+        <td>
+        <label for="gateway-$interface">Gateway</label>
+        </td>
+        <td>
+        <input type="text" size="64" style="width: 150px;" name="gateway-$interface" id="gateway-$interface"
+                value="$gateway"
+        />
+        <p class="context-tip">Ex: "192.168.1.11".  For use in kickstart templates for static IPs.</p>
+        </td>
+        </tr>
+
+        #if $interface != "intf0"
+            <tr class="listrow" id="child-id${counter}-8">
+            <td>
+            <label for="enabled-$interface">Remove</label>
+            </td>
+            <td>
+            <input type="button" name="delete-$interface" value="remove" onclick="delete_interface($counter)">
+            <p class="context-tip">Clicking this button removes the interface from the configuration.</p>
+            </td>
+            </tr>
+        #end if
+
+
         ## FIXME: make the save function understand the new fieldname-$interface variables
         ##        only enable an interface for saving if one of it's fields is non-empty
         ## FIXME: delete checkboxes and accompanying API method.  No delete for intf0.
@@ -263,58 +372,19 @@ function page_onload() {
     #end for
     ## ====================================== end of looping through interfaces
 
-    ## now we're back to doing regular fields
-    ## FIXME: should all of these be moved up before the interface section?
-    ## FIXME: make entire interface block seperately collapseable?
-
-    ## restart the table that we un-started for the DIVs
-
-    <tr id="id9004">
+    <tr class="listrow" id="id10000">
     <td>
-    <label for="kopts">Kernel Options</label>
+    <hr width="95%"/>
     </td>
     <td>
-    <input type="text" size="255" style="width: 150px;" name="kopts" id="kopts"
-        #if $system
-            value="$system.kernel_options"
-        #end if
-    />
-    <p class="context-tip">Example: noipv6 magic=foo</p>
-    </td>
-    </tr>
-
-    <tr id="id9005">
-    <td>
-    <label for="ksmeta">Kickstart Metadata</label>
-    </td>
-    <td>
-    <input type="text" size="255" style="width: 150px;" name="ksmeta" id="ksmeta"
-        #if $system
-            value="$system.ks_meta"
-        #end if
-    />
-    <p class="context-tip">Example: dog=fido gnome=yes</p>
-    </td>
-    </tr>
-
-    <tr id="id9006">
-    <td>
-    <label for="netboot">Netboot Enabled</label>
-    </td>
-    <td>
-    <input type="checkbox" name="netboot" id="netboot"
-    #if not $system or $system.netboot_enabled is True
-        checked="True"
-    #end if
-    >
-    <p class="context-tip">Deselect to keep this system from PXE booting</p>
+    <hr width="95%"/>
     </td>
     </tr>
 
     #if $system
-    <tr id="id9007">
+    <tr id="id10001">
     <td>
-    <label for="delete">Delete</label> 
+    <label for="delete">Delete</label>
     </td>
     <td>
        <input type="checkbox" name="delete1" value="delete1">Yes
