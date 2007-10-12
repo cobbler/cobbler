@@ -715,7 +715,9 @@ class BootSync:
         # find kernel and initrd
         kernel_path = os.path.join("/images",distro.name,os.path.basename(distro.kernel))
         initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
-        kickstart_path = profile.kickstart
+        
+        # Find the kickstart if we inherit from another profile
+        kickstart_path = utils.blender(True, profile)["kickstart"]
 
         # ---
         # choose a template
