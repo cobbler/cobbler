@@ -135,7 +135,9 @@ class Collection(serializable.Serializable):
             self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
             self.listing[ref.name.lower()] = ref
 
-            self.config.api.serialize()
+            # save just this item if possible, if not, save
+            # the whole collection
+            self.config.serialize_item(self, ref)
 
             lite_sync = action_litesync.BootLiteSync(self.config)
             if isinstance(ref, item_system.System):

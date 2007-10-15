@@ -33,9 +33,31 @@ def serialize(obj):
     """
     Save a collection to disk or other storage.  
     """
+    
     storage_module = __get_storage_module(obj.collection_type())
     storage_module.serialize(obj)
     return True
+
+def serialize_item(collection, item):
+    storage_module = __get_storage_module(collection.collection_type())
+    save_fn = getattr(storage_module, "serialize_item", None)
+    if save_fn is None:
+        # print "DEBUG: full serializer"
+        return storage_module.serialize(collection)
+    else:
+        # print "DEBUG: partial serializer"
+        return save_fn(collection,item)
+
+def serialize_delete(collection, item):
+    storage_module = __get_storage_module(collection.collection_type())
+    delete_fn = getattr(storage_module, "serialize_delete", None)
+    if delete_fn is None:
+        # print "DEBUG: full delete"
+        return storage_module.serialize(collection)
+    else:
+        # print "DEBUG: partial delete"
+        return delete_fn(collection,item)
+    
 
 def deserialize(obj,topological=False):
     """

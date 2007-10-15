@@ -112,7 +112,8 @@ class BootCLI:
         """
         Run the command line and return system exit code
         """
-        self.api.deserialize()
+        # deserialization is implicit with API construction
+        # self.api.deserialize()
         self.relay_args(self.args[1:], self.commands['toplevel'])
 
     def usage(self,args):
@@ -295,7 +296,9 @@ class BootCLI:
         self.__generic_copy(args,collection_fn,control_fn,exc_msg)
         if objname != objname2:
             collection_fn().remove(objname, with_delete=True)
-        self.api.serialize()
+        
+        # new cobbler does not require explicit serialize calls
+        # self.api.serialize()
 
     def __generic_remove(self,args,alias1,alias2,collection_fn):
         commands = {
@@ -605,7 +608,9 @@ class BootCLI:
             else:
                 raise CX(_("this command doesn't take an option called '%(argument)s'") % { "argument" : key })
         on_ok()
-        self.api.serialize()
+
+        # new cobbler does not require explicit serialize calls
+        # self.api.serialize()
 
     def relay_args(self, args, commands):
         """

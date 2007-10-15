@@ -51,7 +51,6 @@ class Item(serializable.Serializable):
         self.clear(is_subobject)      # reset behavior differs for inheritance cases
         self.parent = ''              # all objects by default are not subobjects
         self.children = {}            # caching for performance reasons, not serialized
-
  
         
 

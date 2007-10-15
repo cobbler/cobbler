@@ -16,9 +16,13 @@ manpage:
 	pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz
 	pod2html ./docs/cobbler.pod > ./docs/cobbler.html
  
-test: install
+test: 
 	python tests/tests.py
 	-rm -rf /tmp/_cobbler-*
+
+test2:
+	python tests/multi.py	
+
 build: clean updatewui messages
 	python setup.py build -f
 
@@ -28,9 +32,11 @@ install: clean manpage
 devinstall:
 	cp /var/lib/cobbler/settings /tmp/cobbler_settings
 	cp /etc/cobbler/auth.conf /tmp/cobbler_auth.conf
+	cp /etc/cobbler/modules.conf /tmp/cobbler_modules.conf
 	make install
 	cp /tmp/cobbler_settings /var/lib/cobbler/settings
 	cp /tmp/cobbler_auth.conf /etc/cobbler/auth.conf
+	cp /tmp/cobbler_modules.conf /etc/cobbler/modules.conf
 
 sdist: clean messages updatewui
 	python setup.py sdist
@@ -69,3 +75,8 @@ updatewui:
 	-(rm ./webui_templates/*.bak)
 	mv ./webui_templates/master.py ./cobbler/webui
 
+eraseconfig:
+	-rm /var/lib/cobbler/distros*
+	-rm /var/lib/cobbler/profiles*
+	-rm /var/lib/cobbler/systems*
+	-rm /var/lib/cobbler/repos*

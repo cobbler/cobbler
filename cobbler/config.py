@@ -162,6 +162,20 @@ class Config:
               return False
        return True
 
+   def serialize_item(self,collection,item):
+       """
+       Save item in the collection, resaving the whole collection if needed,
+       but ideally just saving the item.
+       """
+       return serializer.serialize_item(collection,item)
+      
+
+   def serialize_delete(self,collection,item):
+       """
+       Erase item from a storage file, if neccessary rewritting the file.
+       """
+       return serializer.serialize_delete(collection,item) 
+
    def deserialize(self):
        """
        Load the object hierachy from disk, using the filenames referenced in each object.

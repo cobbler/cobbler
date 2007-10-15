@@ -226,6 +226,9 @@ class BootAPI:
         """
         return self._config.deserialize()
 
+    ## FIXME: would be nice to have functions to just deserialize
+    ## certain collections for efficiency in WUI calls.
+
 if __name__ == "__main__":
     api = BootAPI()
     print api.version()
