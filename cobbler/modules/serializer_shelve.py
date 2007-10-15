@@ -63,7 +63,8 @@ def serialize_item(obj, item):
 # NOTE: not heavily tested
 def serialize_item(obj, item):
     fd = shelve.open(obj.filename() + ".shelve","w")
-    del fd[item.name]
+    if fd.has_key(item.name):
+        del fd[item.name]
     fd.sync()
     return True
 
