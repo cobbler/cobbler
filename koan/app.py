@@ -36,7 +36,7 @@ import glob
 
 # the version of cobbler needed to interact with this version of koan
 # this is an decimal value (major + 0.1 * minor + 0.01 * maint)
-COBBLER_REQUIRED = 0.631
+COBBLER_REQUIRED = 0.603 # FIXME: version should be parsed better than this
 
 """
 koan --virt [--profile=webserver|--system=name] --server=hostname
