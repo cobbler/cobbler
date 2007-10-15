@@ -302,8 +302,14 @@ class BootSync:
                 raise CX(_("initrd not found: %(file)s, distro: %(distro)s") % { "file" : d.initrd, "distro" : d.name })
             b_kernel = os.path.basename(kernel)
             b_initrd = os.path.basename(initrd)
-            self.copyfile(kernel, os.path.join(distro_dir, b_kernel))
-            self.copyfile(initrd, os.path.join(distro_dir, b_initrd))
+            if kernel.startswith(dirtree):
+                self.linkfile(kernel, os.path.join(distro_dir, b_kernel))
+            else:
+                self.copyfile(kernel, os.path.join(distro_dir, b_kernel))
+            if initrd.startswith(dirtree):
+                self.linkfile(initrd, os.path.join(distro_dir, b_initrd))
+            else:
+                self.copyfile(initrd, os.path.join(distro_dir, b_initrd))
 
     def validate_kickstarts(self):
         """
@@ -839,6 +845,25 @@ class BootSync:
         fd = open(filename, "w+")
         fd.write(yaml.dump(blended))
         fd.close()
+
+    def linkfile(self, src, dst):
+        """
+        Attempt to create a link dst that points to src.  Because file
+        systems suck we attempt several different methods or bail to
+        self.copyfile()
+        """
+
+        try:
+            return os.link(src, dst)
+        except (IOError, OSError):
+            pass
+
+        try:
+            return os.symlink(src, dst)
+        except (IOError, OSError):
+            pass
+
+        return self.copyfile(src, dst)
 
     def copyfile(self,src,dst):
         try:
