@@ -455,7 +455,7 @@ class BootSync:
             # if there were any core repos, install the voodoo to disable the OS public core
             # location -- FIXME: should probably run sed on the files, rather than rename them.
             if len(distro.source_repos) > 0:
-                for x in ["fedora-core", "Centos-Base"] :
+                for x in ["fedora-core", "CentOS-Base"] :
                     buf = buf + "test -e /etc/yum.repos.d/%s.repo && mv /etc/yum.repos.d/%s.repo /etc/yum.repos.d/disabled-%s\n" % (x,x,x)
 
         return buf
