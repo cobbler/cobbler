@@ -21,16 +21,29 @@ import os
 import sys
 import glob
 import traceback
-
-plib = distutils.sysconfig.get_python_lib()
-mod_path="%s/cobbler" % plib
-sys.path.insert(0, mod_path)
-
-
 from rhpl.translate import _, N_, textdomain, utf8
 from cexceptions import *
 import os
 import shelve
+
+# FIXME: this is only needed for loading other modules, right?
+# plib = distutils.sysconfig.get_python_lib()
+# mod_path="%s/cobbler" % plib
+# sys.path.insert(0, mod_path)
+
+
+import gdbm # FIXME: check if available in EL4?
+
+def open_db(obj):
+    while 1:
+        try:
+            filename = obj.filename() + ".gdbm"
+            internal_db = gdbm.open(filename, 'c', 0644)
+            return shelve.BsdDbShelf(internal_db)
+        except gdbm.error:
+            print "- can't access %s right now, waiting..." % filename
+            time.sleep(1)
+	    continue
 
 def register():
     """
@@ -44,10 +57,10 @@ def serialize(obj):
     Will create intermediate paths if it can.  Returns True on Success,
     False on permission errors.
     """
-    fd = shelve.open(obj.filename() + ".shelve","c")
 
     # FIXME: this needs to understand deletes
     # FIXME: create partial serializer and don't use this
+    fd = open_db(obj)
 
     for entry in obj:
         fd[entry.name] = entry.to_datastruct()
@@ -55,14 +68,14 @@ def serialize(obj):
     return True
 
 def serialize_item(obj, item):
-    fd = shelve.open(obj.filename() + ".shelve","w")
+    fd = open_db(obj)
     fd[item.name] = item.to_datastruct()
     fd.sync()
     return True
 
 # NOTE: not heavily tested
 def serialize_delete(obj, item):
-    fd = shelve.open(obj.filename() + ".shelve","w")
+    fd = open_db(obj)
     if fd.has_key(item.name):
         del fd[item.name]
     fd.sync()
@@ -75,15 +88,7 @@ def deserialize(obj,topological=False):
     files could be read and contained decent YAML.  Otherwise returns
     False.
     """
-    filename = obj.filename() + ".shelve"
-    try: 
-        fd = shelve.open(filename, "r")
-    except:
-        if not os.path.exists(filename):
-            return True
-        else:
-            traceback.print_exc()
-            raise CX(_("Can't access storage file"))
+    fd = open_db(obj)
 
     datastruct = []
     for (key,value) in fd.iteritems():
