@@ -43,13 +43,13 @@ class Distros(collection.Collection):
         obj = self.find(name=name)
         if obj is not None:
             if with_delete:
-                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/distro/pre/*")
+                self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/distro/pre/*")
                 lite_sync = action_litesync.BootLiteSync(self.config)
                 lite_sync.remove_single_profile(name)
+            del self.listing[name]
             self.config.serialize_delete(self, obj)
             if with_delete:
-                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/distro/post/*")
-            del self.listing[name]
+                self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/distro/post/*")
             return True
         raise CX(_("cannot delete object that does not exist"))
 

@@ -49,10 +49,10 @@ class Repos(collection.Collection):
             if with_delete:
                 self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/repo/pre/*")
                 # FIMXE: clean up repo config files?
+            del self.listing[name]
             self.config.serialize_delete(self, obj)
             if with_delete:
                 self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/repo/post/*")
-            del self.listing[name]
             return True
         raise CX(_("cannot delete an object that does not exist"))
 
