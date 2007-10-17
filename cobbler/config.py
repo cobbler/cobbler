@@ -73,8 +73,6 @@ class Config:
           self._systems
        ]
        
-       self.file_check()
-
    def __cmp(self,a,b):
        return cmp(a.name,b.name)
 
@@ -140,19 +138,6 @@ class Config:
           x.clear()
        return True
 
-   def file_check(self):
-       """
-       Serialize any files that do not yet exist.  This is useful for bringing the
-       app up to a working state on first run or if files are deleted.  See api.py
-       FIXME: will require some tweaks when serializer modes aren't all file based
-       """
-       for x in self._serialize_graph_classes:
-          if not os.path.exists(x.filename()):
-              if not serializer.serialize(x):
-                  return False
-       return True
-
-
    def serialize(self):
        """
        Save the object hierarchy to disk, using the filenames referenced in each object.
@@ -184,6 +169,12 @@ class Config:
           if not serializer.deserialize(x,topological=True):
               return False
        return True
+
+   def deserialize_raw(self,collection_type):
+       """
+       Get object data from disk, not objects.
+       """
+       return serializer.deserialize_raw(collection_type)
 
 
 

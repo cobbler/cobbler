@@ -20,8 +20,6 @@ from cexceptions import *
 import action_litesync
 from rhpl.translate import _, N_, textdomain, utf8
 
-TESTMODE = False
-
 class Distros(collection.Collection):
 
     def collection_type(self):
@@ -33,16 +31,7 @@ class Distros(collection.Collection):
         """
         return distro.Distro(config).from_datastruct(seed_data)
 
-    def filename(self):
-        """
-        Config file for distro serialization
-        """
-        if TESTMODE:
-            return "/var/lib/cobbler/test/distros"
-        else:
-            return "/var/lib/cobbler/distros"
-
-    def remove(self,name,with_delete=False):
+    def remove(self,name,with_delete=True):
         """
         Remove element named 'name' from the collection
         """
@@ -51,11 +40,14 @@ class Distros(collection.Collection):
         for v in self.config.profiles():
             if v.distro.lower() == name:
                raise CX(_("removal would orphan profile: %s") % v.name)
-        if self.find(name=name):
+        obj = self.find(name=name)
+        if obj is not None:
             if with_delete:
                 self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/distro/pre/*")
                 lite_sync = action_litesync.BootLiteSync(self.config)
                 lite_sync.remove_single_profile(name)
+            self.config.serialize_delete(self, obj)
+            if with_delete:
                 self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/distro/post/*")
             del self.listing[name]
             return True

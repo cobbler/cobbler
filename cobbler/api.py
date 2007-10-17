@@ -226,8 +226,11 @@ class BootAPI:
         """
         return self._config.deserialize()
 
-    ## FIXME: would be nice to have functions to just deserialize
-    ## certain collections for efficiency in WUI calls.
+    def deserialize_raw(self,collection_name):
+        """
+        Get the collection back just as raw data.
+        """
+        return self._config.deserialize_raw(collection_name)
 
 if __name__ == "__main__":
     api = BootAPI()

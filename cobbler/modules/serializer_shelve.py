@@ -16,31 +16,49 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
+## FIXME: serializer needs a close() call
+## FIXME: investigate locking
+
 import distutils.sysconfig
 import os
 import sys
 import glob
 import traceback
 from rhpl.translate import _, N_, textdomain, utf8
-from cexceptions import *
 import os
 import shelve
+import time
+#import gdbm # FIXME: check if available in EL4?
+import bsddb
 
-# FIXME: this is only needed for loading other modules, right?
-# plib = distutils.sysconfig.get_python_lib()
-# mod_path="%s/cobbler" % plib
-# sys.path.insert(0, mod_path)
+plib = distutils.sysconfig.get_python_lib()
+mod_path="%s/cobbler" % plib
+sys.path.insert(0, mod_path)
 
+import cexceptions
+import utils
 
-import gdbm # FIXME: check if available in EL4?
+DATABASES = {}
 
-def open_db(obj):
+def open_db(collection_type):
+    if DATABASES.has_key(collection_type):
+        return DATABASES[collection_type]
+    ending = collection_type
+    if not ending.endswith("s"):
+        ending = ending + "s"
     while 1:
         try:
-            filename = obj.filename() + ".gdbm"
-            internal_db = gdbm.open(filename, 'c', 0644)
-            return shelve.BsdDbShelf(internal_db)
-        except gdbm.error:
+            filename = "/var/lib/cobbler/%s.gdbm" % ending
+
+	    internal_db = bsddb.btopen( filename, 'c', 0644 )
+
+
+            #internal_db = gdbm.open(filename, 'c', 0644)
+            database = shelve.BsdDbShelf(internal_db)
+            DATABASES[collection_type] = database
+            return database
+        except:
+            traceback.print_exc()
             print "- can't access %s right now, waiting..." % filename
             time.sleep(1)
 	    continue
@@ -60,26 +78,36 @@ def serialize(obj):
 
     # FIXME: this needs to understand deletes
     # FIXME: create partial serializer and don't use this
-    fd = open_db(obj)
+    fd = open_db(obj.collection_type())
 
     for entry in obj:
         fd[entry.name] = entry.to_datastruct()
-    fd.sync()
+    # fd.sync()
     return True
 
 def serialize_item(obj, item):
-    fd = open_db(obj)
+    fd = open_db(obj.collection_type())
     fd[item.name] = item.to_datastruct()
-    fd.sync()
+    # fd.sync()
     return True
 
 # NOTE: not heavily tested
 def serialize_delete(obj, item):
-    fd = open_db(obj)
+    fd = open_db(obj.collection_type())
     if fd.has_key(item.name):
+        print "DEBUG: deleting: %s" % item.name
         del fd[item.name]
-    fd.sync()
+    # fd.sync()
     return True
+
+def deserialize_raw(collection_type):
+    fd = open_db(collection_type)
+    datastruct = []
+    # FIXME: see if we can call items() directly
+    for (key,value) in fd.iteritems():
+        datastruct.append(value)
+    # fd.close()
+    return datastruct
 
 def deserialize(obj,topological=False):
     """
@@ -88,13 +116,13 @@ def deserialize(obj,topological=False):
     files could be read and contained decent YAML.  Otherwise returns
     False.
     """
-    fd = open_db(obj)
+    fd = open_db(obj.collection_type())
 
     datastruct = []
     for (key,value) in fd.iteritems():
        datastruct.append(value)
 
-    fd.close()
+    # fd.close()
 
     if topological and type(datastruct) == list:
        # in order to build the graph links from the flat list, sort by the

@@ -14,6 +14,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import exceptions
 
+TEST_MODE = False
+
 class CobblerException(exceptions.Exception):
 
    def __init__(self, value, *args):

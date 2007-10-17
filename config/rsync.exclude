@@ -4,6 +4,10 @@
 ### re-enable debug RPM's.
 **/debug/**
 **/ppc/**
+**/alpha/**
+**/ia64/**
+**/s390/**
+**/s390x/**
 **/source/**
 **/SRPMS/**
 **/*.iso

@@ -42,7 +42,7 @@ def serialize_item(collection, item):
     storage_module = __get_storage_module(collection.collection_type())
     save_fn = getattr(storage_module, "serialize_item", None)
     if save_fn is None:
-        # print "DEBUG: full serializer"
+        # print "DEBUG: WARNING: full serializer"
         return storage_module.serialize(collection)
     else:
         # print "DEBUG: partial serializer"
@@ -65,6 +65,10 @@ def deserialize(obj,topological=False):
     """
     storage_module = __get_storage_module(obj.collection_type())
     return storage_module.deserialize(obj,topological)
+
+def deserialize_raw(collection_type):
+    storage_module = __get_storage_module(collection_type)
+    return storage_module.deserialize_raw(collection_type)
 
 def __get_storage_module(collection_type):
 

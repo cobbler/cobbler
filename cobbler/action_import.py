@@ -347,12 +347,22 @@ class Importer:
 
    def repo_scanner(self,distro,dirname,fnames):
        
+       matches = {} 
        print "- processing: %s" % dirname
        for x in fnames:
           if x == "base" or x == "repodata":
-               print "- need to process repo/comps: %s" % dirname
-               self.process_comps_file(dirname, distro)
-               continue
+               # only run the repo scanner on directories that contain a comps.xml
+               gloob1 = glob.glob("%s/%s/comps*.xml" % (dirname,x))
+               if len(gloob1) >= 1 or len(gloob2) >= 1:
+                   if matches.has_key(dirname):
+                       print _("- looks like we've already scanned here: %s") % dirname
+                       continue
+                   print _("- need to process repo/comps: %s") % dirname
+                   self.process_comps_file(dirname, distro)
+                   matches[dirname] = 1
+               else:
+                   print _("- directory %s is missing comps.xml, skipping") % dirname
+                   continue
 
    # ----------------------------------------------------------------------
                

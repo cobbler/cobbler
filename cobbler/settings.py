@@ -59,15 +59,6 @@ DEFAULTS = {
 
 class Settings(serializable.Serializable):
 
-   def filename(self):
-       """
-       The filename where settings are serialized.
-       """
-       if TESTMODE:
-           return "/var/lib/cobbler/test/settings"
-       else:
-           return "/var/lib/cobbler/settings"
-
    def collection_type(self):
        return "settings"
 

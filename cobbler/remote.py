@@ -69,14 +69,23 @@ class CobblerXMLRPCInterface:
     def ping(self):
         return True
 
+    def __get_all(self,collection_name,page=-1,results_per_page=50):
+        """
+        Helper method to return all data to the WebUI or another caller
+        without going through the process of loading all the data into
+        objects and recalculating.  This does require that the cobbler
+        data in the files is up-to-date in terms of serialized formats.
+        """
+        # FIXME: this method, and those that use it, need to allow page, and per_page
+        data = self.api.deserialize_raw(collection_name)
+        data.sort(self.__sorter)
+        return self._fix_none(data)
+
     def get_settings(self,token=None):
         """
         Return the contents of /var/lib/cobbler/settings, which is a hash.
         """
-        self.api.clear()
-        self.api.deserialize()
-        data = self.api.settings().to_datastruct()
-        return self._fix_none(data)
+        return self.__get_all("settings")
  
     def disable_netboot(self,name,token=None):
         """
@@ -108,14 +117,6 @@ class CobblerXMLRPCInterface:
         self.api.clear() 
         self.api.deserialize()
 
-    def __get_all(self,collection_fn):
-        """
-        Internal function to return an array of hashes from a particular collection object.
-        """
-        self._refresh()
-        data = collection_fn().to_datastruct()
-        data.sort(self.__sorter)
-        return self._fix_none(data)
 
     def version(self,token=None):
         """
@@ -128,25 +129,25 @@ class CobblerXMLRPCInterface:
         """
         Returns all cobbler distros as an array of hashes.
         """
-        return self.__get_all(self.api.distros)
+        return self.__get_all("distro")
 
     def get_profiles(self,token=None):
         """
         Returns all cobbler profiles as an array of hashes.
         """
-        return self.__get_all(self.api.profiles)
+        return self.__get_all("profile")
 
     def get_systems(self,token=None):
         """
         Returns all cobbler systems as an array of hashes.
         """
-        return self.__get_all(self.api.systems)
+        return self.__get_all("system")
 
     def get_repos(self,token=None):
         """
         Returns all cobbler repos as an array of hashes.
         """
-        return self.__get_all(self.api.repos)
+        return self.__get_all("repo")
 
     def __get_specific(self,collection_fn,name,flatten=False):
         """
@@ -640,7 +641,6 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self.__validate_token(token)
         rc = self.api._config.distros().remove(name)
-        self.api.serialize()
         return rc
 
     def profile_remove(self,name,token):
@@ -650,7 +650,6 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self.__validate_token(token)
         rc = self.api._config.profiles().remove(name)
-        self.api.serialize()
         return rc
 
     def system_remove(self,name,token):
@@ -660,7 +659,6 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self.__validate_token(token)
         rc = self.api._config.systems().remove(name)
-        self.api.serialize()
         return rc
 
     def repo_remove(self,name,token):
@@ -670,7 +668,6 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self.__validate_token(token)
         rc = self.api._config.repos().remove(name)
-        self.api.serialize()
         return rc
 
     def sync(self,token): 
@@ -785,13 +782,11 @@ if __name__ == "__main__":
     my_uri = "http://127.0.0.1/cobbler_api_rw"
     remote =  xmlrpclib.Server(my_uri)
 
-    testuser = "testuser"
-    testpass = "llamas2007"
+    testuser = "admin"
+    testpass = "mooses9"
 
     token = remote.login(testuser,testpass)
     print token
-    rc = remote.test(token)
-    print "test result: %s" % rc
 
     # just to make things "work"
     os.system("touch /tmp/vmlinuz")
@@ -823,18 +818,8 @@ if __name__ == "__main__":
     system_id = remote.new_system(token)
     remote.modify_system(system_id,   'name',      'example-system', token)
     remote.modify_system(system_id,   'profile',   'example-profile', token)
-    remote.modify_system(system_id,   'mac',       'FF:EE:DD:CC:BB:AA', token)
-    remote.modify_system(system_id,   'ip',        '192.168.1.25', token)
     remote.save_system(system_id, token)
 
-    # now load a system (coincidence, the same one) and edit something about it
-    system_id = remote.get_system_handle('example-system',token)
-    remote.modify_system(system_id,   'ip',        '192.168.1.26', token)
-    remote.save_system(system_id, token)
-
-    # now use some of the read-only functions to show the config
-    # note that these do not require a token (though they won't complain if you
-    # give one)
     print remote.get_distros()
     print remote.get_profiles()
     print remote.get_systems()

@@ -43,12 +43,6 @@ class Collection(serializable.Serializable):
         """
         raise exceptions.NotImplementedError
 
-    def filename(self):
-        """
-        Must override in subclass.  See Serializable
-        """
-        raise exceptions.NotImplementedError
-
     def clear(self):
         """
         Forget about objects in the collection.

@@ -53,7 +53,13 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
 
 %post
+cp /var/lib/cobbler/distros*  /var/lib/cobbler/backup
+cp /var/lib/cobbler/profiles* /var/lib/cobbler/backup
+cp /var/lib/cobbler/systems*  /var/lib/cobbler/backup
+cp /var/lib/cobbler/repos*    /var/lib/cobbler/backup
+/usr/bin/cobbler reserialize
 /sbin/chkconfig --add cobblerd
+/sbin/service cobblerd restart
 
 
 %preun
@@ -141,6 +147,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(755,root,root)
 %dir /var/lib/cobbler
 %dir /var/lib/cobbler/kickstarts/
+%dir /var/lib/cobbler/backup/
 %dir /var/lib/cobbler/triggers/add/distro/pre
 %dir /var/lib/cobbler/triggers/add/distro/post
 %dir /var/lib/cobbler/triggers/add/profile/pre
@@ -176,9 +183,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Mon Oct 08 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.3-1
+* Wed Oct 16 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.3-1
 - Upstream changes (see CHANGELOG)
 - now packaging javascript file(s) seperately for WUI
+- backup state files on upgrade 
 
 * Fri Sep 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.2-2
 - Upstream changes (see CHANGELOG)

@@ -36,16 +36,7 @@ class Repos(collection.Collection):
         """
         return repo.Repo(config).from_datastruct(seed_data)
 
-    def filename(self):
-        """
-        Return a filename for System serialization
-        """
-        if TESTMODE:
-            return "/var/lib/cobbler/test/repos"
-        else:
-            return "/var/lib/cobbler/repos"
-
-    def remove(self,name,with_delete=False):
+    def remove(self,name,with_delete=True):
         """
         Remove element named 'name' from the collection
         """
@@ -53,10 +44,14 @@ class Repos(collection.Collection):
         # NOTE: with_delete isn't currently meaningful for repos
         # but is left in for consistancy in the API.  Unused.
         name = name.lower()
-        if self.find(name=name):
+        obj = self.find(name=name)
+        if obj is not None:
             if with_delete:
-                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/repo/pre/*")
-                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/repo/post/*")
+                self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/repo/pre/*")
+                # FIMXE: clean up repo config files?
+            self.config.serialize_delete(self, obj)
+            if with_delete:
+                self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/repo/post/*")
             del self.listing[name]
             return True
         raise CX(_("cannot delete an object that does not exist"))

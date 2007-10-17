@@ -21,10 +21,10 @@ plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
-
 from rhpl.translate import _, N_, textdomain, utf8
+import utils
 import yaml   # Howell-Clark version
-from cexceptions import *
+import cexceptions
 import os
 
 def register():
@@ -39,7 +39,7 @@ def serialize(obj):
     Will create intermediate paths if it can.  Returns True on Success,
     False on permission errors.
     """
-    filename = obj.filename()
+    filename = get_filename(obj.collection_type())
     try:
         fd = open(filename,"w+")
     except IOError, ioe:
@@ -53,13 +53,31 @@ def serialize(obj):
         try:
            fd = open(filename,"w+")
         except IOError, ioe3:
-           raise CX(_("Need permissions to write to %s") % filename)
+           raise cexceptions.CX(_("Need permissions to write to %s") % filename)
            return False
     datastruct = obj.to_datastruct()
     encoded = yaml.dump(datastruct)
     fd.write(encoded)
     fd.close()
     return True
+
+def get_filename(collection_type):
+    # FIXME: use this everywhere
+    ending = collection_type
+    if not ending.endswith("s"):
+        ending = ending + "s"
+    return "/var/lib/cobbler/%s" % ending
+
+def deserialize_raw(collection_type):
+    filename = get_filename(collection_type)
+    try:
+        fd = open(filename,"r")
+    except IOError, ioe:
+        return [{}]
+    data = fd.read()
+    datastruct = yaml.load(data).next()  # first record
+    fd.close()
+    return datastruct 
 
 def deserialize(obj,topological=False):
     """
@@ -68,7 +86,7 @@ def deserialize(obj,topological=False):
     files could be read and contained decent YAML.  Otherwise returns
     False.
     """
-    filename = obj.filename()
+    filename = get_filename(obj.collection_type())
     try:
         fd = open(filename,"r")
     except IOError, ioe:
@@ -77,7 +95,7 @@ def deserialize(obj,topological=False):
         if not os.path.exists(filename):
             return True
         else:
-            raise CX(_("Need permissions to read %s") % obj.filename())
+            raise cexceptions.CX(_("Need permissions to read %s") % obj.filename())
     data = fd.read()
     datastruct = yaml.load(data).next()  # first record
     fd.close()

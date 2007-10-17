@@ -20,8 +20,6 @@ from cexceptions import *
 import action_litesync
 from rhpl.translate import _, N_, textdomain, utf8
 
-TESTMODE = False
-
 #--------------------------------------------
 
 class Systems(collection.Collection):
@@ -35,27 +33,24 @@ class Systems(collection.Collection):
         """
         return system.System(config).from_datastruct(seed_data)
 
-    def filename(self):
-        """
-        Return a filename for System serialization
-        """
-        if TESTMODE:
-            return "/var/lib/cobbler/test/systems"
-        else:
-            return "/var/lib/cobbler/systems"
-
-    def remove(self,name,with_delete=False):
+    def remove(self,name,with_delete=True):
         """
         Remove element named 'name' from the collection
         """
         name = name.lower()
-        if self.find(name=name):
+        obj = self.find(name=name)
+        
+        if obj is not None:
+
             if with_delete:
-                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/system/pre/*")
+                self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/system/pre/*")
                 lite_sync = action_litesync.BootLiteSync(self.config)
                 lite_sync.remove_single_system(name)
-                self._run_triggers(self.listing[name], "/var/lib/cobbler/triggers/delete/system/post/*")
+            self.config.serialize_delete(self, obj)
+            if with_delete:
+                self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/system/post/*")
             del self.listing[name]
+
             return True
         raise CX(_("cannot delete an object that does not exist"))
     

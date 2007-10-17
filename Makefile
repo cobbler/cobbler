@@ -17,8 +17,13 @@ manpage:
 	pod2html ./docs/cobbler.pod > ./docs/cobbler.html
  
 test: 
+	-mkdir -p /tmp/cobbler_test_bak
+	-cp /var/lib/cobbler/distros*  /tmp/cobbler_test_bak
+	-cp /var/lib/cobbler/profiles* /tmp/cobbler_test_bak
+	-cp /var/lib/cobbler/systems*  /tmp/cobbler_test_bak
+	-cp /var/lib/cobbler/repos*    /tmp/cobbler_test_bak
 	python tests/tests.py
-	-rm -rf /tmp/_cobbler-*
+	-cp /tmp/cobbler_test_bak/* /var/lib/cobbler
 
 test2:
 	python tests/multi.py	

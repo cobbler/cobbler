@@ -7,6 +7,9 @@ Cobbler CHANGELOG
 - Add --virt-cpus to profile editing
 - Fix bug where WUI (XMLRPC) auth wasn't supported on EL4
 - Add --virt-bridge to profile editing and NICs
+- Added serializer_shelve for added performance/persistance over YAML
+- Backup state and migrate structures upon RPM upgrade
+- Added some more unsupported distros to the rsync.exclude file
 
 * Fri Sep 28 2007 - 0.6.2
 - cobbler repo auto-add to discover yum repos automatically
