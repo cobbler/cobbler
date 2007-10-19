@@ -53,13 +53,13 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
 
 %post
-cp /var/lib/cobbler/distros*  /var/lib/cobbler/backup
-cp /var/lib/cobbler/profiles* /var/lib/cobbler/backup
-cp /var/lib/cobbler/systems*  /var/lib/cobbler/backup
-cp /var/lib/cobbler/repos*    /var/lib/cobbler/backup
+cp /var/lib/cobbler/distros*  /var/lib/cobbler/backup 2>/dev/null
+cp /var/lib/cobbler/profiles* /var/lib/cobbler/backup 2>/dev/null
+cp /var/lib/cobbler/systems*  /var/lib/cobbler/backup 2>/dev/null
+cp /var/lib/cobbler/repos*    /var/lib/cobbler/backup 2>/dev/null
 /usr/bin/cobbler reserialize
 /sbin/chkconfig --add cobblerd
-/sbin/service cobblerd restart
+/sbin/service cobblerd condrestart
 
 
 %preun

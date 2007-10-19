@@ -14,6 +14,7 @@ if __name__ == "__main__":
         # docspath="share/doc/koan-%s/" % VERSION
         manpath  = "share/man/man1/"
         cobpath  = "/var/lib/cobbler/"
+        backpath = "/var/lib/cobbler/backup/"
         etcpath  = "/etc/cobbler/"
         wwwconf  = "/etc/httpd/conf.d/"
         wwwpath  = "/var/www/cobbler/"
@@ -71,6 +72,9 @@ if __name__ == "__main__":
                                 (etcpath,  ['config/rsync.exclude']),
                                 (initpath, ['config/cobblerd']),
                                 (cobpath,  ['config/settings']),
+
+                                # backups for upgrades
+                                (backpath, []),
 
                                 # bootloaders and syslinux support files
                                 (cobpath,  ['loaders/elilo-3.6-ia64.efi']),
