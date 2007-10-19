@@ -26,3 +26,4 @@ recursive-include po *.pot
 recursive-include po *.po
 recursive-include webui_content *
 recursive-include webui_templates *
+recursive-include triggers *

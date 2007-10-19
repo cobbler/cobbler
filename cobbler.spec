@@ -164,7 +164,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/triggers/delete/system/post
 %dir /var/lib/cobbler/triggers/delete/repo/pre
 %dir /var/lib/cobbler/triggers/delete/repo/post
+%dir /var/lib/cobbler/triggers/sync/pre
+%dir /var/lib/cobbler/triggers/sync/post
 %dir /var/lib/cobbler/snippets/
+
+%defattr(744,root,root)
+%config(noreplace) /var/lib/cobbler/triggers/sync/post/restart-services.trigger
 
 %defattr(664,root,root)
 %config(noreplace) /var/lib/cobbler/settings
@@ -187,6 +192,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 - Upstream changes (see CHANGELOG)
 - now packaging javascript file(s) seperately for WUI
 - backup state files on upgrade 
+- cobbler sync now has pre/post triggers, so package those dirs/files
 
 * Fri Sep 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.2-2
 - Upstream changes (see CHANGELOG)

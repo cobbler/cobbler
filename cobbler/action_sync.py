@@ -59,6 +59,7 @@ class BootSync:
         Syncs the current configuration file with the config tree.
         Using the Check().run_ functions previously is recommended
         """
+        utils.run_triggers(None, "/var/lib/cobbler/triggers/sync/pre/*")
         if not os.path.exists(self.settings.tftpboot):
             raise CX(_("cannot find directory: %s") % self.settings.tftpboot)
         self.clean_trees()
@@ -71,26 +72,9 @@ class BootSync:
            self.write_dhcp_file()
            self.regen_ethers()
            self.regen_hosts()
-           self.restart_dhcp()
         self.make_pxe_menu()
+        utils.run_triggers(None, "/var/lib/cobbler/triggers/sync/post/*")
         return True
-
-    def restart_dhcp(self):
-        """
-        DHCP restarts need to be made when the config file is
-        changed. ISC or DNSMASQ.  Support for ISC omshell not
-        yet available (adding dynamically w/o restart).
-        """
-        try:
-            mode = self.settings.manage_dhcp_mode.lower()
-            service = "dhcpd"
-            if mode == "dnsmasq":
-                service = "dnsmasq"
-            retcode = self.service(service, "restart")
-            if retcode != 0:
-                print _("Warning: %s restart failed") % service
-        except OSError, e:
-            print _("Warning: %s restart failed: ") % service, e
 
     def copy_bootloaders(self):
         """
@@ -906,12 +890,4 @@ class BootSync:
                traceback.print_exc()
                print oe.errno
                raise CX(_("Error creating") % path)
-
-    def service(self, name, action):
-        """
-        Call /sbin/service NAME ACTION
-        """
-
-        cmd = "/sbin/service %s %s" % (name, action)
-        return sub_process.call(cmd, shell=True)
 

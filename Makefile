@@ -42,6 +42,7 @@ devinstall:
 	cp /tmp/cobbler_settings /var/lib/cobbler/settings
 	cp /tmp/cobbler_auth.conf /etc/cobbler/auth.conf
 	cp /tmp/cobbler_modules.conf /etc/cobbler/modules.conf
+	find /var/lib/cobbler/triggers | xargs chmod +x
 
 sdist: clean messages updatewui
 	python setup.py sdist
@@ -51,7 +52,7 @@ messages: cobbler/*.py
 	sed -i'~' -e 's/SOME DESCRIPTIVE TITLE/cobbler/g' -e 's/YEAR THE PACKAGE'"'"'S COPYRIGHT HOLDER/2007 Red Hat, Inc. /g' -e 's/FIRST AUTHOR <EMAIL@ADDRESS>, YEAR/Michael DeHaan <mdehaan@redhat.com>, 2007/g' -e 's/PACKAGE VERSION/cobbler $(VERSION)-$(RELEASE)/g' -e 's/PACKAGE/cobbler/g' $(MESSAGESPOT)
 
 
-rpms: manpage sdist
+rpms: clean manpage sdist
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
 	rpmbuild --define "_topdir %(pwd)/rpm-build" \

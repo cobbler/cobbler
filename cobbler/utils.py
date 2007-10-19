@@ -393,3 +393,31 @@ def hash_to_string(hash):
           buffer = buffer + str(key) + "=" + str(value) + " "
     return buffer
 
+def run_triggers(ref,globber):
+    """
+    Runs all the trigger scripts in a given directory.
+    ref can be a cobbler object, if not None, the name will be passed
+    to the script.  If ref is None, the script will be called with
+    no argumenets.  Globber is a wildcard expression indicating which
+    triggers to run.  Example:  "/var/lib/cobbler/triggers/blah/*"
+    """
+
+    triggers = glob.glob(globber)
+    triggers.sort()
+    for file in triggers:
+        try:
+            if file.find(".rpm") != -1:
+                # skip .rpmnew files that may have been installed
+                # in the triggers directory
+                continue
+            if ref:
+                rc = sub_process.call([file,ref.name], shell=False)
+            else:
+                rc = sub_process.call([file], shell=False)
+        except:
+            print _("Warning: failed to execute trigger: %s" % file)
+            continue
+
+        if rc != 0:
+            raise CX(_("cobbler trigger failed: %(file)s returns %(code)d") % { "file" : file, "code" : rc })
+

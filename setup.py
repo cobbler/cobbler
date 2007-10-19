@@ -15,6 +15,7 @@ if __name__ == "__main__":
         manpath  = "share/man/man1/"
         cobpath  = "/var/lib/cobbler/"
         backpath = "/var/lib/cobbler/backup/"
+        trigpath = "/var/lib/cobbler/triggers/"
         etcpath  = "/etc/cobbler/"
         wwwconf  = "/etc/httpd/conf.d/"
         wwwpath  = "/var/www/cobbler/"
@@ -168,22 +169,25 @@ if __name__ == "__main__":
                                 (wwwgfx,            ['webui_content/cobblerweb.css']),
  
                                 # Directories to hold cobbler triggers
-                                ("/var/lib/cobbler/triggers/add/distro/pre",      []),
-                                ("/var/lib/cobbler/triggers/add/distro/post",     []),
-                                ("/var/lib/cobbler/triggers/add/profile/pre",     []),
-                                ("/var/lib/cobbler/triggers/add/profile/post",    []),
-                                ("/var/lib/cobbler/triggers/add/system/pre",      []),
-                                ("/var/lib/cobbler/triggers/add/system/post",     []),
-                                ("/var/lib/cobbler/triggers/add/repo/pre",        []),
-                                ("/var/lib/cobbler/triggers/add/repo/post",       []),
-                                ("/var/lib/cobbler/triggers/delete/distro/pre",   []),
-                                ("/var/lib/cobbler/triggers/delete/distro/post",  []),
-                                ("/var/lib/cobbler/triggers/delete/profile/pre",  []),
-                                ("/var/lib/cobbler/triggers/delete/profile/post", []),
-                                ("/var/lib/cobbler/triggers/delete/system/pre",   []),
-                                ("/var/lib/cobbler/triggers/delete/system/post",  []),
-                                ("/var/lib/cobbler/triggers/delete/repo/pre",     []),
-                                ("/var/lib/cobbler/triggers/delete/repo/post",    [])
+                                ("%sadd/distro/pre" % trigpath,      []),
+                                ("%sadd/distro/post" % trigpath,     []),
+                                ("%sadd/profile/pre" % trigpath,     []),
+                                ("%sadd/profile/post" % trigpath,    []),
+                                ("%sadd/system/pre" % trigpath,      []),
+                                ("%sadd/system/post" % trigpath,     []),
+                                ("%sadd/repo/pre" % trigpath,        []),
+                                ("%sadd/repo/post" % trigpath,       []),
+                                ("%sdelete/distro/pre" % trigpath,   []),
+                                ("%sdelete/distro/post" % trigpath,  []),
+                                ("%sdelete/profile/pre" % trigpath,  []),
+                                ("%sdelete/profile/post" % trigpath, []),
+                                ("%sdelete/system/pre" % trigpath,   []),
+                                ("%sdelete/system/post" % trigpath,  []),
+                                ("%sdelete/repo/pre" % trigpath,     []),
+                                ("%sdelete/repo/post" % trigpath,    []),
+                                ("%sdelete/repo/post" % trigpath,    []),
+                                ("%ssync/pre" % trigpath,            []),
+                                ("%ssync/post" % trigpath,           [ "triggers/restart-services.trigger" ])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC

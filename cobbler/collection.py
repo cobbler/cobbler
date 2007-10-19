@@ -155,11 +155,7 @@ class Collection(serializable.Serializable):
         return True
 
     def _run_triggers(self,ref,globber):
-        triggers = glob.glob(globber)
-        for file in triggers:
-            rc = sub_process.call("%s %s" % (file,ref.name), shell=True)
-            if rc != 0:
-               raise CX(_("cobbler trigger failed: %(file)s returns %(code)d") % { "file" : file, "code" : rc })
+        return utils.run_triggers(ref,globber)
 
     def printable(self):
         """
