@@ -472,7 +472,7 @@ class BootCLI:
         def on_ok():
             if newname is not None:
                 repo.set_name(newname)
-            self.api.repos().add(repo)
+            self.api.repos().add(repo, with_copy=True)
         return self.apply_args(args,commands,on_ok)
 
     def __distro_control(self,args,distro):
