@@ -47,6 +47,7 @@ class BootSync:
         """
         self.verbose  = verbose
         self.config   = config
+        self.api      = config.api
         self.distros  = config.distros()
         self.profiles = config.profiles()
         self.systems  = config.systems()
@@ -327,7 +328,7 @@ class BootSync:
 
     def validate_kickstart_for_specific_profile(self,g):
         distro = g.get_conceptual_parent()
-        meta = utils.blender(False, g)
+        meta = utils.blender(self.api, False, g)
         if distro is None:
            raise CX(_("profile %(profile)s references missing distro %(distro)s") % { "profile" : g.name, "distro" : g.distro })
         kickstart_path = utils.find_kickstart(meta["kickstart"])
@@ -341,7 +342,7 @@ class BootSync:
            self.mkdir(copy_path)
            dest = os.path.join(copy_path, "ks.cfg")
            try:
-                meta = utils.blender(False, g)
+                meta = utils.blender(self.api, False, g)
                 ksmeta = meta["ks_meta"]
                 del meta["ks_meta"]
                 meta.update(ksmeta) # make available at top level
@@ -375,7 +376,7 @@ class BootSync:
         if system:
             blend_this = system
 
-        blended = utils.blender(False, blend_this)
+        blended = utils.blender(self.api, False, blend_this)
         kickstart = blended.get("kickstart",None)
 
         buf = ""
@@ -398,7 +399,7 @@ class BootSync:
         # the list of repos to things that Anaconda can install from.  This corresponds
         # will replace "TEMPLATE::yum_repo_stanza" in a cobbler kickstart file.
         buf = ""
-        repos = utils.blender(False, profile)["repos"]
+        repos = utils.blender(self.api, False, profile)["repos"]
         for r in repos:
             repo = self.repos.find(name=r)
             if repo is None:
@@ -419,7 +420,7 @@ class BootSync:
 
     def generate_config_stanza(self, profile):
         # returns the line in post that would configure yum to use repos added with "cobbler repo add"
-        repos = utils.blender(False,profile)["repos"]
+        repos = utils.blender(self.api, False,profile)["repos"]
         buf = ""
         for r in repos:
             repo = self.repos.find(name=r)
@@ -463,7 +464,7 @@ class BootSync:
         if profile is None:
             raise CX(_("system %(system)s references missing profile %(profile)s") % { "system" : s.name, "profile" : s.profile })
         distro = profile.get_conceptual_parent()
-        meta = utils.blender(False, s)
+        meta = utils.blender(self.api, False, s)
         kickstart_path = utils.find_kickstart(meta["kickstart"])
         if kickstart_path and os.path.exists(kickstart_path):
             copy_path = os.path.join(self.settings.webdir,
@@ -707,7 +708,7 @@ class BootSync:
         initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
         
         # Find the kickstart if we inherit from another profile
-        kickstart_path = utils.blender(True, profile)["kickstart"]
+        kickstart_path = utils.blender(self.api, True, profile)["kickstart"]
 
         # ---
         # choose a template
@@ -720,9 +721,9 @@ class BootSync:
 
         # now build the kernel command line
         if system is not None:
-            kopts = utils.blender(True,system)["kernel_options"]
+            kopts = utils.blender(self.api, True,system)["kernel_options"]
         else:
-            kopts = utils.blender(True,profile)["kernel_options"]
+            kopts = utils.blender(self.api, True,profile)["kernel_options"]
 
         # ---
         # generate the append line
@@ -795,7 +796,7 @@ class BootSync:
         """
         Create distro information for koan install
         """
-        blended = utils.blender(True, distro)
+        blended = utils.blender(self.api, True, distro)
         filename = os.path.join(self.settings.webdir,"distros",distro.name)
         fd = open(filename, "w+")
         fd.write(yaml.dump(blended))
@@ -808,7 +809,7 @@ class BootSync:
         NOTE: relevant to http only
         """
 
-        blended = utils.blender(True, profile)
+        blended = utils.blender(self.api, True, profile)
         filename = os.path.join(self.settings.webdir,"profiles",profile.name)
         fd = open(filename, "w+")
         if blended.has_key("kickstart") and blended["kickstart"].startswith("/"):
@@ -824,7 +825,7 @@ class BootSync:
         NOTE: relevant to http only
         """
 
-        blended = utils.blender(True, system)
+        blended = utils.blender(self.api, True, system)
         filename = os.path.join(self.settings.webdir,"systems",system.name)
         fd = open(filename, "w+")
         fd.write(yaml.dump(blended))

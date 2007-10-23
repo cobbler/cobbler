@@ -202,7 +202,7 @@ class CobblerXMLRPCInterface:
         self._refresh()
         obj = self.api.distros().find(name=name)
         if obj is not None:
-            return self._fix_none(utils.blender(True, obj))
+            return self._fix_none(utils.blender(self.api, True, obj))
         return self._fix_none({})
 
     def get_profile_as_rendered(self,name,token=None):
@@ -220,7 +220,7 @@ class CobblerXMLRPCInterface:
         self._refresh()
         obj = self.api.profiles().find(name=name)
         if obj is not None:
-            return self._fix_none(utils.blender(True, obj))
+            return self._fix_none(utils.blender(self.api, True, obj))
         return self._fix_none({})
 
     def get_system_as_rendered(self,name,token=None):
@@ -238,7 +238,7 @@ class CobblerXMLRPCInterface:
         self._refresh()
         obj = self.api.systems().find(name=name)
         if obj is not None:
-           return self._fix_none(utils.blender(True, obj))
+           return self._fix_none(utils.blender(self.api, True, obj))
         return self._fix_none({})
 
     def get_repo_as_rendered(self,name,token=None):
@@ -256,7 +256,7 @@ class CobblerXMLRPCInterface:
         self._refresh()
         obj = self.api.repos().find(name=name)
         if obj is not None:
-            return self._fix_none(utils.blender(True, obj))
+            return self._fix_none(utils.blender(self.api, True, obj))
         return self._fix_none({})
 
     def get_random_mac(self):
