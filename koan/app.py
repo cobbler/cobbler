@@ -370,15 +370,22 @@ class Koan:
         fd.close()
         if self.is_mac(mac) == False:
             raise InfoException, "Mac address not accurately detected"
-        data = self.get_systems_xmlrpc()
-        detectedsystem = [system['name'] for system in data if system['mac_address'].upper() == mac.upper()]
-        if len(detectedsystem) > 1:
+        systems = self.get_systems_xmlrpc()
+
+        detected_systems = []
+        for system in systems:
+            for (iname, interface) in system['interfaces'].iteritems():
+                if interface['mac_address'].upper() == mac.upper():
+                    detected_systems.append(system['name'])
+                    break
+
+        if len(detected_systems) > 1:
             raise InfoException, "Multiple systems with matching mac addresses"
-        elif len(detectedsystem) == 0:
+        elif len(detected_systems) == 0:
             raise InfoException, "No system matching MAC address %s found" % mac
-        elif len(detectedsystem) == 1:
-            print "- Auto detected: %s" % detectedsystem[0]
-            return detectedsystem[0]
+        elif len(detected_systems) == 1:
+            print "- Auto detected: %s" % detected_systems[0]
+            return detected_systems[0]
 
     #---------------------------------------------------
 
