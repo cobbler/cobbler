@@ -262,7 +262,7 @@ def grab_tree(api_handle, obj):
     """
     Climb the tree and get every node.
     """
-    settings = api_handle.BootAPI().settings()
+    settings = api_handle.settings()
     results = [ obj ]
     parent = obj.get_parent()
     while parent is not None:
@@ -277,8 +277,8 @@ def blender(api_handle,remove_hashes, root_obj):
     of that point on the tree, and produce a merged hash containing
     consolidated data.
     """
-    settings = api_handle.BootAPI().settings()
-    tree = grab_tree(root_obj)
+    settings = api_handle.settings()
+    tree = grab_tree(api_handle, root_obj)
     tree.reverse()  # start with top of tree, override going down
     results = {}
     for node in tree:

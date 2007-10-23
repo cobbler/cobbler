@@ -314,7 +314,7 @@ class Utilities(BootTest):
         # above it's actual profile.  This should NOT be present in the
         # actual object, which we have not modified yet.
 
-        data = utils.blender(False, system2)
+        data = utils.blender(self.api, False, system2)
         self.assertTrue(data["repos"] == ["testrepo"])
         self.assertTrue(self.api.profiles().find(system2.profile).repos == "<<inherit>>")
 
@@ -336,7 +336,7 @@ class Utilities(BootTest):
         self.api.sync()
         self.api.sync()
 
-        data = utils.blender(False, system2)
+        data = utils.blender(self.api, False, system2)
         self.assertTrue("testrepo" in data["repos"])
         self.assertTrue("testrepo2" in data["repos"])
         self.assertTrue(len(data["repos"]) == 2)
@@ -380,7 +380,7 @@ class Utilities(BootTest):
         profile2.set_ksmeta({"canyouseethis" : "yes" })
         self.assertTrue(self.api.profiles().add(profile2))
         system2 = self.api.systems().find("foo2")
-        data = utils.blender(False, system2)
+        data = utils.blender(self.api, False, system2)
         self.assertTrue(data.has_key("ks_meta"))
         self.assertTrue(data["ks_meta"].has_key("canyouseethis"))
         
@@ -391,7 +391,7 @@ class Utilities(BootTest):
         profile.set_ksmeta({"canyouseethisalso" : "yes" })
         self.assertTrue(self.api.profiles().add(profile))
         system2 = self.api.systems().find("foo2")
-        data = utils.blender(False, system2)
+        data = utils.blender(self.api, False, system2)
         self.assertTrue(data.has_key("ks_meta"))
         self.assertTrue(data["ks_meta"].has_key("canyouseethisalso"))
 
@@ -401,7 +401,7 @@ class Utilities(BootTest):
         distro.set_ksmeta({"alsoalsowik" : "moose" })
         self.assertTrue(self.api.distros().add(distro))
         system2 = self.api.systems().find("foo2")
-        data = utils.blender(False, system2)
+        data = utils.blender(self.api, False, system2)
         self.assertTrue(data.has_key("ks_meta"))
         self.assertTrue(data["ks_meta"].has_key("alsoalsowik"))
         
