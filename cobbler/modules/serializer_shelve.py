@@ -48,7 +48,7 @@ def open_db(collection_type):
         ending = ending + "s"
     while 1:
         try:
-            filename = "/var/lib/cobbler/%s.gdbm" % ending
+            filename = "/var/lib/cobbler/%s.shelve" % ending
 
 	    internal_db = bsddb.btopen( filename, 'c', 0644 )
 
