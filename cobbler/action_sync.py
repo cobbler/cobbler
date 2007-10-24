@@ -60,9 +60,21 @@ class BootSync:
         Syncs the current configuration file with the config tree.
         Using the Check().run_ functions previously is recommended
         """
-        utils.run_triggers(None, "/var/lib/cobbler/triggers/sync/pre/*")
         if not os.path.exists(self.settings.tftpboot):
             raise CX(_("cannot find directory: %s") % self.settings.tftpboot)
+
+        # run pre-triggers...
+        utils.run_triggers(None, "/var/lib/cobbler/triggers/sync/pre/*")
+
+        # in case the pre-trigger modified any objects...
+        self.api.deserialize()
+        self.distros  = self.config.distros()
+        self.profiles = self.config.profiles()
+        self.systems  = self.config.systems()
+        self.settings = self.config.settings()
+        self.repos    = self.config.repos()
+
+        # execute the core of the sync operation
         self.clean_trees()
         self.copy_bootloaders()
         self.copy_distros()
@@ -74,6 +86,8 @@ class BootSync:
            self.regen_ethers()
            self.regen_hosts()
         self.make_pxe_menu()
+
+        # run post-triggers
         utils.run_triggers(None, "/var/lib/cobbler/triggers/sync/post/*")
         return True
 
