@@ -1,7 +1,7 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Mon Oct 08 2007 - 0.6.3
+* Mon Oct 29 2007 - 0.6.3
 - Be able to define and use Multiple NICs per system
 - Use server address not @@server in repo config files
 - Add --virt-cpus to profile editing
@@ -10,6 +10,8 @@ Cobbler CHANGELOG
 - Added serializer_shelve for added performance/persistance over YAML
 - Backup state and migrate structures upon RPM upgrade
 - Added some more unsupported distros to the rsync.exclude file
+- pre-sync and post-sync triggers, service restarts are now in /var/lib/cobbler/triggers
+- webui now uses htaccess 
 
 * Fri Sep 28 2007 - 0.6.2
 - cobbler repo auto-add to discover yum repos automatically

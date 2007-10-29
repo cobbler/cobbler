@@ -66,7 +66,7 @@ if __name__ == "__main__":
                                 # miscellaneous config files
                                 (cgipath,  ['config/.htaccess']),
                                 (rotpath,  ['config/cobblerd_rotate']),
-                                (wwwconf,  ['config/cobbler.conf']),
+                                (wwwconf,  ['config/cobbler.conf','config/cobbler_webui.conf']),
                                 (cobpath,  ['config/cobbler_hosts']),
                                 (etcpath,  ['config/modules.conf']),
                                 (etcpath,  ['config/auth.conf']),

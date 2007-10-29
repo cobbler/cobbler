@@ -142,6 +142,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/cobbler.1.gz
 /etc/init.d/cobblerd
 %config(noreplace) /etc/httpd/conf.d/cobbler.conf
+%config(noreplace) /etc/httpd/conf.d/cobbler_webui.conf
 %config(noreplace) /var/www/cgi-bin/cobbler/.htaccess
 %dir /var/log/cobbler/syslog
 
