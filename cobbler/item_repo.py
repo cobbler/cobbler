@@ -36,7 +36,8 @@ class Repo(item.Item):
         self.local_filename   = ("",         '<<inherit>>')[is_subobject]
         self.rpm_list         = ("",         '<<inherit>>')[is_subobject]
         self.createrepo_flags = ("-c cache", '<<inherit>>')[is_subobject]
-        self.depth            = 2  # arbitrary, as not really apart of the graph         
+        self.depth            = 2  # arbitrary, as not really apart of the graph
+        self.arch             = "" # use default arch
 
     def from_datastruct(self,seed_data):
         self.parent           = self.load_item(seed_data, 'parent')
@@ -46,6 +47,7 @@ class Repo(item.Item):
         self.local_filename   = self.load_item(seed_data, 'local_filename')
         self.rpm_list         = self.load_item(seed_data, 'rpm_list')
         self.createrepo_flags = self.load_item(seed_data, 'createrepo_flags', '-c cache')
+        self.arch             = self.load_item(seed_data, 'arch')
         self.depth            = self.load_item(seed_data, 'depth', 2)
 
         # force this to be saved as a boolean 
@@ -123,6 +125,13 @@ class Repo(item.Item):
         self.createrepo_flags = createrepo_flags
         return True
 
+    def set_arch(self,arch):
+        """
+        Override the arch used for reposync
+        """
+        self.arch = arch
+        return True
+
     def is_valid(self):
         """
 	A repo is valid if it has a name and a mirror URL
@@ -141,6 +150,7 @@ class Repo(item.Item):
            'local_filename'   : self.local_filename,
            'rpm_list'         : self.rpm_list,
            'createrepo_flags' : self.createrepo_flags,
+           'arch'             : self.arch,
            'parent'           : self.parent,
            'depth'            : self.depth
         }
@@ -152,6 +162,7 @@ class Repo(item.Item):
         buf = buf + _("local filename   : %s\n") % self.local_filename
         buf = buf + _("rpm list         : %s\n") % self.rpm_list
         buf = buf + _("createrepo_flags : %s\n") % self.createrepo_flags
+        buf = buf + _("arch             : %s\n") % self.arch
         return buf
 
     def get_parent(self):

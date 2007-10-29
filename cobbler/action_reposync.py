@@ -118,9 +118,11 @@ class RepoSync:
             temp_file = self.create_local_file(repo, temp_path, output=False)
 
             if not has_rpm_list:
-
                 # if we have not requested only certain RPMs, use reposync
                 cmd = "/usr/bin/reposync --config=%s --repoid=%s --download_path=%s" % (temp_file, repo.name, store_path)
+                if repo.arch != "":
+                    cmd = "%s -a %s" % (cmd, repo.arch)
+                    
                 print _("- %s") % cmd
                 cmds.append(cmd)
 
@@ -130,9 +132,13 @@ class RepoSync:
                 if not os.path.exists(dest_path):
                    os.makedirs(dest_path)
 
+                use_source = ""
+                if repo.arch == "src":
+                    use_source = "--source"
+ 
                 # older yumdownloader sometimes explodes on --resolvedeps
                 # if this happens to you, upgrade yum & yum-utils
-                cmd = "/usr/bin/yumdownloader --resolve -c %s --destdir=%s %s" %(temp_file, dest_path, " ".join(repo.rpm_list))
+                cmd = "/usr/bin/yumdownloader --resolve %s -c %s --destdir=%s %s" % (use_source, temp_file, dest_path, " ".join(repo.rpm_list))
                 print _("- %s") % cmd
                 cmds.append(cmd)
         else:
@@ -144,6 +150,10 @@ class RepoSync:
                 print _("- warning: --rpm-list is not supported for RHN content")
             rest = repo.mirror[6:] # everything after rhn://
             cmd = "/usr/bin/reposync -r %s --download_path=%s" % (rest, store_path)
+
+            if repo.arch != "":
+                cmd = "%s -a %s" % (cmd, repo.arch)
+
             print _("- %s") %  cmd
             cmds.append(cmd)
 

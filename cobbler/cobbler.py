@@ -467,7 +467,8 @@ class BootCLI:
            '--keep-updated'     :  lambda(a): repo.set_keep_updated(a),
            '--local-filename'   :  lambda(a): repo.set_local_filename(a),
            '--rpm-list'         :  lambda(a): repo.set_rpm_list(a),
-           '--createrepo-flags' :  lambda(a): repo.set_createrepo_flags(a)
+           '--createrepo-flags' :  lambda(a): repo.set_createrepo_flags(a),
+           '--arch'             :  lambda(a): repo.set_arch(a)
         }
         def on_ok():
             if newname is not None:
