@@ -679,7 +679,7 @@ class CobblerWeb(object):
 
     def repo_save(self,name=None,oldname=None,new_or_edit=None,editmode="edit",
                   mirror=None,keep_updated=None,local_filename=None,
-                  rpm_list=None,createrepo_flags=None,delete1=None,delete2=None,**args):
+                  rpm_list=None,createrepo_flags=None,arch=None,delete1=None,delete2=None,**args):
         if not self.__xmlrpc_setup():
             return self.login(message=INVALID_CREDS)
 
@@ -725,7 +725,11 @@ class CobblerWeb(object):
                 self.remote.modify_repo(repo, 'rpm-list', rpm_list, self.token)
             if createrepo_flags:
                 self.remote.modify_distro(repo, 'createrepo-flags', createrepo_flags, self.token)
+            if arch:
+                self.remote.modify_distro(repo, 'arch', arch, self.token)
+
             self.remote.save_repo(repo, self.token)
+
         except Exception, e:
             log_exc()
             return self.error_page("Error while saving repo: %s" % str(e))

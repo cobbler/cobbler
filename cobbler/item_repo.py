@@ -185,6 +185,7 @@ class Repo(item.Item):
     def remote_methods(self):
         return {
             'name'             :  self.set_name,
+            'arch'             :  self.set_arch,
             'mirror-name'      :  self.set_name,
             'mirror'           :  self.set_mirror,
             'keep-updated'     :  self.set_keep_updated,

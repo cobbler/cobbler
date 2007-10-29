@@ -135,6 +135,22 @@ function disablename(value)
     </td>
     </tr>
 
+    <tr>
+    <td>
+    <label for="arch">arch</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="arch" id="arch"
+        #if $repo
+            value="$repo.arch"
+        #end if
+    />
+    <p class="context-tip">Overrides the local system arch when mirroring with yum.</p>
+    </td>
+    </tr>
+
+
+
     #if $repo
     <tr>
     <td>
