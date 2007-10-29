@@ -19,14 +19,8 @@ import string
 from cobbler.utils import *
 import logging
 import sys
-import Cookie
-import time
 
 LOGGING_ENABLED = True
-
-## FIXME: move to htaccess and eliminate browser cookies?
-
-COOKIE_TIMEOUT=29*60
 
 if LOGGING_ENABLED:
     # set up logging
@@ -39,8 +33,6 @@ if LOGGING_ENABLED:
     logger.addHandler(ch)
 else:
     logger = None
-
-INVALID_CREDS="Login Required"
 
 def log_exc():
     """
@@ -68,9 +60,8 @@ class CobblerWeb(object):
         self.username = username
         self.password = password
         self.logout = None
-        self.__cookies = Cookie.SimpleCookie(Cookie.SimpleCookie(os.environ.get("HTTP_COOKIE","")))
 
-    def __xmlrpc_setup(self,is_login=False):
+    def __xmlrpc_setup(self):
         """
         Sets up the connection to the Cobbler XMLRPC server.  Right now, the
         r/w server is required.   In the future, it may be possible to instantiate
@@ -79,10 +70,6 @@ class CobblerWeb(object):
     
         # changed to always create a new connection object
         self.remote = xmlrpclib.Server(self.server, allow_none=True)
-
-        # if we do not have a token in memory, is it in a cookie?
-        if self.token is None:
-            self.token = self.__get_cookie_token()
 
         # else if we do have a token, try to use it...
         if self.token is not None:
@@ -96,13 +83,11 @@ class CobblerWeb(object):
                         logger.info("token timeout for: %s" % self.username)
                         log_exc()
                     self.token = None
-                    # this should put us back to the login screen
-                    self.__cookie_logout()
                 else:
                     raise e
         
         # if we (still) don't have a token, login for the first time
-        if self.token is None and is_login:
+        elif self.password and self.username:
             try:
                 self.token = self.remote.login( self.username, self.password )
             except Exception, e:
@@ -110,13 +95,11 @@ class CobblerWeb(object):
                     logger.info("login failed for: %s" % self.username)
                 log_exc()
                 return False
-            self.__cookie_login(self.token) # save what we've got
             self.password = None # don't need it anymore, get rid of it
             return True
         
         # login failed
         return False
-
 
     def __render(self, template, data):
         """
@@ -125,16 +108,6 @@ class CobblerWeb(object):
         """
 
         data['base_url'] = self.base_url
-
-        # used by master.tmpl to determine whether or not to show login/logout links
-        if data.has_key("hide_links"):
-            data['logged_in'] = None
-        elif self.token is not None:
-            data['logged_in'] = 1
-        elif self.username and self.password:
-            data['logged_in'] = 'configured'
-        else:
-            data['logged_in'] = None
 
         filepath = os.path.join("/usr/share/cobbler/webui_templates/",template)
         tmpl = Template( file=filepath, searchList=[data] )
@@ -232,38 +205,11 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
 
     def index(self):
-        return self.__render( 'index.tmpl', { "hide_links" : True } )
+        return self.__render( 'index.tmpl', { } )
 
     def menu(self):
         return self.__render( 'blank.tmpl', { } )
    
-
-    # ------------------------------------------------------------------------ #
-    # Authentication
-    # ------------------------------------------------------------------------ #
-
-    def login(self, message=None):
-        return self.__render( 'login.tmpl', {'message': message, "hide_links" : True } )
-
-    def login_submit(self, username=None, password=None, submit=None):
-        if username is None:
-            return self.error_page( "No username supplied." )
-        if password is None:
-            return self.error_page( "No password supplied." )
-
-        self.username = username
-        self.password = password
-
-        if not self.__xmlrpc_setup(is_login=True):
-            return self.login(message="Login Failed.")
-
-        return self.menu()
-
-    def logout_submit(self):
-        self.token = None
-        self.__cookie_logout()
-        return self.login()
-
     # ------------------------------------------------------------------------ #
     # Settings
     # ------------------------------------------------------------------------ #
@@ -274,7 +220,7 @@ class CobblerWeb(object):
 
     def settings_view(self):
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
 
         return self.__render( 'item.tmpl', {
             'item_data': self.remote.get_settings(),
@@ -287,7 +233,7 @@ class CobblerWeb(object):
 
     def distro_list(self):
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
         distros = self.remote.get_distros()
         if len(distros) > 0:
             return self.__render( 'distro_list.tmpl', {
@@ -299,7 +245,7 @@ class CobblerWeb(object):
     def distro_edit(self, name=None):
 
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
          
         input_distro = None
         if name is not None:
@@ -316,7 +262,7 @@ class CobblerWeb(object):
                     delete1=None,delete2=None,**args):
 
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
 
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
@@ -383,7 +329,7 @@ class CobblerWeb(object):
     def system_list(self):
 
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
 
         systems = self.remote.get_systems()
         if len(systems) > 0:
@@ -400,7 +346,7 @@ class CobblerWeb(object):
                     delete1=None, delete2=None, **args):
 
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
 
         # parameter checking
         if name is None and editmode=='edit' and oldname is not None:
@@ -508,7 +454,7 @@ class CobblerWeb(object):
     def system_edit(self, name=None):
 
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
 
         input_system = None
         if name is not None:
@@ -526,7 +472,7 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
     def profile_list(self):
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
         profiles = self.remote.get_profiles()
         if len(profiles) > 0:
             return self.__render( 'profile_list.tmpl', {
@@ -541,7 +487,7 @@ class CobblerWeb(object):
     def profile_edit(self, name=None, subprofile=0):
 
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
 
         input_profile = None
         if name is not None:
@@ -564,7 +510,7 @@ class CobblerWeb(object):
                      parent=None,virtcpus=None,virtbridge=None,subprofile=None,**args):
 
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
 
         # pre-command parameter checking 
         if name is None and editmode=='edit' and oldname is not None:
@@ -655,7 +601,7 @@ class CobblerWeb(object):
 
     def repo_list(self):
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
         repos = self.remote.get_repos()
         if len(repos) > 0:
             return self.__render( 'repo_list.tmpl', {
@@ -666,7 +612,7 @@ class CobblerWeb(object):
 
     def repo_edit(self, name=None):
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
 
         input_repo = None
         if name is not None:
@@ -681,7 +627,7 @@ class CobblerWeb(object):
                   mirror=None,keep_updated=None,local_filename=None,
                   rpm_list=None,createrepo_flags=None,arch=None,delete1=None,delete2=None,**args):
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
 
         # pre-command parameter checking
         if name is None and editmode=='edit' and oldname is not None:
@@ -748,14 +694,14 @@ class CobblerWeb(object):
 
     def ksfile_list(self):
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
         return self.__render( 'ksfile_list.tmpl', {
             'ksfiles': self.remote.get_kickstart_templates(self.token)
         } )
 
     def ksfile_edit(self, name=None):
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
         return self.__render( 'ksfile_edit.tmpl', {
             'name': name,
             'ksdata': self.remote.read_or_write_kickstart_template(name,True,"",self.token)
@@ -763,7 +709,7 @@ class CobblerWeb(object):
 
     def ksfile_save(self, name=None, ksdata=None, **args):
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
         try:
             self.remote.read_or_write_kickstart_template(name,False,ksdata,self.token)
         except Exception, e:
@@ -776,7 +722,7 @@ class CobblerWeb(object):
  
     def sync(self):
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
 
         try:
             rc = self.remote.sync(self.token)
@@ -793,7 +739,7 @@ class CobblerWeb(object):
 
     def random_mac(self):
         if not self.__xmlrpc_setup():
-            return self.login(message=INVALID_CREDS)
+            return self.xmlrpc_auth_failure()
         mac = self.remote.get_random_mac()
         return mac
 
@@ -809,6 +755,11 @@ class CobblerWeb(object):
             'message': message
         } )
 
+    def xmlrpc_auth_failure(self):
+        return self.__render( 'error_page.tmpl', {
+            'message': "XMLRPC Authentication Error.   See Apache logs for details."
+        } )
+
     # make CherryPy and related frameworks able to use this module easily
     # by borrowing the 'exposed' function attritbute standard and using
     # it for the modes() method
@@ -817,11 +768,6 @@ class CobblerWeb(object):
     error_page.exposed = False
     index.exposed = True
     menu.exposed = True
-
-    login.exposed = True
-    login_submit.exposed = True
-    logout_submit.exposed = True
-    cookies.exposed = False
 
     distro_edit.exposed = True
     distro_list.exposed = True
