@@ -667,7 +667,7 @@ Most of the day-to-day actions in cobbler's command line can be performed in Cob
 
 3) The default Web UI password is "cobbler/ILoveCobbler", to change this, run:
 
-htdigest /var/www/cgi-bin/cobbler/.htaccess "Cobbler WebUI Authentication" cobbler
+htdigest /var/www/cgi-bin/cobbler/.htpasswd "Cobbler WebUI Authentication" cobbler
 
 4) SELinux users may also have to run:
 

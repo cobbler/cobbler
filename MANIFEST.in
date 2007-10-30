@@ -2,7 +2,6 @@ include loaders/COPYING_ELILO
 include loaders/elilo-3.6-ia64.efi
 include loaders/menu.c32
 include config/cobbler.conf
-include config/cobbler_webui.conf
 include config/rsync.exclude
 include config/cobblerd
 include config/cobblerd_rotate
@@ -11,6 +10,7 @@ include config/modules.conf
 include config/auth.conf
 include config/webui-cherrypy.cfg
 include config/settings
+include config/.htaccess
 include config/.htpasswd
 recursive-include templates *.template
 recursive-include kickstarts *.ks

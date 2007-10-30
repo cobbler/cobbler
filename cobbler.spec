@@ -83,6 +83,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /var/www/cgi-bin/cobbler/findks.cgi
 /var/www/cgi-bin/cobbler/nopxe.cgi
 /var/www/cgi-bin/cobbler/webui.cgi
+%defattr(660,apache,apache)
+%config(noreplace) /var/www/cgi-bin/cobbler/.htaccess
+%config(noreplace) /var/www/cgi-bin/cobbler/.htpasswd
 
 %defattr(755,apache,apache)
 %dir /usr/share/cobbler/webui_templates
@@ -142,8 +145,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/cobbler.1.gz
 /etc/init.d/cobblerd
 %config(noreplace) /etc/httpd/conf.d/cobbler.conf
-%config(noreplace) /etc/httpd/conf.d/cobbler_webui.conf
-%config(noreplace) /var/www/cgi-bin/cobbler/.htpasswd
 %dir /var/log/cobbler/syslog
 
 %defattr(755,root,root)
@@ -195,6 +196,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 - now packaging javascript file(s) seperately for WUI
 - backup state files on upgrade 
 - cobbler sync now has pre/post triggers, so package those dirs/files
+- WebUI now has .htaccess file
 
 * Fri Sep 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.2-2
 - Upstream changes (see CHANGELOG)
