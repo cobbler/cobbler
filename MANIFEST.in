@@ -11,7 +11,7 @@ include config/modules.conf
 include config/auth.conf
 include config/webui-cherrypy.cfg
 include config/settings
-include config/.htaccess
+include config/.htpasswd
 recursive-include templates *.template
 recursive-include kickstarts *.ks
 include docs/cobbler.1.gz

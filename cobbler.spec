@@ -143,7 +143,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /etc/init.d/cobblerd
 %config(noreplace) /etc/httpd/conf.d/cobbler.conf
 %config(noreplace) /etc/httpd/conf.d/cobbler_webui.conf
-%config(noreplace) /var/www/cgi-bin/cobbler/.htaccess
+%config(noreplace) /var/www/cgi-bin/cobbler/.htpasswd
 %dir /var/log/cobbler/syslog
 
 %defattr(755,root,root)

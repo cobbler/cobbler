@@ -64,7 +64,7 @@ if __name__ == "__main__":
                                 (cgipath,  ['scripts/webui.cgi']),
  
                                 # miscellaneous config files
-                                (cgipath,  ['config/.htaccess']),
+                                (cgipath,  ['config/.htpasswd']),
                                 (rotpath,  ['config/cobblerd_rotate']),
                                 (wwwconf,  ['config/cobbler.conf','config/cobbler_webui.conf']),
                                 (cobpath,  ['config/cobbler_hosts']),

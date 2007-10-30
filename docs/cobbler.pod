@@ -659,14 +659,25 @@ Cobbler also makes itself available as a Python API for use by higher level mana
 
 =head2 WEB USER INTERFACE
 
-Most of the day-to-day actions in cobbler's command line can be performed in Cobbler's Web UI.  To enable the WebUI, set xmlrpc_rw_enabled to 1 in /var/lib/cobbler/settings, add some users in /etc/cobbler/auth.conf, and do a /sbin/service cobblerd restart.
+Most of the day-to-day actions in cobbler's command line can be performed in Cobbler's Web UI.  To enable and access the WebUI, perform the following steps.
 
-SELinux users may also have to run:
+1) Set xmlrpc_rw_enabled to 1 in /var/lib/cobbler/settings to enable network control.
 
-"setsebool httpd_can_network_connect true"
+2) Change the admin xmlrpc secret in /etc/cobbler/auth.conf.  You won't have to remember it. 
 
-Users can then log-in at http://bootserver.example.org/cgi-bin/cobbler/webui.cgi.
+3) The default Web UI password is "cobbler/ILoveCobbler", to change this, run:
 
+htdigest /var/www/cgi-bin/cobbler/.htaccess "Cobbler WebUI Authentication" cobbler
+
+4) SELinux users may also have to run:
+
+setsebool httpd_can_network_connect true
+
+chcon httpd_sys_content_t /etc/cobbler/auth.conf
+
+5) Run /sbin/service cobblerd restart.  
+
+6) Visit http://yourserver.example.org/cgi-bin/cobbler/webui.cgi and log in with whatever you chose in step 3.
 
 =head1 EXIT_STATUS
 
