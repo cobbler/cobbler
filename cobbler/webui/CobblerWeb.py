@@ -326,15 +326,21 @@ class CobblerWeb(object):
     # if the system list is huge, this will probably need to use an
     # iterator so the list doesn't get copied around
 
-    def system_list(self):
+    def system_list(self,page=0,results_per_page=100):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
-        systems = self.remote.get_systems()
+        systems_size = self.remote.get_size("systems")
+        pages = len(systems) / results_per_page 
+        systems = self.remote.get_systems(page,results_per_page)
+         
+
         if len(systems) > 0:
             return self.__render( 'system_list.tmpl', {
-                'systems': systems
+                'systems'  : systems,
+                'pages'    : pages,
+                'page'     : page
             } )
         else:
             return self.__render('empty.tmpl',{})

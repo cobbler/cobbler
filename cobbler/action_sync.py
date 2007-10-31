@@ -166,7 +166,7 @@ class BootSync:
                     if distro.arch == "ia64":
                         # can't use pxelinux.0 anymore
                         systxt = systxt + "    filename \"/%s\";\n" % elilo
-                        systxt = systxt + "    hardware ethernet %s;\n" % mac
+                    systxt = systxt + "    hardware ethernet %s;\n" % mac
                     if ip is not None and ip != "":
                         systxt = systxt + "    fixed-address %s;\n" % ip
                     # not needed, as it's in the template.
@@ -187,9 +187,13 @@ class BootSync:
                         else:
                             systxt = ""
 
-                if not system_definitions.has_key(interface["dhcp_tag"]):
-                    system_definitions[interface["dhcp_tag"]] = ""
-                system_definitions[interface["dhcp_tag"]] = system_definitions[interface["dhcp_tag"]] + systxt
+                dhcp_tag = interface["dhcp_tag"]
+                if dhcp_tag == "":
+                   dhcp_tag = "default"
+
+                if not system_definitions.has_key(dhcp_tag):
+                    system_definitions[dhcp_tag] = ""
+                system_definitions[dhcp_tag] = system_definitions[dhcp_tag] + systxt
 
         # we are now done with the looping through each interface of each system
 

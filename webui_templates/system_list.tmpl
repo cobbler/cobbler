@@ -1,7 +1,27 @@
 #extends cobbler.webui.master
 
 #block body
+
+    ## navigation for pages
+
+    Pages:&nbsp;
+    #if $page != 0
+       #set $previous_page = $page - 1
+       <A HREF="${base_url}/system_list?page=${previous_page}&results_per_page=${results_per_page}">&lt;</A>&nbsp;
+    #end 
+
+    #for $this_page in $pages
+       <A HREF="${base_url}/system_list?page=${this_page}&results_per_page=${results_per_page}">$p</A>&nbsp;
+    #end
+
+    #if $page != $lastpage
+       #set $next_page = $page + 1
+       <A HREF="${base_url}/system_list?page=${next_page}&results_per_page=${results_per_page}">&rt;</A>
+    #end
+    </br>
+
 <table class="sortable">
+
     <thead>
         <caption>Cobbler Systems</caption>
         <tr>
