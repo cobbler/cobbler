@@ -304,7 +304,7 @@ def blender(api_handle,remove_hashes, root_obj):
             for key in interface.keys():
                 results["%s_%s" % (key,name)] = interface[key]
                 # just to keep templates backwards compatibile
-                if name == "0":
+                if name == "intf0":
                     results[key] = interface[key]
 
     # sanitize output for koan and kernel option lines, etc
