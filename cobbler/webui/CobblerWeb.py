@@ -231,13 +231,19 @@ class CobblerWeb(object):
     # Distributions
     # ------------------------------------------------------------------------ #
 
-    def distro_list(self):
+    def distro_list(self,page=None,limit=None):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
-        distros = self.remote.get_distros()
+
+        (page, results_per_page, pages) = self.__compute_pagination(page,limit,"distro")
+        distros = self.remote.get_distros(page,results_per_page)
+
         if len(distros) > 0:
             return self.__render( 'distro_list.tmpl', {
-                'distros': distros
+                'distros'          : distros,
+                'pages'            : pages,
+                'page'             : page,
+                'results_per_page' : results_per_page
             })
         else:
             return self.__render('empty.tmpl', {})  
@@ -499,13 +505,19 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
     # Profiles
     # ------------------------------------------------------------------------ #
-    def profile_list(self):
+    def profile_list(self,page=None,limit=None):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
-        profiles = self.remote.get_profiles()
+
+        (page, results_per_page, pages) = self.__compute_pagination(page,limit,"profile")
+        profiles = self.remote.get_profiles(page,results_per_page)
+
         if len(profiles) > 0:
             return self.__render( 'profile_list.tmpl', {
-                'profiles': profiles
+                'profiles'         : profiles,
+                'pages'            : pages,
+                'page'             : page,
+                'results_per_page' : results_per_page
             } )
         else:
             return self.__render('empty.tmpl', {})
@@ -628,13 +640,19 @@ class CobblerWeb(object):
     # Repos
     # ------------------------------------------------------------------------ #
 
-    def repo_list(self):
+    def repo_list(self,page=None,limit=None):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
-        repos = self.remote.get_repos()
+
+        (page, results_per_page, pages) = self.__compute_pagination(page,limit,"repo")
+        repos = self.remote.get_repos(page,results_per_page)
+
         if len(repos) > 0:
             return self.__render( 'repo_list.tmpl', {
-                'repos': repos
+                'repos'            : repos,
+                'pages'            : pages,
+                'page'             : page,
+                'results_per_page' : results_per_page
             })
         else:
             return self.__render('empty.tmpl', {})
