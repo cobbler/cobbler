@@ -350,12 +350,12 @@ class CobblerWeb(object):
         return (page, results_per_page, pages)
         
 
-    def system_list(self,page=None,results_per_page=None):
+    def system_list(self,page=None,limit=None):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
-        (page, results_per_page, pages) = self.__compute_pagination(page,results_per_page,"system")
+        (page, results_per_page, pages) = self.__compute_pagination(page,limit,"system")
         systems = self.remote.get_systems(page,results_per_page)
 
         if len(systems) > 0:

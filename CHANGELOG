@@ -7,11 +7,12 @@ Cobbler CHANGELOG
 - Add --virt-cpus to profile editing
 - Fix bug where WUI (XMLRPC) auth wasn't supported on EL4
 - Add --virt-bridge to profile editing and NICs
-- Added serializer_shelve for added performance/persistance over YAML
-- Backup state and migrate structures upon RPM upgrade
-- Added some more unsupported distros to the rsync.exclude file
-- pre-sync and post-sync triggers, service restarts are now in /var/lib/cobbler/triggers
-- webui now uses htaccess 
+- Added serializer_shelve (as option) for added performance/persistance over YAML
+- Backup state files and migrate state structures upon RPM upgrade
+- Added some more redundant files (for unsupported distros) to the rsync.exclude file
+- added pre-sync and post-sync triggers, service restarts are now handled by /var/lib/cobbler/triggers
+- webui now uses htaccess (see manpage)
+- added pagination to the WUI to keep pages from growing overly long
 
 * Fri Sep 28 2007 - 0.6.2
 - cobbler repo auto-add to discover yum repos automatically

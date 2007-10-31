@@ -2,23 +2,19 @@
 
 #block body
 
-    ## navigation for pages
-
-    <!-- DEBUG: num pages is $pages<br/> -->
-    <!-- DEBUG: current page is $page<br/> -->
-    <!-- DEBUG: results per page is $results_per_page</br> -->
-
+    ## ==== BEGIN PAGE NAVIGATION ====
+    #set what="system"
     Page:&nbsp;
     #if $page != 0
        #set $previous_page = $page - 1
-       <A HREF="${base_url}/system_list?page=${previous_page}&results_per_page=${results_per_page}">&lt;</A>&nbsp;
+       <A HREF="${base_url}/${what}_list?page=${previous_page}&limit=${results_per_page}">&lt;</A>&nbsp;
     #else
        [
     #end if
 
     #for $this_page in range(0,$pages+1)
        #if $this_page != $page
-           <A HREF="${base_url}/system_list?page=${this_page}&results_per_page=${results_per_page}">${this_page}</A>&nbsp;
+           <A HREF="${base_url}/${what}_list?page=${this_page}&limit=${results_per_page}">${this_page}</A>&nbsp;
        #else
            ${this_page}
        #end if
@@ -26,13 +22,14 @@
 
     #if $page != $pages
        #set $next_page = $page + 1
-       <A HREF="${base_url}/system_list?page=${next_page}&results_per_page=${results_per_page}">&gt;</A>
+       <A HREF="${base_url}/${what}_list?page=${next_page}&limit=${results_per_page}">&gt;</A>
     #else
        ]
     #end if
 
     <br/>
     <br/>
+    ## ==== END PAGE NAVIGATION ====
 
 <table class="sortable">
 
