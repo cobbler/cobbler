@@ -85,19 +85,32 @@ class CobblerXMLRPCInterface:
 
         Supports pagination for WUI or TUI based interfaces.
         """
+
         # FIXME: a global lock or module around data access loading
         # would be useful for non-db backed storage
+
         data = self.api.deserialize_raw(collection_name)
+        total_items = len(data)
         data.sort(self.__sorter)
 
         if page is not None and results_per_page is not None:
-            if type(page) != int or page < 0:
+            page = int(page)
+            results_per_page = int(results_per_page)
+            self.logger.debug("PAGE = %s" % page)
+            self.logger.debug("RPP = %s" % results_per_page)
+            if page < 0:
                 return []
-            if type(results_per_page) != int or results_per_page <= 0:
+            if results_per_page <= 0:
                 return []
             start_point = (results_per_page * page)
-            end_point   = (results_per_page * page) + (results_per_page - 1)
-            data = data[start_point:end_point]
+            end_point   = (results_per_page * page) + results_per_page
+            self.logger.debug("START = %s" % start_point)
+            self.logger.debug("END = %s" % end_point)
+            if start_point > total_items:
+                start_point = total_items - 1 # correct ???
+            if end_point > total_items:
+                end_point = total_items
+            data = self._fix_none(data[start_point:end_point])
 
         return self._fix_none(data)
 
@@ -145,25 +158,25 @@ class CobblerXMLRPCInterface:
         """
         return self.api.version()
 
-    def get_distros(self,token=None,page=None,results_per_page=None):
+    def get_distros(self,page=None,results_per_page=None,token=None):
         """
         Returns all cobbler distros as an array of hashes.
         """
         return self.__get_all("distro",page,results_per_page)
 
-    def get_profiles(self,token=None,page=None,results_per_page=None):
+    def get_profiles(self,page=None,results_per_page=None,token=None):
         """
         Returns all cobbler profiles as an array of hashes.
         """
         return self.__get_all("profile",page,results_per_page)
 
-    def get_systems(self,token=None,page=None,results_per_page=None):
+    def get_systems(self,page=None,results_per_page=None,token=None):
         """
         Returns all cobbler systems as an array of hashes.
         """
         return self.__get_all("system",page,results_per_page)
 
-    def get_repos(self,token=None,page=None,results_per_page=None):
+    def get_repos(self,page=None,results_per_page=None,token=None):
         """
         Returns all cobbler repos as an array of hashes.
         """
