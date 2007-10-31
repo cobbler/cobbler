@@ -4,21 +4,35 @@
 
     ## navigation for pages
 
-    Pages:&nbsp;
+    <!-- DEBUG: num pages is $pages<br/> -->
+    <!-- DEBUG: current page is $page<br/> -->
+    <!-- DEBUG: results per page is $results_per_page</br> -->
+
+    Page:&nbsp;
     #if $page != 0
        #set $previous_page = $page - 1
        <A HREF="${base_url}/system_list?page=${previous_page}&results_per_page=${results_per_page}">&lt;</A>&nbsp;
-    #end 
+    #else
+       [
+    #end if
 
-    #for $this_page in $pages
-       <A HREF="${base_url}/system_list?page=${this_page}&results_per_page=${results_per_page}">$p</A>&nbsp;
-    #end
+    #for $this_page in range(0,$pages+1)
+       #if $this_page != $page
+           <A HREF="${base_url}/system_list?page=${this_page}&results_per_page=${results_per_page}">${this_page}</A>&nbsp;
+       #else
+           ${this_page}
+       #end if
+    #end for
 
-    #if $page != $lastpage
+    #if $page != $pages
        #set $next_page = $page + 1
-       <A HREF="${base_url}/system_list?page=${next_page}&results_per_page=${results_per_page}">&rt;</A>
-    #end
-    </br>
+       <A HREF="${base_url}/system_list?page=${next_page}&results_per_page=${results_per_page}">&gt;</A>
+    #else
+       ]
+    #end if
+
+    <br/>
+    <br/>
 
 <table class="sortable">
 

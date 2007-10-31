@@ -39,12 +39,12 @@ devinstall:
 	cp /var/lib/cobbler/settings /tmp/cobbler_settings
 	cp /etc/cobbler/auth.conf /tmp/cobbler_auth.conf
 	cp /etc/cobbler/modules.conf /tmp/cobbler_modules.conf
-	-cp /var/www/cobbler/cgi-bin/.htpasswd /tmp/cobbler_htpasswd
+	-cp /var/www/cgi-bin/cobbler/.htpasswd /tmp/cobbler_htpasswd
 	make install
 	cp /tmp/cobbler_settings /var/lib/cobbler/settings
 	cp /tmp/cobbler_auth.conf /etc/cobbler/auth.conf
 	cp /tmp/cobbler_modules.conf /etc/cobbler/modules.conf
-	-cp /tmp/cobbler_htpasswd /var/www/cobbler/cgi-bin/.htpasswd
+	-cp /tmp/cobbler_htpasswd /var/www/cgi-bin/cobbler/.htpasswd
 	find /var/lib/cobbler/triggers | xargs chmod +x
 	chown -R apache /var/www/cobbler 
 	chown -R apache /var/www/cgi-bin/cobbler	

@@ -77,7 +77,7 @@ class CobblerXMLRPCInterface:
         data = self.__get_all(collection_name)
         return len(data)
 
-    def __get_all(self,collection_name,page,results_per_page):
+    def __get_all(self,collection_name,page=None,results_per_page=None):
         """
         Helper method to return all data to the WebUI or another caller
         without going through the process of loading all the data into
