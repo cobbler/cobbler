@@ -383,6 +383,6 @@ class Profile(item.Item):
             'virt-bridge'     :  self.set_virt_bridge,
             'virt-cpus'       :  self.set_virt_cpus,
             'dhcp-tag'        :  self.set_dhcp_tag,
-            'server'          :  self.server
+            'server'          :  self.set_server
         }
 
