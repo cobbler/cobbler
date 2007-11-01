@@ -169,8 +169,6 @@ class BootSync:
                     systxt = systxt + "    hardware ethernet %s;\n" % mac
                     if ip is not None and ip != "":
                         systxt = systxt + "    fixed-address %s;\n" % ip
-                    # not needed, as it's in the template.
-                    # systxt = systxt + "    next-server %s;\n" % self.settings.next_server
                     systxt = systxt + "}\n"
 
                 else:
@@ -399,16 +397,16 @@ class BootSync:
 
         buf = ""
         if system is not None:
-            buf = buf + pattern1 % (self.settings.server, "system", "done", system.name)
+            buf = buf + pattern1 % (blended["server"], "system", "done", system.name)
             if str(self.settings.pxe_just_once).upper() in [ "1", "Y", "YES", "TRUE" ]:
-                buf = buf + "\n" + pattern2 % (self.settings.server, system.name)
+                buf = buf + "\n" + pattern2 % (blended["server"], system.name)
             if kickstart and os.path.exists(kickstart):
-                buf = buf + "\n" + pattern3 % (self.settings.server, "kickstarts_sys", system.name)
+                buf = buf + "\n" + pattern3 % (blended["server"], "kickstarts_sys", system.name)
 
         else:
-            buf = buf + pattern1 % (self.settings.server, "profile", "done", profile.name)
+            buf = buf + pattern1 % (blended["server"], "profile", "done", profile.name)
             if kickstart and os.path.exists(kickstart):
-                buf = buf + "\n" + pattern3 % (self.settings.server, "kickstarts", profile.name)
+                buf = buf + "\n" + pattern3 % (blended["server"], "kickstarts", profile.name)
             
         return buf
 
@@ -417,12 +415,13 @@ class BootSync:
         # the list of repos to things that Anaconda can install from.  This corresponds
         # will replace "TEMPLATE::yum_repo_stanza" in a cobbler kickstart file.
         buf = ""
-        repos = utils.blender(self.api, False, profile)["repos"]
+        blended = utils.blender(self.api, False, profile)
+        repos = blended["repos"]
         for r in repos:
             repo = self.repos.find(name=r)
             if repo is None:
                 continue
-            http_url = "http://%s/cblr/repo_mirror/%s" % (self.settings.server, repo.name)
+            http_url = "http://%s/cblr/repo_mirror/%s" % (blended["server"], repo.name)
             buf = buf + "repo --name=%s --baseurl=%s\n" % (repo.name, http_url)
         distro = profile.get_conceptual_parent()
 
@@ -438,7 +437,8 @@ class BootSync:
 
     def generate_config_stanza(self, profile):
         # returns the line in post that would configure yum to use repos added with "cobbler repo add"
-        repos = utils.blender(self.api, False,profile)["repos"]
+        blended = utils.blender(self.api, False,profile)
+        repos = blended["repos"]
         buf = ""
         for r in repos:
             repo = self.repos.find(name=r)
@@ -446,7 +446,7 @@ class BootSync:
                 continue
             repo.local_filename = repo.local_filename.replace(".repo","")
             if not (repo.local_filename is None) and not (repo.local_filename == ""):
-                buf = buf + "wget http://%s/cblr/repo_mirror/%s/config.repo --output-document=/etc/yum.repos.d/%s.repo\n" % (self.settings.server, repo.name, repo.local_filename)    
+                buf = buf + "wget http://%s/cblr/repo_mirror/%s/config.repo --output-document=/etc/yum.repos.d/%s.repo\n" % (blended["server"], repo.name, repo.local_filename)    
 
         # now install the core repos
         distro = profile.get_conceptual_parent()
@@ -739,9 +739,10 @@ class BootSync:
 
         # now build the kernel command line
         if system is not None:
-            kopts = utils.blender(self.api, True,system)["kernel_options"]
+            blended = utils.blender(self.api, True,system)
         else:
-            kopts = utils.blender(self.api, True,profile)["kernel_options"]
+            blended = utils.blender(self.api, True,profile)
+        kopts = blended["kernel_options"]
 
         # ---
         # generate the append line
@@ -756,9 +757,9 @@ class BootSync:
         if kickstart_path is not None and kickstart_path != "":
 
             if system is not None and kickstart_path.startswith("/"):
-                kickstart_path = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (self.settings.server, system.name)
+                kickstart_path = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (blended["server"], system.name)
             elif kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
-                kickstart_path = "http://%s/cblr/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)
+                kickstart_path = "http://%s/cblr/kickstarts/%s/ks.cfg" % (blended["server"], profile.name)
 
             if distro.breed is None or distro.breed == "redhat":
                 append_line = "%s ks=%s" % (append_line, kickstart_path)
@@ -832,7 +833,7 @@ class BootSync:
         fd = open(filename, "w+")
         if blended.has_key("kickstart") and blended["kickstart"].startswith("/"):
             # write the file location as needed by koan
-            blended["kickstart"] = "http://%s/cblr/kickstarts/%s/ks.cfg" % (self.settings.server, profile.name)
+            blended["kickstart"] = "http://%s/cblr/kickstarts/%s/ks.cfg" % (blended["server"], profile.name)
         fd.write(yaml.dump(blended))
         fd.close()
 
