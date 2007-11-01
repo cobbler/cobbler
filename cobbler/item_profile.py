@@ -48,6 +48,7 @@ class Profile(item.Item):
         self.virt_bridge     = (self.settings.default_virt_bridge, '<<inherit>>')[is_subobject]
         self.dhcp_tag        = ("default",                         '<<inherit>>')[is_subobject]
         self.parent          = ''
+        self.server          = "<<inherit>>"
 
     def from_datastruct(self,seed_data):
         """
@@ -63,6 +64,7 @@ class Profile(item.Item):
         self.repos           = self.load_item(seed_data,'repos', [])
         self.depth           = self.load_item(seed_data,'depth', 1)     
         self.dhcp_tag        = self.load_item(seed_data,'dhcp_tag', 'default')
+        self.server          = self.load_item(seed_data,'server', '<<inherit>>')
 
         # backwards compatibility
         if type(self.repos) != list:
@@ -126,6 +128,10 @@ class Profile(item.Item):
 
     def set_dhcp_tag(self,dhcp_tag):
         self.dhcp_tag = dhcp_tag
+        return True
+
+    def set_server(self,server):
+        self.server = server
         return True
 
     def set_repos(self,repos):
@@ -333,7 +339,8 @@ class Profile(item.Item):
             'depth'            : self.depth,
             'virt_type'        : self.virt_type,
             'virt_path'        : self.virt_path,
-            'dhcp_tag'         : self.dhcp_tag
+            'dhcp_tag'         : self.dhcp_tag,
+            'server'           : self.server
         }
 
     def printable(self):
@@ -356,6 +363,7 @@ class Profile(item.Item):
         buf = buf + _("virt cpus       : %s\n") % self.virt_cpus
         buf = buf + _("repos           : %s\n") % self.repos
         buf = buf + _("dhcp tag        : %s\n") % self.dhcp_tag
+        buf = buf + _("server          : %s\n") % self.server
         return buf
 
     def remote_methods(self):
@@ -374,6 +382,7 @@ class Profile(item.Item):
             'virt-type'       :  self.set_virt_type,
             'virt-bridge'     :  self.set_virt_bridge,
             'virt-cpus'       :  self.set_virt_cpus,
-            'dhcp-tag'        :  self.set_dhcp_tag
+            'dhcp-tag'        :  self.set_dhcp_tag,
+            'server'          :  self.server
         }
 

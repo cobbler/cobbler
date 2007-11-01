@@ -447,7 +447,8 @@ class BootCLI:
             '--repos'           :  lambda(a) : profile.set_repos(a),
             '--virt-path'       :  lambda(a) : profile.set_virt_path(a),
             '--virt-type'       :  lambda(a) : profile.set_virt_type(a),
-            '--dhcp-tag'        :  lambda(a) : profile.set_dhcp_tag(a)
+            '--dhcp-tag'        :  lambda(a) : profile.set_dhcp_tag(a),
+            '--server-override' :  lambda(a) : profile.set_server(a)
         }
         def on_ok():
             if newname is not None:
@@ -578,7 +579,8 @@ class BootCLI:
            '--kickstart'       : lambda(a) : sys.set_kickstart(a),
            '--netboot-enabled' : lambda(a) : sys.set_netboot_enabled(a),
            '--virt-path'       : lambda(a) : sys.set_virt_path(a),
-           '--virt-type'       : lambda(a) : sys.set_virt_type(a)
+           '--virt-type'       : lambda(a) : sys.set_virt_type(a),
+           '--server-override' : lambda(a) : sys.set_server(a)
         }
 
         def on_ok():

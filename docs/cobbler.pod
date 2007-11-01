@@ -108,7 +108,7 @@ The file used for the answer file, regardless of the breed setting, is the value
 
 A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.  A profile might represent, for instance, a web server or desktop configuration.  In this way, profiles define a role to be performed.  
 
-B<cobbler profile add --name=string --distro=string [--kickstart=path] [--kopts=string] [--ksmeta=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-cpus=integer] [--virt-path=string] [--virt-bridge=string]>
+B<cobbler profile add --name=string --distro=string [--kickstart=path] [--kopts=string] [--ksmeta=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-cpus=integer] [--virt-path=string] [--virt-bridge=string] [--server-override]>
 
 Arguments are as listed for distributions, save for the removal of "arch" and "breed", and with the additions listed below:
 
@@ -178,13 +178,17 @@ Example:  If profile A has a --virt-file-size of 5 and B does not specify a size
 
 =back
 
+=item server-override
+
+This parameter should be useful only in select circumstances.  If machines are on a subnet that cannot access the cobbler server using the name/IP as configured in the cobbler settings file, use this parameter to override that server name.   See also --dhcp-tag for configuring the next server and DHCP informmation of the system if you are also using Cobbler to help manage your DHCP configuration.
+
 =head2 ADDING A SYSTEM
 
 System records map a piece of hardware (or a virtual machine) with the cobbler profile to be assigned to run on it.  This may be thought of as chosing a role for a specific system.
 
 Note that if provisioning via koan and PXE menus alone, it is not required to create system records, though they are useful when system specific customizations are required.   One such customization would be defining the MAC address.  If there is a specific role inteded for a given machine, system records should be created for it.
 
-B<cobbler system add --name=string --profile=string [--mac=macaddress] [--ip=ipaddress] [--hostname=hostname] [--kopts=string] [--ksmeta=string] [--kickstart=path] [--netboot-enabled=Y/N>
+B<cobbler system add --name=string --profile=string [--mac=macaddress] [--ip=ipaddress] [--hostname=hostname] [--kopts=string] [--ksmeta=string] [--kickstart=path] [--netboot-enabled=Y/N] [--server-override=string]>
 
 Adds a cobbler System to the configuration.  Arguments are specified as per "profile add" with
 the following changes:

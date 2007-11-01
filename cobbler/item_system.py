@@ -37,8 +37,9 @@ class System(item.Item):
         self.netboot_enabled = (1,        '<<inherit>>')[is_subobject] 
         self.depth           = 2
         self.kickstart       = "<<inherit>>"   # use value in profile
-        self.virt_path       = "<<inherit>>"   # use value in profile
-        self.virt_type       = "<<inherit>>"   # use value in profile 
+        self.virt_path       = "<<inherit>>"   # ""
+        self.virt_type       = "<<inherit>>"   # "" 
+        self.server          = "<<inherit>>"   # "" (or settings)
 
     def delete_interface(self,name):
         """
@@ -87,6 +88,7 @@ class System(item.Item):
         self.virt_path       = self.load_item(seed_data, 'virt_path', '<<inherit>>') 
         self.virt_type       = self.load_item(seed_data, 'virt_type', '<<inherit>>')
         self.netboot_enabled = self.load_item(seed_data, 'netboot_enabled', 1)
+        self.server          = self.load_item(seed_data, 'server', '<<inherit>>')
 
         # backwards compat, these settings are now part of the interfaces data structure
         # and will contain data only in upgrade scenarios.
@@ -150,6 +152,14 @@ class System(item.Item):
                intf["ip_address"] = name
         self.name = name 
 
+        return True
+
+    def set_server(self,server):
+        """
+        If a system can't reach the boot server at the value configured in settings
+        because it doesn't have the same name on it's subnet this is there for an override.
+        """
+        self.server = server
         return True
 
     def get_mac_address(self,interface="intf0"):
@@ -332,8 +342,8 @@ class System(item.Item):
            'kickstart'       : self.kickstart,
            'virt_type'       : self.virt_type,
            'virt_path'       : self.virt_path,
-           #'dhcp_tag'        : self.dhcp_tag,
-           'interfaces'      : self.interfaces
+           'interfaces'      : self.interfaces,
+           'server'          : self.server
         }
 
     def printable(self):
@@ -346,6 +356,7 @@ class System(item.Item):
         buf = buf + _("kickstart        : %s\n") % self.kickstart
         buf = buf + _("virt type        : %s\n") % self.virt_type
         buf = buf + _("virt path        : %s\n") % self.virt_path
+        buf = buf + _("server           : %s\n") % self.server
 
         counter = 0
         for (name,x) in self.interfaces.iteritems():
@@ -380,16 +391,17 @@ class System(item.Item):
 
     def remote_methods(self):
         return {
-           'name'            : self.set_name,
-           'profile'         : self.set_profile,
-           'kopts'           : self.set_kernel_options,
-           'ksmeta'          : self.set_ksmeta,
-           'hostname'        : self.set_hostname,
-           'kickstart'       : self.set_kickstart,
-           'netboot-enabled' : self.set_netboot_enabled,
-           'virt-path'       : self.set_virt_path,
-           'virt-type'       : self.set_virt_type,
+           'name'             : self.set_name,
+           'profile'          : self.set_profile,
+           'kopts'            : self.set_kernel_options,
+           'ksmeta'           : self.set_ksmeta,
+           'hostname'         : self.set_hostname,
+           'kickstart'        : self.set_kickstart,
+           'netboot-enabled'  : self.set_netboot_enabled,
+           'virt-path'        : self.set_virt_path,
+           'virt-type'        : self.set_virt_type,
            'modify-interface' : self.modify_interface,
-           'delete-interface' : self.delete_interface
+           'delete-interface' : self.delete_interface,
+           'server'           : self.set_server
         }
 
