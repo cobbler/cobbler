@@ -296,7 +296,7 @@ user@yourmirror.example.com/fedora-linux-core/updates/6/i386  (for SSH)
 Experimental support is also provided for mirroring RHN content when you need
 a fast local mirror.  The mirror syntax for this is --mirror=rhn://channel-name and you must
 have entitlements for this to work.  This requires the cobbler server to be installed on RHEL5
-or later.
+or later.  You will also need a version of yum-utils equal or greater to 1.0.4.
 
 Additionally, if you are running yum 3.2.4 or later, you can also automatically
 tell cobbler to mirror any yum repository that the boot server itself is

@@ -110,6 +110,8 @@ class RepoSync:
          
         # how we invoke yum-utils depends on whether this is RHN content or not.
 
+       
+
         if not is_rhn:
 
             # this is the simple non-RHN case.
@@ -138,7 +140,8 @@ class RepoSync:
  
                 # older yumdownloader sometimes explodes on --resolvedeps
                 # if this happens to you, upgrade yum & yum-utils
-                cmd = "/usr/bin/yumdownloader --resolve %s -c %s --destdir=%s %s" % (use_source, temp_file, dest_path, " ".join(repo.rpm_list))
+                extra_flags = self.settings.yumdownloader_flags
+                cmd = "/usr/bin/yumdownloader %s %s -c %s --destdir=%s %s" % (extra_flags, use_source, temp_file, dest_path, " ".join(repo.rpm_list))
                 print _("- %s") % cmd
                 cmds.append(cmd)
         else:
