@@ -377,7 +377,7 @@ class CobblerWeb(object):
     # FIXME: implement handling of delete1, delete2 + renames
     def system_save(self,name=None,oldname=None,editmode="edit",profile=None,
                     new_or_edit=None,  
-                    kopts=None, ksmeta=None, netboot='n', 
+                    kopts=None, ksmeta=None, server_override=None, netboot='n', 
                     delete1=None, delete2=None, **args):
 
         if not self.__xmlrpc_setup():
@@ -435,10 +435,8 @@ class CobblerWeb(object):
                self.remote.modify_system(system, 'ksmeta', ksmeta, self.token)
             if netboot:
                self.remote.modify_system(system, 'netboot-enabled', netboot, self.token)
-            #if dhcp_tag:
-            #   self.remote.modify_system(system, 'dhcp-tag', dhcp_tag, self.token)
-
-            # raise str(args)
+            if server_override:
+               self.remote.modify_system(system, 'server', server_override, self.token)
 
             for x in range(0,7):
                 interface = "intf%s" % x
@@ -548,7 +546,7 @@ class CobblerWeb(object):
                      distro=None,kickstart=None,kopts=None,
                      ksmeta=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,
-                     parent=None,virtcpus=None,virtbridge=None,subprofile=None,**args):
+                     parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -610,6 +608,8 @@ class CobblerWeb(object):
                 self.remote.modify_profile(profile, 'virt-bridge', virtbridge, self.token)
             if virtcpus:
                 self.remote.modify_profile(profile, 'virt-cpus', virtcpus, self.token)
+            if server_override:
+                self.remote.modify_profile(profile, 'server', server_override, self.token)
 
             if repos is None:
                 repos = []
