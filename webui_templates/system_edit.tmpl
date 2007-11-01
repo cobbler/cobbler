@@ -194,6 +194,21 @@ function page_onload() {
     </td>
     </tr>
 
+    <tr>
+    <td>
+    <label for="server_override">Server Override</label>
+    </td>
+    <td>
+    <input type="text" size="128" style="width: 150px;" name="server_override" id="server_override"
+        #if $system
+           value="$system.server" 
+        #end if
+    />
+    <p class="context-tip">Use this server for kickstarts, not the value in settings.  Usually this should be left alone.</p>
+    </td>
+    </tr>
+
+
     ## ====================================== start of looping through interfaces
 
     #set $counter = -1
