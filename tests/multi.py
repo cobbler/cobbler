@@ -2,7 +2,7 @@ import cobbler.api as capi
 
 api = capi.BootAPI()
 
-SYSTEMS_COUNT = 146
+SYSTEMS_COUNT = 10000 
 
 distros = api.distros()
 profiles = api.profiles()
