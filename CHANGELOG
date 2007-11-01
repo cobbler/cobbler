@@ -1,7 +1,7 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Mon Oct 29 2007 - 0.6.3
+* Thu Nov 01 2007 - 0.6.3
 - Be able to define and use Multiple NICs per system
 - Use server address not @@server in repo config files
 - Add --virt-cpus to profile editing
@@ -13,6 +13,7 @@ Cobbler CHANGELOG
 - added pre-sync and post-sync triggers, service restarts are now handled by /var/lib/cobbler/triggers
 - webui now uses htaccess (see manpage)
 - added pagination to the WUI to keep pages from growing overly long
+- added --server-override parameter for help with multi-subnet configurations
 
 * Fri Sep 28 2007 - 0.6.2
 - cobbler repo auto-add to discover yum repos automatically
