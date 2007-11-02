@@ -224,16 +224,14 @@ class RepoSync:
     def create_local_file(self, repo, dest_path, output=True):
         """
         Two uses:
-        (A) Create local files that can be used with yum on provisioned clients to make use of thisi mirror.
-        (B) Create a temporary file for yum to feed into reposync
+        (A) output=True, Create local files that can be used with yum on provisioned clients to make use of thisi mirror.
+        (B) output=False, Create a temporary file for yum to feed into yum for mirroring
         """
     
-        # FIXME: the output case will generate repo configuration files which are usable
+        # the output case will generate repo configuration files which are usable
         # for the installed systems.  They need to be made compatible with --server-override
-        # which means that we should NOT replace @@server@@ except in a dynamically generated
-        # post script that runs on each file we wget, and replace it there.  Until then
-        # installed repos may require a host file setting that allows them to find the
-        # main server address used for the initial mirroring.  We can clean this up :)
+        # which means they are actually templates, which need to be rendered by a cobbler-sync
+        # on per profile/system basis.
 
         if output:
             fname = os.path.join(dest_path,"config.repo")
@@ -246,7 +244,7 @@ class RepoSync:
         if output:
             # see note above:  leave as @@server@@ and fix in %post of kickstart when
             # we generate the stanza
-            line = "baseurl=http://%s/cobbler/repo_mirror/%s\n" % (self.settings.server, repo.name)
+            line = "baseurl=http://${server}/cobbler/repo_mirror/%s\n" % (repo.name)
             config_file.write(line)
         else:
             line = "baseurl=%s\n" % repo.mirror

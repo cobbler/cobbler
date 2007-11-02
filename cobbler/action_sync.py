@@ -362,8 +362,8 @@ class BootSync:
                 ksmeta = meta["ks_meta"]
                 del meta["ks_meta"]
                 meta.update(ksmeta) # make available at top level
-                meta["yum_repo_stanza"] = self.generate_repo_stanza(g)
-                meta["yum_config_stanza"] = self.generate_config_stanza(g)
+                meta["yum_repo_stanza"] = self.generate_repo_stanza(g,True)
+                meta["yum_config_stanza"] = self.generate_config_stanza(g,True)
                 meta["kickstart_done"] = self.generate_kickstart_signal(g, None)
                 meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
                 kfile = open(kickstart_path)
@@ -410,56 +410,60 @@ class BootSync:
             
         return buf
 
-    def generate_repo_stanza(self, profile):
-        # returns the line of repo additions (Anaconda supports in FC-6 and later) that adds
-        # the list of repos to things that Anaconda can install from.  This corresponds
-        # will replace "TEMPLATE::yum_repo_stanza" in a cobbler kickstart file.
-        buf = ""
-        blended = utils.blender(self.api, False, profile)
-        repos = blended["repos"]
-        for r in repos:
-            repo = self.repos.find(name=r)
-            if repo is None:
-                continue
-            http_url = "http://%s/cblr/repo_mirror/%s" % (blended["server"], repo.name)
-            buf = buf + "repo --name=%s --baseurl=%s\n" % (repo.name, http_url)
-        distro = profile.get_conceptual_parent()
+    def generate_repo_stanza(self, obj, is_profile=True):
 
-        # tack on all the install source repos IF there is more than one.
-        # this is basically to support things like RHEL5 split trees
-        # if there is only one, then there is no need to do this.
-        if len(distro.source_repos) > 1:
-            for r in distro.source_repos:
-                base = r[1].split("/")[-1].replace(".repo","")
-                buf = buf + "repo --name=%s --baseurl=%s\n" % (base, r[1])
+        """
+        Automatically attaches yum repos to profiles/systems in kickstart files
+        that contain the magic $yum_repo_stanza variable.
+        """
+
+        buf = ""
+        blended = utils.blender(self.api, False, obj)
+
+        # for all yum repo templates we have rendered rendered ...
+        globpath = os.path.join(self.settings.webdir, "repos_profile", blended["name"], "*")
+        configs = glob.glob(globpath)
+
+        # add a yum configuration line that makes the kickstart use them ...
+        for c in configs:
+           name = c.split("/")[-1].replace(".repo","")
+           url = c.replace(self.settings.webdir, "%s/cobbler" % blended["server"])
+           buf = buf + "repo --name=%s --baseurl=%s\n" % (name, url)
 
         return buf
 
-    def generate_config_stanza(self, profile):
-        # returns the line in post that would configure yum to use repos added with "cobbler repo add"
-        blended = utils.blender(self.api, False,profile)
-        repos = blended["repos"]
-        buf = ""
-        for r in repos:
-            repo = self.repos.find(name=r)
-            if repo is None: 
-                continue
-            repo.local_filename = repo.local_filename.replace(".repo","")
-            if not (repo.local_filename is None) and not (repo.local_filename == ""):
-                buf = buf + "wget http://%s/cblr/repo_mirror/%s/config.repo --output-document=/etc/yum.repos.d/%s.repo\n" % (blended["server"], repo.name, repo.local_filename)    
+    def generate_config_stanza(self, obj, is_profile=True):
 
-        # now install the core repos
-        distro = profile.get_conceptual_parent()
+        """
+        Add in automatic to configure /etc/yum.repos.d on the remote system
+        if the kickstart file contains the magic $yum_config_stanza.
+        """
+
         if self.settings.yum_core_mirror_from_server:
-            for r in distro.source_repos:
-                short = r[0].split("/")[-1]
-                buf = buf + "wget %s --output-document=/etc/yum.repos.d/%s\n" % (r[0], short)
+           return
 
-            # if there were any core repos, install the voodoo to disable the OS public core
-            # location -- FIXME: should probably run sed on the files, rather than rename them.
-            if len(distro.source_repos) > 0:
-                for x in ["fedora-core", "CentOS-Base"] :
-                    buf = buf + "test -e /etc/yum.repos.d/%s.repo && mv /etc/yum.repos.d/%s.repo /etc/yum.repos.d/disabled-%s\n" % (x,x,x)
+        if is_profile:
+           urlseg = "repos_profile"
+        else:
+           urlseg = "repos_system"
+
+        distro = obj.get_conceptual_parent()
+        if not is_profile:
+           distro = distro.get_conceptual_parent()
+
+        blended = utils.blender(self.api, False, obj)
+        globpath = os.path.join(self.settings.webdir, "repos_profile", blended["name"], "*")
+        configs = glob.glob(globpath)
+        
+        # for each kickstart template we have rendered ...
+        for c in configs:
+
+           name = c.split("/")[-1].replace(".repo","")
+           url = c.replace(self.settings.webdir, "%s/cobbler" % blended["server"])
+           buf = buf + "repo --name=%s --baseurl=%s\n" % (name, url)
+
+           # add the line to create the yum config file on the target box
+           buf = buf + "wget http://%s/cblr/%s/%s/%s/config.repo --output-document=/etc/yum.repos.d/%s.repo\n" % (blended["server"], urlseg, blended["name"], name)    
 
         return buf
 
@@ -613,10 +617,56 @@ class BootSync:
             self.write_distro_file(d)
 
         for p in self.profiles:
+            self.retemplate_yum_repos(p,True)
             self.write_profile_file(p)
 
         for system in self.systems:
+            self.retemplate_yum_repos(system,False)
             self.write_all_system_files(system)
+
+    def retemplate_yum_repos(self,obj,is_profile):
+        # FIXME: blender could use caching for performance
+        # FIXME: make stanza generation code load stuff from the right place
+        """
+        Yum repository management files are in self.settings.webdir/repo_mirror/$name/config.repo
+        and also potentially in listed in the source_repos structure of the distro object, however
+        these files have server URLs in them that must be templated out.  This function does this.
+        """
+        blended  = utils.blender(self.api, False, obj)
+
+        if is_profile:
+           outseg = "repos_profile"
+        else:
+           outseg = "repos_system"
+
+        confdir = os.path.join(self.settings.webdir, outseg)
+        shutil.rmtree(confdir, ignore_errors=True, onerror=None)
+
+        input_files = []
+
+        # tack on all the install source repos IF there is more than one.
+        # this is basically to support things like RHEL5 split trees
+        # if there is only one, then there is no need to do this.
+        if len(blended["source_repos"]) > 1:
+            for r in blended["source_repos"]:
+                input_files.append(r)
+
+        for repo in blended["repos"]:
+            input_files.append(os.path.join(self.settings.webdir, "repo_mirror", repo, "config.repo"))
+
+        for infile in input_files:
+            dispname = infile.split("/")[-1].replace(".repo","")
+            outdir = os.path.join(confdir, outseg, blended["name"])
+            self.mkdir(outdir) 
+            try:
+                infile_h = open(infile)
+            except:
+                raise CX(_("cobbler reposync needs to be run on repo (%s) first" % dispname))
+            infile_data = infile_h.read()
+            infile_h.close()
+            outfile = os.path.join(outdir, "config.repo")
+            self.apply_template(infile_data, blended, outfile)
+
 
     def write_all_system_files(self,system):
 

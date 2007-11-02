@@ -49,7 +49,6 @@ class BootTest(unittest.TestCase):
 
         # Create temp dir
         self.topdir = tempfile.mkdtemp(prefix="_cobbler-",dir="/tmp")
-        #self.topdir = "/tmp" # only for refactoring, fix later
         self.fk_initrd = os.path.join(self.topdir, FAKE_INITRD)
         self.fk_initrd2 = os.path.join(self.topdir, FAKE_INITRD2)
         self.fk_initrd3 = os.path.join(self.topdir, FAKE_INITRD3)
@@ -265,11 +264,14 @@ class Utilities(BootTest):
 
         repo = self.api.new_repo()
         try:
-            os.path.makedirs("/tmp/test_cobbler_repo")
+            os.makedirs("/tmp/test_cobbler_repo")
         except:
             pass
+        fd = open("/tmp/test_cobbler_repo/test.file", "w+")
+        fd.write("hello!")
+        fd.close()
         self.assertTrue(repo.set_name("testrepo"))
-        self.assertTrue(repo.set_mirror("/tmp"))
+        self.assertTrue(repo.set_mirror("/tmp/test_cobbler_repo"))
         self.assertTrue(self.api.repos().add(repo))
 
         profile = self.api.new_profile()
@@ -278,6 +280,7 @@ class Utilities(BootTest):
         self.assertTrue(profile.set_kickstart("http://127.0.0.1/foo"))
         self.assertTrue(profile.set_repos(["testrepo"]))
         self.assertTrue(self.api.profiles().add(profile))
+        self.api.reposync()
         self.api.sync()
         system = self.api.new_system()
         self.assertTrue(system.set_name("foo"))
@@ -297,6 +300,7 @@ class Utilities(BootTest):
         profile2.set_name("testprofile12b3")
         profile2.set_parent("testprofile12b2")
         self.assertTrue(self.api.profiles().add(profile2))
+        self.api.reposync()
         self.api.sync()
 
         # FIXME: now add a system to the inherited profile
@@ -307,6 +311,7 @@ class Utilities(BootTest):
         self.assertTrue(system2.set_profile("testprofile12b3"))
         self.assertTrue(system2.set_ksmeta({"narf" : "troz"}))
         self.assertTrue(self.api.systems().add(system2))
+        self.api.reposync()
         self.api.sync()
 
         # FIXME: now evaluate the system object and make sure  
@@ -323,8 +328,15 @@ class Utilities(BootTest):
         # (FIXME)
         
         repo2 = self.api.new_repo()
+        try:
+           os.makedirs("/tmp/cobbler_test_repo")
+        except:
+           pass
+        fd = open("/tmp/cobbler_test_repo/file.test","w+")
+        fd.write("Hi!")
+        fd.close()
         self.assertTrue(repo2.set_name("testrepo2"))
-        self.assertTrue(repo2.set_mirror("/tmp"))
+        self.assertTrue(repo2.set_mirror("/tmp/cobbler_test_repo"))
         self.assertTrue(self.api.repos().add(repo2))
         profile2 = self.api.profiles().find("testprofile12b3")
         # note: side check to make sure we can also set to string values
@@ -332,6 +344,7 @@ class Utilities(BootTest):
         self.api.profiles().add(profile2) # save it 
 
         # random bug testing: run sync several times and ensure cardinality doesn't change
+        self.api.reposync()
         self.api.sync()
         self.api.sync()
         self.api.sync()
@@ -360,9 +373,11 @@ class Utilities(BootTest):
 
         profile = self.api.profiles().find("testprofile12b2")
         self.assertTrue(type(profile.ks_meta) == type({}))
+        self.api.reposync()
         self.api.sync()
         self.assertFalse(profile.ks_meta.has_key("narf"), "profile does not have the system ksmeta")
 
+        self.api.reposync()
         self.api.sync()
 
         # verify that the distro did not acquire the property
