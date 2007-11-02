@@ -88,20 +88,6 @@ function disablename(value)
     </td>
     </tr>
 
-    <tr>
-    <td>
-    <label for="localfilename">Local Filename</label>
-    </td>
-    <td>
-    <input type="text" size="128" style="width: 150px;" name="localfilename" id="localfilename"
-        #if $repo
-            value="$repo.local_filename"
-        #end if
-    />
-    <p class="context-tip">To auto-configure mirror usage by provisioned systems, name the repo.</p>
-    </td>
-    </tr>
-
     <br/>
 
     ## FIXME: input field sizes should be larger (universally)

@@ -671,7 +671,7 @@ class CobblerWeb(object):
         } )
 
     def repo_save(self,name=None,oldname=None,new_or_edit=None,editmode="edit",
-                  mirror=None,keep_updated=None,local_filename=None,
+                  mirror=None,keep_updated=None,
                   rpm_list=None,createrepo_flags=None,arch=None,delete1=None,delete2=None,**args):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -712,8 +712,6 @@ class CobblerWeb(object):
             keep_updated = self.__truth( keep_updated )
             self.remote.modify_repo(repo, 'keep-updated', keep_updated, self.token)
 
-            if local_filename:
-                self.remote.modify_repo(repo, 'local-filename', local_filename, self.token)
             if rpm_list:
                 self.remote.modify_repo(repo, 'rpm-list', rpm_list, self.token)
             if createrepo_flags:
