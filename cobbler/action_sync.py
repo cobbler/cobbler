@@ -685,7 +685,7 @@ class BootSync:
         # if there is only one, then there is no need to do this.
         if len(blended["source_repos"]) > 1:
             for r in blended["source_repos"]:
-                input_files.append(r)
+                input_files.append(r[1])
 
         for repo in blended["repos"]:
             input_files.append(os.path.join(self.settings.webdir, "repo_mirror", repo, "config.repo"))
