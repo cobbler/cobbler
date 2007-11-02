@@ -466,8 +466,8 @@ class BootSync:
         if the kickstart file contains the magic $yum_config_stanza.
         """
 
-        if self.settings.yum_core_mirror_from_server:
-           return
+        if not self.settings.yum_post_install_mirror:
+           return ""
 
         urlseg = self.get_repo_segname(is_profile)
 
