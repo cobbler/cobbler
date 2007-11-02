@@ -21,7 +21,7 @@ All of these are good reasons to want a mirror server for all things kickstart a
 <h2>How To</h2>
 </a>
 <p>
-he following instructions require Cobbler 0.4.6 or later and walk through an example of setting up a mirror of Fedora Core 6's install tree, extras, and updates. This will require a good bit of hard disk space, so be prepared :).  These same commands work for all varieties of RHEL, Fedora, or Centos.
+The following instructions require Cobbler 0.4.6 or later and walk through an example of setting up a mirror of Fedora Core 6's install tree, extras, and updates. This will require a good bit of hard disk space, so be prepared :).  These same commands work for all varieties of RHEL, Fedora, or Centos.
 </p>
 <p>
 First, follow the setup for a DVD import here using the Fedora Core 6 install media. http://et.redhat.com/page/Cobbler_Import. If you did your import with Cobbler 0.4.5 or earlier, please do it again -- import now collects more data about the install trees that will be useful to cobbler.
@@ -30,10 +30,10 @@ First, follow the setup for a DVD import here using the Fedora Core 6 install me
 Once the import is complete, we'll add the mirrors...
 </p>
 <blockquote>
-cobbler repo add --mirror=http://mirrors.kernel.org/fedora/core/updates/6/i386/ --name=fc6i386updates --local-filename=fedora-updates
+cobbler repo add --mirror=http://mirrors.kernel.org/fedora/core/updates/6/i386/ --name=fc6i386updates
 </blockquote>
 <blockquote>
-cobbler repo add --mirror=http://mirrors.kernel.org/fedora/extras/6/i386/ --name=fc6i386extras --local-filename=fedora-extras
+cobbler repo add --mirror=http://mirrors.kernel.org/fedora/extras/6/i386/ --name=fc6i386extras
 </blockquote>
 <p>
 These are just a few common examples. Say you have a RHEL5 or Centos4 machine? Perhaps you would want to add something from freshrpms, or someplace else? It works the same way.
@@ -64,7 +64,7 @@ This is rather experimental, but if you have a provisioning need for fast local 
 cobbler repo-add --name=insertnamehere --mirror=rhn://rhn-channel-name
 </blockquote>
 <p>
-That's just the channel-name, no server. This only works on RHEL5+ and you'll need entitlements for the channel in question. 
+That's just the channel-name, no server. This only works on RHEL5+ and you'll need entitlements for the channel in question. You also want a version of yum-utils at least equal to 1.0.4.
 </p>
 
 <a name="#updates">
