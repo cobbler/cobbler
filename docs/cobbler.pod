@@ -274,7 +274,7 @@ on your network will result in faster, more up-to-date installations and faster 
 are only provisioning a home setup, this will probably be overkill, though it can be very useful
 for larger setups (labs, datacenters, etc).
 
-B<cobbler repo add --mirror=url --name=string [--local-filename=string] [--rpmlist=list] [--creatrepo-flags=string] [--keep-updated=Y/N] [--arch=string]>
+B<cobbler repo add --mirror=url --name=string [--rpmlist=list] [--creatrepo-flags=string] [--keep-updated=Y/N] [--arch=string]>
 
 =over
 
@@ -308,9 +308,9 @@ somewhat experimental.
 This name is used as the save location for the mirror.  If the mirror represented, say, Fedora Core
 6 i386 updates, a good name would be "fc6i386updates".  Again, be specific.
 
-This name corresponds with values given to the --repos parameter of "cobbler profile add".  If a profile
-has a --repos value that matches the name here, that repo can be automatically set up during provisioning.
-This means that, if supported by Anaconda, the repo can be used during kickstart install -- and -- either way, it can be automatically configured for use by the provisioned clients (see --local-filename).
+This name corresponds with values given to the --repos parameter of "cobbler profile add".  If a profile has a --repos value that matches the name given here, that repo can be automatically set up during provisioning (when supported) and installed systems will also use the boot server as a mirror (unless "yum_core_mirror_from_server" is disabled in the settings file).
+
+Distros that can make use of yum repositories during kickstart include FC6 and later, RHEL 5 and later, and derivative distributions.
 
 See the documentation on "cobbler profile add" for more information.
 

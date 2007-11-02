@@ -78,12 +78,12 @@ class BootLiteSync:
             raise CX(_("error in profile lookup"))
         # rebuild profile_list YAML file in webdir
         self.sync.write_listings()
-        # rebuild the yum configuration files for any attached repos
-        self.sync.retemplate_yum_repos(obj,is_profile)
         # add profiles/$name YAML file in webdir
         self.sync.write_profile_file(profile)
         # generate kickstart for kickstarts/$name/ks.cfg in webdir
         self.sync.validate_kickstart_for_specific_profile(profile)
+        # rebuild the yum configuration files for any attached repos
+        self.sync.retemplate_yum_repos(profile,True)
  
     def remove_single_profile(self, name):
         # rebuild profile_list YAML file in webdir
@@ -101,13 +101,13 @@ class BootLiteSync:
         # rebuild system_list file in webdir
         self.sync.regen_ethers() # /etc/ethers, for dnsmasq & rarpd
         self.sync.regen_hosts()  # /var/lib/cobbler/cobbler_hosts, pretty much for dnsmasq
-        # rebuild the yum configuration files for any attached repos
-        self.sync.retemplate_yum_repos(obj,is_profile)
         self.sync.write_listings()
         # write the PXE and YAML files for the system
         self.sync.write_all_system_files(system)
         # per system kickstarts
         self.sync.validate_kickstart_for_specific_system(system)
+        # rebuild the yum configuration files for any attached repos
+        self.sync.retemplate_yum_repos(system,False)
 
     def remove_single_system(self, name):
         system_record = self.systems.find(name=name)

@@ -78,6 +78,7 @@ class BootSync:
         self.clean_trees()
         self.copy_bootloaders()
         self.copy_distros()
+        self.retemplate_all_yum_repos()
         self.validate_kickstarts()
         self.build_trees()
         if self.settings.manage_dhcp:
@@ -266,10 +267,10 @@ class BootSync:
                 if not x.endswith(".py"):
                     self.rmfile(path)
             if os.path.isdir(path):
-                if not x in ["webui", "localmirror","repo_mirror","ks_mirror","kickstarts","kickstarts_sys","distros","images","systems","profiles","links"] :
+                if not x in ["webui", "localmirror","repo_mirror","ks_mirror","kickstarts","kickstarts_sys","distros","images","systems","profiles","links","repo_profile","repo_system"] :
                     # delete directories that shouldn't exist
                     self.rmtree(path)
-                if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles"]:
+                if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system"]:
                     # clean out directory contents
                     self.rmtree_contents(path)
         self.rmtree_contents(os.path.join(self.settings.tftpboot, "pxelinux.cfg"))
@@ -410,6 +411,12 @@ class BootSync:
             
         return buf
 
+    def get_repo_segname(self, is_profile):
+        if is_profile:
+           return "repos_profile"
+        else:
+           return "repos_system"
+
     def generate_repo_stanza(self, obj, is_profile=True):
 
         """
@@ -420,17 +427,37 @@ class BootSync:
         buf = ""
         blended = utils.blender(self.api, False, obj)
 
-        # for all yum repo templates we have rendered rendered ...
-        globpath = os.path.join(self.settings.webdir, "repos_profile", blended["name"], "*")
-        configs = glob.glob(globpath)
 
-        # add a yum configuration line that makes the kickstart use them ...
+        configs = self.get_repo_filenames(obj,is_profile)
         for c in configs:
            name = c.split("/")[-1].replace(".repo","")
-           url = c.replace(self.settings.webdir, "%s/cobbler" % blended["server"])
+           url = self.get_repo_baseurl(blended["server"], name)
            buf = buf + "repo --name=%s --baseurl=%s\n" % (name, url)
 
         return buf
+
+    def get_repo_baseurl(self, server, repo_name):
+        """
+        Construct the URL to a repo definition.
+        """
+        return "http://%s/cobbler/repo_mirror/%s" % (server, repo_name)
+
+    def get_repo_filenames(self, obj, is_profile=True):
+        """
+        For a given object, return the paths to repo configuration templates
+        that will be used to generate per-object repo configuration files and
+        baseurls
+        """        
+
+        blended = utils.blender(self.api, False, obj)
+        urlseg = self.get_repo_segname(is_profile)
+
+        topdir = "%s/%s/%s/*.repo" % (self.settings.webdir, urlseg, blended["name"])
+        os.system("ls %s" % topdir)
+        files = glob.glob(topdir)
+
+        return files
+
 
     def generate_config_stanza(self, obj, is_profile=True):
 
@@ -442,30 +469,38 @@ class BootSync:
         if self.settings.yum_core_mirror_from_server:
            return
 
-        if is_profile:
-           urlseg = "repos_profile"
-        else:
-           urlseg = "repos_system"
+        urlseg = self.get_repo_segname(is_profile)
 
         distro = obj.get_conceptual_parent()
         if not is_profile:
            distro = distro.get_conceptual_parent()
 
         blended = utils.blender(self.api, False, obj)
-        globpath = os.path.join(self.settings.webdir, "repos_profile", blended["name"], "*")
-        configs = glob.glob(globpath)
-        
+        configs = self.get_repo_filenames(obj, is_profile)
+        buf = ""
+ 
         # for each kickstart template we have rendered ...
         for c in configs:
 
+           
            name = c.split("/")[-1].replace(".repo","")
-           url = c.replace(self.settings.webdir, "%s/cobbler" % blended["server"])
+           url = self.get_repo_baseurl(blended["server"], name)
            buf = buf + "repo --name=%s --baseurl=%s\n" % (name, url)
 
            # add the line to create the yum config file on the target box
-           buf = buf + "wget http://%s/cblr/%s/%s/%s/config.repo --output-document=/etc/yum.repos.d/%s.repo\n" % (blended["server"], urlseg, blended["name"], name)    
+           conf = self.get_repo_config_file(blended["server"],urlseg,blended["name"],name)
+           buf = buf + "wget %s --output-document=/etc/yum.repos.d/%s.repo\n" % (conf, name)    
 
         return buf
+
+    def get_repo_config_file(self,server,urlseg,obj_name,repo_name):
+        """
+        Construct the URL to a repo config file that is usable in kickstart
+        for use with yum.  This is different than the templates cobbler reposync
+        creates, as this file will allow the server to migrate and have different
+        variables for different subnets/profiles/etc.
+        """ 
+        return "http://%s/cblr/%s/%s/%s.repo" % (server,urlseg,obj_name,repo_name)
 
     def validate_kickstarts_per_system(self):
         """
@@ -617,12 +652,16 @@ class BootSync:
             self.write_distro_file(d)
 
         for p in self.profiles:
-            self.retemplate_yum_repos(p,True)
             self.write_profile_file(p)
 
         for system in self.systems:
-            self.retemplate_yum_repos(system,False)
             self.write_all_system_files(system)
+
+    def retemplate_all_yum_repos(self):
+        for p in self.profiles:
+            self.retemplate_yum_repos(p,True)
+        for system in self.systems:
+            self.retemplate_yum_repos(system,False)
 
     def retemplate_yum_repos(self,obj,is_profile):
         # FIXME: blender could use caching for performance
@@ -639,9 +678,6 @@ class BootSync:
         else:
            outseg = "repos_system"
 
-        confdir = os.path.join(self.settings.webdir, outseg)
-        shutil.rmtree(confdir, ignore_errors=True, onerror=None)
-
         input_files = []
 
         # tack on all the install source repos IF there is more than one.
@@ -655,16 +691,18 @@ class BootSync:
             input_files.append(os.path.join(self.settings.webdir, "repo_mirror", repo, "config.repo"))
 
         for infile in input_files:
-            dispname = infile.split("/")[-1].replace(".repo","")
-            outdir = os.path.join(confdir, outseg, blended["name"])
+            dispname = infile.split("/")[-2]
+            confdir = os.path.join(self.settings.webdir, outseg)
+            outdir = os.path.join(confdir, blended["name"])
             self.mkdir(outdir) 
             try:
                 infile_h = open(infile)
             except:
-                raise CX(_("cobbler reposync needs to be run on repo (%s) first" % dispname))
+                print _("WARNING: cobbler reposync needs to be run on repo (%s), then re-run cobbler sync") % dispname
+                continue
             infile_data = infile_h.read()
             infile_h.close()
-            outfile = os.path.join(outdir, "config.repo")
+            outfile = os.path.join(outdir, "%s.repo" % dispname)
             self.apply_template(infile_data, blended, outfile)
 
 

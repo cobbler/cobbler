@@ -33,7 +33,6 @@ class Repo(item.Item):
         self.name             = None
         self.mirror           = (None,       '<<inherit>>')[is_subobject]
         self.keep_updated     = ('y',        '<<inherit>>')[is_subobject]
-        self.local_filename   = ("",         '<<inherit>>')[is_subobject]
         self.rpm_list         = ("",         '<<inherit>>')[is_subobject]
         self.createrepo_flags = ("-c cache", '<<inherit>>')[is_subobject]
         self.depth            = 2  # arbitrary, as not really apart of the graph
@@ -44,7 +43,6 @@ class Repo(item.Item):
         self.name             = self.load_item(seed_data, 'name')
         self.mirror           = self.load_item(seed_data, 'mirror')
         self.keep_updated     = self.load_item(seed_data, 'keep_updated','y')
-        self.local_filename   = self.load_item(seed_data, 'local_filename')
         self.rpm_list         = self.load_item(seed_data, 'rpm_list')
         self.createrepo_flags = self.load_item(seed_data, 'createrepo_flags', '-c cache')
         self.arch             = self.load_item(seed_data, 'arch')
@@ -82,22 +80,6 @@ class Repo(item.Item):
             self.keep_updated = False
         else:
             self.keep_updated = True
-        return True
-
-    def set_local_filename(self,fname):
-        """
-        If this repo is to be automatically configured to be "in use" for profiles that reference it,
-        the local filename must be specified.  This allows, for instance, to define a repo foo and autocreate
-        a foo.repo on the system that corresponds to it in /etc/yum.repos.d.  
-
-        You can overwrite default repos by doing this, so
-        setting a value of something like "fedora-updates" has some significance.  If you just name it foo, it's 
-        a bonus repo of your own special stuff.   This is only used if the distro has set_repos() called on it
-        with the name of this repo.
-
-        NOTE: this should not contain the ".repo" in the filename.  The kickstart will add that part.
-        """
-        self.local_filename = fname
         return True
 
     def set_rpm_list(self,rpms):
@@ -147,7 +129,6 @@ class Repo(item.Item):
            'name'             : self.name,
            'mirror'           : self.mirror,
            'keep_updated'     : self.keep_updated,
-           'local_filename'   : self.local_filename,
            'rpm_list'         : self.rpm_list,
            'createrepo_flags' : self.createrepo_flags,
            'arch'             : self.arch,
@@ -159,7 +140,6 @@ class Repo(item.Item):
         buf =       _("repo             : %s\n") % self.name
         buf = buf + _("mirror           : %s\n") % self.mirror
         buf = buf + _("keep updated     : %s\n") % self.keep_updated
-        buf = buf + _("local filename   : %s\n") % self.local_filename
         buf = buf + _("rpm list         : %s\n") % self.rpm_list
         buf = buf + _("createrepo_flags : %s\n") % self.createrepo_flags
         buf = buf + _("arch             : %s\n") % self.arch
@@ -189,7 +169,6 @@ class Repo(item.Item):
             'mirror-name'      :  self.set_name,
             'mirror'           :  self.set_mirror,
             'keep-updated'     :  self.set_keep_updated,
-            'local-filename'   :  self.set_local_filename,
             'rpm-list'         :  self.set_rpm_list,
             'createrepo-flags' :  self.set_createrepo_flags
         }
