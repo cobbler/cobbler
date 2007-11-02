@@ -308,7 +308,8 @@ somewhat experimental.
 This name is used as the save location for the mirror.  If the mirror represented, say, Fedora Core
 6 i386 updates, a good name would be "fc6i386updates".  Again, be specific.
 
-This name corresponds with values given to the --repos parameter of "cobbler profile add".  If a profile has a --repos value that matches the name given here, that repo can be automatically set up during provisioning (when supported) and installed systems will also use the boot server as a mirror (unless "yum_core_mirror_from_server" is disabled in the settings file).
+This name corresponds with values given to the --repos parameter of "cobbler profile add".  If a profile has a --repos value that matches the name given here, that repo can be automatically set up during provisioning (when supported) and installed systems will also use the boot server as a mirror (unless "yum_post_install_mirror" is disabled in the settings file).  By default the provisioning server
+will act as a mirror to systems it installs, which may not be desirable for laptop configurations, etc.
 
 Distros that can make use of yum repositories during kickstart include FC6 and later, RHEL 5 and later, and derivative distributions.
 
@@ -625,7 +626,7 @@ B<cobbler reposync reponame1 reponame2 ...>
 
 When updating repos by name, a repo will be updated even if it is set to be not updated during a regular reposync operation (ex: cobbler repo edit --name=reponame1 --keep-updated=0).
 
-Note that if a cobbler import provides enough information to use the boot server as a yum mirror for core packages, cobbler can set up kickstarts to use the cobbler server as a mirror instead of the outside world.  If this feature is desirable, it can be turned on by setting yum_core_mirror_from_server to 1 in /var/lib/cobbler/settings (and rerunning "cobbler sync").  You should not enable this feature if machines are provisioned on a different VLAN/network than production.
+Note that if a cobbler import provides enough information to use the boot server as a yum mirror for core packages, cobbler can set up kickstarts to use the cobbler server as a mirror instead of the outside world.  If this feature is not desirable, it can be turned on by setting yum_post_install_mirror to 0 in /var/lib/cobbler/settings (and rerunning "cobbler sync").  You should disable this feature if machines are provisioned on a different VLAN/network than production, or if you are provisioning laptops that will want to acquire updates on multiple networks.
 
 =head2 PXE BOOT LOOP PREVENTION
 
