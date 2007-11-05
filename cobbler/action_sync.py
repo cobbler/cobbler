@@ -454,9 +454,7 @@ class BootSync:
         urlseg = self.get_repo_segname(is_profile)
 
         topdir = "%s/%s/%s/*.repo" % (self.settings.webdir, urlseg, blended["name"])
-        os.system("ls %s" % topdir)
         files = glob.glob(topdir)
-
         return files
 
 
