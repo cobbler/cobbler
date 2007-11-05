@@ -45,14 +45,15 @@ class BootSync:
         """
         Constructor
         """
-        self.verbose  = verbose
-        self.config   = config
-        self.api      = config.api
-        self.distros  = config.distros()
-        self.profiles = config.profiles()
-        self.systems  = config.systems()
-        self.settings = config.settings()
-        self.repos    = config.repos()
+        self.verbose     = verbose
+        self.config      = config
+        self.api         = config.api
+        self.distros     = config.distros()
+        self.profiles    = config.profiles()
+        self.systems     = config.systems()
+        self.settings    = config.settings()
+        self.repos       = config.repos()
+        self.blend_cache = {}
         self.load_snippet_cache()
 
     def run(self):
@@ -345,7 +346,7 @@ class BootSync:
 
     def validate_kickstart_for_specific_profile(self,g):
         distro = g.get_conceptual_parent()
-        meta = utils.blender(self.api, False, g)
+        meta = utils.blender(self.api, False, g, self.blend_cache)
         if distro is None:
            raise CX(_("profile %(profile)s references missing distro %(distro)s") % { "profile" : g.name, "distro" : g.distro })
         kickstart_path = utils.find_kickstart(meta["kickstart"])
@@ -359,7 +360,7 @@ class BootSync:
            self.mkdir(copy_path)
            dest = os.path.join(copy_path, "ks.cfg")
            try:
-                meta = utils.blender(self.api, False, g)
+                meta = utils.blender(self.api, False, g, self.blend_cache)
                 ksmeta = meta["ks_meta"]
                 del meta["ks_meta"]
                 meta.update(ksmeta) # make available at top level
@@ -393,7 +394,7 @@ class BootSync:
         if system:
             blend_this = system
 
-        blended = utils.blender(self.api, False, blend_this)
+        blended = utils.blender(self.api, False, blend_this, self.blend_cache)
         kickstart = blended.get("kickstart",None)
 
         buf = ""
@@ -425,7 +426,7 @@ class BootSync:
         """
 
         buf = ""
-        blended = utils.blender(self.api, False, obj)
+        blended = utils.blender(self.api, False, obj, self.blend_cache)
 
 
         configs = self.get_repo_filenames(obj,is_profile)
@@ -449,7 +450,7 @@ class BootSync:
         baseurls
         """        
 
-        blended = utils.blender(self.api, False, obj)
+        blended = utils.blender(self.api, False, obj, self.blend_cache)
         urlseg = self.get_repo_segname(is_profile)
 
         topdir = "%s/%s/%s/*.repo" % (self.settings.webdir, urlseg, blended["name"])
@@ -475,7 +476,7 @@ class BootSync:
         if not is_profile:
            distro = distro.get_conceptual_parent()
 
-        blended = utils.blender(self.api, False, obj)
+        blended = utils.blender(self.api, False, obj, self.blend_cache)
         configs = self.get_repo_filenames(obj, is_profile)
         buf = ""
  
@@ -521,7 +522,7 @@ class BootSync:
         if profile is None:
             raise CX(_("system %(system)s references missing profile %(profile)s") % { "system" : s.name, "profile" : s.profile })
         distro = profile.get_conceptual_parent()
-        meta = utils.blender(self.api, False, s)
+        meta = utils.blender(self.api, False, s, self.blend_cache)
         kickstart_path = utils.find_kickstart(meta["kickstart"])
         if kickstart_path and os.path.exists(kickstart_path):
             copy_path = os.path.join(self.settings.webdir,
@@ -671,7 +672,7 @@ class BootSync:
         and also potentially in listed in the source_repos structure of the distro object, however
         these files have server URLs in them that must be templated out.  This function does this.
         """
-        blended  = utils.blender(self.api, False, obj)
+        blended  = utils.blender(self.api, False, obj, self.blend_cache)
 
         if is_profile:
            outseg = "repos_profile"
@@ -814,7 +815,7 @@ class BootSync:
         initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
         
         # Find the kickstart if we inherit from another profile
-        kickstart_path = utils.blender(self.api, True, profile)["kickstart"]
+        kickstart_path = utils.blender(self.api, True, profile, self.blend_cache)["kickstart"]
 
         # ---
         # choose a template
@@ -827,9 +828,9 @@ class BootSync:
 
         # now build the kernel command line
         if system is not None:
-            blended = utils.blender(self.api, True,system)
+            blended = utils.blender(self.api, True,system,self.blend_cache)
         else:
-            blended = utils.blender(self.api, True,profile)
+            blended = utils.blender(self.api, True,profile,self.blend_cache)
         kopts = blended["kernel_options"]
 
         # ---
@@ -903,7 +904,7 @@ class BootSync:
         """
         Create distro information for koan install
         """
-        blended = utils.blender(self.api, True, distro)
+        blended = utils.blender(self.api, True, distro, self.blend_cache)
         filename = os.path.join(self.settings.webdir,"distros",distro.name)
         fd = open(filename, "w+")
         fd.write(yaml.dump(blended))
@@ -916,7 +917,7 @@ class BootSync:
         NOTE: relevant to http only
         """
 
-        blended = utils.blender(self.api, True, profile)
+        blended = utils.blender(self.api, True, profile, self.blend_cache)
         filename = os.path.join(self.settings.webdir,"profiles",profile.name)
         fd = open(filename, "w+")
         if blended.has_key("kickstart") and blended["kickstart"].startswith("/"):
@@ -932,7 +933,7 @@ class BootSync:
         NOTE: relevant to http only
         """
 
-        blended = utils.blender(self.api, True, system)
+        blended = utils.blender(self.api, True, system, self.blend_cache)
         filename = os.path.join(self.settings.webdir,"systems",system.name)
         fd = open(filename, "w+")
         fd.write(yaml.dump(blended))

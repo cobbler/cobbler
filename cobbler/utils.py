@@ -271,12 +271,18 @@ def grab_tree(api_handle, obj):
     results.append(settings)  
     return results
 
-def blender(api_handle,remove_hashes, root_obj):
+def blender(api_handle,remove_hashes, root_obj, blend_cache=None):
     """
     Combine all of the data in an object tree from the perspective
     of that point on the tree, and produce a merged hash containing
     consolidated data.
     """
+ 
+    blend_key = "%s/%s/%s" % (root_obj.TYPE_NAME, root_obj.name, remove_hashes)
+    if blend_cache is not None:
+        if blend_cache.has_key(blend_key):
+            return blend_cache[blend_key]
+
     settings = api_handle.settings()
     tree = grab_tree(api_handle, root_obj)
     tree.reverse()  # start with top of tree, override going down
@@ -311,6 +317,8 @@ def blender(api_handle,remove_hashes, root_obj):
     if remove_hashes:
         results = flatten(results)
 
+    if blend_cache is not None:
+        blend_cache[blend_key] = results
     return results
 
 def flatten(data):
