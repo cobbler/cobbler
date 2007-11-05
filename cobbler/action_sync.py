@@ -481,11 +481,7 @@ class BootSync:
         # for each kickstart template we have rendered ...
         for c in configs:
 
-           
            name = c.split("/")[-1].replace(".repo","")
-           url = self.get_repo_baseurl(blended["server"], name)
-           buf = buf + "repo --name=%s --baseurl=%s\n" % (name, url)
-
            # add the line to create the yum config file on the target box
            conf = self.get_repo_config_file(blended["server"],urlseg,blended["name"],name)
            buf = buf + "wget %s --output-document=/etc/yum.repos.d/%s.repo\n" % (conf, name)    
@@ -684,13 +680,18 @@ class BootSync:
         # if there is only one, then there is no need to do this.
         if len(blended["source_repos"]) > 1:
             for r in blended["source_repos"]:
-                input_files.append(r[1])
+                # convert webdir to path
+                filename = self.settings.webdir + "/" + "/".join(r[0].split("/")[4:])
+                input_files.append(filename)
 
         for repo in blended["repos"]:
             input_files.append(os.path.join(self.settings.webdir, "repo_mirror", repo, "config.repo"))
 
         for infile in input_files:
-            dispname = infile.split("/")[-2]
+            if infile.find("ks_mirror") == -1:
+                dispname = infile.split("/")[-2]
+            else:
+                dispname = infile.split("/")[-1].replace(".repo","")
             confdir = os.path.join(self.settings.webdir, outseg)
             outdir = os.path.join(confdir, blended["name"])
             self.mkdir(outdir) 
