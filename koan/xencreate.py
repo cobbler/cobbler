@@ -73,7 +73,7 @@ def start_paravirt_install(name=None, ram=None, disks=None,
             if mac == "":
                 mac = random_mac()
 
-            profile_bridge = profile_data["default_virt_bridge"]
+            profile_bridge = profile_data["virt_bridge"]
 
             intf_bridge = intf["virt_bridge"]
             if intf_bridge == "":
