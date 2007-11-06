@@ -353,7 +353,7 @@ class Importer:
           if x == "base" or x == "repodata":
                # only run the repo scanner on directories that contain a comps.xml
                gloob1 = glob.glob("%s/%s/comps*.xml" % (dirname,x))
-               if len(gloob1) >= 1 or len(gloob2) >= 1:
+               if len(gloob1) >= 1:
                    if matches.has_key(dirname):
                        print _("- looks like we've already scanned here: %s") % dirname
                        continue
