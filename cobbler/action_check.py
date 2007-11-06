@@ -55,6 +55,7 @@ class BootCheck:
        self.check_tftpd_conf(status)
        self.check_httpd(status)
        self.check_iptables(status)
+       self.check_yum(status)
 
        return status
 
@@ -69,6 +70,14 @@ class BootCheck:
            rc = sub_process.call("/sbin/service iptables status >/dev/null 2>/dev/null", shell=True)
            if rc == 0:
               status.append(_("since iptables may be running, ensure 69, 80, %(syslog)s, and %(xmlrpc)s are unblocked") % { "syslog" : self.settings.syslog_port, "xmlrpc" : self.settings.xmlrpc_port })
+
+   def check_yum(self,status):
+       if not os.path.exists("/usr/bin/createrepo"):
+           status.append(_("createrepo package is not installed, needed for cobbler import and cobbler reposync, install createrepo?"))
+       if not os.path.exists("/usr/bin/reposync"):
+           status.append(_("reposync is not installed, need for cobbler reposync, install/upgrade yum-utils?"))
+       if not os.path.exists("/usr/bin/yumdownloader"):
+           status.append(_("yumdownloader is not installed, needed for cobbler repo add with --rpm-list parameter, install/upgrade yum-utils?"))
 
    def check_name(self,status):
        """

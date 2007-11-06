@@ -14,6 +14,7 @@ Cobbler CHANGELOG
 - webui now uses htaccess (see manpage)
 - added pagination to the WUI to keep pages from growing overly long
 - added --server-override parameter for help with multi-subnet configurations
+- removed yum-utils as a hard requirement, cobbler check now looks for yum-utils
 
 * Fri Sep 28 2007 - 0.6.2
 - cobbler repo auto-add to discover yum repos automatically

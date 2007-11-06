@@ -13,7 +13,6 @@ Requires: python-devel
 Requires: createrepo
 Requires: mod_python
 Requires: python-cheetah
-Requires: yum-utils
 Requires: rhpl
 %ifarch i386 i686 x86_64
 Requires: syslinux
@@ -199,6 +198,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 - backup state files on upgrade 
 - cobbler sync now has pre/post triggers, so package those dirs/files
 - WebUI now has .htaccess file
+- removed yum-utils as a requirement
 
 * Fri Sep 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.2-2
 - Upstream changes (see CHANGELOG)
