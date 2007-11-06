@@ -91,6 +91,10 @@ class CobblerXMLRPCInterface:
 
         data = self.api.deserialize_raw(collection_name)
         total_items = len(data)
+
+        if collection_name == "settings":
+            return self._fix_none(data)
+
         data.sort(self.__sorter)
 
         if page is not None and results_per_page is not None:
