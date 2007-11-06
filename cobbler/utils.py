@@ -311,7 +311,11 @@ def blender(api_handle,remove_hashes, root_obj, blend_cache=None):
                 results["%s_%s" % (key,name)] = interface[key]
                 # just to keep templates backwards compatibile
                 if name == "intf0":
-                    results[key] = interface[key]
+                    # prevent stomping on profile variables, which really only happens
+                    # with the way we check for virt_bridge, which is a profile setting
+                    # and an interface setting
+                    if not results.has_key(key):
+                        results[key] = interface[key]
 
     # sanitize output for koan and kernel option lines, etc
     if remove_hashes:
