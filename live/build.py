@@ -42,13 +42,6 @@ packages = [
   "kernel", "bash", "koan", "policycoreutils", "grub", "eject", "tree"
 ]
 
-# some debug checks
-   
-#prereqs = {
-#      "/usr/bin/livecd-creator" : "make and make install -> http://gitweb.freedesktop.org/?p=users/david/livecd-tools.git",
-#      "/sbin/mksquashfs"        : "yum install squashfs-tools"
-#}
-
 #=======
 
 def main(args):
@@ -68,6 +61,19 @@ def main(args):
       options.koan = options.koan + " --server=%s" % options.server
    if options.koan.find("--replace-self") == -1:
       options.koan = options.koan + " --replace-self"
+
+   if not os.path.exists("/usr/bin/livecd-creator"):
+      print "livecd-creator needs to be installed"
+      sys.exit(1)
+
+   if not os.path.exists("/usr/bin/createrepo"):
+      print "createrepo needs to be installed"
+      sys.exit(1)
+
+   if not os.path.exists("/sbin/mksquashfs"):
+      print "squashfs-tools needs to be installed"
+      sys.exit(1)
+
 
    # create the local repo so we can have the latest koan
    # even if it's not in Fedora yet
