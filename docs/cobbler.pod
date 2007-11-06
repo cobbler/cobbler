@@ -372,7 +372,7 @@ B<cobbler profile remove --name=string>
 
 B<cobbler system remove --name=string>
 
-B<cobbler remove repo --name=string>
+B<cobbler repo remove --name=string>
 
 =head2 EDITING
 
