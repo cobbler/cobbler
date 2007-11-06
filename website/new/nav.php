@@ -11,6 +11,7 @@
   		 <li><a href=\"faq.php\">FAQ</a></li>
   		 <li><a href=\"documentation.php\">Documentation</a></li>
   		 <li><a href=\"communicate.php\">Communicate</a></li>
+  		 <li><a href=\"http://hosted.fedoraproject.org/projects/cobbler/\">Wiki</a></li>
  		</ul>";
 		break;
   	case "news":
@@ -21,6 +22,7 @@
   		 <li><a href=\"faq.php\">FAQ</a></li>
   		 <li><a href=\"documentation.php\">Documentation</a></li>
  		  <li><a href=\"communicate.php\">Communicate</a></li>
+  		 <li><a href=\"http://hosted.fedoraproject.org/projects/cobbler/\">Wiki</a></li>
  		</ul>";
 		break;
   	case "download":
@@ -31,6 +33,7 @@
   		 <li><a href=\"faq.php\">FAQ</a></li>
   		 <li><a href=\"documentation.php\">Documentation</a></li>
  		  <li><a href=\"communicate.php\">Communicate</a></li>
+  		 <li><a href=\"http://hosted.fedoraproject.org/projects/cobbler/\">Wiki</a></li>
 		 </ul>";
 		break;
   	case "faq":
@@ -41,6 +44,7 @@
   		 <li id=\"active\"><a href=\"faq.php\">FAQ</a></li>
   		 <li><a href=\"documentation.php\">Documentation</a></li>
   		 <li><a href=\"communicate.php\">Communicate</a></li>
+  		 <li><a href=\"http://hosted.fedoraproject.org/projects/cobbler/\">Wiki</a></li>
  		</ul>";
 		break;
   	case "communicate":
@@ -51,6 +55,7 @@
   		 <li><a href=\"faq.php\">FAQ</a></li>
   		 <li><a href=\"documentation.php\">Documentation</a></li>
   		 <li id=\"active\"><a href=\"communicate.php\">Communicate</a></li>
+  		 <li><a href=\"http://hosted.fedoraproject.org/projects/cobbler/\">Wiki</a></li>
  		</ul>";
 		break;
 	case "documentation":
@@ -61,6 +66,7 @@
                  <li><a href=\"faq.php\">FAQ</a></li>
                  <li id=\"active\"><a href=\"documentation.php\">Documentation</a></li>                 
 		<li><a href=\"communicate.php\">Communicate</a></li>
+  		 <li><a href=\"http://hosted.fedoraproject.org/projects/cobbler/\">Wiki</a></li>
                 </ul>";
 		break;
 	default:
@@ -71,6 +77,7 @@
   		 <li><a href=\"faq.php\">FAQ</a></li>
   		 <li><a href=\"documentation.php\">Documentation</a></li>
  		  <li><a href=\"communicate.php\">Communicate</a></li>
+  		 <li><a href=\"http://hosted.fedoraproject.org/projects/cobbler/\">Wiki</a></li>
  		</ul>";
 		break;
 
