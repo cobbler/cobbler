@@ -1,20 +1,21 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Thu Nov 01 2007 - 0.6.3
+* Wed Nov 07 2007 - 0.6.3
 - Be able to define and use Multiple NICs per system
-- Use server address not @@server in repo config files
 - Add --virt-cpus to profile editing
 - Fix bug where WUI (XMLRPC) auth wasn't supported on EL4
 - Add --virt-bridge to profile editing and NICs
-- Added serializer_shelve (as option) for added performance/persistance over YAML
+- Added serializer_shelve (as option) for added performance/persistance over YAML, experimental in /etc/cobbler/modules.conf, see Wiki
 - Backup state files and migrate state structures upon RPM upgrade
 - Added some more redundant files (for unsupported distros) to the rsync.exclude file
 - added pre-sync and post-sync triggers, service restarts are now handled by /var/lib/cobbler/triggers
-- webui now uses htaccess (see manpage)
+- webui now uses htaccess (see manpage and Wiki for setup instructions)
 - added pagination to the WUI to keep pages from growing overly long
-- added --server-override parameter for help with multi-subnet configurations
+- added --server-override parameter for help with multi-subnet configurations (also see Wiki)
 - removed yum-utils as a hard requirement, cobbler check now looks for yum-utils
+- fixed bug where cobbler would try to copy hardlinks to themselves during sync
+- misc random bugfixing
 
 * Fri Sep 28 2007 - 0.6.2
 - cobbler repo auto-add to discover yum repos automatically

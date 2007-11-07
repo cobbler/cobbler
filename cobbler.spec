@@ -2,7 +2,7 @@
 Summary: Boot server configurator
 Name: cobbler
 Version: 0.6.3
-Release: 1%{?dist}
+Release: 2%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -192,7 +192,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Wed Oct 16 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.3-1
+* Wed Nov 07 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.3-2
 - Upstream changes (see CHANGELOG)
 - now packaging javascript file(s) seperately for WUI
 - backup state files on upgrade 
