@@ -62,6 +62,11 @@ which is usually 25151, and that ``cobblerd'' is running on the cobbler server.<
 <dd>
 <p>This argument must be specified for all koan commands.</p>
 </dd>
+<dd>
+<p>Specifying ``DISCOVER'' for the server in all caps will request automatic discovery
+of a nearby cobbler server using Avahi.  The avahi-tools package must be installed
+to use this functionality.</p>
+</dd>
 </li>
 </dl>
 <p>
@@ -134,10 +139,13 @@ will provide reasonable defaults.</p>
 <dt><strong><a name="item__2d_2dvirt_2dpath">--virt-path</a></strong>
 
 <dd>
-<p>(optional) Specifies the storage for the virtual image.  This path must be an absolute path of an existing directory in which to store the image, with an optional filename component.</p>
+<p>(optional) Specifies the storage for the virtual image, as a forced override over a storage location that might be set on the cobbler server.  This path must be an absolute path of an existing directory in which to store the image, with an optional filename component.</p>
 </dd>
 <dd>
-<p>There is also experimental support for specifying partitions such as ``/dev/sda4''.  Volume Groups with available free space can also be used by specifying a group name such as ``VolGroup00''.  Partitions should always start with /dev and Volume Groups should be represented by their names.</p>
+<p>Advanced usage: There is also support for specifying partitions such as ``/dev/sda4''.  Volume Groups with available free space can also be used by specifying a group name such as ``VolGroup00''.  Partitions should always start with /dev and Volume Groups should be represented by their names.</p>
+</dd>
+<dd>
+<p>If you want to specify the location for more than one disk image, seperate the values with commas, such as ``/opt/foo/a,/opt/foo/b''.</p>
 </dd>
 </li>
 <dt><strong><a name="item__2d_2dvirt_2dtype">--virt-type</a></strong>
@@ -149,14 +157,7 @@ will provide reasonable defaults.</p>
 <p>qemu installs will select kvm, kqemu, or qemu, based on available hardware support.</p>
 </dd>
 </li>
-<dt><strong><a name="item__2d_2dvirt_2dgraphics">--virt-graphics</a></strong>
-
-<dd>
-<p>(optional) This enables VNC graphics for virtual installs.  Currently qemu-based installs ignore this parameter and always enable VNC.  With VNC on, it is assumed a firewall is blocking remote access to the server. In the future, qemu installs may respect the presence/absense of this parameter as Xen installs currently do.</p>
-</dd>
-</li>
 </dl>
-<p>Example:  koan --server=cobbler.example.org --virt --profile=rhel5-x86_64 --virt-type=``qemu'' --virt-path=``/home/username/qemu/'' --virt-name=``test_setup''</p>
 <p>
 </p>
 <hr />
@@ -192,6 +193,8 @@ a live CD for use with koan.  This live CD serves the purpose of running
 <p>The koan live CD is in the early stages of development and may not
 support all direct attached storage.  NOTE: Usage of the Live CD will
 erase all data on the first DASD disk during the course of provisioning.</p>
+<p>The live CD should be very useful when used with the --server=DISCOVER
+switch.</p>
 <p>
 </p>
 <hr />
