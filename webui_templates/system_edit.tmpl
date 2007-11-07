@@ -276,9 +276,11 @@ function page_onload() {
         <input type="text" size="64" style="width: 150px;" name="macaddress-$interface" id="macaddress-$interface"
                value="$macaddress"
         />
-        #if not $system
-            <a href="javascript: get_random_mac()" style="font-size: 0.8em;">random</a>   
-        #end if
+
+        ## #if not $system
+        ##     <a href="javascript: get_random_mac()" style="font-size: 0.8em;">random</a>   
+        ## #end if
+
         <p class="context-tip">Example: AA:BB:CC:DD:EE:FF</p>
         </td>
         </tr>
