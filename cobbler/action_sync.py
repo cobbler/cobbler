@@ -960,8 +960,11 @@ class BootSync:
     def copyfile(self,src,dst):
         try:
             return shutil.copyfile(src,dst)
-        except IOError, ioe:
-            raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+        except:
+            if not os.path.samefile(src,dst):
+                # accomodate for the possibility that we already copied
+                # the file as a symlink/hardlink
+                raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
     def rmfile(self,path):
         try:
