@@ -466,7 +466,6 @@ class BootCLI:
            '--mirror-name'      :  lambda(a): repo.set_name(a),
            '--mirror'           :  lambda(a): repo.set_mirror(a),
            '--keep-updated'     :  lambda(a): repo.set_keep_updated(a),
-           '--local-filename'   :  lambda(a): repo.set_local_filename(a),
            '--rpm-list'         :  lambda(a): repo.set_rpm_list(a),
            '--createrepo-flags' :  lambda(a): repo.set_createrepo_flags(a),
            '--arch'             :  lambda(a): repo.set_arch(a)
