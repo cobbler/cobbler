@@ -682,8 +682,6 @@ chcon httpd_sys_content_t /etc/cobbler/auth.conf
 
 5) Run /sbin/service cobblerd restart.  
 
-6) Verify the AllowOverride section for the /var/www/cgi-bin directory in /etc/httpd/conf/httpd.conf says "AllowOverride All" not "AllowOverride None".
-
 6) Visit http://yourserver.example.org/cgi-bin/cobbler/webui.cgi and log in with whatever you chose in step 3.
 
 =head1 EXIT_STATUS
