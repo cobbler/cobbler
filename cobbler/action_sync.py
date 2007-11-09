@@ -678,11 +678,12 @@ class BootSync:
         # tack on all the install source repos IF there is more than one.
         # this is basically to support things like RHEL5 split trees
         # if there is only one, then there is no need to do this.
-        if len(blended["source_repos"]) > 1:
-            for r in blended["source_repos"]:
-                # convert webdir to path
-                filename = self.settings.webdir + "/" + "/".join(r[0].split("/")[4:])
-                input_files.append(filename)
+
+        #if len(blended["source_repos"]) > 1:
+        for r in blended["source_repos"]:
+            # convert webdir to path
+            filename = self.settings.webdir + "/" + "/".join(r[0].split("/")[4:])
+            input_files.append(filename)
 
         for repo in blended["repos"]:
             input_files.append(os.path.join(self.settings.webdir, "repo_mirror", repo, "config.repo"))
