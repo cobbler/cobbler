@@ -153,6 +153,9 @@ class RepoSync:
                 print _("- warning: --rpm-list is not supported for RHN content")
             rest = repo.mirror[6:] # everything after rhn://
             cmd = "/usr/bin/reposync -r %s --download_path=%s" % (rest, store_path)
+            if repo.name != rest:
+                args = { "name" : repo.name, "rest" : rest }
+                raise CX(_("ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository must match the name of the RHN channel") % args)
 
             if repo.arch != "":
                 cmd = "%s -a %s" % (cmd, repo.arch)
@@ -160,16 +163,6 @@ class RepoSync:
             print _("- %s") %  cmd
             cmds.append(cmd)
 
-            # downloads using -r use the value given for -r as part of the output dir, 
-            # so create a symlink with the name the user
-            # gave such that everything still works as intended and the sync code still works
-            # this doesn't happen for the http:// and ftp:// mirrors.
-
-            if not os.path.exists(dest_path):
-                from1 = os.path.join(self.settings.webdir, "repo_mirror", rest)
-                print _("- symlink: %(from)s -> %(to)s") % { "from" : from1, "to" : dest_path }
-                os.symlink(from1, dest_path)
- 
         # now regardless of whether we're doing yumdownloader or reposync
         # or whether the repo was http://, ftp://, or rhn://, execute all queued
         # commands here.  Any failure at any point stops the operation.

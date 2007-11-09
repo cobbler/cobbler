@@ -122,6 +122,13 @@ class Repo(item.Item):
             return False
         if self.mirror is None:
             return False
+        if self.mirror.startswith("rhn://"):
+            # reposync creates directories based on the channel name so this 
+            # prevents a lot of ugly special case handling if we make the
+            # requirement that repo names match the channels.  It makes sense too.
+            if self.mirror != "rhn://%s" % self.name:
+                args = { "m1" : self.mirror, "m2" : self.mirror.replace("rhn://","") }
+                raise CX(_("Since mirror is RHN %(m1)s, the repo must also be named %(m2)s") % args)
         return True
 
     def to_datastruct(self):
