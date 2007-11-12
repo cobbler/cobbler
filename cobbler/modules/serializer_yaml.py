@@ -31,7 +31,7 @@ def register():
     """
     The mandatory cobbler module registration hook.
     """
-    return True 
+    return "serializer"
 
 def serialize(obj):
     """

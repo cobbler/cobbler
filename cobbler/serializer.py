@@ -17,28 +17,22 @@ import errno
 import os
 from rhpl.translate import _, N_, textdomain, utf8
 
-import yaml                # Howell-Clark version
-
 from cexceptions import *
 import utils
 import api as cobbler_api
-import modules.serializer_yaml as serializer_yaml
-import ConfigParser
-
-MODULE_CACHE = {}
-cp = ConfigParser.ConfigParser()
-cp.read("/etc/cobbler/modules.conf")
 
 def serialize(obj):
     """
     Save a collection to disk or other storage.  
     """
-    
     storage_module = __get_storage_module(obj.collection_type())
     storage_module.serialize(obj)
     return True
 
 def serialize_item(collection, item):
+    """
+    Save an item.
+    """
     storage_module = __get_storage_module(collection.collection_type())
     save_fn = getattr(storage_module, "serialize_item", None)
     if save_fn is None:
@@ -49,6 +43,9 @@ def serialize_item(collection, item):
         return save_fn(collection,item)
 
 def serialize_delete(collection, item):
+    """
+    Delete an object from a saved state.
+    """
     storage_module = __get_storage_module(collection.collection_type())
     delete_fn = getattr(storage_module, "serialize_delete", None)
     if delete_fn is None:
@@ -67,17 +64,19 @@ def deserialize(obj,topological=False):
     return storage_module.deserialize(obj,topological)
 
 def deserialize_raw(collection_type):
+    """
+    Return the datastructure corresponding to the serialized
+    disk state, without going through the Cobbler object system.
+    Much faster, when you don't need the objects.
+    """
     storage_module = __get_storage_module(collection_type)
     return storage_module.deserialize_raw(collection_type)
 
 def __get_storage_module(collection_type):
+    """
+    Look up serializer in /etc/cobbler/modules.conf
+    """    
+    capi = cobbler_api.BootAPI()
+    return capi.get_module_from_file("serializers",collection_type)
 
-
-    if not MODULE_CACHE.has_key(collection_type):
-         value = cp.get("serializers",collection_type)
-         module = cobbler_api.BootAPI().modules[value]
-         MODULE_CACHE[collection_type] = module
-         return module
-    else:
-         return MODULE_CACHE[collection_type]
 

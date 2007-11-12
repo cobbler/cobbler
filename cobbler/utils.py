@@ -25,6 +25,8 @@ import logging
 from cexceptions import *
 from rhpl.translate import _, N_, textdomain, utf8
 
+MODULE_CACHE = {}
+
 # import api # factor out
 
 _re_kernel = re.compile(r'vmlinuz(.*)')

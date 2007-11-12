@@ -38,7 +38,7 @@ class BootAPI:
         self.__dict__ = self.__shared_state
         if not BootAPI.has_loaded:
             BootAPI.has_loaded   = True
-            self.modules         = module_loader.load_modules()
+            module_loader.load_modules()
             self._config         = config.Config(self)
             self.deserialize()
 
@@ -231,6 +231,20 @@ class BootAPI:
         Get the collection back just as raw data.
         """
         return self._config.deserialize_raw(collection_name)
+
+    def get_module_by_name(self,module_name):
+        """
+        Returns a loaded cobbler module named 'name', if one exists, else None.
+        """
+        return module_loader.get_module_by_name(module_name)
+
+    def get_module_from_file(self,section,name):
+        """
+        Looks in /etc/cobbler/modules.conf for a section called 'section'
+        and a key called 'name', and then returns the module that corresponds
+        to the value of that key.
+        """
+        return module_loader.get_module_from_file(section,name)
 
 if __name__ == "__main__":
     api = BootAPI()

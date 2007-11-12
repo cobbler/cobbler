@@ -20,6 +20,13 @@ import os
 import sys
 import glob
 from rhpl.translate import _, N_, textdomain, utf8
+import ConfigParser
+
+MODULE_CACHE = {}
+MODULES_BY_CATEGORY = {}
+
+cp = ConfigParser.ConfigParser()
+cp.read("/etc/cobbler/modules.conf")
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler/modules" % plib
@@ -51,16 +58,25 @@ def load_modules(module_path=mod_path, blacklist=None):
                     errmsg = _("%(module_path)s/%(modname)s is not a proper module")
                     print errmsg % {'module_path': module_path, 'modname':modname}
                 continue
-            if blip.register():
-                mods[modname] = blip
+            category = blip.register()
+            if category:
+                MODULE_CACHE[modname] = blip
+            if not MODULES_BY_CATEGORY.has_key(category):
+                MODULES_BY_CATEGORY[category] = {}
+            MODULES_BY_CATEGORY[category][modname] = blip
         except ImportError, e:
             print e
             raise
 
-    return mods
+    return (MODULE_CACHE, MODULES_BY_CATEGORY)
 
+def get_module_by_name(name):
+    return MODULE_CACHE.get(name, None)
 
+def get_module_from_file(category,field):
 
+    value = cp.get("serializers",field)
+    return MODULE_CACHE.get(value, None)
 
 if __name__ == "__main__":
     print load_modules(module_path)
