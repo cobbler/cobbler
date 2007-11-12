@@ -30,11 +30,11 @@ class System(item.Item):
 
     def clear(self,is_subobject=False):
         self.name            = None
-        self.profile         = (None,     '<<inherit>>')[is_subobject]
-        self.kernel_options  = ({},       '<<inherit>>')[is_subobject]
-        self.ks_meta         = ({},       '<<inherit>>')[is_subobject]
-        self.interfaces      = {} 
-        self.netboot_enabled = (1,        '<<inherit>>')[is_subobject] 
+        self.profile         = None
+        self.kernel_options  = {}
+        self.ks_meta         = {}    
+        self.interfaces      = {}
+        self.netboot_enabled = 1  
         self.depth           = 2
         self.kickstart       = "<<inherit>>"   # use value in profile
         self.virt_path       = "<<inherit>>"   # ""
