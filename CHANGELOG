@@ -5,6 +5,7 @@ Cobbler CHANGELOG
 - Changed permissions of auth.conf
 - Fixes for working with rhn_yum_plugin
 - still allow repo configuration for distro repos that have just 1 repo (like C5.1)
+- fix baseurls used in repo setup
 
 * Wed Nov 07 2007 - 0.6.3
 - Be able to define and use Multiple NICs per system

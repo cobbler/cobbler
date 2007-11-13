@@ -428,20 +428,36 @@ class BootSync:
         buf = ""
         blended = utils.blender(self.api, False, obj, self.blend_cache)
 
-
         configs = self.get_repo_filenames(obj,is_profile)
         for c in configs:
            name = c.split("/")[-1].replace(".repo","")
-           url = self.get_repo_baseurl(blended["server"], name)
-           buf = buf + "repo --name=%s --baseurl=%s\n" % (name, url)
+           (is_core, baseurl) = self.analyze_repo_config(c)
+           buf = buf + "repo --name=%s --baseurl=%s\n" % (name, baseurl)
 
         return buf
 
-    def get_repo_baseurl(self, server, repo_name):
+    def analyze_repo_config(self, filename):
+        fd = open(filename)
+        data = fd.read()
+        lines = data.split("\n")
+        ret = False
+        baseurl = None
+        for line in lines:
+            if line.find("ks_mirror") != -1:
+                ret = True
+            if line.find("baseurl") != -1:
+                first, baseurl = line.split("=")
+        fd.close()
+        return (ret, baseurl)
+
+    def get_repo_baseurl(self, server, repo_name, is_repo_mirror=True):
         """
         Construct the URL to a repo definition.
         """
-        return "http://%s/cobbler/repo_mirror/%s" % (server, repo_name)
+        if is_repo_mirror:
+            return "http://%s/cobbler/repo_mirror/%s" % (server, repo_name)
+        else:
+            return "http://%s/cobbler/ks_mirror/config/%s" % (server, repo_name)
 
     def get_repo_filenames(self, obj, is_profile=True):
         """
@@ -679,9 +695,7 @@ class BootSync:
         # this is basically to support things like RHEL5 split trees
         # if there is only one, then there is no need to do this.
 
-        #if len(blended["source_repos"]) > 1:
         for r in blended["source_repos"]:
-            # convert webdir to path
             filename = self.settings.webdir + "/" + "/".join(r[0].split("/")[4:])
             input_files.append(filename)
 
@@ -703,7 +717,7 @@ class BootSync:
                 continue
             infile_data = infile_h.read()
             infile_h.close()
-            outfile = os.path.join(outdir, "%s.repo" % dispname)
+            outfile = os.path.join(outdir, "%s.repo" % (dispname))
             self.apply_template(infile_data, blended, outfile)
 
 
