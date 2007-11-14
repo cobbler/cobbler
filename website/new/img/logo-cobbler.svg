@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="750"
+   height="272.42859"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.45+devel"
+   version="1.0"
+   sodipodi:docname="cobblerlogo.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient2959">
+      <stop
+         style="stop-color:#c88800;stop-opacity:1;"
+         offset="0"
+         id="stop2961" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="1"
+         id="stop2963" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2959"
+       id="linearGradient2965"
+       x1="403.95871"
+       y1="-40.466148"
+       x2="403.95871"
+       y2="-117.21386"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2959"
+       id="linearGradient2973"
+       gradientUnits="userSpaceOnUse"
+       x1="403.95871"
+       y1="-40.466148"
+       x2="403.95871"
+       y2="-117.21386" />
+    <filter
+       inkscape:collect="always"
+       id="filter2987">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="3.6397917"
+         id="feGaussianBlur2989" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.35"
+     inkscape:cx="776.00693"
+     inkscape:cy="-60"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     inkscape:window-width="668"
+     inkscape:window-height="695"
+     inkscape:window-x="349"
+     inkscape:window-y="62"
+     showguides="true"
+     inkscape:guide-bbox="true" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,2.0663968)">
+    <rect
+       style="opacity:1;fill:#000000;fill-opacity:1;stroke:#ff6600;stroke-width:1.09874094;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect2299"
+       width="748.90125"
+       height="271.32983"
+       x="0.54937047"
+       y="-1.5170263" />
+    <text
+       xml:space="preserve"
+       style="font-size:139.26567078px"
+       x="111.83395"
+       y="-37.609184"
+       id="text2293"><tspan
+         sodipodi:role="line"
+         id="tspan2295"
+         x="111.83395"
+         y="-37.609184"
+         style="font-weight:normal;letter-spacing:-12.85714054;font-family:URW Gothic L">cobbler</tspan></text>
+    <use
+       x="0"
+       y="0"
+       xlink:href="#text2293"
+       id="use2297"
+       transform="matrix(1.2062362,0,0,1.2062362,-49.78243,201.95818)"
+       width="744.09448"
+       height="1052.3622"
+       style="fill:url(#linearGradient2965);fill-opacity:1" />
+    <text
+       xml:space="preserve"
+       style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:MgOpen Cosmetica"
+       x="68.571426"
+       y="-244.71426"
+       id="text2967"
+       transform="translate(0,-2.0663968)"><tspan
+         sodipodi:role="line"
+         id="tspan2969"
+         x="68.571426"
+         y="-244.71426">11</tspan></text>
+    <use
+       style="opacity:0.2;fill:url(#linearGradient2973);fill-opacity:1;filter:url(#filter2987)"
+       height="1052.3622"
+       width="744.09448"
+       transform="matrix(1.2062362,0,0,-0.5550985,-49.78243,148.24782)"
+       id="use2971"
+       xlink:href="#text2293"
+       y="0"
+       x="0" />
+    <text
+       xml:space="preserve"
+       style="font-size:54.48733902px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:MgOpen Cosmetica"
+       x="88.609619"
+       y="-170.45299"
+       id="text2991"><tspan
+         sodipodi:role="line"
+         id="tspan2993"
+         x="88.609619"
+         y="-170.45299"
+         style="font-size:36px;letter-spacing:-2.488482;font-family:DejaVu LGC Sans">change text here to change logo:</tspan></text>
+  </g>
+</svg>
