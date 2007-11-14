@@ -217,7 +217,7 @@ class RepoSync:
     def create_local_file(self, repo, dest_path, output=True):
         """
         Two uses:
-        (A) output=True, Create local files that can be used with yum on provisioned clients to make use of thisi mirror.
+        (A) output=True, Create local files that can be used with yum on provisioned clients to make use of this mirror.
         (B) output=False, Create a temporary file for yum to feed into yum for mirroring
         """
     

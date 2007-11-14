@@ -34,7 +34,7 @@ class System(item.Item):
         self.kernel_options  = {}
         self.ks_meta         = {}    
         self.interfaces      = {}
-        self.netboot_enabled = 1  
+        self.netboot_enabled = True
         self.depth           = 2
         self.kickstart       = "<<inherit>>"   # use value in profile
         self.virt_path       = "<<inherit>>"   # ""
@@ -87,7 +87,7 @@ class System(item.Item):
         self.kickstart       = self.load_item(seed_data, 'kickstart', '<<inherit>>')
         self.virt_path       = self.load_item(seed_data, 'virt_path', '<<inherit>>') 
         self.virt_type       = self.load_item(seed_data, 'virt_type', '<<inherit>>')
-        self.netboot_enabled = self.load_item(seed_data, 'netboot_enabled', 1)
+        self.netboot_enabled = self.load_item(seed_data, 'netboot_enabled', True)
         self.server          = self.load_item(seed_data, 'server', '<<inherit>>')
 
         # backwards compat, these settings are now part of the interfaces data structure
@@ -125,6 +125,9 @@ class System(item.Item):
 
         # explicitly re-call the set_name function to possibily populate MAC/IP.
         self.set_name(self.name)
+
+        # coerce this into a boolean
+        self.set_netboot_enabled(self.netboot_enabled)
 
         return self
 
@@ -291,11 +294,11 @@ class System(item.Item):
         Use of this option does not affect the ability to use PXE menus.  If an admin has machines 
         set up to PXE only after local boot fails, this option isn't even relevant.
         """
-        if netboot_enabled in [ True, "True", "true", 1, "1", "on", "yes", "y", "ON", "YES", "Y" ]:
+        if str(netboot_enabled).lower() in [ "true", "1", "on", "yes", "y" ]:
             # this is a bit lame, though we don't know what the user will enter YAML wise...
-            self.netboot_enabled = 1
+            self.netboot_enabled = True 
         else:
-            self.netboot_enabled = 0
+            self.netboot_enabled = False
         return True
 
     def is_valid(self):

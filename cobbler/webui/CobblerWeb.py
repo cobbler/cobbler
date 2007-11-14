@@ -20,7 +20,7 @@ from cobbler.utils import *
 import logging
 import sys
 
-LOGGING_ENABLED = True
+LOGGING_ENABLED = False
 
 if LOGGING_ENABLED:
     # set up logging
@@ -112,31 +112,6 @@ class CobblerWeb(object):
         filepath = os.path.join("/usr/share/cobbler/webui_templates/",template)
         tmpl = Template( file=filepath, searchList=[data] )
         return str(tmpl)
-
-    def __truth(self,value):
-        """
-        Convert 0/1, True/False, "true"/"false", etc. to Python booleans.
-        """
-
-        if value is None:
-            return False
-
-        if type(value) == type(bool()):
-            return value
-
-        if type(value) == type(int()):
-            if value > 0:
-                return True
-            else:
-                return False
-
-        # from item_repo.py
-        if not str(value).lower() in ["yes","y","yup","yeah","true"]:
-            return False
-        else:
-            return True
-
-        raise Exception("Could not determine truth of value %s" % str(value))
 
     def cookies(self):
         """
@@ -262,7 +237,6 @@ class CobblerWeb(object):
             'distro': input_distro,
         } )
 
-    # FIXME: deletes and renames
     def distro_save(self,name=None,oldname=None,new_or_edit=None,editmode='edit',kernel=None,
                     initrd=None,kopts=None,ksmeta=None,arch=None,breed=None,
                     delete1=None,delete2=None,**args):
@@ -374,7 +348,6 @@ class CobblerWeb(object):
         else:
             return self.__render('empty.tmpl',{})
 
-    # FIXME: implement handling of delete1, delete2 + renames
     def system_save(self,name=None,oldname=None,editmode="edit",profile=None,
                     new_or_edit=None,  
                     kopts=None, ksmeta=None, server_override=None, netboot='n', 
@@ -469,7 +442,6 @@ class CobblerWeb(object):
             self.remote.save_system( system, self.token)
 
         except Exception, e:
-            # FIXME: get the exact error message and display to the user.
             log_exc()
             return self.error_page("Error while saving system: %s" % str(e))
 
@@ -492,7 +464,6 @@ class CobblerWeb(object):
         input_system = None
         if name is not None:
             input_system = self.remote.get_system(name,True)
-            input_system['netboot_enabled'] = self.__truth(input_system['netboot_enabled'])
 
         return self.__render( 'system_edit.tmpl', {
             'edit' : True,
@@ -664,7 +635,6 @@ class CobblerWeb(object):
         input_repo = None
         if name is not None:
             input_repo = self.remote.get_repo(name, True)
-            input_repo['keep_updated'] = self.__truth(input_repo['keep_updated'])
 
         return self.__render( 'repo_edit.tmpl', {
             'repo': input_repo,
@@ -708,8 +678,6 @@ class CobblerWeb(object):
         try:
             self.remote.modify_repo(repo, 'name', name, self.token)
             self.remote.modify_repo(repo, 'mirror', mirror, self.token)
-
-            keep_updated = self.__truth( keep_updated )
             self.remote.modify_repo(repo, 'keep-updated', keep_updated, self.token)
 
             if rpm_list:

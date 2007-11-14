@@ -186,7 +186,7 @@ function page_onload() {
     </td>
     <td>
     <input type="checkbox" name="netboot" id="netboot"
-    #if not $system or $system.netboot_enabled is True
+    #if not $system or $system.netboot_enabled
         checked="True"
     #end if
     >

@@ -280,8 +280,10 @@ def blender(api_handle,remove_hashes, root_obj, blend_cache=None):
     consolidated data.
     """
  
+    cache_enabled = False
+
     blend_key = "%s/%s/%s" % (root_obj.TYPE_NAME, root_obj.name, remove_hashes)
-    if blend_cache is not None:
+    if cache_enabled and blend_cache is not None:
         if blend_cache.has_key(blend_key):
             return blend_cache[blend_key]
 
@@ -323,7 +325,7 @@ def blender(api_handle,remove_hashes, root_obj, blend_cache=None):
     if remove_hashes:
         results = flatten(results)
 
-    if blend_cache is not None:
+    if cache_enabled and blend_cache is not None:
         blend_cache[blend_key] = results
     return results
 

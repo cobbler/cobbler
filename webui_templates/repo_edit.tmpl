@@ -80,7 +80,7 @@ function disablename(value)
     </td>
     <td>
     <input type="checkbox" name="keep_updated" id="keep_updated"
-        #if not $repo or $repo.keep_updated is True
+        #if (not $repo) or $repo.keep_updated
             checked="true"  
         #end if
     />
