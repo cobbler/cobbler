@@ -246,9 +246,10 @@ class BootAPI:
         """
         return module_loader.get_module_from_file(section,name)
 
-if __name__ == "__main__":
-    api = BootAPI()
-    print api.version()
-
+    def get_modules_in_category(self,category):
+        """
+        Returns all modules in a given category, for instance "serializer", or "cli".
+        """
+        return get_modules_in_category(category)
 
 
