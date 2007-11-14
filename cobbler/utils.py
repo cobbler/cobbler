@@ -280,7 +280,7 @@ def blender(api_handle,remove_hashes, root_obj, blend_cache=None):
     consolidated data.
     """
  
-    cache_enabled = False
+    cache_enabled = False # FIXME: disabled for now as there a few bugs in this impl.
 
     blend_key = "%s/%s/%s" % (root_obj.TYPE_NAME, root_obj.name, remove_hashes)
     if cache_enabled and blend_cache is not None:

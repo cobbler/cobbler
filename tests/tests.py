@@ -48,7 +48,9 @@ class BootTest(unittest.TestCase):
 
 
         # Create temp dir
-        self.topdir = tempfile.mkdtemp(prefix="_cobbler-",dir="/tmp")
+        self.topdir = "/tmp/cobbler_test"
+        os.makedirs(self.topdir)
+
         self.fk_initrd = os.path.join(self.topdir, FAKE_INITRD)
         self.fk_initrd2 = os.path.join(self.topdir, FAKE_INITRD2)
         self.fk_initrd3 = os.path.join(self.topdir, FAKE_INITRD3)
@@ -62,6 +64,7 @@ class BootTest(unittest.TestCase):
                 self.fk_kernel, self.fk_kernel2, self.fk_kernel3 ]
         for fn in create:
             f = open(fn,"w+")
+            f.close()
         self.make_basic_config()
 
     def tearDown(self):
@@ -89,6 +92,7 @@ class BootTest(unittest.TestCase):
 
         system = self.api.new_system()
         self.assertTrue(system.set_name("drwily.rdu.redhat.com"))
+        self.assertTrue(system.set_mac_address("BB:EE:EE:EE:EE:FF","intf0"))
         self.assertTrue(system.set_profile("testprofile0"))
         self.assertTrue(self.api.systems().add(system))
         self.assertTrue(self.api.systems().find(name="drwily.rdu.redhat.com"))
@@ -254,7 +258,6 @@ class Utilities(BootTest):
         self.assertTrue(self.api.profiles().add(profile))
 
     def test_inheritance_and_variable_propogation(self):
-
 
         # STEP ONE: verify that non-inherited objects behave
         # correctly with ks_meta (we picked this attribute
@@ -449,6 +452,55 @@ class Utilities(BootTest):
         self.assertTrue(system.set_name("drwily.rdu.redhat.com"))
         self.failUnlessRaises(CobblerException, system.set_profile, "profiledoesntexist")
         self.failUnlessRaises(CobblerException, self.api.systems().add, system)
+
+class SyncContents(BootTest):
+
+    def test_blender_cache_works(self):
+
+        # this is just a file that exists that we don't have to create
+        fake_file = "/etc/hosts"
+
+        distro = self.api.new_distro()
+        self.assertTrue(distro.set_name("D1"))
+        self.assertTrue(distro.set_kernel(fake_file))
+        self.assertTrue(distro.set_initrd(fake_file))
+        self.assertTrue(self.api.distros().add(distro, with_copy=True))
+        self.assertTrue(self.api.distros().find(name="D1"))
+
+        profile = self.api.new_profile()
+        self.assertTrue(profile.set_name("P1"))
+        self.assertTrue(profile.set_distro("D1"))
+        self.assertTrue(profile.set_kickstart(fake_file))
+        self.assertTrue(self.api.profiles().add(profile, with_copy=True))
+        self.assertTrue(self.api.profiles().find(name="P1"))
+
+        system = self.api.new_system()
+        self.assertTrue(system.set_name("S1"))
+        self.assertTrue(system.set_mac_address("BB:EE:EE:EE:EE:FF","intf0"))
+        self.assertTrue(system.set_profile("P1"))
+        self.assertTrue(self.api.systems().add(system, with_copy=True))
+        self.assertTrue(self.api.systems().find(name="S1"))
+
+        # ensure that the system after being added has the right template data
+        # in /tftpboot
+
+        converted="01-bb-ee-ee-ee-ee-ff"
+
+        fh = open("/tftpboot/pxelinux.cfg/%s" % converted)
+        data = fh.read()
+        self.assertTrue(data.find("kickstarts_sys") != -1)
+        fh.close()
+
+        # ensure that after sync is applied, the blender cache still allows
+        # the system data to persist over the profile data in /tftpboot
+        # (which was an error we had in 0.6.3)
+
+        self.api.sync()
+        fh = open("/tftpboot/pxelinux.cfg/%s" % converted)
+        data = fh.read()
+        self.assertTrue(data.find("kickstarts_sys") != -1)
+        fh.close()
+
 
 class Deletions(BootTest):
 
