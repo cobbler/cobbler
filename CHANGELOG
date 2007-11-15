@@ -1,6 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Wed Nov 15 2007 - 0.6.5
+- Fix obscure bug dealing with <<import>>, subprofiles, and kickstart arguments.
+
 * Wed Nov 14 2007 - 0.6.4
 - Changed permissions of auth.conf
 - Fixes for working with rhn_yum_plugin
