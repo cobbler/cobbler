@@ -97,7 +97,8 @@ def main():
     try:
         setupLogging("koan")
     except:
-        print "- logging setup failed.  will ignore."
+        # most likely running RHEL3, where we don't need virt logging anyway
+        pass
 
     # FIXME: overrides for --virt-mac have been requested
 
