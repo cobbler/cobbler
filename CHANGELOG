@@ -1,6 +1,11 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Thu Nov 15 2007 - 0.7.0
+- Testing branch
+- Fix bug related to <<inherit>> and kickstart args 
+- ...
+
 * Wed Nov 14 2007 - 0.6.4
 - Changed permissions of auth.conf
 - Fixes for working with rhn_yum_plugin

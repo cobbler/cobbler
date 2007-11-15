@@ -237,6 +237,9 @@ def input_string_or_hash(options,delim=","):
     Newer versions of cobbler allow dictionaries.  This function is used to allow loading
     of older value formats so new users of cobbler aren't broken in an upgrade.
     """
+    if options == "<<inherit>>":
+        options = {}
+
     if options is None:
         return (True, {})
     elif type(options) == list:

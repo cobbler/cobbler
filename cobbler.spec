@@ -1,8 +1,8 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 Summary: Boot server configurator
 Name: cobbler
-Version: 0.6.4
-Release: 2%{?dist}
+Version: 0.7.0
+Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -191,6 +191,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+
+* Thu Nov 15 2007 Michael DeHaan <mdehaan@redhat.com> - 0.7.0-1
+- Upstream changes (see CHANGELOG), testing branch
 
 * Wed Nov 14 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.4-2
 - Upstream changes (see CHANGELOG)
