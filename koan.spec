@@ -2,7 +2,7 @@
 
 Summary: Network provisioning tool for Xen and Bare Metal Machines 
 Name: koan
-Version: 0.6.4
+Version: 0.6.3
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
