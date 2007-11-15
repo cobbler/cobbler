@@ -68,7 +68,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import sys, os
 import types
-import text_wrap # repackaged here because not in RHEL3
+import text_wrap as textwrap # repackaged here because not in RHEL3
 
 def _repr(self):
     return "<%s at 0x%x: %s>" % (self.__class__.__name__, id(self), self)

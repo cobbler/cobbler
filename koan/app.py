@@ -195,7 +195,11 @@ class InfoException(exceptions.Exception):
 class ServerProxy(xmlrpclib.ServerProxy):
 
     def __init__(self, url=None):
-        xmlrpclib.ServerProxy.__init__(self, url, allow_none=True)
+        try:
+            xmlrpclib.ServerProxy.__init__(self, url, allow_none=True)
+        except:
+            # for RHEL3's xmlrpclib -- cobblerd should strip Nones anyway
+            xmlrpclib.ServerProxy.__init__(self, url)
 
 #=======================================================
 

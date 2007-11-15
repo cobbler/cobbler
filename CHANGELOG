@@ -1,7 +1,7 @@
 Koan CHANGELOG
 
-* Thu Nov 08 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.4-1
-- ...
+* Thu Nov 15 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.3-3
+- Packaged textwrap for RHEL3 compatibility, plus RHEL3 xmlrpclib tweak
 
 * Tue Nov 07 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.3-2
 - Multiple NIC support
