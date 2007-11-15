@@ -31,14 +31,14 @@ Cobbler runs on RHEL 4 and later, Fedora 5 and later, and Centos 4 and later.  K
 <a name="reinstalls">
 <dt>What are my non-PXE install options?</dt>
 </a>
- <dd>Cobbler's helper program koan can be used on the target system to reinstall it's operating system with another operating system.  This solution is ideal for those users who can not take advantage of PXE due to hardware, network, or policy constraints. For more information, see the <A HREF="./koan-manpage.php">koan</A> manpage documentation.
+ <dd>Cobbler's helper program koan can be used on the target system to reinstall it's operating system with another operating system.  This solution is ideal for those users who can not take advantage of PXE due to hardware, network, or policy constraints. For more information, see the <A HREF="./koan.html">koan</A> manpage documentation.
  <br />
  <a href="#questions" class="back-to-top">Back to top</a>
 </dd>
 <a name="virt">
 <dt>How are virtual systems installed?</dt>
 </a>
- <dd>Cobbler's helper program, koan, when invoked on the remote host system, pulls down information from the remote cobbler server to begin a fully automated installation of a virtual guest. This works out of the box for any distribution that contains a Xen kernel. For more information, see the <A HREF="./koan-manpage.php">koan</A> manpage documentation.
+ <dd>Cobbler's helper program, koan, when invoked on the remote host system, pulls down information from the remote cobbler server to begin a fully automated installation of a virtual guest. This works out of the box for any distribution that contains a Xen kernel. For more information, see the <A HREF="./koan.html">koan</A> manpage documentation.
  <br />
  <a href="#questions" class="back-to-top">Back to top</a>
 </dd>
@@ -49,7 +49,7 @@ Cobbler runs on RHEL 4 and later, Fedora 5 and later, and Centos 4 and later.  K
 <dd>
 When the administrator on the Cobbler server runs Cobbler commands, cobbler updates a configuration tree, which is stored in /var/lib/cobbler.  Data from this configuration database is used to update various entities on the target operating system.  Cobbler will restart services, as well as create trees of files in /tftpboot and /var/www/cobbler -- for use with PXE and koan, respectively.
 <br/>
-Koan interacts with cobbler by retrieving data over XMLRPC.  Cobbler serves up XMLRPC using "cobblerd", which also has the dual purpose of logging syslog data from kickstart -- which is used in Cobbler's kickstart tracking feature.  For a better understanding of how this works, see the <A HREF="./cobbler-manpage.php">Cobbler</A> manpage documentation.
+Koan interacts with cobbler by retrieving data over XMLRPC.  Cobbler serves up XMLRPC using "cobblerd", which also has the dual purpose of logging syslog data from kickstart -- which is used in Cobbler's kickstart tracking feature.  For a better understanding of how this works, see the <A HREF="./cobbler.html">Cobbler</A> manpage documentation.
 <a href="#questions" class="back-to-top">Back to top</a>
 </dd>
 
