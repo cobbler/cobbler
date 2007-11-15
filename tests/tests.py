@@ -49,7 +49,10 @@ class BootTest(unittest.TestCase):
 
         # Create temp dir
         self.topdir = "/tmp/cobbler_test"
-        os.makedirs(self.topdir)
+        try:
+            os.makedirs(self.topdir)
+        except:
+            pass
 
         self.fk_initrd = os.path.join(self.topdir, FAKE_INITRD)
         self.fk_initrd2 = os.path.join(self.topdir, FAKE_INITRD2)
