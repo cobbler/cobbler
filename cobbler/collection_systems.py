@@ -33,7 +33,7 @@ class Systems(collection.Collection):
         """
         return system.System(config).from_datastruct(seed_data)
 
-    def remove(self,name,with_delete=True):
+    def remove(self,name,with_delete=True,with_triggers=True):
         """
         Remove element named 'name' from the collection
         """
@@ -43,13 +43,15 @@ class Systems(collection.Collection):
         if obj is not None:
 
             if with_delete:
-                self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/system/pre/*")
+                if with_triggers: 
+                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/system/pre/*")
                 lite_sync = action_litesync.BootLiteSync(self.config)
                 lite_sync.remove_single_system(name)
             del self.listing[name]
             self.config.serialize_delete(self, obj)
             if with_delete:
-                self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/system/post/*")
+                if with_triggers: 
+                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/system/post/*")
 
             return True
         raise CX(_("cannot delete an object that does not exist"))

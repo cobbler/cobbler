@@ -96,7 +96,7 @@ class Collection(serializable.Serializable):
             item = self.factory_produce(self.config,seed_data)
             self.add(item)
 
-    def add(self,ref,with_copy=False):
+    def add(self,ref,with_copy=False,with_triggers=True):
         """
         Add an object to the collection, if it's valid.  Returns True
         if the object was added to the collection.  Returns False if the
@@ -126,7 +126,8 @@ class Collection(serializable.Serializable):
         # perform filesystem operations
         if with_copy:
             # failure of a pre trigger will prevent the object from being added
-            self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
+            if with_triggers:
+                self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
             self.listing[ref.name.lower()] = ref
 
             # save just this item if possible, if not, save
@@ -146,7 +147,8 @@ class Collection(serializable.Serializable):
                 print _("Internal error. Object type not recognized: %s") % type(ref)
         
             # save the tree, so if neccessary, scripts can examine it.
-            self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type())
+            if with_triggers:
+                self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type())
         
         # update children cache in parent object
         parent = ref.get_parent()

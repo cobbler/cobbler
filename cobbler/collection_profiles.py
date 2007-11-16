@@ -32,7 +32,7 @@ class Profiles(collection.Collection):
     def factory_produce(self,config,seed_data):
         return profile.Profile(config).from_datastruct(seed_data)
 
-    def remove(self,name,with_delete=True):
+    def remove(self,name,with_delete=True,with_triggers=True):
         """
         Remove element named 'name' from the collection
         """
@@ -43,13 +43,15 @@ class Profiles(collection.Collection):
         obj = self.find(name=name)
         if obj is not None:
             if with_delete:
-                self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/profile/pre/*")
+                if with_triggers: 
+                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/profile/pre/*")
                 lite_sync = action_litesync.BootLiteSync(self.config)
                 lite_sync.remove_single_profile(name)
             del self.listing[name]
             self.config.serialize_delete(self, obj)
             if with_delete:
-                self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/profile/post/*")
+                if with_triggers: 
+                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/profile/post/*")
             return True
         raise CX(_("cannot delete an object that does not exist"))
 
