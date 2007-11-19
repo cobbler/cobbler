@@ -15,6 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import optparse
 from cexceptions import *
 from rhpl.translate import _, N_, textdomain, utf8
+import sys
 
 #=============================================================
 
@@ -52,10 +53,10 @@ class FunctionLoader:
         fn = self.functions[called_name]
 
         # some functions require args, if none given, show subcommands
-        if len(args) == 2:
-            no_args_rc = fn.no_args_handler()
-            if no_args_rc:
-                return True
+        #if len(args) == 2:
+        #    no_args_rc = fn.no_args_handler()
+        #    if no_args_rc:
+        #        return True
 
         # finally let the object parse its own args
         loaded_ok = fn.parse_args(args)
@@ -71,7 +72,7 @@ class FunctionLoader:
         print "usage:"
         print "======"
         for name in self.functions.keys():
-            print "    cobbler %s ... | --help" % name
+            print "cobbler %s --help]" % name
 
 #=============================================================
 
@@ -82,13 +83,6 @@ class CobblerFunction:
         Constructor requires a Cobbler API handle.
         """
         self.api = api
-
-    def no_args_handler(self):
-        """
-        Called when no additional args are given to a command.  False implies
-        this is ok, returning True indicates an error condition.
-        """
-        return False
 
     def command_name(self):
         """
@@ -127,13 +121,21 @@ class CobblerFunction:
                 break
         p = optparse.OptionParser(usage="cobbler %s [ARGS]" % accum)
         self.add_options(p, args)
-        if len(args) > 2:
-            for x in args[2:]:
-                if x.startswith("-"):
-                    break
-                if x not in self.subcommands():
-                    raise CX(_("Argument (%s) not recognized") % x)
-                
+
+        # if using subcommands, ensure one and only one is used
+        subs = self.subcommands()
+        if len(subs) > 0:
+            count = 0
+            for x in subs:
+                if x in args:
+                    count = count + 1               
+            if count != 1:
+                print "usage:"
+                print "======"
+                for x in subs: 
+                    print "cobbler %s %s [ARGS|--help]" % (self.command_name(), x)
+                sys.exit(1)    
+
         (self.options, self.args) = p.parse_args(args)
         return True
 
@@ -177,18 +179,18 @@ class CobblerFunction:
         return rc
 
 
-    def no_args_handler(self):
-
-        """
-        Used to accept/reject/explain subcommands.  Do not override.
-        """
-
-        subs = self.subcommands()
-        if len(subs) == 0:
-            return False
-        for x in subs:
-            print "   cobbler %s %s --help" % (self.command_name(), x)
-        return True # stop here
+    #def no_args_handler(self):
+    #
+    #    """
+    #    Used to accept/reject/explain subcommands.  Do not override.
+    #    """
+    #
+    #    subs = self.subcommands()
+    #    if len(subs) == 0:
+    #        return False
+    #    for x in subs:
+    #        print "   cobbler %s %s [ARGS|--help]" % (self.command_name(), x)
+    #    return True # stop here
 
 
 

@@ -33,16 +33,16 @@ class DistroFunction(commands.CobblerFunction):
         return [ "add", "edit", "copy", "rename", "delete" ]
 
     def add_options(self, p, args):
-        p.add_option("--name",   dest="name")
         if not "delete" in args:
-            p.add_option("--kernel", dest="kernel")
-            p.add_option("--initrd", dest="initrd")
-            p.add_option("--kopts",  dest="kopts")
-            p.add_option("--ksmeta", dest="ksmeta")
-            p.add_option("--arch",   dest="arch")
-            p.add_option("--breed",  dest="breed")
+            p.add_option("--arch",   dest="arch",   help="ex: x86, x86_64, ia64")
+            p.add_option("--breed",  dest="breed",  help="ex: redhat, debian, suse")
+            p.add_option("--initrd", dest="initrd", help="absolute path to initrd.img (REQUIRED)")
+            p.add_option("--kernel", dest="kernel", help="absolute path to vmlinuz (REQUIRED)")
+            p.add_option("--kopts",  dest="kopts",  help="ex: 'noipv6'")
+            p.add_option("--ksmeta", dest="ksmeta", help="ex: 'blippy=7'")
+        p.add_option("--name",   dest="name", help="ex: 'RHEL-5-i386' (REQUIRED)")
         if "copy" in args or "rename" in args:
-            p.add_option("--newname", dest="newname")
+            p.add_option("--newname", dest="newname", help="for copy/rename commands")
 
     def run(self):
 
