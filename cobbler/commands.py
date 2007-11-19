@@ -17,6 +17,8 @@ from cexceptions import *
 from rhpl.translate import _, N_, textdomain, utf8
 import sys
 
+HELP_FORMAT = "%-25s%s"
+
 #=============================================================
 
 class FunctionLoader:
@@ -69,10 +71,16 @@ class FunctionLoader:
         Prints out all loaded functions.
         """
 
-        print "usage:"
-        print "======"
-        for name in self.functions.keys():
-            print "cobbler %s --help]" % name
+        print "commands:"
+        print "========="
+
+        names = self.functions.keys()
+        names.sort()
+
+        for name in names:
+            help = self.functions[name].help_me()
+            if help != "":
+                print help
 
 #=============================================================
 

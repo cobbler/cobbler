@@ -26,6 +26,9 @@ import cexceptions
 
 class SystemFunction(commands.CobblerFunction):
 
+    def help_me(self):
+        return commands.HELP_FORMAT % ("cobbler system","<add|edit|copy|rename|delete> [ARGS|--help]")
+
     def command_name(self):
         return "system"
 

@@ -26,6 +26,9 @@ import cexceptions
 
 class ProfileFunction(commands.CobblerFunction):
 
+    def help_me(self):
+        return commands.HELP_FORMAT % ("cobbler profile","<add|edit|copy|rename|delete> [ARGS|--help]")
+
     def command_name(self):
         return "profile"
 

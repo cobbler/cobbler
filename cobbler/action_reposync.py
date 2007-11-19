@@ -49,16 +49,16 @@ class RepoSync:
 
     # ===================================================================
 
-    def run(self, args=[], verbose=True):
+    def run(self, name=None, verbose=True):
         """
         Syncs the current repo configuration file with the filesystem.
         """
 
         self.verbose = verbose
         for repo in self.repos:
-            if args != [] and repo.name not in args:
+            if name is not None and repo.name != name:
                 continue
-            elif args == [] and not repo.keep_updated:
+            elif name is None and not repo.keep_updated:
                 print _("- %s is set to not be updated") % repo.name
                 continue
 

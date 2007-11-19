@@ -21,7 +21,7 @@ import os.path
 import traceback
 import optparse
 import commands
-import cexceptions
+from cexceptions import *
 
 from rhpl.translate import _, N_, textdomain, utf8
 I18N_DOMAIN = "cobbler"
@@ -52,13 +52,15 @@ def main():
     try:
         # FIXME: redo locking code?
         return BootCLI().run(sys.argv)
-    except cexceptions.CX, exc:
-        if str(type(exc)).find("CX") != -1:
-            print str(exc)[1:-1]  # remove framing air quotes
+    except CX, exc:
+        print str(exc)[1:-1]  # remove framing air quotes
+    except Exception, exc2:
+        if str(type(exc2)).find("CX") == -1:
+            traceback.print_exc()
         else:
-            (t, val, tb) = sys.exc_info()
-            print tb.extract_tb().join("\n")
+            print str(exc2)[1:-1]  # remove framing air quotes
         return 1
+    return 1
 
 
 if __name__ == "__main__":
