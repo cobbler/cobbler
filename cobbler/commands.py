@@ -139,13 +139,13 @@ class CobblerFunction:
         (self.options, self.args) = p.parse_args(args)
         return True
 
-    def object_manipulator_start(self,new_fn,collect_fn):
+    def object_manipulator_start(self,new_fn,collect_fn,subobject=False):
         """
         Boilerplate for objects that offer add/edit/delete/remove/copy functionality.
         """
 
         if "add" in self.args:
-            obj = new_fn()
+            obj = new_fn(is_subobject=subobject)
         else:
             if not self.options.name:
                 raise CX(_("name is required"))
