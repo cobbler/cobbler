@@ -250,6 +250,6 @@ class BootAPI:
         """
         Returns all modules in a given category, for instance "serializer", or "cli".
         """
-        return get_modules_in_category(category)
+        return module_loader.get_modules_in_category(category)
 
 

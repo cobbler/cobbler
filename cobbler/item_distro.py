@@ -143,9 +143,12 @@ class Distro(item.Item):
 	"""
         # NOTE: this code does not support inheritable distros at this time.
         # this is by design because inheritable distros do not make sense.
-        for x in (self.name,self.kernel,self.initrd):
-            if x is None: 
-                return False
+        if self.name is None:
+            raise CX(_("name is required"))
+        if self.kernel is None:
+            raise CX(_("kernel is required"))
+        if self.initrd is None:
+            raise CX(_("initrd is required"))
         return True
 
     def to_datastruct(self):
