@@ -242,6 +242,9 @@ class SyncFunction(commands.CobblerFunction):
     def command_name(self):
         return "sync"
 
+    def run(self):
+        return self.api.sync()
+
 ########################################################
 
 class RepoSyncFunction(commands.CobblerFunction):
@@ -253,7 +256,7 @@ class RepoSyncFunction(commands.CobblerFunction):
         return "reposync"
 
     def add_options(self, p, args):
-        p.add_options("--only",           dest="only",             help="update only this repository name")
+        p.add_option("--only",           dest="only",             help="update only this repository name")
 
     def run(self):
         return self.api.reposync(self.options.only)
