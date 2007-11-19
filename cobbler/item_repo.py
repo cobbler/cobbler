@@ -118,9 +118,9 @@ class Repo(item.Item):
 	A repo is valid if it has a name and a mirror URL
 	"""
         if self.name is None:
-            return False
+            raise CX(_("name is required"))
         if self.mirror is None:
-            return False
+            raise CX(_("mirror is required"))
         if self.mirror.startswith("rhn://"):
             # reposync creates directories based on the channel name so this 
             # prevents a lot of ugly special case handling if we make the
