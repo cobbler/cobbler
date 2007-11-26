@@ -152,6 +152,10 @@ class CobblerFunction:
         Boilerplate for objects that offer add/edit/delete/remove/copy functionality.
         """
 
+        if "remove" in self.args:
+            collect_fn().remove(self.options.name,with_delete=True)
+            return None # signal that we want no further processing on the object
+
         if "add" in self.args:
             obj = new_fn(is_subobject=subobject)
         else:

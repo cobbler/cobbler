@@ -160,7 +160,7 @@ class ReportFunction(commands.CobblerFunction):
         return "report"
 
     def add_options(self, p, args):
-        p.add_option("--what",              dest="what",   default="all",  help="distros/profiles/systems/repos (REQUIRED)")
+        p.add_option("--what",              dest="what",   default="all",  help="distros/profiles/systems/repos")
         p.add_option("--name",              dest="name",                   help="report on just this object")
 
     def __list_names2(self, collection, name):
@@ -205,7 +205,7 @@ class ReportFunction(commands.CobblerFunction):
             if self.options.name:
                 self.__list_names2(self.api.systems(),self.options.name)
             else:
-                self.__print_sorted(self.api.sytems())
+                self.__print_sorted(self.api.systems())
 
         if self.options.what in [ "all", "repos"    ]:
             if self.options.name:

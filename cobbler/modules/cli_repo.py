@@ -27,16 +27,16 @@ import cexceptions
 class RepoFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler repo","<add|edit|copy|rename|delete> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler repo","<add|edit|copy|rename|remove> [ARGS|--help]")
 
     def command_name(self):
         return "repo"
 
     def subcommands(self):
-        return [ "add", "edit", "copy", "rename", "delete" ]
+        return [ "add", "edit", "copy", "rename", "remove" ]
 
     def add_options(self, p, args):
-        if not "delete" in args:
+        if not "remove" in args:
             p.add_option("--arch",             dest="arch",             help="overrides repo arch if required")
             p.add_option("--createrepo-flags", dest="createrepo_flags", help="additional flags for createrepo")
             p.add_option("--rpm-list",         dest="rpm_list",         help="just mirror these rpms")

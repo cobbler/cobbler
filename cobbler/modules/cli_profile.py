@@ -27,16 +27,16 @@ import cexceptions
 class ProfileFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler profile","<add|edit|copy|rename|delete> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler profile","<add|edit|copy|rename|remove> [ARGS|--help]")
 
     def command_name(self):
         return "profile"
 
     def subcommands(self):
-        return [ "add", "edit", "copy", "rename", "delete" ]
+        return [ "add", "edit", "copy", "rename", "remove" ]
 
     def add_options(self, p, args):
-        if not "delete" in args:
+        if not "remove" in args:
             p.add_option("--distro",           dest="distro", help="ex: 'RHEL-5-i386' (REQUIRED)")
             p.add_option("--dhcp-tag",         dest="dhcp_tag", help="for use in advanced DHCP configuration")
             p.add_option("--inherit",          dest="inherit", help="inherit from this profile name, defaults to no")
@@ -46,7 +46,7 @@ class ProfileFunction(commands.CobblerFunction):
         p.add_option("--name",   dest="name",  help="a name for the profile (REQUIRED)")
         if "copy" in args or "rename" in args:
             p.add_option("--newname", dest="newname")
-        if not "delete" in args:
+        if not "remove" in args:
             p.add_option("--repos",            dest="repos", help="names of cobbler repos")
             p.add_option("--server-override",  dest="server_override", help="overrides value in settings file")
             p.add_option("--virt-bridge",      dest="virt_bridge", help="ex: 'virbr0'")

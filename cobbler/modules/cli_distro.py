@@ -27,16 +27,16 @@ import cexceptions
 class DistroFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler distro", "<add|edit|copy|rename|delete> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler distro", "<add|edit|copy|rename|remove> [ARGS|--help]")
 
     def command_name(self):
         return "distro"
 
     def subcommands(self):
-        return [ "add", "edit", "copy", "rename", "delete" ]
+        return [ "add", "edit", "copy", "rename", "remove" ]
 
     def add_options(self, p, args):
-        if not "delete" in args:
+        if not "remove" in args:
             p.add_option("--arch",   dest="arch",   help="ex: x86, x86_64, ia64")
             p.add_option("--breed",  dest="breed",  help="ex: redhat, debian, suse")
             p.add_option("--initrd", dest="initrd", help="absolute path to initrd.img (REQUIRED)")
