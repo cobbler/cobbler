@@ -107,6 +107,11 @@ class Importer:
            for valid_root in valid_roots:
                if self.network_root.startswith(valid_root):
                    found_root = True
+           if self.network_root.startswith("nfs://"):
+               try:
+                   (a,b,rest) = self.network_root.split(":",3)
+               except:
+                   raise CX(_("Network root given to --available-as is missing a colon, please see the manpage example."))
            if not found_root:
                raise CX(_("Network root given to --available-as must be nfs://, ftp://, or http://"))
 

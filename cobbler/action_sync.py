@@ -607,7 +607,10 @@ class BootSync:
             for line in data.split("\n"):
                if line.find("--url") != -1 and line.find("url ") != -1:
                    rest = metadata["tree"][6:] # strip off "nfs://" part
-                   (server, dir) = rest.split(":",2)
+                   try:
+                       (server, dir) = rest.split(":",2)
+                   except:
+                       raise CX(_("Invalid syntax for NFS path given during import: %s" % metadata["tree"]))
                    line = "nfs --server %s --dir %s" % (server,dir)
                    # but put the URL part back in so koan can still see
                    # what the original value was
