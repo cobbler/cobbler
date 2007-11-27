@@ -148,6 +148,10 @@ def main():
     p.add_option("-T", "--virt-type",
                  dest="virt_type",
                  help="virtualization install type (xenpv,qemu)")
+    p.add_option("-n", "--nogfx",
+                 action="store_true", 
+                 dest="no_gfx",
+                 help="disable Xen graphics (xenpv)")
 
     (options, args) = p.parse_args()
 
@@ -168,6 +172,7 @@ def main():
         k.live_cd           = options.live_cd
         k.virt_path         = options.virt_path
         k.virt_type         = options.virt_type
+        k.no_gfx            = options.no_gfx
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -903,7 +908,8 @@ class Koan:
                 extra         =  kextra,
                 vcpus         =  vcpus,
                 profile_data  =  profile_data,       
-                arch          =  arch         
+                arch          =  arch,
+                no_gfx        =  self.no_gfx,         
         )
 
         print results

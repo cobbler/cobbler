@@ -44,7 +44,7 @@ def start_install(name=None, ram=None, disks=None, mac=None,
                   uuid=None,  
                   extra=None,
                   vcpus=None, 
-                  profile_data=None, bridge=None, arch=None):
+                  profile_data=None, bridge=None, arch=None, no_gfx = False):
 
     vtype = "qemu"
     if virtinst.util.is_kvm_capable():
@@ -73,6 +73,8 @@ def start_install(name=None, ram=None, disks=None, mac=None,
     guest.set_name(name)
     guest.set_memory(ram)
     guest.set_vcpus(vcpus)
+    # for KVM, we actually can't disable this, since it's the only
+    # console it has other than SDL
     guest.set_graphics("vnc")
 
     if uuid is not None:

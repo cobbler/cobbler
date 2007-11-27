@@ -47,7 +47,7 @@ def start_paravirt_install(name=None, ram=None, disks=None,
                            uuid=None,  
                            extra=None, 
                            vcpus=None,  
-                           profile_data=None, arch=None):
+                           profile_data=None, arch=None, no_gfx=False):
 
 
     guest = virtinst.ParaVirtGuest()
@@ -56,7 +56,12 @@ def start_paravirt_install(name=None, ram=None, disks=None,
     guest.set_name(name)
     guest.set_memory(ram)
     guest.set_vcpus(vcpus)
-    guest.set_graphics("vnc")
+
+    if not no_gfx:
+        guest.set_graphics("vnc")
+    else:
+        guest.set_graphics(False)
+
     if uuid is not None:
         guest.set_uuid(uuid)
 

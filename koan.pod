@@ -108,6 +108,10 @@ If you want to specify the location for more than one disk image, seperate the v
 
 qemu installs will select kvm, kqemu, or qemu, based on available hardware support.  
 
+=item --nogfx
+
+(optional) This option prevents Xen based installs from establishing a VNC based display, so that the machine can be managed by xm/virsh.  For qemu/KVM, VNC cannot be disabled.
+
 =head1 REINSTALLATION 
 
 When using '--replace-self', cobbler will reprovision the system, blowing away any current data and replacing it with the results of a network install.  Specify a specific item from cobbler with --system or --profile, otherwise cobbler will try to see if there is a cobbler system record that matches a MAC address on the system.
