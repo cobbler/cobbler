@@ -27,24 +27,27 @@ import cexceptions
 class DistroFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler distro", "<add|edit|copy|rename|remove> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler distro", "<add|edit|copy|list|rename|remove|report> [ARGS|--help]")
 
     def command_name(self):
         return "distro"
 
     def subcommands(self):
-        return [ "add", "edit", "copy", "rename", "remove" ]
+        return [ "add", "edit", "copy", "rename", "remove", "list", "report" ]
 
     def add_options(self, p, args):
-        if not "remove" in args:
+
+        if not self.matches_args(args,["remove","report","list"]):
             p.add_option("--arch",   dest="arch",   help="ex: x86, x86_64, ia64")
             p.add_option("--breed",  dest="breed",  help="ex: redhat, debian, suse")
             p.add_option("--initrd", dest="initrd", help="absolute path to initrd.img (REQUIRED)")
             p.add_option("--kernel", dest="kernel", help="absolute path to vmlinuz (REQUIRED)")
             p.add_option("--kopts",  dest="kopts",  help="ex: 'noipv6'")
             p.add_option("--ksmeta", dest="ksmeta", help="ex: 'blippy=7'")
+
         p.add_option("--name",   dest="name", help="ex: 'RHEL-5-i386' (REQUIRED)")
-        if "copy" in args or "rename" in args:
+
+        if self.matches_args(args,["copy","rename"]):
             p.add_option("--newname", dest="newname", help="for copy/rename commands")
 
     def run(self):

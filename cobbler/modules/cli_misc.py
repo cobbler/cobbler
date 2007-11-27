@@ -121,35 +121,16 @@ class ListFunction(commands.CobblerFunction):
         if self.options.what not in [ "all", "distros", "profiles", "systems", "repos" ]:
             raise CX(_("invalid value for --what"))
         if self.options.what in [ "all" ]:       
-            self.__tree(self.api.distros(),0)
-            self.__tree(self.api.repos(),0)
+            self.list_tree(self.api.distros(),0)
+            self.list_tree(self.api.repos(),0)
         if self.options.what in [ "distros"]:
-            self.__list(self.api.distros())
+            self.list_list(self.api.distros())
         if self.options.what in [ "profiles"]:
-            self.__list(self.api.profiles())
+            self.list_list(self.api.profiles())
         if self.options.what in [ "systems" ]:
-            self.__list(self.api.systems())
+            self.list_list(self.api.systems())
         if self.options.what in [ "repos"]:
-            self.__list(self.api.repos())
-
-    def __list(self, collection):
-        names = [ x.name for x in collection]
-        names.sort() # sorted() is 2.4 only
-        for name in names:
-           str = _("  %(name)s") % { "name" : name }
-           print str
-        return True
-
-    def __tree(self,collection,level):
-        for item in collection:
-            print _("%(indent)s%(type)s %(name)s") % {
-                "indent" : "   " * level,
-                "type"   : item.TYPE_NAME,
-                "name"   : item.name
-            }
-            kids = item.get_children()
-            if kids is not None and len(kids) > 0:
-               self.__tree(kids,level+1)
+            self.list_list(self.api.repos())
 
 ########################################################
 
@@ -165,55 +146,33 @@ class ReportFunction(commands.CobblerFunction):
         p.add_option("--what",              dest="what",   default="all",  help="distros/profiles/systems/repos")
         p.add_option("--name",              dest="name",                   help="report on just this object")
 
-    def __list_names2(self, collection, name):
-        obj = collection.find(name=name)
-        if obj is not None:
-            print obj.printable()
-        return True
-
-    def __sorter(self, a, b):
-        return cmp(a.name, b.name)
-
-    def __print_sorted(self, collection):
-        collection = [x for x in collection]
-        collection.sort(self.__sorter)
-        for x in collection:
-            print x.printable()
-        return True
-
-    def __list_names2(self, collection, name):
-        obj = collection.find(name=name)
-        if obj is not None:
-            print obj.printable()
-        return True
-
     def run(self):
         if self.options.what not in [ "all", "distros", "profiles", "systems", "repos" ]:
             raise CX(_("Invalid value for --what"))
 
         if self.options.what in [ "all", "distros"  ]:
             if self.options.name:
-                self.__list_names2(self.api.distros(),self.options.name)
+                self.reporting_list_names2(self.api.distros(),self.options.name)
             else:
-                self.__print_sorted(self.api.distros())
+                self.reporting_print_sorted(self.api.distros())
 
         if self.options.what in [ "all", "profiles" ]:
             if self.options.name:
-                self.__list_names2(self.api.profiles(),self.options.name)
+                self.reporting_list_names2(self.api.profiles(),self.options.name)
             else:
-                self.__print_sorted(self.api.profiles())
+                self.reporting_print_sorted(self.api.profiles())
 
         if self.options.what in [ "all", "systems"  ]:
             if self.options.name:
-                self.__list_names2(self.api.systems(),self.options.name)
+                self.reporting_list_names2(self.api.systems(),self.options.name)
             else:
-                self.__print_sorted(self.api.systems())
+                self.reporting_print_sorted(self.api.systems())
 
         if self.options.what in [ "all", "repos"    ]:
             if self.options.name:
-                self.__list_names2(self.api.repos(),self.options.name)
+                self.reporting_list_names2(self.api.repos(),self.options.name)
             else:
-                self.__print_sorted(self.api.repos())
+                self.reporting_print_sorted(self.api.repos())
         return True
 
 ## FIXME: add legacy command translator to keep things simple

@@ -27,16 +27,17 @@ import cexceptions
 class ProfileFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler profile","<add|edit|copy|rename|remove> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler profile","<add|edit|copy|list|rename|remove|report> [ARGS|--help]")
 
     def command_name(self):
         return "profile"
 
     def subcommands(self):
-        return [ "add", "edit", "copy", "rename", "remove" ]
+        return [ "add", "edit", "copy", "rename", "remove", "list", "report" ]
 
     def add_options(self, p, args):
-        if not "remove" in args:
+        if not self.matches_args(args,["remove","report","list"]):
+
             p.add_option("--distro",           dest="distro", help="ex: 'RHEL-5-i386' (REQUIRED)")
             p.add_option("--dhcp-tag",         dest="dhcp_tag", help="for use in advanced DHCP configuration")
             p.add_option("--inherit",          dest="inherit", help="inherit from this profile name, defaults to no")
@@ -44,9 +45,11 @@ class ProfileFunction(commands.CobblerFunction):
             p.add_option("--ksmeta",           dest="ksmeta", help="ex: 'blippy=7'")
             p.add_option("--kopts",            dest="kopts", help="ex: 'noipv6'")
         p.add_option("--name",   dest="name",  help="a name for the profile (REQUIRED)")
+
         if "copy" in args or "rename" in args:
             p.add_option("--newname", dest="newname")
-        if not "remove" in args:
+
+        if not self.matches_args(args,["remove","report","list"]):
             p.add_option("--repos",            dest="repos", help="names of cobbler repos")
             p.add_option("--server-override",  dest="server_override", help="overrides value in settings file")
             p.add_option("--virt-bridge",      dest="virt_bridge", help="ex: 'virbr0'")
@@ -59,10 +62,10 @@ class ProfileFunction(commands.CobblerFunction):
     def run(self):
 
 
-        if self.options.inherit:
-           obj = self.object_manipulator_start(self.api.new_profile,self.api.profiles,subobject=True)
+        if self.matches_args(self.args,["report","list","remove"]) or not self.options.inherit:
+            obj = self.object_manipulator_start(self.api.new_profile,self.api.profiles,subobject=False)
         else:
-           obj = self.object_manipulator_start(self.api.new_profile,self.api.profiles,subobject=False)
+            obj = self.object_manipulator_start(self.api.new_profile,self.api.profiles,subobject=True)
 
         if obj is None:
             return True

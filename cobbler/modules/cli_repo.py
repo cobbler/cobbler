@@ -27,23 +27,28 @@ import cexceptions
 class RepoFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler repo","<add|edit|copy|rename|remove> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler repo","<add|edit|copy|list|rename|remove|report> [ARGS|--help]")
 
     def command_name(self):
         return "repo"
 
     def subcommands(self):
-        return [ "add", "edit", "copy", "rename", "remove" ]
+        return [ "add", "edit", "copy", "rename", "remove", "list", "report" ]
 
     def add_options(self, p, args):
-        if not "remove" in args:
+
+        if not self.matches_args(args,["remove","report","list"]):
+
             p.add_option("--arch",             dest="arch",             help="overrides repo arch if required")
             p.add_option("--createrepo-flags", dest="createrepo_flags", help="additional flags for createrepo")
             p.add_option("--rpm-list",         dest="rpm_list",         help="just mirror these rpms")
             p.add_option("--keep-updated",     dest="keep_updated",     help="update on each reposync, yes/no")
             p.add_option("--mirror",           dest="mirror",           help="source to mirror (REQUIRED)")
+
         p.add_option("--name",                 dest="name",             help="ex: 'Fedora-8-updates-i386' (REQUIRED)")
-        if "copy" in args or "rename" in args:
+
+        if self.matches_args(args,["copy","rename"]):
+
             p.add_option("--newname",          dest="newname",          help="used for copy/edit")
 
     def run(self):

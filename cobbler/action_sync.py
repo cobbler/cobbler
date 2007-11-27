@@ -553,6 +553,7 @@ class BootSync:
                 self.apply_template(kfile, meta, dest)
                 kfile.close()
             except:
+                traceback.print_exc()
                 raise CX(_("Error templating file %(src)s to %(dest)s") % { "src" : meta["kickstart"], "dest" : dest })
 
     def load_snippet_cache(self):

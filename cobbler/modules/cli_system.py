@@ -27,17 +27,17 @@ import cexceptions
 class SystemFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler system","<add|edit|copy|rename|remove> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler system","<add|edit|copy|list|rename|remove|report> [ARGS|--help]")
 
     def command_name(self):
         return "system"
 
     def subcommands(self):
-        return [ "add", "edit", "copy", "rename", "remove" ]
-
+        return [ "add", "edit", "copy", "rename", "remove", "report", "list" ]
 
     def add_options(self, p, args):
-        if not "remove" in args:
+
+        if not self.matches_args(args,["remove","report","list"]):
             p.add_option("--dhcp-tag",        dest="dhcp_tag",    help="for use in advanced DHCP configurations")
             p.add_option("--gateway",         dest="gateway",     help="for static IP / templating usage")
             p.add_option("--hostname",        dest="hostname",    help="ex: server.example.org")
@@ -46,12 +46,16 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--kopts",           dest="kopts",       help="ex: 'noipv6'")
             p.add_option("--ksmeta",          dest="ksmeta",      help="ex: 'blippy=7'")
             p.add_option("--mac",             dest="mac",         help="ex: 'AA:BB:CC:DD:EE:FF', (RECOMMENDED)")
+
         p.add_option("--name",   dest="name",                     help="a name for the system (REQUIRED)")
-        if not "remove" in args:
+
+        if not self.matches_args(args,["remove","report","list"]):
             p.add_option("--netboot-enabled", dest="netboot_enabled", help="PXE on (1) or off (0)")
-        if "copy" in args or "rename" in args:
+
+        if self.matches_args(args,["copy","rename"]):
             p.add_option("--newname", dest="newname",                 help="for use with copy/edit")
-        if not "remove" in args:
+
+        if not self.matches_args(args,["remove","report","list"]):
             p.add_option("--profile",         dest="profile",         help="name of cobbler profile (REQUIRED)")
             p.add_option("--server-override", dest="server_override", help="overrides server value in settings file")
             p.add_option("--subnet",          dest="subnet",          help="for static IP / templating usage")

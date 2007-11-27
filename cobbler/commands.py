@@ -44,6 +44,8 @@ class FunctionLoader:
         Runs a command line sequence through the loader.
         """
 
+        args = self.old_school_remap(args)
+
         # if no args given, show all loaded fns
         if len(args) == 1:
             return self.show_options()
@@ -66,6 +68,29 @@ class FunctionLoader:
             raise CX(_("Invalid arguments"))
         return fn.run()
 
+    def old_school_remap(self,args): 
+        """
+        Maps commands like:
+             # cobbler system report foo to cobbler report --name=foo
+        to:
+             # cobblerr system report --name=foo
+        for backwards compat and usability reasons
+        """
+        if not "report" in args:
+            return args
+        ok = False
+        for x in ["distro","profile","system","repo"]:
+            if x in args:
+                ok = True
+        if not ok:
+            return args
+        idx = args.index("report")
+        if idx + 1 < len(args):
+           name = args[idx+1]
+           if name.find("--name") == -1:
+               args[idx+1] = "--name=%s" % name
+        return args
+       
     def show_options(self):
         """
         Prints out all loaded functions.
@@ -153,8 +178,21 @@ class CobblerFunction:
         """
 
         if "remove" in self.args:
+            if not self.options.name:
+                raise CX(_("name is required"))
             collect_fn().remove(self.options.name,with_delete=True)
             return None # signal that we want no further processing on the object
+
+        if "list" in self.args:
+            self.list_list(collect_fn())
+            return None
+
+        if "report" in self.args:
+            if self.options.name is None:
+                self.reporting_print_sorted(collect_fn())
+            else:
+                self.reporting_list_names2(collect_fn(),self.options.name)
+            return None
 
         if "add" in self.args:
             obj = new_fn(is_subobject=subobject)
@@ -190,20 +228,63 @@ class CobblerFunction:
 
         return rc
 
+    def reporting_sorter(self, a, b):
+        """
+        Used for sorting cobbler objects for report commands
+        """
+        return cmp(a.name, b.name)
 
-    #def no_args_handler(self):
-    #
-    #    """
-    #    Used to accept/reject/explain subcommands.  Do not override.
-    #    """
-    #
-    #    subs = self.subcommands()
-    #    if len(subs) == 0:
-    #        return False
-    #    for x in subs:
-    #        print "   cobbler %s %s [ARGS|--help]" % (self.command_name(), x)
-    #    return True # stop here
+    def reporting_print_sorted(self, collection):
+        """
+        Prints all objects in a collection sorted by name
+        """
+        collection = [x for x in collection]
+        collection.sort(self.reporting_sorter)
+        for x in collection:
+            print x.printable()
+        return True
 
+    def reporting_list_names2(self, collection, name):
+        """
+        Prints a specific object in a collection.
+        """
+        obj = collection.find(name=name)
+        if obj is not None:
+            print obj.printable()
+        return True
 
+    def list_tree(self,collection,level):
+        """
+        Print cobbler object tree as a, well, tree.
+        """
+        for item in collection:
+            print _("%(indent)s%(type)s %(name)s") % {
+                "indent" : "   " * level,
+                "type"   : item.TYPE_NAME,
+                "name"   : item.name
+            }
+            kids = item.get_children()
+            if kids is not None and len(kids) > 0:
+                self.list_tree(kids,level+1)
+
+    def list_list(self, collection):
+        """
+        List all objects of a certain type.
+        """
+        names = [ x.name for x in collection]
+        names.sort() # sorted() is 2.4 only
+        for name in names:
+           str = _("  %(name)s") % { "name" : name }
+           print str
+        return True
+
+    def matches_args(self, args, list_of):
+        """
+        Used to simplify some code around which arguments to add when.
+        """
+        for x in args:
+            if x in list_of:
+                return True
+        return False
 
 
