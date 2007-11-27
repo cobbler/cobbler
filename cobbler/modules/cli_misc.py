@@ -100,7 +100,9 @@ class ReserializeFunction(commands.CobblerFunction):
         return "reserialize"
 
     def run(self):
-        return self.api.reserialize()
+        # already deserialized when API is instantiated
+        # this just saves files in new config format (if any)
+        return self.api.serialize()
 
 ########################################################
 
