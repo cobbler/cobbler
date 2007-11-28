@@ -270,7 +270,7 @@ class Profile(item.Item):
             self.virt_type == "<<inherit>>"
             return True
 
-        if vtype.lower() not in [ "qemu", "xenpv", "auto" ]:
+        if vtype.lower() not in [ "qemu", "xenpv", "xenfv", "auto" ]:
             raise CX(_("invalid virt type"))
         self.virt_type = vtype
         return True

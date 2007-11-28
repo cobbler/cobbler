@@ -78,7 +78,11 @@ class SystemFunction(commands.CobblerFunction):
         if self.options.virt_path:       obj.set_virt_path(self.options.virt_path)
         if self.options.virt_type:       obj.set_virt_type(self.options.virt_type)
 
-        my_interface = "intf%s" % self.options.interface
+        if self.options.interface:
+            my_interface = "intf%s" % self.options.interface
+        else:
+            my_interface = "intf0"
+
         if self.options.hostname: obj.set_hostname(self.options.hostname, my_interface)
         if self.options.mac:      obj.set_mac_address(self.options.mac,   my_interface)
         if self.options.ip:       obj.set_ip_address(self.options.ip,     my_interface)
