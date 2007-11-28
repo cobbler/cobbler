@@ -147,11 +147,11 @@ def main():
                  help="virtual install location (see manpage)")  
     p.add_option("-T", "--virt-type",
                  dest="virt_type",
-                 help="virtualization install type (xenpv,qemu)")
+                 help="virtualization install type (xenpv,xenfv,qemu)")
     p.add_option("-n", "--nogfx",
                  action="store_true", 
                  dest="no_gfx",
-                 help="disable Xen graphics (xenpv)")
+                 help="disable Xen graphics (xenpv,xenfv)")
 
     (options, args) = p.parse_args()
 
@@ -353,7 +353,7 @@ class Koan:
         # if --virt-type was specified and invalid, then fail
         if self.virt_type is not None:
             self.virt_type = self.virt_type.lower()
-            if self.virt_type not in [ "qemu", "xenpv", "xen", "auto" ]:
+            if self.virt_type not in [ "qemu", "xenpv", "xenfv", "xen", "auto" ]:
                if self.virt_type == "xen":
                    self.virt_type = "xenpv"
                raise InfoException, "--virttype should be qemu, xenpv, or auto"
@@ -512,7 +512,7 @@ class Koan:
             # now that we've figured out our virt-type, let's see if it is really usable
             # rather than showing obscure error messages from Xen to the user :)
 
-            if self.virt_type == "xenpv":
+            if self.virt_type in [ "xenpv", "xenfv" ]:
                 cmd = sub_process.Popen("uname -r", stdout=sub_process.PIPE, shell=True)
                 uname_str = cmd.communicate()[0]
                 # correct kernel on dom0?
@@ -545,7 +545,7 @@ class Koan:
                     raise InfoException("libvirtd needs to be running")
 
 
-            if self.virt_type == "xenpv":
+            if self.virt_type in [ "xenpv", "xenfv" ]:
                 download = "/var/lib/xen" 
             else: # qemu
                 download = None # fullvirt, can use set_location in virtinst library, no D/L needed yet
@@ -887,9 +887,9 @@ class Koan:
         pd = profile_data
         self.load_virt_modules()
 
-        arch                = self.safe_load(pd,'arch','x86')
-        kextra              = self.calc_kernel_args(pd)
-        (uuid, create_func) = self.virt_choose(pd)
+        arch                          = self.safe_load(pd,'arch','x86')
+        kextra                        = self.calc_kernel_args(pd)
+        (uuid, create_func, fullvirt) = self.virt_choose(pd)
 
         virtname            = self.calc_virt_name(pd)
 
@@ -909,7 +909,8 @@ class Koan:
                 vcpus         =  vcpus,
                 profile_data  =  profile_data,       
                 arch          =  arch,
-                no_gfx        =  self.no_gfx,         
+                no_gfx        =  self.no_gfx,   
+                fullvirt      =  fullvirt      
         )
 
         print results
@@ -928,17 +929,21 @@ class Koan:
     #---------------------------------------------------
 
     def virt_choose(self, pd):
-        if self.virt_type == "xenpv":
+        fullvirt = False
+        if self.virt_type in [ "xenpv", "xenfv" ]:
             uuid    = self.get_uuid(self.calc_virt_uuid(pd))
             import xencreate
-            creator = xencreate.start_paravirt_install
+            creator = xencreate.start_install
+            if self.virt_type == "xenfv":
+               fullvirt = True 
         elif self.virt_type == "qemu":
+            fullvirt = True
             uuid    = None
             import qcreate
             creator = qcreate.start_install
         else:
             raise InfoException, "Unspecified virt type: %s" % self.virt_type
-        return (uuid, creator)
+        return (uuid, creator, fullvirt)
 
     #---------------------------------------------------
 
@@ -1108,7 +1113,7 @@ class Koan:
 
         if location is None or location == "":
            # not set in cobbler either? then assume reasonable defaults
-           if self.virt_type == "xenpv":
+           if self.virt_type in [ "xenpv", "xenfv" ]:
                prefix = "/var/lib/xen/images/"
            elif self.virt_type == "qemu":
                prefix = "/opt/qemu/"

@@ -23,6 +23,7 @@ import exceptions
 import errno
 import re
 import virtinst
+import virtinst.DistroManager as DistroManager
 import traceback
 
 class VirtCreateException(exceptions.Exception):
@@ -43,16 +44,24 @@ def random_mac():
     return ':'.join(map(lambda x: "%02x" % x, mac))
 
 
-def start_paravirt_install(name=None, ram=None, disks=None,
+def start_install(name=None, ram=None, disks=None,
                            uuid=None,  
                            extra=None, 
                            vcpus=None,  
-                           profile_data=None, arch=None, no_gfx=False):
+                           profile_data=None, arch=None, no_gfx=False, fullvirt=False):
 
 
-    guest = virtinst.ParaVirtGuest()
-    guest.set_boot((profile_data["kernel_local"], profile_data["initrd_local"]))
-    guest.extraargs = extra
+    if fullvirt:
+        # FIXME: add error handling here to explain when it's not supported
+        guest = virtinst.FullVirtGuest(installer=DistroManager.PXEInstaller())
+    else:
+        guest = virtinst.ParaVirtGuest()
+
+    if not fullvirt:
+        guest.set_boot((profile_data["kernel_local"], profile_data["initrd_local"]))
+        # fullvirt OS's will get this from the PXE config (managed by Cobbler)
+        guest.extraargs = extra
+
     guest.set_name(name)
     guest.set_memory(ram)
     guest.set_vcpus(vcpus)
