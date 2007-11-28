@@ -203,6 +203,8 @@ class CobblerFunction:
                 collect_fn().remove(self.options.name, with_delete=True)
                 return None
             obj = collect_fn().find(self.options.name)
+            if obj is None:
+                raise CX(_("object named (%s) not found") % self.options.name)
 
         if not "copy" in self.args and not "rename" in self.args and self.options.name:
             obj.set_name(self.options.name)
