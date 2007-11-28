@@ -466,20 +466,23 @@ class Koan:
                profile_data["kickstart"] = "http://%s/cblr/%s/%s/ks.cfg" % (profile_data['server'], filler, profile_data['name'])
                 
             # find_kickstart source tree in the kickstart file
+            read_ok = False
             try:
                 raw = self.urlread(profile_data["kickstart"])
+                read_ok = True
             except:
-                raise InfoException("Unable to download kickstart, perhaps cobbler sync was not run recently, Apache is not running, or the server address in the cobbler settings file is wrong.")
-            lines = raw.split("\n")
-            for line in lines:
-               reg = re.compile("--url.(.*)")
-               matches = reg.findall(raw)
-               if len(matches) != 0:
-                   profile_data["install_tree"] = matches[0].strip()
+                # unstable to download the kickstart, however this might not
+                # be an error.  For instance, xen FV installations of non
+                # kickstart OS's...
+                pass
 
-
-        if self.is_virt and not profile_data.has_key("install_tree"):
-            raise InfoException("Unable to find network install source (--url) in kickstart file: %s" % profile_data["kickstart"])
+            if read_ok:
+                lines = raw.split("\n")
+                for line in lines:
+                    reg = re.compile("--url.(.*)")
+                    matches = reg.findall(raw)
+                    if len(matches) != 0:
+                        profile_data["install_tree"] = matches[0].strip()
 
         # find the correct file download location 
         if not self.is_virt:

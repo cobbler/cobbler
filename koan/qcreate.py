@@ -57,7 +57,11 @@ def start_install(name=None, ram=None, disks=None, mac=None,
         arch = "i686"
 
     guest = virtinst.FullVirtGuest(hypervisorURI="qemu:///system",type=vtype, arch=arch)
-    
+   
+    if not profile_data.has_key("install_tree"):
+        raise VirtCreateException("Cannot find install source in kickstart file, aborting.")
+   
+ 
     if not profile_data["install_tree"].endswith("/"):
        profile_data["install_tree"] = profile_data["install_tree"] + "/"
 
