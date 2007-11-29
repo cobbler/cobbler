@@ -17,7 +17,7 @@ from cexceptions import *
 from rhpl.translate import _, N_, textdomain, utf8
 import sys
 
-HELP_FORMAT = "%-25s%s"
+HELP_FORMAT = "%-20s%s"
 
 #=============================================================
 
@@ -49,7 +49,7 @@ class FunctionLoader:
         # if no args given, show all loaded fns
         if len(args) == 1:
             return self.show_options()
-        called_name = args[1]
+        called_name = args[1].lower()
 
         # also show avail options if command name is bogus
         if not called_name in self.functions.keys():
@@ -70,12 +70,30 @@ class FunctionLoader:
 
     def old_school_remap(self,args): 
         """
-        Maps commands like:
+        Replaces commands with common synonyms that should also work
+     
+        Also maps commands like:
              # cobbler system report foo to cobbler report --name=foo
         to:
              # cobblerr system report --name=foo
+
         for backwards compat and usability reasons
         """
+
+        # to do:  handle synonyms
+        for ct in range(0,len(args)):
+           args[ct] = args[ct]
+           if args[ct].startswith("-"):
+               # stop synonym mapping after first option
+               break
+           # lowercase all args
+           args[ct] = args[ct].lower()
+           # delete means remove
+           # are there any other common synonyms?
+           if args[ct] == "delete":
+               args[ct] = "remove" 
+
+        # special handling for reports follows:
         if not "report" in args:
             return args
         ok = False

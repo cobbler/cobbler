@@ -205,12 +205,10 @@ class Profile(item.Item):
     def set_virt_file_size(self,num):
         """
 	For Virt only.
-	Specifies the size of the virt image in gigabytes.  koan
-	may contain some logic to ignore 'illogical' values of this size,
-	though there are no guarantees.  0 tells koan to just
-	let it pick a semi-reasonable size.  When in doubt, specify the
-	size you want.
-	"""
+	Specifies the size of the virt image in gigabytes.  
+	Older versions of koan (x<0.6.3) interpret 0 as "don't care"
+        Newer versions (x>=0.6.4) interpret 0 as "no disks"
+        """
         # num is a non-negative integer (0 means default)
         # can also be a comma seperated list -- for usage with multiple disks
 
