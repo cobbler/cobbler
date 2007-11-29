@@ -386,9 +386,9 @@ class BootSync:
 
         # FIXME: watcher is more of a request than a packaged file
         # we should eventually package something and let it do something important"
-        pattern1 = "wget http://%s/cblr/watcher.py?%s_%s=%s -b"
-        pattern2 = "wget http://%s/cgi-bin/cobbler/nopxe.cgi?system=%s -b"
-        pattern3 = "wget http://%s/cobbler/%s/%s/ks.cfg -O /root/cobbler.ks"
+        pattern1 = "wget \"http://%s/cblr/watcher.py?%s_%s=%s\" -b"
+        pattern2 = "wget \"http://%s/cgi-bin/cobbler/nopxe.cgi?system=%s\" -b"
+        pattern3 = "wget \"http://%s/cobbler/%s/%s/ks.cfg\" -O /root/cobbler.ks"
 
         blend_this = profile
         if system:
@@ -500,7 +500,7 @@ class BootSync:
            name = c.split("/")[-1].replace(".repo","")
            # add the line to create the yum config file on the target box
            conf = self.get_repo_config_file(blended["server"],urlseg,blended["name"],name)
-           buf = buf + "wget %s --output-document=/etc/yum.repos.d/%s.repo\n" % (conf, name)    
+           buf = buf + "wget \"%s\" --output-document=/etc/yum.repos.d/%s.repo\n" % (conf, name)    
 
         return buf
 
