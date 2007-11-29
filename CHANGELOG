@@ -5,6 +5,7 @@ Koan CHANGELOG
 - Allow Xen machines to be constructed with no disks (size=0), but not qemu/KVM
 - Support Xen Fullvirt via PXE
 - Add new --autonet command
+- Fail if kernel argument length exceeds the 255 cap, as truncation can lead to hard to debug errors.
 
 * Thu Nov 15 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.3-3
 - Packaged textwrap for RHEL3 compatibility, plus RHEL3 xmlrpclib tweak

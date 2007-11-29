@@ -647,6 +647,10 @@ class Koan:
             if self.autonet is not None:
                 k_args = k_args + ' ' + self.get_netconfig(kickstart)
 
+            if len(k_args) > 255:
+                raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
+
+
             k_args = k_args.replace("lang ","lang= ")
 
             cmd = [ "/sbin/grubby", 
