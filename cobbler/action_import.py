@@ -431,6 +431,8 @@ class Importer:
            config_file.write("baseurl=http://@@server@@/cobbler/ks_mirror/%s\n" % (urlseg))
            config_file.write("enabled=1\n")
            config_file.write("gpgcheck=0\n")
+           # NOTE: yum priority defaults to 99 if that plugin is enabled 
+           # so don't need to add priority=99 here
            config_file.close()
 
            # don't run creatrepo twice -- this can happen easily for Xen and PXE, when

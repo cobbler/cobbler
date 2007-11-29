@@ -235,8 +235,6 @@ class RepoSync:
         config_file.write("[%s]\n" % repo.name)
         config_file.write("name=%s\n" % repo.name)
         if output:
-            # see note above:  leave as @@server@@ and fix in %post of kickstart when
-            # we generate the stanza
             line = "baseurl=http://${server}/cobbler/repo_mirror/%s\n" % (repo.name)
             config_file.write(line)
         else:
@@ -244,6 +242,7 @@ class RepoSync:
             line = line.replace("@@server@@",self.settings.server)
             config_file.write(line)
         config_file.write("enabled=1\n")
+        config_file.write("priority=%s\n" % repo.priority)
         config_file.write("gpgcheck=0\n")
         config_file.close()
         return fname 

@@ -90,6 +90,21 @@ function disablename(value)
 
     <br/>
 
+    <tr>
+    <td>
+    <label for="priority">Priority</label>
+    </td>
+    <td>
+    <input type="text" size="512" style="width: 150px;" name="priority" id="priority"
+        #if $repo
+            value="$repo.priority"
+        #end if
+    />
+    <p class="context-tip">Repo priority, if using yum priorities plugin of target (99=default) </p>
+    </td>
+    </tr>
+    <br/>
+
     ## FIXME: input field sizes should be larger (universally)
     ## FIXME: make this a text area?
 

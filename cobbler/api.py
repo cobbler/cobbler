@@ -189,7 +189,7 @@ class BootAPI:
         sync = action_sync.BootSync(self._config)
         return sync.run()
 
-    def reposync(self, name):
+    def reposync(self, name=None):
         """
         Take the contents of /var/lib/cobbler/repos and update them --
         or create the initial copy if no contents exist yet.
