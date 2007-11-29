@@ -76,10 +76,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(755,apache,apache)
 %dir /var/www/cgi-bin/cobbler/
-/var/www/cgi-bin/cobbler/findks.cgi
-/var/www/cgi-bin/cobbler/nopxe.cgi
-/var/www/cgi-bin/cobbler/postinstalltrigger.cgi
-/var/www/cgi-bin/cobbler/webui.cgi
+/var/www/cgi-bin/cobbler/*.cgi
 %defattr(660,apache,apache)
 %config(noreplace) /var/www/cgi-bin/cobbler/.htaccess
 %config(noreplace) /var/www/cgi-bin/cobbler/.htpasswd

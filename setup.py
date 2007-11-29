@@ -63,7 +63,7 @@ if __name__ == "__main__":
                                 
                                 # cgi files
                                 (cgipath,  ['scripts/findks.cgi', 'scripts/nopxe.cgi']),
-                                (cgipath,  ['scripts/webui.cgi', 'scripts/postinstalltrigger.cgi']),
+                                (cgipath,  ['scripts/webui.cgi', 'scripts/post_install_trigger.cgi']),
  
                                 # miscellaneous config files
                                 (cgipath,  ['config/.htaccess']),

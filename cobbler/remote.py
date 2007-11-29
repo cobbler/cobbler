@@ -145,17 +145,16 @@ class CobblerXMLRPCInterface:
         systems.add(obj,with_copy=True)
         return True
 
-    def run_postinstalltrigger(self,name,token=None):
+    def run_post_install_triggers(self,name,token=None):
         """
         This is a feature used to run the post install trigger.
         It passes the system named "name" to the trigger.  Disabled by default as
         this requires public API access and is technically a read-write operation.
         """
         # used by postinstalltrigger.cgi
-        self.logger.debug("Starting run_postinstalltrigger")
         self.api.clear()
         self.api.deserialize()
-        if not self.api.settings().run_postinstall_trigger:
+        if not self.api.settings().run_post_install_trigger:
             # feature disabled!
             return False
         systems = self.api.systems()

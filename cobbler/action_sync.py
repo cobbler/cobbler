@@ -390,7 +390,7 @@ class BootSync:
         pattern1 = "wget \"http://%s/cblr/watcher.py?%s_%s=%s\" -b"
         pattern2 = "wget \"http://%s/cgi-bin/cobbler/nopxe.cgi?system=%s\" -b"
         pattern3 = "wget \"http://%s/cobbler/%s/%s/ks.cfg\" -O /root/cobbler.ks"
-        pattern4 = "wget \"http://%s/cgi-bin/cobbler/postinstalltrigger.cgi?system=%s\" -b"
+        pattern4 = "wget \"http://%s/cgi-bin/cobbler/post_install_trigger.cgi?system=%s\" -b"
 
         blend_this = profile
         if system:
@@ -406,7 +406,7 @@ class BootSync:
                 buf = buf + "\n" + pattern2 % (blended["server"], system.name)
             if kickstart and os.path.exists(kickstart):
                 buf = buf + "\n" + pattern3 % (blended["server"], "kickstarts_sys", system.name)
-            if self.settings.run_postinstall_trigger:
+            if self.settings.run_post_install_trigger:
                 buf = buf + "\n" + pattern4 % (blended["server"], system.name)
 
         else:

@@ -6,16 +6,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-# This script disables the netboot flag for a given
-# system if (and only if) pxe_just_once is enabled in settings.
-# It must not be able to do anything else for security
-# reasons.
 #
+# This script runs post install triggers in /var/lib/cobbler/triggers/install/post
+# if the triggers are enabled in the settings file.
 #
-# (C) Red Hat, 2007 
-# Michael DeHaan <mdehaan@redhat.com>
-#
+# (C) Tim Verhoeven <tim.verhoeven.be@gmail.com>, 2007
+# tweaked: Michael DeHaan <mdehaan@redhat.com>
 
 import cgi
 import cgitb
@@ -49,17 +45,13 @@ def parse_query():
         return form["system"][0]
     return 0 
 
-def disable(name):
+def invoke(name):
     """
     Determine if this feature is enabled.
     """
     
-    #try:
     xmlrpc_server = ServerProxy(XMLRPC_SERVER)
-    print xmlrpc_server.disable_netboot(name)
-    #except:
-    #    print "# could not contact cobblerd at %s" % XMLRPC_SERVER
-    #    sys.exit(1)
+    print xmlrpc_server.run_post_install_triggers(name)
 
     return True
 
@@ -75,6 +67,6 @@ if __name__ == "__main__":
     cgitb.enable(format='text')
     header()
     name = parse_query()
-    disable(name)
+    invoke(name)
 
 
