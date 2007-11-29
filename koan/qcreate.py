@@ -86,6 +86,8 @@ def start_install(name=None, ram=None, disks=None, mac=None,
 
     for d in disks:
         print "- adding disk: %s of size %s" % (d[0], d[1])
+        if d[1] == 0:
+            raise VirtCreateException("this virtualization type does not work without a disk image, set virt-size in Cobbler to non-zero")
         guest.disks.append(virtinst.VirtualDisk(d[0], size=d[1]))
 
     if profile_data.has_key("interfaces"):

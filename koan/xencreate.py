@@ -75,7 +75,8 @@ def start_install(name=None, ram=None, disks=None,
         guest.set_uuid(uuid)
 
     for d in disks:
-        guest.disks.append(virtinst.XenDisk(d[0], size=d[1]))
+        if d[1] != 0:
+            guest.disks.append(virtinst.XenDisk(d[0], size=d[1]))
 
     counter = 0
 

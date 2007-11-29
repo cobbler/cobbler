@@ -1010,7 +1010,7 @@ class Koan:
             int(size)
         except:
             err = True
-        if size is None or size == '' or int(size)<default_filesize:
+        if size is None or size == '':
             err = True
         if err:
             print "invalid file size specified, using defaults"
