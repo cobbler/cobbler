@@ -6,7 +6,7 @@ koan stands for "kickstart-over-a-network" and allows for both network provision
 
 koan --server=<host> [--list-profiles|--list-systems]
 
-koan --server=<host> [--virt|--replace-self|--display] [--profile=<name>|--system=<name>] [--virt-name=<name>] [--virt-path=<path>] [--virt-type=<type>] [--virt-graphics]
+koan --server=<host> [--virt|--replace-self|--display] [--profile=<name>|--system=<name>] [--autonet] [--virt-name=<name>] [--virt-path=<path>] [--virt-type=<type>] [--virt-graphics]
 
 =head1 DESCRIPTION
 
@@ -62,6 +62,10 @@ Names a profile, known to cobbler, that is to be installed.
 
 Names a system, known to cobbler, that is to be installed.  --system cannot
 be used at the same time as --profile; pick one or the other.
+
+=item --autonet
+
+Tells koan to configure the installer's networking on the kernel command line using ip=/netmask=/gateway=, etc..   First, koan will download the kickstart configuration and check for a network --bootproto=static method.  If that fails and --replace-self has been specified, koan will use the current system's network configuration, as found using iproute2.  This option therefore makes koan installations more usable in environments that do not offer DHCP.  
 
 =back
 

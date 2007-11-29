@@ -33,6 +33,7 @@ import xmlrpclib
 import string
 import re
 import glob
+import socket
 
 # the version of cobbler needed to interact with this version of koan
 # this is an decimal value (major + 0.1 * minor + 0.01 * maint)
@@ -142,6 +143,10 @@ def main():
     p.add_option("-t", "--port",
                  dest="port",
                  help="cobbler xmlrpc port (default 25151)")
+    p.add_option("-A", "--autonet",
+                 dest="autonet",
+                 action="store_true",
+                 help="have koan try to automatically set up networking on the kernel command line")
     p.add_option("-P", "--virt-path",
                  dest="virt_path",
                  help="virtual install location (see manpage)")  
@@ -169,6 +174,7 @@ def main():
         k.is_display        = options.is_display
         k.profile           = options.profile
         k.system            = options.system
+        k.autonet           = options.autonet
         k.live_cd           = options.live_cd
         k.virt_path         = options.virt_path
         k.virt_type         = options.virt_type
@@ -224,6 +230,7 @@ class Koan:
         self.is_replace        = None
         self.dryrun            = None
         self.port              = 25151 
+        self.autonet           = None
         self.virt_name         = None
         self.virt_type         = None
         self.virt_path         = None 
@@ -586,7 +593,10 @@ class Koan:
         def after_download(self, profile_data):
             for x in DISPLAY_PARAMS:
                 if profile_data.has_key(x):
-                    print "%20s  : %s" % (x, profile_data[x])
+                    value = profile_data[x]
+                    if x == 'kernel_options':
+                        value = self.calc_kernel_args(profile_data)
+                    print "%20s  : %s" % (x, value)
         return self.net_install(after_download)
 
     #---------------------------------------------------
@@ -626,11 +636,17 @@ class Koan:
             k_args = self.safe_load(profile_data,'kernel_options')
             k_args = k_args + " ks=file:ks.cfg"
 
+            kickstart = self.safe_load(profile_data,'kickstart')
+
             self.build_initrd(
                 self.safe_load(profile_data,'initrd_local'),
-                self.safe_load(profile_data,'kickstart'),
+                kickstart,
                 profile_data
             )
+
+            if self.autonet is not None:
+                k_args = k_args + ' ' + self.get_netconfig(kickstart)
+
             k_args = k_args.replace("lang ","lang= ")
 
             cmd = [ "/sbin/grubby", 
@@ -754,6 +770,140 @@ class Koan:
         shutil.copyfile("/var/spool/koan/initrd_final", initrd)
 
     #---------------------------------------------------
+    def get_netconfig_from_running_system(self):
+        """
+        Get the network configuration from the running system (as opposed
+        to config files, which are distribution-specific).  This isn't going to
+        be 100% correct on multi-homed machines, but should work in 98% of the
+        sane cases in the wild.
+        """
+        ret = dict()
+
+        # get the hostname from the system
+        ret['hostname'] = socket.gethostname()
+        try:
+            ret['ip'] = socket.gethostbyname( ret['hostname'] )
+        except:
+            # ignore the error, but still print the trace
+            traceback.print_exc()
+
+        if ret.has_key('ip'):
+            iface = self.get_local_interface( ip=ret['ip'] )
+            if iface is not None: ret.update(**iface)
+        else:
+            iface = self.get_local_interface()
+            if iface is not None: ret.update(**iface)
+
+        # if cobbler knows about this system, prefer cobbler's data
+        if self.system is not None and (ret.has_key('mac') or ret.has_key('ip') or ret.has_key('hostname')):
+            try:
+                systems = self.get_systems_xmlrpc()
+
+                for system in systems:
+                    if ret.has_key('mac') and system['mac_address'].upper() == ret['mac'].upper():
+                        ret.update(system)
+                        break
+                    if ret.has_key('ip') and system['ip_address'] == ret['ip']:
+                        ret.update(system)
+                        break
+                    if ret.has_key('hostname') and system['hostname'] == ret['hostname']:
+                        ret.update(system)
+                        break
+            except:
+                # ignore the error, but still print the trace
+                traceback.print_exc()
+
+        # get the first nameserver configured on the local system
+        fd = open("/etc/resolv.conf", "r")
+        for line in fd.readlines():
+            if line.startswith('nameserver'):
+                ret['nameserver'] = line.split()[1]
+                break
+        fd.close()
+
+        return ret
+
+    def get_netconfig_from_kickstart(self,kickstart):
+        """
+        Scan the kickstart configuration for a network --bootproto static line.
+        """
+        ret = dict()
+        lines = []
+
+        if os.path.exists("/var/spool/koan/ks.cfg"):
+            fd = open("/var/spool/koan/ks.cfg", "r")
+            lines = fd.readlines()
+            fd.close()
+        else: 
+            ksdata = self.get_kickstart_data(kickstart,None)
+            lines = ksdata.splitlines()
+
+        network_re = re.compile('\s*network\s+--')
+        for line in lines:
+            if network_re.match(line):
+                p = opt_parse.OptionParser()
+                p.add_option("--bootproto",  dest="bootproto")
+                p.add_option("--ip",         dest="ip")
+                p.add_option("--netmask",    dest="netmask")
+                p.add_option("--gateway",    dest="gateway")
+                p.add_option("--hostname",   dest="hostname")
+                p.add_option("--nameserver", dest="nameserver")
+                # ignored, but required for clean parsing
+                p.add_option("--device",     dest="device")
+                p.add_option("--onboot",     dest="onboot")
+                p.add_option("--nodns",      dest="nodns")
+                (options,args) = p.parse_args( line.split()[1:] )
+
+                if options.bootproto and options.bootproto == 'static':
+                    ret['ip']         = options.ip
+                    ret['netmask']    = options.netmask
+                    ret['gateway']    = options.gateway
+                    ret['hostname']   = options.hostname
+                    ret['nameserver'] = options.nameserver
+
+                break
+        return ret
+
+    def get_netconfig(self,kickstart):
+        """
+        If this is a --replace-self run, get the running network configuration and
+        put it on the kernel command line so DHCP isn't required.
+
+        If it's a new kickstart, check the kickstart for a static network
+        configuration and push that into the kernel command line.
+        """
+        kargs      = ""
+        netconf = {
+            'hostname':   None,
+            'ip':         None,
+            'netmask':    None,
+            'nameserver': None,
+            'gateway':    None
+        }
+
+        if self.is_replace:
+            conf = self.get_netconfig_from_running_system()
+            if conf is not None: netconf.update( conf )
+
+        # Always try to get the network configuration kickstart.  This will
+        # override anything set in the 'if self.is_replace' block above.
+        ksconf = self.get_netconfig_from_kickstart(kickstart)
+        if ksconf is not None: netconf.update( ksconf )
+ 
+        if netconf['ip'] is not None:
+            kargs = kargs + " ip=%s" % netconf['ip']
+        if netconf['netmask'] is not None:
+            kargs = kargs + " netmask=%s" % netconf['netmask']
+        if netconf['hostname'] is not None:
+            kargs = kargs + " hostname=%s" % netconf['hostname']
+        if netconf['nameserver'] is not None:
+            kargs = kargs + " nameserver=%s" % netconf['nameserver']
+        if netconf['gateway'] is not None:
+            kargs = kargs + " gateway=%s" % netconf['gateway']
+
+        return kargs
+
+    #---------------------------------------------------
 
     def connect_fail(self):
         raise InfoException, "Could not communicate with %s:%s" % (self.server, self.port)
@@ -793,6 +943,104 @@ class Koan:
         except:
             traceback.print_exc()
             self.connect_fail()
+
+    #---------------------------------------------------
+
+    def get_local_interface(self,ip=None,mac=None,iface=None,want_all=None):
+        """
+        Fetches interfaces, macs, ips, netmask (in cidr notation), and optionally
+        default route using iproute2.
+
+        The default is to return a best-guess of the primary interface on the
+        system.   If a system is hooked up with a default route, it will be chosen.
+        Otherwise, eth0 is preferred.   After that, the "most configured" interface
+        will be returned.  If no appropriate-looking interfaces are found, None will
+        be returned.
+
+        Options:
+            ip: specify an ip to search for, return only that interface
+            mac: sepcify a mac to search for, return only that interface
+            iface: return only the specified interface
+            want_all: (boolean) return all information in a dict
+
+        """
+        interfaces = dict()
+        iface_re = re.compile('\d+: ([a-z]+[0-9]+): <.*> mtu \d+', re.IGNORECASE)
+    
+        mac_re = re.compile('.*link/ether ([a-z0-9:]{17}) ', re.IGNORECASE)
+        if mac is not None:
+            mac_re = re.compile('.*link/ether (%s) ' % mac, re.IGNORECASE)
+    
+        ip_re = re.compile('.*inet ([\.0-9]+)/(\d+) ')
+        if ip is not None:
+            ip_re = re.compile('.*inet (%s)/(\d+) ' % ip)
+    
+        sys_iface = None
+        fd = os.popen("/sbin/ip address show")
+        for line in fd.readlines():
+            mac_match   = mac_re.match(line)
+            iface_match = iface_re.match(line)
+            ip_match    = ip_re.match(line)
+    
+            if iface_match:
+                sys_iface = iface_match.group(1)
+                interfaces[sys_iface] = { 'iface': sys_iface }
+            if mac_match and sys_iface:
+                interfaces[sys_iface]['mac'] = mac_match.group(1)
+            if ip_match and sys_iface:
+                interfaces[sys_iface]['ip']      = ip_match.group(1)
+                interfaces[sys_iface]['netmask_int'] = ip_match.group(2)
+                interfaces[sys_iface]['netmask'] = self.netmask_i2dq( ip_match.group(2) )
+    
+        fd.close()
+    
+        # get the default route
+        fd = os.popen("/sbin/ip route show")
+        for line in fd.readlines():
+            if line.startswith('default via '):
+                parts = line.split()
+                interfaces[parts[4]]['gateway'] = parts[2]
+                break
+        fd.close()
+    
+        if want_all is not None:
+            return interfaces
+        elif mac:
+            for i in interfaces.values():
+                if i.has_key('mac') and i['mac'] == mac: return i
+        elif ip:
+            for i in interfaces.values():
+                if i.has_key('ip') and i['ip'] == ip: return i
+        elif iface:
+            # this can and should throw an error if the interface doesn't exist
+            return interfaces[iface]
+        else:
+            ret = None
+    
+            # but even more likely, we want the device the default route is on
+            for i in interfaces.values():
+                if i.has_key('gateway'): ret = i
+
+            if ret is None:
+                for i in interfaces.values():
+                    if i.has_key('ip') and i.has_key('mac'): ret = i
+
+            # eth0 is the most likely cnadidate
+            if ret is None and interfaces.has_key('eth0'):
+                ret = interfaces['eth0']
+    
+            return ret
+
+    def netmask_i2dq(self,nm):
+        """
+        Convert a netmask from integer to dotted-quad notation.
+        """
+        intval = 0xffffffff << (32 - int(nm))
+        ret = "%u.%u.%u.%u" % ((intval >> 24) & 0x000000ff,
+                              ((intval & 0x00ff0000) >> 16),
+                              ((intval & 0x0000ff00) >> 8),
+                               (intval & 0x000000ff))
+        return ret
 
     #---------------------------------------------------
 
@@ -870,6 +1118,10 @@ class Koan:
     def calc_kernel_args(self, pd):
         kickstart = self.safe_load(pd,'kickstart')
         options   = self.safe_load(pd,'kernel_options')
+
+        if self.autonet is not None:
+            options = options + ' ' + self.get_netconfig(kickstart)
+
         kextra    = ""
         if kickstart != "":
             kextra = kextra + "ks=" + kickstart
@@ -879,6 +1131,7 @@ class Koan:
             kextra = kextra + options
         # parser issues?  lang needs a trailing = and somehow doesn't have it.
         kextra = kextra.replace("lang ","lang= ")
+
         return kextra
 
     #---------------------------------------------------
@@ -916,6 +1169,7 @@ class Koan:
                 fullvirt      =  fullvirt      
         )
 
+        print "Kernel arguments: %s" % kextra
         print results
         return results
 
