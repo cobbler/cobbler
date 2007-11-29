@@ -641,7 +641,7 @@ class CobblerWeb(object):
         } )
 
     def repo_save(self,name=None,oldname=None,new_or_edit=None,editmode="edit",
-                  mirror=None,keep_updated=None,priority=200,
+                  mirror=None,keep_updated=None,priority=99,
                   rpm_list=None,createrepo_flags=None,arch=None,delete1=None,delete2=None,**args):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
