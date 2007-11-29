@@ -2,8 +2,9 @@
 Builds out a TFTP/cobbler boot tree based on the object tree.
 This is the code behind 'cobbler sync'.
 
-Copyright 2006, Red Hat, Inc
+Copyright 2006,2007, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
+Tim Verhoeven <tim.verhoeven.be@gmail.com>
 
 This software may be freely redistributed under the terms of the GNU
 general public license.
@@ -389,6 +390,7 @@ class BootSync:
         pattern1 = "wget \"http://%s/cblr/watcher.py?%s_%s=%s\" -b"
         pattern2 = "wget \"http://%s/cgi-bin/cobbler/nopxe.cgi?system=%s\" -b"
         pattern3 = "wget \"http://%s/cobbler/%s/%s/ks.cfg\" -O /root/cobbler.ks"
+        pattern4 = "wget \"http://%s/cgi-bin/cobbler/postinstalltrigger.cgi?system=%s\" -b"
 
         blend_this = profile
         if system:
@@ -404,6 +406,8 @@ class BootSync:
                 buf = buf + "\n" + pattern2 % (blended["server"], system.name)
             if kickstart and os.path.exists(kickstart):
                 buf = buf + "\n" + pattern3 % (blended["server"], "kickstarts_sys", system.name)
+            if self.settings.run_postinstall_trigger:
+                buf = buf + "\n" + pattern4 % (blended["server"], system.name)
 
         else:
             buf = buf + pattern1 % (blended["server"], "profile", "done", profile.name)

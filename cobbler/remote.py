@@ -145,6 +145,27 @@ class CobblerXMLRPCInterface:
         systems.add(obj,with_copy=True)
         return True
 
+    def run_postinstalltrigger(self,name,token=None):
+        """
+        This is a feature used to run the post install trigger.
+        It passes the system named "name" to the trigger.  Disabled by default as
+        this requires public API access and is technically a read-write operation.
+        """
+        # used by postinstalltrigger.cgi
+        self.logger.debug("Starting run_postinstalltrigger")
+        self.api.clear()
+        self.api.deserialize()
+        if not self.api.settings().run_postinstall_trigger:
+            # feature disabled!
+            return False
+        systems = self.api.systems()
+        obj = systems.find(name=name)
+        if obj == None:
+            # system not found!
+            return False
+        utils.run_triggers(obj, "/var/lib/cobbler/triggers/install/post/*")
+        return True
+
     def _refresh(self):
         """
         Internal function to reload cobbler's configuration from disk.  This is used to prevent any out

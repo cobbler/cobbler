@@ -63,7 +63,7 @@ if __name__ == "__main__":
                                 
                                 # cgi files
                                 (cgipath,  ['scripts/findks.cgi', 'scripts/nopxe.cgi']),
-                                (cgipath,  ['scripts/webui.cgi']),
+                                (cgipath,  ['scripts/webui.cgi', 'scripts/postinstalltrigger.cgi']),
  
                                 # miscellaneous config files
                                 (cgipath,  ['config/.htaccess']),
@@ -192,6 +192,7 @@ if __name__ == "__main__":
                                 ("%sdelete/repo/pre" % trigpath,     []),
                                 ("%sdelete/repo/post" % trigpath,    []),
                                 ("%sdelete/repo/post" % trigpath,    []),
+                                ("%sinstall/post" % trigpath,        []),
                                 ("%ssync/pre" % trigpath,            []),
                                 ("%ssync/post" % trigpath,           [ "triggers/restart-services.trigger" ])
                              ],

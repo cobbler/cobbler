@@ -43,6 +43,7 @@ DEFAULTS = {
     "manage_dhcp_mode"            : "isc",
     "next_server"                 : "127.0.0.1",
     "pxe_just_once"               : 0,
+    "run_postinstall_trigger"     : 0,
     "server"                      : "127.0.0.1",
     "snippetsdir"                 : "/var/lib/cobbler/snippets",
     "syslog_port"                 : 25150,

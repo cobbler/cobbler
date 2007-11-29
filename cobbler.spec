@@ -78,6 +78,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cgi-bin/cobbler/
 /var/www/cgi-bin/cobbler/findks.cgi
 /var/www/cgi-bin/cobbler/nopxe.cgi
+/var/www/cgi-bin/cobbler/postinstalltrigger.cgi
 /var/www/cgi-bin/cobbler/webui.cgi
 %defattr(660,apache,apache)
 %config(noreplace) /var/www/cgi-bin/cobbler/.htaccess
@@ -167,6 +168,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/triggers/delete/repo/post
 %dir /var/lib/cobbler/triggers/sync/pre
 %dir /var/lib/cobbler/triggers/sync/post
+%dir /var/lib/cobbler/triggers/install/post
 %dir /var/lib/cobbler/snippets/
 
 %defattr(744,root,root)
