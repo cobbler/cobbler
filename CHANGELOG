@@ -2,6 +2,8 @@ Koan CHANGELOG
 
 * Tue Nov 27 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.4-1
 - Added --nogfx option, which is basically the inverse of the old --virt-graphics
+- Allow Xen machines to be constructed with no disks (size=0), but not qemu/KVM
+- Support Xen Fullvirt via PXE
 
 * Thu Nov 15 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.3-3
 - Packaged textwrap for RHEL3 compatibility, plus RHEL3 xmlrpclib tweak
