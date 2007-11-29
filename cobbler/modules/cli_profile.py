@@ -78,6 +78,7 @@ class ProfileFunction(commands.CobblerFunction):
         if self.options.virt_file_size:  obj.set_virt_file_size(self.options.virt_file_size)
         if self.options.virt_ram:        obj.set_virt_ram(self.options.virt_ram)
         if self.options.virt_bridge:     obj.set_virt_bridge(self.options.virt_bridge)
+        if self.options.virt_type:       obj.set_virt_type(self.options.virt_type)
         if self.options.virt_cpus:       obj.set_virt_cpus(self.options.virt_cpus)
         if self.options.repos:           obj.set_repos(self.options.repos)
         if self.options.virt_path:       obj.set_virt_path(self.options.virt_path)
