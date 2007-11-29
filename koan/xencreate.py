@@ -23,7 +23,12 @@ import exceptions
 import errno
 import re
 import virtinst
-import virtinst.DistroManager as DistroManager
+try:
+    import virtinst.DistroManager as DistroManager
+except:
+    # older virtinst, this is probably ok
+    # but we know we can't do Xen fullvirt installs
+    pass
 import traceback
 
 class VirtCreateException(exceptions.Exception):
