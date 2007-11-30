@@ -93,7 +93,11 @@ def start_install(name=None, ram=None, disks=None, mac=None,
     if profile_data.has_key("interfaces"):
 
         counter = 0
-        for (iname,intf) in profile_data["interfaces"].iteritems():
+        interfaces = profile_data["interfaces"].keys()
+        interfaces.sort()
+        #for (iname,intf) in profile_data["interfaces"].iteritems():
+        for iname in interfaces:
+            intf = profile_data["interfaces"][iname]
 
             mac = intf["mac_address"]
             if mac == "":
