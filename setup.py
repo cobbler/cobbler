@@ -45,6 +45,7 @@ if __name__ == "__main__":
         tftp_images   = "/tftpboot/images"
         rotpath       = "/etc/logrotate.d"
         cgipath       = "/var/www/cgi-bin/cobbler"
+        modpython     = "/var/www/cobbler/web"
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -60,10 +61,10 @@ if __name__ == "__main__":
                 ],
                 scripts = ["scripts/cobbler", "scripts/cobblerd"],
                 data_files = [ 
-                                
+                                (modpython, ['scripts/index.py']),
                                 # cgi files
-                                (cgipath,  ['scripts/findks.cgi', 'scripts/nopxe.cgi']),
-                                (cgipath,  ['scripts/webui.cgi', 'scripts/post_install_trigger.cgi']),
+                                (cgipath,   ['scripts/findks.cgi', 'scripts/nopxe.cgi']),
+                                (cgipath,   ['scripts/webui.cgi', 'scripts/post_install_trigger.cgi']),
  
                                 # miscellaneous config files
                                 (cgipath,  ['config/.htaccess']),

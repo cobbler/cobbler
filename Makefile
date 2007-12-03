@@ -48,6 +48,7 @@ devinstall:
 	find /var/lib/cobbler/triggers | xargs chmod +x
 	chown -R apache /var/www/cobbler 
 	chown -R apache /var/www/cgi-bin/cobbler	
+	chmod -R +x /var/www/cobbler/web
 
 sdist: clean messages updatewui
 	python setup.py sdist

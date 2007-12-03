@@ -75,6 +75,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %files
 
 %defattr(755,apache,apache)
+%dir /var/www/cobbler/web/
+/var/www/cobbler/web/*.py
 %dir /var/www/cgi-bin/cobbler/
 /var/www/cgi-bin/cobbler/*.cgi
 %defattr(660,apache,apache)

@@ -23,6 +23,7 @@ include scripts/cobblerd
 include scripts/findks.cgi
 include scripts/nopxe.cgi
 include scripts/webui.cgi
+include scripts/gateway.py
 include scripts/post_install_trigger.cgi
 include snippets/*
 recursive-include po *.pot
