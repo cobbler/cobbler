@@ -50,6 +50,10 @@ devinstall:
 	chown -R apache /var/www/cgi-bin/cobbler	
 	chmod -R +x /var/www/cobbler/web
 
+webtest: devinstall
+	/sbin/service cobblerd restart
+	/sbin/service httpd restart
+
 sdist: clean messages updatewui
 	python setup.py sdist
 

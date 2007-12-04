@@ -238,13 +238,13 @@ class BootAPI:
         """
         return module_loader.get_module_by_name(module_name)
 
-    def get_module_from_file(self,section,name):
+    def get_module_from_file(self,section,name,fallback=None):
         """
         Looks in /etc/cobbler/modules.conf for a section called 'section'
         and a key called 'name', and then returns the module that corresponds
         to the value of that key.
         """
-        return module_loader.get_module_from_file(section,name)
+        return module_loader.get_module_from_file(section,name,fallback)
 
     def get_modules_in_category(self,category):
         """

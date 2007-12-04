@@ -13,60 +13,130 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-# TO DO:
-# connect backend authn via cobbler XMLRPC (non-RW) API
-# connect backend authz via cobbler XMLRPC (RW) API
+# still TODO:
 # serve up Web UI through this interface, via tokens in headers
-# make REST interface for read/write commands (also?)
 
 from mod_python import apache
+from mod_python import Session
+import xmlrpclib
+
+XMLRPC_SERVER = "http://127.0.0.1/cobbler_api_rw"
+
+#=======================================
+
+class ServerProxy(xmlrpclib.ServerProxy):
+
+    """
+    Establishes a connection from the mod_python
+    web interface to cobblerd, which incidentally 
+    is also being proxied by Apache.
+    """
+
+    def __init__(self, url=None):
+        xmlrpclib.ServerProxy.__init__(self, url, allow_none=True)
+
+xmlrpc_server = ServerProxy(XMLRPC_SERVER)
+
+#=======================================
 
 def __get_user(req):
+    """
+    What user are we logged in as?
+    """
     req.add_common_vars()
     env_vars = req.subprocess_env.copy()
     return env_vars["REMOTE_USER"]
 
+def __get_session(req):
+    """
+    Get/Create the Apache Session Object
+    FIXME: any reason to not use MemorySession?
+    """
+    if not hasattr(req,"session"):
+        req.session = Session.MemorySession(req)
+    return req.session
+
+#======================================================
+
 def index(req):
-    user = __get_user(req)
-    path = req.uri
-    return "Hello, %s, %s" % (user, path)
+
+    """
+    Right now, index serves everything.
+
+    Hitting this URL means we've already cleared authn/authz
+    but we still need to use the token for all remote requests.
+
+    FIXME: deal with query strings and defer to CobblerWeb.py
+    """
+
+    my_user = __get_user(req)
+    my_uri = req.uri
+
+    sess  = __get_session(req)
+    token = sess['cobbler_token']
+
+    return "it seems to be all good: %s" % token
+
+#======================================================
 
 def hello(req):
+
+    """
+    This is just another example for the publisher handler.
+    """
+
     user = __get_user(req)
     path = req.uri
     return "We are in hello(%s)" % path
 
+#======================================================
+
 def authenhandler(req):
 
-    pw = req.get_basic_auth_pw()
-    user = req.user
+    """
+    Validates that username/password are a valid combination, but does
+    not check access levels.
+    """
 
-    # FIXME: poll cobbler_api (not rw) here to check
-    # check_authn(user,pass) -> T/F
+    my_pw = req.get_basic_auth_pw()
+    my_user = req.user
+    my_uri = req.uri
 
-    apache.log_error("authenticate handler called")
-
-    if user == "admin" and pw == "cobbler":
-        return apache.OK
-    else:
+    apache.log_error("authenhandler called: %s" % my_user)
+    try:
+        token = xmlrpc_server.login(my_user,my_pw)
+    except:
         return apache.HTTP_UNAUTHORIZED
 
-def accesshandler(req):
-    uri = req.uri
-
-    apache.log_error("accesshandler uri: %s" % (uri))
-
-    # FIXME: poll cobbler_api (not rw) here to check
-    # check_access(user,uri) -> T/F
-
-    if uri.find("hello") != -1:
+    try:
+        ok = xmlrpc_server.check_access(token,my_uri)
+    except:
         return apache.HTTP_FORBIDDEN
+        
+
+    sess=__get_session(req)
+    sess['cobbler_token'] = token
+    sess.save()
+
     return apache.OK
+
+#======================================================
+
+def accesshandler(req):
+    
+    """
+    Not using this
+    """
+
+    return apache.OK
+
+#======================================================
 
 def authenzhandler(req):
 
-    # we really don't need this because of the accesshandler.
-    # add in later if we find we /DO/ need it
-    return apache.OK
+    """
+    Not using this
+    """
 
+    return apache.OK
 

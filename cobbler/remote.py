@@ -21,7 +21,6 @@ import SimpleXMLRPCServer
 from rhpl.translate import _, N_, textdomain, utf8
 import xmlrpclib
 import logging
-import ConfigParser
 import random
 import base64
 
@@ -32,14 +31,6 @@ import item_distro
 import item_profile
 import item_system
 import item_repo
-
-config_parser = ConfigParser.ConfigParser()
-auth_conf = open("/etc/cobbler/auth.conf")
-config_parser.readfp(auth_conf)
-auth_conf.close()
-
-user_database = config_parser.items("xmlrpc_service_users")
-
 
 # FIXME: make configurable?
 TOKEN_TIMEOUT = 60*60 # 60 minutes
@@ -374,6 +365,17 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.token_cache = {}
         self.object_cache = {} 
         random.seed(time.time())
+        self.authn  = self.api.get_module_from_file(
+              "authentication",
+              "module",
+              "authn_configfile"
+        )
+        self.authz  = self.api.get_module_from_file(
+              "authorization",
+              "module",
+              "authz_allowall"
+        )
+
 
     def __next_id(self,retry=0):
         """
@@ -394,12 +396,12 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         urandom.close()
         return b64 
 
-    def __make_token(self):
+    def __make_token(self,user):
         """
         Returns a new random token.
         """
         b64 = self.__get_random(25)
-        self.token_cache[b64] = time.time()
+        self.token_cache[b64] = (time.time(), user)
         return b64
 
     def __invalidate_expired_objects(self):
@@ -420,12 +422,12 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         timenow = time.time()
         for token in self.token_cache.keys():
-            tokentime = self.token_cache[token]
+            (tokentime, user) = self.token_cache[token]
             if (timenow > tokentime + TOKEN_TIMEOUT):
                 self.logger.debug("expiring token: %s" % token)
                 del self.token_cache[token]
 
-    def __validate_user(self,user,password):
+    def __validate_user(self,input_user,input_password):
         """
         Returns whether this user/pass combo should be given
         access to the cobbler read-write API.
@@ -433,14 +435,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         FIXME: currently looks for users in /etc/cobbler/auth.conf
         Would be very nice to allow for PAM and/or just Kerberos.
         """
-        for x in user_database:
-            (db_user,db_password) = x
-            db_user     = db_user.strip()
-            db_password = db_password.strip()
-            if db_user == user and db_password == password and db_password.lower() != "disabled":
-                return True
-        else:
-            return False
+        return self.authn.authenticate(input_user,input_password)
 
     def __validate_token(self,token): 
         """
@@ -454,26 +449,44 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.__invalidate_expired_tokens()
         self.__invalidate_expired_objects()
         if self.token_cache.has_key(token):
-            self.token_cache[token] = time.time() # update to prevent timeout
+            user = self.__get_user_from_token(token)
+            self.token_cache[token] = (time.time(), user) # update to prevent timeout
             return True
         else:
             self.logger.debug("invalid token: %s" % token)
             raise CX(_("invalid token: %s" % token))
 
-    def login(self,user,password):
+    def check_access(self,token,resource):
+        validated = self.__validate_token(token)
+        return self.__authorize(token,resource)
+
+    def __get_user_from_token(self,token):
+        if not self.token_cache.has_key(token):
+            raise CX(_("invalid token: %s") % token)
+        else:
+            return self.token_cache[token][1]
+
+    def login(self,login_user,login_password):
         """
         Takes a username and password, validates it, and if successful
         returns a random login token which must be used on subsequent
         method calls.  The token will time out after a set interval if not
         used.  Re-logging in permitted.
         """
-        if self.__validate_user(user,password):
-            token = self.__make_token()
-            self.logger.info("login succeeded: %s" % user)
+        if self.__validate_user(login_user,login_password):
+            token = self.__make_token(login_user)
+            self.logger.info("login succeeded: %s" % login_user)
             return token
         else:
-            self.logger.info("login failed: %s" % user)
-            raise CX(_("login failed: %s") % user)
+            self.logger.info("login failed: %s" % login_user)
+            raise CX(_("login failed: %s") % login_user)
+
+    def __authorize(self,token,resource):
+        user = self.__get_user_from_token(token)
+        if self.authz.authorize(user,resource):
+            return True
+        else:
+            raise CX(_("user does not have access to resource: %s") % resource)
 
     def logout(self,token):
         """
@@ -523,7 +536,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
               remote.modify_distro(distro_id, 'initrd', '/foo/initrd.img', token)
               remote.save_distro(distro_id, token)
         """      
-        self.__validate_token(token)
+        self.check_access(token,"new_distro")
         return self.__store_object(item_distro.Distro(self.api._config))
 
     def new_profile(self,token):    
@@ -531,16 +544,9 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Creates a new (unconfigured) profile object.  See the documentation
         for new_distro as it works exactly the same.
         """
-        self.__validate_token(token)
+        
+        self.check_access(token,"new_profile")
         return self.__store_object(item_profile.Profile(self.api._config))
-
-    def new_subprofile(self,token):
-        """
-        Creates a new (unconfigured) subprofile object.  See the documentation
-        for new_distro as it works exactly the same.
-        """
-        self.__validate_token(token)
-        return self.__store_object(item_profile.Profile(self.api._config, is_subobject=True))
 
     def new_subprofile(self,token):
         """
@@ -551,7 +557,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         were regular profiles.  The same XMLRPC API methods work on them as profiles
         also.
         """
-        self.__validate_token(token)
+        self.check_access(token,"new_subprofile")
         return self.__store_object(item_profile.Profile(self.api._config,is_subobject=True))
 
     def new_system(self,token):
@@ -559,7 +565,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Creates a new (unconfigured) system object.  See the documentation
         for new_distro as it works exactly the same.
         """
-        self.__validate_token(token)
+        self.check_access(token,"new_system")
         return self.__store_object(item_system.System(self.api._config))
         
     def new_repo(self,token):
@@ -567,7 +573,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Creates a new (unconfigured) repo object.  See the documentation 
         for new_distro as it works exactly the same.
         """
-        self.__validate_token(token)
+        self.check_access(token,"new_repo")
         return self.__store_object(item_repo.Repo(self.api._config))
        
     def get_distro_handle(self,name,token):
@@ -576,7 +582,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         object id that can be passed in to modify_distro() or save_distro()
         commands.  Raises an exception if no object can be matched.
         """
-        self.__validate_token(token)
+        self.check_access(token,"get_distro_handle")
         self._refresh()
         found = self.api.distros().find(name)
         return self.__store_object(found)   
@@ -587,7 +593,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         object id that can be passed in to modify_profile() or save_profile()
         commands.  Raises an exception if no object can be matched.
         """
-        self.__validate_token(token)
+        self.check_access(token,"get_profile_handle")
         self._refresh()
         found = self.api.profiles().find(name)
         return self.__store_object(found)   
@@ -598,7 +604,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         object id that can be passed in to modify_system() or save_system()
         commands. Raises an exception if no object can be matched.
         """
-        self.__validate_token(token)
+        self.check_access(token,"get_system_handle")
         self._refresh()
         found = self.api.systems().find(name)
         return self.__store_object(found)   
@@ -609,7 +615,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         object id that can be passed in to modify_repo() or save_pro()
         commands.  Raises an exception if no object can be matched.
         """
-        self.__validate_token(token)
+        self.check_access(token,"get_repo_handle")
         self._refresh()
         found = self.api.repos().find(name)
         return self.__store_object(found)   
@@ -618,7 +624,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         Saves a newly created or modified distro object to disk.
         """
-        self.__validate_token(token)
+        self.check_access(token,"save_distro")
         obj = self.__get_object(object_id)
         return self.api.distros().add(obj,with_copy=True)
 
@@ -626,7 +632,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         Saves a newly created or modified profile object to disk.
         """
-        self.__validate_token(token)
+        self.check_access(token,"save_profile")
         obj = self.__get_object(object_id)
         return self.api.profiles().add(obj,with_copy=True)
 
@@ -634,7 +640,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         Saves a newly created or modified system object to disk.
         """
-        self.__validate_token(token)
+        self.check_access(token,"save_system")
         obj = self.__get_object(object_id)
         return self.api.systems().add(obj,with_copy=True)
 
@@ -642,7 +648,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         Saves a newly created or modified repo object to disk.
         """
-        self.__validate_token(token)
+        self.check_access(token,"save_repo")
         obj = self.__get_object(object_id)
         return self.api.repos().add(obj,with_copy=True)
 
@@ -660,7 +666,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Allows modification of certain attributes on newly created or
         existing distro object handle.
         """
-        self.__validate_token(token)
+        self.check_access(token, "modify_distro", attribute, arg)
         obj = self.__get_object(object_id)
         return self.__call_method(obj, attribute, arg)
 
@@ -669,7 +675,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Allows modification of certain attributes on newly created or
         existing profile object handle.
         """
-        self.__validate_token(token)
+        self.check_access(token, "modify_profile", attribute, arg)
         obj = self.__get_object(object_id)
         return self.__call_method(obj, attribute, arg)
 
@@ -678,7 +684,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Allows modification of certain attributes on newly created or
         existing system object handle.
         """
-        self.__validate_token(token)
+        self.check_access(token, "modify_system", attribute, arg)
         obj = self.__get_object(object_id)
         return self.__call_method(obj, attribute, arg)
 
@@ -687,7 +693,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Allows modification of certain attributes on newly created or
         existing repo object handle.
         """
-        self.__validate_token(token)
+        self.check_access(token, "modify_repo", attribute, arg)
         obj = self.__get_object(object_id)
         return self.__call_method(obj, attribute, arg)
 
@@ -696,7 +702,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Deletes a distro from a collection.  Note that this just requires the name
         of the distro, not a handle.
         """
-        self.__validate_token(token)
+        self.check_access(token, "distro_remove", name)
         rc = self.api._config.distros().remove(name)
         return rc
 
@@ -705,7 +711,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Deletes a profile from a collection.  Note that this just requires the name
         of the profile, not a handle.
         """
-        self.__validate_token(token)
+        self.check_access(token, "profile_remove", name)
         rc = self.api._config.profiles().remove(name)
         return rc
 
@@ -714,7 +720,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Deletes a system from a collection.  Note that this just requires the name
         of the system, not a handle.
         """
-        self.__validate_token(token)
+        self.check_access(token, "system_remove", name)
         rc = self.api._config.systems().remove(name)
         return rc
 
@@ -723,7 +729,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Deletes a repo from a collection.  Note that this just requires the name
         of the repo, not a handle.
         """
-        self.__validate_token(token)
+        self.check_access(token, "repo_remove", name)
         rc = self.api._config.repos().remove(name)
         return rc
 
@@ -738,7 +744,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Future versions of cobbler may understand how to do a cascade sync
         on object edits making explicit calls to sync redundant.
         """
-        self.__validate_token(token)
+        self.check_access(token, sync)
         return self.api.sync() 
 
     def reposync(self,repos=[],token=None):
@@ -747,7 +753,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         reposync is very slow and probably should not be used
         through the XMLRPC API, setting up reposync on nightly cron is better.
         """
-        self.__validate_token(token)
+        self.check_access(token, "reposync", repos)
         return self.api.reposync(repos)
 
     def import_tree(self,mirror_url,mirror_name,network_root=None,token=None):
@@ -757,14 +763,14 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         It would be better to use the CLI.  See documentation in api.py.
         This command may be removed from the API in a future release.
         """
-        self.__validate_token(token)
+        self.check_access(token, "import_tree")
         return self.api.import_tree(mirror_url,mirror_name,network_root)
 
     def get_kickstart_templates(self,token):
         """
         Returns all of the kickstarts that are in use by the system.
         """
-        self.__validate_token(token)
+        self.check_access(token, "get_kickstart_templates")
         files = {} 
         for x in self.api.profiles():
            if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
@@ -784,7 +790,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Also if living in /etc/cobbler the file must be a kickstart file.
         """
 
-        self.__validate_token(token)
+        self.check_access(token,"read_or_write_kickstart_templates",kickstart_file,is_read)
  
         if kickstart_file.find("..") != -1 or not kickstart_file.startswith("/"):
             raise CX(_("tainted file location"))
@@ -812,8 +818,8 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
 
 
 
-# *********************************************************************************
-# *********************************************************************************
+# *********************************************************************
+# *********************************************************************
 
 class CobblerReadWriteXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
     """
@@ -824,76 +830,3 @@ class CobblerReadWriteXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
         self.allow_reuse_address = True
         SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self,args)
 
-# *********************************************************************************
-# *********************************************************************************
-
-if __name__ == "__main__":
-
-    # note: this demo requires that
-    #  (A) /etc/cobbler/auth.conf has a "testuser/llamas2007" account
-    #  (B) xmlrpc_rw_enabled is turned on /var/lib/cobbler/settings
-    #  (C) cobblerd is running (and restarted if changing any of the above)
-    #  (D) apache is configured as a reverse proxy (see cobbler.conf in /etc/httpd/conf.d)
-    # this demo does not use SSL yet -- it /should/ and /can/.
-
-    my_uri = "http://127.0.0.1/cobbler_api_rw"
-    remote =  xmlrpclib.Server(my_uri)
-
-    testuser = "admin"
-    testpass = "mooses9"
-
-    token = remote.login(testuser,testpass)
-    print token
-
-    # just to make things "work"
-    os.system("touch /tmp/vmlinuz")
-    os.system("touch /tmp/initrd.img")
-    os.system("touch /tmp/fake.ks")
-
-    # now add a distro
-    distro_id = remote.new_distro(token)
-    remote.modify_distro(distro_id, 'name',   'example-distro',token)
-    remote.modify_distro(distro_id, 'kernel', '/tmp/vmlinuz',token)
-    remote.modify_distro(distro_id, 'initrd', '/tmp/initrd.img',token)
-    remote.save_distro(distro_id,token)
-
-    # now add a repository (that's not really mirroring anything useful)
-    repo_id = remote.new_repo(token)
-    remote.modify_repo(repo_id, 'name',   'example-repo', token)
-    remote.modify_repo(repo_id, 'mirror', 'rsync://mirror.example.org/foo', token)
-    remote.save_repo(repo_id, token)
-
-    # now add a profile
-    profile_id = remote.new_profile(token)
-    remote.modify_profile(profile_id, 'name',      'example-profile', token)
-    remote.modify_profile(profile_id, 'distro',    'example-distro', token)
-    remote.modify_profile(profile_id, 'kickstart', '/tmp/fake.ks', token)
-    remote.modify_profile(profile_id, 'repos',     ['example-repo'], token)
-    remote.save_profile(profile_id, token)
-
-    # now add a system
-    system_id = remote.new_system(token)
-    remote.modify_system(system_id,   'name',      'example-system', token)
-    remote.modify_system(system_id,   'profile',   'example-profile', token)
-    remote.save_system(system_id, token)
-
-    print remote.get_distros()
-    print remote.get_profiles()
-    print remote.get_systems()
-    print remote.get_repos()
-
-    print remote.get_system("AA:BB:AA:BB:AA:BB",True) # flattened
-
-    # now simulate hitting a "sync" button in a WebUI
-    print remote.sync(token)
-
-    # the following code just tests a failed connection:
-    #remote = CobblerReadWriteXMLRPCInterface(api,logger)
-    #try:
-    #    token = remote.login("exampleuser2","examplepass")
-    #except:
-    #    token = "fake_token"
-    #print token
-    #rc = remote.test(token)
-    #print "test result: %s" % rc
-    # print "cache: %s" % remote.token_cache
