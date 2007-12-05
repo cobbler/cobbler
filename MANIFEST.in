@@ -17,6 +17,7 @@ include docs/cobbler.html
 include docs/wui.html
 include COPYING AUTHORS README CHANGELOG
 include scripts/watcher.py
+include scripts/index.py
 include scripts/cobblerd
 include scripts/findks.cgi
 include scripts/nopxe.cgi

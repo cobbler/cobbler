@@ -71,7 +71,6 @@ if __name__ == "__main__":
                                 (wwwconf,  ['config/cobbler.conf']),
                                 (cobpath,  ['config/cobbler_hosts']),
                                 (etcpath,  ['config/modules.conf']),
-                                (etcpath,  ['config/auth.conf']),
                                 (etcpath,  ['config/users.digest']),
                                 (etcpath,  ['config/rsync.exclude']),
                                 (initpath, ['config/cobblerd']),

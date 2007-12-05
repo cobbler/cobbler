@@ -76,7 +76,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(755,apache,apache)
 %dir /var/www/cobbler/web/
-/var/www/cobbler/web/*.py
+/var/www/cobbler/web/*.py*
 %dir /var/www/cgi-bin/cobbler/
 /var/www/cgi-bin/cobbler/*.cgi
 
@@ -128,7 +128,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/cobbler/rsync.exclude
 %config(noreplace) /etc/logrotate.d/cobblerd_rotate
 %config(noreplace) /etc/cobbler/modules.conf
-%config(noreplace) /etc/cobbler/webui-cherrypy.cfg
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/yaml
 %dir %{python_sitelib}/cobbler/modules
