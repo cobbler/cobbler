@@ -670,25 +670,9 @@ Cobbler also makes itself available as a Python API for use by higher level mana
 
 =head2 WEB USER INTERFACE
 
-Most of the day-to-day actions in cobbler's command line can be performed in Cobbler's Web UI.  To enable and access the WebUI, perform the following steps.
+Most of the day-to-day actions in cobbler's command line can be performed in Cobbler's Web UI.  To enable and access the WebUI, see the following documentation:
 
-1) Set xmlrpc_rw_enabled to 1 in /var/lib/cobbler/settings to enable network control.
-
-2) Change the admin xmlrpc secret in /etc/cobbler/auth.conf.  You won't have to remember it. 
-
-3) The default Web UI password is "cobbler/ILoveCobbler", to change this, run:
-
-htdigest /var/www/cgi-bin/cobbler/.htpasswd "Cobbler WebUI Authentication" cobbler
-
-4) SELinux users may also have to run:
-
-setsebool httpd_can_network_connect true
-
-chcon httpd_sys_content_t /etc/cobbler/auth.conf
-
-5) Run /sbin/service cobblerd restart.  
-
-6) Visit http://yourserver.example.org/cgi-bin/cobbler/webui.cgi and log in with whatever you chose in step 3.
+https://hosted.fedoraproject.org/projects/cobbler/wiki/CobblerWebUi
 
 =head1 EXIT_STATUS
 
