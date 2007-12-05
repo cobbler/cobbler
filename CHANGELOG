@@ -7,6 +7,8 @@ Cobbler CHANGELOG
 - Make CLI functions modular and use optparse
 - Quote wget args to avoid creating stray files on target system
 - Support Xen FV as virt type (requires F8+)
+- Implemented fully pluggable authn/authz system
+- WebUI is now mod_python based
 - ...
 
 * Wed Nov 14 2007 - 0.6.4

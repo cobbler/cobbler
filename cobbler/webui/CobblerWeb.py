@@ -195,7 +195,7 @@ class CobblerWeb(object):
     # as you could disable a lot of functionality if you aren't careful
     # including your ability to fix it back.
 
-    def settings_view(self):
+    def settings_view(self,**args):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 

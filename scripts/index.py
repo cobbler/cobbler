@@ -120,12 +120,14 @@ def authenhandler(req):
     apache.log_error("authenhandler called: %s" % my_user)
     try:
         token = xmlrpc_server.login(my_user,my_pw)
-    except:
+    except Exception, e:
+        apache.log_error(str(e))
         return apache.HTTP_UNAUTHORIZED
 
     try:
         ok = xmlrpc_server.check_access(token,my_uri)
-    except:
+    except Exception, e:
+        apache.log_error(str(e))
         return apache.HTTP_FORBIDDEN
         
 
