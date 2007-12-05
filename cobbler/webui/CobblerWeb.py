@@ -20,7 +20,9 @@ from cobbler.utils import *
 import logging
 import sys
 
-LOGGING_ENABLED = False
+# FIXME: make logging use apache logging
+
+LOGGING_ENABLED = True
 
 if LOGGING_ENABLED:
     # set up logging
@@ -179,10 +181,10 @@ class CobblerWeb(object):
     # Index
     # ------------------------------------------------------------------------ #
 
-    def index(self):
+    def index(self,**args):
         return self.__render( 'index.tmpl', { } )
 
-    def menu(self):
+    def menu(self,**args):
         return self.__render( 'blank.tmpl', { } )
    
     # ------------------------------------------------------------------------ #
@@ -206,7 +208,7 @@ class CobblerWeb(object):
     # Distributions
     # ------------------------------------------------------------------------ #
 
-    def distro_list(self,page=None,limit=None):
+    def distro_list(self,page=None,limit=None,**spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
@@ -223,7 +225,7 @@ class CobblerWeb(object):
         else:
             return self.__render('empty.tmpl', {})  
   
-    def distro_edit(self, name=None):
+    def distro_edit(self, name=None,**spam):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -330,7 +332,7 @@ class CobblerWeb(object):
         return (page, results_per_page, pages)
         
 
-    def system_list(self,page=None,limit=None):
+    def system_list(self,page=None,limit=None,**spam):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -456,7 +458,7 @@ class CobblerWeb(object):
         return self.system_list()
 
 
-    def system_edit(self, name=None):
+    def system_edit(self, name=None,**spam):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -474,7 +476,7 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
     # Profiles
     # ------------------------------------------------------------------------ #
-    def profile_list(self,page=None,limit=None):
+    def profile_list(self,page=None,limit=None,**spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
@@ -491,10 +493,10 @@ class CobblerWeb(object):
         else:
             return self.__render('empty.tmpl', {})
 
-    def subprofile_edit(self, name=None):
+    def subprofile_edit(self, name=None,**spam):
         return self.profile_edit(name,1)
 
-    def profile_edit(self, name=None, subprofile=0):
+    def profile_edit(self, name=None, subprofile=0, **spam):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -611,7 +613,7 @@ class CobblerWeb(object):
     # Repos
     # ------------------------------------------------------------------------ #
 
-    def repo_list(self,page=None,limit=None):
+    def repo_list(self,page=None,limit=None,**spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
@@ -628,7 +630,7 @@ class CobblerWeb(object):
         else:
             return self.__render('empty.tmpl', {})
 
-    def repo_edit(self, name=None):
+    def repo_edit(self, name=None,**spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
@@ -706,14 +708,14 @@ class CobblerWeb(object):
     # Kickstart files
     # ------------------------------------------------------------------------ #
 
-    def ksfile_list(self):
+    def ksfile_list(self,**spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
         return self.__render( 'ksfile_list.tmpl', {
             'ksfiles': self.remote.get_kickstart_templates(self.token)
         } )
 
-    def ksfile_edit(self, name=None):
+    def ksfile_edit(self, name=None,**spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
         return self.__render( 'ksfile_edit.tmpl', {
@@ -757,7 +759,7 @@ class CobblerWeb(object):
         mac = self.remote.get_random_mac()
         return mac
 
-    def error_page(self, message):
+    def error_page(self, message, **spam):
 
         # hack to remove some junk from remote fault errors so they
         # look as if they were locally generated and not exception-based.
@@ -769,7 +771,7 @@ class CobblerWeb(object):
             'message': message
         } )
 
-    def xmlrpc_auth_failure(self):
+    def xmlrpc_auth_failure(self, **spam):
         return self.__render( 'error_page.tmpl', {
             'message': "XMLRPC Authentication Error.   See Apache logs for details."
         } )

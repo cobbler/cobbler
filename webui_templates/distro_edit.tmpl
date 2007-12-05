@@ -15,12 +15,13 @@ function disablename(value)
 </script>
 #end if 
 
-<form method="post" action="$base_url/distro_save">
+<form method="POST" action="$base_url">
 <fieldset id="cform">
 
      
     #if $distro
         <legend>Editing Distro</legend>
+        <input type="hidden" name="mode" value="distro_save">
         <input type="hidden" name="new_or_edit" value="edit"/>
         <input type="hidden" name="oldname" value="$distro.name"/>
     #else

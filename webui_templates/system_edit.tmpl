@@ -32,7 +32,7 @@ function disablename(value)
 function get_random_mac()
 {
     xmlHttp = new XMLHttpRequest();
-    xmlHttp.open("GET", "$base_url/random_mac", true);
+    xmlHttp.open("GET", "$base_url?mode=random_mac", true);
     xmlHttp.onreadystatechange = function () {
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
             var mac_field = document.getElementById("macaddress")
@@ -87,7 +87,7 @@ function page_onload() {
 }
 </script>
 
-<form method="post" action="$base_url/system_save">
+<form method="post" action="$base_url?mode=system_save">
 <fieldset id="cform">
    
     #if $system

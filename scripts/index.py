@@ -1,6 +1,5 @@
 """
-mod_python gateway to all interesting cobbler web and web service
-functions.
+mod_python gateway to all interesting cobbler web functions
 
 Copyright 2007, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
@@ -13,12 +12,13 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-# still TODO:
-# serve up Web UI through this interface, via tokens in headers
-
 from mod_python import apache
 from mod_python import Session
+from mod_python import util
+
 import xmlrpclib
+import cgi
+from cobbler.webui import CobblerWeb
 
 XMLRPC_SERVER = "http://127.0.0.1/cobbler_api_rw"
 
@@ -58,36 +58,51 @@ def __get_session(req):
 
 #======================================================
 
-def index(req):
+def handler(req):
 
     """
     Right now, index serves everything.
 
     Hitting this URL means we've already cleared authn/authz
     but we still need to use the token for all remote requests.
-
-    FIXME: deal with query strings and defer to CobblerWeb.py
     """
 
     my_user = __get_user(req)
     my_uri = req.uri
-
     sess  = __get_session(req)
     token = sess['cobbler_token']
 
-    return "it seems to be all good: %s" % token
+    # needed?
+    req.add_common_vars()
+ 
+    # process form and qs data, if any
+    fs = util.FieldStorage(req)
+    form = {}
+    for x in fs.keys():
+        form[x] = str(fs.get(x,'default'))
 
-#======================================================
+    # instantiate a CobblerWeb object
+    cw = CobblerWeb.CobblerWeb(
+         token    = token, 
+         base_url = "/cobbler/web/",
+         server   = "http://127.0.0.1/cobbler_api_rw"
+    )
 
-def hello(req):
+    # check for a valid path/mode
+    # handle invalid paths gracefully
+    mode = form.get('mode','index')
+    if mode in cw.modes():
+        func = getattr( cw, mode )
+        content = func( **form )
+    else:
+        func = getattr( cw, 'error_page' )
+        content = func( "Invalid Mode: \"%s\"" % mode )
 
-    """
-    This is just another example for the publisher handler.
-    """
-
-    user = __get_user(req)
-    path = req.uri
-    return "We are in hello(%s)" % path
+    # apache.log_error("%s:%s ... %s" % (my_user, my_uri, str(form)))
+    req.content_type = "text/html"
+    req.write(content)
+    
+    return apache.OK
 
 #======================================================
 

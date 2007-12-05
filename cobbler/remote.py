@@ -456,9 +456,9 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
             self.logger.debug("invalid token: %s" % token)
             raise CX(_("invalid token: %s" % token))
 
-    def check_access(self,token,resource):
+    def check_access(self,token,resource,arg1=None,arg2=None):
         validated = self.__validate_token(token)
-        return self.__authorize(token,resource)
+        return self.__authorize(token,resource,arg1,arg2)
 
     def __get_user_from_token(self,token):
         if not self.token_cache.has_key(token):
@@ -481,9 +481,9 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
             self.logger.info("login failed: %s" % login_user)
             raise CX(_("login failed: %s") % login_user)
 
-    def __authorize(self,token,resource):
+    def __authorize(self,token,resource,arg1=None,arg2=None):
         user = self.__get_user_from_token(token)
-        if self.authz.authorize(user,resource):
+        if self.authz.authorize(user,resource,arg1,arg2):
             return True
         else:
             raise CX(_("user does not have access to resource: %s") % resource)

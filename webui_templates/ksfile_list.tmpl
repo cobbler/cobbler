@@ -22,9 +22,9 @@
         <tr class="$tr_class">
             <td>$ksfile</td>
             #if $ksfile.startswith("/var/lib/cobbler/kickstarts")
-                <td><a href="$base_url/ksfile_edit?name=$ksfile">edit</a></td>
+                <td><a href="$base_url?mode=ksfile_edit&name=$ksfile">edit</a></td>
             #else if $ksfile.startswith("/etc/cobbler")
-                <td><a href="$base_url/ksfile_edit?name=$ksfile">edit</a></td>
+                <td><a href="$base_url?mode=ksfile_edit&name=$ksfile">edit</a></td>
             #else if $ksfile.startswith("http://")
                 <td><a href="$ksfile">view</A></td>
             #else
