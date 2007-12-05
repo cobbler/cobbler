@@ -1,8 +1,0 @@
-<Files webui.cgi>
-AuthUserFile /var/www/cgi-bin/cobbler/.htpasswd
-AuthGroupFile /dev/null
-AuthName "Cobbler WebUI Authentication"
-AuthType Digest
-
-require valid-user
-</Files>

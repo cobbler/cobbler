@@ -16,7 +16,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import distutils.sysconfig
 import ConfigParser
 import sys
+import os
 from rhpl.translate import _, N_, textdomain, utf8
+import md5
+import traceback
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
@@ -25,29 +28,49 @@ sys.path.insert(0, mod_path)
 import cexceptions
 import utils
 
-
 def register():
     """
     The mandatory cobbler module registration hook.
     """
     return "authn"
 
+def __parse_storage():
+
+    if not os.path.exists("/etc/cobbler/users.digest"):
+        return []
+    fd = open("/etc/cobbler/users.digest")
+    data = fd.read()
+    fd.close()
+    results = []
+    lines = data.split("\n")
+    for line in lines:
+        try:
+            line = line.strip()
+            tokens = line.split(":")
+            results.append([tokens[0],tokens[1],tokens[2]])
+        except:
+            pass
+    return results
+
 def authenticate(username,password):
     """
     Validate a username/password combo, returning True/False
-    """
 
-    config_parser = ConfigParser.ConfigParser()
-    auth_conf = open("/etc/cobbler/auth.conf")
-    config_parser.readfp(auth_conf)
-    auth_conf.close()
-    user_database = config_parser.items("xmlrpc_service_users")
-    for x in user_database:
-        (db_user,db_password) = x
-        db_user     = db_user.strip()
-        db_password = db_password.strip()
-        if db_user == username and db_password == password and db_password.lower() != "disabled":
-            return True
+    Thanks to http://trac.edgewall.org/ticket/845 for supplying
+    the algorithm info.
+    """
+  
+    userlist = __parse_storage()
+    for (user,realm,actual_blob) in userlist:
+        if user == username and realm == "Cobbler":
+            input = ":".join([user,realm,password])
+            input_blob = md5.md5(input).hexdigest()
+            if input_blob.lower() == actual_blob.lower():
+                return True
+
     return False
 
+if __name__ == "__main__":
+   print authenticate("cobbler","cobbler")
+   print authenticate("cobbler","bogus")
 

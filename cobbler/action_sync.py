@@ -711,6 +711,7 @@ class BootSync:
             input_files.append(os.path.join(self.settings.webdir, "repo_mirror", repo, "config.repo"))
 
         for infile in input_files:
+            print "DEBUG: looking for infile: %s" % infile
             if infile.find("ks_mirror") == -1:
                 dispname = infile.split("/")[-2]
             else:

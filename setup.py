@@ -64,17 +64,15 @@ if __name__ == "__main__":
                                 (modpython, ['scripts/index.py']),
                                 # cgi files
                                 (cgipath,   ['scripts/findks.cgi', 'scripts/nopxe.cgi']),
-                                (cgipath,   ['scripts/webui.cgi', 'scripts/post_install_trigger.cgi']),
+                                (cgipath,   ['scripts/post_install_trigger.cgi']),
  
                                 # miscellaneous config files
-                                (cgipath,  ['config/.htaccess']),
-                                (cgipath,  ['config/.htpasswd']),
                                 (rotpath,  ['config/cobblerd_rotate']),
                                 (wwwconf,  ['config/cobbler.conf']),
                                 (cobpath,  ['config/cobbler_hosts']),
                                 (etcpath,  ['config/modules.conf']),
                                 (etcpath,  ['config/auth.conf']),
-                                (etcpath,  ['config/webui-cherrypy.cfg']),
+                                (etcpath,  ['config/users.digest']),
                                 (etcpath,  ['config/rsync.exclude']),
                                 (initpath, ['config/cobblerd']),
                                 (cobpath,  ['config/settings']),

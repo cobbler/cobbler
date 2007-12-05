@@ -8,10 +8,8 @@ include config/cobblerd_rotate
 include config/cobbler_hosts
 include config/modules.conf
 include config/auth.conf
-include config/webui-cherrypy.cfg
 include config/settings
-include config/.htaccess
-include config/.htpasswd
+include config/users.digest
 recursive-include templates *.template
 recursive-include kickstarts *.ks
 include docs/cobbler.1.gz

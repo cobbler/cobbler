@@ -79,9 +79,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /var/www/cobbler/web/*.py
 %dir /var/www/cgi-bin/cobbler/
 /var/www/cgi-bin/cobbler/*.cgi
-%defattr(660,apache,apache)
-%config(noreplace) /var/www/cgi-bin/cobbler/.htaccess
-%config(noreplace) /var/www/cgi-bin/cobbler/.htpasswd
 
 %defattr(755,apache,apache)
 %dir /usr/share/cobbler/webui_templates
@@ -178,8 +175,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/snippets/partition_select
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/lib/cobbler/menu.c32
-%defattr(660,apache,apache)
-%config(noreplace) /etc/cobbler/auth.conf 
+%defattr(660,root,root)
+%config(noreplace) /etc/cobbler/users.digest 
 
 %defattr(664,root,root)
 %config(noreplace) /var/lib/cobbler/cobbler_hosts
