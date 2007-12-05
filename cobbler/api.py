@@ -24,6 +24,11 @@ import action_status
 import action_validate
 import sub_process
 import module_loader
+import logging
+
+ERROR = 100
+INFO  = 10
+DEBUG = 5
 
 class BootAPI:
 
@@ -37,10 +42,33 @@ class BootAPI:
 
         self.__dict__ = self.__shared_state
         if not BootAPI.has_loaded:
+
+
+            logger = logging.getLogger("cobbler.api")
+            logger.setLevel(logging.DEBUG)
+            ch = logging.FileHandler("/var/log/cobbler/cobbler.log")
+            ch.setLevel(logging.DEBUG)
+            formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+            ch.setFormatter(formatter)
+            logger.addHandler(ch)
+
             BootAPI.has_loaded   = True
             module_loader.load_modules()
             self._config         = config.Config(self)
             self.deserialize()
+            self.logger = logger
+            self.logger.debug("API handle initialized")
+
+            self.authn = self.get_module_from_file(
+                "authentication",
+                "module",
+                "authn_configfile"
+            )
+            self.authz  = self.get_module_from_file(
+                "authorization",
+                "module",
+                "authz_allowall"
+            )
 
     def version(self):
         """
@@ -48,13 +76,13 @@ class BootAPI:
         Currently checks the RPM DB, which is not perfect.
         Will return "?" if not installed.
         """
+        self.logger.debug("cobbler version")
         cmd = sub_process.Popen("/bin/rpm -q cobbler", stdout=sub_process.PIPE, shell=True)
         result = cmd.communicate()[0].replace("cobbler-","")
         if result.find("not installed") != -1:
             return "?"
         tokens = result[:result.rfind("-")].split(".")
         return int(tokens[0]) + 0.1 * int(tokens[1]) + 0.001 * int(tokens[2])
-
 
     def clear(self):
         """
@@ -99,12 +127,14 @@ class BootAPI:
         """
         Return a blank, unconfigured system, unattached to a collection
         """
+        self.logger.debug("new_system")
         return self._config.new_system(is_subobject=is_subobject)
 
     def new_distro(self,is_subobject=False):
         """
         Create a blank, unconfigured distro, unattached to a collection.
         """
+        self.logger.debug("new_distro")
         return self._config.new_distro(is_subobject=is_subobject)
 
 
@@ -112,12 +142,14 @@ class BootAPI:
         """
         Create a blank, unconfigured profile, unattached to a collection
         """
+        self.logger.debug("new_profile")
         return self._config.new_profile(is_subobject=is_subobject)
 
     def new_repo(self,is_subobject=False):
         """
         Create a blank, unconfigured repo, unattached to a collection
         """
+        self.logger.debug("new_repo")
         return self._config.new_repo(is_subobject=is_subobject)
 
     def auto_add_repos(self):
@@ -125,6 +157,7 @@ class BootAPI:
         Import any repos this server knows about and mirror them.
         Credit: Seth Vidal.
         """
+        self.logger.debug("auto_add_repos")
         try:
             import yum
         except:
@@ -164,6 +197,7 @@ class BootAPI:
         for human admins, who may, for instance, forget to properly set up
         their TFTP servers for PXE, etc.
         """
+        self.logger.debug("check")
         check = action_check.BootCheck(self._config)
         return check.run()
 
@@ -176,6 +210,7 @@ class BootAPI:
         is not available on all platforms and can not detect "future"
         kickstart format correctness.
         """
+        self.logger.debug("validateks")
         validator = action_validate.Validate(self._config)
         return validator.run()
 
@@ -186,6 +221,7 @@ class BootAPI:
         /tftpboot.  Any operations done in the API that have not been
         saved with serialize() will NOT be synchronized with this command.
         """
+        self.logger.debug("sync")
         sync = action_sync.BootSync(self._config)
         return sync.run()
 
@@ -194,10 +230,12 @@ class BootAPI:
         Take the contents of /var/lib/cobbler/repos and update them --
         or create the initial copy if no contents exist yet.
         """
+        self.logger.debug("reposync")
         reposync = action_reposync.RepoSync(self._config)
         return reposync.run(name)
 
     def status(self,mode):
+        self.logger.debug("status")
         statusifier = action_status.BootStatusReport(self._config, mode)
         return statusifier.run()
 
@@ -252,4 +290,20 @@ class BootAPI:
         """
         return module_loader.get_modules_in_category(category)
 
+    def authenticate(self,user,password):
+        """
+        (Remote) access control.
+        """
+        self.logger.debug("authorize(%s)" % (user))
+        rc = self.authn.authenticate(self,user,password)     
+        self.logger.debug("authorize(%s)=%s" % (user,rc))
+        return rc 
+
+    def authorize(self,user,resource,arg1=None,arg2=None):
+        """
+        (Remote) access control.
+        """
+        rc = self.authz.authorize(self,user,resource,arg1,arg2)
+        self.logger.debug("authorize(%s,%s)=%s" % (user,resource,rc))
+        return rc
 

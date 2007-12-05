@@ -24,6 +24,7 @@ include scripts/nopxe.cgi
 include scripts/webui.cgi
 include scripts/gateway.py
 include scripts/post_install_trigger.cgi
+include scripts/cobbler_auth_help
 include snippets/*
 recursive-include po *.pot
 recursive-include po *.po

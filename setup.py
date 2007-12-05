@@ -59,7 +59,7 @@ if __name__ == "__main__":
                     "cobbler/modules", 
                     "cobbler/webui",
                 ],
-                scripts = ["scripts/cobbler", "scripts/cobblerd"],
+                scripts = ["scripts/cobbler", "scripts/cobblerd", "scripts/cobbler_auth_help"],
                 data_files = [ 
                                 (modpython, ['scripts/index.py']),
                                 # cgi files

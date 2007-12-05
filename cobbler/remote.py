@@ -20,7 +20,6 @@ import os
 import SimpleXMLRPCServer
 from rhpl.translate import _, N_, textdomain, utf8
 import xmlrpclib
-import logging
 import random
 import base64
 
@@ -52,7 +51,7 @@ class CobblerXMLRPCInterface:
 
     def __init__(self,api,logger):
         self.api = api
-        self.logger = logger
+        self.logger = self.api.logger
 
     def __sorter(self,a,b):
         return cmp(a["name"],b["name"])
@@ -365,17 +364,6 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.token_cache = {}
         self.object_cache = {} 
         random.seed(time.time())
-        self.authn  = self.api.get_module_from_file(
-              "authentication",
-              "module",
-              "authn_configfile"
-        )
-        self.authz  = self.api.get_module_from_file(
-              "authorization",
-              "module",
-              "authz_allowall"
-        )
-
 
     def __next_id(self,retry=0):
         """
@@ -435,7 +423,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         FIXME: currently looks for users in /etc/cobbler/auth.conf
         Would be very nice to allow for PAM and/or just Kerberos.
         """
-        return self.authn.authenticate(input_user,input_password)
+        return self.api.authenticate(input_user,input_password)
 
     def __validate_token(self,token): 
         """
@@ -457,6 +445,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
             raise CX(_("invalid token: %s" % token))
 
     def check_access(self,token,resource,arg1=None,arg2=None):
+        self.logger.debug("check_access(%s, %s)" % (token,resource))
         validated = self.__validate_token(token)
         return self.__authorize(token,resource,arg1,arg2)
 
@@ -473,17 +462,18 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         method calls.  The token will time out after a set interval if not
         used.  Re-logging in permitted.
         """
+        self.logger.debug("login (%s)" % login_user)
         if self.__validate_user(login_user,login_password):
             token = self.__make_token(login_user)
-            self.logger.info("login succeeded: %s" % login_user)
+            self.logger.debug("login succeeded: %s" % login_user)
             return token
         else:
-            self.logger.info("login failed: %s" % login_user)
+            self.logger.debug("login failed: %s" % login_user)
             raise CX(_("login failed: %s") % login_user)
 
     def __authorize(self,token,resource,arg1=None,arg2=None):
         user = self.__get_user_from_token(token)
-        if self.authz.authorize(user,resource,arg1,arg2):
+        if self.api.authorize(user,resource,arg1,arg2):
             return True
         else:
             raise CX(_("user does not have access to resource: %s") % resource)
@@ -492,6 +482,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         Retires a token ahead of the timeout.
         """
+        self.logger.debug("logout(%s)" % token)
         if self.token_cache.has_key(token):
             del self.token_cache[token]
             return True
@@ -501,6 +492,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         This is a demo function that does not return anything useful.
         """
+        self.logger.debug("token_check(%s)" % token)
         self.__validate_token(token)
         return True
 
@@ -829,4 +821,5 @@ class CobblerReadWriteXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
     def __init__(self, args):
         self.allow_reuse_address = True
         SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self,args)
+
 

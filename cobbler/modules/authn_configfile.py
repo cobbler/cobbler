@@ -52,7 +52,7 @@ def __parse_storage():
             pass
     return results
 
-def authenticate(username,password):
+def authenticate(api_handle,username,password):
     """
     Validate a username/password combo, returning True/False
 
@@ -70,7 +70,4 @@ def authenticate(username,password):
 
     return False
 
-if __name__ == "__main__":
-   print authenticate("cobbler","cobbler")
-   print authenticate("cobbler","bogus")
 

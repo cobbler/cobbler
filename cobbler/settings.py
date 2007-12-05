@@ -34,6 +34,7 @@ DEFAULTS = {
     "dnsmasq_bin"                 : "/usr/sbin/dnsmasq",
     "dnsmasq_conf"                : "/etc/dnsmasq.conf",
     "httpd_bin"                   : "/usr/sbin/httpd",
+    "kerberos_realm"              : "example.org",
     "kernel_options"              : {
         "lang"                    : " ",
         "text"                    : None,
