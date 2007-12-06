@@ -15,6 +15,7 @@ Requires: createrepo
 Requires: mod_python
 Requires: python-cheetah
 Requires: rhpl
+Requires: rsync
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
@@ -191,6 +192,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 * Thu Nov 15 2007 Michael DeHaan <mdehaan@redhat.com> - 0.7.0-1
 - Upstream changes (see CHANGELOG), testing branch
 - Don't require syslinux
+- Added requires on rsync
 - Disable autoreq to avoid slurping in perl modules
 
 * Wed Nov 14 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.4-2
