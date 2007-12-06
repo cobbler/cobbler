@@ -43,6 +43,11 @@ class BootAPI:
         self.__dict__ = self.__shared_state
         if not BootAPI.has_loaded:
 
+            # NOTE: we do not log all API actions, because
+            # a simple CLI invocation may call adds and such
+            # to load the config, which would just fill up
+            # the logs, so we'll do that logging at CLI
+            # level (and remote.py web service level) instead.
 
             logger = logging.getLogger("cobbler.api")
             logger.setLevel(logging.DEBUG)
@@ -76,7 +81,7 @@ class BootAPI:
         Currently checks the RPM DB, which is not perfect.
         Will return "?" if not installed.
         """
-        self.logger.debug("cobbler version")
+        self.logger.debug("api:cobbler_version")
         cmd = sub_process.Popen("/bin/rpm -q cobbler", stdout=sub_process.PIPE, shell=True)
         result = cmd.communicate()[0].replace("cobbler-","")
         if result.find("not installed") != -1:
@@ -127,14 +132,14 @@ class BootAPI:
         """
         Return a blank, unconfigured system, unattached to a collection
         """
-        self.logger.debug("new_system")
+        self.logger.debug("api:new_system")
         return self._config.new_system(is_subobject=is_subobject)
 
     def new_distro(self,is_subobject=False):
         """
         Create a blank, unconfigured distro, unattached to a collection.
         """
-        self.logger.debug("new_distro")
+        self.logger.debug("api:new_distro")
         return self._config.new_distro(is_subobject=is_subobject)
 
 
@@ -142,14 +147,14 @@ class BootAPI:
         """
         Create a blank, unconfigured profile, unattached to a collection
         """
-        self.logger.debug("new_profile")
+        self.logger.debug("api:new_profile")
         return self._config.new_profile(is_subobject=is_subobject)
 
     def new_repo(self,is_subobject=False):
         """
         Create a blank, unconfigured repo, unattached to a collection
         """
-        self.logger.debug("new_repo")
+        self.logger.debug("api:new_repo")
         return self._config.new_repo(is_subobject=is_subobject)
 
     def auto_add_repos(self):
@@ -157,7 +162,7 @@ class BootAPI:
         Import any repos this server knows about and mirror them.
         Credit: Seth Vidal.
         """
-        self.logger.debug("auto_add_repos")
+        self.logger.debug("api:auto_add_repos")
         try:
             import yum
         except:
@@ -197,7 +202,7 @@ class BootAPI:
         for human admins, who may, for instance, forget to properly set up
         their TFTP servers for PXE, etc.
         """
-        self.logger.debug("check")
+        self.logger.debug("api:check")
         check = action_check.BootCheck(self._config)
         return check.run()
 
@@ -210,7 +215,7 @@ class BootAPI:
         is not available on all platforms and can not detect "future"
         kickstart format correctness.
         """
-        self.logger.debug("validateks")
+        self.logger.debug("api:validateks")
         validator = action_validate.Validate(self._config)
         return validator.run()
 
@@ -221,7 +226,7 @@ class BootAPI:
         /tftpboot.  Any operations done in the API that have not been
         saved with serialize() will NOT be synchronized with this command.
         """
-        self.logger.debug("sync")
+        self.logger.debug("api:sync")
         sync = action_sync.BootSync(self._config)
         return sync.run()
 
@@ -230,12 +235,12 @@ class BootAPI:
         Take the contents of /var/lib/cobbler/repos and update them --
         or create the initial copy if no contents exist yet.
         """
-        self.logger.debug("reposync")
+        self.logger.debug("api:reposync")
         reposync = action_reposync.RepoSync(self._config)
         return reposync.run(name)
 
     def status(self,mode):
-        self.logger.debug("status")
+        self.logger.debug("api:status")
         statusifier = action_status.BootStatusReport(self._config, mode)
         return statusifier.run()
 
@@ -247,6 +252,7 @@ class BootAPI:
         filesystem path and mirroring is not desired, set network_root 
         to something like "nfs://path/to/mirror_url/root" 
         """
+        self.logger.debug("api:import_tree(%s,%s)" % (mirror_url, mirror_name))
         importer = action_import.Importer(
             self, self._config, mirror_url, mirror_name, network_root
         )
@@ -294,9 +300,8 @@ class BootAPI:
         """
         (Remote) access control.
         """
-        self.logger.debug("authorize(%s)" % (user))
-        rc = self.authn.authenticate(self,user,password)     
-        self.logger.debug("authorize(%s)=%s" % (user,rc))
+        rc = self.authn.authenticate(self,user,password)
+        self.logger.debug("api:authenticate(%s) -> %s" % (user,rc))
         return rc 
 
     def authorize(self,user,resource,arg1=None,arg2=None):
@@ -304,6 +309,6 @@ class BootAPI:
         (Remote) access control.
         """
         rc = self.authz.authorize(self,user,resource,arg1,arg2)
-        self.logger.debug("authorize(%s,%s)=%s" % (user,resource,rc))
+        self.logger.debug("api:authorize(%s,%s) -> %s" % (user,resource,rc))
         return rc
 

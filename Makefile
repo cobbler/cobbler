@@ -37,14 +37,12 @@ install: clean manpage
 
 devinstall:
 	cp /var/lib/cobbler/settings /tmp/cobbler_settings
-	cp /etc/cobbler/auth.conf /tmp/cobbler_auth.conf
 	cp /etc/cobbler/modules.conf /tmp/cobbler_modules.conf
-	-cp /var/www/cgi-bin/cobbler/.htpasswd /tmp/cobbler_htpasswd
+	-cp /etc/cobbler/users.digest /tmp/cobbler_users.digest
 	make install
 	cp /tmp/cobbler_settings /var/lib/cobbler/settings
-	cp /tmp/cobbler_auth.conf /etc/cobbler/auth.conf
 	cp /tmp/cobbler_modules.conf /etc/cobbler/modules.conf
-	-cp /tmp/cobbler_htpasswd /var/www/cgi-bin/cobbler/.htpasswd
+	-cp /tmp/cobbler_users.digest /etc/cobbler/users.digest
 	find /var/lib/cobbler/triggers | xargs chmod +x
 	chown -R apache /var/www/cobbler 
 	chown -R apache /var/www/cgi-bin/cobbler	

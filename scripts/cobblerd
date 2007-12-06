@@ -16,24 +16,28 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import sys
 import os
+import cobbler.api as bootapi
 import cobbler.cobblerd as app
 import logging
 import cobbler.utils as utils
 
-logger = logging.getLogger("cobbler.cobblerd")
-logger.setLevel(logging.DEBUG)
-ch = logging.FileHandler("/var/log/cobbler/cobblerd.log")
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+#logger = logging.getLogger("cobbler.cobblerd")
+#logger.setLevel(logging.DEBUG)
+#ch = logging.FileHandler("/var/log/cobbler/cobblerd.log")
+#ch.setLevel(logging.DEBUG)
+#formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+#ch.setFormatter(formatter)
+#logger.addHandler(ch)
+
+api = bootapi.BootAPI()
+logger = api.logger
 
 if __name__ == "__main__":
 
     #############################################
 
     # daemonizing code:  http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66012
-    logger.debug("started")
+    logger.info("cobblerd started")
     try: 
         pid = os.fork() 
         if pid > 0:

@@ -60,6 +60,9 @@ def authenticate(api_handle,username,password):
     the algorithm info.
     """
   
+    # debugging only (not safe to enable)
+    # api_handle.logger.debug("backend authenticate (%s,%s)" % (username,password))
+
     userlist = __parse_storage()
     for (user,realm,actual_blob) in userlist:
         if user == username and realm == "Cobbler":

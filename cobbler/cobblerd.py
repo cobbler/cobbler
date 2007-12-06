@@ -54,6 +54,7 @@ def do_xmlrpc_tasks(bootapi, settings, xmlrpc_port, xmlrpc_port2, logger):
         else:
             do_xmlrpc_rw(bootapi, settings, xmlrpc_port2, logger)
     else:
+        logger.debug("xmlrpc_rw is disabled in the settings file")
         do_xmlrpc(bootapi, settings, xmlrpc_port, logger)
 
 
@@ -95,7 +96,8 @@ def do_xmlrpc(bootapi, settings, port, logger):
     # This is the simple XMLRPC API we provide to koan and other
     # apps that do not need to manage Cobbler's config
 
-    xinterface = remote.CobblerXMLRPCInterface(bootapi,logger)
+    xinterface = remote.ProxiedXMLRPCInterface(bootapi,logger,remote.CobblerXMLRPCInterface)
+    
     server = remote.CobblerXMLRPCServer(('', port))
     server.logRequests = 0  # don't print stuff
     log(logger, "XMLRPC running on %s" % port)
@@ -109,11 +111,11 @@ def do_xmlrpc(bootapi, settings, port, logger):
             time.sleep(0.5)
 
 def do_xmlrpc_rw(bootapi,settings,port,logger):
-   
-    xinterface = remote.CobblerReadWriteXMLRPCInterface(bootapi,logger)
+
+    xinterface = remote.ProxiedXMLRPCInterface(bootapi,logger,remote.CobblerReadWriteXMLRPCInterface)
     server = remote.CobblerReadWriteXMLRPCServer(('127.0.0.1', port))
     server.logRequests = 0  # don't print stuff
-    log(logger, "XMLRPC (read-write variant) running on %s" % port)
+    logger.debug("XMLRPC (read-write variant) running on %s" % port)
     server.register_instance(xinterface)
 
     while True:
@@ -163,5 +165,13 @@ def do_syslog(bootapi, settings, port, logger):
 
 if __name__ == "__main__":
 
-    main()
+    #main()
+
+    bootapi      = cobbler_api.BootAPI()
+    settings     = bootapi.settings()
+    syslog_port  = settings.syslog_port
+    xmlrpc_port  = settings.xmlrpc_port
+    xmlrpc_port2 = settings.xmlrpc_rw_port
+    logger       = bootapi.logger
+    do_xmlrpc_rw(bootapi, settings, xmlrpc_port2, logger)
 
