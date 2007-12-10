@@ -189,7 +189,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Thu Nov 15 2007 Michael DeHaan <mdehaan@redhat.com> - 0.7.0-1
+* Mon Dec 10 2007 Michael DeHaan <mdehaan@redhat.com> - 0.7.0-1
 - Upstream changes (see CHANGELOG), testing branch
 - Don't require syslinux
 - Added requires on rsync
