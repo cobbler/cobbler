@@ -52,7 +52,7 @@ class Item(serializable.Serializable):
         self.parent = ''              # all objects by default are not subobjects
         self.children = {}            # caching for performance reasons, not serialized
  
-        
+        self.log_func = self.config.api.log        
 
     def clear(self):
         raise exceptions.NotImplementedError

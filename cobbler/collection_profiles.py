@@ -50,6 +50,7 @@ class Profiles(collection.Collection):
             del self.listing[name]
             self.config.serialize_delete(self, obj)
             if with_delete:
+                self.log_func("deleted profile %s" % name)
                 if with_triggers: 
                     self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/profile/post/*")
             return True

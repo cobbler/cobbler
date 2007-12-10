@@ -49,20 +49,13 @@ class BootAPI:
             # the logs, so we'll do that logging at CLI
             # level (and remote.py web service level) instead.
 
-            logger = logging.getLogger("cobbler.api")
-            logger.setLevel(logging.DEBUG)
-            ch = logging.FileHandler("/var/log/cobbler/cobbler.log")
-            ch.setLevel(logging.DEBUG)
-            formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-            ch.setFormatter(formatter)
-            logger.addHandler(ch)
+            self.logger = self.__setup_logger("api")
+            self.logger_remote = self.__setup_logger("remote")
 
             BootAPI.has_loaded   = True
             module_loader.load_modules()
             self._config         = config.Config(self)
             self.deserialize()
-            self.logger = logger
-            self.logger.debug("API handle initialized")
 
             self.authn = self.get_module_from_file(
                 "authentication",
@@ -74,6 +67,27 @@ class BootAPI:
                 "module",
                 "authz_allowall"
             )
+            self.logger.debug("API handle initialized")
+
+    def __setup_logger(self,name):
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.INFO)
+        ch = logging.FileHandler("/var/log/cobbler/cobbler.log")
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(message)s")
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
+        return logger
+
+    def log(self,msg,args=None,debug=False):
+        if debug:
+            logger = self.logger.debug
+        else:
+            logger = self.logger.info 
+        if args is None:
+            logger("%s" % msg)
+        else:
+            logger("%s; %s" % (msg, str(args)))
 
     def version(self):
         """
@@ -81,7 +95,7 @@ class BootAPI:
         Currently checks the RPM DB, which is not perfect.
         Will return "?" if not installed.
         """
-        self.logger.debug("api:cobbler_version")
+        self.log("version")
         cmd = sub_process.Popen("/bin/rpm -q cobbler", stdout=sub_process.PIPE, shell=True)
         result = cmd.communicate()[0].replace("cobbler-","")
         if result.find("not installed") != -1:
@@ -132,14 +146,14 @@ class BootAPI:
         """
         Return a blank, unconfigured system, unattached to a collection
         """
-        self.logger.debug("api:new_system")
+        self.log("new_system",[is_subobject])
         return self._config.new_system(is_subobject=is_subobject)
 
     def new_distro(self,is_subobject=False):
         """
         Create a blank, unconfigured distro, unattached to a collection.
         """
-        self.logger.debug("api:new_distro")
+        self.log(new_distro,[is_subobject])
         return self._config.new_distro(is_subobject=is_subobject)
 
 
@@ -147,14 +161,14 @@ class BootAPI:
         """
         Create a blank, unconfigured profile, unattached to a collection
         """
-        self.logger.debug("api:new_profile")
+        self.log("new_profile",[is_subobject])
         return self._config.new_profile(is_subobject=is_subobject)
 
     def new_repo(self,is_subobject=False):
         """
         Create a blank, unconfigured repo, unattached to a collection
         """
-        self.logger.debug("api:new_repo")
+        self.log("new_repo",[is_subobject])
         return self._config.new_repo(is_subobject=is_subobject)
 
     def auto_add_repos(self):
@@ -162,7 +176,7 @@ class BootAPI:
         Import any repos this server knows about and mirror them.
         Credit: Seth Vidal.
         """
-        self.logger.debug("api:auto_add_repos")
+        self.log("auto_add_repos")
         try:
             import yum
         except:
@@ -202,7 +216,7 @@ class BootAPI:
         for human admins, who may, for instance, forget to properly set up
         their TFTP servers for PXE, etc.
         """
-        self.logger.debug("api:check")
+        self.log("check")
         check = action_check.BootCheck(self._config)
         return check.run()
 
@@ -215,7 +229,7 @@ class BootAPI:
         is not available on all platforms and can not detect "future"
         kickstart format correctness.
         """
-        self.logger.debug("api:validateks")
+        self.log("validateks")
         validator = action_validate.Validate(self._config)
         return validator.run()
 
@@ -226,7 +240,7 @@ class BootAPI:
         /tftpboot.  Any operations done in the API that have not been
         saved with serialize() will NOT be synchronized with this command.
         """
-        self.logger.debug("api:sync")
+        self.log("sync")
         sync = action_sync.BootSync(self._config)
         return sync.run()
 
@@ -235,12 +249,12 @@ class BootAPI:
         Take the contents of /var/lib/cobbler/repos and update them --
         or create the initial copy if no contents exist yet.
         """
-        self.logger.debug("api:reposync")
+        self.log("reposync",[name])
         reposync = action_reposync.RepoSync(self._config)
         return reposync.run(name)
 
     def status(self,mode):
-        self.logger.debug("api:status")
+        self.log("status",[mode])
         statusifier = action_status.BootStatusReport(self._config, mode)
         return statusifier.run()
 
@@ -252,7 +266,7 @@ class BootAPI:
         filesystem path and mirroring is not desired, set network_root 
         to something like "nfs://path/to/mirror_url/root" 
         """
-        self.logger.debug("api:import_tree(%s,%s)" % (mirror_url, mirror_name))
+        self.log("import_tree",[mirror_url, mirror_name, network_root])
         importer = action_import.Importer(
             self, self._config, mirror_url, mirror_name, network_root
         )
@@ -262,6 +276,7 @@ class BootAPI:
         """
         Save the config file(s) to disk.
         """
+        self.log("serialize")
         return self._config.serialize()
 
     def deserialize(self):
@@ -301,7 +316,7 @@ class BootAPI:
         (Remote) access control.
         """
         rc = self.authn.authenticate(self,user,password)
-        self.logger.debug("api:authenticate(%s) -> %s" % (user,rc))
+        self.log("authenticate",[user,rc])
         return rc 
 
     def authorize(self,user,resource,arg1=None,arg2=None):
@@ -309,6 +324,6 @@ class BootAPI:
         (Remote) access control.
         """
         rc = self.authz.authorize(self,user,resource,arg1,arg2)
-        self.logger.debug("api:authorize(%s,%s) -> %s" % (user,resource,rc))
+        self.log("authorize",[user,resource,arg1,arg2,rc],debug=True)
         return rc
 

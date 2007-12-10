@@ -172,6 +172,6 @@ if __name__ == "__main__":
     syslog_port  = settings.syslog_port
     xmlrpc_port  = settings.xmlrpc_port
     xmlrpc_port2 = settings.xmlrpc_rw_port
-    logger       = bootapi.logger
+    logger       = bootapi.logger_remote
     do_xmlrpc_rw(bootapi, settings, xmlrpc_port2, logger)
 

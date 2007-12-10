@@ -35,6 +35,7 @@ class Collection(serializable.Serializable):
         """
         self.config = config
         self.clear()
+        self.log_func = self.config.api.log
 
     def factory_produce(self,config,seed_data):
         """
@@ -112,6 +113,9 @@ class Collection(serializable.Serializable):
         So, in that case, don't run any triggers and don't deal with any actual files.
 
         """
+
+             
+
         if ref is None or not ref.is_valid():
             raise CX(_("insufficient or invalid arguments supplied"))
 
@@ -125,6 +129,7 @@ class Collection(serializable.Serializable):
 
         # perform filesystem operations
         if with_copy:
+            self.log_func("saving %s %s" % (self.collection_type(), ref.name))
             # failure of a pre trigger will prevent the object from being added
             if with_triggers:
                 self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())

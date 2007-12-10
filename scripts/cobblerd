@@ -30,7 +30,7 @@ import cobbler.utils as utils
 #logger.addHandler(ch)
 
 api = bootapi.BootAPI()
-logger = api.logger
+logger = api.logger_remote
 
 if __name__ == "__main__":
 
