@@ -394,6 +394,7 @@ class ProxiedXMLRPCInterface():
             return method_handle(*params)
         except Exception, e:
             self.logger.error("remote:exception during %s, %s" % (method, str(e)))
+            utils.log_exc(self.logger)
             raise e
 
 # **********************************************************************
@@ -665,7 +666,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         Saves a newly created or modified distro object to disk.
         """
-        self.logger.debug("remote:save_distro(%s)" % name)
+        self.logger.debug("remote:save_distro(%s)" % object_id)
         self.check_access(token,"save_distro")
         obj = self.__get_object(object_id)
         return self.api.distros().add(obj,with_copy=True)
@@ -674,7 +675,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         Saves a newly created or modified profile object to disk.
         """
-        self.logger.debug("remote:save_profile(%s)" % name)
+        self.logger.debug("remote:save_profile(%s)" % object_id)
         self.check_access(token,"save_profile")
         obj = self.__get_object(object_id)
         return self.api.profiles().add(obj,with_copy=True)
@@ -683,7 +684,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         Saves a newly created or modified system object to disk.
         """
-        self.logger.debug("remote:save_system(%s)" % name)
+        self.logger.debug("remote:save_system(%s)" % object_id)
         self.check_access(token,"save_system")
         obj = self.__get_object(object_id)
         return self.api.systems().add(obj,with_copy=True)
@@ -692,7 +693,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         Saves a newly created or modified repo object to disk.
         """
-        self.logger.debug("remote:save_repo(%s)" % name)
+        self.logger.debug("remote:save_repo(%s)" % object_id)
         self.check_access(token,"save_repo")
         obj = self.__get_object(object_id)
         return self.api.repos().add(obj,with_copy=True)
