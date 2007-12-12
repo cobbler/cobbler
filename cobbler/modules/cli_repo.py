@@ -52,6 +52,12 @@ class RepoFunction(commands.CobblerFunction):
 
             p.add_option("--newname",          dest="newname",          help="used for copy/edit")
 
+        if not self.matches_args(args,["remove","report","list"]):
+            p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
+        if not self.matches_args(args,["report","list"]):
+            p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
+
+
     def run(self):
 
         obj = self.object_manipulator_start(self.api.new_repo,self.api.repos)
@@ -65,7 +71,7 @@ class RepoFunction(commands.CobblerFunction):
         if self.options.priority:         obj.set_priority(self.options.priority)
         if self.options.mirror:           obj.set_mirror(self.options.mirror)
 
-        return self.object_manipulator_finish(obj, self.api.repos)
+        return self.object_manipulator_finish(obj, self.api.repos, self.options)
 
 
 

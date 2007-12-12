@@ -56,12 +56,18 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--newname", dest="newname",                 help="for use with copy/edit")
 
         if not self.matches_args(args,["remove","report","list"]):
+            p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
+        if not self.matches_args(args,["report","list"]):
+            p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
+
+
+        if not self.matches_args(args,["remove","report","list"]):
             p.add_option("--profile",         dest="profile",         help="name of cobbler profile (REQUIRED)")
             p.add_option("--server-override", dest="server_override", help="overrides server value in settings file")
             p.add_option("--subnet",          dest="subnet",          help="for static IP / templating usage")
             p.add_option("--virt-bridge",     dest="virt_bridge",     help="ex: virbr0")
             p.add_option("--virt-path",       dest="virt_path",       help="path, partition, or volume")
-            p.add_option("--virt-type",       dest="virt_type",       help="ex: xenpv, qemu")
+            p.add_option("--virt-type",       dest="virt_type",       help="ex: xenpv, qemu, xenfv")
 
 
     def run(self):
@@ -90,7 +96,7 @@ class SystemFunction(commands.CobblerFunction):
         if self.options.gateway:  obj.set_gateway(self.options.gateway,   my_interface)
         if self.options.dhcp_tag: obj.set_dhcp_tag(self.options.dhcp_tag, my_interface)
 
-        return self.object_manipulator_finish(obj, self.api.systems)
+        return self.object_manipulator_finish(obj, self.api.systems, self.options)
 
 
 

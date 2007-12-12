@@ -183,7 +183,8 @@ class CobblerXMLRPCInterface:
             # system not found!
             return False
         obj.set_netboot_enabled(0)
-        systems.add(obj,with_copy=True)
+        # disabling triggers and sync to make this extremely fast.
+        systems.add(obj,save=True,with_triggers=False,with_sync=False,quick_pxe_update=True)
         return True
 
     def run_post_install_triggers(self,name,token=None):
@@ -710,7 +711,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.log("save_distro",object_id=object_id,token=token)
         self.check_access(token,"save_distro")
         obj = self.__get_object(object_id)
-        return self.api.distros().add(obj,with_copy=True)
+        return self.api.distros().add(obj,save=True)
 
     def save_profile(self,object_id,token):
         """
@@ -719,7 +720,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.log("save_profile",token=token,object_id=object_id)
         self.check_access(token,"save_profile")
         obj = self.__get_object(object_id)
-        return self.api.profiles().add(obj,with_copy=True)
+        return self.api.profiles().add(obj,save=True)
 
     def save_system(self,object_id,token):
         """
@@ -728,7 +729,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.log("save_system",token=token,object_id=object_id)
         self.check_access(token,"save_system")
         obj = self.__get_object(object_id)
-        return self.api.systems().add(obj,with_copy=True)
+        return self.api.systems().add(obj,save=True)
 
     def save_repo(self,object_id,token=None):
         """
@@ -737,7 +738,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.log("save_repo",object_id=object_id,token=token)
         self.check_access(token,"save_repo")
         obj = self.__get_object(object_id)
-        return self.api.repos().add(obj,with_copy=True)
+        return self.api.repos().add(obj,save=True)
 
     def __call_method(self, obj, attribute, arg):
         """

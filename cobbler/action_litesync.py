@@ -92,7 +92,13 @@ class BootLiteSync:
         self.sync.rmfile(os.path.join(self.settings.webdir, "profiles", name))
         # delete contents on kickstarts/$name directory in webdir
         self.sync.rmtree(os.path.join(self.settings.webdir, "kickstarts", name))
-    
+   
+    def update_system_netboot_status(self,name):
+        system = self.systems.find(name=name)
+        if system is None:
+            raise CX(_("error in system lookup for %s") % name)
+        self.sync.write_all_system_files(system,True)
+ 
     def add_single_system(self, name):
         # get the system object:
         system = self.systems.find(name=name)

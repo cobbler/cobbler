@@ -730,7 +730,7 @@ class BootSync:
             self.apply_template(infile_data, blended, outfile)
 
 
-    def write_all_system_files(self,system):
+    def write_all_system_files(self,system,just_edit_pxe=False):
 
         profile = system.get_conceptual_parent()
         if profile is None:
@@ -773,7 +773,10 @@ class BootSync:
                 # ensure the file doesn't exist
                 self.rmfile(f2)
 
-            self.write_system_file(f3,system)
+            if not just_edit_pxe:
+                # allows netboot-disable to be highly performant
+                # by not invoking the Cheetah engine
+                self.write_system_file(f3,system)
 
         counter = counter + 1
         

@@ -36,7 +36,7 @@ class Repos(collection.Collection):
         """
         return repo.Repo(config).from_datastruct(seed_data)
 
-    def remove(self,name,with_delete=True,with_triggers=True):
+    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True):
         """
         Remove element named 'name' from the collection
         """

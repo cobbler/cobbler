@@ -49,6 +49,12 @@ class ProfileFunction(commands.CobblerFunction):
         if "copy" in args or "rename" in args:
             p.add_option("--newname", dest="newname")
 
+        if not self.matches_args(args,["remove","report", "list"]):
+            p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
+        if not self.matches_args(args,["report", "list"]):
+            p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
+
+
         if not self.matches_args(args,["remove","report","list"]):
             p.add_option("--repos",            dest="repos", help="names of cobbler repos")
             p.add_option("--server-override",  dest="server_override", help="overrides value in settings file")
@@ -85,7 +91,7 @@ class ProfileFunction(commands.CobblerFunction):
         if self.options.dhcp_tag:        obj.set_dhcp_tag(self.options.dhcp_tag)
         if self.options.server_override: obj.set_server(self.options.server)
 
-        return self.object_manipulator_finish(obj, self.api.profiles)
+        return self.object_manipulator_finish(obj, self.api.profiles, self.options)
 
 
 

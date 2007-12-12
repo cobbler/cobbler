@@ -49,6 +49,10 @@ class DistroFunction(commands.CobblerFunction):
 
         if self.matches_args(args,["copy","rename"]):
             p.add_option("--newname", dest="newname", help="for copy/rename commands")
+        if not self.matches_args(args,["remove","report","list"]):
+            p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
+        if not self.matches_args(args,["report","list"]):
+            p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
 
     def run(self):
 
@@ -67,7 +71,7 @@ class DistroFunction(commands.CobblerFunction):
         if self.options.breed:
             obj.set_breed(self.options.breed)
 
-        return self.object_manipulator_finish(obj, self.api.distros)
+        return self.object_manipulator_finish(obj, self.api.distros, self.options)
 
 
 

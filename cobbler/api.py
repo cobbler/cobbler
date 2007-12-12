@@ -25,23 +25,32 @@ import action_validate
 import sub_process
 import module_loader
 import logging
+import os
+import fcntl
 
 ERROR = 100
 INFO  = 10
 DEBUG = 5
 
+# notes on locking:
+# BootAPI is a singleton object
+# the XMLRPC variants allow 1 simultaneous request
+# therefore we flock on /var/lib/cobbler/settings for now
+# on a request by request basis.
+
 class BootAPI:
 
+
     __shared_state = {}
-    has_loaded = False
+    __has_loaded = False
 
     def __init__(self):
         """
         Constructor
         """
 
-        self.__dict__ = self.__shared_state
-        if not BootAPI.has_loaded:
+        self.__dict__ = BootAPI.__shared_state
+        if not BootAPI.__has_loaded:
 
             # NOTE: we do not log all API actions, because
             # a simple CLI invocation may call adds and such
@@ -52,7 +61,7 @@ class BootAPI:
             self.logger = self.__setup_logger("api")
             self.logger_remote = self.__setup_logger("remote")
 
-            BootAPI.has_loaded   = True
+            BootAPI.__has_loaded   = True
             module_loader.load_modules()
             self._config         = config.Config(self)
             self.deserialize()
@@ -202,7 +211,7 @@ class BootAPI:
             cobbler_repo.set_mirror(url)
             cobbler_repo.set_name(auto_name)
             print "auto adding: %s (%s)" % (auto_name, url)
-            self._config.repos().add(cobbler_repo,with_copy=True)
+            self._config.repos().add(cobbler_repo,save=True)
 
         print "run cobbler reposync to apply changes"
         return True 

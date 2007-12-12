@@ -31,7 +31,7 @@ class Distros(collection.Collection):
         """
         return distro.Distro(config).from_datastruct(seed_data)
 
-    def remove(self,name,with_delete=True,with_triggers=True):
+    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True):
         """
         Remove element named 'name' from the collection
         """
@@ -43,14 +43,17 @@ class Distros(collection.Collection):
         obj = self.find(name=name)
         if obj is not None:
             if with_delete:
-                if with_triggers: self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/distro/pre/*")
-                lite_sync = action_litesync.BootLiteSync(self.config)
-                lite_sync.remove_single_profile(name)
+                if with_triggers: 
+                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/distro/pre/*")
+                if with_sync:
+                    lite_sync = action_litesync.BootLiteSync(self.config)
+                    lite_sync.remove_single_profile(name)
             del self.listing[name]
             self.config.serialize_delete(self, obj)
             if with_delete:
                 self.log_func("deleted distro %s" % name)
-                if with_triggers: self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/distro/post/*")
+                if with_triggers: 
+                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/distro/post/*")
             return True
         raise CX(_("cannot delete object that does not exist"))
 

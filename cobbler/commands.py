@@ -229,7 +229,7 @@ class CobblerFunction:
 
         return obj
 
-    def object_manipulator_finish(self,obj,collect_fn):
+    def object_manipulator_finish(self,obj,collect_fn, options):
         """
         Boilerplate for objects that offer add/edit/delete/remove/copy functionality.
         """
@@ -241,7 +241,10 @@ class CobblerFunction:
             else:
                 raise CX(_("--newname is required"))
 
-        rc = collect_fn().add(obj, with_copy=True)
+        opt_sync     = not options.nosync
+        opt_triggers = not options.notriggers
+
+        rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers)
 
         if "rename" in self.args:
             return collect_fn().remove(self.options.name, with_delete=True)

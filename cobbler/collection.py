@@ -36,6 +36,7 @@ class Collection(serializable.Serializable):
         self.config = config
         self.clear()
         self.log_func = self.config.api.log
+        self.lite_sync = None
 
     def factory_produce(self,config,seed_data):
         """
@@ -97,7 +98,7 @@ class Collection(serializable.Serializable):
             item = self.factory_produce(self.config,seed_data)
             self.add(item)
 
-    def add(self,ref,with_copy=False,with_triggers=True):
+    def add(self,ref,save=False,with_copy=False,with_triggers=True,with_sync=True,quick_pxe_update=False):
         """
         Add an object to the collection, if it's valid.  Returns True
         if the object was added to the collection.  Returns False if the
@@ -113,8 +114,18 @@ class Collection(serializable.Serializable):
         So, in that case, don't run any triggers and don't deal with any actual files.
 
         """
+        if self.lite_sync is None:
+            self.lite_sync = action_litesync.BootLiteSync(self.config)
 
-             
+        # migration path for old API parameter that I've renamed.
+        if with_copy and not save:
+            save = with_copy
+
+        if not save:
+            # for people that aren't quite aware of the API
+            # if not saving the object, you can't run these features
+            with_triggers = False
+            with_sync = False
 
         if ref is None or not ref.is_valid():
             raise CX(_("insufficient or invalid arguments supplied"))
@@ -122,13 +133,13 @@ class Collection(serializable.Serializable):
         if ref.COLLECTION_TYPE != self.collection_type():
             raise CX(_("API error: storing wrong data type in collection"))
 
-        if not with_copy:
+        if not save:
             # don't need to run triggers, so add it already ...
             self.listing[ref.name.lower()] = ref
 
 
         # perform filesystem operations
-        if with_copy:
+        if save:
             self.log_func("saving %s %s" % (self.collection_type(), ref.name))
             # failure of a pre trigger will prevent the object from being added
             if with_triggers:
@@ -139,18 +150,21 @@ class Collection(serializable.Serializable):
             # the whole collection
             self.config.serialize_item(self, ref)
 
-            lite_sync = action_litesync.BootLiteSync(self.config)
-            if isinstance(ref, item_system.System):
-                lite_sync.add_single_system(ref.name)
-            elif isinstance(ref, item_profile.Profile):
-                lite_sync.add_single_profile(ref.name) 
-            elif isinstance(ref, item_distro.Distro):
-                lite_sync.add_single_distro(ref.name)
-            elif isinstance(ref, item_repo.Repo):
-                pass
-            else:
-                print _("Internal error. Object type not recognized: %s") % type(ref)
-        
+            if with_sync:
+                if isinstance(ref, item_system.System):
+                    self.lite_sync.add_single_system(ref.name)
+                elif isinstance(ref, item_profile.Profile):
+                    self.lite_sync.add_single_profile(ref.name) 
+                elif isinstance(ref, item_distro.Distro):
+                    self.lite_sync.add_single_distro(ref.name)
+                elif isinstance(ref, item_repo.Repo):
+                    pass
+                else:
+                    print _("Internal error. Object type not recognized: %s") % type(ref)
+            if not with_sync and quick_pxe_update:
+                if isinstance(ref, item_system.System):
+                    self.lite_sync.update_system_netboot_status(ref.name)
+
             # save the tree, so if neccessary, scripts can examine it.
             if with_triggers:
                 self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type())
