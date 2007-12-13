@@ -245,6 +245,11 @@ class CobblerWeb(object):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
+        
+        # pre-command paramter checking
+        # HTML forms do not transmit disabled fields
+        if name is None and new_or_edit == 'edit' and oldname is not None:
+            name = oldname
 
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
@@ -254,9 +259,6 @@ class CobblerWeb(object):
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
             return self.distro_list()
 
-        # pre-command paramter checking
-        if name is None and editmode=='edit' and oldname is not None:
-            name = oldname
         if name is None:
             return self.error_page("name is required")
         if kernel is None or not str(kernel).startswith("/"):
