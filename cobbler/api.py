@@ -162,7 +162,7 @@ class BootAPI:
         """
         Create a blank, unconfigured distro, unattached to a collection.
         """
-        self.log(new_distro,[is_subobject])
+        self.log("new_distro",[is_subobject])
         return self._config.new_distro(is_subobject=is_subobject)
 
 
