@@ -425,7 +425,7 @@ class CobblerXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
 # *********************************************************************************
 
 
-class ProxiedXMLRPCInterface():
+class ProxiedXMLRPCInterface:
 
     def __init__(self,api,logger,proxy_class):
         self.logger  = logger
