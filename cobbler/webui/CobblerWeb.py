@@ -64,7 +64,7 @@ class CobblerWeb(object):
                 return True
             except Exception, e:
                 if str(e).find("invalid token") != -1:
-                    apache.log_info("cobbler token timeout for: %s" % self.username)
+                    self.apache.log_info("cobbler token timeout for: %s" % self.username)
                     log_exc(self.apache)
                     self.token = None
                 else:
@@ -75,7 +75,7 @@ class CobblerWeb(object):
             try:
                 self.token = self.remote.login( self.username, self.password )
             except Exception, e:
-                apache.log_info("cobbler login failed for: %s" % self.username)
+                self.apache.log_info("cobbler login failed for: %s" % self.username)
                 log_exc(self.apache)
                 return False
             self.password = None # don't need it anymore, get rid of it
