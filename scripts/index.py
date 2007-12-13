@@ -83,6 +83,7 @@ def handler(req):
 
     # instantiate a CobblerWeb object
     cw = CobblerWeb.CobblerWeb(
+         apache   = apache,
          token    = token, 
          base_url = "/cobbler/web/",
          server   = "http://127.0.0.1/cobbler_api_rw"

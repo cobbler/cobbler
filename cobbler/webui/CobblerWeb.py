@@ -20,32 +20,14 @@ from cobbler.utils import *
 import logging
 import sys
 
-# FIXME: make logging use apache logging
-
-LOGGING_ENABLED = True
-
-if LOGGING_ENABLED:
-    # set up logging
-    logger = logging.getLogger("cobbler.webui")
-    logger.setLevel(logging.DEBUG)
-    ch = logging.FileHandler("/var/log/cobbler/webui.log")
-    ch.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-else:
-    logger = None
-
-def log_exc():
+def log_exc(apache):
     """
     Log active traceback to logfile.
     """
-    if not LOGGING_ENABLED:
-        return
     (t, v, tb) = sys.exc_info()
-    logger.info("Exception occured: %s" % t )
-    logger.info("Exception value: %s" % v)
-    logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+    apache.log_error("Exception occured: %s" % t )
+    apache.log_error("Exception value: %s" % v)
+    apache_log_error("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
 
 class CobblerWeb(object):
     """
@@ -54,7 +36,7 @@ class CobblerWeb(object):
     it all run either under cgi-bin or CherryPy.  Supporting other Python
     frameworks should be trivial.
     """
-    def __init__(self, server=None, base_url='/', username=None, password=None, token=None):
+    def __init__(self, server=None, base_url='/', username=None, password=None, token=None, apache=None):
         self.server = server
         self.base_url = base_url
         self.remote = None
@@ -62,6 +44,7 @@ class CobblerWeb(object):
         self.username = username
         self.password = password
         self.logout = None
+        self.apache = apache
 
     def __xmlrpc_setup(self):
         """
@@ -81,9 +64,8 @@ class CobblerWeb(object):
                 return True
             except Exception, e:
                 if str(e).find("invalid token") != -1:
-                    if LOGGING_ENABLED:
-                        logger.info("token timeout for: %s" % self.username)
-                        log_exc()
+                    apache.log_info("cobbler token timeout for: %s" % self.username)
+                    log_exc(self.apache)
                     self.token = None
                 else:
                     raise e
@@ -93,9 +75,8 @@ class CobblerWeb(object):
             try:
                 self.token = self.remote.login( self.username, self.password )
             except Exception, e:
-                if LOGGING_ENABLED:
-                    logger.info("login failed for: %s" % self.username)
-                log_exc()
+                apache.log_info("cobbler login failed for: %s" % self.username)
+                log_exc(self.apache)
                 return False
             self.password = None # don't need it anymore, get rid of it
             return True
@@ -110,59 +91,9 @@ class CobblerWeb(object):
         """
 
         data['base_url'] = self.base_url
-
         filepath = os.path.join("/usr/share/cobbler/webui_templates/",template)
         tmpl = Template( file=filepath, searchList=[data] )
         return str(tmpl)
-
-    def cookies(self):
-        """
-        Returns a Cookie.SimpleCookie object with all of CobblerWeb's cookies.
-        Mmmmm cookies!
-        """
-        # The browser doesn't maintain expires for us, which is fine since
-        # cobblerd will continue to refresh a token as long as it's being
-        # accessed.
-        if self.token and self.__cookies["cobbler_xmlrpc_token"]:
-            self.__setcookie( self.token, COOKIE_TIMEOUT )
-
-        return self.__cookies
-
-    def __setcookie(self,token,exp_offset):
-        """
-        Does all of the cookie setting in one place.
-        """
-        # HTTP cookie RFC:
-        # http://www.w3.org/Protocols/rfc2109/rfc2109
-        #
-        # Cookie.py does not let users explicitely set cookies' expiration time.
-        # Instead, it runs the 'expires' member of the dictionary through its
-        # _getdate() function.   As of this writing, the signature is:
-        # _getdate(future=0, weekdayname=_weekdayname, monthname=_monthname)
-        # When it is called to generate output, the value of 'expires' is passed
-        # in as a _positional_ parameter in the first slot.
-        # In order to get a time in the past, it appears that a negative number
-        # can be passed through, which is what we do here.
-        self.__cookies["cobbler_xmlrpc_token"] = token
-        self.__cookies["cobbler_xmlrpc_token"]['expires'] = exp_offset
-
-    def __cookie_logout(self):
-        # set the cookie's expiration to this time, yesterday, which results
-        # in it being deleted
-        self.__setcookie( 'null', -86400 )
-        return self.__cookies
-
-    def __cookie_login(self,token):
-        self.__setcookie( token, COOKIE_TIMEOUT )
-        return self.__cookies
-         
-    def __get_cookie_token(self):
-        if self.__cookies.has_key("cobbler_xmlrpc_token"):
-            value = self.__cookies["cobbler_xmlrpc_token"]
-            if LOGGING_ENABLED:
-                logger.debug("loading token from cookie: %s" % value.value)
-            return value.value
-        return None
 
     def modes(self):
         """
@@ -273,7 +204,7 @@ class CobblerWeb(object):
             try:
                 distro = self.remote.get_distro_handle( name, self.token)
             except:
-                log_exc()
+                log_exc(self.apache)
                 return self.error_page("Failed to lookup distro: %s" % name)
         else:
             distro = self.remote.new_distro(self.token)
@@ -292,7 +223,7 @@ class CobblerWeb(object):
                 self.remote.modify_distro(distro, 'breed', breed, self.token)
             self.remote.save_distro(distro, self.token)
         except Exception, e:
-            log_exc()
+            log_exc(self.apache)
             return self.error_page("Error while saving distro: %s" % str(e))
 
         if editmode == "rename" and name != oldname:
@@ -446,7 +377,7 @@ class CobblerWeb(object):
             self.remote.save_system( system, self.token)
 
         except Exception, e:
-            log_exc()
+            log_exc(self.apache)
             return self.error_page("Error while saving system: %s" % str(e))
 
        
@@ -599,7 +530,7 @@ class CobblerWeb(object):
                 self.remote.modify_profile(profile, 'dhcp-tag', dhcptag, self.token)
             self.remote.save_profile(profile,self.token)
         except Exception, e:
-            log_exc()
+            log_exc(self.apache)
             return self.error_page("Error while saving profile: %s" % str(e))
 
         if editmode == "rename" and name != oldname:
@@ -695,7 +626,7 @@ class CobblerWeb(object):
             self.remote.save_repo(repo, self.token)
 
         except Exception, e:
-            log_exc()
+            log_exc(self.apache)
             return self.error_page("Error while saving repo: %s" % str(e))
 
         if editmode == "rename" and name != oldname:
@@ -747,7 +678,7 @@ class CobblerWeb(object):
             if not rc:
                 return self.error_page("Sync failed.  Try debugging locally.")
         except Exception, e:
-            log_exc()
+            log_exc(self.apache)
             return self.error_page("Sync encountered an exception: %s" % str(e))
 
         return self.__render('message.tmpl', {
