@@ -837,7 +837,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         on object edits making explicit calls to sync redundant.
         """
         self.log("sync",token=token)
-        self.check_access(token, sync)
+        self.check_access(token, "sync")
         return self.api.sync() 
 
     def reposync(self,repos=[],token=None):
