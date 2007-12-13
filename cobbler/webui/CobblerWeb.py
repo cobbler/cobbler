@@ -64,7 +64,7 @@ class CobblerWeb(object):
                 return True
             except Exception, e:
                 if str(e).find("invalid token") != -1:
-                    self.apache.log_info("cobbler token timeout for: %s" % self.username)
+                    self.apache.log_error("cobbler token timeout for: %s" % self.username)
                     log_exc(self.apache)
                     self.token = None
                 else:
@@ -75,7 +75,7 @@ class CobblerWeb(object):
             try:
                 self.token = self.remote.login( self.username, self.password )
             except Exception, e:
-                self.apache.log_info("cobbler login failed for: %s" % self.username)
+                self.apache.log_error("cobbler login failed for: %s" % self.username)
                 log_exc(self.apache)
                 return False
             self.password = None # don't need it anymore, get rid of it
@@ -89,7 +89,6 @@ class CobblerWeb(object):
         Call the templating engine (Cheetah), wrapping up the location
         of files while we're at it.
         """
-
         data['base_url'] = self.base_url
         filepath = os.path.join("/usr/share/cobbler/webui_templates/",template)
         tmpl = Template( file=filepath, searchList=[data] )
@@ -160,7 +159,7 @@ class CobblerWeb(object):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
-         
+        
         input_distro = None
         if name is not None:
             input_distro = self.remote.get_distro(name, True)

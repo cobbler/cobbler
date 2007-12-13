@@ -21,13 +21,13 @@ function disablename(value)
      
     #if $distro
         <legend>Editing Distro</legend>
-        <input type="hidden" name="mode" value="distro_save">
         <input type="hidden" name="new_or_edit" value="edit"/>
         <input type="hidden" name="oldname" value="$distro.name"/>
     #else
         <legend>Adding a Distro</legend>
         <input type="hidden" name="new_or_edit" value="new"/>
     #end if
+    <input type="hidden" name="mode" value="distro_save">
 
     <table border=0>
 
