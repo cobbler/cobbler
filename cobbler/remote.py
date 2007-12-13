@@ -643,7 +643,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Creates a new (unconfigured) system object.  See the documentation
         for new_distro as it works exactly the same.
         """
-        self.debug("new_system",token=token)
+        self.log("new_system",token=token)
         self.check_access(token,"new_system")
         return self.__store_object(item_system.System(self.api._config))
         
