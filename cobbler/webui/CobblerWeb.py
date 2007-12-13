@@ -736,7 +736,7 @@ class CobblerWeb(object):
     # Miscellaneous
     # ------------------------------------------------------------------------ #
  
-    def sync(self):
+    def sync(self,**args):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
