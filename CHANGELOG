@@ -1,7 +1,10 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Mon Dec 10 2007 - 0.7.0
+* Fri Dec 15 2007 - 0.7.1
+- ...
+
+* Thu Dec 14 2007 - 0.7.0
 - Testing branch
 - Fix bug related to <<inherit>> and kickstart args 
 - Make CLI functions modular and use optparse
@@ -13,6 +16,8 @@ Cobbler CHANGELOG
 - New --no-triggers and --no-sync on "adds" for performance and other reasons
 - pxe_just_once is now much faster.
 - performance testing scripts (in source checkout)
+- webui now uses Apache logging
+- misc webui fixes
 - ...
 
 * Wed Nov 14 2007 - 0.6.4
