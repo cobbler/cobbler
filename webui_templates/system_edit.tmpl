@@ -29,7 +29,7 @@ function disablename(value)
     }
 }
 #else
-function get_random_mac()
+function get_random_mac(field)
 {
     xmlHttp = new XMLHttpRequest();
     xmlHttp.open("GET", "$base_url?mode=random_mac", true);
@@ -38,7 +38,7 @@ function get_random_mac()
             var mac_field = document.getElementById("macaddress")
             var result = xmlHttp.responseText;
             if (result.charAt(2) == ':' && result.charAt(5) == ':') {
-                mac_field.value = result;
+                document.getElementById(field).value = result;
             }
         }
     };
@@ -277,9 +277,7 @@ function page_onload() {
                value="$macaddress"
         />
 
-        ## #if not $system
-        ##     <a href="javascript: get_random_mac()" style="font-size: 0.8em;">random</a>   
-        ## #end if
+        <a href="javascript: get_random_mac('macaddress-$interface')" style="font-size: 0.8em;">Random MAC</a>   
 
         <p class="context-tip">Example: AA:BB:CC:DD:EE:FF</p>
         </td>

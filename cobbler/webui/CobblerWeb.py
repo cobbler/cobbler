@@ -685,7 +685,7 @@ class CobblerWeb(object):
             'message2' : "Cobbler config has been applied to filesystem."
         }) 
 
-    def random_mac(self):
+    def random_mac(self, **spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
         mac = self.remote.get_random_mac()
