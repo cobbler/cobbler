@@ -549,8 +549,8 @@ class BootSync:
                 ksmeta = meta["ks_meta"]
                 del meta["ks_meta"]
                 meta.update(ksmeta) # make available at top level
-                meta["yum_repo_stanza"] = self.generate_repo_stanza(profile)
-                meta["yum_config_stanza"] = self.generate_config_stanza(profile)
+                meta["yum_repo_stanza"] = self.generate_repo_stanza(s, False)
+                meta["yum_config_stanza"] = self.generate_config_stanza(s, False)
                 meta["kickstart_done"]  = self.generate_kickstart_signal(profile, s)
                 meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
                 kfile = open(kickstart_path)

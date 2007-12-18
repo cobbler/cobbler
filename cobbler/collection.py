@@ -27,6 +27,31 @@ import item_repo
 
 from rhpl.translate import _, N_, textdomain, utf8
 
+class ProxiedItem:
+
+    def __init__(self,collection,seed_data):
+
+        self.real_object = None
+        self.collection  = collection
+        self.config      = collection.config
+        self.seed_data   = seed_data
+ 
+
+    def __getattr__(self,name):
+
+        if self.real_object is not None:
+            return getattr(self.real_object,name)
+        
+        if name == "name":
+            return self.seed_data["name"]
+
+        self.real_object = self.collection.factory_produce(
+            self.config,
+            self.seed_data
+        )                
+
+        return getattr(self.real_object, name)
+
 class Collection(serializable.Serializable):
 
     def __init__(self,config):
@@ -95,8 +120,9 @@ class Collection(serializable.Serializable):
         if datastruct is None:
             return
         for seed_data in datastruct:
-            item = self.factory_produce(self.config,seed_data)
-            self.add(item)
+            #item = self.factory_produce(self.config,seed_data)
+            #self.add(item)
+            self.add(ProxiedItem(self,seed_data))
 
     def add(self,ref,save=False,with_copy=False,with_triggers=True,with_sync=True,quick_pxe_update=False):
         """
