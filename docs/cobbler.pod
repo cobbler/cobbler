@@ -14,7 +14,7 @@ Distributions contain information about what kernel and initrd are used, plus me
 
 Profiles associate a Distribution with a kickstart file and optionally customize the metadata further.
 
-Systems associate a MAC, IP, and/or hostname with a distribution and optionally customize the metadata further.
+Systems associate a MAC, IP, and/or hostname with a profile and optionally customize the metadata further.
 
 Repositories contain yum mirror information.  Using cobbler to mirror repositories is an optional feature, though provisioning and package management share a lot in common.
 
