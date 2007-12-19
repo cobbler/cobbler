@@ -176,11 +176,11 @@ Example:  If profile A has --kopts="x=7 y=2", B inherits from A, and B has --kop
 Example:  If profile B has --virt-ram=256 and A has --virt-ram of 512, profile B will use the value 256.  
 Example:  If profile A has a --virt-file-size of 5 and B does not specify a size, B will use the value from A.
 
-=back
-
 =item server-override
 
 This parameter should be useful only in select circumstances.  If machines are on a subnet that cannot access the cobbler server using the name/IP as configured in the cobbler settings file, use this parameter to override that server name.   See also --dhcp-tag for configuring the next server and DHCP informmation of the system if you are also using Cobbler to help manage your DHCP configuration.
+
+=back
 
 =head2 ADDING A SYSTEM
 
