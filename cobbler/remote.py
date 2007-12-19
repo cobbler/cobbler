@@ -53,9 +53,10 @@ class CobblerXMLRPCInterface:
     interface are intentionally /not/ validated.  It's a public API.
     """
 
-    def __init__(self,api,logger):
+    def __init__(self,api,logger,enable_auth_if_relevant):
         self.api = api
         self.logger = logger
+        self.auth_enabled = enable_auth_if_relevant
 
     def __sorter(self,a,b):
         return cmp(a["name"],b["name"])
@@ -427,9 +428,9 @@ class CobblerXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
 
 class ProxiedXMLRPCInterface:
 
-    def __init__(self,api,logger,proxy_class):
+    def __init__(self,api,logger,proxy_class,enable_auth_if_relevant=True):
         self.logger  = logger
-        self.proxied = proxy_class(api,logger)
+        self.proxied = proxy_class(api,logger,enable_auth_if_relevant)
 
     def _dispatch(self, method, params):
 
@@ -449,8 +450,9 @@ class ProxiedXMLRPCInterface:
 
 class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
 
-    def __init__(self,api,logger):
+    def __init__(self,api,logger,enable_auth_if_relevant):
         self.api = api
+        self.auth_enabled = enable_auth_if_relevant
         self.logger = logger
         self.token_cache = TOKEN_CACHE
         self.object_cache = OBJECT_CACHE
@@ -511,9 +513,16 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Returns whether this user/pass combo should be given
         access to the cobbler read-write API.
 
+        For the system user, this answer is always "yes", but
+        it is only valid for the socket interface.
+
         FIXME: currently looks for users in /etc/cobbler/auth.conf
         Would be very nice to allow for PAM and/or just Kerberos.
         """
+        if not self.auth_enabled and input_user == "<system>":
+            return True
+        if self.auth_enabled and input_user == "<system>":
+            return False
         return self.api.authenticate(input_user,input_password)
 
     def __validate_token(self,token): 
@@ -527,8 +536,18 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self.__invalidate_expired_tokens()
         self.__invalidate_expired_objects()
+
+        if not self.auth_enabled:
+            user = self.get_user_from_token(token)
+            if user == "<system>":
+                self.token_cache[token] = (time.time(), user) # update to prevent timeout
+                return True
+
         if self.token_cache.has_key(token):
             user = self.get_user_from_token(token)
+            if user == "<system>":
+               # system token is only valid over Unix socket
+               return False
             self.token_cache[token] = (time.time(), user) # update to prevent timeout
             return True
         else:
@@ -537,6 +556,8 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
 
     def check_access(self,token,resource,arg1=None,arg2=None):
         validated = self.__validate_token(token)
+        if not self.auth_enabled:
+            return True
         return self.__authorize(token,resource,arg1,arg2)
 
 

@@ -57,6 +57,7 @@ if __name__ == "__main__":
                     "cobbler",
                     "cobbler/yaml",
                     "cobbler/modules", 
+                    "cobbler/server", 
                     "cobbler/webui",
                 ],
                 scripts = ["scripts/cobbler", "scripts/cobblerd", "scripts/cobbler_auth_help"],
