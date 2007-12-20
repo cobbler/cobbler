@@ -387,10 +387,10 @@ class BootSync:
 
         # FIXME: watcher is more of a request than a packaged file
         # we should eventually package something and let it do something important"
-        pattern1 = "wget \"http://%s/cblr/watcher.py?%s_%s=%s\" -b"
-        pattern2 = "wget \"http://%s/cgi-bin/cobbler/nopxe.cgi?system=%s\" -b"
+        pattern1 = "wget \"http://%s/cblr/watcher.py?%s_%s=%s\""
+        pattern2 = "wget \"http://%s/cgi-bin/cobbler/nopxe.cgi?system=%s\""
         pattern3 = "wget \"http://%s/cobbler/%s/%s/ks.cfg\" -O /root/cobbler.ks"
-        pattern4 = "wget \"http://%s/cgi-bin/cobbler/post_install_trigger.cgi?system=%s\" -b"
+        pattern4 = "wget \"http://%s/cgi-bin/cobbler/post_install_trigger.cgi?system=%s\""
 
         blend_this = profile
         if system:
