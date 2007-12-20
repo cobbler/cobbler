@@ -18,6 +18,8 @@ Cobbler CHANGELOG
 - performance testing scripts (in source checkout)
 - webui now uses Apache logging
 - misc webui fixes
+- remove -b from wgets since busybox doesn't have -b in wget
+- rename default/sample kickstarts to avoid confusion
 - ...
 
 * Wed Nov 14 2007 - 0.6.4

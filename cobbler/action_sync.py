@@ -387,10 +387,9 @@ class BootSync:
 
         # FIXME: watcher is more of a request than a packaged file
         # we should eventually package something and let it do something important"
-        pattern1 = "wget \"http://%s/cblr/watcher.py?%s_%s=%s\""
-        pattern2 = "wget \"http://%s/cgi-bin/cobbler/nopxe.cgi?system=%s\""
-        pattern3 = "wget \"http://%s/cobbler/%s/%s/ks.cfg\" -O /root/cobbler.ks"
-        pattern4 = "wget \"http://%s/cgi-bin/cobbler/post_install_trigger.cgi?system=%s\""
+        pattern1 = "wget \"http://%s/cgi-bin/cobbler/nopxe.cgi?system=%s\""
+        pattern2 = "wget \"http://%s/cobbler/%s/%s/ks.cfg\" -O /root/cobbler.ks"
+        pattern3 = "wget \"http://%s/cgi-bin/cobbler/post_install_trigger.cgi?system=%s\""
 
         blend_this = profile
         if system:
@@ -401,18 +400,16 @@ class BootSync:
 
         buf = ""
         if system is not None:
-            buf = buf + pattern1 % (blended["server"], "system", "done", system.name)
             if str(self.settings.pxe_just_once).upper() in [ "1", "Y", "YES", "TRUE" ]:
-                buf = buf + "\n" + pattern2 % (blended["server"], system.name)
+                buf = buf + "\n" + pattern1 % (blended["server"], system.name)
             if kickstart and os.path.exists(kickstart):
-                buf = buf + "\n" + pattern3 % (blended["server"], "kickstarts_sys", system.name)
+                buf = buf + "\n" + pattern2 % (blended["server"], "kickstarts_sys", system.name)
             if self.settings.run_post_install_trigger:
-                buf = buf + "\n" + pattern4 % (blended["server"], system.name)
+                buf = buf + "\n" + pattern3 % (blended["server"], system.name)
 
         else:
-            buf = buf + pattern1 % (blended["server"], "profile", "done", profile.name)
             if kickstart and os.path.exists(kickstart):
-                buf = buf + "\n" + pattern3 % (blended["server"], "kickstarts", profile.name)
+                buf = buf + "\n" + pattern2 % (blended["server"], "kickstarts", profile.name)
             
         return buf
 

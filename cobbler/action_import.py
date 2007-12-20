@@ -256,12 +256,12 @@ class Importer:
    def set_kickstart(self, profile, flavor, major, minor):
        if flavor == "fedora":
            if major >= 6:
-                return profile.set_kickstart("/etc/cobbler/kickstart_fc6.ks")
+                return profile.set_kickstart("/etc/cobbler/sample.ks")
        if flavor == "redhat" or flavor == "centos":
            if major >= 5:
-                return profile.set_kickstart("/etc/cobbler/kickstart_fc6.ks")
+                return profile.set_kickstart("/etc/cobbler/sample.ks")
        print _("- using default kickstart file choice")
-       return profile.set_kickstart("/etc/cobbler/kickstart_fc5.ks")
+       return profile.set_kickstart("/etc/cobbler/legacy.ks")
 
    # ---------------------------------------------------------------------
 

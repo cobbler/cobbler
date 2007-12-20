@@ -85,9 +85,8 @@ if __name__ == "__main__":
                                 (cobpath,  ['loaders/menu.c32']),
 
                                 # sample kickstart files
-                                (etcpath,  ['kickstarts/kickstart_fc5.ks']),
-                                (etcpath,  ['kickstarts/kickstart_fc6.ks']),
-                                (etcpath,  ['kickstarts/kickstart_fc6_domU.ks']),
+                                (etcpath,  ['kickstarts/legacy.ks']),
+                                (etcpath,  ['kickstarts/sample.ks']),
                                 (etcpath,  ['kickstarts/default.ks']),
  
                                 # templates for DHCP and syslinux configs

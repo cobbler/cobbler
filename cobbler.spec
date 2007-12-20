@@ -118,16 +118,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/cobblerd
 %{_bindir}/cobbler_auth_help
 %dir /etc/cobbler
-%config(noreplace) /etc/cobbler/default.ks
-%config(noreplace) /etc/cobbler/kickstart_fc5.ks
-%config(noreplace) /etc/cobbler/kickstart_fc6.ks
-%config(noreplace) /etc/cobbler/kickstart_fc6_domU.ks
-%config(noreplace) /etc/cobbler/dhcp.template
-%config(noreplace) /etc/cobbler/dnsmasq.template
-%config(noreplace) /etc/cobbler/pxedefault.template
-%config(noreplace) /etc/cobbler/pxeprofile.template
-%config(noreplace) /etc/cobbler/pxesystem.template
-%config(noreplace) /etc/cobbler/pxesystem_ia64.template
+%config(noreplace) /etc/cobbler/*.ks
+%config(noreplace) /etc/cobbler/*.template
 %config(noreplace) /etc/cobbler/rsync.exclude
 %config(noreplace) /etc/logrotate.d/cobblerd_rotate
 %config(noreplace) /etc/cobbler/modules.conf
@@ -191,6 +183,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 * Fri Dec 15 2007 Michael DeHaan <mdehaan@redhat.com> - 0.7.1-1
 - Upstream changes (see CHANGELOG)
+- Generalize what files are included in RPM
 
 * Thu Dec 14 2007 Michael DeHaan <mdehaan@redhat.com> - 0.7.0-1
 - Upstream changes (see CHANGELOG), testing branch
