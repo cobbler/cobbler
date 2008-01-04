@@ -267,7 +267,7 @@ class BootAPI:
         statusifier = action_status.BootStatusReport(self._config, mode)
         return statusifier.run()
 
-    def import_tree(self,mirror_url,mirror_name,network_root=None):
+    def import_tree(self,mirror_url,mirror_name,network_root=None,kickstart_file=None):
         """
         Automatically import a directory tree full of distribution files.
         mirror_url can be a string that represents a path, a user@host 
@@ -275,9 +275,9 @@ class BootAPI:
         filesystem path and mirroring is not desired, set network_root 
         to something like "nfs://path/to/mirror_url/root" 
         """
-        self.log("import_tree",[mirror_url, mirror_name, network_root])
+        self.log("import_tree",[mirror_url, mirror_name, network_root, kickstart_file])
         importer = action_import.Importer(
-            self, self._config, mirror_url, mirror_name, network_root
+            self, self._config, mirror_url, mirror_name, network_root, kickstart_file
         )
         return importer.run()
 

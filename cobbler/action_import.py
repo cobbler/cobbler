@@ -36,7 +36,7 @@ TRY_LIST = [
 
 class Importer:
 
-   def __init__(self,api,config,mirror,mirror_name,network_root=None):
+   def __init__(self,api,config,mirror,mirror_name,network_root=None,kickstart_file=None):
        """
        Performs an import of a install tree (or trees) from the given
        mirror address.  The prefix of the distro is to be specified
@@ -57,6 +57,7 @@ class Importer:
        self.systems  = config.systems()
        self.settings = config.settings()
        self.distros_added = []
+       self.kickstart_file = kickstart_file
 
    # ----------------------------------------------------------------------
 
@@ -154,9 +155,10 @@ class Importer:
 
    def kickstart_finder(self):
        """
-       For all of the profiles in the config w/o a kickstart, look
-       at the kernel path, from that, see if we can guess the distro,
-       and if we can, assign a kickstart if one is available for it.
+       For all of the profiles in the config w/o a kickstart, use the
+       given kickstart file, or look at the kernel path, from that, 
+       see if we can guess the distro, and if we can, assign a kickstart 
+       if one is available for it.
        """
 
        for profile in self.profiles:
@@ -172,25 +174,30 @@ class Importer:
            #    print _("- skipping %s since profile isn't mirrored") % profile.name
            #    continue
  
-           kdir = os.path.dirname(distro.kernel)   
-           base_dir = "/".join(kdir.split("/")[0:-2])
-      
-           for try_entry in TRY_LIST:
-               try_dir = os.path.join(base_dir, try_entry)
-               if os.path.exists(try_dir):
-                   rpms = glob.glob(os.path.join(try_dir, "*release-*"))
-                   for rpm in rpms:
-                       if rpm.find("notes") != -1:
-                           continue
-                       results = self.scan_rpm_filename(rpm)
-                       if results is None:
-                           continue
-                       (flavor, major, minor) = results
-                       print _("- finding default kickstart template for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
-                       kickstart = self.set_kickstart(profile, flavor, major, minor)
-                       self.configure_tree_location(distro)
-                       self.distros.add(distro,save=True) # re-save
-                       self.api.serialize()
+           if (self.kickstart_file == None):
+               kdir = os.path.dirname(distro.kernel)   
+               base_dir = "/".join(kdir.split("/")[0:-2])
+          
+               for try_entry in TRY_LIST:
+                   try_dir = os.path.join(base_dir, try_entry)
+                   if os.path.exists(try_dir):
+                       rpms = glob.glob(os.path.join(try_dir, "*release-*"))
+                       for rpm in rpms:
+                           if rpm.find("notes") != -1:
+                               continue
+                           results = self.scan_rpm_filename(rpm)
+                           if results is None:
+                               continue
+                           (flavor, major, minor) = results
+                           print _("- finding default kickstart template for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
+                           kickstart = self.set_kickstart(profile, flavor, major, minor)
+           else:
+               print _("- using kickstart file %s") % self.kickstart_file
+               profile.set_kickstart(self.kickstart_file)
+
+           self.configure_tree_location(distro)
+           self.distros.add(distro,save=True) # re-save
+           self.api.serialize()
 
    # --------------------------------------------------------------------
 

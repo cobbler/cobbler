@@ -76,6 +76,7 @@ class ImportFunction(commands.CobblerFunction):
         p.add_option("--mirror",             dest="mirror",             help="local path or rsync location (REQUIRED)")
         p.add_option("--name",               dest="name",               help="name, ex 'RHEL-5', (REQUIRED)")
         p.add_option("--available-as",       dest="available_as",       help="do not mirror, use this as install tree")
+        p.add_option("--kickstart",          dest="kickstart_file",     help="use the kickstart file specified as the profile's kickstart file")
 
     def run(self):
         if not self.options.mirror:
@@ -85,7 +86,8 @@ class ImportFunction(commands.CobblerFunction):
         return self.api.import_tree(
                 self.options.mirror,
                 self.options.name,
-                network_root=self.options.available_as
+                network_root=self.options.available_as,
+                kickstart_file=self.options.kickstart_file
         )
 
 

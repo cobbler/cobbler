@@ -597,6 +597,8 @@ By default, the rsync operations will exclude PPC content, debug RPMs, and ISO i
 
 Note that all of the import commands will mirror install tree content into /var/www/cobbler unless a network accessible location is given with --available-as.  --available-as will be primarily used when importing distros stored on an external NAS box, or potentially on another partition on the same machine that is already accessible via http:// or ftp://.
 
+Should you want to force the usage of a specific cobbler kickstart template for all profiles created by an import, you can feed the option --kicksart to import.
+
 =head2 DEFAULT PXE BOOT BEHAVIOR
 
 What happens when PXE booting a system when cobbler has no record of the system being booted?
