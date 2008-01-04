@@ -189,7 +189,7 @@ class Importer:
                        print _("- finding default kickstart template for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
                        kickstart = self.set_kickstart(profile, flavor, major, minor)
                        self.configure_tree_location(distro)
-                       self.distros.add(distro) # re-save
+                       self.distros.add(distro,save=True) # re-save
                        self.api.serialize()
 
    # --------------------------------------------------------------------
@@ -474,7 +474,7 @@ class Importer:
        distro.set_initrd(initrd)
        distro.set_arch(pxe_arch)
        distro.source_repos = []
-       self.distros.add(distro)
+       self.distros.add(distro,save=True)
        self.distros_added.append(distro)       
 
        existing_profile = self.profiles.find(name=name) 
@@ -489,7 +489,7 @@ class Importer:
        profile.set_name(name)
        profile.set_distro(name)
 
-       self.profiles.add(profile)
+       self.profiles.add(profile,save=True)
        self.api.serialize()
 
        return distro
