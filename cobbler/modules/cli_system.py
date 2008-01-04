@@ -43,6 +43,7 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--hostname",        dest="hostname",    help="ex: server.example.org")
             p.add_option("--interface",       dest="interface",   help="edit this interface # (0-7, default 0)")
             p.add_option("--ip",              dest="ip",          help="ex: 192.168.1.55, (RECOMMENDED)")
+            p.add_option("--kickstart",       dest="kickstart",   help="override profile kickstart template")
             p.add_option("--kopts",           dest="kopts",       help="ex: 'noipv6'")
             p.add_option("--ksmeta",          dest="ksmeta",      help="ex: 'blippy=7'")
             p.add_option("--mac",             dest="mac",         help="ex: 'AA:BB:CC:DD:EE:FF', (RECOMMENDED)")
@@ -79,6 +80,7 @@ class SystemFunction(commands.CobblerFunction):
         if self.options.profile:         obj.set_profile(self.options.profile)
         if self.options.kopts:           obj.set_kernel_options(self.options.kopts)
         if self.options.ksmeta:          obj.set_ksmeta(self.options.ksmeta)
+        if self.options.kickstart:       obj.set_kickstart(self.options.kickstart)
         if self.options.netboot_enabled: obj.set_netboot_enabled(self.options.netboot_enabled)
         if self.options.server_override: obj.set_server(self.options.server_override)
         if self.options.virt_path:       obj.set_virt_path(self.options.virt_path)
@@ -89,12 +91,13 @@ class SystemFunction(commands.CobblerFunction):
         else:
             my_interface = "intf0"
 
-        if self.options.hostname: obj.set_hostname(self.options.hostname, my_interface)
-        if self.options.mac:      obj.set_mac_address(self.options.mac,   my_interface)
-        if self.options.ip:       obj.set_ip_address(self.options.ip,     my_interface)
-        if self.options.subnet:   obj.set_subnet(self.options.subnet,     my_interface)
-        if self.options.gateway:  obj.set_gateway(self.options.gateway,   my_interface)
-        if self.options.dhcp_tag: obj.set_dhcp_tag(self.options.dhcp_tag, my_interface)
+        if self.options.hostname:    obj.set_hostname(self.options.hostname, my_interface)
+        if self.options.mac:         obj.set_mac_address(self.options.mac,   my_interface)
+        if self.options.ip:          obj.set_ip_address(self.options.ip,     my_interface)
+        if self.options.subnet:      obj.set_subnet(self.options.subnet,     my_interface)
+        if self.options.gateway:     obj.set_gateway(self.options.gateway,   my_interface)
+        if self.options.dhcp_tag:    obj.set_dhcp_tag(self.options.dhcp_tag, my_interface)
+        if self.options.virt_bridge: obj.set_virt_bridge(self.options.virt_bridge, my_interface)
 
         return self.object_manipulator_finish(obj, self.api.systems, self.options)
 
