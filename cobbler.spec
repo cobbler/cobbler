@@ -182,9 +182,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Fri Dec 15 2007 Michael DeHaan <mdehaan@redhat.com> - 0.7.1-1
+* Mon Jan 07 2007 Michael DeHaan <mdehaan@redhat.com> - 0.7.1-1
 - Upstream changes (see CHANGELOG)
 - Generalize what files are included in RPM
+- Add new python module directory
 
 * Thu Dec 14 2007 Michael DeHaan <mdehaan@redhat.com> - 0.7.0-1
 - Upstream changes (see CHANGELOG), testing branch
