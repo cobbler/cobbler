@@ -129,6 +129,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir %{python_sitelib}/cobbler/webui
 %{python_sitelib}/cobbler/*.py*
 %{python_sitelib}/cobbler/yaml/*.py*
+%{python_sitelib}/cobbler/server/*.py*
 %{python_sitelib}/cobbler/modules/*.py*
 %{python_sitelib}/cobbler/webui/*.py*
 %{_mandir}/man1/cobbler.1.gz
