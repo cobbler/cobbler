@@ -150,6 +150,19 @@ function disablename(value)
     </td>
     </tr>
 
+    <tr>
+    <td>
+    <label for="yumopts">yum options</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="yumopts" id="yumopts" 
+        #if $repo
+            value="$repo.yumopts" 
+        #end if
+    />
+    <p class="context-tip">Sets specific yum plugin parameters on the installed system.</p>
+    </td>
+    </tr>
 
 
     #if $repo

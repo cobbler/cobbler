@@ -41,12 +41,15 @@ class RepoFunction(commands.CobblerFunction):
 
             p.add_option("--arch",             dest="arch",             help="overrides repo arch if required")
             p.add_option("--createrepo-flags", dest="createrepo_flags", help="additional flags for createrepo")
-            p.add_option("--rpm-list",         dest="rpm_list",         help="just mirror these rpms")
             p.add_option("--keep-updated",     dest="keep_updated",     help="update on each reposync, yes/no")
-            p.add_option("--priority",         dest="priority",         help="set priority") 
-            p.add_option("--mirror",           dest="mirror",           help="source to mirror (REQUIRED)")
 
         p.add_option("--name",                 dest="name",             help="ex: 'Fedora-8-updates-i386' (REQUIRED)")
+        
+        if not self.matches_args(args,["remove","report","list"]):
+            p.add_option("--mirror",           dest="mirror",           help="source to mirror (REQUIRED)")
+            p.add_option("--priority",         dest="priority",         help="set priority") 
+            p.add_option("--rpm-list",         dest="rpm_list",         help="just mirror these rpms")
+            p.add_option("--yumopts",          dest="yumopts",          help="ex: pluginvar=abcd")
 
         if self.matches_args(args,["copy","rename"]):
 
@@ -70,6 +73,7 @@ class RepoFunction(commands.CobblerFunction):
         if self.options.keep_updated:     obj.set_keep_updated(self.options.keep_updated)
         if self.options.priority:         obj.set_priority(self.options.priority)
         if self.options.mirror:           obj.set_mirror(self.options.mirror)
+        if self.options.yumopts:          obj.set_yumopts(self.options.yumopts)
 
         return self.object_manipulator_finish(obj, self.api.repos, self.options)
 

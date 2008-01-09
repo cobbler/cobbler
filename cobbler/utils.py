@@ -21,7 +21,6 @@ import sub_process
 import shutil
 import string
 import traceback
-import logging
 from cexceptions import *
 from rhpl.translate import _, N_, textdomain, utf8
 
@@ -338,13 +337,12 @@ def flatten(data):
     # this should not be done for everything
     if data.has_key("kernel_options"):
         data["kernel_options"] = hash_to_string(data["kernel_options"])
-    # FIXME: why do we flatten this?
+    if data.has_key("yumopts"):
+        data["yumopts"]        = hash_to_string(data["yumopts"])
     if data.has_key("ks_meta"):
         data["ks_meta"] = hash_to_string(data["ks_meta"])
-    # FIXME: why do we flatten this?
     if data.has_key("repos") and type(data["repos"]) == list:
         data["repos"]   = " ".join(data["repos"])
-    # FIXME: why do we flatten this?
     if data.has_key("rpm_list") and type(data["rpm_list"]) == list:
         data["rpm_list"] = " ".join(data["rpm_list"])
 

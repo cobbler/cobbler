@@ -1,26 +1,10 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Fri Dec 15 2007 - 0.7.1
-- ...
-
-* Thu Dec 14 2007 - 0.7.0
-- Testing branch
-- Fix bug related to <<inherit>> and kickstart args 
-- Make CLI functions modular and use optparse
-- Quote wget args to avoid creating stray files on target system
-- Support Xen FV as virt type (requires F8+)
-- Implemented fully pluggable authn/authz system
-- WebUI is now mod_python based
-- Greatly enhanced logging (goes to /var/log/cobbler/cobbler.log)
-- New --no-triggers and --no-sync on "adds" for performance and other reasons
-- pxe_just_once is now much faster.
-- performance testing scripts (in source checkout)
-- webui now uses Apache logging
-- misc webui fixes
-- remove -b from wgets since busybox doesn't have -b in wget
-- rename default/sample kickstarts to avoid confusion
+* Wed Jan 09 2007 - 0.7.1
 - allow imports to force usage of a specific kickstart template with --kickstart
+- added --yumopts parameter to repos (works just like --kopts/--ksmeta)
+- minor doc fixes
 - ...
 
 * Wed Nov 14 2007 - 0.6.4
@@ -242,6 +226,24 @@ Cobbler CHANGELOG
   older releases (for now).  The CLI still takes the --xen options
   as well as the new --virt options, as they are aliased.  The API
   now exclusively just uses methods with "virt" in them, however.
+- ...
+
+* Thu Dec 14 2007 - 0.7.0
+- Testing branch
+- Fix bug related to <<inherit>> and kickstart args 
+- Make CLI functions modular and use optparse
+- Quote wget args to avoid creating stray files on target system
+- Support Xen FV as virt type (requires F8+)
+- Implemented fully pluggable authn/authz system
+- WebUI is now mod_python based
+- Greatly enhanced logging (goes to /var/log/cobbler/cobbler.log)
+- New --no-triggers and --no-sync on "adds" for performance and other reasons
+- pxe_just_once is now much faster.
+- performance testing scripts (in source checkout)
+- webui now uses Apache logging
+- misc webui fixes
+- remove -b from wgets since busybox doesn't have -b in wget
+- rename default/sample kickstarts to avoid confusion
 - Fixed some bugs related to kickstart templating
 
 * Tue Oct 24 2006 - 0.3.0

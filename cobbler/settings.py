@@ -38,7 +38,7 @@ DEFAULTS = {
     "kernel_options"              : {
         "lang"                    : " ",
         "text"                    : None,
-        "ksdevice"                : "eth0",
+        "ksdevice"                : "eth0"
     },
     "manage_dhcp"                 : 0,
     "manage_dhcp_mode"            : "isc",

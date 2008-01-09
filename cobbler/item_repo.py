@@ -38,6 +38,7 @@ class Repo(item.Item):
         self.createrepo_flags = ("-c cache", '<<inherit>>')[is_subobject]
         self.depth            = 2  # arbitrary, as not really apart of the graph
         self.arch             = "" # use default arch
+        self.yumopts          = {}
 
     def from_datastruct(self,seed_data):
         self.parent           = self.load_item(seed_data, 'parent')
@@ -49,6 +50,7 @@ class Repo(item.Item):
         self.createrepo_flags = self.load_item(seed_data, 'createrepo_flags', '-c cache')
         self.arch             = self.load_item(seed_data, 'arch')
         self.depth            = self.load_item(seed_data, 'depth', 2)
+        self.yumopts          = self.load_item(seed_data, 'yumopts', {})
 
         # force this to be saved as a boolean 
         self.set_keep_updated(self.keep_updated)
@@ -82,6 +84,18 @@ class Repo(item.Item):
         else:
             self.keep_updated = False
         return True
+
+    def set_yumopts(self,options):
+        """
+        Kernel options are a space delimited list,
+        like 'a=b c=d e=f g h i=j' or a hash.
+        """
+        (success, value) = utils.input_string_or_hash(options,None)
+        if not success:
+            raise CX(_("invalid yum options"))
+        else:
+            self.yumopts = value
+            return True
 
     def set_priority(self,priority):
         """
@@ -154,7 +168,8 @@ class Repo(item.Item):
            'createrepo_flags' : self.createrepo_flags,
            'arch'             : self.arch,
            'parent'           : self.parent,
-           'depth'            : self.depth
+           'depth'            : self.depth,
+           'yumopts'          : self.yumopts
         }
 
     def printable(self):
@@ -165,6 +180,7 @@ class Repo(item.Item):
         buf = buf + _("rpm list         : %s\n") % self.rpm_list
         buf = buf + _("createrepo_flags : %s\n") % self.createrepo_flags
         buf = buf + _("arch             : %s\n") % self.arch
+        buf = buf + _("yum options      : %s\n") % self.yumopts
         return buf
 
     def get_parent(self):
@@ -193,5 +209,7 @@ class Repo(item.Item):
             'keep-updated'     :  self.set_keep_updated,
             'priority'         :  self.set_priority,
             'rpm-list'         :  self.set_rpm_list,
-            'createrepo-flags' :  self.set_createrepo_flags
+            'createrepo-flags' :  self.set_createrepo_flags,
+            'yumopts'          :  self.set_yumopts
         }
+

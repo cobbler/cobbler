@@ -673,7 +673,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Creates a new (unconfigured) repo object.  See the documentation 
         for new_distro as it works exactly the same.
         """
-        self.debug("new_repo",token=token)
+        self.log("new_repo",token=token)
         self.check_access(token,"new_repo")
         return self.__store_object(item_repo.Repo(self.api._config))
        

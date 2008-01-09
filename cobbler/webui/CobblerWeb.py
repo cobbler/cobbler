@@ -17,7 +17,6 @@ import os
 import traceback
 import string
 from cobbler.utils import *
-import logging
 import sys
 
 def log_exc(apache):
@@ -576,7 +575,8 @@ class CobblerWeb(object):
 
     def repo_save(self,name=None,oldname=None,new_or_edit=None,editmode="edit",
                   mirror=None,keep_updated=None,priority=99,
-                  rpm_list=None,createrepo_flags=None,arch=None,delete1=None,delete2=None,**args):
+                  rpm_list=None,createrepo_flags=None,arch=None,yumopts=None,
+                  delete1=None,delete2=None,**args):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
@@ -618,9 +618,11 @@ class CobblerWeb(object):
             if rpm_list:
                 self.remote.modify_repo(repo, 'rpm-list', rpm_list, self.token)
             if createrepo_flags:
-                self.remote.modify_distro(repo, 'createrepo-flags', createrepo_flags, self.token)
+                self.remote.modify_repo(repo, 'createrepo-flags', createrepo_flags, self.token)
             if arch:
-                self.remote.modify_distro(repo, 'arch', arch, self.token)
+                self.remote.modify_repo(repo, 'arch', arch, self.token)
+            if yumopts:
+                self.remote.modify_repo(repo, 'yumopts', yumopts, self.token)
 
             self.remote.save_repo(repo, self.token)
 

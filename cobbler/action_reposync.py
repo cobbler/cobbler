@@ -237,12 +237,17 @@ class RepoSync:
         if output:
             line = "baseurl=http://${server}/cobbler/repo_mirror/%s\n" % (repo.name)
             config_file.write(line)
+            # user may have options specific to certain yum plugins
+            # add them to the file
+            for x in repo.yumopts:
+                config_file.write("%s=%s\n" % (x, repo.yumopts[x]))
         else:
             line = "baseurl=%s\n" % repo.mirror
             line = line.replace("@@server@@",self.settings.server)
             config_file.write(line)
         config_file.write("enabled=1\n")
         config_file.write("priority=%s\n" % repo.priority)
+        # FIXME: potentially might want a way to turn this on/off on a per-repo basis
         config_file.write("gpgcheck=0\n")
         config_file.close()
         return fname 
