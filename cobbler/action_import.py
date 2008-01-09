@@ -352,7 +352,7 @@ class Importer:
        for x in fnames:
           if x == "base" or x == "repodata":
                # only run the repo scanner on directories that contain a comps.xml
-               gloob1 = glob.glob("%s/%s/comps*.xml" % (dirname,x))
+               gloob1 = glob.glob("%s/%s/*comps*.xml" % (dirname,x))
                if len(gloob1) >= 1:
                    if matches.has_key(dirname):
                        print _("- looks like we've already scanned here: %s") % dirname
@@ -379,8 +379,8 @@ class Importer:
        print _("- scanning: %(path)s (distro: %(name)s)") % { "path" : comps_path, "name" : distro.name }
 
        # figure out what our comps file is ...
-       print _("- looking for %(p1)s/%(p2)s/comps*.xml") % { "p1" : comps_path, "p2" : masterdir }
-       files = glob.glob("%s/%s/comps*.xml" % (comps_path, masterdir))
+       print _("- looking for %(p1)s/%(p2)s/*comps*.xml") % { "p1" : comps_path, "p2" : masterdir }
+       files = glob.glob("%s/%s/*comps*.xml" % (comps_path, masterdir))
        if len(files) == 0:
            print _("- no comps found here: %s") % os.path.join(comps_path, masterdir)
            return # no comps xml file found

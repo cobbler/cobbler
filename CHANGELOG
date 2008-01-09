@@ -1,6 +1,10 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Wed Jan 09 2007 - 0.6.6
+- Note, this branch will probably not release, see devel branch for 0.7.X
+- Fix for f8 comps.xml name change
+
 * Wed Nov 15 2007 - 0.6.5
 - Fix obscure bug dealing with <<import>>, subprofiles, and kickstart arguments.
 
