@@ -27,7 +27,7 @@ def log_exc(apache):
     (t, v, tb) = sys.exc_info()
     apache.log_error("Exception occured: %s" % t )
     apache.log_error("Exception value: %s" % v)
-    apache_log_error("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+    apache.log_error("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
 
 class CobblerWeb(object):
     """
