@@ -5,6 +5,7 @@ Cobbler CHANGELOG
 - allow imports to force usage of a specific kickstart template with --kickstart
 - added --yumopts parameter to repos (works just like --kopts/--ksmeta)
 - minor doc fixes
+- fix for name of F8 comps.xml file
 - ...
 
 * Wed Nov 14 2007 - 0.6.4
