@@ -22,6 +22,11 @@ Requires(preun): /sbin/service
 BuildRequires: redhat-rpm-config
 BuildRequires: python-devel
 BuildRequires: python-cheetah
+%if 0%{?fedora} >= 8
+BuildRequires: python-setuptools-devel
+%else
+BuildRequires: python-setuptools
+%endif
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 ExcludeArch: ppc
