@@ -26,9 +26,6 @@
 <?php 
   include("nav.php"); 
 ?>
-<?php 
-  include("feed.php"); 
-?>
  </div>
 
 <div id="content">
