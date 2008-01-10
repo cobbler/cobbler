@@ -182,6 +182,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/cobbler_hosts
 
 %defattr(-,root,root)
+%if 0%{?fedora} > 8
+%{python_sitearch}/func*.egg-info
+%endif
 %doc AUTHORS CHANGELOG README COPYING
 
 
@@ -191,6 +194,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 - Upstream changes (see CHANGELOG)
 - Generalize what files are included in RPM
 - Add new python module directory
+- Fixes for builds on F9 and later
 
 * Thu Dec 14 2007 Michael DeHaan <mdehaan@redhat.com> - 0.7.0-1
 - Upstream changes (see CHANGELOG), testing branch
