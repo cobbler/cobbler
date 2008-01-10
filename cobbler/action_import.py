@@ -231,7 +231,7 @@ class Importer:
 
        # how we set the tree depends on whether an explicit network_root was specified
        if self.network_root is None:
-           meta["tree"] = "http://@@server@@/cblr/links/%s" % (distro.name)
+           meta["tree"] = "http://@@http_server@@/cblr/links/%s" % (distro.name)
        else:
            # where we assign the kickstart source is relative to our current directory
            # and the input start directory in the crawl.  We find the path segments
@@ -425,21 +425,21 @@ class Importer:
 
            fname = os.path.join(self.settings.webdir, "ks_mirror", "config", "%s-%s.repo" % (distro.name, counter))
 
-           repo_url = "http://%s/cobbler/ks_mirror/config/%s-%s.repo" % (self.settings.server, distro.name, counter)
+           repo_url = "http://@@http_server@@/cobbler/ks_mirror/config/%s-%s.repo" % (distro.name, counter)
          
-           repo_url2 = "http://%s/cobbler/ks_mirror/%s" % (self.settings.server, urlseg) 
+           repo_url2 = "http://@@http_server@@/cobbler/ks_mirror/%s" % (urlseg) 
 
            distro.source_repos.append([repo_url,repo_url2])
 
            # NOTE: the following file is now a Cheetah template, so it can be remapped
-           # during sync, that's why we have the @@server@@ left as templating magic.
+           # during sync, that's why we have the @@http_server@@ left as templating magic.
            # repo_url2 is actually no longer used. (?)
 
            print _("- url: %s") % repo_url
            config_file = open(fname, "w+")
            config_file.write("[core-%s]\n" % counter)
            config_file.write("name=core-%s\n" % counter)
-           config_file.write("baseurl=http://@@server@@/cobbler/ks_mirror/%s\n" % (urlseg))
+           config_file.write("baseurl=http://@@http_server@@/cobbler/ks_mirror/%s\n" % (urlseg))
            config_file.write("enabled=1\n")
            config_file.write("gpgcheck=0\n")
            # NOTE: yum priority defaults to 99 if that plugin is enabled 

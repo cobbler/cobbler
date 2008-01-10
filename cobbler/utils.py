@@ -323,6 +323,12 @@ def blender(api_handle,remove_hashes, root_obj, blend_cache=None):
                     if not results.has_key(key):
                         results[key] = interface[key]
 
+    http_port = results.get("http_port",80)
+    if http_port != 80:
+       results["http_server"] = "%s:%s" % (results["server"] , http_port)
+    else:
+       results["http_server"] = results["server"]
+
     # sanitize output for koan and kernel option lines, etc
     if remove_hashes:
         results = flatten(results)

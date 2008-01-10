@@ -7,6 +7,7 @@ Cobbler CHANGELOG
 - minor doc fixes
 - fix for name of F8 comps.xml file
 - added option --rsync-flags to import command
+- added http_port to settings to run Apache on non-80
 - ...
 
 * Mon Dec 10 2007 - 0.7.0

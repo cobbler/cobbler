@@ -243,7 +243,8 @@ class RepoSync:
                 config_file.write("%s=%s\n" % (x, repo.yumopts[x]))
         else:
             line = "baseurl=%s\n" % repo.mirror
-            line = line.replace("@@server@@",self.settings.server)
+            http_server = self.setting.server + ":" + self.settings.http_port
+            line = line.replace("@@server@@",http_server)
             config_file.write(line)
         config_file.write("enabled=1\n")
         config_file.write("priority=%s\n" % repo.priority)

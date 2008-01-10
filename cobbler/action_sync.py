@@ -401,15 +401,15 @@ class BootSync:
         buf = ""
         if system is not None:
             if str(self.settings.pxe_just_once).upper() in [ "1", "Y", "YES", "TRUE" ]:
-                buf = buf + "\n" + pattern1 % (blended["server"], system.name)
+                buf = buf + "\n" + pattern1 % (blended["http_server"], system.name)
             if kickstart and os.path.exists(kickstart):
-                buf = buf + "\n" + pattern2 % (blended["server"], "kickstarts_sys", system.name)
+                buf = buf + "\n" + pattern2 % (blended["http_server"], "kickstarts_sys", system.name)
             if self.settings.run_post_install_trigger:
-                buf = buf + "\n" + pattern3 % (blended["server"], system.name)
+                buf = buf + "\n" + pattern3 % (blended["http_server"], system.name)
 
         else:
             if kickstart and os.path.exists(kickstart):
-                buf = buf + "\n" + pattern2 % (blended["server"], "kickstarts", profile.name)
+                buf = buf + "\n" + pattern2 % (blended["http_server"], "kickstarts", profile.name)
             
         return buf
 
@@ -500,7 +500,7 @@ class BootSync:
 
            name = c.split("/")[-1].replace(".repo","")
            # add the line to create the yum config file on the target box
-           conf = self.get_repo_config_file(blended["server"],urlseg,blended["name"],name)
+           conf = self.get_repo_config_file(blended["http_server"],urlseg,blended["name"],name)
            buf = buf + "wget \"%s\" --output-document=/etc/yum.repos.d/%s.repo\n" % (conf, name)    
 
         return buf
@@ -708,7 +708,6 @@ class BootSync:
             input_files.append(os.path.join(self.settings.webdir, "repo_mirror", repo, "config.repo"))
 
         for infile in input_files:
-            print "DEBUG: looking for infile: %s" % infile
             if infile.find("ks_mirror") == -1:
                 dispname = infile.split("/")[-2]
             else:
@@ -869,9 +868,9 @@ class BootSync:
         if kickstart_path is not None and kickstart_path != "":
 
             if system is not None and kickstart_path.startswith("/"):
-                kickstart_path = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (blended["server"], system.name)
+                kickstart_path = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (blended["http_server"], system.name)
             elif kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
-                kickstart_path = "http://%s/cblr/kickstarts/%s/ks.cfg" % (blended["server"], profile.name)
+                kickstart_path = "http://%s/cblr/kickstarts/%s/ks.cfg" % (blended["http_server"], profile.name)
 
             if distro.breed is None or distro.breed == "redhat":
                 append_line = "%s ks=%s" % (append_line, kickstart_path)
@@ -945,7 +944,7 @@ class BootSync:
         fd = open(filename, "w+")
         if blended.has_key("kickstart") and blended["kickstart"].startswith("/"):
             # write the file location as needed by koan
-            blended["kickstart"] = "http://%s/cblr/kickstarts/%s/ks.cfg" % (blended["server"], profile.name)
+            blended["kickstart"] = "http://%s/cblr/kickstarts/%s/ks.cfg" % (blended["http_server"], profile.name)
         fd.write(yaml.dump(blended))
         fd.close()
 
