@@ -91,7 +91,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(444,apache,apache)
 /usr/share/cobbler/webui_templates/*.tmpl
 
-%defattr(4755,apache,apache)
+%defattr(755,apache,apache)
 %dir /var/log/cobbler
 %dir /var/log/cobbler/kicklog
 %dir /var/www/cobbler/
@@ -194,6 +194,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 * Thu Jan 10 2008 Michael DeHaan <mdehaan@redhat.com> - 0.6.5-1
 - Upstream changes (see CHANGELOG)
+- simplify directory permissions
 
 * Wed Nov 14 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.4-2
 - Upstream changes (see CHANGELOG)
