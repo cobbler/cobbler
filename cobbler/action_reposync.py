@@ -203,7 +203,7 @@ class RepoSync:
             spacer = "-e ssh"
         if not repo.mirror.endswith("/"):
             repo.mirror = "%s/" % repo.mirror
-        cmd = "rsync -av %s --delete --delete-excluded --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)       
+        cmd = "rsync -rltDv %s --delete --delete-excluded --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)       
         print _("- %s") % cmd
         rc = sub_process.call(cmd, shell=True)
         if rc !=0:
