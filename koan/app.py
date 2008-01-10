@@ -591,6 +591,8 @@ class Koan:
 
     def display(self):
         def after_download(self, profile_data):
+            # DEBUG
+            print profile_data
             for x in DISPLAY_PARAMS:
                 if profile_data.has_key(x):
                     value = profile_data[x]
