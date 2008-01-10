@@ -2,7 +2,7 @@
 Summary: Boot server configurator
 Name: cobbler
 Version: 0.6.5
-Release: 1%{?dist}
+Release: 3%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -23,6 +23,11 @@ Requires(preun): /sbin/service
 BuildRequires: redhat-rpm-config
 BuildRequires: python-devel
 BuildRequires: python-cheetah
+%if 0%{?fedora} >= 8
+BuildRequires: python-setuptools-devel
+%else
+BuildRequires: python-setuptools
+%endif
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 ExcludeArch: ppc
@@ -187,10 +192,16 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/cobbler_hosts
 
 %defattr(-,root,root)
+%if 0%{?fedora} > 8
+%{python_sitelib}/cobbler*.egg-info
+%endif
 %doc AUTHORS CHANGELOG README COPYING
 
 
 %changelog
+
+* Thu Jan 10 2008 Michael DeHaan <mdehaan@redhat.com> - 0.6.5-3
+- added python-setuptools stanza for F9
 
 * Thu Jan 10 2008 Michael DeHaan <mdehaan@redhat.com> - 0.6.5-1
 - Upstream changes (see CHANGELOG)
