@@ -6,6 +6,18 @@ Cobbler CHANGELOG
 - added --yumopts parameter to repos (works just like --kopts/--ksmeta)
 - minor doc fixes
 - fix for name of F8 comps.xml file
+- added option --rsync-flags to import command
+- ...
+
+* Mon Dec 10 2007 - 0.7.0
+- Testing branch
+- Fix bug related to <<inherit>> and kickstart args 
+- Make CLI functions modular and use optparse
+- Quote wget args to avoid creating stray files on target system
+- Support Xen FV as virt type (requires F8+)
+- Implemented fully pluggable authn/authz system
+- WebUI is now mod_python based
+- Greatly enhanced logging (goes to /var/log/cobbler/cobbler.log)
 - ...
 
 * Wed Nov 14 2007 - 0.6.4

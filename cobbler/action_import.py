@@ -36,7 +36,7 @@ TRY_LIST = [
 
 class Importer:
 
-   def __init__(self,api,config,mirror,mirror_name,network_root=None,kickstart_file=None):
+   def __init__(self,api,config,mirror,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None):
        """
        Performs an import of a install tree (or trees) from the given
        mirror address.  The prefix of the distro is to be specified
@@ -58,6 +58,7 @@ class Importer:
        self.settings = config.settings()
        self.distros_added = []
        self.kickstart_file = kickstart_file
+       self.rsync_flags = rsync_flags
 
    # ----------------------------------------------------------------------
 
@@ -92,7 +93,10 @@ class Importer:
                spacer = ""
                if not self.mirror.startswith("rsync://") and not self.mirror.startswith("/"):
                    spacer = ' -e "ssh" '
-               self.run_this(RSYNC_CMD, (spacer, self.mirror, self.settings.webdir, self.mirror_name))
+               rsync_cmd = RSYNC_CMD
+               if self.rsync_flags:
+                   rsync_cmd = rsync_cmd + " " + self.rsync_flags
+               self.run_this(rsync_cmd, (spacer, self.mirror, self.settings.webdir, self.mirror_name))
 
        # see that the root given is valid
 
