@@ -192,8 +192,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Thu Nov 15 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.5-1
-- Placeholder for possible maint. release (TBD) of stable branch
+* Thu Jan 10 2008 Michael DeHaan <mdehaan@redhat.com> - 0.6.5-1
+- Upstream changes (see CHANGELOG)
 
 * Wed Nov 14 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.4-2
 - Upstream changes (see CHANGELOG)

@@ -1,7 +1,7 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Wed Jan 09 2007 - 0.6.6
+* Thu Jan 10 2007 - 0.6.6
 - NOTE: 0.7.X devel branch in progress at this time, see changelog there
 - Fix for f8 comps.xml name change
 - Fix for reposync permissions during rsync
@@ -18,7 +18,6 @@ Cobbler CHANGELOG
 - WebUI is now mod_python based
 - Greatly enhanced logging (goes to /var/log/cobbler/cobbler.log)
 - ...
->>>>>>> 7a4e81a... Modify reposync to not preserve permissions on rsync.:CHANGELOG
 
 * Wed Nov 14 2007 - 0.6.4
 - Changed permissions of auth.conf
