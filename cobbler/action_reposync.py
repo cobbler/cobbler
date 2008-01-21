@@ -72,6 +72,7 @@ class RepoSync:
                 self.do_rsync(repo)
             else:
                 self.do_reposync(repo)
+            self.update_permissions(repo_path)
 
         return True
     
@@ -268,5 +269,28 @@ class RepoSync:
             except:
                 print _("- createrepo failed.  Is it installed?")
             del fnames[:] # we're in the right place
+
+    # ==================================================================================
+
+    def update_permissions(self, repo_path):
+        """
+        Verifies that permissions and contexts after an rsync are as expected.
+        Sending proper rsync flags should prevent the need for this, though this is largely
+        a safeguard.
+        """
+        # all_path = os.path.join(repo_path, "*")
+        cmd1 = "chown -R root:apache %s" % repo_path
+        sub_process.call(cmd1, shell=True)
+
+        cmd2 = "chmod -R 640 %s" % repo_path
+        sub_process.call(cmd2, shell=True)
+
+        getenforce = "/usr/sbin/getenforce"
+        if os.path.exists(getenforce):
+            data = sub_process.Popen(getenforce, shell=True, stdout=sub_process.PIPE).communicate()[0]
+            if data.lower().find("disabled") == -1:
+                cmd3 = "chcon --reference /var/www %s" % repo_path
+                sub_process.call(cmd3, shell=True)
+
 
             
