@@ -39,8 +39,8 @@ class Profile(item.Item):
         self.kernel_options  = ({},                                '<<inherit>>')[is_subobject]
         self.ks_meta         = ({},                                '<<inherit>>')[is_subobject]
         self.virt_cpus       = (1,                                 '<<inherit>>')[is_subobject]
-        self.virt_file_size  = (5,                                 '<<inherit>>')[is_subobject]
-        self.virt_ram        = (512,                               '<<inherit>>')[is_subobject]
+        self.virt_file_size  = (self.settings.default_virt_file_size,                                 '<<inherit>>')[is_subobject]
+        self.virt_ram        = (self.settings.default_virt_ram,                               '<<inherit>>')[is_subobject]
         self.repos           = ([],                                '<<inherit>>')[is_subobject]
         self.depth           = 1
         self.virt_type       = (self.settings.default_virt_type,   '<<inherit>>')[is_subobject]
@@ -72,8 +72,8 @@ class Profile(item.Item):
         self.set_parent(self.parent)
 
         # virt specific 
-        self.virt_ram    = self.load_item(seed_data,'virt_ram',512)
-        self.virt_file_size  = self.load_item(seed_data,'virt_file_size',5)
+        self.virt_ram    = self.load_item(seed_data,'virt_ram',self.settings.default_virt_ram)
+        self.virt_file_size  = self.load_item(seed_data,'virt_file_size',self.settings.default_virt_file_size)
         self.virt_path   = self.load_item(seed_data,'virt_path')
         self.virt_type   = self.load_item(seed_data,'virt_type', self.settings.default_virt_type)
         self.virt_bridge = self.load_item(seed_data,'virt_bridge', self.settings.default_virt_bridge)        

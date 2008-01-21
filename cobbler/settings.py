@@ -29,6 +29,8 @@ DEFAULTS = {
     "default_kickstart"           : "/etc/cobbler/default.ks",
     "default_virt_bridge"         : "xenbr0",
     "default_virt_type"           : "auto",
+    "default_virt_file_size"      : "5",
+    "default_virt_ram"            : "512",
     "dhcpd_conf"                  : "/etc/dhcpd.conf",
     "dhcpd_bin"                   : "/usr/sbin/dhcpd",
     "dnsmasq_bin"                 : "/usr/sbin/dnsmasq",
