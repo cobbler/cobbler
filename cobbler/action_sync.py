@@ -639,6 +639,10 @@ class BootSync:
         for x in metadata:
            if type(metadata[x]) == str:
                data_out = data_out.replace("@@%s@@" % x, metadata[x])
+        
+        # remove leading newlines which apparently breaks AutoYAST ?
+        if data_out.startswith("\n"):
+            data_out = data_out.strip() 
 
         if out_path is not None:
             self.mkdir(os.path.dirname(out_path))
