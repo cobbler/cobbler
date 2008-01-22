@@ -4,6 +4,7 @@ Cobbler CHANGELOG
 * Mon Jan 21 2007 - 0.7.2
 - default_virt_file_size and default_virt_ram added to settings
 - enforce permissions/selinux context after reposync
+- support for renames that resolve dependencies
 
 * Wed Jan 09 2007 - 0.7.1
 - allow imports to force usage of a specific kickstart template with --kickstart

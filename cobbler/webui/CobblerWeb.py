@@ -177,13 +177,13 @@ class CobblerWeb(object):
         
         # pre-command paramter checking
         # HTML forms do not transmit disabled fields
-        if name is None and new_or_edit == 'edit' and oldname is not None:
+        if name is None and oldname is not None:
             name = oldname
 
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:     
-                self.remote.distro_remove(name,self.token)   
+                self.remote.remove_distro(name,self.token)   
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
             return self.distro_list()
@@ -198,9 +198,13 @@ class CobblerWeb(object):
             return self.error_page("The name has not been changed.")
  
         # grab a reference to the object
-        if new_or_edit == "edit" and editmode == "edit":
+        if new_or_edit == "edit" and editmode in [ "edit", "rename" ]:
             try:
-                distro = self.remote.get_distro_handle( name, self.token)
+                if editmode == "edit":
+                    distro = self.remote.get_distro_handle( name, self.token)
+                else:
+                    distro = self.remote.get_distro_handle( oldname, self.token)
+
             except:
                 log_exc(self.apache)
                 return self.error_page("Failed to lookup distro: %s" % name)
@@ -208,7 +212,8 @@ class CobblerWeb(object):
             distro = self.remote.new_distro(self.token)
 
         try:
-            self.remote.modify_distro(distro, 'name', name, self.token)
+            if editmode != "rename" and name:
+                self.remote.modify_distro(distro, 'name', name, self.token)
             self.remote.modify_distro(distro, 'kernel', kernel, self.token)
             self.remote.modify_distro(distro, 'initrd', initrd, self.token)
             if kopts:
@@ -226,9 +231,9 @@ class CobblerWeb(object):
 
         if editmode == "rename" and name != oldname:
             try:
-                self.remote.distro_remove(oldname, self.token)
+                self.remote.rename_distro(distro, name, self.token)
             except Exception, e:
-                return self.error_page("Rename unsuccessful. Object %s was copied instead, and the old copy (%s) still remains. Reason: %s" % (name, oldname, str(e)))
+                return self.error_page("Rename unsuccessful.")
 
 
         return self.distro_list()
@@ -290,7 +295,7 @@ class CobblerWeb(object):
             return self.xmlrpc_auth_failure()
 
         # parameter checking
-        if name is None and editmode=='edit' and oldname is not None:
+        if name is None and oldname is not None:
             name = oldname
         if name is None:
             return self.error_page("System name parameter is REQUIRED.")
@@ -300,26 +305,19 @@ class CobblerWeb(object):
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:
-                self.remote.system_remove(name,self.token)
+                self.remote.remove_system(name,self.token)
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
             return self.system_list()
 
-        # obsolete -- just do this server side
-        # more parameter checking
-        #if mac is None and ip is None and hostname is None and not is_mac(name) and not is_ip(name):
-        #    return self.error_page("System must have at least one of MAC/IP/hostname.")
-        #if hostname and not ip:
-        #    ip = resolve_ip( hostname )
-        #if mac and not is_mac( mac ):
-        #    return self.error_page("The provided MAC address appears to be invalid.")
-        #if ip and not is_ip( ip ):
-        #    return self.error_page("The provided IP address appears to be invalid.")
-
         # grab a reference to the object
-        if new_or_edit == "edit" and editmode == "edit":
+        if new_or_edit == "edit" and editmode in [ "edit", "rename" ] :
             try:
-                system = self.remote.get_system_handle( name, self.token )
+                if editmode == "edit":
+                    system = self.remote.get_system_handle( name, self.token )
+                else:
+                    system = self.remote.get_system_handle( oldname, self.token )
+                   
             except:
                 return self.error_page("Failed to lookup system: %s" % name)
         else:
@@ -327,14 +325,9 @@ class CobblerWeb(object):
 
         # go!
         try:
-            self.remote.modify_system(system, 'name', name, self.token )
+            if editmode != "rename" and name:
+                self.remote.modify_system(system, 'name', name, self.token )
             self.remote.modify_system(system, 'profile', profile, self.token)
-            #if mac:
-            #   self.remote.modify_system(system, 'mac', mac, self.token)
-            #if ip:
-            #   self.remote.modify_system(system, 'ip', ip, self.token)
-            #if hostname:
-            #   self.remote.modify_system(system, 'hostname', hostname, self.token)
             if kopts:
                self.remote.modify_system(system, 'kopts', kopts, self.token)
             if ksmeta:
@@ -382,9 +375,9 @@ class CobblerWeb(object):
 
         if editmode == "rename" and name != oldname:
             try:
-                self.remote.system_remove(oldname, self.token)
+                self.remote.rename_system(system, name, self.token)
             except Exception, e:
-                return self.error_page("Rename unsuccessful. Object %s was copied instead, and the old copy (%s) still remains. Reason: %s" % (name, oldname, str(e)))
+                return self.error_page("Rename unsuccessful")
         
         return self.system_list()
 
@@ -456,7 +449,7 @@ class CobblerWeb(object):
             return self.xmlrpc_auth_failure()
 
         # pre-command parameter checking 
-        if name is None and editmode=='edit' and oldname is not None:
+        if name is None and oldname is not None:
             name = oldname
         if name is None:
             return self.error_page("A name has not been specified.")
@@ -470,15 +463,19 @@ class CobblerWeb(object):
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:
-                self.remote.profile_remove(name,self.token)
+                self.remote.remove_profile(name,self.token)
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
             return self.profile_list()
 
         # grab a reference to the object
-        if new_or_edit == "edit" and editmode == "edit":
+        if new_or_edit == "edit" and editmode in [ "edit", "rename" ] :
             try:
-                profile = self.remote.get_profile_handle( name, self.token )
+                if editmode == "edit":
+                    profile = self.remote.get_profile_handle( name, self.token )
+                else:
+                    profile = self.remote.get_profile_handle( oldname, self.token )
+
             except:
                 return self.error_page("Failed to lookup profile: %s" % name)
         else:
@@ -488,7 +485,7 @@ class CobblerWeb(object):
                 profile = self.remote.new_subprofile(self.token)
 
         try:
-            if name:
+            if editmode != "rename" and name:
                 self.remote.modify_profile(profile, 'name', name, self.token)
             if str(subprofile) != "1" and distro:
                 self.remote.modify_profile(profile,  'distro', distro, self.token)
@@ -533,9 +530,9 @@ class CobblerWeb(object):
 
         if editmode == "rename" and name != oldname:
             try:
-                self.remote.profile_remove(oldname, self.token)
+                self.remote.rename_profile(profile, name, self.token)
             except Exception, e:
-                return self.error_page("Rename unsuccessful. Object %s was copied instead, and the old copy (%s) still remains. Reason: %s" % (name, oldname, str(e)))
+                return self.error_page("Rename unsuccessful.")
 
 
         return self.profile_list()
@@ -581,7 +578,7 @@ class CobblerWeb(object):
             return self.xmlrpc_auth_failure()
 
         # pre-command parameter checking
-        if name is None and editmode=='edit' and oldname is not None:
+        if name is None and oldname is not None:
             name = oldname
         if name is None:
             return self.error_page("name is required")
@@ -591,7 +588,7 @@ class CobblerWeb(object):
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:
-                self.remote.repo_remove(name,self.token)
+                self.remote.remove_repo(name,self.token)
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
             return self.repo_list()
@@ -601,16 +598,20 @@ class CobblerWeb(object):
             return self.error_page("mirror is required")
 
         # grab a reference to the object
-        if new_or_edit == "edit" and editmode == "edit":
+        if new_or_edit == "edit" and editmode in [ "edit", "rename" ]:
             try:
-                repo = self.remote.get_repo_handle( name, self.token)
+                if editmode == "edit":
+                    repo = self.remote.get_repo_handle( name, self.token)
+                else:
+                    repo = self.remote.get_repo_handle( oldname, self.token)
             except:
                 return self.error_page("Failed to lookup repo: %s" % name)
         else:
             repo = self.remote.new_repo(self.token)
 
         try:
-            self.remote.modify_repo(repo, 'name', name, self.token)
+            if editmode != "rename" and name:
+                self.remote.modify_repo(repo, 'name', name, self.token)
             self.remote.modify_repo(repo, 'mirror', mirror, self.token)
             self.remote.modify_repo(repo, 'keep-updated', keep_updated, self.token)
             self.remote.modify_repo(repo, 'priority', priority, self.token)
@@ -632,9 +633,9 @@ class CobblerWeb(object):
 
         if editmode == "rename" and name != oldname:
             try:
-                self.remote.repo_remove(oldname, self.token)
+                self.remote.rename_repo(repo, name, self.token)
             except Exception, e:
-                return self.error_page("Rename unsuccessful. Object %s was copied instead, and the old copy (%s) still remains. Reason: %s" % (name, oldname, str(e)))
+                return self.error_page("Rename unsuccessful.")
 
         return self.repo_list()
 

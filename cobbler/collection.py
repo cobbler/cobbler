@@ -98,6 +98,47 @@ class Collection(serializable.Serializable):
             item = self.factory_produce(self.config,seed_data)
             self.add(item)
 
+
+    def rename(self,ref,newname,with_sync=True,with_triggers=False):
+        """
+        Allows an object "ref" to be given a newname without affecting the rest
+        of the object tree. 
+        """
+
+        # make a copy of the object, but give it a new name.
+        oldname = ref.name
+        newref = ref.make_clone()
+        newref.set_name(newname)
+        self.add(newref)
+
+        # now descend to any direct ancestors and point them at the new object allowing
+        # the original object to be removed without orphanage.  Direct ancestors
+        # will either be profiles or systems.  Note that we do have to care as
+        # set_parent is only really meaningful for subprofiles. We ideally want a more
+        # generic set_parent.
+        kids = ref.get_children()
+        for k in kids:
+            if k.COLLECTION_TYPE == "distro":
+               raise CX(_("internal error, not expected to have distro child objects"))
+            elif k.COLLECTION_TYPE == "profile":
+               if k.parent != "":
+                  k.set_parent(newname)
+               else:
+                  k.set_distro(newname)
+               self.config.api.profiles().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
+            elif k.COLLECTION_TYPE == "system":
+               k.set_profile(newname)
+               self.config.api.systems().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
+            elif k.COLLECTION_TYPE == "repo":
+               raise CX(_("internal error, not expected to have repo child objects"))
+            else:
+               raise CX(_("internal error, unknown child type (%s), cannot finish rename" % k.COLLECTION_TYPE))
+       
+        # now delete the old version
+        self.remove(oldname, with_delete=True)
+        return True
+
+
     def add(self,ref,save=False,with_copy=False,with_triggers=True,with_sync=True,quick_pxe_update=False):
         """
         Add an object to the collection, if it's valid.  Returns True

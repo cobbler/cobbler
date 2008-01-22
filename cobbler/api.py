@@ -151,34 +151,85 @@ class BootAPI:
         """
         return self._config.settings()
 
-    def new_system(self,is_subobject=False):
-        """
-        Return a blank, unconfigured system, unattached to a collection
-        """
-        self.log("new_system",[is_subobject])
-        return self._config.new_system(is_subobject=is_subobject)
+    def copy_distro(self, ref, newname):
+        self.log("copy_distro",[ref.name, newname])
+        return self._config.distros().copy(ref,newname)
+
+    def copy_profile(self, ref, newname):
+        self.log("copy_profile",[ref.name, newname])
+        return self._config.profiles().copy(ref,newname)
+
+    def copy_system(self, ref, newname):
+        self.log("copy_system",[ref.name, newname])
+        return self._config.systems().copy(ref,newname)
+
+    def copy_repo(self, ref, newname):
+        self.log("copy_repo",[ref.name, newname])
+        return self._config.repos().copy(ref,newname)
+
+    def remove_distro(self, ref):
+        self.log("remove_distro",[ref.name])
+        return self._config.distros().remove(ref.name)
+
+    def remove_profile(self,ref):
+        self.log("remove_profile",[ref.name])
+        return self._config.profiles().remove(ref.name)
+
+    def remove_system(self,ref):
+        self.log("remove_system",[ref.name])
+        return self._config.systems().remove(ref.name)
+
+    def remove_repo(self, ref):
+        self.log("remove_repo",[ref.name])
+        return self._config.repos().remove(ref.name)
+
+    def rename_distro(self, ref, newname):
+        self.log("rename_distro",[ref.name,newname])
+        return self._config.distros().rename(ref,newname)
+
+    def rename_profile(self, ref, newname):
+        self.log("rename_profiles",[ref.name,newname])
+        return self._config.profiles().rename(ref,newname)
+
+    def rename_system(self, ref, newname):
+        self.log("rename_system",[ref.name,newname])
+        return self._config.systems().rename(ref,newname)
+
+    def rename_repo(self, ref, newname):
+        self.log("rename_repo",[ref.name,newname])
+        return self._config.repos().rename(ref,newname)
 
     def new_distro(self,is_subobject=False):
-        """
-        Create a blank, unconfigured distro, unattached to a collection.
-        """
         self.log("new_distro",[is_subobject])
         return self._config.new_distro(is_subobject=is_subobject)
 
-
     def new_profile(self,is_subobject=False):
-        """
-        Create a blank, unconfigured profile, unattached to a collection
-        """
         self.log("new_profile",[is_subobject])
         return self._config.new_profile(is_subobject=is_subobject)
+    
+    def new_system(self,is_subobject=False):
+        self.log("new_system",[is_subobject])
+        return self._config.new_system(is_subobject=is_subobject)
 
     def new_repo(self,is_subobject=False):
-        """
-        Create a blank, unconfigured repo, unattached to a collection
-        """
         self.log("new_repo",[is_subobject])
         return self._config.new_repo(is_subobject=is_subobject)
+
+    def add_distro(self, ref):
+        self.log("add_distro",[ref.name])
+        return self._config.distros().add(ref)
+
+    def add_profile(self, ref):
+        self.log("add_profile",[ref.name])
+        return self._config.profiles().add(ref)
+
+    def add_system(self,ref):
+        self.log("add_system",[ref.name])
+        return self._config.systems().add(ref)
+
+    def add_repo(self,ref):
+        self.log("add_repo",[ref.name])
+        return self._config.repos().add(ref)
 
     def auto_add_repos(self):
         """

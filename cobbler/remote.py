@@ -761,6 +761,63 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         obj = self.__get_object(object_id)
         return self.api.repos().add(obj,save=True)
 
+    def copy_distro(self,object_id,newname,token=None):
+        """
+        All copy methods are pretty much the same.  Get an object handle, pass in the new
+        name for it.
+        """
+        self.log("copy_distro",object_id=object_id,token=token)
+        self.check_access(token,"copy_distro")
+        obj = self.__get_object(object_id)
+        return self.api.copy_distro(obj,newname)
+
+    def copy_profile(self,object_id,token=None):
+        self.log("copy_profile",object_id=object_id,token=token)
+        self.check_access(token,"copy_profile")
+        obj = self.__get_object(object_id)
+        return self.api.copy_profile(obj,newname)
+
+    def copy_system(self,object_id,token=None):
+        self.log("copy_system",object_id=object_id,token=token)
+        self.check_access(token,"copy_system")
+        obj = self.__get_object(object_id)
+        return self.api.copy_system(obj,newname)
+
+    def copy_repo(self,object_id,token=None):
+        self.log("copy_repo",object_id=object_id,token=token)
+        self.check_access(token,"copy_repo")
+        obj = self.__get_object(object_id)
+        return self.api.copy_repo(obj,newname)
+
+    def rename_distro(self,object_id,newname,token=None):
+        """
+        All rename methods are pretty much the same.  Get an object handle, pass in a new
+        name for it.  Rename will modify dependencies to point them at the new
+        object.  
+        """
+        self.log("rename_distro",object_id=object_id,token=token)
+        self.check_access(token,"copy_repo")
+        obj = self.__get_object(object_id)
+        return self.api.rename_distro(obj,newname)
+
+    def rename_profile(self,object_id,newname,token=None):
+        self.log("rename_profile",object_id=object_id,token=token)
+        self.check_access(token,"rename_profile")
+        obj = self.__get_object(object_id)
+        return self.api.rename_profile(obj,newname)
+
+    def rename_system(self,object_id,newname,token=None):
+        self.log("rename_system",object_id=object_id,token=token)
+        self.check_access(token,"rename_system")
+        obj = self.__get_object(object_id)
+        return self.api.rename_system(obj,newname)
+
+    def rename_repo(self,object_id,newname,token=None):
+        self.log("rename_repo",object_id=object_id,token=token)
+        self.check_access(token,"rename_repo")
+        obj = self.__get_object(object_id)
+        return self.api.rename_repo(obj,newname)
+
     def __call_method(self, obj, attribute, arg):
         """
         Internal function used by the modify routines.
@@ -806,43 +863,43 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         obj = self.__get_object(object_id)
         return self.__call_method(obj, attribute, arg)
 
-    def distro_remove(self,name,token):
+    def remove_distro(self,name,token):
         """
         Deletes a distro from a collection.  Note that this just requires the name
         of the distro, not a handle.
         """
-        self.log("distro_remove",name=name,token=token)
-        self.check_access(token, "distro_remove", name)
+        self.log("remove_distro",name=name,token=token)
+        self.check_access(token, "remove_distro", name)
         rc = self.api._config.distros().remove(name)
         return rc
 
-    def profile_remove(self,name,token):
+    def remove_profile(self,name,token):
         """
         Deletes a profile from a collection.  Note that this just requires the name
         of the profile, not a handle.
         """
-        self.log("profile_remove",name=name,token=token)
-        self.check_access(token, "profile_remove", name)
+        self.log("remove_profile",name=name,token=token)
+        self.check_access(token, "remove_profile", name)
         rc = self.api._config.profiles().remove(name)
         return rc
 
-    def system_remove(self,name,token):
+    def remove_system(self,name,token):
         """
         Deletes a system from a collection.  Note that this just requires the name
         of the system, not a handle.
         """
-        self.log("system_remove",name=name,token=token)
-        self.check_access(token, "system_remove", name)
+        self.log("remove_system",name=name,token=token)
+        self.check_access(token, "remove_system", name)
         rc = self.api._config.systems().remove(name)
         return rc
 
-    def repo_remove(self,name,token):
+    def remove_repo(self,name,token):
         """
         Deletes a repo from a collection.  Note that this just requires the name
         of the repo, not a handle.
         """
-        self.log("repo_remove",name=name,token=token)
-        self.check_access(token, "repo_remove", name)
+        self.log("remove_repo",name=name,token=token)
+        self.check_access(token, "remove_repo", name)
         rc = self.api._config.repos().remove(name)
         return rc
 

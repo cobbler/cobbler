@@ -234,7 +234,7 @@ class CobblerFunction:
         Boilerplate for objects that offer add/edit/delete/remove/copy functionality.
         """
 
-        if "copy" in self.args or "rename" in self.args:
+        if "copy" in self.args: # or "rename" in self.args:
             if self.options.newname:
                 obj = obj.make_clone()
                 obj.set_name(self.options.newname)
@@ -244,11 +244,10 @@ class CobblerFunction:
         opt_sync     = not options.nosync
         opt_triggers = not options.notriggers
 
-        rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers)
-
-        if "rename" in self.args:
-            return collect_fn().remove(self.options.name, with_delete=True)
-
+        if not ("rename" in self.args):
+            rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers)
+        else:
+            rc = collect_fn().rename(obj, self.options.newname)
         return rc
 
     def reporting_sorter(self, a, b):
