@@ -54,6 +54,9 @@ class DistroFunction(commands.CobblerFunction):
         if not self.matches_args(args,["report","list"]):
             p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
 
+        if self.matches_args(args,["remove"]):
+            p.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
+
     def run(self):
 
         obj = self.object_manipulator_start(self.api.new_distro,self.api.distros)

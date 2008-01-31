@@ -54,6 +54,8 @@ class ProfileFunction(commands.CobblerFunction):
         if not self.matches_args(args,["report", "list"]):
             p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
 
+        if self.matches_args(args,["remove"]):
+            p.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
 
         if not self.matches_args(args,["remove","report","list"]):
             p.add_option("--repos",            dest="repos", help="names of cobbler repos")

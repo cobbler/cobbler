@@ -167,13 +167,13 @@ class BootAPI:
         self.log("copy_repo",[ref.name, newname])
         return self._config.repos().copy(ref,newname)
 
-    def remove_distro(self, ref):
+    def remove_distro(self, ref, recursive=False):
         self.log("remove_distro",[ref.name])
-        return self._config.distros().remove(ref.name)
+        return self._config.distros().remove(ref.name, recursive=recursive)
 
-    def remove_profile(self,ref):
+    def remove_profile(self,ref, recursive=False):
         self.log("remove_profile",[ref.name])
-        return self._config.profiles().remove(ref.name)
+        return self._config.profiles().remove(ref.name, recursive=recursive)
 
     def remove_system(self,ref):
         self.log("remove_system",[ref.name])

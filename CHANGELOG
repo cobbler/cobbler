@@ -1,12 +1,14 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Mon Jan 21 2007 - 0.7.2
+* Thu Jan 31 2007 - 0.7.2
 - default_virt_file_size and default_virt_ram added to settings
 - enforce permissions/selinux context after reposync
 - better API for copying/renames, API consistancy cleanup
 - support for renames that resolve dependencies, inclusion in CLI+webapp
 - remove leading newline in rendered template files, which apparently breaks AutoYAST?
+- recursive syncs automatically sync all subobjects when editing parent objects (default behavior)
+- deletes can now be done recursively (optional --recursive on distro/profile remove)
 
 * Wed Jan 09 2007 - 0.7.1
 - allow imports to force usage of a specific kickstart template with --kickstart

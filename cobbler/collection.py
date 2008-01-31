@@ -214,6 +214,7 @@ class Collection(serializable.Serializable):
         parent = ref.get_parent()
         if parent != None:
             parent.children[ref.name] = ref
+
         return True
 
     def _run_triggers(self,ref,globber):

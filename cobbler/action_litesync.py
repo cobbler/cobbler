@@ -60,6 +60,10 @@ class BootLiteSync:
         self.sync.write_distro_file(distro)
         # copy image files to images/$name in webdir & tftpboot:
         self.sync.copy_single_distro_files(distro)
+        # cascade sync
+        kids = distro.get_children()
+        for k in kids:
+            self.add_single_profile(k.name)    
 
     def remove_single_distro(self, name):
         # delete distro YAML file in distros/$name in webdir
@@ -84,6 +88,13 @@ class BootLiteSync:
         self.sync.validate_kickstart_for_specific_profile(profile)
         # rebuild the yum configuration files for any attached repos
         self.sync.retemplate_yum_repos(profile,True)
+        # cascade sync
+        kids = profile.get_children()
+        for k in kids:
+            if k.COLLECTION_TYPE == "profile":
+                self.add_single_profile(k.name)
+            else:
+                self.add_single_system(k.name)
  
     def remove_single_profile(self, name):
         # rebuild profile_list YAML file in webdir

@@ -58,5 +58,5 @@ class Repos(collection.Collection):
                 if with_triggers: 
                     self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/repo/post/*")
             return True
-        raise CX(_("cannot delete an object that does not exist"))
+        raise CX(_("cannot delete an object that does not exist: %s") % name)
 

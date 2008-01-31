@@ -863,24 +863,24 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         obj = self.__get_object(object_id)
         return self.__call_method(obj, attribute, arg)
 
-    def remove_distro(self,name,token):
+    def remove_distro(self,name,token,recursive=1):
         """
         Deletes a distro from a collection.  Note that this just requires the name
         of the distro, not a handle.
         """
         self.log("remove_distro",name=name,token=token)
         self.check_access(token, "remove_distro", name)
-        rc = self.api._config.distros().remove(name)
+        rc = self.api._config.distros().remove(name,recursive)
         return rc
 
-    def remove_profile(self,name,token):
+    def remove_profile(self,name,token,recursive=1):
         """
         Deletes a profile from a collection.  Note that this just requires the name
         of the profile, not a handle.
         """
         self.log("remove_profile",name=name,token=token)
         self.check_access(token, "remove_profile", name)
-        rc = self.api._config.profiles().remove(name)
+        rc = self.api._config.profiles().remove(name,recursive)
         return rc
 
     def remove_system(self,name,token):

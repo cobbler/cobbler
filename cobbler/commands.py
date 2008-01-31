@@ -196,9 +196,16 @@ class CobblerFunction:
         """
 
         if "remove" in self.args:
+            recursive = False
+            # only applies to distros/profiles and is not supported elsewhere
+            if hasattr(self.options, "recursive"):
+                recursive = self.options.recursive
             if not self.options.name:
                 raise CX(_("name is required"))
-            collect_fn().remove(self.options.name,with_delete=True)
+            if not recursive:
+                collect_fn().remove(self.options.name,with_delete=True)
+            else:
+                collect_fn().remove(self.options.name,with_delete=True,recursive=True)
             return None # signal that we want no further processing on the object
 
         if "list" in self.args:
