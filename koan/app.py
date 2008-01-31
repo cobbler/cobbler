@@ -153,7 +153,7 @@ def main():
                  help="virtual install location (see manpage)")  
     p.add_option("-T", "--virt-type",
                  dest="virt_type",
-                 help="virtualization install type (xenpv,xenfv,qemu)")
+                 help="virtualization install type (xenpv,xenfv,qemu,vmware)")
     p.add_option("-n", "--nogfx",
                  action="store_true", 
                  dest="no_gfx",
@@ -392,10 +392,10 @@ class Koan:
         # if --virt-type was specified and invalid, then fail
         if self.virt_type is not None:
             self.virt_type = self.virt_type.lower()
-            if self.virt_type not in [ "qemu", "xenpv", "xenfv", "xen", "auto" ]:
+            if self.virt_type not in [ "qemu", "xenpv", "xenfv", "xen", "vmware", "auto" ]:
                if self.virt_type == "xen":
                    self.virt_type = "xenpv"
-               raise InfoException, "--virttype should be qemu, xenpv, or auto"
+               raise InfoException, "--virttype should be qemu, xenpv, vmware, or auto"
 
         # perform one of three key operations
         if self.is_virt:
@@ -556,7 +556,7 @@ class Koan:
 
             # if virt type is auto, reset it to a value we can actually use
             if self.virt_type == "auto":
-                # BOOKMARK
+                # note: auto never selects vmware, maybe it should if we find it?
                 cmd = sub_process.Popen("/bin/uname -r", stdout=sub_process.PIPE, shell=True)
                 uname_str = cmd.communicate()[0]
                 if uname_str.find("xen") != -1:
@@ -596,6 +596,11 @@ class Koan:
                 if version_str.find("virtinst-0.1") != -1 or version_str.find("virtinst-0.0") != -1:
                     raise InfoException("need python-virtinst >= 0.2 to do net installs for qemu/kvm")
 
+            # for vmware
+            if self.virt_type == "vmware":
+                # FIXME: if any vmware specific checks are required (for deps) do them here.
+                pass
+
             # for both virt types
             if os.path.exists("/etc/rc.d/init.d/libvirtd"):
                 rc = sub_process.call("/sbin/service libvirtd status", stdout=None, shell=True)
@@ -606,6 +611,8 @@ class Koan:
 
             if self.virt_type in [ "xenpv", "xenfv" ]:
                 download = "/var/lib/xen" 
+            elif self.virt_type in [ "vmware" ] :
+                download = None # we are downloading sufficient metadata to initiate PXE
             else: # qemu
                 download = None # fullvirt, can use set_location in virtinst library, no D/L needed yet
 
@@ -1265,9 +1272,13 @@ class Koan:
             uuid    = None
             import qcreate
             creator = qcreate.start_install
+        elif self.virt_type == "vmware":
+            import vmwcreate
+            uuid = None
+            creator = vmwcreate.start_install
         else:
             raise InfoException, "Unspecified virt type: %s" % self.virt_type
-        return (uuid, creator, fullvirt)
+        return (uuid, creator, False)
 
     #---------------------------------------------------
 
