@@ -20,7 +20,7 @@ import xmlrpclib
 import cgi
 from cobbler.webui import CobblerWeb
 
-XMLRPC_SERVER = "http://127.0.0.1/cobbler_api_rw"
+XMLRPC_SERVER = "http://127.0.0.1:25152" # was http://127.0.0.1/cobbler_api_rw"
 
 #=======================================
 

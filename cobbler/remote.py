@@ -870,7 +870,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self.log("remove_distro",name=name,token=token)
         self.check_access(token, "remove_distro", name)
-        rc = self.api._config.distros().remove(name,recursive)
+        rc = self.api._config.distros().remove(name,recursive=True)
         return rc
 
     def remove_profile(self,name,token,recursive=1):
@@ -880,7 +880,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self.log("remove_profile",name=name,token=token)
         self.check_access(token, "remove_profile", name)
-        rc = self.api._config.profiles().remove(name,recursive)
+        rc = self.api._config.profiles().remove(name,recursive=True)
         return rc
 
     def remove_system(self,name,token):
