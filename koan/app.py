@@ -47,8 +47,9 @@ koan --replace-self --profile=foo --server=hostname
 DISPLAY_PARAMS = [
    "name",
    "distro","profile",
-   "kernel","initrd",
-   "kernel_options","kickstart","ks_meta",
+   "kickstart","ks_meta",
+   "install_tree","kernel","initrd",
+   "kernel_options",
    "repos",
    "virt_ram","virt_disk","virt_type", "virt_path"
 ]
@@ -157,6 +158,9 @@ def main():
                  action="store_true", 
                  dest="no_gfx",
                  help="disable Xen graphics (xenpv,xenfv)")
+    p.add_option("", "--no-cobbler",
+                 dest="no_cobbler",
+                 help="specify URL for kickstart directly, bypassing the cobbler server")
 
     (options, args) = p.parse_args()
 
@@ -179,6 +183,7 @@ def main():
         k.virt_path         = options.virt_path
         k.virt_type         = options.virt_type
         k.no_gfx            = options.no_gfx
+        k.no_cobbler         = options.no_cobbler
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -229,7 +234,7 @@ class Koan:
         self.is_virt           = None
         self.is_replace        = None
         self.dryrun            = None
-        self.port              = 25151 
+        self.port              = None
         self.autonet           = None
         self.virt_name         = None
         self.virt_type         = None
@@ -241,120 +246,147 @@ class Koan:
         """
         koan's main function...
         """
-
-        # set up XMLRPC connection
-        if self.server is None:
-            raise InfoException, "no server specified"
         
-        # server name can either be explicit or DISCOVER, which
-        # means "check zeroconf" instead.
-
-        uses_avahi = False
-        if self.server == "DISCOVER": 
-            uses_avahi = True
-            if not os.path.exists("/usr/bin/avahi-browse"):
-                raise InfoException, "avahi-tools is not installed"
-            potential_servers = self.avahi_search()
-        else:
-            potential_servers = [ self.server ]
-
-        # zeroconf could have returned more than one server.
-        # either way, let's see that we can connect to the servers
-        # we might have gotten back -- occasionally zeroconf
-        # does stupid things and publishes internal or 
-        # multiple addresses
-
-        connect_ok = False
-        for server in potential_servers:
-
-            # assume for now we are connected to the server
-            # that we should be connected to
-
-            self.server = server
-            url = "http://%s:80/cobbler_api" % (server)
- 
-            # make a sample call to check for connectivity
-            # we use this as opposed to version as version was not
-            # in the original API
-
-            try:
-                if uses_avahi:
-                    print "- connecting to: %s" % server
-                try:
-                    # first try port 80
-                    self.xmlrpc_server = ServerProxy(url)
-                    self.xmlrpc_server.get_profiles()
-                except:
-                    # now try specified port in case Apache proxying
-                    # is not configured
-                    url = "http://%s:%s" % (server, self.port)
-                    self.xmlrpc_server = ServerProxy(url)
-                    self.xmlrpc_server.get_profiles()
-                connect_ok = True
-                break
-            except:
-                pass
-            
-        # if connect_ok is still off, that means we never found
-        # a match in the server list.  This is bad.
-
-        if not connect_ok:
-            self.connect_fail()
-             
-        # ok, we have a valid connection.
-        # if we discovered through zeroconf, show the user what they've 
-        # connected to ...
-
-        if uses_avahi:
-            print "- connected to: %s" % self.server        
-
-        # now check for the cobbler version.  Ideally this should be done
-        # for each server, but if there is more than one cobblerd on the
-        # network someone should REALLY be explicit anyhow.  So we won't
-        # handle that and leave it to the network admins for now.
-
-        version = None
-        try:
-            version = self.xmlrpc_server.version()
-        except:
-            raise InfoException("cobbler server is downlevel and needs to be updated")
-         
-        if version == "?": 
-            print "warning: cobbler server did not report a version"
-            print "         will attempt to proceed."
-
-        elif COBBLER_REQUIRED > version:
-            raise InfoException("cobbler server is downlevel, need version >= %s, have %s" % (COBBLER_REQUIRED, version))
-
-        # if command line input was just for listing commands,
-        # run them now and quit, no need for further work
-
-        if self.list_systems:
-            self.list(False)
-            return
-        if self.list_profiles:
-            self.list(True)
-            return
+        # we can get the info we need from either the cobbler server
+        #  or a kickstart file
+        if self.server is None and self.no_cobbler is None:
+            raise InfoException, "no server specified"
 
         # check to see that exclusive arguments weren't used together
-        # FIXME: these checks can be moved up before the network parts
- 
         found = 0
         for x in (self.is_virt, self.is_replace, self.is_display):
             if x:
                found = found+1
         if found != 1:
-            raise InfoException, "choose: --virt, --replace-self or --display"
+            if not self.no_cobbler:
+                raise InfoException, "choose: --virt, --replace-self or --display"
+            else:
+                raise InfoException, "missing argument: --replace-self ?"
+ 
 
-        # if both --profile and --system were ommitted, autodiscover
-        # FIXME: can be moved up before the network parts
+        # for now, kickstart only works with --replace-self
+        if self.no_cobbler and self.is_virt:
+            raise InfoException, "--no-cobbler does not work with --virt"
 
-        if self.is_virt:
-            if (self.profile is None and self.system is None):
-                raise InfoException, "must specify --profile or --system"
-        else:
-            if (self.profile is None and self.system is None):
-                self.system = self.autodetect_system()
+
+        # This set of options are only valid with --server
+        if not self.server:
+            if self.list_profiles:
+                raise InfoException, "--list-profiles only valid with --server"
+            if self.list_systems:
+                raise InfoException, "--list-systems only valid with --server"
+            if self.profile:
+                raise InfoException, "--profile only valid with --server"
+            if self.system:
+                raise InfoException, "--system only valid with --server"
+            if self.port:
+                raise InfoException, "--port only valid with --server"
+
+
+        # set up XMLRPC connection
+        if self.server:
+
+            if not self.port: 
+                self.port = 25151 
+        
+            # server name can either be explicit or DISCOVER, which
+            # means "check zeroconf" instead.
+
+            uses_avahi = False
+            if self.server == "DISCOVER": 
+                uses_avahi = True
+                if not os.path.exists("/usr/bin/avahi-browse"):
+                    raise InfoException, "avahi-tools is not installed"
+                potential_servers = self.avahi_search()
+            else:
+                potential_servers = [ self.server ]
+
+            # zeroconf could have returned more than one server.
+            # either way, let's see that we can connect to the servers
+            # we might have gotten back -- occasionally zeroconf
+            # does stupid things and publishes internal or 
+            # multiple addresses
+
+            connect_ok = False
+            for server in potential_servers:
+
+                # assume for now we are connected to the server
+                # that we should be connected to
+
+                self.server = server
+                url = "http://%s:80/cobbler_api" % (server)
+ 
+                # make a sample call to check for connectivity
+                # we use this as opposed to version as version was not
+                # in the original API
+
+                try:
+                    if uses_avahi:
+                        print "- connecting to: %s" % server
+                    try:
+                        # first try port 80
+                        self.xmlrpc_server = ServerProxy(url)
+                        self.xmlrpc_server.get_profiles()
+                    except:
+                        # now try specified port in case Apache proxying
+                        # is not configured
+                        url = "http://%s:%s" % (server, self.port)
+                        self.xmlrpc_server = ServerProxy(url)
+                        self.xmlrpc_server.get_profiles()
+                    connect_ok = True
+                    break
+                except:
+                    pass
+                
+            # if connect_ok is still off, that means we never found
+            # a match in the server list.  This is bad.
+
+            if not connect_ok:
+                self.connect_fail()
+                 
+            # ok, we have a valid connection.
+            # if we discovered through zeroconf, show the user what they've 
+            # connected to ...
+
+            if uses_avahi:
+                print "- connected to: %s" % self.server        
+
+            # now check for the cobbler version.  Ideally this should be done
+            # for each server, but if there is more than one cobblerd on the
+            # network someone should REALLY be explicit anyhow.  So we won't
+            # handle that and leave it to the network admins for now.
+
+            version = None
+            try:
+                version = self.xmlrpc_server.version()
+            except:
+                raise InfoException("cobbler server is downlevel and needs to be updated")
+             
+            if version == "?": 
+                print "warning: cobbler server did not report a version"
+                print "         will attempt to proceed."
+
+            elif COBBLER_REQUIRED > version:
+                raise InfoException("cobbler server is downlevel, need version >= %s, have %s" % (COBBLER_REQUIRED, version))
+
+            # if command line input was just for listing commands,
+            # run them now and quit, no need for further work
+
+            if self.list_systems:
+                self.list(False)
+                return
+            if self.list_profiles:
+                self.list(True)
+                return
+        
+            # if both --profile and --system were ommitted, autodiscover
+            if self.is_virt:
+                if (self.profile is None and self.system is None):
+                    raise InfoException, "must specify --profile or --system"
+            else:
+                if (self.profile is None and self.system is None):
+                    self.system = self.autodetect_system()
+
 
 
         # if --virt-type was specified and invalid, then fail
@@ -412,7 +444,7 @@ class Koan:
         parts of urlread and urlgrab from urlgrabber, in ways that
         are less cool and less efficient.
         """
-        print "- using kickstart from cobbler: %s" % url
+        print "- using kickstart: %s" % url
         fd = urllib2.urlopen(url)
         data = fd.read()
         fd.close()
@@ -459,17 +491,24 @@ class Koan:
         Actually kicks off downloads and auto-ks or virt installs
         """
 
-        # load the data via XMLRPC
+        # initialise the profile, from the server if any
         if self.profile:
             profile_data = self.get_profile_xmlrpc(self.profile)
             filler = "kickstarts"
-        else:
+        elif self.system:
             profile_data = self.get_system_xmlrpc(self.system)
             filler = "kickstarts_sys"
+        else:
+            profile_data = {}
+            filler = None
+
+        if self.no_cobbler:
+            profile_data["kickstart"] = self.no_cobbler
+
         if profile_data.has_key("kickstart"):
 
             # fix URLs
-            if profile_data["kickstart"].startswith("/"):
+            if filler and profile_data["kickstart"].startswith("/"):
                profile_data["kickstart"] = "http://%s/cblr/%s/%s/ks.cfg" % (profile_data['server'], filler, profile_data['name'])
                 
             # find_kickstart source tree in the kickstart file
@@ -490,6 +529,16 @@ class Koan:
                     matches = reg.findall(raw)
                     if len(matches) != 0:
                         profile_data["install_tree"] = matches[0].strip()
+
+            # if we found an install_tree, and we don't have a kernel or initrd
+            # use the ones in the install_tree
+            if self.safe_load(profile_data,"install_tree"):
+                if not self.safe_load(profile_data,"kernel"):
+                    profile_data["kernel"] = profile_data["install_tree"] + "/images/pxeboot/vmlinuz"
+
+                if not self.safe_load(profile_data,"initrd"):
+                    profile_data["initrd"] = profile_data["install_tree"] + "/images/pxeboot/initrd.img"
+
 
         # find the correct file download location 
         if not self.is_virt:
@@ -635,7 +684,7 @@ class Koan:
         def after_download(self, profile_data):
             if not os.path.exists("/sbin/grubby"):
                 raise InfoException, "grubby is not installed"
-            k_args = self.safe_load(profile_data,'kernel_options')
+            k_args = self.safe_load(profile_data,'kernel_options',default='')
             k_args = k_args + " ks=file:ks.cfg"
 
             kickstart = self.safe_load(profile_data,'kickstart')
@@ -720,6 +769,12 @@ class Koan:
                 return self.urlread(kickstart)
             except:
                 raise InfoException, "Couldn't download: %s" % kickstart
+        elif kickstart.startswith("file"):
+            fd = open(kickstart[5:])
+            data = fd.read()
+            fd.close()
+            return data
+                
         else:
             raise InfoException, "invalid kickstart URL"
 
@@ -1105,15 +1160,21 @@ class Koan:
         initrd_short = os.path.basename(initrd)
         kernel_save = "%s/%s" % (download_root, kernel_short)
         initrd_save = "%s/%s" % (download_root, initrd_short)
+
+        if self.server:
+            if kernel.startswith("/"):
+                kernel = "http://%s/cobbler/images/%s/%s" % (self.server, distro, kernel_short)
+            if initrd.startswith("/"):
+                initrd = "http://%s/cobbler/images/%s/%s" % (self.server, distro, initrd_short)
+
         try:
             print "downloading initrd %s to %s" % (initrd_short, initrd_save)
-            url = "http://%s/cobbler/images/%s/%s" % (self.server, distro, initrd_short)
-            print "url=%s" % url
-            self.urlgrab(url,initrd_save)
+            print "url=%s" % initrd
+            self.urlgrab(initrd,initrd_save)
             print "downloading kernel %s to %s" % (kernel_short, kernel_save)
-            url = "http://%s/cobbler/images/%s/%s" % (self.server, distro, kernel_short)
-            print "url=%s" % url
-            self.urlgrab(url,kernel_save)
+
+            print "url=%s" % kernel
+            self.urlgrab(kernel,kernel_save)
         except:
             raise InfoException, "error downloading files"
         profile_data['kernel_local'] = kernel_save
@@ -1123,7 +1184,7 @@ class Koan:
 
     def calc_kernel_args(self, pd):
         kickstart = self.safe_load(pd,'kickstart')
-        options   = self.safe_load(pd,'kernel_options')
+        options   = self.safe_load(pd,'kernel_options',default='')
 
         if self.autonet is not None:
             options = options + ' ' + self.get_netconfig(kickstart)

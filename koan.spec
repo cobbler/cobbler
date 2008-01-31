@@ -2,7 +2,7 @@
 
 Summary: Network provisioning tool for Xen and Bare Metal Machines 
 Name: koan
-Version: 0.6.4
+Version: 0.6.5
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -11,6 +11,11 @@ Requires: mkinitrd
 Requires: syslinux
 Requires: python >= 2.2
 BuildRequires: python-devel
+%if 0%{?fedora} >= 8
+BuildRequires: python-setuptools-devel
+%else
+BuildRequires: python-setuptools
+%endif
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 ExcludeArch: ppc
@@ -39,6 +44,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
+%if 0%{?fedora} > 8
+%{python_sitelib}/koan*.egg-info
+%endif
 %dir /var/spool/koan
 %{_bindir}/koan
 %dir %{python_sitelib}/koan
@@ -49,7 +57,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Thu Jan 10 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.4-1
+* Thu Jan 31 2008 Michael DeHaan <mdehaan@redhat.com> - 0.6.5-1
+- Upstream changes (see CHANGELOG)
+
+* Thu Jan 10 2008 Michael DeHaan <mdehaan@redhat.com> - 0.6.4-1
 - Upstream changes (see CHANGELOG)
 
 * Thu Nov 15 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.3-3

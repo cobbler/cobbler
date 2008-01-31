@@ -1,6 +1,9 @@
 Koan CHANGELOG
 
-* Thu Jan 10 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.4-1
+* Thu Jan 31 2008 Michael DeHaan <mdehaan@redhat.com> - 0.6.5-1
+- Added --no-cobbler option so --replace-self is usable without cobbler servers
+
+* Thu Jan 10 2008 Michael DeHaan <mdehaan@redhat.com> - 0.6.4-1
 - Added --nogfx option, which is basically the inverse of the old --virt-graphics
 - Allow Xen machines to be constructed with no disks (size=0), but not qemu/KVM
 - Support Xen Fullvirt via PXE

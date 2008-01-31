@@ -128,6 +128,17 @@ Example:  koan --server=cobbler.example.org --profile=fedora7-xen-i386 --replace
 
 Example:  koan --server=cobbler.example.org --replace-self
 
+=head1 REINSTALLATION WITHOUT A COBBLER SERVER
+
+While it is expected that most folks will want to use a cobbler server, the functionality of --replace-self
+can still be used in koan without contacting a cobbler server.  This may be useful if you want
+to use koan with some existing infrastructure and can't yet upgrade that infrastructure to use cobbler.
+
+Example:  koan --no-cobbler=http://somewebserver/ks.cfg --replace-self
+
+The --no-cobbler option does not work for virtualized installs.  In addition --display, --list-profiles, and
+--list-systems are also not available with --no-cobbler.
+
 =head1 NOTES FOR USERS OF COBBLER TEMPLATING
 
 Cobbler contains a templating feature that allows a single kickstart file to be customized on a per-system basis.  See the cobbler manpage for more details.
