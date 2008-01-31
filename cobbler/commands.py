@@ -286,7 +286,16 @@ class CobblerFunction:
         """
         Print cobbler object tree as a, well, tree.
         """
-        for item in collection:
+
+        def sorter(a,b):
+            return cmp(a.name,b.name)
+
+        collection2 = []
+        for c in collection:
+            collection2.append(c)
+        collection2.sort(sorter)
+
+        for item in collection2:
             print _("%(indent)s%(type)s %(name)s") % {
                 "indent" : "   " * level,
                 "type"   : item.TYPE_NAME,

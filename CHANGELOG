@@ -9,6 +9,7 @@ Cobbler CHANGELOG
 - remove leading newline in rendered template files, which apparently breaks AutoYAST?
 - recursive syncs automatically sync all subobjects when editing parent objects (default behavior)
 - deletes can now be done recursively (optional --recursive on distro/profile remove)
+- 'cobbler list' is now (re)sorted
 
 * Wed Jan 09 2007 - 0.7.1
 - allow imports to force usage of a specific kickstart template with --kickstart
