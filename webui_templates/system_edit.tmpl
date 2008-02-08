@@ -277,7 +277,9 @@ function page_onload() {
                value="$macaddress"
         />
 
+	#if not $system
         <a href="javascript: get_random_mac('macaddress-$interface')" style="font-size: 0.8em;">Random MAC</a>   
+	#end if
 
         <p class="context-tip">Example: AA:BB:CC:DD:EE:FF</p>
         </td>
