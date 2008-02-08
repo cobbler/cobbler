@@ -254,7 +254,7 @@ class Koan:
 
         # check to see that exclusive arguments weren't used together
         found = 0
-        for x in (self.is_virt, self.is_replace, self.is_display):
+        for x in (self.is_virt, self.is_replace, self.is_display, self.list_profiles, self.list_systems):
             if x:
                found = found+1
         if found != 1:
@@ -542,9 +542,14 @@ class Koan:
 
         # find the correct file download location 
         if not self.is_virt:
-            download = "/boot"
             if self.live_cd:
                 download = "/tmp/boot/boot"
+
+            elif os.path.exists("/boot/efi/EFI/redhat/elilo.conf"):
+                download = "/boot/efi/EFI/redhat"
+
+            else:
+                download = "/boot"
 
         else:
             # ensure we have a good virt type choice and know where
@@ -711,19 +716,7 @@ class Koan:
 
             k_args = k_args.replace("lang ","lang= ")
 
-            cmd = [ "/sbin/grubby", 
-                    "--bootloader-probe" ]
-
-            which_loader = sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
- 
-            loader = "--grub"
-            if which_loader.find("elilo") != -1:
-                loader = "--elilo"
-            elif which_loader.find("lilo") != -1:
-                loader = "--lilo"
-
             cmd = [ "/sbin/grubby",
-                    loader,
                     "--add-kernel", self.safe_load(profile_data,'kernel_local'),
                     "--initrd", self.safe_load(profile_data,'initrd_local'),
                     "--make-default",
@@ -737,7 +730,14 @@ class Koan:
                cmd.append("--config-file=/tmp/boot/boot/grub/grub.conf")
             self.subprocess_call(cmd)
 
-            if loader == "--lilo":
+
+            # if grubby --bootloader-probe returns lilo,
+            #    apply lilo changes
+            cmd = [ "/sbin/grubby", "--bootloader-probe" ]
+            probe_process = sub_process.Popen(cmd, stdout=sub_process.PIPE)
+            which_loader = probe_process.communicate()[0]
+            if probe_process.returncode == 0 and \
+                   which_loader.find("lilo") != -1:
                 print "- applying lilo changes"
                 cmd = [ "/sbin/lilo" ]
                 sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
