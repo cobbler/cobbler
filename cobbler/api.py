@@ -22,11 +22,14 @@ import action_import
 import action_reposync
 import action_status
 import action_validate
+from cexceptions import *
 import sub_process
 import module_loader
+
 import logging
 import os
 import fcntl
+from rhpl.translate import _, N_, textdomain, utf8
 
 ERROR = 100
 INFO  = 10
@@ -81,7 +84,10 @@ class BootAPI:
     def __setup_logger(self,name):
         logger = logging.getLogger(name)
         logger.setLevel(logging.INFO)
-        ch = logging.FileHandler("/var/log/cobbler/cobbler.log")
+        try:
+            ch = logging.FileHandler("/var/log/cobbler/cobbler.log")
+        except:
+            raise CX(_("No write permissions on log file.  Are you root?")) 
         ch.setLevel(logging.INFO)
         formatter = logging.Formatter("%(asctime)s - %(name)s - %(message)s")
         ch.setFormatter(formatter)

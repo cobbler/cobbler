@@ -1,7 +1,13 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Thu Jan 31 2007 - 0.7.2
+* XXX Feb XX 2008 - 0.8.0 (TBD)
+- stable release of 0.7.* branch plus ...
+- fixed potential user problem with source_repos in upgrade scenario
+- additional higher level API functions for find, fixes for other higher level API functions
+- better messaging when insufficient permissions on needed files
+
+* Thu Jan 31 2008 - 0.7.2 (0.8 rc)
 - default_virt_file_size and default_virt_ram added to settings
 - enforce permissions/selinux context after reposync
 - better API for copying/renames, API consistancy cleanup
@@ -11,7 +17,7 @@ Cobbler CHANGELOG
 - deletes can now be done recursively (optional --recursive on distro/profile remove)
 - 'cobbler list' is now (re)sorted
 
-* Wed Jan 09 2007 - 0.7.1
+* Wed Jan 09 2008 - 0.7.1
 - allow imports to force usage of a specific kickstart template with --kickstart
 - added --yumopts parameter to repos (works just like --kopts/--ksmeta)
 - minor doc fixes
