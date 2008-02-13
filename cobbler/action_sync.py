@@ -700,6 +700,11 @@ class BootSync:
 
         input_files = []
 
+        # chance old versions from upgrade do not have a source_repos
+        # workaround for user bug
+        if not blended.has_key("source_repos"):
+            blended["source_repos"] = []
+
         # tack on all the install source repos IF there is more than one.
         # this is basically to support things like RHEL5 split trees
         # if there is only one, then there is no need to do this.
