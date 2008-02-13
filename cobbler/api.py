@@ -217,19 +217,31 @@ class BootAPI:
 
     def add_distro(self, ref):
         self.log("add_distro",[ref.name])
-        return self._config.distros().add(ref)
+        return self._config.distros().add(ref,save=True)
 
     def add_profile(self, ref):
         self.log("add_profile",[ref.name])
-        return self._config.profiles().add(ref)
+        return self._config.profiles().add(ref,save=True)
 
     def add_system(self,ref):
         self.log("add_system",[ref.name])
-        return self._config.systems().add(ref)
+        return self._config.systems().add(ref,save=True)
 
     def add_repo(self,ref):
         self.log("add_repo",[ref.name])
-        return self._config.repos().add(ref)
+        return self._config.repos().add(ref,save=True)
+
+    def find_distro(self, name=None, return_list=False, **kargs):
+        return self._config.distros().find(name=name, return_list=return_list, **kargs)
+
+    def find_profile(self, name=None, return_list=False, **kargs):
+        return self._config.profiles().find(name=name, return_list=return_list, **kargs)
+
+    def find_system(self, name=None, return_list=False, **kargs):
+        return self._config.systems().find(name=name, return_list=return_list, **kargs)
+
+    def find_repo(self, name=None, return_list=False, **kargs):
+        return self._config.repos().find(name=name, return_list=return_list, **kargs)
 
     def auto_add_repos(self):
         """
@@ -264,7 +276,7 @@ class BootAPI:
             print "auto adding: %s (%s)" % (auto_name, url)
             self._config.repos().add(cobbler_repo,save=True)
 
-        print "run cobbler reposync to apply changes"
+        # run cobbler reposync to apply changes
         return True 
  
     def check(self):
