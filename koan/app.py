@@ -444,11 +444,46 @@ class Koan:
         parts of urlread and urlgrab from urlgrabber, in ways that
         are less cool and less efficient.
         """
-        print "- using kickstart: %s" % url
-        fd = urllib2.urlopen(url)
-        data = fd.read()
-        fd.close()
-        return data
+        print "- reading URL: %s" % url
+        if url is None or url == "":
+            raise InfoException, "invalid URL: %s" % url
+
+        elif url.startswith("nfs"):
+            try:
+                ndir  = os.path.dirname(url[6:])
+                nfile = os.path.basename(url[6:])
+                nfsdir = tempfile.mkdtemp(prefix="koan_nfs",dir="/tmp")
+                nfsfile = os.path.join(nfsdir,nfile)
+                cmd = ["mount","-t","nfs","-o","ro", ndir, nfsdir]
+                self.subprocess_call(cmd)
+                fd = open(nfsfile)
+                data = fd.read()
+                fd.close()
+                cmd = ["umount",nfsdir]
+                self.subprocess_call(cmd)
+                return data
+            except:
+                raise InfoException, "Couldn't mount and read URL: %s" % url
+            
+        elif url.startswith("http") or url.startswith("ftp"):
+            try:
+                fd = urllib2.urlopen(url)
+                data = fd.read()
+                fd.close()
+                return data
+            except:
+                raise InfoException, "Couldn't download: %s" % url
+        elif url.startswith("file"):
+            try:
+                fd = open(url[5:])
+                data = fd.read()
+                fd.close()
+                return data
+            except:
+                raise InfoException, "Couldn't read file from URL: %s" % url
+                
+        else:
+            raise InfoException, "Unhandled URL protocol: %s" % url
 
     #---------------------------------------------------
 
@@ -503,7 +538,22 @@ class Koan:
             filler = None
 
         if self.no_cobbler:
-            profile_data["kickstart"] = self.no_cobbler
+            # if the value given to no_cobbler has no url protocol
+            #    specifier, add "file:" and make it absolute 
+
+            slash_idx = self.no_cobbler.find("/")
+            if slash_idx != -1:
+                colon_idx = self.no_cobbler.find(":",0,slash_idx)
+            else:
+                colon_idx = self.no_cobbler.find(":")
+
+            if colon_idx == -1:
+                # no protocol specifier
+                profile_data["kickstart"] = "file:%s" % os.path.abspath(self.no_cobbler)
+                
+            else:
+                # protocol specifier
+                profile_data["kickstart"] = self.no_cobbler
 
         if profile_data.has_key("kickstart"):
 
@@ -512,23 +562,7 @@ class Koan:
                profile_data["kickstart"] = "http://%s/cblr/%s/%s/ks.cfg" % (profile_data['server'], filler, profile_data['name'])
                 
             # find_kickstart source tree in the kickstart file
-            read_ok = False
-            try:
-                raw = self.urlread(profile_data["kickstart"])
-                read_ok = True
-            except:
-                # unstable to download the kickstart, however this might not
-                # be an error.  For instance, xen FV installations of non
-                # kickstart OS's...
-                pass
-
-            if read_ok:
-                lines = raw.split("\n")
-                for line in lines:
-                    reg = re.compile("--url.(.*)")
-                    matches = reg.findall(raw)
-                    if len(matches) != 0:
-                        profile_data["install_tree"] = matches[0].strip()
+            self.get_install_tree_from_kickstart(profile_data)
 
             # if we found an install_tree, and we don't have a kernel or initrd
             # use the ones in the install_tree
@@ -627,6 +661,52 @@ class Koan:
   
         # perform specified action
         after_download(self, profile_data)
+
+    #---------------------------------------------------
+
+    def get_install_tree_from_kickstart(self,profile_data):
+        """
+        Scan the kickstart configuration for either a "url" or "nfs" command
+           take the install_tree url from that
+
+        """
+        try:
+            raw = self.urlread(profile_data["kickstart"])
+            lines = raw.splitlines()
+
+            method_re = re.compile('(?P<urlcmd>\s*url\s.*)|(?P<nfscmd>\s*nfs\s.*)')
+
+            url_parser = opt_parse.OptionParser()
+            url_parser.add_option("--url", dest="url")
+
+            nfs_parser = opt_parse.OptionParser()
+            nfs_parser.add_option("--dir", dest="dir")
+            nfs_parser.add_option("--server", dest="server")
+
+            for line in lines:
+                match = method_re.match(line)
+                if match:
+                    cmd = match.group("urlcmd")
+                    if cmd:
+                        (options,args) = url_parser.parse_args(cmd.split()[1:])
+                        profile_data["install_tree"] = options.url
+                        break
+                    cmd = match.group("nfscmd")
+                    if cmd:
+                        (options,args) = nfs_parser.parse_args(cmd.split()[1:])
+                        profile_data["install_tree"] = "nfs://%s:%s" % (options.server,options.dir)
+                        break
+
+            if self.safe_load(profile_data,"install_tree"):
+                print "install_tree:", profile_data["install_tree"]
+            else:
+                print "warning: kickstart found but no install_tree found"
+                        
+        except:
+            # unstable to download the kickstart, however this might not
+            # be an error.  For instance, xen FV installations of non
+            # kickstart OS's...
+            pass
 
     #---------------------------------------------------
 
@@ -753,37 +833,7 @@ class Koan:
         """
         Get contents of data in network kickstart file.
         """
-        print "- kickstart: %s" % kickstart
-        if kickstart is None or kickstart == "":
-            return None
-
-        if kickstart.startswith("nfs"):
-            ndir  = os.path.dirname(kickstart[6:])
-            nfile = os.path.basename(kickstart[6:])
-            nfsdir = tempfile.mkdtemp(prefix="koan_nfs",dir="/tmp")
-            nfsfile = os.path.join(nfsdir,nfile)
-            cmd = ["mount","-t","nfs","-o","ro", ndir, nfsdir]
-            self.subprocess_call(cmd)
-            fd = open(nfsfile)
-            data = fd.read()
-            fd.close()
-            cmd = ["umount",nfsdir]
-            self.subprocess_call(cmd)
-            return data
-        elif kickstart.startswith("http") or kickstart.startswith("ftp"):
-            print "- downloading %s" % kickstart
-            try:
-                return self.urlread(kickstart)
-            except:
-                raise InfoException, "Couldn't download: %s" % kickstart
-        elif kickstart.startswith("file"):
-            fd = open(kickstart[5:])
-            data = fd.read()
-            fd.close()
-            return data
-                
-        else:
-            raise InfoException, "invalid kickstart URL"
+        return self.urlread(kickstart)
 
     #---------------------------------------------------
 
