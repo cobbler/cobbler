@@ -282,7 +282,7 @@ class RepoSync:
         cmd1 = "chown -R root:apache %s" % repo_path
         sub_process.call(cmd1, shell=True)
 
-        cmd2 = "chmod -R 640 %s" % repo_path
+        cmd2 = "chmod -R 755 %s" % repo_path
         sub_process.call(cmd2, shell=True)
 
         getenforce = "/usr/sbin/getenforce"
