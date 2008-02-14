@@ -191,12 +191,12 @@ def main():
             k.port              = options.port
         k.run()
 
-    except InfoException, ie:
-        print str(ie)
-        return 1
-    except:
-        traceback.print_exc()
-        return 3
+    except Exception, e:
+        (xa, xb, tb) = sys.exc_info()
+        if str(xb).find("InfoException") != -1:
+            traceback.print_exc()
+        else:
+            print str(xb)
     return 0
 
 #=======================================================
@@ -1304,8 +1304,7 @@ class Koan:
             import xencreate
             import qcreate
         except:
-            print "no virtualization support available, install python-virtinst?"
-            sys.exit(1)
+            raise InfoException("no virtualization support available, install python-virtinst?")
 
     #---------------------------------------------------
 

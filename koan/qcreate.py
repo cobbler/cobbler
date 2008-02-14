@@ -21,9 +21,7 @@ import exceptions
 import errno
 import re
 import virtinst
-
-class VirtCreateException(exceptions.Exception):
-    pass
+import app as koan
 
 def random_mac():
     """
@@ -59,7 +57,7 @@ def start_install(name=None, ram=None, disks=None, mac=None,
     guest = virtinst.FullVirtGuest(hypervisorURI="qemu:///system",type=vtype, arch=arch)
    
     if not profile_data.has_key("install_tree"):
-        raise VirtCreateException("Cannot find install source in kickstart file, aborting.")
+        raise koan.InfoException("Cannot find install source in kickstart file, aborting.")
    
  
     if not profile_data["install_tree"].endswith("/"):
@@ -87,7 +85,7 @@ def start_install(name=None, ram=None, disks=None, mac=None,
     for d in disks:
         print "- adding disk: %s of size %s" % (d[0], d[1])
         if d[1] == 0:
-            raise VirtCreateException("this virtualization type does not work without a disk image, set virt-size in Cobbler to non-zero")
+            raise koan.InfoException("this virtualization type does not work without a disk image, set virt-size in Cobbler to non-zero")
         guest.disks.append(virtinst.VirtualDisk(d[0], size=d[1]))
 
     if profile_data.has_key("interfaces"):
@@ -108,7 +106,7 @@ def start_install(name=None, ram=None, disks=None, mac=None,
             intf_bridge = intf["virt_bridge"]
             if intf_bridge == "":
                 if profile_bridge == "":
-                    raise VirtCreateException("virt-bridge setting is not defined in cobbler")
+                    raise koan.InfoException("virt-bridge setting is not defined in cobbler")
                 intf_bridge = profile_bridge
                 
 
@@ -120,7 +118,7 @@ def start_install(name=None, ram=None, disks=None, mac=None,
 
             profile_bridge = profile_data["virt_bridge"]
             if profile_bridge == "":
-                raise VirtCreateException("virt-bridge setting is not defined in cobbler")
+                raise koan.InfoException("virt-bridge setting is not defined in cobbler")
 
             nic_obj = virtinst.VirtualNetworkInterface(macaddr=random_mac(), bridge=profile_bridge)
             guest.nics.append(nic_obj)

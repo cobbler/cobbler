@@ -23,6 +23,8 @@ import exceptions
 import errno
 import re
 import virtinst
+import app as koan
+
 try:
     import virtinst.DistroManager as DistroManager
 except:
@@ -30,9 +32,6 @@ except:
     # but we know we can't do Xen fullvirt installs
     pass
 import traceback
-
-class VirtCreateException(exceptions.Exception):
-    pass
 
 def random_mac():
     """
@@ -103,7 +102,7 @@ def start_install(name=None, ram=None, disks=None,
             intf_bridge = intf["virt_bridge"]
             if intf_bridge == "":
                 if profile_bridge == "":
-                    raise VirtCreateException("virt-bridge setting is not defined in cobbler")
+                    raise koan.InfoException("virt-bridge setting is not defined in cobbler")
                 intf_bridge = profile_bridge
     
 
@@ -117,7 +116,7 @@ def start_install(name=None, ram=None, disks=None,
 
             profile_bridge = profile_data["virt_bridge"]
             if profile_bridge == "":
-                raise VirtCreateException("virt-bridge setting is not defined in cobbler")
+                raise koan.InfoException("virt-bridge setting is not defined in cobbler")
 
             nic_obj = virtinst.XenNetworkInterface(macaddr=random_mac(), bridge=profile_bridge)
             guest.nics.append(nic_obj)
