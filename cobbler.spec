@@ -3,7 +3,7 @@ Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
 Version: 0.8.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -183,12 +183,15 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(-,root,root)
 %if 0%{?fedora} > 8
-%{python_sitearch}/cobbler*.egg-info
+%{python_sitelib}/cobbler*.egg-info
 %endif
 %doc AUTHORS CHANGELOG README COPYING
 
 
 %changelog
+
+* Fri Feb 15 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.0-2
+- Fix egg packaging
 
 * Fri Feb 15 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.0-1
 - Upstream changes (see CHANGELOG)
