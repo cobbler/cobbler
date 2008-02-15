@@ -29,16 +29,16 @@ function disablename(value)
     }
 }
 #else
-function get_random_mac()
+function get_random_mac(field)
 {
     xmlHttp = new XMLHttpRequest();
-    xmlHttp.open("GET", "$base_url/random_mac", true);
+    xmlHttp.open("GET", "$base_url?mode=random_mac", true);
     xmlHttp.onreadystatechange = function () {
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
             var mac_field = document.getElementById("macaddress")
             var result = xmlHttp.responseText;
             if (result.charAt(2) == ':' && result.charAt(5) == ':') {
-                mac_field.value = result;
+                document.getElementById(field).value = result;
             }
         }
     };
@@ -87,7 +87,7 @@ function page_onload() {
 }
 </script>
 
-<form method="post" action="$base_url/system_save">
+<form method="post" action="$base_url?mode=system_save">
 <fieldset id="cform">
    
     #if $system
@@ -157,7 +157,7 @@ function page_onload() {
     <label for="kopts">Kernel Options</label>
     </td>
     <td>
-    <input type="text" size="255" style="width: 150px;" name="kopts" id="kopts"
+    <input type="text" size="255" style="width: 400px;" name="kopts" id="kopts"
         #if $system
             value="$system.kernel_options"
         #end if
@@ -171,7 +171,7 @@ function page_onload() {
     <label for="ksmeta">Kickstart Metadata</label>
     </td>
     <td>
-    <input type="text" size="255" style="width: 150px;" name="ksmeta" id="ksmeta"
+    <input type="text" size="255" style="width: 400px;" name="ksmeta" id="ksmeta"
         #if $system
             value="$system.ks_meta"
         #end if
@@ -277,9 +277,9 @@ function page_onload() {
                value="$macaddress"
         />
 
-        ## #if not $system
-        ##     <a href="javascript: get_random_mac()" style="font-size: 0.8em;">random</a>   
-        ## #end if
+	#if not $system
+        <a href="javascript: get_random_mac('macaddress-$interface')" style="font-size: 0.8em;">Random MAC</a>   
+	#end if
 
         <p class="context-tip">Example: AA:BB:CC:DD:EE:FF</p>
         </td>

@@ -17,33 +17,16 @@ import os
 import traceback
 import string
 from cobbler.utils import *
-import logging
 import sys
 
-LOGGING_ENABLED = False
-
-if LOGGING_ENABLED:
-    # set up logging
-    logger = logging.getLogger("cobbler.webui")
-    logger.setLevel(logging.DEBUG)
-    ch = logging.FileHandler("/var/log/cobbler/webui.log")
-    ch.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-else:
-    logger = None
-
-def log_exc():
+def log_exc(apache):
     """
     Log active traceback to logfile.
     """
-    if not LOGGING_ENABLED:
-        return
     (t, v, tb) = sys.exc_info()
-    logger.info("Exception occured: %s" % t )
-    logger.info("Exception value: %s" % v)
-    logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+    apache.log_error("Exception occured: %s" % t )
+    apache.log_error("Exception value: %s" % v)
+    apache.log_error("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
 
 class CobblerWeb(object):
     """
@@ -52,7 +35,7 @@ class CobblerWeb(object):
     it all run either under cgi-bin or CherryPy.  Supporting other Python
     frameworks should be trivial.
     """
-    def __init__(self, server=None, base_url='/', username=None, password=None, token=None):
+    def __init__(self, server=None, base_url='/', username=None, password=None, token=None, apache=None):
         self.server = server
         self.base_url = base_url
         self.remote = None
@@ -60,6 +43,7 @@ class CobblerWeb(object):
         self.username = username
         self.password = password
         self.logout = None
+        self.apache = apache
 
     def __xmlrpc_setup(self):
         """
@@ -79,9 +63,8 @@ class CobblerWeb(object):
                 return True
             except Exception, e:
                 if str(e).find("invalid token") != -1:
-                    if LOGGING_ENABLED:
-                        logger.info("token timeout for: %s" % self.username)
-                        log_exc()
+                    self.apache.log_error("cobbler token timeout for: %s" % self.username)
+                    log_exc(self.apache)
                     self.token = None
                 else:
                     raise e
@@ -91,9 +74,8 @@ class CobblerWeb(object):
             try:
                 self.token = self.remote.login( self.username, self.password )
             except Exception, e:
-                if LOGGING_ENABLED:
-                    logger.info("login failed for: %s" % self.username)
-                log_exc()
+                self.apache.log_error("cobbler login failed for: %s" % self.username)
+                log_exc(self.apache)
                 return False
             self.password = None # don't need it anymore, get rid of it
             return True
@@ -106,61 +88,10 @@ class CobblerWeb(object):
         Call the templating engine (Cheetah), wrapping up the location
         of files while we're at it.
         """
-
         data['base_url'] = self.base_url
-
         filepath = os.path.join("/usr/share/cobbler/webui_templates/",template)
         tmpl = Template( file=filepath, searchList=[data] )
         return str(tmpl)
-
-    def cookies(self):
-        """
-        Returns a Cookie.SimpleCookie object with all of CobblerWeb's cookies.
-        Mmmmm cookies!
-        """
-        # The browser doesn't maintain expires for us, which is fine since
-        # cobblerd will continue to refresh a token as long as it's being
-        # accessed.
-        if self.token and self.__cookies["cobbler_xmlrpc_token"]:
-            self.__setcookie( self.token, COOKIE_TIMEOUT )
-
-        return self.__cookies
-
-    def __setcookie(self,token,exp_offset):
-        """
-        Does all of the cookie setting in one place.
-        """
-        # HTTP cookie RFC:
-        # http://www.w3.org/Protocols/rfc2109/rfc2109
-        #
-        # Cookie.py does not let users explicitely set cookies' expiration time.
-        # Instead, it runs the 'expires' member of the dictionary through its
-        # _getdate() function.   As of this writing, the signature is:
-        # _getdate(future=0, weekdayname=_weekdayname, monthname=_monthname)
-        # When it is called to generate output, the value of 'expires' is passed
-        # in as a _positional_ parameter in the first slot.
-        # In order to get a time in the past, it appears that a negative number
-        # can be passed through, which is what we do here.
-        self.__cookies["cobbler_xmlrpc_token"] = token
-        self.__cookies["cobbler_xmlrpc_token"]['expires'] = exp_offset
-
-    def __cookie_logout(self):
-        # set the cookie's expiration to this time, yesterday, which results
-        # in it being deleted
-        self.__setcookie( 'null', -86400 )
-        return self.__cookies
-
-    def __cookie_login(self,token):
-        self.__setcookie( token, COOKIE_TIMEOUT )
-        return self.__cookies
-         
-    def __get_cookie_token(self):
-        if self.__cookies.has_key("cobbler_xmlrpc_token"):
-            value = self.__cookies["cobbler_xmlrpc_token"]
-            if LOGGING_ENABLED:
-                logger.debug("loading token from cookie: %s" % value.value)
-            return value.value
-        return None
 
     def modes(self):
         """
@@ -179,10 +110,10 @@ class CobblerWeb(object):
     # Index
     # ------------------------------------------------------------------------ #
 
-    def index(self):
+    def index(self,**args):
         return self.__render( 'index.tmpl', { } )
 
-    def menu(self):
+    def menu(self,**args):
         return self.__render( 'blank.tmpl', { } )
    
     # ------------------------------------------------------------------------ #
@@ -193,7 +124,7 @@ class CobblerWeb(object):
     # as you could disable a lot of functionality if you aren't careful
     # including your ability to fix it back.
 
-    def settings_view(self):
+    def settings_view(self,**args):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
@@ -206,7 +137,7 @@ class CobblerWeb(object):
     # Distributions
     # ------------------------------------------------------------------------ #
 
-    def distro_list(self,page=None,limit=None):
+    def distro_list(self,page=None,limit=None,**spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
@@ -223,11 +154,11 @@ class CobblerWeb(object):
         else:
             return self.__render('empty.tmpl', {})  
   
-    def distro_edit(self, name=None):
+    def distro_edit(self, name=None,**spam):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
-         
+        
         input_distro = None
         if name is not None:
             input_distro = self.remote.get_distro(name, True)
@@ -243,18 +174,20 @@ class CobblerWeb(object):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
+        
+        # pre-command paramter checking
+        # HTML forms do not transmit disabled fields
+        if name is None and oldname is not None:
+            name = oldname
 
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:     
-                self.remote.distro_remove(name,self.token)   
+                self.remote.remove_distro(name,self.token,1) # recursive   
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
             return self.distro_list()
 
-        # pre-command paramter checking
-        if name is None and editmode=='edit' and oldname is not None:
-            name = oldname
         if name is None:
             return self.error_page("name is required")
         if kernel is None or not str(kernel).startswith("/"):
@@ -265,17 +198,22 @@ class CobblerWeb(object):
             return self.error_page("The name has not been changed.")
  
         # grab a reference to the object
-        if new_or_edit == "edit" and editmode == "edit":
+        if new_or_edit == "edit" and editmode in [ "edit", "rename" ]:
             try:
-                distro = self.remote.get_distro_handle( name, self.token)
+                if editmode == "edit":
+                    distro = self.remote.get_distro_handle( name, self.token)
+                else:
+                    distro = self.remote.get_distro_handle( oldname, self.token)
+
             except:
-                log_exc()
+                log_exc(self.apache)
                 return self.error_page("Failed to lookup distro: %s" % name)
         else:
             distro = self.remote.new_distro(self.token)
 
         try:
-            self.remote.modify_distro(distro, 'name', name, self.token)
+            if editmode != "rename" and name:
+                self.remote.modify_distro(distro, 'name', name, self.token)
             self.remote.modify_distro(distro, 'kernel', kernel, self.token)
             self.remote.modify_distro(distro, 'initrd', initrd, self.token)
             if kopts:
@@ -288,14 +226,14 @@ class CobblerWeb(object):
                 self.remote.modify_distro(distro, 'breed', breed, self.token)
             self.remote.save_distro(distro, self.token)
         except Exception, e:
-            log_exc()
+            log_exc(self.apache)
             return self.error_page("Error while saving distro: %s" % str(e))
 
         if editmode == "rename" and name != oldname:
             try:
-                self.remote.distro_remove(oldname, self.token)
+                self.remote.rename_distro(distro, name, self.token)
             except Exception, e:
-                return self.error_page("Rename unsuccessful. Object %s was copied instead, and the old copy (%s) still remains. Reason: %s" % (name, oldname, str(e)))
+                return self.error_page("Rename unsuccessful.")
 
 
         return self.distro_list()
@@ -330,7 +268,7 @@ class CobblerWeb(object):
         return (page, results_per_page, pages)
         
 
-    def system_list(self,page=None,limit=None):
+    def system_list(self,page=None,limit=None,**spam):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -357,7 +295,7 @@ class CobblerWeb(object):
             return self.xmlrpc_auth_failure()
 
         # parameter checking
-        if name is None and editmode=='edit' and oldname is not None:
+        if name is None and oldname is not None:
             name = oldname
         if name is None:
             return self.error_page("System name parameter is REQUIRED.")
@@ -367,26 +305,19 @@ class CobblerWeb(object):
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:
-                self.remote.system_remove(name,self.token)
+                self.remote.remove_system(name,self.token)
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
             return self.system_list()
 
-        # obsolete -- just do this server side
-        # more parameter checking
-        #if mac is None and ip is None and hostname is None and not is_mac(name) and not is_ip(name):
-        #    return self.error_page("System must have at least one of MAC/IP/hostname.")
-        #if hostname and not ip:
-        #    ip = resolve_ip( hostname )
-        #if mac and not is_mac( mac ):
-        #    return self.error_page("The provided MAC address appears to be invalid.")
-        #if ip and not is_ip( ip ):
-        #    return self.error_page("The provided IP address appears to be invalid.")
-
         # grab a reference to the object
-        if new_or_edit == "edit" and editmode == "edit":
+        if new_or_edit == "edit" and editmode in [ "edit", "rename" ] :
             try:
-                system = self.remote.get_system_handle( name, self.token )
+                if editmode == "edit":
+                    system = self.remote.get_system_handle( name, self.token )
+                else:
+                    system = self.remote.get_system_handle( oldname, self.token )
+                   
             except:
                 return self.error_page("Failed to lookup system: %s" % name)
         else:
@@ -394,14 +325,9 @@ class CobblerWeb(object):
 
         # go!
         try:
-            self.remote.modify_system(system, 'name', name, self.token )
+            if editmode != "rename" and name:
+                self.remote.modify_system(system, 'name', name, self.token )
             self.remote.modify_system(system, 'profile', profile, self.token)
-            #if mac:
-            #   self.remote.modify_system(system, 'mac', mac, self.token)
-            #if ip:
-            #   self.remote.modify_system(system, 'ip', ip, self.token)
-            #if hostname:
-            #   self.remote.modify_system(system, 'hostname', hostname, self.token)
             if kopts:
                self.remote.modify_system(system, 'kopts', kopts, self.token)
             if ksmeta:
@@ -442,21 +368,21 @@ class CobblerWeb(object):
             self.remote.save_system( system, self.token)
 
         except Exception, e:
-            log_exc()
+            log_exc(self.apache)
             return self.error_page("Error while saving system: %s" % str(e))
 
        
 
         if editmode == "rename" and name != oldname:
             try:
-                self.remote.system_remove(oldname, self.token)
+                self.remote.rename_system(system, name, self.token)
             except Exception, e:
-                return self.error_page("Rename unsuccessful. Object %s was copied instead, and the old copy (%s) still remains. Reason: %s" % (name, oldname, str(e)))
+                return self.error_page("Rename unsuccessful")
         
         return self.system_list()
 
 
-    def system_edit(self, name=None):
+    def system_edit(self, name=None,**spam):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -474,7 +400,7 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
     # Profiles
     # ------------------------------------------------------------------------ #
-    def profile_list(self,page=None,limit=None):
+    def profile_list(self,page=None,limit=None,**spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
@@ -491,10 +417,10 @@ class CobblerWeb(object):
         else:
             return self.__render('empty.tmpl', {})
 
-    def subprofile_edit(self, name=None):
+    def subprofile_edit(self, name=None,**spam):
         return self.profile_edit(name,1)
 
-    def profile_edit(self, name=None, subprofile=0):
+    def profile_edit(self, name=None, subprofile=0, **spam):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -523,7 +449,7 @@ class CobblerWeb(object):
             return self.xmlrpc_auth_failure()
 
         # pre-command parameter checking 
-        if name is None and editmode=='edit' and oldname is not None:
+        if name is None and oldname is not None:
             name = oldname
         if name is None:
             return self.error_page("A name has not been specified.")
@@ -537,15 +463,19 @@ class CobblerWeb(object):
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:
-                self.remote.profile_remove(name,self.token)
+                self.remote.remove_profile(name,self.token,1) 
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
             return self.profile_list()
 
         # grab a reference to the object
-        if new_or_edit == "edit" and editmode == "edit":
+        if new_or_edit == "edit" and editmode in [ "edit", "rename" ] :
             try:
-                profile = self.remote.get_profile_handle( name, self.token )
+                if editmode == "edit":
+                    profile = self.remote.get_profile_handle( name, self.token )
+                else:
+                    profile = self.remote.get_profile_handle( oldname, self.token )
+
             except:
                 return self.error_page("Failed to lookup profile: %s" % name)
         else:
@@ -555,7 +485,7 @@ class CobblerWeb(object):
                 profile = self.remote.new_subprofile(self.token)
 
         try:
-            if name:
+            if editmode != "rename" and name:
                 self.remote.modify_profile(profile, 'name', name, self.token)
             if str(subprofile) != "1" and distro:
                 self.remote.modify_profile(profile,  'distro', distro, self.token)
@@ -595,14 +525,14 @@ class CobblerWeb(object):
                 self.remote.modify_profile(profile, 'dhcp-tag', dhcptag, self.token)
             self.remote.save_profile(profile,self.token)
         except Exception, e:
-            log_exc()
+            log_exc(self.apache)
             return self.error_page("Error while saving profile: %s" % str(e))
 
         if editmode == "rename" and name != oldname:
             try:
-                self.remote.profile_remove(oldname, self.token)
+                self.remote.rename_profile(profile, name, self.token)
             except Exception, e:
-                return self.error_page("Rename unsuccessful. Object %s was copied instead, and the old copy (%s) still remains. Reason: %s" % (name, oldname, str(e)))
+                return self.error_page("Rename unsuccessful.")
 
 
         return self.profile_list()
@@ -611,7 +541,7 @@ class CobblerWeb(object):
     # Repos
     # ------------------------------------------------------------------------ #
 
-    def repo_list(self,page=None,limit=None):
+    def repo_list(self,page=None,limit=None,**spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
@@ -628,7 +558,7 @@ class CobblerWeb(object):
         else:
             return self.__render('empty.tmpl', {})
 
-    def repo_edit(self, name=None):
+    def repo_edit(self, name=None,**spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
@@ -641,13 +571,14 @@ class CobblerWeb(object):
         } )
 
     def repo_save(self,name=None,oldname=None,new_or_edit=None,editmode="edit",
-                  mirror=None,keep_updated=None,
-                  rpm_list=None,createrepo_flags=None,arch=None,delete1=None,delete2=None,**args):
+                  mirror=None,keep_updated=None,priority=99,
+                  rpm_list=None,createrepo_flags=None,arch=None,yumopts=None,
+                  delete1=None,delete2=None,**args):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
         # pre-command parameter checking
-        if name is None and editmode=='edit' and oldname is not None:
+        if name is None and oldname is not None:
             name = oldname
         if name is None:
             return self.error_page("name is required")
@@ -657,7 +588,7 @@ class CobblerWeb(object):
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:
-                self.remote.repo_remove(name,self.token)
+                self.remote.remove_repo(name,self.token)
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
             return self.repo_list()
@@ -667,37 +598,44 @@ class CobblerWeb(object):
             return self.error_page("mirror is required")
 
         # grab a reference to the object
-        if new_or_edit == "edit" and editmode == "edit":
+        if new_or_edit == "edit" and editmode in [ "edit", "rename" ]:
             try:
-                repo = self.remote.get_repo_handle( name, self.token)
+                if editmode == "edit":
+                    repo = self.remote.get_repo_handle( name, self.token)
+                else:
+                    repo = self.remote.get_repo_handle( oldname, self.token)
             except:
                 return self.error_page("Failed to lookup repo: %s" % name)
         else:
             repo = self.remote.new_repo(self.token)
 
         try:
-            self.remote.modify_repo(repo, 'name', name, self.token)
+            if editmode != "rename" and name:
+                self.remote.modify_repo(repo, 'name', name, self.token)
             self.remote.modify_repo(repo, 'mirror', mirror, self.token)
             self.remote.modify_repo(repo, 'keep-updated', keep_updated, self.token)
+            self.remote.modify_repo(repo, 'priority', priority, self.token)
 
             if rpm_list:
                 self.remote.modify_repo(repo, 'rpm-list', rpm_list, self.token)
             if createrepo_flags:
-                self.remote.modify_distro(repo, 'createrepo-flags', createrepo_flags, self.token)
+                self.remote.modify_repo(repo, 'createrepo-flags', createrepo_flags, self.token)
             if arch:
-                self.remote.modify_distro(repo, 'arch', arch, self.token)
+                self.remote.modify_repo(repo, 'arch', arch, self.token)
+            if yumopts:
+                self.remote.modify_repo(repo, 'yumopts', yumopts, self.token)
 
             self.remote.save_repo(repo, self.token)
 
         except Exception, e:
-            log_exc()
+            log_exc(self.apache)
             return self.error_page("Error while saving repo: %s" % str(e))
 
         if editmode == "rename" and name != oldname:
             try:
-                self.remote.repo_remove(oldname, self.token)
+                self.remote.rename_repo(repo, name, self.token)
             except Exception, e:
-                return self.error_page("Rename unsuccessful. Object %s was copied instead, and the old copy (%s) still remains. Reason: %s" % (name, oldname, str(e)))
+                return self.error_page("Rename unsuccessful.")
 
         return self.repo_list()
 
@@ -705,14 +643,14 @@ class CobblerWeb(object):
     # Kickstart files
     # ------------------------------------------------------------------------ #
 
-    def ksfile_list(self):
+    def ksfile_list(self,**spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
         return self.__render( 'ksfile_list.tmpl', {
             'ksfiles': self.remote.get_kickstart_templates(self.token)
         } )
 
-    def ksfile_edit(self, name=None):
+    def ksfile_edit(self, name=None,**spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
         return self.__render( 'ksfile_edit.tmpl', {
@@ -733,7 +671,7 @@ class CobblerWeb(object):
     # Miscellaneous
     # ------------------------------------------------------------------------ #
  
-    def sync(self):
+    def sync(self,**args):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
@@ -742,7 +680,7 @@ class CobblerWeb(object):
             if not rc:
                 return self.error_page("Sync failed.  Try debugging locally.")
         except Exception, e:
-            log_exc()
+            log_exc(self.apache)
             return self.error_page("Sync encountered an exception: %s" % str(e))
 
         return self.__render('message.tmpl', {
@@ -750,13 +688,13 @@ class CobblerWeb(object):
             'message2' : "Cobbler config has been applied to filesystem."
         }) 
 
-    def random_mac(self):
+    def random_mac(self, **spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
         mac = self.remote.get_random_mac()
         return mac
 
-    def error_page(self, message):
+    def error_page(self, message, **spam):
 
         # hack to remove some junk from remote fault errors so they
         # look as if they were locally generated and not exception-based.
@@ -768,7 +706,7 @@ class CobblerWeb(object):
             'message': message
         } )
 
-    def xmlrpc_auth_failure(self):
+    def xmlrpc_auth_failure(self, **spam):
         return self.__render( 'error_page.tmpl', {
             'message': "XMLRPC Authentication Error.   See Apache logs for details."
         } )

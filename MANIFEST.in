@@ -8,10 +8,8 @@ include config/cobblerd_rotate
 include config/cobbler_hosts
 include config/modules.conf
 include config/auth.conf
-include config/webui-cherrypy.cfg
 include config/settings
-include config/.htaccess
-include config/.htpasswd
+include config/users.digest
 recursive-include templates *.template
 recursive-include kickstarts *.ks
 include docs/cobbler.1.gz
@@ -19,10 +17,14 @@ include docs/cobbler.html
 include docs/wui.html
 include COPYING AUTHORS README CHANGELOG
 include scripts/watcher.py
+include scripts/index.py
 include scripts/cobblerd
 include scripts/findks.cgi
 include scripts/nopxe.cgi
 include scripts/webui.cgi
+include scripts/gateway.py
+include scripts/post_install_trigger.cgi
+include scripts/cobbler_auth_help
 include snippets/*
 recursive-include po *.pot
 recursive-include po *.po

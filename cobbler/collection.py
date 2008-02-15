@@ -35,6 +35,8 @@ class Collection(serializable.Serializable):
         """
         self.config = config
         self.clear()
+        self.log_func = self.config.api.log
+        self.lite_sync = None
 
     def factory_produce(self,config,seed_data):
         """
@@ -96,7 +98,48 @@ class Collection(serializable.Serializable):
             item = self.factory_produce(self.config,seed_data)
             self.add(item)
 
-    def add(self,ref,with_copy=False):
+
+    def rename(self,ref,newname,with_sync=True,with_triggers=False):
+        """
+        Allows an object "ref" to be given a newname without affecting the rest
+        of the object tree. 
+        """
+
+        # make a copy of the object, but give it a new name.
+        oldname = ref.name
+        newref = ref.make_clone()
+        newref.set_name(newname)
+        self.add(newref)
+
+        # now descend to any direct ancestors and point them at the new object allowing
+        # the original object to be removed without orphanage.  Direct ancestors
+        # will either be profiles or systems.  Note that we do have to care as
+        # set_parent is only really meaningful for subprofiles. We ideally want a more
+        # generic set_parent.
+        kids = ref.get_children()
+        for k in kids:
+            if k.COLLECTION_TYPE == "distro":
+               raise CX(_("internal error, not expected to have distro child objects"))
+            elif k.COLLECTION_TYPE == "profile":
+               if k.parent != "":
+                  k.set_parent(newname)
+               else:
+                  k.set_distro(newname)
+               self.config.api.profiles().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
+            elif k.COLLECTION_TYPE == "system":
+               k.set_profile(newname)
+               self.config.api.systems().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
+            elif k.COLLECTION_TYPE == "repo":
+               raise CX(_("internal error, not expected to have repo child objects"))
+            else:
+               raise CX(_("internal error, unknown child type (%s), cannot finish rename" % k.COLLECTION_TYPE))
+       
+        # now delete the old version
+        self.remove(oldname, with_delete=True)
+        return True
+
+
+    def add(self,ref,save=False,with_copy=False,with_triggers=True,with_sync=True,quick_pxe_update=False):
         """
         Add an object to the collection, if it's valid.  Returns True
         if the object was added to the collection.  Returns False if the
@@ -112,46 +155,66 @@ class Collection(serializable.Serializable):
         So, in that case, don't run any triggers and don't deal with any actual files.
 
         """
+        if self.lite_sync is None:
+            self.lite_sync = action_litesync.BootLiteSync(self.config)
+
+        # migration path for old API parameter that I've renamed.
+        if with_copy and not save:
+            save = with_copy
+
+        if not save:
+            # for people that aren't quite aware of the API
+            # if not saving the object, you can't run these features
+            with_triggers = False
+            with_sync = False
+
         if ref is None or not ref.is_valid():
             raise CX(_("insufficient or invalid arguments supplied"))
 
         if ref.COLLECTION_TYPE != self.collection_type():
             raise CX(_("API error: storing wrong data type in collection"))
 
-        if not with_copy:
+        if not save:
             # don't need to run triggers, so add it already ...
             self.listing[ref.name.lower()] = ref
 
 
         # perform filesystem operations
-        if with_copy:
+        if save:
+            self.log_func("saving %s %s" % (self.collection_type(), ref.name))
             # failure of a pre trigger will prevent the object from being added
-            self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
+            if with_triggers:
+                self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
             self.listing[ref.name.lower()] = ref
 
             # save just this item if possible, if not, save
             # the whole collection
             self.config.serialize_item(self, ref)
 
-            lite_sync = action_litesync.BootLiteSync(self.config)
-            if isinstance(ref, item_system.System):
-                lite_sync.add_single_system(ref.name)
-            elif isinstance(ref, item_profile.Profile):
-                lite_sync.add_single_profile(ref.name) 
-            elif isinstance(ref, item_distro.Distro):
-                lite_sync.add_single_distro(ref.name)
-            elif isinstance(ref, item_repo.Repo):
-                pass
-            else:
-                print _("Internal error. Object type not recognized: %s") % type(ref)
-        
+            if with_sync:
+                if isinstance(ref, item_system.System):
+                    self.lite_sync.add_single_system(ref.name)
+                elif isinstance(ref, item_profile.Profile):
+                    self.lite_sync.add_single_profile(ref.name) 
+                elif isinstance(ref, item_distro.Distro):
+                    self.lite_sync.add_single_distro(ref.name)
+                elif isinstance(ref, item_repo.Repo):
+                    pass
+                else:
+                    print _("Internal error. Object type not recognized: %s") % type(ref)
+            if not with_sync and quick_pxe_update:
+                if isinstance(ref, item_system.System):
+                    self.lite_sync.update_system_netboot_status(ref.name)
+
             # save the tree, so if neccessary, scripts can examine it.
-            self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type())
+            if with_triggers:
+                self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type())
         
         # update children cache in parent object
         parent = ref.get_parent()
         if parent != None:
             parent.children[ref.name] = ref
+
         return True
 
     def _run_triggers(self,ref,globber):

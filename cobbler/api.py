@@ -22,25 +22,87 @@ import action_import
 import action_reposync
 import action_status
 import action_validate
+from cexceptions import *
 import sub_process
 import module_loader
 
+import logging
+import os
+import fcntl
+from rhpl.translate import _, N_, textdomain, utf8
+
+ERROR = 100
+INFO  = 10
+DEBUG = 5
+
+# notes on locking:
+# BootAPI is a singleton object
+# the XMLRPC variants allow 1 simultaneous request
+# therefore we flock on /var/lib/cobbler/settings for now
+# on a request by request basis.
+
 class BootAPI:
 
+
     __shared_state = {}
-    has_loaded = False
+    __has_loaded = False
 
     def __init__(self):
         """
         Constructor
         """
 
-        self.__dict__ = self.__shared_state
-        if not BootAPI.has_loaded:
-            BootAPI.has_loaded   = True
+        self.__dict__ = BootAPI.__shared_state
+        if not BootAPI.__has_loaded:
+
+            # NOTE: we do not log all API actions, because
+            # a simple CLI invocation may call adds and such
+            # to load the config, which would just fill up
+            # the logs, so we'll do that logging at CLI
+            # level (and remote.py web service level) instead.
+
+            self.logger = self.__setup_logger("api")
+            self.logger_remote = self.__setup_logger("remote")
+
+            BootAPI.__has_loaded   = True
             module_loader.load_modules()
             self._config         = config.Config(self)
             self.deserialize()
+
+            self.authn = self.get_module_from_file(
+                "authentication",
+                "module",
+                "authn_configfile"
+            )
+            self.authz  = self.get_module_from_file(
+                "authorization",
+                "module",
+                "authz_allowall"
+            )
+            self.logger.debug("API handle initialized")
+
+    def __setup_logger(self,name):
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.INFO)
+        try:
+            ch = logging.FileHandler("/var/log/cobbler/cobbler.log")
+        except:
+            raise CX(_("No write permissions on log file.  Are you root?")) 
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(message)s")
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
+        return logger
+
+    def log(self,msg,args=None,debug=False):
+        if debug:
+            logger = self.logger.debug
+        else:
+            logger = self.logger.info 
+        if args is None:
+            logger("%s" % msg)
+        else:
+            logger("%s; %s" % (msg, str(args)))
 
     def version(self):
         """
@@ -48,13 +110,13 @@ class BootAPI:
         Currently checks the RPM DB, which is not perfect.
         Will return "?" if not installed.
         """
+        self.log("version")
         cmd = sub_process.Popen("/bin/rpm -q cobbler", stdout=sub_process.PIPE, shell=True)
         result = cmd.communicate()[0].replace("cobbler-","")
         if result.find("not installed") != -1:
             return "?"
         tokens = result[:result.rfind("-")].split(".")
         return int(tokens[0]) + 0.1 * int(tokens[1]) + 0.001 * int(tokens[2])
-
 
     def clear(self):
         """
@@ -95,36 +157,104 @@ class BootAPI:
         """
         return self._config.settings()
 
-    def new_system(self,is_subobject=False):
-        """
-        Return a blank, unconfigured system, unattached to a collection
-        """
-        return self._config.new_system(is_subobject=is_subobject)
+    def copy_distro(self, ref, newname):
+        self.log("copy_distro",[ref.name, newname])
+        return self._config.distros().copy(ref,newname)
+
+    def copy_profile(self, ref, newname):
+        self.log("copy_profile",[ref.name, newname])
+        return self._config.profiles().copy(ref,newname)
+
+    def copy_system(self, ref, newname):
+        self.log("copy_system",[ref.name, newname])
+        return self._config.systems().copy(ref,newname)
+
+    def copy_repo(self, ref, newname):
+        self.log("copy_repo",[ref.name, newname])
+        return self._config.repos().copy(ref,newname)
+
+    def remove_distro(self, ref, recursive=False):
+        self.log("remove_distro",[ref.name])
+        return self._config.distros().remove(ref.name, recursive=recursive)
+
+    def remove_profile(self,ref, recursive=False):
+        self.log("remove_profile",[ref.name])
+        return self._config.profiles().remove(ref.name, recursive=recursive)
+
+    def remove_system(self,ref):
+        self.log("remove_system",[ref.name])
+        return self._config.systems().remove(ref.name)
+
+    def remove_repo(self, ref):
+        self.log("remove_repo",[ref.name])
+        return self._config.repos().remove(ref.name)
+
+    def rename_distro(self, ref, newname):
+        self.log("rename_distro",[ref.name,newname])
+        return self._config.distros().rename(ref,newname)
+
+    def rename_profile(self, ref, newname):
+        self.log("rename_profiles",[ref.name,newname])
+        return self._config.profiles().rename(ref,newname)
+
+    def rename_system(self, ref, newname):
+        self.log("rename_system",[ref.name,newname])
+        return self._config.systems().rename(ref,newname)
+
+    def rename_repo(self, ref, newname):
+        self.log("rename_repo",[ref.name,newname])
+        return self._config.repos().rename(ref,newname)
 
     def new_distro(self,is_subobject=False):
-        """
-        Create a blank, unconfigured distro, unattached to a collection.
-        """
+        self.log("new_distro",[is_subobject])
         return self._config.new_distro(is_subobject=is_subobject)
 
-
     def new_profile(self,is_subobject=False):
-        """
-        Create a blank, unconfigured profile, unattached to a collection
-        """
+        self.log("new_profile",[is_subobject])
         return self._config.new_profile(is_subobject=is_subobject)
+    
+    def new_system(self,is_subobject=False):
+        self.log("new_system",[is_subobject])
+        return self._config.new_system(is_subobject=is_subobject)
 
     def new_repo(self,is_subobject=False):
-        """
-        Create a blank, unconfigured repo, unattached to a collection
-        """
+        self.log("new_repo",[is_subobject])
         return self._config.new_repo(is_subobject=is_subobject)
+
+    def add_distro(self, ref):
+        self.log("add_distro",[ref.name])
+        return self._config.distros().add(ref,save=True)
+
+    def add_profile(self, ref):
+        self.log("add_profile",[ref.name])
+        return self._config.profiles().add(ref,save=True)
+
+    def add_system(self,ref):
+        self.log("add_system",[ref.name])
+        return self._config.systems().add(ref,save=True)
+
+    def add_repo(self,ref):
+        self.log("add_repo",[ref.name])
+        return self._config.repos().add(ref,save=True)
+
+    def find_distro(self, name=None, return_list=False, **kargs):
+        return self._config.distros().find(name=name, return_list=return_list, **kargs)
+
+    def find_profile(self, name=None, return_list=False, **kargs):
+        return self._config.profiles().find(name=name, return_list=return_list, **kargs)
+
+    def find_system(self, name=None, return_list=False, **kargs):
+        return self._config.systems().find(name=name, return_list=return_list, **kargs)
+
+    def find_repo(self, name=None, return_list=False, **kargs):
+        return self._config.repos().find(name=name, return_list=return_list, **kargs)
 
     def auto_add_repos(self):
         """
         Import any repos this server knows about and mirror them.
         Credit: Seth Vidal.
         """
+        self.log("auto_add_repos")
         try:
             import yum
         except:
@@ -150,9 +280,9 @@ class BootAPI:
             cobbler_repo.set_mirror(url)
             cobbler_repo.set_name(auto_name)
             print "auto adding: %s (%s)" % (auto_name, url)
-            self._config.repos().add(cobbler_repo,with_copy=True)
+            self._config.repos().add(cobbler_repo,save=True)
 
-        print "run cobbler reposync to apply changes"
+        # run cobbler reposync to apply changes
         return True 
  
     def check(self):
@@ -164,6 +294,7 @@ class BootAPI:
         for human admins, who may, for instance, forget to properly set up
         their TFTP servers for PXE, etc.
         """
+        self.log("check")
         check = action_check.BootCheck(self._config)
         return check.run()
 
@@ -176,6 +307,7 @@ class BootAPI:
         is not available on all platforms and can not detect "future"
         kickstart format correctness.
         """
+        self.log("validateks")
         validator = action_validate.Validate(self._config)
         return validator.run()
 
@@ -186,22 +318,25 @@ class BootAPI:
         /tftpboot.  Any operations done in the API that have not been
         saved with serialize() will NOT be synchronized with this command.
         """
+        self.log("sync")
         sync = action_sync.BootSync(self._config)
         return sync.run()
 
-    def reposync(self, args=[]):
+    def reposync(self, name=None):
         """
         Take the contents of /var/lib/cobbler/repos and update them --
         or create the initial copy if no contents exist yet.
         """
+        self.log("reposync",[name])
         reposync = action_reposync.RepoSync(self._config)
-        return reposync.run(args)
+        return reposync.run(name)
 
     def status(self,mode):
+        self.log("status",[mode])
         statusifier = action_status.BootStatusReport(self._config, mode)
         return statusifier.run()
 
-    def import_tree(self,mirror_url,mirror_name,network_root=None):
+    def import_tree(self,mirror_url,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None):
         """
         Automatically import a directory tree full of distribution files.
         mirror_url can be a string that represents a path, a user@host 
@@ -209,8 +344,9 @@ class BootAPI:
         filesystem path and mirroring is not desired, set network_root 
         to something like "nfs://path/to/mirror_url/root" 
         """
+        self.log("import_tree",[mirror_url, mirror_name, network_root, kickstart_file, rsync_flags])
         importer = action_import.Importer(
-            self, self._config, mirror_url, mirror_name, network_root
+            self, self._config, mirror_url, mirror_name, network_root, kickstart_file, rsync_flags
         )
         return importer.run()
 
@@ -218,6 +354,7 @@ class BootAPI:
         """
         Save the config file(s) to disk.
         """
+        self.log("serialize")
         return self._config.serialize()
 
     def deserialize(self):
@@ -238,17 +375,33 @@ class BootAPI:
         """
         return module_loader.get_module_by_name(module_name)
 
-    def get_module_from_file(self,section,name):
+    def get_module_from_file(self,section,name,fallback=None):
         """
         Looks in /etc/cobbler/modules.conf for a section called 'section'
         and a key called 'name', and then returns the module that corresponds
         to the value of that key.
         """
-        return module_loader.get_module_from_file(section,name)
+        return module_loader.get_module_from_file(section,name,fallback)
 
-if __name__ == "__main__":
-    api = BootAPI()
-    print api.version()
+    def get_modules_in_category(self,category):
+        """
+        Returns all modules in a given category, for instance "serializer", or "cli".
+        """
+        return module_loader.get_modules_in_category(category)
 
+    def authenticate(self,user,password):
+        """
+        (Remote) access control.
+        """
+        rc = self.authn.authenticate(self,user,password)
+        self.log("authenticate",[user,rc])
+        return rc 
 
+    def authorize(self,user,resource,arg1=None,arg2=None):
+        """
+        (Remote) access control.
+        """
+        rc = self.authz.authorize(self,user,resource,arg1,arg2)
+        self.log("authorize",[user,resource,arg1,arg2,rc],debug=True)
+        return rc
 

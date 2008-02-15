@@ -39,8 +39,8 @@ class Profile(item.Item):
         self.kernel_options  = ({},                                '<<inherit>>')[is_subobject]
         self.ks_meta         = ({},                                '<<inherit>>')[is_subobject]
         self.virt_cpus       = (1,                                 '<<inherit>>')[is_subobject]
-        self.virt_file_size  = (5,                                 '<<inherit>>')[is_subobject]
-        self.virt_ram        = (512,                               '<<inherit>>')[is_subobject]
+        self.virt_file_size  = (self.settings.default_virt_file_size,                                 '<<inherit>>')[is_subobject]
+        self.virt_ram        = (self.settings.default_virt_ram,                               '<<inherit>>')[is_subobject]
         self.repos           = ([],                                '<<inherit>>')[is_subobject]
         self.depth           = 1
         self.virt_type       = (self.settings.default_virt_type,   '<<inherit>>')[is_subobject]
@@ -72,8 +72,8 @@ class Profile(item.Item):
         self.set_parent(self.parent)
 
         # virt specific 
-        self.virt_ram    = self.load_item(seed_data,'virt_ram',512)
-        self.virt_file_size  = self.load_item(seed_data,'virt_file_size',5)
+        self.virt_ram    = self.load_item(seed_data,'virt_ram',self.settings.default_virt_ram)
+        self.virt_file_size  = self.load_item(seed_data,'virt_file_size',self.settings.default_virt_file_size)
         self.virt_path   = self.load_item(seed_data,'virt_path')
         self.virt_type   = self.load_item(seed_data,'virt_type', self.settings.default_virt_type)
         self.virt_bridge = self.load_item(seed_data,'virt_bridge', self.settings.default_virt_bridge)        
@@ -205,12 +205,10 @@ class Profile(item.Item):
     def set_virt_file_size(self,num):
         """
 	For Virt only.
-	Specifies the size of the virt image in gigabytes.  koan
-	may contain some logic to ignore 'illogical' values of this size,
-	though there are no guarantees.  0 tells koan to just
-	let it pick a semi-reasonable size.  When in doubt, specify the
-	size you want.
-	"""
+	Specifies the size of the virt image in gigabytes.  
+	Older versions of koan (x<0.6.3) interpret 0 as "don't care"
+        Newer versions (x>=0.6.4) interpret 0 as "no disks"
+        """
         # num is a non-negative integer (0 means default)
         # can also be a comma seperated list -- for usage with multiple disks
 
@@ -270,7 +268,7 @@ class Profile(item.Item):
             self.virt_type == "<<inherit>>"
             return True
 
-        if vtype.lower() not in [ "qemu", "xenpv", "auto" ]:
+        if vtype.lower() not in [ "qemu", "xenpv", "xenfv", "vmware", "auto" ]:
             raise CX(_("invalid virt type"))
         self.virt_type = vtype
         return True

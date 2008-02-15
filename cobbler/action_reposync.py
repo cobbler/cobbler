@@ -49,16 +49,16 @@ class RepoSync:
 
     # ===================================================================
 
-    def run(self, args=[], verbose=True):
+    def run(self, name=None, verbose=True):
         """
         Syncs the current repo configuration file with the filesystem.
         """
 
         self.verbose = verbose
         for repo in self.repos:
-            if args != [] and repo.name not in args:
+            if name is not None and repo.name != name:
                 continue
-            elif args == [] and not repo.keep_updated:
+            elif name is None and not repo.keep_updated:
                 print _("- %s is set to not be updated") % repo.name
                 continue
 
@@ -72,6 +72,7 @@ class RepoSync:
                 self.do_rsync(repo)
             else:
                 self.do_reposync(repo)
+            self.update_permissions(repo_path)
 
         return True
     
@@ -235,15 +236,20 @@ class RepoSync:
         config_file.write("[%s]\n" % repo.name)
         config_file.write("name=%s\n" % repo.name)
         if output:
-            # see note above:  leave as @@server@@ and fix in %post of kickstart when
-            # we generate the stanza
             line = "baseurl=http://${server}/cobbler/repo_mirror/%s\n" % (repo.name)
             config_file.write(line)
+            # user may have options specific to certain yum plugins
+            # add them to the file
+            for x in repo.yumopts:
+                config_file.write("%s=%s\n" % (x, repo.yumopts[x]))
         else:
             line = "baseurl=%s\n" % repo.mirror
-            line = line.replace("@@server@@",self.settings.server)
+            http_server = self.setting.server + ":" + self.settings.http_port
+            line = line.replace("@@server@@",http_server)
             config_file.write(line)
         config_file.write("enabled=1\n")
+        config_file.write("priority=%s\n" % repo.priority)
+        # FIXME: potentially might want a way to turn this on/off on a per-repo basis
         config_file.write("gpgcheck=0\n")
         config_file.close()
         return fname 
@@ -263,5 +269,28 @@ class RepoSync:
             except:
                 print _("- createrepo failed.  Is it installed?")
             del fnames[:] # we're in the right place
+
+    # ==================================================================================
+
+    def update_permissions(self, repo_path):
+        """
+        Verifies that permissions and contexts after an rsync are as expected.
+        Sending proper rsync flags should prevent the need for this, though this is largely
+        a safeguard.
+        """
+        # all_path = os.path.join(repo_path, "*")
+        cmd1 = "chown -R root:apache %s" % repo_path
+        sub_process.call(cmd1, shell=True)
+
+        cmd2 = "chmod -R 755 %s" % repo_path
+        sub_process.call(cmd2, shell=True)
+
+        getenforce = "/usr/sbin/getenforce"
+        if os.path.exists(getenforce):
+            data = sub_process.Popen(getenforce, shell=True, stdout=sub_process.PIPE).communicate()[0]
+            if data.lower().find("disabled") == -1:
+                cmd3 = "chcon --reference /var/www %s" % repo_path
+                sub_process.call(cmd3, shell=True)
+
 
             

@@ -5,11 +5,15 @@ bootloaders:
 default_kickstart: /etc/cobbler/default.ks
 default_virt_bridge: xenbr0
 default_virt_type: auto
+default_virt_file_size: 5
+default_virt_ram: 512
 dhcpd_bin: /usr/sbin/dhcpd
 dhcpd_conf: /etc/dhcpd.conf
 dnsmasq_bin: /usr/sbin/dnsmasq
 dnsmasq_conf: /etc/dnsmasq.conf
 httpd_bin: /usr/sbin/httpd
+http_port: 80
+kerberos_realm: 'example.org'
 kernel_options:
     ksdevice: eth0
     lang: ' '
@@ -18,6 +22,7 @@ manage_dhcp: 0
 manage_dhcp_mode: isc
 next_server: '127.0.0.1'
 pxe_just_once: 0
+run_post_install_trigger: 0
 server: '127.0.0.1'
 snippetsdir: /var/lib/cobbler/snippets
 syslog_port: 25150

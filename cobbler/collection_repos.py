@@ -36,7 +36,7 @@ class Repos(collection.Collection):
         """
         return repo.Repo(config).from_datastruct(seed_data)
 
-    def remove(self,name,with_delete=True):
+    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True):
         """
         Remove element named 'name' from the collection
         """
@@ -47,13 +47,16 @@ class Repos(collection.Collection):
         obj = self.find(name=name)
         if obj is not None:
             if with_delete:
-                self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/repo/pre/*")
+                if with_triggers: 
+                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/repo/pre/*")
 
             del self.listing[name]
             self.config.serialize_delete(self, obj)
 
             if with_delete:
-                self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/repo/post/*")
+                self.log_func("deleted repo %s" % name)
+                if with_triggers: 
+                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/repo/post/*")
             return True
-        raise CX(_("cannot delete an object that does not exist"))
+        raise CX(_("cannot delete an object that does not exist: %s") % name)
 

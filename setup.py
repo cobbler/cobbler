@@ -4,7 +4,7 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-VERSION = "0.6.5"
+VERSION = "0.8.0"
 SHORT_DESC = "Network Boot and Update Server"
 LONG_DESC = """
 Cobbler is a network boot and update server.  Cobbler supports PXE, provisioning virtualized images, and reinstalling existing Linux machines.  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP Management.  Cobbler has a Python API for integration with other GPL systems management applications.
@@ -45,6 +45,7 @@ if __name__ == "__main__":
         tftp_images   = "/tftpboot/images"
         rotpath       = "/etc/logrotate.d"
         cgipath       = "/var/www/cgi-bin/cobbler"
+        modpython     = "/var/www/cobbler/web"
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -56,24 +57,22 @@ if __name__ == "__main__":
                     "cobbler",
                     "cobbler/yaml",
                     "cobbler/modules", 
+                    "cobbler/server", 
                     "cobbler/webui",
                 ],
-                scripts = ["scripts/cobbler", "scripts/cobblerd"],
+                scripts = ["scripts/cobbler", "scripts/cobblerd", "scripts/cobbler_auth_help"],
                 data_files = [ 
-                                
+                                (modpython, ['scripts/index.py']),
                                 # cgi files
-                                (cgipath,  ['scripts/findks.cgi', 'scripts/nopxe.cgi']),
-                                (cgipath,  ['scripts/webui.cgi']),
+                                (cgipath,   ['scripts/findks.cgi', 'scripts/nopxe.cgi']),
+                                (cgipath,   ['scripts/post_install_trigger.cgi']),
  
                                 # miscellaneous config files
-                                (cgipath,  ['config/.htaccess']),
-                                (cgipath,  ['config/.htpasswd']),
                                 (rotpath,  ['config/cobblerd_rotate']),
                                 (wwwconf,  ['config/cobbler.conf']),
                                 (cobpath,  ['config/cobbler_hosts']),
                                 (etcpath,  ['config/modules.conf']),
-                                (etcpath,  ['config/auth.conf']),
-                                (etcpath,  ['config/webui-cherrypy.cfg']),
+                                (etcpath,  ['config/users.digest']),
                                 (etcpath,  ['config/rsync.exclude']),
                                 (initpath, ['config/cobblerd']),
                                 (cobpath,  ['config/settings']),
@@ -86,9 +85,8 @@ if __name__ == "__main__":
                                 (cobpath,  ['loaders/menu.c32']),
 
                                 # sample kickstart files
-                                (etcpath,  ['kickstarts/kickstart_fc5.ks']),
-                                (etcpath,  ['kickstarts/kickstart_fc6.ks']),
-                                (etcpath,  ['kickstarts/kickstart_fc6_domU.ks']),
+                                (etcpath,  ['kickstarts/legacy.ks']),
+                                (etcpath,  ['kickstarts/sample.ks']),
                                 (etcpath,  ['kickstarts/default.ks']),
  
                                 # templates for DHCP and syslinux configs
@@ -192,6 +190,7 @@ if __name__ == "__main__":
                                 ("%sdelete/repo/pre" % trigpath,     []),
                                 ("%sdelete/repo/post" % trigpath,    []),
                                 ("%sdelete/repo/post" % trigpath,    []),
+                                ("%sinstall/post" % trigpath,        []),
                                 ("%ssync/pre" % trigpath,            []),
                                 ("%ssync/post" % trigpath,           [ "triggers/restart-services.trigger" ])
                              ],

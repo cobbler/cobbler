@@ -36,7 +36,7 @@ TRY_LIST = [
 
 class Importer:
 
-   def __init__(self,api,config,mirror,mirror_name,network_root=None):
+   def __init__(self,api,config,mirror,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None):
        """
        Performs an import of a install tree (or trees) from the given
        mirror address.  The prefix of the distro is to be specified
@@ -57,6 +57,8 @@ class Importer:
        self.systems  = config.systems()
        self.settings = config.settings()
        self.distros_added = []
+       self.kickstart_file = kickstart_file
+       self.rsync_flags = rsync_flags
 
    # ----------------------------------------------------------------------
 
@@ -91,7 +93,10 @@ class Importer:
                spacer = ""
                if not self.mirror.startswith("rsync://") and not self.mirror.startswith("/"):
                    spacer = ' -e "ssh" '
-               self.run_this(RSYNC_CMD, (spacer, self.mirror, self.settings.webdir, self.mirror_name))
+               rsync_cmd = RSYNC_CMD
+               if self.rsync_flags:
+                   rsync_cmd = rsync_cmd + " " + self.rsync_flags
+               self.run_this(rsync_cmd, (spacer, self.mirror, self.settings.webdir, self.mirror_name))
 
        # see that the root given is valid
 
@@ -107,6 +112,11 @@ class Importer:
            for valid_root in valid_roots:
                if self.network_root.startswith(valid_root):
                    found_root = True
+           if self.network_root.startswith("nfs://"):
+               try:
+                   (a,b,rest) = self.network_root.split(":",3)
+               except:
+                   raise CX(_("Network root given to --available-as is missing a colon, please see the manpage example."))
            if not found_root:
                raise CX(_("Network root given to --available-as must be nfs://, ftp://, or http://"))
 
@@ -149,9 +159,10 @@ class Importer:
 
    def kickstart_finder(self):
        """
-       For all of the profiles in the config w/o a kickstart, look
-       at the kernel path, from that, see if we can guess the distro,
-       and if we can, assign a kickstart if one is available for it.
+       For all of the profiles in the config w/o a kickstart, use the
+       given kickstart file, or look at the kernel path, from that, 
+       see if we can guess the distro, and if we can, assign a kickstart 
+       if one is available for it.
        """
 
        for profile in self.profiles:
@@ -167,25 +178,30 @@ class Importer:
            #    print _("- skipping %s since profile isn't mirrored") % profile.name
            #    continue
  
-           kdir = os.path.dirname(distro.kernel)   
-           base_dir = "/".join(kdir.split("/")[0:-2])
-      
-           for try_entry in TRY_LIST:
-               try_dir = os.path.join(base_dir, try_entry)
-               if os.path.exists(try_dir):
-                   rpms = glob.glob(os.path.join(try_dir, "*release-*"))
-                   for rpm in rpms:
-                       if rpm.find("notes") != -1:
-                           continue
-                       results = self.scan_rpm_filename(rpm)
-                       if results is None:
-                           continue
-                       (flavor, major, minor) = results
-                       print _("- finding default kickstart template for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
-                       kickstart = self.set_kickstart(profile, flavor, major, minor)
-                       self.configure_tree_location(distro)
-                       self.distros.add(distro) # re-save
-                       self.api.serialize()
+           if (self.kickstart_file == None):
+               kdir = os.path.dirname(distro.kernel)   
+               base_dir = "/".join(kdir.split("/")[0:-2])
+          
+               for try_entry in TRY_LIST:
+                   try_dir = os.path.join(base_dir, try_entry)
+                   if os.path.exists(try_dir):
+                       rpms = glob.glob(os.path.join(try_dir, "*release-*"))
+                       for rpm in rpms:
+                           if rpm.find("notes") != -1:
+                               continue
+                           results = self.scan_rpm_filename(rpm)
+                           if results is None:
+                               continue
+                           (flavor, major, minor) = results
+                           print _("- finding default kickstart template for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
+                           kickstart = self.set_kickstart(profile, flavor, major, minor)
+           else:
+               print _("- using kickstart file %s") % self.kickstart_file
+               profile.set_kickstart(self.kickstart_file)
+
+           self.configure_tree_location(distro)
+           self.distros.add(distro,save=True) # re-save
+           self.api.serialize()
 
    # --------------------------------------------------------------------
 
@@ -215,7 +231,7 @@ class Importer:
 
        # how we set the tree depends on whether an explicit network_root was specified
        if self.network_root is None:
-           meta["tree"] = "http://@@server@@/cblr/links/%s" % (distro.name)
+           meta["tree"] = "http://@@http_server@@/cblr/links/%s" % (distro.name)
        else:
            # where we assign the kickstart source is relative to our current directory
            # and the input start directory in the crawl.  We find the path segments
@@ -251,12 +267,12 @@ class Importer:
    def set_kickstart(self, profile, flavor, major, minor):
        if flavor == "fedora":
            if major >= 6:
-                return profile.set_kickstart("/etc/cobbler/kickstart_fc6.ks")
+                return profile.set_kickstart("/etc/cobbler/sample.ks")
        if flavor == "redhat" or flavor == "centos":
            if major >= 5:
-                return profile.set_kickstart("/etc/cobbler/kickstart_fc6.ks")
+                return profile.set_kickstart("/etc/cobbler/sample.ks")
        print _("- using default kickstart file choice")
-       return profile.set_kickstart("/etc/cobbler/kickstart_fc5.ks")
+       return profile.set_kickstart("/etc/cobbler/legacy.ks")
 
    # ---------------------------------------------------------------------
 
@@ -361,7 +377,7 @@ class Importer:
                    self.process_comps_file(dirname, distro)
                    matches[dirname] = 1
                else:
-                   print _("- directory %s is missing comps.xml, skipping") % dirname
+                   print _("- directory %s is missing xml comps file, skipping") % dirname
                    continue
 
    # ----------------------------------------------------------------------
@@ -409,23 +425,25 @@ class Importer:
 
            fname = os.path.join(self.settings.webdir, "ks_mirror", "config", "%s-%s.repo" % (distro.name, counter))
 
-           repo_url = "http://%s/cobbler/ks_mirror/config/%s-%s.repo" % (self.settings.server, distro.name, counter)
+           repo_url = "http://@@http_server@@/cobbler/ks_mirror/config/%s-%s.repo" % (distro.name, counter)
          
-           repo_url2 = "http://%s/cobbler/ks_mirror/%s" % (self.settings.server, urlseg) 
+           repo_url2 = "http://@@http_server@@/cobbler/ks_mirror/%s" % (urlseg) 
 
            distro.source_repos.append([repo_url,repo_url2])
 
            # NOTE: the following file is now a Cheetah template, so it can be remapped
-           # during sync, that's why we have the @@server@@ left as templating magic.
+           # during sync, that's why we have the @@http_server@@ left as templating magic.
            # repo_url2 is actually no longer used. (?)
 
            print _("- url: %s") % repo_url
            config_file = open(fname, "w+")
            config_file.write("[core-%s]\n" % counter)
            config_file.write("name=core-%s\n" % counter)
-           config_file.write("baseurl=http://@@server@@/cobbler/ks_mirror/%s\n" % (urlseg))
+           config_file.write("baseurl=http://@@http_server@@/cobbler/ks_mirror/%s\n" % (urlseg))
            config_file.write("enabled=1\n")
            config_file.write("gpgcheck=0\n")
+           # NOTE: yum priority defaults to 99 if that plugin is enabled 
+           # so don't need to add priority=99 here
            config_file.close()
 
            # don't run creatrepo twice -- this can happen easily for Xen and PXE, when
@@ -467,7 +485,7 @@ class Importer:
        distro.set_initrd(initrd)
        distro.set_arch(pxe_arch)
        distro.source_repos = []
-       self.distros.add(distro)
+       self.distros.add(distro,save=True)
        self.distros_added.append(distro)       
 
        existing_profile = self.profiles.find(name=name) 
@@ -482,7 +500,7 @@ class Importer:
        profile.set_name(name)
        profile.set_distro(name)
 
-       self.profiles.add(profile)
+       self.profiles.add(profile,save=True)
        self.api.serialize()
 
        return distro

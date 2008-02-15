@@ -3,7 +3,7 @@
 
     #if $page != 0
        #set $previous_page = $page - 1
-       <A HREF="${base_url}/${what}_list?page=${previous_page}&limit=${results_per_page}">&lt;</A>&nbsp;
+       <A HREF="${base_url}?mode=${what}_list&page=${previous_page}&limit=${results_per_page}">&lt;</A>&nbsp;
     #else
        &lt; 
     #end if
@@ -15,13 +15,13 @@
        #else
            #set doselect = " selected " 
        #end if
-       <option value="${base_url}/${what}_list?page=${this_page}&limit=${results_per_page}" ${doselect} >Page ${this_page}</option>
+       <option value="${base_url}?mode=${what}_list&page=${this_page}&limit=${results_per_page}" ${doselect} >Page ${this_page}</option>
     #end for
     </select>
 
     #if $page != $pages
        #set $next_page = $page + 1
-       <A HREF="${base_url}/${what}_list?page=${next_page}&limit=${results_per_page}">&gt;</A>
+       <A HREF="${base_url}?mode=${what}_list&page=${next_page}&limit=${results_per_page}">&gt;</A>
     #else
        &gt;
     #end if

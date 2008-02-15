@@ -29,13 +29,13 @@
 
         <tr class="$tr_class">
             <td>
-                <a href="$base_url/profile_edit?name=$profile.name">$profile.name</a>
+                <a href="$base_url?mode=profile_edit&name=$profile.name">$profile.name</a>
             </td>
             <td>
                 #if $profile.distro != "<<inherit>>"
-                    <a href="$base_url/distro_edit?name=$profile.distro">$profile.distro</a>
+                    <a href="$base_url?mode=distro_edit&name=$profile.distro">$profile.distro</a>
                 #else
-                    <a href="$base_url/profile_edit?name=$profile.parent">$profile.parent</A>
+                    <a href="$base_url?mode=profile_edit&name=$profile.parent">$profile.parent</A>
                 #end if
             </td>
             <td>$profile.kickstart</td>

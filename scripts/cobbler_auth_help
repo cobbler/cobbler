@@ -1,0 +1,55 @@
+#!/usr/bin/perl
+
+# Kerberos helper for logins
+#
+# Copyright 2007, Red Hat, Inc
+# Michael DeHaan <mdehaan@redhat.com>
+#
+# This software may be freely redistributed under the terms of the GNU
+# general public license.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+# Usage:
+# cobbler_auth_helper kerberos username pass 
+# (may do other auth types later)
+# Returns:
+# 0 on ok, non-0 on failure
+# API info:
+# http://search.cpan.org/~chansen/Authen-Simple-Kerberos-0.1/
+
+use warnings;
+use strict;
+
+use Authen::Simple::Kerberos;
+use Getopt::Long;
+
+my $method;
+my $username;
+my $realm;
+my $password;
+my $verbose=0;
+
+my $result = GetOptions(
+    "method=s"   => \$method,
+    "username=s" => \$username,
+    "realm=s"    => \$realm,
+    "password=s" => \$password,
+);
+
+my $kerberos = Authen::Simple::Kerberos->new(
+    realm => $realm
+);
+
+print "authenticating: $username against $method $realm ($password)\n" if $verbose;
+
+if ( $kerberos->authenticate( $username, $password ) ) {
+    print "ok\n" if $verbose;
+    exit(42);
+}
+
+print "denied\n" if $verbose;
+exit(1);
+

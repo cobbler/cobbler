@@ -14,7 +14,7 @@ Distributions contain information about what kernel and initrd are used, plus me
 
 Profiles associate a Distribution with a kickstart file and optionally customize the metadata further.
 
-Systems associate a MAC, IP, and/or hostname with a distribution and optionally customize the metadata further.
+Systems associate a MAC, IP, and/or hostname with a profile and optionally customize the metadata further.
 
 Repositories contain yum mirror information.  Using cobbler to mirror repositories is an optional feature, though provisioning and package management share a lot in common.
 
@@ -176,11 +176,11 @@ Example:  If profile A has --kopts="x=7 y=2", B inherits from A, and B has --kop
 Example:  If profile B has --virt-ram=256 and A has --virt-ram of 512, profile B will use the value 256.  
 Example:  If profile A has a --virt-file-size of 5 and B does not specify a size, B will use the value from A.
 
-=back
-
 =item server-override
 
 This parameter should be useful only in select circumstances.  If machines are on a subnet that cannot access the cobbler server using the name/IP as configured in the cobbler settings file, use this parameter to override that server name.   See also --dhcp-tag for configuring the next server and DHCP informmation of the system if you are also using Cobbler to help manage your DHCP configuration.
+
+=back
 
 =head2 ADDING A SYSTEM
 
@@ -209,8 +209,6 @@ Specifying a mac address via --mac allows the system object to boot via PXE.  If
 
 MAC addresses have the format AA:BB:CC:DD:EE:FF.
 
-If you would like to specify additional interfaces, use --mac0=x, --mac1=y and so on.  Interfaces 0 through 7 are supported.
-
 =item ip
 
 If cobbler is configured to generate a DHCP configuratition (see advanced section), use this
@@ -220,8 +218,6 @@ Example: ---ip=192.168.1.50
 
 Note for Itanium users:  this setting is always required for IA64 regardless of whether DHCP management is enabled.
 
-If you would like to specify additional IPs, use --ip0=x, --ip1=y and so on.
-
 If DHCP management is disabled, setting this parameter may still be useful for record keeping, and it is also available in all kickstart templates, so it can be easily used for static IP configuration within kickstarts.
 
 =item hostname
@@ -230,17 +226,12 @@ If using the DHCP configuration feature (see advanced section) with dnsmasq, use
 
 Example: --hostname=mycomputer.example.com
 
-If you would like to specify additional hostnames, use --hostname0=x, --hostname1=y and so on.
-
 =item --gateway and --subnet
 
 If you are using static IP configurations, you may find it useful to store gateway and subnet
 information inside of cobbler.  These variables are not used internally by cobbler, but are
 made available in cobbler templates, which are described later in this document and on the Wiki.
 For DHCP configurations, these parameters should be left blank.
-
-To describe gateway and subnet information for multiple intefaces, use --gateway0=x, --gateway1=y
-and so on.  Subnets work the same way.
 
 =item --virt-bridge
 
@@ -261,9 +252,20 @@ If you are setting up a PXE environment with multiple subnets/gateways, and are 
 
 By default, the dhcp tag for all systems is "default" and means that in the DHCP template files the systems will expand out where $insert_cobbler_systems_definitions is found in the DHCP template.  However, you may want certain systems to expand out in other places in the file.  Setting --dhcp-tag=subnet2 for instance, will cause that system to expand out where $insert_cobbler_system_definitions_subnet2 is found, allowing you to insert directives to specify different subnets (or other parameters) before the DHCP configuration entries for those particular systems.
 
-If your system has multiple network interfaces, use --dhcp-tag0=x, --dhcp-tag1=y and so on.
-
 This is described further on the Cobbler Wiki.
+
+=item --interface
+
+By default flags like --ip, --mac, --dhcp-tag, --gateway, --subnet, and --virt-bridge operation on the first network
+interface defined for a system.  Additional interfaces can be specified (0 through 7) for use with the edit command.
+
+Example:  
+
+cobbler system edit --name=foo --ip=192.168.1.50 --mac=AA:BB:CC:DD:EE:A0
+cobbler system edit --name=foo --interface=2 --ip=192.168.1.51 --mac=AA:BB:CC:DD:EE:A1
+cobbler system report foo
+
+NOTE: Additional interfaces can presently only be deleted via the web interface.
 
 =end
 
@@ -274,7 +276,7 @@ on your network will result in faster, more up-to-date installations and faster 
 are only provisioning a home setup, this will probably be overkill, though it can be very useful
 for larger setups (labs, datacenters, etc).
 
-B<cobbler repo add --mirror=url --name=string [--rpmlist=list] [--creatrepo-flags=string] [--keep-updated=Y/N] [--arch=string]>
+B<cobbler repo add --mirror=url --name=string [--rpmlist=list] [--creatrepo-flags=string] [--keep-updated=Y/N] [--priority=number][--arch=string]>
 
 =over
 
@@ -315,17 +317,6 @@ Distros that can make use of yum repositories during kickstart include FC6 and l
 
 See the documentation on "cobbler profile add" for more information.
 
-=item local-filename
-
-Local filename specifies, for kickstarts containing the template parameter "yum_config_stanza",
-what files to populate on provisioned clients in /etc/yum.repos.d.  
-
-In other words, if this value is "foo", the repo would be installed on provisioned clients as "/etc/yum.repos.d/foo.repo".  
-
-If you don't want clients to have this repo installed, don't add a name for the repo, and provisioned machines will not configure yum to know about this repo -- you can still do it manually if you choose.  The repository will still be used for installation, it just won't get installed automatically in /etc/yum.repos.d on the client.
-
-See /etc/cobbler/kickstart_fc6.ks for an example of how to employ this within a kickstart template.
-
 =item rpm-list
 
 By specifying a space-delimited list of package names for --rpm-list, one can decide to mirror only a part of a repo (the list of packages given, plus dependencies).  This may be helpful in conserving time/space/bandwidth.  For instance, when mirroring FC6 Extras, it may be desired to mirror just cobbler and koan, and skip all of the game packages.  To do this, use --rpm-list="cobbler koan".
@@ -340,9 +331,17 @@ Specifies optional flags to feed into the createrepo tool, which is called when 
 
 Specifies that the named repository should not be updated during a normal "cobbler reposync".    The repo may still be updated by name.   See "cobbler reposync" below.
 
+=item priority
+
+Specifies the priority of the repository (the lower the number, the higher the priority), which applies to installed machines using the repositories that also have the yum priorities plugin installed. The default priority for the plugin is 99, as is that of all cobbler mirrored repositories.
+
 =item arch
 
 Specifies what architecture the repository should use.  By default the current system arch (of the server) is used, which may not be desirable.  Using this to override the default arch allows mirroring of source repositories (using --arch=src).
+
+=item yumopts
+
+Sets values for additional yum options that the repo should use on installed systems.  For instance if a yum plugin takes a certain parameter "alpha" and "beta", use something like --yumopts="alpha=2 beta=3".
 
 =back
 
@@ -591,6 +590,10 @@ By default, the rsync operations will exclude PPC content, debug RPMs, and ISO i
 
 Note that all of the import commands will mirror install tree content into /var/www/cobbler unless a network accessible location is given with --available-as.  --available-as will be primarily used when importing distros stored on an external NAS box, or potentially on another partition on the same machine that is already accessible via http:// or ftp://.
 
+For import methods using rsync, additional flags can be passed to rsync with the option --rsync-flags.
+
+Should you want to force the usage of a specific cobbler kickstart template for all profiles created by an import, you can feed the option --kicksart to import, to bypass the built-in kickstart autodetection.
+
 =head2 DEFAULT PXE BOOT BEHAVIOR
 
 What happens when PXE booting a system when cobbler has no record of the system being booted?
@@ -664,25 +667,9 @@ Cobbler also makes itself available as a Python API for use by higher level mana
 
 =head2 WEB USER INTERFACE
 
-Most of the day-to-day actions in cobbler's command line can be performed in Cobbler's Web UI.  To enable and access the WebUI, perform the following steps.
+Most of the day-to-day actions in cobbler's command line can be performed in Cobbler's Web UI.  To enable and access the WebUI, see the following documentation:
 
-1) Set xmlrpc_rw_enabled to 1 in /var/lib/cobbler/settings to enable network control.
-
-2) Change the admin xmlrpc secret in /etc/cobbler/auth.conf.  You won't have to remember it. 
-
-3) The default Web UI password is "cobbler/ILoveCobbler", to change this, run:
-
-htdigest /var/www/cgi-bin/cobbler/.htpasswd "Cobbler WebUI Authentication" cobbler
-
-4) SELinux users may also have to run:
-
-setsebool httpd_can_network_connect true
-
-chcon httpd_sys_content_t /etc/cobbler/auth.conf
-
-5) Run /sbin/service cobblerd restart.  
-
-6) Visit http://yourserver.example.org/cgi-bin/cobbler/webui.cgi and log in with whatever you chose in step 3.
+https://hosted.fedoraproject.org/projects/cobbler/wiki/CobblerWebUi
 
 =head1 EXIT_STATUS
 

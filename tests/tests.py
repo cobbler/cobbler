@@ -83,22 +83,22 @@ class BootTest(unittest.TestCase):
         self.assertTrue(distro.set_name("testdistro0"))
         self.assertTrue(distro.set_kernel(self.fk_kernel))
         self.assertTrue(distro.set_initrd(self.fk_initrd))
-        self.assertTrue(self.api.distros().add(distro))
-        self.assertTrue(self.api.distros().find(name="testdistro0"))
+        self.assertTrue(self.api.add_distro(distro))
+        self.assertTrue(self.api.find_distro(name="testdistro0"))
 
         profile = self.api.new_profile()
         self.assertTrue(profile.set_name("testprofile0"))
         self.assertTrue(profile.set_distro("testdistro0"))
         self.assertTrue(profile.set_kickstart(FAKE_KICKSTART))
-        self.assertTrue(self.api.profiles().add(profile))
-        self.assertTrue(self.api.profiles().find(name="testprofile0"))
+        self.assertTrue(self.api.add_profile(profile))
+        self.assertTrue(self.api.find_profile(name="testprofile0"))
 
         system = self.api.new_system()
         self.assertTrue(system.set_name("drwily.rdu.redhat.com"))
         self.assertTrue(system.set_mac_address("BB:EE:EE:EE:EE:FF","intf0"))
         self.assertTrue(system.set_profile("testprofile0"))
-        self.assertTrue(self.api.systems().add(system))
-        self.assertTrue(self.api.systems().find(name="drwily.rdu.redhat.com"))
+        self.assertTrue(self.api.add_system(system))
+        self.assertTrue(self.api.find_system(name="drwily.rdu.redhat.com"))
 
 class MultiNIC(BootTest):
     
@@ -121,13 +121,15 @@ class MultiNIC(BootTest):
         self.assertTrue(system.set_subnet("255.255.255.0","intf4"))
         self.assertTrue(system.set_dhcp_tag("tag2","intf5"))
         self.assertTrue(self.api.systems().add(system))
-        self.assertTrue(self.api.systems().find(hostname="zero"))
+        # mixing in some higher level API calls with some lower level internal stuff
+        # just to make sure it's all good.
+        self.assertTrue(self.api.find_system(hostname="zero"))
         self.assertTrue(self.api.systems().find(mac_address="EE:FF:DD:CC:DD:CC"))
         self.assertTrue(self.api.systems().find(ip_address="127.0.0.5"))
-        self.assertTrue(self.api.systems().find(virt_bridge="zero"))
+        self.assertTrue(self.api.find_system(virt_bridge="zero"))
         self.assertTrue(self.api.systems().find(gateway="192.168.1.25"))
         self.assertTrue(self.api.systems().find(subnet="255.255.255.0"))
-        self.assertTrue(self.api.systems().find(dhcp_tag="tag2"))
+        self.assertTrue(self.api.find_system(dhcp_tag="tag2"))
         self.assertTrue(self.api.systems().find(dhcp_tag="zero"))
 
         # verify that systems has exactly 5 interfaces

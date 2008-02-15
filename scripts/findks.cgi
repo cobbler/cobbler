@@ -22,7 +22,7 @@ import socket
 import xmlrpclib
 
 COBBLER_BASE = "/var/www/cobbler"
-XMLRPC_SERVER = "http://127.0.0.1:25151"
+XMLRPC_SERVER = "http://127.0.0.1/cobbler_api_rw"
 
 #----------------------------------------------------------------------
 

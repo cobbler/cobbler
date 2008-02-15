@@ -73,10 +73,21 @@ def load_modules(module_path=mod_path, blacklist=None):
 def get_module_by_name(name):
     return MODULE_CACHE.get(name, None)
 
-def get_module_from_file(category,field):
+def get_module_from_file(category,field,fallback_module_name=None):
 
-    value = cp.get("serializers",field)
+    try:
+        value = cp.get("serializers",field)
+    except:
+        if fallback_module_name is not None:
+            value = fallback_module_name
+        else:
+            raise CX(_("Cannot find config file setting for: %s") % field) 
     return MODULE_CACHE.get(value, None)
+
+def get_modules_in_category(category):
+    if not MODULES_BY_CATEGORY.has_key(category):
+        return []
+    return MODULES_BY_CATEGORY[category].values()
 
 if __name__ == "__main__":
     print load_modules(module_path)

@@ -275,7 +275,7 @@ class System(item.Item):
         """
         Virtualization preference, can be overridden by koan.
         """
-        if vtype.lower() not in [ "qemu", "xenpv", "auto" ]:
+        if vtype.lower() not in [ "qemu", "xenpv", "xenfv", "vmware", "auto" ]:
             raise CX(_("invalid virt type"))
         self.virt_type = vtype
         return True

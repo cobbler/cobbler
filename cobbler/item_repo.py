@@ -33,20 +33,24 @@ class Repo(item.Item):
         self.name             = None
         self.mirror           = (None,       '<<inherit>>')[is_subobject]
         self.keep_updated     = ('y',        '<<inherit>>')[is_subobject]
+        self.priority         = (99,         '<<inherit>>')[is_subobject]
         self.rpm_list         = ("",         '<<inherit>>')[is_subobject]
         self.createrepo_flags = ("-c cache", '<<inherit>>')[is_subobject]
         self.depth            = 2  # arbitrary, as not really apart of the graph
         self.arch             = "" # use default arch
+        self.yumopts          = {}
 
     def from_datastruct(self,seed_data):
         self.parent           = self.load_item(seed_data, 'parent')
         self.name             = self.load_item(seed_data, 'name')
         self.mirror           = self.load_item(seed_data, 'mirror')
         self.keep_updated     = self.load_item(seed_data, 'keep_updated','y')
+        self.priority         = self.load_item(seed_data, 'priority',99)
         self.rpm_list         = self.load_item(seed_data, 'rpm_list')
         self.createrepo_flags = self.load_item(seed_data, 'createrepo_flags', '-c cache')
         self.arch             = self.load_item(seed_data, 'arch')
         self.depth            = self.load_item(seed_data, 'depth', 2)
+        self.yumopts          = self.load_item(seed_data, 'yumopts', {})
 
         # force this to be saved as a boolean 
         self.set_keep_updated(self.keep_updated)
@@ -79,6 +83,30 @@ class Repo(item.Item):
             self.keep_updated = True
         else:
             self.keep_updated = False
+        return True
+
+    def set_yumopts(self,options):
+        """
+        Kernel options are a space delimited list,
+        like 'a=b c=d e=f g h i=j' or a hash.
+        """
+        (success, value) = utils.input_string_or_hash(options,None)
+        if not success:
+            raise CX(_("invalid yum options"))
+        else:
+            self.yumopts = value
+            return True
+
+    def set_priority(self,priority):
+        """
+        Set the priority of the repository.  1= highest, 99=default
+        Only works if host is using priorities plugin for yum.
+        """
+        try:
+           priority = int(str(priority))
+        except:
+           raise CX(_("invalid priority level: %s") % priority)
+        self.priority = priority
         return True
 
     def set_rpm_list(self,rpms):
@@ -118,9 +146,9 @@ class Repo(item.Item):
 	A repo is valid if it has a name and a mirror URL
 	"""
         if self.name is None:
-            return False
+            raise CX(_("name is required"))
         if self.mirror is None:
-            return False
+            raise CX(_("mirror is required"))
         if self.mirror.startswith("rhn://"):
             # reposync creates directories based on the channel name so this 
             # prevents a lot of ugly special case handling if we make the
@@ -135,20 +163,24 @@ class Repo(item.Item):
            'name'             : self.name,
            'mirror'           : self.mirror,
            'keep_updated'     : self.keep_updated,
+           'priority'         : self.priority,
            'rpm_list'         : self.rpm_list,
            'createrepo_flags' : self.createrepo_flags,
            'arch'             : self.arch,
            'parent'           : self.parent,
-           'depth'            : self.depth
+           'depth'            : self.depth,
+           'yumopts'          : self.yumopts
         }
 
     def printable(self):
         buf =       _("repo             : %s\n") % self.name
         buf = buf + _("mirror           : %s\n") % self.mirror
         buf = buf + _("keep updated     : %s\n") % self.keep_updated
+        buf = buf + _("priority         : %s\n") % self.priority
         buf = buf + _("rpm list         : %s\n") % self.rpm_list
         buf = buf + _("createrepo_flags : %s\n") % self.createrepo_flags
         buf = buf + _("arch             : %s\n") % self.arch
+        buf = buf + _("yum options      : %s\n") % self.yumopts
         return buf
 
     def get_parent(self):
@@ -175,6 +207,9 @@ class Repo(item.Item):
             'mirror-name'      :  self.set_name,
             'mirror'           :  self.set_mirror,
             'keep-updated'     :  self.set_keep_updated,
+            'priority'         :  self.set_priority,
             'rpm-list'         :  self.set_rpm_list,
-            'createrepo-flags' :  self.set_createrepo_flags
+            'createrepo-flags' :  self.set_createrepo_flags,
+            'yumopts'          :  self.set_yumopts
         }
+

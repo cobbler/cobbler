@@ -2,8 +2,9 @@
 Builds out a TFTP/cobbler boot tree based on the object tree.
 This is the code behind 'cobbler sync'.
 
-Copyright 2006, Red Hat, Inc
+Copyright 2006,2007, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
+Tim Verhoeven <tim.verhoeven.be@gmail.com>
 
 This software may be freely redistributed under the terms of the GNU
 general public license.
@@ -268,7 +269,7 @@ class BootSync:
                 if not x.endswith(".py"):
                     self.rmfile(path)
             if os.path.isdir(path):
-                if not x in ["webui", "localmirror","repo_mirror","ks_mirror","kickstarts","kickstarts_sys","distros","images","systems","profiles","links","repo_profile","repo_system"] :
+                if not x in ["web", "webui", "localmirror","repo_mirror","ks_mirror","kickstarts","kickstarts_sys","distros","images","systems","profiles","links","repo_profile","repo_system"] :
                     # delete directories that shouldn't exist
                     self.rmtree(path)
                 if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system"]:
@@ -386,9 +387,9 @@ class BootSync:
 
         # FIXME: watcher is more of a request than a packaged file
         # we should eventually package something and let it do something important"
-        pattern1 = "wget http://%s/cblr/watcher.py?%s_%s=%s -b"
-        pattern2 = "wget http://%s/cgi-bin/cobbler/nopxe.cgi?system=%s -b"
-        pattern3 = "wget http://%s/cobbler/%s/%s/ks.cfg -O /root/cobbler.ks"
+        pattern1 = "wget \"http://%s/cgi-bin/cobbler/nopxe.cgi?system=%s\""
+        pattern2 = "wget \"http://%s/cobbler/%s/%s/ks.cfg\" -O /root/cobbler.ks"
+        pattern3 = "wget \"http://%s/cgi-bin/cobbler/post_install_trigger.cgi?system=%s\""
 
         blend_this = profile
         if system:
@@ -399,16 +400,16 @@ class BootSync:
 
         buf = ""
         if system is not None:
-            buf = buf + pattern1 % (blended["server"], "system", "done", system.name)
             if str(self.settings.pxe_just_once).upper() in [ "1", "Y", "YES", "TRUE" ]:
-                buf = buf + "\n" + pattern2 % (blended["server"], system.name)
+                buf = buf + "\n" + pattern1 % (blended["http_server"], system.name)
             if kickstart and os.path.exists(kickstart):
-                buf = buf + "\n" + pattern3 % (blended["server"], "kickstarts_sys", system.name)
+                buf = buf + "\n" + pattern2 % (blended["http_server"], "kickstarts_sys", system.name)
+            if self.settings.run_post_install_trigger:
+                buf = buf + "\n" + pattern3 % (blended["http_server"], system.name)
 
         else:
-            buf = buf + pattern1 % (blended["server"], "profile", "done", profile.name)
             if kickstart and os.path.exists(kickstart):
-                buf = buf + "\n" + pattern3 % (blended["server"], "kickstarts", profile.name)
+                buf = buf + "\n" + pattern2 % (blended["http_server"], "kickstarts", profile.name)
             
         return buf
 
@@ -499,8 +500,8 @@ class BootSync:
 
            name = c.split("/")[-1].replace(".repo","")
            # add the line to create the yum config file on the target box
-           conf = self.get_repo_config_file(blended["server"],urlseg,blended["name"],name)
-           buf = buf + "wget %s --output-document=/etc/yum.repos.d/%s.repo\n" % (conf, name)    
+           conf = self.get_repo_config_file(blended["http_server"],urlseg,blended["name"],name)
+           buf = buf + "wget \"%s\" --output-document=/etc/yum.repos.d/%s.repo\n" % (conf, name)    
 
         return buf
 
@@ -545,14 +546,15 @@ class BootSync:
                 ksmeta = meta["ks_meta"]
                 del meta["ks_meta"]
                 meta.update(ksmeta) # make available at top level
-                meta["yum_repo_stanza"] = self.generate_repo_stanza(profile)
-                meta["yum_config_stanza"] = self.generate_config_stanza(profile)
+                meta["yum_repo_stanza"] = self.generate_repo_stanza(s, False)
+                meta["yum_config_stanza"] = self.generate_config_stanza(s, False)
                 meta["kickstart_done"]  = self.generate_kickstart_signal(profile, s)
                 meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
                 kfile = open(kickstart_path)
                 self.apply_template(kfile, meta, dest)
                 kfile.close()
             except:
+                traceback.print_exc()
                 raise CX(_("Error templating file %(src)s to %(dest)s") % { "src" : meta["kickstart"], "dest" : dest })
 
     def load_snippet_cache(self):
@@ -607,7 +609,10 @@ class BootSync:
             for line in data.split("\n"):
                if line.find("--url") != -1 and line.find("url ") != -1:
                    rest = metadata["tree"][6:] # strip off "nfs://" part
-                   (server, dir) = rest.split(":",2)
+                   try:
+                       (server, dir) = rest.split(":",2)
+                   except:
+                       raise CX(_("Invalid syntax for NFS path given during import: %s" % metadata["tree"]))
                    line = "nfs --server %s --dir %s" % (server,dir)
                    # but put the URL part back in so koan can still see
                    # what the original value was
@@ -634,6 +639,10 @@ class BootSync:
         for x in metadata:
            if type(metadata[x]) == str:
                data_out = data_out.replace("@@%s@@" % x, metadata[x])
+        
+        # remove leading newlines which apparently breaks AutoYAST ?
+        if data_out.startswith("\n"):
+            data_out = data_out.strip() 
 
         if out_path is not None:
             self.mkdir(os.path.dirname(out_path))
@@ -691,6 +700,11 @@ class BootSync:
 
         input_files = []
 
+        # chance old versions from upgrade do not have a source_repos
+        # workaround for user bug
+        if not blended.has_key("source_repos"):
+            blended["source_repos"] = []
+
         # tack on all the install source repos IF there is more than one.
         # this is basically to support things like RHEL5 split trees
         # if there is only one, then there is no need to do this.
@@ -721,7 +735,7 @@ class BootSync:
             self.apply_template(infile_data, blended, outfile)
 
 
-    def write_all_system_files(self,system):
+    def write_all_system_files(self,system,just_edit_pxe=False):
 
         profile = system.get_conceptual_parent()
         if profile is None:
@@ -764,7 +778,10 @@ class BootSync:
                 # ensure the file doesn't exist
                 self.rmfile(f2)
 
-            self.write_system_file(f3,system)
+            if not just_edit_pxe:
+                # allows netboot-disable to be highly performant
+                # by not invoking the Cheetah engine
+                self.write_system_file(f3,system)
 
         counter = counter + 1
         
@@ -860,9 +877,9 @@ class BootSync:
         if kickstart_path is not None and kickstart_path != "":
 
             if system is not None and kickstart_path.startswith("/"):
-                kickstart_path = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (blended["server"], system.name)
+                kickstart_path = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (blended["http_server"], system.name)
             elif kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
-                kickstart_path = "http://%s/cblr/kickstarts/%s/ks.cfg" % (blended["server"], profile.name)
+                kickstart_path = "http://%s/cblr/kickstarts/%s/ks.cfg" % (blended["http_server"], profile.name)
 
             if distro.breed is None or distro.breed == "redhat":
                 append_line = "%s ks=%s" % (append_line, kickstart_path)
@@ -936,7 +953,7 @@ class BootSync:
         fd = open(filename, "w+")
         if blended.has_key("kickstart") and blended["kickstart"].startswith("/"):
             # write the file location as needed by koan
-            blended["kickstart"] = "http://%s/cblr/kickstarts/%s/ks.cfg" % (blended["server"], profile.name)
+            blended["kickstart"] = "http://%s/cblr/kickstarts/%s/ks.cfg" % (blended["http_server"], profile.name)
         fd.write(yaml.dump(blended))
         fd.close()
 

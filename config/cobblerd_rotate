@@ -1,4 +1,4 @@
-/var/log/cobbler/cobblerd.log {
+/var/log/cobbler/cobbler.log {
    missingok
    notifempty
    rotate 4
@@ -10,10 +10,14 @@
    endscript
 }
 
-/var/log/httpd/cobbler_wui.log {
+/var/log/cobbler/webui.log {
    missingok
    notifempty
    rotate 4
    weekly
+   postrotate
+      if [ -f /var/lock/subsys/cobblerd ]; then
+         /etc/init.d/cobblerd condrestart
+      fi
+   endscript
 }
-

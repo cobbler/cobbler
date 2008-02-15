@@ -14,7 +14,7 @@ function disablename(value)
 #end if
 
 
-<form method="post" action="$base_url/repo_save">
+<form method="post" action="$base_url?mode=repo_save">
 <fieldset id="cform">
 
     #if $repo
@@ -65,7 +65,7 @@ function disablename(value)
     <label for="mirror">Mirror Location (http/ftp/rsync)</label>
     </td>
     <td>
-    <input type="text" size="255" style="width: 150px;" name="mirror" id="mirror"
+    <input type="text" size="255" style="width: 400px;" name="mirror" id="mirror"
         #if $repo
             value="$repo.mirror"
         #end if
@@ -90,6 +90,21 @@ function disablename(value)
 
     <br/>
 
+    <tr>
+    <td>
+    <label for="priority">Priority</label>
+    </td>
+    <td>
+    <input type="text" size="512" style="width: 150px;" name="priority" id="priority"
+        #if $repo
+            value="$repo.priority"
+        #end if
+    />
+    <p class="context-tip">Repo priority, if using yum priorities plugin of target (99=default) </p>
+    </td>
+    </tr>
+    <br/>
+
     ## FIXME: input field sizes should be larger (universally)
     ## FIXME: make this a text area?
 
@@ -98,7 +113,7 @@ function disablename(value)
     <label for="rpm_list">RPM List</label>
     </td>
     <td>
-    <input type="text" size="512" style="width: 150px;" name="rpm_list" id="rpm_list"
+    <input type="text" size="512" style="width: 400px;" name="rpm_list" id="rpm_list"
         #if $repo
             value="$repo.rpm_list"
         #end if
@@ -135,6 +150,19 @@ function disablename(value)
     </td>
     </tr>
 
+    <tr>
+    <td>
+    <label for="yumopts">yum options</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="yumopts" id="yumopts" 
+        #if $repo
+            value="$repo.yumopts" 
+        #end if
+    />
+    <p class="context-tip">Sets specific yum plugin parameters on the installed system.</p>
+    </td>
+    </tr>
 
 
     #if $repo
