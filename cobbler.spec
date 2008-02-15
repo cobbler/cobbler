@@ -183,7 +183,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(-,root,root)
 %if 0%{?fedora} > 8
-%{python_sitearch}/func*.egg-info
+%{python_sitearch}/cobbler*.egg-info
 %endif
 %doc AUTHORS CHANGELOG README COPYING
 
