@@ -153,7 +153,7 @@ a live CD for use with koan.  This live CD serves the purpose of running
 
 To build a CD (on Fedora 7):
 
-yum install livecd-tools
+yum install livecd-tools yum-utils
 
 git clone git://et.redhat.com/koan
 

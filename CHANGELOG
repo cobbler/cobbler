@@ -1,6 +1,6 @@
 Koan CHANGELOG
 
-* Fri Feb 15 2008 Michael DeHaan <mdehaan@redhat.com> - 0.6.5-1
+* Fri Feb 15 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.0-1
 - Added --no-cobbler option so --replace-self is usable without cobbler servers
 - ia64 fix for --replace-self
 - don't print tracebacks when they are not needed

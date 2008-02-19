@@ -2,7 +2,7 @@
 
 Summary: Network provisioning tool for Xen and Bare Metal Machines 
 Name: koan
-Version: 0.6.5
+Version: 0.8.0
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -57,6 +57,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
+* Fri Feb 15 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.0-1
+- Upstream changes (see CHANGELOG)
+- truncate changelog (see git for history)
+
 * Thu Jan 31 2008 Michael DeHaan <mdehaan@redhat.com> - 0.6.5-1
 - Upstream changes (see CHANGELOG)
 
@@ -89,80 +93,3 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 * Wed Jun 27 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.0-1
 - Upstream changes (see CHANGELOG)
-
-* Thu May 31 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.0-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Apr 27 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.3.1-2
-- Upstream changes (see CHANGELOG)
-
-* Tue Apr 24 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.3.0-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Apr 20 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.9-1
-- Upstream changes (see CHANGELOG)
-- Removed yaml packages
-
-* Fri Mar 23 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.8-2
-- Upstream changes (see CHANGELOG)
-
-* Wed Mar 08 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.7-1
-- Upstream changes (see CHANGELOG)
-
-* Wed Feb 28 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.6-2
-- BuildRequires python-devel for FC7
-
-* Thu Jan 24 2007 - Michael DeHaan <mdehaan@redhat.com> - 0.2.6-1
-- Upstream changes (see CHANGELOG)
-- Lowering python version number requirements
-
-* Fri Dec 08 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.5-1
-- Upstream changes (see CHANGELOG)
-- tweaked MANIFEST.in to appease rhel3 builds
-
-* Wed Oct 25 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.4-1
-- Upstream changes (see CHANGELOG)
-- Description update
-
-* Tue Oct 24 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.3-1
-- Upstream changes (see CHANGELOG)
-
-* Wed Oct 18 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.2-2
-- Use __python instead of python, test RPM dir before deletion
-- Update URLs
-
-* Mon Oct 09 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.2-1
-- Upstream change -- support Python 2.3
-
-* Mon Oct 09 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.2.1-1
-- Upstream features (see CHANGELOG)
-
-* Thu Sep 28 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-10
-- Bumping build rev for FC-E
-
-* Thu Sep 28 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-9
-- Excluding PPC since syslinux (gethostip) isn't available for ppc
-
-* Thu Sep 21 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-8
-- Added doc files to %%doc, removed INSTALLED_FILES code
-
-* Wed Sep 20 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-7
-- Upstream updates
-
-* Fri Sep 15 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-6
-- Make koan own it's directory, add GPL "COPYING" file.
-
-* Wed Aug 16 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-5
-- Spec-file only changes for FC-Extras submission
-
-* Thu Jul 20 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-4
-- Fixed python import paths in yaml code, which errantly assumed yaml was installed as a module.
-
-* Fri Jul 12 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.1-3
-- allow installing with per-system cobbler data in addition to per-profile
-
-* Thu Jul 09 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.0-2
-- rpm tweaks for Fedora Extras
-
-* Wed Jun 28 2006 - Michael DeHaan <mdehaan@redhat.com> - 0.1.0-1
-- rpm genesis
