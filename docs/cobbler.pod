@@ -357,8 +357,6 @@ B<cobbler distro|profile|system|repo report [object-name]>
 
 B<cobbler list>
 
-B<cobbler distro|profile|system|repo list [object-name]>
-
 Alternatively, you could look at the configuration files in /var/lib/cobbler to see the same information.  
 
 =head2 DELETING CONFIGURATION ENTRIES
