@@ -54,6 +54,8 @@ def main():
         return BootCLI().run(sys.argv)
     except CX, exc:
         print str(exc)[1:-1]  # remove framing air quotes
+    except SystemExit:
+        print str(exc)[1:-1]  # remove framing air quotes
     except Exception, exc2:
         if str(type(exc2)).find("CX") == -1:
             traceback.print_exc()
