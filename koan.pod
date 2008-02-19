@@ -155,13 +155,13 @@ To build a CD (on Fedora 7):
 
 yum install livecd-tools yum-utils
 
-git clone git://et.redhat.com/koan
+git clone git://git.fedorahosted.org/git/func.git
 
-cd /checkout/koan
+cd checkout/koan
 
 make
 
-cd /checkout/koan/live
+cd checkout/koan/live
 
 python build.py --server=cobbler.example.org --koan="--profile=foo"
 
