@@ -2,8 +2,8 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 0.8.0
-Release: 2%{?dist}
+Version: 0.8.1
+Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -189,6 +189,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+
+* Wed Feb 20 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.1-1
+- Upstream changes (see CHANGELOG)
 
 * Fri Feb 15 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.0-2
 - Fix egg packaging

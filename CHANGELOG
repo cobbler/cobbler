@@ -1,7 +1,12 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* XXX Feb XX 2008 - 0.8.0 (TBD)
+* Wed Feb 20 2008 - 0.8.1
+- bugfix in reposync code
+- don't print tracebacks on SystemExit from optparse
+- manpage tweaks
+
+* Fri Feb 15 2008 - 0.8.0 (TBD)
 - stable release of 0.7.* branch plus ...
 - fixed potential user problem with source_repos in upgrade scenario
 - additional higher level API functions for find, fixes for other higher level API functions
