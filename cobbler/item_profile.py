@@ -136,6 +136,10 @@ class Profile(item.Item):
 
     def set_repos(self,repos):
 
+        # WARNING: hack
+        repos = utils.fix_mod_python_select_submission(repos)
+
+
         # allow the magic inherit string to persist
         if repos == "<<inherit>>":
             # FIXME: this is not inheritable in the WebUI presently ?

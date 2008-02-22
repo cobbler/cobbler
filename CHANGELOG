@@ -1,6 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+* Fri Feb 22 2008 - 0.8.2
+- fix to webui to allow repos to be edited there on profile page
+
 * Wed Feb 20 2008 - 0.8.1
 - bugfix in reposync code
 - don't print tracebacks on SystemExit from optparse

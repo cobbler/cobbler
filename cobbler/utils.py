@@ -445,3 +445,26 @@ def run_triggers(ref,globber):
         if rc != 0:
             raise CX(_("cobbler trigger failed: %(file)s returns %(code)d") % { "file" : file, "code" : rc })
 
+def fix_mod_python_select_submission(repos):
+    """ 
+    WARNING: this is a heinous hack to convert mod_python submitted form data
+    to something usable.  Ultimately we need to fix the root cause of this
+    which doesn't seem to happen on all versions of python/mp.
+    """
+
+    if str(repos).find("Field(") == -1:
+        return repos # no hack needed
+
+    # should be nice regex, but this is readable :)
+    repos = str(repos)
+    repos = repos.replace("'repos'","")
+    repos = repos.replace("'","")
+    repos = repos.replace("[","")
+    repos = repos.replace("]","")
+    repos = repos.replace("Field(","")
+    repos = repos.replace(")","")
+    repos = repos.replace(",","")
+    repos = repos.replace('"',"")
+    repos = repos.lstrip().rstrip()
+    return repos
+
