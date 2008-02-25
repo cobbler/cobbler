@@ -73,13 +73,16 @@ class ImportFunction(commands.CobblerFunction):
         return "import"
 
     def add_options(self, p, args):
-        p.add_option("--mirror",             dest="mirror",             help="local path or rsync location (REQUIRED)")
+        p.add_option("--path",               dest="mirror",             help="local path or rsync location (REQUIRED)")
+        p.add_option("--mirror",             dest="mirror_alt",         help="alias for --path")
         p.add_option("--name",               dest="name",               help="name, ex 'RHEL-5', (REQUIRED)")
         p.add_option("--available-as",       dest="available_as",       help="do not mirror, use this as install tree")
         p.add_option("--kickstart",          dest="kickstart_file",     help="use the kickstart file specified as the profile's kickstart file")
         p.add_option("--rsync-flags",        dest="rsync_flags",        help="pass additional flags to rsync")
 
     def run(self):
+        if self.options.mirror_alt and not self.options.mirror:
+           self.options.mirror = self.options.mirror_alt
         if not self.options.mirror:
            raise CX(_("mirror is required"))
         if not self.options.name:

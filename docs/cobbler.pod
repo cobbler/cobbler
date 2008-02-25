@@ -620,10 +620,9 @@ can take a long time, and usage of cobbler reposync prior to cobbler sync is nee
 
 For those familiar with yum's reposync, cobbler's reposync is (in most uses) a wrapper around the yum command.  Please use "cobbler reposync" to update cobbler mirrors, as yum's reposync does not perform all required steps.  Also cobbler adds support for rsync and SSH locations, where as yum's reposync only supports what yum supports (http/ftp).
 
-If you ever want to update just a few repositories, and not all of them managed by cobbler, you can
-run:
+If you ever want to update a certain repository you can run:
 
-B<cobbler reposync reponame1 reponame2 ...>
+B<cobbler reposync --only="reponame1" ...>
 
 When updating repos by name, a repo will be updated even if it is set to be not updated during a regular reposync operation (ex: cobbler repo edit --name=reponame1 --keep-updated=0).
 
