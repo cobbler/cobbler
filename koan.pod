@@ -151,9 +151,9 @@ Koan's source checkout (see http://cobbler.et.redhat.com) can be used to build
 a live CD for use with koan.  This live CD serves the purpose of running
 --replace-self with no OS present -- bare metal installation.  This tool may prove useful to emulate a PXE environment with a cobbler server, when no local DHCPconfiguration is not feasible or otherwise undesired.
 
-To build a CD (on Fedora 7):
+To build a CD (on Fedora 8):
 
-yum install livecd-tools yum-utils
+yum install livecd-tools yum-utils python-setuptools-devel
 
 git clone git://git.fedorahosted.org/git/func.git
 
