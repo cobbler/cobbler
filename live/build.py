@@ -38,9 +38,9 @@ USE_REPO   = "fc7i386extras"
 
 # packages to put on the LiveCD
 
-packages = [
-  "kernel", "bash", "koan", "policycoreutils", "grub", "eject", "tree"
-]
+#packages = [
+#  "kernel", "bash", "koan", "policycoreutils", "grub", "eject", "tree"
+#]
 
 #=======
 
@@ -94,8 +94,8 @@ def main(args):
    cmd = cmd + " --config=/tmp/koanlive.cfg"
    
 
-   for x in packages:
-      cmd = cmd + " --package=%s" % x
+   #for x in packages:
+   #   cmd = cmd + " --package=%s" % x
    
    print "running: %s" % cmd
 
