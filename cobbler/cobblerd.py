@@ -59,11 +59,15 @@ def do_xmlrpc_tasks(bootapi, settings, xmlrpc_port, xmlrpc_port2, logger):
         do_mandatory_xmlrpc_tasks(bootapi, settings, xmlrpc_port, logger)
 
 def do_mandatory_xmlrpc_tasks(bootapi,settings,xmlrpc_port,logger):
-    pid3 = os.fork()
-    if pid3 == 0:
-        do_xmlrpc(bootapi, settings, xmlrpc_port, logger)
-    else:
-        do_xmlrpc_unix(bootapi, settings, logger)
+    #pid3 = os.fork()
+    #if pid3 == 0:
+    #    do_xmlrpc(bootapi, settings, xmlrpc_port, logger)
+    #else:
+    #    # NOTE: this shouldn't be enabled unless we decide
+    #    # to use it for something.
+    #    # do_xmlrpc_unix(bootapi, settings, logger)
+    #    pass
+    do_xmlrpc(bootapi, settings, xmlrpc_port, logger)
 
 
 def do_other_tasks(bootapi, settings, syslog_port, logger):
