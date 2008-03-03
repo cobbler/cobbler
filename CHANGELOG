@@ -1,5 +1,8 @@
 Koan CHANGELOG
 
+* Mon Mar 03 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.2-0
+- Vmware installation hooks
+
 * Tue Feb 26 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.1-1
 - manpage updates
 - changes for new version of livecd creator

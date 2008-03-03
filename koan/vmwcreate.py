@@ -25,7 +25,8 @@ VMX_DIR = "/var/lib/vmware/vmx"
 # FIXME: what to put for guestOS
 # FIXME: are other settings ok?
 TEMPLATE = """
-version = "8"
+#!/usr/bin/vmware
+config.version = "8"
 virtualHW.version = "4"
 numvcpus = "2"
 scsi0.present = "TRUE"
@@ -35,7 +36,7 @@ scsi0:0.writeThrough = "TRUE"
 ide1:0.present = "TRUE"
 ide1:0.deviceType = "cdrom-image"
 Ethernet0.present = "TRUE"
-Ethernet0.addressType = "static"
+Ethernet0.AddressType = "static"
 Ethernet0.Address = "%(MAC_ADDRESS)s"
 Ethernet0.virtualDev = "e1000"
 guestOS = "linux"
@@ -72,7 +73,7 @@ def random_mac():
     return ':'.join(map(lambda x: "%02x" % x, mac))
 
 def make_disk(disksize,image):
-    cmd = "vmware-vdiskmanager -c -a buslogic -s %sGb -t 0 %s" % (disksize, image)
+    cmd = "vmware-vdiskmanager -c -a lsilogic -s %sGb -t 0 %s" % (disksize, image)
     print "- %s" % cmd
     rc = os.system(cmd)
     if rc != 0:
@@ -82,7 +83,7 @@ def make_vmx(path,vmdk_image,image_name,mac_address,memory):
     template_params =  {
         "VMDK_IMAGE"  : vmdk_image,
         "IMAGE_NAME"  : image_name,
-        "MAC_ADDRESS" : mac_address,
+        "MAC_ADDRESS" : mac_address.lower(),
         "MEMORY"      : memory
     }
     templated = TEMPLATE % template_params
@@ -98,6 +99,7 @@ def register_vmx(vmx_file):
        raise VirtCreateException("vmware registration failed")
     
 def start_vm(vmx_file):
+    os.chmod(vmx_file,0755)
     cmd = "vmware-cmd %s start" % vmx_file
     print "- %s" % cmd
     rc = os.system(cmd)
@@ -110,6 +112,21 @@ def start_install(name=None, ram=None, disks=None, mac=None,
                   vcpus=None, 
                   profile_data=None, bridge=None, arch=None, no_gfx=False, fullvirt=True):
 
+    mac = None
+    if not profile_data.has_key("interfaces"):
+        print "- vmware installation requires a system, not a profile"
+        return 1
+    for iname in profile_data["interfaces"]:
+        intf = profile_data["interfaces"][iname]
+        mac = intf["mac_address"]
+    if mac is None:
+        print "- no MAC information available in this record, cannot install"
+        return 1
+
+    print "DEBUG: name=%s" % name
+    print "DEBUG: ram=%s" % ram
+    print "DEBUG: mac=%s" % mac
+    print "DEBUG: disks=%s" % disks
     # starts vmware using PXE.  disk/mem info come from Cobbler
     # rest of the data comes from PXE which is also intended
     # to be managed by Cobbler.
@@ -130,7 +147,7 @@ def start_install(name=None, ram=None, disks=None, mac=None,
     make_disk(disksize,image)
     vmx = "%s/%s" % (VMX_DIR, name)
     print "- saving vmx file as %s" % vmx
-    make_vmx(vmx,image,mac,name,ram)
+    make_vmx(vmx,image,name,mac,ram)
     register_vmx(vmx)
     start_vm(vmx)
 
