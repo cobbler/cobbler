@@ -70,7 +70,13 @@ def autodetect():
         devicepair = os.environ["HTTP_X_RHN_PROVISIONING_MAC_0"]
         mac = devicepair.split()[1].strip()
         # mac is the macaddress of the first nic reported by anaconda
-        candidates = [system['name'] for system in systems if system['mac_address'].lower() == mac.lower()]
+
+        candidates = []
+        for x in systems:
+            for y in x["interfaces"]:
+                if x["interfaces"][y]["ip_address"] == ip:
+                    candidates.append(x)
+
         if len(candidates) == 0:
 	    print "# no system entries with MAC %s found" % mac
 	    print "# trying IP lookup"
