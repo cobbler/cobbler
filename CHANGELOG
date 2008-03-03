@@ -4,6 +4,8 @@ Cobbler CHANGELOG
 * Fri Feb 22 2008 - 0.8.2
 - fix to webui to allow repos to be edited there on profile page
 - disable local socket XMLRPC as nothing is using it.
+- fixed findks.cgi so it supports multiple NICs
+- added change_profile.cgi for changing profiles from CGI
 
 * Wed Feb 20 2008 - 0.8.1
 - bugfix in reposync code
