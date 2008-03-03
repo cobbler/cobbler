@@ -72,7 +72,7 @@ def random_mac():
     return ':'.join(map(lambda x: "%02x" % x, mac))
 
 def make_disk(disksize,image):
-    cmd = "vmware-vdiskmanager -c -a buslogic -s %sMb -t 0 %s" % (disksize, image)
+    cmd = "vmware-vdiskmanager -c -a buslogic -s %sGb -t 0 %s" % (disksize, image)
     print "- %s" % cmd
     rc = os.system(cmd)
     if rc != 0:
@@ -86,11 +86,11 @@ def make_vmx(path,vmdk_image,image_name,mac_address,memory):
         "MEMORY"      : memory
     }
     templated = TEMPLATE % template_params
-    fd.open(path,"w+")
+    fd = open(path,"w+")
     fd.write(templated)
     fd.close()
 
-def register_vm(vmx_file):
+def register_vmx(vmx_file):
     cmd = "vmware-cmd -s register %s" % vmx_file
     print "- %s" % cmd
     rc = os.system(cmd)
@@ -114,8 +114,10 @@ def start_install(name=None, ram=None, disks=None, mac=None,
     # rest of the data comes from PXE which is also intended
     # to be managed by Cobbler.
 
-    os.makedirs(IMAGE_DIR)
-    os.makedirs(VMX_DIR)
+    if not os.path.exists(IMAGE_DIR):
+        os.makedirs(IMAGE_DIR)
+    if not os.path.exists(VMX_DIR):
+        os.makedirs(VMX_DIR)
 
     if len(disks) != 1:
        raise VirtCreateException("vmware support is limited to 1 virtual disk")

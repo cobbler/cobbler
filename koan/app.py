@@ -1501,7 +1501,10 @@ class Koan:
                prefix = "/var/lib/xen/images/"
            elif self.virt_type == "qemu":
                prefix = "/opt/qemu/"
+           else:
+               prefix = "/var/lib/vmware/images/"
            if not os.path.exists(prefix):
+               print "- creating: %s" % prefix # DEBUG
                os.makedirs(prefix)
            return [ "%s/%s-disk0" % (prefix, name) ]
 
