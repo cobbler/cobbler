@@ -6,6 +6,7 @@ Cobbler CHANGELOG
 - disable local socket XMLRPC as nothing is using it.
 - fixed findks.cgi so it supports multiple NICs
 - added change_profile.cgi for changing profiles from CGI
+- added register_mac.cgi
 
 * Wed Feb 20 2008 - 0.8.1
 - bugfix in reposync code
