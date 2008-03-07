@@ -190,7 +190,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Fri Feb 22 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.2-1
+* Fri Mar 07 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.2-1
 - Upstream changes (see CHANGELOG)
 
 * Wed Feb 20 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.1-1

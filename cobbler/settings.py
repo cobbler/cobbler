@@ -22,6 +22,8 @@ TESTMODE = False
 # we need.
 
 DEFAULTS = {
+    "allow_cgi_mac_registration"  : 0,
+    "allow_cgi_profile_change"    : 0,
     "bootloaders"                 : {
         "standard"                : "/usr/lib/syslinux/pxelinux.0",
         "ia64"                    : "/var/lib/cobbler/elilo-3.6-ia64.efi"

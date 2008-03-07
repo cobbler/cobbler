@@ -73,6 +73,7 @@ def autodetect():
 
         candidates = []
         for x in systems:
+
             for y in x["interfaces"]:
                 if x["interfaces"][y]["ip_address"] == ip:
                     candidates.append(x)

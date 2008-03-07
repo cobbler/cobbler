@@ -5,6 +5,7 @@ Cobbler CHANGELOG
 - fix to webui to allow repos to be edited there on profile page
 - disable local socket XMLRPC as nothing is using it.
 - fixed findks.cgi so it supports multiple NICs
+- import now supports both --path and --mirror as aliases, as before
 - added change_profile.cgi for changing profiles from CGI
 - added register_mac.cgi
 

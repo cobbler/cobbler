@@ -84,27 +84,7 @@ def autodetect():
     
 
 def make_change(server,mac,profile,token):
-    print "# getting handle for: %s" % mac
-
-    systems = server.get_systems()
-    for s in systems:
-       for i in s["interfaces"]:
-           if s["interfaces"][i]["mac_address"].lower() == mac.lower():
-              print "# found an existing record, will not continue"
-              return
-
-    # good, no system found, so we can add a new one.
-    print "# creating new system record"
-    handle = server.new_system(token)
-    server.modify_system(handle,"profile",profile,token)
-    server.modify_system(handle,"name",mac.replace(":","_"),token)
-    intf_hash = {
-        # FIXME: also include IP info if we have it?
-        "macaddress-intf0" : mac
-    }
-    server.modify_system(handle,"modify-interface",intf_hash,token)
-    print "# saving system"
-    server.save_system(handle,token)
+    server.register_mac(mac,profile)
 
 #----------------------------------------------------------------------
 

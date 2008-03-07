@@ -164,6 +164,48 @@ class CobblerXMLRPCInterface:
         """
         self.log("get_settings",token=token)
         return self.__get_all("settings")
+
+    def profile_change(self,mac,newprofile,token=None):
+        """
+        If allow_cgi_profile_change is enabled in settings, this allows
+        kickstarts to set the profile of a machine to another profile
+        via a wget in %post.  This has security implications.
+        READ: https://fedorahosted.org/cobbler/wiki/AutoProfileChange
+        """
+
+        if not self.api.settings().allow_cgi_profile_change:
+            return 1
+
+        system = self.api.find_system(mac_address=mac)
+        if system is None:
+            return 2
+   
+        system.set_profile(newprofile)
+        self.api.add_system(system)
+
+
+    def register_mac(self,mac,token=None):
+        """
+        If allow_cgi_register_mac is enabled in settings, this allows
+        kickstarts to add new system records for per-profile-provisioned
+        systems automatically via a wget in %post.  This has security
+        implications.
+        READ: https://fedorahosted.org/cobbler/wiki/AutoRegistration
+        """
+
+        if not self.api.settings().allow_cgi_mac_registration:
+            return 1
+
+        system = self.api.find_system(mac_address=mac)
+        if system is not None:
+            return 2
+
+        obj = server.new_system(token)
+        obj.set_profile(profile)
+        obj.set_name(mac.replace(":","_"))
+        obj.set_mac_address(mac, "intf0")
+        systems.add(obj,save=True)
+        return 0
  
     def disable_netboot(self,name,token=None):
         """
