@@ -1,8 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-* Fri Feb 22 2008 - 0.8.3
+- Mon Mar 10 2008 - 0.9.0
 - Make createrepo get run for local cobbler reposync invocations as needed
+- patch to allow yumopts to override gpgcheck
 
 * Fri Feb 22 2008 - 0.8.2
 - fix to webui to allow repos to be edited there on profile page

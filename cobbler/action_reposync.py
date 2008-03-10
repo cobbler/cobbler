@@ -235,6 +235,8 @@ class RepoSync:
         config_file = open(fname, "w+")
         config_file.write("[%s]\n" % repo.name)
         config_file.write("name=%s\n" % repo.name)
+        optenabled = False
+        optgpgcheck = False
         if output:
             line = "baseurl=http://${server}/cobbler/repo_mirror/%s\n" % (repo.name)
             config_file.write(line)
@@ -242,15 +244,21 @@ class RepoSync:
             # add them to the file
             for x in repo.yumopts:
                 config_file.write("%s=%s\n" % (x, repo.yumopts[x]))
+                if x == "enabled":
+                    optenabled = True
+                if x == "gpgcheck":
+                    optgpgcheck = True
         else:
             line = "baseurl=%s\n" % repo.mirror
             http_server = "%s:%s" % (self.settings.server, self.settings.http_port)
             line = line.replace("@@server@@",http_server)
             config_file.write(line)
-        config_file.write("enabled=1\n")
+        if not optenabled:
+            config_file.write("enabled=1\n")
         config_file.write("priority=%s\n" % repo.priority)
         # FIXME: potentially might want a way to turn this on/off on a per-repo basis
-        config_file.write("gpgcheck=0\n")
+        if not optgpgcheck:
+            config_file.write("gpgcheck=0\n")
         config_file.close()
         return fname 
 
