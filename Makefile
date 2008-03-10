@@ -16,7 +16,7 @@ test:
 build: clean
 	python setup.py build -f
 
-install: build
+install: build manpage
 	python setup.py install -f
 
 sdist: manpage
