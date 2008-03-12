@@ -76,7 +76,7 @@ def get_module_by_name(name):
 def get_module_from_file(category,field,fallback_module_name=None):
 
     try:
-        value = cp.get("serializers",field)
+        value = cp.get(category,field)
     except:
         if fallback_module_name is not None:
             value = fallback_module_name

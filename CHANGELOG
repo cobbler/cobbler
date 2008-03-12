@@ -5,6 +5,10 @@ Cobbler CHANGELOG
 - Make createrepo get run for local cobbler reposync invocations as needed
 - patch to allow yumopts to override gpgcheck
 
+- ??? - 0.8.3
+- fix WebUI documentation URL
+- fix bug in /etc/cobbler/modules.conf regarding pluggable authn/z
+
 * Fri Feb 22 2008 - 0.8.2
 - fix to webui to allow repos to be edited there on profile page
 - disable local socket XMLRPC as nothing is using it.
