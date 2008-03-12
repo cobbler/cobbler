@@ -30,7 +30,7 @@ my $method;
 my $username;
 my $realm;
 my $password;
-my $verbose=0;
+my $verbose=1;
 
 my $result = GetOptions(
     "method=s"   => \$method,
