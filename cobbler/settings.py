@@ -39,6 +39,7 @@ DEFAULTS = {
     "dnsmasq_conf"                : "/etc/dnsmasq.conf",
     "httpd_bin"                   : "/usr/sbin/httpd",
     "http_port"                   : "80",
+    "isc_set_host_name"           : 0,
     "kerberos_realm"              : "example.org",
     "kernel_options"              : {
         "lang"                    : " ",

@@ -4,6 +4,7 @@ Cobbler CHANGELOG
 - Mon Mar 10 2008 - 0.9.0
 - Make createrepo get run for local cobbler reposync invocations as needed
 - patch to allow yumopts to override gpgcheck
+- applied patch to send hostname from ISC
 
 - ??? - 0.8.3
 - fix WebUI documentation URL

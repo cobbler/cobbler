@@ -163,6 +163,8 @@ class BootSync:
                     # the label the entry after the hostname if possible
                     if host is not None and host != "":
                         systxt = "\nhost %s {\n" % host
+                        if self.settings.isc_set_host_name:
+                            systxt = systxt + "    option host-name = %s;\n" % host
                     else:
                         systxt = "\nhost generic%d {\n" % counter
 
