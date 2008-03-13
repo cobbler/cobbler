@@ -5,6 +5,7 @@ Cobbler CHANGELOG
 - Make createrepo get run for local cobbler reposync invocations as needed
 - patch to allow yumopts to override gpgcheck
 - applied patch to send hostname from ISC
+- added patch to allow --kopts/--ksmeta items to be cleared with --kopts=delete
 
 - ??? - 0.8.3
 - fix WebUI documentation URL

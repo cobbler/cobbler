@@ -240,7 +240,7 @@ def input_string_or_hash(options,delim=","):
     if options == "<<inherit>>":
         options = {}
 
-    if options is None:
+    if options is None or options == "delete":
         return (True, {})
     elif type(options) == list:
         raise CX(_("No idea what to do with list: %s") % options)
