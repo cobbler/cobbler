@@ -61,7 +61,7 @@ DEFAULTS = {
     "xmlrpc_rw_enabled"           : 0,
     "xmlrpc_rw_port"              : 25152,
     "yum_post_install_mirror"     : 1,
-    "yumdownloader_flags"         : "-resolve"
+    "yumdownloader_flags"         : "--resolve"
 }
 
 
