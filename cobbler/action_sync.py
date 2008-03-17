@@ -30,6 +30,7 @@ import errno
 
 import item_distro
 import item_profile
+import item_repo
 import item_system
 
 from Cheetah.Template import Template
@@ -430,13 +431,16 @@ class BootSync:
 
         buf = ""
         blended = utils.blender(self.api, False, obj, self.blend_cache)
-
         configs = self.get_repo_filenames(obj,is_profile)
+        repos = self.repos
+
         for c in configs:
            name = c.split("/")[-1].replace(".repo","")
            (is_core, baseurl) = self.analyze_repo_config(c)
-           buf = buf + "repo --name=%s --baseurl=%s\n" % (name, baseurl)
-
+           for repo in repos:
+               if repo.name == name:
+                   if not repo.yumopts.has_key('enabled') or repo.yumopts['enabled'] == '1':
+                       buf = buf + "repo --name=%s --baseurl=%s\n" % (name, baseurl)
         return buf
 
     def analyze_repo_config(self, filename):
