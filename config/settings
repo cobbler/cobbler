@@ -20,6 +20,10 @@ kernel_options:
     ksdevice: eth0
     lang: ' '
     text: ~
+ldap_server: "ldap.example.com",
+ldap_base_dn: "DC=example,DC=com",
+ldap_port: 389,
+ldap_tls: 1,
 manage_dhcp: 0
 manage_dhcp_mode: isc
 next_server: '127.0.0.1'
