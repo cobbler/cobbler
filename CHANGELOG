@@ -6,6 +6,7 @@ Cobbler CHANGELOG
 - fix WebUI documentation URL
 - fix bug in /etc/cobbler/modules.conf regarding pluggable authn/z
 - fix default flags for yumdownloader
+- fix for RHEL 4u6 DVD/tree import x86_64 arch detection
 
 * Fri Feb 22 2008 - 0.8.2
 - fix to webui to allow repos to be edited there on profile page
