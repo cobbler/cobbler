@@ -565,6 +565,24 @@ class Importer:
                elif x.find("ia64") != -1:
                    foo["result"] = "ia64"
                    return
+
+       # This extra code block is a temporary fix for rhel4.x 64bit [x86_64]
+       # distro ARCH identification-- L.M.
+       # NOTE: eventually refactor to merge in with the above block
+       for x in fnames:
+          if not x.endswith("rpm"):
+             continue
+          if x.find("kernel-largesmp") != -1:
+             print _("- kernel header found: %s") % x
+             if x.find("i386") != -1:
+                foo["result"] = "x86"
+                return
+             elif x.find("x86_64") != -1:
+                foo["result"] = "x86_64"
+                return
+             elif x.find("ia64") != -1:
+                foo["result"] = "ia64"
+                return
                 
 
    def learn_arch_from_tree(self,dirname):
