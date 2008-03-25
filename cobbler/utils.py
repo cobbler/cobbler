@@ -468,3 +468,51 @@ def fix_mod_python_select_submission(repos):
     repos = repos.lstrip().rstrip()
     return repos
 
+def redhat_release():
+    if not os.path.exists("/bin/rpm"):
+       return ("unknown", 0)
+    args = ["/bin/rpm", "-q", "--whatprovides", "redhat-release"]
+    cmd = sub_process.Popen(args,shell=False,stdout=sub_process.PIPE)
+    data = cmd.communicate()[0]
+    data = data.rstrip().lower()
+    make = "other"
+    if data.find("redhat") != -1:
+        make = "redhat"
+    elif data.find("centos") != -1:
+        make = "centos"
+    elif data.find("fedora") != -1:
+        make = "fedora"
+    version = data.split("release-")[-1]
+    rest = 0
+    if version.find("-"):
+       parts = version.split("-")
+       version = parts[0]
+       rest = parts[1]
+    return (make, float(version), rest)
+
+def tftpboot_location():
+
+    # if possible, read from TFTP config file to get the location
+    if os.path.exists("/etc/xinetd.d/tftp"):
+        fd = open("/etc/xinetd.d/tftp")
+        lines = fd.read().split("\n")
+        for line in lines:
+           if line.find("server_args") != -1:
+              tokens = line.split(None)
+              mark = False
+              for t in tokens:
+                 if t == "-s":    
+                    mark = True
+                 elif mark:
+                    return t
+
+    # otherwise, guess based on the distro
+    (make,version,rest) = redhat_release()
+    if make == "fedora" and version >= 9:
+       return "/var/lib/tftpboot"
+    return "/tftpboot"
+
+if __name__ == "__main__":
+    # print redhat_release()
+    print tftpboot_location()
+

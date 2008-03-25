@@ -17,6 +17,7 @@ import os
 import re
 import sub_process
 import action_sync
+import utils
 from rhpl.translate import _, N_, textdomain, utf8
 
 class BootCheck:
@@ -152,17 +153,15 @@ class BootCheck:
        if os.path.exists(self.settings.tftpd_conf):
           f = open(self.settings.tftpd_conf)
           re_disable = re.compile(r'disable.*=.*yes')
-          found_bootdir = False
           for line in f.readlines():
              if re_disable.search(line):
                  status.append(_("change 'disable' to 'no' in %(file)s") % { "file" : self.settings.tftpd_conf })
-             if line.find("-s %s" % self.settings.tftpboot) != -1:
-                 found_bootdir = True
-          if not found_bootdir:
-              status.append(_("change 'server_args' to '-s %(args)s' in %(file)s") % { "file" : "/etc/xinetd.d/tftp", "args" : self.settings.tftpboot })
-
        else:
           status.append(_("file %(file)s does not exist") % { "file" : self.settings.tftpd_conf })
+       
+       bootloc = utils.tftpboot_location()
+       if not os.path.exists(bootloc):
+          status.append(_("directory needs to be created: %s" % bootloc))
 
 
    def check_dhcpd_conf(self,status):
