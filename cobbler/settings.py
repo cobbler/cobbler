@@ -40,7 +40,11 @@ DEFAULTS = {
     "httpd_bin"                   : "/usr/sbin/httpd",
     "http_port"                   : "80",
     "isc_set_host_name"           : 0,
-    "kerberos_realm"              : "example.org",
+    "ldap_server"                 : "grimlock.devel.redhat.com",
+    "ldap_base_dn"                : "DC=devel,DC=redhat,DC=com",
+    "ldap_port"                   : 389,
+    "ldap_tls"                    : "on",
+    "kerberos_realm"              : "EXAMPLE.COM",
     "kernel_options"              : {
         "lang"                    : " ",
         "text"                    : None,

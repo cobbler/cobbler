@@ -7,6 +7,7 @@ Cobbler CHANGELOG
 - applied patch to send hostname from ISC
 - added patch to allow --kopts/--ksmeta items to be cleared with --kopts=delete
 - tftpboot location is now inferred from xinetd config (added for F9 compat)
+- added authn_ldap and stub for authz_configfile
 
 - ??? - 0.8.3
 - fix WebUI documentation URL
