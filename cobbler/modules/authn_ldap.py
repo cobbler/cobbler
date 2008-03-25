@@ -100,6 +100,5 @@ def authenticate(api_handle,username,password):
 
 if __name__ == "__main__":
     api_handle = cobbler_api.BootAPI()
-    # print authenticate(api_handle, "mdehaan", "test1")
-    print authenticate(api_handle, "mdehaan", "dog8code")
+    print authenticate(api_handle, "guest", "guest")
 
