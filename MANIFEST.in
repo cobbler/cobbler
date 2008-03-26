@@ -10,6 +10,7 @@ include config/modules.conf
 include config/auth.conf
 include config/settings
 include config/users.digest
+include config/users.conf
 recursive-include templates *.template
 recursive-include kickstarts *.ks
 include docs/cobbler.1.gz

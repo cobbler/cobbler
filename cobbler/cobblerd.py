@@ -108,7 +108,7 @@ def do_xmlrpc(bootapi, settings, port, logger):
     # This is the simple XMLRPC API we provide to koan and other
     # apps that do not need to manage Cobbler's config
 
-    xinterface = remote.ProxiedXMLRPCInterface(bootapi,logger,remote.CobblerXMLRPCInterface,True)
+    xinterface = remote.ProxiedXMLRPCInterface(bootapi,logger,remote.CobblerXMLRPCInterface,False)
     
     server = remote.CobblerXMLRPCServer(('', port))
     server.logRequests = 0  # don't print stuff
@@ -124,7 +124,7 @@ def do_xmlrpc(bootapi, settings, port, logger):
 
 def do_xmlrpc_rw(bootapi,settings,port,logger):
 
-    xinterface = remote.ProxiedXMLRPCInterface(bootapi,logger,remote.CobblerReadWriteXMLRPCInterface,False)
+    xinterface = remote.ProxiedXMLRPCInterface(bootapi,logger,remote.CobblerReadWriteXMLRPCInterface,True)
     server = remote.CobblerReadWriteXMLRPCServer(('127.0.0.1', port))
     server.logRequests = 0  # don't print stuff
     logger.debug("XMLRPC (read-write variant) running on %s" % port)

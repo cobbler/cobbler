@@ -38,10 +38,12 @@ install: clean manpage
 devinstall:
 	cp /var/lib/cobbler/settings /tmp/cobbler_settings
 	cp /etc/cobbler/modules.conf /tmp/cobbler_modules.conf
+	cp /etc/cobbler/users.conf /tmp/cobbler_users.conf
 	-cp /etc/cobbler/users.digest /tmp/cobbler_users.digest
 	make install
 	cp /tmp/cobbler_settings /var/lib/cobbler/settings
 	cp /tmp/cobbler_modules.conf /etc/cobbler/modules.conf
+	cp /tmp/cobbler_users.conf /etc/cobbler/users.conf
 	-cp /tmp/cobbler_users.digest /etc/cobbler/users.digest
 	find /var/lib/cobbler/triggers | xargs chmod +x
 	chown -R apache /var/www/cobbler 

@@ -561,10 +561,6 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         FIXME: currently looks for users in /etc/cobbler/auth.conf
         Would be very nice to allow for PAM and/or just Kerberos.
         """
-        if not self.auth_enabled and input_user == "<system>":
-            return True
-        if self.auth_enabled and input_user == "<system>":
-            return False
         return self.api.authenticate(input_user,input_password)
 
     def __validate_token(self,token): 
@@ -579,11 +575,12 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.__invalidate_expired_tokens()
         self.__invalidate_expired_objects()
 
-        if not self.auth_enabled:
-            user = self.get_user_from_token(token)
-            if user == "<system>":
-                self.token_cache[token] = (time.time(), user) # update to prevent timeout
-                return True
+        #if not self.auth_enabled:
+        #    user = self.get_user_from_token(token)
+        #    # old stuff, preserving for future usage
+        #    # if user == "<system>":
+        #    #    self.token_cache[token] = (time.time(), user) # update to prevent timeout
+        #    #    return True
 
         if self.token_cache.has_key(token):
             user = self.get_user_from_token(token)
@@ -598,10 +595,16 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
 
     def check_access(self,token,resource,arg1=None,arg2=None):
         validated = self.__validate_token(token)
+        user = self.get_user_from_token(token)
         if not self.auth_enabled:
+            # for public read-only XMLRPC, permit access
+            self.log("permitting read-only access")
             return True
-        return self.__authorize(token,resource,arg1,arg2)
-
+        rc = self.__authorize(token,resource,arg1,arg2)
+        self.log("authorization result: %s" % rc)
+        if not rc:
+            raise CX(_("authorization failure for user %s" % user)) 
+        return rc
 
     def login(self,login_user,login_password):
         """
@@ -621,7 +624,9 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
 
     def __authorize(self,token,resource,arg1=None,arg2=None):
         user = self.get_user_from_token(token)
-        if self.api.authorize(user,resource,arg1,arg2):
+        self.log("calling authorize for resource %s" % resource, user=user)
+        rc = self.api.authorize(user,resource,arg1,arg2)
+        if rc:
             return True
         else:
             raise CX(_("user does not have access to resource: %s") % resource)

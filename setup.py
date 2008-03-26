@@ -74,6 +74,7 @@ if __name__ == "__main__":
                                 (etcpath,  ['config/modules.conf']),
                                 (etcpath,  ['config/users.digest']),
                                 (etcpath,  ['config/rsync.exclude']),
+                                (etcpath,  ['config/users.conf']),
                                 (initpath, ['config/cobblerd']),
                                 (cobpath,  ['config/settings']),
 

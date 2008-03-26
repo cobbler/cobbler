@@ -90,7 +90,6 @@ def authenticate(api_handle,username,password):
         # attempt to bind as the user
         dir.simple_bind_s(dn,password)
         dir.unbind()
-        print "FAIL 1"
         return True
     except:
         traceback.print_exc()
