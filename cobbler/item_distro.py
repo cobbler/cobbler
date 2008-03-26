@@ -32,6 +32,7 @@ class Distro(item.Item):
         Reset this object.
         """
         self.name           = None
+        self.owners         = []
         self.kernel         = (None,     '<<inherit>>')[is_subobject]
         self.initrd         = (None,     '<<inherit>>')[is_subobject]
         self.kernel_options = ({},       '<<inherit>>')[is_subobject]
@@ -60,6 +61,7 @@ class Distro(item.Item):
         """
         self.parent         = self.load_item(seed_data,'parent')
         self.name           = self.load_item(seed_data,'name')
+        self.owners         = self.load_item(seed_data,'owners',[])
         self.kernel         = self.load_item(seed_data,'kernel')
         self.initrd         = self.load_item(seed_data,'initrd')
         self.kernel_options = self.load_item(seed_data,'kernel_options')
@@ -165,7 +167,8 @@ class Distro(item.Item):
            'breed'          : self.breed,
            'source_repos'   : self.source_repos,
            'parent'         : self.parent,
-           'depth'          : self.depth
+           'depth'          : self.depth,
+           'owners'         : self.owners
         }
 
     def printable(self):
@@ -181,6 +184,7 @@ class Distro(item.Item):
         buf = buf + _("architecture    : %s\n") % self.arch
         buf = buf + _("ks metadata     : %s\n") % self.ks_meta
         buf = buf + _("breed           : %s\n") % self.breed
+        buf = buf + _("owners          : %s\n") % self.owners
         return buf
 
     def remote_methods(self):
@@ -191,7 +195,8 @@ class Distro(item.Item):
             'kopts'   :  self.set_kernel_options,
             'arch'    :  self.set_arch,
             'ksmeta'  :  self.set_ksmeta,
-            'breed'   :  self.set_breed
+            'breed'   :  self.set_breed,
+            'owners'  :  self.set_owners
         }
 
 

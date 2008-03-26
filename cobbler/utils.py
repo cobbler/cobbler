@@ -230,6 +230,20 @@ def find_kickstart(url):
            return url
     return None
 
+def input_string_or_list(options,delim=","):
+    """
+    Accepts a delimited list of stuff or a list, but always returns a list.
+    """
+    if options is None or options == "delete":
+       return []
+    elif type(options) == list:
+       return options
+    elif type(options) == str:
+       tokens = options.split(",")
+       return tokens
+    else:
+       raise CX(_("invalid input type"))
+
 def input_string_or_hash(options,delim=","):
     """
     Older cobbler files stored configurations in a flat way, such that all values for strings.
@@ -261,7 +275,7 @@ def input_string_or_hash(options,delim=","):
         options.pop('',None)
         return (True, options)
     else:
-        raise CX(_("Foreign options type"))
+        raise CX(_("invalid input type"))
 
 def grab_tree(api_handle, obj):
     """

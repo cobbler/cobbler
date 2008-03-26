@@ -30,6 +30,7 @@ class System(item.Item):
 
     def clear(self,is_subobject=False):
         self.name            = None
+        self.owners          = None
         self.profile         = None
         self.kernel_options  = {}
         self.ks_meta         = {}    
@@ -80,6 +81,7 @@ class System(item.Item):
 
         self.parent          = self.load_item(seed_data, 'parent')
         self.name            = self.load_item(seed_data, 'name')
+        self.owners          = self.load_item(seed_data, 'owners')
         self.profile         = self.load_item(seed_data, 'profile')
         self.kernel_options  = self.load_item(seed_data, 'kernel_options', {})
         self.ks_meta         = self.load_item(seed_data, 'ks_meta', {})
@@ -336,6 +338,7 @@ class System(item.Item):
     def to_datastruct(self):
         return {
            'name'            : self.name,
+           'owners'          : self.set_owners,
            'profile'         : self.profile,
            'kernel_options'  : self.kernel_options,
            'ks_meta'         : self.ks_meta,
@@ -360,6 +363,7 @@ class System(item.Item):
         buf = buf + _("virt type        : %s\n") % self.virt_type
         buf = buf + _("virt path        : %s\n") % self.virt_path
         buf = buf + _("server           : %s\n") % self.server
+        buf = buf + _("owners           : %s\n") % self.owners
 
         counter = 0
         for (name,x) in self.interfaces.iteritems():
@@ -405,6 +409,7 @@ class System(item.Item):
            'virt-type'        : self.set_virt_type,
            'modify-interface' : self.modify_interface,
            'delete-interface' : self.delete_interface,
-           'server'           : self.set_server
+           'server'           : self.set_server,
+           'owners'           : self.set_owners
         }
 

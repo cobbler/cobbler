@@ -51,7 +51,7 @@ class Item(serializable.Serializable):
         self.clear(is_subobject)      # reset behavior differs for inheritance cases
         self.parent = ''              # all objects by default are not subobjects
         self.children = {}            # caching for performance reasons, not serialized
- 
+        self.owners = []
         self.log_func = self.config.api.log        
 
     def clear(self):
@@ -115,6 +115,16 @@ class Item(serializable.Serializable):
         if self.name not in ["",None] and self.parent not in ["",None] and self.name == self.parent:
             raise CX(_("self parentage is weird"))
         self.name = name
+        return True
+
+    def set_owners(self,data):
+        """
+        The owners field is a comment unless using an authz module that pays attention to it,
+        like authz_ownership, which ships with Cobbler but is off by default.  Consult the Wiki
+        docs for more info on CustomizableAuthorization.
+        """
+        owners = utils.input_string_or_list(data)
+        self.owners = owners
         return True
 
     def set_kernel_options(self,options):

@@ -34,6 +34,7 @@ class Profile(item.Item):
         Reset this object.
         """
         self.name            = None
+        self.owners          = [] # should not be inheritable
         self.distro          = (None,                              '<<inherit>>')[is_subobject]
         self.kickstart       = (self.settings.default_kickstart ,  '<<inherit>>')[is_subobject]    
         self.kernel_options  = ({},                                '<<inherit>>')[is_subobject]
@@ -57,6 +58,7 @@ class Profile(item.Item):
 
         self.parent          = self.load_item(seed_data,'parent','')
         self.name            = self.load_item(seed_data,'name')
+        self.owners          = self.load_item(seed_data,'owners',[])
         self.distro          = self.load_item(seed_data,'distro')
         self.kickstart       = self.load_item(seed_data,'kickstart')
         self.kernel_options  = self.load_item(seed_data,'kernel_options')
@@ -328,6 +330,7 @@ class Profile(item.Item):
         """
         return {
             'name'             : self.name,
+            'owners'           : self.owners,
             'distro'           : self.distro,
             'kickstart'        : self.kickstart,
             'kernel_options'   : self.kernel_options,
@@ -342,7 +345,8 @@ class Profile(item.Item):
             'virt_type'        : self.virt_type,
             'virt_path'        : self.virt_path,
             'dhcp_tag'         : self.dhcp_tag,
-            'server'           : self.server
+            'server'           : self.server,
+
         }
 
     def printable(self):
@@ -366,6 +370,7 @@ class Profile(item.Item):
         buf = buf + _("repos           : %s\n") % self.repos
         buf = buf + _("dhcp tag        : %s\n") % self.dhcp_tag
         buf = buf + _("server          : %s\n") % self.server
+        buf = buf + _("owners          : %s\n") % self.owners
         return buf
 
     def remote_methods(self):
@@ -385,6 +390,7 @@ class Profile(item.Item):
             'virt-bridge'     :  self.set_virt_bridge,
             'virt-cpus'       :  self.set_virt_cpus,
             'dhcp-tag'        :  self.set_dhcp_tag,
-            'server'          :  self.set_server
+            'server'          :  self.set_server,
+            'owners'          :  self.set_owners
         }
 

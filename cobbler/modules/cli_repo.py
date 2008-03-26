@@ -59,6 +59,8 @@ class RepoFunction(commands.CobblerFunction):
             p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
         if not self.matches_args(args,["report","list"]):
             p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
+        if not self.matches_args(args,["remove","report","list"]):
+            p.add_option("--owners", dest="owners", help="specify owners for authz_ownership module")
 
 
     def run(self):
@@ -74,6 +76,9 @@ class RepoFunction(commands.CobblerFunction):
         if self.options.priority:         obj.set_priority(self.options.priority)
         if self.options.mirror:           obj.set_mirror(self.options.mirror)
         if self.options.yumopts:          obj.set_yumopts(self.options.yumopts)
+
+        if self.options.owners:
+            obj.set_owners(self.options.owners)
 
         return self.object_manipulator_finish(obj, self.api.repos, self.options)
 

@@ -102,6 +102,10 @@ arguments appropriately.   Support for other types of distributions is possible 
 
 The file used for the answer file, regardless of the breed setting, is the value used for --kickstart when creating the profile.  
 
+=item owners
+
+Users with small sites and a limited number of admins can probably ignore this option.  All cobbler objects (distros, profiles, systems, and repos) can take a --owners parameter to specify what cobbler users can edit particular objects.  This only applies to the Cobbler WebUI and XMLRPC interface, not the "cobbler" command line tool run from the shell.  Furthermore, this is only respected by the "authz_ownership" module which must be enabled in /etc/cobbler/modules.conf.  The value for --owners is a comma seperated list of users and groups as specified in /etc/cobbler/users.conf.  For more information see the users.conf file as well as the Cobbler Wiki.  In the default Cobbler configuration, this value is completely ignored, as is users.conf.
+
 =back
 
 =head2 ADDING A PROFILE

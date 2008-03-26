@@ -47,12 +47,15 @@ class DistroFunction(commands.CobblerFunction):
 
         p.add_option("--name",   dest="name", help="ex: 'RHEL-5-i386' (REQUIRED)")
 
+
         if self.matches_args(args,["copy","rename"]):
             p.add_option("--newname", dest="newname", help="for copy/rename commands")
         if not self.matches_args(args,["remove","report","list"]):
             p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
         if not self.matches_args(args,["report","list"]):
             p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
+        if not self.matches_args(args,["remove","report","list"]):
+            p.add_option("--owners", dest="owners", help="specify owners for authz_ownership module")
 
         if self.matches_args(args,["remove"]):
             p.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
@@ -73,6 +76,8 @@ class DistroFunction(commands.CobblerFunction):
             obj.set_ksmeta(self.options.ksmeta)
         if self.options.breed:
             obj.set_breed(self.options.breed)
+        if self.options.owners:
+            obj.set_owners(self.options.owners)
 
         return self.object_manipulator_finish(obj, self.api.distros, self.options)
 

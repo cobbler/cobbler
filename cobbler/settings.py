@@ -58,7 +58,6 @@ DEFAULTS = {
     "server"                      : "127.0.0.1",
     "snippetsdir"                 : "/var/lib/cobbler/snippets",
     "syslog_port"                 : 25150,
-    "tftpboot"                    : -1, # special, see note below
     "tftpd_bin"                   : "/usr/sbin/in.tftpd",
     "tftpd_conf"                  : "/etc/xinetd.d/tftp",
     "webdir"                      : "/var/www/cobbler",
@@ -108,11 +107,6 @@ class Settings(serializable.Serializable):
           return
 
        self._attributes = datastruct
-
-       # this last attribute is special.  In F9, the tftpboot location moves, so
-       # what we have in settings is not (neccessarily) correct.  So instead
-       # of using settings we determine it by looking at the OS.
-       self._attributes["tftpboot"] = utils.tftpboot_location()
 
        return self
 

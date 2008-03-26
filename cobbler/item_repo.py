@@ -161,6 +161,7 @@ class Repo(item.Item):
     def to_datastruct(self):
         return {
            'name'             : self.name,
+           'owners'           : self.owners,
            'mirror'           : self.mirror,
            'keep_updated'     : self.keep_updated,
            'priority'         : self.priority,
@@ -174,6 +175,7 @@ class Repo(item.Item):
 
     def printable(self):
         buf =       _("repo             : %s\n") % self.name
+        buf = buf + _("owners           : %s\n") % self.owners
         buf = buf + _("mirror           : %s\n") % self.mirror
         buf = buf + _("keep updated     : %s\n") % self.keep_updated
         buf = buf + _("priority         : %s\n") % self.priority
@@ -210,6 +212,7 @@ class Repo(item.Item):
             'priority'         :  self.set_priority,
             'rpm-list'         :  self.set_rpm_list,
             'createrepo-flags' :  self.set_createrepo_flags,
-            'yumopts'          :  self.set_yumopts
+            'yumopts'          :  self.set_yumopts,
+            'owners'           :  self.set_owners
         }
 

@@ -141,8 +141,9 @@ class BootCheck:
        """
        Check if cobbler.conf's tftpboot directory exists
        """
-       if not os.path.exists(self.settings.tftpboot):
-          status.append(_("please create directory: %(dirname)s") % { "dirname" : self.settings.tftpboot })
+       bootloc = utils.tftpboot_location()
+       if not os.path.exists(bootloc):
+          status.append(_("please create directory: %(dirname)s") % { "dirname" : bootloc })
 
 
    def check_tftpd_conf(self,status):

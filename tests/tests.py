@@ -100,6 +100,41 @@ class BootTest(unittest.TestCase):
         self.assertTrue(self.api.add_system(system))
         self.assertTrue(self.api.find_system(name="drwily.rdu.redhat.com"))
 
+        repo = self.api.new_repo()
+        try:
+            os.makedirs("/tmp/test_example_cobbler_repo")
+        except:
+            pass
+        fd = open("/tmp/test_example_cobbler_repo/test.file", "w+")
+        fd.write("hello!")
+        fd.close()
+        self.assertTrue(repo.set_name("test_repo"))
+        self.assertTrue(repo.set_mirror("/tmp/test_example_cobbler_repo"))
+        self.assertTrue(self.api.repos().add(repo))
+
+
+class Ownership(BootTest):
+
+    def test_ownership_params(self):
+        return # FIXME
+   
+        # NOTE: these tests are relaeively weak because they only test
+        # that the options are usable, not that they work, since cobbler
+        # as a command line tool ignores them, and cobblerd only cares
+        # in certain modes.
+        distro = self.api.find_distro(name="testdistro0")
+        profile = self.api.find_distro(name="testprofile0")
+        system = self.api.find_distro(name="drwily.rdu.redhat.com")
+        repo = self.api.find_repo(name="test_repo")
+        self.assertTrue(distro.set_owners("a,b"))
+        self.assertTrue(profile.set_owners("c,d"))
+        self.assertTrue(system.set_owners("e"))
+        self.assertTrue(repo.set_owners("f,g"))
+        self.api.add_distro(distro)
+        self.api.add_profile(profile)
+        self.api.add_system(system)
+        self.api.add_repo(repo)
+
 class MultiNIC(BootTest):
     
     def test_multi_nic_support(self):

@@ -46,6 +46,7 @@ class ProfileFunction(commands.CobblerFunction):
             p.add_option("--kopts",            dest="kopts", help="ex: 'noipv6'")
         p.add_option("--name",   dest="name",  help="a name for the profile (REQUIRED)")
 
+
         if "copy" in args or "rename" in args:
             p.add_option("--newname", dest="newname")
 
@@ -53,6 +54,7 @@ class ProfileFunction(commands.CobblerFunction):
             p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
         if not self.matches_args(args,["report", "list"]):
             p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
+            p.add_option("--owners", dest="owners", help="specify owners for authz_ownership module")
 
         if self.matches_args(args,["remove"]):
             p.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
@@ -92,6 +94,9 @@ class ProfileFunction(commands.CobblerFunction):
         if self.options.virt_path:       obj.set_virt_path(self.options.virt_path)
         if self.options.dhcp_tag:        obj.set_dhcp_tag(self.options.dhcp_tag)
         if self.options.server_override: obj.set_server(self.options.server)
+
+        if self.options.owners:
+            obj.set_owners(self.options.owners)
 
         return self.object_manipulator_finish(obj, self.api.profiles, self.options)
 

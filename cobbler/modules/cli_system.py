@@ -63,6 +63,7 @@ class SystemFunction(commands.CobblerFunction):
 
 
         if not self.matches_args(args,["remove","report","list"]):
+            p.add_option("--owners",          dest="owners",          help="specify owners for authz_ownership module")
             p.add_option("--profile",         dest="profile",         help="name of cobbler profile (REQUIRED)")
             p.add_option("--server-override", dest="server_override", help="overrides server value in settings file")
             p.add_option("--subnet",          dest="subnet",          help="for static IP / templating usage")
@@ -98,6 +99,9 @@ class SystemFunction(commands.CobblerFunction):
         if self.options.gateway:     obj.set_gateway(self.options.gateway,   my_interface)
         if self.options.dhcp_tag:    obj.set_dhcp_tag(self.options.dhcp_tag, my_interface)
         if self.options.virt_bridge: obj.set_virt_bridge(self.options.virt_bridge, my_interface)
+
+        if self.options.owners:
+            obj.set_owners(self.options.owners)
 
         return self.object_manipulator_finish(obj, self.api.systems, self.options)
 

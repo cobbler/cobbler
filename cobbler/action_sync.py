@@ -57,14 +57,15 @@ class BootSync:
         self.repos       = config.repos()
         self.blend_cache = {}
         self.load_snippet_cache()
+        self.bootloc     = utils.tftpboot_location()
 
     def run(self):
         """
         Syncs the current configuration file with the config tree.
         Using the Check().run_ functions previously is recommended
         """
-        if not os.path.exists(self.settings.tftpboot):
-            raise CX(_("cannot find directory: %s") % self.settings.tftpboot)
+        if not os.path.exists(self.bootloc):
+            raise CX(_("cannot find directory: %s") % self.bootloc)
 
         # run pre-triggers...
         utils.run_triggers(None, "/var/lib/cobbler/triggers/sync/pre/*")
@@ -104,9 +105,9 @@ class BootSync:
         for loader in self.settings.bootloaders.keys():
             path = self.settings.bootloaders[loader]
             newname = os.path.basename(path)
-            destpath = os.path.join(self.settings.tftpboot, newname)
+            destpath = os.path.join(self.bootloc, newname)
             self.copyfile(path, destpath)
-        self.copyfile("/var/lib/cobbler/menu.c32", os.path.join(self.settings.tftpboot, "menu.c32"))
+        self.copyfile("/var/lib/cobbler/menu.c32", os.path.join(self.bootloc, "menu.c32"))
 
     def write_dhcp_file(self):
         """
@@ -278,8 +279,8 @@ class BootSync:
                 if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system"]:
                     # clean out directory contents
                     self.rmtree_contents(path)
-        self.rmtree_contents(os.path.join(self.settings.tftpboot, "pxelinux.cfg"))
-        self.rmtree_contents(os.path.join(self.settings.tftpboot, "images"))
+        self.rmtree_contents(os.path.join(self.bootloc, "pxelinux.cfg"))
+        self.rmtree_contents(os.path.join(self.bootloc, "images"))
 
     def copy_distros(self):
         """
@@ -297,7 +298,7 @@ class BootSync:
             self.copy_single_distro_files(d)
 
     def copy_single_distro_files(self, d):
-        for dirtree in [self.settings.tftpboot, self.settings.webdir]: 
+        for dirtree in [self.bootloc, self.settings.webdir]: 
             distros = os.path.join(dirtree, "images")
             distro_dir = os.path.join(distros,d.name)
             self.mkdir(distro_dir)
@@ -763,7 +764,7 @@ class BootSync:
             # for tftp only ...
             if distro.arch in [ "x86", "x86_64", "standard"]:
                 # pxelinux wants a file named $name under pxelinux.cfg
-                f2 = os.path.join(self.settings.tftpboot, "pxelinux.cfg", f1)
+                f2 = os.path.join(self.bootloc, "pxelinux.cfg", f1)
             if distro.arch == "ia64":
                 # elilo expects files to be named "$name.conf" in the root
                 # and can not do files based on the MAC address
@@ -771,7 +772,7 @@ class BootSync:
                     print _("Warning: Itanium system object (%s) needs an IP address to PXE") % system.name
 
                 filename = "%s.conf" % utils.get_config_filename(system,interface=name)
-                f2 = os.path.join(self.settings.tftpboot, filename)
+                f2 = os.path.join(self.bootloc, filename)
 
             f3 = os.path.join(self.settings.webdir, "systems", f1)
 
@@ -798,7 +799,7 @@ class BootSync:
         if default is not None:
             return
         
-        fname = os.path.join(self.settings.tftpboot, "pxelinux.cfg", "default")
+        fname = os.path.join(self.bootloc, "pxelinux.cfg", "default")
 
         # read the default template file
         template_src = open("/etc/cobbler/pxedefault.template")
@@ -820,7 +821,7 @@ class BootSync:
  
         # save the template.
         metadata = { "pxe_menu_items" : pxe_menu_items }
-        outfile = os.path.join(self.settings.tftpboot, "pxelinux.cfg", "default")
+        outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
         self.apply_template(template_data, metadata, outfile)
         template_src.close()
 

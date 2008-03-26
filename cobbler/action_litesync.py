@@ -66,12 +66,13 @@ class BootLiteSync:
             self.add_single_profile(k.name)    
 
     def remove_single_distro(self, name):
+        bootloc = utils.tftpboot_location()
         # delete distro YAML file in distros/$name in webdir
         self.sync.rmfile(os.path.join(self.settings.webdir, "distros", name))
         # delete contents of images/$name directory in webdir
         self.sync.rmtree(os.path.join(self.settings.webdir, "images", name))
         # delete contents of images/$name in tftpboot
-        self.sync.rmtree(os.path.join(self.settings.tftpboot, "images", name))
+        self.sync.rmtree(os.path.join(bootloc, "images", name))
         # delete potential symlink to tree in webdir/links
         self.sync.rmfile(os.path.join(self.settings.webdir, "links", name)) 
 
@@ -127,6 +128,7 @@ class BootLiteSync:
         self.sync.retemplate_yum_repos(system,False)
 
     def remove_single_system(self, name):
+        bootloc = utils.tftpboot_location()
         system_record = self.systems.find(name=name)
         # rebuild system_list file in webdir
         self.sync.write_listings()
@@ -152,7 +154,7 @@ class BootLiteSync:
             if distro is not None and distro in [ "ia64", "IA64"]:
                 itanic = True
         if not itanic:
-            self.sync.rmfile(os.path.join(self.settings.tftpboot, "pxelinux.cfg", filename))
+            self.sync.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
         else:
-            self.sync.rmfile(os.path.join(self.settings.tftpboot, filename))
+            self.sync.rmfile(os.path.join(bootloc, filename))
 
