@@ -69,7 +69,7 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,debug=False):
 
     # classify the type of operation
     save_or_remove = False
-    for criteria in ["save","remove","modify"]:
+    for criteria in ["save_","remove_","modify_"]:
         if resource.find(criteria) != -1:
            save_or_remove = True
 
@@ -78,15 +78,18 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,debug=False):
 
     found_user = False
     for g in user_groups:
-        if user in user_groups[g]:
-           found_user = True
-           # if user is in the admin group, always authorize
-           # regardless of the ownership of the object.
-           if g == "admin":
-               if debug:
-                  print "[OWNERSHIP] user % is an admin, PASS" % user
-               return 1
-           break
+        for x in user_groups[g]:
+           if debug:
+               print "[OWNERSHIP] noted user %s in group %s" % (x,g)
+           if x == user:
+               found_user = True
+               # if user is in the admin group, always authorize
+               # regardless of the ownership of the object.
+               if g == "admins" or g == "admin":
+                   if debug:
+                       print "[OWNERSHIP] user %s is an admin, PASS" % user
+                   return 1
+               break
 
     if not found_user:
         # if the user isn't anywhere in the file, reject regardless
@@ -107,6 +110,8 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,debug=False):
 
     obj = None
     if resource.find("remove") != -1:
+        if debug:
+           print "[OWNERSHIP] looking up object %s" % (arg1)
         if resource == "remove_distro":
            obj = api_handle.find_distro(arg1)
         elif resource == "remove_profile":
@@ -115,7 +120,9 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,debug=False):
            obj = api_handle.find_system(arg1)
         elif resource == "remove_repo":
            obj = api_handle.find_system(arg1)
-    else:
+    elif resource.find("save") != -1 or resource.find("modify") != -1:
+        if debug:
+           print "[OWNERSHIP] object being considered is: %s for %s" % (arg1, resource)
         obj = arg1
 
     # if the object has no ownership data, allow access regardless
@@ -132,9 +139,9 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,debug=False):
               print "[OWNERSHIP] user %s in match list, PASS" % user
            return 1
         for group in user_groups:
-           if user in user_groups[group]:
+           if group == allowed and user in user_groups[group]:
               if debug:
-                 print "[OWNERSHIP] user %s matched by group, PASS" % user
+                 print "[OWNERSHIP] user %s matched by group (%s), PASS" % (user, group)
               return 1
     
     # can't find user or group in ownership list and ownership is defined
@@ -145,11 +152,13 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,debug=False):
            
 
 if __name__ == "__main__":
+    # real tests are contained in tests/tests.py
     import api as cobbler_api
     api = cobbler_api.BootAPI()
     print __parse_config()
     print authorize(api, "admin1", "sync")
     d = api.find_distro("F9B-i386")
+    d.set_owners(["allowed"])
+    api.add_distro(d)
     print authorize(api, "admin1", "save_distro", d, debug=True)
-
-    # real tests are contained in tests/tests.py
+    print authorize(api, "basement2", "save_distro", d, debug=True)

@@ -111,9 +111,9 @@ class Ownership(BootTest):
         profile = self.api.find_profile(name="testprofile0")
         system = self.api.find_system(name="drwily.rdu.redhat.com")
         repo = self.api.find_repo(name="test_repo")
-        self.assertTrue(distro.set_owners("superlab,basement1"))
-        self.assertTrue(profile.set_owners("superlab,basement1"))
-        self.assertTrue(system.set_owners("superlab,basement1"))
+        self.assertTrue(distro.set_owners(["superlab","basement1"]))
+        self.assertTrue(profile.set_owners(["superlab","basement1"]))
+        self.assertTrue(system.set_owners(["superlab","basement1"]))
         self.assertTrue(repo.set_owners([]))
         self.api.add_distro(distro)
         self.api.add_profile(profile)
@@ -144,8 +144,8 @@ class Ownership(BootTest):
 
         xo = self.api.find_distro("testdistro0")
         xn = "testdistro0"
-        ro = self.api.find_repo("testrepo0")
-        rn = "testrepo0"
+        ro = self.api.find_repo("test_repo")
+        rn = "test_repo"
 
         # ensure admin1 can edit (he's an admin) and do other tasks
         # same applies to basement1 who is explicitly added as a user
