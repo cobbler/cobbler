@@ -2,16 +2,6 @@
 #
 # Michael DeHaan <mdehaan@redhat.com>
 
-TRY_GRAPH = False
-HAS_GRAPH = False
-
-if TRY_GRAPH:
-   try:
-      import pycallgraph_mod as pycallgraph
-      HAS_GRAPH = True
-   except:
-      pass
-
 import sys
 import unittest
 import os
@@ -25,6 +15,7 @@ from cobbler import settings
 from cobbler import collection_distros
 from cobbler import collection_profiles
 from cobbler import collection_systems
+import cobbler.modules.authz_ownership as authz_module
 
 from cobbler import api
 
@@ -54,11 +45,11 @@ class BootTest(unittest.TestCase):
         except:
             pass
 
-        self.fk_initrd = os.path.join(self.topdir, FAKE_INITRD)
+        self.fk_initrd = os.path.join(self.topdir,  FAKE_INITRD)
         self.fk_initrd2 = os.path.join(self.topdir, FAKE_INITRD2)
         self.fk_initrd3 = os.path.join(self.topdir, FAKE_INITRD3)
 
-        self.fk_kernel = os.path.join(self.topdir, FAKE_KERNEL)
+        self.fk_kernel = os.path.join(self.topdir,  FAKE_KERNEL)
         self.fk_kernel2 = os.path.join(self.topdir, FAKE_KERNEL2)
         self.fk_kernel3 = os.path.join(self.topdir, FAKE_KERNEL3)
 
@@ -74,9 +65,6 @@ class BootTest(unittest.TestCase):
         # only off during refactoring, fix later
         shutil.rmtree(self.topdir,ignore_errors=True)
         self.api = None
-
-        if HAS_GRAPH:
-            pycallgraph.save_dot("%s.dot" % self.__class__.__name__)
 
     def make_basic_config(self):
         distro = self.api.new_distro()
@@ -116,24 +104,89 @@ class BootTest(unittest.TestCase):
 class Ownership(BootTest):
 
     def test_ownership_params(self):
-        return # FIXME
    
-        # NOTE: these tests are relaeively weak because they only test
-        # that the options are usable, not that they work, since cobbler
-        # as a command line tool ignores them, and cobblerd only cares
-        # in certain modes.
+        # initially just test that we can set ownership on various components
+
         distro = self.api.find_distro(name="testdistro0")
-        profile = self.api.find_distro(name="testprofile0")
-        system = self.api.find_distro(name="drwily.rdu.redhat.com")
+        profile = self.api.find_profile(name="testprofile0")
+        system = self.api.find_system(name="drwily.rdu.redhat.com")
         repo = self.api.find_repo(name="test_repo")
-        self.assertTrue(distro.set_owners("a,b"))
-        self.assertTrue(profile.set_owners("c,d"))
-        self.assertTrue(system.set_owners("e"))
-        self.assertTrue(repo.set_owners("f,g"))
+        self.assertTrue(distro.set_owners("superlab,basement1"))
+        self.assertTrue(profile.set_owners("superlab,basement1"))
+        self.assertTrue(system.set_owners("superlab,basement1"))
+        self.assertTrue(repo.set_owners([]))
         self.api.add_distro(distro)
         self.api.add_profile(profile)
         self.api.add_system(system)
         self.api.add_repo(repo)
+
+        # now edit the groups file.  We won't test the full XMLRPC
+        # auth stack here, but just the module in question
+
+        authorize = authz_module.authorize
+
+        # if the users.conf file exists, back it up for the tests
+        #if os.path.exists("/etc/cobbler/users.conf"):
+        #   shutil.copyfile("/etc/cobbler/users.conf","/tmp/cobbler_ubak")
+         
+        fd = open("/etc/cobbler/users.conf","w+")
+        fd.write("\n")
+        fd.write("[admins]\n")
+        fd.write("admin1 = 1\n")
+        fd.write("\n")
+        fd.write("[superlab]\n")
+        fd.write("superlab1 = 1\n")
+        fd.write("\n")
+        fd.write("[basement]\n") 
+        fd.write("basement1 = 1\n")      
+        fd.write("basement2 = 1\n")      
+        fd.close()
+
+        xo = self.api.find_distro("testdistro0")
+        xn = "testdistro0"
+        ro = self.api.find_repo("testrepo0")
+        rn = "testrepo0"
+
+        # ensure admin1 can edit (he's an admin) and do other tasks
+        # same applies to basement1 who is explicitly added as a user
+        # and superlab1 who is in a group in the ownership list
+        for user in ["admin1","superlab1","basement1"]:
+           self.assertTrue(1==authorize(self.api, user, "save_distro", xo, debug=True),"%s can save_distro" % user)
+           self.assertTrue(1==authorize(self.api, user, "modify_distro", xo, debug=True),"%s can modify_distro" % user)
+           self.assertTrue(1==authorize(self.api, user, "copy_distro", xo, debug=True),"%s can copy_distro" % user)
+           self.assertTrue(1==authorize(self.api, user, "remove_distro", xn, debug=True),"%s can remove_distro" % user)  
+
+        # ensure all users in the file can sync
+        for user in [ "admin1", "superlab1", "basement1", "basement2" ]:     
+           self.assertTrue(1==authorize(self.api, user, "sync", debug=True))
+
+        # make sure basement2 can't edit (not in group)
+        # and same goes for "dne" (does not exist in users.conf)
+        
+        for user in [ "basement2", "dne" ]:
+           self.assertTrue(0==authorize(self.api, user, "save_distro", xo, debug=True), "user %s cannot save_distro" % user)
+           self.assertTrue(0==authorize(self.api, user, "modify_distro", xo, debug=True), "user %s cannot modify_distro" % user)
+           self.assertTrue(0==authorize(self.api, user, "remove_distro", xn, debug=True), "user %s cannot remove_distro" % user)
+ 
+        # basement2 is in the file so he can still copy
+        self.assertTrue(1==authorize(self.api, "basement2", "copy_distro", xo, debug=True), "basement2 can copy_distro")
+
+        # dne can not copy or sync either (not in the users.conf)
+        self.assertTrue(0==authorize(self.api, "dne", "copy_distro", xo, debug=True), "dne cannot copy_distro")
+        self.assertTrue(0==authorize(self.api, "dne", "sync", debug=True), "dne cannot sync")
+
+        # unlike the distro testdistro0, testrepo0 is unowned
+        # so any user in the file will be able to edit it.
+        for user in [ "admin1", "superlab1", "basement1", "basement2" ]:
+           self.assertTrue(1==authorize(self.api, user, "save_repo", ro, debug=True), "user %s can save_repo" % user)
+
+        # though dne is still not listed and will be denied
+        self.assertTrue(0==authorize(self.api, "dne", "save_repo", ro, debug=True), "dne cannot save_repo")
+
+        # if we survive, restore the users file as module testing is done
+        #if os.path.exists("/tmp/cobbler_ubak"):
+        #   shutil.copyfile("/etc/cobbler/users.conf","/tmp/cobbler_ubak")
+
 
 class MultiNIC(BootTest):
     
@@ -612,14 +665,10 @@ if __name__ == "__main__":
     if not os.path.exists("setup.py"):
         print "tests: must invoke from top level directory"
         sys.exit(1)
-    if HAS_GRAPH:
-       pycallgraph.start_trace()
     loader = unittest.defaultTestLoader
     test_module = __import__("tests")  # self import considered harmful?
     tests = loader.loadTestsFromModule(test_module)
     runner = unittest.TextTestRunner()
     runner.run(tests)
-    if HAS_GRAPH:
-        pycallgraph.make_graph('cg_dot.png', tool='dot')
     sys.exit(0)
  
