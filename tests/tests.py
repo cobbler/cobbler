@@ -126,8 +126,8 @@ class Ownership(BootTest):
         authorize = authz_module.authorize
 
         # if the users.conf file exists, back it up for the tests
-        #if os.path.exists("/etc/cobbler/users.conf"):
-        #   shutil.copyfile("/etc/cobbler/users.conf","/tmp/cobbler_ubak")
+        if os.path.exists("/etc/cobbler/users.conf"):
+           shutil.copyfile("/etc/cobbler/users.conf","/tmp/cobbler_ubak")
          
         fd = open("/etc/cobbler/users.conf","w+")
         fd.write("\n")
@@ -151,41 +151,41 @@ class Ownership(BootTest):
         # same applies to basement1 who is explicitly added as a user
         # and superlab1 who is in a group in the ownership list
         for user in ["admin1","superlab1","basement1"]:
-           self.assertTrue(1==authorize(self.api, user, "save_distro", xo, debug=True),"%s can save_distro" % user)
-           self.assertTrue(1==authorize(self.api, user, "modify_distro", xo, debug=True),"%s can modify_distro" % user)
-           self.assertTrue(1==authorize(self.api, user, "copy_distro", xo, debug=True),"%s can copy_distro" % user)
-           self.assertTrue(1==authorize(self.api, user, "remove_distro", xn, debug=True),"%s can remove_distro" % user)  
+           self.assertTrue(1==authorize(self.api, user, "save_distro", xo),"%s can save_distro" % user)
+           self.assertTrue(1==authorize(self.api, user, "modify_distro", xo),"%s can modify_distro" % user)
+           self.assertTrue(1==authorize(self.api, user, "copy_distro", xo),"%s can copy_distro" % user)
+           self.assertTrue(1==authorize(self.api, user, "remove_distro", xn),"%s can remove_distro" % user)  
 
         # ensure all users in the file can sync
         for user in [ "admin1", "superlab1", "basement1", "basement2" ]:     
-           self.assertTrue(1==authorize(self.api, user, "sync", debug=True))
+           self.assertTrue(1==authorize(self.api, user, "sync"))
 
         # make sure basement2 can't edit (not in group)
         # and same goes for "dne" (does not exist in users.conf)
         
         for user in [ "basement2", "dne" ]:
-           self.assertTrue(0==authorize(self.api, user, "save_distro", xo, debug=True), "user %s cannot save_distro" % user)
-           self.assertTrue(0==authorize(self.api, user, "modify_distro", xo, debug=True), "user %s cannot modify_distro" % user)
-           self.assertTrue(0==authorize(self.api, user, "remove_distro", xn, debug=True), "user %s cannot remove_distro" % user)
+           self.assertTrue(0==authorize(self.api, user, "save_distro", xo), "user %s cannot save_distro" % user)
+           self.assertTrue(0==authorize(self.api, user, "modify_distro", xo), "user %s cannot modify_distro" % user)
+           self.assertTrue(0==authorize(self.api, user, "remove_distro", xn), "user %s cannot remove_distro" % user)
  
         # basement2 is in the file so he can still copy
-        self.assertTrue(1==authorize(self.api, "basement2", "copy_distro", xo, debug=True), "basement2 can copy_distro")
+        self.assertTrue(1==authorize(self.api, "basement2", "copy_distro", xo), "basement2 can copy_distro")
 
         # dne can not copy or sync either (not in the users.conf)
-        self.assertTrue(0==authorize(self.api, "dne", "copy_distro", xo, debug=True), "dne cannot copy_distro")
-        self.assertTrue(0==authorize(self.api, "dne", "sync", debug=True), "dne cannot sync")
+        self.assertTrue(0==authorize(self.api, "dne", "copy_distro", xo), "dne cannot copy_distro")
+        self.assertTrue(0==authorize(self.api, "dne", "sync"), "dne cannot sync")
 
         # unlike the distro testdistro0, testrepo0 is unowned
         # so any user in the file will be able to edit it.
         for user in [ "admin1", "superlab1", "basement1", "basement2" ]:
-           self.assertTrue(1==authorize(self.api, user, "save_repo", ro, debug=True), "user %s can save_repo" % user)
+           self.assertTrue(1==authorize(self.api, user, "save_repo", ro), "user %s can save_repo" % user)
 
         # though dne is still not listed and will be denied
-        self.assertTrue(0==authorize(self.api, "dne", "save_repo", ro, debug=True), "dne cannot save_repo")
+        self.assertTrue(0==authorize(self.api, "dne", "save_repo", ro), "dne cannot save_repo")
 
         # if we survive, restore the users file as module testing is done
-        #if os.path.exists("/tmp/cobbler_ubak"):
-        #   shutil.copyfile("/etc/cobbler/users.conf","/tmp/cobbler_ubak")
+        if os.path.exists("/tmp/cobbler_ubak"):
+           shutil.copyfile("/etc/cobbler/users.conf","/tmp/cobbler_ubak")
 
 
 class MultiNIC(BootTest):
