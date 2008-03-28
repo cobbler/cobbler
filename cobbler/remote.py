@@ -624,7 +624,9 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
 
     def __authorize(self,token,resource,arg1=None,arg2=None):
         user = self.get_user_from_token(token)
-        self.log("calling authorize for resource %s" % resource, user=user)
+        args = [ resource, arg1, arg2 ]
+        self.log("calling authorize for resource %s" % args, user=user)
+
         rc = self.api.authorize(user,resource,arg1,arg2)
         if rc:
             return True

@@ -500,7 +500,7 @@ class CobblerWeb(object):
             if kopts:
                 self.remote.modify_profile(profile, 'kopts', kopts, self.token)
             if owners:
-                self.remote.modify_profile(profile, 'owners', kopts, self.token)
+                self.remote.modify_profile(profile, 'owners', owners, self.token)
             if ksmeta:
                 self.remote.modify_profile(profile, 'ksmeta', ksmeta, self.token)
             if virtfilesize:
