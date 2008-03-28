@@ -208,6 +208,24 @@ function page_onload() {
     </td>
     </tr>
 
+    <tr>
+    <td>
+    <label for="owners">Access Allowed For</label>
+    </td>
+    <td>
+    #if $system
+       #set ownerslist = ','.join($system.owners)
+    #end if
+    <input type="text" size="255" style="width: 400px;" name="owners" id="owners"
+        #if $system
+            value="$ownerslist"
+        #end if
+    />
+    <p class="context-tip">Applies only if using authz_ownership module, comma-delimited</p>
+    </td>
+    </tr>
+
+
 
     ## ====================================== start of looping through interfaces
 

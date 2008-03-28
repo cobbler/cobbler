@@ -239,7 +239,9 @@ def input_string_or_list(options,delim=","):
     elif type(options) == list:
        return options
     elif type(options) == str:
-       tokens = options.split(",")
+       tokens = options.split(delim)
+       if delim == ",":
+           tokens = [t.lstrip().rstrip() for t in tokens]
        return tokens
     else:
        raise CX(_("invalid input type"))

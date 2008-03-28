@@ -308,6 +308,24 @@ function disablename(value)
     </td>
     </tr>
 
+    <tr>
+    <td>
+    <label for="owners">Access Allowed For</label>
+    </td>
+    <td>
+    #if $profile
+       #set ownerslist = ','.join($profile.owners)
+    #end if
+    <input type="text" size="255" style="width: 400px;" name="owners" id="owners"
+        #if $profile
+            value="$ownerslist"
+        #end if
+
+    />
+    <p class="context-tip">Applies only if using authz_ownership module, comma-delimited</p>
+    </td>
+    </tr>
+
 
     #if $profile
     <tr>
