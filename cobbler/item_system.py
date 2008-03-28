@@ -81,7 +81,7 @@ class System(item.Item):
 
         self.parent          = self.load_item(seed_data, 'parent')
         self.name            = self.load_item(seed_data, 'name')
-        self.owners          = self.load_item(seed_data, 'owners')
+        self.owners          = self.load_item(seed_data, 'owners', [])
         self.profile         = self.load_item(seed_data, 'profile')
         self.kernel_options  = self.load_item(seed_data, 'kernel_options', {})
         self.ks_meta         = self.load_item(seed_data, 'ks_meta', {})
@@ -338,7 +338,7 @@ class System(item.Item):
     def to_datastruct(self):
         return {
            'name'            : self.name,
-           'owners'          : self.set_owners,
+           'owners'          : self.owners,
            'profile'         : self.profile,
            'kernel_options'  : self.kernel_options,
            'ks_meta'         : self.ks_meta,
