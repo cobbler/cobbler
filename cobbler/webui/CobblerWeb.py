@@ -169,7 +169,7 @@ class CobblerWeb(object):
         } )
 
     def distro_save(self,name=None,oldname=None,new_or_edit=None,editmode='edit',kernel=None,
-                    initrd=None,kopts=None,ksmeta=None,arch=None,breed=None,
+                    initrd=None,kopts=None,ksmeta=None,owners=None,arch=None,breed=None,
                     delete1=None,delete2=None,**args):
 
         if not self.__xmlrpc_setup():
@@ -220,6 +220,8 @@ class CobblerWeb(object):
                 self.remote.modify_distro(distro, 'kopts', kopts, self.token)
             if ksmeta:
                 self.remote.modify_distro(distro, 'ksmeta', ksmeta, self.token)
+            if owners:
+                self.remote.modify_distro(distro, 'owners', owners, self.token)
             if arch:
                 self.remote.modify_distro(distro, 'arch', arch, self.token)
             if breed:
@@ -288,7 +290,7 @@ class CobblerWeb(object):
 
     def system_save(self,name=None,oldname=None,editmode="edit",profile=None,
                     new_or_edit=None,  
-                    kopts=None, ksmeta=None, server_override=None, netboot='n', 
+                    kopts=None, ksmeta=None, owners=None, server_override=None, netboot='n', 
                     delete1=None, delete2=None, **args):
 
         if not self.__xmlrpc_setup():
@@ -332,6 +334,8 @@ class CobblerWeb(object):
                self.remote.modify_system(system, 'kopts', kopts, self.token)
             if ksmeta:
                self.remote.modify_system(system, 'ksmeta', ksmeta, self.token)
+            if owners:
+               self.remote.modify_system(system, 'owners', owners, self.token)
             if netboot:
                self.remote.modify_system(system, 'netboot-enabled', netboot, self.token)
             if server_override:
@@ -441,7 +445,7 @@ class CobblerWeb(object):
 
     def profile_save(self,new_or_edit=None,editmode='edit',name=None,oldname=None,
                      distro=None,kickstart=None,kopts=None,
-                     ksmeta=None,virtfilesize=None,virtram=None,virttype=None,
+                     ksmeta=None,owners=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,
                      parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,**args):
 
@@ -495,6 +499,8 @@ class CobblerWeb(object):
                 self.remote.modify_profile(profile, 'kickstart', kickstart, self.token)
             if kopts:
                 self.remote.modify_profile(profile, 'kopts', kopts, self.token)
+            if owners:
+                self.remote.modify_profile(profile, 'owners', kopts, self.token)
             if ksmeta:
                 self.remote.modify_profile(profile, 'ksmeta', ksmeta, self.token)
             if virtfilesize:
@@ -571,7 +577,7 @@ class CobblerWeb(object):
         } )
 
     def repo_save(self,name=None,oldname=None,new_or_edit=None,editmode="edit",
-                  mirror=None,keep_updated=None,priority=99,
+                  mirror=None,owners=None,keep_updated=None,priority=99,
                   rpm_list=None,createrepo_flags=None,arch=None,yumopts=None,
                   delete1=None,delete2=None,**args):
         if not self.__xmlrpc_setup():
@@ -624,6 +630,8 @@ class CobblerWeb(object):
                 self.remote.modify_repo(repo, 'arch', arch, self.token)
             if yumopts:
                 self.remote.modify_repo(repo, 'yumopts', yumopts, self.token)
+            if owners:
+                self.remote.modify_repo(repo, 'owners', owners, self.token)
 
             self.remote.save_repo(repo, self.token)
 
