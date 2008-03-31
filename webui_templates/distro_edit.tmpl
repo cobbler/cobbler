@@ -15,6 +15,15 @@ function disablename(value)
 </script>
 #end if 
 
+#if $editable != True
+<blockquote>
+$editable
+
+WARNING:  It looks like you do not have permission to make changes.
+To recieve access, contact your Cobbler server administrator.
+</blockquote>
+#end if
+
 <form method="POST" action="$base_url">
 <fieldset id="cform">
 

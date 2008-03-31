@@ -162,9 +162,14 @@ class CobblerWeb(object):
         input_distro = None
         if name is not None:
             input_distro = self.remote.get_distro(name, True)
-
+            can_edit = self.remote.check_access_no_fail(self.token,"modify_distro",name)
+        else:
+            can_edit = self.remote.check_access_no_fail(self.token,"new_distro",None)
+        
+ 
         return self.__render( 'distro_edit.tmpl', {
             'edit' : True,
+            'editable' : can_edit,
             'distro': input_distro,
         } )
 

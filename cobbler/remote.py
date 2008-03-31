@@ -593,6 +593,42 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
             self.log("invalid token",token=token)
             raise CX(_("invalid token: %s" % token))
 
+    def __name_to_object(self,resource,name):
+        if resource.find("distro") != -1:
+            return self.api.find_distro(name)
+        if resource.find("profile") != -1:
+            return self.api.find_profile(name)
+        if resource.find("system") != -1:
+            return self.api.find_system(name)
+        if resource.find("repo") != -1:
+            return self.api.find_repo(name)
+        return None
+
+    def check_access_no_fail(self,token,resource,arg1=None,arg2=None):
+        """
+        This is called by the WUI to decide whether an element
+        is editable or not. It differs form check_access in that
+        it is supposed to /not/ log the access checks (TBA) and does
+        not raise exceptions.
+        """
+
+        need_remap = False
+        for x in [ "distro", "profile", "system", "repo" ]:
+           if arg1 is not None and resource.find(x) != -1:
+              need_remap = True
+              break
+
+        if need_remap:
+           # we're called with an object name, but need an object
+           arg1 = self.__name_to_object(resource,arg1)
+
+        try:
+           self.check_access(token,resource,arg1,arg2)
+           return True 
+        except:
+           utils.log_exc(self.logger)
+           return False 
+
     def check_access(self,token,resource,arg1=None,arg2=None):
         validated = self.__validate_token(token)
         user = self.get_user_from_token(token)
@@ -881,8 +917,8 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Allows modification of certain attributes on newly created or
         existing distro object handle.
         """
-        self.check_access(token, "modify_distro", attribute, arg)
         obj = self.__get_object(object_id)
+        self.check_access(token, "modify_distro", obj, attribute)
         return self.__call_method(obj, attribute, arg)
 
     def modify_profile(self,object_id,attribute,arg,token):
@@ -890,8 +926,8 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Allows modification of certain attributes on newly created or
         existing profile object handle.
         """
-        self.check_access(token, "modify_profile", attribute, arg)
         obj = self.__get_object(object_id)
+        self.check_access(token, "modify_profile", obj, attribute)
         return self.__call_method(obj, attribute, arg)
 
     def modify_system(self,object_id,attribute,arg,token):
@@ -899,8 +935,8 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Allows modification of certain attributes on newly created or
         existing system object handle.
         """
-        self.check_access(token, "modify_system", attribute, arg)
         obj = self.__get_object(object_id)
+        self.check_access(token, "modify_system", obj, attribute)
         return self.__call_method(obj, attribute, arg)
 
     def modify_repo(self,object_id,attribute,arg,token):
@@ -908,8 +944,8 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Allows modification of certain attributes on newly created or
         existing repo object handle.
         """
-        self.check_access(token, "modify_repo", attribute, arg)
         obj = self.__get_object(object_id)
+        self.check_access(token, "modify_repo", obj, attribute)
         return self.__call_method(obj, attribute, arg)
 
     def remove_distro(self,name,token,recursive=1):
