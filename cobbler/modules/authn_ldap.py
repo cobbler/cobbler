@@ -83,7 +83,7 @@ def authenticate(api_handle,username,password):
             # ignore entry; we don't need it
             pass
     else:
-        print "FAIL 2"
+        # print "FAIL 2"
         return False
 
     try:
@@ -92,7 +92,7 @@ def authenticate(api_handle,username,password):
         dir.unbind()
         return True
     except:
-        traceback.print_exc()
+        # traceback.print_exc()
         return False
     # catch-all
     return False
