@@ -399,9 +399,13 @@ class CobblerWeb(object):
         input_system = None
         if name is not None:
             input_system = self.remote.get_system(name,True)
+            can_edit = self.remote.check_access_no_fail(self.token,"modify_system",name)
+        else:
+            can_edit = self.remote.check_access_no_fail(self.token,"new_system",None)
 
         return self.__render( 'system_edit.tmpl', {
             'edit' : True,
+            'editable' : can_edit,
             'system': input_system,
             'profiles': self.remote.get_profiles()
         } )
@@ -436,10 +440,14 @@ class CobblerWeb(object):
 
         input_profile = None
         if name is not None:
-             input_profile = self.remote.get_profile(name,True)
+            input_profile = self.remote.get_profile(name,True)
+            can_edit = self.remote.check_access_no_fail(self.token,"modify_profile",name)
+        else:
+            can_edit = self.remote.check_access_no_fail(self.token,"new_profile",None)
 
         return self.__render( 'profile_edit.tmpl', {
             'edit' : True,
+            'editable' : can_edit,
             'profile': input_profile,
             'distros': self.remote.get_distros(),
             'profiles': self.remote.get_profiles(),
@@ -576,9 +584,14 @@ class CobblerWeb(object):
         input_repo = None
         if name is not None:
             input_repo = self.remote.get_repo(name, True)
+            can_edit = self.remote.check_access_no_fail(self.token,"modify_repo",name)
+        else:
+            can_edit = self.remote.check_access_no_fail(self.token,"new_repo",None)
+
 
         return self.__render( 'repo_edit.tmpl', {
             'repo': input_repo,
+            'editable' : can_edit
         } )
 
     def repo_save(self,name=None,oldname=None,new_or_edit=None,editmode="edit",

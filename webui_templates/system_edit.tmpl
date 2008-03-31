@@ -65,7 +65,6 @@ function get_random_mac(field)
     #set $defined_interfaces = [ "intf0" ]
 #end if
 
-
 ### 
 ### now generate the onload function.
 ###
@@ -86,6 +85,13 @@ function page_onload() {
 
 }
 </script>
+
+#if $editable != True
+<blockquote>
+WARNING:  It looks like you do not have permission to make changes.
+To recieve access, contact your Cobbler server administrator.
+</blockquote>
+#end if
 
 <form method="post" action="$base_url?mode=system_save">
 <fieldset id="cform">
