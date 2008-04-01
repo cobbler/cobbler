@@ -14,9 +14,11 @@
 
 function delete_interface(num)
 {
-    #for $field in $fields
-    document.getElementById("${field}-intf" + num).value = "";
-    #end for
+    #if $editable == True
+       #for $field in $fields
+           document.getElementById("${field}-intf" + num).value = "";
+       #end for
+    #end if
     toggleRowVisibility("id" + num);
 }
 
@@ -87,10 +89,8 @@ function page_onload() {
 </script>
 
 #if $editable != True
-<blockquote>
-WARNING:  It looks like you do not have permission to make changes.
-To recieve access, contact your Cobbler server administrator.
-</blockquote>
+#set global $owners = $system.owners
+#include "/usr/share/cobbler/webui_templates/enoaccess.tmpl"
 #end if
 
 <form method="post" action="$base_url?mode=system_save">
@@ -390,11 +390,20 @@ To recieve access, contact your Cobbler server administrator.
         #if $interface != "intf0"
             <tr class="listrow" id="child-id${counter}-8">
             <td>
-            <label for="enabled-$interface">Remove</label>
+            #if $editable == True
+                <label for="enabled-$interface">Remove</label>
+            #else
+                <label for="enabled-$interface">Hide</label>
+            #end if
             </td>
             <td>
-            <input type="button" name="delete-$interface" value="remove" onclick="delete_interface($counter)">
-            <p class="context-tip">Clicking this button removes the interface from the configuration.</p>
+            #if $editable == True
+                <input type="button" name="delete-$interface" value="remove" onclick="delete_interface($counter)">
+                <p class="context-tip">Clicking this button removes the interface from the configuration.</p>
+            #else
+                <input type="button" name="delete-$interface" value="hide" onclick="delete_interface($counter)">
+
+            #end if
             </td>
             </tr>
         #end if
@@ -416,7 +425,7 @@ To recieve access, contact your Cobbler server administrator.
     </td>
     </tr>
 
-    #if $system
+    #if $system and $editable == True
     <tr id="id10001">
     <td>
     <label for="delete">Delete</label>

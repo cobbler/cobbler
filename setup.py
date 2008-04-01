@@ -138,6 +138,7 @@ if __name__ == "__main__":
 
                                 (wwwtmpl,           ['webui_templates/empty.tmpl']),
                                 (wwwtmpl,           ['webui_templates/blank.tmpl']),
+                                (wwwtmpl,           ['webui_templates/enoaccess.tmpl']),
                                 (wwwtmpl,           ['webui_templates/distro_list.tmpl']),
                                 (wwwtmpl,           ['webui_templates/distro_edit.tmpl']),
                                 (wwwtmpl,           ['webui_templates/profile_list.tmpl']),

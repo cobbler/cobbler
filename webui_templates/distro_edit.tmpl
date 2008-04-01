@@ -16,10 +16,8 @@ function disablename(value)
 #end if 
 
 #if $editable != True
-<blockquote>
-WARNING:  It looks like you do not have permission to make changes.
-To recieve access, contact your Cobbler server administrator.
-</blockquote>
+#set global $owners = $distro.owners
+#include "/usr/share/cobbler/webui_templates/enoaccess.tmpl"
 #end if
 
 <form method="POST" action="$base_url">
@@ -197,7 +195,7 @@ To recieve access, contact your Cobbler server administrator.
     </tr>
 
 
-    #if $distro
+    #if $distro and $editable == True
     <tr>
     <td>
     <label for="delete">Delete</label>

@@ -14,10 +14,8 @@ function disablename(value)
 #end if
 
 #if $editable != True
-<blockquote>
-WARNING:  It looks like you do not have permission to make changes.
-To recieve access, contact your Cobbler server administrator.
-</blockquote>
+#set global $owners = $profile.owners
+#include "/usr/share/cobbler/webui_templates/enoaccess.tmpl"
 #end if
 
 <form method="post" action="$base_url?mode=profile_save">
@@ -334,7 +332,7 @@ To recieve access, contact your Cobbler server administrator.
     </tr>
 
 
-    #if $profile
+    #if $profile and $editable == True
     <tr>
     <td>
     <label for="delete">Delete</label>
