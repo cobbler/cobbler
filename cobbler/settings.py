@@ -44,6 +44,10 @@ DEFAULTS = {
     "ldap_base_dn"                : "DC=devel,DC=redhat,DC=com",
     "ldap_port"                   : 389,
     "ldap_tls"                    : "on",
+    "ldap_anonymous_bind"         : 1,
+    "ldap_search_bind_dn"         : '',
+    "ldap_search_passwd"          : '',
+    "ldap_search_prefix"          : 'uid=',
     "kerberos_realm"              : "EXAMPLE.COM",
     "kernel_options"              : {
         "lang"                    : " ",

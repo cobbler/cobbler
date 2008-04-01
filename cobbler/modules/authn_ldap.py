@@ -12,14 +12,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import distutils.sysconfig
-#import ConfigParser
 import sys
 import os
 from rhpl.translate import _, N_, textdomain, utf8
 import md5
 import traceback
 import ldap
-import traceback
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
@@ -28,8 +26,6 @@ sys.path.insert(0, mod_path)
 import cexceptions
 import utils
 import api as cobbler_api
-
-#CONFIG_FILE='/etc/cobbler/auth_ldap.conf'
 
 def register():
     """
@@ -42,14 +38,13 @@ def authenticate(api_handle,username,password):
     """
     Validate an ldap bind, returning True/False
     """
-    
-    server = api_handle.settings().ldap_server
-    basedn = api_handle.settings().ldap_base_dn
-    port   = api_handle.settings().ldap_port
-    tls    = api_handle.settings().ldap_tls
 
-    # parse CONFIG_FILE
-    # server,basedn,port,tls = __parse_config()
+    server    = api_handle.settings().ldap_server
+    basedn    = api_handle.settings().ldap_base_dn
+    port      = api_handle.settings().ldap_port
+    tls       = api_handle.settings().ldap_tls
+    anon_bind = api_handle.settings().ldap_anonymous_bind
+    prefix    = api_handle.settings().ldap_search_prefix
 
     # form our ldap uri based on connection port
     if port == '389':
@@ -73,17 +68,32 @@ def authenticate(api_handle,username,password):
                 traceback.print_exc()
                 return False
 
+    # if we're not allowed to search anonymously,
+    # grok the search bind settings and attempt to bind
+    anon_bind = str(anon_bind).lower()
+    if anon_bind not in [ "on", "true", "yes", "1" ]:
+        searchdn = api_handle.settings().ldap_search_bind_dn
+        searchpw = api_handle.settings().ldap_search_passwd
+
+        if searchdn == '' or searchpw == '':
+            raise "Missing search bind settings"
+
+        try:
+            dir.simple_bind_s(searchdn, searchpw)
+        except:
+            traceback.print_exc()
+            return False
+
     # perform a subtree search in basedn to find the full dn of the user
     # TODO: what if username is a CN?  maybe it goes into the config file as well?
-    filter = "uid=" + username
+    filter = prefix + username
     result = dir.search_s(basedn, ldap.SCOPE_SUBTREE, filter, [])
     if result:
         for dn,entry in result:
-            # uid should be unique so we should only have one result
+            # username _should_ be unique so we should only have one result
             # ignore entry; we don't need it
             pass
     else:
-        # print "FAIL 2"
         return False
 
     try:

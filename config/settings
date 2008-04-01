@@ -24,6 +24,10 @@ ldap_server: "ldap.example.com"
 ldap_base_dn: "DC=example,DC=com"
 ldap_port: 389
 ldap_tls: 1
+ldap_anonymous_bind: 1
+ldap_search_bind_dn: ''
+ldap_search_passwd: ''
+ldap_search_prefix: 'uid='
 manage_dhcp: 0
 manage_dhcp_mode: isc
 next_server: '127.0.0.1'
