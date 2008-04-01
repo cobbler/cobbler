@@ -201,6 +201,7 @@ To recieve access, contact your Cobbler server administrator.
     </tr>
     #end if
 
+    #if $editable == True
     <tr>
     <td>
     </td>
@@ -208,6 +209,7 @@ To recieve access, contact your Cobbler server administrator.
     <input type="submit" name="submit" value="Save"/>
     <input type="reset" name="reset" value="Reset"/>
     </tr>
+    #end if
  
 </table>
 </fieldset>
@@ -215,10 +217,11 @@ To recieve access, contact your Cobbler server administrator.
 <br/>    
 
 <blockquote>
-Note:  Newly added repos contain no package content until "cobbler reposync" is run
-from the command line, which means that profiles relying on these repositories will
-not install.  Placing "cobbler reposync" on a crontab to ensure frequent updates
-is recommended procedure.
+Note:  Newly added repos contain no package content until 
+"cobbler reposync" is run from the command line, which means 
+that profiles relying on these repositories will not install.  
+Placing "cobbler reposync" on a crontab to ensure frequent 
+updates is recommended procedure.
 </blockquote>
 
 <br/>
