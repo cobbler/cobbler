@@ -225,6 +225,8 @@ function page_onload() {
     <input type="text" size="255" style="width: 400px;" name="owners" id="owners"
         #if $system
             value="$ownerslist"
+        #else
+            value="$user"
         #end if
     />
     <p class="context-tip">Applies only if using authz_ownership module, comma-delimited</p>

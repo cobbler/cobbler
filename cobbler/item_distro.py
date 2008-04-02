@@ -32,7 +32,7 @@ class Distro(item.Item):
         Reset this object.
         """
         self.name           = None
-        self.owners         = []
+        self.owners         = self.settings.default_ownership
         self.kernel         = (None,     '<<inherit>>')[is_subobject]
         self.initrd         = (None,     '<<inherit>>')[is_subobject]
         self.kernel_options = ({},       '<<inherit>>')[is_subobject]
@@ -61,7 +61,7 @@ class Distro(item.Item):
         """
         self.parent         = self.load_item(seed_data,'parent')
         self.name           = self.load_item(seed_data,'name')
-        self.owners         = self.load_item(seed_data,'owners',[])
+        self.owners         = self.load_item(seed_data,'owners',self.settings.default_ownership)
         self.kernel         = self.load_item(seed_data,'kernel')
         self.initrd         = self.load_item(seed_data,'initrd')
         self.kernel_options = self.load_item(seed_data,'kernel_options')

@@ -168,6 +168,7 @@ class CobblerWeb(object):
         
  
         return self.__render( 'distro_edit.tmpl', {
+            'user' : self.username,
             'edit' : True,
             'editable' : can_edit,
             'distro': input_distro,
@@ -408,6 +409,7 @@ class CobblerWeb(object):
             can_edit = self.remote.check_access_no_fail(self.token,"new_system",None)
 
         return self.__render( 'system_edit.tmpl', {
+            'user' : self.username,
             'edit' : True,
             'editable' : can_edit,
             'system': input_system,
@@ -450,6 +452,7 @@ class CobblerWeb(object):
             can_edit = self.remote.check_access_no_fail(self.token,"new_profile",None)
 
         return self.__render( 'profile_edit.tmpl', {
+            'user' : self.username,
             'edit' : True,
             'editable' : can_edit,
             'profile': input_profile,
@@ -598,6 +601,7 @@ class CobblerWeb(object):
 
 
         return self.__render( 'repo_edit.tmpl', {
+            'user' : self.username,
             'repo': input_repo,
             'editable' : can_edit
         } )

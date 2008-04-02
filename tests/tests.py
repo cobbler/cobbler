@@ -169,10 +169,10 @@ class Ownership(BootTest):
         # basmeent2 can not edit.
 
         for user in [ "admin1", "superlab1", "superlab2", "basement1" ]:
-           self.assertTrue(1==authorize(self.api, user, "modify_kickstart", xo), "%s can modify_kickstart" % user)
+           self.assertTrue(1==authorize(self.api, user, "modify_kickstart", "/tmp/test_cobbler_kickstart"), "%s can modify_kickstart" % user)
 
         for user in [ "basement2", "dne" ]:
-           self.assertTrue(0==authorize(self.api, user, "modify_kickstart", xo), "%s can modify_kickstart" % user)
+           self.assertTrue(0==authorize(self.api, user, "modify_kickstart", "/tmp/test_cobbler_kickstart"), "%s can modify_kickstart" % user)
 
         # ensure admin1 can edit (he's an admin) and do other tasks
         # same applies to basement1 who is explicitly added as a user

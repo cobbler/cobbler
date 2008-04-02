@@ -34,7 +34,7 @@ class Profile(item.Item):
         Reset this object.
         """
         self.name            = None
-        self.owners          = [] # should not be inheritable
+        self.owners          = self.settings.default_ownership
         self.distro          = (None,                              '<<inherit>>')[is_subobject]
         self.kickstart       = (self.settings.default_kickstart ,  '<<inherit>>')[is_subobject]    
         self.kernel_options  = ({},                                '<<inherit>>')[is_subobject]
@@ -58,7 +58,7 @@ class Profile(item.Item):
 
         self.parent          = self.load_item(seed_data,'parent','')
         self.name            = self.load_item(seed_data,'name')
-        self.owners          = self.load_item(seed_data,'owners',[])
+        self.owners          = self.load_item(seed_data,'owners',self.settings.default_ownership)
         self.distro          = self.load_item(seed_data,'distro')
         self.kickstart       = self.load_item(seed_data,'kickstart')
         self.kernel_options  = self.load_item(seed_data,'kernel_options')

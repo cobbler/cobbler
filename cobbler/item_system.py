@@ -30,7 +30,7 @@ class System(item.Item):
 
     def clear(self,is_subobject=False):
         self.name            = None
-        self.owners          = None
+        self.owners          = self.settings.default_ownership
         self.profile         = None
         self.kernel_options  = {}
         self.ks_meta         = {}    
@@ -81,7 +81,7 @@ class System(item.Item):
 
         self.parent          = self.load_item(seed_data, 'parent')
         self.name            = self.load_item(seed_data, 'name')
-        self.owners          = self.load_item(seed_data, 'owners', [])
+        self.owners          = self.load_item(seed_data, 'owners', self.settings.default_ownership)
         self.profile         = self.load_item(seed_data, 'profile')
         self.kernel_options  = self.load_item(seed_data, 'kernel_options', {})
         self.ks_meta         = self.load_item(seed_data, 'ks_meta', {})
