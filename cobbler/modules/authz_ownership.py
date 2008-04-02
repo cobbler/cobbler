@@ -50,7 +50,7 @@ def __parse_config():
            alldata[g][o] = 1
     return alldata 
 
-def __authorize_kickstart(api_handle, user, user_groups, file):
+def __authorize_kickstart(api_handle, user, user_groups, kickstart):
     # the authorization rules for kickstart editing are a bit
     # of a special case.  Non-admin users can edit a kickstart
     # only if all objects that depend on that kickstart are
@@ -142,8 +142,8 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None):
     # kickstarts are even more special so we call those out to another
     # function, rather than going through the rest of the code here.
 
-    if resource.find("kickstart"):
-        return authorize_kickstart(api_handle,user,user_groups,arg1)
+    if resource.find("kickstart") != -1:
+        return __authorize_kickstart(api_handle,user,user_groups,arg1)
 
     obj = None
     if resource.find("remove") != -1:
@@ -162,7 +162,7 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None):
     if obj.owners is None or obj.owners == []:
         return 1
      
-    return __is_user_allowed(user,group,user_groups)
+    return __is_user_allowed(obj,user,user_groups)
            
 
 if __name__ == "__main__":

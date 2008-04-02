@@ -175,7 +175,7 @@ class CobblerWeb(object):
 
     def distro_save(self,name=None,oldname=None,new_or_edit=None,editmode='edit',kernel=None,
                     initrd=None,kopts=None,ksmeta=None,owners=None,arch=None,breed=None,
-                    delete1=None,delete2=None,**args):
+                    delete1=None,delete2=None,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -188,7 +188,7 @@ class CobblerWeb(object):
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:     
-                self.remote.remove_distro(name,self.token,1) # recursive   
+                self.remote.remove_distro(name,self.token,recursive)   
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
             return self.distro_list()
@@ -460,7 +460,7 @@ class CobblerWeb(object):
                      distro=None,kickstart=None,kopts=None,
                      ksmeta=None,owners=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,
-                     parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,**args):
+                     parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -480,7 +480,7 @@ class CobblerWeb(object):
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:
-                self.remote.remove_profile(name,self.token,1) 
+                self.remote.remove_profile(name,self.token,recursive) 
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
             return self.profile_list()
