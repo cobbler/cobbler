@@ -105,7 +105,9 @@ class Ownership(BootTest):
 
     def test_ownership_params(self):
    
-        # initially just test that we can set ownership on various components
+        fd = open("/tmp/test_cobbler_kickstart","w+")
+        fd.write("")
+        fd.close()
 
         distro = self.api.find_distro(name="testdistro0")
         profile = self.api.find_profile(name="testprofile0")
@@ -113,7 +115,8 @@ class Ownership(BootTest):
         repo = self.api.find_repo(name="test_repo")
         self.assertTrue(distro.set_owners(["superlab","basement1"]))
         self.assertTrue(profile.set_owners(["superlab","basement1"]))
-        self.assertTrue(system.set_owners(["superlab","basement1"]))
+        self.assertTrue(profile.set_kickstart("/tmp/test_cobbler_kickstart"))
+        self.assertTrue(system.set_owners(["superlab","basement1","basement3"]))
         self.assertTrue(repo.set_owners([]))
         self.api.add_distro(distro)
         self.api.add_profile(profile)
@@ -136,16 +139,40 @@ class Ownership(BootTest):
         fd.write("\n")
         fd.write("[superlab]\n")
         fd.write("superlab1 = 1\n")
+        fd.write("superlab2 = 1\n")
         fd.write("\n")
         fd.write("[basement]\n") 
         fd.write("basement1 = 1\n")      
         fd.write("basement2 = 1\n")      
+        fd.write("basement3 = 1\n")      
         fd.close()
+
 
         xo = self.api.find_distro("testdistro0")
         xn = "testdistro0"
         ro = self.api.find_repo("test_repo")
         rn = "test_repo"
+
+        # WARNING: complex test explanation follows! 
+        # we must ensure those who can edit the kickstart are only those
+        # who can edit all objects that depend on the said kickstart
+        # in this test, superlab & basement1 can edit test_profile0
+        # superlab & basement1/3 can edit test_system0
+        # the systems share a common kickstart record (in this case
+        # explicitly set, which is a bit arbitrary as they are parent/child
+        # nodes, but the concept is not limited to this).  
+        # Therefore the correct result is that the following users can edit:
+        #    admin1, superlab1, superlab2
+        # And these folks can't
+        #    basement1, basement2
+        # Basement2 is rejected because the kickstart is shared by something
+        # basmeent2 can not edit.
+
+        for user in [ "admin1", "superlab1", "superlab2", "basement1" ]:
+           self.assertTrue(1==authorize(self.api, user, "modify_kickstart", xo), "%s can modify_kickstart" % user)
+
+        for user in [ "basement2", "dne" ]:
+           self.assertTrue(0==authorize(self.api, user, "modify_kickstart", xo), "%s can modify_kickstart" % user)
 
         # ensure admin1 can edit (he's an admin) and do other tasks
         # same applies to basement1 who is explicitly added as a user

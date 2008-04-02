@@ -50,6 +50,47 @@ def __parse_config():
            alldata[g][o] = 1
     return alldata 
 
+def __authorize_kickstart(api_handle, user, user_groups, file):
+    # the authorization rules for kickstart editing are a bit
+    # of a special case.  Non-admin users can edit a kickstart
+    # only if all objects that depend on that kickstart are
+    # editable by the user in question.
+    #
+    # Example:
+    #   if Pinky owns ProfileA
+    #   and the Brain owns ProfileB
+    #   and both profiles use the same kickstart template
+    #   and neither Pinky nor the Brain is an admin
+    #   neither is allowed to edit the kickstart template
+    #   because they would make unwanted changes to each other
+    #
+    # In the above scenario the UI will explain the problem
+    # and ask that the user asks the admin to resolve it if required.
+    # NOTE: this function is only called by authorize so admin users are
+    # cleared before this function is called.
+
+    lst = api_handle.find_profile(kickstart=kickstart, return_list=True)
+    lst.extend(api_handle.find_system(kickstart=kickstart, return_list=True))
+    for obj in lst:
+       if not __is_user_allowed(obj, user, user_groups):
+          return 0
+    return 1
+
+def __is_user_allowed(obj, user, user_groups):
+    if obj.owners == []:
+        # no ownership restrictions, cleared
+        return 1
+    for allowed in obj.owners:
+        if user == allowed:
+           # user match
+           return 1
+        # else look for a group match
+        for group in user_groups:
+           if group == allowed and user in user_groups[group]:
+              return 1
+    return 0
+
+
 
 def authorize(api_handle,user,resource,arg1=None,arg2=None):
     """
@@ -60,10 +101,10 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None):
     user_groups = __parse_config()
 
     # classify the type of operation
-    save_or_remove = False
-    for criteria in ["save_","remove_","modify_"]:
+    modify_operation = False
+    for criteria in ["save","remove","modify","write","edit"]:
         if resource.find(criteria) != -1:
-           save_or_remove = True
+           modify_operation = True
 
     # FIXME: is everyone allowed to copy?  I think so.
     # FIXME: deal with the problem of deleted parents and promotion
@@ -83,14 +124,19 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None):
         # if the user isn't anywhere in the file, reject regardless
         # they can still use read-only XMLRPC
         return 0
-    if not save_or_remove:
+    if not modify_operation:
         # sufficient to allow access for non save/remove ops to all
         # users for now, may want to refine later.
         return 1 
 
-    # now we have a save_or_remove op, so we must check ownership
+    # now we have a modify_operation op, so we must check ownership
     # of the object.  remove ops pass in arg1 as a string name, 
     # saves pass in actual objects, so we must treat them differently.
+    # kickstarts are even more special so we call those out to another
+    # function, rather than going through the rest of the code here.
+
+    if resource.find("kickstart"):
+        return authorize_kickstart(api_handle,user,user_groups,arg1)
 
     obj = None
     if resource.find("remove") != -1:
@@ -109,18 +155,7 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None):
     if obj.owners is None or obj.owners == []:
         return 1
      
-    # otherwise, ownership by user/group
-    for allowed in obj.owners:
-        if user == allowed:
-           # user match
-           return 1
-        for group in user_groups:
-           if group == allowed and user in user_groups[group]:
-              return 1
-    
-    # can't find user or group in ownership list and ownership is defined
-    # so reject the operation 
-    return 0
+    return __is_user_allowed(user,group,user_groups)
            
 
 if __name__ == "__main__":

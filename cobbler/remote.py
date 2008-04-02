@@ -1050,7 +1050,10 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
 
         self.log("read_or_write_kickstart_template",name=kickstart_file,token=token)
-        self.check_access(token,"read_or_write_kickstart_templates",kickstart_file,is_read)
+        if is_read:
+            self.check_access(token,"read_kickstart",kickstart_file)
+        else:
+            self.check_access(token,"modify_kickstart",kickstart_file)
  
         if kickstart_file.find("..") != -1 or not kickstart_file.startswith("/"):
             raise CX(_("tainted file location"))
