@@ -98,6 +98,13 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None):
     All users in the file are permitted by this module.
     """
 
+    # everybody can get read-only access to everything
+    # if they pass authorization, they don't have to be in users.conf
+    if resource is not None:
+       for x in [ "get", "read", "/cobbler/web" ]:
+          if resource.startswith(x):
+             return 1
+
     user_groups = __parse_config()
 
     # classify the type of operation

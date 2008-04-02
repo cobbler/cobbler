@@ -677,10 +677,15 @@ class CobblerWeb(object):
         } )
 
     def ksfile_edit(self, name=None,**spam):
+
+
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
+
+        can_edit = self.remote.check_access_no_fail(self.token,"modify_kickstart",name)
         return self.__render( 'ksfile_edit.tmpl', {
             'name': name,
+            'editable' : can_edit,
             'ksdata': self.remote.read_or_write_kickstart_template(name,True,"",self.token)
         } )
 
