@@ -953,7 +953,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Deletes a distro from a collection.  Note that this just requires the name
         of the distro, not a handle.
         """
-        self.log("remove_distro",name=name,token=token)
+        self.log("remove_distro (%s)" % recursive,name=name,token=token)
         self.check_access(token, "remove_distro", name)
         rc = self.api._config.distros().remove(name,recursive=True)
         return rc

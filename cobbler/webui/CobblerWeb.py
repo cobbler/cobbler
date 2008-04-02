@@ -187,8 +187,12 @@ class CobblerWeb(object):
 
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
-            try:     
-                self.remote.remove_distro(name,self.token,recursive)   
+            try:    
+                if recursive is None: 
+                    self.remote.remove_distro(name,self.token,False)
+                else:
+                    self.remote.remove_distro(name,self.token,True)
+                       
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
             return self.distro_list()
@@ -480,7 +484,11 @@ class CobblerWeb(object):
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:
-                self.remote.remove_profile(name,self.token,recursive) 
+                if recursive:
+                    self.remote.remove_profile(name,self.token,True) 
+                else:
+                    self.remote.remove_profile(name,self.token,False) 
+                      
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
             return self.profile_list()
