@@ -89,6 +89,8 @@ class Profile(item.Item):
         if self.repos != "<<inherit>>" and type(self.ks_meta) != list:
             self.set_repos(self.repos)
 
+        self.set_owners(self.owners)
+
         return self
 
     def set_parent(self,parent_name):

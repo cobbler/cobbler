@@ -39,7 +39,7 @@ class Repo(item.Item):
         self.depth            = 2  # arbitrary, as not really apart of the graph
         self.arch             = "" # use default arch
         self.yumopts          = {}
-        self.owners           = []
+        self.owners           = self.settings.default_ownership
 
     def from_datastruct(self,seed_data):
         self.parent           = self.load_item(seed_data, 'parent')
@@ -52,10 +52,11 @@ class Repo(item.Item):
         self.arch             = self.load_item(seed_data, 'arch')
         self.depth            = self.load_item(seed_data, 'depth', 2)
         self.yumopts          = self.load_item(seed_data, 'yumopts', {})
-        self.owners           = self.load_item(seed_data, 'owners', [])
+        self.owners           = self.load_item(seed_data, 'owners', self.settings.default_ownership)
 
-        # force this to be saved as a boolean 
+        # coerce types from input file
         self.set_keep_updated(self.keep_updated)
+        self.set_owners(self.owners)
 
         return self
 

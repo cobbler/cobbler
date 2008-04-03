@@ -128,8 +128,9 @@ class System(item.Item):
         # explicitly re-call the set_name function to possibily populate MAC/IP.
         self.set_name(self.name)
 
-        # coerce this into a boolean
+        # coerce types from input file
         self.set_netboot_enabled(self.netboot_enabled)
+        self.set_owners(self.owners) 
 
         return self
 

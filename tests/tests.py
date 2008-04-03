@@ -73,7 +73,7 @@ class BootTest(unittest.TestCase):
         self.assertTrue(distro.set_initrd(self.fk_initrd))
         self.assertTrue(self.api.add_distro(distro))
         self.assertTrue(self.api.find_distro(name="testdistro0"))
-
+        
         profile = self.api.new_profile()
         self.assertTrue(profile.set_name("testprofile0"))
         self.assertTrue(profile.set_distro("testdistro0"))
@@ -109,10 +109,20 @@ class Ownership(BootTest):
         fd.write("")
         fd.close()
 
+        # find things we are going to test with
         distro = self.api.find_distro(name="testdistro0")
         profile = self.api.find_profile(name="testprofile0")
         system = self.api.find_system(name="drwily.rdu.redhat.com")
         repo = self.api.find_repo(name="test_repo")
+
+        # as we didn't specify an owner for objects, the default
+        # ownership should be as specified in settings
+        default_owner = self.api.settings().default_ownership
+        for obj in [ distro, profile, system, repo ]:
+            self.assertTrue(obj is not None)
+            self.assertEquals(obj.owners, default_owner, "default owner for %s" % obj)        
+
+        # verify we can test things
         self.assertTrue(distro.set_owners(["superlab","basement1"]))
         self.assertTrue(profile.set_owners(["superlab","basement1"]))
         self.assertTrue(profile.set_kickstart("/tmp/test_cobbler_kickstart"))

@@ -9,6 +9,7 @@ Cobbler CHANGELOG
 - tftpboot location is now inferred from xinetd config (added for F9 compat)
 - added authn_ldap and stub for authz_configfile
 - authz_configfile allows filtering ldap/other users by config file
+- WebUI now has checkbox on distro/profile for deleting child objects
 
 - ??? - 0.8.3
 - fix WebUI documentation URL

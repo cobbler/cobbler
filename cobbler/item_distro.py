@@ -77,6 +77,8 @@ class Distro(item.Item):
         if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
             self.set_ksmeta(self.ks_meta)
 
+        self.set_owners(self.owners)
+
         return self
 
     def set_kernel(self,kernel):
