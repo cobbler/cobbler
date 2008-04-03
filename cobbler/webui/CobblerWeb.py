@@ -167,6 +167,12 @@ class CobblerWeb(object):
         else:
             can_edit = self.remote.check_access_no_fail(self.token,"new_distro",None)
         
+            if not can_edit:
+                return self.__render('message.tmpl', {
+                    'message1' : "Access denied.",
+                    'message2' : "You do not have permission to create new objects."
+                })
+
  
         return self.__render( 'distro_edit.tmpl', {
             'user' : self.username,
@@ -408,6 +414,12 @@ class CobblerWeb(object):
             can_edit = self.remote.check_access_no_fail(self.token,"modify_system",name)
         else:
             can_edit = self.remote.check_access_no_fail(self.token,"new_system",None)
+            if not can_edit:
+                return self.__render('message.tmpl', {
+                    'message1' : "Access denied.",
+                    'message2' : "You do not have permission to create new objects."        
+                })
+
 
         return self.__render( 'system_edit.tmpl', {
             'user' : self.username,
@@ -451,6 +463,12 @@ class CobblerWeb(object):
             can_edit = self.remote.check_access_no_fail(self.token,"modify_profile",name)
         else:
             can_edit = self.remote.check_access_no_fail(self.token,"new_profile",None)
+            if not can_edit:
+                return self.__render('message.tmpl', {
+                    'message1' : "Access denied.",
+                    'message2' : "You do not have permission to create new objects."        
+                })
+
 
         return self.__render( 'profile_edit.tmpl', {
             'user' : self.username,
@@ -599,6 +617,11 @@ class CobblerWeb(object):
             can_edit = self.remote.check_access_no_fail(self.token,"modify_repo",name)
         else:
             can_edit = self.remote.check_access_no_fail(self.token,"new_repo",None)
+            if not can_edit:
+                return self.__render('message.tmpl', {
+                    'message1' : "Access denied.",
+                    'message2' : "You do not have permission to create new objects."        
+                })
 
 
         return self.__render( 'repo_edit.tmpl', {
