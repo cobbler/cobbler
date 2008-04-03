@@ -742,6 +742,13 @@ class CobblerWeb(object):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
+        can_edit = self.remote.check_access_no_fail(self.token,"sync",None)
+        if not can_edit:
+           return self.__render('message.tmpl', {
+               'message1' : "Access denied.",
+               'message2' : "You do not have permission to create new objects."
+           })
+
         try:
             rc = self.remote.sync(self.token)
             if not rc:
