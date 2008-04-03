@@ -60,6 +60,7 @@ class CobblerWeb(object):
             # validate that our token is still good
             try:
                 self.remote.token_check(self.token)
+                self.username = self.remote.get_user_from_token(self.token)
                 return True
             except Exception, e:
                 if str(e).find("invalid token") != -1:
