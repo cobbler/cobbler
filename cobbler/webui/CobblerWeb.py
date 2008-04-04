@@ -243,7 +243,8 @@ class CobblerWeb(object):
                 self.remote.modify_distro(distro, 'arch', arch, self.token)
             if breed:
                 self.remote.modify_distro(distro, 'breed', breed, self.token)
-            self.remote.save_distro(distro, self.token)
+            # now time to save, do we want to run duplication checks?
+            self.remote.save_distro(distro, self.token, editmode)
         except Exception, e:
             log_exc(self.apache)
             return self.error_page("Error while saving distro: %s" % str(e))
@@ -385,8 +386,7 @@ class CobblerWeb(object):
                     mods["gateway-%s" % interface] = gateway
                     self.remote.modify_system(system,'modify-interface', mods, self.token)
 
-            # now commit the edits
-            self.remote.save_system( system, self.token)
+            self.remote.save_system(system, self.token, editmode)
 
         except Exception, e:
             log_exc(self.apache)
@@ -572,7 +572,7 @@ class CobblerWeb(object):
 
             if dhcptag:
                 self.remote.modify_profile(profile, 'dhcp-tag', dhcptag, self.token)
-            self.remote.save_profile(profile,self.token)
+            self.remote.save_profile(profile,self.token, editmode)
         except Exception, e:
             log_exc(self.apache)
             return self.error_page("Error while saving profile: %s" % str(e))
@@ -687,7 +687,7 @@ class CobblerWeb(object):
             if owners:
                 self.remote.modify_repo(repo, 'owners', owners, self.token)
 
-            self.remote.save_repo(repo, self.token)
+            self.remote.save_repo(repo, self.token, editmode)
 
         except Exception, e:
             log_exc(self.apache)
