@@ -105,10 +105,6 @@ class SystemFunction(commands.CobblerFunction):
 
         rc = self.object_manipulator_finish(obj, self.api.systems, self.options)
 
-        if ["copy"] in self.args:
-           # run through and find conflicts       
-           print _("WARNING: after copying systems, be sure that the ip/mac information is unique").
-
         return rc
 
 
