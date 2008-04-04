@@ -251,10 +251,38 @@ class CobblerFunction:
         opt_sync     = not options.nosync
         opt_triggers = not options.notriggers
 
+        # ** WARNING: COMPLICATED **
+        # what operation we call depends on what type of object we are editing
+        # and what the operation is.  The details behind this is that the
+        # add operation has special semantics around adding objects that might
+        # clobber other objects, and we don't want that to happen.  Edit
+        # does not have to check for named clobbering but still needs
+        # to check for IP/MAC clobbering in some scenarios (FIXME).
+        # this is all enforced by collections.py though we need to make
+        # the apppropriate call to add to invoke the safety code in the right
+        # places -- and not in places where the safety code will generate
+        # errors under legit circumstances.
+
         if not ("rename" in self.args):
-            rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers)
+            if "add" in self.args:
+               if obj.COLLECTION_TYPE == "system":
+                   # duplicate names and netinfo are both bad.
+                   rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_names=True, check_for_duplicate_netinfo=True)
+               else:
+                   # duplicate names are bad
+                   rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_names=True, check_for_duplicate_netinfo=False)
+            else:
+               # editing or copying (but not renaming), so duplicate netinfo
+               # CAN be bad, duplicate names are already handled, though
+               # we need to clean up checks around duplicate netinfo here
+               # (FIXME) so they are made and work.
+               rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers)
+
         else:
+            # we are renaming here, so duplicate netinfo checks also
+            # need to be made.(FIXME)
             rc = collect_fn().rename(obj, self.options.newname)
+
         return rc
 
     def reporting_sorter(self, a, b):

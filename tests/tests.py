@@ -8,6 +8,7 @@ import os
 import subprocess
 import tempfile
 import shutil
+import traceback
 
 from cobbler.cexceptions import *  
 
@@ -84,6 +85,7 @@ class BootTest(unittest.TestCase):
         system = self.api.new_system()
         self.assertTrue(system.set_name("drwily.rdu.redhat.com"))
         self.assertTrue(system.set_mac_address("BB:EE:EE:EE:EE:FF","intf0"))
+        self.assertTrue(system.set_ip_address("192.51.51.50","intf0"))
         self.assertTrue(system.set_profile("testprofile0"))
         self.assertTrue(self.api.add_system(system))
         self.assertTrue(self.api.find_system(name="drwily.rdu.redhat.com"))
@@ -100,6 +102,129 @@ class BootTest(unittest.TestCase):
         self.assertTrue(repo.set_mirror("/tmp/test_example_cobbler_repo"))
         self.assertTrue(self.api.repos().add(repo))
 
+class DuplicateNamesAndIpPrevention(BootTest):
+
+    """
+    The command line (and WebUI) have checks to prevent new system
+    additions from conflicting with existing systems and overwriting
+    them inadvertantly. This class tests that code.  NOTE: General API
+    users will /not/ encounter these checks.
+    """
+
+    def test_duplicate_prevention(self):
+
+        # find things we are going to test with
+        distro1 = self.api.find_distro(name="testdistro0")
+        profile1 = self.api.find_profile(name="testprofile0")
+        system1 = self.api.find_system(name="drwily.rdu.redhat.com")
+        repo1 = self.api.find_repo(name="test_repo")
+
+        # make sure we can't overwrite a previous distro with
+        # the equivalent of an "add" (not an edit) on the
+        # command line.
+        distro2 = self.api.new_distro()
+        self.assertTrue(distro2.set_name("testdistro0"))
+        self.assertTrue(distro2.set_kernel(self.fk_kernel))
+        self.assertTrue(distro2.set_initrd(self.fk_initrd))
+        self.assertTrue(distro2.set_owners("canary"))
+        # this should fail
+        try:
+           self.api.add_distro(distro2,check_for_duplicate_names=True)
+           self.assertTrue(1==2,"distro add should fail")
+        except CobblerException:
+           pass
+        except:
+           self.assertTrue(1==2,"exception type")
+        # we caught the exception but make doubly sure there was no write
+        distro_check = self.api.find_distro(name="testdistro0")
+        self.assertTrue("canary" not in distro_check.owners)
+
+        # repeat the check for profiles
+        profile2 = self.api.new_profile()
+        self.assertTrue(profile2.set_name("testprofile0"))
+        self.assertTrue(profile2.set_distro("testdistro0"))
+        # this should fail
+        try:
+            self.api.add_profile(profile2,check_for_duplicate_names=True)
+            self.assertTrue(1==2,"profile add should fail")
+        except CobblerException:
+            pass
+        except:
+            traceback.print_exc()
+            self.assertTrue(1==2,"exception type")
+
+        # repeat the check for systems (just names this time)
+        system2 = self.api.new_system()
+        self.assertTrue(system2.set_name("drwily.rdu.redhat.com"))
+        self.assertTrue(system2.set_profile("testprofile0"))
+        # this should fail
+        try:
+            self.api.add_system(system2,check_for_duplicate_names=True)
+            self.assertTrue(1==2,"system add should fail")
+        except CobblerException:
+            pass
+        except:
+            traceback.print_exc()
+            self.assertTrue(1==2,"exception type")
+
+        # repeat the check for repos
+        repo2 = self.api.new_repo()
+        self.assertTrue(repo2.set_name("test_repo"))
+        self.assertTrue(repo2.set_mirror("http://imaginary"))
+        # self.failUnlessRaises(CobblerException,self.api.add_repo,[repo,check_for_duplicate_names=True])
+        try:
+            self.api.add_repo(repo2,check_for_duplicate_names=True)
+            self.assertTrue(1==2,"repo add should fail")
+        except CobblerException:
+            pass
+        except:
+            self.assertTrue(1==2,"exception type")
+
+        # now one more check to verify we can't add a system
+        # of a different name but duplicate netinfo.  
+        system3 = self.api.new_system()
+        self.assertTrue(system3.set_name("unused_name"))
+        self.assertTrue(system3.set_profile("testprofile0"))
+        # MAC is initially accepted
+        self.assertTrue(system3.set_mac_address("BB:EE:EE:EE:EE:FF","intf3"))
+        # can't add as this MAC already exists!  
+
+        #self.failUnlessRaises(CobblerException,self.api.add_system,[system3,check_for_duplicate_names=True,check_for_duplicate_netinfo=True)
+        try:
+           self.api.add_system(system3,check_for_duplicate_names=True,check_for_duplicate_netinfo=True)
+        except CobblerException: 
+           pass
+        except:
+           traceback.print_exc()
+           self.assertTrue(1==2,"wrong exception type")
+
+        # set the MAC to a different value and try again
+        self.assertTrue(system3.set_mac_address("FF:EE:EE:EE:EE:DD","intf3"))
+        # it should work
+        self.assertTrue(self.api.add_system(system3,check_for_duplicate_names=True,check_for_duplicate_netinfo=True))
+        # now set the IP so that collides
+        self.assertTrue(system3.set_ip_address("192.51.51.50","intf6"))
+        # this should also fail
+
+        # self.failUnlessRaises(CobblerException,self.api.add_system,[system3,check_for_duplicate_names=True,check_for_duplicate_netinfo=True)
+        try:
+           self.api.add_system(system3,check_for_duplicate_names=True,check_for_duplicate_netinfo=True)
+           self.assertTrue(1==2,"system add should fail")
+        except CobblerException:
+           pass
+        except:
+           self.assertTrue(1==2,"wrong exception type")
+
+        # fix the IP and Mac back 
+        self.assertTrue(system3.set_ip_address("192.86.75.30","intf6"))
+        self.assertTrue(system3.set_mac_address("AE:BE:DE:CE:AE:EE","intf3"))
+        # now it works again
+        # note that we will not check for duplicate names as we want
+        # to test this as an 'edit' operation.
+        self.assertTrue(self.api.add_system(system3,check_for_duplicate_names=False,check_for_duplicate_netinfo=True))
+
+        # FIXME: note -- how netinfo is handled when doing renames/copies/edits
+        # is more involved and we probably should add tests for that also.
 
 class Ownership(BootTest):
 

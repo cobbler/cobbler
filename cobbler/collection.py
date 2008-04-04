@@ -35,7 +35,8 @@ class Collection(serializable.Serializable):
         """
         self.config = config
         self.clear()
-        self.log_func = self.config.api.log
+        self.api = self.config.api
+        self.log_func = self.api.log
         self.lite_sync = None
 
     def factory_produce(self,config,seed_data):
@@ -125,10 +126,10 @@ class Collection(serializable.Serializable):
                   k.set_parent(newname)
                else:
                   k.set_distro(newname)
-               self.config.api.profiles().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
+               self.api.profiles().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
             elif k.COLLECTION_TYPE == "system":
                k.set_profile(newname)
-               self.config.api.systems().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
+               self.api.systems().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
             elif k.COLLECTION_TYPE == "repo":
                raise CX(_("internal error, not expected to have repo child objects"))
             else:
@@ -139,7 +140,7 @@ class Collection(serializable.Serializable):
         return True
 
 
-    def add(self,ref,save=False,with_copy=False,with_triggers=True,with_sync=True,quick_pxe_update=False):
+    def add(self,ref,save=False,with_copy=False,with_triggers=True,with_sync=True,quick_pxe_update=False,check_for_duplicate_names=False,check_for_duplicate_netinfo=False):
         """
         Add an object to the collection, if it's valid.  Returns True
         if the object was added to the collection.  Returns False if the
@@ -167,6 +168,11 @@ class Collection(serializable.Serializable):
             # if not saving the object, you can't run these features
             with_triggers = False
             with_sync = False
+        
+        # Avoid adding objects to the collection
+        # if an object of the same/ip/mac already exists.
+        self.__duplication_checks(ref,check_for_duplicate_names,check_for_duplicate_netinfo)
+
 
         if ref is None or not ref.is_valid():
             raise CX(_("insufficient or invalid arguments supplied"))
@@ -219,6 +225,61 @@ class Collection(serializable.Serializable):
 
     def _run_triggers(self,ref,globber):
         return utils.run_triggers(ref,globber)
+
+    def __duplication_checks(self,ref,check_for_duplicate_names,check_for_duplicate_netinfo):
+        """
+        Prevents adding objects with the same name.
+        Prevents adding or editing to provide the same IP, or MAC.
+        This applies to new "add" commands, 
+        Edits that are not copies/renames should only yelp if they match
+        an object that is not the same as the object being edited. (FIXME)
+        """
+
+        # always protect against duplicate names
+        if check_for_duplicate_names:
+            match = None
+            if isinstance(ref, item_system.System):
+                match = self.api.find_system(ref.name)
+            elif isinstance(ref, item_profile.Profile):
+                match = self.api.find_profile(ref.name)
+            elif isinstance(ref, item_distro.Distro):
+                match = self.api.find_distro(ref.name)
+            elif isinstance(ref, item_repo.Repo):
+                match = self.api.find_repo(ref.name)
+
+            if match:
+                raise CX(_("An object already exists with that name.  Try 'edit'?"))
+        
+        # the duplicate mac/ip checks can be disabled.
+        if not check_for_duplicate_netinfo:
+            return
+       
+        # FIXME: if we run this command on edits it may yield false
+        # positives when ref is set to replace an object of an existing
+        # name, so we should probably /not/ run this on edits yet at this
+        # point.  Logic to deal with renames vs. edit/copies is somewhat
+        # involved.
+        if isinstance(ref, item_system.System):
+           for (name, intf) in ref.interfaces.iteritems():
+               match_ip = []
+               match_mac = []
+               input_mac = intf["mac_address"] 
+               input_ip  = intf["ip_address"]
+               if not self.api.settings().allow_duplicate_macs and input_mac is not None and input_mac != "":
+                   match_mac = self.api.find_system(mac_address=input_mac,return_list=True)   
+               if not self.api.settings().allow_duplicate_ips and input_ip is not None and input_ip != "":
+                   match_ip  = self.api.find_system(ip_address=input_ip,return_list=True) 
+               # it's ok to conflict with your own net info.
+               # FIXME: copies won't ever work this way, so they should NOT
+               # use the flags that engadge these checks.  Renames should
+               # be exempt also
+
+               for x in match_mac:
+                   if x.name != ref.name:
+                       raise CX(_("Can't save system %s. The MAC address (%s) is already used by system %s (%s)") % (ref.name, intf["mac_address"], x.name, name))
+               for x in match_ip:
+                   if x.name != ref.name:
+                       raise CX(_("Can't save system %s. The IP address (%s) is already used by system %s (%s)") % (ref.name, intf["ip_address"], x.name, name))
 
     def printable(self):
         """

@@ -221,21 +221,21 @@ class BootAPI:
         self.log("new_repo",[is_subobject])
         return self._config.new_repo(is_subobject=is_subobject)
 
-    def add_distro(self, ref):
+    def add_distro(self, ref, check_for_duplicate_names=False):
         self.log("add_distro",[ref.name])
-        return self._config.distros().add(ref,save=True)
+        return self._config.distros().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
 
-    def add_profile(self, ref):
+    def add_profile(self, ref, check_for_duplicate_names=False):
         self.log("add_profile",[ref.name])
-        return self._config.profiles().add(ref,save=True)
+        return self._config.profiles().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
 
-    def add_system(self,ref):
+    def add_system(self, ref, check_for_duplicate_names=False, check_for_duplicate_netinfo=False):
         self.log("add_system",[ref.name])
-        return self._config.systems().add(ref,save=True)
+        return self._config.systems().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names,check_for_duplicate_netinfo=check_for_duplicate_netinfo)
 
-    def add_repo(self,ref):
+    def add_repo(self, ref, check_for_duplicate_names=False):
         self.log("add_repo",[ref.name])
-        return self._config.repos().add(ref,save=True)
+        return self._config.repos().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
 
     def find_distro(self, name=None, return_list=False, **kargs):
         return self._config.distros().find(name=name, return_list=return_list, **kargs)
