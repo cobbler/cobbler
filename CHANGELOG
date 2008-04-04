@@ -10,6 +10,8 @@ Cobbler CHANGELOG
 - added authn_ldap and stub for authz_configfile
 - authz_configfile allows filtering ldap/other users by config file
 - WebUI now has checkbox on distro/profile for deleting child objects
+- cli has different semantics between "add" and "edit" now
+- cobbler wants to keep IPs/MACs unique now in configuration (can be disabled)
 
 - ??? - 0.8.3
 - fix WebUI documentation URL
