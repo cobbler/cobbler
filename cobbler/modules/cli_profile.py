@@ -36,6 +36,11 @@ class ProfileFunction(commands.CobblerFunction):
         return [ "add", "edit", "copy", "rename", "remove", "list", "report" ]
 
     def add_options(self, p, args):
+
+        if self.matches_args(args,["add"]):
+            p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
+
+
         if not self.matches_args(args,["remove","report","list"]):
 
             p.add_option("--distro",           dest="distro", help="ex: 'RHEL-5-i386' (REQUIRED)")

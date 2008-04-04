@@ -37,9 +37,13 @@ class RepoFunction(commands.CobblerFunction):
 
     def add_options(self, p, args):
 
+
         if not self.matches_args(args,["remove","report","list"]):
 
             p.add_option("--arch",             dest="arch",             help="overrides repo arch if required")
+        if self.matches_args(args,["add"]):
+            p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
+        if not self.matches_args(args,["remove","report","list"]):
             p.add_option("--createrepo-flags", dest="createrepo_flags", help="additional flags for createrepo")
             p.add_option("--keep-updated",     dest="keep_updated",     help="update on each reposync, yes/no")
 

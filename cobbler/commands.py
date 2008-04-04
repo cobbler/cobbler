@@ -241,6 +241,10 @@ class CobblerFunction:
         Boilerplate for objects that offer add/edit/delete/remove/copy functionality.
         """
 
+        clobber = False
+        if "add" in self.args:
+            clobber = options.clobber
+
         if "copy" in self.args: # or "rename" in self.args:
             if self.options.newname:
                 obj = obj.make_clone()
@@ -267,10 +271,16 @@ class CobblerFunction:
             if "add" in self.args:
                if obj.COLLECTION_TYPE == "system":
                    # duplicate names and netinfo are both bad.
-                   rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_names=True, check_for_duplicate_netinfo=True)
+                   if not clobber:
+                       rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_names=True, check_for_duplicate_netinfo=True)
+                   else:
+                       rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_names=False, check_for_duplicate_netinfo=True)
                else:
                    # duplicate names are bad
-                   rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_names=True, check_for_duplicate_netinfo=False)
+                   if not clobber:
+                       rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_names=True, check_for_duplicate_netinfo=False)
+                   else:
+                       rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_names=False, check_for_duplicate_netinfo=False)
             else:
                # editing or copying (but not renaming), so duplicate netinfo
                # CAN be bad, duplicate names are already handled, though

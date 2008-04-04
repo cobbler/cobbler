@@ -40,12 +40,16 @@ class DistroFunction(commands.CobblerFunction):
         if not self.matches_args(args,["remove","report","list"]):
             p.add_option("--arch",   dest="arch",   help="ex: x86, x86_64, ia64")
             p.add_option("--breed",  dest="breed",  help="ex: redhat, debian, suse")
+        if self.matches_args(args,["add"]):
+            p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
+        if not self.matches_args(args,["remove","report","list"]):
             p.add_option("--initrd", dest="initrd", help="absolute path to initrd.img (REQUIRED)")
             p.add_option("--kernel", dest="kernel", help="absolute path to vmlinuz (REQUIRED)")
             p.add_option("--kopts",  dest="kopts",  help="ex: 'noipv6'")
             p.add_option("--ksmeta", dest="ksmeta", help="ex: 'blippy=7'")
 
         p.add_option("--name",   dest="name", help="ex: 'RHEL-5-i386' (REQUIRED)")
+
 
 
         if self.matches_args(args,["copy","rename"]):

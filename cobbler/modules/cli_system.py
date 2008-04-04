@@ -37,6 +37,9 @@ class SystemFunction(commands.CobblerFunction):
 
     def add_options(self, p, args):
 
+        if self.matches_args(args,["add"]):
+            p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
+
         if not self.matches_args(args,["remove","report","list"]):
             p.add_option("--dhcp-tag",        dest="dhcp_tag",    help="for use in advanced DHCP configurations")
             p.add_option("--gateway",         dest="gateway",     help="for static IP / templating usage")
