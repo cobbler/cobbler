@@ -230,9 +230,7 @@ class Collection(serializable.Serializable):
         """
         Prevents adding objects with the same name.
         Prevents adding or editing to provide the same IP, or MAC.
-        This applies to new "add" commands, 
-        Edits that are not copies/renames should only yelp if they match
-        an object that is not the same as the object being edited. (FIXME)
+        Enforcement is based on whether the API caller requests it.
         """
 
         # always protect against duplicate names
@@ -254,11 +252,6 @@ class Collection(serializable.Serializable):
         if not check_for_duplicate_netinfo:
             return
        
-        # FIXME: if we run this command on edits it may yield false
-        # positives when ref is set to replace an object of an existing
-        # name, so we should probably /not/ run this on edits yet at this
-        # point.  Logic to deal with renames vs. edit/copies is somewhat
-        # involved.
         if isinstance(ref, item_system.System):
            for (name, intf) in ref.interfaces.iteritems():
                match_ip = []
@@ -270,9 +263,6 @@ class Collection(serializable.Serializable):
                if not self.api.settings().allow_duplicate_ips and input_ip is not None and input_ip != "":
                    match_ip  = self.api.find_system(ip_address=input_ip,return_list=True) 
                # it's ok to conflict with your own net info.
-               # FIXME: copies won't ever work this way, so they should NOT
-               # use the flags that engadge these checks.  Renames should
-               # be exempt also
 
                for x in match_mac:
                    if x.name != ref.name:
