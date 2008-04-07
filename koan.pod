@@ -151,32 +151,9 @@ Koan's source checkout (see http://cobbler.et.redhat.com) can be used to build
 a live CD for use with koan.  This live CD serves the purpose of running
 --replace-self with no OS present -- bare metal installation.  This tool may prove useful to emulate a PXE environment with a cobbler server, when no local DHCPconfiguration is not feasible or otherwise undesired.
 
-To build a CD (on Fedora 8):
+To build a CD using Fedora as a base image, see instructions at:
 
-yum install livecd-tools yum-utils python-setuptools-devel
-
-git clone git://git.fedorahosted.org/koan
-
-cd checkout/koan
-
-make
-
-cd checkout/koan/live
-
-python build.py --server=cobbler.example.org --koan="--profile=foo"
-
-# OR (for auto-detection)
-
-python build.py --server=cobbler.example.org --koan=""
-
-# burn the CD, and insert it in a bare metal machine
-
-The koan live CD is in the early stages of development and may not
-support all direct attached storage.  NOTE: Usage of the Live CD will
-erase all data on the first DASD disk during the course of provisioning.
-
-The live CD should be very useful when used with the --server=DISCOVER
-switch.
+https://fedorahosted.org/cobbler/wiki/CobblerLiveCd
 
 =head1 POST INSTALLATION MANAGEMENT OF VIRT GUESTS
 
