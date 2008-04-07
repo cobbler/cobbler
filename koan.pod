@@ -155,7 +155,7 @@ To build a CD (on Fedora 8):
 
 yum install livecd-tools yum-utils python-setuptools-devel
 
-git clone git://git.fedorahosted.org/git/func.git
+git clone git://git.fedorahosted.org/koan
 
 cd checkout/koan
 
