@@ -147,6 +147,15 @@ class System(item.Item):
         """
         intf = self.__get_interface("intf0")
 
+
+        if self.name not in ["",None] and self.parent not in ["",None] and self.name == self.parent:
+            raise CX(_("self parentage is weird"))
+        if type(name) != type(""):
+            raise CX(_("name must be a string"))
+        for x in name:
+            if not x.isalnum() and not x in [ "-", ".", ":", "+" ] :
+                raise CX(_("invalid characters in name"))
+
         if utils.is_mac(name):
            if intf["mac_address"] == "":
                intf["mac_address"] = name

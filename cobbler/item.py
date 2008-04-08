@@ -116,8 +116,9 @@ class Item(serializable.Serializable):
             raise CX(_("self parentage is weird"))
         if type(name) != type(""):
             raise CX(_("name must be a string"))
-        if not name.isalnum():
-            raise CX(_("name must be alphanumeric")) 
+        for x in name:
+            if not x.isalnum() and not x in [ "-", ".", ":", "+" ] :
+                raise CX(_("invalid characters in name")) 
         self.name = name
         return True
 

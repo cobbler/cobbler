@@ -3,7 +3,7 @@ Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
 Version: 0.8.3
-Release: 1%{?dist}
+Release: 2%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -190,7 +190,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Tue Apr 08 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.3-1
+* Tue Apr 08 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.3-2
 - Upstream changes (see CHANGELOG)
 
 * Fri Mar 07 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.2-1
