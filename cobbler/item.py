@@ -114,6 +114,10 @@ class Item(serializable.Serializable):
         """
         if self.name not in ["",None] and self.parent not in ["",None] and self.name == self.parent:
             raise CX(_("self parentage is weird"))
+        if type(name) != type(""):
+            raise CX(_("name must be a string"))
+        if not name.isalnum():
+            raise CX(_("name must be alphanumeric")) 
         self.name = name
         return True
 
