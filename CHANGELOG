@@ -1,12 +1,7 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-<<<<<<< HEAD:CHANGELOG
 - Mon Mar 10 2008 - 0.9.0
-=======
-* Tue Apr 08 2008 - 0.8.3
->>>>>>> master:CHANGELOG
-- Make createrepo get run for local cobbler reposync invocations as needed
 - patch to allow yumopts to override gpgcheck
 - applied patch to send hostname from ISC
 - added patch to allow --kopts/--ksmeta items to be cleared with --kopts=delete
@@ -19,16 +14,14 @@ Cobbler CHANGELOG
 - added --clobber option to allow add to overwrite existing objects (for scripts)
 
 - ??? - 0.8.3
+- Make createrepo get run for local cobbler reposync invocations as needed
 - fix WebUI documentation URL
 - fix bug in /etc/cobbler/modules.conf regarding pluggable authn/z
 - fix default flags for yumdownloader
 - fix for RHEL 4u6 DVD/tree import x86_64 arch detection
-<<<<<<< HEAD:CHANGELOG
 - fix for dnsmasq template file host config path
-=======
 - fix dnsmasq template to point at the correct hosts file
 - force all names to be alphanumeric
->>>>>>> master:CHANGELOG
 
 * Fri Feb 22 2008 - 0.8.2
 - fix to webui to allow repos to be edited there on profile page
