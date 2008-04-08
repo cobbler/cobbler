@@ -12,6 +12,7 @@ Cobbler CHANGELOG
 - cli has different semantics between "add" and "edit" now for safety reasons
 - cobbler wants to keep IPs/MACs unique now in configuration (can be disabled)
 - added --clobber option to allow add to overwrite existing objects (for scripts)
+- updated/tested kerberos support for those needing to auth against it 
 
 - ??? - 0.8.3
 - Make createrepo get run for local cobbler reposync invocations as needed

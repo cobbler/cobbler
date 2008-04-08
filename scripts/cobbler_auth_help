@@ -43,7 +43,7 @@ my $kerberos = Authen::Simple::Kerberos->new(
     realm => $realm
 );
 
-print "authenticating: $username against $method $realm ($password)\n" if $verbose;
+print "authenticating: $username against (realm=$realm) (pass=$password)\n" if $verbose;
 
 if ( $kerberos->authenticate( $username, $password ) ) {
     print "ok\n" if $verbose;
