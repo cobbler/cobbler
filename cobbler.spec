@@ -3,7 +3,7 @@ Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
 Version: 0.8.3
-Release: 2%{?dist}
+Release: 3%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
