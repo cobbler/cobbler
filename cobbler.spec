@@ -191,11 +191,15 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
+<<<<<<< HEAD:cobbler.spec
 * Tue Apr 08 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.0-1
 - Upstream changes (see CHANGELOG)
 - packaged /etc/cobbler/users.conf
 
 * Tue Apr 08 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.3-1
+=======
+* Tue Apr 08 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.3-2
+>>>>>>> master:cobbler.spec
 - Upstream changes (see CHANGELOG)
 
 * Fri Mar 07 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.2-1

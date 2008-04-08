@@ -60,14 +60,6 @@ class Repo(item.Item):
 
         return self
 
-    def set_name(self,name):
-        """
-        A name can be anything.  It's a string, though best values are something like "fc6extras"
-        or "myrhel4stuff"
-        """
-        self.name = name  # we check it add time, but store the original value.
-        return True
-
     def set_mirror(self,mirror):
         """
         A repo is (initially, as in right now) is something that can be rsynced.
