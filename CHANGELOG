@@ -1,7 +1,8 @@
 Koan CHANGELOG
 
-* Mon Mar 03 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.2-0
+* Wed Apr 09 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.2-0
 - Vmware installation hooks
+- add --add-reinstall-entry option (see manpage)
 
 * Tue Feb 26 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.1-1
 - manpage updates
