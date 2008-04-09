@@ -833,8 +833,9 @@ class Koan:
                 sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
 
             if not self.add_reinstall_entry:
-              print "- reboot to apply changes"
-
+                print "- reboot to apply changes"
+            else:
+                print "- reinstallation entry added"
 
         return self.net_install(after_download)
 
