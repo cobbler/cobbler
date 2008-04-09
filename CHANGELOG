@@ -15,6 +15,7 @@ Cobbler CHANGELOG
 - updated/tested kerberos support for those needing to auth against it 
 - update menu.c32 to 3.62 to allow for timeouts during menu (and future submenu)
 - update PXE defaults to invoke menu.c32 automatically w/ timeout
+- removed dependency on rhpl
 
 - ??? - 0.8.3
 - Make createrepo get run for local cobbler reposync invocations as needed
