@@ -16,7 +16,7 @@ import distutils.sysconfig
 import ConfigParser
 import sys
 import os
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib

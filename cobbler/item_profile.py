@@ -16,7 +16,7 @@ import utils
 import item
 from cexceptions import *
 
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 class Profile(item.Item):
 

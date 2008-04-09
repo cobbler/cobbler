@@ -14,7 +14,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import optparse
 from cexceptions import *
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 import sys
 
 HELP_FORMAT = "%-20s%s"

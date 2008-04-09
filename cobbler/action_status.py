@@ -19,7 +19,7 @@ import glob
 import time
 import api as cobbler_api
 
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 
 class BootStatusReport:

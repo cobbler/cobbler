@@ -16,7 +16,7 @@ import exceptions
 import serializable
 import utils
 from cexceptions import *
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 class Item(serializable.Serializable):
 

@@ -14,7 +14,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import distutils.sysconfig
 import sys
 import os
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 import md5
 import traceback
 import ldap

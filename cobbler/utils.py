@@ -22,7 +22,11 @@ import shutil
 import string
 import traceback
 from cexceptions import *
-from rhpl.translate import _, N_, textdomain, utf8
+
+#placeholder for translation
+def _(foo):
+   return foo
+
 
 MODULE_CACHE = {}
 

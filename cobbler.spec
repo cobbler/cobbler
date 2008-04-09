@@ -14,7 +14,6 @@ Requires: python-devel
 Requires: createrepo
 Requires: mod_python
 Requires: python-cheetah
-Requires: rhpl
 Requires: rsync
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig

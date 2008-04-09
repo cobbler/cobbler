@@ -18,7 +18,7 @@ import re
 import sub_process
 import action_sync
 import utils
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 class BootCheck:
 

@@ -21,7 +21,7 @@ plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 import utils
 import yaml   # Howell-Clark version
 import cexceptions

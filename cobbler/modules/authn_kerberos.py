@@ -30,7 +30,7 @@ import distutils.sysconfig
 import ConfigParser
 import sys
 import os
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 import md5
 import traceback
 # since sub_process isn't available on older OS's
@@ -58,7 +58,7 @@ def authenticate(api_handle,username,password):
     Uses cobbler_auth_helper
     """
 
-    realm = self.api.settings().kerberos_realm
+    realm = api_handle.settings().kerberos_realm
     api_handle.logger.debug("authenticating %s against %s" % (username,realm))
  
     rc = subprocess.call([

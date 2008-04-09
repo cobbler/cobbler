@@ -15,7 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import utils
 import item
 from cexceptions import *
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 class Repo(item.Item):
 

@@ -18,7 +18,7 @@ import socket
 import time
 import os
 import SimpleXMLRPCServer
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 import xmlrpclib
 import random
 import base64

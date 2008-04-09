@@ -19,7 +19,7 @@ import distutils.sysconfig
 import os
 import sys
 import glob
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 import ConfigParser
 
 MODULE_CACHE = {}

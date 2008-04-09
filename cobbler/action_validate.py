@@ -15,7 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import os
 import re
 import sub_process
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 class Validate:
 

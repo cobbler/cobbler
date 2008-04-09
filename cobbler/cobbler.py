@@ -23,7 +23,7 @@ import optparse
 import commands
 from cexceptions import *
 
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 I18N_DOMAIN = "cobbler"
 
 ####################################################
@@ -31,7 +31,6 @@ I18N_DOMAIN = "cobbler"
 class BootCLI:
 
     def __init__(self):
-        textdomain(I18N_DOMAIN)
         self.api = api.BootAPI()
         self.loader = commands.FunctionLoader()
         climods = self.api.get_modules_in_category("cli")

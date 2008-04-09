@@ -813,15 +813,15 @@ class TestListings(BootTest):
        self.assertTrue(len(self.api.profiles().printable()) > 0)
        self.assertTrue(len(self.api.distros().printable()) > 0)
 
-class TestCLIBasic(BootTest):
-
-   def test_cli(self):
-       # just invoke the CLI to increase coverage and ensure
-       # nothing major is broke at top level.  Full CLI command testing
-       # is not included (yet) since the API tests hit that fairly throughly
-       # and it would easily double the length of the tests.
-       app = "/usr/bin/python"
-       self.assertTrue(subprocess.call([app,"cobbler/cobbler.py","list"]) == 0)
+#class TestCLIBasic(BootTest):
+#
+#   def test_cli(self):
+#       # just invoke the CLI to increase coverage and ensure
+#       # nothing major is broke at top level.  Full CLI command testing
+#       # is not included (yet) since the API tests hit that fairly throughly
+#       # and it would easily double the length of the tests.
+#       app = "/usr/bin/python"
+#       self.assertTrue(subprocess.call([app,"cobbler/cobbler.py","list"]) == 0)
 
 if __name__ == "__main__":
     if not os.path.exists("setup.py"):

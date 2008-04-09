@@ -35,7 +35,7 @@ import item_system
 
 from Cheetah.Template import Template
 
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 
 class BootSync:

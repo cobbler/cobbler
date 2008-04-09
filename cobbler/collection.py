@@ -25,7 +25,7 @@ import item_profile
 import item_distro
 import item_repo
 
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 class Collection(serializable.Serializable):
 

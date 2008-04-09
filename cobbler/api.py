@@ -29,7 +29,7 @@ import module_loader
 import logging
 import os
 import fcntl
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 ERROR = 100
 INFO  = 10

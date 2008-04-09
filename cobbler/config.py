@@ -29,7 +29,7 @@ import modules.serializer_yaml as serializer_yaml
 import settings
 import serializer
 
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 
 class Config:

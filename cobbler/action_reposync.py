@@ -25,7 +25,7 @@ from cexceptions import *
 import traceback
 import errno
 
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 class RepoSync:
     """

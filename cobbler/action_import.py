@@ -23,7 +23,7 @@ import glob
 import api
 import utils
 import shutil
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 WGET_CMD = "wget --mirror --no-parent --no-host-directories --directory-prefix %s/%s %s"
 RSYNC_CMD =  "rsync -a %s '%s' %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --progress"
