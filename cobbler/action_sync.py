@@ -109,6 +109,11 @@ class BootSync:
             self.copyfile(path, destpath)
         self.copyfile("/var/lib/cobbler/menu.c32", os.path.join(self.bootloc, "menu.c32"))
 
+        # Copy memtest to tftpboot if package is installed on system          
+        for memtest in glob.glob('/boot/memtest*'):
+            base = os.path.basename(memtest)
+            self.copyfile(memtest,os.path.join(self.bootloc,"images",base))
+
     def write_dhcp_file(self):
         """
         DHCP files are written when manage_dhcp is set in
@@ -818,12 +823,56 @@ class BootSync:
             contents = self.write_pxe_file(None,None,profile,distro,False,include_header=False)
             if contents is not None:
                 pxe_menu_items = pxe_menu_items + contents + "\n"
- 
-        # save the template.
+
+        # if we have any memtest files in images, make entries for them
+        # after we list the profiles
+        memtests = glob.glob(self.bootloc + "/images/memtest*")
+        if len(memtests) > 0:
+            pxe_menu_items = pxe_menu_items + "\n\n"
+            for memtest in glob.glob(self.bootloc + '/memtest*'):
+                base = os.path.basename(memtest)
+                contents = self.write_memtest_pxe("/images/%s" % base)
+                pxe_menu_items = pxe_menu_items + contents + "\n"
+              
+         # save the template.
         metadata = { "pxe_menu_items" : pxe_menu_items }
         outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
         self.apply_template(template_data, metadata, outfile)
         template_src.close()
+
+    def write_memtest_pxe(self,filename):
+        """
+        Write a configuration file for memtest
+        """
+
+        # ---
+        # just some random variables
+        template = None
+        metadata = {}
+        buffer = ""
+
+        # ---
+        template = "/etc/cobbler/pxeprofile.template"
+
+        # ---
+        # store variables for templating
+        metadata["menu_label"] = "MENU LABEL %s" % os.path.basename(filename)
+        metadata["profile_name"] = os.path.basename(filename)
+        metadata["kernel_path"] = "/images/%s" % os.path.basename(filename)
+        metadata["initrd_path"] = ""
+        metadata["append_line"] = ""
+
+        # ---
+        # get the template
+        template_fh = open(template)
+        template_data = template_fh.read()
+        template_fh.close()
+
+        # ---
+        # return results
+        buffer = self.apply_template(template_data, metadata, None)
+        return buffer
+
 
 
     def write_pxe_file(self,filename,system,profile,distro,is_ia64, include_header=True):

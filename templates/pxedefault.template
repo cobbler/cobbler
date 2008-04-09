@@ -10,8 +10,6 @@ LABEL local
         MENU DEFAULT
         LOCALBOOT 0
 
-MENU seperator
-
 $pxe_menu_items
 
 MENU end
