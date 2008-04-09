@@ -161,6 +161,10 @@ def main():
     p.add_option("", "--no-cobbler",
                  dest="no_cobbler",
                  help="specify URL for kickstart directly, bypassing the cobbler server")
+    p.add_option("", "--add-reinstall-entry",
+                 dest="add_reinstall_entry",
+                 action="store_true",
+                 help="adds a new entry for re-provisiong this host from grub")
 
     (options, args) = p.parse_args()
 
@@ -183,7 +187,8 @@ def main():
         k.virt_path         = options.virt_path
         k.virt_type         = options.virt_type
         k.no_gfx            = options.no_gfx
-        k.no_cobbler         = options.no_cobbler
+        k.no_cobbler        = options.no_cobbler
+        k.add_reinstall_entry	    = options.add_reinstall_entry
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -799,15 +804,20 @@ class Koan:
             cmd = [ "/sbin/grubby",
                     "--add-kernel", self.safe_load(profile_data,'kernel_local'),
                     "--initrd", self.safe_load(profile_data,'initrd_local'),
-                    "--make-default",
-                    "--title", "kick%s" % int(time.time()),
                     "--args", k_args,
                     "--copy-default"
             ]
+            if self.add_reinstall_entry:
+               cmd.append("--title=Reinstall")
+            else:
+               cmd.append("--make-default")
+               cmd.append("--title=kick%s" % int(time.time()))
+               
             if self.live_cd:
                cmd.append("--bad-image-okay")
                cmd.append("--boot-filesystem=/dev/sda1")
                cmd.append("--config-file=/tmp/boot/boot/grub/grub.conf")
+            self.subprocess_call(["/sbin/grubby","--remove-kernel","/boot/vmlinuz"])
             self.subprocess_call(cmd)
 
 
@@ -822,7 +832,8 @@ class Koan:
                 cmd = [ "/sbin/lilo" ]
                 sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
 
-            print "- reboot to apply changes"
+            if not self.add_reinstall_entry:
+              print "- reboot to apply changes"
 
 
         return self.net_install(after_download)

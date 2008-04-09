@@ -6,7 +6,7 @@ koan stands for "kickstart-over-a-network" and allows for both network provision
 
 koan --server=<host> [--list-profiles|--list-systems]
 
-koan --server=<host> [--virt|--replace-self|--display] [--profile=<name>|--system=<name>] [--autonet] [--virt-name=<name>] [--virt-path=<path>] [--virt-type=<type>] [--virt-graphics]
+koan --server=<host> [--virt|--replace-self|--display] [--profile=<name>|--system=<name>] [--add-reinstall-entry] [--autonet] [--virt-name=<name>] [--virt-path=<path>] [--virt-type=<type>] [--virt-graphics]
 
 =head1 DESCRIPTION
 
@@ -127,6 +127,9 @@ After using this feature, run "/sbin/reboot" to initiate the fully automatic rei
 Example:  koan --server=cobbler.example.org --profile=fedora7-xen-i386 --replace-self
 
 Example:  koan --server=cobbler.example.org --replace-self
+
+If you want to just add an entry to grub (for example, to allow reinstalling
+the system later), add the additional argument "--add-reinstall-entry" to the command line and it will not become the default for the next boot.  Only one reinstall entry can be added to grub; re-running this command will replace the previous entry.
 
 =head1 REINSTALLATION WITHOUT A COBBLER SERVER
 
