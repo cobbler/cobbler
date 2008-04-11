@@ -48,31 +48,24 @@ The lastest stable releases of Cobbler and Koan are included in <A HREF="http://
 <font size="-1">
 <blockquote>
     <ul>
-    <li>wget http://www.python.org/pyvault/centos-4-i386/python23-cheetah-0.9.18-1.el4.pyv.i386.rpm</li>
-    <li>wget ftp://ftp.freshrpms.net/pub/dag/redhat/el4/en/i386/dag/RPMS/syslinux-3.50-1.el4.rf.i386.rpm</li>
-    <li>rpm -i python*cheetah*.rpm</i>
-    <li>rpm -Uvh syslinux*.rpm</li>
-    <li>wget http://cobbler.et.redhat.com/download/cobbler-$version.src.rpm</li>
-    <li>rpmbuild --rebuild cobbler-$version.src.rpm</li>
-    <li>rpm -i /usr/src/redhat/RPMS/noarch/cobbler-$version.src.rpm</li>
+    <li>For starters, grab python-setuputils, python-cheetah, and yum from <A HREF="http://fedoraproject.org/wiki/EPEL">EPEL</A> and install them.  These are found in the main EPEL repo, not EPEL testing -- here's the link: <A HREF="http://download.fedora.redhat.com/pub/epel/4/i386/">i386</A> and <A HREF="http://download.fedora.redhat.com/pub/epel/4/x86_64/">x86_64</A>.</li>
+    <li>now rpmbuild --rebuild cobbler*.src.rpm</li>
+    <li>install the RPM, which is now built in /usr/src/redhat/RPMS/noarch</li>
+    <li>satisfy any dependencies you have by using yum and the EPEL 4 repos</li>
     </ul>
 </blockquote>
 </font>
 </p>
 
-<h4>Source RPM Build Instructions for RHEL5</h4>
+<h4>Source RPM Build Instructions for RHEL 4/5</h4>
 <p>
 <font size="-1">
 <blockquote>
     <ul>
-<!--
-    <li>wget ftp://ftp.freshrpms.net/pub/dag/redhat/el5/en/i386/RPMS.dag/syslinux-3.50-1.el5.rf.i386.rpm</i>
-    <li>rpm -Uvh syslinux*.rpm</li>
--->
-    <li>Grab python-setuputils from <A HREF="ftp://rpmfind.net/linux/fedora/extras/6/SRPMS/python-setuptools-0.6c5-1.fc6.src.rpm">here</A></li>
-    <li>Grab python-cheetah and yum-utils from here: <A HREF="ftp://mirror.linux.duke.edu/pub/fedora/linux/extras/6/SRPMS/">here</A></li>
-    <li>rpmbuild --rebuild those RPMs and then install them</li>
-    <li>now rebuild --rebuild and install Cobbler from it's source RPM</li>
+    <li>Grab python-setuputils and python-cheetah from <A HREF="http://fedoraproject.org/wiki/EPEL">EPEL</A> and install them.  These are found in the main EPEL repo, not EPEL testing -- here's the link: <A HREF="http://download.fedora.redhat.com/pub/epel/5/i386/">i386</A> and <A HREF="http://download.fedora.redhat.com/pub/epel/5/x86_64/">x86_64</A>.</li>
+    <li>now rpmbuild --rebuild cobbler*.src.rpm</li>
+    <li>install the RPM, which is now built in /usr/src/redhat/RPMS/noarch</li>
+    <li>satisfy any dependencies you have by using yum and the EPEL 5 repos</li>
     </ul>
 </blockquote>
 </font>

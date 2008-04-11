@@ -487,28 +487,44 @@ def fix_mod_python_select_submission(repos):
     repos = repos.replace('"',"")
     repos = repos.lstrip().rstrip()
     return repos
+def check_dist():
+    if os.path.exists("/etc/debian_version"):
+       return "debian"
+    else:
+       return "redhat"
 
 def redhat_release():
-    if not os.path.exists("/bin/rpm"):
-       return ("unknown", 0)
-    args = ["/bin/rpm", "-q", "--whatprovides", "redhat-release"]
-    cmd = sub_process.Popen(args,shell=False,stdout=sub_process.PIPE)
-    data = cmd.communicate()[0]
-    data = data.rstrip().lower()
-    make = "other"
-    if data.find("redhat") != -1:
-        make = "redhat"
-    elif data.find("centos") != -1:
-        make = "centos"
-    elif data.find("fedora") != -1:
-        make = "fedora"
-    version = data.split("release-")[-1]
-    rest = 0
-    if version.find("-"):
-       parts = version.split("-")
-       version = parts[0]
-       rest = parts[1]
-    return (make, float(version), rest)
+   if check_dist() == "redhat":
+
+      if not os.path.exists("/bin/rpm"):
+         return ("unknown", 0)
+      args = ["/bin/rpm", "-q", "--whatprovides", "redhat-release"]
+      cmd = sub_process.Popen(args,shell=False,stdout=sub_process.PIPE)
+      data = cmd.communicate()[0]
+      data = data.rstrip().lower()
+      make = "other"
+      if data.find("redhat") != -1:
+          make = "redhat"
+      elif data.find("centos") != -1:
+          make = "centos"
+      elif data.find("fedora") != -1:
+          make = "fedora"
+      version = data.split("release-")[-1]
+      rest = 0
+      if version.find("-"):
+         parts = version.split("-")
+         version = parts[0]
+         rest = parts[1]
+      return (make, float(version), rest)
+   elif check_dist() == "debian":
+      fd = open("/etc/debian_version")
+      parts = fd.read().split(".")
+      version = parts[0]
+      rest = parts[1]
+      make = "debian"
+      return (make, float(version), rest)
+   else:
+      return ("unknown",0)
 
 def tftpboot_location():
 

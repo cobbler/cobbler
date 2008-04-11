@@ -73,11 +73,12 @@ class ImportFunction(commands.CobblerFunction):
         return "import"
 
     def add_options(self, p, args):
+        p.add_option("--arch",               dest="arch",               help="explicitly specify the architecture being imported (RECOMENDED)")
         p.add_option("--path",               dest="mirror",             help="local path or rsync location (REQUIRED)")
         p.add_option("--mirror",             dest="mirror_alt",         help="alias for --path")
         p.add_option("--name",               dest="name",               help="name, ex 'RHEL-5', (REQUIRED)")
-        p.add_option("--available-as",       dest="available_as",       help="do not mirror, use this as install tree")
-        p.add_option("--kickstart",          dest="kickstart_file",     help="use the kickstart file specified as the profile's kickstart file")
+        p.add_option("--available-as",       dest="available_as",       help="do not mirror, use this as install tree base")
+        p.add_option("--kickstart",          dest="kickstart_file",     help="use the kickstart file specified as the profile's kickstart file, do not auto-assign")
         p.add_option("--rsync-flags",        dest="rsync_flags",        help="pass additional flags to rsync")
 
     def run(self):
@@ -92,7 +93,8 @@ class ImportFunction(commands.CobblerFunction):
                 self.options.name,
                 network_root=self.options.available_as,
                 kickstart_file=self.options.kickstart_file,
-                rsync_flags=self.options.rsync_flags
+                rsync_flags=self.options.rsync_flags,
+                arch=self.options.arch
         )
 
 

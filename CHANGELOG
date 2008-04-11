@@ -16,6 +16,7 @@ Cobbler CHANGELOG
 - update menu.c32 to 3.62 to allow for timeouts during menu (and future submenu)
 - update PXE defaults to invoke menu.c32 automatically w/ timeout
 - removed dependency on rhpl
+- import can now take an --arch (and is recommended usage)
 
 - ??? - 0.8.3
 - Make createrepo get run for local cobbler reposync invocations as needed

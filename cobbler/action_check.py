@@ -19,7 +19,6 @@ import sub_process
 import action_sync
 import utils
 from utils import _
-
 class BootCheck:
 
    def __init__(self,config):
@@ -61,10 +60,18 @@ class BootCheck:
        return status
 
    def check_service(self, status, which):
-       if os.path.exists("/etc/rc.d/init.d/%s" % which):
-           rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True)
-           if rc != 0:
-               status.append(_("service %s is not running") % which)
+     if utils.check_dist() == "redhat":
+        if os.path.exists("/etc/rc.d/init.d/%s" % which):
+          rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True)
+          if rc != 0:
+            status.append(_("service %s is not running") % which)
+     elif utils.check_dist() == "debian":
+        if os.path.exists("/etc/init.d/%s" % which):
+	  rc = sub_process.call("/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
+	  if rc != 0:
+	    status.append(_("service %s is not running") % which)
+     else:
+       status.append(_("Unknown distribution type, cannot check for running service %s" % which))
 
    def check_iptables(self, status):
        if os.path.exists("/etc/rc.d/init.d/iptables"):
@@ -95,10 +102,7 @@ class BootCheck:
        """
        Check if Apache is installed.
        """
-       if not os.path.exists(self.settings.httpd_bin):
-           status.append(_("Apache doesn't appear to be installed"))
-       else:
-           self.check_service(status,"httpd")
+       self.check_service(status,"httpd")
 
 
    def check_dhcpd_bin(self,status):

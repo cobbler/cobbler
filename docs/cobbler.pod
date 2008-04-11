@@ -410,20 +410,22 @@ run after systems are added to regenerate and reload the DHCP configuration.
 
 =head2 IMPORT WORKFLOW
 
-This example shows how to create a provisioning infrastructure from a distribution mirror.
+This example shows how to create a provisioning infrastructure from a distribution mirror or DVD ISO.
 Then a default PXE configuration is created, so that by default systems will PXE boot into 
 a fully automated install process for that distribution.
 
 You can use a network rsync mirror, a mounted DVD location, or a tree you have available
 via a network filesystem.
 
+Import knows how to autodetect the architecture of what is being imported, though to make sure things are named correctly, it's always a good idea to specify --arch.  For instance, if you import a distribution named "fedora8" from an ISO, and it's an x86_64 ISO, specify --arch=x86_64 and the distro will be named "fedora8-x86_64" automatically, and the right architecture field will also be set on the distribution object.  If you are batch importing an entire mirror (containing multiple distributions and arches), you don't have to do this, as cobbler will set the names for things based on the paths it finds.
+
 B<cobbler check>
 
-B<cobbler import --path=rsync://yourfavoritemirror.com/foo --name=anyname>
+B<cobbler import --path=rsync://yourfavoritemirror.com/foo --name=rhel5 --arch=x86>
 
 # OR 
 
-B<cobbler import --path=/mnt/dvd --name=anyname>
+B<cobbler import --path=/mnt/dvd --name=rhel5 --arch=x86_64>
 
 # OR (using an eternal NAS box without mirroring)
 
@@ -576,11 +578,11 @@ After an import is run, cobbler will try to detect the distribution type and aut
 
 Mirrored content is saved automatically in /var/www/cobbler/ks_mirror.
 
-Example:  B<cobbler import --mirror=rsync://mirrorserver.example.com/path/ --name=fedora>
+Example:  B<cobbler import --mirror=rsync://mirrorserver.example.com/path/ --name=fedora --arch=x86>
 
 Example2:  B<cobbler import --mirror=root@192.168.1.10:/stuff --name=bar>
 
-Example3:  B<cobbler import --mirror=/mnt/dvd --name=baz>
+Example3:  B<cobbler import --mirror=/mnt/dvd --name=baz --arch=x86_64>
 
 Example4:  B<cobbler import --mirror=/path/to/stuff --name=glorp>
 

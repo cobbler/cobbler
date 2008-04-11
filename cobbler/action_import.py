@@ -36,7 +36,7 @@ TRY_LIST = [
 
 class Importer:
 
-   def __init__(self,api,config,mirror,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None):
+   def __init__(self,api,config,mirror,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None):
        """
        Performs an import of a install tree (or trees) from the given
        mirror address.  The prefix of the distro is to be specified
@@ -59,6 +59,7 @@ class Importer:
        self.distros_added = []
        self.kickstart_file = kickstart_file
        self.rsync_flags = rsync_flags
+       self.arch = arch
 
    # ----------------------------------------------------------------------
 
@@ -67,6 +68,26 @@ class Importer:
            raise CX(_("import failed.  no --mirror specified"))
        if self.mirror_name is None:
            raise CX(_("import failed.  no --name specified"))
+       if self.arch is not None:
+           self.arch = self.arch.lower()
+           if self.arch not in [ "x86", "ia64", "x86_64" ]:
+               raise CX(_("arch must be x86, x86_64, or ia64"))
+
+       mpath = os.path.join(self.settings.webdir, "ks_mirror", self.mirror_name)
+       if os.path.exists(mpath) and self.arch is None:
+           if not found:   
+              raise CX(_("Something already exists at this import location (%s).  You must specify --arch to avoid potentially overwriting existing files.") % mpath)
+ 
+       if self.arch:
+           # append the arch path to the name if the arch is not already
+           # found in the name.
+           found = False
+           for x in [ "ia64", "i386", "x86_64", "x86" ]:
+               if self.mirror_name.lower().find(x) != -1:
+                   found = True
+                   break
+           if not found:
+               self.mirror_name = self.mirror_name + "-" + self.arch
 
        if self.mirror_name is None:
            raise CX(_("import failed.  no --name specified"))
