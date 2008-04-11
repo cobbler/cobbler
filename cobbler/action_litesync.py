@@ -68,13 +68,13 @@ class BootLiteSync:
     def remove_single_distro(self, name):
         bootloc = utils.tftpboot_location()
         # delete distro YAML file in distros/$name in webdir
-        self.sync.rmfile(os.path.join(self.settings.webdir, "distros", name))
+        utils.rmfile(os.path.join(self.settings.webdir, "distros", name))
         # delete contents of images/$name directory in webdir
-        self.sync.rmtree(os.path.join(self.settings.webdir, "images", name))
+        utils.rmtree(os.path.join(self.settings.webdir, "images", name))
         # delete contents of images/$name in tftpboot
-        self.sync.rmtree(os.path.join(bootloc, "images", name))
+        utils.rmtree(os.path.join(bootloc, "images", name))
         # delete potential symlink to tree in webdir/links
-        self.sync.rmfile(os.path.join(self.settings.webdir, "links", name)) 
+        utils.rmfile(os.path.join(self.settings.webdir, "links", name)) 
 
     def add_single_profile(self, name):
         # get the profile object:
@@ -101,9 +101,9 @@ class BootLiteSync:
         # rebuild profile_list YAML file in webdir
         self.sync.write_listings()
         # delete profiles/$name file in webdir
-        self.sync.rmfile(os.path.join(self.settings.webdir, "profiles", name))
+        utils.rmfile(os.path.join(self.settings.webdir, "profiles", name))
         # delete contents on kickstarts/$name directory in webdir
-        self.sync.rmtree(os.path.join(self.settings.webdir, "kickstarts", name))
+        utils.rmtree(os.path.join(self.settings.webdir, "kickstarts", name))
    
     def update_system_netboot_status(self,name):
         system = self.systems.find(name=name)
@@ -133,13 +133,13 @@ class BootLiteSync:
         # rebuild system_list file in webdir
         self.sync.write_listings()
         # delete system YAML file in systems/$name in webdir
-        self.sync.rmfile(os.path.join(self.settings.webdir, "systems", name))
+        utils.rmfile(os.path.join(self.settings.webdir, "systems", name))
         # delete contents of kickstarts_sys/$name in webdir
         system_record = self.systems.find(name=name)
         # delete any kickstart files related to this system
         for (name,interface) in system_record.interfaces.iteritems():
            filename = utils.get_config_filename(system_record,interface=name)
-           self.sync.rmtree(os.path.join(self.settings.webdir, "kickstarts_sys", filename))
+           utils.rmtree(os.path.join(self.settings.webdir, "kickstarts_sys", filename))
 
         # unneeded
         #if not system_record.is_pxe_supported():
@@ -154,7 +154,7 @@ class BootLiteSync:
             if distro is not None and distro in [ "ia64", "IA64"]:
                 itanic = True
         if not itanic:
-            self.sync.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
+            utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
         else:
-            self.sync.rmfile(os.path.join(bootloc, filename))
+            utils.rmfile(os.path.join(bootloc, filename))
 

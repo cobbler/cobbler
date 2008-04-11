@@ -17,6 +17,7 @@ Cobbler CHANGELOG
 - update PXE defaults to invoke menu.c32 automatically w/ timeout
 - removed dependency on rhpl
 - import can now take an --arch (and is recommended usage)
+- now possible to override snippets on a profile/system specific basis
 
 - ??? - 0.8.3
 - Make createrepo get run for local cobbler reposync invocations as needed

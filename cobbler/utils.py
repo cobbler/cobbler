@@ -21,6 +21,7 @@ import sub_process
 import shutil
 import string
 import traceback
+import errno
 from cexceptions import *
 
 #placeholder for translation
@@ -296,19 +297,14 @@ def grab_tree(api_handle, obj):
     results.append(settings)  
     return results
 
-def blender(api_handle,remove_hashes, root_obj, blend_cache=None):
+def blender(api_handle,remove_hashes, root_obj):
     """
     Combine all of the data in an object tree from the perspective
     of that point on the tree, and produce a merged hash containing
     consolidated data.
     """
  
-    cache_enabled = False # FIXME: disabled for now as there a few bugs in this impl.
-
     blend_key = "%s/%s/%s" % (root_obj.TYPE_NAME, root_obj.name, remove_hashes)
-    if cache_enabled and blend_cache is not None:
-        if blend_cache.has_key(blend_key):
-            return blend_cache[blend_key]
 
     settings = api_handle.settings()
     tree = grab_tree(api_handle, root_obj)
@@ -353,9 +349,6 @@ def blender(api_handle,remove_hashes, root_obj, blend_cache=None):
     # sanitize output for koan and kernel option lines, etc
     if remove_hashes:
         results = flatten(results)
-
-    if cache_enabled and blend_cache is not None:
-        blend_cache[blend_key] = results
     return results
 
 def flatten(data):
@@ -547,6 +540,70 @@ def tftpboot_location():
     if make == "fedora" and version >= 9:
        return "/var/lib/tftpboot"
     return "/tftpboot"
+
+def linkfile(src, dst):
+    """
+    Attempt to create a link dst that points to src.  Because file
+    systems suck we attempt several different methods or bail to
+    copyfile()
+    """
+
+    try:
+        return os.link(src, dst)
+    except (IOError, OSError):
+        pass
+
+    try:
+        return os.symlink(src, dst)
+    except (IOError, OSError):
+        pass
+
+        return utils.copyfile(src, dst)
+
+def copyfile(src,dst):
+    try:
+        return shutil.copyfile(src,dst)
+    except:
+        if not os.path.samefile(src,dst):
+            # accomodate for the possibility that we already copied
+            # the file as a symlink/hardlink
+            raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+
+def rmfile(path):
+    try:
+        os.unlink(path)
+        return True
+    except OSError, ioe:
+        if not ioe.errno == errno.ENOENT: # doesn't exist
+            traceback.print_exc()
+            raise CX(_("Error deleting %s") % path)
+        return True
+
+def rmtree_contents(path):
+   what_to_delete = glob.glob("%s/*" % path)
+   for x in what_to_delete:
+       rmtree(x)
+
+def rmtree(path):
+   try:
+       if os.path.isfile(path):
+           return rmfile(path)
+       else:
+           return shutil.rmtree(path,ignore_errors=True)
+   except OSError, ioe:
+       traceback.print_exc()
+       if not ioe.errno == errno.ENOENT: # doesn't exist
+           raise CX(_("Error deleting %s") % path)
+       return True
+
+def mkdir(path,mode=0777):
+   try:
+       return os.makedirs(path,mode)
+   except OSError, oe:
+       if not oe.errno == 17: # already exists (no constant for 17?)
+           traceback.print_exc()
+           print oe.errno
+           raise CX(_("Error creating") % path)
 
 if __name__ == "__main__":
     # print redhat_release()

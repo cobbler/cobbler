@@ -1,10 +1,9 @@
 """
-Builds out a TFTP/cobbler boot tree based on the object tree.
+Builds out filesystem trees/data based on the object tree.
 This is the code behind 'cobbler sync'.
 
-Copyright 2006,2007, Red Hat, Inc
+Copyright 2006-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
-Tim Verhoeven <tim.verhoeven.be@gmail.com>
 
 This software may be freely redistributed under the terms of the GNU
 general public license.
@@ -22,11 +21,13 @@ import yaml # Howell-Clark version
 import sub_process
 import sys
 import glob
+import traceback
+import errno
 
 import utils
 from cexceptions import *
-import traceback
-import errno
+import templar 
+
 
 import item_distro
 import item_profile
@@ -55,8 +56,7 @@ class BootSync:
         self.systems     = config.systems()
         self.settings    = config.settings()
         self.repos       = config.repos()
-        self.blend_cache = {}
-        self.load_snippet_cache()
+        self.templar     = templar.Templar(config)
         self.bootloc     = utils.tftpboot_location()
 
     def run(self):
@@ -106,13 +106,13 @@ class BootSync:
             path = self.settings.bootloaders[loader]
             newname = os.path.basename(path)
             destpath = os.path.join(self.bootloc, newname)
-            self.copyfile(path, destpath)
-        self.copyfile("/var/lib/cobbler/menu.c32", os.path.join(self.bootloc, "menu.c32"))
+            utils.copyfile(path, destpath)
+        utils.copyfile("/var/lib/cobbler/menu.c32", os.path.join(self.bootloc, "menu.c32"))
 
         # Copy memtest to tftpboot if package is installed on system          
         for memtest in glob.glob('/boot/memtest*'):
             base = os.path.basename(memtest)
-            self.copyfile(memtest,os.path.join(self.bootloc,"images",base))
+            utils.copyfile(memtest,os.path.join(self.bootloc,"images",base))
 
     def write_dhcp_file(self):
         """
@@ -221,7 +221,7 @@ class BootSync:
                 continue
             metadata["insert_cobbler_system_definitions_%s" % x] = system_definitions[x]   
 
-        self.apply_template(template_data, metadata, settings_file)
+        self.templar.render(template_data, metadata, settings_file, None)
 
     def regen_ethers(self):
         # dnsmasq knows how to read this database of MACs -> IPs, so we'll keep it up to date
@@ -276,16 +276,16 @@ class BootSync:
             path = os.path.join(self.settings.webdir,x)
             if os.path.isfile(path):
                 if not x.endswith(".py"):
-                    self.rmfile(path)
+                    utils.rmfile(path)
             if os.path.isdir(path):
                 if not x in ["web", "webui", "localmirror","repo_mirror","ks_mirror","kickstarts","kickstarts_sys","distros","images","systems","profiles","links","repo_profile","repo_system"] :
                     # delete directories that shouldn't exist
-                    self.rmtree(path)
+                    utils.rmtree(path)
                 if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system"]:
                     # clean out directory contents
-                    self.rmtree_contents(path)
-        self.rmtree_contents(os.path.join(self.bootloc, "pxelinux.cfg"))
-        self.rmtree_contents(os.path.join(self.bootloc, "images"))
+                    utils.rmtree_contents(path)
+        utils.rmtree_contents(os.path.join(self.bootloc, "pxelinux.cfg"))
+        utils.rmtree_contents(os.path.join(self.bootloc, "images"))
 
     def copy_distros(self):
         """
@@ -306,7 +306,7 @@ class BootSync:
         for dirtree in [self.bootloc, self.settings.webdir]: 
             distros = os.path.join(dirtree, "images")
             distro_dir = os.path.join(distros,d.name)
-            self.mkdir(distro_dir)
+            utils.mkdir(distro_dir)
             kernel = utils.find_kernel(d.kernel) # full path
             initrd = utils.find_initrd(d.initrd) # full path
             if kernel is None or not os.path.isfile(kernel):
@@ -316,13 +316,13 @@ class BootSync:
             b_kernel = os.path.basename(kernel)
             b_initrd = os.path.basename(initrd)
             if kernel.startswith(dirtree):
-                self.linkfile(kernel, os.path.join(distro_dir, b_kernel))
+                utils.linkfile(kernel, os.path.join(distro_dir, b_kernel))
             else:
-                self.copyfile(kernel, os.path.join(distro_dir, b_kernel))
+                utils.copyfile(kernel, os.path.join(distro_dir, b_kernel))
             if initrd.startswith(dirtree):
-                self.linkfile(initrd, os.path.join(distro_dir, b_initrd))
+                utils.linkfile(initrd, os.path.join(distro_dir, b_initrd))
             else:
-                self.copyfile(initrd, os.path.join(distro_dir, b_initrd))
+                utils.copyfile(initrd, os.path.join(distro_dir, b_initrd))
 
     def validate_kickstarts(self):
         """
@@ -356,7 +356,7 @@ class BootSync:
 
     def validate_kickstart_for_specific_profile(self,g):
         distro = g.get_conceptual_parent()
-        meta = utils.blender(self.api, False, g, self.blend_cache)
+        meta = utils.blender(self.api, False, g)
         if distro is None:
            raise CX(_("profile %(profile)s references missing distro %(distro)s") % { "profile" : g.name, "distro" : g.distro })
         kickstart_path = utils.find_kickstart(meta["kickstart"])
@@ -367,10 +367,10 @@ class BootSync:
                "kickstarts", # profile kickstarts go here
                g.name
            )
-           self.mkdir(copy_path)
+           utils.mkdir(copy_path)
            dest = os.path.join(copy_path, "ks.cfg")
            try:
-                meta = utils.blender(self.api, False, g, self.blend_cache)
+                meta = utils.blender(self.api, False, g)
                 ksmeta = meta["ks_meta"]
                 del meta["ks_meta"]
                 meta.update(ksmeta) # make available at top level
@@ -379,7 +379,7 @@ class BootSync:
                 meta["kickstart_done"] = self.generate_kickstart_signal(g, None)
                 meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
                 kfile = open(kickstart_path)
-                self.apply_template(kfile, meta, dest)
+                self.templar.render(kfile, meta, dest, g)
                 kfile.close()
            except:
                 traceback.print_exc() # leave this in, for now...
@@ -404,7 +404,7 @@ class BootSync:
         if system:
             blend_this = system
 
-        blended = utils.blender(self.api, False, blend_this, self.blend_cache)
+        blended = utils.blender(self.api, False, blend_this)
         kickstart = blended.get("kickstart",None)
 
         buf = ""
@@ -436,7 +436,7 @@ class BootSync:
         """
 
         buf = ""
-        blended = utils.blender(self.api, False, obj, self.blend_cache)
+        blended = utils.blender(self.api, False, obj)
         configs = self.get_repo_filenames(obj,is_profile)
         repos = self.repos
 
@@ -479,7 +479,7 @@ class BootSync:
         baseurls
         """        
 
-        blended = utils.blender(self.api, False, obj, self.blend_cache)
+        blended = utils.blender(self.api, False, obj)
         urlseg = self.get_repo_segname(is_profile)
 
         topdir = "%s/%s/%s/*.repo" % (self.settings.webdir, urlseg, blended["name"])
@@ -503,7 +503,7 @@ class BootSync:
         if not is_profile:
            distro = distro.get_conceptual_parent()
 
-        blended = utils.blender(self.api, False, obj, self.blend_cache)
+        blended = utils.blender(self.api, False, obj)
         configs = self.get_repo_filenames(obj, is_profile)
         buf = ""
  
@@ -545,14 +545,14 @@ class BootSync:
         if profile is None:
             raise CX(_("system %(system)s references missing profile %(profile)s") % { "system" : s.name, "profile" : s.profile })
         distro = profile.get_conceptual_parent()
-        meta = utils.blender(self.api, False, s, self.blend_cache)
+        meta = utils.blender(self.api, False, s)
         kickstart_path = utils.find_kickstart(meta["kickstart"])
         if kickstart_path and os.path.exists(kickstart_path):
             copy_path = os.path.join(self.settings.webdir,
                 "kickstarts_sys", # system kickstarts go here
                 s.name
             )
-            self.mkdir(copy_path)
+            utils.mkdir(copy_path)
             dest = os.path.join(copy_path, "ks.cfg")
             try:
                 ksmeta = meta["ks_meta"]
@@ -563,106 +563,11 @@ class BootSync:
                 meta["kickstart_done"]  = self.generate_kickstart_signal(profile, s)
                 meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
                 kfile = open(kickstart_path)
-                self.apply_template(kfile, meta, dest)
+                self.templar.render(kfile, meta, dest, s)
                 kfile.close()
             except:
                 traceback.print_exc()
                 raise CX(_("Error templating file %(src)s to %(dest)s") % { "src" : meta["kickstart"], "dest" : dest })
-
-    def load_snippet_cache(self):
-
-        # first load all of the files in /var/lib/cobbler/snippets and load them, for use
-        # in adding long bits to kickstart templates without having to have them hard coded
-        # inside the sync code.
-
-        snippet_cache = {} 
-        snippets = glob.glob("%s/*" % self.settings.snippetsdir)
-        for snip in snippets:
-           if os.path.isdir(snip):
-               continue
-           snip_file = open(snip)
-           data = snip_file.read()
-           snip_file.close()
-           snippet_cache[os.path.basename(snip)] = data
-        self.snippet_cache = snippet_cache
-
-
-    def apply_template(self, data_input, metadata, out_path):
-        """
-        Take filesystem file kickstart_input, apply metadata using
-        Cheetah and save as out_path.
-        """
-
-        if type(data_input) != str:
-           data = data_input.read()
-        else:
-           data = data_input
-
-        # backward support for Cobbler's legacy (and slightly more readable) 
-        # template syntax.
-        data = data.replace("TEMPLATE::","$")
-
-        # replace contents of the data stream with items from the snippet cache
-        # do not use Cheetah yet, Cheetah can't really be run twice on the same
-        # stream and be expected to do the right thing
-        newdata = ""
-        for line in data.split("\n"):
-            for x in self.snippet_cache:
-                if not line.startswith("#"):
-                    line = line.replace("SNIPPET::%s" % x, self.snippet_cache[x])
-            newdata = "\n".join((newdata, line))
-        data = newdata
-
-        # HACK:  the ksmeta field may contain nfs://server:/mount in which
-        # case this is likely WRONG for kickstart, which needs the NFS
-        # directive instead.  Do this to make the templates work.
-        newdata = ""
-        if metadata.has_key("tree") and metadata["tree"].startswith("nfs://"): 
-            for line in data.split("\n"):
-               if line.find("--url") != -1 and line.find("url ") != -1:
-                   rest = metadata["tree"][6:] # strip off "nfs://" part
-                   try:
-                       (server, dir) = rest.split(":",2)
-                   except:
-                       raise CX(_("Invalid syntax for NFS path given during import: %s" % metadata["tree"]))
-                   line = "nfs --server %s --dir %s" % (server,dir)
-                   # but put the URL part back in so koan can still see
-                   # what the original value was
-                   line = line + "\n" + "#url --url=%s" % metadata["tree"]
-               newdata = newdata + line + "\n"
-            data = newdata 
-
-        # tell Cheetah not to blow up if it can't find a symbol for something
-        data = "#errorCatcher Echo\n" + data
-
-        # now do full templating scan, where we will also templatify the snippet insertions
-        t = Template(source=data, searchList=[metadata])
-        try:
-            data_out = str(t)
-        except:
-            print _("There appears to be an formatting error in the template file.")
-            print _("For completeness, the traceback from Cheetah has been included below.")
-            raise
-
-        # now apply some magic post-filtering that is used by cobbler import and some
-        # other places, but doesn't use Cheetah.  Forcing folks to double escape
-        # things would be very unwelcome.
-
-        for x in metadata:
-           if type(metadata[x]) == str:
-               data_out = data_out.replace("@@%s@@" % x, metadata[x])
-        
-        # remove leading newlines which apparently breaks AutoYAST ?
-        if data_out.startswith("\n"):
-            data_out = data_out.strip() 
-
-        if out_path is not None:
-            self.mkdir(os.path.dirname(out_path))
-            fd = open(out_path, "w+")
-            fd.write(data_out)
-            fd.close()
-
-        return data_out
 
     def build_trees(self):
         """
@@ -703,7 +608,7 @@ class BootSync:
         and also potentially in listed in the source_repos structure of the distro object, however
         these files have server URLs in them that must be templated out.  This function does this.
         """
-        blended  = utils.blender(self.api, False, obj, self.blend_cache)
+        blended  = utils.blender(self.api, False, obj)
 
         if is_profile:
            outseg = "repos_profile"
@@ -735,7 +640,7 @@ class BootSync:
                 dispname = infile.split("/")[-1].replace(".repo","")
             confdir = os.path.join(self.settings.webdir, outseg)
             outdir = os.path.join(confdir, blended["name"])
-            self.mkdir(outdir) 
+            utils.mkdir(outdir) 
             try:
                 infile_h = open(infile)
             except:
@@ -744,7 +649,7 @@ class BootSync:
             infile_data = infile_h.read()
             infile_h.close()
             outfile = os.path.join(outdir, "%s.repo" % (dispname))
-            self.apply_template(infile_data, blended, outfile)
+            self.templar.render(infile_data, blended, outfile, None)
 
 
     def write_all_system_files(self,system,just_edit_pxe=False):
@@ -788,7 +693,7 @@ class BootSync:
                     self.write_pxe_file(f2,system,profile,distro,True)
             else:
                 # ensure the file doesn't exist
-                self.rmfile(f2)
+                utils.rmfile(f2)
 
             if not just_edit_pxe:
                 # allows netboot-disable to be highly performant
@@ -834,10 +739,10 @@ class BootSync:
                 contents = self.write_memtest_pxe("/images/%s" % base)
                 pxe_menu_items = pxe_menu_items + contents + "\n"
               
-         # save the template.
+        # save the template.
         metadata = { "pxe_menu_items" : pxe_menu_items }
         outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
-        self.apply_template(template_data, metadata, outfile)
+        self.templar.render(template_data, metadata, outfile, None)
         template_src.close()
 
     def write_memtest_pxe(self,filename):
@@ -845,16 +750,13 @@ class BootSync:
         Write a configuration file for memtest
         """
 
-        # ---
         # just some random variables
         template = None
         metadata = {}
         buffer = ""
 
-        # ---
         template = "/etc/cobbler/pxeprofile.template"
 
-        # ---
         # store variables for templating
         metadata["menu_label"] = "MENU LABEL %s" % os.path.basename(filename)
         metadata["profile_name"] = os.path.basename(filename)
@@ -862,15 +764,13 @@ class BootSync:
         metadata["initrd_path"] = ""
         metadata["append_line"] = ""
 
-        # ---
         # get the template
         template_fh = open(template)
         template_data = template_fh.read()
         template_fh.close()
 
-        # ---
         # return results
-        buffer = self.apply_template(template_data, metadata, None)
+        buffer = self.templar.render(template_data, metadata, None)
         return buffer
 
 
@@ -902,7 +802,7 @@ class BootSync:
         initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
         
         # Find the kickstart if we inherit from another profile
-        kickstart_path = utils.blender(self.api, True, profile, self.blend_cache)["kickstart"]
+        kickstart_path = utils.blender(self.api, True, profile)["kickstart"]
 
         # ---
         # choose a template
@@ -915,12 +815,11 @@ class BootSync:
 
         # now build the kernel command line
         if system is not None:
-            blended = utils.blender(self.api, True,system,self.blend_cache)
+            blended = utils.blender(self.api, True, system)
         else:
-            blended = utils.blender(self.api, True,profile,self.blend_cache)
+            blended = utils.blender(self.api, True,profile)
         kopts = blended["kernel_options"]
 
-        # ---
         # generate the append line
         append_line = "append %s" % utils.hash_to_string(kopts)
         if not is_ia64:
@@ -928,7 +827,6 @@ class BootSync:
         if len(append_line) >= 255 + len("append "):
             print _("warning: kernel option length exceeds 255")
 
-        # ---
         # kickstart path rewriting (get URLs for local files)
         if kickstart_path is not None and kickstart_path != "":
 
@@ -945,7 +843,6 @@ class BootSync:
                 append_line = "%s auto=true url=%s" % (append_line, kickstart_path)
                 append_line = append_line.replace("ksdevice","interface")
 
-        # ---
         # store variables for templating
         metadata["menu_label"] = ""
         if not is_ia64 and system is None:
@@ -955,15 +852,13 @@ class BootSync:
         metadata["initrd_path"] = initrd_path
         metadata["append_line"] = append_line
 
-        # ---
         # get the template
         template_fh = open(template)
         template_data = template_fh.read()
         template_fh.close()
 
-        # ---
         # save file and/or return results, depending on how called.
-        buffer = self.apply_template(template_data, metadata, None)
+        buffer = self.templar.render(template_data, metadata, None)
         if filename is not None:
             fd = open(filename, "w")
             fd.write(buffer)
@@ -991,7 +886,7 @@ class BootSync:
         """
         Create distro information for koan install
         """
-        blended = utils.blender(self.api, True, distro, self.blend_cache)
+        blended = utils.blender(self.api, True, distro)
         filename = os.path.join(self.settings.webdir,"distros",distro.name)
         fd = open(filename, "w+")
         fd.write(yaml.dump(blended))
@@ -1004,7 +899,7 @@ class BootSync:
         NOTE: relevant to http only
         """
 
-        blended = utils.blender(self.api, True, profile, self.blend_cache)
+        blended = utils.blender(self.api, True, profile)
         filename = os.path.join(self.settings.webdir,"profiles",profile.name)
         fd = open(filename, "w+")
         if blended.has_key("kickstart") and blended["kickstart"].startswith("/"):
@@ -1020,73 +915,11 @@ class BootSync:
         NOTE: relevant to http only
         """
 
-        blended = utils.blender(self.api, True, system, self.blend_cache)
+        blended = utils.blender(self.api, True, system)
         filename = os.path.join(self.settings.webdir,"systems",system.name)
         fd = open(filename, "w+")
         fd.write(yaml.dump(blended))
         fd.close()
 
-    def linkfile(self, src, dst):
-        """
-        Attempt to create a link dst that points to src.  Because file
-        systems suck we attempt several different methods or bail to
-        self.copyfile()
-        """
 
-        try:
-            return os.link(src, dst)
-        except (IOError, OSError):
-            pass
-
-        try:
-            return os.symlink(src, dst)
-        except (IOError, OSError):
-            pass
-
-        return self.copyfile(src, dst)
-
-    def copyfile(self,src,dst):
-        try:
-            return shutil.copyfile(src,dst)
-        except:
-            if not os.path.samefile(src,dst):
-                # accomodate for the possibility that we already copied
-                # the file as a symlink/hardlink
-                raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
-
-    def rmfile(self,path):
-        try:
-            os.unlink(path)
-            return True
-        except OSError, ioe:
-            if not ioe.errno == errno.ENOENT: # doesn't exist
-                traceback.print_exc()
-                raise CX(_("Error deleting %s") % path)
-            return True
-
-    def rmtree_contents(self,path):
-       what_to_delete = glob.glob("%s/*" % path)
-       for x in what_to_delete:
-           self.rmtree(x)
-
-    def rmtree(self,path):
-       try:
-           if os.path.isfile(path):
-               return self.rmfile(path)
-           else:
-               return shutil.rmtree(path,ignore_errors=True)
-       except OSError, ioe:
-           traceback.print_exc()
-           if not ioe.errno == errno.ENOENT: # doesn't exist
-               raise CX(_("Error deleting %s") % path)
-           return True
-
-    def mkdir(self,path,mode=0777):
-       try:
-           return os.makedirs(path,mode)
-       except OSError, oe:
-           if not oe.errno == 17: # already exists (no constant for 17?)
-               traceback.print_exc()
-               print oe.errno
-               raise CX(_("Error creating") % path)
 
