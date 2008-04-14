@@ -18,6 +18,7 @@ Cobbler CHANGELOG
 - removed dependency on rhpl
 - import can now take an --arch (and is recommended usage)
 - now possible to override snippets on a profile/system specific basis
+- provide a different default sample kickstart for imports of F8 and later
 
 - ??? - 0.8.3
 - Make createrepo get run for local cobbler reposync invocations as needed

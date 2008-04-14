@@ -192,13 +192,6 @@ class Importer:
                print _("- skipping distro %s since it wasn't imported this time") % profile.distro
                continue
 
-           # THIS IS OBSOLETE:
-           #
-           #if not distro.kernel.startswith("%s/ks_mirror/" % self.settings.webdir):
-           #    # this isn't a mirrored profile, so we won't touch it
-           #    print _("- skipping %s since profile isn't mirrored") % profile.name
-           #    continue
- 
            if (self.kickstart_file == None):
                kdir = os.path.dirname(distro.kernel)   
                base_dir = "/".join(kdir.split("/")[0:-2])
@@ -287,6 +280,8 @@ class Importer:
 
    def set_kickstart(self, profile, flavor, major, minor):
        if flavor == "fedora":
+           if major >= 8:
+                return profile.set_kickstart("/etc/cobbler/sample_end.ks")
            if major >= 6:
                 return profile.set_kickstart("/etc/cobbler/sample.ks")
        if flavor == "redhat" or flavor == "centos":

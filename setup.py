@@ -88,6 +88,7 @@ if __name__ == "__main__":
                                 # sample kickstart files
                                 (etcpath,  ['kickstarts/legacy.ks']),
                                 (etcpath,  ['kickstarts/sample.ks']),
+                                (etcpath,  ['kickstarts/sample_end.ks']),
                                 (etcpath,  ['kickstarts/default.ks']),
  
                                 # templates for DHCP and syslinux configs

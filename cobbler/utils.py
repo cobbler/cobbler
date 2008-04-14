@@ -480,13 +480,19 @@ def fix_mod_python_select_submission(repos):
     repos = repos.replace('"',"")
     repos = repos.lstrip().rstrip()
     return repos
+
 def check_dist():
+    """
+    Determines what distro we're running under.  
+    """
     if os.path.exists("/etc/debian_version"):
        return "debian"
     else:
+       # valid for Fedora and all Red Hat / Fedora derivatives
        return "redhat"
 
-def redhat_release():
+def os_release():
+
    if check_dist() == "redhat":
 
       if not os.path.exists("/bin/rpm"):
@@ -536,7 +542,7 @@ def tftpboot_location():
                     return t
 
     # otherwise, guess based on the distro
-    (make,version,rest) = redhat_release()
+    (make,version,rest) = os_release()
     if make == "fedora" and version >= 9:
        return "/var/lib/tftpboot"
     return "/tftpboot"
