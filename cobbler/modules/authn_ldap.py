@@ -17,7 +17,10 @@ import os
 from utils import _
 import md5
 import traceback
-import ldap
+
+# we'll import this just a bit later
+# to keep it from being a requirement
+# import ldap
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
@@ -38,6 +41,8 @@ def authenticate(api_handle,username,password):
     """
     Validate an ldap bind, returning True/False
     """
+ 
+    import ldap
 
     server    = api_handle.settings().ldap_server
     basedn    = api_handle.settings().ldap_base_dn

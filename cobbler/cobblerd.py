@@ -18,6 +18,7 @@ import SimpleXMLRPCServer
 import glob
 from utils import _
 import xmlrpclib
+import binascii
 
 from server import xmlrpclib2
 import api as cobbler_api
@@ -40,12 +41,29 @@ def core(logger=None):
 
     pid = os.fork()
 
+    regen_ss_file()
+
     if pid == 0:
         # part one: XMLRPC -- which may be just read-only or both read-only and read-write
         do_xmlrpc_tasks(bootapi, settings, xmlrpc_port, xmlrpc_port2, logger)
     else:
         # part two: syslog, or syslog+avahi if avahi is installed
         do_other_tasks(bootapi, settings, syslog_port, logger)
+
+def regen_ss_file():
+    # this is only used for Kerberos auth at the moment.
+    # it identifies XMLRPC requests from Apache that have already
+    # been cleared by Kerberos.
+
+    fd = open("/dev/urandom")
+    data = fd.read(512)
+    fd.close()
+    fd = open("/var/lib/cobbler/web.ss","w+")
+    fd.write(binascii.hexlify(data))
+    fd.close()
+    os.system("chmod 700 /var/lib/cobbler/web.ss")
+    os.system("chown apache /var/lib/cobbler/web.ss")
+    return 1
 
 def do_xmlrpc_tasks(bootapi, settings, xmlrpc_port, xmlrpc_port2, logger):
     if str(settings.xmlrpc_rw_enabled) != "0":
@@ -195,11 +213,14 @@ if __name__ == "__main__":
 
     #main()
 
-    bootapi      = cobbler_api.BootAPI()
-    settings     = bootapi.settings()
-    syslog_port  = settings.syslog_port
-    xmlrpc_port  = settings.xmlrpc_port
-    xmlrpc_port2 = settings.xmlrpc_rw_port
-    logger       = bootapi.logger_remote
-    do_xmlrpc_unix(bootapi, settings, logger)
+    #bootapi      = cobbler_api.BootAPI()
+    #settings     = bootapi.settings()
+    #syslog_port  = settings.syslog_port
+    #xmlrpc_port  = settings.xmlrpc_port
+    #xmlrpc_port2 = settings.xmlrpc_rw_port
+    #logger       = bootapi.logger_remote
+    #do_xmlrpc_unix(bootapi, settings, logger)
+   
+    regen_ss_file()
+
 

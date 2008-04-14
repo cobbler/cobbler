@@ -120,7 +120,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /tftpboot/images
 %{_bindir}/cobbler
 %{_bindir}/cobblerd
-%{_bindir}/cobbler_auth_help
 %dir /etc/cobbler
 %config(noreplace) /etc/cobbler/*.ks
 %config(noreplace) /etc/cobbler/*.template

@@ -564,7 +564,7 @@ def linkfile(src, dst):
     except (IOError, OSError):
         pass
 
-        return utils.copyfile(src, dst)
+        return copyfile(src, dst)
 
 def copyfile(src,dst):
     try:

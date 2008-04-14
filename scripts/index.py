@@ -18,6 +18,7 @@ from mod_python import util
 
 import xmlrpclib
 import cgi
+import os
 from cobbler.webui import CobblerWeb
 
 XMLRPC_SERVER = "http://127.0.0.1:25152" # was http://127.0.0.1/cobbler_api_rw"
@@ -70,7 +71,28 @@ def handler(req):
     my_user = __get_user(req)
     my_uri = req.uri
     sess  = __get_session(req)
-    token = sess['cobbler_token']
+
+    if not sess.has_key('cobbler_token'):
+       # using Kerberos instead of Python Auth handler? 
+       # We need to get our own token for use with authn_passthru
+       # which should also be configured in /etc/cobbler/modules.conf
+       # if another auth mode is configured in modules.conf this will
+       # most certaintly fail.
+       try:
+           if not os.path.exists("/var/lib/cobbler/web.ss"):
+               apache.log_error("cannot load /var/lib/cobbler/web.ss")
+               return apache.HTTP_UNAUTHORIZED
+           fd = open("/var/lib/cobbler/web.ss")
+           data = fd.read()
+           my_pw = data
+           fd.close()
+           token = xmlrpc_server.login(my_user,my_pw)
+       except Exception, e:
+           apache.log_error(str(e))
+           return apache.HTTP_UNAUTHORIZED
+       sess['cobbler_token'] = token
+    else:
+       token = sess['cobbler_token']
 
     # needed?
     req.add_common_vars()
@@ -118,7 +140,6 @@ def authenhandler(req):
     my_user = req.user
     my_uri = req.uri
 
-    apache.log_error("authenhandler called: %s" % my_user)
     try:
         token = xmlrpc_server.login(my_user,my_pw)
     except Exception, e:
