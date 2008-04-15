@@ -11,7 +11,7 @@
 # if the triggers are enabled in the settings file.
 #
 # (C) Tim Verhoeven <tim.verhoeven.be@gmail.com>, 2007
-# tweaked: Michael DeHaan <mdehaan@redhat.com>
+# tweaked: Michael DeHaan <mdehaan@redhat.com>, 2007-2008
 
 import cgi
 import cgitb
@@ -41,17 +41,37 @@ def parse_query():
 
     form = cgi.parse()
 
-    if form.has_key("system"):
-        return form["system"][0]
-    return 0 
+    mac = "?"
+    if os.environ.has_key("HTTP_X_RHN_PROVISIONING_MAC_0"):
+        devicepair = os.environ["HTTP_X_RHN_PROVISIONING_MAC_0"]
+        mac = devicepair.split()[1].strip()
 
-def invoke(name):
+    ip = "?"
+    if os.environ.has_key("REMOTE_ADDR"):
+        ip = os.environ["REMOTE_ADDR"]
+
+    name = "?"
+    objtype = "?"
+    if form.has_key("system"):
+        name = form["system"][0]
+        objtype = "system"
+    elif form.has_key("profile"):
+        name = form["profile"][0]
+        objtype = "profile"
+
+    mode = "?"
+    if form.has_key("mode"):
+        mode = form["mode"][0]
+
+    return (mode,objtype,name,mac,ip)
+
+def invoke(mode,objtype,name,mac,ip):
     """
     Determine if this feature is enabled.
     """
     
     xmlrpc_server = ServerProxy(XMLRPC_SERVER)
-    print xmlrpc_server.run_post_install_triggers(name)
+    print xmlrpc_server.run_install_triggers(mode,objtype,name,mac,ip)
 
     return True
 
@@ -66,7 +86,7 @@ def header():
 if __name__ == "__main__":
     cgitb.enable(format='text')
     header()
-    name = parse_query()
-    invoke(name)
+    (mode,objtype,name,mac,ip) = parse_query()
+    invoke(mode,objtype,name,mac,ip)
 
 

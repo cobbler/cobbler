@@ -100,6 +100,11 @@ class BootStatusReport:
         tracking will be incomplete.  This should be noted in the docs.
         """
 
+
+        print "NOTE: this function is being replaced right now.  Stay tuned!"
+        return 0    
+
+
         api = cobbler_api.BootAPI()
 
         apache_results = self.scan_apache_logfiles()

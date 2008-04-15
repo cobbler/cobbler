@@ -20,6 +20,7 @@ Cobbler CHANGELOG
 - now possible to override snippets on a profile/system specific basis
 - provide a different default sample kickstart for imports of F8 and later
 - support for kerberos authentication
+- revamped pre/post install triggers system (triggered via cgi from kickstart wget)
 
 - ??? - 0.8.3
 - Make createrepo get run for local cobbler reposync invocations as needed

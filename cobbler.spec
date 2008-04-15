@@ -163,11 +163,14 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/triggers/delete/repo/post
 %dir /var/lib/cobbler/triggers/sync/pre
 %dir /var/lib/cobbler/triggers/sync/post
+%dir /var/lib/cobbler/triggers/install/pre
 %dir /var/lib/cobbler/triggers/install/post
 %dir /var/lib/cobbler/snippets/
 
 %defattr(744,root,root)
 %config(noreplace) /var/lib/cobbler/triggers/sync/post/restart-services.trigger
+%config(noreplace) /var/lib/cobbler/triggers/install/pre/status_pre.trigger
+%config(noreplace) /var/lib/cobbler/triggers/install/post/status_post.trigger
 
 %defattr(664,root,root)
 %config(noreplace) /var/lib/cobbler/settings

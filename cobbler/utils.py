@@ -430,7 +430,7 @@ def hash_to_string(hash):
           buffer = buffer + str(key) + "=" + str(value) + " "
     return buffer
 
-def run_triggers(ref,globber):
+def run_triggers(ref,globber,additional=[]):
     """
     Runs all the trigger scripts in a given directory.
     ref can be a cobbler object, if not None, the name will be passed
@@ -447,10 +447,12 @@ def run_triggers(ref,globber):
                 # skip .rpmnew files that may have been installed
                 # in the triggers directory
                 continue
+            arglist = [ file ]
             if ref:
-                rc = sub_process.call([file,ref.name], shell=False)
-            else:
-                rc = sub_process.call([file], shell=False)
+                arglist.append(ref.name)
+            for x in additional:
+                arglist.append(x)
+            rc = sub_process.call(arglist, shell=False)
         except:
             print _("Warning: failed to execute trigger: %s" % file)
             continue

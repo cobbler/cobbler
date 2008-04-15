@@ -55,6 +55,7 @@ devinstall:
 webtest: devinstall
 	/sbin/service cobblerd restart
 	/sbin/service httpd restart
+	chmod +x /var/www/cgi-bin/cobbler/*.cgi
 
 sdist: clean messages updatewui
 	python setup.py sdist

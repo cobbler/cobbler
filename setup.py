@@ -65,7 +65,7 @@ if __name__ == "__main__":
                                 (modpython, ['scripts/index.py']),
                                 # cgi files
                                 (cgipath,   ['scripts/findks.cgi', 'scripts/nopxe.cgi']),
-                                (cgipath,   ['scripts/post_install_trigger.cgi']),
+                                (cgipath,   ['scripts/install_trigger.cgi']),
  
                                 # miscellaneous config files
                                 (rotpath,  ['config/cobblerd_rotate']),
@@ -192,7 +192,8 @@ if __name__ == "__main__":
                                 ("%sdelete/repo/pre" % trigpath,     []),
                                 ("%sdelete/repo/post" % trigpath,    []),
                                 ("%sdelete/repo/post" % trigpath,    []),
-                                ("%sinstall/post" % trigpath,        []),
+                                ("%sinstall/pre" % trigpath,         [ "triggers/status_pre.trigger"]),
+                                ("%sinstall/post" % trigpath,        [ "triggers/status_post.trigger"]),
                                 ("%ssync/pre" % trigpath,            []),
                                 ("%ssync/post" % trigpath,           [ "triggers/restart-services.trigger" ])
                              ],

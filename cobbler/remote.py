@@ -230,26 +230,28 @@ class CobblerXMLRPCInterface:
         systems.add(obj,save=True,with_triggers=False,with_sync=False,quick_pxe_update=True)
         return True
 
-    def run_post_install_triggers(self,name,token=None):
-        """
-        This is a feature used to run the post install trigger.
-        It passes the system named "name" to the trigger.  Disabled by default as
-        this requires public API access and is technically a read-write operation.
-        """
-        self.log("run_post_install_triggers",token=token)
+    def run_install_triggers(self,mode,objtype,name,mac,ip,token=None):
 
-        # used by postinstalltrigger.cgi
-        self.api.clear()
-        self.api.deserialize()
-        if not self.api.settings().run_post_install_trigger:
-            # feature disabled!
+        """
+        This is a feature used to run the pre/post install triggers.
+        See CobblerTriggers on Wiki for details
+        """
+
+        self.log("run_install_triggers",token=token)
+
+        if mode != "pre" and mode != "post":
             return False
-        systems = self.api.systems()
-        obj = systems.find(name=name)
-        if obj == None:
-            # system not found!
+        if objtype != "system" and objtype !="profile":
             return False
-        utils.run_triggers(obj, "/var/lib/cobbler/triggers/install/post/*")
+
+        # the trigger script is called with name,mac, and ip as arguments 1,2, and 3
+        # we do not do API lookups here because they are rather expensive at install
+        # time if reinstalling all of a cluster all at once.
+        # we can do that at "cobbler check" time.
+
+        utils.run_triggers(None, "/var/lib/cobbler/triggers/install/%s/*" % mode, additional=[objtype,name,mac,ip])
+
+
         return True
 
     def _refresh(self):

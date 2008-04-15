@@ -376,7 +376,8 @@ class BootSync:
                 meta.update(ksmeta) # make available at top level
                 meta["yum_repo_stanza"] = self.generate_repo_stanza(g,True)
                 meta["yum_config_stanza"] = self.generate_config_stanza(g,True)
-                meta["kickstart_done"] = self.generate_kickstart_signal(g, None)
+                meta["kickstart_done"]  = self.generate_kickstart_signal(0, g, None)
+                meta["kickstart_start"] = self.generate_kickstart_signal(1, g, None)
                 meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
                 kfile = open(kickstart_path)
                 self.templar.render(kfile, meta, dest, g)
@@ -386,40 +387,56 @@ class BootSync:
                 msg = "err_kickstart2"
                 raise CX(_("Error while rendering kickstart file %(src)s to %(dest)s") % { "src" : kickstart_path, "dest" : dest })
 
-    def generate_kickstart_signal(self, profile, system=None):
+    def generate_kickstart_signal(self, is_pre=0, profile=None, system=None):
         """
-        Do things that we do at the end of kickstarts...
-        * signal the status watcher we're done
-        * disable PXE if needed
-        * save the original kickstart file for debug
+        Do things that we do at the start/end of kickstarts...
+        * start: signal the status watcher we're starting
+        * end:   signal the status watcher we're done
+        * end:   disable PXE if needed
+        * end:   save the original kickstart file for debug
         """
 
         # FIXME: watcher is more of a request than a packaged file
         # we should eventually package something and let it do something important"
-        pattern1 = "wget \"http://%s/cgi-bin/cobbler/nopxe.cgi?system=%s\""
-        pattern2 = "wget \"http://%s/cobbler/%s/%s/ks.cfg\" -O /root/cobbler.ks"
-        pattern3 = "wget \"http://%s/cgi-bin/cobbler/post_install_trigger.cgi?system=%s\""
+       
+        nopxe = "\nwget \"http://%s/cgi-bin/cobbler/nopxe.cgi?system=%s\""
+        saveks = "\nwget \"http://%s/cobbler/%s/%s/ks.cfg\" -O /root/cobbler.ks"
+        runpost = "\nwget \"http://%s/cgi-bin/cobbler/install_trigger.cgi?mode=post&%s=%s\""
+        runpre = "\nwget \"http://%s/cgi-bin/cobbler/install_trigger.cgi?mode=pre&%s=%s\""
 
+        what = "profile"
         blend_this = profile
         if system:
+            what = "system"
             blend_this = system
 
         blended = utils.blender(self.api, False, blend_this)
         kickstart = blended.get("kickstart",None)
 
         buf = ""
+        srv = blended["http_server"]
         if system is not None:
-            if str(self.settings.pxe_just_once).upper() in [ "1", "Y", "YES", "TRUE" ]:
-                buf = buf + "\n" + pattern1 % (blended["http_server"], system.name)
-            if kickstart and os.path.exists(kickstart):
-                buf = buf + "\n" + pattern2 % (blended["http_server"], "kickstarts_sys", system.name)
-            if self.settings.run_post_install_trigger:
-                buf = buf + "\n" + pattern3 % (blended["http_server"], system.name)
+            if not is_pre:
+                if str(self.settings.pxe_just_once).upper() in [ "1", "Y", "YES", "TRUE" ]:
+                    buf = buf + nopxe % (srv, system.name)
+                if kickstart and os.path.exists(kickstart):
+                    buf = buf + saveks % (srv, "kickstarts_sys", system.name)
+                if self.settings.run_install_trigger:
+                    buf = buf + runpost % (srv, what, system.name)
+            else:
+                if self.settings.run_install_trigger:
+                    buf = buf + runpre % (srv, what, system.name)
 
         else:
-            if kickstart and os.path.exists(kickstart):
-                buf = buf + "\n" + pattern2 % (blended["http_server"], "kickstarts", profile.name)
-            
+            if not is_pre:
+                if kickstart and os.path.exists(kickstart):
+                    buf = buf + saveks % (srv, "kickstarts", profile.name)
+                if self.settings.run_install_trigger:
+                    buf = buf + runpost % (srv, what, profile.name) 
+            else:
+                if self.settings.run_install_trigger:
+                    buf = buf + runpre % (srv, what, profile.name) 
+
         return buf
 
     def get_repo_segname(self, is_profile):
@@ -560,7 +577,8 @@ class BootSync:
                 meta.update(ksmeta) # make available at top level
                 meta["yum_repo_stanza"] = self.generate_repo_stanza(s, False)
                 meta["yum_config_stanza"] = self.generate_config_stanza(s, False)
-                meta["kickstart_done"]  = self.generate_kickstart_signal(profile, s)
+                meta["kickstart_done"]  = self.generate_kickstart_signal(0, profile, s)
+                meta["kickstart_start"] = self.generate_kickstart_signal(1, profile, s)
                 meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
                 kfile = open(kickstart_path)
                 self.templar.render(kfile, meta, dest, s)

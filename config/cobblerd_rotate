@@ -21,3 +21,10 @@
       fi
    endscript
 }
+
+/var/log/cobbler/install.log {
+   missingok
+   notifempty
+   rotate 4
+   weekly
+}
