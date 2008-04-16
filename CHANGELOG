@@ -24,6 +24,8 @@ Cobbler CHANGELOG
 - logrotate should not send emails to root when restarting services
 - default core (but not repo add) repos to priority 1 (lowest) if using priorities plugin
 - change default authentication to deny_all, xmlrpc_rw_enabled now on by default
+- additional fix for mod_python select box submissions
+- set repo arch if found in the URL and no --arch is specified
 
 - ??? - 0.8.3
 - Make createrepo get run for local cobbler reposync invocations as needed

@@ -66,6 +66,13 @@ class Repo(item.Item):
         reposync/repotrack integration over HTTP might come later.
         """
         self.mirror = mirror
+        if self.arch is None or self.arch == "":
+           if mirror.find("x86_64") != -1:
+              self.set_arch("x86_64")
+           elif mirror.find("x86") != -1 or mirror.find("i386") != -1:
+              self.set_arch("x86")
+           elif mirror.find("ia64") != -1:
+              self.set_arch("ia64")
         return True
 
     def set_keep_updated(self,keep_updated):

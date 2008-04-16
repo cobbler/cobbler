@@ -332,8 +332,8 @@ class BootAPI:
         return reposync.run(name)
 
     def status(self,mode):
-        self.log("status",[mode])
-        statusifier = action_status.BootStatusReport(self._config, mode)
+        self.log("status")
+        statusifier = action_status.BootStatusReport(self._config,mode)
         return statusifier.run()
 
     def import_tree(self,mirror_url,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None):

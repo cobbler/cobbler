@@ -200,7 +200,7 @@ class StatusFunction(commands.CobblerFunction):
         return "status"
 
     def run(self):
-        return self.api.status("text")  # no other output modes supported yet
+        return self.api.status("text") # no other output modes supported yet
 
 ########################################################
 
