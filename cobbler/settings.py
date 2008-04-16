@@ -69,7 +69,7 @@ DEFAULTS = {
     "tftpd_conf"                  : "/etc/xinetd.d/tftp",
     "webdir"                      : "/var/www/cobbler",
     "xmlrpc_port"                 : 25151,
-    "xmlrpc_rw_enabled"           : 0,
+    "xmlrpc_rw_enabled"           : 1,
     "xmlrpc_rw_port"              : 25152,
     "yum_post_install_mirror"     : 1,
     "yumdownloader_flags"         : "--resolve"
