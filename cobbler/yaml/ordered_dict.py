@@ -1,3 +1,10 @@
+"""
+pyyaml legacy
+Copyright (c) 2001 Steve Howell and Friends; All Rights Reserved
+(see open source license information in docs/ directory)
+"""
+
+
 # This is extremely crude implementation of an OrderedDict.
 # If you know of a better implementation, please send it to
 # the author Steve Howell.  You can find my email via

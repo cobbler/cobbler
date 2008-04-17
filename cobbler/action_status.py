@@ -21,9 +21,18 @@ import api as cobbler_api
 
 #from utils import _
 
+# ARRAY INDEXES
+MOST_RECENT_START  = 0
+MOST_RECENT_STOP   = 1
+MOST_RECENT_TARGET = 2
+SEEN_START         = 3
+SEEN_STOP          = 4
+MAC                = 5
+STATE              = 6
 
 class BootStatusReport:
 
+  
     def __init__(self,config,mode):
         """
         Constructor
@@ -59,30 +68,17 @@ class BootStatusReport:
         ip_data = self.ip_data
 
         if not ip_data.has_key(ip):
-           ip_data[ip] = {}
+           ip_data[ip]  = [ -1, -1, "?", 0, 0, "?", "?" ]
         elem = ip_data[ip]
 
         ts = float(ts)
-         
-        if not elem.has_key("most_recent_start"):
-           elem["most_recent_start"] = -1
-        if not elem.has_key("most_recent_stop"):
-           elem["most_recent_stop"] = -1
-        if not elem.has_key("most_recent_target"):
-           elem["most_recent_target"] = "?"
-        if not elem.has_key("seen_start"):
-           elem["seen_start"] = 0
-        if not elem.has_key("seen_stop"):
-           elem["seen_stop"] = 0
-        if not elem.has_key("mac"):
-           elem["mac"] = "?"
 
-        mrstart = elem["most_recent_start"]
-        mrstop  = elem["most_recent_stop"]
-        mrtarg  = elem["most_recent_target"]
-        snstart = elem["seen_start"]
-        snstop  = elem["seen_stop"]
-        snmac   = elem["mac"]
+        mrstart = elem[MOST_RECENT_START]
+        mrstop  = elem[MOST_RECENT_STOP]
+        mrtarg  = elem[MOST_RECENT_TARGET]
+        snstart = elem[SEEN_START]
+        snstop  = elem[SEEN_STOP]
+        snmac   = elem[MAC]
 
 
         if start_or_stop == "start":
@@ -90,30 +86,47 @@ class BootStatusReport:
               mrstart = ts
               mrtarg  = "%s:%s" % (profile_or_system, name)
               snmac   = mac
-              elem["seen_start"] = elem["seen_start"] + 1
+              elem[SEEN_START] = elem[SEEN_START] + 1
 
         if start_or_stop == "stop":
            if mrstop < ts:
               mrstop = ts
               mrtarg = "%s:%s" % (profile_or_system, name)
               snmac  = mac
-              elem["seen_stop"] = elem["seen_stop"] + 1
+              elem[SEEN_STOP] = elem[SEEN_STOP] + 1
 
-        elem["most_recent_start"]  = mrstart
-        elem["most_recent_stop"]   = mrstop
-        elem["most_recent_target"] = mrtarg
-        elem["mac"]                = mac
+        elem[MOST_RECENT_START]  = mrstart
+        elem[MOST_RECENT_STOP]   = mrstop
+        elem[MOST_RECENT_TARGET] = mrtarg
+        elem[MAC]                = mac
 
     # -------------------------------------------------------
 
     def process_results(self):
         # FIXME: this should update the times here
-        print "DEBUG: %s" % self.ip_data
+
+        tnow = int(time.time())
+        for ip in self.ip_data.keys():
+           elem = self.ip_data[ip]
+
+           start = int(elem[MOST_RECENT_START])
+           stop  = int(elem[MOST_RECENT_STOP])
+           if (stop > start):
+               elem[STATE] = "finished"
+           else:
+               delta = tnow - start
+               min   = delta / 60
+               sec   = delta % 60
+               if min > 100:
+                   elem[STATE] = "unknown/stalled"
+               else:
+                   elem[STATE] = "installing (%sm %ss)" % (min,sec)  
+
         return self.ip_data
 
     def get_printable_results(self):
         # ip | last mac | last target | start | stop | count
-        format = "%-15s %-17s %-20s %-17s %-17s %5s"
+        format = "%-15s|%-17s|%-20s|%-17s|%-17s"
         ip_data = self.ip_data
         ips = ip_data.keys()
         ips.sort()
@@ -122,22 +135,18 @@ class BootStatusReport:
                "mac",
                "target",
                "start",
-               "stop",
-               "count",
+               "state",
         )
-        print "DEBUG:", line
         buf = format % line
         for ip in ips:
             elem = ip_data[ip]
             line = (
                ip,
-               elem["mac"],
-               elem["most_recent_target"],
-               elem["most_recent_start"], # clean up
-               elem["most_recent_stop"], # clean up
-               elem["seen_stop"]
+               elem[MAC],
+               elem[MOST_RECENT_TARGET],
+               time.ctime(elem[MOST_RECENT_START]),
+               elem[STATE]
             )
-            print "DEBUG: ", line
             buf = buf + "\n" + format % line
         return buf
 

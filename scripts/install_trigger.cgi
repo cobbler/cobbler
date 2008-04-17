@@ -42,8 +42,9 @@ def parse_query():
     form = cgi.parse()
 
     mac = "?"
-    if os.environ.has_key("HTTP_X_RHN_PROVISIONING_MAC_0"):
-        devicepair = os.environ["HTTP_X_RHN_PROVISIONING_MAC_0"]
+
+    if os.environ.has_key("X-RHN-Provisioning-MAC-0"):
+        devicepair = os.environ["X-RHN-Provisioning-MAC-0"]
         mac = devicepair.split()[1].strip()
 
     ip = "?"

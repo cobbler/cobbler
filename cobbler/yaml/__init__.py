@@ -1,3 +1,9 @@
+"""
+pyyaml legacy
+Copyright (c) 2001 Steve Howell and Friends; All Rights Reserved
+(see open source license information in docs/ directory)
+"""
+
 __version__ = "0.32"
 from load import loadFile, load, Parser, l
 from dump import dump, dumpToFile, Dumper, d
