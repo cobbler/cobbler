@@ -534,13 +534,10 @@ class Koan:
         # initialise the profile, from the server if any
         if self.profile:
             profile_data = self.get_profile_xmlrpc(self.profile)
-            filler = "kickstarts"
         elif self.system:
             profile_data = self.get_system_xmlrpc(self.system)
-            filler = "kickstarts_sys"
         else:
             profile_data = {}
-            filler = None
 
         if self.no_cobbler:
             # if the value given to no_cobbler has no url protocol
@@ -563,8 +560,11 @@ class Koan:
         if profile_data.has_key("kickstart"):
 
             # fix URLs
-            if filler and profile_data["kickstart"].startswith("/"):
-               profile_data["kickstart"] = "http://%s/cblr/%s/%s/ks.cfg" % (profile_data['server'], filler, profile_data['name'])
+            if profile_data["kickstart"].startswith("/"):
+               if not self.system:
+                   profile_data["kickstart"] = "http://%s/cblr/svc/?op=ks&profile=%s" % (profile_data['server'], profile_data['name'])
+               else:
+                   profile_data["kickstart"] = "http://%s/cblr/svc/?op=ks&system=%s" % (profile_data['server'], profile_data['name'])
                 
             # find_kickstart source tree in the kickstart file
             self.get_install_tree_from_kickstart(profile_data)
