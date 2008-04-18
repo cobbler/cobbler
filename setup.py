@@ -44,8 +44,9 @@ if __name__ == "__main__":
         tftp_cfg      = "/tftpboot/pxelinux.cfg"
         tftp_images   = "/tftpboot/images"
         rotpath       = "/etc/logrotate.d"
-        cgipath       = "/var/www/cgi-bin/cobbler"
+        # cgipath       = "/var/www/cgi-bin/cobbler"
         modpython     = "/var/www/cobbler/web"
+        modpythonsvc  = "/var/www/cobbler/svc"
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -63,13 +64,15 @@ if __name__ == "__main__":
                 scripts = ["scripts/cobbler", "scripts/cobblerd"],
                 data_files = [ 
                                 (modpython, ['scripts/index.py']),
+                                (modpythonsvc, ['scripts/services.py']),
                                 # cgi files
-                                (cgipath,   ['scripts/findks.cgi', 'scripts/nopxe.cgi']),
-                                (cgipath,   ['scripts/install_trigger.cgi']),
+                                # (cgipath,   ['scripts/nopxe.cgi']),
+                                # (cgipath,   ['scripts/install_trigger.cgi']),
  
                                 # miscellaneous config files
                                 (rotpath,  ['config/cobblerd_rotate']),
                                 (wwwconf,  ['config/cobbler.conf']),
+                                (wwwconf,  ['config/cobbler_svc.conf']),
                                 (cobpath,  ['config/cobbler_hosts']),
                                 (etcpath,  ['config/modules.conf']),
                                 (etcpath,  ['config/users.digest']),

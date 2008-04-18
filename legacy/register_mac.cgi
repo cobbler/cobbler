@@ -13,7 +13,7 @@
 # what is this?  This is a 
 # script to auto add systems who make a wget into cobbler.
 # right now it requires "kssendmac" in kernel options and takes only 1 arg
-# ex: wget http://cobbler.example.org/cgi-bin/regsister_mac?profile=foo
+# ex: wget http://cobbler.example.org/cgi-bin/register_mac?profile=foo
 # suitable to be called from kickstart,etc
 
 import cgi

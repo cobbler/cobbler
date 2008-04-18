@@ -26,6 +26,10 @@ Cobbler CHANGELOG
 - change default authentication to deny_all, xmlrpc_rw_enabled now on by default
 - additional fix for mod_python select box submissions
 - set repo arch if found in the URL and no --arch is specified
+- CGI scripts have been moved under mod_python for speed/consolidation
+- kickstart templates are now evaluated dynamically
+- optional MAC registration is now built-in to requesting kickstarts
+- legacy static file generation from /var/www/cobbler removed
 
 - ??? - 0.8.3
 - Make createrepo get run for local cobbler reposync invocations as needed

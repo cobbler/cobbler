@@ -82,11 +82,7 @@ class BootLiteSync:
         if profile is None:
             raise CX(_("error in profile lookup"))
         # rebuild profile_list YAML file in webdir
-        self.sync.write_listings()
-        # add profiles/$name YAML file in webdir
         self.sync.write_profile_file(profile)
-        # generate kickstart for kickstarts/$name/ks.cfg in webdir
-        self.sync.validate_kickstart_for_specific_profile(profile)
         # rebuild the yum configuration files for any attached repos
         self.sync.retemplate_yum_repos(profile,True)
         # cascade sync
@@ -98,8 +94,6 @@ class BootLiteSync:
                 self.add_single_system(k.name)
  
     def remove_single_profile(self, name):
-        # rebuild profile_list YAML file in webdir
-        self.sync.write_listings()
         # delete profiles/$name file in webdir
         utils.rmfile(os.path.join(self.settings.webdir, "profiles", name))
         # delete contents on kickstarts/$name directory in webdir
@@ -109,7 +103,7 @@ class BootLiteSync:
         system = self.systems.find(name=name)
         if system is None:
             raise CX(_("error in system lookup for %s") % name)
-        self.sync.write_all_system_files(system,True)
+        self.sync.write_all_system_files(system)
  
     def add_single_system(self, name):
         # get the system object:
@@ -119,19 +113,14 @@ class BootLiteSync:
         # rebuild system_list file in webdir
         self.sync.regen_ethers() # /etc/ethers, for dnsmasq & rarpd
         self.sync.regen_hosts()  # /var/lib/cobbler/cobbler_hosts, pretty much for dnsmasq
-        self.sync.write_listings()
         # write the PXE and YAML files for the system
         self.sync.write_all_system_files(system)
         # per system kickstarts
-        self.sync.validate_kickstart_for_specific_system(system)
-        # rebuild the yum configuration files for any attached repos
         self.sync.retemplate_yum_repos(system,False)
 
     def remove_single_system(self, name):
         bootloc = utils.tftpboot_location()
         system_record = self.systems.find(name=name)
-        # rebuild system_list file in webdir
-        self.sync.write_listings()
         # delete system YAML file in systems/$name in webdir
         utils.rmfile(os.path.join(self.settings.webdir, "systems", name))
         # delete contents of kickstarts_sys/$name in webdir

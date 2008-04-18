@@ -51,6 +51,7 @@ devinstall:
 	chown -R apache /var/www/cobbler 
 	chown -R apache /var/www/cgi-bin/cobbler	
 	chmod -R +x /var/www/cobbler/web
+	chmod -R +x /var/www/cobbler/svc
 
 webtest: devinstall
 	/sbin/service cobblerd restart

@@ -17,12 +17,7 @@ include docs/cobbler.1.gz
 include docs/cobbler.html
 include docs/wui.html
 include COPYING AUTHORS README CHANGELOG
-include scripts/watcher.py
-include scripts/index.py
-include scripts/cobblerd
-include scripts/findks.cgi
-include scripts/nopxe.cgi
-include scripts/install_trigger.cgi
+include scripts/*.py
 include snippets/*
 recursive-include po *.pot
 recursive-include po *.po

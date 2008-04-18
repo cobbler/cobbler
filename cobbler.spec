@@ -83,8 +83,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(755,apache,apache)
 %dir /var/www/cobbler/web/
 /var/www/cobbler/web/*.py*
-%dir /var/www/cgi-bin/cobbler/
-/var/www/cgi-bin/cobbler/*.cgi
+%dir /var/www/cobbler/svc/
+/var/www/cobbler/svc/*.py*
 
 %defattr(755,apache,apache)
 %dir /usr/share/cobbler/webui_templates
@@ -195,6 +195,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 * Tue Apr 08 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.0-1
 - Upstream changes (see CHANGELOG)
 - packaged /etc/cobbler/users.conf
+- remaining CGI replaced with mod_python
 
 * Tue Apr 08 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.3-2
 - Upstream changes (see CHANGELOG)

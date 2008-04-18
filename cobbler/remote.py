@@ -158,6 +158,14 @@ class CobblerXMLRPCInterface:
 
         return self._fix_none(data)
 
+    def generate_kickstart(self,profile=None,system=None,REMOTE_ADDR=None,REMOTE_MAC=None,reg=None):
+        self.log("generate_kickstart")
+
+        if reg is not None and profile and not system:
+            regrc = self.register_mac(REMOTE_MAC,profile)
+
+        return self.api.generate_kickstart(profile,system)
+
     def get_settings(self,token=None):
         """
         Return the contents of /var/lib/cobbler/settings, which is a hash.

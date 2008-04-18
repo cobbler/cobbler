@@ -27,7 +27,7 @@ import errno
 import utils
 from cexceptions import *
 import templar 
-
+import kickgen
 
 import item_distro
 import item_profile
@@ -57,6 +57,7 @@ class BootSync:
         self.settings    = config.settings()
         self.repos       = config.repos()
         self.templar     = templar.Templar(config)
+        self.kickgen     = kickgen.KickGen(config)
         self.bootloc     = utils.tftpboot_location()
 
     def run(self):
@@ -82,9 +83,9 @@ class BootSync:
         self.clean_trees()
         self.copy_bootloaders()
         self.copy_distros()
+        for x in self.systems:
+            self.write_all_system_files(x)
         self.retemplate_all_yum_repos()
-        self.validate_kickstarts()
-        self.build_trees()
         if self.settings.manage_dhcp:
            # these functions DRT for ISC or dnsmasq
            self.write_dhcp_file()
@@ -278,7 +279,7 @@ class BootSync:
                 if not x.endswith(".py"):
                     utils.rmfile(path)
             if os.path.isdir(path):
-                if not x in ["web", "webui", "localmirror","repo_mirror","ks_mirror","kickstarts","kickstarts_sys","distros","images","systems","profiles","links","repo_profile","repo_system"] :
+                if not x in ["web", "webui", "localmirror","repo_mirror","ks_mirror","images","links","repo_profile","repo_system","svc"] :
                     # delete directories that shouldn't exist
                     utils.rmtree(path)
                 if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system"]:
@@ -324,294 +325,6 @@ class BootSync:
             else:
                 utils.copyfile(initrd, os.path.join(distro_dir, b_initrd))
 
-    def validate_kickstarts(self):
-        """
-        Similar to what we do for distros, ensure all the kickstarts
-        in conf file are valid.   kickstarts are referenced by URL
-        (http or ftp), can stay as is.  kickstarts referenced by absolute
-        path (i.e. are files path) will be mirrored over http.
-        """
-
-        self.validate_kickstarts_per_profile()
-        self.validate_kickstarts_per_system()
-        return True
-
-    def validate_kickstarts_per_profile(self):
-        """
-        Koan provisioning (Virt + auto-ks) needs kickstarts
-        per profile.  Validate them as needed.  Local kickstarts
-        get template substitution.  Since http:// kickstarts might
-        get generated via magic URLs, those are *not* substituted.
-        NFS kickstarts are also not substituted when referenced
-        by NFS URL's as we don't copy those files over to the cobbler
-        directories.  They are supposed to be live such that an
-        admin can update those without needing to run 'sync' again.
-
-        NOTE: kickstart only uses the web directory (if it uses them at all)
-        """
-
-        for g in self.profiles:
-           print _("sync profile: %s") % g.name
-           self.validate_kickstart_for_specific_profile(g)
-
-    def validate_kickstart_for_specific_profile(self,g):
-        distro = g.get_conceptual_parent()
-        meta = utils.blender(self.api, False, g)
-        if distro is None:
-           raise CX(_("profile %(profile)s references missing distro %(distro)s") % { "profile" : g.name, "distro" : g.distro })
-        kickstart_path = utils.find_kickstart(meta["kickstart"])
-        if kickstart_path is not None and os.path.exists(kickstart_path):
-           # the input is an *actual* file, hence we have to copy it
-           copy_path = os.path.join(
-               self.settings.webdir,
-               "kickstarts", # profile kickstarts go here
-               g.name
-           )
-           utils.mkdir(copy_path)
-           dest = os.path.join(copy_path, "ks.cfg")
-           try:
-                meta = utils.blender(self.api, False, g)
-                ksmeta = meta["ks_meta"]
-                del meta["ks_meta"]
-                meta.update(ksmeta) # make available at top level
-                meta["yum_repo_stanza"] = self.generate_repo_stanza(g,True)
-                meta["yum_config_stanza"] = self.generate_config_stanza(g,True)
-                meta["kickstart_done"]  = self.generate_kickstart_signal(0, g, None)
-                meta["kickstart_start"] = self.generate_kickstart_signal(1, g, None)
-                meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
-                kfile = open(kickstart_path)
-                self.templar.render(kfile, meta, dest, g)
-                kfile.close()
-           except:
-                traceback.print_exc() # leave this in, for now...
-                msg = "err_kickstart2"
-                raise CX(_("Error while rendering kickstart file %(src)s to %(dest)s") % { "src" : kickstart_path, "dest" : dest })
-
-    def generate_kickstart_signal(self, is_pre=0, profile=None, system=None):
-        """
-        Do things that we do at the start/end of kickstarts...
-        * start: signal the status watcher we're starting
-        * end:   signal the status watcher we're done
-        * end:   disable PXE if needed
-        * end:   save the original kickstart file for debug
-        """
-
-        # FIXME: watcher is more of a request than a packaged file
-        # we should eventually package something and let it do something important"
-       
-        nopxe = "\nwget \"http://%s/cgi-bin/cobbler/nopxe.cgi?system=%s\""
-        saveks = "\nwget \"http://%s/cobbler/%s/%s/ks.cfg\" -O /root/cobbler.ks"
-        runpost = "\nwget \"http://%s/cgi-bin/cobbler/install_trigger.cgi?mode=post&%s=%s\""
-        runpre = "\nwget \"http://%s/cgi-bin/cobbler/install_trigger.cgi?mode=pre&%s=%s\""
-
-        what = "profile"
-        blend_this = profile
-        if system:
-            what = "system"
-            blend_this = system
-
-        blended = utils.blender(self.api, False, blend_this)
-        kickstart = blended.get("kickstart",None)
-
-        buf = ""
-        srv = blended["http_server"]
-        if system is not None:
-            if not is_pre:
-                if str(self.settings.pxe_just_once).upper() in [ "1", "Y", "YES", "TRUE" ]:
-                    buf = buf + nopxe % (srv, system.name)
-                if kickstart and os.path.exists(kickstart):
-                    buf = buf + saveks % (srv, "kickstarts_sys", system.name)
-                if self.settings.run_install_trigger:
-                    buf = buf + runpost % (srv, what, system.name)
-            else:
-                if self.settings.run_install_trigger:
-                    buf = buf + runpre % (srv, what, system.name)
-
-        else:
-            if not is_pre:
-                if kickstart and os.path.exists(kickstart):
-                    buf = buf + saveks % (srv, "kickstarts", profile.name)
-                if self.settings.run_install_trigger:
-                    buf = buf + runpost % (srv, what, profile.name) 
-            else:
-                if self.settings.run_install_trigger:
-                    buf = buf + runpre % (srv, what, profile.name) 
-
-        return buf
-
-    def get_repo_segname(self, is_profile):
-        if is_profile:
-           return "repos_profile"
-        else:
-           return "repos_system"
-
-    def generate_repo_stanza(self, obj, is_profile=True):
-
-        """
-        Automatically attaches yum repos to profiles/systems in kickstart files
-        that contain the magic $yum_repo_stanza variable.
-        """
-
-        buf = ""
-        blended = utils.blender(self.api, False, obj)
-        configs = self.get_repo_filenames(obj,is_profile)
-        repos = self.repos
-
-        for c in configs:
-           name = c.split("/")[-1].replace(".repo","")
-           (is_core, baseurl) = self.analyze_repo_config(c)
-           for repo in repos:
-               if repo.name == name:
-                   if not repo.yumopts.has_key('enabled') or repo.yumopts['enabled'] == '1':
-                       buf = buf + "repo --name=%s --baseurl=%s\n" % (name, baseurl)
-        return buf
-
-    def analyze_repo_config(self, filename):
-        fd = open(filename)
-        data = fd.read()
-        lines = data.split("\n")
-        ret = False
-        baseurl = None
-        for line in lines:
-            if line.find("ks_mirror") != -1:
-                ret = True
-            if line.find("baseurl") != -1:
-                first, baseurl = line.split("=")
-        fd.close()
-        return (ret, baseurl)
-
-    def get_repo_baseurl(self, server, repo_name, is_repo_mirror=True):
-        """
-        Construct the URL to a repo definition.
-        """
-        if is_repo_mirror:
-            return "http://%s/cobbler/repo_mirror/%s" % (server, repo_name)
-        else:
-            return "http://%s/cobbler/ks_mirror/config/%s" % (server, repo_name)
-
-    def get_repo_filenames(self, obj, is_profile=True):
-        """
-        For a given object, return the paths to repo configuration templates
-        that will be used to generate per-object repo configuration files and
-        baseurls
-        """        
-
-        blended = utils.blender(self.api, False, obj)
-        urlseg = self.get_repo_segname(is_profile)
-
-        topdir = "%s/%s/%s/*.repo" % (self.settings.webdir, urlseg, blended["name"])
-        files = glob.glob(topdir)
-        return files
-
-
-    def generate_config_stanza(self, obj, is_profile=True):
-
-        """
-        Add in automatic to configure /etc/yum.repos.d on the remote system
-        if the kickstart file contains the magic $yum_config_stanza.
-        """
-
-        if not self.settings.yum_post_install_mirror:
-           return ""
-
-        urlseg = self.get_repo_segname(is_profile)
-
-        distro = obj.get_conceptual_parent()
-        if not is_profile:
-           distro = distro.get_conceptual_parent()
-
-        blended = utils.blender(self.api, False, obj)
-        configs = self.get_repo_filenames(obj, is_profile)
-        buf = ""
- 
-        # for each kickstart template we have rendered ...
-        for c in configs:
-
-           name = c.split("/")[-1].replace(".repo","")
-           # add the line to create the yum config file on the target box
-           conf = self.get_repo_config_file(blended["http_server"],urlseg,blended["name"],name)
-           buf = buf + "wget \"%s\" --output-document=/etc/yum.repos.d/%s.repo\n" % (conf, name)    
-
-        return buf
-
-    def get_repo_config_file(self,server,urlseg,obj_name,repo_name):
-        """
-        Construct the URL to a repo config file that is usable in kickstart
-        for use with yum.  This is different than the templates cobbler reposync
-        creates, as this file will allow the server to migrate and have different
-        variables for different subnets/profiles/etc.
-        """ 
-        return "http://%s/cblr/%s/%s/%s.repo" % (server,urlseg,obj_name,repo_name)
-
-    def validate_kickstarts_per_system(self):
-        """
-        PXE provisioning needs kickstarts evaluated per system.
-        Profiles would normally be sufficient, but not in cases
-        such as static IP, where we want to be able to do templating
-        on a system basis.
-
-        NOTE: kickstart only uses the web directory (if it uses them at all)
-        """
-
-        for s in self.systems:
-            print _("sync system: %s") % s.name
-            self.validate_kickstart_for_specific_system(s)
-
-    def validate_kickstart_for_specific_system(self,s):
-        profile = s.get_conceptual_parent()
-        if profile is None:
-            raise CX(_("system %(system)s references missing profile %(profile)s") % { "system" : s.name, "profile" : s.profile })
-        distro = profile.get_conceptual_parent()
-        meta = utils.blender(self.api, False, s)
-        kickstart_path = utils.find_kickstart(meta["kickstart"])
-        if kickstart_path and os.path.exists(kickstart_path):
-            copy_path = os.path.join(self.settings.webdir,
-                "kickstarts_sys", # system kickstarts go here
-                s.name
-            )
-            utils.mkdir(copy_path)
-            dest = os.path.join(copy_path, "ks.cfg")
-            try:
-                ksmeta = meta["ks_meta"]
-                del meta["ks_meta"]
-                meta.update(ksmeta) # make available at top level
-                meta["yum_repo_stanza"] = self.generate_repo_stanza(s, False)
-                meta["yum_config_stanza"] = self.generate_config_stanza(s, False)
-                meta["kickstart_done"]  = self.generate_kickstart_signal(0, profile, s)
-                meta["kickstart_start"] = self.generate_kickstart_signal(1, profile, s)
-                meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
-                kfile = open(kickstart_path)
-                self.templar.render(kfile, meta, dest, s)
-                kfile.close()
-            except:
-                traceback.print_exc()
-                raise CX(_("Error templating file %(src)s to %(dest)s") % { "src" : meta["kickstart"], "dest" : dest })
-
-    def build_trees(self):
-        """
-        Now that kernels and initrds are copied and kickstarts are all valid,
-        build the pxelinux.cfg tree, which contains a directory for each
-        configured IP or MAC address.  Also build a tree for Virt info.
-
-        NOTE: some info needs to go in TFTP and HTTP directories, but not all.
-        Usually it's just one or the other.
-
-        """
-
-        self.write_listings()
-
-        # create pxelinux.cfg under tftpboot
-        # and file for each MAC or IP (hex encoded 01-XX-XX-XX-XX-XX-XX)
-
-        for d in self.distros:
-            self.write_distro_file(d)
-
-        for p in self.profiles:
-            self.write_profile_file(p)
-
-        for system in self.systems:
-            self.write_all_system_files(system)
-
     def retemplate_all_yum_repos(self):
         for p in self.profiles:
             self.retemplate_yum_repos(p,True)
@@ -619,8 +332,6 @@ class BootSync:
             self.retemplate_yum_repos(system,False)
 
     def retemplate_yum_repos(self,obj,is_profile):
-        # FIXME: blender could use caching for performance
-        # FIXME: make stanza generation code load stuff from the right place
         """
         Yum repository management files are in self.settings.webdir/repo_mirror/$name/config.repo
         and also potentially in listed in the source_repos structure of the distro object, however
@@ -670,7 +381,7 @@ class BootSync:
             self.templar.render(infile_data, blended, outfile, None)
 
 
-    def write_all_system_files(self,system,just_edit_pxe=False):
+    def write_all_system_files(self,system):
 
         profile = system.get_conceptual_parent()
         if profile is None:
@@ -712,11 +423,6 @@ class BootSync:
             else:
                 # ensure the file doesn't exist
                 utils.rmfile(f2)
-
-            if not just_edit_pxe:
-                # allows netboot-disable to be highly performant
-                # by not invoking the Cheetah engine
-                self.write_system_file(f3,system)
 
         counter = counter + 1
         
@@ -849,9 +555,9 @@ class BootSync:
         if kickstart_path is not None and kickstart_path != "":
 
             if system is not None and kickstart_path.startswith("/"):
-                kickstart_path = "http://%s/cblr/kickstarts_sys/%s/ks.cfg" % (blended["http_server"], system.name)
+                kickstart_path = "http://%s/cblr/svc/?op=ks&system=%s" % (blended["http_server"], system.name)
             elif kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
-                kickstart_path = "http://%s/cblr/kickstarts/%s/ks.cfg" % (blended["http_server"], profile.name)
+                kickstart_path = "http://%s/cblr/svc/?op=ks&profile=%s" % (blended["http_server"], profile.name)
 
             if distro.breed is None or distro.breed == "redhat":
                 append_line = "%s ks=%s" % (append_line, kickstart_path)
@@ -883,61 +589,6 @@ class BootSync:
             fd.close()
         return buffer
 
-
-    def write_listings(self):
-        """
-        Creates a very simple index of available systems and profiles
-        that cobbler knows about.  Just the names, no details.
-        """
-        names1 = [x.name for x in self.profiles]
-        names2 = [x.name for x in self.systems]
-        data1 = yaml.dump(names1)
-        data2 = yaml.dump(names2)
-        fd1 = open(os.path.join(self.settings.webdir, "profile_list"), "w+")
-        fd2 = open(os.path.join(self.settings.webdir, "system_list"), "w+")
-        fd1.write(data1)
-        fd2.write(data2)
-        fd1.close()
-        fd2.close()
-
-    def write_distro_file(self,distro):
-        """
-        Create distro information for koan install
-        """
-        blended = utils.blender(self.api, True, distro)
-        filename = os.path.join(self.settings.webdir,"distros",distro.name)
-        fd = open(filename, "w+")
-        fd.write(yaml.dump(blended))
-        fd.close() 
-
-    def write_profile_file(self,profile):
-        """
-        Create profile information for virt install
-
-        NOTE: relevant to http only
-        """
-
-        blended = utils.blender(self.api, True, profile)
-        filename = os.path.join(self.settings.webdir,"profiles",profile.name)
-        fd = open(filename, "w+")
-        if blended.has_key("kickstart") and blended["kickstart"].startswith("/"):
-            # write the file location as needed by koan
-            blended["kickstart"] = "http://%s/cblr/kickstarts/%s/ks.cfg" % (blended["http_server"], profile.name)
-        fd.write(yaml.dump(blended))
-        fd.close()
-
-    def write_system_file(self,filename,system):
-        """
-        Create system information for virt install
-
-        NOTE: relevant to http only
-        """
-
-        blended = utils.blender(self.api, True, system)
-        filename = os.path.join(self.settings.webdir,"systems",system.name)
-        fd = open(filename, "w+")
-        fd.write(yaml.dump(blended))
-        fd.close()
 
 
 

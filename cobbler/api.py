@@ -25,6 +25,7 @@ import action_validate
 from cexceptions import *
 import sub_process
 import module_loader
+import kickgen
 
 import logging
 import os
@@ -79,6 +80,7 @@ class BootAPI:
                 "module",
                 "authz_allowall"
             )
+            self.kickgen = kickgen.KickGen(self._config)
             self.logger.debug("API handle initialized")
 
     def __setup_logger(self,name):
@@ -284,7 +286,14 @@ class BootAPI:
 
         # run cobbler reposync to apply changes
         return True 
- 
+
+    def generate_kickstart(self,profile,system):
+        self.log("generate_kickstart")
+        if system:
+            return self.kickgen.generate_kickstart_for_system(system)
+        else:
+            return self.kickgen.generate_kickstart_for_profile(profile) 
+
     def check(self):
         """
         See if all preqs for network booting are valid.  This returns

@@ -22,8 +22,6 @@ TESTMODE = False
 # we need.
 
 DEFAULTS = {
-    "allow_cgi_mac_registration"  : 0,
-    "allow_cgi_profile_change"    : 0,
     "allow_duplicate_macs"        : 0,
     "allow_duplicate_ips"         : 0,
     "bootloaders"                 : {
@@ -61,7 +59,8 @@ DEFAULTS = {
     "manage_dhcp_mode"            : "isc",
     "next_server"                 : "127.0.0.1",
     "pxe_just_once"               : 0,
-    "run_install_trigger"         : 1,
+    "register_new_installs"       : 0,
+    "run_install_triggers"        : 1,
     "server"                      : "127.0.0.1",
     "snippetsdir"                 : "/var/lib/cobbler/snippets",
     "syslog_port"                 : 25150,
