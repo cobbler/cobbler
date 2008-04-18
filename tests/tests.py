@@ -743,7 +743,7 @@ class SyncContents(BootTest):
 
         fh = open("/tftpboot/pxelinux.cfg/%s" % converted)
         data = fh.read()
-        self.assertTrue(data.find("kickstarts_sys") != -1)
+        self.assertTrue(data.find("op=ks") != -1)
         fh.close()
 
         # ensure that after sync is applied, the blender cache still allows
@@ -753,7 +753,7 @@ class SyncContents(BootTest):
         self.api.sync()
         fh = open("/tftpboot/pxelinux.cfg/%s" % converted)
         data = fh.read()
-        self.assertTrue(data.find("kickstarts_sys") != -1)
+        self.assertTrue(data.find("op=ks") != -1)
         fh.close()
 
 

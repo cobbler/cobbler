@@ -56,8 +56,6 @@ class BootLiteSync:
         distro = self.distros.find(name=name)
         if distro is None:
             raise CX(_("error in distro lookup: %s") % name)
-        # generate YAML file in distros/$name in webdir
-        self.sync.write_distro_file(distro)
         # copy image files to images/$name in webdir & tftpboot:
         self.sync.copy_single_distro_files(distro)
         # cascade sync
@@ -67,8 +65,6 @@ class BootLiteSync:
 
     def remove_single_distro(self, name):
         bootloc = utils.tftpboot_location()
-        # delete distro YAML file in distros/$name in webdir
-        utils.rmfile(os.path.join(self.settings.webdir, "distros", name))
         # delete contents of images/$name directory in webdir
         utils.rmtree(os.path.join(self.settings.webdir, "images", name))
         # delete contents of images/$name in tftpboot
@@ -81,8 +77,6 @@ class BootLiteSync:
         profile = self.profiles.find(name=name)
         if profile is None:
             raise CX(_("error in profile lookup"))
-        # rebuild profile_list YAML file in webdir
-        self.sync.write_profile_file(profile)
         # rebuild the yum configuration files for any attached repos
         self.sync.retemplate_yum_repos(profile,True)
         # cascade sync
@@ -113,7 +107,7 @@ class BootLiteSync:
         # rebuild system_list file in webdir
         self.sync.regen_ethers() # /etc/ethers, for dnsmasq & rarpd
         self.sync.regen_hosts()  # /var/lib/cobbler/cobbler_hosts, pretty much for dnsmasq
-        # write the PXE and YAML files for the system
+        # write the PXE files for the system
         self.sync.write_all_system_files(system)
         # per system kickstarts
         self.sync.retemplate_yum_repos(system,False)
@@ -121,8 +115,6 @@ class BootLiteSync:
     def remove_single_system(self, name):
         bootloc = utils.tftpboot_location()
         system_record = self.systems.find(name=name)
-        # delete system YAML file in systems/$name in webdir
-        utils.rmfile(os.path.join(self.settings.webdir, "systems", name))
         # delete contents of kickstarts_sys/$name in webdir
         system_record = self.systems.find(name=name)
         # delete any kickstart files related to this system
