@@ -57,7 +57,7 @@ class BootLiteSync:
         if distro is None:
             raise CX(_("error in distro lookup: %s") % name)
         # copy image files to images/$name in webdir & tftpboot:
-        self.sync.copy_single_distro_files(distro)
+        self.sync.pxegen.copy_single_distro_files(distro)
         # cascade sync
         kids = distro.get_children()
         for k in kids:
@@ -78,7 +78,7 @@ class BootLiteSync:
         if profile is None:
             raise CX(_("error in profile lookup"))
         # rebuild the yum configuration files for any attached repos
-        self.sync.retemplate_yum_repos(profile,True)
+        self.sync.yumgen.retemplate_yum_repos(profile,True)
         # cascade sync
         kids = profile.get_children()
         for k in kids:
@@ -97,7 +97,7 @@ class BootLiteSync:
         system = self.systems.find(name=name)
         if system is None:
             raise CX(_("error in system lookup for %s") % name)
-        self.sync.write_all_system_files(system)
+        self.sync.pxegen.write_all_system_files(system)
  
     def add_single_system(self, name):
         # get the system object:
@@ -105,12 +105,12 @@ class BootLiteSync:
         if system is None:
             raise CX(_("error in system lookup for %s") % name)
         # rebuild system_list file in webdir
-        self.sync.regen_ethers() # /etc/ethers, for dnsmasq & rarpd
-        self.sync.regen_hosts()  # /var/lib/cobbler/cobbler_hosts, pretty much for dnsmasq
+        self.sync.dhcpgen.regen_ethers() # /etc/ethers, for dnsmasq & rarpd
+        self.sync.dhcpgen.regen_hosts()  # /var/lib/cobbler/cobbler_hosts, pretty much for dnsmasq
         # write the PXE files for the system
-        self.sync.write_all_system_files(system)
+        self.sync.pxegen.write_all_system_files(system)
         # per system kickstarts
-        self.sync.retemplate_yum_repos(system,False)
+        self.sync.yumgen.retemplate_yum_repos(system,False)
 
     def remove_single_system(self, name):
         bootloc = utils.tftpboot_location()
