@@ -9,7 +9,7 @@ name    = sys.argv[2] # name of system or profile
 ip      = sys.argv[3] # ip or "?"
 
 fd = open("/var/log/cobbler/install.log","a+")
-fd.write("%s\t%s\t%s\t%s\tstop\t%s\n" % (objtype,name,ip,time.time()))
+fd.write("%s\t%s\t%s\tstop\t%s\n" % (objtype,name,ip,time.time()))
 fd.close()
 
 sys.exit(0)

@@ -27,8 +27,7 @@ MOST_RECENT_STOP   = 1
 MOST_RECENT_TARGET = 2
 SEEN_START         = 3
 SEEN_STOP          = 4
-MAC                = 5
-STATE              = 6
+STATE              = 5
 
 class BootStatusReport:
 
@@ -58,17 +57,17 @@ class BootStatusReport:
               tokens = line.split()
               if len(tokens) == 0:
                   continue
-              (profile_or_system, name, mac, ip, start_or_stop, ts) = tokens
-              self.catalog(profile_or_system,name,mac,ip,start_or_stop,ts)
+              (profile_or_system, name, ip, start_or_stop, ts) = tokens
+              self.catalog(profile_or_system,name,ip,start_or_stop,ts)
            fd.close() 
 
     # ------------------------------------------------------
 
-    def catalog(self,profile_or_system,name,mac,ip,start_or_stop,ts):    
+    def catalog(self,profile_or_system,name,ip,start_or_stop,ts):    
         ip_data = self.ip_data
 
         if not ip_data.has_key(ip):
-           ip_data[ip]  = [ -1, -1, "?", 0, 0, "?", "?" ]
+           ip_data[ip]  = [ -1, -1, "?", 0, 0, "?" ]
         elem = ip_data[ip]
 
         ts = float(ts)
@@ -78,27 +77,23 @@ class BootStatusReport:
         mrtarg  = elem[MOST_RECENT_TARGET]
         snstart = elem[SEEN_START]
         snstop  = elem[SEEN_STOP]
-        snmac   = elem[MAC]
 
 
         if start_or_stop == "start":
            if mrstart < ts:
               mrstart = ts
               mrtarg  = "%s:%s" % (profile_or_system, name)
-              snmac   = mac
               elem[SEEN_START] = elem[SEEN_START] + 1
 
         if start_or_stop == "stop":
            if mrstop < ts:
               mrstop = ts
               mrtarg = "%s:%s" % (profile_or_system, name)
-              snmac  = mac
               elem[SEEN_STOP] = elem[SEEN_STOP] + 1
 
         elem[MOST_RECENT_START]  = mrstart
         elem[MOST_RECENT_STOP]   = mrstop
         elem[MOST_RECENT_TARGET] = mrtarg
-        elem[MAC]                = mac
 
     # -------------------------------------------------------
 
@@ -125,14 +120,12 @@ class BootStatusReport:
         return self.ip_data
 
     def get_printable_results(self):
-        # ip | last mac | last target | start | stop | count
-        format = "%-15s|%-17s|%-20s|%-17s|%-17s"
+        format = "%-15s|%-20s|%-17s|%-17s"
         ip_data = self.ip_data
         ips = ip_data.keys()
         ips.sort()
         line = (
                "ip",
-               "mac",
                "target",
                "start",
                "state",
@@ -142,7 +135,6 @@ class BootStatusReport:
             elem = ip_data[ip]
             line = (
                ip,
-               elem[MAC],
                elem[MOST_RECENT_TARGET],
                time.ctime(elem[MOST_RECENT_START]),
                elem[STATE]
