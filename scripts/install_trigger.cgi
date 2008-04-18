@@ -41,12 +41,6 @@ def parse_query():
 
     form = cgi.parse()
 
-    mac = "?"
-
-    if os.environ.has_key("HTTP_X_RHN_PROVISIONING_MAC_0"):
-        devicepair = os.environ["HTTP_X_RHN_PROVISIONING_MAC_0"]
-        mac = devicepair.split()[1].strip()
-
     ip = "?"
     if os.environ.has_key("REMOTE_ADDR"):
         ip = os.environ["REMOTE_ADDR"]
@@ -64,15 +58,15 @@ def parse_query():
     if form.has_key("mode"):
         mode = form["mode"][0]
 
-    return (mode,objtype,name,mac,ip)
+    return (mode,objtype,name,ip)
 
-def invoke(mode,objtype,name,mac,ip):
+def invoke(mode,objtype,name,ip):
     """
     Determine if this feature is enabled.
     """
     
     xmlrpc_server = ServerProxy(XMLRPC_SERVER)
-    print xmlrpc_server.run_install_triggers(mode,objtype,name,mac,ip)
+    print xmlrpc_server.run_install_triggers(mode,objtype,name,ip)
 
     return True
 
@@ -87,7 +81,7 @@ def header():
 if __name__ == "__main__":
     cgitb.enable(format='text')
     header()
-    (mode,objtype,name,mac,ip) = parse_query()
-    invoke(mode,objtype,name,mac,ip)
+    (mode,objtype,name,ip) = parse_query()
+    invoke(mode,objtype,name,ip)
 
 

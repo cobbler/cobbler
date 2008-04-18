@@ -230,7 +230,7 @@ class CobblerXMLRPCInterface:
         systems.add(obj,save=True,with_triggers=False,with_sync=False,quick_pxe_update=True)
         return True
 
-    def run_install_triggers(self,mode,objtype,name,mac,ip,token=None):
+    def run_install_triggers(self,mode,objtype,name,ip,token=None):
 
         """
         This is a feature used to run the pre/post install triggers.
@@ -249,7 +249,7 @@ class CobblerXMLRPCInterface:
         # time if reinstalling all of a cluster all at once.
         # we can do that at "cobbler check" time.
 
-        utils.run_triggers(None, "/var/lib/cobbler/triggers/install/%s/*" % mode, additional=[objtype,name,mac,ip])
+        utils.run_triggers(None, "/var/lib/cobbler/triggers/install/%s/*" % mode, additional=[objtype,name,ip])
 
 
         return True
