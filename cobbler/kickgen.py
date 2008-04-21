@@ -96,8 +96,8 @@ class KickGen:
 
         nopxe = "\nwget \"http://%s/cblr/svc/?op=nopxe&system=%s\" -O /dev/null"
         saveks = "\nwget \"http://%s/cblr/svc/?op=ks&%s=%s\" -O /root/cobbler.ks"
-        runpost = "\nwget \"http://%s/cblr/svc/?op=trig&?mode=post&%s=%s\" -O /dev/null"
-        runpre  = "\nwget \"http://%s/cblr/svc/?op=trig&?mode=pre&%s=%s\" -O /dev/null"
+        runpost = "\nwget \"http://%s/cblr/svc/?op=trig&mode=post&%s=%s\" -O /dev/null"
+        runpre  = "\nwget \"http://%s/cblr/svc/?op=trig&mode=pre&%s=%s\" -O /dev/null"
 
         what = "profile"
         blend_this = profile

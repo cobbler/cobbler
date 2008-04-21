@@ -201,7 +201,7 @@ class CobblerXMLRPCInterface:
         READ: https://fedorahosted.org/cobbler/wiki/AutoRegistration
         """
 
-        if not self.api.settings().allow_cgi_mac_registration:
+        if not self.api.settings().register_new_installs:
             return 1
 
         system = self.api.find_system(mac_address=mac)
