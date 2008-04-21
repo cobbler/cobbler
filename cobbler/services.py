@@ -66,7 +66,7 @@ class CobblerSvc(object):
         Generate kickstart files...
         """
         self.__xmlrpc_setup()
-        return self.remote.generate_kickstart(profile,system,REMOTE_ADDR,REMOTE_MAC)
+        return self.remote.generate_kickstart(profile,system,REMOTE_ADDR,REMOTE_MAC,reg)
     
     def trig(self,mode="?",profile=None,system=None,REMOTE_ADDR=None,**rest):
         """
