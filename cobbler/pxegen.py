@@ -286,8 +286,6 @@ class PXEGen:
                 kickstart_path = "http://%s/cblr/svc/?op=ks&system=%s" % (blended["http_server"], system.name)
             elif kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
                 kickstart_path = "http://%s/cblr/svc/?op=ks&profile=%s" % (blended["http_server"], profile.name)
-                if self.settings.register_new_installs:
-                    kickstart_path = kickstart_path + "&reg=1"
 
             if distro.breed is None or distro.breed == "redhat":
                 append_line = "%s ks=%s" % (append_line, kickstart_path)

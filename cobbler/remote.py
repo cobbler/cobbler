@@ -18,7 +18,7 @@ import socket
 import time
 import os
 import SimpleXMLRPCServer
-from utils import _
+from rhpl.translate import _, N_, textdomain, utf8
 import xmlrpclib
 import random
 import base64
@@ -158,10 +158,10 @@ class CobblerXMLRPCInterface:
 
         return self._fix_none(data)
 
-    def generate_kickstart(self,profile=None,system=None,REMOTE_ADDR=None,REMOTE_MAC=None,reg=None):
+    def generate_kickstart(self,profile=None,system=None,REMOTE_ADDR=None,REMOTE_MAC=None):
         self.log("generate_kickstart")
 
-        if reg is not None and profile and not system:
+        if profile and not system:
             regrc = self.register_mac(REMOTE_MAC,profile)
 
         return self.api.generate_kickstart(profile,system)
@@ -986,74 +986,6 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
     def remove_profile(self,name,token,recursive=1):
         """
         Deletes a profile from a collection.  Note that this just requires the name
-        of the profile, not a handle.
-        """
-        self.log("remove_profile",name=name,token=token)
-        self.check_access(token, "remove_profile", name)
-        rc = self.api._config.profiles().remove(name,recursive=True)
-        return rc
-
-    def remove_system(self,name,token):
-        """
-        Deletes a system from a collection.  Note that this just requires the name
-        of the system, not a handle.
-        """
-        self.log("remove_system",name=name,token=token)
-        self.check_access(token, "remove_system", name)
-        rc = self.api._config.systems().remove(name)
-        return rc
-
-    def remove_repo(self,name,token):
-        """
-        Deletes a repo from a collection.  Note that this just requires the name
-        of the repo, not a handle.
-        """
-        self.log("remove_repo",name=name,token=token)
-        self.check_access(token, "remove_repo", name)
-        rc = self.api._config.repos().remove(name)
-        return rc
-
-    def sync(self,token): 
-        """
-        Applies changes in Cobbler to the filesystem.
-        Editing a leaf-node object (like a system) does not require
-        this, but if updating a upper-level object or a kickstart file,
-        running sync at the end of operations is a good idea.  A typical
-        cobbler sync may take anywhere between a few seconds and several
-        minutes, so user interfaces should be programmed accordingly.
-        Future versions of cobbler may understand how to do a cascade sync
-        on object edits making explicit calls to sync redundant.
-        """
-        self.log("sync",token=token)
-        self.check_access(token, "sync")
-        return self.api.sync() 
-
-    def reposync(self,repos=[],token=None):
-        """
-        Updates one or more mirrored yum repositories.
-        reposync is very slow and probably should not be used
-        through the XMLRPC API, setting up reposync on nightly cron is better.
-        """
-        self.log("reposync",token=token,name=repos)
-        self.check_access(token, "reposync", repos)
-        return self.api.reposync(repos)
-
-    def import_tree(self,mirror_url,mirror_name,network_root=None,token=None):
-        """
-        I'm exposing this in the XMLRPC API for consistancy but as this
-        can be a very long running operation usage is /not/ recommended.
-        It would be better to use the CLI.  See documentation in api.py.
-        This command may be removed from the API in a future release.
-        """
-        self.log("import_tree",name=mirror_name,token=token)
-        self.check_access(token, "import_tree")
-        return self.api.import_tree(mirror_url,mirror_name,network_root)
-
-    def get_kickstart_templates(self,token):
-        """
-        Returns all of the kickstarts that are in use by the system.
-        """
-        self.log("get_kickstart_templates",token=token)
         self.check_access(token, "get_kickstart_templates")
         files = {} 
         for x in self.api.profiles():
@@ -1075,10 +1007,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
 
         self.log("read_or_write_kickstart_template",name=kickstart_file,token=token)
-        if is_read:
-            self.check_access(token,"read_kickstart",kickstart_file)
-        else:
-            self.check_access(token,"modify_kickstart",kickstart_file)
+        self.check_access(token,"read_or_write_kickstart_templates",kickstart_file,is_read)
  
         if kickstart_file.find("..") != -1 or not kickstart_file.startswith("/"):
             raise CX(_("tainted file location"))
