@@ -1294,16 +1294,6 @@ class Koan:
         size_list           = self.calc_virt_filesize(pd)
         disks               = self.merge_disk_data(path_list,size_list)
 
-        # make virt kickstarts always request registration if so enabled
-        # if this install is for a profile record and NOT a system record
-        if pd.has_key("kickstart") and not pd.has_key("interfaces"):
-            ks = pd.get("kickstart","")
-            if ks is not None and ks != "" and ks.find("/cblr/svc") != -1:
-               pd["kickstart"] = pd["kickstart"] + "&reg=1"    
-              
-
-        print "DEBUG: kickstart=%s" % pd["kickstart"]
-
         results = create_func(
                 name          =  virtname,
                 ram           =  ram,

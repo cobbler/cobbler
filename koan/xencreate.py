@@ -61,6 +61,8 @@ def start_install(name=None, ram=None, disks=None,
     else:
         guest = virtinst.ParaVirtGuest()
 
+    extra = extra.replace("&","&amp;")
+
     if not fullvirt:
         guest.set_boot((profile_data["kernel_local"], profile_data["initrd_local"]))
         # fullvirt OS's will get this from the PXE config (managed by Cobbler)

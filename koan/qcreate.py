@@ -69,7 +69,7 @@ def start_install(name=None, ram=None, disks=None, mac=None,
 
     guest.location = profile_data["install_tree"]
    
-     
+    extra = extra.replace("&","&amp;") 
     guest.extraargs = extra
 
     guest.set_name(name)
