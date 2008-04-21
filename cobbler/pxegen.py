@@ -186,7 +186,7 @@ class PXEGen:
         memtests = glob.glob(self.bootloc + "/images/memtest*")
         if len(memtests) > 0:
             pxe_menu_items = pxe_menu_items + "\n\n"
-            for memtest in glob.glob(self.bootloc + '/memtest*'):
+            for memtest in glob.glob(self.bootloc + '/images/memtest*'):
                 base = os.path.basename(memtest)
                 contents = self.write_memtest_pxe("/images/%s" % base)
                 pxe_menu_items = pxe_menu_items + contents + "\n"
