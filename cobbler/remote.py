@@ -192,7 +192,7 @@ class CobblerXMLRPCInterface:
         self.api.add_system(system)
 
 
-    def register_mac(self,mac,token=None):
+    def register_mac(self,mac,profile,token=None):
         """
         If allow_cgi_register_mac is enabled in settings, this allows
         kickstarts to add new system records for per-profile-provisioned
@@ -202,20 +202,30 @@ class CobblerXMLRPCInterface:
         """
 
         if mac is None:
+            # don't go further if not being called by anaconda
             return 1
 
         if not self.api.settings().register_new_installs:
+            # must be enabled in settings
             return 2
 
         system = self.api.find_system(mac_address=mac)
-        if system is not None:
+        if system is not None: 
+            # do not allow overwrites
             return 3
 
+        # the MAC probably looks like "eth0 AA:BB:CC:DD:EE:FF" now, fix it
+        if mac.find(" ") != -1:
+            mac = mac.split()[-1]
+
+        self.log("register mac for profile %s" % profile,token=token,name=mac)
         obj = self.api.new_system()
         obj.set_profile(profile)
-        obj.set_name(mac.replace(":","_"))
+        name = mac.replace(":","_")
+        obj.set_name(name)
         obj.set_mac_address(mac, "intf0")
-        systems.add(obj,save=True)
+        obj.set_netboot_enabled(False)
+        self.api.add_system(obj)
         return 0
  
     def disable_netboot(self,name,token=None):

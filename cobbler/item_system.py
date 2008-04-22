@@ -157,7 +157,7 @@ class System(item.Item):
             raise CX(_("name must be a string"))
         for x in name:
             if not x.isalnum() and not x in [ "_", "-", ".", ":", "+" ] :
-                raise CX(_("invalid characters in name"))
+                raise CX(_("invalid characters in name: %s") % x)
 
         if utils.is_mac(name):
            if intf["mac_address"] == "":
