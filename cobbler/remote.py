@@ -986,6 +986,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
     def remove_profile(self,name,token,recursive=1):
         """
         Deletes a profile from a collection.  Note that this just requires the name
+        """
         self.check_access(token, "get_kickstart_templates")
         files = {} 
         for x in self.api.profiles():
@@ -998,7 +999,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
 
 
     def read_or_write_kickstart_template(self,kickstart_file,is_read,new_data,token):
-        """ 
+        """
         Allows the WebUI to be used as a kickstart file editor.  For security
         reasons we will only allow kickstart files to be edited if they reside in
         /var/lib/cobbler/kickstarts/ or /etc/cobbler.  This limits the damage
