@@ -201,14 +201,17 @@ class CobblerXMLRPCInterface:
         READ: https://fedorahosted.org/cobbler/wiki/AutoRegistration
         """
 
-        if not self.api.settings().register_new_installs:
+        if mac is None:
             return 1
+
+        if not self.api.settings().register_new_installs:
+            return 2
 
         system = self.api.find_system(mac_address=mac)
         if system is not None:
-            return 2
+            return 3
 
-        obj = server.new_system(token)
+        obj = self.api.new_system()
         obj.set_profile(profile)
         obj.set_name(mac.replace(":","_"))
         obj.set_mac_address(mac, "intf0")

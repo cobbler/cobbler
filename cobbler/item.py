@@ -198,8 +198,9 @@ class Item(serializable.Serializable):
             if key in [ "mac_address", "ip_address", "subnet", "gateway", "virt_bridge", "dhcp_tag", "hostname" ]:
                 key_found_already = True
                 for (name, interface) in data["interfaces"].iteritems(): 
-                    if interface[key].lower() == value.lower():
-                        return True
+                    if value is not None:
+                        if interface[key].lower() == value.lower():
+                            return True
 
         if not data.has_key(key):
             if not key_found_already:
