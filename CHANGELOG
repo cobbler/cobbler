@@ -42,6 +42,7 @@ Cobbler CHANGELOG
 - fix for dnsmasq template file host config path
 - fix dnsmasq template to point at the correct hosts file
 - force all names to be alphanumeric
+- all mod python pieces now happy with Unicode output
 
 * Fri Feb 22 2008 - 0.8.2
 - fix to webui to allow repos to be edited there on profile page
