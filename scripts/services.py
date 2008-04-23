@@ -60,8 +60,9 @@ def handler(req):
     content = func( **form )
 
     # apache.log_error("%s:%s ... %s" % (my_user, my_uri, str(form)))
-    req.content_type = "text/plain"
-    req.write(content)
+    req.content_type = "text/plain;charset=utf-8"
+    content = unicode(content)
+    req.write(content.encode('utf-8'))
     
     return apache.OK
 
