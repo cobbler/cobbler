@@ -33,6 +33,8 @@ def handler(req):
     """
 
     my_uri = req.uri
+    
+
 
     # apache.log_error("cannot load /var/lib/cobbler/web.ss")
     req.add_common_vars()
@@ -42,6 +44,26 @@ def handler(req):
     form = {}
     for x in fs.keys():
         form[x] = str(fs.get(x,'default'))
+    
+    if my_uri.find("?") == -1:
+       # support fake query strings
+       # something log /cobbler/web/op/ks/server/foo
+       # which is needed because of xend parser errors
+       # not tolerating ";" and also libvirt on 5.1 not
+       # tolerating "&amp;" (nor "&").
+
+       tokens = my_uri.split("/")
+       tokens = tokens[3:]
+       label = True
+       field = ""
+       for t in tokens:
+          if label:
+             field = t
+             apache.log_error("field %s" % field)
+          else:
+             form[field] = t
+             apache.log_error("adding %s to %s" % (field,t))
+          label = not label
 
     form["REMOTE_ADDR"] = req.subprocess_env.get("REMOTE_ADDR",None)
     form["REMOTE_MAC"]  = req.subprocess_env.get("HTTP_X_RHN_PROVISIONING_MAC_0",None)
