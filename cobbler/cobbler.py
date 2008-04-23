@@ -56,7 +56,7 @@ def main():
     except SystemExit:
         pass # probably exited from optparse, nothing extra to print
     except Exception, exc2:
-        if str(type(exc2)).find("CX") == -1:
+        if isinstance(exc2, CX) or isinstance(exc2, CobblerException)
             traceback.print_exc()
         else:
             print str(exc2)[1:-1]  # remove framing air quotes
