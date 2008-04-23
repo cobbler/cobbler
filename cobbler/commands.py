@@ -195,6 +195,14 @@ class CobblerFunction:
         Boilerplate for objects that offer add/edit/delete/remove/copy functionality.
         """
 
+        if "dumpvars" in self.args:
+            if not self.options.name:
+                raise CX(_("name is required"))
+            obj = collect_fn().find(self.options.name)
+            if obj is None:
+                raise CX(_("object not found")) 
+            return obj
+
         if "remove" in self.args:
             recursive = False
             # only applies to distros/profiles and is not supported elsewhere
@@ -219,11 +227,12 @@ class CobblerFunction:
                 self.reporting_list_names2(collect_fn(),self.options.name)
             return None
 
+        if not self.options.name:
+            raise CX(_("name is required"))
+
         if "add" in self.args:
             obj = new_fn(is_subobject=subobject)
         else:
-            if not self.options.name:
-                raise CX(_("name is required"))
             if "delete" in self.args:
                 collect_fn().remove(self.options.name, with_delete=True)
                 return None
@@ -240,6 +249,10 @@ class CobblerFunction:
         """
         Boilerplate for objects that offer add/edit/delete/remove/copy functionality.
         """
+
+        if "dumpvars" in self.args:
+            print obj.dump_vars(True)
+            return True
 
         clobber = False
         if "add" in self.args:

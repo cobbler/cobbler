@@ -17,6 +17,7 @@ import serializable
 import utils
 from cexceptions import *
 from utils import _
+import pprint
 
 class Item(serializable.Serializable):
 
@@ -211,4 +212,11 @@ class Item(serializable.Serializable):
             return True
         else:
             return False
+
+    def dump_vars(self,data,format=True):
+        raw = utils.blender(self.config.api, False, self)
+        if format:
+            return pprint.pformat(raw)
+        else:
+            return raw
 

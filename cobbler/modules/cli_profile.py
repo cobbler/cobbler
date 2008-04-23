@@ -33,7 +33,7 @@ class ProfileFunction(commands.CobblerFunction):
         return "profile"
 
     def subcommands(self):
-        return [ "add", "edit", "copy", "rename", "remove", "list", "report" ]
+        return [ "add", "edit", "copy", "rename", "remove", "list", "report", "dumpvars" ]
 
     def add_options(self, p, args):
 
@@ -41,7 +41,7 @@ class ProfileFunction(commands.CobblerFunction):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
 
 
-        if not self.matches_args(args,["remove","report","list"]):
+        if not self.matches_args(args,["dumpvars","remove","report","list"]):
 
             p.add_option("--distro",           dest="distro", help="ex: 'RHEL-5-i386' (REQUIRED)")
             p.add_option("--dhcp-tag",         dest="dhcp_tag", help="for use in advanced DHCP configuration")
@@ -55,16 +55,16 @@ class ProfileFunction(commands.CobblerFunction):
         if "copy" in args or "rename" in args:
             p.add_option("--newname", dest="newname")
 
-        if not self.matches_args(args,["remove","report", "list"]):
+        if not self.matches_args(args,["dumpvars","remove","report", "list"]):
             p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
-        if not self.matches_args(args,["report", "list"]):
+        if not self.matches_args(args,["dumpvars","report", "list"]):
             p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
             p.add_option("--owners", dest="owners", help="specify owners for authz_ownership module")
 
         if self.matches_args(args,["remove"]):
             p.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
 
-        if not self.matches_args(args,["remove","report","list"]):
+        if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--repos",            dest="repos", help="names of cobbler repos")
             p.add_option("--server-override",  dest="server_override", help="overrides value in settings file")
             p.add_option("--virt-bridge",      dest="virt_bridge", help="ex: 'virbr0'")
@@ -76,8 +76,7 @@ class ProfileFunction(commands.CobblerFunction):
 
     def run(self):
 
-
-        if self.matches_args(self.args,["report","list","remove"]) or not self.options.inherit:
+        if self.matches_args(self.args,["report","list","remove","dumpvars"]) or not self.options.inherit:
             obj = self.object_manipulator_start(self.api.new_profile,self.api.profiles,subobject=False)
         else:
             obj = self.object_manipulator_start(self.api.new_profile,self.api.profiles,subobject=True)
@@ -85,23 +84,23 @@ class ProfileFunction(commands.CobblerFunction):
         if obj is None:
             return True
 
-        if self.options.inherit:         obj.set_parent(self.options.inherit)
-        if self.options.distro:          obj.set_distro(self.options.distro)
-        if self.options.kickstart:       obj.set_kickstart(self.options.kickstart)
-        if self.options.kopts:           obj.set_kernel_options(self.options.kopts)
-        if self.options.ksmeta:          obj.set_ksmeta(self.options.ksmeta)
-        if self.options.virt_file_size:  obj.set_virt_file_size(self.options.virt_file_size)
-        if self.options.virt_ram:        obj.set_virt_ram(self.options.virt_ram)
-        if self.options.virt_bridge:     obj.set_virt_bridge(self.options.virt_bridge)
-        if self.options.virt_type:       obj.set_virt_type(self.options.virt_type)
-        if self.options.virt_cpus:       obj.set_virt_cpus(self.options.virt_cpus)
-        if self.options.repos:           obj.set_repos(self.options.repos)
-        if self.options.virt_path:       obj.set_virt_path(self.options.virt_path)
-        if self.options.dhcp_tag:        obj.set_dhcp_tag(self.options.dhcp_tag)
-        if self.options.server_override: obj.set_server(self.options.server)
+        if not self.matches_args(self.args,["dumpvars"]):
+            if self.options.inherit:         obj.set_parent(self.options.inherit)
+            if self.options.distro:          obj.set_distro(self.options.distro)
+            if self.options.kickstart:       obj.set_kickstart(self.options.kickstart)
+            if self.options.kopts:           obj.set_kernel_options(self.options.kopts)
+            if self.options.ksmeta:          obj.set_ksmeta(self.options.ksmeta)
+            if self.options.virt_file_size:  obj.set_virt_file_size(self.options.virt_file_size)
+            if self.options.virt_ram:        obj.set_virt_ram(self.options.virt_ram)
+            if self.options.virt_bridge:     obj.set_virt_bridge(self.options.virt_bridge)
+            if self.options.virt_type:       obj.set_virt_type(self.options.virt_type)
+            if self.options.virt_cpus:       obj.set_virt_cpus(self.options.virt_cpus)
+            if self.options.repos:           obj.set_repos(self.options.repos)
+            if self.options.virt_path:       obj.set_virt_path(self.options.virt_path)
+            if self.options.dhcp_tag:        obj.set_dhcp_tag(self.options.dhcp_tag)
+            if self.options.server_override: obj.set_server(self.options.server)
 
-        if self.options.owners:
-            obj.set_owners(self.options.owners)
+            if self.options.owners:          obj.set_owners(self.options.owners)
 
         return self.object_manipulator_finish(obj, self.api.profiles, self.options)
 

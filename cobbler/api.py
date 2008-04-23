@@ -251,6 +251,9 @@ class BootAPI:
     def find_repo(self, name=None, return_list=False, **kargs):
         return self._config.repos().find(name=name, return_list=return_list, **kargs)
 
+    def dump_vars(self, obj, format=False):
+        return obj.dump_vars(format)
+
     def auto_add_repos(self):
         """
         Import any repos this server knows about and mirror them.

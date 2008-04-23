@@ -33,14 +33,14 @@ class SystemFunction(commands.CobblerFunction):
         return "system"
 
     def subcommands(self):
-        return [ "add", "edit", "copy", "rename", "remove", "report", "list" ]
+        return [ "add", "edit", "copy", "rename", "remove", "report", "list", "dumpvars" ]
 
     def add_options(self, p, args):
 
         if self.matches_args(args,["add"]):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
 
-        if not self.matches_args(args,["remove","report","list"]):
+        if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--dhcp-tag",        dest="dhcp_tag",    help="for use in advanced DHCP configurations")
             p.add_option("--gateway",         dest="gateway",     help="for static IP / templating usage")
             p.add_option("--hostname",        dest="hostname",    help="ex: server.example.org")
@@ -53,19 +53,19 @@ class SystemFunction(commands.CobblerFunction):
 
         p.add_option("--name",   dest="name",                     help="a name for the system (REQUIRED)")
 
-        if not self.matches_args(args,["remove","report","list"]):
+        if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--netboot-enabled", dest="netboot_enabled", help="PXE on (1) or off (0)")
 
         if self.matches_args(args,["copy","rename"]):
             p.add_option("--newname", dest="newname",                 help="for use with copy/edit")
 
-        if not self.matches_args(args,["remove","report","list"]):
+        if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
-        if not self.matches_args(args,["report","list"]):
+        if not self.matches_args(args,["dumpvars","report","list"]):
             p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
 
 
-        if not self.matches_args(args,["remove","report","list"]):
+        if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--owners",          dest="owners",          help="specify owners for authz_ownership module")
             p.add_option("--profile",         dest="profile",         help="name of cobbler profile (REQUIRED)")
             p.add_option("--server-override", dest="server_override", help="overrides server value in settings file")
@@ -80,6 +80,8 @@ class SystemFunction(commands.CobblerFunction):
         obj = self.object_manipulator_start(self.api.new_system,self.api.systems)
         if obj is None:
             return True
+        if self.matches_args(self.args,["dumpvars"]):
+            return self.object_manipulator_finish(obj, self.api.profiles, self.options)
 
         if self.options.profile:         obj.set_profile(self.options.profile)
         if self.options.kopts:           obj.set_kernel_options(self.options.kopts)
