@@ -283,9 +283,9 @@ class PXEGen:
         if kickstart_path is not None and kickstart_path != "":
 
             if system is not None and kickstart_path.startswith("/"):
-                kickstart_path = "http://%s/cblr/svc/?op=ks&system=%s" % (blended["http_server"], system.name)
+                kickstart_path = "http://%s/cblr/svc/op/ks/system/%s" % (blended["http_server"], system.name)
             elif kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
-                kickstart_path = "http://%s/cblr/svc/?op=ks&profile=%s" % (blended["http_server"], profile.name)
+                kickstart_path = "http://%s/cblr/svc/op/ks/profile/%s" % (blended["http_server"], profile.name)
 
             if distro.breed is None or distro.breed == "redhat":
                 append_line = "%s ks=%s" % (append_line, kickstart_path)
