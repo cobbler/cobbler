@@ -24,6 +24,7 @@ import random
 import base64
 import string
 import traceback
+import glob
 
 import api as cobbler_api
 import utils
@@ -157,6 +158,35 @@ class CobblerXMLRPCInterface:
             data = self._fix_none(data[start_point:end_point])
 
         return self._fix_none(data)
+
+    def get_kickstart_templates(self,token):
+        """
+        Returns all of the kickstarts that are in use by the system.
+        """
+        self.log("get_kickstart_templates",token=token)
+        self.check_access(token, "get_kickstart_templates")
+        files = {} 
+        for x in self.api.profiles():
+           if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
+              files[x.kickstart] = 1
+        for x in self.api.systems():
+           if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
+              files[x.kickstart] = 1
+        for x in glob.glob("/var/lib/cobbler/kickstarts/*"):
+           files[x] = 1
+
+        return files.keys() 
+
+    def is_kickstart_in_use(self,ks,token):
+        self.log("is_kickstart_in_use",token=token)
+        self.check_access(token, "is_kickstart_in_use")
+        for x in self.api.profiles():
+           if x.kickstart is not None and x.kickstart == ks:
+               return True
+        for x in self.api.systems():
+           if x.kickstart is not None and x.kickstart == ks:
+               return True
+        return False
 
     def generate_kickstart(self,profile=None,system=None,REMOTE_ADDR=None,REMOTE_MAC=None):
         self.log("generate_kickstart")
@@ -1042,9 +1072,16 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
             fileh.close()
             return data
         else:
-            fileh = open(kickstart_file,"w+")
-            fileh.write(new_data)
-            fileh.close()
+            if new_data == -1:
+                # delete requested
+                if not self.is_kickstart_in_use(kickstart_file,token):
+                    os.remove(kickstart_file)
+                else:
+                    raise CX(_("attempt to delete in-use file"))
+            else:
+                fileh = open(kickstart_file,"w+")
+                fileh.write(new_data)
+                fileh.close()
             return True
 
 

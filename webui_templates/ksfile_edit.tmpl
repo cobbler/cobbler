@@ -20,25 +20,46 @@ if you need to resolve this.
 <form method="post" action="$base_url?mode=ksfile_save">
     <input type="hidden" name="name" value="$name"/>
     <fieldset id="cform">
-        <legend>Edit Kickstart File</legend>
+    <legend>Edit Kickstart Template</legend>
+
+    <table>
+    <tr><td colspan="2">
+    <label for="ksdata">Editing: $name</label>
+    <td></tr> 
+    
+    <tr><td colspan="2">
 
         <pre><textarea rows="40" cols="120" name="ksdata" id="ksdata">$ksdata</textarea></pre>
         <br/>
 
+    </td></tr>
+       
+
+    #if $deleteable
+    <tr><td>
+    <label>Delete</label>
+    </td>
+    <td>
+    <input type="checkbox" name="delete1" value="delete1">Yes
+    <input type="checkbox" name="delete2" value="delete2">Really
+    <p class="context-tip">Check both buttons and click save to delete this object</p>
+    </td></tr>
+    #else
+    <tr><td colspan="2">
+    NOTE: This kickstart template is currently in-use.
+    </td></tr>
+    #end if
+
+    <tr><td colspan="2">
         #if $editable == True
             <input type="submit" name="submit" value="Save"/>
             <input type="reset" name="reset" value="Reset"/>
-        #end if
 
+        #end if
+    </td></tr>
+
+    </table>
     </fieldset>
 </form>
-
-#if $editable == True
-<br/>
-<blockquote>
-NOTE:  Run a cobbler sync to after making changes here in order
-for kickstart files to be regenerated.
-</blockquote>
-#end if
 
 #end block body

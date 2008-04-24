@@ -32,6 +32,7 @@ Cobbler CHANGELOG
 - legacy static file generation from /var/www/cobbler removed
 - implement "cobbler ___ dumpvars --name=X" feature to show template vars
 - validateks now works against all URLs as opposed to rendered local files
+- now possible to create new kickstarts in webui, and delete unused ones
 
 - ??? - 0.8.3
 - Make createrepo get run for local cobbler reposync invocations as needed

@@ -162,6 +162,7 @@ if __name__ == "__main__":
 
                                 # Web UI kickstart file editing
                                 (wwwtmpl,           ['webui_templates/ksfile_edit.tmpl']),
+                                (wwwtmpl,           ['webui_templates/ksfile_new.tmpl']),
                                 (wwwtmpl,           ['webui_templates/ksfile_list.tmpl']),
 
                                 # Web UI support files

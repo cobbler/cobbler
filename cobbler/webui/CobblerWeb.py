@@ -712,6 +712,20 @@ class CobblerWeb(object):
             'ksfiles': self.remote.get_kickstart_templates(self.token)
         } )
 
+    def ksfile_new(self, name=None,**spam):
+
+
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+
+        can_edit = self.remote.check_access_no_fail(self.token,"add_kickstart",name)
+        return self.__render( 'ksfile_new.tmpl', {
+            'editable' : can_edit,
+            'ksdata': ''
+        } )
+
+
+
     def ksfile_edit(self, name=None,**spam):
 
 
@@ -721,18 +735,26 @@ class CobblerWeb(object):
         can_edit = self.remote.check_access_no_fail(self.token,"modify_kickstart",name)
         return self.__render( 'ksfile_edit.tmpl', {
             'name': name,
+            'deleteable' : not self.remote.is_kickstart_in_use(name,self.token),
             'editable' : can_edit,
             'ksdata': self.remote.read_or_write_kickstart_template(name,True,"",self.token)
         } )
 
-    def ksfile_save(self, name=None, ksdata=None, **args):
+    def ksfile_save(self, name=None, ksdata=None, delete1=None, delete2=None, isnew=None, **args):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
+            
+
         try:
-            self.remote.read_or_write_kickstart_template(name,False,ksdata,self.token)
+            if delete1 and delete2:
+                self.remote.read_or_write_kickstart_template(name,False,-1,self.token)
+            if isnew is not None:
+                name = "/var/lib/cobbler/kickstarts/" + name
+            if not delete1 and not delete2:
+                self.remote.read_or_write_kickstart_template(name,False,ksdata,self.token)
         except Exception, e:
             return self.error_page("An error occurred while trying to save kickstart file %s:<br/><br/>%s" % (name,str(e)))
-        return self.ksfile_edit(name=name)
+        return self.ksfile_list()
 
     # ------------------------------------------------------------------------ #
     # Miscellaneous
@@ -813,6 +835,7 @@ class CobblerWeb(object):
 
     settings_view.exposed = True
     ksfile_edit.exposed = True
+    ksfile_new.exposed = True
     ksfile_save.exposed = True
     ksfile_list.exposed = True
 
