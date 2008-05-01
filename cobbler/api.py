@@ -22,6 +22,7 @@ import action_import
 import action_reposync
 import action_status
 import action_validate
+import action_buildiso
 from cexceptions import *
 import sub_process
 import module_loader
@@ -416,4 +417,10 @@ class BootAPI:
         rc = self.authz.authorize(self,user,resource,arg1,arg2)
         self.log("authorize",[user,resource,arg1,arg2,rc],debug=True)
         return rc
+
+    def build_iso(self,iso=None,profiles=None,tempdir=None):
+        builder = action_buildiso.BuildIso(self._config)
+        return builder.run(
+           iso=iso, profiles=profiles, tempdir=tempdir
+        )
 

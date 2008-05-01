@@ -21,6 +21,7 @@ import os.path
 import traceback
 import optparse
 import commands
+import cexceptions
 from cexceptions import *
 
 from utils import _
@@ -49,20 +50,16 @@ def main():
     """
     exitcode = 0
     try:
-        # FIXME: redo locking code?
         return BootCLI().run(sys.argv)
-    except CX, exc:
-        print str(exc)[1:-1]  # remove framing air quotes
-    except SystemExit:
-        pass # probably exited from optparse, nothing extra to print
-    except Exception, exc2:
-        if isinstance(exc2, CX) or isinstance(exc2, CobblerException):
-            traceback.print_exc()
+    except Exception, exc:
+        if isinstance(exc, cexceptions.CobblerException) or \
+           isinstance(exc, cexceptions.CX) or \
+           str(type(exc)).find("CX") != -1 or \
+           str(type(exc)).find("CobblerException") != -1:
+            print str(exc)[1:-1]  # remove framing air quotes
         else:
-            print str(exc2)[1:-1]  # remove framing air quotes
+            traceback.print_exc()
         return 1
-    return 1
-
 
 if __name__ == "__main__":
     sys.exit(main())

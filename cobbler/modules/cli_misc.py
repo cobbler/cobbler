@@ -184,11 +184,6 @@ class ReportFunction(commands.CobblerFunction):
                 self.reporting_print_sorted(self.api.repos())
         return True
 
-## FIXME: add legacy command translator to keep things simple
-## cobbler system report foo --> cobbler report --what=systems --name=foo
-## cobbler system report --> cobbler report --what=systems
-## ditto for "cobbler list"
-
 ########################################################
 
 class StatusFunction(commands.CobblerFunction):
@@ -245,6 +240,28 @@ class ValidateKsFunction(commands.CobblerFunction):
         return self.api.validateks()
 
 ########################################################
+
+class BuildIsoFunction(commands.CobblerFunction):
+
+    def add_options(self,p,args): 
+        p.add_option("--iso",      dest="isoname",  help="(OPTIONAL) output ISO to this path")
+        p.add_option("--profiles", dest="profiles", help="(OPTIONAL) use these profiles only")
+        p.add_option("--tempdir",  dest="tempdir",  help="(OPTIONAL) working directory")
+
+    def help_me(self):
+       return HELP_FORMAT % ("cobbler buildiso","")
+    
+    def command_name(self):
+       return "buildiso"
+
+    def run(self):
+       return self.api.build_iso(
+           iso=self.options.isoname,
+           profiles=self.options.profiles,
+           tempdir=self.options.tempdir
+       )
+
+########################################################
 # MODULE HOOKS
 
 def register():
@@ -255,6 +272,7 @@ def register():
 
 def cli_functions(api):
     return [
+       BuildIsoFunction(api), 
        CheckFunction(api), ImportFunction(api), ReserializeFunction(api),
        ListFunction(api), ReportFunction(api), StatusFunction(api),
        SyncFunction(api), RepoSyncFunction(api), ValidateKsFunction(api)

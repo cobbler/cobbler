@@ -248,6 +248,10 @@ class CobblerXMLRPCInterface:
         if mac.find(" ") != -1:
             mac = mac.split()[-1]
 
+        dup = self.api.find_system(mac_address=mac)
+        if dup is not None:
+            return 4
+
         self.log("register mac for profile %s" % profile,token=token,name=mac)
         obj = self.api.new_system()
         obj.set_profile(profile)
