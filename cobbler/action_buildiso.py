@@ -134,7 +134,7 @@ class BuildIso:
                 cfg.write("\n")
                 cfg.write("LABEL %s\n" % x.name)
                 cfg.write("  MENU LABEL %s\n" % x.name)
-                cfg.write("  kernel /%s/vmlinuz\n" % dist.name)
+                cfg.write("  kernel %s/vmlinuz\n" % dist.name)
 
                 if data["kickstart"].startswith("/"):
                     data["kickstart"] = "http://%s/cblr/svc/op/ks/profile/%s" % (
@@ -142,7 +142,7 @@ class BuildIso:
                         x.name
                     )
 
-                append_line = "  append %s/initrd.img" % dist.name
+                append_line = "  append initrd=%s/initrd.img" % dist.name
                 append_line = append_line + " ks=%s " % data["kickstart"]
                 append_line = append_line + " %s\n" % data["kernel_options"]
                 cfg.write(append_line)
