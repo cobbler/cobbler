@@ -537,43 +537,37 @@ Anywhere a kickstart template mentions SNIPPET::snippet_name, the file named /va
 
 To check for potential errors in kickstarts, prior to installation, use "cobbler validateks".  This function will check all profile and system kickstarts for detectable errors.  Since pykickstart is not future-Anaconda-version aware, there may be some false positives.  It should be noted that "cobbler validateks" runs on the rendered kickstart output, not kickstart templates themselves.
 
-=head2 DHCP CONFIGURATION MANAGEMENT
+=head2 DHCP MANAGEMENT
 
-Cobbler can optionally help you manage DHCP and (depending on how used) DNS as it relates
-to systems you wish to provision/control.  This allows cobbler to essentially maintain a database
-of all of your installed systems, and be a central point of control for aspects related to setting
-up those systems.
+Cobbler can optionally help you manage DHCP server.  This feature is off by default.
 
-This feature is off by default and must be turned on by setting 'manage_dhcp' to 1 in
-/var/lib/cobbler/settings.   Choices include ISC dhcpd (default), or DNSmasq, which can be chosen
-by setting manage_dhcp_mode to 'dnsmasq'.  If you choose dnsmasq and want to revert to ISC, change
-the setting to 'isc'.
+Choose either "management = isc_and_bind" in /etc/cobbler/dhcp.template or "management = "dnsmasq" in /etc/cobbler/modules.conf.  Then set "manage_dhcp" to 1 in /var/lib/cobbler/settings.
+
+This allows DHCP to be managed via "cobbler system add" commands, when you specify the mac address and IP address for systems you add into cobbler.
 
 Depending on your choice, cobbler will use /etc/cobbler/dhcpd.template or /etc/cobbler/dnsmasq.template as a starting point.  This file must be user edited for the user's particular networking environment.  Read the file and understand how the particular app (ISC dhcpd or dnsmasq) work before proceeding.
 
 If you already have DHCP configuration data that you would like to preserve (say DHCP was manually configured earlier), insert the relevant portions of it into the template file, as running "cobbler sync" will overwrite your previous configuration.
 
-In summary, if this manage_dhcp bit is enabled, the following features are enabled:
+NOTE: Itanium systems names also need to be assigned to a distro that was created with the "--arch=ia64" parameter. If you have Itanium systems, you must (for now) choose 'dhcp_isc' for /etc/cobbler/modules.conf and manage_dhcp in the /var/lib/cobbler/settings file, and are required to use --ip when creating the system object in order for those systems to PXE.  This is due to an elilo limitation.
 
-(A) pinning dhcp hostnames to MAC addresses automatically.
-(B) relatively seamless mixing of Itanium and x86/x86_64 machines in a PXE environment (ISC only)
-(C) assigning hostnames to MAC addresses using DNS (dnsmasq only).
+By default, the DHCP configuration file will be updated each time "cobbler sync" is run, and not until then, so it is important to remember to use "cobbler sync" when using this feature.  
 
-These options are all enabled by using the --hostname and --ip options when using the "cobbler system add" command.
+If omapi_enabled is set to 1 in /var/lib/cobbler/settings, the need to sync when adding new system records can be eliminated.  
 
-Itanium systems names also need to be assigned to a distro that was created with the "--arch=ia64" parameter. If you have Itanium systems, you must (for now) choose 'isc' for 'manage_dhcp_mode' in the /var/lib/cobbler/settings file, and are required to use --ip when creating the system object in order for those systems to PXE.
+=head2 DNS CONFIGURATION MANAGEMENT
 
-The dhcpd.conf file will be updated each time "cobbler sync" is run, and not until then, so it is important to remember to use "cobbler sync" when using this feature.
+Cobbler can optionally manage DNS configuration using BIND and dnsmasq.
 
-=head2 BIND CONFIGURATION MANAGEMENT
+Choose either "management = isc_and_bind" or "management = dnsmasq" in /etc/cobbler/modules.conf and then enable manage_dns in /var/lib/cobbler/settings.
 
-Cobbler can optionally manage DNS configuration using BIND.
+This feature is off by default.  If using BIND, you may restrict the scope of zones managed with the options 'manage_forward_zones' and 'manage_reverse_zones'.  (See the Wiki for more information on this).
 
-This feature is off by default and must be turned on by setting 'manage_dns' to 1 in /var/lib/cobbler/settings.   You may restrict the scope of zones managed with the options 'manage_forward_zones' and 'manage_reverse_zones'.  
+If using BIND, Cobbler will use /etc/cobbler/bind.template and /etc/cobbler/zone.template as a starting point for the named.conf and individual zone files, respectively.  These files must be user edited for the user's particular networking environment.  Read the file and understand how BIND works before proceeding.
 
-Cobbler will use /etc/cobbler/bind.template and /etc/cobbler/zone.template as a starting point for the named.conf and individual zone files, respectively.  These files must be user edited for the user's particular networking environment.  Read the file and understand how BIND works before proceeding.
+If using dnsmasq, the template is /etc/cobbler/dnsmasq.template.  Read this file and understand how dnsmasq works before proceeding.
 
-The named.conf file as well as all zone files will be updated each time ``cobbler sync'' is run, and not until then, so it is important to remember to use ``cobbler sync'' when using this feature.
+All managed files (whether zone files and named.conf for BIND, or dnsmasq.conf for dnsmasq) will be updated each time ``cobbler sync'' is run, and not until then, so it is important to remember to use ``cobbler sync'' when using this feature.
 
 =head2 SERVICE DISCOVERY (AVAHI)
 
@@ -683,6 +677,10 @@ Cobbler also makes itself available as a Python API for use by higher level mana
 Most of the day-to-day actions in cobbler's command line can be performed in Cobbler's Web UI.  To enable and access the WebUI, see the following documentation:
 
 https://hosted.fedoraproject.org/projects/cobbler/wiki/CobblerWebUi
+
+=head2 BOOT CD
+
+Cobbler can build all of it's profiles into a bootable CD image using the "cobbler buildiso" command.  This allows for PXE-menu like bringup of bare metal in evnvironments where PXE is not possible.  Another more advanced method is described in the koan manpage, though this method is easier and sufficient for most applications.
 
 =head1 EXIT_STATUS
 
