@@ -81,16 +81,6 @@ class BootAPI:
                 "module",
                 "authz_allowall"
             )
-            self.dhcp  = self.get_module_from_file(
-                "dhcp_management",
-                "module",
-                "dhcp_isc"
-            )
-            self.dns   = self.get_module_from_file(
-                "dns_management",
-                "module",
-                "dns_bind" 
-            )
             self.kickgen = kickgen.KickGen(self._config)
             self.logger.debug("API handle initialized")
 
@@ -346,7 +336,12 @@ class BootAPI:
         return sync.run()
 
     def get_sync(self):
-        return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns)
+        self.manage = self.get_module_from_file(
+           "management",
+           "module",
+           "manage_isc_and_bind"
+        ).get_manager(self._config)
+        return action_sync.BootSync(self._config,manage=self.manage)
 
     def reposync(self, name=None):
         """

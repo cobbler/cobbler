@@ -28,8 +28,7 @@ import utils
 from cexceptions import *
 import templar 
 import pxegen
-import dhcpgen
-import dnsgen
+import manage_ctrl
 import yumgen
 
 import item_distro
@@ -47,7 +46,7 @@ class BootSync:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,config,verbose=False,dhcp=None,dns=None):
+    def __init__(self,config,verbose=False,manage=None):
         """
         Constructor
         """
@@ -61,7 +60,7 @@ class BootSync:
         self.repos       = config.repos()
         self.templar     = templar.Templar(config)
         self.pxegen      = pxegen.PXEGen(config)
-        self.dhcpgen     = dhcpgen.DHCPGen(config)
+        self.manager     = manage
         self.yumgen      = yumgen.YumGen(config)
         self.bootloc     = utils.tftpboot_location()
 
@@ -84,8 +83,6 @@ class BootSync:
         self.settings = self.config.settings()
         self.repos    = self.config.repos()
         self.pxegen   = pxegen.PXEGen(self.config)
-        self.dhcpgen  = dhcpgen.DHCPGen(self.config)
-        self.dnsgen   = dnsgen.DNSGen(self.config)
         self.yumgen   = yumgen.YumGen(self.config)
 
         # execute the core of the sync operation
@@ -96,12 +93,11 @@ class BootSync:
             self.pxegen.write_all_system_files(x)
         self.yumgen.retemplate_all_yum_repos()
         if self.settings.manage_dhcp:
-           # these functions DRT for ISC or dnsmasq
-           self.dhcpgen.write_dhcp_file()
-           self.dhcpgen.regen_ethers()
-           self.dhcpgen.regen_hosts()
+           self.manager.write_dhcp_file()
+           self.manager.regen_ethers()
+           self.manager.regen_hosts()
         if self.settings.manage_dns:
-           self.dnsgen.write_bind_files()
+           self.manager.write_dns_files()
         self.pxegen.make_pxe_menu()
 
         # run post-triggers

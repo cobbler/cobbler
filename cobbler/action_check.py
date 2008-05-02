@@ -37,8 +37,8 @@ class BootCheck:
        status = []
        self.check_name(status)
        if self.settings.manage_dhcp:
-           mode = self.settings.manage_dhcp_mode.lower()
-           if mode == "isc": 
+           mode = self.config.api.get_sync().manager.what()
+           if mode == "isc_and_bind": 
                self.check_dhcpd_bin(status)
                self.check_dhcpd_conf(status)
                self.check_service(status,"dhcpd")
@@ -46,7 +46,9 @@ class BootCheck:
                self.check_dnsmasq_bin(status)
                self.check_service(status,"dnsmasq")
            else:
-               status.append(_("manage_dhcp_mode in /var/lib/cobbler/settings should be 'isc' or 'dnsmasq'"))
+               status.append(_("configured management mode in modules.conf is unknown"))
+       # FIXME: add in checks for bind config
+ 
        self.check_service(status, "cobblerd")
     
        self.check_bootloaders(status)
