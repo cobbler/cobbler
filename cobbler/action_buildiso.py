@@ -40,7 +40,7 @@ ONTIMEOUT local
 LABEL local
         MENU LABEL (local)
         MENU DEFAULT
-        LOCALBOOT 0
+        LOCALBOOT -1
 
 """
 
@@ -58,6 +58,16 @@ class BuildIso:
         self.api         = config.api
         self.distros     = config.distros()
         self.profiles    = config.profiles()
+        self.distmap     = {}
+        self.distctr     = 0
+
+    def make_shorter(self,distname):
+        if self.distmap.has_key(distname):
+            return self.distmap[distname]
+        else:
+            self.distctr = self.distctr + 1
+            self.distmap[distname] = str(self.distctr)
+            return str(self.distctr)
 
     def run(self,iso=None,tempdir=None,profiles=None):
 
@@ -106,13 +116,13 @@ class BuildIso:
               if not use_this in which_profiles:
                  use_this = False
            dist = x.get_conceptual_parent()
-           distdir = os.path.join(isolinuxdir, x.name)
-           if not os.path.exists(distdir):
-               os.makedirs(distdir)
+           if dist.name.find("-xen") != -1:
+               continue
+           distname = self.make_shorter(dist.name)
            # tempdir/isolinux/$distro/vmlinuz, initrd.img
            # FIXME: this will likely crash on non-Linux breeds
-           shutil.copyfile(dist.kernel, os.path.join(distdir, "vmlinuz"))
-           shutil.copyfile(dist.initrd, os.path.join(distdir, "initrd.img"))
+           shutil.copyfile(dist.kernel, os.path.join(isolinuxdir, "%s.krn" % distname))
+           shutil.copyfile(dist.initrd, os.path.join(isolinuxdir, "%s.img" % distname))
 
         # generate isolinux.cfg
         print _("- generating a isolinux.cfg")
@@ -129,12 +139,15 @@ class BuildIso:
                     use_this = False
             if use_this:
                 dist = x.get_conceptual_parent()
+                if dist.name.find("-xen") != -1:
+                    continue
                 data = utils.blender(self.api, True, x)
+                distname = self.make_shorter(dist.name)
 
                 cfg.write("\n")
                 cfg.write("LABEL %s\n" % x.name)
                 cfg.write("  MENU LABEL %s\n" % x.name)
-                cfg.write("  kernel %s/vmlinuz\n" % dist.name)
+                cfg.write("  kernel %s.krn\n" % distname)
 
                 if data["kickstart"].startswith("/"):
                     data["kickstart"] = "http://%s/cblr/svc/op/ks/profile/%s" % (
@@ -142,7 +155,7 @@ class BuildIso:
                         x.name
                     )
 
-                append_line = "  append initrd=%s/initrd.img" % dist.name
+                append_line = "  append initrd=%s.img" % distname
                 append_line = append_line + " ks=%s " % data["kickstart"]
                 append_line = append_line + " %s\n" % data["kernel_options"]
                 cfg.write(append_line)
@@ -152,7 +165,7 @@ class BuildIso:
         cfg.write("MENU END\n")
         cfg.close()
  
-        cmd = "mkisofs -o %s -r -b isolinux/isolinux.bin" % iso
+        cmd = "mkisofs -o %s -r -b isolinux/isolinux.bin -c isolinux/boot.cat" % iso
         cmd = cmd + "  -no-emul-boot -boot-load-size 4 "
         cmd = cmd + "  -boot-info-table -V Cobbler\ Install -R -J -T %s" % tempdir
 
