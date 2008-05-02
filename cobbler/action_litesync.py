@@ -105,8 +105,10 @@ class BootLiteSync:
         if system is None:
             raise CX(_("error in system lookup for %s") % name)
         # rebuild system_list file in webdir
-        self.sync.manager.regen_ethers() 
-        self.sync.manager.regen_hosts()  
+        if self.settings.manage_dhcp:
+            self.sync.dns.regen_ethers() 
+        if self.settings.manage_dns:
+            self.sync.dhcp.regen_hosts()  
         # write the PXE files for the system
         self.sync.pxegen.write_all_system_files(system)
         # per system kickstarts
@@ -114,7 +116,7 @@ class BootLiteSync:
         if self.settings.manage_dhcp:
             if self.settings.omapi_enabled: 
                 for (name,interface) in system.interfaces.iteritems():
-                    self.sync.manager.write_dhcp_lease(
+                    self.sync.dhcp.write_dhcp_lease(
                         self.settings.omapi_port,
                         interface["hostname"],
                         interface["mac_address"],
@@ -135,7 +137,7 @@ class BootLiteSync:
         if self.settings.manage_dhcp:
             if self.settings.omapi_enabled: 
                 for (name,interface) in system_record.interfaces.iteritems():
-                    self.sync.manager.remove_dhcp_lease(
+                    self.sync.dhcp.remove_dhcp_lease(
                         self.settings.omapi_port,
                         interface["hostname"]
                     )

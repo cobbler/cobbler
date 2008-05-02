@@ -336,12 +336,17 @@ class BootAPI:
         return sync.run()
 
     def get_sync(self):
-        self.manage = self.get_module_from_file(
-           "management",
+        self.dhcp = self.get_module_from_file(
+           "dhcp",
            "module",
-           "manage_isc_and_bind"
+           "manage_isc"
         ).get_manager(self._config)
-        return action_sync.BootSync(self._config,manage=self.manage)
+        self.dns = self.get_module_from_file(
+           "dns",
+           "module",
+           "manage_bind"
+        ).get_manager(self._config)
+        return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns)
 
     def reposync(self, name=None):
         """

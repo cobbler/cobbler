@@ -37,23 +37,23 @@ class BootCheck:
        status = []
        self.check_name(status)
        if self.settings.manage_dhcp:
-           mode = self.config.api.get_sync().manager.what()
-           if mode == "isc_and_bind": 
+           mode = self.config.api.get_sync().dhcp.what()
+           if mode == "isc": 
                self.check_dhcpd_bin(status)
                self.check_dhcpd_conf(status)
                self.check_service(status,"dhcpd")
            elif mode == "dnsmasq":
                self.check_dnsmasq_bin(status)
                self.check_service(status,"dnsmasq")
-           else:
-               status.append(_("configured management mode in modules.conf is unknown"))
-       # FIXME: add in checks for bind config
+
        if self.settings.manage_dns:
-           mode = self.config.api.get_sync().manager.what()
-           if mode == "isc_and_bind":
+           mode = self.config.api.get_sync().dns.what()
+           if mode == "bind":
                self.check_bind_bin(status)
                self.check_service(status,"named")
-               pass
+           elif mode == "dnsmasq" and not self.settings.manage_dhcp:
+               self.check_dnsmasq_bin(status)
+               self.check_service(status,"dnsmasq")
 
        self.check_service(status, "cobblerd")
     
