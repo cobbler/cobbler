@@ -9,6 +9,7 @@ ddns-update-style interim;
 
 allow booting;
 allow bootp;
+omapi-port 647;
 
 ignore client-updates;
 set vendorclass = option vendor-class-identifier;

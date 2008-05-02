@@ -8,11 +8,19 @@ bootapi = capi.BootAPI()
 settings = bootapi.settings()
 manage_dhcp = str(settings.manage_dhcp).lower()
 manage_dhcp_mode = str(settings.manage_dhcp_mode).lower()
+omapi = settings.omapi
+omapi_port = settings.omapi_port
+
+
+
+# We're just going to restart DHCPD if using ISC and if not using OMAPI at all
 
 rc = 0
 if manage_dhcp != "0":
     if manage_dhcp_mode == "isc":
-        rc = os.system("/sbin/service dhcpd restart")
+        if not omapi:
+          if not omapi_port:
+            rc = os.system("/sbin/service dhcpd restart")
     elif manage_dhcp_mode == "dnsmasq":
         rc = os.system("/sbin/service dnsmasq restart")
     else:

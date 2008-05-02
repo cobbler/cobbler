@@ -22,6 +22,9 @@ import sys
 import glob
 import traceback
 import errno
+import popen2
+from shlex import shlex
+
 
 import utils
 from cexceptions import *
@@ -52,6 +55,50 @@ class DHCPGen:
         self.settings    = config.settings()
         self.repos       = config.repos()
         self.templar     = templar.Templar(config)
+
+    def writeDHCPLease(self,port,host,ip,mac):
+            """writeDHCPLease(port,host,ip,mac)
+            Use DHCP's API to create a DHCP entry in the /var/lib/dhcpd/dhcpd.leases file """
+            #Code from http://svn.osgdc.org/browse/kusu/kusu/trunk/src/kits/base/packages/kusu-base-installer/lib/kusu/nodefun.py?r=3025
+            fromchild, tochild = popen2.popen2("/usr/bin/omshell")
+            tochild.write("port %s\n" % port)
+ 	    tochild.flush()
+            tochild.write("connect\n")
+            tochild.flush()
+            tochild.write("new host\n")
+            tochild.flush()
+            tochild.write('set name = \"%s\"\n' % host)
+            tochild.flush()
+            tochild.write("set ip-address = %s\n" % ip)
+            tochild.flush()
+            tochild.write("set hardware-address = %s\n" % mac)
+            tochild.flush()
+            tochild.write("set hardware-type = 1\n")
+            tochild.flush()
+            tochild.write("create\n")
+            tochild.flush()
+            tochild.close()
+            fromchild.close()
+          
+    def removeDHCPLease(self,port,host):
+            """removeDHCPLease(port,host)
+            Use DHCP's API to delete a DHCP entry in the /var/lib/dhcpd/dhcpd.leases file """
+ 	    fromchild, tochild = popen2.popen2("/usr/bin/omshell")
+     	    tochild.write("port %s\n" % port)
+ 	    tochild.flush()
+            tochild.write("connect\n")
+            tochild.flush()
+            tochild.write("new host\n")
+            tochild.flush()
+            tochild.write('set name = \"%s\"\n' % host)
+            tochild.flush()
+            tochild.write("open\n")   # opens register with host information
+            tochild.flush()
+            tochild.write("remove\n")
+            tochild.flush()
+            tochild.close()
+            fromchild.close()
+            
 
     def write_dhcp_file(self):
         """
@@ -84,10 +131,28 @@ class DHCPGen:
 
         system_definitions = {}
         counter = 0
+        
+        
+        # Clean system definitions in /var/lib/dhcpd/dhcpd.leases just in
+        # case to avoid conflicts with the hosts we're defining and to clean
+        # possible removed hosts (only if using OMAPI)
+        #
+        # Pablo Iranzo Gómez (Pablo.Iranzo@redhat.com)
+       if self.settings.omapi and self.settings.omapi_port:
+           file = open('/var/lib/dhcpd/dhcpd.leases')
+           item = shlex(file)
+           while 1:
+             elem = item.get_token()
+             if not elem:
+                break
+             if elem == 'host':
+                hostremove =  item.get_token()
+                self.removeDHCPLease(self.settings.omapi_port,hostremove)
+        
 
         # we used to just loop through each system, but now we must loop
         # through each network interface of each system.
-
+        
         for system in self.systems:
             profile = system.get_conceptual_parent()
             distro  = profile.get_conceptual_parent()
@@ -121,6 +186,19 @@ class DHCPGen:
                     if ip is not None and ip != "":
                         systxt = systxt + "    fixed-address %s;\n" % ip
                     systxt = systxt + "}\n"
+                    
+                    # If we have all values defined and we're using omapi,
+                    # we will just create entries dinamically into DHCPD
+                    # without requiring a restart (but file will be written
+                    # as usual for having it working after restart)
+                    
+                    if ip is not None and ip != "":
+                      if mac is not None and mac != "":
+                        if host is not None and host != "":
+                          if self.settings.omapi and self.settings.omapi_port:
+                            self.removeDHCPLease(self.settings.omapi_port,host)
+                            self.writeDHCPLease(self.settings.omapi_port,host,ip,mac)
+                        
 
                 else:
                     # dnsmasq.  don't have to write IP and other info here, but we do tag
@@ -192,5 +270,3 @@ class DHCPGen:
                 if host is not None and host != "" and ip is not None and ip != "":
                     fh.write(ip + "\t" + host + "\n")
         fh.close()
-
-

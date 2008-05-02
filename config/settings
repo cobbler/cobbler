@@ -32,6 +32,8 @@ ldap_search_prefix: 'uid='
 manage_dhcp: 0
 manage_dhcp_mode: isc
 next_server: '127.0.0.1'
+omapi: 1
+omapi_port: 647
 pxe_just_once: 0
 register_new_installs: 0
 run_install_triggers: 1
