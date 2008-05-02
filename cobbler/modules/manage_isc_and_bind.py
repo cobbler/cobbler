@@ -213,8 +213,8 @@ class IscAndBindManager:
                   if mac is not None and mac != "":
                     if host is not None and host != "":
                       if self.settings.omapi_enabled and self.settings.omapi_port:
-                        self.removeDHCPLease(self.settings.omapi_port,host)
-                        self.writeDHCPLease(self.settings.omapi_port,host,ip,mac)
+                        self.remove_dhcp_lease(self.settings.omapi_port,host)
+                        self.write_dhcp_lease(self.settings.omapi_port,host,ip,mac)
                         
                 dhcp_tag = interface["dhcp_tag"]
                 if dhcp_tag == "":

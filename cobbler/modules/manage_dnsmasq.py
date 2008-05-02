@@ -55,7 +55,6 @@ class DnsmasqManager:
         self.settings    = config.settings()
         self.repos       = config.repos()
         self.templar     = templar.Templar(config)
-        self.dns         = dns
 
     def what(self):
         return "dnsmasq"
@@ -185,6 +184,10 @@ class DnsmasqManager:
                 if host is not None and host != "" and ip is not None and ip != "":
                     fh.write(ip + "\t" + host + "\n")
         fh.close()
+
+    def write_dns_files(self):
+        # already taken care of by the regen_hosts()
+        pass
 
 def get_manager(config):
     return DnsmasqManager(config)

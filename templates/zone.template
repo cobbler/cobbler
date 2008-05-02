@@ -1,0 +1,13 @@
+\$TTL 300
+@                       IN      SOA     $cobbler_server. nobody.example.com. (
+                                        $serial   ; Serial
+                                        600         ; Refresh
+                                        1800         ; Retry
+                                        604800       ; Expire
+                                        300          ; TTL 
+                                        )
+
+                        IN      NS      $cobbler_server.
+
+
+$host_record

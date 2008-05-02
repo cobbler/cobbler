@@ -48,7 +48,13 @@ class BootCheck:
            else:
                status.append(_("configured management mode in modules.conf is unknown"))
        # FIXME: add in checks for bind config
- 
+       if self.settings.manage_dns:
+           mode = self.config.api.get_sync().manager.what()
+           if mode == "isc_and_bind":
+               #self.check_bind_bin(status)
+               #self.check_service(status,"dhcpd")
+               pass
+
        self.check_service(status, "cobblerd")
     
        self.check_bootloaders(status)

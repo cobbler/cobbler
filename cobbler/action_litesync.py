@@ -117,8 +117,8 @@ class BootLiteSync:
                     self.sync.manager.write_dhcp_lease(
                         self.settings.omapi_port,
                         interface["hostname"],
-                        interface["mac-address"],
-                        interface["ip-address"]
+                        interface["mac_address"],
+                        interface["ip_address"]
                     )
 
 
