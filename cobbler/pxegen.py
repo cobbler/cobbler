@@ -177,6 +177,9 @@ class PXEGen:
         pxe_menu_items = ""
         for profile in profile_list:
             distro = profile.get_conceptual_parent()
+            # xen distros can be ruled out as they won't boot
+            if distro.name.find("-xen") != -1:
+                continue
             contents = self.write_pxe_file(None,None,profile,distro,False,include_header=False)
             if contents is not None:
                 pxe_menu_items = pxe_menu_items + contents + "\n"
