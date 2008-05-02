@@ -31,6 +31,7 @@ ldap_search_passwd: ''
 ldap_search_prefix: 'uid='
 manage_dhcp: 0
 manage_dhcp_mode: isc
+manage_dns: 0
 next_server: '127.0.0.1'
 omapi: 1
 omapi_port: 647

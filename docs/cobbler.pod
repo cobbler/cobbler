@@ -403,8 +403,8 @@ Cobbler sync is used to repair or rebuild the contents /tftpboot or /var/www/cob
 
 Sync should be run whenever files in /var/lib/cobbler are manually edited (which is not recommended except for the settings file) or when making changes to kickstart files.  In practice, this should not happen often, though running sync too many times does not cause any adverse effects.  
 
-If using cobbler to manage a DHCP server (see the advanced section of this manpage), sync does need to be
-run after systems are added to regenerate and reload the DHCP configuration.
+If using cobbler to manage a DHCP and/or DNS server (see the advanced section of this manpage), sync does need to be
+run after systems are added to regenerate and reload the DHCP/DNS configuration.
 
 =head1 EXAMPLES
 
@@ -564,6 +564,16 @@ These options are all enabled by using the --hostname and --ip options when usin
 Itanium systems names also need to be assigned to a distro that was created with the "--arch=ia64" parameter. If you have Itanium systems, you must (for now) choose 'isc' for 'manage_dhcp_mode' in the /var/lib/cobbler/settings file, and are required to use --ip when creating the system object in order for those systems to PXE.
 
 The dhcpd.conf file will be updated each time "cobbler sync" is run, and not until then, so it is important to remember to use "cobbler sync" when using this feature.
+
+=head2 BIND CONFIGURATION MANAGEMENT
+
+Cobbler can optionally manage DNS configuration using BIND.
+
+This feature is off by default and must be turned on by setting 'manage_dns' to 1 in /var/lib/cobbler/settings.   You may restrict the scope of zones managed with the options 'manage_forward_zones' and 'manage_reverse_zones'.  
+
+Cobbler will use /etc/cobbler/bind.template and /etc/cobbler/zone.template as a starting point for the named.conf and individual zone files, respectively.  These files must be user edited for the user's particular networking environment.  Read the file and understand how BIND works before proceeding.
+
+The named.conf file as well as all zone files will be updated each time ``cobbler sync'' is run, and not until then, so it is important to remember to use ``cobbler sync'' when using this feature.
 
 =head2 SERVICE DISCOVERY (AVAHI)
 

@@ -94,13 +94,15 @@ if __name__ == "__main__":
                                 (etcpath,  ['kickstarts/sample_end.ks']),
                                 (etcpath,  ['kickstarts/default.ks']),
  
-                                # templates for DHCP and syslinux configs
+                                # templates for DHCP, DNS, and syslinux configs
 				(etcpath,  ['templates/dhcp.template']),
 				(etcpath,  ['templates/dnsmasq.template']),
+                                (etcpath,  ['templates/named.template']),
 				(etcpath,  ['templates/pxedefault.template']),
 				(etcpath,  ['templates/pxesystem.template']),
 				(etcpath,  ['templates/pxesystem_ia64.template']),
 				(etcpath,  ['templates/pxeprofile.template']),
+                                (etcpath,  ['templates/zone.template']),
 
                                 # kickstart dir
                                 (vl_kick,  []),

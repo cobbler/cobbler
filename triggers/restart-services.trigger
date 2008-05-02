@@ -8,13 +8,13 @@ bootapi = capi.BootAPI()
 settings = bootapi.settings()
 manage_dhcp = str(settings.manage_dhcp).lower()
 manage_dhcp_mode = str(settings.manage_dhcp_mode).lower()
+manage_dns = str(settings.manage_dns).lower()
 omapi = settings.omapi
 omapi_port = settings.omapi_port
 
 
 
 # We're just going to restart DHCPD if using ISC and if not using OMAPI at all
-
 rc = 0
 if manage_dhcp != "0":
     if manage_dhcp_mode == "isc":
@@ -27,4 +27,11 @@ if manage_dhcp != "0":
         print "- error: unknown DHCP engine: %s" % manage_dhcp_mode
         rc = 411
 
+if rc != 0: 
+    sys.exit(rc)
+
+if manage_dns != "0":
+    rc = os.system("/sbin/service named restart")
+
 sys.exit(rc)
+

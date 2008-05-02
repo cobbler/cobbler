@@ -29,6 +29,7 @@ from cexceptions import *
 import templar 
 import pxegen
 import dhcpgen
+import dnsgen
 import yumgen
 
 import item_distro
@@ -84,6 +85,7 @@ class BootSync:
         self.repos    = self.config.repos()
         self.pxegen   = pxegen.PXEGen(self.config)
         self.dhcpgen  = dhcpgen.DHCPGen(self.config)
+        self.dnsgen   = dnsgen.DNSGen(self.config)
         self.yumgen   = yumgen.YumGen(self.config)
 
         # execute the core of the sync operation
@@ -98,6 +100,8 @@ class BootSync:
            self.dhcpgen.write_dhcp_file()
            self.dhcpgen.regen_ethers()
            self.dhcpgen.regen_hosts()
+        if self.settings.manage_dns:
+           self.dnsgen.write_bind_files()
         self.pxegen.make_pxe_menu()
 
         # run post-triggers
