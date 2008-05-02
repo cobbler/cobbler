@@ -51,8 +51,8 @@ class BootCheck:
        if self.settings.manage_dns:
            mode = self.config.api.get_sync().manager.what()
            if mode == "isc_and_bind":
-               #self.check_bind_bin(status)
-               #self.check_service(status,"dhcpd")
+               self.check_bind_bin(status)
+               self.check_service(status,"named")
                pass
 
        self.check_service(status, "cobblerd")
@@ -118,14 +118,22 @@ class BootCheck:
        Check if dhcpd is installed
        """
        if not os.path.exists(self.settings.dhcpd_bin):
-           status.append(_("dhcpd isn't installed, but is enabled in /var/lib/cobbler/settings"))
+           status.append(_("dhcpd isn't installed, but management is enabled in /var/lib/cobbler/settings"))
 
    def check_dnsmasq_bin(self,status):
        """
        Check if dnsmasq is installed
        """
        if not os.path.exists(self.settings.dnsmasq_bin):
-           status.append(_("dnsmasq isn't installed, but is enabled in /var/lib/cobbler/settings"))
+           status.append(_("dnsmasq isn't installed, but management is enabled in /var/lib/cobbler/settings"))
+
+   def check_bind_bin(self,status):
+       """
+       Check if bind is installed.
+       """
+       if not os.path.exists(self.settings.bind_bin):
+           status.append(_("bind isn't installed, but management is enabled in /var/lib/cobbler/settings"))
+       
 
    def check_bootloaders(self,status):
        """

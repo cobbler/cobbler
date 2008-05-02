@@ -1,6 +1,7 @@
 ---
 allow_duplicate_macs: 0
 allow_duplicate_ips: 0
+bind_bin: /usr/sbin/named
 bootloaders:
     ia64: /var/lib/cobbler/elilo-3.6-ia64.efi
     standard: /usr/lib/syslinux/pxelinux.0
@@ -34,6 +35,7 @@ manage_dns: 0
 next_server: '127.0.0.1'
 omapi_enabled: 1
 omapi_port: 647
+omshell_bin: /usr/bin/omshell
 pxe_just_once: 0
 register_new_installs: 0
 run_install_triggers: 1

@@ -24,6 +24,7 @@ TESTMODE = False
 DEFAULTS = {
     "allow_duplicate_macs"        : 0,
     "allow_duplicate_ips"         : 0,
+    "bind_bin"                    : "/usr/sbin/named",
     "bootloaders"                 : {
         "standard"                : "/usr/lib/syslinux/pxelinux.0",
         "ia64"                    : "/var/lib/cobbler/elilo-3.6-ia64.efi"
@@ -64,6 +65,7 @@ DEFAULTS = {
     "next_server"                 : "127.0.0.1",
     "omapi_enabled"		  : 0,
     "omapi_port"		  : 647,
+    "omshell_bin"                 : "/usr/bin/omshell",
     "pxe_just_once"               : 0,
     "register_new_installs"       : 0,
     "run_install_triggers"        : 1,
