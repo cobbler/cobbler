@@ -60,44 +60,54 @@ class DHCPGen:
             """writeDHCPLease(port,host,ip,mac)
             Use DHCP's API to create a DHCP entry in the /var/lib/dhcpd/dhcpd.leases file """
             #Code from http://svn.osgdc.org/browse/kusu/kusu/trunk/src/kits/base/packages/kusu-base-installer/lib/kusu/nodefun.py?r=3025
-            fromchild, tochild = popen2.popen2("/usr/bin/omshell")
-            tochild.write("port %s\n" % port)
- 	    tochild.flush()
-            tochild.write("connect\n")
-            tochild.flush()
-            tochild.write("new host\n")
-            tochild.flush()
-            tochild.write('set name = \"%s\"\n' % host)
-            tochild.flush()
-            tochild.write("set ip-address = %s\n" % ip)
-            tochild.flush()
-            tochild.write("set hardware-address = %s\n" % mac)
-            tochild.flush()
-            tochild.write("set hardware-type = 1\n")
-            tochild.flush()
-            tochild.write("create\n")
-            tochild.flush()
-            tochild.close()
-            fromchild.close()
-          
+            # FIXME: should use subprocess
+            try:
+                fromchild, tochild = popen2.popen2("/usr/bin/omshell")
+                tochild.write("port %s\n" % port)
+ 	        tochild.flush()
+                tochild.write("connect\n")
+                tochild.flush()
+                tochild.write("new host\n")
+                tochild.flush()
+                tochild.write('set name = \"%s\"\n' % host)
+                tochild.flush()
+                tochild.write("set ip-address = %s\n" % ip)
+                tochild.flush()
+                tochild.write("set hardware-address = %s\n" % mac)
+                tochild.flush()
+                tochild.write("set hardware-type = 1\n")
+                tochild.flush()
+                tochild.write("create\n")
+                tochild.flush()
+                tochild.close()
+                fromchild.close()
+            except IOError:
+                # FIXME: just catch 32 (broken pipe) and show a warning
+                pass
+
     def removeDHCPLease(self,port,host):
             """removeDHCPLease(port,host)
             Use DHCP's API to delete a DHCP entry in the /var/lib/dhcpd/dhcpd.leases file """
  	    fromchild, tochild = popen2.popen2("/usr/bin/omshell")
-     	    tochild.write("port %s\n" % port)
- 	    tochild.flush()
-            tochild.write("connect\n")
-            tochild.flush()
-            tochild.write("new host\n")
-            tochild.flush()
-            tochild.write('set name = \"%s\"\n' % host)
-            tochild.flush()
-            tochild.write("open\n")   # opens register with host information
-            tochild.flush()
-            tochild.write("remove\n")
-            tochild.flush()
-            tochild.close()
-            fromchild.close()
+     	    try:
+                tochild.write("port %s\n" % port)
+ 	        tochild.flush()
+                tochild.write("connect\n")
+                tochild.flush()
+                tochild.write("new host\n")
+                tochild.flush()
+                tochild.write('set name = \"%s\"\n' % host)
+                tochild.flush()
+                tochild.write("open\n")   # opens register with host information
+                tochild.flush()
+                tochild.write("remove\n")
+                tochild.flush()
+                tochild.close()
+                fromchild.close()
+            except IOError:
+                # FIXME: convert this to subprocess.
+                # FIXME: catch specific errors only (32/broken pipe)
+                pass
             
 
     def write_dhcp_file(self):
@@ -136,19 +146,17 @@ class DHCPGen:
         # Clean system definitions in /var/lib/dhcpd/dhcpd.leases just in
         # case to avoid conflicts with the hosts we're defining and to clean
         # possible removed hosts (only if using OMAPI)
-        #
-        # Pablo Iranzo Gómez (Pablo.Iranzo@redhat.com)
-       if self.settings.omapi and self.settings.omapi_port:
-           file = open('/var/lib/dhcpd/dhcpd.leases')
-           item = shlex(file)
-           while 1:
-             elem = item.get_token()
-             if not elem:
-                break
-             if elem == 'host':
-                hostremove =  item.get_token()
-                self.removeDHCPLease(self.settings.omapi_port,hostremove)
-        
+        if self.settings.omapi_enabled and self.settings.omapi_port:
+            if os.path.exists("/var/lib/dhcpd/dhcpd.leases"):
+                file = open('/var/lib/dhcpd/dhcpd.leases')
+                item = shlex(file)
+                while 1:
+                    elem = item.get_token()
+                    if not elem:
+                        break
+                    if elem == 'host':
+                        hostremove =  item.get_token()
+                        self.removeDHCPLease(self.settings.omapi_port,hostremove)
 
         # we used to just loop through each system, but now we must loop
         # through each network interface of each system.
@@ -195,7 +203,7 @@ class DHCPGen:
                     if ip is not None and ip != "":
                       if mac is not None and mac != "":
                         if host is not None and host != "":
-                          if self.settings.omapi and self.settings.omapi_port:
+                          if self.settings.omapi_enabled and self.settings.omapi_port:
                             self.removeDHCPLease(self.settings.omapi_port,host)
                             self.writeDHCPLease(self.settings.omapi_port,host,ip,mac)
                         
@@ -225,6 +233,8 @@ class DHCPGen:
         # we are now done with the looping through each interface of each system
 
         metadata = {
+           "omapi_enabled"  : self.settings.omapi_enabled,
+           "omapi_port"     : self.settings.omapi_port,
            "insert_cobbler_system_definitions" : system_definitions.get("default",""),
            "date"           : time.asctime(time.gmtime()),
            "cobbler_server" : self.settings.server,

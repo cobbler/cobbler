@@ -9,7 +9,7 @@ settings = bootapi.settings()
 manage_dhcp = str(settings.manage_dhcp).lower()
 manage_dhcp_mode = str(settings.manage_dhcp_mode).lower()
 manage_dns = str(settings.manage_dns).lower()
-omapi = settings.omapi
+omapi_enabled = settings.omapi_enabled
 omapi_port = settings.omapi_port
 
 
@@ -18,7 +18,7 @@ omapi_port = settings.omapi_port
 rc = 0
 if manage_dhcp != "0":
     if manage_dhcp_mode == "isc":
-        if not omapi:
+        if not omapi_enabled:
           if not omapi_port:
             rc = os.system("/sbin/service dhcpd restart")
     elif manage_dhcp_mode == "dnsmasq":

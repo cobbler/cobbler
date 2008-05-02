@@ -81,6 +81,16 @@ class BootAPI:
                 "module",
                 "authz_allowall"
             )
+            self.dhcp  = self.get_module_from_file(
+                "dhcp_management",
+                "module",
+                "dhcp_isc"
+            )
+            self.dns   = self.get_module_from_file(
+                "dns_management",
+                "module",
+                "dns_bind" 
+            )
             self.kickgen = kickgen.KickGen(self._config)
             self.logger.debug("API handle initialized")
 
@@ -332,8 +342,11 @@ class BootAPI:
         saved with serialize() will NOT be synchronized with this command.
         """
         self.log("sync")
-        sync = action_sync.BootSync(self._config)
+        sync = self.get_sync()
         return sync.run()
+
+    def get_sync(self):
+        return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns)
 
     def reposync(self, name=None):
         """

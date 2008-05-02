@@ -62,7 +62,7 @@ DEFAULTS = {
     "manage_reverse_zones"        : [],
     "named_conf"                  : "/etc/named.conf",
     "next_server"                 : "127.0.0.1",
-    "omapi"			  : 1,
+    "omapi_enabled"		  : 0,
     "omapi_port"		  : 647,
     "pxe_just_once"               : 0,
     "register_new_installs"       : 0,
