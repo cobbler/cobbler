@@ -41,6 +41,7 @@ if __name__ == "__main__":
         vw_systems    = "/var/www/cobbler/systems"
         vw_profiles   = "/var/www/cobbler/profiles"
         vw_links      = "/var/www/cobbler/links"
+        zone_templates = "/etc/cobbler/zone_templates"
         tftp_cfg      = "/tftpboot/pxelinux.cfg"
         tftp_images   = "/tftpboot/images"
         rotpath       = "/etc/logrotate.d"
@@ -133,6 +134,9 @@ if __name__ == "__main__":
                                 (vw_systems,        []),
                                 (vw_profiles,       []),
                                 (vw_links,          []),
+
+                                # zone-specific templates directory
+                                (zone_templates,    []),
 
                                 # tftp directories that we own
                                 (tftp_cfg,          []),

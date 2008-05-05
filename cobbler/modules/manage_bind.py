@@ -184,21 +184,20 @@ zone "%(arpa)s." {
 
     def __write_zone_files(self):
         """
-        Write out the forward and reverse zone files for all the zones
-        defined in manage_forward_zones and manage_reverse_zones
+        Write out the forward and reverse zone files for all configured zones
         """
-        template_file = "/etc/cobbler/zone.template"
+        default_template_file = "/etc/cobbler/zone.template"
         cobbler_server = self.settings.server
         serial = int(time.time())
         forward = self.__config_forward_zones()
         reverse = self.__config_reverse_zones()
 
         try:
-            f2 = open(template_file,"r")
+            f2 = open(default_template_file,"r")
         except:
-            raise CX(_("error reading template from file: %s") % template_file)
-        template_data = ""
-        template_data = f2.read()
+            raise CX(_("error reading template from file: %s") % default_template_file)
+        default_template_data = ""
+        default_template_data = f2.read()
         f2.close()
 
         for (zone, hosts) in forward.iteritems():
@@ -207,6 +206,14 @@ zone "%(arpa)s." {
                 'serial': serial,
                 'host_record': ''
             }
+
+            # grab zone-specific template if it exists
+            try:
+               fd = open('/etc/cobbler/zone_templates/%s' % zone)
+               template_data = fd.read()
+               fd.close()
+            except:
+               template_data = default_template_data
 
             for host in hosts:
                 txt = '%s\tIN\tA\t%s\n' % host
@@ -220,6 +227,14 @@ zone "%(arpa)s." {
                 'serial': serial,
                 'host_record': ''
             }
+
+            # grab zone-specific template if it exists
+            try:
+               fd = open('/etc/cobbler/zone_templates/%s' % zone)
+               template_data = fd.read()
+               fd.close()
+            except:
+               template_data = default_template_data
 
             for host in hosts:
                 txt = '%s\tIN\tPTR\t%s\n' % host
