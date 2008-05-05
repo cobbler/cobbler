@@ -98,7 +98,6 @@ class IscManager:
 
     def remove_dhcp_lease(self,port,host):
         """
-        removeDHCPLease(port,host)
         Use DHCP's API to delete a DHCP entry in 
         the /var/lib/dhcpd/dhcpd.leases file 
         """
@@ -166,7 +165,7 @@ class IscManager:
                         break
                     if elem == 'host':
                         hostremove =  item.get_token()
-                        self.removeDHCPLease(self.settings.omapi_port,hostremove)
+                        self.remove_dhcp_lease(self.settings.omapi_port,hostremove)
 
         # we used to just loop through each system, but now we must loop
         # through each network interface of each system.
