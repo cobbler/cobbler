@@ -73,7 +73,7 @@ class IscManager:
         # FIXME: should use subprocess
         """
         try:
-            fromchild, tochild = popen2.popen2("/usr/bin/omshell")
+            fromchild, tochild = popen2.popen2(self.settings.omshell_bin)
             tochild.write("port %s\n" % port)
             tochild.flush()
             tochild.write("connect\n")
@@ -101,7 +101,7 @@ class IscManager:
         Use DHCP's API to delete a DHCP entry in 
         the /var/lib/dhcpd/dhcpd.leases file 
         """
- 	fromchild, tochild = popen2.popen2("/usr/bin/omshell")
+ 	fromchild, tochild = popen2.popen2(self.settings.omshell_bin)
      	try:
             tochild.write("port %s\n" % port)
  	    tochild.flush()
