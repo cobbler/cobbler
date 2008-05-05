@@ -84,7 +84,7 @@ class IscManager:
             tochild.flush()
             tochild.write("set ip-address = %s\n" % ip)
             tochild.flush()
-            tochild.write("set hardware-address = %s\n" % mac)
+            tochild.write("set hardware-address = %s\n" % mac.lower())
             tochild.flush()
             tochild.write("set hardware-type = 1\n")
             tochild.flush()
