@@ -8,7 +8,7 @@ ONTIMEOUT local
 LABEL local
         MENU LABEL (local)
         MENU DEFAULT
-        LOCALBOOT 0
+        LOCALBOOT -1
 
 $pxe_menu_items
 
