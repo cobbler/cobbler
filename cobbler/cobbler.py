@@ -52,6 +52,8 @@ def main():
     exitcode = 0
     try:
         return BootCLI().run(sys.argv)
+    except SystemExit, ex:
+        return 1
     except Exception, exc:
         (t, v, tb) = sys.exc_info()
         try:
