@@ -106,9 +106,9 @@ class BootLiteSync:
             raise CX(_("error in system lookup for %s") % name)
         # rebuild system_list file in webdir
         if self.settings.manage_dhcp:
-            self.sync.dns.regen_ethers() 
+            self.sync.dhcp.regen_ethers() 
         if self.settings.manage_dns:
-            self.sync.dhcp.regen_hosts()  
+            self.sync.dns.regen_hosts()  
         # write the PXE files for the system
         self.sync.pxegen.write_all_system_files(system)
         # per system kickstarts
