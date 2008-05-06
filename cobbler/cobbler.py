@@ -20,6 +20,7 @@ import os
 import os.path
 import traceback
 import optparse
+import string
 import commands
 import cexceptions
 from cexceptions import *
@@ -52,11 +53,12 @@ def main():
     try:
         return BootCLI().run(sys.argv)
     except Exception, exc:
+        (t, v, tb) = sys.exc_info()
         try:
            getattr(exc, "from_cobbler")
            print str(exc)[1:-1]
         except: 
-           traceback.print_exc()
+           print string.join(traceback.format_list(traceback.extract_tb(tb)))
         return 1
 
 if __name__ == "__main__":
