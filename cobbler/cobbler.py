@@ -52,13 +52,11 @@ def main():
     try:
         return BootCLI().run(sys.argv)
     except Exception, exc:
-        if isinstance(exc, cexceptions.CobblerException) or \
-           isinstance(exc, cexceptions.CX) or \
-           str(type(exc)).find("CX") != -1 or \
-           str(type(exc)).find("CobblerException") != -1:
-            print str(exc)[1:-1]  # remove framing air quotes
-        else:
-            traceback.print_exc()
+        try:
+           getattr(exc, "from_cobbler")
+           print str(exc)[1:-1]
+        except: 
+           traceback.print_exc()
         return 1
 
 if __name__ == "__main__":
