@@ -60,6 +60,8 @@ def main():
            getattr(exc, "from_cobbler")
            print str(exc)[1:-1]
         except: 
+           print t
+           print v
            print string.join(traceback.format_list(traceback.extract_tb(tb)))
         return 1
 
