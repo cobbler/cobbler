@@ -61,6 +61,8 @@ class CobblerWeb(object):
             try:
                 self.remote.token_check(self.token)
                 self.username = self.remote.get_user_from_token(self.token)
+                # ensure config is up2date
+                self.remote.update(self.token)
                 return True
             except Exception, e:
                 if str(e).find("invalid token") != -1:
@@ -79,6 +81,8 @@ class CobblerWeb(object):
                 log_exc(self.apache)
                 return False
             self.password = None # don't need it anymore, get rid of it
+            # ensure configuration is up2date
+            self.remote.update(self.token)
             return True
         
         # login failed
@@ -631,7 +635,7 @@ class CobblerWeb(object):
         } )
 
     def repo_save(self,name=None,oldname=None,new_or_edit=None,editmode="edit",
-                  mirror=None,owners=None,keep_updated=None,priority=99,
+                  mirror=None,owners=None,keep_updated=None,mirror_locally=0,priority=99,
                   rpm_list=None,createrepo_flags=None,arch=None,yumopts=None,
                   delete1=None,delete2=None,**args):
         if not self.__xmlrpc_setup():
@@ -675,6 +679,7 @@ class CobblerWeb(object):
             self.remote.modify_repo(repo, 'mirror', mirror, self.token)
             self.remote.modify_repo(repo, 'keep-updated', keep_updated, self.token)
             self.remote.modify_repo(repo, 'priority', priority, self.token)
+            self.remote.modify_repo(repo, 'mirror-locally', mirror_locally, self.token)
 
             if rpm_list:
                 self.remote.modify_repo(repo, 'rpm-list', rpm_list, self.token)

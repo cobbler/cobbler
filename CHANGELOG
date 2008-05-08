@@ -38,6 +38,7 @@ Cobbler CHANGELOG
 - xen kernel (PV) distros do not get added to PXE menus as they won't boot there
 - cobbler buildiso command to build non live ISOs
 - cobbler replicate command
+- added cobbler repo option --mirror-locally to reference external repos without mirroring
 
 - ??? - 0.8.3
 - Make createrepo get run for local cobbler reposync invocations as needed

@@ -280,7 +280,7 @@ on your network will result in faster, more up-to-date installations and faster 
 are only provisioning a home setup, this will probably be overkill, though it can be very useful
 for larger setups (labs, datacenters, etc).
 
-B<cobbler repo add --mirror=url --name=string [--rpmlist=list] [--creatrepo-flags=string] [--keep-updated=Y/N] [--priority=number][--arch=string]>
+B<cobbler repo add --mirror=url --name=string [--rpmlist=list] [--creatrepo-flags=string] [--keep-updated=Y/N] [--priority=number] [--arch=string] [--mirror-locally=Y/N]>
 
 =over
 
@@ -334,6 +334,10 @@ Specifies optional flags to feed into the createrepo tool, which is called when 
 =item keep-updated
 
 Specifies that the named repository should not be updated during a normal "cobbler reposync".    The repo may still be updated by name.   See "cobbler reposync" below.
+
+=item mirror-locally
+
+When true, specifies that this yum repo is to be referenced directly via kickstarts and not mirrored locally on the cobbler server.  Only http:// and ftp:// mirror urls are supported when using --mirror-locally=1.
 
 =item priority
 

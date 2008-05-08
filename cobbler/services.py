@@ -45,6 +45,7 @@ class CobblerSvc(object):
         This is the version that does not require logins.
         """
         self.remote = xmlrpclib.Server(self.server, allow_none=True)
+        self.remote.update()
 
     def modes(self):
         """

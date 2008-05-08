@@ -51,6 +51,7 @@ class RepoFunction(commands.CobblerFunction):
         
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--mirror",           dest="mirror",           help="source to mirror (REQUIRED)")
+            p.add_option("--mirror-locally",   dest="mirror_locally",   help="mirror or use external directly? (default 1)")
             p.add_option("--priority",         dest="priority",         help="set priority") 
             p.add_option("--rpm-list",         dest="rpm_list",         help="just mirror these rpms")
             p.add_option("--yumopts",          dest="yumopts",          help="ex: pluginvar=abcd")
@@ -81,6 +82,7 @@ class RepoFunction(commands.CobblerFunction):
         if self.options.keep_updated:     obj.set_keep_updated(self.options.keep_updated)
         if self.options.priority:         obj.set_priority(self.options.priority)
         if self.options.mirror:           obj.set_mirror(self.options.mirror)
+        if self.options.mirror_locally:   obj.set_mirror_locally(self.options.mirror_locally)
         if self.options.yumopts:          obj.set_yumopts(self.options.yumopts)
 
         if self.options.owners:

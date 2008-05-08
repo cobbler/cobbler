@@ -57,8 +57,10 @@ class RepoSync:
         self.verbose = verbose
         for repo in self.repos:
             if name is not None and repo.name != name:
+                # invoked to sync only a specific repo, this is not the one
                 continue
             elif name is None and not repo.keep_updated:
+                # invoked to run against all repos, but this one is off
                 print _("- %s is set to not be updated") % repo.name
                 continue
 
@@ -71,6 +73,8 @@ class RepoSync:
             if repo.is_rsync_mirror():
                 self.do_rsync(repo)
             else:
+                # which may actually NOT reposync if the repo is set to not mirror locally
+                # but that's a technicality
                 self.do_reposync(repo)
             self.update_permissions(repo_path)
 
@@ -105,7 +109,7 @@ class RepoSync:
         store_path = os.path.join(self.settings.webdir, "repo_mirror")
         dest_path = os.path.join(store_path, repo.name)
         temp_path = os.path.join(store_path, ".origin")
-        if not os.path.isdir(temp_path):
+        if not os.path.isdir(temp_path) and repo.mirror_locally:
             # FIXME: there's a chance this might break the RHN D/L case
             os.makedirs(temp_path)
          
@@ -118,18 +122,21 @@ class RepoSync:
             # this is the simple non-RHN case.
             # create the config file that yum will use for the copying
 
-            temp_file = self.create_local_file(repo, temp_path, output=False)
+            if repo.mirror_locally:
+                temp_file = self.create_local_file(repo, temp_path, output=False)
 
-            if not has_rpm_list:
+            if not has_rpm_list and repo.mirror_locally:
                 # if we have not requested only certain RPMs, use reposync
                 cmd = "/usr/bin/reposync --config=%s --repoid=%s --download_path=%s" % (temp_file, repo.name, store_path)
                 if repo.arch != "":
+                    if repo.arch == "x86":
+                       repo.arch = "i386" # FIX potential arch errors
                     cmd = "%s -a %s" % (cmd, repo.arch)
                     
                 print _("- %s") % cmd
                 cmds.append(cmd)
 
-            else:
+            elif repo.mirror_locally:
 
                 # create the output directory if it doesn't exist
                 if not os.path.exists(dest_path):
@@ -149,6 +156,8 @@ class RepoSync:
 
             # this is the somewhat more-complex RHN case.
             # NOTE: this requires that you have entitlements for the server and you give the mirror as rhn://$channelname
+            if not repo.mirror_locally:
+                raise CX(_("rhn:// repos do not work with --mirror-locally=1"))
 
             if has_rpm_list:
                 print _("- warning: --rpm-list is not supported for RHN content")
@@ -161,7 +170,6 @@ class RepoSync:
             if repo.arch != "":
                 cmd = "%s -a %s" % (cmd, repo.arch)
 
-            print _("- %s") %  cmd
             cmds.append(cmd)
 
         # now regardless of whether we're doing yumdownloader or reposync
@@ -169,9 +177,10 @@ class RepoSync:
         # commands here.  Any failure at any point stops the operation.
 
         for cmd in cmds:
-            rc = sub_process.call(cmd, shell=True)
-            if rc !=0:
-                raise CX(_("cobbler reposync failed"))
+            if repo.mirror_locally:
+                rc = sub_process.call(cmd, shell=True)
+                if rc !=0:
+                    raise CX(_("cobbler reposync failed"))
 
         # some more special case handling for RHN.
         # create the config file now, because the directory didn't exist earlier
@@ -181,7 +190,8 @@ class RepoSync:
 
         # now run createrepo to rebuild the index
 
-        os.path.walk(dest_path, self.createrepo_walker, repo)
+        if repo.mirror_locally:
+            os.path.walk(dest_path, self.createrepo_walker, repo)
 
         # create the config file the hosts will use to access the repository.
 
@@ -195,6 +205,9 @@ class RepoSync:
         """
         Handle copying of rsync:// and rsync-over-ssh repos.
         """
+
+        if not repo.mirror_locally:
+            raise CX(_("rsync:// urls must be mirrored locally, yum cannot access them directly"))
 
         if repo.rpm_list != "":
             print _("- warning: --rpm-list is not supported for rsync'd repositories")
@@ -238,7 +251,11 @@ class RepoSync:
         optenabled = False
         optgpgcheck = False
         if output:
-            line = "baseurl=http://${server}/cobbler/repo_mirror/%s\n" % (repo.name)
+            if repo.mirror_locally:
+                line = "baseurl=http://${server}/cobbler/repo_mirror/%s\n" % (repo.name)
+            else:
+                line = "baseurl=%s" % (repo.mirror)
+  
             config_file.write(line)
             # user may have options specific to certain yum plugins
             # add them to the file

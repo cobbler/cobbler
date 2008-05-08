@@ -90,10 +90,24 @@ function disablename(value)
             checked="true"  
         #end if
     />
-    <p class="context-tip">Disable to prevent the mirror from being updated.</p>    
+    <p class="context-tip">Uncheck to prevent the mirror from being updated again.</p>    
     </td>
     </tr>
+    <br/>
 
+    <tr>
+    <td>
+    <label for="keep_updated">Mirror Locally</label>
+    </td>
+    <td>
+    <input type="checkbox" name="mirror_locally" id="mirror_locally"
+        #if (not $repo) or $repo.mirror_locally
+            checked="true"
+        #end if
+    />
+    <p class="context-tip">Uncheck to reference the repository directly instead of mirroring.</p>
+    </td>
+    </tr>
     <br/>
 
     <tr>
@@ -130,7 +144,7 @@ function disablename(value)
 
     <tr>
     <td>
-    <label for="createrepo_flags">createrepo flags</label>
+    <label for="createrepo_flags">Createrepo flags</label>
     </td>
     <td>
     <input type="text" size="255" style="width: 150px;" name="creatrepoflags" id="createrepoflags"
@@ -144,7 +158,7 @@ function disablename(value)
 
     <tr>
     <td>
-    <label for="arch">arch</label>
+    <label for="arch">Arch</label>
     </td>
     <td>
     <input type="text" size="255" style="width: 150px;" name="arch" id="arch"
@@ -158,7 +172,7 @@ function disablename(value)
 
     <tr>
     <td>
-    <label for="yumopts">yum options</label>
+    <label for="yumopts">Yum options</label>
     </td>
     <td>
     <input type="text" size="255" style="width: 150px;" name="yumopts" id="yumopts" 
@@ -219,11 +233,9 @@ function disablename(value)
 <br/>    
 
 <blockquote>
-Note:  Newly added repos contain no package content until 
-"cobbler reposync" is run from the command line, which means 
-that profiles relying on these repositories will not install.  
-Placing "cobbler reposync" on a crontab to ensure frequent 
-updates is recommended procedure.
+Note:  Newly added repo definitions will not be usable until
+"cobbler reposync" is run from the command line on this system.
+Placing "cobbler reposync" on a crontab is recommended procedure.
 </blockquote>
 
 <br/>

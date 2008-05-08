@@ -65,6 +65,11 @@ class CobblerXMLRPCInterface:
     def ping(self):
         return True
 
+    def update(self,token=None):
+        # ensure the config is up to date as of /now/
+        self.api.deserialize()
+        return True
+
     def get_user_from_token(self,token):
         if not TOKEN_CACHE.has_key(token):
             raise CX(_("invalid token: %s") % token)
