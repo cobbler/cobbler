@@ -262,6 +262,24 @@ class BuildIsoFunction(commands.CobblerFunction):
        )
 
 ########################################################
+
+class ReplicateFunction(commands.CobblerFunction):
+
+    def help_me(self):
+        return HELP_FORMAT % ("cobbler replicate","[ARGS|--help]")
+
+    def command_name(self):
+        return "replicate"
+
+    def add_options(self, p, args):
+        p.add_option("--master",           dest="master",             help="Cobbler server to replicate from.")
+
+    def run(self):
+        return self.api.replicate(cobbler_master = self.options.master)
+
+
+    
+########################################################
 # MODULE HOOKS
 
 def register():
@@ -275,7 +293,8 @@ def cli_functions(api):
        BuildIsoFunction(api), 
        CheckFunction(api), ImportFunction(api), ReserializeFunction(api),
        ListFunction(api), ReportFunction(api), StatusFunction(api),
-       SyncFunction(api), RepoSyncFunction(api), ValidateKsFunction(api)
+       SyncFunction(api), RepoSyncFunction(api), ValidateKsFunction(api),
+       ReplicateFunction(api)
     ]
     return []
 

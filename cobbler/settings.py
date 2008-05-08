@@ -29,6 +29,7 @@ DEFAULTS = {
         "standard"                : "/usr/lib/syslinux/pxelinux.0",
         "ia64"                    : "/var/lib/cobbler/elilo-3.6-ia64.efi"
     },
+    "cobbler_master"              : '',
     "default_kickstart"           : "/etc/cobbler/default.ks",
     "default_virt_bridge"         : "xenbr0",
     "default_virt_type"           : "auto",

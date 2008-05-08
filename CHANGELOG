@@ -37,6 +37,7 @@ Cobbler CHANGELOG
 - support for managing BIND
 - xen kernel (PV) distros do not get added to PXE menus as they won't boot there
 - cobbler buildiso command to build non live ISOs
+- cobbler replicate command
 
 - ??? - 0.8.3
 - Make createrepo get run for local cobbler reposync invocations as needed

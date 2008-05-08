@@ -23,6 +23,7 @@ import action_reposync
 import action_status
 import action_validate
 import action_buildiso
+import action_replicate
 from cexceptions import *
 import sub_process
 import module_loader
@@ -436,4 +437,8 @@ class BootAPI:
         return builder.run(
            iso=iso, profiles=profiles, tempdir=tempdir
         )
+
+    def replicate(self, cobbler_master = None):
+        replicator = action_replicate.Replicate(self._config)
+        return replicator.run(cobbler_master = cobbler_master)
 
