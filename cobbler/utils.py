@@ -17,6 +17,7 @@ import os
 import re
 import socket
 import glob
+import random
 import sub_process
 import shutil
 import string
@@ -110,6 +111,26 @@ def is_mac(strdata):
     if re.search(r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}',strdata, re.IGNORECASE):
         return True
     return False
+
+def get_random_mac(api_handle):
+    """
+    Generate a random MAC address.
+    from xend/server/netif.py
+    Generate a random MAC address.
+    Uses OUI 00-16-3E, allocated to
+    Xensource, Inc.  Last 3 fields are random.
+    return: MAC address string
+    """
+    mac = [ 0x00, 0x16, 0x3e,
+        random.randint(0x00, 0x7f),
+        random.randint(0x00, 0xff),
+        random.randint(0x00, 0xff) ]
+    mac = ':'.join(map(lambda x: "%02x" % x, mac))
+    systems = api_handle.systems()
+    while ( systems.find(mac_address=mac) ):
+        mac = get_random_mac(api_handle)
+
+    return mac
 
 
 def resolve_ip(strdata):

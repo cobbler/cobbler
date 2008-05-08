@@ -475,25 +475,13 @@ class CobblerXMLRPCInterface:
 
     def get_random_mac(self,token=None):
         """
-        Generate a random MAC address.
-        from xend/server/netif.py
-        Generate a random MAC address.
-        Uses OUI 00-16-3E, allocated to
-        Xensource, Inc.  Last 3 fields are random.
-        return: MAC address string
+        Wrapper for utils.get_random_mac
+
+        Used in the webui
         """
         self.log("get_random_mac",token=None)
         self._refresh()
-        mac = [ 0x00, 0x16, 0x3e,
-            random.randint(0x00, 0x7f),
-            random.randint(0x00, 0xff),
-            random.randint(0x00, 0xff) ]
-        mac = ':'.join(map(lambda x: "%02x" % x, mac))
-        systems = self.api.systems()
-        while ( systems.find(mac_address=mac) ):
-            mac = self.get_random_mac()
-
-        return mac
+        return utils.get_random_mac(self.api)
 
     def _fix_none(self,data):
         """

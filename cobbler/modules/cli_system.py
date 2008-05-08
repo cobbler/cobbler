@@ -19,7 +19,7 @@ plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
-from utils import _
+from utils import _, get_random_mac
 import commands
 import cexceptions
 
@@ -98,7 +98,11 @@ class SystemFunction(commands.CobblerFunction):
             my_interface = "intf0"
 
         if self.options.hostname:    obj.set_hostname(self.options.hostname, my_interface)
-        if self.options.mac:         obj.set_mac_address(self.options.mac,   my_interface)
+        if self.options.mac:
+            if self.options.mac.lower() == 'random':
+                obj.set_mac_address(get_random_mac(self.api), my_interface)
+            else:
+                obj.set_mac_address(self.options.mac,   my_interface)
         if self.options.ip:          obj.set_ip_address(self.options.ip,     my_interface)
         if self.options.subnet:      obj.set_subnet(self.options.subnet,     my_interface)
         if self.options.gateway:     obj.set_gateway(self.options.gateway,   my_interface)
