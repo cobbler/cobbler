@@ -39,6 +39,7 @@ Cobbler CHANGELOG
 - cobbler buildiso command to build non live ISOs
 - cobbler replicate command
 - added cobbler repo option --mirror-locally to reference external repos without mirroring
+- all virt parameters on profiles can now be overriden on cobbler profile objects
 
 - ??? - 0.8.3
 - Make createrepo get run for local cobbler reposync invocations as needed

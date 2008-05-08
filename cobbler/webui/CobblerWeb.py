@@ -313,7 +313,8 @@ class CobblerWeb(object):
     def system_save(self,name=None,oldname=None,editmode="edit",profile=None,
                     new_or_edit=None,  
                     kopts=None, ksmeta=None, owners=None, server_override=None, netboot='n', 
-                    delete1=None, delete2=None, **args):
+                    virtpath=None,virtram=None,virttype=None,virtcpus=None,virtfilesize=None,delete1=None, delete2=None, **args):
+
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -362,6 +363,19 @@ class CobblerWeb(object):
                self.remote.modify_system(system, 'netboot-enabled', netboot, self.token)
             if server_override:
                self.remote.modify_system(system, 'server', server_override, self.token)
+
+            if virtfilesize:
+               self.remote.modify_system(system, 'virt-file-size', virtfilesize, self.token)
+            if virtcpus:
+               self.remote.modify_system(system, 'virt-cpus', virtcpus, self.token)
+            if virtram:
+               self.remote.modify_system(system, 'virt-ram', virtram, self.token)
+            if virttype:
+               self.remote.modify_system(system, 'virt-type', virtype, self.token)
+
+            if virtpath:
+               self.remote.modify_system(system, 'virt-path', virtpath, self.token)
+
 
             for x in range(0,7):
                 interface = "intf%s" % x

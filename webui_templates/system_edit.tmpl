@@ -236,6 +236,106 @@ function page_onload() {
     </tr>
 
 
+    <tr>
+    <td>
+    <label for="virtfilesize">Virt Disk (GB)</label>
+    </td>
+    <td>
+    <input type="text" size="5" style="width: 150px;" name="virtfilesize" id="virtfilesize"
+        #if $system
+           value="$system.virt_file_size"
+        #end if
+    />
+    <p class="context-tip">For virtual installs only, require this disk size in GB.</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="virtram">Virt RAM (MB)</label>
+    </td>
+    <td>
+    <input type="text" size="5" style="width: 150px;" name="virtram" id="virtram"
+        #if $system
+           value="$system.virt_ram"
+        #end if
+    />
+    <p class="context-tip">For virtual installs only, allocate this amount of RAM, in MB.</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="virttype">Virt Type</label>
+    </td>
+    <td>
+
+   #if $system and $system.virt_type == "<<inherit>>"
+        <input type="radio" name="virttype" id="virttype" value="<<inherit>>" checked>Inherit
+    #else
+        #if $system
+            <input type="radio" name="virttype" id="virttype" value="<<inherit>>">Inherit
+        #else
+            <input type="radio" name="virttype" id="virttype" value="<<inherit>>" checked>Inherit
+        #end if 
+    #end if
+
+
+    #if $system and $system.virt_type == "auto"
+        <input type="radio" name="virttype" id="virttype" value="auto" checked>Any
+    #else
+        #if $system
+            <input type="radio" name="virttype" id="virttype" value="auto">Any
+        #else
+            <input type="radio" name="virttype" id="virttype" value="auto">Any
+        #end if 
+    #end if
+
+    #if $system and $system.virt_type == "xenpv"
+        <input type="radio" name="virttype" id="virttype" value="xenpv" checked>Xen (pv)
+    #else
+        <input type="radio" name="virttype" id="virttype" value="xenpv">Xen (pv)
+    #end if
+
+    #if $system and $system.virt_type == "qemu"
+        <input type="radio" name="virttype" id="virttype" value="qemu" checked>qemu/KVM
+    #else
+        <input type="radio" name="virttype" id="virttype" value="qemu">qemu/KVM
+    #end if
+    <p class="context-tip">What virtualization technology should koan use?</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="virtpath">Virt Path</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="virtpath" id="virtpath"
+        #if $system
+           value="$system.virt_path"
+        #end if
+    />
+    <p class="context-tip">Sets koan's storage preferences, read manpage or leave blank.</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="virtpath">Virt CPUs</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="virtcpus" id="virtcpus"
+        #if $system
+           value="$system.virt_cpus"
+        #end if
+    />
+    <p class="context-tip">How many virtual CPUs?  This is an integer.</p>
+    </td>
+    </tr>
+
+
+
 
     ## ====================================== start of looping through interfaces
 
@@ -349,8 +449,6 @@ function page_onload() {
         </td>
         </tr>
 
-        ## FIXME: add virt_bridge editing (like above)
-
         <tr class="listrow" id="child-id${counter}-5">
         <td>
         <label for="virtbridge-$interface">Virt Bridge</label>
@@ -363,8 +461,6 @@ function page_onload() {
         </td>
         </tr>
 
-        ## FIXME: add subnet editing (like above)
-
         <tr class="listrow" id="child-id${counter}-6">
         <td>
         <label for="subnet-$interface">Subnet</label>
@@ -376,8 +472,6 @@ function page_onload() {
         <p class="context-tip">Ex: "255.255.255.0".  For use in kickstart templates for static IPs.</p>
         </td>
         </tr>
-
-        ## FIXME: add gateway editing (like above)
 
         <tr class="listrow" id="child-id${counter}-7">
         <td>

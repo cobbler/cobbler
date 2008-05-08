@@ -70,9 +70,13 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--profile",         dest="profile",         help="name of cobbler profile (REQUIRED)")
             p.add_option("--server-override", dest="server_override", help="overrides server value in settings file")
             p.add_option("--subnet",          dest="subnet",          help="for static IP / templating usage")
-            p.add_option("--virt-bridge",     dest="virt_bridge",     help="ex: virbr0")
-            p.add_option("--virt-path",       dest="virt_path",       help="path, partition, or volume")
-            p.add_option("--virt-type",       dest="virt_type",       help="ex: xenpv, qemu, xenfv")
+
+            p.add_option("--virt-bridge",      dest="virt_bridge", help="ex: 'virbr0'")
+            p.add_option("--virt-cpus",        dest="virt_cpus", help="integer (default: 1)")
+            p.add_option("--virt-file-size",   dest="virt_file_size", help="size in GB")
+            p.add_option("--virt-path",        dest="virt_path", help="path, partition, or volume")
+            p.add_option("--virt-ram",         dest="virt_ram", help="size in MB")
+            p.add_option("--virt-type",        dest="virt_type", help="ex: 'xenpv', 'qemu'")
 
 
     def run(self):
@@ -89,8 +93,14 @@ class SystemFunction(commands.CobblerFunction):
         if self.options.kickstart:       obj.set_kickstart(self.options.kickstart)
         if self.options.netboot_enabled: obj.set_netboot_enabled(self.options.netboot_enabled)
         if self.options.server_override: obj.set_server(self.options.server_override)
-        if self.options.virt_path:       obj.set_virt_path(self.options.virt_path)
+
+        if self.options.virt_file_size:  obj.set_virt_file_size(self.options.virt_file_size)
+        if self.options.virt_ram:        obj.set_virt_ram(self.options.virt_ram)
+        if self.options.virt_bridge:     obj.set_virt_bridge(self.options.virt_bridge)
         if self.options.virt_type:       obj.set_virt_type(self.options.virt_type)
+        if self.options.virt_cpus:       obj.set_virt_cpus(self.options.virt_cpus)
+        if self.options.virt_path:       obj.set_virt_path(self.options.virt_path)
+
 
         if self.options.interface:
             my_interface = "intf%s" % self.options.interface

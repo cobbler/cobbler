@@ -631,6 +631,152 @@ def mkdir(path,mode=0777):
            print oe.errno
            raise CX(_("Error creating") % path)
 
+def set_repos(self,repos):
+   # WARNING: hack
+   repos = fix_mod_python_select_submission(repos)
+
+   # allow the magic inherit string to persist
+   if repos == "<<inherit>>":
+        # FIXME: this is not inheritable in the WebUI presently ?
+        self.repos = "<<inherit>>"
+        return
+
+   # store as an array regardless of input type
+   if repos is None:
+        repolist = []
+   elif type(repos) != list:
+        # allow backwards compatibility support of string input
+        repolist = repos.split(None)
+   else:
+        repolist = repos
+
+        
+   # make sure there are no empty strings
+   try:
+       repolist.remove('')
+   except:
+       pass
+
+   self.repos = []
+
+   # if any repos don't exist, fail the operation
+   ok = True
+   for r in repolist:
+        if self.config.repos().find(name=r) is not None:
+            self.repos.append(r)
+        else:
+            print _("warning: repository not found: %s" % r)
+
+   return True
+
+def set_virt_file_size(self,num):
+    """
+    For Virt only.
+    Specifies the size of the virt image in gigabytes.  
+    Older versions of koan (x<0.6.3) interpret 0 as "don't care"
+    Newer versions (x>=0.6.4) interpret 0 as "no disks"
+    """
+    # num is a non-negative integer (0 means default)
+    # can also be a comma seperated list -- for usage with multiple disks
+
+    if num == "<<inherit>>":
+        self.virt_file_size = "<<inherit>>"
+        return True
+
+    if type(num) == str and num.find(",") != -1:
+        tokens = num.split(",")
+        for t in tokens:
+            # hack to run validation on each
+            self.set_virt_file_size(t)
+        # if no exceptions raised, good enough
+        self.virt_file_size = num
+        return True
+
+    try:
+        inum = int(num)
+        if inum != float(num):
+            return CX(_("invalid virt file size"))
+        if inum >= 0:
+            self.virt_file_size = inum
+            return True
+        raise CX(_("invalid virt file size"))
+    except:
+        raise CX(_("invalid virt file size"))
+    return True
+
+def set_virt_ram(self,num):
+     """
+     For Virt only.
+     Specifies the size of the Virt RAM in MB.
+     0 tells Koan to just choose a reasonable default.
+     """
+
+     if num == "<<inherit>>":
+         self.virt_ram = "<<inherit>>"
+         return True
+
+     # num is a non-negative integer (0 means default)
+     try:
+         inum = int(num)
+         if inum != float(num):
+             return CX(_("invalid virt ram size"))
+         if inum >= 0:
+             self.virt_ram = inum
+             return True
+         return CX(_("invalid virt ram size"))
+     except:
+         return CX(_("invalid virt ram size"))
+     return True
+
+def set_virt_type(self,vtype):
+     """
+     Virtualization preference, can be overridden by koan.
+     """
+
+     if vtype == "<<inherit>>":
+         self.virt_type == "<<inherit>>"
+         return True
+
+     if vtype.lower() not in [ "qemu", "xenpv", "xenfv", "vmware", "auto" ]:
+         raise CX(_("invalid virt type"))
+     self.virt_type = vtype
+     return True
+
+def set_virt_bridge(self,vbridge):
+     """
+     The default bridge for all virtual interfaces under this profile.
+     """
+     self.virt_bridge = vbridge
+     return True
+
+def set_virt_path(self,path):
+     """
+     Virtual storage location suggestion, can be overriden by koan.
+     """
+     self.virt_path = path
+     return True
+
+def set_virt_cpus(self,num):
+     """
+     For Virt only.  Set the number of virtual CPUs to give to the
+     virtual machine.  This is fed to virtinst RAW, so cobbler
+     will not yelp if you try to feed it 9999 CPUs.  No formatting
+     like 9,999 please :)
+     """
+     if num == "<<inherit>>":
+         self.virt_cpus = "<<inherit>>"
+         return True
+
+     try:
+         num = int(str(num))
+     except:
+         raise CX(_("invalid number of virtual CPUs"))
+
+     self.virt_cpus = num
+     return True
+
+
+
 if __name__ == "__main__":
     # print redhat_release()
     print tftpboot_location()
