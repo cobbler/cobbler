@@ -116,7 +116,7 @@ def urlread(url):
     else:
         raise InfoException, "Unhandled URL protocol: %s" % url
 
-def urlgrab(surl,saveto):
+def urlgrab(url,saveto):
     """
     like urlread, but saves contents to disk.
     see comments for urlread as to why it's this way.
@@ -136,5 +136,35 @@ def subprocess_call(cmd,ignore_rc=False):
         raise InfoException, "command failed (%s)" % rc
     return rc
 
+
+def input_string_or_hash(options,delim=","):
+    """
+    Older cobbler files stored configurations in a flat way, such that all values for strings.
+    Newer versions of cobbler allow dictionaries.  This function is used to allow loading
+    of older value formats so new users of cobbler aren't broken in an upgrade.
+    """
+
+    if options is None:
+        return {}
+    elif type(options) == list:
+        raise CX(_("No idea what to do with list: %s") % options)
+    elif type(options) == str:
+        new_dict = {}
+        tokens = options.split(delim)
+        for t in tokens:
+            tokens2 = t.split("=")
+            if len(tokens2) == 1 and tokens2[0] != '':
+                new_dict[tokens2[0]] = None
+            elif len(tokens2) == 2 and tokens2[0] != '':
+                new_dict[tokens2[0]] = tokens2[1]
+            else:
+                return {}
+        new_dict.pop('', None)
+        return new_dict
+    elif type(options) == dict:
+        options.pop('',None)
+        return options
+    else:
+        raise CX(_("invalid input type"))
 
 

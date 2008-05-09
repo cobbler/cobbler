@@ -6,6 +6,7 @@ Koan CHANGELOG
 - request new URL locations
 - removed --autonet code since it did not work on Python 2.3 (resubmission welcome)
 - fixed XenFV support
+- added --kopts for adding additional kernel options outside of cobbler
 
 * Tue Feb 26 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.1-1
 - manpage updates

@@ -68,6 +68,9 @@ def main():
         pass
 
     p = opt_parse.OptionParser()
+    p.add_option("-k", "--kopts",
+                 dest="kopts_override",
+                 help="specify additional kernel options")
     p.add_option("-C", "--livecd",
                  dest="live_cd",
                  action="store_true",
@@ -133,20 +136,21 @@ def main():
 
     try:
         k = Koan()
-        k.list_systems      = options.list_systems
-        k.list_profiles     = options.list_profiles
-        k.server            = options.server
-        k.is_virt           = options.is_virt
-        k.is_replace        = options.is_replace
-        k.is_display        = options.is_display
-        k.profile           = options.profile
-        k.system            = options.system
-        k.live_cd           = options.live_cd
-        k.virt_path         = options.virt_path
-        k.virt_type         = options.virt_type
-        k.no_gfx            = options.no_gfx
-        k.no_cobbler        = options.no_cobbler
-        k.add_reinstall_entry	    = options.add_reinstall_entry
+        k.list_systems        = options.list_systems
+        k.list_profiles       = options.list_profiles
+        k.server              = options.server
+        k.is_virt             = options.is_virt
+        k.is_replace          = options.is_replace
+        k.is_display          = options.is_display
+        k.profile             = options.profile
+        k.system              = options.system
+        k.live_cd             = options.live_cd
+        k.virt_path           = options.virt_path
+        k.virt_type           = options.virt_type
+        k.no_gfx              = options.no_gfx
+        k.no_cobbler          = options.no_cobbler
+        k.add_reinstall_entry = options.add_reinstall_entry
+        k.kopts_override      = options.kopts_override
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -156,10 +160,15 @@ def main():
 
     except Exception, e:
         (xa, xb, tb) = sys.exc_info()
-        if str(xb).find("InfoException") != -1:
-            traceback.print_exc()
-        else:
-            print "ERROR: %s" % str(xb)
+        try:
+            getattr(e,"from_koan")
+            print str(e) # nice exception, no traceback needed
+        except:
+            print xa
+            print xb
+            print string.join(traceback.format_list(traceback.extract_tb(tb)))
+        return 1
+
     return 0
 
 #=======================================================
@@ -168,7 +177,11 @@ class InfoException(exceptions.Exception):
     """
     Custom exception for tracking of fatal errors.
     """
-    pass
+    def __init__(self,value,**args):
+        self.value = value % args
+        self.from_koan = 1
+    def __str__(self):
+        return repr(self.value)
 
 #=======================================================
 
@@ -601,14 +614,6 @@ class Koan:
 
     #---------------------------------------------------
 
-    def url_read(self,url):
-        fd = urllib2.urlopen(url)
-        data = fd.read()
-        fd.close()
-        return data
-    
-    #---------------------------------------------------
-
     def list(self,is_profiles):
         if is_profiles:
             data = self.get_profiles_xmlrpc()
@@ -666,9 +671,7 @@ class Koan:
         def after_download(self, profile_data):
             if not os.path.exists("/sbin/grubby"):
                 raise InfoException, "grubby is not installed"
-            k_args = self.safe_load(profile_data,'kernel_options',default='')
-            k_args = k_args + " ks=file:ks.cfg"
-
+            k_args = self.calc_kernel_args(profile_data)
             kickstart = self.safe_load(profile_data,'kickstart')
 
             self.build_initrd(
@@ -679,9 +682,6 @@ class Koan:
 
             if len(k_args) > 255:
                 raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
-
-
-            k_args = k_args.replace("lang ","lang= ")
 
             cmd = [ "/sbin/grubby",
                     "--add-kernel", self.safe_load(profile_data,'kernel_local'),
@@ -895,6 +895,7 @@ class Koan:
             print "url=%s" % kernel
             utils.urlgrab(kernel,kernel_save)
         except:
+            traceback.print_exc()
             raise InfoException, "error downloading files"
         profile_data['kernel_local'] = kernel_save
         profile_data['initrd_local'] = initrd_save
@@ -910,12 +911,22 @@ class Koan:
             kextra = kextra + "ks=" + kickstart
         if kickstart != "" and options !="":
             kextra = kextra + " "
-        if options != "":
-            kextra = kextra + options
         # parser issues?  lang needs a trailing = and somehow doesn't have it.
-        kextra = kextra.replace("lang ","lang= ")
 
-        return kextra
+        # convert the from-cobbler options back to a hash
+        # so that we can override it in a way that works as intended
+        hash = utils.input_string_or_hash(kextra)
+        if self.kopts_override is not None:
+           hash2 = utils.input_string_or_hash(self.kopts_override)
+           hash.update(hash2)
+        options = ""
+        for x in hash.keys():
+            if hash[x] is None:
+                options = options + "%s " % x
+            else:
+                options = options + "%s=%s " % (x, hash[x])
+        options = options.replace("lang ","lang= ")
+        return options
 
     #---------------------------------------------------
 
@@ -1145,7 +1156,7 @@ class Koan:
            else:
                prefix = "/var/lib/vmware/images/"
            if not os.path.exists(prefix):
-               print "- creating: %s" % prefix # DEBUG
+               print "- creating: %s" % prefix
                os.makedirs(prefix)
            return [ "%s/%s-disk0" % (prefix, name) ]
 
