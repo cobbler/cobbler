@@ -565,7 +565,7 @@ Cobbler can optionally manage DNS configuration using BIND and dnsmasq.
 
 Choose either "management = isc_and_bind" or "management = dnsmasq" in /etc/cobbler/modules.conf and then enable manage_dns in /var/lib/cobbler/settings.
 
-This feature is off by default.  If using BIND, you may restrict the scope of zones managed with the options 'manage_forward_zones' and 'manage_reverse_zones'.  (See the Wiki for more information on this).
+This feature is off by default.  If using BIND, you must define the zones to be managed with the options 'manage_forward_zones' and 'manage_reverse_zones'.  (See the Wiki for more information on this).
 
 If using BIND, Cobbler will use /etc/cobbler/bind.template and /etc/cobbler/zone.template as a starting point for the named.conf and individual zone files, respectively.  You may drop zone-specific template files in /etc/cobbler/zone_templates/name-of-zone which will override the default.  These files must be user edited for the user's particular networking environment.  Read the file and understand how BIND works before proceeding.
 

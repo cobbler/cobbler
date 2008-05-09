@@ -23,6 +23,7 @@ import glob
 import traceback
 import errno
 import popen2
+import re
 from shlex import shlex
 
 
@@ -69,9 +70,13 @@ class BindManager:
 
     def __forward_zones(self):
         """
-        Returns ALL forward zones for all systems
+        Returns a map of zones and the records that belong
+        in them
         """
         zones = {}
+        for zone in self.settings.manage_forward_zones:
+           zones[zone] = []
+
         for sys in self.systems:
             for (name, interface) in sys.interfaces.iteritems():
                 host = interface["hostname"]
@@ -81,19 +86,45 @@ class BindManager:
                     continue
                 if host.find(".") == -1:
                     continue
-                tokens = host.split('.')
-                zone = '.'.join(tokens[1:])
-                if zones.has_key(zone):
-                    zones[zone].append((host.split('.')[0], ip))
-                else:
-                    zones[zone] = [(host.split('.')[0], ip)]
+
+                # match the longest zone!
+                # e.g. if you have a host a.b.c.d.e
+                # if manage_forward_zones has:
+                # - c.d.e
+                # - b.c.d.e
+                # then a.b.c.d.e should go in b.c.d.e
+                best_match = ''
+                for zone in zones.keys():
+                   if re.search('\.%s$' % zone, host) and len(zone) > len(best_match):
+                      best_match = zone
+
+                if best_match == '': # no match
+                   continue
+
+                # strip the zone off the hostname and append the
+                # remainder + ip to the zone list
+                host = host.replace(best_match, '')
+                if host[-1] == '.': # strip trailing '.' if it's there
+                   host = host[:-1]
+                zones[best_match].append((host, ip))
+
+        # axe zones that are defined in manage_forward_zones
+        # but don't actually match any hosts
+        for (k,v) in zones.items():
+           if v == []:
+              zones.pop(k)
+
         return zones
 
     def __reverse_zones(self):
         """
-        Returns ALL reverse zones for all systems
+        Returns a map of zones and the records that belong
+        in them
         """
         zones = {}
+        for zone in self.settings.manage_reverse_zones:
+           zones[zone] = []
+
         for sys in self.systems:
             for (name, interface) in sys.interfaces.iteritems():
                 host = interface["hostname"]
@@ -101,45 +132,40 @@ class BindManager:
                 if not host or not ip:
                     # gotsta have some hostname and ip or else!
                     continue
+
+                # match the longest zone!
+                # e.g. if you have an ip 1.2.3.4
+                # if manage_reverse_zones has:
+                # - 1.2
+                # - 1.2.3
+                # then 1.2.3.4 should go in 1.2.3
+                best_match = ''
+                for zone in zones.keys():
+                   if re.search('^%s\.' % zone, ip) and len(zone) > len(best_match):
+                      best_match = zone
+
+                if best_match == '': # no match
+                   continue
+
+                # strip the zone off the front of the ip
+                # reverse the rest of the octets
+                # append the remainder + hostname
+                ip = ip.replace(best_match, '', 1)
+                if ip[0] == '.': # strip leading '.' if it's there
+                   ip = ip[1:]
                 tokens = ip.split('.')
-                zone = '.'.join(tokens[0:3])
-                if zones.has_key(zone):
-                    zones[zone].append((tokens[3], host + '.'))
-                else:
-                    zones[zone] = [(tokens[3], host + '.')]
+                tokens.reverse()
+                ip = '.'.join(tokens)
+                zones[best_match].append((ip, host + '.'))
+
+        # axe zones that are defined in manage_forward_zones
+        # but don't actually match any hosts
+        for (k,v) in zones.items():
+           if v == []:
+              zones.pop(k)
+
         return zones
 
-    def __config_forward_zones(self):
-        """
-        Returns only the forward zones which have systems and are defined
-        in the option manage_forward_zones
-
-        Alternatively if manage_forward_zones is empty, return all systems
-        """
-        all = self.__forward_zones()
-        want = self.settings.manage_forward_zones
-        if want == []: return all
-        ret = {}
-        for zone in all.keys():
-            if zone in want:
-                ret[zone] = all[zone]
-        return ret
-
-    def __config_reverse_zones(self):
-        """
-        Returns only the reverse zones which have systems and are defined
-        in the option manage_reverse_zones
-
-        Alternatively if manage_reverse_zones is empty, return all systems
-        """
-        all = self.__reverse_zones()
-        want = self.settings.manage_reverse_zones
-        if want == []: return all
-        ret = {}
-        for zone in all.keys():
-            if zone in want:
-                ret[zone] = all[zone]
-        return ret
 
     def __write_named_conf(self):
         """
@@ -151,7 +177,7 @@ class BindManager:
         reverse_zones = self.settings.manage_reverse_zones
 
         metadata = {'zone_include': ''}
-        for zone in self.__config_forward_zones().keys():
+        for zone in self.__forward_zones().keys():
                 txt =  """
 zone "%(zone)s." {
     type master;
@@ -160,7 +186,7 @@ zone "%(zone)s." {
 """ % {'zone': zone}
                 metadata['zone_include'] = metadata['zone_include'] + txt
 
-        for zone in self.__config_reverse_zones().keys():
+        for zone in self.__reverse_zones().keys():
                 tokens = zone.split('.')
                 tokens.reverse()
                 arpa = '.'.join(tokens) + '.in-addr.arpa'
@@ -189,8 +215,8 @@ zone "%(arpa)s." {
         default_template_file = "/etc/cobbler/zone.template"
         cobbler_server = self.settings.server
         serial = int(time.time())
-        forward = self.__config_forward_zones()
-        reverse = self.__config_reverse_zones()
+        forward = self.__forward_zones()
+        reverse = self.__reverse_zones()
 
         try:
             f2 = open(default_template_file,"r")
