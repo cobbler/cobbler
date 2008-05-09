@@ -371,7 +371,7 @@ class CobblerWeb(object):
             if virtram:
                self.remote.modify_system(system, 'virt-ram', virtram, self.token)
             if virttype:
-               self.remote.modify_system(system, 'virt-type', virtype, self.token)
+               self.remote.modify_system(system, 'virt-type', virttype, self.token)
 
             if virtpath:
                self.remote.modify_system(system, 'virt-path', virtpath, self.token)

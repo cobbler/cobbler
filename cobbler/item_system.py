@@ -443,9 +443,10 @@ class System(item.Item):
            'modify-interface' : self.modify_interface,
            'delete-interface' : self.delete_interface,
            'virt-path'        : self.set_virt_path,
+           'virt-ram'         : self.set_virt_ram,
            'virt-type'        : self.set_virt_type,
-           'virt-bridge'      : self.set_virt_bridge,
            'virt-cpus'        : self.set_virt_cpus,
+           'virt-file-size'   : self.set_virt_file_size,
            'server'           : self.set_server,
            'owners'           : self.set_owners
         }
