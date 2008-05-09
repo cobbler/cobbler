@@ -240,19 +240,19 @@ class Profile(item.Item):
             buf = buf + _("parent          : %s\n") % self.parent
         else:
             buf = buf + _("distro          : %s\n") % self.distro
-        buf = buf + _("kickstart       : %s\n") % self.kickstart
+        buf = buf + _("dhcp tag        : %s\n") % self.dhcp_tag
         buf = buf + _("kernel options  : %s\n") % self.kernel_options
+        buf = buf + _("kickstart       : %s\n") % self.kickstart
         buf = buf + _("ks metadata     : %s\n") % self.ks_meta
-        buf = buf + _("virt file size  : %s\n") % self.virt_file_size
-        buf = buf + _("virt ram        : %s\n") % self.virt_ram
-        buf = buf + _("virt type       : %s\n") % self.virt_type
-        buf = buf + _("virt path       : %s\n") % self.virt_path
+        buf = buf + _("owners          : %s\n") % self.owners
+        buf = buf + _("repos           : %s\n") % self.repos
+        buf = buf + _("server          : %s\n") % self.server
         buf = buf + _("virt bridge     : %s\n") % self.virt_bridge
         buf = buf + _("virt cpus       : %s\n") % self.virt_cpus
-        buf = buf + _("repos           : %s\n") % self.repos
-        buf = buf + _("dhcp tag        : %s\n") % self.dhcp_tag
-        buf = buf + _("server          : %s\n") % self.server
-        buf = buf + _("owners          : %s\n") % self.owners
+        buf = buf + _("virt file size  : %s\n") % self.virt_file_size
+        buf = buf + _("virt path       : %s\n") % self.virt_path
+        buf = buf + _("virt ram        : %s\n") % self.virt_ram
+        buf = buf + _("virt type       : %s\n") % self.virt_type
         return buf
 
   

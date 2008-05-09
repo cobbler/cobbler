@@ -300,7 +300,7 @@ class System(item.Item):
         return utils.set_virt_ram(self,num)
 
     def set_virt_type(self,vtype):
-        return utils.set_virt_Type(self,vtype)
+        return utils.set_virt_type(self,vtype)
 
     def set_virt_path(self,path):
         return utils.set_virt_path(self,path)
@@ -384,20 +384,19 @@ class System(item.Item):
         buf =       _("system           : %s\n") % self.name
         buf = buf + _("profile          : %s\n") % self.profile
         buf = buf + _("kernel options   : %s\n") % self.kernel_options
+        buf = buf + _("kickstart        : %s\n") % self.kickstart
         buf = buf + _("ks metadata      : %s\n") % self.ks_meta
         
         buf = buf + _("netboot enabled? : %s\n") % self.netboot_enabled 
-        buf = buf + _("kickstart        : %s\n") % self.kickstart
-
-        buf = buf + _("virt file size  : %s\n") % self.virt_file_size
-        buf = buf + _("virt ram        : %s\n") % self.virt_ram
-        buf = buf + _("virt type       : %s\n") % self.virt_type
-        buf = buf + _("virt path       : %s\n") % self.virt_path
-        buf = buf + _("virt bridge     : %s\n") % self.virt_bridge
-        buf = buf + _("virt cpus       : %s\n") % self.virt_cpus
-
-        buf = buf + _("server           : %s\n") % self.server
         buf = buf + _("owners           : %s\n") % self.owners
+        buf = buf + _("server           : %s\n") % self.server
+
+        buf = buf + _("virt cpus        : %s\n") % self.virt_cpus
+        buf = buf + _("virt file size   : %s\n") % self.virt_file_size
+        buf = buf + _("virt path        : %s\n") % self.virt_path
+        buf = buf + _("virt ram         : %s\n") % self.virt_ram
+        buf = buf + _("virt type        : %s\n") % self.virt_type
+
 
         counter = 0
         for (name,x) in self.interfaces.iteritems():

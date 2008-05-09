@@ -180,12 +180,12 @@ class Distro(item.Item):
         kstr = utils.find_kernel(self.kernel)
         istr = utils.find_initrd(self.initrd)
         buf =       _("distro          : %s\n") % self.name
-        buf = buf + _("kernel          : %s\n") % kstr
-        buf = buf + _("initrd          : %s\n") % istr
-        buf = buf + _("kernel options  : %s\n") % self.kernel_options
-        buf = buf + _("architecture    : %s\n") % self.arch
-        buf = buf + _("ks metadata     : %s\n") % self.ks_meta
         buf = buf + _("breed           : %s\n") % self.breed
+        buf = buf + _("architecture    : %s\n") % self.arch
+        buf = buf + _("initrd          : %s\n") % istr
+        buf = buf + _("kernel          : %s\n") % kstr
+        buf = buf + _("kernel options  : %s\n") % self.kernel_options
+        buf = buf + _("ks metadata     : %s\n") % self.ks_meta
         buf = buf + _("owners          : %s\n") % self.owners
         return buf
 
