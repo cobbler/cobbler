@@ -54,7 +54,6 @@ def start_install(name=None, ram=None, disks=None,
                            vcpus=None,  
                            profile_data=None, arch=None, no_gfx=False, fullvirt=False):
 
-
     if fullvirt:
         # FIXME: add error handling here to explain when it's not supported
         guest = virtinst.FullVirtGuest(installer=DistroManager.PXEInstaller())
@@ -67,6 +66,8 @@ def start_install(name=None, ram=None, disks=None,
         guest.set_boot((profile_data["kernel_local"], profile_data["initrd_local"]))
         # fullvirt OS's will get this from the PXE config (managed by Cobbler)
         guest.extraargs = extra
+    else:
+        print "- fullvirt mode"
 
     guest.set_name(name)
     guest.set_memory(ram)
@@ -91,7 +92,6 @@ def start_install(name=None, ram=None, disks=None,
         interfaces = profile_data["interfaces"].keys()
         interfaces.sort()
 
-        #for (iname,intf) in profile_data["interfaces"].iteritems():
         for iname in interfaces:
             intf = profile_data["interfaces"][iname]
 

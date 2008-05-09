@@ -5,7 +5,7 @@ a tool for network provisioning of virtualization (xen,kvm/qemu)
 and network re-provisioning of existing Linux systems.  
 used with 'cobbler'. see manpage for usage.
 
-Copyright 2006-2007 Red Hat, Inc.
+Copyright 2006-2008 Red Hat, Inc.
 Michael DeHaan <mdehaan@redhat.com>
 
 This software may be freely redistributed under the terms of the GNU
@@ -34,6 +34,7 @@ import string
 import re
 import glob
 import socket
+import utils
 
 COBBLER_REQUIRED = 0.900
 
@@ -52,41 +53,7 @@ DISPLAY_PARAMS = [
    "virt_ram","virt_disk","virt_type", "virt_path"
 ]
 
-def setupLogging(appname, debug=False):
-    """
-    set up logging ... code borrowed/adapted from virt-manager
-    """
-    import logging
-    import logging.handlers
-    vi_dir = os.path.expanduser("~/.koan")
-    if not os.access(vi_dir,os.W_OK):
-        try:
-            os.mkdir(vi_dir)
-        except IOError, e:
-            raise RuntimeError, "Could not create %d directory: " % vi_dir, e
 
-    dateFormat = "%a, %d %b %Y %H:%M:%S"
-    fileFormat = "[%(asctime)s " + appname + " %(process)d] %(levelname)s (%(module)s:%(lineno)d) %(message)s"
-    streamFormat = "%(asctime)s %(levelname)-8s %(message)s"
-    filename = os.path.join(vi_dir, appname + ".log")
-
-    rootLogger = logging.getLogger()
-    rootLogger.setLevel(logging.DEBUG)
-    fileHandler = logging.handlers.RotatingFileHandler(filename, "a",
-                                                       1024*1024, 5)
-
-    fileHandler.setFormatter(logging.Formatter(fileFormat,
-                                               dateFormat))
-    rootLogger.addHandler(fileHandler)
-
-    streamHandler = logging.StreamHandler(sys.stderr)
-    streamHandler.setFormatter(logging.Formatter(streamFormat,
-                                                 dateFormat))
-    if debug:
-        streamHandler.setLevel(logging.DEBUG)
-    else:
-        streamHandler.setLevel(logging.ERROR)
-    rootLogger.addHandler(streamHandler)
 
 
 def main():
@@ -95,12 +62,10 @@ def main():
     """
 
     try:
-        setupLogging("koan")
+        utils.setupLogging("koan")
     except:
         # most likely running RHEL3, where we don't need virt logging anyway
         pass
-
-    # FIXME: overrides for --virt-mac have been requested
 
     p = opt_parse.OptionParser()
     p.add_option("-C", "--livecd",
@@ -194,7 +159,7 @@ def main():
         if str(xb).find("InfoException") != -1:
             traceback.print_exc()
         else:
-            print str(xb)
+            print "ERROR: %s" % str(xb)
     return 0
 
 #=======================================================
@@ -392,7 +357,7 @@ class Koan:
             if self.virt_type not in [ "qemu", "xenpv", "xenfv", "xen", "vmware", "auto" ]:
                if self.virt_type == "xen":
                    self.virt_type = "xenpv"
-               raise InfoException, "--virttype should be qemu, xenpv, vmware, or auto"
+               raise InfoException, "--virttype should be qemu, xenpv, xenfv, vmware, or auto"
 
         # perform one of three key operations
         if self.is_virt:
@@ -432,79 +397,6 @@ class Koan:
         elif len(detected_systems) == 1:
             print "- Auto detected: %s" % detected_systems[0]
             return detected_systems[0]
-
-    #---------------------------------------------------
-
-    def urlread(self,url):
-        """
-        to support more distributions, implement (roughly) some 
-        parts of urlread and urlgrab from urlgrabber, in ways that
-        are less cool and less efficient.
-        """
-        print "- reading URL: %s" % url
-        if url is None or url == "":
-            raise InfoException, "invalid URL: %s" % url
-
-        elif url.startswith("nfs"):
-            try:
-                ndir  = os.path.dirname(url[6:])
-                nfile = os.path.basename(url[6:])
-                nfsdir = tempfile.mkdtemp(prefix="koan_nfs",dir="/tmp")
-                nfsfile = os.path.join(nfsdir,nfile)
-                cmd = ["mount","-t","nfs","-o","ro", ndir, nfsdir]
-                self.subprocess_call(cmd)
-                fd = open(nfsfile)
-                data = fd.read()
-                fd.close()
-                cmd = ["umount",nfsdir]
-                self.subprocess_call(cmd)
-                return data
-            except:
-                raise InfoException, "Couldn't mount and read URL: %s" % url
-            
-        elif url.startswith("http") or url.startswith("ftp"):
-            try:
-                fd = urllib2.urlopen(url)
-                data = fd.read()
-                fd.close()
-                return data
-            except:
-                raise InfoException, "Couldn't download: %s" % url
-        elif url.startswith("file"):
-            try:
-                fd = open(url[5:])
-                data = fd.read()
-                fd.close()
-                return data
-            except:
-                raise InfoException, "Couldn't read file from URL: %s" % url
-                
-        else:
-            raise InfoException, "Unhandled URL protocol: %s" % url
-
-    #---------------------------------------------------
-
-    def urlgrab(self,url,saveto):
-        """
-        like urlread, but saves contents to disk.
-        see comments for urlread as to why it's this way.
-        """
-        data = self.urlread(url)
-        fd = open(saveto, "w+")
-        fd.write(data)
-        fd.close()
-
-    #---------------------------------------------------
-
-    def subprocess_call(self,cmd,ignore_rc=False):
-        """
-        Wrapper around subprocess.call(...)
-        """
-        print "- %s" % cmd
-        rc = sub_process.call(cmd)
-        if rc != 0 and not ignore_rc:
-            raise InfoException, "command failed (%s)" % rc
-        return rc
 
     #---------------------------------------------------
 
@@ -647,7 +539,7 @@ class Koan:
                     raise InfoException("libvirtd needs to be running")
 
 
-            if self.virt_type in [ "xenpv", "xenfv" ]:
+            if self.virt_type in [ "xenpv" ]:
                 download = "/var/lib/xen" 
             elif self.virt_type in [ "vmware" ] :
                 download = None # we are downloading sufficient metadata to initiate PXE
@@ -670,7 +562,7 @@ class Koan:
 
         """
         try:
-            raw = self.urlread(profile_data["kickstart"])
+            raw = utils.urlread(profile_data["kickstart"])
             lines = raw.splitlines()
 
             method_re = re.compile('(?P<urlcmd>\s*url\s.*)|(?P<nfscmd>\s*nfs\s.*)')
@@ -731,7 +623,6 @@ class Koan:
 
     def display(self):
         def after_download(self, profile_data):
-            # DEBUG
             print profile_data
             for x in DISPLAY_PARAMS:
                 if profile_data.has_key(x):
@@ -808,8 +699,8 @@ class Koan:
                cmd.append("--bad-image-okay")
                cmd.append("--boot-filesystem=/dev/sda1")
                cmd.append("--config-file=/tmp/boot/boot/grub/grub.conf")
-            self.subprocess_call(["/sbin/grubby","--remove-kernel","/boot/vmlinuz"])
-            self.subprocess_call(cmd)
+            utils.subprocess_call(["/sbin/grubby","--remove-kernel","/boot/vmlinuz"])
+            utils.subprocess_call(cmd)
 
 
             # if grubby --bootloader-probe returns lilo,
@@ -836,7 +727,7 @@ class Koan:
         """
         Get contents of data in network kickstart file.
         """
-        return self.urlread(kickstart)
+        return utils.urlread(kickstart)
 
     #---------------------------------------------------
 
@@ -887,7 +778,7 @@ class Koan:
         fd = open("/var/spool/koan/insert.sh","w+")
         fd.write(self.get_insert_script(initrd))
         fd.close()
-        self.subprocess_call([ "/bin/bash", "/var/spool/koan/insert.sh" ])
+        utils.subprocess_call([ "/bin/bash", "/var/spool/koan/insert.sh" ])
         shutil.copyfile("/var/spool/koan/initrd_final", initrd)
 
     #---------------------------------------------------
@@ -998,11 +889,11 @@ class Koan:
         try:
             print "downloading initrd %s to %s" % (initrd_short, initrd_save)
             print "url=%s" % initrd
-            self.urlgrab(initrd,initrd_save)
+            utils.urlgrab(initrd,initrd_save)
             print "downloading kernel %s to %s" % (kernel_short, kernel_save)
 
             print "url=%s" % kernel
-            self.urlgrab(kernel,kernel_save)
+            utils.urlgrab(kernel,kernel_save)
         except:
             raise InfoException, "error downloading files"
         profile_data['kernel_local'] = kernel_save
@@ -1094,7 +985,7 @@ class Koan:
             creator = vmwcreate.start_install
         else:
             raise InfoException, "Unspecified virt type: %s" % self.virt_type
-        return (uuid, creator, False)
+        return (uuid, creator, fullvirt)
 
     #---------------------------------------------------
 
@@ -1231,23 +1122,6 @@ class Koan:
             return None
         return my_id
 
-    #---------------------------------------------------
-
-    #def random_mac(self):
-    #    """
-    #    from xend/server/netif.py
-    #    Generate a random MAC address.
-    #    Uses OUI 00-16-3E, allocated to
-    #    Xensource, Inc.  Last 3 fields are random.
-    #    return: MAC address string
-    #    """
-    #    mac = [ 0x00, 0x16, 0x3e,
-    #        random.randint(0x00, 0x7f),
-    #        random.randint(0x00, 0xff),
-    #        random.randint(0x00, 0xff) ]
-    #    return ':'.join(map(lambda x: "%02x" % x, mac))
-
-
     #----------------------------------------------------
 
     def calc_virt_path(self,pd,name):
@@ -1375,7 +1249,6 @@ class Koan:
         Generate a random UUID.  Copied from xend/uuid.py
         """
         return [ random.randint(0, 255) for x in range(0, 16) ]
-
 
     def uuidToString(self, u):
         """
