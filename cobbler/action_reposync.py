@@ -254,7 +254,7 @@ class RepoSync:
             if repo.mirror_locally:
                 line = "baseurl=http://${server}/cobbler/repo_mirror/%s\n" % (repo.name)
             else:
-                line = "baseurl=%s" % (repo.mirror)
+                line = "baseurl=%s\n" % (repo.mirror)
   
             config_file.write(line)
             # user may have options specific to certain yum plugins

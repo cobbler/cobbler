@@ -170,7 +170,10 @@ class KickGen:
             if line.find("ks_mirror") != -1:
                 ret = True
             if line.find("baseurl") != -1:
-                first, baseurl = line.split("=")
+                try:
+                    first, baseurl = line.split("=",1)
+                except:
+                    raise CX(_("error scanning repo: %s" % filename))
         fd.close()
         return (ret, baseurl)
 

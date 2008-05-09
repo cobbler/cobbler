@@ -162,7 +162,7 @@ class Profile(item.Item):
         return utils.set_virt_ram(self,num)
 
     def set_virt_type(self,vtype):
-        return utils.set_virt_Type(self,vtype)
+        return utils.set_virt_type(self,vtype)
 
     def set_virt_bridge(self,vbridge):
         self.virt_bridge = vbridge

@@ -14,9 +14,7 @@
         <tr>
             <th class="text">Name</th>
             <th class="text">Profile</th>
-            ## FIXME: how to handle for multiple interface listing? <th class="text">MAC</th>
-            ## <th class="text">IP</th>
-            ## <th class="text">Hostname</th>
+            <th class="text">Kickstart</th>
         </tr>
     </thead>
     <tbody>
@@ -39,7 +37,27 @@
             ## <td> ${system.mac_address} </td>
             ## <td> ${system.ip_address} </td>
             ## <td> ${system.hostname} </td>
+
+            <td>
+                #set $kick = $system.kickstart
+                #if $kick.startswith("http://") or $kick.startswith("ftp://") or $kick.startswith("nfs://")
+                   #if not $kick.startswith("nfs://")
+                       <A HREF="$kick">$kick</A>
+                   #else
+                       $kick
+                   #end if
+                #else
+                   #set $name = $system.name
+                   #set $pname = $system.profile
+                   <A HREF="/cblr/svc/op/ks/system/$name">(view rendered)</A>&nbsp;
+                   #if $kick != "<<inherit>>" and $kick != ""
+                       <A HREF="$base_url?mode=ksfile_edit&name=$kick">(edit template)</A>
+                   #end if 
+                #end if
+            </td>
         </tr>
+
+
         #end for
     </tbody>
 </table>

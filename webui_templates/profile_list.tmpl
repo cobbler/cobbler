@@ -38,7 +38,24 @@
                     <a href="$base_url?mode=profile_edit&name=$profile.parent">$profile.parent</A>
                 #end if
             </td>
-            <td>$profile.kickstart</td>
+            <td>
+                #if $profile.kickstart and $profile.kickstart !=""
+                    #set $kick = $profile.kickstart
+                    #if $kick.startswith("http://") or $kick.startswith("ftp://") or $kick.startswith("nfs://")
+                       #if not $kick.startswith("nfs://")
+                           <A HREF="$kick">$kick</A>
+                       #else
+                           $kick
+                       #end if
+                    #else
+                       #set $name = $profile.name
+                       <A HREF="/cblr/svc/op/ks/profile/$name">(view rendered)</A>&nbsp;
+                       #if $kick != "" and $kick != "<<inherit>>":
+                           <A HREF="$base_url?mode=ksfile_edit&name=$kick">(edit template)</A>
+                       #end if
+                    #end if
+                #end if
+            </td>
         </tr>
         #end for
     </tbody>
