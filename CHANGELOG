@@ -1,7 +1,7 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-- Mon Mar 10 2008 - 0.9.0
+- Fri May 09 2008 - 0.9.1
 - patch to allow yumopts to override gpgcheck
 - applied patch to send hostname from ISC
 - added patch to allow --kopts/--ksmeta items to be cleared with --kopts=delete

@@ -2,7 +2,7 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 0.9.0
+Version: 0.9.1
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
@@ -188,7 +188,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Tue Apr 08 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.0-1
+* Fri May 09 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.1-1
 - Upstream changes (see CHANGELOG)
 - packaged /etc/cobbler/users.conf
 - remaining CGI replaced with mod_python
