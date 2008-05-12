@@ -17,6 +17,7 @@ import os
 import os.path
 import xmlrpclib
 import api as cobbler_api
+from utils import _
 
 class Replicate:
     def __init__(self,config):
@@ -150,7 +151,8 @@ class Replicate:
             self.uri = 'http://%s/cobbler_api' % cobbler_master
         elif len(self.settings.cobbler_master) > 0:
             self.uri = 'http://%s/cobbler_api' % self.settings.cobbler_master
-
+        else:
+            print _('No cobbler master found to replicate from, try --master.')
         if self.uri is not None:
             self.remote =  xmlrpclib.Server(self.uri)
             self.sync_distros()

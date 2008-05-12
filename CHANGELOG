@@ -3,6 +3,7 @@ Cobbler CHANGELOG
 
 - Mon May 12 2008 - 0.9.2
 - run createrepo with less preconditions during cobbler reposync
+- doc upgrades and error handling for "cobbler replicate"
 
 - Fri May 09 2008 - 0.9.1
 - patch to allow yumopts to override gpgcheck

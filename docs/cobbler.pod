@@ -399,6 +399,14 @@ Objects can also be renamed, as long as other objects don't reference them.
 
 B<cobbler distro|profile|system|repo rename --name=oldname --newname=newname>
 
+=head2 REPLICATING
+
+Cobbler can replicate distro and profile data from a master cobbler server.
+
+B<cobbler replicate --master=cobbler.example.org>
+
+This will bring over all distro data for which it can find data in /var/www/cobbler/ks_mirror can be found.  It will also bring over any default profiles for those distros.  A default cobbler master can be set in the settings file.  Tree data must still be rsync'd (or otherwise mirrored) manually.
+
 =head2 REBUILDING CONFIGURATIONS
 
 B<cobbler sync>
