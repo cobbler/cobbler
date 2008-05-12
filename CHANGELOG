@@ -6,6 +6,7 @@ Cobbler CHANGELOG
 - doc upgrades and error handling for "cobbler replicate"
 - improved error message that occurs when copying from nfs w/ rootsquash
 - mac duplication checking improvements for CLI
+- add warning to cobbler check if selinux is on and Apache boolean not set
 
 - Fri May 09 2008 - 0.9.1
 - patch to allow yumopts to override gpgcheck

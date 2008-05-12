@@ -36,6 +36,7 @@ class BootCheck:
        """
        status = []
        self.check_name(status)
+       self.check_selinux(status)
        if self.settings.manage_dhcp:
            mode = self.config.api.get_sync().dhcp.what()
            if mode == "isc": 
@@ -105,6 +106,19 @@ class BootCheck:
           status.append(_("The 'server' field in /var/lib/cobbler/settings must be set to something other than localhost, or kickstarting features will not work.  This should be a resolvable hostname or IP for the boot server as reachable by all machines that will use it."))
        if self.settings.next_server == "127.0.0.1":
           status.append(_("For PXE to be functional, the 'next_server' field in /var/lib/cobbler/settings must be set to something other than 127.0.0.1, and should match the IP of the boot server on the PXE network."))
+
+   def check_selinux(self,status):
+       prc = sub_process.Popen("/usr/sbin/getenforce",shell=True,stdout=sub_process.PIPE)
+       data = prc.communicate()[0]
+       if data.lower().find("disabled") == -1:
+           # permissive or enforcing or something else
+           prc2 = sub_process.Popen("/usr/sbin/getsebool -a",shell=True,stdout=sub_process.PIPE)
+           data2 = prc2.communicate()[0]
+           for line in data2.split("\n"):
+              if line.find("httpd_can_network_connect ") != -1:
+                  if line.find("off") != -1:
+                      status.append(_("Must enable selinux boolean to enable Apache and web services components, run: setsebool -P httpd_can_network_connect true"))
+
 
    def check_httpd(self,status):
        """
