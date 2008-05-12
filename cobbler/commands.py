@@ -295,11 +295,12 @@ class CobblerFunction:
                    else:
                        rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_names=False, check_for_duplicate_netinfo=False)
             else:
-               # editing or copying (but not renaming), so duplicate netinfo
-               # CAN be bad, duplicate names are already handled, though
-               # we need to clean up checks around duplicate netinfo here
-               # (FIXME) so they are made and work.
-               rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers)
+               check_dup = False
+               if not "copy" in self.args:
+                   check_dup = True 
+               # FIXME: this ensures duplicate prevention on copy, but not
+               # rename?
+               rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_netinfo=check_dup)
 
         else:
             # we are renaming here, so duplicate netinfo checks also
