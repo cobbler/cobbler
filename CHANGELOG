@@ -5,6 +5,7 @@ Cobbler CHANGELOG
 - run createrepo with less preconditions during cobbler reposync
 - doc upgrades and error handling for "cobbler replicate"
 - improved error message that occurs when copying from nfs w/ rootsquash
+- mac duplication checking improvements for CLI
 
 - Fri May 09 2008 - 0.9.1
 - patch to allow yumopts to override gpgcheck
