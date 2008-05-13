@@ -229,11 +229,12 @@ class System(item.Item):
         """
         if self.name == "default":
            return True
-        mac = self.get_mac_address(interface)
-        ip  = self.get_ip_address(interface)
-        if mac is None and ip is None:
-           return False
-        return True
+        for (name,x) in self.interfaces.iteritems():
+            mac = x.get("mac_address",None)
+            ip  = x.get("ip_address",None)
+            if mac is not None or ip is not None:
+                return True
+        return False
 
     def set_dhcp_tag(self,dhcp_tag,interface="intf0"):
         intf = self.__get_interface(interface)
