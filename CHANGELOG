@@ -8,6 +8,7 @@ Cobbler CHANGELOG
 - mac duplication checking improvements for CLI
 - add warning to cobbler check if selinux is on and Apache boolean not set
 - added warning to cobbler check if templates use the default password
+- setting per-system kickstart template to "" or "delete" restores inheritance
 
 - Fri May 09 2008 - 0.9.1
 - patch to allow yumopts to override gpgcheck
