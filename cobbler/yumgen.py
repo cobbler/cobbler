@@ -98,7 +98,9 @@ class YumGen:
             try:
                 infile_h = open(infile)
             except:
-                print _("WARNING: cobbler reposync needs to be run on repo (%s), then re-run cobbler sync") % dispname
+                # file does not exist and the user needs to run reposync
+                # before we will use this, cobbler check will mention
+                # this problem
                 continue
             infile_data = infile_h.read()
             infile_h.close()

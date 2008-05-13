@@ -66,6 +66,8 @@ class BootCheck:
        self.check_iptables(status)
        self.check_yum(status)
        self.check_for_default_password(status)
+       self.check_for_unreferenced_repos(status)
+       self.check_for_unsynced_repos(status)
 
        return status
 
@@ -132,6 +134,33 @@ class BootCheck:
                files.append(t)
        if len(files) > 0:
            status.append(_("One or more kickstart templates references default password 'cobbler' and should be changed for security reasons: %s") % ", ".join(files))
+
+
+   def check_for_unreferenced_repos(self,status):
+        repos = []
+        referenced = []
+        not_found = []
+        for r in self.config.api.repos():
+            repos.append(r.name)
+        for p in self.config.api.profiles():
+            my_repos = p.repos
+            referenced.extend(my_repos)
+        for r in referenced:
+            if r not in repos:
+               not_found.append(r)
+        if len(not_found) > 0:
+            status.append(_("One or more repos referenced by profile objects is no longer defined in cobbler: %s") % ", ".join(not_found))
+       
+   def check_for_unsynced_repos(self,status):
+       need_sync = []
+       for r in self.config.repos():
+           if r.mirror_locally == 1:
+               lookfor = os.path.join(self.settings.webdir, "repo_mirror", r.name)
+               print "DEBUG: looking for: %s" % lookfor 
+               if not os.path.exists(lookfor):
+                   need_sync.append(r.name)
+       if len(need_sync) > 0:
+           status.append(_("One or more repos need to be processed by cobbler reposync for the first time before kickstarting against them: %s") % ", ".join(need_sync))
 
 
    def check_httpd(self,status):

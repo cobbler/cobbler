@@ -70,7 +70,10 @@ class Profile(item.Item):
 
         # backwards compatibility
         if type(self.repos) != list:
-            self.set_repos(self.repos)
+            # ensure we are formatted correctly though if some repo
+            # defs don't exist on this side, don't fail as we need
+            # to convert everything -- cobbler check can report it
+            self.set_repos(self.repos,bypass_check=True)
         self.set_parent(self.parent)
 
         # virt specific 
@@ -87,7 +90,7 @@ class Profile(item.Item):
         if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
             self.set_ksmeta(self.ks_meta)
         if self.repos != "<<inherit>>" and type(self.ks_meta) != list:
-            self.set_repos(self.repos)
+            self.set_repos(self.repos,bypass_check=True)
 
         self.set_owners(self.owners)
 
@@ -171,8 +174,8 @@ class Profile(item.Item):
     def set_virt_path(self,path):
         return utils.set_virt_path(self,path)
 
-    def set_repos(self,repos):
-        return utils.set_repos(self,repos)
+    def set_repos(self,repos,bypass_check=False):
+        return utils.set_repos(self,repos,bypass_check)
 
 
     def get_parent(self):

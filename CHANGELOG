@@ -9,6 +9,8 @@ Cobbler CHANGELOG
 - add warning to cobbler check if selinux is on and Apache boolean not set
 - added warning to cobbler check if templates use the default password
 - setting per-system kickstart template to "" or "delete" restores inheritance
+- if repos in profiles no longer exist, remove noisy warning, move to "check"
+- move warning about reposync to check also (check is more useful at runtime now)
 
 - Fri May 09 2008 - 0.9.1
 - patch to allow yumopts to override gpgcheck

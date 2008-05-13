@@ -634,7 +634,7 @@ def mkdir(path,mode=0777):
            print oe.errno
            raise CX(_("Error creating") % path)
 
-def set_repos(self,repos):
+def set_repos(self,repos,bypass_check=False):
    # WARNING: hack
    repos = fix_mod_python_select_submission(repos)
 
@@ -653,7 +653,6 @@ def set_repos(self,repos):
    else:
         repolist = repos
 
-        
    # make sure there are no empty strings
    try:
        repolist.remove('')
@@ -662,13 +661,18 @@ def set_repos(self,repos):
 
    self.repos = []
 
-   # if any repos don't exist, fail the operation
+   # if any repos don't exist, fail the set operation
+   # unless called from the deserializer stage in which
+   # case we have a soft error that check can report
    ok = True
    for r in repolist:
-        if self.config.repos().find(name=r) is not None:
-            self.repos.append(r)
-        else:
-            print _("warning: repository not found: %s" % r)
+       if bypass_check:
+           self.repos.append(r)
+       else:
+           if self.config.repos().find(name=r) is not None:
+               self.repos.append(r)
+           else:
+               raise CX(_("repo %s is not defined") % r)
 
    return True
 

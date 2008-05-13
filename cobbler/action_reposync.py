@@ -314,7 +314,7 @@ class RepoSync:
         if os.path.exists(getenforce):
             data = sub_process.Popen(getenforce, shell=True, stdout=sub_process.PIPE).communicate()[0]
             if data.lower().find("disabled") == -1:
-                cmd3 = "chcon --reference /var/www %s" % repo_path
+                cmd3 = "chcon --reference /var/www %s >/dev/null 2>/dev/null" % repo_path
                 sub_process.call(cmd3, shell=True)
 
 
