@@ -170,17 +170,7 @@ class CobblerXMLRPCInterface:
         """
         self.log("get_kickstart_templates",token=token)
         self.check_access(token, "get_kickstart_templates")
-        files = {} 
-        for x in self.api.profiles():
-           if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
-              files[x.kickstart] = 1
-        for x in self.api.systems():
-           if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
-              files[x.kickstart] = 1
-        for x in glob.glob("/var/lib/cobbler/kickstarts/*"):
-           files[x] = 1
-
-        return files.keys() 
+        return utils.get_kickstart_templates(self.api)
 
     def is_kickstart_in_use(self,ks,token):
         self.log("is_kickstart_in_use",token=token)

@@ -778,6 +778,21 @@ def set_virt_cpus(self,num):
      self.virt_cpus = num
      return True
 
+def get_kickstart_templates(api):
+    files = {}
+    for x in api.profiles():
+        if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
+            files[x.kickstart] = 1
+    for x in api.systems():
+        if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
+            files[x.kickstart] = 1
+    for x in glob.glob("/var/lib/cobbler/kickstarts/*"):
+        files[x] = 1
+    for x in glob.glob("/etc/cobbler/*.ks"):
+        files[x] = 1
+
+    return files.keys()
+
 
 
 if __name__ == "__main__":

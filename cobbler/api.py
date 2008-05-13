@@ -442,3 +442,6 @@ class BootAPI:
         replicator = action_replicate.Replicate(self._config)
         return replicator.run(cobbler_master = cobbler_master)
 
+    def get_kickstart_templates(self):
+        return utils.get_kickstar_templates(self)
+

@@ -65,6 +65,7 @@ class BootCheck:
        self.check_httpd(status)
        self.check_iptables(status)
        self.check_yum(status)
+       self.check_for_default_password(status)
 
        return status
 
@@ -118,6 +119,19 @@ class BootCheck:
               if line.find("httpd_can_network_connect ") != -1:
                   if line.find("off") != -1:
                       status.append(_("Must enable selinux boolean to enable Apache and web services components, run: setsebool -P httpd_can_network_connect true"))
+
+
+   def check_for_default_password(self,status):
+       templates = utils.get_kickstart_templates(self.config.api)
+       files = []
+       for t in templates:
+           fd = open(t)
+           data = fd.read()
+           fd.close()
+           if data.find("\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac."):
+               files.append(t)
+       if len(files) > 0:
+           status.append(_("One or more kickstart templates references default password 'cobbler' and should be changed for security reasons: %s") % ", ".join(files))
 
 
    def check_httpd(self,status):
