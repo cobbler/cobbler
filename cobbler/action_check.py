@@ -128,7 +128,7 @@ class BootCheck:
            fd = open(t)
            data = fd.read()
            fd.close()
-           if data.find("\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac."):
+           if data.find("\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.") != -1:
                files.append(t)
        if len(files) > 0:
            status.append(_("One or more kickstart templates references default password 'cobbler' and should be changed for security reasons: %s") % ", ".join(files))
