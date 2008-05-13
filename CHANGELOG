@@ -12,6 +12,7 @@ Cobbler CHANGELOG
 - if repos in profiles no longer exist, remove noisy warning, move to "check"
 - move warning about reposync to check also (check is more useful at runtime now)
 - build pxe trees for systems even if interface0 is undefined
+- add sync() back into XMLRPC API, missing in 0.9.1
 
 - Fri May 09 2008 - 0.9.1
 - patch to allow yumopts to override gpgcheck

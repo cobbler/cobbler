@@ -747,6 +747,16 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
             return self.object_cache[object_id][0]
         raise CX(_("No such object for ID: %s") % object_id)
 
+    def sync(self,token):
+        """
+        Run sync code, which should complete before XMLRPC timeout.  We can't
+        do reposync this way.  Would be nice to send output over AJAX/other
+        later.
+        """
+        self.log("sync",token=token)
+        self.check_access(token,"sync")
+        return self.api.sync()
+
     def new_distro(self,token):
         """
         Creates a new (unconfigured) distro object.  It works something like

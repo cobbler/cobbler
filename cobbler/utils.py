@@ -590,13 +590,12 @@ def copyfile(src,dst):
     try:
         return shutil.copyfile(src,dst)
     except:
-        try:
-            if not os.path.samefile(src,dst):
-                # accomodate for the possibility that we already copied
-                # the file as a symlink/hardlink
-                raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
-        except:
-            raise CX(_("Problems reading %(src)s") % { "src" : src})
+        if not os.access(src,os.R_OK):
+            raise CX(_("Cannot read: %s") % src)
+        if not os.path.samefile(src,dst):
+            # accomodate for the possibility that we already copied
+            # the file as a symlink/hardlink
+            raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
 def rmfile(path):
     try:
