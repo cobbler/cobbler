@@ -370,6 +370,19 @@ def blender(api_handle,remove_hashes, root_obj):
     # sanitize output for koan and kernel option lines, etc
     if remove_hashes:
         results = flatten(results)
+
+    # add in some variables for easier templating
+    # as these variables change based on object type
+    if results.has_key("interfaces"):
+        results["system_name"]  = results["name"]
+        results["profile_name"] = results["profile"]
+        results["distro_name"]  = results["distro"]
+    elif results.has_key("distro"):
+        results["profile_name"] = results["name"]
+        results["distro_name"]  = results["distro"]
+    elif results.has_key("kernel"):
+        results["distro_name"]  = results["name"]
+
     return results
 
 def flatten(data):

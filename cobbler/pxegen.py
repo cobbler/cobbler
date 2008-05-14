@@ -84,7 +84,6 @@ class PXEGen:
         """
         # copy is a 4-letter word but tftpboot runs chroot, thus it's required.
         for d in self.distros:
-            print _("sync distro: %s") % d.name
             self.copy_single_distro_files(d)
 
     def copy_single_distro_files(self, d):
