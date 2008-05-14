@@ -446,6 +446,24 @@ def __consolidate(node,results):
        else:
           results[field] = data_item
 
+    # now if we have any "!foo" results in the list, delete corresponding
+    # key entry "foo", and also the entry "!foo", allowing for removal
+    # of kernel options set in a distro later in a profile, etc.
+
+    hash_removals(results,"kernel_options")
+    hash_removals(results,"ks_meta")
+
+def hash_removals(results,subkey):
+    if not results.has_key(subkey):
+        return
+    scan = results[subkey].keys()
+    for k in scan:
+        if k.startswith("!") and k != "!":
+           remove_me = k[1:]
+           if results[subkey].has_key(remove_me):
+               del results[subkey][remove_me]
+           del results[subkey][k]
+
 def hash_to_string(hash):
     """
     Convert a hash to a printable string.
