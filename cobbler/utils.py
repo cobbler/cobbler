@@ -798,10 +798,12 @@ def get_kickstart_templates(api):
     files = {}
     for x in api.profiles():
         if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
-            files[x.kickstart] = 1
+            if os.path.exists(x.kickstart):
+                files[x.kickstart] = 1
     for x in api.systems():
         if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
-            files[x.kickstart] = 1
+            if os.path.exists(x.kickstart):
+                files[x.kickstart] = 1
     for x in glob.glob("/var/lib/cobbler/kickstarts/*"):
         files[x] = 1
     for x in glob.glob("/etc/cobbler/*.ks"):
