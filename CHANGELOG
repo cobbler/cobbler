@@ -1,5 +1,8 @@
 Koan CHANGELOG
 
+* Thr May 14 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.2-0
+- Added --virt-bridge override back
+
 * Fri May 09 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.1-0
 - Vmware installation hooks (experimental)
 - add --add-reinstall-entry option (see manpage)
