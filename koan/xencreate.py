@@ -52,7 +52,7 @@ def start_install(name=None, ram=None, disks=None,
                            uuid=None,  
                            extra=None, 
                            vcpus=None,  
-                           profile_data=None, arch=None, no_gfx=False, fullvirt=False):
+                           profile_data=None, arch=None, no_gfx=False, fullvirt=False, bridge=None):
 
     if fullvirt:
         # FIXME: add error handling here to explain when it's not supported
@@ -116,7 +116,11 @@ def start_install(name=None, ram=None, disks=None,
             # for --profile you just get one NIC, go define a system if you want more.
             # FIXME: can mac still be sent on command line in this case?
 
-            profile_bridge = profile_data["virt_bridge"]
+            if bridge is None:
+                profile_bridge = profile_data["virt_bridge"]
+            else:
+                profile_bridge = bridge
+
             if profile_bridge == "":
                 raise koan.InfoException("virt-bridge setting is not defined in cobbler")
 

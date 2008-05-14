@@ -86,6 +86,10 @@ Optional advanced-configuration parameters for --virt:
 
 =over
 
+=item --virt-bridge
+
+Specifies the virtualized bridge to use, instead of the one as defined in cobbler.  For profiles, this must be a single bridge.  For system records that define multiple interfaces, multiple bridge names can be seperated with commas.
+
 =item --virt-name
 
 Specifies the name of the virtual machine/image to create.

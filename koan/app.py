@@ -70,52 +70,55 @@ def main():
     p = opt_parse.OptionParser()
     p.add_option("-k", "--kopts",
                  dest="kopts_override",
-                 help="specify additional kernel options")
+                 help="append additional kernel options")
     p.add_option("-C", "--livecd",
                  dest="live_cd",
                  action="store_true",
-                 help="indicates koan is running from custom LiveCD")
+                 help="used by the custom livecd only, not for humans")
     p.add_option("-l", "--list-profiles",
                  dest="list_profiles",
                  action="store_true",
-                 help="list profiles the server can provision")
+                 help="list profiles defined in cobbler")
     p.add_option("-L", "--list-systems",
                  dest="list_systems",
                  action="store_true",
-                 help="list systems the server can provision")
+                 help="list systems defined in cobbler")
     p.add_option("-v", "--virt",
                  dest="is_virt",
                  action="store_true",
-                 help="requests new virtualized image installation")
+                 help="install new virtual guest")
     p.add_option("-V", "--virt-name",
                  dest="virt_name",
-                 help="create the virtual guest with this name")
+                 help="use this name for the virtual guest")
     p.add_option("-r", "--replace-self",
                  dest="is_replace",
                  action="store_true",
-                 help="requests re-provisioning of this host")
+                 help="reinstall this host at next reboot")
     p.add_option("-D", "--display",
                  dest="is_display",
                  action="store_true",
-                 help="display the configuration, don't install it")
+                 help="display the configuration stored in cobbler")
     p.add_option("-p", "--profile",
                  dest="profile",
-                 help="cobbler profile to install")
+                 help="install this cobbler profile")
     p.add_option("-y", "--system",
                  dest="system",
-                 help="cobbler system to install")
+                 help="install this cobbler system")
     p.add_option("-s", "--server",
                  dest="server",
-                 help="specify the cobbler server")
+                 help="attach to this cobbler server")
     p.add_option("-t", "--port",
                  dest="port",
                  help="cobbler xmlrpc port (default 25151)")
     p.add_option("-P", "--virt-path",
                  dest="virt_path",
-                 help="virtual install location (see manpage)")  
+                 help="override virt install location")  
     p.add_option("-T", "--virt-type",
                  dest="virt_type",
-                 help="virtualization install type (xenpv,xenfv,qemu,vmware)")
+                 help="override virt install type")
+    p.add_option("-B", "--virt-bridge",
+                 dest="virt_bridge",
+                 help="override virt bridge")
     p.add_option("-n", "--nogfx",
                  action="store_true", 
                  dest="no_gfx",
@@ -126,7 +129,7 @@ def main():
     p.add_option("", "--add-reinstall-entry",
                  dest="add_reinstall_entry",
                  action="store_true",
-                 help="adds a new entry for re-provisiong this host from grub")
+                 help="just add entry to grub, do not make it the default")
 
     (options, args) = p.parse_args()
 
@@ -147,6 +150,7 @@ def main():
         k.live_cd             = options.live_cd
         k.virt_path           = options.virt_path
         k.virt_type           = options.virt_type
+        k.virt_bridge         = options.virt_bridge
         k.no_gfx              = options.no_gfx
         k.no_cobbler          = options.no_cobbler
         k.add_reinstall_entry = options.add_reinstall_entry
@@ -162,7 +166,7 @@ def main():
         (xa, xb, tb) = sys.exc_info()
         try:
             getattr(e,"from_koan")
-            print str(e) # nice exception, no traceback needed
+            print str(e)[1:-1] # nice exception, no traceback needed
         except:
             print xa
             print xb
@@ -960,7 +964,8 @@ class Koan:
                 profile_data  =  profile_data,       
                 arch          =  arch,
                 no_gfx        =  self.no_gfx,   
-                fullvirt      =  fullvirt      
+                fullvirt      =  fullvirt,    
+                bridge        =  self.virt_bridge 
         )
 
         print results
@@ -973,6 +978,7 @@ class Koan:
             import xencreate
             import qcreate
         except:
+            traceback.print_exc()
             raise InfoException("no virtualization support available, install python-virtinst?")
 
     #---------------------------------------------------

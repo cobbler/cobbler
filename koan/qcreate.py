@@ -42,7 +42,7 @@ def start_install(name=None, ram=None, disks=None, mac=None,
                   uuid=None,  
                   extra=None,
                   vcpus=None, 
-                  profile_data=None, bridge=None, arch=None, no_gfx=False, fullvirt=True):
+                  profile_data=None, arch=None, no_gfx=False, fullvirt=True, bridge=None):
 
     vtype = "qemu"
     if virtinst.util.is_kvm_capable():
@@ -93,30 +93,41 @@ def start_install(name=None, ram=None, disks=None, mac=None,
         counter = 0
         interfaces = profile_data["interfaces"].keys()
         interfaces.sort()
-        #for (iname,intf) in profile_data["interfaces"].iteritems():
         for iname in interfaces:
             intf = profile_data["interfaces"][iname]
+            print "DEBUG: --> %s" % intf
 
             mac = intf["mac_address"]
             if mac == "":
                 mac = random_mac()
 
-            profile_bridge = profile_data["virt_bridge"]
+            if bridge is None:
+                profile_bridge = profile_data["virt_bridge"]
 
-            intf_bridge = intf["virt_bridge"]
-            if intf_bridge == "":
-                if profile_bridge == "":
-                    raise koan.InfoException("virt-bridge setting is not defined in cobbler")
-                intf_bridge = profile_bridge
-                
-
+                intf_bridge = intf["virt_bridge"]
+                if intf_bridge == "":
+                    if profile_bridge == "":
+                        raise koan.InfoException("virt-bridge setting is not defined in cobbler")
+                    intf_bridge = profile_bridge
+            else:
+                print "DEBUG: picking my bridge: %s" % bridge
+                if bridge.find(",") == -1:
+                    intf_bridge = bridge
+                else:
+                    bridges = bridge.split(",")  
+                    intf_bridge = bridges[counter]
+            print "DEBUG: using bridge = %s" % intf_bridge
             nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac, bridge=intf_bridge)
             guest.nics.append(nic_obj)
             counter = counter + 1
 
     else:
 
-            profile_bridge = profile_data["virt_bridge"]
+            if bridge is not None:
+                profile_bridge = bridge
+            else:
+                profile_bridge = profile_data["virt_bridge"]
+
             if profile_bridge == "":
                 raise koan.InfoException("virt-bridge setting is not defined in cobbler")
 

@@ -110,7 +110,7 @@ def start_install(name=None, ram=None, disks=None, mac=None,
                   uuid=None,  
                   extra=None,
                   vcpus=None, 
-                  profile_data=None, bridge=None, arch=None, no_gfx=False, fullvirt=True):
+                  profile_data=None, bridge=None, arch=None, no_gfx=False, fullvirt=True, bridge=None):
 
     mac = None
     if not profile_data.has_key("interfaces"):
