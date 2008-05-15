@@ -86,17 +86,7 @@ class BootAPI:
             self.logger.debug("API handle initialized")
 
     def __setup_logger(self,name):
-        logger = logging.getLogger(name)
-        logger.setLevel(logging.INFO)
-        try:
-            ch = logging.FileHandler("/var/log/cobbler/cobbler.log")
-        except:
-            raise CX(_("No write permissions on log file.  Are you root?")) 
-        ch.setLevel(logging.INFO)
-        formatter = logging.Formatter("%(asctime)s - %(name)s - %(message)s")
-        ch.setFormatter(formatter)
-        logger.addHandler(ch)
-        return logger
+        return utils.setup_logger(name)
 
     def log(self,msg,args=None,debug=False):
         if debug:

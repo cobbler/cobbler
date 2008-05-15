@@ -23,6 +23,7 @@ import shutil
 import string
 import traceback
 import errno
+import logging
 from cexceptions import *
 
 #placeholder for translation
@@ -37,6 +38,18 @@ MODULE_CACHE = {}
 _re_kernel = re.compile(r'vmlinuz(.*)')
 _re_initrd = re.compile(r'initrd(.*).img')
 
+def setup_logger(name):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    try:
+        ch = logging.FileHandler("/var/log/cobbler/cobbler.log")
+    except:
+        raise CX(_("No write permissions on log file.  Are you root?"))
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(message)s")
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    return logger
 
 def log_exc(logger):
    """

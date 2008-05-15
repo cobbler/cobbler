@@ -81,8 +81,7 @@ class KickGen:
                 kfile.close()
                 return data
             except:
-                traceback.print_exc() # leave this in, for now...
-                msg = "err_kickstart2"
+                utils.log_exc(self.api.logger)
                 raise CX(_("Error while rendering kickstart file"))
 
     def generate_kickstart_signal(self, is_pre=0, profile=None, system=None):
