@@ -100,3 +100,7 @@ eraseconfig:
 	-rm /var/lib/cobbler/profiles*
 	-rm /var/lib/cobbler/systems*
 	-rm /var/lib/cobbler/repos*
+
+graphviz:
+	dot -Tpdf docs/cobbler.dot -o cobbler.pdf
+
