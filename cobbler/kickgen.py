@@ -82,7 +82,7 @@ class KickGen:
                 return data
             except:
                 utils.log_exc(self.api.logger)
-                raise CX(_("Error while rendering kickstart file"))
+                return _("# Error while rendering kickstart file, see /var/log/cobbler/cobbler.log for details")
 
     def generate_kickstart_signal(self, is_pre=0, profile=None, system=None):
         """
