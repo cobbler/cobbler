@@ -3,7 +3,7 @@ Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
 Version: 0.9.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -188,7 +188,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Fri May 16 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.2-1
+* Fri May 16 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.2-2
 - Upstream changes (see CHANGELOG)
 - moved /var/lib/cobbler/settings to /etc/cobbler/settings
 

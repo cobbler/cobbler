@@ -66,7 +66,10 @@ def get_filename(collection_type):
     ending = collection_type
     if not ending.endswith("s"):
         ending = ending + "s"
-    return "/var/lib/cobbler/%s" % ending
+    if ending != "settings":
+        return "/var/lib/cobbler/%s" % ending
+    else:
+        return "/etc/cobbler/settings"
 
 def deserialize_raw(collection_type):
     filename = get_filename(collection_type)

@@ -156,7 +156,6 @@ class BootCheck:
        for r in self.config.repos():
            if r.mirror_locally == 1:
                lookfor = os.path.join(self.settings.webdir, "repo_mirror", r.name)
-               print "DEBUG: looking for: %s" % lookfor 
                if not os.path.exists(lookfor):
                    need_sync.append(r.name)
        if len(need_sync) > 0:
