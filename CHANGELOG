@@ -17,6 +17,7 @@ Cobbler CHANGELOG
 - it's now possible to undefine a --ksmeta or kopts symbol defined in a parent with "!foo"
 - log errors while rendering kickstarts
 - comments added to the config file, neat!
+- settings file is now /etc/cobbler/settings
 
 - Fri May 09 2008 - 0.9.1
 - patch to allow yumopts to override gpgcheck

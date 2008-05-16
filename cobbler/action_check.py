@@ -106,9 +106,9 @@ class BootCheck:
        parameters.
        """
        if self.settings.server == "127.0.0.1":
-          status.append(_("The 'server' field in /var/lib/cobbler/settings must be set to something other than localhost, or kickstarting features will not work.  This should be a resolvable hostname or IP for the boot server as reachable by all machines that will use it."))
+          status.append(_("The 'server' field in /etc/cobbler/settings must be set to something other than localhost, or kickstarting features will not work.  This should be a resolvable hostname or IP for the boot server as reachable by all machines that will use it."))
        if self.settings.next_server == "127.0.0.1":
-          status.append(_("For PXE to be functional, the 'next_server' field in /var/lib/cobbler/settings must be set to something other than 127.0.0.1, and should match the IP of the boot server on the PXE network."))
+          status.append(_("For PXE to be functional, the 'next_server' field in /etc/cobbler/settings must be set to something other than 127.0.0.1, and should match the IP of the boot server on the PXE network."))
 
    def check_selinux(self,status):
        prc = sub_process.Popen("/usr/sbin/getenforce",shell=True,stdout=sub_process.PIPE)
@@ -175,21 +175,21 @@ class BootCheck:
        Check if dhcpd is installed
        """
        if not os.path.exists(self.settings.dhcpd_bin):
-           status.append(_("dhcpd isn't installed, but management is enabled in /var/lib/cobbler/settings"))
+           status.append(_("dhcpd isn't installed, but management is enabled in /etc/cobbler/settings"))
 
    def check_dnsmasq_bin(self,status):
        """
        Check if dnsmasq is installed
        """
        if not os.path.exists(self.settings.dnsmasq_bin):
-           status.append(_("dnsmasq isn't installed, but management is enabled in /var/lib/cobbler/settings"))
+           status.append(_("dnsmasq isn't installed, but management is enabled in /etc/cobbler/settings"))
 
    def check_bind_bin(self,status):
        """
        Check if bind is installed.
        """
        if not os.path.exists(self.settings.bind_bin):
-           status.append(_("bind isn't installed, but management is enabled in /var/lib/cobbler/settings"))
+           status.append(_("bind isn't installed, but management is enabled in /etc/cobbler/settings"))
        
 
    def check_bootloaders(self,status):

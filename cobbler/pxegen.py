@@ -58,7 +58,7 @@ class PXEGen:
         """
         Copy bootloaders to the configured tftpboot directory
         NOTE: we support different arch's if defined in
-        /var/lib/cobbler/settings.
+        /etc/cobbler/settings.
         """
         for loader in self.settings.bootloaders.keys():
             path = self.settings.bootloaders[loader]

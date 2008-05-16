@@ -169,7 +169,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/triggers/install/post/status_post.trigger
 
 %defattr(664,root,root)
-%config(noreplace) /var/lib/cobbler/settings
+%config(noreplace) /etc/cobbler/settings
 %config(noreplace) /var/lib/cobbler/snippets/partition_select
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/lib/cobbler/menu.c32
@@ -188,8 +188,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Mon May 12 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.2-1
+* Fri May 16 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.2-1
 - Upstream changes (see CHANGELOG)
+- moved /var/lib/cobbler/settings to /etc/cobbler/settings
 
 * Fri May 09 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.1-1
 - Upstream changes (see CHANGELOG)

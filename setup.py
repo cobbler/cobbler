@@ -80,7 +80,7 @@ if __name__ == "__main__":
                                 (etcpath,  ['config/rsync.exclude']),
                                 (etcpath,  ['config/users.conf']),
                                 (initpath, ['config/cobblerd']),
-                                (cobpath,  ['config/settings']),
+                                (etcpath,  ['config/settings']),
 
                                 # backups for upgrades
                                 (backpath, []),

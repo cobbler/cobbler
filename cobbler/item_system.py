@@ -249,7 +249,7 @@ class System(item.Item):
     def set_ip_address(self,address,interface="intf0"):
         """
         Assign a IP or hostname in DHCP when this MAC boots.
-        Only works if manage_dhcp is set in /var/lib/cobbler/settings
+        Only works if manage_dhcp is set in /etc/cobbler/settings
         """
         intf = self.__get_interface(interface)
         if address == "" or utils.is_ip(address):

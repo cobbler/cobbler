@@ -41,7 +41,7 @@ DEBUG = 5
 # notes on locking:
 # BootAPI is a singleton object
 # the XMLRPC variants allow 1 simultaneous request
-# therefore we flock on /var/lib/cobbler/settings for now
+# therefore we flock on /etc/cobbler/settings for now
 # on a request by request basis.
 
 class BootAPI:

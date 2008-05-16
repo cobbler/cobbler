@@ -45,12 +45,23 @@ class BootCLI:
 
 ####################################################
 
+def run_upgrade_checks():
+    """
+    Cobbler tries to make manual upgrade steps unneeded, though
+    this function serves to inform users of manual steps when they /are/
+    needed.
+    """
+    # for users running pre-1.0 upgrading to 1.0
+    if os.path.exists("/var/lib/cobbler/settings"):
+       raise CX(_("/var/lib/cobbler/settings is no longer in use, remove this file to acknowledge you have migrated your configuration to /etc/cobbler/settings.  Do not simply copy the file over or you will lose new configuration entries. Run 'cobbler check' and then 'cobbler sync' after making changes."))
+
 def main():
     """
     CLI entry point
     """
     exitcode = 0
     try:
+        run_upgrade_checks()
         return BootCLI().run(sys.argv)
     except SystemExit, ex:
         return 1

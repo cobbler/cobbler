@@ -193,7 +193,7 @@ class CobblerXMLRPCInterface:
 
     def get_settings(self,token=None):
         """
-        Return the contents of /var/lib/cobbler/settings, which is a hash.
+        Return the contents of /etc/cobbler/settings, which is a hash.
         """
         self.log("get_settings",token=token)
         return self.__get_all("settings")
