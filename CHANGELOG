@@ -16,6 +16,7 @@ Cobbler CHANGELOG
 - added 'distro_name', 'profile_name', and 'system_name' to generated template vars
 - it's now possible to undefine a --ksmeta or kopts symbol defined in a parent with "!foo"
 - log errors while rendering kickstarts
+- comments added to the config file, neat!
 
 - Fri May 09 2008 - 0.9.1
 - patch to allow yumopts to override gpgcheck
