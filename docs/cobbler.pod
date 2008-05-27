@@ -612,7 +612,7 @@ Note that all of the import commands will mirror install tree content into /var/
 
 For import methods using rsync, additional flags can be passed to rsync with the option --rsync-flags.
 
-Should you want to force the usage of a specific cobbler kickstart template for all profiles created by an import, you can feed the option --kicksart to import, to bypass the built-in kickstart autodetection.
+Should you want to force the usage of a specific cobbler kickstart template for all profiles created by an import, you can feed the option --kickstart to import, to bypass the built-in kickstart auto-detection.
 
 =head2 DEFAULT PXE BOOT BEHAVIOR
 
