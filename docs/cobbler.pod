@@ -48,7 +48,7 @@ in network booting via PXE and just want to use koan to install virtual systems 
 
 =head2 ADDING A DISTRIBUTION
 
-This first step towards configurating what you want to provision is to add a distribution to the cobbler's configuration.  
+This first step towards configurating what you want to provision is to add a distribution to cobbler's configuration.  
 
 If there is an rsync mirror, DVD, NFS, or filesystem tree available that you would rather import instead, skip down to the documentation about the "import" command.  It's really a lot easier, and it only requires waiting for the mirror content to be copied and/or scanned.  Imported mirrors also save time during install since they don't have to hit external install sources.
 
