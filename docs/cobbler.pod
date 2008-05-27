@@ -218,7 +218,7 @@ MAC addresses have the format AA:BB:CC:DD:EE:FF.
 If cobbler is configured to generate a DHCP configuratition (see advanced section), use this
 setting to define a specific IP for this system in DHCP.  Leaving off this parameter will result in no DHCP management for this particular system.
 
-Example: ---ip=192.168.1.50
+Example: --ip=192.168.1.50
 
 Note for Itanium users:  this setting is always required for IA64 regardless of whether DHCP management is enabled.
 
