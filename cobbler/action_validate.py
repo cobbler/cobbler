@@ -68,9 +68,9 @@ class Validate:
         if not ks.startswith("/"):
             url = self.kickstart
         elif is_profile:
-            url = "http://%s/cblr/svc/?op=ks;profile=%s" % (server,obj.name)
+            url = "http://%s/cblr/svc/op/ks/profile/%s" % (server,obj.name)
         else:
-            url = "http://%s/cblr/svc/?op=ks;system=%s" % (server,obj.name)
+            url = "http://%s/cblr/svc/op/ks/system/%s" % (server,obj.name)
 
         print "----------------------------"
         print "checking url: %s" % url
