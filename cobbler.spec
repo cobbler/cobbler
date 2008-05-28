@@ -4,7 +4,6 @@ Name: cobbler
 AutoReq: no
 Version: 1.0.0
 Release: 1%{?dist}
->>>>>>> devel:cobbler.spec
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
