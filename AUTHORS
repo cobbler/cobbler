@@ -7,12 +7,17 @@ Cobbler is written & maintained by:
 
 Patches and other contributions from:
 
+    David Brown <dmlb2000@gmail.com>
     James Bowes <jbowes@redhat.com>
     C. Daniel Chase <dan@cdchase.com>
     Máirín Duffy <duffy@redhat.com>
+    John Eckersberg <jeckersb@redhat.com>
+    Scott Henson <shenson@redhat.com>
     Tru Huynh <tru@pasteur.fr>
     Matt Hyclak <hyclak@math.ohiou.edu>
+    Pablo Iranzo Gómez <pablo.iranzo@redhat.com>
     Mihai Ibanescu <mihai.ibanescu@gmail.com>
+    Vito Laurenza <vitolaurenza@gmail.com>
     Adrian Likins <alikins@redhat.com>
     David Lutterkort <dlutter@redhat.com>
     Lester M. <needwork@gmail.com>
@@ -25,6 +30,7 @@ Patches and other contributions from:
     Christophe Sahut <csahut@nogoa.org>
     Scott Seago <sseago@redhat.com>
     Al Tobey <tobert@gmail.com>
+    Ronald van den Blink <ronald@a61.nl>
     Tim Verhoeven <tim.verhoeven.be@gmail.com>
 
     [...send patches to get your name here...]

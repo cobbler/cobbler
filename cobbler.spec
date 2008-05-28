@@ -2,8 +2,9 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 0.8.3
-Release: 3%{?dist}
+Version: 1.0.0
+Release: 1%{?dist}
+>>>>>>> devel:cobbler.spec
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -14,7 +15,6 @@ Requires: python-devel
 Requires: createrepo
 Requires: mod_python
 Requires: python-cheetah
-Requires: rhpl
 Requires: rsync
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
@@ -41,9 +41,9 @@ modes require a helper tool called 'koan' that
 integrates with cobbler.  Cobbler's advanced features 
 include importing distributions from DVDs and rsync 
 mirrors, kickstart templating, integrated yum 
-mirroring, and built-in DHCP Management.  Cobbler has 
-a Python API for integration with other GPL systems 
-management applications.
+mirroring, and built-in DHCP/DNS Management.  Cobbler has 
+a Python and XMLRPC API for integration with other  
+applications.
 
 %prep
 %setup -q
@@ -84,8 +84,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(755,apache,apache)
 %dir /var/www/cobbler/web/
 /var/www/cobbler/web/*.py*
-%dir /var/www/cgi-bin/cobbler/
-/var/www/cgi-bin/cobbler/*.cgi
+%dir /var/www/cobbler/svc/
+/var/www/cobbler/svc/*.py*
 
 %defattr(755,apache,apache)
 %dir /usr/share/cobbler/webui_templates
@@ -97,17 +97,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/log/cobbler/kicklog
 %dir /var/www/cobbler/
 %dir /var/www/cobbler/localmirror
-%dir /var/www/cobbler/kickstarts
-%dir /var/www/cobbler/kickstarts_sys
 %dir /var/www/cobbler/repo_mirror
 %dir /var/www/cobbler/repos_profile
 %dir /var/www/cobbler/repos_system
 %dir /var/www/cobbler/ks_mirror
 %dir /var/www/cobbler/ks_mirror/config
 %dir /var/www/cobbler/images
-%dir /var/www/cobbler/distros
-%dir /var/www/cobbler/profiles
-%dir /var/www/cobbler/systems
 %dir /var/www/cobbler/links
 %defattr(755,apache,apache)
 %dir /var/www/cobbler/webui
@@ -121,13 +116,13 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /tftpboot/images
 %{_bindir}/cobbler
 %{_bindir}/cobblerd
-%{_bindir}/cobbler_auth_help
 %dir /etc/cobbler
 %config(noreplace) /etc/cobbler/*.ks
 %config(noreplace) /etc/cobbler/*.template
 %config(noreplace) /etc/cobbler/rsync.exclude
 %config(noreplace) /etc/logrotate.d/cobblerd_rotate
 %config(noreplace) /etc/cobbler/modules.conf
+%config(noreplace) /etc/cobbler/users.conf
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/yaml
 %dir %{python_sitelib}/cobbler/modules
@@ -140,6 +135,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/cobbler.1.gz
 /etc/init.d/cobblerd
 %config(noreplace) /etc/httpd/conf.d/cobbler.conf
+%config(noreplace) /etc/httpd/conf.d/cobbler_svc.conf
 %dir /var/log/cobbler/syslog
 
 %defattr(755,root,root)
@@ -164,14 +160,17 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/triggers/delete/repo/post
 %dir /var/lib/cobbler/triggers/sync/pre
 %dir /var/lib/cobbler/triggers/sync/post
+%dir /var/lib/cobbler/triggers/install/pre
 %dir /var/lib/cobbler/triggers/install/post
 %dir /var/lib/cobbler/snippets/
 
 %defattr(744,root,root)
 %config(noreplace) /var/lib/cobbler/triggers/sync/post/restart-services.trigger
+%config(noreplace) /var/lib/cobbler/triggers/install/pre/status_pre.trigger
+%config(noreplace) /var/lib/cobbler/triggers/install/post/status_post.trigger
 
 %defattr(664,root,root)
-%config(noreplace) /var/lib/cobbler/settings
+%config(noreplace) /etc/cobbler/settings
 %config(noreplace) /var/lib/cobbler/snippets/partition_select
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/lib/cobbler/menu.c32
@@ -189,6 +188,15 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+
+* Fri May 16 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.2-2
+- Upstream changes (see CHANGELOG)
+- moved /var/lib/cobbler/settings to /etc/cobbler/settings
+
+* Fri May 09 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.1-1
+- Upstream changes (see CHANGELOG)
+- packaged /etc/cobbler/users.conf
+- remaining CGI replaced with mod_python
 
 * Tue Apr 08 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.3-2
 - Upstream changes (see CHANGELOG)

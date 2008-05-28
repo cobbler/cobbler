@@ -20,10 +20,12 @@ import os
 import os.path
 import traceback
 import optparse
+import string
 import commands
+import cexceptions
 from cexceptions import *
 
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 I18N_DOMAIN = "cobbler"
 
 ####################################################
@@ -31,7 +33,6 @@ I18N_DOMAIN = "cobbler"
 class BootCLI:
 
     def __init__(self):
-        textdomain(I18N_DOMAIN)
         self.api = api.BootAPI()
         self.loader = commands.FunctionLoader()
         climods = self.api.get_modules_in_category("cli")
@@ -44,26 +45,36 @@ class BootCLI:
 
 ####################################################
 
+def run_upgrade_checks():
+    """
+    Cobbler tries to make manual upgrade steps unneeded, though
+    this function serves to inform users of manual steps when they /are/
+    needed.
+    """
+    # for users running pre-1.0 upgrading to 1.0
+    if os.path.exists("/var/lib/cobbler/settings"):
+       raise CX(_("/var/lib/cobbler/settings is no longer in use, remove this file to acknowledge you have migrated your configuration to /etc/cobbler/settings.  Do not simply copy the file over or you will lose new configuration entries. Run 'cobbler check' and then 'cobbler sync' after making changes."))
+
 def main():
     """
     CLI entry point
     """
     exitcode = 0
     try:
-        # FIXME: redo locking code?
+        run_upgrade_checks()
         return BootCLI().run(sys.argv)
-    except CX, exc:
-        print str(exc)[1:-1]  # remove framing air quotes
-    except SystemExit:
-        pass # probably exited from optparse, nothing extra to print
-    except Exception, exc2:
-        if str(type(exc2)).find("CX") == -1:
-            traceback.print_exc()
-        else:
-            print str(exc2)[1:-1]  # remove framing air quotes
+    except SystemExit, ex:
         return 1
-    return 1
-
+    except Exception, exc:
+        (t, v, tb) = sys.exc_info()
+        try:
+           getattr(exc, "from_cobbler")
+           print str(exc)[1:-1]
+        except: 
+           print t
+           print v
+           print string.join(traceback.format_list(traceback.extract_tb(tb)))
+        return 1
 
 if __name__ == "__main__":
     sys.exit(main())

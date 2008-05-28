@@ -39,6 +39,7 @@ zerombr
 
 # Magically figure out how to partition this thing
 SNIPPET::partition_select
+$kickstart_start
 
 %packages
 

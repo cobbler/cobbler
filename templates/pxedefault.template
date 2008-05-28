@@ -1,5 +1,5 @@
-DEFAULT local
-PROMPT 1
+DEFAULT menu
+PROMPT 0
 MENU TITLE Cobbler | http://cobbler.et.redhat.com
 TIMEOUT 200
 TOTALTIMEOUT 6000
@@ -11,3 +11,5 @@ LABEL local
         LOCALBOOT 0
 
 $pxe_menu_items
+
+MENU end

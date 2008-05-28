@@ -11,7 +11,7 @@
 # if the triggers are enabled in the settings file.
 #
 # (C) Tim Verhoeven <tim.verhoeven.be@gmail.com>, 2007
-# tweaked: Michael DeHaan <mdehaan@redhat.com>
+# tweaked: Michael DeHaan <mdehaan@redhat.com>, 2007-2008
 
 import cgi
 import cgitb
@@ -41,17 +41,32 @@ def parse_query():
 
     form = cgi.parse()
 
-    if form.has_key("system"):
-        return form["system"][0]
-    return 0 
+    ip = "?"
+    if os.environ.has_key("REMOTE_ADDR"):
+        ip = os.environ["REMOTE_ADDR"]
 
-def invoke(name):
+    name = "?"
+    objtype = "?"
+    if form.has_key("system"):
+        name = form["system"][0]
+        objtype = "system"
+    elif form.has_key("profile"):
+        name = form["profile"][0]
+        objtype = "profile"
+
+    mode = "?"
+    if form.has_key("mode"):
+        mode = form["mode"][0]
+
+    return (mode,objtype,name,ip)
+
+def invoke(mode,objtype,name,ip):
     """
     Determine if this feature is enabled.
     """
     
     xmlrpc_server = ServerProxy(XMLRPC_SERVER)
-    print xmlrpc_server.run_post_install_triggers(name)
+    print xmlrpc_server.run_install_triggers(mode,objtype,name,ip)
 
     return True
 
@@ -66,7 +81,7 @@ def header():
 if __name__ == "__main__":
     cgitb.enable(format='text')
     header()
-    name = parse_query()
-    invoke(name)
+    (mode,objtype,name,ip) = parse_query()
+    invoke(mode,objtype,name,ip)
 
 

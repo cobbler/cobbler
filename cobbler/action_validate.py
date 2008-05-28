@@ -15,7 +15,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import os
 import re
 import sub_process
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
+import utils
 
 class Validate:
 
@@ -39,16 +40,10 @@ class Validate:
 
         failed = False
         for x in self.config.profiles():
-            distro = x.get_conceptual_parent()
-            if distro.breed != "redhat":
-                continue
-            if not self.checkfile(x.name, "%s/kickstarts/%s/ks.cfg" % (self.settings.webdir, x.name)):
+            if not self.checkfile(x, True):
                 failed = True
         for x in self.config.systems():
-            distro = x.get_conceptual_parent().get_conceptual_parent()
-            if distro.breed != "redhat":
-                continue
-            if not self.checkfile(x.name, "%s/kickstarts_sys/%s/ks.cfg" % (self.settings.webdir, x.name)):
+            if not self.checkfile(x, False):
                 failed = True
  
         if failed:
@@ -58,15 +53,32 @@ class Validate:
 
         return failed
 
-    def checkfile(self,name,file):
-        # print _("scanning rendered kickstart template: %s" % file)
-        if not os.path.exists(file):
-            print _("kickstart file does not exist for: %s") % name
+    def checkfile(self,obj,is_profile):
+        blended = utils.blender(self.config.api, False, obj)
+        ks = blended["kickstart"]
+        breed = blended["breed"]
+        if breed != "redhat":
+            print "%s has a breed of %s, skipping" % (obj.name, breed)
+            return True
+        if ks is None or ks == "":
+            print "%s has no kickstart, skipping" % obj.name
+            return True
+
+        server = blended["server"] 
+        if not ks.startswith("/"):
+            url = self.kickstart
+        elif is_profile:
+            url = "http://%s/cblr/svc/?op=ks;profile=%s" % (server,obj.name)
+        else:
+            url = "http://%s/cblr/svc/?op=ks;system=%s" % (server,obj.name)
+
+        print "----------------------------"
+        print "checking url: %s" % url
+
+
+        rc = os.system("/usr/bin/ksvalidator \"%s\"" % url)
+        if rc != 0:
             return False
-        rc = os.system("/usr/bin/ksvalidator %s" % file)
-        if not rc == 0:
-            print _("ksvalidator detected a possible problem for: %s") % name
-            print _("  rendered kickstart template at: %s" % file)
-            return False
+       
         return True
 

@@ -1,3 +1,9 @@
+"""
+pyyaml legacy
+Copyright (c) 2001 Steve Howell and Friends; All Rights Reserved
+(see open source license information in docs/ directory)
+"""
+
 from ordered_dict import OrderedDict
 from load import Parser
 from dump import Dumper

@@ -14,7 +14,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import optparse
 from cexceptions import *
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 import sys
 
 HELP_FORMAT = "%-20s%s"
@@ -195,6 +195,14 @@ class CobblerFunction:
         Boilerplate for objects that offer add/edit/delete/remove/copy functionality.
         """
 
+        if "dumpvars" in self.args:
+            if not self.options.name:
+                raise CX(_("name is required"))
+            obj = collect_fn().find(self.options.name)
+            if obj is None:
+                raise CX(_("object not found")) 
+            return obj
+
         if "remove" in self.args:
             recursive = False
             # only applies to distros/profiles and is not supported elsewhere
@@ -219,11 +227,12 @@ class CobblerFunction:
                 self.reporting_list_names2(collect_fn(),self.options.name)
             return None
 
+        if not self.options.name:
+            raise CX(_("name is required"))
+
         if "add" in self.args:
             obj = new_fn(is_subobject=subobject)
         else:
-            if not self.options.name:
-                raise CX(_("name is required"))
             if "delete" in self.args:
                 collect_fn().remove(self.options.name, with_delete=True)
                 return None
@@ -241,6 +250,14 @@ class CobblerFunction:
         Boilerplate for objects that offer add/edit/delete/remove/copy functionality.
         """
 
+        if "dumpvars" in self.args:
+            print obj.dump_vars(True)
+            return True
+
+        clobber = False
+        if "add" in self.args:
+            clobber = options.clobber
+
         if "copy" in self.args: # or "rename" in self.args:
             if self.options.newname:
                 obj = obj.make_clone()
@@ -251,10 +268,45 @@ class CobblerFunction:
         opt_sync     = not options.nosync
         opt_triggers = not options.notriggers
 
+        # ** WARNING: COMPLICATED **
+        # what operation we call depends on what type of object we are editing
+        # and what the operation is.  The details behind this is that the
+        # add operation has special semantics around adding objects that might
+        # clobber other objects, and we don't want that to happen.  Edit
+        # does not have to check for named clobbering but still needs
+        # to check for IP/MAC clobbering in some scenarios (FIXME).
+        # this is all enforced by collections.py though we need to make
+        # the apppropriate call to add to invoke the safety code in the right
+        # places -- and not in places where the safety code will generate
+        # errors under legit circumstances.
+
         if not ("rename" in self.args):
-            rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers)
+            if "add" in self.args:
+               if obj.COLLECTION_TYPE == "system":
+                   # duplicate names and netinfo are both bad.
+                   if not clobber:
+                       rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_names=True, check_for_duplicate_netinfo=True)
+                   else:
+                       rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_names=False, check_for_duplicate_netinfo=True)
+               else:
+                   # duplicate names are bad
+                   if not clobber:
+                       rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_names=True, check_for_duplicate_netinfo=False)
+                   else:
+                       rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_names=False, check_for_duplicate_netinfo=False)
+            else:
+               check_dup = False
+               if not "copy" in self.args:
+                   check_dup = True 
+               # FIXME: this ensures duplicate prevention on copy, but not
+               # rename?
+               rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_netinfo=check_dup)
+
         else:
+            # we are renaming here, so duplicate netinfo checks also
+            # need to be made.(FIXME)
             rc = collect_fn().rename(obj, self.options.newname)
+
         return rc
 
     def reporting_sorter(self, a, b):

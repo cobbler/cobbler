@@ -22,14 +22,17 @@ import action_import
 import action_reposync
 import action_status
 import action_validate
+import action_buildiso
+import action_replicate
 from cexceptions import *
 import sub_process
 import module_loader
+import kickgen
 
 import logging
 import os
 import fcntl
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 ERROR = 100
 INFO  = 10
@@ -38,7 +41,7 @@ DEBUG = 5
 # notes on locking:
 # BootAPI is a singleton object
 # the XMLRPC variants allow 1 simultaneous request
-# therefore we flock on /var/lib/cobbler/settings for now
+# therefore we flock on /etc/cobbler/settings for now
 # on a request by request basis.
 
 class BootAPI:
@@ -79,20 +82,11 @@ class BootAPI:
                 "module",
                 "authz_allowall"
             )
+            self.kickgen = kickgen.KickGen(self._config)
             self.logger.debug("API handle initialized")
 
     def __setup_logger(self,name):
-        logger = logging.getLogger(name)
-        logger.setLevel(logging.INFO)
-        try:
-            ch = logging.FileHandler("/var/log/cobbler/cobbler.log")
-        except:
-            raise CX(_("No write permissions on log file.  Are you root?")) 
-        ch.setLevel(logging.INFO)
-        formatter = logging.Formatter("%(asctime)s - %(name)s - %(message)s")
-        ch.setFormatter(formatter)
-        logger.addHandler(ch)
-        return logger
+        return utils.setup_logger(name)
 
     def log(self,msg,args=None,debug=False):
         if debug:
@@ -221,21 +215,21 @@ class BootAPI:
         self.log("new_repo",[is_subobject])
         return self._config.new_repo(is_subobject=is_subobject)
 
-    def add_distro(self, ref):
+    def add_distro(self, ref, check_for_duplicate_names=False):
         self.log("add_distro",[ref.name])
-        return self._config.distros().add(ref,save=True)
+        return self._config.distros().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
 
-    def add_profile(self, ref):
+    def add_profile(self, ref, check_for_duplicate_names=False):
         self.log("add_profile",[ref.name])
-        return self._config.profiles().add(ref,save=True)
+        return self._config.profiles().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
 
-    def add_system(self,ref):
+    def add_system(self, ref, check_for_duplicate_names=False, check_for_duplicate_netinfo=False):
         self.log("add_system",[ref.name])
-        return self._config.systems().add(ref,save=True)
+        return self._config.systems().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names,check_for_duplicate_netinfo=check_for_duplicate_netinfo)
 
-    def add_repo(self,ref):
+    def add_repo(self, ref, check_for_duplicate_names=False):
         self.log("add_repo",[ref.name])
-        return self._config.repos().add(ref,save=True)
+        return self._config.repos().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
 
     def find_distro(self, name=None, return_list=False, **kargs):
         return self._config.distros().find(name=name, return_list=return_list, **kargs)
@@ -248,6 +242,9 @@ class BootAPI:
 
     def find_repo(self, name=None, return_list=False, **kargs):
         return self._config.repos().find(name=name, return_list=return_list, **kargs)
+
+    def dump_vars(self, obj, format=False):
+        return obj.dump_vars(format)
 
     def auto_add_repos(self):
         """
@@ -284,7 +281,14 @@ class BootAPI:
 
         # run cobbler reposync to apply changes
         return True 
- 
+
+    def generate_kickstart(self,profile,system):
+        self.log("generate_kickstart")
+        if system:
+            return self.kickgen.generate_kickstart_for_system(system)
+        else:
+            return self.kickgen.generate_kickstart_for_profile(profile) 
+
     def check(self):
         """
         See if all preqs for network booting are valid.  This returns
@@ -319,8 +323,21 @@ class BootAPI:
         saved with serialize() will NOT be synchronized with this command.
         """
         self.log("sync")
-        sync = action_sync.BootSync(self._config)
+        sync = self.get_sync()
         return sync.run()
+
+    def get_sync(self):
+        self.dhcp = self.get_module_from_file(
+           "dhcp",
+           "module",
+           "manage_isc"
+        ).get_manager(self._config)
+        self.dns = self.get_module_from_file(
+           "dns",
+           "module",
+           "manage_bind"
+        ).get_manager(self._config)
+        return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns)
 
     def reposync(self, name=None):
         """
@@ -332,11 +349,11 @@ class BootAPI:
         return reposync.run(name)
 
     def status(self,mode):
-        self.log("status",[mode])
-        statusifier = action_status.BootStatusReport(self._config, mode)
+        self.log("status")
+        statusifier = action_status.BootStatusReport(self._config,mode)
         return statusifier.run()
 
-    def import_tree(self,mirror_url,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None):
+    def import_tree(self,mirror_url,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None):
         """
         Automatically import a directory tree full of distribution files.
         mirror_url can be a string that represents a path, a user@host 
@@ -346,7 +363,7 @@ class BootAPI:
         """
         self.log("import_tree",[mirror_url, mirror_name, network_root, kickstart_file, rsync_flags])
         importer = action_import.Importer(
-            self, self._config, mirror_url, mirror_name, network_root, kickstart_file, rsync_flags
+            self, self._config, mirror_url, mirror_name, network_root, kickstart_file, rsync_flags, arch
         )
         return importer.run()
 
@@ -404,4 +421,17 @@ class BootAPI:
         rc = self.authz.authorize(self,user,resource,arg1,arg2)
         self.log("authorize",[user,resource,arg1,arg2,rc],debug=True)
         return rc
+
+    def build_iso(self,iso=None,profiles=None,tempdir=None):
+        builder = action_buildiso.BuildIso(self._config)
+        return builder.run(
+           iso=iso, profiles=profiles, tempdir=tempdir
+        )
+
+    def replicate(self, cobbler_master = None):
+        replicator = action_replicate.Replicate(self._config)
+        return replicator.run(cobbler_master = cobbler_master)
+
+    def get_kickstart_templates(self):
+        return utils.get_kickstar_templates(self)
 

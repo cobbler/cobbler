@@ -15,7 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import utils
 import item
 from cexceptions import *
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 class System(item.Item):
 
@@ -30,6 +30,7 @@ class System(item.Item):
 
     def clear(self,is_subobject=False):
         self.name            = None
+        self.owners          = self.settings.default_ownership
         self.profile         = None
         self.kernel_options  = {}
         self.ks_meta         = {}    
@@ -37,9 +38,15 @@ class System(item.Item):
         self.netboot_enabled = True
         self.depth           = 2
         self.kickstart       = "<<inherit>>"   # use value in profile
+        self.server          = "<<inherit>>"   # "" (or settings)
         self.virt_path       = "<<inherit>>"   # ""
         self.virt_type       = "<<inherit>>"   # "" 
-        self.server          = "<<inherit>>"   # "" (or settings)
+        self.virt_cpus       = "<<inherit>>"   # ""
+        self.virt_file_size  = "<<inherit>>"   # ""
+        self.virt_ram        = "<<inherit>>"   # ""
+        self.virt_type       = "<<inherit>>"   # ""
+        self.virt_path       = "<<inherit>>"   # ""
+        self.virt_bridge     = "<<inherit>>"   # ""
 
     def delete_interface(self,name):
         """
@@ -80,15 +87,24 @@ class System(item.Item):
 
         self.parent          = self.load_item(seed_data, 'parent')
         self.name            = self.load_item(seed_data, 'name')
+        self.owners          = self.load_item(seed_data, 'owners', self.settings.default_ownership)
         self.profile         = self.load_item(seed_data, 'profile')
         self.kernel_options  = self.load_item(seed_data, 'kernel_options', {})
         self.ks_meta         = self.load_item(seed_data, 'ks_meta', {})
         self.depth           = self.load_item(seed_data, 'depth', 2)        
         self.kickstart       = self.load_item(seed_data, 'kickstart', '<<inherit>>')
-        self.virt_path       = self.load_item(seed_data, 'virt_path', '<<inherit>>') 
-        self.virt_type       = self.load_item(seed_data, 'virt_type', '<<inherit>>')
         self.netboot_enabled = self.load_item(seed_data, 'netboot_enabled', True)
         self.server          = self.load_item(seed_data, 'server', '<<inherit>>')
+
+        # virt specific 
+        self.virt_path   = self.load_item(seed_data, 'virt_path', '<<inherit>>') 
+        self.virt_type   = self.load_item(seed_data, 'virt_type', '<<inherit>>')
+        self.virt_ram    = self.load_item(seed_data,'virt_ram','<<inherit>>')
+        self.virt_file_size  = self.load_item(seed_data,'virt_file_size','<<inherit>>')
+        self.virt_path   = self.load_item(seed_data,'virt_path','<<inherit>>')
+        self.virt_type   = self.load_item(seed_data,'virt_type','<<inherit>>')
+        self.virt_bridge = self.load_item(seed_data,'virt_bridge','<<inherit>>')
+        self.virt_cpus   = self.load_item(seed_data,'virt_cpus','<<inherit>>')
 
         # backwards compat, these settings are now part of the interfaces data structure
         # and will contain data only in upgrade scenarios.
@@ -126,8 +142,9 @@ class System(item.Item):
         # explicitly re-call the set_name function to possibily populate MAC/IP.
         self.set_name(self.name)
 
-        # coerce this into a boolean
+        # coerce types from input file
         self.set_netboot_enabled(self.netboot_enabled)
+        self.set_owners(self.owners) 
 
         return self
 
@@ -154,7 +171,7 @@ class System(item.Item):
             raise CX(_("name must be a string"))
         for x in name:
             if not x.isalnum() and not x in [ "_", "-", ".", ":", "+" ] :
-                raise CX(_("invalid characters in name"))
+                raise CX(_("invalid characters in name: %s") % x)
 
         if utils.is_mac(name):
            if intf["mac_address"] == "":
@@ -212,11 +229,12 @@ class System(item.Item):
         """
         if self.name == "default":
            return True
-        mac = self.get_mac_address(interface)
-        ip  = self.get_ip_address(interface)
-        if mac is None and ip is None:
-           return False
-        return True
+        for (name,x) in self.interfaces.iteritems():
+            mac = x.get("mac_address",None)
+            ip  = x.get("ip_address",None)
+            if mac is not None or ip is not None:
+                return True
+        return False
 
     def set_dhcp_tag(self,dhcp_tag,interface="intf0"):
         intf = self.__get_interface(interface)
@@ -231,7 +249,7 @@ class System(item.Item):
     def set_ip_address(self,address,interface="intf0"):
         """
         Assign a IP or hostname in DHCP when this MAC boots.
-        Only works if manage_dhcp is set in /var/lib/cobbler/settings
+        Only works if manage_dhcp is set in /etc/cobbler/settings
         """
         intf = self.__get_interface(interface)
         if address == "" or utils.is_ip(address):
@@ -273,21 +291,20 @@ class System(item.Item):
             return True
         raise CX(_("invalid profile name"))
 
-    def set_virt_path(self,path):
-        """
-        Virtual storage location suggestion, can be overriden by koan.
-        """
-        self.virt_path = path
-        return True
+    def set_virt_cpus(self,num):
+        return utils.set_virt_cpus(self,num)
+
+    def set_virt_file_size(self,num):
+        return utils.set_virt_file_size(self,num)
+ 
+    def set_virt_ram(self,num):
+        return utils.set_virt_ram(self,num)
 
     def set_virt_type(self,vtype):
-        """
-        Virtualization preference, can be overridden by koan.
-        """
-        if vtype.lower() not in [ "qemu", "xenpv", "xenfv", "vmware", "auto" ]:
-            raise CX(_("invalid virt type"))
-        self.virt_type = vtype
-        return True
+        return utils.set_virt_type(self,vtype)
+
+    def set_virt_path(self,path):
+        return utils.set_virt_path(self,path)
 
     def set_netboot_enabled(self,netboot_enabled):
         """
@@ -336,6 +353,9 @@ class System(item.Item):
         abstraction layer -- assigning systems to defined and repeatable 
         roles.
         """
+        if kickstart is None or kickstart == "" or kickstart == "delete":
+            self.kickstart = "<<inherit>>"
+            return True
         if utils.find_kickstart(kickstart):
             self.kickstart = kickstart
             return True
@@ -344,31 +364,43 @@ class System(item.Item):
 
     def to_datastruct(self):
         return {
-           'name'            : self.name,
-           'profile'         : self.profile,
-           'kernel_options'  : self.kernel_options,
-           'ks_meta'         : self.ks_meta,
-           'netboot_enabled' : self.netboot_enabled,
-           'parent'          : self.parent,
-           'depth'           : self.depth,
-           'kickstart'       : self.kickstart,
-           'virt_type'       : self.virt_type,
-           'virt_path'       : self.virt_path,
-           'interfaces'      : self.interfaces,
-           'server'          : self.server
+           'name'             : self.name,
+           'kernel_options'   : self.kernel_options,
+           'depth'            : self.depth,
+           'interfaces'       : self.interfaces,
+           'ks_meta'          : self.ks_meta,
+           'kickstart'        : self.kickstart,
+           'netboot_enabled'  : self.netboot_enabled,
+           'owners'           : self.owners,
+           'parent'           : self.parent,
+           'profile'          : self.profile,
+           'server'           : self.server,
+	   'virt_cpus'        : self.virt_cpus,
+           'virt_bridge'      : self.virt_bridge,
+           'virt_file_size'   : self.virt_file_size,
+           'virt_path'        : self.virt_path,
+           'virt_ram'         : self.virt_ram,
+           'virt_type'        : self.virt_type
+
         }
 
     def printable(self):
         buf =       _("system           : %s\n") % self.name
         buf = buf + _("profile          : %s\n") % self.profile
         buf = buf + _("kernel options   : %s\n") % self.kernel_options
+        buf = buf + _("kickstart        : %s\n") % self.kickstart
         buf = buf + _("ks metadata      : %s\n") % self.ks_meta
         
         buf = buf + _("netboot enabled? : %s\n") % self.netboot_enabled 
-        buf = buf + _("kickstart        : %s\n") % self.kickstart
-        buf = buf + _("virt type        : %s\n") % self.virt_type
-        buf = buf + _("virt path        : %s\n") % self.virt_path
+        buf = buf + _("owners           : %s\n") % self.owners
         buf = buf + _("server           : %s\n") % self.server
+
+        buf = buf + _("virt cpus        : %s\n") % self.virt_cpus
+        buf = buf + _("virt file size   : %s\n") % self.virt_file_size
+        buf = buf + _("virt path        : %s\n") % self.virt_path
+        buf = buf + _("virt ram         : %s\n") % self.virt_ram
+        buf = buf + _("virt type        : %s\n") % self.virt_type
+
 
         counter = 0
         for (name,x) in self.interfaces.iteritems():
@@ -414,6 +446,12 @@ class System(item.Item):
            'virt-type'        : self.set_virt_type,
            'modify-interface' : self.modify_interface,
            'delete-interface' : self.delete_interface,
-           'server'           : self.set_server
+           'virt-path'        : self.set_virt_path,
+           'virt-ram'         : self.set_virt_ram,
+           'virt-type'        : self.set_virt_type,
+           'virt-cpus'        : self.set_virt_cpus,
+           'virt-file-size'   : self.set_virt_file_size,
+           'server'           : self.set_server,
+           'owners'           : self.set_owners
         }
 

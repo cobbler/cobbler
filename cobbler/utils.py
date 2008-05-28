@@ -17,12 +17,19 @@ import os
 import re
 import socket
 import glob
+import random
 import sub_process
 import shutil
 import string
 import traceback
+import errno
+import logging
 from cexceptions import *
-from rhpl.translate import _, N_, textdomain, utf8
+
+#placeholder for translation
+def _(foo):
+   return foo
+
 
 MODULE_CACHE = {}
 
@@ -31,6 +38,18 @@ MODULE_CACHE = {}
 _re_kernel = re.compile(r'vmlinuz(.*)')
 _re_initrd = re.compile(r'initrd(.*).img')
 
+def setup_logger(name):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    try:
+        ch = logging.FileHandler("/var/log/cobbler/cobbler.log")
+    except:
+        raise CX(_("No write permissions on log file.  Are you root?"))
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(message)s")
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    return logger
 
 def log_exc(logger):
    """
@@ -105,6 +124,26 @@ def is_mac(strdata):
     if re.search(r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}',strdata, re.IGNORECASE):
         return True
     return False
+
+def get_random_mac(api_handle):
+    """
+    Generate a random MAC address.
+    from xend/server/netif.py
+    Generate a random MAC address.
+    Uses OUI 00-16-3E, allocated to
+    Xensource, Inc.  Last 3 fields are random.
+    return: MAC address string
+    """
+    mac = [ 0x00, 0x16, 0x3e,
+        random.randint(0x00, 0x7f),
+        random.randint(0x00, 0xff),
+        random.randint(0x00, 0xff) ]
+    mac = ':'.join(map(lambda x: "%02x" % x, mac))
+    systems = api_handle.systems()
+    while ( systems.find(mac_address=mac) ):
+        mac = get_random_mac(api_handle)
+
+    return mac
 
 
 def resolve_ip(strdata):
@@ -230,6 +269,22 @@ def find_kickstart(url):
            return url
     return None
 
+def input_string_or_list(options,delim=","):
+    """
+    Accepts a delimited list of stuff or a list, but always returns a list.
+    """
+    if options is None or options == "delete":
+       return []
+    elif type(options) == list:
+       return options
+    elif type(options) == str:
+       tokens = options.split(delim)
+       if delim == ",":
+           tokens = [t.lstrip().rstrip() for t in tokens]
+       return tokens
+    else:
+       raise CX(_("invalid input type"))
+
 def input_string_or_hash(options,delim=","):
     """
     Older cobbler files stored configurations in a flat way, such that all values for strings.
@@ -240,7 +295,7 @@ def input_string_or_hash(options,delim=","):
     if options == "<<inherit>>":
         options = {}
 
-    if options is None:
+    if options is None or options == "delete":
         return (True, {})
     elif type(options) == list:
         raise CX(_("No idea what to do with list: %s") % options)
@@ -261,7 +316,7 @@ def input_string_or_hash(options,delim=","):
         options.pop('',None)
         return (True, options)
     else:
-        raise CX(_("Foreign options type"))
+        raise CX(_("invalid input type"))
 
 def grab_tree(api_handle, obj):
     """
@@ -276,19 +331,14 @@ def grab_tree(api_handle, obj):
     results.append(settings)  
     return results
 
-def blender(api_handle,remove_hashes, root_obj, blend_cache=None):
+def blender(api_handle,remove_hashes, root_obj):
     """
     Combine all of the data in an object tree from the perspective
     of that point on the tree, and produce a merged hash containing
     consolidated data.
     """
  
-    cache_enabled = False # FIXME: disabled for now as there a few bugs in this impl.
-
     blend_key = "%s/%s/%s" % (root_obj.TYPE_NAME, root_obj.name, remove_hashes)
-    if cache_enabled and blend_cache is not None:
-        if blend_cache.has_key(blend_key):
-            return blend_cache[blend_key]
 
     settings = api_handle.settings()
     tree = grab_tree(api_handle, root_obj)
@@ -334,8 +384,18 @@ def blender(api_handle,remove_hashes, root_obj, blend_cache=None):
     if remove_hashes:
         results = flatten(results)
 
-    if cache_enabled and blend_cache is not None:
-        blend_cache[blend_key] = results
+    # add in some variables for easier templating
+    # as these variables change based on object type
+    if results.has_key("interfaces"):
+        results["system_name"]  = results["name"]
+        results["profile_name"] = results["profile"]
+        results["distro_name"]  = results["distro"]
+    elif results.has_key("distro"):
+        results["profile_name"] = results["name"]
+        results["distro_name"]  = results["distro"]
+    elif results.has_key("kernel"):
+        results["distro_name"]  = results["name"]
+
     return results
 
 def flatten(data):
@@ -399,6 +459,24 @@ def __consolidate(node,results):
        else:
           results[field] = data_item
 
+    # now if we have any "!foo" results in the list, delete corresponding
+    # key entry "foo", and also the entry "!foo", allowing for removal
+    # of kernel options set in a distro later in a profile, etc.
+
+    hash_removals(results,"kernel_options")
+    hash_removals(results,"ks_meta")
+
+def hash_removals(results,subkey):
+    if not results.has_key(subkey):
+        return
+    scan = results[subkey].keys()
+    for k in scan:
+        if k.startswith("!") and k != "!":
+           remove_me = k[1:]
+           if results[subkey].has_key(remove_me):
+               del results[subkey][remove_me]
+           del results[subkey][k]
+
 def hash_to_string(hash):
     """
     Convert a hash to a printable string.
@@ -417,7 +495,7 @@ def hash_to_string(hash):
           buffer = buffer + str(key) + "=" + str(value) + " "
     return buffer
 
-def run_triggers(ref,globber):
+def run_triggers(ref,globber,additional=[]):
     """
     Runs all the trigger scripts in a given directory.
     ref can be a cobbler object, if not None, the name will be passed
@@ -434,10 +512,12 @@ def run_triggers(ref,globber):
                 # skip .rpmnew files that may have been installed
                 # in the triggers directory
                 continue
+            arglist = [ file ]
             if ref:
-                rc = sub_process.call([file,ref.name], shell=False)
-            else:
-                rc = sub_process.call([file], shell=False)
+                arglist.append(ref.name)
+            for x in additional:
+                arglist.append(x)
+            rc = sub_process.call(arglist, shell=False)
         except:
             print _("Warning: failed to execute trigger: %s" % file)
             continue
@@ -452,9 +532,6 @@ def fix_mod_python_select_submission(repos):
     which doesn't seem to happen on all versions of python/mp.
     """
 
-    if str(repos).find("Field(") == -1:
-        return repos # no hack needed
-
     # should be nice regex, but this is readable :)
     repos = str(repos)
     repos = repos.replace("'repos'","")
@@ -467,4 +544,307 @@ def fix_mod_python_select_submission(repos):
     repos = repos.replace('"',"")
     repos = repos.lstrip().rstrip()
     return repos
+
+def check_dist():
+    """
+    Determines what distro we're running under.  
+    """
+    if os.path.exists("/etc/debian_version"):
+       return "debian"
+    else:
+       # valid for Fedora and all Red Hat / Fedora derivatives
+       return "redhat"
+
+def os_release():
+
+   if check_dist() == "redhat":
+
+      if not os.path.exists("/bin/rpm"):
+         return ("unknown", 0)
+      args = ["/bin/rpm", "-q", "--whatprovides", "redhat-release"]
+      cmd = sub_process.Popen(args,shell=False,stdout=sub_process.PIPE)
+      data = cmd.communicate()[0]
+      data = data.rstrip().lower()
+      make = "other"
+      if data.find("redhat") != -1:
+          make = "redhat"
+      elif data.find("centos") != -1:
+          make = "centos"
+      elif data.find("fedora") != -1:
+          make = "fedora"
+      version = data.split("release-")[-1]
+      rest = 0
+      if version.find("-"):
+         parts = version.split("-")
+         version = parts[0]
+         rest = parts[1]
+      return (make, float(version), rest)
+   elif check_dist() == "debian":
+      fd = open("/etc/debian_version")
+      parts = fd.read().split(".")
+      version = parts[0]
+      rest = parts[1]
+      make = "debian"
+      return (make, float(version), rest)
+   else:
+      return ("unknown",0)
+
+def tftpboot_location():
+
+    # if possible, read from TFTP config file to get the location
+    if os.path.exists("/etc/xinetd.d/tftp"):
+        fd = open("/etc/xinetd.d/tftp")
+        lines = fd.read().split("\n")
+        for line in lines:
+           if line.find("server_args") != -1:
+              tokens = line.split(None)
+              mark = False
+              for t in tokens:
+                 if t == "-s":    
+                    mark = True
+                 elif mark:
+                    return t
+
+    # otherwise, guess based on the distro
+    (make,version,rest) = os_release()
+    if make == "fedora" and version >= 9:
+       return "/var/lib/tftpboot"
+    return "/tftpboot"
+
+def linkfile(src, dst):
+    """
+    Attempt to create a link dst that points to src.  Because file
+    systems suck we attempt several different methods or bail to
+    copyfile()
+    """
+
+    try:
+        return os.link(src, dst)
+    except (IOError, OSError):
+        pass
+
+    try:
+        return os.symlink(src, dst)
+    except (IOError, OSError):
+        pass
+
+        return copyfile(src, dst)
+
+def copyfile(src,dst):
+    try:
+        return shutil.copyfile(src,dst)
+    except:
+        if not os.access(src,os.R_OK):
+            raise CX(_("Cannot read: %s") % src)
+        if not os.path.samefile(src,dst):
+            # accomodate for the possibility that we already copied
+            # the file as a symlink/hardlink
+            raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+
+def rmfile(path):
+    try:
+        os.unlink(path)
+        return True
+    except OSError, ioe:
+        if not ioe.errno == errno.ENOENT: # doesn't exist
+            traceback.print_exc()
+            raise CX(_("Error deleting %s") % path)
+        return True
+
+def rmtree_contents(path):
+   what_to_delete = glob.glob("%s/*" % path)
+   for x in what_to_delete:
+       rmtree(x)
+
+def rmtree(path):
+   try:
+       if os.path.isfile(path):
+           return rmfile(path)
+       else:
+           return shutil.rmtree(path,ignore_errors=True)
+   except OSError, ioe:
+       traceback.print_exc()
+       if not ioe.errno == errno.ENOENT: # doesn't exist
+           raise CX(_("Error deleting %s") % path)
+       return True
+
+def mkdir(path,mode=0777):
+   try:
+       return os.makedirs(path,mode)
+   except OSError, oe:
+       if not oe.errno == 17: # already exists (no constant for 17?)
+           traceback.print_exc()
+           print oe.errno
+           raise CX(_("Error creating") % path)
+
+def set_repos(self,repos,bypass_check=False):
+   # WARNING: hack
+   repos = fix_mod_python_select_submission(repos)
+
+   # allow the magic inherit string to persist
+   if repos == "<<inherit>>":
+        # FIXME: this is not inheritable in the WebUI presently ?
+        self.repos = "<<inherit>>"
+        return
+
+   # store as an array regardless of input type
+   if repos is None:
+        repolist = []
+   elif type(repos) != list:
+        # allow backwards compatibility support of string input
+        repolist = repos.split(None)
+   else:
+        repolist = repos
+
+   # make sure there are no empty strings
+   try:
+       repolist.remove('')
+   except:
+       pass
+
+   self.repos = []
+
+   # if any repos don't exist, fail the set operation
+   # unless called from the deserializer stage in which
+   # case we have a soft error that check can report
+   ok = True
+   for r in repolist:
+       if bypass_check:
+           self.repos.append(r)
+       else:
+           if self.config.repos().find(name=r) is not None:
+               self.repos.append(r)
+           else:
+               raise CX(_("repo %s is not defined") % r)
+
+   return True
+
+def set_virt_file_size(self,num):
+    """
+    For Virt only.
+    Specifies the size of the virt image in gigabytes.  
+    Older versions of koan (x<0.6.3) interpret 0 as "don't care"
+    Newer versions (x>=0.6.4) interpret 0 as "no disks"
+    """
+    # num is a non-negative integer (0 means default)
+    # can also be a comma seperated list -- for usage with multiple disks
+
+    if num == "<<inherit>>":
+        self.virt_file_size = "<<inherit>>"
+        return True
+
+    if type(num) == str and num.find(",") != -1:
+        tokens = num.split(",")
+        for t in tokens:
+            # hack to run validation on each
+            self.set_virt_file_size(t)
+        # if no exceptions raised, good enough
+        self.virt_file_size = num
+        return True
+
+    try:
+        inum = int(num)
+        if inum != float(num):
+            return CX(_("invalid virt file size"))
+        if inum >= 0:
+            self.virt_file_size = inum
+            return True
+        raise CX(_("invalid virt file size"))
+    except:
+        raise CX(_("invalid virt file size"))
+    return True
+
+def set_virt_ram(self,num):
+     """
+     For Virt only.
+     Specifies the size of the Virt RAM in MB.
+     0 tells Koan to just choose a reasonable default.
+     """
+
+     if num == "<<inherit>>":
+         self.virt_ram = "<<inherit>>"
+         return True
+
+     # num is a non-negative integer (0 means default)
+     try:
+         inum = int(num)
+         if inum != float(num):
+             return CX(_("invalid virt ram size"))
+         if inum >= 0:
+             self.virt_ram = inum
+             return True
+         return CX(_("invalid virt ram size"))
+     except:
+         return CX(_("invalid virt ram size"))
+     return True
+
+def set_virt_type(self,vtype):
+     """
+     Virtualization preference, can be overridden by koan.
+     """
+
+     if vtype == "<<inherit>>":
+         self.virt_type == "<<inherit>>"
+         return True
+
+     if vtype.lower() not in [ "qemu", "xenpv", "xenfv", "vmware", "auto" ]:
+         raise CX(_("invalid virt type"))
+     self.virt_type = vtype
+     return True
+
+def set_virt_bridge(self,vbridge):
+     """
+     The default bridge for all virtual interfaces under this profile.
+     """
+     self.virt_bridge = vbridge
+     return True
+
+def set_virt_path(self,path):
+     """
+     Virtual storage location suggestion, can be overriden by koan.
+     """
+     self.virt_path = path
+     return True
+
+def set_virt_cpus(self,num):
+     """
+     For Virt only.  Set the number of virtual CPUs to give to the
+     virtual machine.  This is fed to virtinst RAW, so cobbler
+     will not yelp if you try to feed it 9999 CPUs.  No formatting
+     like 9,999 please :)
+     """
+     if num == "<<inherit>>":
+         self.virt_cpus = "<<inherit>>"
+         return True
+
+     try:
+         num = int(str(num))
+     except:
+         raise CX(_("invalid number of virtual CPUs"))
+
+     self.virt_cpus = num
+     return True
+
+def get_kickstart_templates(api):
+    files = {}
+    for x in api.profiles():
+        if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
+            if os.path.exists(x.kickstart):
+                files[x.kickstart] = 1
+    for x in api.systems():
+        if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
+            if os.path.exists(x.kickstart):
+                files[x.kickstart] = 1
+    for x in glob.glob("/var/lib/cobbler/kickstarts/*"):
+        files[x] = 1
+    for x in glob.glob("/etc/cobbler/*.ks"):
+        files[x] = 1
+
+    return files.keys()
+
+
+
+if __name__ == "__main__":
+    # print redhat_release()
+    print tftpboot_location()
 

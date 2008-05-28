@@ -1,3 +1,9 @@
+"""
+pyyaml legacy
+Copyright (c) 2001 Steve Howell and Friends; All Rights Reserved
+(see open source license information in docs/ directory)
+"""
+
 import re, string
 from implicit import convertImplicit
 from inline import InlineTokenizer

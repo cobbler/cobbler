@@ -19,7 +19,7 @@ plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 import commands
 from cexceptions import *
 HELP_FORMAT = commands.HELP_FORMAT
@@ -73,11 +73,12 @@ class ImportFunction(commands.CobblerFunction):
         return "import"
 
     def add_options(self, p, args):
+        p.add_option("--arch",               dest="arch",               help="explicitly specify the architecture being imported (RECOMENDED)")
         p.add_option("--path",               dest="mirror",             help="local path or rsync location (REQUIRED)")
         p.add_option("--mirror",             dest="mirror_alt",         help="alias for --path")
         p.add_option("--name",               dest="name",               help="name, ex 'RHEL-5', (REQUIRED)")
-        p.add_option("--available-as",       dest="available_as",       help="do not mirror, use this as install tree")
-        p.add_option("--kickstart",          dest="kickstart_file",     help="use the kickstart file specified as the profile's kickstart file")
+        p.add_option("--available-as",       dest="available_as",       help="do not mirror, use this as install tree base")
+        p.add_option("--kickstart",          dest="kickstart_file",     help="use the kickstart file specified as the profile's kickstart file, do not auto-assign")
         p.add_option("--rsync-flags",        dest="rsync_flags",        help="pass additional flags to rsync")
 
     def run(self):
@@ -92,7 +93,8 @@ class ImportFunction(commands.CobblerFunction):
                 self.options.name,
                 network_root=self.options.available_as,
                 kickstart_file=self.options.kickstart_file,
-                rsync_flags=self.options.rsync_flags
+                rsync_flags=self.options.rsync_flags,
+                arch=self.options.arch
         )
 
 
@@ -182,11 +184,6 @@ class ReportFunction(commands.CobblerFunction):
                 self.reporting_print_sorted(self.api.repos())
         return True
 
-## FIXME: add legacy command translator to keep things simple
-## cobbler system report foo --> cobbler report --what=systems --name=foo
-## cobbler system report --> cobbler report --what=systems
-## ditto for "cobbler list"
-
 ########################################################
 
 class StatusFunction(commands.CobblerFunction):
@@ -198,7 +195,7 @@ class StatusFunction(commands.CobblerFunction):
         return "status"
 
     def run(self):
-        return self.api.status("text")  # no other output modes supported yet
+        return self.api.status("text") # no other output modes supported yet
 
 ########################################################
 
@@ -243,6 +240,46 @@ class ValidateKsFunction(commands.CobblerFunction):
         return self.api.validateks()
 
 ########################################################
+
+class BuildIsoFunction(commands.CobblerFunction):
+
+    def add_options(self,p,args): 
+        p.add_option("--iso",      dest="isoname",  help="(OPTIONAL) output ISO to this path")
+        p.add_option("--profiles", dest="profiles", help="(OPTIONAL) use these profiles only")
+        p.add_option("--tempdir",  dest="tempdir",  help="(OPTIONAL) working directory")
+
+    def help_me(self):
+       return HELP_FORMAT % ("cobbler buildiso","")
+    
+    def command_name(self):
+       return "buildiso"
+
+    def run(self):
+       return self.api.build_iso(
+           iso=self.options.isoname,
+           profiles=self.options.profiles,
+           tempdir=self.options.tempdir
+       )
+
+########################################################
+
+class ReplicateFunction(commands.CobblerFunction):
+
+    def help_me(self):
+        return HELP_FORMAT % ("cobbler replicate","[ARGS|--help]")
+
+    def command_name(self):
+        return "replicate"
+
+    def add_options(self, p, args):
+        p.add_option("--master",           dest="master",             help="Cobbler server to replicate from.")
+
+    def run(self):
+        return self.api.replicate(cobbler_master = self.options.master)
+
+
+    
+########################################################
 # MODULE HOOKS
 
 def register():
@@ -253,9 +290,11 @@ def register():
 
 def cli_functions(api):
     return [
+       BuildIsoFunction(api), 
        CheckFunction(api), ImportFunction(api), ReserializeFunction(api),
        ListFunction(api), ReportFunction(api), StatusFunction(api),
-       SyncFunction(api), RepoSyncFunction(api), ValidateKsFunction(api)
+       SyncFunction(api), RepoSyncFunction(api), ValidateKsFunction(api),
+       ReplicateFunction(api)
     ]
     return []
 

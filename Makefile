@@ -36,21 +36,27 @@ install: clean manpage
 	python setup.py install -f
 
 devinstall:
-	cp /var/lib/cobbler/settings /tmp/cobbler_settings
-	cp /etc/cobbler/modules.conf /tmp/cobbler_modules.conf
+	-cp /etc/cobbler/settings /tmp/cobbler_settings
+	-cp /etc/cobbler/modules.conf /tmp/cobbler_modules.conf
+	-cp /etc/httpd/conf.d/cobbler.conf /tmp/cobbler_http.conf
+	-cp /etc/cobbler/users.conf /tmp/cobbler_users.conf
 	-cp /etc/cobbler/users.digest /tmp/cobbler_users.digest
 	make install
-	cp /tmp/cobbler_settings /var/lib/cobbler/settings
-	cp /tmp/cobbler_modules.conf /etc/cobbler/modules.conf
+	-cp /tmp/cobbler_settings /etc/cobbler/settings
+	-cp /tmp/cobbler_modules.conf /etc/cobbler/modules.conf
+	-cp /tmp/cobbler_users.conf /etc/cobbler/users.conf
 	-cp /tmp/cobbler_users.digest /etc/cobbler/users.digest
+	-cp /tmp/cobbler_http.conf /etc/httpd/conf.d/cobbler.conf
 	find /var/lib/cobbler/triggers | xargs chmod +x
 	chown -R apache /var/www/cobbler 
 	chown -R apache /var/www/cgi-bin/cobbler	
 	chmod -R +x /var/www/cobbler/web
+	chmod -R +x /var/www/cobbler/svc
 
 webtest: devinstall
 	/sbin/service cobblerd restart
 	/sbin/service httpd restart
+	chmod +x /var/www/cgi-bin/cobbler/*.cgi
 
 sdist: clean messages updatewui
 	python setup.py sdist
@@ -60,7 +66,7 @@ messages: cobbler/*.py
 	sed -i'~' -e 's/SOME DESCRIPTIVE TITLE/cobbler/g' -e 's/YEAR THE PACKAGE'"'"'S COPYRIGHT HOLDER/2007 Red Hat, Inc. /g' -e 's/FIRST AUTHOR <EMAIL@ADDRESS>, YEAR/Michael DeHaan <mdehaan@redhat.com>, 2007/g' -e 's/PACKAGE VERSION/cobbler $(VERSION)-$(RELEASE)/g' -e 's/PACKAGE/cobbler/g' $(MESSAGESPOT)
 
 
-rpms: clean manpage sdist
+rpms: clean updatewui manpage sdist
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
 	rpmbuild --define "_topdir %(pwd)/rpm-build" \
@@ -94,3 +100,7 @@ eraseconfig:
 	-rm /var/lib/cobbler/profiles*
 	-rm /var/lib/cobbler/systems*
 	-rm /var/lib/cobbler/repos*
+
+graphviz:
+	dot -Tpdf docs/cobbler.dot -o cobbler.pdf
+

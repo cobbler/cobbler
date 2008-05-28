@@ -60,6 +60,9 @@ class CobblerWeb(object):
             # validate that our token is still good
             try:
                 self.remote.token_check(self.token)
+                self.username = self.remote.get_user_from_token(self.token)
+                # ensure config is up2date
+                self.remote.update(self.token)
                 return True
             except Exception, e:
                 if str(e).find("invalid token") != -1:
@@ -78,6 +81,8 @@ class CobblerWeb(object):
                 log_exc(self.apache)
                 return False
             self.password = None # don't need it anymore, get rid of it
+            # ensure configuration is up2date
+            self.remote.update(self.token)
             return True
         
         # login failed
@@ -162,15 +167,27 @@ class CobblerWeb(object):
         input_distro = None
         if name is not None:
             input_distro = self.remote.get_distro(name, True)
+            can_edit = self.remote.check_access_no_fail(self.token,"modify_distro",name)
+        else:
+            can_edit = self.remote.check_access_no_fail(self.token,"new_distro",None)
+        
+            if not can_edit:
+                return self.__render('message.tmpl', {
+                    'message1' : "Access denied.",
+                    'message2' : "You do not have permission to create new objects."
+                })
 
+ 
         return self.__render( 'distro_edit.tmpl', {
+            'user' : self.username,
             'edit' : True,
+            'editable' : can_edit,
             'distro': input_distro,
         } )
 
     def distro_save(self,name=None,oldname=None,new_or_edit=None,editmode='edit',kernel=None,
-                    initrd=None,kopts=None,ksmeta=None,arch=None,breed=None,
-                    delete1=None,delete2=None,**args):
+                    initrd=None,kopts=None,ksmeta=None,owners=None,arch=None,breed=None,
+                    delete1=None,delete2=None,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -182,8 +199,12 @@ class CobblerWeb(object):
 
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
-            try:     
-                self.remote.remove_distro(name,self.token,1) # recursive   
+            try:    
+                if recursive is None: 
+                    self.remote.remove_distro(name,self.token,False)
+                else:
+                    self.remote.remove_distro(name,self.token,True)
+                       
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
             return self.distro_list()
@@ -220,11 +241,14 @@ class CobblerWeb(object):
                 self.remote.modify_distro(distro, 'kopts', kopts, self.token)
             if ksmeta:
                 self.remote.modify_distro(distro, 'ksmeta', ksmeta, self.token)
+            if owners:
+                self.remote.modify_distro(distro, 'owners', owners, self.token)
             if arch:
                 self.remote.modify_distro(distro, 'arch', arch, self.token)
             if breed:
                 self.remote.modify_distro(distro, 'breed', breed, self.token)
-            self.remote.save_distro(distro, self.token)
+            # now time to save, do we want to run duplication checks?
+            self.remote.save_distro(distro, self.token, editmode)
         except Exception, e:
             log_exc(self.apache)
             return self.error_page("Error while saving distro: %s" % str(e))
@@ -288,8 +312,9 @@ class CobblerWeb(object):
 
     def system_save(self,name=None,oldname=None,editmode="edit",profile=None,
                     new_or_edit=None,  
-                    kopts=None, ksmeta=None, server_override=None, netboot='n', 
-                    delete1=None, delete2=None, **args):
+                    kopts=None, ksmeta=None, owners=None, server_override=None, netboot='n', 
+                    virtpath=None,virtram=None,virttype=None,virtcpus=None,virtfilesize=None,delete1=None, delete2=None, **args):
+
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -332,10 +357,25 @@ class CobblerWeb(object):
                self.remote.modify_system(system, 'kopts', kopts, self.token)
             if ksmeta:
                self.remote.modify_system(system, 'ksmeta', ksmeta, self.token)
+            if owners:
+               self.remote.modify_system(system, 'owners', owners, self.token)
             if netboot:
                self.remote.modify_system(system, 'netboot-enabled', netboot, self.token)
             if server_override:
                self.remote.modify_system(system, 'server', server_override, self.token)
+
+            if virtfilesize:
+               self.remote.modify_system(system, 'virt-file-size', virtfilesize, self.token)
+            if virtcpus:
+               self.remote.modify_system(system, 'virt-cpus', virtcpus, self.token)
+            if virtram:
+               self.remote.modify_system(system, 'virt-ram', virtram, self.token)
+            if virttype:
+               self.remote.modify_system(system, 'virt-type', virttype, self.token)
+
+            if virtpath:
+               self.remote.modify_system(system, 'virt-path', virtpath, self.token)
+
 
             for x in range(0,7):
                 interface = "intf%s" % x
@@ -364,8 +404,7 @@ class CobblerWeb(object):
                     mods["gateway-%s" % interface] = gateway
                     self.remote.modify_system(system,'modify-interface', mods, self.token)
 
-            # now commit the edits
-            self.remote.save_system( system, self.token)
+            self.remote.save_system(system, self.token, editmode)
 
         except Exception, e:
             log_exc(self.apache)
@@ -390,9 +429,20 @@ class CobblerWeb(object):
         input_system = None
         if name is not None:
             input_system = self.remote.get_system(name,True)
+            can_edit = self.remote.check_access_no_fail(self.token,"modify_system",name)
+        else:
+            can_edit = self.remote.check_access_no_fail(self.token,"new_system",None)
+            if not can_edit:
+                return self.__render('message.tmpl', {
+                    'message1' : "Access denied.",
+                    'message2' : "You do not have permission to create new objects."        
+                })
+
 
         return self.__render( 'system_edit.tmpl', {
+            'user' : self.username,
             'edit' : True,
+            'editable' : can_edit,
             'system': input_system,
             'profiles': self.remote.get_profiles()
         } )
@@ -427,10 +477,21 @@ class CobblerWeb(object):
 
         input_profile = None
         if name is not None:
-             input_profile = self.remote.get_profile(name,True)
+            input_profile = self.remote.get_profile(name,True)
+            can_edit = self.remote.check_access_no_fail(self.token,"modify_profile",name)
+        else:
+            can_edit = self.remote.check_access_no_fail(self.token,"new_profile",None)
+            if not can_edit:
+                return self.__render('message.tmpl', {
+                    'message1' : "Access denied.",
+                    'message2' : "You do not have permission to create new objects."        
+                })
+
 
         return self.__render( 'profile_edit.tmpl', {
+            'user' : self.username,
             'edit' : True,
+            'editable' : can_edit,
             'profile': input_profile,
             'distros': self.remote.get_distros(),
             'profiles': self.remote.get_profiles(),
@@ -441,9 +502,9 @@ class CobblerWeb(object):
 
     def profile_save(self,new_or_edit=None,editmode='edit',name=None,oldname=None,
                      distro=None,kickstart=None,kopts=None,
-                     ksmeta=None,virtfilesize=None,virtram=None,virttype=None,
+                     ksmeta=None,owners=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,
-                     parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,**args):
+                     parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -463,7 +524,11 @@ class CobblerWeb(object):
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:
-                self.remote.remove_profile(name,self.token,1) 
+                if recursive:
+                    self.remote.remove_profile(name,self.token,True) 
+                else:
+                    self.remote.remove_profile(name,self.token,False) 
+                      
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
             return self.profile_list()
@@ -495,6 +560,8 @@ class CobblerWeb(object):
                 self.remote.modify_profile(profile, 'kickstart', kickstart, self.token)
             if kopts:
                 self.remote.modify_profile(profile, 'kopts', kopts, self.token)
+            if owners:
+                self.remote.modify_profile(profile, 'owners', owners, self.token)
             if ksmeta:
                 self.remote.modify_profile(profile, 'ksmeta', ksmeta, self.token)
             if virtfilesize:
@@ -523,7 +590,7 @@ class CobblerWeb(object):
 
             if dhcptag:
                 self.remote.modify_profile(profile, 'dhcp-tag', dhcptag, self.token)
-            self.remote.save_profile(profile,self.token)
+            self.remote.save_profile(profile,self.token, editmode)
         except Exception, e:
             log_exc(self.apache)
             return self.error_page("Error while saving profile: %s" % str(e))
@@ -565,13 +632,24 @@ class CobblerWeb(object):
         input_repo = None
         if name is not None:
             input_repo = self.remote.get_repo(name, True)
+            can_edit = self.remote.check_access_no_fail(self.token,"modify_repo",name)
+        else:
+            can_edit = self.remote.check_access_no_fail(self.token,"new_repo",None)
+            if not can_edit:
+                return self.__render('message.tmpl', {
+                    'message1' : "Access denied.",
+                    'message2' : "You do not have permission to create new objects."        
+                })
+
 
         return self.__render( 'repo_edit.tmpl', {
+            'user' : self.username,
             'repo': input_repo,
+            'editable' : can_edit
         } )
 
     def repo_save(self,name=None,oldname=None,new_or_edit=None,editmode="edit",
-                  mirror=None,keep_updated=None,priority=99,
+                  mirror=None,owners=None,keep_updated=None,mirror_locally=0,priority=99,
                   rpm_list=None,createrepo_flags=None,arch=None,yumopts=None,
                   delete1=None,delete2=None,**args):
         if not self.__xmlrpc_setup():
@@ -615,6 +693,7 @@ class CobblerWeb(object):
             self.remote.modify_repo(repo, 'mirror', mirror, self.token)
             self.remote.modify_repo(repo, 'keep-updated', keep_updated, self.token)
             self.remote.modify_repo(repo, 'priority', priority, self.token)
+            self.remote.modify_repo(repo, 'mirror-locally', mirror_locally, self.token)
 
             if rpm_list:
                 self.remote.modify_repo(repo, 'rpm-list', rpm_list, self.token)
@@ -624,8 +703,10 @@ class CobblerWeb(object):
                 self.remote.modify_repo(repo, 'arch', arch, self.token)
             if yumopts:
                 self.remote.modify_repo(repo, 'yumopts', yumopts, self.token)
+            if owners:
+                self.remote.modify_repo(repo, 'owners', owners, self.token)
 
-            self.remote.save_repo(repo, self.token)
+            self.remote.save_repo(repo, self.token, editmode)
 
         except Exception, e:
             log_exc(self.apache)
@@ -650,22 +731,49 @@ class CobblerWeb(object):
             'ksfiles': self.remote.get_kickstart_templates(self.token)
         } )
 
-    def ksfile_edit(self, name=None,**spam):
+    def ksfile_new(self, name=None,**spam):
+
+
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
+
+        can_edit = self.remote.check_access_no_fail(self.token,"add_kickstart",name)
+        return self.__render( 'ksfile_new.tmpl', {
+            'editable' : can_edit,
+            'ksdata': ''
+        } )
+
+
+
+    def ksfile_edit(self, name=None,**spam):
+
+
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+
+        can_edit = self.remote.check_access_no_fail(self.token,"modify_kickstart",name)
         return self.__render( 'ksfile_edit.tmpl', {
             'name': name,
+            'deleteable' : not self.remote.is_kickstart_in_use(name,self.token),
+            'editable' : can_edit,
             'ksdata': self.remote.read_or_write_kickstart_template(name,True,"",self.token)
         } )
 
-    def ksfile_save(self, name=None, ksdata=None, **args):
+    def ksfile_save(self, name=None, ksdata=None, delete1=None, delete2=None, isnew=None, **args):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
+            
+
         try:
-            self.remote.read_or_write_kickstart_template(name,False,ksdata,self.token)
+            if delete1 and delete2:
+                self.remote.read_or_write_kickstart_template(name,False,-1,self.token)
+            if isnew is not None:
+                name = "/var/lib/cobbler/kickstarts/" + name
+            if not delete1 and not delete2:
+                self.remote.read_or_write_kickstart_template(name,False,ksdata,self.token)
         except Exception, e:
             return self.error_page("An error occurred while trying to save kickstart file %s:<br/><br/>%s" % (name,str(e)))
-        return self.ksfile_edit(name=name)
+        return self.ksfile_list()
 
     # ------------------------------------------------------------------------ #
     # Miscellaneous
@@ -674,6 +782,13 @@ class CobblerWeb(object):
     def sync(self,**args):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
+
+        can_edit = self.remote.check_access_no_fail(self.token,"sync",None)
+        if not can_edit:
+           return self.__render('message.tmpl', {
+               'message1' : "Access denied.",
+               'message2' : "You do not have permission to create new objects."
+           })
 
         try:
             rc = self.remote.sync(self.token)
@@ -739,6 +854,7 @@ class CobblerWeb(object):
 
     settings_view.exposed = True
     ksfile_edit.exposed = True
+    ksfile_new.exposed = True
     ksfile_save.exposed = True
     ksfile_list.exposed = True
 

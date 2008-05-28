@@ -15,6 +15,11 @@ function disablename(value)
 </script>
 #end if 
 
+#if $editable != True
+#set global $owners = $distro.owners
+#include "/usr/share/cobbler/webui_templates/enoaccess.tmpl"
+#end if
+
 <form method="POST" action="$base_url">
 <fieldset id="cform">
 
@@ -61,6 +66,8 @@ function disablename(value)
     <p class="context-tip">How do you want to modify this object?</p>
     </td>
     </tr>
+    #else
+    <input type="hidden" name="editmode" value="new"/>
     #end if
 
 
@@ -172,7 +179,27 @@ function disablename(value)
     </td>
     </tr>
 
+    <tr>
+    <td>
+    <label for="owners">Access Allowed For</label>
+    </td>
+    <td>
     #if $distro
+       #set ownerslist = ','.join($distro.owners)
+    #end if
+    <input type="text" size="255" style="width: 400px;" name="owners" id="owners"
+        #if $distro
+            value="$ownerslist"
+        #else 
+            value="$user"
+        #end if
+    />
+    <p class="context-tip">Applies only if using authz_ownership module, comma-delimited</p>
+    </td>
+    </tr>
+
+
+    #if $distro and $editable == True
     <tr>
     <td>
     <label for="delete">Delete</label>
@@ -180,11 +207,13 @@ function disablename(value)
     <td>
        <input type="checkbox" name="delete1" value="delete1">Yes
        <input type="checkbox" name="delete2" value="delete2">Really
+       <input type="checkbox" name="recursive" value="recursive">Delete child objects?
        <p class="context-tip">Check both buttons and click save to delete this object</p>
     </td>
     </tr>
     #end if
 
+    #if $editable == True
     <tr>
     <td>
     </td>
@@ -193,6 +222,7 @@ function disablename(value)
     <input type="reset" name="reset" value="Reset"/>
     </td>
     </tr>
+    #end if
 
 </table>
 </fieldset>

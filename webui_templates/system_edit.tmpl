@@ -14,9 +14,11 @@
 
 function delete_interface(num)
 {
-    #for $field in $fields
-    document.getElementById("${field}-intf" + num).value = "";
-    #end for
+    #if $editable == True
+       #for $field in $fields
+           document.getElementById("${field}-intf" + num).value = "";
+       #end for
+    #end if
     toggleRowVisibility("id" + num);
 }
 
@@ -65,7 +67,6 @@ function get_random_mac(field)
     #set $defined_interfaces = [ "intf0" ]
 #end if
 
-
 ### 
 ### now generate the onload function.
 ###
@@ -86,6 +87,11 @@ function page_onload() {
 
 }
 </script>
+
+#if $editable != True
+#set global $owners = $system.owners
+#include "/usr/share/cobbler/webui_templates/enoaccess.tmpl"
+#end if
 
 <form method="post" action="$base_url?mode=system_save">
 <fieldset id="cform">
@@ -132,6 +138,8 @@ function page_onload() {
     <p class="context-tip">How do you want to modify this object?</p>
     </td>
     </tr>
+    #else
+    <input type="hidden" name="editmode" value="new"/>
     #end if
 
     <tr id="id9002">
@@ -207,6 +215,126 @@ function page_onload() {
     <p class="context-tip">Use this server for kickstarts, not the value in settings.  Usually this should be left alone.</p>
     </td>
     </tr>
+
+    <tr>
+    <td>
+    <label for="owners">Access Allowed For</label>
+    </td>
+    <td>
+    #if $system
+       #set ownerslist = ','.join($system.owners)
+    #end if
+    <input type="text" size="255" style="width: 400px;" name="owners" id="owners"
+        #if $system
+            value="$ownerslist"
+        #else
+            value="$user"
+        #end if
+    />
+    <p class="context-tip">Applies only if using authz_ownership module, comma-delimited</p>
+    </td>
+    </tr>
+
+
+    <tr>
+    <td>
+    <label for="virtfilesize">Virt Disk (GB)</label>
+    </td>
+    <td>
+    <input type="text" size="5" style="width: 150px;" name="virtfilesize" id="virtfilesize"
+        #if $system
+           value="$system.virt_file_size"
+        #end if
+    />
+    <p class="context-tip">For virtual installs only, require this disk size in GB.</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="virtram">Virt RAM (MB)</label>
+    </td>
+    <td>
+    <input type="text" size="5" style="width: 150px;" name="virtram" id="virtram"
+        #if $system
+           value="$system.virt_ram"
+        #end if
+    />
+    <p class="context-tip">For virtual installs only, allocate this amount of RAM, in MB.</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="virttype">Virt Type</label>
+    </td>
+    <td>
+
+   #if $system and $system.virt_type == "<<inherit>>"
+        <input type="radio" name="virttype" id="virttype" value="<<inherit>>" checked>Inherit
+    #else
+        #if $system
+            <input type="radio" name="virttype" id="virttype" value="<<inherit>>">Inherit
+        #else
+            <input type="radio" name="virttype" id="virttype" value="<<inherit>>" checked>Inherit
+        #end if 
+    #end if
+
+
+    #if $system and $system.virt_type == "auto"
+        <input type="radio" name="virttype" id="virttype" value="auto" checked>Any
+    #else
+        #if $system
+            <input type="radio" name="virttype" id="virttype" value="auto">Any
+        #else
+            <input type="radio" name="virttype" id="virttype" value="auto">Any
+        #end if 
+    #end if
+
+    #if $system and $system.virt_type == "xenpv"
+        <input type="radio" name="virttype" id="virttype" value="xenpv" checked>Xen (pv)
+    #else
+        <input type="radio" name="virttype" id="virttype" value="xenpv">Xen (pv)
+    #end if
+
+    #if $system and $system.virt_type == "qemu"
+        <input type="radio" name="virttype" id="virttype" value="qemu" checked>qemu/KVM
+    #else
+        <input type="radio" name="virttype" id="virttype" value="qemu">qemu/KVM
+    #end if
+    <p class="context-tip">What virtualization technology should koan use?</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="virtpath">Virt Path</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="virtpath" id="virtpath"
+        #if $system
+           value="$system.virt_path"
+        #end if
+    />
+    <p class="context-tip">Sets koan's storage preferences, read manpage or leave blank.</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="virtpath">Virt CPUs</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="virtcpus" id="virtcpus"
+        #if $system
+           value="$system.virt_cpus"
+        #end if
+    />
+    <p class="context-tip">How many virtual CPUs?  This is an integer.</p>
+    </td>
+    </tr>
+
+
 
 
     ## ====================================== start of looping through interfaces
@@ -321,8 +449,6 @@ function page_onload() {
         </td>
         </tr>
 
-        ## FIXME: add virt_bridge editing (like above)
-
         <tr class="listrow" id="child-id${counter}-5">
         <td>
         <label for="virtbridge-$interface">Virt Bridge</label>
@@ -335,8 +461,6 @@ function page_onload() {
         </td>
         </tr>
 
-        ## FIXME: add subnet editing (like above)
-
         <tr class="listrow" id="child-id${counter}-6">
         <td>
         <label for="subnet-$interface">Subnet</label>
@@ -348,8 +472,6 @@ function page_onload() {
         <p class="context-tip">Ex: "255.255.255.0".  For use in kickstart templates for static IPs.</p>
         </td>
         </tr>
-
-        ## FIXME: add gateway editing (like above)
 
         <tr class="listrow" id="child-id${counter}-7">
         <td>
@@ -366,11 +488,20 @@ function page_onload() {
         #if $interface != "intf0"
             <tr class="listrow" id="child-id${counter}-8">
             <td>
-            <label for="enabled-$interface">Remove</label>
+            #if $editable == True
+                <label for="enabled-$interface">Remove</label>
+            #else
+                <label for="enabled-$interface">Hide</label>
+            #end if
             </td>
             <td>
-            <input type="button" name="delete-$interface" value="remove" onclick="delete_interface($counter)">
-            <p class="context-tip">Clicking this button removes the interface from the configuration.</p>
+            #if $editable == True
+                <input type="button" name="delete-$interface" value="remove" onclick="delete_interface($counter)">
+                <p class="context-tip">Clicking this button removes the interface from the configuration.</p>
+            #else
+                <input type="button" name="delete-$interface" value="hide" onclick="delete_interface($counter)">
+
+            #end if
             </td>
             </tr>
         #end if
@@ -392,7 +523,7 @@ function page_onload() {
     </td>
     </tr>
 
-    #if $system
+    #if $system and $editable == True
     <tr id="id10001">
     <td>
     <label for="delete">Delete</label>
@@ -405,6 +536,7 @@ function page_onload() {
     </tr>
     #end if
 
+    #if $editable == True
     <tr id="9008">
     <td>
     </td>
@@ -413,6 +545,7 @@ function page_onload() {
     <input type="reset" name="reset" value="Reset"/>
     </td>
     </tr>
+    #end if
 
     </table>
 

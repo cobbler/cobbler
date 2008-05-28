@@ -16,7 +16,8 @@ import exceptions
 import serializable
 import utils
 from cexceptions import *
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
+import pprint
 
 class Item(serializable.Serializable):
 
@@ -51,7 +52,6 @@ class Item(serializable.Serializable):
         self.clear(is_subobject)      # reset behavior differs for inheritance cases
         self.parent = ''              # all objects by default are not subobjects
         self.children = {}            # caching for performance reasons, not serialized
- 
         self.log_func = self.config.api.log        
 
     def clear(self):
@@ -122,6 +122,16 @@ class Item(serializable.Serializable):
         self.name = name
         return True
 
+    def set_owners(self,data):
+        """
+        The owners field is a comment unless using an authz module that pays attention to it,
+        like authz_ownership, which ships with Cobbler but is off by default.  Consult the Wiki
+        docs for more info on CustomizableAuthorization.
+        """
+        owners = utils.input_string_or_list(data)
+        self.owners = owners
+        return True
+
     def set_kernel_options(self,options):
         """
 	Kernel options are a space delimited list,
@@ -189,8 +199,9 @@ class Item(serializable.Serializable):
             if key in [ "mac_address", "ip_address", "subnet", "gateway", "virt_bridge", "dhcp_tag", "hostname" ]:
                 key_found_already = True
                 for (name, interface) in data["interfaces"].iteritems(): 
-                    if interface[key].lower() == value.lower():
-                        return True
+                    if value is not None:
+                        if interface[key].lower() == value.lower():
+                            return True
 
         if not data.has_key(key):
             if not key_found_already:
@@ -201,4 +212,11 @@ class Item(serializable.Serializable):
             return True
         else:
             return False
+
+    def dump_vars(self,data,format=True):
+        raw = utils.blender(self.config.api, False, self)
+        if format:
+            return pprint.pformat(raw)
+        else:
+            return raw
 

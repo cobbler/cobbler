@@ -16,7 +16,7 @@ import utils
 import item
 from cexceptions import *
 
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 class Profile(item.Item):
 
@@ -34,6 +34,7 @@ class Profile(item.Item):
         Reset this object.
         """
         self.name            = None
+        self.owners          = self.settings.default_ownership
         self.distro          = (None,                              '<<inherit>>')[is_subobject]
         self.kickstart       = (self.settings.default_kickstart ,  '<<inherit>>')[is_subobject]    
         self.kernel_options  = ({},                                '<<inherit>>')[is_subobject]
@@ -57,6 +58,7 @@ class Profile(item.Item):
 
         self.parent          = self.load_item(seed_data,'parent','')
         self.name            = self.load_item(seed_data,'name')
+        self.owners          = self.load_item(seed_data,'owners',self.settings.default_ownership)
         self.distro          = self.load_item(seed_data,'distro')
         self.kickstart       = self.load_item(seed_data,'kickstart')
         self.kernel_options  = self.load_item(seed_data,'kernel_options')
@@ -68,7 +70,10 @@ class Profile(item.Item):
 
         # backwards compatibility
         if type(self.repos) != list:
-            self.set_repos(self.repos)
+            # ensure we are formatted correctly though if some repo
+            # defs don't exist on this side, don't fail as we need
+            # to convert everything -- cobbler check can report it
+            self.set_repos(self.repos,bypass_check=True)
         self.set_parent(self.parent)
 
         # virt specific 
@@ -85,7 +90,9 @@ class Profile(item.Item):
         if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
             self.set_ksmeta(self.ks_meta)
         if self.repos != "<<inherit>>" and type(self.ks_meta) != list:
-            self.set_repos(self.repos)
+            self.set_repos(self.repos,bypass_check=True)
+
+        self.set_owners(self.owners)
 
         return self
 
@@ -134,46 +141,7 @@ class Profile(item.Item):
         self.server = server
         return True
 
-    def set_repos(self,repos):
-
-        # WARNING: hack
-        repos = utils.fix_mod_python_select_submission(repos)
-
-
-        # allow the magic inherit string to persist
-        if repos == "<<inherit>>":
-            # FIXME: this is not inheritable in the WebUI presently ?
-            self.repos = "<<inherit>>"
-            return
-
-        # store as an array regardless of input type
-        if repos is None:
-            repolist = []
-        elif type(repos) != list:
-            # allow backwards compatibility support of string input
-            repolist = repos.split(None)
-        else:
-            repolist = repos
-
-        
-        # make sure there are no empty strings
-        try:
-	    repolist.remove('')
-        except:
-            pass
-
-        self.repos = []
-
-        # if any repos don't exist, fail the operation
-        ok = True
-        for r in repolist:
-            if self.config.repos().find(name=r) is not None:
-                self.repos.append(r)
-            else:
-                print _("warning: repository not found: %s" % r)
-
-        return True
-
+  
     def set_kickstart(self,kickstart):
         """
 	Sets the kickstart.  This must be a NFS, HTTP, or FTP URL.
@@ -188,108 +156,27 @@ class Profile(item.Item):
         raise CX(_("kickstart not found"))
 
     def set_virt_cpus(self,num):
-        """
-        For Virt only.  Set the number of virtual CPUs to give to the
-        virtual machine.  This is fed to virtinst RAW, so cobbler
-        will not yelp if you try to feed it 9999 CPUs.  No formatting
-        like 9,999 please :)
-        """
-        if num == "<<inherit>>":
-            self.virt_cpus = "<<inherit>>"
-            return True
-
-        try:
-            num = int(str(num))
-        except:
-            raise CX(_("invalid number of virtual CPUs"))
-
-        self.virt_cpus = num
-        return True
+        return utils.set_virt_cpus(self,num)
 
     def set_virt_file_size(self,num):
-        """
-	For Virt only.
-	Specifies the size of the virt image in gigabytes.  
-	Older versions of koan (x<0.6.3) interpret 0 as "don't care"
-        Newer versions (x>=0.6.4) interpret 0 as "no disks"
-        """
-        # num is a non-negative integer (0 means default)
-        # can also be a comma seperated list -- for usage with multiple disks
-
-        if num == "<<inherit>>":
-            self.virt_file_size = "<<inherit>>"
-            return True
-
-        if type(num) == str and num.find(",") != -1:
-            tokens = num.split(",")
-            for t in tokens:
-                # hack to run validation on each
-                self.set_virt_file_size(t)
-            # if no exceptions raised, good enough
-            self.virt_file_size = num
-            return True
-
-        try:
-            inum = int(num)
-            if inum != float(num):
-                return CX(_("invalid virt file size"))
-            if inum >= 0:
-                self.virt_file_size = inum
-                return True
-            raise CX(_("invalid virt file size"))
-        except:
-            raise CX(_("invalid virt file size"))
-
+        return utils.set_virt_file_size(self,num)
+ 
     def set_virt_ram(self,num):
-        """
-        For Virt only.
-        Specifies the size of the Virt RAM in MB.
-        0 tells Koan to just choose a reasonable default.
-        """
-
-        if num == "<<inherit>>":
-            self.virt_ram = "<<inherit>>"
-            return True
-
-        # num is a non-negative integer (0 means default)
-        try:
-            inum = int(num)
-            if inum != float(num):
-                return CX(_("invalid virt ram size"))
-            if inum >= 0:
-                self.virt_ram = inum
-                return True
-            return CX(_("invalid virt ram size"))
-        except:
-            return CX(_("invalid virt ram size"))
+        return utils.set_virt_ram(self,num)
 
     def set_virt_type(self,vtype):
-        """
-        Virtualization preference, can be overridden by koan.
-        """
-
-        if vtype == "<<inherit>>":
-            self.virt_type == "<<inherit>>"
-            return True
-
-        if vtype.lower() not in [ "qemu", "xenpv", "xenfv", "vmware", "auto" ]:
-            raise CX(_("invalid virt type"))
-        self.virt_type = vtype
-        return True
+        return utils.set_virt_type(self,vtype)
 
     def set_virt_bridge(self,vbridge):
-        """
-        The default bridge for all virtual interfaces under this profile.
-        """
         self.virt_bridge = vbridge
         return True
 
     def set_virt_path(self,path):
-        """
-        Virtual storage location suggestion, can be overriden by koan.
-        """
-        self.virt_path = path
-        return True
+        return utils.set_virt_path(self,path)
+
+    def set_repos(self,repos,bypass_check=False):
+        return utils.set_repos(self,repos,bypass_check)
+
 
     def get_parent(self):
         """
@@ -328,6 +215,7 @@ class Profile(item.Item):
         """
         return {
             'name'             : self.name,
+            'owners'           : self.owners,
             'distro'           : self.distro,
             'kickstart'        : self.kickstart,
             'kernel_options'   : self.kernel_options,
@@ -342,7 +230,8 @@ class Profile(item.Item):
             'virt_type'        : self.virt_type,
             'virt_path'        : self.virt_path,
             'dhcp_tag'         : self.dhcp_tag,
-            'server'           : self.server
+            'server'           : self.server,
+
         }
 
     def printable(self):
@@ -354,20 +243,22 @@ class Profile(item.Item):
             buf = buf + _("parent          : %s\n") % self.parent
         else:
             buf = buf + _("distro          : %s\n") % self.distro
-        buf = buf + _("kickstart       : %s\n") % self.kickstart
+        buf = buf + _("dhcp tag        : %s\n") % self.dhcp_tag
         buf = buf + _("kernel options  : %s\n") % self.kernel_options
+        buf = buf + _("kickstart       : %s\n") % self.kickstart
         buf = buf + _("ks metadata     : %s\n") % self.ks_meta
-        buf = buf + _("virt file size  : %s\n") % self.virt_file_size
-        buf = buf + _("virt ram        : %s\n") % self.virt_ram
-        buf = buf + _("virt type       : %s\n") % self.virt_type
-        buf = buf + _("virt path       : %s\n") % self.virt_path
+        buf = buf + _("owners          : %s\n") % self.owners
+        buf = buf + _("repos           : %s\n") % self.repos
+        buf = buf + _("server          : %s\n") % self.server
         buf = buf + _("virt bridge     : %s\n") % self.virt_bridge
         buf = buf + _("virt cpus       : %s\n") % self.virt_cpus
-        buf = buf + _("repos           : %s\n") % self.repos
-        buf = buf + _("dhcp tag        : %s\n") % self.dhcp_tag
-        buf = buf + _("server          : %s\n") % self.server
+        buf = buf + _("virt file size  : %s\n") % self.virt_file_size
+        buf = buf + _("virt path       : %s\n") % self.virt_path
+        buf = buf + _("virt ram        : %s\n") % self.virt_ram
+        buf = buf + _("virt type       : %s\n") % self.virt_type
         return buf
 
+  
     def remote_methods(self):
         return {           
             'name'            :  self.set_name,
@@ -385,6 +276,7 @@ class Profile(item.Item):
             'virt-bridge'     :  self.set_virt_bridge,
             'virt-cpus'       :  self.set_virt_cpus,
             'dhcp-tag'        :  self.set_dhcp_tag,
-            'server'          :  self.set_server
+            'server'          :  self.set_server,
+            'owners'          :  self.set_owners
         }
 

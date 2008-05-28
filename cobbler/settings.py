@@ -14,7 +14,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import serializable
 import utils
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 TESTMODE = False
 
@@ -22,24 +22,36 @@ TESTMODE = False
 # we need.
 
 DEFAULTS = {
-    "allow_cgi_mac_registration"  : 0,
-    "allow_cgi_profile_change"    : 0,
+    "allow_duplicate_macs"        : 0,
+    "allow_duplicate_ips"         : 0,
+    "bind_bin"                    : "/usr/sbin/named",
     "bootloaders"                 : {
         "standard"                : "/usr/lib/syslinux/pxelinux.0",
         "ia64"                    : "/var/lib/cobbler/elilo-3.6-ia64.efi"
     },
+    "cobbler_master"              : '',
     "default_kickstart"           : "/etc/cobbler/default.ks",
     "default_virt_bridge"         : "xenbr0",
     "default_virt_type"           : "auto",
     "default_virt_file_size"      : "5",
     "default_virt_ram"            : "512",
+    "default_ownership"           : "admin",
     "dhcpd_conf"                  : "/etc/dhcpd.conf",
     "dhcpd_bin"                   : "/usr/sbin/dhcpd",
     "dnsmasq_bin"                 : "/usr/sbin/dnsmasq",
     "dnsmasq_conf"                : "/etc/dnsmasq.conf",
     "httpd_bin"                   : "/usr/sbin/httpd",
     "http_port"                   : "80",
-    "kerberos_realm"              : "example.org",
+    "isc_set_host_name"           : 0,
+    "ldap_server"                 : "grimlock.devel.redhat.com",
+    "ldap_base_dn"                : "DC=devel,DC=redhat,DC=com",
+    "ldap_port"                   : 389,
+    "ldap_tls"                    : "on",
+    "ldap_anonymous_bind"         : 1,
+    "ldap_search_bind_dn"         : '',
+    "ldap_search_passwd"          : '',
+    "ldap_search_prefix"          : 'uid=',
+    "kerberos_realm"              : "EXAMPLE.COM",
     "kernel_options"              : {
         "lang"                    : " ",
         "text"                    : None,
@@ -47,18 +59,25 @@ DEFAULTS = {
     },
     "manage_dhcp"                 : 0,
     "manage_dhcp_mode"            : "isc",
+    "manage_dns"                  : 0,
+    "manage_forward_zones"        : [],
+    "manage_reverse_zones"        : [],
+    "named_conf"                  : "/etc/named.conf",
     "next_server"                 : "127.0.0.1",
+    "omapi_enabled"		  : 0,
+    "omapi_port"		  : 647,
+    "omshell_bin"                 : "/usr/bin/omshell",
     "pxe_just_once"               : 0,
-    "run_post_install_trigger"    : 0,
+    "register_new_installs"       : 0,
+    "run_install_triggers"        : 1,
     "server"                      : "127.0.0.1",
     "snippetsdir"                 : "/var/lib/cobbler/snippets",
     "syslog_port"                 : 25150,
-    "tftpboot"                    : "/tftpboot",
     "tftpd_bin"                   : "/usr/sbin/in.tftpd",
     "tftpd_conf"                  : "/etc/xinetd.d/tftp",
     "webdir"                      : "/var/www/cobbler",
     "xmlrpc_port"                 : 25151,
-    "xmlrpc_rw_enabled"           : 0,
+    "xmlrpc_rw_enabled"           : 1,
     "xmlrpc_rw_port"              : 25152,
     "yum_post_install_mirror"     : 1,
     "yumdownloader_flags"         : "--resolve"
@@ -101,7 +120,9 @@ class Settings(serializable.Serializable):
        if datastruct is None:
           print _("warning: not loading empty structure for %s") % self.filename()
           return
+
        self._attributes = datastruct
+
        return self
 
    def __getattr__(self,name):
@@ -119,11 +140,3 @@ class Settings(serializable.Serializable):
        else:
            raise AttributeError, name
 
-if __name__ == "__main__":
-    # used to save a settings file to /var/lib/cobbler/settings, for purposes of
-    # including a new updated settings file in the RPM without remembering how
-    # to format lots of YAML.
-    import yaml
-    print yaml.dump(DEFAULTS)
-
- 

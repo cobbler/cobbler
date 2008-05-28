@@ -4,10 +4,10 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-VERSION = "0.8.3"
+VERSION = "1.0.0"
 SHORT_DESC = "Network Boot and Update Server"
 LONG_DESC = """
-Cobbler is a network boot and update server.  Cobbler supports PXE, provisioning virtualized images, and reinstalling existing Linux machines.  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP Management.  Cobbler has a Python API for integration with other GPL systems management applications.
+Cobbler is a network boot and update server.  Cobbler supports PXE, provisioning virtualized images, and reinstalling existing Linux machines.  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler also has a Python and XMLRPC API for integration with other applications.
 """
 
 if __name__ == "__main__":
@@ -41,11 +41,13 @@ if __name__ == "__main__":
         vw_systems    = "/var/www/cobbler/systems"
         vw_profiles   = "/var/www/cobbler/profiles"
         vw_links      = "/var/www/cobbler/links"
+        zone_templates = "/etc/cobbler/zone_templates"
         tftp_cfg      = "/tftpboot/pxelinux.cfg"
         tftp_images   = "/tftpboot/images"
         rotpath       = "/etc/logrotate.d"
-        cgipath       = "/var/www/cgi-bin/cobbler"
+        # cgipath       = "/var/www/cgi-bin/cobbler"
         modpython     = "/var/www/cobbler/web"
+        modpythonsvc  = "/var/www/cobbler/svc"
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -60,22 +62,25 @@ if __name__ == "__main__":
                     "cobbler/server", 
                     "cobbler/webui",
                 ],
-                scripts = ["scripts/cobbler", "scripts/cobblerd", "scripts/cobbler_auth_help"],
+                scripts = ["scripts/cobbler", "scripts/cobblerd"],
                 data_files = [ 
                                 (modpython, ['scripts/index.py']),
+                                (modpythonsvc, ['scripts/services.py']),
                                 # cgi files
-                                (cgipath,   ['scripts/findks.cgi', 'scripts/nopxe.cgi']),
-                                (cgipath,   ['scripts/post_install_trigger.cgi']),
+                                # (cgipath,   ['scripts/nopxe.cgi']),
+                                # (cgipath,   ['scripts/install_trigger.cgi']),
  
                                 # miscellaneous config files
                                 (rotpath,  ['config/cobblerd_rotate']),
                                 (wwwconf,  ['config/cobbler.conf']),
+                                (wwwconf,  ['config/cobbler_svc.conf']),
                                 (cobpath,  ['config/cobbler_hosts']),
                                 (etcpath,  ['config/modules.conf']),
                                 (etcpath,  ['config/users.digest']),
                                 (etcpath,  ['config/rsync.exclude']),
+                                (etcpath,  ['config/users.conf']),
                                 (initpath, ['config/cobblerd']),
-                                (cobpath,  ['config/settings']),
+                                (etcpath,  ['config/settings']),
 
                                 # backups for upgrades
                                 (backpath, []),
@@ -87,15 +92,18 @@ if __name__ == "__main__":
                                 # sample kickstart files
                                 (etcpath,  ['kickstarts/legacy.ks']),
                                 (etcpath,  ['kickstarts/sample.ks']),
+                                (etcpath,  ['kickstarts/sample_end.ks']),
                                 (etcpath,  ['kickstarts/default.ks']),
  
-                                # templates for DHCP and syslinux configs
+                                # templates for DHCP, DNS, and syslinux configs
 				(etcpath,  ['templates/dhcp.template']),
 				(etcpath,  ['templates/dnsmasq.template']),
+                                (etcpath,  ['templates/named.template']),
 				(etcpath,  ['templates/pxedefault.template']),
 				(etcpath,  ['templates/pxesystem.template']),
 				(etcpath,  ['templates/pxesystem_ia64.template']),
 				(etcpath,  ['templates/pxeprofile.template']),
+                                (etcpath,  ['templates/zone.template']),
 
                                 # kickstart dir
                                 (vl_kick,  []),
@@ -127,6 +135,9 @@ if __name__ == "__main__":
                                 (vw_profiles,       []),
                                 (vw_links,          []),
 
+                                # zone-specific templates directory
+                                (zone_templates,    []),
+
                                 # tftp directories that we own
                                 (tftp_cfg,          []),
                                 (tftp_images,       []),
@@ -137,6 +148,7 @@ if __name__ == "__main__":
 
                                 (wwwtmpl,           ['webui_templates/empty.tmpl']),
                                 (wwwtmpl,           ['webui_templates/blank.tmpl']),
+                                (wwwtmpl,           ['webui_templates/enoaccess.tmpl']),
                                 (wwwtmpl,           ['webui_templates/distro_list.tmpl']),
                                 (wwwtmpl,           ['webui_templates/distro_edit.tmpl']),
                                 (wwwtmpl,           ['webui_templates/profile_list.tmpl']),
@@ -156,8 +168,8 @@ if __name__ == "__main__":
 
                                 # Web UI kickstart file editing
                                 (wwwtmpl,           ['webui_templates/ksfile_edit.tmpl']),
+                                (wwwtmpl,           ['webui_templates/ksfile_new.tmpl']),
                                 (wwwtmpl,           ['webui_templates/ksfile_list.tmpl']),
-                                (wwwtmpl,           ['webui_templates/ksfile_view.tmpl']),
 
                                 # Web UI support files
 				(wwwgfx,            ['docs/wui.html']),
@@ -190,7 +202,8 @@ if __name__ == "__main__":
                                 ("%sdelete/repo/pre" % trigpath,     []),
                                 ("%sdelete/repo/post" % trigpath,    []),
                                 ("%sdelete/repo/post" % trigpath,    []),
-                                ("%sinstall/post" % trigpath,        []),
+                                ("%sinstall/pre" % trigpath,         [ "triggers/status_pre.trigger"]),
+                                ("%sinstall/post" % trigpath,        [ "triggers/status_post.trigger"]),
                                 ("%ssync/pre" % trigpath,            []),
                                 ("%ssync/post" % trigpath,           [ "triggers/restart-services.trigger" ])
                              ],

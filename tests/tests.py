@@ -2,22 +2,13 @@
 #
 # Michael DeHaan <mdehaan@redhat.com>
 
-TRY_GRAPH = False
-HAS_GRAPH = False
-
-if TRY_GRAPH:
-   try:
-      import pycallgraph_mod as pycallgraph
-      HAS_GRAPH = True
-   except:
-      pass
-
 import sys
 import unittest
 import os
 import subprocess
 import tempfile
 import shutil
+import traceback
 
 from cobbler.cexceptions import *  
 
@@ -25,6 +16,7 @@ from cobbler import settings
 from cobbler import collection_distros
 from cobbler import collection_profiles
 from cobbler import collection_systems
+import cobbler.modules.authz_ownership as authz_module
 
 from cobbler import api
 
@@ -54,11 +46,11 @@ class BootTest(unittest.TestCase):
         except:
             pass
 
-        self.fk_initrd = os.path.join(self.topdir, FAKE_INITRD)
+        self.fk_initrd = os.path.join(self.topdir,  FAKE_INITRD)
         self.fk_initrd2 = os.path.join(self.topdir, FAKE_INITRD2)
         self.fk_initrd3 = os.path.join(self.topdir, FAKE_INITRD3)
 
-        self.fk_kernel = os.path.join(self.topdir, FAKE_KERNEL)
+        self.fk_kernel = os.path.join(self.topdir,  FAKE_KERNEL)
         self.fk_kernel2 = os.path.join(self.topdir, FAKE_KERNEL2)
         self.fk_kernel3 = os.path.join(self.topdir, FAKE_KERNEL3)
 
@@ -75,9 +67,6 @@ class BootTest(unittest.TestCase):
         shutil.rmtree(self.topdir,ignore_errors=True)
         self.api = None
 
-        if HAS_GRAPH:
-            pycallgraph.save_dot("%s.dot" % self.__class__.__name__)
-
     def make_basic_config(self):
         distro = self.api.new_distro()
         self.assertTrue(distro.set_name("testdistro0"))
@@ -85,7 +74,7 @@ class BootTest(unittest.TestCase):
         self.assertTrue(distro.set_initrd(self.fk_initrd))
         self.assertTrue(self.api.add_distro(distro))
         self.assertTrue(self.api.find_distro(name="testdistro0"))
-
+        
         profile = self.api.new_profile()
         self.assertTrue(profile.set_name("testprofile0"))
         self.assertTrue(profile.set_distro("testdistro0"))
@@ -96,9 +85,270 @@ class BootTest(unittest.TestCase):
         system = self.api.new_system()
         self.assertTrue(system.set_name("drwily.rdu.redhat.com"))
         self.assertTrue(system.set_mac_address("BB:EE:EE:EE:EE:FF","intf0"))
+        self.assertTrue(system.set_ip_address("192.51.51.50","intf0"))
         self.assertTrue(system.set_profile("testprofile0"))
         self.assertTrue(self.api.add_system(system))
         self.assertTrue(self.api.find_system(name="drwily.rdu.redhat.com"))
+
+        repo = self.api.new_repo()
+        try:
+            os.makedirs("/tmp/test_example_cobbler_repo")
+        except:
+            pass
+        fd = open("/tmp/test_example_cobbler_repo/test.file", "w+")
+        fd.write("hello!")
+        fd.close()
+        self.assertTrue(repo.set_name("test_repo"))
+        self.assertTrue(repo.set_mirror("/tmp/test_example_cobbler_repo"))
+        self.assertTrue(self.api.repos().add(repo))
+
+class DuplicateNamesAndIpPrevention(BootTest):
+
+    """
+    The command line (and WebUI) have checks to prevent new system
+    additions from conflicting with existing systems and overwriting
+    them inadvertantly. This class tests that code.  NOTE: General API
+    users will /not/ encounter these checks.
+    """
+
+    def test_duplicate_prevention(self):
+
+        # find things we are going to test with
+        distro1 = self.api.find_distro(name="testdistro0")
+        profile1 = self.api.find_profile(name="testprofile0")
+        system1 = self.api.find_system(name="drwily.rdu.redhat.com")
+        repo1 = self.api.find_repo(name="test_repo")
+
+        # make sure we can't overwrite a previous distro with
+        # the equivalent of an "add" (not an edit) on the
+        # command line.
+        distro2 = self.api.new_distro()
+        self.assertTrue(distro2.set_name("testdistro0"))
+        self.assertTrue(distro2.set_kernel(self.fk_kernel))
+        self.assertTrue(distro2.set_initrd(self.fk_initrd))
+        self.assertTrue(distro2.set_owners("canary"))
+        # this should fail
+        try:
+           self.api.add_distro(distro2,check_for_duplicate_names=True)
+           self.assertTrue(1==2,"distro add should fail")
+        except CobblerException:
+           pass
+        except:
+           self.assertTrue(1==2,"exception type")
+        # we caught the exception but make doubly sure there was no write
+        distro_check = self.api.find_distro(name="testdistro0")
+        self.assertTrue("canary" not in distro_check.owners)
+
+        # repeat the check for profiles
+        profile2 = self.api.new_profile()
+        self.assertTrue(profile2.set_name("testprofile0"))
+        self.assertTrue(profile2.set_distro("testdistro0"))
+        # this should fail
+        try:
+            self.api.add_profile(profile2,check_for_duplicate_names=True)
+            self.assertTrue(1==2,"profile add should fail")
+        except CobblerException:
+            pass
+        except:
+            traceback.print_exc()
+            self.assertTrue(1==2,"exception type")
+
+        # repeat the check for systems (just names this time)
+        system2 = self.api.new_system()
+        self.assertTrue(system2.set_name("drwily.rdu.redhat.com"))
+        self.assertTrue(system2.set_profile("testprofile0"))
+        # this should fail
+        try:
+            self.api.add_system(system2,check_for_duplicate_names=True)
+            self.assertTrue(1==2,"system add should fail")
+        except CobblerException:
+            pass
+        except:
+            traceback.print_exc()
+            self.assertTrue(1==2,"exception type")
+
+        # repeat the check for repos
+        repo2 = self.api.new_repo()
+        self.assertTrue(repo2.set_name("test_repo"))
+        self.assertTrue(repo2.set_mirror("http://imaginary"))
+        # self.failUnlessRaises(CobblerException,self.api.add_repo,[repo,check_for_duplicate_names=True])
+        try:
+            self.api.add_repo(repo2,check_for_duplicate_names=True)
+            self.assertTrue(1==2,"repo add should fail")
+        except CobblerException:
+            pass
+        except:
+            self.assertTrue(1==2,"exception type")
+
+        # now one more check to verify we can't add a system
+        # of a different name but duplicate netinfo.  
+        system3 = self.api.new_system()
+        self.assertTrue(system3.set_name("unused_name"))
+        self.assertTrue(system3.set_profile("testprofile0"))
+        # MAC is initially accepted
+        self.assertTrue(system3.set_mac_address("BB:EE:EE:EE:EE:FF","intf3"))
+        # can't add as this MAC already exists!  
+
+        #self.failUnlessRaises(CobblerException,self.api.add_system,[system3,check_for_duplicate_names=True,check_for_duplicate_netinfo=True)
+        try:
+           self.api.add_system(system3,check_for_duplicate_names=True,check_for_duplicate_netinfo=True)
+        except CobblerException: 
+           pass
+        except:
+           traceback.print_exc()
+           self.assertTrue(1==2,"wrong exception type")
+
+        # set the MAC to a different value and try again
+        self.assertTrue(system3.set_mac_address("FF:EE:EE:EE:EE:DD","intf3"))
+        # it should work
+        self.assertTrue(self.api.add_system(system3,check_for_duplicate_names=True,check_for_duplicate_netinfo=True))
+        # now set the IP so that collides
+        self.assertTrue(system3.set_ip_address("192.51.51.50","intf6"))
+        # this should also fail
+
+        # self.failUnlessRaises(CobblerException,self.api.add_system,[system3,check_for_duplicate_names=True,check_for_duplicate_netinfo=True)
+        try:
+           self.api.add_system(system3,check_for_duplicate_names=True,check_for_duplicate_netinfo=True)
+           self.assertTrue(1==2,"system add should fail")
+        except CobblerException:
+           pass
+        except:
+           self.assertTrue(1==2,"wrong exception type")
+
+        # fix the IP and Mac back 
+        self.assertTrue(system3.set_ip_address("192.86.75.30","intf6"))
+        self.assertTrue(system3.set_mac_address("AE:BE:DE:CE:AE:EE","intf3"))
+        # now it works again
+        # note that we will not check for duplicate names as we want
+        # to test this as an 'edit' operation.
+        self.assertTrue(self.api.add_system(system3,check_for_duplicate_names=False,check_for_duplicate_netinfo=True))
+
+        # FIXME: note -- how netinfo is handled when doing renames/copies/edits
+        # is more involved and we probably should add tests for that also.
+
+class Ownership(BootTest):
+
+    def test_ownership_params(self):
+   
+        fd = open("/tmp/test_cobbler_kickstart","w+")
+        fd.write("")
+        fd.close()
+
+        # find things we are going to test with
+        distro = self.api.find_distro(name="testdistro0")
+        profile = self.api.find_profile(name="testprofile0")
+        system = self.api.find_system(name="drwily.rdu.redhat.com")
+        repo = self.api.find_repo(name="test_repo")
+
+        # as we didn't specify an owner for objects, the default
+        # ownership should be as specified in settings
+        default_owner = self.api.settings().default_ownership
+        for obj in [ distro, profile, system, repo ]:
+            self.assertTrue(obj is not None)
+            self.assertEquals(obj.owners, default_owner, "default owner for %s" % obj)        
+
+        # verify we can test things
+        self.assertTrue(distro.set_owners(["superlab","basement1"]))
+        self.assertTrue(profile.set_owners(["superlab","basement1"]))
+        self.assertTrue(profile.set_kickstart("/tmp/test_cobbler_kickstart"))
+        self.assertTrue(system.set_owners(["superlab","basement1","basement3"]))
+        self.assertTrue(repo.set_owners([]))
+        self.api.add_distro(distro)
+        self.api.add_profile(profile)
+        self.api.add_system(system)
+        self.api.add_repo(repo)
+
+        # now edit the groups file.  We won't test the full XMLRPC
+        # auth stack here, but just the module in question
+
+        authorize = authz_module.authorize
+
+        # if the users.conf file exists, back it up for the tests
+        if os.path.exists("/etc/cobbler/users.conf"):
+           shutil.copyfile("/etc/cobbler/users.conf","/tmp/cobbler_ubak")
+         
+        fd = open("/etc/cobbler/users.conf","w+")
+        fd.write("\n")
+        fd.write("[admins]\n")
+        fd.write("admin1 = 1\n")
+        fd.write("\n")
+        fd.write("[superlab]\n")
+        fd.write("superlab1 = 1\n")
+        fd.write("superlab2 = 1\n")
+        fd.write("\n")
+        fd.write("[basement]\n") 
+        fd.write("basement1 = 1\n")      
+        fd.write("basement2 = 1\n")      
+        fd.write("basement3 = 1\n")      
+        fd.close()
+
+
+        xo = self.api.find_distro("testdistro0")
+        xn = "testdistro0"
+        ro = self.api.find_repo("test_repo")
+        rn = "test_repo"
+
+        # WARNING: complex test explanation follows! 
+        # we must ensure those who can edit the kickstart are only those
+        # who can edit all objects that depend on the said kickstart
+        # in this test, superlab & basement1 can edit test_profile0
+        # superlab & basement1/3 can edit test_system0
+        # the systems share a common kickstart record (in this case
+        # explicitly set, which is a bit arbitrary as they are parent/child
+        # nodes, but the concept is not limited to this).  
+        # Therefore the correct result is that the following users can edit:
+        #    admin1, superlab1, superlab2
+        # And these folks can't
+        #    basement1, basement2
+        # Basement2 is rejected because the kickstart is shared by something
+        # basmeent2 can not edit.
+
+        for user in [ "admin1", "superlab1", "superlab2", "basement1" ]:
+           self.assertTrue(1==authorize(self.api, user, "modify_kickstart", "/tmp/test_cobbler_kickstart"), "%s can modify_kickstart" % user)
+
+        for user in [ "basement2", "dne" ]:
+           self.assertTrue(0==authorize(self.api, user, "modify_kickstart", "/tmp/test_cobbler_kickstart"), "%s can modify_kickstart" % user)
+
+        # ensure admin1 can edit (he's an admin) and do other tasks
+        # same applies to basement1 who is explicitly added as a user
+        # and superlab1 who is in a group in the ownership list
+        for user in ["admin1","superlab1","basement1"]:
+           self.assertTrue(1==authorize(self.api, user, "save_distro", xo),"%s can save_distro" % user)
+           self.assertTrue(1==authorize(self.api, user, "modify_distro", xo),"%s can modify_distro" % user)
+           self.assertTrue(1==authorize(self.api, user, "copy_distro", xo),"%s can copy_distro" % user)
+           self.assertTrue(1==authorize(self.api, user, "remove_distro", xn),"%s can remove_distro" % user)  
+
+        # ensure all users in the file can sync
+        for user in [ "admin1", "superlab1", "basement1", "basement2" ]:     
+           self.assertTrue(1==authorize(self.api, user, "sync"))
+
+        # make sure basement2 can't edit (not in group)
+        # and same goes for "dne" (does not exist in users.conf)
+        
+        for user in [ "basement2", "dne" ]:
+           self.assertTrue(0==authorize(self.api, user, "save_distro", xo), "user %s cannot save_distro" % user)
+           self.assertTrue(0==authorize(self.api, user, "modify_distro", xo), "user %s cannot modify_distro" % user)
+           self.assertTrue(0==authorize(self.api, user, "remove_distro", xn), "user %s cannot remove_distro" % user)
+ 
+        # basement2 is in the file so he can still copy
+        self.assertTrue(1==authorize(self.api, "basement2", "copy_distro", xo), "basement2 can copy_distro")
+
+        # dne can not copy or sync either (not in the users.conf)
+        self.assertTrue(0==authorize(self.api, "dne", "copy_distro", xo), "dne cannot copy_distro")
+        self.assertTrue(0==authorize(self.api, "dne", "sync"), "dne cannot sync")
+
+        # unlike the distro testdistro0, testrepo0 is unowned
+        # so any user in the file will be able to edit it.
+        for user in [ "admin1", "superlab1", "basement1", "basement2" ]:
+           self.assertTrue(1==authorize(self.api, user, "save_repo", ro), "user %s can save_repo" % user)
+
+        # though dne is still not listed and will be denied
+        self.assertTrue(0==authorize(self.api, "dne", "save_repo", ro), "dne cannot save_repo")
+
+        # if we survive, restore the users file as module testing is done
+        if os.path.exists("/tmp/cobbler_ubak"):
+           shutil.copyfile("/etc/cobbler/users.conf","/tmp/cobbler_ubak")
+
 
 class MultiNIC(BootTest):
     
@@ -493,7 +743,7 @@ class SyncContents(BootTest):
 
         fh = open("/tftpboot/pxelinux.cfg/%s" % converted)
         data = fh.read()
-        self.assertTrue(data.find("kickstarts_sys") != -1)
+        self.assertTrue(data.find("/op/ks/") != -1)
         fh.close()
 
         # ensure that after sync is applied, the blender cache still allows
@@ -503,7 +753,7 @@ class SyncContents(BootTest):
         self.api.sync()
         fh = open("/tftpboot/pxelinux.cfg/%s" % converted)
         data = fh.read()
-        self.assertTrue(data.find("kickstarts_sys") != -1)
+        self.assertTrue(data.find("/op/ks/") != -1)
         fh.close()
 
 
@@ -563,28 +813,24 @@ class TestListings(BootTest):
        self.assertTrue(len(self.api.profiles().printable()) > 0)
        self.assertTrue(len(self.api.distros().printable()) > 0)
 
-class TestCLIBasic(BootTest):
-
-   def test_cli(self):
-       # just invoke the CLI to increase coverage and ensure
-       # nothing major is broke at top level.  Full CLI command testing
-       # is not included (yet) since the API tests hit that fairly throughly
-       # and it would easily double the length of the tests.
-       app = "/usr/bin/python"
-       self.assertTrue(subprocess.call([app,"cobbler/cobbler.py","list"]) == 0)
+#class TestCLIBasic(BootTest):
+#
+#   def test_cli(self):
+#       # just invoke the CLI to increase coverage and ensure
+#       # nothing major is broke at top level.  Full CLI command testing
+#       # is not included (yet) since the API tests hit that fairly throughly
+#       # and it would easily double the length of the tests.
+#       app = "/usr/bin/python"
+#       self.assertTrue(subprocess.call([app,"cobbler/cobbler.py","list"]) == 0)
 
 if __name__ == "__main__":
     if not os.path.exists("setup.py"):
         print "tests: must invoke from top level directory"
         sys.exit(1)
-    if HAS_GRAPH:
-       pycallgraph.start_trace()
     loader = unittest.defaultTestLoader
     test_module = __import__("tests")  # self import considered harmful?
     tests = loader.loadTestsFromModule(test_module)
     runner = unittest.TextTestRunner()
     runner.run(tests)
-    if HAS_GRAPH:
-        pycallgraph.make_graph('cg_dot.png', tool='dot')
     sys.exit(0)
  

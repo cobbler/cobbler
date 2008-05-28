@@ -3,7 +3,7 @@
 #block body
 <table class="sortable">
     <thead>
-        <caption>Cobbler Kickstart Files</caption>
+        <caption>Cobbler Kickstart Templates</caption>
         <tr>
             <th class="text">File</th>
             <th class="text">Edit/View</th>
@@ -12,6 +12,7 @@
     <tbody>
         #set $evenodd = 1
         #for $ksfile in $ksfiles
+        <!-- $ksfile -->
         #if $evenodd % 2 == 0
             #set $tr_class = "roweven"
         #else

@@ -17,8 +17,8 @@ import os
 import re
 import sub_process
 import action_sync
-from rhpl.translate import _, N_, textdomain, utf8
-
+import utils
+from utils import _
 class BootCheck:
 
    def __init__(self,config):
@@ -36,8 +36,9 @@ class BootCheck:
        """
        status = []
        self.check_name(status)
+       self.check_selinux(status)
        if self.settings.manage_dhcp:
-           mode = self.settings.manage_dhcp_mode.lower()
+           mode = self.config.api.get_sync().dhcp.what()
            if mode == "isc": 
                self.check_dhcpd_bin(status)
                self.check_dhcpd_conf(status)
@@ -45,8 +46,16 @@ class BootCheck:
            elif mode == "dnsmasq":
                self.check_dnsmasq_bin(status)
                self.check_service(status,"dnsmasq")
-           else:
-               status.append(_("manage_dhcp_mode in /var/lib/cobbler/settings should be 'isc' or 'dnsmasq'"))
+
+       if self.settings.manage_dns:
+           mode = self.config.api.get_sync().dns.what()
+           if mode == "bind":
+               self.check_bind_bin(status)
+               self.check_service(status,"named")
+           elif mode == "dnsmasq" and not self.settings.manage_dhcp:
+               self.check_dnsmasq_bin(status)
+               self.check_service(status,"dnsmasq")
+
        self.check_service(status, "cobblerd")
     
        self.check_bootloaders(status)
@@ -56,14 +65,25 @@ class BootCheck:
        self.check_httpd(status)
        self.check_iptables(status)
        self.check_yum(status)
+       self.check_for_default_password(status)
+       self.check_for_unreferenced_repos(status)
+       self.check_for_unsynced_repos(status)
 
        return status
 
    def check_service(self, status, which):
-       if os.path.exists("/etc/rc.d/init.d/%s" % which):
-           rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True)
-           if rc != 0:
-               status.append(_("service %s is not running") % which)
+     if utils.check_dist() == "redhat":
+        if os.path.exists("/etc/rc.d/init.d/%s" % which):
+          rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True)
+          if rc != 0:
+            status.append(_("service %s is not running") % which)
+     elif utils.check_dist() == "debian":
+        if os.path.exists("/etc/init.d/%s" % which):
+	  rc = sub_process.call("/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
+	  if rc != 0:
+	    status.append(_("service %s is not running") % which)
+     else:
+       status.append(_("Unknown distribution type, cannot check for running service %s" % which))
 
    def check_iptables(self, status):
        if os.path.exists("/etc/rc.d/init.d/iptables"):
@@ -86,18 +106,67 @@ class BootCheck:
        parameters.
        """
        if self.settings.server == "127.0.0.1":
-          status.append(_("The 'server' field in /var/lib/cobbler/settings must be set to something other than localhost, or kickstarting features will not work.  This should be a resolvable hostname or IP for the boot server as reachable by all machines that will use it."))
+          status.append(_("The 'server' field in /etc/cobbler/settings must be set to something other than localhost, or kickstarting features will not work.  This should be a resolvable hostname or IP for the boot server as reachable by all machines that will use it."))
        if self.settings.next_server == "127.0.0.1":
-          status.append(_("For PXE to be functional, the 'next_server' field in /var/lib/cobbler/settings must be set to something other than 127.0.0.1, and should match the IP of the boot server on the PXE network."))
+          status.append(_("For PXE to be functional, the 'next_server' field in /etc/cobbler/settings must be set to something other than 127.0.0.1, and should match the IP of the boot server on the PXE network."))
+
+   def check_selinux(self,status):
+       prc = sub_process.Popen("/usr/sbin/getenforce",shell=True,stdout=sub_process.PIPE)
+       data = prc.communicate()[0]
+       if data.lower().find("disabled") == -1:
+           # permissive or enforcing or something else
+           prc2 = sub_process.Popen("/usr/sbin/getsebool -a",shell=True,stdout=sub_process.PIPE)
+           data2 = prc2.communicate()[0]
+           for line in data2.split("\n"):
+              if line.find("httpd_can_network_connect ") != -1:
+                  if line.find("off") != -1:
+                      status.append(_("Must enable selinux boolean to enable Apache and web services components, run: setsebool -P httpd_can_network_connect true"))
+
+
+   def check_for_default_password(self,status):
+       templates = utils.get_kickstart_templates(self.config.api)
+       files = []
+       for t in templates:
+           fd = open(t)
+           data = fd.read()
+           fd.close()
+           if data.find("\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.") != -1:
+               files.append(t)
+       if len(files) > 0:
+           status.append(_("One or more kickstart templates references default password 'cobbler' and should be changed for security reasons: %s") % ", ".join(files))
+
+
+   def check_for_unreferenced_repos(self,status):
+        repos = []
+        referenced = []
+        not_found = []
+        for r in self.config.api.repos():
+            repos.append(r.name)
+        for p in self.config.api.profiles():
+            my_repos = p.repos
+            referenced.extend(my_repos)
+        for r in referenced:
+            if r not in repos:
+               not_found.append(r)
+        if len(not_found) > 0:
+            status.append(_("One or more repos referenced by profile objects is no longer defined in cobbler: %s") % ", ".join(not_found))
+       
+   def check_for_unsynced_repos(self,status):
+       need_sync = []
+       for r in self.config.repos():
+           if r.mirror_locally == 1:
+               lookfor = os.path.join(self.settings.webdir, "repo_mirror", r.name)
+               if not os.path.exists(lookfor):
+                   need_sync.append(r.name)
+       if len(need_sync) > 0:
+           status.append(_("One or more repos need to be processed by cobbler reposync for the first time before kickstarting against them: %s") % ", ".join(need_sync))
+
 
    def check_httpd(self,status):
        """
        Check if Apache is installed.
        """
-       if not os.path.exists(self.settings.httpd_bin):
-           status.append(_("Apache doesn't appear to be installed"))
-       else:
-           self.check_service(status,"httpd")
+       self.check_service(status,"httpd")
 
 
    def check_dhcpd_bin(self,status):
@@ -105,14 +174,22 @@ class BootCheck:
        Check if dhcpd is installed
        """
        if not os.path.exists(self.settings.dhcpd_bin):
-           status.append(_("dhcpd isn't installed, but is enabled in /var/lib/cobbler/settings"))
+           status.append(_("dhcpd isn't installed, but management is enabled in /etc/cobbler/settings"))
 
    def check_dnsmasq_bin(self,status):
        """
        Check if dnsmasq is installed
        """
        if not os.path.exists(self.settings.dnsmasq_bin):
-           status.append(_("dnsmasq isn't installed, but is enabled in /var/lib/cobbler/settings"))
+           status.append(_("dnsmasq isn't installed, but management is enabled in /etc/cobbler/settings"))
+
+   def check_bind_bin(self,status):
+       """
+       Check if bind is installed.
+       """
+       if not os.path.exists(self.settings.bind_bin):
+           status.append(_("bind isn't installed, but management is enabled in /etc/cobbler/settings"))
+       
 
    def check_bootloaders(self,status):
        """
@@ -140,8 +217,9 @@ class BootCheck:
        """
        Check if cobbler.conf's tftpboot directory exists
        """
-       if not os.path.exists(self.settings.tftpboot):
-          status.append(_("please create directory: %(dirname)s") % { "dirname" : self.settings.tftpboot })
+       bootloc = utils.tftpboot_location()
+       if not os.path.exists(bootloc):
+          status.append(_("please create directory: %(dirname)s") % { "dirname" : bootloc })
 
 
    def check_tftpd_conf(self,status):
@@ -152,17 +230,15 @@ class BootCheck:
        if os.path.exists(self.settings.tftpd_conf):
           f = open(self.settings.tftpd_conf)
           re_disable = re.compile(r'disable.*=.*yes')
-          found_bootdir = False
           for line in f.readlines():
              if re_disable.search(line):
                  status.append(_("change 'disable' to 'no' in %(file)s") % { "file" : self.settings.tftpd_conf })
-             if line.find("-s %s" % self.settings.tftpboot) != -1:
-                 found_bootdir = True
-          if not found_bootdir:
-              status.append(_("change 'server_args' to '-s %(args)s' in %(file)s") % { "file" : "/etc/xinetd.d/tftp", "args" : self.settings.tftpboot })
-
        else:
           status.append(_("file %(file)s does not exist") % { "file" : self.settings.tftpd_conf })
+       
+       bootloc = utils.tftpboot_location()
+       if not os.path.exists(bootloc):
+          status.append(_("directory needs to be created: %s" % bootloc))
 
 
    def check_dhcpd_conf(self,status):

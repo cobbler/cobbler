@@ -20,7 +20,7 @@ import utils
 import collection
 from cexceptions import *
 import action_litesync
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 #--------------------------------------------
 

@@ -18,7 +18,7 @@ import collection
 import item_distro as distro
 from cexceptions import *
 import action_litesync
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 class Distros(collection.Collection):
 

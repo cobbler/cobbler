@@ -25,12 +25,23 @@
 # Sanity checks.
 [ -x /usr/bin/cobblerd ] || exit 0
 
+DEBIAN_VERSION=/etc/debian_version
 # Source function library.
-. /etc/rc.d/init.d/functions
+if [ -e $DEBIAN_VERSION ]; then
+
+	. /etc/init.d/functions
+else
+	. /etc/rc.d/init.d/functions
+fi
 
 SERVICE=cobblerd
 PROCESS=cobblerd
 CONFIG_ARGS=" "
+if [ -e $DEBIAN_VERSION ]; then
+	LOCKFILE=/var/lock/$SERVICE
+else
+	LOCKFILE=/var/lock/subsys/$SERVICE
+fi
 
 RETVAL=0
 
@@ -39,7 +50,7 @@ start() {
     daemon --check $SERVICE $PROCESS --daemon $CONFIG_ARGS
     RETVAL=$?
     echo
-    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$SERVICE
+    [ $RETVAL -eq 0 ] && touch $LOCKFILE
     return $RETVAL
 }
 
@@ -49,7 +60,7 @@ stop() {
     RETVAL=$?
     echo
     if [ $RETVAL -eq 0 ]; then
-	rm -f /var/lock/subsys/$SERVICE
+	rm -f $LOCKFILE
         rm -f /var/run/$SERVICE.pid
     fi
 }
@@ -69,7 +80,7 @@ case "$1" in
         RETVAL=$?
         ;;
     condrestart)
-        [ -f /var/lock/subsys/$SERVICE ] && restart || :
+        [ -f $LOCKFILE ] && restart || :
         ;;
     reload)
         echo "can't reload configuration, you have to restart it"

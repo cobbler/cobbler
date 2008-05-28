@@ -20,7 +20,7 @@ import weakref
 import os
 from cexceptions import *
 
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 
 class Distro(item.Item):
 
@@ -32,6 +32,7 @@ class Distro(item.Item):
         Reset this object.
         """
         self.name           = None
+        self.owners         = self.settings.default_ownership
         self.kernel         = (None,     '<<inherit>>')[is_subobject]
         self.initrd         = (None,     '<<inherit>>')[is_subobject]
         self.kernel_options = ({},       '<<inherit>>')[is_subobject]
@@ -60,6 +61,7 @@ class Distro(item.Item):
         """
         self.parent         = self.load_item(seed_data,'parent')
         self.name           = self.load_item(seed_data,'name')
+        self.owners         = self.load_item(seed_data,'owners',self.settings.default_ownership)
         self.kernel         = self.load_item(seed_data,'kernel')
         self.initrd         = self.load_item(seed_data,'initrd')
         self.kernel_options = self.load_item(seed_data,'kernel_options')
@@ -74,6 +76,8 @@ class Distro(item.Item):
             self.set_kernel_options(self.kernel_options)
         if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
             self.set_ksmeta(self.ks_meta)
+
+        self.set_owners(self.owners)
 
         return self
 
@@ -165,7 +169,8 @@ class Distro(item.Item):
            'breed'          : self.breed,
            'source_repos'   : self.source_repos,
            'parent'         : self.parent,
-           'depth'          : self.depth
+           'depth'          : self.depth,
+           'owners'         : self.owners
         }
 
     def printable(self):
@@ -175,12 +180,13 @@ class Distro(item.Item):
         kstr = utils.find_kernel(self.kernel)
         istr = utils.find_initrd(self.initrd)
         buf =       _("distro          : %s\n") % self.name
-        buf = buf + _("kernel          : %s\n") % kstr
-        buf = buf + _("initrd          : %s\n") % istr
-        buf = buf + _("kernel options  : %s\n") % self.kernel_options
-        buf = buf + _("architecture    : %s\n") % self.arch
-        buf = buf + _("ks metadata     : %s\n") % self.ks_meta
         buf = buf + _("breed           : %s\n") % self.breed
+        buf = buf + _("architecture    : %s\n") % self.arch
+        buf = buf + _("initrd          : %s\n") % istr
+        buf = buf + _("kernel          : %s\n") % kstr
+        buf = buf + _("kernel options  : %s\n") % self.kernel_options
+        buf = buf + _("ks metadata     : %s\n") % self.ks_meta
+        buf = buf + _("owners          : %s\n") % self.owners
         return buf
 
     def remote_methods(self):
@@ -191,7 +197,8 @@ class Distro(item.Item):
             'kopts'   :  self.set_kernel_options,
             'arch'    :  self.set_arch,
             'ksmeta'  :  self.set_ksmeta,
-            'breed'   :  self.set_breed
+            'breed'   :  self.set_breed,
+            'owners'  :  self.set_owners
         }
 
 

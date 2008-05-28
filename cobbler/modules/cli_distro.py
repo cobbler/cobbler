@@ -19,7 +19,7 @@ plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 import commands
 import cexceptions
 
@@ -33,13 +33,16 @@ class DistroFunction(commands.CobblerFunction):
         return "distro"
 
     def subcommands(self):
-        return [ "add", "edit", "copy", "rename", "remove", "list", "report" ]
+        return [ "add", "edit", "copy", "rename", "remove", "list", "report", "dumpvars" ]
 
     def add_options(self, p, args):
 
-        if not self.matches_args(args,["remove","report","list"]):
+        if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--arch",   dest="arch",   help="ex: x86, x86_64, ia64")
             p.add_option("--breed",  dest="breed",  help="ex: redhat, debian, suse")
+        if self.matches_args(args,["add"]):
+            p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
+        if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--initrd", dest="initrd", help="absolute path to initrd.img (REQUIRED)")
             p.add_option("--kernel", dest="kernel", help="absolute path to vmlinuz (REQUIRED)")
             p.add_option("--kopts",  dest="kopts",  help="ex: 'noipv6'")
@@ -47,12 +50,16 @@ class DistroFunction(commands.CobblerFunction):
 
         p.add_option("--name",   dest="name", help="ex: 'RHEL-5-i386' (REQUIRED)")
 
+
+
         if self.matches_args(args,["copy","rename"]):
             p.add_option("--newname", dest="newname", help="for copy/rename commands")
-        if not self.matches_args(args,["remove","report","list"]):
+        if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
-        if not self.matches_args(args,["report","list"]):
+        if not self.matches_args(args,["dumpvars","report","list"]):
             p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
+        if not self.matches_args(args,["dumpvars","remove","report","list"]):
+            p.add_option("--owners", dest="owners", help="specify owners for authz_ownership module")
 
         if self.matches_args(args,["remove"]):
             p.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
@@ -63,16 +70,19 @@ class DistroFunction(commands.CobblerFunction):
         if obj is None:
             return True
 
-        if self.options.kernel:
-            obj.set_kernel(self.options.kernel)
-        if self.options.initrd:
-            obj.set_initrd(self.options.initrd)
-        if self.options.kopts:
-            obj.set_kernel_options(self.options.kopts)
-        if self.options.ksmeta:
-            obj.set_ksmeta(self.options.ksmeta)
-        if self.options.breed:
-            obj.set_breed(self.options.breed)
+        if not "dumpvars" in self.args:
+            if self.options.kernel:
+                obj.set_kernel(self.options.kernel)
+            if self.options.initrd:
+                obj.set_initrd(self.options.initrd)
+            if self.options.kopts:
+                obj.set_kernel_options(self.options.kopts)
+            if self.options.ksmeta:
+                obj.set_ksmeta(self.options.ksmeta)
+            if self.options.breed:
+                obj.set_breed(self.options.breed)
+            if self.options.owners:
+                obj.set_owners(self.options.owners)
 
         return self.object_manipulator_finish(obj, self.api.distros, self.options)
 

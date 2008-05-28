@@ -16,8 +16,9 @@ import time
 import os
 import SimpleXMLRPCServer
 import glob
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 import xmlrpclib
+import binascii
 
 from server import xmlrpclib2
 import api as cobbler_api
@@ -40,12 +41,29 @@ def core(logger=None):
 
     pid = os.fork()
 
+    regen_ss_file()
+
     if pid == 0:
         # part one: XMLRPC -- which may be just read-only or both read-only and read-write
         do_xmlrpc_tasks(bootapi, settings, xmlrpc_port, xmlrpc_port2, logger)
     else:
         # part two: syslog, or syslog+avahi if avahi is installed
         do_other_tasks(bootapi, settings, syslog_port, logger)
+
+def regen_ss_file():
+    # this is only used for Kerberos auth at the moment.
+    # it identifies XMLRPC requests from Apache that have already
+    # been cleared by Kerberos.
+
+    fd = open("/dev/urandom")
+    data = fd.read(512)
+    fd.close()
+    fd = open("/var/lib/cobbler/web.ss","w+")
+    fd.write(binascii.hexlify(data))
+    fd.close()
+    os.system("chmod 700 /var/lib/cobbler/web.ss")
+    os.system("chown apache /var/lib/cobbler/web.ss")
+    return 1
 
 def do_xmlrpc_tasks(bootapi, settings, xmlrpc_port, xmlrpc_port2, logger):
     if str(settings.xmlrpc_rw_enabled) != "0":
@@ -108,7 +126,7 @@ def do_xmlrpc(bootapi, settings, port, logger):
     # This is the simple XMLRPC API we provide to koan and other
     # apps that do not need to manage Cobbler's config
 
-    xinterface = remote.ProxiedXMLRPCInterface(bootapi,logger,remote.CobblerXMLRPCInterface,True)
+    xinterface = remote.ProxiedXMLRPCInterface(bootapi,logger,remote.CobblerXMLRPCInterface,False)
     
     server = remote.CobblerXMLRPCServer(('', port))
     server.logRequests = 0  # don't print stuff
@@ -124,7 +142,7 @@ def do_xmlrpc(bootapi, settings, port, logger):
 
 def do_xmlrpc_rw(bootapi,settings,port,logger):
 
-    xinterface = remote.ProxiedXMLRPCInterface(bootapi,logger,remote.CobblerReadWriteXMLRPCInterface,False)
+    xinterface = remote.ProxiedXMLRPCInterface(bootapi,logger,remote.CobblerReadWriteXMLRPCInterface,True)
     server = remote.CobblerReadWriteXMLRPCServer(('127.0.0.1', port))
     server.logRequests = 0  # don't print stuff
     logger.debug("XMLRPC (read-write variant) running on %s" % port)
@@ -195,11 +213,14 @@ if __name__ == "__main__":
 
     #main()
 
-    bootapi      = cobbler_api.BootAPI()
-    settings     = bootapi.settings()
-    syslog_port  = settings.syslog_port
-    xmlrpc_port  = settings.xmlrpc_port
-    xmlrpc_port2 = settings.xmlrpc_rw_port
-    logger       = bootapi.logger_remote
-    do_xmlrpc_unix(bootapi, settings, logger)
+    #bootapi      = cobbler_api.BootAPI()
+    #settings     = bootapi.settings()
+    #syslog_port  = settings.syslog_port
+    #xmlrpc_port  = settings.xmlrpc_port
+    #xmlrpc_port2 = settings.xmlrpc_rw_port
+    #logger       = bootapi.logger_remote
+    #do_xmlrpc_unix(bootapi, settings, logger)
+   
+    regen_ss_file()
+
 

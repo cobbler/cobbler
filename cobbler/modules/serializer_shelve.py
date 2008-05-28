@@ -24,7 +24,7 @@ import os
 import sys
 import glob
 import traceback
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 import os
 import shelve
 import time

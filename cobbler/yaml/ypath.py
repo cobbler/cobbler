@@ -1,3 +1,10 @@
+"""
+pyyaml legacy
+Copyright (c) 2001 Steve Howell and Friends; All Rights Reserved
+(see open source license information in docs/ directory)
+"""
+
+
 from types import ListType, StringType, IntType, DictType, InstanceType
 import re
 from urllib import quote

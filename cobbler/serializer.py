@@ -15,7 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import errno
 import os
-from rhpl.translate import _, N_, textdomain, utf8
+from utils import _
 import fcntl
 
 from cexceptions import *
@@ -59,10 +59,8 @@ def serialize_item(collection, item):
     storage_module = __get_storage_module(collection.collection_type())
     save_fn = getattr(storage_module, "serialize_item", None)
     if save_fn is None:
-        # print "DEBUG: WARNING: full serializer"
         rc = storage_module.serialize(collection)
     else:
-        # print "DEBUG: partial serializer"
         rc = save_fn(collection,item)
     __release_lock()
     return rc
@@ -75,10 +73,8 @@ def serialize_delete(collection, item):
     storage_module = __get_storage_module(collection.collection_type())
     delete_fn = getattr(storage_module, "serialize_delete", None)
     if delete_fn is None:
-        # print "DEBUG: full delete"
         rc = storage_module.serialize(collection)
     else:
-        # print "DEBUG: partial delete"
         rc = delete_fn(collection,item)
     __release_lock()
     return rc

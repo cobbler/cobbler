@@ -661,6 +661,20 @@ the setting to 'isc'.</p>
 <p>The dhcpd.conf file will be updated each time ``cobbler sync'' is run, and not until then, so it is important to remember to use ``cobbler sync'' when using this feature.</p>
 <p>
 </p>
+<h2><a name="bind_configuration_management">BIND CONFIGURATION MANAGEMENT</a></h2>
+<p>Cobbler can optionally manage DNS configuration using BIND.</p>
+<p>This feature is off by default and must be turned on by setting 'manage_dns' to 1 in
+/var/lib/cobbler/settings.   You may restrict the scope of zones
+managed with the options 'manage_forward_zones' and
+'manage_reverse_zones'.  
+<p>Cobbler will use /etc/cobbler/bind.template and
+  /etc/cobbler/zone.template as a starting point for the named.conf
+  and individual zone files, respectively.  These files must be user 
+  edited for the user's particular networking environment.  Read the 
+  file and understand how BIND works before proceeding.</p>
+<p>The named.conf file as well as all zone files will be updated each time ``cobbler sync'' is run, and not until then, so it is important to remember to use ``cobbler sync'' when using this feature.</p>
+<p>
+</p>
 <h2><a name="service_discovery__avahi_">SERVICE DISCOVERY (AVAHI)</a></h2>
 <p>If the avahi-tools package is installed, cobblerd will broadcast it's presence on the network, allowing it to be discovered by koan with the koan --server=DISCOVER parameter.</p>
 <p>
