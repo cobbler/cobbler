@@ -73,6 +73,7 @@ fi
 %postun
 if [ "$1" -ge "1" ]; then
     /sbin/service cobblerd condrestart >/dev/null 2>&1 || :
+    /sbin/service httpd condrestart >/dev/null 2>&1 || :
 fi
 
 %clean
@@ -191,6 +192,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 * Thu May 28 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.1-1
 - Upstream changes (see CHANGELOG)
 - stop owning files in tftpboot
+- condrestart for Apache
 
 * Wed May 27 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.0-2
 - Upstream changes (see CHANGELOG)
