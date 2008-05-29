@@ -70,8 +70,11 @@ class Importer:
            raise CX(_("import failed.  no --name specified"))
        if self.arch is not None:
            self.arch = self.arch.lower()
-           if self.arch not in [ "x86", "ia64", "x86_64" ]:
+           if self.arch not in [ "i386", "x86", "ia64", "x86_64" ]:
                raise CX(_("arch must be x86, x86_64, or ia64"))
+           if self.arch == "x86":
+               # be consistent
+               self.arch = "i386"
 
        mpath = os.path.join(self.settings.webdir, "ks_mirror", self.mirror_name)
 
@@ -523,6 +526,7 @@ class Importer:
    def get_proposed_name(self,dirname,pxe_arch):
        archname = pxe_arch
        if archname == "x86":
+          # be consistent
           archname = "i386"
        # FIXME: this is new, needs testing ...
        if self.network_root is not None:
@@ -546,6 +550,8 @@ class Importer:
        name = name.replace("_x86_64","")
        name = name.replace("-ia64","")
        name = name.replace("_ia64","")
+       name = name.replace("-x86","")
+       name = name.replace("_x86","")
        # ensure arch is on the end, regardless of path used.
        name = name + "-" + archname
 
@@ -572,7 +578,7 @@ class Importer:
            if x.find("kernel-header") != -1:
                print _("- kernel header found: %s") % x
                if x.find("i386") != -1:
-                   foo["result"] = "x86"
+                   foo["result"] = "i386"
                    return
                elif x.find("x86_64") != -1: 
                    foo["result"] = "x86_64"
@@ -590,7 +596,7 @@ class Importer:
           if x.find("kernel-largesmp") != -1:
              print _("- kernel header found: %s") % x
              if x.find("i386") != -1:
-                foo["result"] = "x86"
+                foo["result"] = "i386"
                 return
              elif x.find("x86_64") != -1:
                 foo["result"] = "x86_64"
@@ -609,7 +615,7 @@ class Importer:
        """
        dirname2 = "/".join(dirname.split("/")[:-2])  # up two from images, then down as many as needed
        print _("- scanning %s for architecture info") % dirname2
-       result = { "result" : "x86" } # default, but possibly not correct ... 
+       result = { "result" : "i386" } # default, but possibly not correct ... 
        os.path.walk(dirname2, self.arch_walker, result)      
        return result["result"]
 
@@ -620,7 +626,7 @@ class Importer:
        if t.find("ia64") != -1:
           return "ia64"
        if t.find("i386") != -1 or t.find("386") != -1 or t.find("x86") != -1:
-          return "x86"
+          return "i386"
        return self.learn_arch_from_tree(dirname)
 
    def is_relevant_dir(self,dirname):

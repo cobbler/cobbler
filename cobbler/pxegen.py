@@ -128,7 +128,7 @@ class PXEGen:
             f1 = utils.get_config_filename(system,interface=name)
 
             # for tftp only ...
-            if distro.arch in [ "x86", "x86_64", "standard"]:
+            if distro.arch in [ "i386", "x86", "x86_64", "standard"]:
                 # pxelinux wants a file named $name under pxelinux.cfg
                 f2 = os.path.join(self.bootloc, "pxelinux.cfg", f1)
             if distro.arch == "ia64":
@@ -143,7 +143,7 @@ class PXEGen:
             f3 = os.path.join(self.settings.webdir, "systems", f1)
 
             if system.netboot_enabled and system.is_pxe_supported():
-                if distro.arch in [ "x86", "x86_64", "standard"]:
+                if distro.arch in [ "i386", "x86", "x86_64", "standard"]:
                     self.write_pxe_file(f2,system,profile,distro,False)
                 if distro.arch == "ia64":
                     self.write_pxe_file(f2,system,profile,distro,True)

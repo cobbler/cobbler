@@ -37,7 +37,7 @@ class Distro(item.Item):
         self.initrd         = (None,     '<<inherit>>')[is_subobject]
         self.kernel_options = ({},       '<<inherit>>')[is_subobject]
         self.ks_meta        = ({},       '<<inherit>>')[is_subobject]
-        self.arch           = ('x86',    '<<inherit>>')[is_subobject]
+        self.arch           = ('i386',    '<<inherit>>')[is_subobject]
         self.breed          = ('redhat', '<<inherit>>')[is_subobject]
         self.source_repos   = ([],       '<<inherit>>')[is_subobject]
         self.depth          = 0
@@ -66,12 +66,13 @@ class Distro(item.Item):
         self.initrd         = self.load_item(seed_data,'initrd')
         self.kernel_options = self.load_item(seed_data,'kernel_options')
         self.ks_meta        = self.load_item(seed_data,'ks_meta')
-        self.arch           = self.load_item(seed_data,'arch','x86')
+        self.arch           = self.load_item(seed_data,'arch','i386')
         self.breed          = self.load_item(seed_data,'breed','redhat')
         self.source_repos   = self.load_item(seed_data,'source_repos',[])
         self.depth          = self.load_item(seed_data,'depth',0)
 
-        # backwards compatibility -- convert string entries to dicts for storage
+        # backwards compatibility enforcement
+        self.set_arch(self.arch)
         if self.kernel_options != "<<inherit>>" and type(self.kernel_options) != dict:
             self.set_kernel_options(self.kernel_options)
         if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
@@ -135,7 +136,10 @@ class Distro(item.Item):
         the architecture, though if (in the future) new provisioning types
         are added, an arch value might be something like "bsd_x86".
         """
-        if arch in [ "standard", "ia64", "x86", "x86_64" ]:
+        if arch in [ "standard", "ia64", "x86", "i386", "x86_64" ]:
+            if arch == "x86":
+               # be consistent 
+               arch = "i386"
             self.arch = arch
             return True
         raise CX(_("PXE arch choices include: x86, x86_64, and ia64"))

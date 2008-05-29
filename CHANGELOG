@@ -7,6 +7,7 @@ Cobbler CHANGELOG
 - Thr May 28 2008 - 1.0.1
 - Fix misformatted warning in "check"
 - Do not own tftpboot
+- Default arches to 'i386' not 'x86' for consistency, esp. in import
 
 - Wed May 27 2008 - 1.0.0
 - Merge devel branch onto master, this is 1.0
