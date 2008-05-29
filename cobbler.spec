@@ -110,9 +110,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /var/www/cobbler/webui/*.js
 /var/www/cobbler/webui/*.png
 /var/www/cobbler/webui/*.html
-%defattr(-,root,root)
-%dir /tftpboot/pxelinux.cfg
-%dir /tftpboot/images
 %{_bindir}/cobbler
 %{_bindir}/cobblerd
 %dir /etc/cobbler
@@ -187,6 +184,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+
+* Thu May 28 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.1-1
+- Upstream changes (see CHANGELOG)
+- stop owning files in tftpboot
 
 * Wed May 27 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.0-2
 - Upstream changes (see CHANGELOG)

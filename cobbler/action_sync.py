@@ -129,7 +129,14 @@ class BootSync:
                 if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system"]:
                     # clean out directory contents
                     utils.rmtree_contents(path)
+        pxelinux_dir = os.path.join(self.bootloc, "pxelinux.cfg")
+        images_dir = os.path.join(self.bootloc, "images")
+        if not os.path.exists(pxelinux_dir):
+            utils.makedir(pxelinux_dir)
+        if not os.path.exists(images_dir):
+            utils.makedir(images_dir)
         utils.rmtree_contents(os.path.join(self.bootloc, "pxelinux.cfg"))
         utils.rmtree_contents(os.path.join(self.bootloc, "images"))
+        
 
 
