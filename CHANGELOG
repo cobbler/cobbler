@@ -4,6 +4,10 @@ Cobbler CHANGELOG
 - Wed May 27 2008 - 1.1.0
 - start devel branch
 
+- Thr May 28 2008 - 1.0.1
+- Fix misformatted warning in "check"
+- Do not own tftpboot
+
 - Wed May 27 2008 - 1.0.0
 - Merge devel branch onto master, this is 1.0
 
