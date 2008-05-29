@@ -144,10 +144,11 @@ class BootCheck:
             repos.append(r.name)
         for p in self.config.api.profiles():
             my_repos = p.repos
-            referenced.extend(my_repos)
+            if my_repos != "<<inherit>>":
+                referenced.extend(my_repos)
         for r in referenced:
-            if r not in repos:
-               not_found.append(r)
+            if r not in repos and r != "<<inherit>>":
+                not_found.append(r)
         if len(not_found) > 0:
             status.append(_("One or more repos referenced by profile objects is no longer defined in cobbler: %s") % ", ".join(not_found))
        
