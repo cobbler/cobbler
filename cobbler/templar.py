@@ -30,7 +30,6 @@ class Templar:
         self.config      = config
         self.api         = config.api
         self.settings    = config.settings()
-        self.cache       = {}
 
     def render(self, data_input, search_table, out_path, subject=None):
         """
@@ -176,14 +175,22 @@ class Templar:
         if filename is None:
             return "# error: no snippet data found"
 
-        # potentially eliminate a ton of system calls if syncing
-        # thousands of systems that use the same template
-        if self.cache.has_key(filename):
-            return self.cache[filename]
+        # disabling this as it requires restarting cobblerd after
+        # making changes to snippets.  not good.  Since kickstart
+        # templates are now generated dynamically and we don't need
+        # to load all snippets to parse any given template, this should
+        # be ok, leaving this in as a footnote should we need it later.
+        #
+        ## potentially eliminate a ton of system calls if syncing
+        ## thousands of systems that use the same template
+        #if self.cache.has_key(filename):
+        #    
+        #    return self.cache[filename]
 
         fd = open(filename,"r")
         data = fd.read()
-        self.cache[filename] = data
+        # self.cache[filename] = data
         fd.close()
 
         return data
+
