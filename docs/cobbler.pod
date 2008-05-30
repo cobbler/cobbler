@@ -41,7 +41,7 @@ After installing, run "cobbler check" to verify that cobbler's ecosystem is conf
 
 Any problems detected should be corrected, with the potential exception of DHCP related warnings where you will need to use your judgement as to whether they apply to your environment.  Run "cobbler sync" after making any changes to the configuration files to ensure those changes are applied to the environment.
 
-It is especially important that the server name field be accurate in /var/lib/cobbler/settings, without this field being correct, kickstart trees will not be found, and automated installtions will fail.
+It is especially important that the server name field be accurate in /etc/cobbler/settings, without this field being correct, kickstart trees will not be found, and automated installtions will fail.
 
 For PXE, if DHCP is to be run from the cobbler server, the dhcp configuration file should be changed as suggested by "cobbler check".  If DHCP is not run locally, the "next-server" field on the DHCP server should at minimum point to the cobbler server's IP and the filename should be set to "pxelinux.0".  Alternatively, cobbler can also generate your dhcp configuration file if you want to run dhcp locally -- this is covered in a later section.  If you don't already have a DHCP setup managed by some other tool, allowing cobbler to manage DHCP will prove to be useful as it can manage DHCP reservations and other data.  If you already have a DHCP setup, moving an existing setup to be managed from within cobbler is relatively painless -- though usage of the DHCP management feature is entirely optional.  If you are not interested
 in network booting via PXE and just want to use koan to install virtual systems or replace existing ones, DHCP configuration can be totally ignored.  Koan also has a live CD (see koan's manpage) capability that can be used to simulate PXE environments.
@@ -553,7 +553,7 @@ To check for potential errors in kickstarts, prior to installation, use "cobbler
 
 Cobbler can optionally help you manage DHCP server.  This feature is off by default.
 
-Choose either "management = isc_and_bind" in /etc/cobbler/dhcp.template or "management = "dnsmasq" in /etc/cobbler/modules.conf.  Then set "manage_dhcp" to 1 in /var/lib/cobbler/settings.
+Choose either "management = isc_and_bind" in /etc/cobbler/dhcp.template or "management = "dnsmasq" in /etc/cobbler/modules.conf.  Then set "manage_dhcp" to 1 in /etc/cobbler/settings.
 
 This allows DHCP to be managed via "cobbler system add" commands, when you specify the mac address and IP address for systems you add into cobbler.
 
@@ -561,17 +561,17 @@ Depending on your choice, cobbler will use /etc/cobbler/dhcpd.template or /etc/c
 
 If you already have DHCP configuration data that you would like to preserve (say DHCP was manually configured earlier), insert the relevant portions of it into the template file, as running "cobbler sync" will overwrite your previous configuration.
 
-NOTE: Itanium systems names also need to be assigned to a distro that was created with the "--arch=ia64" parameter. If you have Itanium systems, you must (for now) choose 'dhcp_isc' for /etc/cobbler/modules.conf and manage_dhcp in the /var/lib/cobbler/settings file, and are required to use --ip when creating the system object in order for those systems to PXE.  This is due to an elilo limitation.
+NOTE: Itanium systems names also need to be assigned to a distro that was created with the "--arch=ia64" parameter. If you have Itanium systems, you must (for now) choose 'dhcp_isc' for /etc/cobbler/modules.conf and manage_dhcp in the /etc/cobbler/settings file, and are required to use --ip when creating the system object in order for those systems to PXE.  This is due to an elilo limitation.
 
 By default, the DHCP configuration file will be updated each time "cobbler sync" is run, and not until then, so it is important to remember to use "cobbler sync" when using this feature.  
 
-If omapi_enabled is set to 1 in /var/lib/cobbler/settings, the need to sync when adding new system records can be eliminated.  
+If omapi_enabled is set to 1 in /etc/cobbler/settings, the need to sync when adding new system records can be eliminated.  
 
 =head2 DNS CONFIGURATION MANAGEMENT
 
 Cobbler can optionally manage DNS configuration using BIND and dnsmasq.
 
-Choose either "management = isc_and_bind" or "management = dnsmasq" in /etc/cobbler/modules.conf and then enable manage_dns in /var/lib/cobbler/settings.
+Choose either "management = isc_and_bind" or "management = dnsmasq" in /etc/cobbler/modules.conf and then enable manage_dns in /etc/cobbler/settings.
 
 This feature is off by default.  If using BIND, you must define the zones to be managed with the options 'manage_forward_zones' and 'manage_reverse_zones'.  (See the Wiki for more information on this).
 
@@ -648,11 +648,11 @@ B<cobbler reposync --only="reponame1" ...>
 
 When updating repos by name, a repo will be updated even if it is set to be not updated during a regular reposync operation (ex: cobbler repo edit --name=reponame1 --keep-updated=0).
 
-Note that if a cobbler import provides enough information to use the boot server as a yum mirror for core packages, cobbler can set up kickstarts to use the cobbler server as a mirror instead of the outside world.  If this feature is not desirable, it can be turned on by setting yum_post_install_mirror to 0 in /var/lib/cobbler/settings (and rerunning "cobbler sync").  You should disable this feature if machines are provisioned on a different VLAN/network than production, or if you are provisioning laptops that will want to acquire updates on multiple networks.
+Note that if a cobbler import provides enough information to use the boot server as a yum mirror for core packages, cobbler can set up kickstarts to use the cobbler server as a mirror instead of the outside world.  If this feature is not desirable, it can be turned on by setting yum_post_install_mirror to 0 in /etc/settings (and rerunning "cobbler sync").  You should disable this feature if machines are provisioned on a different VLAN/network than production, or if you are provisioning laptops that will want to acquire updates on multiple networks.
 
 =head2 PXE BOOT LOOP PREVENTION
 
-If you have your machines set to PXE first in the boot order (ahead of hard drives), change the "pxe_just_once" flag in /var/lib/cobbler/settings to 1.  This will set the machines to not PXE on successive boots once they complete one install.  To re-enable PXE for a specific system, run the following command:
+If you have your machines set to PXE first in the boot order (ahead of hard drives), change the "pxe_just_once" flag in /etc/cobbler/settings to 1.  This will set the machines to not PXE on successive boots once they complete one install.  To re-enable PXE for a specific system, run the following command:
 
 B<cobbler system edit --name=name --netboot-enabled=1>
 

@@ -11,6 +11,7 @@ Cobbler CHANGELOG
 - When querying kickstart templates, do not return directories
 - Make triggers for add/delete work for renames and copies (same triggers)
 - Do not cache snippets so they can be tweaked w/o starting the service
+- Make manpage reference /etc/cobbler/settings, not /var/lib
 
 - Wed May 27 2008 - 1.0.0
 - Merge devel branch onto master, this is 1.0
