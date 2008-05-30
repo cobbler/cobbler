@@ -10,6 +10,7 @@ Cobbler CHANGELOG
 - Default arches to 'i386' not 'x86' for consistency, esp. in import
 - When querying kickstart templates, do not return directories
 - Make triggers for add/delete work for renames and copies (same triggers)
+- Do not cache snippets so they can be tweaked w/o starting the service
 
 - Wed May 27 2008 - 1.0.0
 - Merge devel branch onto master, this is 1.0
