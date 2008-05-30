@@ -100,7 +100,7 @@ class Collection(serializable.Serializable):
             self.add(item)
 
 
-    def rename(self,ref,newname,with_sync=True,with_triggers=False):
+    def rename(self,ref,newname,with_sync=True,with_triggers=True):
         """
         Allows an object "ref" to be given a newname without affecting the rest
         of the object tree. 
@@ -110,7 +110,7 @@ class Collection(serializable.Serializable):
         oldname = ref.name
         newref = ref.make_clone()
         newref.set_name(newname)
-        self.add(newref)
+        self.add(newref, with_triggers=with_triggers,save=True)
 
         # now descend to any direct ancestors and point them at the new object allowing
         # the original object to be removed without orphanage.  Direct ancestors
@@ -126,17 +126,17 @@ class Collection(serializable.Serializable):
                   k.set_parent(newname)
                else:
                   k.set_distro(newname)
-               self.api.profiles().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
+               self.api.profiles().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers,save=True)
             elif k.COLLECTION_TYPE == "system":
                k.set_profile(newname)
-               self.api.systems().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
+               self.api.systems().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers,save=True)
             elif k.COLLECTION_TYPE == "repo":
                raise CX(_("internal error, not expected to have repo child objects"))
             else:
                raise CX(_("internal error, unknown child type (%s), cannot finish rename" % k.COLLECTION_TYPE))
        
         # now delete the old version
-        self.remove(oldname, with_delete=True)
+        self.remove(oldname, with_delete=True, with_triggers=with_triggers)
         return True
 
 

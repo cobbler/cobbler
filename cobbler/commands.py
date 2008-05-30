@@ -258,7 +258,7 @@ class CobblerFunction:
         if "add" in self.args:
             clobber = options.clobber
 
-        if "copy" in self.args: # or "rename" in self.args:
+        if "copy" in self.args:
             if self.options.newname:
                 obj = obj.make_clone()
                 obj.set_name(self.options.newname)
@@ -298,14 +298,12 @@ class CobblerFunction:
                check_dup = False
                if not "copy" in self.args:
                    check_dup = True 
-               # FIXME: this ensures duplicate prevention on copy, but not
-               # rename?
                rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_netinfo=check_dup)
 
         else:
             # we are renaming here, so duplicate netinfo checks also
             # need to be made.(FIXME)
-            rc = collect_fn().rename(obj, self.options.newname)
+            rc = collect_fn().rename(obj, self.options.newname, with_triggers=opt_triggers)
 
         return rc
 
