@@ -111,8 +111,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /var/www/cobbler/webui/*.js
 /var/www/cobbler/webui/*.png
 /var/www/cobbler/webui/*.html
+
+%defattr(755,root,root)
 %{_bindir}/cobbler
 %{_bindir}/cobblerd
+
+%defattr(-,root,root)
 %dir /etc/cobbler
 %config(noreplace) /etc/cobbler/*.ks
 %config(noreplace) /etc/cobbler/*.template
