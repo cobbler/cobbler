@@ -50,7 +50,7 @@ function disablename(value)
             value="$distro.name"
         #end if
     />
-    <p class="context-tip">Example: RHEL-5-i386</p>
+    <p class="context-tip">Example: RHEL-5-x86</p>
     </td>
     </tr>
 
@@ -104,10 +104,10 @@ function disablename(value)
     <label for="arch">Architecture</label>
     </td>
     <td>
-    #if $distro and $distro.arch == "i386"
-        <input type="radio"  name="arch" id="arch" value="i386" checked>i386
+    #if $distro and $distro.arch == "x86"
+        <input type="radio"  name="arch" id="arch" value="x86" checked>x86
     #else
-        <input type="radio" name="arch" id="arch" value="i386">i386
+        <input type="radio" name="arch" id="arch" value="x86">x86
     #end if
     #if $distro and $distro.arch == "x86_64"
         <input type="radio" name="arch" id="arch" value="x86_64" checked>x86_64

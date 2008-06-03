@@ -1,17 +1,15 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-- Wed May 27 2008 - 1.1.0
-- start devel branch
-
-- Thr May 28 2008 - 1.0.1
+- Tue Jun 03 2008 - 1.0.1
 - Fix misformatted warning in "check"
-- Do not own tftpboot
+- Do not have RPM own tftpboot, just generate files in TFTP dir as detected
 - Default arches to 'i386' not 'x86' for consistency, esp. in import
 - When querying kickstart templates, do not return directories
 - Make triggers for add/delete work for renames and copies (same triggers)
 - Do not cache snippets so they can be tweaked w/o starting the service
 - Make manpage reference /etc/cobbler/settings, not /var/lib
+- Added manage_forward_zones/manage_reverse_zones to included config file
 
 - Wed May 27 2008 - 1.0.0
 - Merge devel branch onto master, this is 1.0
