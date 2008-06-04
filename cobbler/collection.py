@@ -126,10 +126,10 @@ class Collection(serializable.Serializable):
                   k.set_parent(newname)
                else:
                   k.set_distro(newname)
-               self.api.profiles().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers,save=True)
+               self.api.profiles().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
             elif k.COLLECTION_TYPE == "system":
                k.set_profile(newname)
-               self.api.systems().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers,save=True)
+               self.api.systems().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
             elif k.COLLECTION_TYPE == "repo":
                raise CX(_("internal error, not expected to have repo child objects"))
             else:

@@ -10,6 +10,7 @@ Cobbler CHANGELOG
 - Do not cache snippets so they can be tweaked w/o starting the service
 - Make manpage reference /etc/cobbler/settings, not /var/lib
 - Added manage_forward_zones/manage_reverse_zones to included config file
+- Fix python double-use-of-parameter error
 
 - Wed May 27 2008 - 1.0.0
 - Merge devel branch onto master, this is 1.0

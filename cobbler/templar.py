@@ -17,9 +17,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import os
 import os.path
 import glob
-import utils
 from cexceptions import *
 from Cheetah.Template import Template
+from utils import *
+import utils
 
 class Templar:
 
