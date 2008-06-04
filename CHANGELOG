@@ -1,6 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+- Wed Jun 03 2008 - 1.0.3
+- Fix error message output from failed kickstart rendering
+
 - Tue Jun 03 2008 - 1.0.1
 - Fix misformatted warning in "check"
 - Do not have RPM own tftpboot, just generate files in TFTP dir as detected
