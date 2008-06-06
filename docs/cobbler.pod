@@ -175,7 +175,7 @@ This is an advanced feature.
 
 Profiles may inherit from other profiles in lieu of specifing --distro.  Inherited profiles will override any settings specified in their parent, with the exception of --ksmeta (templating) and --kopts (kernel options), which will be blended together.  
 
-Example:  If profile A has --kopts="x=7 y=2", B inherits from A, and B has --kopts="x=9 z=2", the actual kernel options that will be used for B are "x=7 y=2 z=2". 
+Example:  If profile A has --kopts="x=7 y=2", B inherits from A, and B has --kopts="x=9 z=2", the actual kernel options that will be used for B are "x=9 y=2 z=2". 
 
 Example:  If profile B has --virt-ram=256 and A has --virt-ram of 512, profile B will use the value 256.  
 Example:  If profile A has a --virt-file-size of 5 and B does not specify a size, B will use the value from A.
