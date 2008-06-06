@@ -24,6 +24,7 @@ import action_status
 import action_validate
 import action_buildiso
 import action_replicate
+import action_acl
 from cexceptions import *
 import sub_process
 import module_loader
@@ -366,6 +367,19 @@ class BootAPI:
             self, self._config, mirror_url, mirror_name, network_root, kickstart_file, rsync_flags, arch
         )
         return importer.run()
+
+    def acl_config(self,adduser=None,addgroup=None,removeuser=None,removegroup=None):
+        """
+        Configures users/groups to run the cobbler CLI as non-root.
+        Pass in only one option at a time.  Powers "cobbler aclconfig"
+        """
+        acl = action_acl.AclConfig(self._config)
+        return acl.run(
+            adduser=adduser,
+            addgroup=addgroup,
+            removeuser=removeuser,
+            removegroup=removegroup
+        )
 
     def serialize(self):
         """

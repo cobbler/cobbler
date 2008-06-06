@@ -277,6 +277,29 @@ class ReplicateFunction(commands.CobblerFunction):
     def run(self):
         return self.api.replicate(cobbler_master = self.options.master)
 
+########################################################
+
+class AclFunction(commands.CobblerFunction):
+
+    def help_me(self):
+        return HELP_FORMAT % ("cobbler aclsetup","[ARGS|--help]")
+
+    def command_name(self):
+        return "aclsetup"
+
+    def add_options(self, p, args):
+        p.add_option("--adduser",            dest="adduser",            help="give acls to this user")
+        p.add_option("--addgroup",           dest="addgroup",           help="give acls to this group")
+        p.add_option("--removeuser",         dest="removeuser",         help="remove acls from this user")
+        p.add_option("--removegroup",         dest="removegroup",        help="remove acls from this group")
+
+    def run(self):
+        return self.api.acl_config(
+            self.options.adduser,
+            self.options.addgroup,
+            self.options.removeuser,
+            self.options.removegroup
+        )
 
     
 ########################################################
@@ -294,7 +317,7 @@ def cli_functions(api):
        CheckFunction(api), ImportFunction(api), ReserializeFunction(api),
        ListFunction(api), ReportFunction(api), StatusFunction(api),
        SyncFunction(api), RepoSyncFunction(api), ValidateKsFunction(api),
-       ReplicateFunction(api)
+       ReplicateFunction(api), AclFunction(api)
     ]
     return []
 

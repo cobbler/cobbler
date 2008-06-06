@@ -3,6 +3,7 @@ Cobbler CHANGELOG
 
 - ??? - 1.1.0
 - devel branch
+- added cobbler aclsetup command for running cobbler as non-root
 
 - Wed Jun 03 2008 - 1.0.3
 - Fix error message output from failed kickstart rendering
