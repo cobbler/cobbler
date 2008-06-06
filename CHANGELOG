@@ -3,6 +3,7 @@ Cobbler CHANGELOG
 
 - Wed Jun 03 2008 - 1.0.3
 - Fix error message output from failed kickstart rendering
+- manpage edits
 
 - Tue Jun 03 2008 - 1.0.1
 - Fix misformatted warning in "check"
