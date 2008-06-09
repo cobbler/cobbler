@@ -27,13 +27,13 @@ import cexceptions
 class SystemFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler system","<add|edit|copy|list|rename|remove|report> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler system","<add|copy|edit|find|list|rename|remove|report> [ARGS|--help]")
 
     def command_name(self):
         return "system"
 
     def subcommands(self):
-        return [ "add", "edit", "copy", "rename", "remove", "report", "list", "dumpvars" ]
+        return [ "add", "copy", "dumpvars", "edit", "find", "list", "remove", "rename", "report" ]
 
     def add_options(self, p, args):
 
@@ -44,7 +44,9 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--dhcp-tag",        dest="dhcp_tag",    help="for use in advanced DHCP configurations")
             p.add_option("--gateway",         dest="gateway",     help="for static IP / templating usage")
             p.add_option("--hostname",        dest="hostname",    help="ex: server.example.org")
-            p.add_option("--interface",       dest="interface",   help="edit this interface # (0-7, default 0)")
+
+            if not self.matches_args(args,["find"]):
+                p.add_option("--interface",       dest="interface",   help="edit this interface # (0-7, default 0)")
             p.add_option("--ip",              dest="ip",          help="ex: 192.168.1.55, (RECOMMENDED)")
             p.add_option("--kickstart",       dest="kickstart",   help="override profile kickstart template")
             p.add_option("--kopts",           dest="kopts",       help="ex: 'noipv6'")
@@ -59,9 +61,9 @@ class SystemFunction(commands.CobblerFunction):
         if self.matches_args(args,["copy","rename"]):
             p.add_option("--newname", dest="newname",                 help="for use with copy/edit")
 
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
+        if not self.matches_args(args,["dumpvars","find","remove","report","list"]):
             p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
-        if not self.matches_args(args,["dumpvars","report","list"]):
+        if not self.matches_args(args,["dumpvars","find","report","list"]):
             p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
 
 
@@ -80,6 +82,12 @@ class SystemFunction(commands.CobblerFunction):
 
 
     def run(self):
+
+        if "find" in self.args:
+            items = self.api.find_system(return_list=True, no_errors=True, **self.options.__dict__)
+            for x in items:
+                print x.name
+            return 0
 
         obj = self.object_manipulator_start(self.api.new_system,self.api.systems)
         if obj is None:

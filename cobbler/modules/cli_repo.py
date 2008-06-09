@@ -27,13 +27,13 @@ import cexceptions
 class RepoFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler repo","<add|edit|copy|list|rename|remove|report> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler repo","<add|copy|edit|find|list|remove|rename|report> [ARGS|--help]")
 
     def command_name(self):
         return "repo"
 
     def subcommands(self):
-        return [ "add", "edit", "copy", "rename", "remove", "list", "report", "dumpvars" ]
+        return [ "add", "copy", "dumpvars", "edit", "find", "list", "remove", "rename", "report" ]
 
     def add_options(self, p, args):
 
@@ -60,15 +60,21 @@ class RepoFunction(commands.CobblerFunction):
 
             p.add_option("--newname",          dest="newname",          help="used for copy/edit")
 
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
+        if not self.matches_args(args,["dumpvars","find","remove","report","list"]):
             p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
-        if not self.matches_args(args,["dumpvars","report","list"]):
+        if not self.matches_args(args,["dumpvars","find","report","list"]):
             p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--owners", dest="owners", help="specify owners for authz_ownership module")
 
 
     def run(self):
+
+        if "find" in self.args:
+            items = self.api.find_system(return_list=True, no_errors=True, **self.options.__dict__)
+            for x in items:
+                print x.name
+            return 0
 
         obj = self.object_manipulator_start(self.api.new_repo,self.api.repos)
         if obj is None:

@@ -27,13 +27,13 @@ import cexceptions
 class DistroFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler distro", "<add|edit|copy|list|rename|remove|report> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler distro", "<add|copy|edit|find|list|rename|remove|report> [ARGS|--help]")
 
     def command_name(self):
         return "distro"
 
     def subcommands(self):
-        return [ "add", "edit", "copy", "rename", "remove", "list", "report", "dumpvars" ]
+        return [ "add", "copy", "dumpvars", "edit", "find", "list", "remove", "rename", "report" ]
 
     def add_options(self, p, args):
 
@@ -54,7 +54,7 @@ class DistroFunction(commands.CobblerFunction):
 
         if self.matches_args(args,["copy","rename"]):
             p.add_option("--newname", dest="newname", help="for copy/rename commands")
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
+        if not self.matches_args(args,["dumpvars","find","remove","report","list"]):
             p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
         if not self.matches_args(args,["dumpvars","report","list"]):
             p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
@@ -65,6 +65,12 @@ class DistroFunction(commands.CobblerFunction):
             p.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
 
     def run(self):
+
+        if "find" in self.args:
+            items = self.api.find_distro(return_list=True, no_errors=True, **self.options.__dict__)
+            for x in items:
+                print x.name
+            return 0
 
         obj = self.object_manipulator_start(self.api.new_distro,self.api.distros)
         if obj is None:

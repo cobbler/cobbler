@@ -52,7 +52,7 @@ class Collection(serializable.Serializable):
         """
         self.listing = {}
 
-    def find(self, name=None, return_list=False, **kargs):
+    def find(self, name=None, return_list=False, no_errors=False, **kargs):
         """
         Return first object in the collection that maches all item='value'
         pairs passed, else return None if no objects can be found.
@@ -66,6 +66,8 @@ class Collection(serializable.Serializable):
         if name is not None:
             kargs["name"] = name
 
+        kargs = self.__rekey(kargs)
+
         # no arguments is an error, so we don't return a false match
         if len(kargs) == 0:
             raise CX(_("calling find with no arguments"))
@@ -75,7 +77,7 @@ class Collection(serializable.Serializable):
             return self.listing.get(kargs["name"].lower(), None)
 
         for (name, obj) in self.listing.iteritems():
-            if obj.find_match(kargs):
+            if obj.find_match(kargs, no_errors=no_errors):
                 matches.append(obj)
 
         if not return_list:
@@ -84,6 +86,39 @@ class Collection(serializable.Serializable):
             return matches[0]
         else:
             return matches
+
+
+    SEARCH_REKEY = {
+           'kopts'           : 'kernel_options',
+           'ksmeta'          : 'ks_meta',
+           'inherit'         : 'parent',
+           'ip'              : 'ip_address',
+           'mac'             : 'mac_address',
+           'virt-file-size'  : 'virt_file_size',
+           'virt-ram'        : 'virt_ram',
+           'virt-path'       : 'virt_path',
+           'virt-type'       : 'virt_type',
+           'virt-bridge'     : 'virt_bridge',
+           'virt-cpus'       : 'virt_cpus',
+           'dhcp-tag'        : 'dhcp_tag',
+           'netboot-enabled' : 'netboot_enabled'
+    }
+
+    def __rekey(self,hash):
+        """
+        Find calls from the command line ("cobbler system find") 
+        don't always match with the keys from the datastructs and this
+        makes them both line up without breaking compatibility with either.
+        Thankfully we don't have a LOT to remap.
+        """
+        newhash = {}
+        for x in hash.keys():
+           if self.SEARCH_REKEY.has_key(x):
+              newkey = self.SEARCH_REKEY[x]
+              newhash[newkey] = hash[x]
+           else:
+              newhash[x] = hash[x]   
+        return newhash
 
     def to_datastruct(self):
         """
