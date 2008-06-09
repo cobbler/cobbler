@@ -1,7 +1,8 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-- Wed Jun 03 2008 - 1.0.3
+- Mon Jun 09 2008 - 1.0.2
+- Fix mkdir invocation
 - Fix error message output from failed kickstart rendering
 - manpage edits
 
