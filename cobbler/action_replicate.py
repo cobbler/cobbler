@@ -129,7 +129,7 @@ class Replicate:
         needsync = False
         for profile in remote_profiles:
             if self.check_profile(profile):
-                print 'Found profile %s.' % profilew['name']
+                print _("Found profile %s" % profile['name'])
                 self.add_profile(profile)
                 needsync = True
         self.call_sync(needsync)
