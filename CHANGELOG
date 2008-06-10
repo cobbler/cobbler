@@ -1,6 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+- Tue Jun 10 2008 - 1.0.3 (tentative)
+- Fix typo in replicate code
+
 - Mon Jun 09 2008 - 1.0.2
 - Fix mkdir invocation
 - Fix error message output from failed kickstart rendering
