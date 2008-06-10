@@ -2,7 +2,7 @@
 
 Summary: Network provisioning tool for Xen and Bare Metal Machines 
 Name: koan
-Version: 1.0.0
+Version: 1.0.1
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -56,6 +56,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+
+* Fri Jun 06 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.1-1
+- Upstream changes (see CHANGELOG)
 
 * Fri May 16 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.2-2
 - Upstream changes (see CHANGELOG)

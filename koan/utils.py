@@ -32,6 +32,16 @@ import re
 import glob
 import socket
 
+class InfoException(exceptions.Exception):
+    """
+    Custom exception for tracking of fatal errors.
+    """
+    def __init__(self,value,**args):
+        self.value = value % args
+        self.from_koan = 1
+    def __str__(self):
+        return repr(self.value)
+
 def setupLogging(appname, debug=False):
     """
     set up logging ... code borrowed/adapted from virt-manager
@@ -137,7 +147,7 @@ def subprocess_call(cmd,ignore_rc=False):
     return rc
 
 
-def input_string_or_hash(options,delim=","):
+def input_string_or_hash(options,delim=None):
     """
     Older cobbler files stored configurations in a flat way, such that all values for strings.
     Newer versions of cobbler allow dictionaries.  This function is used to allow loading

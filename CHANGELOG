@@ -1,5 +1,8 @@
 Koan CHANGELOG
 
+- Fri Jun 06 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.1-1
+- Fix problem that left cobbler kopts unused
+
 - Wed May 27 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.0-1
 - Release bump for 1.0/mirrors
 

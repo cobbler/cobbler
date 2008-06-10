@@ -912,9 +912,9 @@ class Koan:
 
         kextra    = ""
         if kickstart != "":
-            kextra = kextra + "ks=" + kickstart
-        if kickstart != "" and options !="":
-            kextra = kextra + " "
+            kextra = "ks=" + kickstart 
+        if options !="":
+            kextra = kextra + " " + options
         # parser issues?  lang needs a trailing = and somehow doesn't have it.
 
         # convert the from-cobbler options back to a hash
