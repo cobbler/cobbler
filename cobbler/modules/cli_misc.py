@@ -272,10 +272,24 @@ class ReplicateFunction(commands.CobblerFunction):
         return "replicate"
 
     def add_options(self, p, args):
-        p.add_option("--master",           dest="master",             help="Cobbler server to replicate from.")
+        p.add_option("--master",               dest="master",           help="Cobbler server to replicate from.")
+        p.add_option("--include-systems",      dest="systems",          action="store_true", help="include systems in addition to distros, profiles, and repos")
+        p.add_option("--full-data-sync",       dest="all",              action="store_true", help="rsync everything")
+        p.add_option("--sync-kickstarts",      dest="kickstarts",       action="store_true", help="rsync kickstart templates")
+        p.add_option("--sync-trees",           dest="trees",            action="store_true", help="rsync imported trees")
+        p.add_option("--sync-triggers",        dest="triggers",         action="store_true", help="rsync trigger scripts")
+        p.add_option("--sync-repos",           dest="repos",            action="store_true", help="rsync mirrored repo data")
 
     def run(self):
-        return self.api.replicate(cobbler_master = self.options.master)
+        return self.api.replicate(
+             cobbler_master = self.options.master,
+             sync_all = self.options.all,
+             sync_kickstarts = self.options.kickstarts,
+             sync_trees = self.options.trees,
+             sync_repos = self.options.repos,
+             sync_triggers = self.options.triggers,
+             systems = self.options.systems
+        )
 
 ########################################################
 
@@ -291,7 +305,7 @@ class AclFunction(commands.CobblerFunction):
         p.add_option("--adduser",            dest="adduser",            help="give acls to this user")
         p.add_option("--addgroup",           dest="addgroup",           help="give acls to this group")
         p.add_option("--removeuser",         dest="removeuser",         help="remove acls from this user")
-        p.add_option("--removegroup",         dest="removegroup",        help="remove acls from this group")
+        p.add_option("--removegroup",        dest="removegroup",        help="remove acls from this group")
 
     def run(self):
         return self.api.acl_config(

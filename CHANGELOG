@@ -6,6 +6,7 @@ Cobbler CHANGELOG
 - added cobbler aclsetup command for running cobbler as non-root
 - added cobbler find command to do searches from the command line
 - fix mkdir invocation
+- improved cobbler replicate, it now can rsync needed files
 
 - Wed Jun 03 2008 - 1.0.3
 - Fix error message output from failed kickstart rendering

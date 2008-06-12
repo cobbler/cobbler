@@ -60,6 +60,18 @@ def log_exc(logger):
    logger.info("Exception value: %s" % v)
    logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
 
+def print_exc(exc,full=False):
+   (t, v, tb) = sys.exc_info()
+   try:
+      getattr(exc, "from_cobbler")
+      print str(exc)[1:-1]
+   except:
+      print t
+      print v
+      if full:
+          print string.join(traceback.format_list(traceback.extract_tb(tb)))
+   return 1
+
 
 def trace_me():
    x = traceback.extract_stack()

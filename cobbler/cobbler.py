@@ -23,6 +23,7 @@ import optparse
 import string
 import commands
 import cexceptions
+import utils
 from cexceptions import *
 
 from utils import _
@@ -66,14 +67,7 @@ def main():
     except SystemExit, ex:
         return 1
     except Exception, exc:
-        (t, v, tb) = sys.exc_info()
-        try:
-           getattr(exc, "from_cobbler")
-           print str(exc)[1:-1]
-        except: 
-           print t
-           print v
-           print string.join(traceback.format_list(traceback.extract_tb(tb)))
+        utils.print_exc(exc,full=True)
         return 1
 
 if __name__ == "__main__":

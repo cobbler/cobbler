@@ -442,9 +442,21 @@ class BootAPI:
            iso=iso, profiles=profiles, tempdir=tempdir
         )
 
-    def replicate(self, cobbler_master = None):
+    def replicate(self, cobbler_master = None, sync_all=False, sync_kickstarts=False, sync_trees=False, sync_repos=False, sync_triggers=False, systems=False):
+        """
+        Pull down metadata from a remote cobbler server that is a master to this server.
+        Optionally rsync data from it.
+        """
         replicator = action_replicate.Replicate(self._config)
-        return replicator.run(cobbler_master = cobbler_master)
+        return replicator.run(
+              cobbler_master = cobbler_master,
+              sync_all = sync_all,
+              sync_kickstarts = sync_kickstarts,
+              sync_trees = sync_trees,
+              sync_repos = sync_repos,
+              sync_triggers = sync_triggers,
+              include_systems = systems
+        )
 
     def get_kickstart_templates(self):
         return utils.get_kickstar_templates(self)
