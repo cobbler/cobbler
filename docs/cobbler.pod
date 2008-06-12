@@ -401,11 +401,13 @@ B<cobbler distro|profile|system|repo rename --name=oldname --newname=newname>
 
 =head2 REPLICATING
 
-Cobbler can replicate distro and profile data from a master cobbler server.
+Cobbler can replicate configurations from a master cobbler server.  Each cobbler server is still
+expected to have a locally relevant /etc/cobbler/cobbler.conf and modules.conf, as these files are not
+synced. 
 
-B<cobbler replicate --master=cobbler.example.org>
+B<cobbler replicate --master=cobbler.example.org [--include-systems] [--full-data-sync] [--sync-kickstarts] [--sync-trees] [--sync-triggers] [--sync-repos]>
 
-This will bring over all distro data for which it can find data in /var/www/cobbler/ks_mirror can be found.  It will also bring over any default profiles for those distros.  A default cobbler master can be set in the settings file.  Tree data must still be rsync'd (or otherwise mirrored) manually.
+A default cobbler master can be configured in the settings file.  Unless --include-systems is specified, only distributions, profiles, and repos will be transferred.  To move the accompanying data via rsync/scp, use --full-data-sync or a combination of the more specific sync options.  If not using --full-data-sync, the files must be mirrored via some other means or the objects will not be imported successfully.  This command works best if you are using "cobbler import" and "cobbler reposync" to manage your trees and repos.  If doing some of this work outside of Cobbler, additional scripting will be required to achieve replication, though this command will still do a large part of the heavy lifting.
 
 =head2 REBUILDING CONFIGURATIONS
 
