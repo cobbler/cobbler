@@ -10,6 +10,7 @@ Cobbler CHANGELOG
 - further templatize ISC dhcp config file (pay attention to /etc/cobbler/dhcp.template.rpmnew !)
 - fix for NFS imported URLs during kickstart generation
 - added yumreposync_flags to settings, default "-l" for use plugins
+- added an extra mkdir for rhn's reposync, though I believe the -l cures it already
 
 - Wed Jun 03 2008 - 1.0.3
 - Fix error message output from failed kickstart rendering
