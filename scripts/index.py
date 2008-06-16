@@ -20,6 +20,7 @@ import xmlrpclib
 import cgi
 import os
 from cobbler.webui import CobblerWeb
+import cobbler.utils as utils
 
 XMLRPC_SERVER = "http://127.0.0.1:25152" # was http://127.0.0.1/cobbler_api_rw"
 
@@ -95,6 +96,7 @@ def handler(req):
        token = sess['cobbler_token']
 
     # needed?
+    # usage later
     req.add_common_vars()
  
     # process form and qs data, if any
@@ -103,12 +105,14 @@ def handler(req):
     for x in fs.keys():
         form[x] = str(fs.get(x,'default'))
 
+    http_port = utils.parse_settings_lame("http_port",default="80")
+
     # instantiate a CobblerWeb object
     cw = CobblerWeb.CobblerWeb(
          apache   = apache,
          token    = token, 
          base_url = "/cobbler/web/",
-         server   = "http://127.0.0.1/cobbler_api_rw"
+         server   = "http://127.0.0.1:%s/cobbler_api_rw" % http_port
     )
 
     # check for a valid path/mode
