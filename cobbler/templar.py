@@ -86,8 +86,8 @@ class Templar:
         try:
             data_out = str(t)
         except:
-            print _("There appears to be an formatting error in the template file.")
-            print _("For completeness, the traceback from Cheetah has been included below.")
+            print "There appears to be an formatting error in the template file."
+            print "For completeness, the traceback from Cheetah has been included below."
             raise
 
         # now apply some magic post-filtering that is used by cobbler import and some

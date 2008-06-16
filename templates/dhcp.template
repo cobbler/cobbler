@@ -26,5 +26,35 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
      next-server             $next_server;
 }
 
-$insert_cobbler_system_definitions
+#for dhcp_tag in $dhcp_tags.keys():
+    ## group could be subnet if your dhcp tags line up with your subnets
+    ## or really any valid dhcpd.conf construct ... if you only use the
+    ## default dhcp tag in cobbler, the group block can be deleted for a
+    ## flat configuration
+# group for Cobbler DHCP tag: $dhcp_tag
+group {
+        #for mac in $dhcp_tags[$dhcp_tag].keys():
+            #set iface = $dhcp_tags[$dhcp_tag][$mac]
+    host $iface.name {
+        hardware ethernet $mac;
+        #if $iface.ip_address:
+            fixed-address $iface.ip_address;
+        #end if
+        #if $iface.subnet:
+            option subnet-mask $iface.subnet;
+        #end if
+        #if $iface.gateway:
+            option routers $iface.gateway;
+        #end if
+        #if $iface.system.netboot_enabled:
+            filename "$iface.filename";
+            ## Cobbler defaults to $next_server, but some users
+            ## like to use $iface.system.server for proxied setups
+            next-server $next_server;
+            ## next-server $iface.system.server;
+        #end if
+    }
+        #end for
+}
+#end for
 

@@ -7,6 +7,7 @@ Cobbler CHANGELOG
 - added cobbler find command to do searches from the command line
 - fix mkdir invocation
 - improved cobbler replicate, it now can rsync needed files
+- further templatize ISC dhcp config file (pay attention to /etc/cobbler/dhcp.template.rpmnew !)
 
 - Wed Jun 03 2008 - 1.0.3
 - Fix error message output from failed kickstart rendering
