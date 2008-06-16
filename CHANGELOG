@@ -1,5 +1,8 @@
 Koan CHANGELOG
 
+- Mon Jun 16 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.2-1
+- Pay attention to remote http ports for kickstart URLs
+
 - Fri Jun 06 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.1-1
 - Fix problem that left cobbler kopts unused
 
