@@ -184,10 +184,6 @@ xmlrpc_rw_port: 25152
 # configuration can still be done manually.  This is just a shortcut.
 yum_post_install_mirror: 0
 
-# "cobbler repo" support normally uses rsync or reposync.  If --rpm-list
-# is used, it's possible to download only a certain package list, plus
-# dependencies, but --resolve and other flags are not supported in
-# all versions of yumdownloader.  This is a list of what flags
-# to pass to it.  Only change this if you are experiencing problems
-# with "cobbler reposync" and are using --rpm-list.
+# additional flags to yum commands
+yumreposync_flags: "-l"
 yumdownloader_flags: "--resolve"

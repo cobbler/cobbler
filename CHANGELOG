@@ -9,6 +9,7 @@ Cobbler CHANGELOG
 - improved cobbler replicate, it now can rsync needed files
 - further templatize ISC dhcp config file (pay attention to /etc/cobbler/dhcp.template.rpmnew !)
 - fix for NFS imported URLs during kickstart generation
+- added yumreposync_flags to settings, default "-l" for use plugins
 
 - Wed Jun 03 2008 - 1.0.3
 - Fix error message output from failed kickstart rendering
