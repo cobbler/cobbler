@@ -1,8 +1,12 @@
 ---
 # cobbler settings file
-# run "cobbler sync" after making changes
+# restart cobblerd and consider running "cobbler sync" after making changes
 # (it's a good idea to make backups too)
 #
+# This config file is in YAML 1.0 format
+# see http://yaml.org
+
+
 # if 1, cobbler will allow insertions of system records that duplicate
 # the mac address information of other system records.  In general,
 # this is undesirable.
