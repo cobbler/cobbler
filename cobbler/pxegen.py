@@ -127,11 +127,14 @@ class PXEGen:
 
             f1 = utils.get_config_filename(system,interface=name)
 
+            if distro.arch is None or distro.arch == "":
+                distro.arch = "x86"
+
             # for tftp only ...
             if distro.arch in [ "i386", "x86", "x86_64", "standard"]:
                 # pxelinux wants a file named $name under pxelinux.cfg
                 f2 = os.path.join(self.bootloc, "pxelinux.cfg", f1)
-            if distro.arch == "ia64":
+            elif distro.arch == "ia64":
                 # elilo expects files to be named "$name.conf" in the root
                 # and can not do files based on the MAC address
                 if ip is not None and ip != "":
@@ -139,6 +142,8 @@ class PXEGen:
 
                 filename = "%s.conf" % utils.get_config_filename(system,interface=name)
                 f2 = os.path.join(self.bootloc, filename)
+            else:
+                raise CX(_("Invalid arch %s, cobbler is confused") % distro.arch)
 
             f3 = os.path.join(self.settings.webdir, "systems", f1)
 

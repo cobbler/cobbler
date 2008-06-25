@@ -190,6 +190,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
+* Tue Jun 10 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.3-1
+- Upstream changes (see CHANGELOG)
+
+* Mon Jun 09 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.2-1
+- Upstream changes (see CHANGELOG)
+
 * Tue Jun 03 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.1-1
 - Upstream changes (see CHANGELOG)
 - stop owning files in tftpboot

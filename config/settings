@@ -113,6 +113,19 @@ omshell_bin: /usr/bin/omshell
 # for --netboot-enabled.
 pxe_just_once: 0
 
+# when DHCP and DNS management are enabled, cobbler sync can automatically
+# restart those services to apply changes.  The exception for this is
+# if using ISC for DHCP, then omapi eliminates the need for a restart.
+# If DHCP and DNS are going to be managed, but hosted on a box that
+# is not on this server, disable restarts here and write some other
+# script to ensure that the config files get copied/rsynced to the destination
+# box.  This can be done by modifying the restart services trigger.
+# Note that if manage_dhcp and manage_dns are disabled, the respective
+# parameter will have no effect.  Most users should not need to change
+# this.
+restart_dns: 1
+restart_dhcp: 1
+
 # if set to 1, new systems doing profile based installations will
 # contact cobbler to have system records created for them containing
 # the mac address information that they have requested for install.

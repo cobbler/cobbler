@@ -14,6 +14,13 @@ Cobbler CHANGELOG
 - allow mod python bits to work via non-80 http ports
 
 - Wed Jun 03 2008 - 1.0.3
+- Fix typo in replicate code
+- remove rhpl reference
+- scrub references to manage_*_mode and rewrite the restart-services trigger
+- add new settings to control whether the restart-trigger restarts things
+
+- Mon Jun 09 2008 - 1.0.2
+- Fix mkdir invocation
 - Fix error message output from failed kickstart rendering
 - manpage edits
 - make buildiso work for SuSE
