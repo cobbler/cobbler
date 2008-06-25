@@ -64,6 +64,11 @@ if __name__ == "__main__":
         utils.log_exc(logger)
         sys.exit(1) 
 
+    dev_null = file('/dev/null','rw') 
+    os.dup2(dev_null.fileno(), sys.stdin.fileno()) 
+    os.dup2(dev_null.fileno(), sys.stdout.fileno()) 
+    os.dup2(dev_null.fileno(), sys.stderr.fileno()) 
+
     #################
 
     try:
