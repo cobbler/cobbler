@@ -49,14 +49,12 @@ devinstall:
 	-cp /tmp/cobbler_http.conf /etc/httpd/conf.d/cobbler.conf
 	find /var/lib/cobbler/triggers | xargs chmod +x
 	chown -R apache /var/www/cobbler 
-	chown -R apache /var/www/cgi-bin/cobbler	
 	chmod -R +x /var/www/cobbler/web
 	chmod -R +x /var/www/cobbler/svc
 
 webtest: devinstall
 	/sbin/service cobblerd restart
 	/sbin/service httpd restart
-	chmod +x /var/www/cgi-bin/cobbler/*.cgi
 
 sdist: clean messages updatewui
 	python setup.py sdist

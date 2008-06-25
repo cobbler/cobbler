@@ -4,6 +4,8 @@ Cobbler CHANGELOG
 - Tue Jun 10 2008 - 1.0.3 (tentative)
 - Fix typo in replicate code
 - remove rhpl reference
+- scrub references to manage_*_mode and rewrite the restart-services trigger
+- add new settings to control whether the restart-trigger restarts things
 
 - Mon Jun 09 2008 - 1.0.2
 - Fix mkdir invocation

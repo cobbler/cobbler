@@ -58,7 +58,6 @@ DEFAULTS = {
         "ksdevice"                : "eth0"
     },
     "manage_dhcp"                 : 0,
-    "manage_dhcp_mode"            : "isc",
     "manage_dns"                  : 0,
     "manage_forward_zones"        : [],
     "manage_reverse_zones"        : [],
@@ -69,6 +68,8 @@ DEFAULTS = {
     "omshell_bin"                 : "/usr/bin/omshell",
     "pxe_just_once"               : 0,
     "register_new_installs"       : 0,
+    "restart_dns"                 : 1,
+    "restart_dhcp"                : 1,
     "run_install_triggers"        : 1,
     "server"                      : "127.0.0.1",
     "snippetsdir"                 : "/var/lib/cobbler/snippets",

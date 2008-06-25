@@ -48,7 +48,7 @@ def register():
 class IscManager:
 
     def what(self):
-        return "isc_and_bind"
+        return "isc"
 
     def __init__(self,config,verbose=False):
         """
@@ -130,7 +130,6 @@ class IscManager:
         
         settings_file = self.settings.dhcpd_conf
         template_file = "/etc/cobbler/dhcp.template"
-        mode = self.settings.manage_dhcp_mode.lower()
 
         try:
             f2 = open(template_file,"r")

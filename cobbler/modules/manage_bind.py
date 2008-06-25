@@ -49,7 +49,7 @@ def register():
 class BindManager:
 
     def what(self):
-        return "isc_and_bind"
+        return "bind"
 
     def __init__(self,config,verbose=False):
         """

@@ -741,7 +741,11 @@ class SyncContents(BootTest):
 
         converted="01-bb-ee-ee-ee-ee-ff"
 
-        fh = open("/tftpboot/pxelinux.cfg/%s" % converted)
+        if os.path.exists("/var/lib/tftpboot"):
+            fh = open("/var/lib/tftpboot/pxelinux.cfg/%s" % converted)
+        else:
+            fh = open("/tftpboot/pxelinux.cfg/%s" % converted)
+
         data = fh.read()
         self.assertTrue(data.find("/op/ks/") != -1)
         fh.close()
@@ -751,7 +755,10 @@ class SyncContents(BootTest):
         # (which was an error we had in 0.6.3)
 
         self.api.sync()
-        fh = open("/tftpboot/pxelinux.cfg/%s" % converted)
+        if os.path.exists("/var/lib/tftpboot"):
+            fh = open("/var/lib/tftpboot/pxelinux.cfg/%s" % converted)
+        else:
+            fh = open("/tftpboot/pxelinux.cfg/%s" % converted)
         data = fh.read()
         self.assertTrue(data.find("/op/ks/") != -1)
         fh.close()
