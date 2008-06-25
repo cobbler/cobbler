@@ -20,6 +20,7 @@ Cobbler CHANGELOG
 - scrub references to manage_*_mode and rewrite the restart-services trigger
 - add new settings to control whether the restart-trigger restarts things
 - yum reposync should also pull i686 kernels, not just i386
+- make cobblerd close file handles
 
 - Mon Jun 09 2008 - 1.0.2
 - Fix mkdir invocation
