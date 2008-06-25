@@ -131,8 +131,9 @@ class RepoSync:
                 if repo.arch != "":
                     if repo.arch == "x86":
                        repo.arch = "i386" # FIX potential arch errors
+                    if repo.arch == "i386":
                        # counter-intuitive, but we want the newish kernels too
-                       cmd = "%s -a i686" % (cmd, repo.arch)
+                       cmd = "%s -a i686" % (cmd)
                     else:
                        cmd = "%s -a %s" % (cmd, repo.arch)
                     
