@@ -12,6 +12,7 @@ Cobbler CHANGELOG
 - added yumreposync_flags to settings, default "-l" for use plugins
 - added an extra mkdir for rhn's reposync, though I believe the -l cures it already
 - allow mod python bits to work via non-80 http ports
+- when mirroring repos, act as 686 not 386 to get all the kernel updates
 
 - Wed Jun 03 2008 - 1.0.3
 - Fix typo in replicate code
