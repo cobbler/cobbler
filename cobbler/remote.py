@@ -18,7 +18,6 @@ import socket
 import time
 import os
 import SimpleXMLRPCServer
-from rhpl.translate import _, N_, textdomain, utf8
 import xmlrpclib
 import random
 import base64
@@ -33,6 +32,7 @@ import item_distro
 import item_profile
 import item_system
 import item_repo
+from utils import *
 
 # FIXME: make configurable?
 TOKEN_TIMEOUT = 60*60 # 60 minutes

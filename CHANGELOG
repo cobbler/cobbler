@@ -3,6 +3,7 @@ Cobbler CHANGELOG
 
 - Tue Jun 10 2008 - 1.0.3 (tentative)
 - Fix typo in replicate code
+- remove rhpl reference
 
 - Mon Jun 09 2008 - 1.0.2
 - Fix mkdir invocation
