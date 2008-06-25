@@ -82,7 +82,10 @@ def get_module_from_file(category,field,fallback_module_name=None):
             value = fallback_module_name
         else:
             raise CX(_("Cannot find config file setting for: %s") % field) 
-    return MODULE_CACHE.get(value, None)
+    rc = MODULE_CACHE.get(value, None)
+    if rc is None:
+        raise CX(_("Failed to load module for %s/%s") % (category,field))
+    return rc
 
 def get_modules_in_category(category):
     if not MODULES_BY_CATEGORY.has_key(category):
