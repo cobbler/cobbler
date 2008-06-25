@@ -58,6 +58,7 @@ class BuildIso:
         self.api         = config.api
         self.distros     = config.distros()
         self.profiles    = config.profiles()
+        self.systems     = config.systems()
         self.distmap     = {}
         self.distctr     = 0
 
@@ -69,7 +70,7 @@ class BuildIso:
             self.distmap[distname] = str(self.distctr)
             return str(self.distctr)
 
-    def run(self,iso=None,tempdir=None,profiles=None):
+    def run(self,iso=None,tempdir=None,profiles=None,systems=None):
 
         # verify we can find isolinux.bin
 
@@ -107,7 +108,7 @@ class BuildIso:
                 raise CX(_("Required file not found: %s") % f)
         utils.copyfile(f, os.path.join(isolinuxdir, os.path.basename(f)))
  
-        print _("- copying kernels and initrds")
+        print _("- copying kernels and initrds - for profiles")
         # copy all images in included profiles to images dir
         for x in self.api.profiles():
            use_this = True
@@ -124,18 +125,35 @@ class BuildIso:
            shutil.copyfile(dist.kernel, os.path.join(isolinuxdir, "%s.krn" % distname))
            shutil.copyfile(dist.initrd, os.path.join(isolinuxdir, "%s.img" % distname))
 
-        # generate isolinux.cfg
+        print _("- copying kernels and initrds - for systems")
+        # copy all images in included profiles to images dir
+        for x in self.api.systems():
+           use_this = False
+           if systems is not None:
+              which_systems = systems.split(",")
+              if use_this in which_systems:
+                 use_this = True
+           y = x.get_conceptual_parent()
+           dist = y.get_conceptual_parent()
+           if dist.name.find("-xen") != -1:
+               continue
+           distname = self.make_shorter(dist.name)
+           # tempdir/isolinux/$distro/vmlinuz, initrd.img
+           # FIXME: this will likely crash on non-Linux breeds
+           shutil.copyfile(dist.kernel, os.path.join(isolinuxdir, "%s.krn" % distname))
+           shutil.copyfile(dist.initrd, os.path.join(isolinuxdir, "%s.img" % distname))
+
         print _("- generating a isolinux.cfg")
         isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
         cfg = open(isolinuxcfg, "w+")
         cfg.write(HEADER) # fixme, use template
         
+        print _("- generating profile list")
         for x in self.api.profiles():
-            # FIXME
             use_this = True
             if profiles is not None:
                 which_profiles = profiles.split(",")
-                if not use_this in which_profiles:
+                if not x.name in which_profiles:
                     use_this = False
             if use_this:
                 dist = x.get_conceptual_parent()
@@ -160,6 +178,37 @@ class BuildIso:
                         append_line = append_line + " autoyast=%s " % data["kickstart"]
                 if data["breed"] == "redhat":
                         append_line = append_line + " ks=%s " % data["kickstart"]
+                append_line = append_line + " %s\n" % data["kernel_options"]
+                cfg.write(append_line)
+
+        print _("- generating system list")
+        for x in self.api.systems():
+            use_this = False
+            if systems is not None:
+                which_systems = systems.split(",")
+                if x.name in which_systems:
+                    use_this = True
+            if use_this:
+                y = x.get_conceptual_parent()
+                dist = y.get_conceptual_parent()
+                if dist.name.find("-xen") != -1:
+                    continue
+                data = utils.blender(self.api, True, x)
+                distname = self.make_shorter(dist.name)
+
+                cfg.write("\n")
+                cfg.write("LABEL %s\n" % x.name)
+                cfg.write("  MENU LABEL %s\n" % x.name)
+                cfg.write("  kernel %s.krn\n" % distname)
+
+                if data["kickstart"].startswith("/"):
+                    data["kickstart"] = "http://%s/cblr/svc/op/ks/system/%s" % (
+                        data["server"],
+                        x.name
+                    )
+
+                append_line = "  append initrd=%s.img" % distname
+                append_line = append_line + " ks=%s " % data["kickstart"]
                 append_line = append_line + " %s\n" % data["kernel_options"]
                 cfg.write(append_line)
 

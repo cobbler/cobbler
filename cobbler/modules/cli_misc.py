@@ -246,6 +246,7 @@ class BuildIsoFunction(commands.CobblerFunction):
     def add_options(self,p,args): 
         p.add_option("--iso",      dest="isoname",  help="(OPTIONAL) output ISO to this path")
         p.add_option("--profiles", dest="profiles", help="(OPTIONAL) use these profiles only")
+        p.add_option("--systems",  dest="systems",  help="(OPTIONAL) use these systems only")
         p.add_option("--tempdir",  dest="tempdir",  help="(OPTIONAL) working directory")
 
     def help_me(self):
@@ -258,6 +259,7 @@ class BuildIsoFunction(commands.CobblerFunction):
        return self.api.build_iso(
            iso=self.options.isoname,
            profiles=self.options.profiles,
+           systems=self.options.systems,
            tempdir=self.options.tempdir
        )
 
