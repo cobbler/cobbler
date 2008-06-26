@@ -40,7 +40,8 @@ ONTIMEOUT local
 LABEL local
         MENU LABEL (local)
         MENU DEFAULT
-        LOCALBOOT -1
+        KERNEL chain.c32
+        APPEND hd0 0
 
 """
 
@@ -72,24 +73,22 @@ class BuildIso:
 
     def run(self,iso=None,tempdir=None,profiles=None,systems=None):
 
-        # verify we can find isolinux.bin
-
+        # if iso is none, create it in . as "kickstart.iso"
         if iso is None:
             iso = "kickstart.iso"
 
-        isolinuxbin = "/usr/lib/syslinux/isolinux.bin"
-        if not os.path.exists(isolinuxbin):
-            raise CX(_("Required file not found: %s") % isolinuxbin)
-
-        # if iso is none, create it in . as "cobbler.iso"
         if tempdir is None:
             tempdir = os.path.join(os.getcwd(), "buildiso")
         print _("- using/creating tempdir: %s") % tempdir 
         if not os.path.exists(tempdir):
             os.makedirs(tempdir)
+        else:
+            shutil.rmtree(tempdir)
+            os.makedirs(tempdir)
 
         # if base of tempdir does not exist, fail
         # create all profiles unless filtered by "profiles"
+
         imagesdir = os.path.join(tempdir, "images")
         isolinuxdir = os.path.join(tempdir, "isolinux")       
 
@@ -100,117 +99,143 @@ class BuildIso:
             os.makedirs(isolinuxdir)
 
         print _("- copying miscellaneous files")
-        utils.copyfile(isolinuxbin, os.path.join(isolinuxdir, "isolinux.bin"))
+        isolinuxbin = "/usr/lib/syslinux/isolinux.bin"
         menu = "/var/lib/cobbler/menu.c32"
-        files = [ isolinuxbin, menu ]
+        chain = "/usr/lib/syslinux/chain.c32"
+        files = [ isolinuxbin, menu, chain ]
         for f in files:
             if not os.path.exists(f):
-                raise CX(_("Required file not found: %s") % f)
-        utils.copyfile(f, os.path.join(isolinuxdir, os.path.basename(f)))
+               raise CX(_("Required file not found: %s") % f)
+            else:
+               utils.copyfile(f, os.path.join(isolinuxdir, os.path.basename(f)))
  
         print _("- copying kernels and initrds - for profiles")
         # copy all images in included profiles to images dir
-        for x in self.api.profiles():
+        for profile in self.api.profiles():
            use_this = True
            if profiles is not None:
               which_profiles = profiles.split(",")
-              if not use_this in which_profiles:
+              if not profile.name in which_profiles:
                  use_this = False
-           dist = x.get_conceptual_parent()
-           if dist.name.find("-xen") != -1:
-               continue
-           distname = self.make_shorter(dist.name)
-           # tempdir/isolinux/$distro/vmlinuz, initrd.img
-           # FIXME: this will likely crash on non-Linux breeds
-           shutil.copyfile(dist.kernel, os.path.join(isolinuxdir, "%s.krn" % distname))
-           shutil.copyfile(dist.initrd, os.path.join(isolinuxdir, "%s.img" % distname))
 
-        print _("- copying kernels and initrds - for systems")
-        # copy all images in included profiles to images dir
-        for x in self.api.systems():
-           use_this = False
-           if systems is not None:
-              which_systems = systems.split(",")
-              if use_this in which_systems:
-                 use_this = True
-           y = x.get_conceptual_parent()
-           dist = y.get_conceptual_parent()
-           if dist.name.find("-xen") != -1:
-               continue
-           distname = self.make_shorter(dist.name)
-           # tempdir/isolinux/$distro/vmlinuz, initrd.img
-           # FIXME: this will likely crash on non-Linux breeds
-           shutil.copyfile(dist.kernel, os.path.join(isolinuxdir, "%s.krn" % distname))
-           shutil.copyfile(dist.initrd, os.path.join(isolinuxdir, "%s.img" % distname))
+           if use_this:
+              dist = profile.get_conceptual_parent()
+              if dist.name.lower().find("-xen") != -1:
+                  print "skipping Xen distro: %s" % dist.name
+                  continue
+              distname = self.make_shorter(dist.name)
+
+              # tempdir/isolinux/$distro/vmlinuz, initrd.img
+              # FIXME: this will likely crash on non-Linux breeds
+
+              shutil.copyfile(dist.kernel, os.path.join(isolinuxdir, "%s.krn" % distname))
+              shutil.copyfile(dist.initrd, os.path.join(isolinuxdir, "%s.img" % distname))
+
+        if systems is not None:
+           print _("- copying kernels and initrds - for systems")
+           # copy all images in included profiles to images dir
+           for system in self.api.systems():
+              if system.name in systems:
+                 profile = system.get_conceptual_parent()
+                 dist = profile.get_conceptual_parent()
+                 if dist.name.find("-xen") != -1:
+                    continue
+                 distname = self.make_shorter(dist.name)
+                 # tempdir/isolinux/$distro/vmlinuz, initrd.img
+                 # FIXME: this will likely crash on non-Linux breeds
+                 shutil.copyfile(dist.kernel, os.path.join(isolinuxdir, "%s.krn" % distname))
+                 shutil.copyfile(dist.initrd, os.path.join(isolinuxdir, "%s.img" % distname))
 
         print _("- generating a isolinux.cfg")
         isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
         cfg = open(isolinuxcfg, "w+")
         cfg.write(HEADER) # fixme, use template
         
-        print _("- generating profile list")
-        for x in self.api.profiles():
+        print _("- generating profile list...")
+        for profile in self.api.profiles():
             use_this = True
             if profiles is not None:
                 which_profiles = profiles.split(",")
-                if not x.name in which_profiles:
+                if not profile.name in which_profiles:
                     use_this = False
+
             if use_this:
-                dist = x.get_conceptual_parent()
+                dist = profile.get_conceptual_parent()
                 if dist.name.find("-xen") != -1:
                     continue
-                data = utils.blender(self.api, True, x)
+                data = utils.blender(self.api, True, profile)
                 distname = self.make_shorter(dist.name)
 
                 cfg.write("\n")
-                cfg.write("LABEL %s\n" % x.name)
-                cfg.write("  MENU LABEL %s\n" % x.name)
+                cfg.write("LABEL %s\n" % profile.name)
+                cfg.write("  MENU LABEL %s\n" % profile.name)
                 cfg.write("  kernel %s.krn\n" % distname)
 
                 if data["kickstart"].startswith("/"):
                     data["kickstart"] = "http://%s/cblr/svc/op/ks/profile/%s" % (
                         data["server"],
-                        x.name
-                    )
-
-                append_line = "  append initrd=%s.img" % distname
-                if data["breed"] == "suse":
-                        append_line = append_line + " autoyast=%s " % data["kickstart"]
-                if data["breed"] == "redhat":
-                        append_line = append_line + " ks=%s " % data["kickstart"]
-                append_line = append_line + " %s\n" % data["kernel_options"]
-                cfg.write(append_line)
-
-        print _("- generating system list")
-        for x in self.api.systems():
-            use_this = False
-            if systems is not None:
-                which_systems = systems.split(",")
-                if x.name in which_systems:
-                    use_this = True
-            if use_this:
-                y = x.get_conceptual_parent()
-                dist = y.get_conceptual_parent()
-                if dist.name.find("-xen") != -1:
-                    continue
-                data = utils.blender(self.api, True, x)
-                distname = self.make_shorter(dist.name)
-
-                cfg.write("\n")
-                cfg.write("LABEL %s\n" % x.name)
-                cfg.write("  MENU LABEL %s\n" % x.name)
-                cfg.write("  kernel %s.krn\n" % distname)
-
-                if data["kickstart"].startswith("/"):
-                    data["kickstart"] = "http://%s/cblr/svc/op/ks/system/%s" % (
-                        data["server"],
-                        x.name
+                        profile.name
                     )
 
                 append_line = "  append initrd=%s.img" % distname
                 append_line = append_line + " ks=%s " % data["kickstart"]
                 append_line = append_line + " %s\n" % data["kernel_options"]
+
+                length=len(append_line)
+                if length>250:
+                   print _("WARNING - appand line length is greater than 250 chars: (%s chars)") % length 
+                
                 cfg.write(append_line)
+ 
+        if systems is not None:
+           print _("- generating system list...")
+
+           cfg.write("\nMENU SEPARATOR\n")
+
+           for system in self.api.systems():
+               use_this = False
+               if systems is not None:
+                   which_systems = systems.split(",")
+                   if system.name in which_systems:
+                       use_this = True
+
+               if use_this:
+                   profile = system.get_conceptual_parent()
+                   dist = profile.get_conceptual_parent()
+                   if dist.name.find("-xen") != -1:
+                       continue
+                   data = utils.blender(self.api, True, system)
+                   distname = self.make_shorter(dist.name)
+
+                   cfg.write("\n")
+                   cfg.write("LABEL %s\n" % system.name)
+                   cfg.write("  MENU LABEL %s\n" % system.name)
+                   cfg.write("  kernel %s.krn\n" % distname)
+
+                   if data["kickstart"].startswith("/"):
+                       data["kickstart"] = "http://%s/cblr/svc/op/ks/system/%s" % (
+                           data["server"],
+                           system.name
+                       )
+
+                   append_line = "  append initrd=%s.img" % distname
+                   append_line = append_line + " ks=%s" % data["kickstart"]
+                   append_line = append_line + " %s" % data["kernel_options"]
+
+                   # add network info to avoid DHCP only if it is available
+
+                   if data.has_key("ip_address_intf0") and data["ip_address_intf0"] != "":
+                       append_line = append_line + " ip=%s" % data["ip_address_intf0"]
+                   if data.has_key("subnet_inf0") and data["subnet_inf0"] != "":
+                       append_line = append_line + " netmask=%s" % data["subnet_intf0"]
+                   if data.has_key("gateway_intf0") and data["gateway_inf0"] != "":
+                       append_line = append_line + " gateway=%s\n" % data["gateway_intf0"]
+
+                   length=len(append_line)
+                   if length > 254:
+                      print _("WARNING - append line length is greater than 254 chars: (%s chars)") % length 
+                
+                   cfg.write(append_line)
 
         print _("- done writing config")        
         cfg.write("\n")
