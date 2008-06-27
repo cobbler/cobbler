@@ -260,7 +260,7 @@ This is described further on the Cobbler Wiki.
 
 =item --interface
 
-By default flags like --ip, --mac, --dhcp-tag, --gateway, --subnet, and --virt-bridge operation on the first network
+By default flags like --ip, --mac, --dhcp-tag, --gateway, --subnet, and --virt-bridge operate on the first network
 interface defined for a system.  Additional interfaces can be specified (0 through 7) for use with the edit command.
 
 Example:  
