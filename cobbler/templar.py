@@ -64,7 +64,7 @@ class Templar:
         # directive instead.  Do this to make the templates work.
         newdata = ""
         if search_table.has_key("tree") and search_table["tree"].startswith("nfs://"): 
-            for line in data.split("\n"):
+            for line in raw_data.split("\n"):
                if line.find("--url") != -1 and line.find("url ") != -1:
                    rest = search_table["tree"][6:] # strip off "nfs://" part
                    try:
