@@ -124,10 +124,8 @@ class BuildIso:
                   print "skipping Xen distro: %s" % dist.name
                   continue
               distname = self.make_shorter(dist.name)
-
               # tempdir/isolinux/$distro/vmlinuz, initrd.img
               # FIXME: this will likely crash on non-Linux breeds
-
               shutil.copyfile(dist.kernel, os.path.join(isolinuxdir, "%s.krn" % distname))
               shutil.copyfile(dist.initrd, os.path.join(isolinuxdir, "%s.img" % distname))
 
@@ -182,8 +180,8 @@ class BuildIso:
                 append_line = append_line + " %s\n" % data["kernel_options"]
 
                 length=len(append_line)
-                if length>250:
-                   print _("WARNING - appand line length is greater than 250 chars: (%s chars)") % length 
+                if length>254:
+                   print _("WARNING - append line length is greater than 254 chars: (%s chars)") % length 
                 
                 cfg.write(append_line)
  
