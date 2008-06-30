@@ -224,9 +224,9 @@ class BuildIso:
 
                    if data.has_key("ip_address_intf0") and data["ip_address_intf0"] != "":
                        append_line = append_line + " ip=%s" % data["ip_address_intf0"]
-                   if data.has_key("subnet_inf0") and data["subnet_inf0"] != "":
+                   if data.has_key("subnet_intf0") and data["subnet_intf0"] != "":
                        append_line = append_line + " netmask=%s" % data["subnet_intf0"]
-                   if data.has_key("gateway_intf0") and data["gateway_inf0"] != "":
+                   if data.has_key("gateway_intf0") and data["gateway_intf0"] != "":
                        append_line = append_line + " gateway=%s\n" % data["gateway_intf0"]
 
                    length=len(append_line)

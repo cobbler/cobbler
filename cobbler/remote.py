@@ -32,6 +32,7 @@ import item_distro
 import item_profile
 import item_system
 import item_repo
+import item_image
 from utils import *
 
 # FIXME: make configurable?
@@ -349,6 +350,13 @@ class CobblerXMLRPCInterface:
         """
         self.log("get_repos",token=token)
         return self.__get_all("repo",page,results_per_page)
+    
+    def get_images(self,page=None,results_per_page=None,token=None):
+        """
+        Returns all cobbler images as an array of hashes.
+        """
+        self.log("get_images",token=token)
+        return self.__get_all("image",page,results_per_page)
 
     def __get_specific(self,collection_fn,name,flatten=False):
         """
@@ -391,6 +399,13 @@ class CobblerXMLRPCInterface:
         """
         self.log("get_repo",name=name,token=token)
         return self.__get_specific(self.api.repos,name,flatten=flatten)
+    
+    def get_image(self,name,flatten=False,token=None):
+        """
+        Returns the repo named "name" as a hash.
+        """
+        self.log("get_image",name=name,token=token)
+        return self.__get_specific(self.api.images,name,flatten=flatten)
 
     def get_distro_as_rendered(self,name,token=None):
         """
@@ -464,6 +479,26 @@ class CobblerXMLRPCInterface:
         self.log("get_repo_as_rendered",name=name,token=token)
         self._refresh()
         obj = self.api.repos().find(name=name)
+        if obj is not None:
+            return self._fix_none(utils.blender(self.api, True, obj))
+        return self._fix_none({})
+    
+
+    def get_image_as_rendered(self,name,token=None):
+        """
+        Return the image as passed through cobbler's
+        inheritance/graph engine.  Shows what would be installed, not
+        the input data.
+        """
+        return self.get_image_for_koan(self,name)
+
+    def get_image_for_koan(self,name,token=None):
+        """
+        Same as get_image_as_rendered.
+        """
+        self.log("get_image_as_rendered",name=name,token=token)
+        self._refresh()
+        obj = self.api.images().find(name=name)
         if obj is not None:
             return self._fix_none(utils.blender(self.api, True, obj))
         return self._fix_none({})
@@ -811,6 +846,15 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.log("new_repo",token=token)
         self.check_access(token,"new_repo")
         return self.__store_object(item_repo.Repo(self.api._config))
+
+    def new_image(self,token):
+        """
+        Creates a new (unconfigured) image object.  See the documentation 
+        for new_distro as it works exactly the same.
+        """
+        self.log("new_image",token=token)
+        self.check_access(token,"new_image")
+        return self.__store_object(item_image.Image(self.api._config))
        
     def get_distro_handle(self,name,token):
         """
@@ -851,7 +895,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
     def get_repo_handle(self,name,token):
         """
         Given the name of an repo (or other search parameters), return an
-        object id that can be passed in to modify_repo() or save_pro()
+        object id that can be passed in to modify_repo() or save_repo()
         commands.  Raises an exception if no object can be matched.
         """
         self.log("get_repo_handle",name=name,token=token)
@@ -859,6 +903,18 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self._refresh()
         found = self.api.repos().find(name)
         return self.__store_object(found)   
+
+    def get_image_handle(self,name,token):
+        """
+        Given the name of an image (or other search parameters), return an
+        object id that can be passed in to modify_image() or save_image()
+        commands.  Raises an exception if no object can be matched.
+        """
+        self.log("get_image_handle",name=name,token=token)
+        self.check_access(token,"get_image_handle")
+        self._refresh()
+        found = self.api.images().find(name)
+        return self.__store_object(found)
 
     def save_distro(self,object_id,token,editmode="bypass"):
         """
@@ -911,6 +967,20 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         else:
            return self.api.repos().add(obj,save=True)
 
+    def save_image(self,object_id,token=None,editmode="bypass"):
+        """
+        Saves a newly created or modified repo object to disk.
+        """
+        self.log("save_image",object_id=object_id,token=token)
+        obj = self.__get_object(object_id)
+        self.check_access(token,"save_image",obj)
+        if editmode == "new":
+           return self.api.images().add(obj,save=True,check_for_duplicate_names=True)
+        else:
+           return self.api.images().add(obj,save=True)
+
+    ## FIXME: refactor out all of the boilerplate stuff like ^^
+
     def copy_distro(self,object_id,newname,token=None):
         """
         All copy methods are pretty much the same.  Get an object handle, pass in the new
@@ -938,6 +1008,12 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.check_access(token,"copy_repo")
         obj = self.__get_object(object_id)
         return self.api.copy_repo(obj,newname)
+
+    def copy_image(self,object_id,token=None):
+        self.log("copy_image",object_id=object_id,token=token)
+        self.check_access(token,"copy_image")
+        obj = self.__get_object(object_id)
+        return self.api.copy_image(obj,newname)
 
     def rename_distro(self,object_id,newname,token=None):
         """
@@ -967,6 +1043,12 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.check_access(token,"rename_repo")
         obj = self.__get_object(object_id)
         return self.api.rename_repo(obj,newname)
+    
+    def rename_image(self,object_id,newname,token=None):
+        self.log("rename_image",object_id=object_id,token=token)
+        self.check_access(token,"rename_image")
+        obj = self.__get_object(object_id)
+        return self.api.rename_image(obj,newname)
 
     def __call_method(self, obj, attribute, arg):
         """
@@ -1012,6 +1094,16 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         obj = self.__get_object(object_id)
         self.check_access(token, "modify_repo", obj, attribute)
         return self.__call_method(obj, attribute, arg)
+    
+    def modify_image(self,object_id,attribute,arg,token):
+        """
+        Allows modification of certain attributes on newly created or
+        existing image object handle.
+        """
+        ## FIXME: lots of boilerplate to remove here, move to utils.py
+        obj = self.__get_object(object_id)
+        self.check_access(token, "modify_image", obj, attribute)
+        return self.__call_method(obj, attribute, arg)
 
     def remove_distro(self,name,token,recursive=1):
         """
@@ -1037,6 +1129,35 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
               files[x.kickstart] = 1
         return files.keys() 
 
+    def remove_system(self,name,token,recursive=1):
+        """
+        Deletes a system from a collection.  Note that this just requires the name
+        of the distro, not a handle.
+        """
+        self.log("remove_system (%s)" % recursive,name=name,token=token)
+        self.check_access(token, "remove_system", name)
+        rc = self.api._config.systems().remove(name,recursive=True)
+        return rc
+
+    def remove_repo(self,name,token,recursive=1):
+        """
+        Deletes a repo from a collection.  Note that this just requires the name
+        of the repo, not a handle.
+        """
+        self.log("remove_repo (%s)" % recursive,name=name,token=token)
+        self.check_access(token, "remove_repo", name)
+        rc = self.api._config.repos().remove(name,recursive=True)
+        return rc
+
+    def remove_image(self,name,token,recursive=1):
+        """
+        Deletes a image from a collection.  Note that this just requires the name
+        of the image, not a handle.
+        """
+        self.log("remove_image (%s)" % recursive,name=name,token=token)
+        self.check_access(token, "remove_image", name)
+        rc = self.api._config.images().remove(name,recursive=True)
+        return rc
 
     def read_or_write_kickstart_template(self,kickstart_file,is_read,new_data,token):
         """
@@ -1080,7 +1201,6 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
                 fileh.write(new_data)
                 fileh.close()
             return True
-
 
 
 # *********************************************************************

@@ -167,6 +167,10 @@ class BootAPI:
     def copy_repo(self, ref, newname):
         self.log("copy_repo",[ref.name, newname])
         return self._config.repos().copy(ref,newname)
+    
+    def copy_image(self, ref, newname):
+        self.log("copy_image",[ref.name, newname])
+        return self._config.images().copy(ref,newname)
 
     def remove_distro(self, ref, recursive=False):
         self.log("remove_distro",[ref.name])
@@ -183,6 +187,10 @@ class BootAPI:
     def remove_repo(self, ref):
         self.log("remove_repo",[ref.name])
         return self._config.repos().remove(ref.name)
+    
+    def remove_image(self, ref):
+        self.log("remove_image",[ref.name])
+        return self._config.images().remove(ref.name)
 
     def rename_distro(self, ref, newname):
         self.log("rename_distro",[ref.name,newname])
@@ -199,6 +207,10 @@ class BootAPI:
     def rename_repo(self, ref, newname):
         self.log("rename_repo",[ref.name,newname])
         return self._config.repos().rename(ref,newname)
+    
+    def rename_image(self, ref, newname):
+        self.log("rename_image",[ref.name,newname])
+        return self._config.image().rename(ref,newname)
 
     def new_distro(self,is_subobject=False):
         self.log("new_distro",[is_subobject])
@@ -215,6 +227,10 @@ class BootAPI:
     def new_repo(self,is_subobject=False):
         self.log("new_repo",[is_subobject])
         return self._config.new_repo(is_subobject=is_subobject)
+    
+    def new_image(self,is_subobject=False):
+        self.log("new_image",[is_subobject])
+        return self._config.new_image(is_subobject=is_subobject)
 
     def add_distro(self, ref, check_for_duplicate_names=False):
         self.log("add_distro",[ref.name])
@@ -231,6 +247,10 @@ class BootAPI:
     def add_repo(self, ref, check_for_duplicate_names=False):
         self.log("add_repo",[ref.name])
         return self._config.repos().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
+    
+    def add_image(self, ref, check_for_duplicate_names=False):
+        self.log("add_image",[ref.name])
+        return self._config.images().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
 
     def find_distro(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.distros().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
@@ -243,6 +263,9 @@ class BootAPI:
 
     def find_repo(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.repos().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
+
+    def find_image(self, name=None, return_list=False, no_errors=False, **kargs):
+        return self._config.images().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     def dump_vars(self, obj, format=False):
         return obj.dump_vars(format)
