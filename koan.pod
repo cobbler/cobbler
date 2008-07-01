@@ -143,6 +143,10 @@ Note that none of the other koan options work in this mode.
 
 Also see the cobbler manpage.  It is both entertaining and educational.
 
+https://fedorahosted.org/cobbler is also highly recommended.
+
+The mailing list is cobbler@lists.fedorahosted.org.  Subscribe at https://fedorahosted.org/mailman/listinfo/cobbler
+
 =head1 AUTHOR
 
 Michael DeHaan <mdehaan@redhat.com>
