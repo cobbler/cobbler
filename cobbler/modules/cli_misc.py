@@ -127,19 +127,18 @@ class ListFunction(commands.CobblerFunction):
         p.add_option("--what",              dest="what",          default="all", help="all/distros/profiles/systems/repos")
      
     def run(self):
-        if self.options.what not in [ "all", "distros", "profiles", "systems", "repos" ]:
+        if self.options.what not in [ "all", "distros", "profiles", "systems", "repos", "images" ]:
             raise CX(_("invalid value for --what"))
-        if self.options.what in [ "all" ]:       
-            self.list_tree(self.api.distros(),0)
-            self.list_tree(self.api.repos(),0)
-        if self.options.what in [ "distros"]:
+        if self.options.what in [ "all", "distros"]:
             self.list_list(self.api.distros())
-        if self.options.what in [ "profiles"]:
+        if self.options.what in [ "all", "profiles"]:
             self.list_list(self.api.profiles())
-        if self.options.what in [ "systems" ]:
+        if self.options.what in [ "all", "systems" ]:
             self.list_list(self.api.systems())
-        if self.options.what in [ "repos"]:
+        if self.options.what in [ "all", "repos"]:
             self.list_list(self.api.repos())
+        if self.options.what in [ "all", "images"]:
+            self.list_list(self.api.images())
 
 ########################################################
 
@@ -156,7 +155,7 @@ class ReportFunction(commands.CobblerFunction):
         p.add_option("--name",              dest="name",                   help="report on just this object")
 
     def run(self):
-        if self.options.what not in [ "all", "distros", "profiles", "systems", "repos" ]:
+        if self.options.what not in [ "all", "distros", "profiles", "systems", "repos", "images" ]:
             raise CX(_("Invalid value for --what"))
 
         if self.options.what in [ "all", "distros"  ]:
@@ -182,7 +181,16 @@ class ReportFunction(commands.CobblerFunction):
                 self.reporting_list_names2(self.api.repos(),self.options.name)
             else:
                 self.reporting_print_sorted(self.api.repos())
+
+        if self.options.what in [ "all", "images"    ]:
+            if self.options.name:
+                self.reporting_list_names2(self.api.images(),self.options.name)
+            else:
+                self.reporting_print_sorted(self.api.images())
+
         return True
+
+
 
 ########################################################
 
