@@ -702,7 +702,7 @@ cobbler's command line returns a zero for success and non-zero for failure.
 
 =head1 ADDITIONAL RESOURCES
 
-Cobbler has a mailing list for user and development-related questions/comments at et-mgmt-tools@redhat.com.  
+Cobbler has a mailing list for user and development-related questions/comments at cobbler@lists.fedorahosted.org.  To subscribe, visit https://fedorahosted.org/mailman/listinfo/cobbler 
 
 IRC channel:  irc.freenode.net (#cobbler)
 
