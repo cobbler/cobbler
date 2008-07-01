@@ -97,7 +97,7 @@ class FunctionLoader:
         if not "report" in args:
             return args
         ok = False
-        for x in ["distro","profile","system","repo"]:
+        for x in ["distro","profile","system","repo","image"]:
             if x in args:
                 ok = True
         if not ok:

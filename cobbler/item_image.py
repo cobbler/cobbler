@@ -34,16 +34,20 @@ class Image(item.Item):
         """
         Reset this object.
         """
-        self.name            = None
-        self.file            = None
+        self.name            = ''
+        self.file            = ''
+        self.parent          = ''
+        self.depth           = 0
 
     def from_datastruct(self,seed_data):
         """
         Load this object's properties based on seed_data
         """
 
+        self.name            = self.load_item(seed_data,'name','')
         self.parent          = self.load_item(seed_data,'parent','')
         self.file            = self.load_item(seed_data,'file','')
+        self.depth           = self.load_item(seed_data,'depth',0)
 
         return self
 
@@ -83,6 +87,7 @@ class Image(item.Item):
             'name'             : self.name,
             'file'             : self.file,
             'depth'            : 0,
+            'parent'           : ''
         }
 
     def printable(self):

@@ -24,6 +24,7 @@ import item_system
 import item_profile
 import item_distro
 import item_repo
+import item_image
 
 from utils import _
 
