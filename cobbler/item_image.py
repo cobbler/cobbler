@@ -71,6 +71,7 @@ class Image(item.Item):
             raise CX(_("no file specified"))
         if self.name is None or self.name == '':
             raise CX(_("no name specified"))
+        return True
 
     # FIXME: add virt parameters here as needed
 

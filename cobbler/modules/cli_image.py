@@ -50,8 +50,9 @@ class ImageFunction(commands.CobblerFunction):
 
             p.add_option("--newname",          dest="newname",          help="used for copy/edit")
 
-        #if not self.matches_args(args,["dumpvars","find","remove","report","list"]):
-        #    p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
+        if not self.matches_args(args,["dumpvars","find","remove","report","list"]):
+            # FIXME: there's really nothing to sync here.  Remove?
+            p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
 
         if not self.matches_args(args,["dumpvars","find","report","list"]):
             p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")

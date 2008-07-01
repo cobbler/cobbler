@@ -146,6 +146,12 @@ class BootAPI:
         """
         return self._config.repos()
 
+    def images(self):
+        """
+        Return the current list of images
+        """
+        return self._config.images()
+
     def settings(self):
         """
         Return the application configuration
