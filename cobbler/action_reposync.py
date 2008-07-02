@@ -249,6 +249,8 @@ class RepoSync:
         else:
             fname = os.path.join(dest_path, "%s.repo" % repo.name)
         print _("- creating: %s") % fname
+        if not os.path.exists(dest_path):
+            utils.mkdir(dest_path)
         config_file = open(fname, "w+")
         config_file.write("[%s]\n" % repo.name)
         config_file.write("name=%s\n" % repo.name)

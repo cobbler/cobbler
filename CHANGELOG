@@ -9,6 +9,7 @@ Cobbler CHANGELOG
 - yum reposync should also pull i686 kernels, not just i386
 - make cobblerd close file handles
 - fix kickstart serving when the tree is on NFS
+- fix missing reposync createdir (also now in stable branch)
 
 - Mon Jun 09 2008 - 1.0.2
 - Fix mkdir invocation
