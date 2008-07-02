@@ -55,9 +55,9 @@ class RepoFunction(commands.CobblerFunction):
             p.add_option("--priority",         dest="priority",         help="set priority") 
             p.add_option("--rpm-list",         dest="rpm_list",         help="just mirror these rpms")
             p.add_option("--yumopts",          dest="yumopts",          help="ex: pluginvar=abcd")
+            p.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in yumopts without clearing the other items")
 
         if self.matches_args(args,["copy","rename"]):
-
             p.add_option("--newname",          dest="newname",          help="used for copy/edit")
 
         if not self.matches_args(args,["dumpvars","find","remove","report","list"]):
@@ -89,7 +89,7 @@ class RepoFunction(commands.CobblerFunction):
         if self.options.priority:         obj.set_priority(self.options.priority)
         if self.options.mirror:           obj.set_mirror(self.options.mirror)
         if self.options.mirror_locally:   obj.set_mirror_locally(self.options.mirror_locally)
-        if self.options.yumopts:          obj.set_yumopts(self.options.yumopts)
+        if self.options.yumopts:          obj.set_yumopts(self.options.yumopts,self.options.inplace)
 
         if self.options.owners:
             obj.set_owners(self.options.owners)

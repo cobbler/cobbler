@@ -52,6 +52,7 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--kopts",           dest="kopts",       help="ex: 'noipv6'")
             p.add_option("--ksmeta",          dest="ksmeta",      help="ex: 'blippy=7'")
             p.add_option("--mac",             dest="mac",         help="ex: 'AA:BB:CC:DD:EE:FF', (RECOMMENDED)")
+            p.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts or ksmeta without clearing the other items")
 
         p.add_option("--name",   dest="name",                     help="a name for the system (REQUIRED)")
 
@@ -96,8 +97,8 @@ class SystemFunction(commands.CobblerFunction):
             return self.object_manipulator_finish(obj, self.api.profiles, self.options)
 
         if self.options.profile:         obj.set_profile(self.options.profile)
-        if self.options.kopts:           obj.set_kernel_options(self.options.kopts)
-        if self.options.ksmeta:          obj.set_ksmeta(self.options.ksmeta)
+        if self.options.kopts:           obj.set_kernel_options(self.options.kopts,self.options.inplace)
+        if self.options.ksmeta:          obj.set_ksmeta(self.options.ksmeta,self.options.inplace)
         if self.options.kickstart:       obj.set_kickstart(self.options.kickstart)
         if self.options.netboot_enabled: obj.set_netboot_enabled(self.options.netboot_enabled)
         if self.options.server_override: obj.set_server(self.options.server_override)

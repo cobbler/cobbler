@@ -132,7 +132,7 @@ class Item(serializable.Serializable):
         self.owners = owners
         return True
 
-    def set_kernel_options(self,options):
+    def set_kernel_options(self,options,inplace=False):
         """
 	Kernel options are a space delimited list,
 	like 'a=b c=d e=f g h i=j' or a hash.
@@ -141,10 +141,14 @@ class Item(serializable.Serializable):
         if not success:
             raise CX(_("invalid kernel options"))
         else:
-            self.kernel_options = value
+            if inplace:
+                for key in value.keys():
+                    self.kernel_options[key] = value[key]
+            else:
+                self.kernel_options = value
             return True
 
-    def set_ksmeta(self,options):
+    def set_ksmeta(self,options,inplace=False):
         """
         A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a hash.
         The meta tags are used as input to the templating system
@@ -154,7 +158,11 @@ class Item(serializable.Serializable):
         if not success:
             return False
         else:
-            self.ks_meta = value
+            if inplace:
+                for key in value.keys():
+                    self.ks_meta[key] = value[key]
+            else:
+                self.ks_meta = value
             return True
 
     def load_item(self,datastruct,key,default=''):

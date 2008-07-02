@@ -90,7 +90,7 @@ class Repo(item.Item):
             self.keep_updated = False
         return True
 
-    def set_yumopts(self,options):
+    def set_yumopts(self,options,inplace=False):
         """
         Kernel options are a space delimited list,
         like 'a=b c=d e=f g h i=j' or a hash.
@@ -99,7 +99,11 @@ class Repo(item.Item):
         if not success:
             raise CX(_("invalid yum options"))
         else:
-            self.yumopts = value
+            if inplace:
+                for key in value.keys():
+                    self.yumopts[key] = value[key]
+            else:
+                self.yumopts = value
             return True
 
     def set_priority(self,priority):

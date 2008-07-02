@@ -49,6 +49,8 @@ class ProfileFunction(commands.CobblerFunction):
             p.add_option("--kickstart",        dest="kickstart", help="absolute path to kickstart template (RECOMMENDED)")
             p.add_option("--ksmeta",           dest="ksmeta", help="ex: 'blippy=7'")
             p.add_option("--kopts",            dest="kopts", help="ex: 'noipv6'")
+            p.add_option("--in-place",action="store_true", dest="inplace", default=False, help="edit items in kopts or ksmeta without clearing the other items")
+
         p.add_option("--name",   dest="name",  help="a name for the profile (REQUIRED)")
 
 
@@ -95,8 +97,8 @@ class ProfileFunction(commands.CobblerFunction):
             if self.options.inherit:         obj.set_parent(self.options.inherit)
             if self.options.distro:          obj.set_distro(self.options.distro)
             if self.options.kickstart:       obj.set_kickstart(self.options.kickstart)
-            if self.options.kopts:           obj.set_kernel_options(self.options.kopts)
-            if self.options.ksmeta:          obj.set_ksmeta(self.options.ksmeta)
+            if self.options.kopts:           obj.set_kernel_options(self.options.kopts,self.options.inplace)
+            if self.options.ksmeta:          obj.set_ksmeta(self.options.ksmeta,self.options.inplace)
             if self.options.virt_file_size:  obj.set_virt_file_size(self.options.virt_file_size)
             if self.options.virt_ram:        obj.set_virt_ram(self.options.virt_ram)
             if self.options.virt_bridge:     obj.set_virt_bridge(self.options.virt_bridge)

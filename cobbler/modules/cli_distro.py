@@ -47,6 +47,7 @@ class DistroFunction(commands.CobblerFunction):
             p.add_option("--kernel", dest="kernel", help="absolute path to vmlinuz (REQUIRED)")
             p.add_option("--kopts",  dest="kopts",  help="ex: 'noipv6'")
             p.add_option("--ksmeta", dest="ksmeta", help="ex: 'blippy=7'")
+            p.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts or ksmeta without clearing the other items")
 
         p.add_option("--name",   dest="name", help="ex: 'RHEL-5-i386' (REQUIRED)")
 
@@ -82,9 +83,9 @@ class DistroFunction(commands.CobblerFunction):
             if self.options.initrd:
                 obj.set_initrd(self.options.initrd)
             if self.options.kopts:
-                obj.set_kernel_options(self.options.kopts)
+                obj.set_kernel_options(self.options.kopts,self.options.inplace)
             if self.options.ksmeta:
-                obj.set_ksmeta(self.options.ksmeta)
+                obj.set_ksmeta(self.options.ksmeta,self.options.inplace)
             if self.options.breed:
                 obj.set_breed(self.options.breed)
             if self.options.owners:
