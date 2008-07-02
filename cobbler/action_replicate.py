@@ -17,6 +17,7 @@ import os
 import os.path
 import xmlrpclib
 import api as cobbler_api
+import utils
 from utils import _
 from cexceptions import *
 import sub_process
