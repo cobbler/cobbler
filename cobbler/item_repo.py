@@ -95,7 +95,7 @@ class Repo(item.Item):
         Kernel options are a space delimited list,
         like 'a=b c=d e=f g h i=j' or a hash.
         """
-        (success, value) = utils.input_string_or_hash(options,None)
+        (success, value) = utils.input_string_or_hash(options,None,allow_multiples=False)
         if not success:
             raise CX(_("invalid yum options"))
         else:

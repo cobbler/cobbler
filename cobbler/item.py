@@ -154,7 +154,7 @@ class Item(serializable.Serializable):
         The meta tags are used as input to the templating system
         to preprocess kickstart files
         """
-        (success, value) = utils.input_string_or_hash(options,None)
+        (success, value) = utils.input_string_or_hash(options,None,allow_multiples=False)
         if not success:
             return False
         else:
@@ -242,7 +242,7 @@ class Item(serializable.Serializable):
                     return True            
 
                 if type(from_obj) == type({}):
-                    (junk, from_search) = utils.input_string_or_hash(from_search,delim=" ")
+                    (junk, from_search) = utils.input_string_or_hash(from_search,delim=" ",allow_multiples=True)
                     for x in from_search.keys():
                         y = from_search[x]
                         if not from_obj.has_key(x):

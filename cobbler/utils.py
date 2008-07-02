@@ -312,7 +312,7 @@ def input_string_or_list(options,delim=","):
     else:
        raise CX(_("invalid input type"))
 
-def input_string_or_hash(options,delim=","):
+def input_string_or_hash(options,delim=",",allow_multiples=True):
     """
     Older cobbler files stored configurations in a flat way, such that all values for strings.
     Newer versions of cobbler allow dictionaries.  This function is used to allow loading
@@ -332,11 +332,18 @@ def input_string_or_hash(options,delim=","):
         for t in tokens:
             tokens2 = t.split("=")
             if len(tokens2) == 1 and tokens2[0] != '':
+                # this is a singleton option, no value
                 tokens2.append(None)
             elif tokens2[0] == '':
                 return (False, {})
 
-            if tokens2[0] in new_dict.keys():
+            # if we're allowing multiple values for the same key,
+            # check to see if this token has already been
+            # inserted into the dictionary of values already
+            if tokens2[0] in new_dict.keys() and allow_multiples:
+                # if so, check to see if there is already a list of values
+                # otherwise convert the dictionary value to an array, and add
+                # the new value to the end of the list
                 if type(new_dict[tokens2[0]]) == list:
                     new_dict[tokens2[0]].append(tokens2[1])
                 else:
@@ -525,6 +532,8 @@ def hash_to_string(hash):
        if value is None:
            buffer = buffer + str(key) + " "
        elif type(value) == list:
+           # this value is an array, so we print out every
+           # key=value
            for item in value:
               buffer = buffer + str(key) + "=" + str(item) + " "
        else:

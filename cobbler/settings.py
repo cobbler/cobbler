@@ -131,7 +131,7 @@ class Settings(serializable.Serializable):
        if self._attributes.has_key(name):
            if name == "kernel_options":
                # backwards compatibility -- convert possible string value to hash
-               (success, result) = utils.input_string_or_hash(self._attributes[name], " ")
+               (success, result) = utils.input_string_or_hash(self._attributes[name], " ",allow_multiples=False)
                self._attributes[name] = result
                return result
            return self._attributes[name]
