@@ -15,7 +15,7 @@ Cobbler CHANGELOG
 - when mirroring repos, act as 686 not 386 to get all the kernel updates
 - upgrades to cobbler buildiso
 - added patch to allow --in-place editing of ksmeta/kopts
-
+- added patch to allow multiple duplicate kernel options
 - Wed Jun 03 2008 - 1.0.3
 - Fix typo in replicate code
 - remove rhpl reference

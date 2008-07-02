@@ -332,11 +332,17 @@ def input_string_or_hash(options,delim=","):
         for t in tokens:
             tokens2 = t.split("=")
             if len(tokens2) == 1 and tokens2[0] != '':
-                new_dict[tokens2[0]] = None
-            elif len(tokens2) == 2 and tokens2[0] != '':
-                new_dict[tokens2[0]] = tokens2[1]
-            else:
+                tokens2.append(None)
+            elif tokens2[0] == '':
                 return (False, {})
+
+            if tokens2[0] in new_dict.keys():
+                if type(new_dict[tokens2[0]]) == list:
+                    new_dict[tokens2[0]].append(tokens2[1])
+                else:
+                    new_dict[tokens2[0]] = [new_dict[tokens2[0]], tokens2[1]]
+            else:
+                new_dict[tokens2[0]] = tokens2[1]
         new_dict.pop('', None)
         return (True, new_dict)
     elif type(options) == dict:
@@ -518,6 +524,9 @@ def hash_to_string(hash):
        value = hash[key]
        if value is None:
            buffer = buffer + str(key) + " "
+       elif type(value) == list:
+           for item in value:
+              buffer = buffer + str(key) + "=" + str(item) + " "
        else:
           buffer = buffer + str(key) + "=" + str(value) + " "
     return buffer
