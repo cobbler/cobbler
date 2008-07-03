@@ -198,25 +198,6 @@ class CobblerXMLRPCInterface:
         self.log("get_settings",token=token)
         return self.__get_all("settings")
 
-    def profile_change(self,mac,newprofile,token=None):
-        """
-        If allow_cgi_profile_change is enabled in settings, this allows
-        kickstarts to set the profile of a machine to another profile
-        via a wget in %post.  This has security implications.
-        READ: https://fedorahosted.org/cobbler/wiki/AutoProfileChange
-        """
-
-        if not self.api.settings().allow_cgi_profile_change:
-            return 1
-
-        system = self.api.find_system(mac_address=mac)
-        if system is None:
-            return 2
-   
-        system.set_profile(newprofile)
-        self.api.add_system(system)
-
-
     def register_mac(self,mac,profile,token=None):
         """
         If allow_cgi_register_mac is enabled in settings, this allows
@@ -1036,6 +1017,26 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
            if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
               files[x.kickstart] = 1
         return files.keys() 
+
+   def remove_system(self,name,token,recursive=1):
+        """
+        Deletes a system from a collection.  Note that this just requires the name
+        of the distro, not a handle.
+        """
+        self.log("remove_system (%s)" % recursive,name=name,token=token)
+        self.check_access(token, "remove_system", name)
+        rc = self.api._config.systems().remove(name,recursive=True)
+        return rc
+
+    def remove_repo(self,name,token,recursive=1):
+        """
+        Deletes a repo from a collection.  Note that this just requires the name
+        of the repo, not a handle.
+        """
+        self.log("remove_repo (%s)" % recursive,name=name,token=token)
+        self.check_access(token, "remove_repo", name)
+        rc = self.api._config.repos().remove(name,recursive=True)
+        return rc
 
 
     def read_or_write_kickstart_template(self,kickstart_file,is_read,new_data,token):

@@ -10,6 +10,8 @@ Cobbler CHANGELOG
 - make cobblerd close file handles
 - fix kickstart serving when the tree is on NFS
 - fix missing reposync createdir (also now in stable branch)
+- add back missing remove_profile/remove_repo
+- remove profile_change support
 
 - Mon Jun 09 2008 - 1.0.2
 - Fix mkdir invocation
