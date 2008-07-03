@@ -49,7 +49,8 @@ class ProfileFunction(commands.CobblerFunction):
             p.add_option("--kickstart",        dest="kickstart", help="absolute path to kickstart template (RECOMMENDED)")
             p.add_option("--ksmeta",           dest="ksmeta", help="ex: 'blippy=7'")
             p.add_option("--kopts",            dest="kopts", help="ex: 'noipv6'")
-            p.add_option("--in-place",action="store_true", dest="inplace", default=False, help="edit items in kopts or ksmeta without clearing the other items")
+            if not self.matches_args(args,["find"]):
+                p.add_option("--in-place",action="store_true", dest="inplace", default=False, help="edit items in kopts or ksmeta without clearing the other items")
 
         p.add_option("--name",   dest="name",  help="a name for the profile (REQUIRED)")
 

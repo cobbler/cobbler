@@ -55,7 +55,9 @@ class RepoFunction(commands.CobblerFunction):
             p.add_option("--priority",         dest="priority",         help="set priority") 
             p.add_option("--rpm-list",         dest="rpm_list",         help="just mirror these rpms")
             p.add_option("--yumopts",          dest="yumopts",          help="ex: pluginvar=abcd")
-            p.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in yumopts without clearing the other items")
+
+            if not self.matches_args(args, ["find"]):
+                p.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in yumopts without clearing the other items")
 
         if self.matches_args(args,["copy","rename"]):
             p.add_option("--newname",          dest="newname",          help="used for copy/edit")
