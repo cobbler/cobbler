@@ -44,6 +44,7 @@ class Image(item.Item):
         self.virt_path       = ''
         self.virt_type       = self.settings.default_virt_type
         self.virt_cpus       = 1
+        self.virt_bridge     = ''
         self.owners          = self.settings.default_ownership
 
     def from_datastruct(self,seed_data):
