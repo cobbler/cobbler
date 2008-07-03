@@ -175,11 +175,11 @@ class BootAPI:
         self.log("remove_profile",[ref.name])
         return self._config.profiles().remove(ref.name, recursive=recursive)
 
-    def remove_system(self,ref):
+    def remove_system(self,ref,recursive=False):
         self.log("remove_system",[ref.name])
         return self._config.systems().remove(ref.name)
 
-    def remove_repo(self, ref):
+    def remove_repo(self, ref,recursive=False):
         self.log("remove_repo",[ref.name])
         return self._config.repos().remove(ref.name)
 

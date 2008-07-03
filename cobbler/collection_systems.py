@@ -33,7 +33,7 @@ class Systems(collection.Collection):
         """
         return system.System(config).from_datastruct(seed_data)
 
-    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True):
+    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False):
         """
         Remove element named 'name' from the collection
         """

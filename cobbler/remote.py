@@ -1018,7 +1018,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
               files[x.kickstart] = 1
         return files.keys() 
 
-   def remove_system(self,name,token,recursive=1):
+    def remove_system(self,name,token,recursive=1):
         """
         Deletes a system from a collection.  Note that this just requires the name
         of the distro, not a handle.
@@ -1037,7 +1037,6 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.check_access(token, "remove_repo", name)
         rc = self.api._config.repos().remove(name,recursive=True)
         return rc
-
 
     def read_or_write_kickstart_template(self,kickstart_file,is_read,new_data,token):
         """
