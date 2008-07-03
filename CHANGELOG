@@ -1,7 +1,7 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-- Tue Jun 10 2008 - 1.0.3 (tentative)
+- Tue Jul 03 2008 - 1.0.3 (tentative)
 - Fix typo in replicate code
 - remove rhpl reference
 - scrub references to manage_*_mode and rewrite the restart-services trigger
