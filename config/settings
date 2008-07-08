@@ -156,6 +156,12 @@ server: '127.0.0.1'
 # this directory should not be required.
 snippetsdir: /var/lib/cobbler/snippets
 
+# if modules.conf specifies authn_spacewalk, this is the XMLRPC
+# endpoint to authenticate against.  If Satellite/Spacewalk is
+# not in use, ignore this setting entirely.  
+# See fedorahosted.org/spacewalk for details on that project.
+spacewalk_url: "http://satellite.example.com/rpc/api"
+
 # by default, installs are set to send syslog traffic on this port
 # and cobblerd will listen on this port.  syslog data (for installs
 # that support it... RHEL 5 and later, etc) is logged in /var/log/cobbler

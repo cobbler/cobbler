@@ -20,6 +20,7 @@ import os
 import sys
 import glob
 from utils import _
+from cexceptions import *
 import ConfigParser
 
 MODULE_CACHE = {}

@@ -73,6 +73,7 @@ DEFAULTS = {
     "run_install_triggers"        : 1,
     "server"                      : "127.0.0.1",
     "snippetsdir"                 : "/var/lib/cobbler/snippets",
+    "spacewalk_url"               : "http://satellite.example.com/rpc/api",
     "syslog_port"                 : 25150,
     "tftpd_bin"                   : "/usr/sbin/in.tftpd",
     "tftpd_conf"                  : "/etc/xinetd.d/tftp",
