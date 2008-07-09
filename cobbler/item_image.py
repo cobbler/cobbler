@@ -44,7 +44,7 @@ class Image(item.Item):
         self.virt_path       = ''
         self.virt_type       = self.settings.default_virt_type
         self.virt_cpus       = 1
-        self.virt_bridge     = ''
+        self.virt_bridge     = self.settings.default_virt_bridge
         self.owners          = self.settings.default_ownership
 
     def from_datastruct(self,seed_data):
@@ -59,12 +59,12 @@ class Image(item.Item):
         self.owners          = self.load_item(seed_data,'owners',self.settings.default_ownership)
 
         self.install_type    = self.load_item(seed_data, 'install_type')
-        self.virt_ram        = self.load_item(seed_data, 'virt_ram')
-        self.virt_file_size  = self.load_item(seed_data, 'virt_file_size')
+        self.virt_ram        = self.load_item(seed_data, 'virt_ram', self.settings.default_virt_ram)
+        self.virt_file_size  = self.load_item(seed_data, 'virt_file_size', self.settings.default_virt_file_size)
         self.virt_path       = self.load_item(seed_data, 'virt_path')
-        self.virt_type       = self.load_item(seed_data, 'virt_type')
+        self.virt_type       = self.load_item(seed_data, 'virt_type', self.settings.default_virt_type)
         self.virt_cpus       = self.load_item(seed_data, 'virt_cpus')
-        self.virt_bridge     = self.load_item(seed_data, 'virt_bridge')
+        self.virt_bridge     = self.load_item(seed_data, 'virt_bridge', self.settings.default_virt_bridge)
 
         self.set_owners(self.owners)
 
@@ -144,7 +144,8 @@ class Image(item.Item):
             'virt_ram'         : self.virt_ram,
             'virt_path'        : self.virt_path,
             'virt_cpus'        : self.virt_cpus,
-            'virt_bridge'      : self.virt_bridge
+            'virt_bridge'      : self.virt_bridge,
+            'virt_file_size'   : self.virt_file_size
         }
 
     def printable(self):
