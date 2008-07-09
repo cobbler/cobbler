@@ -54,6 +54,9 @@ def start_install(name=None, ram=None, disks=None,
                            vcpus=None,  
                            profile_data=None, arch=None, no_gfx=False, fullvirt=False, bridge=None):
 
+    if profile_data.has_key("file"):
+        raise koan.InfoException("Xen does not work with --image yet")
+
     if fullvirt:
         # FIXME: add error handling here to explain when it's not supported
         guest = virtinst.FullVirtGuest(installer=DistroManager.PXEInstaller())

@@ -71,18 +71,9 @@ def main():
     p.add_option("-k", "--kopts",
                  dest="kopts_override",
                  help="append additional kernel options")
-    p.add_option("-C", "--livecd",
-                 dest="live_cd",
-                 action="store_true",
-                 help="used by the custom livecd only, not for humans")
-    p.add_option("-l", "--list-profiles",
-                 dest="list_profiles",
-                 action="store_true",
-                 help="list profiles defined in cobbler")
-    p.add_option("-L", "--list-systems",
-                 dest="list_systems",
-                 action="store_true",
-                 help="list systems defined in cobbler")
+    p.add_option("-l", "--list",
+                 dest="list_items",
+                 help="lists remote items (EX: profiles, systems, or images)")
     p.add_option("-v", "--virt",
                  dest="is_virt",
                  action="store_true",
@@ -97,13 +88,16 @@ def main():
     p.add_option("-D", "--display",
                  dest="is_display",
                  action="store_true",
-                 help="display the configuration stored in cobbler")
+                 help="display the configuration stored in cobbler for the given object")
     p.add_option("-p", "--profile",
                  dest="profile",
-                 help="install this cobbler profile")
+                 help="use this cobbler profile")
     p.add_option("-y", "--system",
                  dest="system",
-                 help="install this cobbler system")
+                 help="use this cobbler system")
+    p.add_option("-i", "--image",
+                 dest="image",
+                 help="use this cobbler image")
     p.add_option("-s", "--server",
                  dest="server",
                  help="attach to this cobbler server")
@@ -123,13 +117,10 @@ def main():
                  action="store_true", 
                  dest="no_gfx",
                  help="disable Xen graphics (xenpv,xenfv)")
-    p.add_option("", "--no-cobbler",
-                 dest="no_cobbler",
-                 help="specify URL for kickstart directly, bypassing the cobbler server")
     p.add_option("", "--add-reinstall-entry",
                  dest="add_reinstall_entry",
                  action="store_true",
-                 help="just add entry to grub, do not make it the default")
+                 help="when used with --replace-self, just add entry to grub, do not make it the default")
 
     (options, args) = p.parse_args()
 
@@ -139,20 +130,19 @@ def main():
 
     try:
         k = Koan()
-        k.list_systems        = options.list_systems
-        k.list_profiles       = options.list_profiles
+        k.list_items          = options.list_items
         k.server              = options.server
         k.is_virt             = options.is_virt
         k.is_replace          = options.is_replace
         k.is_display          = options.is_display
         k.profile             = options.profile
         k.system              = options.system
-        k.live_cd             = options.live_cd
+        k.image               = options.image
+        # k.live_cd           = options.live_cd
         k.virt_path           = options.virt_path
         k.virt_type           = options.virt_type
         k.virt_bridge         = options.virt_bridge
         k.no_gfx              = options.no_gfx
-        k.no_cobbler          = options.no_cobbler
         k.add_reinstall_entry = options.add_reinstall_entry
         k.kopts_override      = options.kopts_override
 
@@ -228,25 +218,17 @@ class Koan:
         
         # we can get the info we need from either the cobbler server
         #  or a kickstart file
-        if self.server is None and self.no_cobbler is None:
+        if self.server is None:
             raise InfoException, "no server specified"
 
         # check to see that exclusive arguments weren't used together
         found = 0
-        for x in (self.is_virt, self.is_replace, self.is_display, self.list_profiles, self.list_systems):
+        for x in (self.is_virt, self.is_replace, self.is_display, self.list_items):
             if x:
                found = found+1
         if found != 1:
-            if not self.no_cobbler:
-                raise InfoException, "choose: --virt, --replace-self or --display"
-            else:
-                raise InfoException, "missing argument: --replace-self ?"
+            raise InfoException, "choose: --virt, --replace-self, --list=what, or --display"
  
-
-        # for now, kickstart only works with --replace-self
-        if self.no_cobbler and self.is_virt:
-            raise InfoException, "--no-cobbler does not work with --virt"
-
 
         # This set of options are only valid with --server
         if not self.server:
@@ -351,19 +333,17 @@ class Koan:
             # if command line input was just for listing commands,
             # run them now and quit, no need for further work
 
-            if self.list_systems:
-                self.list(False)
+            if self.list_items:
+                self.list(self.list_items)
                 return
-            if self.list_profiles:
-                self.list(True)
-                return
+            
         
             # if both --profile and --system were ommitted, autodiscover
             if self.is_virt:
-                if (self.profile is None and self.system is None):
-                    raise InfoException, "must specify --profile or --system"
+                if (self.profile is None and self.system is None and self.image is None):
+                    raise InfoException, "must specify --profile, --system, or --image"
             else:
-                if (self.profile is None and self.system is None):
+                if (self.profile is None and self.system is None and self.image is None):
                     self.system = self.autodetect_system()
 
 
@@ -398,7 +378,7 @@ class Koan:
         fd.close()
         if self.is_mac(mac) == False:
             raise InfoException, "Mac address not accurately detected"
-        systems = self.get_systems_xmlrpc()
+        systems = self.get_data("systems")
 
         detected_systems = []
         for system in systems:
@@ -434,29 +414,14 @@ class Koan:
 
         # initialise the profile, from the server if any
         if self.profile:
-            profile_data = self.get_profile_xmlrpc(self.profile)
+            profile_data = self.get_data("profile",self.profile)
         elif self.system:
-            profile_data = self.get_system_xmlrpc(self.system)
+            profile_data = self.get_data("system",self.system)
+        elif self.image:
+            profile_data = self.get_data("image",self.image)
         else:
+            # shouldn't end up here, right?
             profile_data = {}
-
-        if self.no_cobbler:
-            # if the value given to no_cobbler has no url protocol
-            #    specifier, add "file:" and make it absolute 
-
-            slash_idx = self.no_cobbler.find("/")
-            if slash_idx != -1:
-                colon_idx = self.no_cobbler.find(":",0,slash_idx)
-            else:
-                colon_idx = self.no_cobbler.find(":")
-
-            if colon_idx == -1:
-                # no protocol specifier
-                profile_data["kickstart"] = "file:%s" % os.path.abspath(self.no_cobbler)
-                
-            else:
-                # protocol specifier
-                profile_data["kickstart"] = self.no_cobbler
 
         if profile_data.has_key("kickstart"):
 
@@ -482,13 +447,11 @@ class Koan:
 
         # find the correct file download location 
         if not self.is_virt:
-            if self.live_cd:
-                download = "/tmp/boot/boot"
-
-            elif os.path.exists("/boot/efi/EFI/redhat/elilo.conf"):
+            if os.path.exists("/boot/efi/EFI/redhat/elilo.conf"):
+                # elilo itanium support, may actually still work
                 download = "/boot/efi/EFI/redhat"
-
             else:
+                # whew, we have a sane bootloader
                 download = "/boot"
 
         else:
@@ -501,7 +464,13 @@ class Koan:
 
             # if virt type is auto, reset it to a value we can actually use
             if self.virt_type == "auto":
-                # note: auto never selects vmware, maybe it should if we find it?
+
+                if profile_data.has_key("file"):
+                    # this is actually an image based install, assume qemu/KVM
+                    self.virt_type = "qemu"
+
+                # FIXME: auto never selects vmware, maybe it should if we find it?
+
                 cmd = sub_process.Popen("/bin/uname -r", stdout=sub_process.PIPE, shell=True)
                 uname_str = cmd.communicate()[0]
                 if uname_str.find("xen") != -1:
@@ -541,7 +510,7 @@ class Koan:
                 cmd = sub_process.Popen("rpm -q python-virtinst", stdout=sub_process.PIPE, shell=True)
                 version_str = cmd.communicate()[0]
                 if version_str.find("virtinst-0.1") != -1 or version_str.find("virtinst-0.0") != -1:
-                    raise InfoException("need python-virtinst >= 0.2 to do net installs for qemu/kvm")
+                    raise InfoException("need python-virtinst >= 0.2 to do installs for qemu/kvm")
 
             # for vmware
             if self.virt_type == "vmware":
@@ -557,11 +526,14 @@ class Koan:
 
 
             if self.virt_type in [ "xenpv" ]:
+                # we need to fetch the kernel/initrd to do this
                 download = "/var/lib/xen" 
-            elif self.virt_type in [ "vmware" ] :
-                download = None # we are downloading sufficient metadata to initiate PXE
+            elif self.virt_type in [ "xenfv", "vmware" ] :
+                # we are downloading sufficient metadata to initiate PXE, no D/L needed
+                download = None 
             else: # qemu
-                download = None # fullvirt, can use set_location in virtinst library, no D/L needed yet
+                # fullvirt, can use set_location in virtinst library, no D/L needed yet
+                download = None 
 
         # download required files
         if not self.is_display and download is not None:
@@ -618,11 +590,10 @@ class Koan:
 
     #---------------------------------------------------
 
-    def list(self,is_profiles):
-        if is_profiles:
-            data = self.get_profiles_xmlrpc()
-        else:
-            data = self.get_systems_xmlrpc()
+    def list(self,what):
+        if what not in [ "images", "profiles", "systems", "distros", "repos" ]:
+            raise InfoException("koan does not know how to list that")
+        data = self.get_data(what)
         for x in data:
             if x.has_key("name"):
                 print x["name"]
@@ -699,10 +670,10 @@ class Koan:
                cmd.append("--make-default")
                cmd.append("--title=kick%s" % int(time.time()))
                
-            if self.live_cd:
-               cmd.append("--bad-image-okay")
-               cmd.append("--boot-filesystem=/dev/sda1")
-               cmd.append("--config-file=/tmp/boot/boot/grub/grub.conf")
+            #if self.live_cd:
+            #   cmd.append("--bad-image-okay")
+            #   cmd.append("--boot-filesystem=/dev/sda1")
+            #   cmd.append("--config-file=/tmp/boot/boot/grub/grub.conf")
             utils.subprocess_call(["/sbin/grubby","--remove-kernel","/boot/vmlinuz"])
             utils.subprocess_call(cmd)
 
@@ -724,14 +695,6 @@ class Koan:
                 print "- reinstallation entry added"
 
         return self.net_install(after_download)
-
-    #---------------------------------------------------
-
-    def get_kickstart_data(self,kickstart,data):
-        """
-        Get contents of data in network kickstart file.
-        """
-        return utils.urlread(kickstart)
 
     #---------------------------------------------------
 
@@ -772,7 +735,7 @@ class Koan:
         """
 
         # save kickstart to file
-        ksdata = self.get_kickstart_data(kickstart,data)
+        ksdata = utils.urlread(kickstart)
         fd = open("/var/spool/koan/ks.cfg","w+")
         if ksdata is not None:
             fd.write(ksdata)
@@ -792,40 +755,19 @@ class Koan:
 
     #---------------------------------------------------
 
-    def get_profiles_xmlrpc(self):
+    def get_data(self,what,name=None):
         try:
-            data = self.xmlrpc_server.get_profiles()
+            if what[-1] == "s":
+                data = getattr(self.xmlrpc_server, "get_%s" % what)()
+            else:
+                data = getattr(self.xmlrpc_server, "get_%s_for_koan" % what)(name)
         except:
             traceback.print_exc()
             self.connect_fail()
         if data == {}:
-            raise InfoException("No profiles found on cobbler server")
+            raise InfoException("No entry/entries found")
         return data
-
-    #---------------------------------------------------
-
-    def get_profile_xmlrpc(self,profile_name):
-        """
-        Fetches profile yaml from a from a remote bootconf tree.
-        """
-        try:
-            data = self.xmlrpc_server.get_profile_for_koan(profile_name)
-        except:
-            traceback.print_exc()
-            self.connect_fail()
-        if data == {}:
-            raise InfoException("no cobbler entry for this profile")
-        return data
-
-    #---------------------------------------------------
-
-    def get_systems_xmlrpc(self):
-        try:
-            return self.xmlrpc_server.get_systems()
-        except:
-            traceback.print_exc()
-            self.connect_fail()
-
+    
     #---------------------------------------------------
 
     def is_ip(self,strdata):
@@ -849,24 +791,6 @@ class Koan:
         if re.search(r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}',strdata):
             return True
         return False
-
-    #---------------------------------------------------
-
-    def get_system_xmlrpc(self,system_name):
-        """
-        If user specifies --system, return the profile data
-        but use the system kickstart and kernel options in place
-        of what was specified in the system's profile.
-        """
-        system_data = None
-        try:
-            system_data = self.xmlrpc_server.get_system_for_koan(system_name)
-        except:
-            traceback.print_exc()
-            self.connect_fail()
-        if system_data == {}:
-            raise InfoException("no cobbler entry for system")        
-        return system_data
 
     #---------------------------------------------------
 
@@ -911,7 +835,7 @@ class Koan:
         options   = self.safe_load(pd,'kernel_options',default='')
 
         kextra    = ""
-        if kickstart != "":
+        if kickstart is not None and kickstart != "":
             kextra = "ks=" + kickstart 
         if options !="":
             kextra = kextra + " " + options

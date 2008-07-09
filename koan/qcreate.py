@@ -1,6 +1,6 @@
 # Virtualization installation functions.  
 #
-# Copyright 2007 Red Hat, Inc.
+# Copyright 2007-2008 Red Hat, Inc.
 # Michael DeHaan <mdehaan@redhat.com>
 #
 # This software may be freely redistributed under the terms of the GNU
@@ -55,19 +55,31 @@ def start_install(name=None, ram=None, disks=None, mac=None,
         arch = "i686"
 
     guest = virtinst.FullVirtGuest(hypervisorURI="qemu:///system",type=vtype, arch=arch)
-   
-    if not profile_data.has_key("install_tree"):
-        raise koan.InfoException("Cannot find install source in kickstart file, aborting.")
+
+    print "DEBUG: pd=%s" % profile_data  
+ 
+    if not profile_data.has_key("file"):
+        # images don't need to source this 
+        if not profile_data.has_key("install_tree"):
+            raise koan.InfoException("Cannot find install source in kickstart file, aborting.")
    
  
-    if not profile_data["install_tree"].endswith("/"):
-       profile_data["install_tree"] = profile_data["install_tree"] + "/"
+        if not profile_data["install_tree"].endswith("/"):
+            profile_data["install_tree"] = profile_data["install_tree"] + "/"
 
-    # virt manager doesn't like nfs:// and just wants nfs:
-    # (which cobbler should fix anyway)
-    profile_data["install_tree"] = profile_data["install_tree"].replace("nfs://","nfs:")
+        # virt manager doesn't like nfs:// and just wants nfs:
+        # (which cobbler should fix anyway)
+        profile_data["install_tree"] = profile_data["install_tree"].replace("nfs://","nfs:")
 
-    guest.location = profile_data["install_tree"]
+    if profile_data.has_key("file"):
+        # this is an image based installation
+        if profile_data["install_type"] == "iso":
+            guest.cdrom = profile_data["file"]
+        else:
+            # image cloning is not supported yet.
+            raise koan.InfoException("KVM with --image only supports ISO based installs at this time")
+    else:
+        guest.location = profile_data["install_tree"]
    
     extra = extra.replace("&","&amp;") 
     guest.extraargs = extra
@@ -95,7 +107,7 @@ def start_install(name=None, ram=None, disks=None, mac=None,
         interfaces.sort()
         for iname in interfaces:
             intf = profile_data["interfaces"][iname]
-            print "DEBUG: --> %s" % intf
+            # print "DEBUG: --> %s" % intf
 
             mac = intf["mac_address"]
             if mac == "":
@@ -110,13 +122,13 @@ def start_install(name=None, ram=None, disks=None, mac=None,
                         raise koan.InfoException("virt-bridge setting is not defined in cobbler")
                     intf_bridge = profile_bridge
             else:
-                print "DEBUG: picking my bridge: %s" % bridge
+                # print "DEBUG: picking my bridge: %s" % bridge
                 if bridge.find(",") == -1:
                     intf_bridge = bridge
                 else:
                     bridges = bridge.split(",")  
                     intf_bridge = bridges[counter]
-            print "DEBUG: using bridge = %s" % intf_bridge
+            # print "DEBUG: using bridge = %s" % intf_bridge
             nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac, bridge=intf_bridge)
             guest.nics.append(nic_obj)
             counter = counter + 1

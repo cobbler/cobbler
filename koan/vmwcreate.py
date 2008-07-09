@@ -112,6 +112,9 @@ def start_install(name=None, ram=None, disks=None, mac=None,
                   vcpus=None, 
                   profile_data=None, bridge=None, arch=None, no_gfx=False, fullvirt=True, bridge=None):
 
+    if profile_data.has_key("file"):
+        raise koan.InfoException("vmware does not work with --image yet")
+
     mac = None
     if not profile_data.has_key("interfaces"):
         print "- vmware installation requires a system, not a profile"
