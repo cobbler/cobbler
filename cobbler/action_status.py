@@ -150,7 +150,9 @@ class BootStatusReport:
         """
 
         self.scan_logfiles()
-        self.process_results()
-        print self.get_printable_results()
-        return True
-
+        results = self.process_results()
+        if self.mode is "text":
+            print self.get_printable_results()
+            return True
+        else:
+            return results
