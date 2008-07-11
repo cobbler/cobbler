@@ -20,8 +20,11 @@ from optparse import OptionParser
 import exceptions
 import errno
 import re
+import tempfile
+import shutil
 import virtinst
 import app as koan
+import sub_process as subprocess
 
 def random_mac():
     """
@@ -56,8 +59,6 @@ def start_install(name=None, ram=None, disks=None, mac=None,
 
     guest = virtinst.FullVirtGuest(hypervisorURI="qemu:///system",type=vtype, arch=arch)
 
-    print "DEBUG: pd=%s" % profile_data  
- 
     if not profile_data.has_key("file"):
         # images don't need to source this 
         if not profile_data.has_key("install_tree"):
@@ -74,7 +75,30 @@ def start_install(name=None, ram=None, disks=None, mac=None,
     if profile_data.has_key("file"):
         # this is an image based installation
         if profile_data["install_type"] == "iso":
-            guest.cdrom = profile_data["file"]
+            input_path = profile_data["file"]
+            if not input_path.startswith("nfs://"):
+                guest.cdrom = input_path
+            else:
+                input_path = input_path[6:]
+                # FIXME: move this function to util.py so other modules can use it
+                # we have to mount it first
+                segments = input_path.split("/") # discard nfs:// prefix
+                filename = segments[-1]
+                dirpath = "/".join(segments[:-1])
+                tempdir = tempfile.mkdtemp(suffix='.mnt', prefix='koan_', dir='/tmp')
+                mount_cmd = [
+                    "/bin/mount", "-t", "nfs", "-o", "ro", dirpath, tempdir
+                ]    
+                print "- running: %s" % " ".join(mount_cmd)
+                rc = subprocess.call(mount_cmd)
+                if not rc == 0:
+                    shutil.rmtree(tempdir, ignore_errors=True)
+                    raise koan.InfoException("nfs mount failed: %s" % dirpath)
+                # NOTE: option for a blocking install might be nice, so we could do this
+                # automatically, if supported by python-virtinst              
+                print "after install completes, you may unmount and delete %s" % tempdir
+                guest.cdrom = os.path.join(tempdir, filename)     
+                
         else:
             # image cloning is not supported yet.
             raise koan.InfoException("KVM with --image only supports ISO based installs at this time")
@@ -107,7 +131,6 @@ def start_install(name=None, ram=None, disks=None, mac=None,
         interfaces.sort()
         for iname in interfaces:
             intf = profile_data["interfaces"][iname]
-            # print "DEBUG: --> %s" % intf
 
             mac = intf["mac_address"]
             if mac == "":
@@ -122,13 +145,11 @@ def start_install(name=None, ram=None, disks=None, mac=None,
                         raise koan.InfoException("virt-bridge setting is not defined in cobbler")
                     intf_bridge = profile_bridge
             else:
-                # print "DEBUG: picking my bridge: %s" % bridge
                 if bridge.find(",") == -1:
                     intf_bridge = bridge
                 else:
                     bridges = bridge.split(",")  
                     intf_bridge = bridges[counter]
-            # print "DEBUG: using bridge = %s" % intf_bridge
             nic_obj = virtinst.VirtualNetworkInterface(macaddr=mac, bridge=intf_bridge)
             guest.nics.append(nic_obj)
             counter = counter + 1
