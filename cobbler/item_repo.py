@@ -76,6 +76,8 @@ class Repo(item.Item):
               self.set_arch("i386")
            elif mirror.find("ia64") != -1:
               self.set_arch("ia64")
+           elif mirror.find("s390") != -1:
+              self.set_arch("s390x")
         return True
 
     def set_keep_updated(self,keep_updated):
@@ -147,6 +149,7 @@ class Repo(item.Item):
         """
         Override the arch used for reposync
         """
+        # FIXME: no validation here?
         self.arch = arch
         return True
 

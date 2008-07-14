@@ -136,13 +136,13 @@ class Distro(item.Item):
         the architecture, though if (in the future) new provisioning types
         are added, an arch value might be something like "bsd_x86".
         """
-        if arch in [ "standard", "ia64", "x86", "i386", "x86_64" ]:
+        if arch in [ "standard", "ia64", "x86", "i386", "x86_64", "s390x" ]:
             if arch == "x86":
                # be consistent 
                arch = "i386"
             self.arch = arch
             return True
-        raise CX(_("PXE arch choices include: x86, x86_64, and ia64"))
+        raise CX(_("PXE arch choices include: x86, x86_64, s390x and ia64"))
 
     def is_valid(self):
         """

@@ -120,7 +120,6 @@ class PXEGen:
         # this used to just generate a single PXE config file, but now must
         # generate one record for each described NIC ...
  
-        counter = 0
         for (name,interface) in system.interfaces.iteritems():
 
             ip = interface["ip_address"]
@@ -143,20 +142,24 @@ class PXEGen:
                 filename = "%s.conf" % utils.get_config_filename(system,interface=name)
                 f2 = os.path.join(self.bootloc, filename)
             else:
-                raise CX(_("Invalid arch %s, cobbler is confused") % distro.arch)
+                # FIXME: skipping arch -- no fakePXE support yet for s390x, to be added
+                continue 
 
             f3 = os.path.join(self.settings.webdir, "systems", f1)
 
             if system.netboot_enabled and system.is_pxe_supported():
                 if distro.arch in [ "i386", "x86", "x86_64", "standard"]:
                     self.write_pxe_file(f2,system,profile,distro,False)
-                if distro.arch == "ia64":
+                elif distro.arch == "ia64":
                     self.write_pxe_file(f2,system,profile,distro,True)
+                else:
+                    # FIXME: nothing to do for s390/other (yet)
+                    continue
+                     
             else:
                 # ensure the file doesn't exist
                 utils.rmfile(f2)
 
-        counter = counter + 1
         
 
     def make_pxe_menu(self):
