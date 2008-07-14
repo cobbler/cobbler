@@ -722,6 +722,15 @@ def mkdir(path,mode=0777):
            print oe.errno
            raise CX(_("Error creating") % path)
 
+def set_arch(self,arch):
+   if arch in [ "standard", "ia64", "x86", "i386", "x86_64", "s390x" ]:
+       if arch == "x86" or arch == "standard":
+           # be consistent 
+           arch = "i386"
+       self.arch = arch
+       return True
+   raise CX(_("arch choices include: x86, x86_64, s390x and ia64"))
+
 def set_repos(self,repos,bypass_check=False):
    # WARNING: hack
    repos = fix_mod_python_select_submission(repos)

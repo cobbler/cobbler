@@ -156,19 +156,36 @@ function disablename(value)
     </td>
     </tr>
 
+
     <tr>
     <td>
-    <label for="arch">Arch</label>
+    <label for="arch">Architecture</label>
     </td>
     <td>
-    <input type="text" size="255" style="width: 150px;" name="arch" id="arch"
-        #if $repo
-            value="$repo.arch"
-        #end if
-    />
-    <p class="context-tip">Overrides the local system arch when mirroring with yum.</p>
+    #if $repo and $repo.arch == "i386"
+        <input type="radio"  name="arch" id="arch" value="i386" checked>x86
+    #else
+        <input type="radio" name="arch" id="arch" value="i386">i386
+    #end if
+    #if $repo and $repo.arch == "x86_64"
+        <input type="radio" name="arch" id="arch" value="x86_64" checked>x86_64
+    #else
+        <input type="radio" name="arch" id="arch" value="x86_64">x86_64
+    #end if
+    #if $repo and $repo.arch == "s390x"
+        <input type="radio" name="arch" id="arch" value="s390x" checked>s390x
+    #else
+        <input type="radio" name="arch" id="arch" value="s390x">s390x
+    #end if
+    #if $repo and $repo.arch == "ia64"
+        <input type="radio" name="arch" id="arch" value="ia64" checked>ia64
+    #else
+        <input type="radio" name="arch" id="arch" value="ia64">ia64
+    #end if
+    <p class="context-tip">What architecture is the repo?</p>                      
     </td>
     </tr>
+
 
     <tr>
     <td>

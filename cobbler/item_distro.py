@@ -135,14 +135,10 @@ class Distro(item.Item):
         This field is named "arch" because mainly on Linux, we only care about
         the architecture, though if (in the future) new provisioning types
         are added, an arch value might be something like "bsd_x86".
+
+        Update: (7/2008) this is now used to build fake PXE trees for s390x also
         """
-        if arch in [ "standard", "ia64", "x86", "i386", "x86_64", "s390x" ]:
-            if arch == "x86":
-               # be consistent 
-               arch = "i386"
-            self.arch = arch
-            return True
-        raise CX(_("PXE arch choices include: x86, x86_64, s390x and ia64"))
+        return utils.set_arch(self,arch)
 
     def is_valid(self):
         """

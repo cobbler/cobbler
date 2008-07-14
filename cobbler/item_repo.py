@@ -149,9 +149,7 @@ class Repo(item.Item):
         """
         Override the arch used for reposync
         """
-        # FIXME: no validation here?
-        self.arch = arch
-        return True
+        return utils.set_arch(self,arch)
 
     def is_valid(self):
         """
