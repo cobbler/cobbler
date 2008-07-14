@@ -70,8 +70,8 @@ class Importer:
            raise CX(_("import failed.  no --name specified"))
        if self.arch is not None:
            self.arch = self.arch.lower()
-           if self.arch not in [ "i386", "x86", "ia64", "x86_64" ]:
-               raise CX(_("arch must be x86, x86_64, or ia64"))
+           if self.arch not in [ "i386", "x86", "ia64", "x86_64", "s390x" ]:
+               raise CX(_("arch must be x86, x86_64, s390x, or ia64"))
            if self.arch == "x86":
                # be consistent
                self.arch = "i386"
@@ -85,7 +85,7 @@ class Importer:
            # append the arch path to the name if the arch is not already
            # found in the name.
            found = False
-           for x in [ "ia64", "i386", "x86_64", "x86" ]:
+           for x in [ "ia64", "i386", "x86_64", "x86", "s390x" ]:
                if self.mirror_name.lower().find(x) != -1:
                    found = True
                    break
@@ -355,8 +355,10 @@ class Importer:
 
            if x.startswith("initrd"):
                initrd = os.path.join(dirname,x)
-           if x.startswith("vmlinuz"):
+               print "DEBUG: assigned: %s" % initrd
+           if x.startswith("vmlinuz") or x.startswith("kernel.img"):
                kernel = os.path.join(dirname,x)
+               print "DEBUG: assigned2: %s" % kernel
            if initrd is not None and kernel is not None and dirname.find("isolinux") == -1:
                self.add_entry(dirname,kernel,initrd)
                path_parts = kernel.split("/")[:-2]
@@ -552,6 +554,8 @@ class Importer:
        name = name.replace("_ia64","")
        name = name.replace("-x86","")
        name = name.replace("_x86","")
+       name = name.replace("-s390x","")
+       name = name.replace("_s390x","")
        # ensure arch is on the end, regardless of path used.
        name = name + "-" + archname
 
@@ -586,6 +590,9 @@ class Importer:
                elif x.find("ia64") != -1:
                    foo["result"] = "ia64"
                    return
+               elif x.find("s390") != -1:
+                   foo["result"] = "s390x"
+                   return
 
        # This extra code block is a temporary fix for rhel4.x 64bit [x86_64]
        # distro ARCH identification-- L.M.
@@ -604,7 +611,9 @@ class Importer:
              elif x.find("ia64") != -1:
                 foo["result"] = "ia64"
                 return
-                
+             elif x.find("s390") != -1:
+                foo["result"] = "s390x"
+                return
 
    def learn_arch_from_tree(self,dirname):
        """ 
@@ -627,11 +636,7 @@ class Importer:
           return "ia64"
        if t.find("i386") != -1 or t.find("386") != -1 or t.find("x86") != -1:
           return "i386"
+       if t.find("s390") != -1:
+          return "s390x"
        return self.learn_arch_from_tree(dirname)
-
-   def is_relevant_dir(self,dirname):
-       for x in [ "pxe", "xen", "virt" ]:
-           if dirname.find(x) != -1:
-               return True
-       return False
 
