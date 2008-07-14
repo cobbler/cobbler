@@ -428,7 +428,7 @@ class Koan:
             # fix URLs
             if profile_data["kickstart"].startswith("/"):
                if not self.system:
-                   profile_data["kickstart"] = "http://%s:%s/cblr/svc/op/ks/profile/%s" % (profile_data['http_server'], profile_data['name'])
+                   profile_data["kickstart"] = "http://%s/cblr/svc/op/ks/profile/%s" % (profile_data['http_server'], profile_data['name'])
                else:
                    profile_data["kickstart"] = "http://%s/cblr/svc/op/ks/system/%s" % (profile_data['http_server'], profile_data['name'])
                 
