@@ -117,6 +117,7 @@ class PXEGen:
         if distro is None:
             raise CX(_("profile %(profile)s references a missing distro %(distro)s") % { "profile" : system.profile, "distro" : profile.distro})
 
+
         # this used to just generate a single PXE config file, but now must
         # generate one record for each described NIC ...
  
@@ -141,6 +142,9 @@ class PXEGen:
 
                 filename = "%s.conf" % utils.get_config_filename(system,interface=name)
                 f2 = os.path.join(self.bootloc, filename)
+            elif distro.arch == "s390x":
+                filename = "%s" % utils.get_config_filename(system,interface=name)
+                f2 = os.path.join(self.bootloc, "s390_data", filename)
             else:
                 # FIXME: skipping arch -- no fakePXE support yet for s390x, to be added
                 continue 
@@ -148,21 +152,31 @@ class PXEGen:
             f3 = os.path.join(self.settings.webdir, "systems", f1)
 
             if system.netboot_enabled and system.is_pxe_supported():
-                if distro.arch in [ "i386", "x86", "x86_64", "standard"]:
-                    self.write_pxe_file(f2,system,profile,distro,False)
-                elif distro.arch == "ia64":
-                    self.write_pxe_file(f2,system,profile,distro,True)
-                else:
-                    # FIXME: nothing to do for s390/other (yet)
-                    continue
-                     
+                self.write_pxe_file(f2,system,profile,distro,distro.arch)
             else:
                 # ensure the file doesn't exist
                 utils.rmfile(f2)
 
-        
-
     def make_pxe_menu(self):
+        self.make_s390_pseudo_pxe_menu()
+        self.make_actual_pxe_menu() 
+
+    def make_s390_pseudo_pxe_menu(self):
+        s390path = os.path.join(self.bootloc, "s390_data")
+        if not os.path.exists(s390path):
+            utils.mkdir(s390path)
+        profile_list = [profile for profile in self.profiles]
+        def sort_name(a,b):
+           return cmp(a.name,b.name)
+        profile_list.sort(sort_name)
+        listfile = open(os.path.join(s390path, "profile_list"),"w+")
+        for profile in profile_list:
+            distro = profile.get_conceptual_parent()
+            if distro.arch == "s390x":
+                listfile.write("%s\n" % profile.name)
+        listfile.close()
+
+    def make_actual_pxe_menu(self):
         # only do this if there is NOT a system named default.
         default = self.systems.find(name="default")
         if default is not None:
@@ -186,8 +200,9 @@ class PXEGen:
             distro = profile.get_conceptual_parent()
             # xen distros can be ruled out as they won't boot
             if distro.name.find("-xen") != -1:
+                # can't PXE Xen 
                 continue
-            contents = self.write_pxe_file(None,None,profile,distro,False,include_header=False)
+            contents = self.write_pxe_file(None,None,profile,distro,distro.arch,include_header=False)
             if contents is not None:
                 pxe_menu_items = pxe_menu_items + contents + "\n"
 
@@ -237,13 +252,18 @@ class PXEGen:
 
 
 
-    def write_pxe_file(self,filename,system,profile,distro,is_ia64, include_header=True):
+    def write_pxe_file(self,filename,system,profile,distro,arch, include_header=True):
         """
         Write a configuration file for the boot loader(s).
         More system-specific configuration may come in later, if so
         that would appear inside the system object in api.py
 
-        NOTE: relevant to tftp only
+        NOTE: relevant to tftp and pseudo-PXE (s390) only
+
+        ia64 is mostly the same as syslinux stuff, s390 is a bit
+        short-circuited and simpler.  All of it goes through the
+        templating engine, see the templates in /etc/cobbler for
+        more details
         """
 
         # ---
@@ -270,10 +290,12 @@ class PXEGen:
         # choose a template
         if system is None:
             template = "/etc/cobbler/pxeprofile.template"
-        elif not is_ia64:
-            template = "/etc/cobbler/pxesystem.template"
-        else:
+        elif arch == "s390x":
+            template = "/etc/cobbler/pxesystem_s390x.template"
+        elif arch == "ia64":
             template = "/etc/cobbler/pxesystem_ia64.template"
+        else:
+            template = "/etc/cobbler/pxesystem.template"
 
         # now build the kernel command line
         if system is not None:
@@ -284,7 +306,7 @@ class PXEGen:
 
         # generate the append line
         append_line = "append %s" % utils.hash_to_string(kopts)
-        if not is_ia64:
+        if not arch =="ia64":
             append_line = "%s initrd=%s" % (append_line, initrd_path)
         if len(append_line) >= 255 + len("append "):
             print _("warning: kernel option length exceeds 255")
@@ -305,9 +327,13 @@ class PXEGen:
                 append_line = "%s auto=true url=%s" % (append_line, kickstart_path)
                 append_line = append_line.replace("ksdevice","interface")
 
+        if arch == "s390x":
+            # remove the prefix "append"
+            append_line = append_line[7:]
+
         # store variables for templating
         metadata["menu_label"] = ""
-        if not is_ia64 and system is None:
+        if not arch == "ia64" and system is None:
             metadata["menu_label"] = "MENU LABEL %s" % profile.name
         metadata["profile_name"] = profile.name
         metadata["kernel_path"] = kernel_path
@@ -318,7 +344,7 @@ class PXEGen:
         template_fh = open(template)
         template_data = template_fh.read()
         template_fh.close()
-
+        
         # save file and/or return results, depending on how called.
         buffer = self.templar.render(template_data, metadata, None)
         if filename is not None:

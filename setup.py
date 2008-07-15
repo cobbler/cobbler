@@ -101,6 +101,7 @@ if __name__ == "__main__":
                                 (etcpath,  ['templates/named.template']),
 				(etcpath,  ['templates/pxedefault.template']),
 				(etcpath,  ['templates/pxesystem.template']),
+				(etcpath,  ['templates/pxesystem_s390x.template']),
 				(etcpath,  ['templates/pxesystem_ia64.template']),
 				(etcpath,  ['templates/pxeprofile.template']),
                                 (etcpath,  ['templates/zone.template']),
