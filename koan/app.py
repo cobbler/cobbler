@@ -465,22 +465,27 @@ class Koan:
             # if virt type is auto, reset it to a value we can actually use
             if self.virt_type == "auto":
 
-                if profile_data.has_key("file"):
-                    # this is actually an image based install, assume qemu/KVM
-                    self.virt_type = "qemu"
+                if profile_data.has_key("xml_file"):
+                    print "- virt-image based installation, ignoring --virt-type"
+                    self.virt_type = "virtimage"
 
-                # FIXME: auto never selects vmware, maybe it should if we find it?
-
-                cmd = sub_process.Popen("/bin/uname -r", stdout=sub_process.PIPE, shell=True)
-                uname_str = cmd.communicate()[0]
-                if uname_str.find("xen") != -1:
-                    self.virt_type = "xenpv"
-                elif os.path.exists("/usr/bin/qemu-img"):
+                elif profile_data.has_key("file"):
+                    # FIXME: this is actually an image based install, assume qemu/KVM
+                    print "- ISO based installation, always uses --virt-type=qemu"
                     self.virt_type = "qemu"
+                    
                 else:
-                    # assume Xen, we'll check to see if virt-type is really usable later.
-                    raise InfoException, "Not running a Xen kernel and qemu is not installed"
-                    pass
+                    # FIXME: auto never selects vmware, maybe it should if we find it?
+
+                    cmd = sub_process.Popen("/bin/uname -r", stdout=sub_process.PIPE, shell=True)
+                    uname_str = cmd.communicate()[0]
+                    if uname_str.find("xen") != -1:
+                       self.virt_type = "xenpv"
+                    elif os.path.exists("/usr/bin/qemu-img"):
+                       self.virt_type = "qemu"
+                    else:
+                       # assume Xen, we'll check to see if virt-type is really usable later.
+                       raise InfoException, "Not running a Xen kernel and qemu is not installed"
 
                 print "- no virt-type specified, auto-selecting %s" % self.virt_type
 
@@ -516,6 +521,10 @@ class Koan:
             if self.virt_type == "vmware":
                 # FIXME: if any vmware specific checks are required (for deps) do them here.
                 pass
+
+            if self.virt_type == "virt-image":
+                if not os.path.exists("/usr/bin/virt-image"):
+                    raise InfoException("virt-image not present, downlevel virt-install package?")
 
             # for both virt types
             if os.path.exists("/etc/rc.d/init.d/libvirtd"):
@@ -924,6 +933,10 @@ class Koan:
             import vmwcreate
             uuid = None
             creator = vmwcreate.start_install
+        elif self.virt_type == "virtimage":
+            import vicreate
+            uuid = None
+            creator = vicreate.start_install
         else:
             raise InfoException, "Unspecified virt type: %s" % self.virt_type
         return (uuid, creator, fullvirt)

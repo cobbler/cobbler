@@ -79,24 +79,7 @@ def start_install(name=None, ram=None, disks=None, mac=None,
             if not input_path.startswith("nfs://"):
                 guest.cdrom = input_path
             else:
-                input_path = input_path[6:]
-                # FIXME: move this function to util.py so other modules can use it
-                # we have to mount it first
-                segments = input_path.split("/") # discard nfs:// prefix
-                filename = segments[-1]
-                dirpath = "/".join(segments[:-1])
-                tempdir = tempfile.mkdtemp(suffix='.mnt', prefix='koan_', dir='/tmp')
-                mount_cmd = [
-                    "/bin/mount", "-t", "nfs", "-o", "ro", dirpath, tempdir
-                ]    
-                print "- running: %s" % " ".join(mount_cmd)
-                rc = subprocess.call(mount_cmd)
-                if not rc == 0:
-                    shutil.rmtree(tempdir, ignore_errors=True)
-                    raise koan.InfoException("nfs mount failed: %s" % dirpath)
-                # NOTE: option for a blocking install might be nice, so we could do this
-                # automatically, if supported by python-virtinst              
-                print "after install completes, you may unmount and delete %s" % tempdir
+                (tempdir, filename) = utils.nfsmount(input_path)
                 guest.cdrom = os.path.join(tempdir, filename)     
                 
         else:
