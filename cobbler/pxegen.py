@@ -144,7 +144,7 @@ class PXEGen:
                 f2 = os.path.join(self.bootloc, filename)
             elif distro.arch == "s390x":
                 filename = "%s" % utils.get_config_filename(system,interface=name)
-                f2 = os.path.join(self.bootloc, "s390_data", filename)
+                f2 = os.path.join(self.bootloc, "s390x", filename)
             else:
                 # FIXME: skipping arch -- no fakePXE support yet for s390x, to be added
                 continue 
@@ -162,7 +162,7 @@ class PXEGen:
         self.make_actual_pxe_menu() 
 
     def make_s390_pseudo_pxe_menu(self):
-        s390path = os.path.join(self.bootloc, "s390_data")
+        s390path = os.path.join(self.bootloc, "s390x")
         if not os.path.exists(s390path):
             utils.mkdir(s390path)
         profile_list = [profile for profile in self.profiles]

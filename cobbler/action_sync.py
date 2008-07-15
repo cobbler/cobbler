@@ -131,12 +131,14 @@ class BootSync:
                     utils.rmtree_contents(path)
         pxelinux_dir = os.path.join(self.bootloc, "pxelinux.cfg")
         images_dir = os.path.join(self.bootloc, "images")
+        s390_dir = os.path.join(self.bootloc, "s390x")
         if not os.path.exists(pxelinux_dir):
             utils.mkdir(pxelinux_dir)
         if not os.path.exists(images_dir):
             utils.mkdir(images_dir)
         utils.rmtree_contents(os.path.join(self.bootloc, "pxelinux.cfg"))
         utils.rmtree_contents(os.path.join(self.bootloc, "images"))
+        utils.rmtree_contents(os.path.join(self.bootloc, "s390x"))
         
 
 

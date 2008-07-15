@@ -68,22 +68,29 @@ class BootCheck:
        self.check_for_default_password(status)
        self.check_for_unreferenced_repos(status)
        self.check_for_unsynced_repos(status)
+       self.check_vsftpd_bin(status)
 
        return status
 
-   def check_service(self, status, which):
-     if utils.check_dist() == "redhat":
-        if os.path.exists("/etc/rc.d/init.d/%s" % which):
-          rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True)
-          if rc != 0:
-            status.append(_("service %s is not running") % which)
-     elif utils.check_dist() == "debian":
-        if os.path.exists("/etc/init.d/%s" % which):
-	  rc = sub_process.call("/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
-	  if rc != 0:
-	    status.append(_("service %s is not running") % which)
-     else:
-       status.append(_("Unknown distribution type, cannot check for running service %s" % which))
+   def check_service(self, status, which, notes=""):
+       if notes != "":
+           notes = " (NOTE: %s)" % notes
+       if utils.check_dist() == "redhat":
+           if os.path.exists("/etc/rc.d/init.d/%s" % which):
+               rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True)
+           if rc != 0:
+               status.append(_("service %s is not running%s") % (which,notes))
+               return False
+       elif utils.check_dist() == "debian":
+           if os.path.exists("/etc/init.d/%s" % which):
+	       rc = sub_process.call("/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
+	   if rc != 0:
+	       status.append(_("service %s is not running%s") % which,notes)
+               return False
+       else:
+           status.append(_("Unknown distribution type, cannot check for running service %s" % which))
+           return False
+       return True
 
    def check_iptables(self, status):
        if os.path.exists("/etc/rc.d/init.d/iptables"):
@@ -213,6 +220,30 @@ class BootCheck:
           status.append(_("tftp-server is not installed."))
        else:
           self.check_service(status,"xinetd")
+
+   def check_vsftpd_bin(self,status):
+       """
+       Check if vsftpd is installed
+       """
+       if not os.path.exists(self.settings.vsftpd_bin):
+           status.append(_("vsftpd is not installed (NOTE: needed for s390x support only)"))
+       else:
+           self.check_service(status,"vsftpd","needed for 390x support only")
+           
+       bootloc = utils.tftpboot_location()
+       if not os.path.exists("/etc/vsftpd/vsftpd.conf"):
+           status.append("missing /etc/vsftpd/vsftpd.conf")   
+       conf = open("/etc/vsftpd/vsftpd.conf")
+       data = conf.read()
+       lines = data.split("\n")
+       ok = False
+       for line in lines:
+           if line.find("anon_root") != -1 and line.find(bootloc) != -1:
+               ok = True
+               break
+       conf.close()
+       if not ok:
+           status.append("in /etc/vsftpd/vsftpd.conf the line 'anon_root=%s' should be added (needed for s390x support only)" % bootloc)
 
    def check_tftpd_dir(self,status):
        """

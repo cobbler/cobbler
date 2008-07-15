@@ -77,6 +77,7 @@ DEFAULTS = {
     "syslog_port"                 : 25150,
     "tftpd_bin"                   : "/usr/sbin/in.tftpd",
     "tftpd_conf"                  : "/etc/xinetd.d/tftp",
+    "vsftpd_bin"                  : "/usr/sbin/vsftpd",
     "webdir"                      : "/var/www/cobbler",
     "xmlrpc_port"                 : 25151,
     "xmlrpc_rw_enabled"           : 1,
