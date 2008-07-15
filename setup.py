@@ -12,6 +12,7 @@ Cobbler is a network boot and update server.  Cobbler supports PXE, provisioning
 
 if __name__ == "__main__":
         # docspath="share/doc/koan-%s/" % VERSION
+        bashpath = "/etc/bash_completion.d/"
         manpath  = "share/man/man1/"
         cobpath  = "/var/lib/cobbler/"
         backpath = "/var/lib/cobbler/backup/"
@@ -81,6 +82,7 @@ if __name__ == "__main__":
                                 (etcpath,  ['config/users.conf']),
                                 (initpath, ['config/cobblerd']),
                                 (etcpath,  ['config/settings']),
+                                (bashpath, ['config/cobbler_bash']), 
 
                                 # backups for upgrades
                                 (backpath, []),

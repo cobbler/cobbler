@@ -116,6 +116,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/cobbler
 %{_bindir}/cobblerd
 
+%defattr(644,root,root)
+%config(noreplace) /etc/bash_completion.d/cobbler_bash
+
 %defattr(-,root,root)
 %dir /etc/cobbler
 %config(noreplace) /etc/cobbler/*.ks

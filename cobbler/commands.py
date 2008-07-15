@@ -27,10 +27,11 @@ class FunctionLoader:
     The F'n Loader controls processing of cobbler commands.
     """
 
-    def __init__(self):
+    def __init__(self, api):
         """
         When constructed the loader has no functions.
         """
+        self.api = api
         self.functions = {}
 
     def add_func(self, obj):

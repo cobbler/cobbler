@@ -1,0 +1,64 @@
+#!/bin/bash
+# The #! is here so vim will do syntax highlighting.  emacs: -*- sh -*-
+#
+# bash completion file for cobbler
+#
+# Copyright 2008 John L. Villalovos <john@sodarock.com>
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+# Version History:
+# 0.1: Initial version to do some basic command line completion
+
+_cobbler()
+{
+    local cur prev
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD-1]}
+
+    case $cur in
+	--*)
+	    COMPREPLY=( $( compgen -W 'help' -- $cur ) )
+	    return 0
+	    ;;
+	-*)
+	    COMPREPLY=( $( compgen -W '-h' -- $cur ) )
+	    return 0
+	    ;;
+    esac
+
+    _count_args
+
+    case $args in
+	1)
+	    COMPREPLY=( $( compgen -W 'buildiso check distro import list \
+	    profile replicate repo report reposync status sync system \
+	    validateks' -- $cur ) )
+	    ;;
+	*)
+	    case $prev in
+		distro|profile|repo|system)
+			COMPREPLY=( $( compgen -W 'add edit copy list rename remove report' -- $cur ) )
+			;;
+		*)
+		    _filedir
+		    ;;
+	    esac
+	    ;;
+    esac
+}
+complete -F _cobbler cobbler

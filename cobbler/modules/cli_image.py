@@ -58,6 +58,18 @@ class ImageFunction(commands.CobblerFunction):
             p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--owners", dest="owners", help="specify owners for authz_ownership module")
+        if not self.matches_args(args,["dumpvars","remove","report","list"]):
+            # virt ram
+            # virt cpus
+            # virt bridge
+            p.add_option("--virt-cpus",            dest="virt_cpus",            help="specify VCPU count")
+            p.add_option("--virt-bridge",          dest="virt_bridge",          help="ex: virbr0")
+            p.add_option("--virt-file-size",       dest="virt_file_size",       help="size in GB (not for use with non-ISO virt-images), ex: 5")
+            p.add_option("--virt-path",            dest="virt_path",            help="virt install location")
+            p.add_option("--virt-type",            dest="virt_type",            help="virt install type (ISOs only)")
+            p.add_option("--virt-ram",             dest="virt_ram",             help="ex: 1024")
+            p.add_option("--xml-file",             dest="xml_file",             help="associate a virt-image XML template (needed for VM cloning)")
+
 
 
     def run(self):
@@ -75,9 +87,15 @@ class ImageFunction(commands.CobblerFunction):
             return self.object_manipulator_finish(obj, self.api.images, self.options)
 
         if self.options.file:             obj.set_file(self.options.file)
-
-        if self.options.owners:
-            obj.set_owners(self.options.owners)
+        if self.options.owners:           obj.set_owners(self.options.owners)
+        if self.options.virt_bridge:      obj.set_file(self.options.virt_bridge)
+        if self.options.virt_path:        obj.set_virt_path(self.options.virt_path)
+        if self.options.virt_file_size:   obj.set_virt_file_size(self.options.virt_file_size)
+        if self.options.virt_bridge:      obj.set_virt_bridge(self.options.virt_bridge)
+        if self.options.virt_cpus:        obj.set_virt_cpus(self.options.virt_cpus)
+        if self.options.virt_ram:         obj.set_virt_ram(self.options.virt_ram)
+        if self.options.virt_type:        obj.set_virt_type(self.options.virt_type)
+        if self.options.xml_file:         obj.set_xml_file(self.options.xml_file)
 
         return self.object_manipulator_finish(obj, self.api.images, self.options)
 

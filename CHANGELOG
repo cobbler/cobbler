@@ -27,6 +27,7 @@ Cobbler CHANGELOG
 - s390x import, added support for s390x "pseudo-PXE" trees
 - added support for tracking image objects and virtual ISO images
 - support for multiple copies of the same kernel option in kopts
+- add cobbler bash completion script
 
 - Mon Jun 09 2008 - 1.0.2
 - Fix mkdir invocation

@@ -57,6 +57,7 @@ class BootAPI:
         """
 
         self.__dict__ = BootAPI.__shared_state
+        self.perms_ok = False
         if not BootAPI.__has_loaded:
 
             # NOTE: we do not log all API actions, because
@@ -65,7 +66,13 @@ class BootAPI:
             # the logs, so we'll do that logging at CLI
             # level (and remote.py web service level) instead.
 
-            self.logger = self.__setup_logger("api")
+            try:
+                self.logger = self.__setup_logger("api")
+            except CX:
+                # return to CLI/other but perms are not valid
+                # perms_ok is False
+                return
+
             self.logger_remote = self.__setup_logger("remote")
 
             BootAPI.__has_loaded   = True
@@ -85,7 +92,8 @@ class BootAPI:
             )
             self.kickgen = kickgen.KickGen(self._config)
             self.logger.debug("API handle initialized")
-
+            self.perms_ok = True
+ 
     def __setup_logger(self,name):
         return utils.setup_logger(name)
 

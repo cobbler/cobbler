@@ -35,13 +35,17 @@ class BootCLI:
 
     def __init__(self):
         self.api = api.BootAPI()
-        self.loader = commands.FunctionLoader()
+        self.loader = commands.FunctionLoader(self.api)
         climods = self.api.get_modules_in_category("cli")
         for mod in climods:
             for fn in mod.cli_functions(self.api):
                 self.loader.add_func(fn)
       
     def run(self,args):
+        if not self.api.perms_ok:
+            print "Insufficient permissions.  Use cobbler aclsetup to grant access to non-roo tusers."
+            sys.exit(1)
+
         return self.loader.run(args)
 
 ####################################################
