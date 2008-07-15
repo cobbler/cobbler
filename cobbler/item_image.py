@@ -66,6 +66,7 @@ class Image(item.Item):
         self.virt_cpus       = self.load_item(seed_data, 'virt_cpus')
         self.virt_bridge     = self.load_item(seed_data, 'virt_bridge', self.settings.default_virt_bridge)
 
+        self.xml_file        = self.load_item(seed_data, 'xml_file', '')
         self.set_owners(self.owners)
 
         return self
@@ -142,7 +143,8 @@ class Image(item.Item):
             'virt_path'        : self.virt_path,
             'virt_cpus'        : self.virt_cpus,
             'virt_bridge'      : self.virt_bridge,
-            'virt_file_size'   : self.virt_file_size
+            'virt_file_size'   : self.virt_file_size,
+            'xml_file'         : self.xml_file
         }
 
     def printable(self):

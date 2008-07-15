@@ -24,6 +24,8 @@ import string
 import traceback
 import errno
 import logging
+import shutil
+import tempfile
 from cexceptions import *
 
 #placeholder for translation
@@ -897,8 +899,6 @@ def get_kickstart_templates(api):
             files[x] = 1
 
     return files.keys()
-
-
 
 if __name__ == "__main__":
     # print redhat_release()
