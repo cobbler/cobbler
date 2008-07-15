@@ -36,9 +36,9 @@ class Image(item.Item):
         """
         self.name            = ''
         self.file            = ''
+        self.xml_file        = ''
         self.parent          = ''
         self.depth           = 0
-        self.install_type    = 'iso'
         self.virt_ram        = self.settings.default_virt_ram
         self.virt_file_size  = self.settings.default_virt_file_size
         self.virt_path       = ''
@@ -55,10 +55,10 @@ class Image(item.Item):
         self.name            = self.load_item(seed_data,'name','')
         self.parent          = self.load_item(seed_data,'parent','')
         self.file            = self.load_item(seed_data,'file','')
+        self.file            = self.load_item(seed_data,'xml_file','')
         self.depth           = self.load_item(seed_data,'depth',0)
         self.owners          = self.load_item(seed_data,'owners',self.settings.default_ownership)
 
-        self.install_type    = self.load_item(seed_data, 'install_type')
         self.virt_ram        = self.load_item(seed_data, 'virt_ram', self.settings.default_virt_ram)
         self.virt_file_size  = self.load_item(seed_data, 'virt_file_size', self.settings.default_virt_file_size)
         self.virt_path       = self.load_item(seed_data, 'virt_path')
@@ -73,23 +73,20 @@ class Image(item.Item):
     def set_file(self,filename):
         """
         Stores the image location.  This should be accessible on all nodes
-        that need to access it.
+        that need to access it.  Format: either /mnt/commonpath/foo.iso or 
+        nfs://host/path/foo.iso
         """
         # FIXME: this should accept NFS paths or filesystem paths
         self.file = filename
         return True
 
-    def set_install_type(self,install_type):
+    def set_xml_file(self,filename):
         """
-        Indicates whether this is an ISO image we are tracking or a clone
-        image (i.e. raw disk, virt "appliance" type image, etc).  
+        Stores an xmlfile for virt-image.   This should be accessible
+        on all nodes that need to access it also.  See set_file.
         """
-        install_type = install_type.lower()
-        if install_type in [ "iso", "raw" ]:
-            self.install_type = install_type
-            return True
-        else:
-            raise CX(_("invalid install type"))
+        self.xml_file = filename
+        return True
 
     def set_virt_cpus(self,num):
         return utils.set_virt_cpus(self,num)
@@ -137,10 +134,10 @@ class Image(item.Item):
         return {
             'name'             : self.name,
             'file'             : self.file,
+            'xml_file'         : self.xml_file,
             'depth'            : 0,
             'parent'           : '',
             'owners'           : self.owners,
-            'install_type'     : self.install_type,
             'virt_ram'         : self.virt_ram,
             'virt_path'        : self.virt_path,
             'virt_cpus'        : self.virt_cpus,
@@ -153,9 +150,9 @@ class Image(item.Item):
         A human readable representaton
         """
         buf =       _("image           : %s\n") % self.name
-        buf = buf + _("file            : %s\n") % self.file
+        buf = buf + _("file (image)    : %s\n") % self.file
+        buf = buf + _("xml file        : %s\n") % self.xml_file
         buf = buf + _("owners          : %s\n") % self.owners
-        buf = buf + _("install type    : %s\n") % self.install_type
         buf = buf + _("virt bridge     : %s\n") % self.virt_bridge
         buf = buf + _("virt cpus       : %s\n") % self.virt_cpus
         buf = buf + _("virt file size  : %s\n") % self.virt_file_size
@@ -169,8 +166,8 @@ class Image(item.Item):
         return {           
             'name'            :  self.set_name,
             'file'            :  self.set_file,
+            'xml_file'        :  self.set_xml_file,
             'owners'          :  self.set_owners,
-            'install-type'    :  self.set_install_type,
             'virt-cpus'       :  self.set_virt_cpus,
             'virt-file-size'  :  self.set_virt_file_size,
             'virt-path'       :  self.set_virt_path,
