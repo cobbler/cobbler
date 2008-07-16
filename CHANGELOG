@@ -28,6 +28,7 @@ Cobbler CHANGELOG
 - added support for tracking image objects and virtual ISO images
 - support for multiple copies of the same kernel option in kopts
 - add cobbler bash completion script
+- fix bug with 255 kernel options line warning not firing soon enough
 
 - Mon Jun 09 2008 - 1.0.2
 - Fix mkdir invocation
