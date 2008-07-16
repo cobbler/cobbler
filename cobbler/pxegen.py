@@ -146,7 +146,6 @@ class PXEGen:
                 filename = "%s" % utils.get_config_filename(system,interface=name)
                 f2 = os.path.join(self.bootloc, "s390x", filename)
             else:
-                # FIXME: skipping arch -- no fakePXE support yet for s390x, to be added
                 continue 
 
             f3 = os.path.join(self.settings.webdir, "systems", f1)
@@ -174,6 +173,8 @@ class PXEGen:
             distro = profile.get_conceptual_parent()
             if distro.arch == "s390x":
                 listfile.write("%s\n" % profile.name)
+            f2 = os.path.join(self.bootloc, "s390x", profile.name)
+            self.write_pxe_file(f2,None,profile,distro,distro.arch)
         listfile.close()
 
     def make_actual_pxe_menu(self):
@@ -288,7 +289,7 @@ class PXEGen:
 
         # ---
         # choose a template
-        if system is None:
+        if arch in [ "standard", "x86", "i386", "i386", "x86_64" ]:
             template = "/etc/cobbler/pxeprofile.template"
         elif arch == "s390x":
             template = "/etc/cobbler/pxesystem_s390x.template"
