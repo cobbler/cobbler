@@ -1195,7 +1195,7 @@ class Koan:
                 # return partition location
                 return "/dev/mapper/%s-%s" % (location,name.replace('-','--'))
             else:
-                raise InfoException, "volume group [%s] needs %s GB free space." % virt_size
+                raise InfoException, "volume group needs %s GB free space." % virt_size
 
 
     def randomUUID(self):
