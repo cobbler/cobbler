@@ -18,6 +18,7 @@ import traceback
 import string
 import sys
 import time
+import urlgrabber
 
 def log_exc(apache):
     """
@@ -34,17 +35,19 @@ class CobblerSvc(object):
     mode, which defaults to index.  All options are passed
     as parameters into the function.
     """
-    def __init__(self, server=None, apache=None):
+    def __init__(self, server=None, apache=None, req=None):
         self.server = server
         self.apache = apache
         self.remote = None
+        self.req    = req
 
     def __xmlrpc_setup(self):
         """
         Sets up the connection to the Cobbler XMLRPC server. 
         This is the version that does not require logins.
         """
-        self.remote = xmlrpclib.Server(self.server, allow_none=True)
+        if self.remote is None:
+            self.remote = xmlrpclib.Server(self.server, allow_none=True)
         self.remote.update()
 
     def modes(self):
@@ -86,11 +89,58 @@ class CobblerSvc(object):
         self.__xmlrpc_setup()
         return str(self.remote.disable_netboot(system))
 
-    # =======================================================
-    # list of functions that are callable via mod_python:
-    modes.exposed = False
-    index.exposed = True
-    ks.exposed = True
-    trig.exposed = True
+    def autodetect(self,**rest):
+        self.__xmlrpc_setup()
+        systems = self.remote.get_systems()
 
+        # if kssendmac was in the kernel options line, see
+        # if a system can be found matching the MAC address.  This
+        # is more specific than an IP match.
+
+        macinput = rest["REMOTE_MAC"]
+        if macinput is not None:
+            # FIXME: will not key off other NICs, problem?
+            mac = macinput.split()[1].strip()
+        
+        ip = rest["REMOTE_ADDR"]
+
+        candidates = []
+        for x in systems:
+            for y in x["interfaces"]:
+                if x["interfaces"][y]["ip_address"] == ip:
+                    candidates.append(x)
+
+        if len(candidates) == 0:
+            return "FAILED: no match (%s,%s)" % (ip, macinput)
+        elif len(candidates) > 1:
+            return "FAILED: multiple matches"
+        elif len(candidates) == 1:
+            return candidates[0]["name"]
+
+    def look(self,**rest):
+        # debug only
+        return repr(rest)
+
+    def findks(self,system=None,profile=None,**rest):
+        self.__xmlrpc_setup()
+
+        serverseg = self.server.replace("http://","")
+        serverseg = self.server.replace("/cobbler_api","")
+
+        name = "?"    
+        type = "system"
+        if system is not None:
+            url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
+        elif profile is not None:
+            url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
+        else:
+            name = self.autodetect(**rest)
+            if name.startswith("FAILED"):
+                return "# autodetection %s" % name 
+            url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
+                
+        try: 
+            return urlgrabber.urlread(url)
+        except:
+            return "# kickstart retrieval failed (%s)" % url
 

@@ -1,7 +1,10 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-- Tue Jul 03 2008 - 1.0.3 (tentative)
+- Thu Jul 17 2008 - 1.0.4 (tentative)
+- Backported findks.cgi to mod_python, minor mod_python svc handler changes
+
+- Tue Jul 03 2008 - 1.0.3
 - Fix typo in replicate code
 - remove rhpl reference
 - scrub references to manage_*_mode and rewrite the restart-services trigger
