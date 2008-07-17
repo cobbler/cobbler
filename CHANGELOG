@@ -29,6 +29,7 @@ Cobbler CHANGELOG
 - support for multiple copies of the same kernel option in kopts
 - add cobbler bash completion script
 - fix bug with 255 kernel options line warning not firing soon enough
+- add findks.cgi support back as http://server/cblr/svc/op/findks
 
 - Mon Jun 09 2008 - 1.0.2
 - Fix mkdir invocation

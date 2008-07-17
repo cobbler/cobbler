@@ -35,9 +35,6 @@ def handler(req):
 
     my_uri = req.uri
     
-
-
-    # apache.log_error("cannot load /var/lib/cobbler/web.ss")
     req.add_common_vars()
  
     # process form and qs data, if any
@@ -66,8 +63,12 @@ def handler(req):
              apache.log_error("adding %s to %s" % (field,t))
           label = not label
 
-    form["REMOTE_ADDR"] = req.subprocess_env.get("REMOTE_ADDR",None)
-    form["REMOTE_MAC"]  = req.subprocess_env.get("HTTP_X_RHN_PROVISIONING_MAC_0",None)
+    # TESTING..
+    form.update(req.subprocess_env)
+
+    #form["REMOTE_ADDR"] = req.headers_in.get("REMOTE_ADDR",None)
+    #form["REMOTE_MAC"]  = req.subprocess_env.get("HTTP_X_RHN_PROVISIONING_MAC_0",None)
+    form["REMOTE_MAC"]  = form.get("HTTP_X_RHN_PROVISIONING_MAC_0",None)
 
     http_port = utils.parse_settings_lame("http_port",default="80")
     
