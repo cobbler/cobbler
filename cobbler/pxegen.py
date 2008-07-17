@@ -309,7 +309,7 @@ class PXEGen:
         append_line = "append %s" % utils.hash_to_string(kopts)
         if not arch =="ia64":
             append_line = "%s initrd=%s" % (append_line, initrd_path)
-        if len(append_line) >= 255 - len("append "):
+        if len(append_line) >= 255 + len("append "):
             print _("warning: kernel option length exceeds 255")
 
         # kickstart path rewriting (get URLs for local files)
