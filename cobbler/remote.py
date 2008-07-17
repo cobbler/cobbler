@@ -531,6 +531,12 @@ class CobblerXMLRPCInterface:
 
         return data
 
+    def get_status(self):
+        """
+        Returns the same information as `cobbler status`
+        """
+        return self.api.status()
+
 # *********************************************************************************
 # *********************************************************************************
 

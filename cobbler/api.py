@@ -386,7 +386,7 @@ class BootAPI:
         reposync = action_reposync.RepoSync(self._config)
         return reposync.run(name)
 
-    def status(self,mode):
+    def status(self,mode=None):
         self.log("status")
         statusifier = action_status.BootStatusReport(self._config,mode)
         return statusifier.run()
