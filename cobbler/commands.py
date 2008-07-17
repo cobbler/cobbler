@@ -54,7 +54,10 @@ class FunctionLoader:
 
         # also show avail options if command name is bogus
         if not called_name in self.functions.keys():
-            return self.show_options()
+            if "--helpbash" in args:
+                return self.show_options_bashcompletion()
+            else:
+                return self.show_options()
         fn = self.functions[called_name]
 
         # some functions require args, if none given, show subcommands
@@ -125,6 +128,15 @@ class FunctionLoader:
             help = self.functions[name].help_me()
             if help != "":
                 print help
+
+    def show_options_bashcompletion(self):
+        """
+        Prints out all loaded functions in an easily parseable form for
+        bash-completion
+        """
+        names = self.functions.keys()
+        names.sort()
+        print ' '.join(names)
 
 #=============================================================
 
