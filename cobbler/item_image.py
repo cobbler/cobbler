@@ -115,11 +115,6 @@ class Image(item.Item):
         return None  # no parent
 
     def is_valid(self):
-        """
-	A profile only needs a name and a distro.  Kickstart info,
-	as well as Virt info, are optional.  (Though I would say provisioning
-	without a kickstart is *usually* not a good idea).
-	"""
         if self.file is None or self.file == '':
             raise CX(_("image has no file specified"))
         if self.name is None or self.name == '':
