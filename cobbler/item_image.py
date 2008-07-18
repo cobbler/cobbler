@@ -55,7 +55,7 @@ class Image(item.Item):
         self.name            = self.load_item(seed_data,'name','')
         self.parent          = self.load_item(seed_data,'parent','')
         self.file            = self.load_item(seed_data,'file','')
-        self.file            = self.load_item(seed_data,'xml_file','')
+        self.xml_file        = self.load_item(seed_data,'xml_file','')
         self.depth           = self.load_item(seed_data,'depth',0)
         self.owners          = self.load_item(seed_data,'owners',self.settings.default_ownership)
 
@@ -121,7 +121,7 @@ class Image(item.Item):
 	without a kickstart is *usually* not a good idea).
 	"""
         if self.file is None or self.file == '':
-            raise CX(_("image has file specified"))
+            raise CX(_("image has no file specified"))
         if self.name is None or self.name == '':
             raise CX(_("image has no name specified"))
         return True
