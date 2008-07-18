@@ -24,11 +24,35 @@
 
 _cobbler()
 {
-    local cur prev
+    local cur prev special specialsub SPECIAL_CMDS SPECIALSUB_CMDS
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
     prev=${COMP_WORDS[COMP_CWORD-1]}
+
+    # Let's only run it once
+    SPECIAL_CMDS=`cobbler --helpbash | sed "s/ /|/g"`
+    for (( i=0; i < ${#COMP_WORDS[@]}-1; i++ )); do
+	    if [[ ${COMP_WORDS[i]} == @(${SPECIAL_CMDS}) ]]; then
+		    special=${COMP_WORDS[i]}
+		    break
+	    fi
+    done
+
+    if [ -n "$special" ]
+    then
+	# Take care of sub commands
+	SPECIALSUB_CMDS=`cobbler $special --helpbash | sed "s/ /|/g"`
+	for (( i=0; i < ${#COMP_WORDS[@]}-1; i++ )); do
+		if [[ ${COMP_WORDS[i]} == @(${SPECIALSUB_CMDS}) ]]; then
+			specialsub=${COMP_WORDS[i]}
+			break
+		fi
+	done
+
+	COMPREPLY=( $( compgen -W '$( cobbler $special $specialsub --helpbash )' -- $cur ) )
+	return 0
+    fi
 
     case $cur in
 	--*)
@@ -45,9 +69,7 @@ _cobbler()
 
     case $args in
 	1)
-	    COMPREPLY=( $( compgen -W 'buildiso check distro import list \
-	    profile replicate repo report reposync status sync system \
-	    validateks' -- $cur ) )
+	    COMPREPLY=( $( compgen -W '$( cobbler --helpbash )' -- $cur ) )
 	    ;;
 	*)
 	    case $prev in
