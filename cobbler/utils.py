@@ -81,12 +81,12 @@ def print_exc(exc,full=False):
    (t, v, tb) = sys.exc_info()
    try:
       getattr(exc, "from_cobbler")
-      print str(exc)[1:-1]
+      print >> sys.stderr, str(exc)[1:-1]
    except:
-      print t
-      print v
+      print >> sys.stderr, t
+      print >> sys.stderr, v
       if full:
-          print string.join(traceback.format_list(traceback.extract_tb(tb)))
+          print >> sys.stderr, string.join(traceback.format_list(traceback.extract_tb(tb)))
    return 1
 
 

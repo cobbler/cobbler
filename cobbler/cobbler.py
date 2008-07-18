@@ -43,7 +43,7 @@ class BootCLI:
       
     def run(self,args):
         if not self.api.perms_ok:
-            print "Insufficient permissions.  Use cobbler aclsetup to grant access to non-roo tusers."
+            print >> sys.stderr, "Insufficient permissions.  Use cobbler aclsetup to grant access to non-root users."
             sys.exit(1)
 
         return self.loader.run(args)
