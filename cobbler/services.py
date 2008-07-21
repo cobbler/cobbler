@@ -105,10 +105,17 @@ class CobblerSvc(object):
         ip = rest["REMOTE_ADDR"]
 
         candidates = []
+
         for x in systems:
             for y in x["interfaces"]:
-                if x["interfaces"][y]["ip_address"] == ip:
+                if x["interfaces"][y]["mac_address"].lower() == mac.lower():
                     candidates.append(x)
+
+        if len(candidates) == 0:
+            for x in systems:
+                for y in x["interfaces"]:
+                    if x["interfaces"][y]["ip_address"] == ip:
+                        candidates.append(x)
 
         if len(candidates) == 0:
             return "FAILED: no match (%s,%s)" % (ip, macinput)
