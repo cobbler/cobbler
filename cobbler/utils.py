@@ -24,12 +24,29 @@ import string
 import traceback
 import errno
 import logging
+import shutil
+import tempfile
 from cexceptions import *
 
 #placeholder for translation
 def _(foo):
    return foo
 
+# we can't use the API as non-root to read settings, so
+# this is a hack for mod python to find the port.  It's
+# fragile and ugly, but presently needed
+def parse_settings_lame(look_for,default="?"):
+   fd = open("/etc/cobbler/settings","r")
+   data = fd.read()
+   fd.close()
+   for line in data.split("\n"):
+      if line.find(look_for) !=-1 and line.find(":") != -1:
+          try:
+              tokens = line.split(":")
+              return tokens[-1].replace(" ","")
+          except:
+              return default
+   return default
 
 MODULE_CACHE = {}
 
@@ -59,6 +76,18 @@ def log_exc(logger):
    logger.info("Exception occured: %s" % t )
    logger.info("Exception value: %s" % v)
    logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+
+def print_exc(exc,full=False):
+   (t, v, tb) = sys.exc_info()
+   try:
+      getattr(exc, "from_cobbler")
+      print >> sys.stderr, str(exc)[1:-1]
+   except:
+      print >> sys.stderr, t
+      print >> sys.stderr, v
+      if full:
+          print >> sys.stderr, string.join(traceback.format_list(traceback.extract_tb(tb)))
+   return 1
 
 
 def trace_me():
@@ -285,7 +314,7 @@ def input_string_or_list(options,delim=","):
     else:
        raise CX(_("invalid input type"))
 
-def input_string_or_hash(options,delim=","):
+def input_string_or_hash(options,delim=",",allow_multiples=True):
     """
     Older cobbler files stored configurations in a flat way, such that all values for strings.
     Newer versions of cobbler allow dictionaries.  This function is used to allow loading
@@ -305,11 +334,24 @@ def input_string_or_hash(options,delim=","):
         for t in tokens:
             tokens2 = t.split("=")
             if len(tokens2) == 1 and tokens2[0] != '':
-                new_dict[tokens2[0]] = None
-            elif len(tokens2) == 2 and tokens2[0] != '':
-                new_dict[tokens2[0]] = tokens2[1]
-            else:
+                # this is a singleton option, no value
+                tokens2.append(None)
+            elif tokens2[0] == '':
                 return (False, {})
+
+            # if we're allowing multiple values for the same key,
+            # check to see if this token has already been
+            # inserted into the dictionary of values already
+            if tokens2[0] in new_dict.keys() and allow_multiples:
+                # if so, check to see if there is already a list of values
+                # otherwise convert the dictionary value to an array, and add
+                # the new value to the end of the list
+                if type(new_dict[tokens2[0]]) == list:
+                    new_dict[tokens2[0]].append(tokens2[1])
+                else:
+                    new_dict[tokens2[0]] = [new_dict[tokens2[0]], tokens2[1]]
+            else:
+                new_dict[tokens2[0]] = tokens2[1]
         new_dict.pop('', None)
         return (True, new_dict)
     elif type(options) == dict:
@@ -491,6 +533,11 @@ def hash_to_string(hash):
        value = hash[key]
        if value is None:
            buffer = buffer + str(key) + " "
+       elif type(value) == list:
+           # this value is an array, so we print out every
+           # key=value
+           for item in value:
+              buffer = buffer + str(key) + "=" + str(item) + " "
        else:
           buffer = buffer + str(key) + "=" + str(value) + " "
     return buffer
@@ -677,6 +724,15 @@ def mkdir(path,mode=0777):
            print oe.errno
            raise CX(_("Error creating") % path)
 
+def set_arch(self,arch):
+   if arch in [ "standard", "ia64", "x86", "i386", "x86_64", "s390x" ]:
+       if arch == "x86" or arch == "standard":
+           # be consistent 
+           arch = "i386"
+       self.arch = arch
+       return True
+   raise CX(_("arch choices include: x86, x86_64, s390x and ia64"))
+
 def set_repos(self,repos,bypass_check=False):
    # WARNING: hack
    repos = fix_mod_python_select_submission(repos)
@@ -843,8 +899,6 @@ def get_kickstart_templates(api):
             files[x] = 1
 
     return files.keys()
-
-
 
 if __name__ == "__main__":
     # print redhat_release()
