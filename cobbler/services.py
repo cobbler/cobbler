@@ -102,7 +102,7 @@ class CobblerSvc(object):
             # FIXME: will not key off other NICs, problem?
             mac = macinput.split()[1].strip()
         else:
-            macinput = "None"
+            mac = "None"
 
         ip = rest["REMOTE_ADDR"]
 
@@ -110,7 +110,7 @@ class CobblerSvc(object):
 
         for x in systems:
             for y in x["interfaces"]:
-                if x["interfaces"][y]["mac_address"].lower() == macinput.lower():
+                if x["interfaces"][y]["mac_address"].lower() == mac.lower():
                     candidates.append(x)
 
         if len(candidates) == 0:
