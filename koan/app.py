@@ -465,7 +465,7 @@ class Koan:
             # if virt type is auto, reset it to a value we can actually use
             if self.virt_type == "auto":
 
-                if profile_data.has_key("xml_file"):
+                if profile_data.get("xml_file","") != "":
                     print "- virt-image based installation, ignoring --virt-type"
                     self.virt_type = "virtimage"
 

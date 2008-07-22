@@ -54,7 +54,7 @@ def start_install(name=None, ram=None, disks=None, mac=None,
        vtype = "kqemu"
     print "- using qemu hypervisor, type=%s" % vtype
 
-    if arch is not None and arch.lower() == "x86":
+    if arch is not None and arch.lower() in ["x86","i386"]:
         arch = "i686"
 
     guest = virtinst.FullVirtGuest(hypervisorURI="qemu:///system",type=vtype, arch=arch)
@@ -74,17 +74,12 @@ def start_install(name=None, ram=None, disks=None, mac=None,
 
     if profile_data.has_key("file"):
         # this is an image based installation
-        if profile_data["install_type"] == "iso":
-            input_path = profile_data["file"]
-            if not input_path.startswith("nfs://"):
-                guest.cdrom = input_path
-            else:
-                (tempdir, filename) = utils.nfsmount(input_path)
-                guest.cdrom = os.path.join(tempdir, filename)     
-                
+        input_path = profile_data["file"]
+        if not input_path.startswith("nfs://"):
+            guest.cdrom = input_path
         else:
-            # image cloning is not supported yet.
-            raise koan.InfoException("KVM with --image only supports ISO based installs at this time")
+            (tempdir, filename) = utils.nfsmount(input_path)
+            guest.cdrom = os.path.join(tempdir, filename)     
     else:
         guest.location = profile_data["install_tree"]
    
