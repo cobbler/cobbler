@@ -73,7 +73,7 @@ _cobbler()
 	    ;;
 	*)
 	    case $prev in
-		distro|profile|repo|system)
+		distro|profile|repo|system|image)
 			COMPREPLY=( $( compgen -W 'add edit copy list rename remove report' -- $cur ) )
 			;;
 		*)
