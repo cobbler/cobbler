@@ -47,12 +47,18 @@ def find_completion(args):
 
    #print "DEBUG: arguments are: %s" % arguments
    #print "DEBUG: options are: %s" % options
-   last = args[-1]
+   try:
+       last = args[-1]
+   except:
+       last = None
 
    return find_options(datastruct, arguments, last)
 
 
 def find_options(datastruct, arguments, last):
+
+   if last is None:
+       return datastruct
 
    for x in TAKES_A_FILE:
        x2 = "%s=" % x
