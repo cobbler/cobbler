@@ -78,7 +78,6 @@ class BootLiteSync:
         if profile is None:
             raise CX(_("error in profile lookup"))
         # rebuild the yum configuration files for any attached repos
-        self.sync.yumgen.retemplate_yum_repos(profile,True)
         # cascade sync
         kids = profile.get_children()
         for k in kids:
@@ -112,7 +111,6 @@ class BootLiteSync:
         # write the PXE files for the system
         self.sync.pxegen.write_all_system_files(system)
         # per system kickstarts
-        self.sync.yumgen.retemplate_yum_repos(system,False)
         if self.settings.manage_dhcp:
             if self.settings.omapi_enabled: 
                 for (name,interface) in system.interfaces.iteritems():

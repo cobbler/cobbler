@@ -50,18 +50,19 @@ class YumGen:
         self.repos       = config.repos()
         self.templar     = templar.Templar(config)
 
-    def retemplate_all_yum_repos(self):
-        for p in self.profiles:
-            self.retemplate_yum_repos(p,True)
-        for system in self.systems:
-            self.retemplate_yum_repos(system,False)
+    #def retemplate_all_yum_repos(self):
+    #    for p in self.profiles:
+    #        self.retemplate_yum_repos(p,True)
+    #    for system in self.systems:
+    #        self.retemplate_yum_repos(system,False)
 
-    def retemplate_yum_repos(self,obj,is_profile):
+    def get_yum_config(self,obj,is_profile):
         """
-        Yum repository management files are in self.settings.webdir/repo_mirror/$name/config.repo
-        and also potentially in listed in the source_repos structure of the distro object, however
-        these files have server URLs in them that must be templated out.  This function does this.
+        Return one large yum repo config blob suitable for use by any target system that requests it.
         """
+
+        totalbuf = ""
+
         blended  = utils.blender(self.api, False, obj)
 
         if is_profile:
@@ -104,7 +105,11 @@ class YumGen:
                 continue
             infile_data = infile_h.read()
             infile_h.close()
-            outfile = os.path.join(outdir, "%s.repo" % (dispname))
-            self.templar.render(infile_data, blended, outfile, None)
+            outfile = None # disk output only
+            totalbuf = totalbuf + self.templar.render(infile_data, blended, outfile, None)
+            totalbuf = totalbuf + "\n\n"
+
+        return totalbuf
+
 
 

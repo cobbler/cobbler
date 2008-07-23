@@ -28,7 +28,6 @@ import utils
 from cexceptions import *
 import templar 
 import pxegen
-import yumgen
 
 import item_distro
 import item_profile
@@ -61,7 +60,6 @@ class BootSync:
         self.pxegen      = pxegen.PXEGen(config)
         self.dns         = dns
         self.dhcp        = dhcp
-        self.yumgen      = yumgen.YumGen(config)
         self.bootloc     = utils.tftpboot_location()
 
     def run(self):
@@ -83,7 +81,6 @@ class BootSync:
         self.settings = self.config.settings()
         self.repos    = self.config.repos()
         self.pxegen   = pxegen.PXEGen(self.config)
-        self.yumgen   = yumgen.YumGen(self.config)
 
         # execute the core of the sync operation
         self.clean_trees()
@@ -91,7 +88,6 @@ class BootSync:
         self.pxegen.copy_distros()
         for x in self.systems:
             self.pxegen.write_all_system_files(x)
-        self.yumgen.retemplate_all_yum_repos()
         if self.settings.manage_dhcp:
            self.dhcp.write_dhcp_file()
            self.dhcp.regen_ethers()

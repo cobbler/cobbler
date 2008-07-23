@@ -73,6 +73,16 @@ class CobblerSvc(object):
         data = self.remote.generate_kickstart(profile,system,REMOTE_ADDR,REMOTE_MAC)
         return u"%s" % data    
 
+    def yum(self,profile=None,system=None,**rest):
+        self.__xmlrpc_setup()
+        if profile is not None:
+            data = self.remote.get_repo_config_for_profile(profile)
+        elif system is not None:
+            data = self.remote.get_repo_config_for_system(system)
+        else:
+            data = "# must specify profile or system name"
+        return data
+
     def trig(self,mode="?",profile=None,system=None,REMOTE_ADDR=None,**rest):
         """
         Hook to call install triggers.

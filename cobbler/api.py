@@ -29,6 +29,7 @@ from cexceptions import *
 import sub_process
 import module_loader
 import kickgen
+import yumgen
 
 import logging
 import os
@@ -91,6 +92,7 @@ class BootAPI:
                 "authz_allowall"
             )
             self.kickgen = kickgen.KickGen(self._config)
+            self.yumgen  = yumgen.YumGen(self._config)
             self.logger.debug("API handle initialized")
             self.perms_ok = True
  
@@ -319,6 +321,12 @@ class BootAPI:
 
         # run cobbler reposync to apply changes
         return True 
+
+    def get_repo_config_for_profile(self,obj):
+        return self.yumgen.get_yum_config(obj,True)
+    
+    def get_repo_config_for_system(self,obj):
+        return self.yumgen.get_yum_config(obj,False)
 
     def generate_kickstart(self,profile,system):
         self.log("generate_kickstart")

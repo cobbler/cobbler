@@ -218,6 +218,27 @@ class CobblerXMLRPCInterface:
         self.api.add_system(system)
 
 
+    def get_repo_config_for_profile(self,profile_name):
+        """
+        Return the yum configuration a given profile should use to obtain
+        all of it's cobbler associated repos.
+        """
+        obj = self.api.find_profile(profile_name)
+        if obj is None:
+           return "# object not found: %s" % profile_name
+        return self.api.get_repo_config_for_profile(obj)
+    
+    def get_repo_config_for_system(self,system_name):
+        """
+        Return the yum configuration a given profile should use to obtain
+        all of it's cobbler associated repos.
+        """
+        obj = self.api.find_system(system_name)
+        if obj is None:
+           return "# object not found: %s" % system_name
+        return self.api.get_repo_config_for_system(obj)
+
+
     def register_mac(self,mac,profile,token=None):
         """
         If allow_cgi_register_mac is enabled in settings, this allows

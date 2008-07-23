@@ -217,25 +217,13 @@ class KickGen:
         if not self.settings.yum_post_install_mirror:
            return ""
 
-        urlseg = self.get_repo_segname(is_profile)
-
-        distro = obj.get_conceptual_parent()
-        if not is_profile:
-           distro = distro.get_conceptual_parent()
-
         blended = utils.blender(self.api, False, obj)
-        configs = self.get_repo_filenames(obj, is_profile)
-        buf = ""
- 
-        # for each kickstart template we have rendered ...
-        for c in configs:
+        if is_profile:
+           url = "http://%s/cblr/svc/op/yum/profile/%s" % (blended["http_server"], obj.name)
+        else:
+           url = "http://%s/cblr/svc/op/yum/system/%s" % (blended["http_server"], obj.name)
 
-           name = c.split("/")[-1].replace(".repo","")
-           # add the line to create the yum config file on the target box
-           conf = self.get_repo_config_file(blended["http_server"],urlseg,blended["name"],name)
-           buf = buf + "wget \"%s\" --output-document=/etc/yum.repos.d/%s.repo\n" % (conf, name)    
-
-        return buf
+        return "wget \"%s\" --output-document=/etc/yum.repos.d/cobbler-config.repo\n" % (url)
 
     def get_repo_config_file(self,server,urlseg,obj_name,repo_name):
         """
