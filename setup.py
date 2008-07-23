@@ -82,7 +82,7 @@ if __name__ == "__main__":
                                 (etcpath,  ['config/users.conf']),
                                 (initpath, ['config/cobblerd']),
                                 (etcpath,  ['config/settings']),
-                                (bashpath, ['config/cobbler_bash']), 
+                                # (bashpath, ['config/cobbler_bash']), 
 
                                 # backups for upgrades
                                 (backpath, []),

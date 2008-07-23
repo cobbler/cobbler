@@ -172,20 +172,17 @@ class CobblerFunction:
         """
         pass
 
-    def helpbash(self, parser, args):
+    def helpbash(self, parser, args, print_options = True, print_subs = False):
         """
         Print out the arguments in an easily parseable format
         """
         # We only want to print either the subcommands available or the
         # options, but not both
         option_list = []
-        for sub in self.subcommands():
-            if sub.__str__() in args:
-                # Subcommand has already been entered so lets show the options
-                option_list = []
-                break
-            option_list.append(sub.__str__())
-        if not option_list:
+        if print_subs:
+            for sub in self.subcommands():
+                option_list.append(sub.__str__())
+        elif print_options:
             for opt in parser.option_list:
                 option_list.extend(opt.__str__().split('/'))
         print ' '.join(option_list)
@@ -204,8 +201,11 @@ class CobblerFunction:
                 break
         p = optparse.OptionParser(usage="cobbler %s [ARGS]" % accum)
         self.add_options(p, args)
-        if "--helpbash" in args:
-            self.helpbash(p, args)
+        if "--helpsubs" in args:
+            self.helpbash(p, args, False, True)
+            sys.exit(0)
+        elif "--helpopts" in args:
+            self.helpbash(p, args, True, False)
             sys.exit(0)
         # if using subcommands, ensure one and only one is used
         subs = self.subcommands()
