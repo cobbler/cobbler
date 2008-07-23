@@ -31,6 +31,7 @@ Cobbler CHANGELOG
 - fix bug with 255 kernel options line warning not firing soon enough
 - add findks.cgi support back as http://server/cblr/svc/op/findks
 - merge patch to surface status over API
+- make yum repos served up for /etc/yum.repos.d fully dynamic (mod_python)
 
 - Mon Jun 09 2008 - 1.0.2
 - Fix mkdir invocation
