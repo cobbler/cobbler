@@ -52,6 +52,9 @@ devinstall:
 	chmod -R +x /var/www/cobbler/web
 	chmod -R +x /var/www/cobbler/svc
 
+completion:
+	python mkbash.py
+
 webtest: devinstall
 	/sbin/service cobblerd restart
 	/sbin/service httpd restart

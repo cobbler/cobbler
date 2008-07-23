@@ -75,6 +75,7 @@ if __name__ == "__main__":
                                 (rotpath,  ['config/cobblerd_rotate']),
                                 (wwwconf,  ['config/cobbler.conf']),
                                 (wwwconf,  ['config/cobbler_svc.conf']),
+                                (cobpath,  ['config/completions']),
                                 (cobpath,  ['config/cobbler_hosts']),
                                 (etcpath,  ['config/modules.conf']),
                                 (etcpath,  ['config/users.digest']),
