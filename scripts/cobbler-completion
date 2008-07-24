@@ -113,7 +113,7 @@ def find_options(datastruct, arguments, last):
 def clean_output(datastruct):
    keyz = datastruct.keys()
    keyz.sort()
-   for x in keyz
+   for x in keyz:
       if x is not None:
           sys.stdout.write("%s " % x.replace("'","-"))
    print ""
