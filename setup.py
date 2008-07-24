@@ -4,7 +4,7 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-VERSION = "1.0.2"
+VERSION = "1.1.0"
 SHORT_DESC = "Network install tool for use with Cobbler"
 LONG_DESC = """
 koan stands for "kickstart-over-a-network" and allows for both

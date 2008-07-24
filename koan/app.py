@@ -466,8 +466,7 @@ class Koan:
             if self.virt_type == "auto":
 
                 if profile_data.get("xml_file","") != "":
-                    print "- virt-image based installation, ignoring --virt-type"
-                    self.virt_type = "virtimage"
+                    raise InfoException("xmlfile based installations are not supported")
 
                 elif profile_data.has_key("file"):
                     # FIXME: this is actually an image based install, assume qemu/KVM
@@ -933,10 +932,6 @@ class Koan:
             import vmwcreate
             uuid = None
             creator = vmwcreate.start_install
-        elif self.virt_type == "virtimage":
-            import vicreate
-            uuid = None
-            creator = vicreate.start_install
         else:
             raise InfoException, "Unspecified virt type: %s" % self.virt_type
         return (uuid, creator, fullvirt)

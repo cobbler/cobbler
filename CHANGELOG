@@ -1,4 +1,9 @@
 Koan CHANGELOG
+ 
+- Thu Jul 24 2008 Michael DeHaan <mdehaan@redhat.com> - 1.1.0-1
+- Teach koan about ISO images 
+- --list now takes a type of thing to list, removed --list-profiles, etc
+- manpage cleanup
 
 - Mon Jun 16 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.2-1
 - Pay attention to remote http ports for kickstart URLs
