@@ -144,7 +144,6 @@ class KickGen:
 
         buf = ""
         blended = utils.blender(self.api, False, obj)
-        configs = self.get_repo_filenames(obj,is_profile)
         repos = blended["repos"] 
 
         for repo in repos:
@@ -153,7 +152,7 @@ class KickGen:
             if repo_obj is not None:
                 if not repo_obj.yumopts.has_key('enabled') or repo_obj.yumopts['enabled'] == '1':
                    if repo_obj.mirror_locally:
-                       baseurl = "https://%s/cblr/repo_mirror/%s" % (blended["http_server"], repo_obj.name)
+                       baseurl = "https://%s/cobbler/repo_mirror/%s" % (blended["http_server"], repo_obj.name)
                        buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, baseurl)
                    else:
                        buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, repo.mirror)
@@ -177,37 +176,6 @@ class KickGen:
             buf = buf + "repo --name=source-%s --baseurl=%s\n" % (count, x[1])
 
         return buf
-
-    def get_repo_baseurl(self, server, repo_name, is_repo_mirror=True):
-        """
-        Construct the URL to a repo definition.
-        """
-        if is_repo_mirror:
-            return "http://%s/cobbler/repo_mirror/%s" % (server, repo_name)
-        else:
-            return "http://%s/cobbler/ks_mirror/config/%s" % (server, repo_name)
-
-    def get_repo_filenames(self, obj, is_profile=True):
-        """
-        For a given object, return the paths to repo configuration templates
-        that will be used to generate per-object repo configuration files and
-        baseurls
-        """        
-
-        blended = utils.blender(self.api, False, obj)
-        urlseg = self.get_repo_segname(is_profile)
-
-        topdir = "%s/%s/%s/*.repo" % (self.settings.webdir, urlseg, blended["name"])
-        files = glob.glob(topdir)
-        return files
-
-
-    def get_repo_segname(self, is_profile):
-        if is_profile:
-           return "repos_profile"
-        else:
-           return "repos_system"
-
 
     def generate_config_stanza(self, obj, is_profile=True):
 

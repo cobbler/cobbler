@@ -98,8 +98,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cobbler/
 %dir /var/www/cobbler/localmirror
 %dir /var/www/cobbler/repo_mirror
-%dir /var/www/cobbler/repos_profile
-%dir /var/www/cobbler/repos_system
 %dir /var/www/cobbler/ks_mirror
 %dir /var/www/cobbler/ks_mirror/config
 %dir /var/www/cobbler/images

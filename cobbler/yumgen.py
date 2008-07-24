@@ -65,11 +65,6 @@ class YumGen:
 
         blended  = utils.blender(self.api, False, obj)
 
-        if is_profile:
-           outseg = "repos_profile"
-        else:
-           outseg = "repos_system"
-
         input_files = []
 
         # chance old versions from upgrade do not have a source_repos
@@ -93,9 +88,6 @@ class YumGen:
                 dispname = infile.split("/")[-2]
             else:
                 dispname = infile.split("/")[-1].replace(".repo","")
-            confdir = os.path.join(self.settings.webdir, outseg)
-            outdir = os.path.join(confdir, blended["name"])
-            utils.mkdir(outdir) 
             try:
                 infile_h = open(infile)
             except:
