@@ -155,7 +155,7 @@ class KickGen:
                        baseurl = "https://%s/cobbler/repo_mirror/%s" % (blended["http_server"], repo_obj.name)
                        buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, baseurl)
                    else:
-                       buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, repo.mirror)
+                       buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, repo_obj.mirror)
             else:
                 # FIXME: what to do if we can't find the repo object that is listed?
                 # this should be a warning at another point, probably not here
