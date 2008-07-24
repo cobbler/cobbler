@@ -84,7 +84,7 @@ class ProfileFunction(commands.CobblerFunction):
             items = self.api.find_profile(return_list=True, no_errors=True, **self.options.__dict__)
             for x in items:
                 print x.name
-            return 0
+            return True
 
         if self.matches_args(self.args,["report","list","remove","dumpvars"]) or not self.options.inherit:
             obj = self.object_manipulator_start(self.api.new_profile,self.api.profiles,subobject=False)

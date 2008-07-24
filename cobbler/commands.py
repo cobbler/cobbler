@@ -201,13 +201,6 @@ class CobblerFunction:
                 break
         p = optparse.OptionParser(usage="cobbler %s [ARGS]" % accum)
         self.add_options(p, args)
-        if "--helpsubs" in args:
-            self.helpbash(p, args, False, True)
-            sys.exit(0)
-        elif "--helpopts" in args:
-            self.helpbash(p, args, True, False)
-            sys.exit(0)
-        # if using subcommands, ensure one and only one is used
         subs = self.subcommands()
         if len(subs) > 0:
             count = 0
@@ -219,7 +212,7 @@ class CobblerFunction:
                 print "======"
                 for x in subs: 
                     print "cobbler %s %s [ARGS|--help]" % (self.command_name(), x)
-                sys.exit(1)    
+                return True
         (self.options, self.args) = p.parse_args(args)
         return True
 
@@ -395,7 +388,7 @@ class CobblerFunction:
         names = [ x.name for x in collection]
         names.sort() # sorted() is 2.4 only
         for name in names:
-           str = _("  %(name)s") % { "name" : name }
+           str = _("%(name)s") % { "name" : name }
            print str
         return True
 

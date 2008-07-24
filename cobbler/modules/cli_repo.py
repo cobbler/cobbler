@@ -76,7 +76,7 @@ class RepoFunction(commands.CobblerFunction):
             items = self.api.find_system(return_list=True, no_errors=True, **self.options.__dict__)
             for x in items:
                 print x.name
-            return 0
+            return True
 
         obj = self.object_manipulator_start(self.api.new_repo,self.api.repos)
         if obj is None:

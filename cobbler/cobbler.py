@@ -67,9 +67,12 @@ def main():
     exitcode = 0
     try:
         run_upgrade_checks()
-        return BootCLI().run(sys.argv)
-    except SystemExit, ex:
-        return 1
+        rc = BootCLI().run(sys.argv)
+        if rc == True or rc is None:
+            return 0
+        elif rc == False:
+            return 1
+        return rc
     except Exception, exc:
         utils.print_exc(exc,full=True)
         return 1

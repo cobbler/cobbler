@@ -32,6 +32,8 @@ Cobbler CHANGELOG
 - add findks.cgi support back as http://server/cblr/svc/op/findks
 - merge patch to surface status over API
 - make yum repos served up for /etc/yum.repos.d fully dynamic (mod_python)
+- cobbler find API calls and command line usage can now use fnmatch (wildcards)
+- return code cleanup (0/1 now more predictable)
 
 - Mon Jun 09 2008 - 1.0.2
 - Fix mkdir invocation

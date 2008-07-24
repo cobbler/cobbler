@@ -18,6 +18,7 @@ import utils
 from cexceptions import *
 from utils import _
 import pprint
+import fnmatch
 
 class Item(serializable.Serializable):
 
@@ -208,7 +209,7 @@ class Item(serializable.Serializable):
                 key_found_already = True
                 for (name, interface) in data["interfaces"].iteritems(): 
                     if value is not None:
-                        if interface[key].lower() == value.lower():
+                        if self.__find_compare(interface[key], value):
                             return True
 
         if not data.has_key(key):
@@ -224,15 +225,18 @@ class Item(serializable.Serializable):
         else:
             return self.__find_compare(value, data[key])
 
+
     def __find_compare(self, from_search, from_obj):
 
         if type(from_obj) == type(""):
-            if from_obj.lower() == from_search.lower():
+            # FIXME: fnmatch is only used for string to string comparisions
+            # which should cover most major usage, if not, this deserves fixing
+            if fnmatch.fnmatch(from_obj.lower(), from_search.lower()):
                 return True
             else:
                 return False    
         
-        if type(from_search) != type(from_obj):
+        else:
             if type(from_search) == type(""):
                 if type(from_obj) == type([]):
                     from_search = utils.input_string_or_list(from_search,delim=',')
