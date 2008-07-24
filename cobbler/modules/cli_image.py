@@ -68,7 +68,7 @@ class ImageFunction(commands.CobblerFunction):
             p.add_option("--virt-path",            dest="virt_path",            help="virt install location")
             p.add_option("--virt-type",            dest="virt_type",            help="virt install type (ISOs only)")
             p.add_option("--virt-ram",             dest="virt_ram",             help="ex: 1024")
-            p.add_option("--xml-file",             dest="xml_file",             help="associate a virt-image XML template (needed for VM cloning)")
+            p.add_option("--xml-file",             dest="xml_file",             help="associate a XML file for tracking (warning: cobbler does not use)")
 
 
 
