@@ -15,7 +15,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import sys
-import os
 import cobbler.yaml as yaml
 
 TAKES_A_FILE = [
@@ -32,8 +31,8 @@ def find_completion(args):
    data = datafile.read()
    datafile.close()
    datastruct = yaml.load(data).next()
-  
-   if args[0] == "cobbler" or args[0] == "/usr/bin/cobbler":
+
+   if args and args[0] in ["cobbler", "/usr/bin/cobbler"]:
        args = args[1:]
    arguments = args
 
@@ -112,7 +111,7 @@ def find_options(datastruct, arguments, last):
    return datastruct.keys()
 
 def clean_output(datastruct):
-   for x in datastruct.keys():
+   for x in sorted(datastruct.keys()):
       if x is not None:
           sys.stdout.write("%s " % x.replace("'","-"))
    print ""
