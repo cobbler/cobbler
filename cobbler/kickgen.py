@@ -137,44 +137,46 @@ class KickGen:
 
         """
         Automatically attaches yum repos to profiles/systems in kickstart files
-        that contain the magic $yum_repo_stanza variable.
+        that contain the magic $yum_repo_stanza variable.  This includes repo
+        objects as well as the yum repos that are part of split tree installs,
+        whose data is stored with the distro (example: RHEL5 imports)
         """
 
         buf = ""
         blended = utils.blender(self.api, False, obj)
         configs = self.get_repo_filenames(obj,is_profile)
-        repos = self.repos
+        repos = blended["repos"] 
 
-        # FIXME: this really should be dynamically generated as with the kickstarts
-        for c in configs:
-           name = c.split("/")[-1].replace(".repo","")
-           (is_core, baseurl) = self.analyze_repo_config(c)
-           for repo in repos:
-               if repo.name == name:
-                   if not repo.yumopts.has_key('enabled') or repo.yumopts['enabled'] == '1':
-                       if repo.mirror_locally:
-                           buf = buf + "repo --name=%s --baseurl=%s\n" % (name, baseurl)
-                       else:
-                           buf = buf + "repo --name=%s --baseurl=%s\n" % (name, repo.mirror)
+        for repo in repos:
+            # see if this is a source_repo or not
+            repo_obj = self.api.find_repo(repo)
+            if repo_obj is not None:
+                if not repo_obj.yumopts.has_key('enabled') or repo_obj.yumopts['enabled'] == '1':
+                   if repo_obj.mirror_locally:
+                       baseurl = "https://%s/cblr/repo_mirror/%s" % (blended["http_server"], repo_obj.name)
+                       buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, baseurl)
+                   else:
+                       buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, repo.mirror)
+            else:
+                # FIXME: what to do if we can't find the repo object that is listed?
+                # this should be a warning at another point, probably not here
+                # so we'll just not list it so the kickstart will still work
+                # as nothing will be here to read the output noise.  Logging might
+                # be useful.
+                pass
+
+        if is_profile:
+            distro = obj.get_conceptual_parent()
+        else:
+            distro = obj.get_conceptual_parent().get_conceptual_parent()
+
+        source_repos = distro.source_repos
+        count = 0
+        for x in source_repos:
+            count = count + 1
+            buf = buf + "repo --name=source-%s --baseurl=%s\n" % (count, x[1])
 
         return buf
-
-    def analyze_repo_config(self, filename):
-        fd = open(filename)
-        data = fd.read()
-        lines = data.split("\n")
-        ret = False
-        baseurl = None
-        for line in lines:
-            if line.find("ks_mirror") != -1:
-                ret = True
-            if line.find("baseurl") != -1:
-                try:
-                    first, baseurl = line.split("=",1)
-                except:
-                    raise CX(_("error scanning repo: %s" % filename))
-        fd.close()
-        return (ret, baseurl)
 
     def get_repo_baseurl(self, server, repo_name, is_repo_mirror=True):
         """
