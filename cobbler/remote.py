@@ -199,24 +199,6 @@ class CobblerXMLRPCInterface:
         self.log("get_settings",token=token)
         return self.__get_all("settings")
 
-    def profile_change(self,mac,newprofile,token=None,**rest):
-        """
-        If allow_cgi_profile_change is enabled in settings, this allows
-        kickstarts to set the profile of a machine to another profile
-        via a wget in %post.  This has security implications.
-        READ: https://fedorahosted.org/cobbler/wiki/AutoProfileChange
-        """
-
-        if not self.api.settings().allow_cgi_profile_change:
-            return 1
-
-        system = self.api.find_system(mac_address=mac)
-        if system is None:
-            return 2
-   
-        system.set_profile(newprofile)
-        self.api.add_system(system)
-
     def get_repo_config_for_profile(self,profile_name,**rest):
         """
         Return the yum configuration a given profile should use to obtain
@@ -245,6 +227,7 @@ class CobblerXMLRPCInterface:
         implications.
         READ: https://fedorahosted.org/cobbler/wiki/AutoRegistration
         """
+        self._refresh()
 
         if mac is None:
             # don't go further if not being called by anaconda
@@ -285,8 +268,7 @@ class CobblerXMLRPCInterface:
         """
         self.log("disable_netboot",token=token,name=name)
         # used by nopxe.cgi
-        self.api.clear()
-        self.api.deserialize()
+        self._refresh()
         if not self.api.settings().pxe_just_once:
             # feature disabled!
             return False
