@@ -112,6 +112,8 @@ class CobblerSvc(object):
            listing = self.remote.get_images()
         elif what == "repos":
            listing = self.remote.get_repos()
+        else
+           return "?"
         for x in listing:
            buf = buf + "%s\n" % x["name"]
         return buf
