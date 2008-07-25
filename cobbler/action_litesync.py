@@ -72,7 +72,7 @@ class BootLiteSync:
         # delete potential symlink to tree in webdir/links
         utils.rmfile(os.path.join(self.settings.webdir, "links", name)) 
 
-    def add_single_profile(self, name):
+    def add_single_profile(self, name, rebuild_menu=True):
         # get the profile object:
         profile = self.profiles.find(name=name)
         if profile is None:
@@ -82,10 +82,12 @@ class BootLiteSync:
         kids = profile.get_children()
         for k in kids:
             if k.COLLECTION_TYPE == "profile":
-                self.add_single_profile(k.name)
+                self.add_single_profile(k.name, rebuild_menu=False)
             else:
-                self.add_single_system(k.name)
- 
+                self.add_single_system(k.name, rebuild_menu=False)
+        self.sync.pxegen.make_pxe_menu()
+        return True
+         
     def remove_single_profile(self, name):
         # delete profiles/$name file in webdir
         utils.rmfile(os.path.join(self.settings.webdir, "profiles", name))

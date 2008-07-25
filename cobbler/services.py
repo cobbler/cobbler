@@ -99,6 +99,23 @@ class CobblerSvc(object):
         self.__xmlrpc_setup()
         return str(self.remote.disable_netboot(system))
 
+    def list(self,what="systems",**rest):
+        self.__xmlrpc_setup()
+        buf = ""
+        if what == "systems":
+           listing = self.remote.get_systems()
+        elif what == "profiles":
+           listing = self.remote.get_profiles()
+        elif what == "distros":
+           listing = self.remote.get_distros()
+        elif what == "images":
+           listing = self.remote.get_images()
+        elif what == "repos":
+           listing = self.remote.get_repos()
+        for x in listing:
+           buf = buf + "%s\n" % x["name"]
+        return buf
+
     def autodetect(self,**rest):
         self.__xmlrpc_setup()
         systems = self.remote.get_systems()

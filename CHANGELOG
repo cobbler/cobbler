@@ -36,6 +36,8 @@ Cobbler CHANGELOG
 - return code cleanup (0/1 now more predictable)
 - added comments to /etc/cobbler/modules.conf
 - during import non-xen kernels will default --virt-type to qemu
+- when editing/adding profiles, auto-rebuild the PXE menu
+- added http://cobbler.example.org/cblr/svc/op/list/what/systems (or profiles, etc)
 
 - Mon Jun 09 2008 - 1.0.2
 - Fix mkdir invocation
