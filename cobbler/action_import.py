@@ -519,6 +519,10 @@ class Importer:
 
        profile.set_name(name)
        profile.set_distro(name)
+       if name.find("-xen") != -1:
+           profile.set_virt_type("xenpv")
+       else:
+           profile.set_virt_type("qemu")
 
        self.profiles.add(profile,save=True)
        self.api.serialize()

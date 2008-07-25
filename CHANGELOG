@@ -35,6 +35,7 @@ Cobbler CHANGELOG
 - cobbler find API calls and command line usage can now use fnmatch (wildcards)
 - return code cleanup (0/1 now more predictable)
 - added comments to /etc/cobbler/modules.conf
+- during import non-xen kernels will default --virt-type to qemu
 
 - Mon Jun 09 2008 - 1.0.2
 - Fix mkdir invocation
