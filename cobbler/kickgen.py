@@ -152,7 +152,7 @@ class KickGen:
             if repo_obj is not None:
                 if not repo_obj.yumopts.has_key('enabled') or repo_obj.yumopts['enabled'] == '1':
                    if repo_obj.mirror_locally:
-                       baseurl = "https://%s/cobbler/repo_mirror/%s" % (blended["http_server"], repo_obj.name)
+                       baseurl = "http://%s/cobbler/repo_mirror/%s" % (blended["http_server"], repo_obj.name)
                        buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, baseurl)
                    else:
                        buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, repo_obj.mirror)
