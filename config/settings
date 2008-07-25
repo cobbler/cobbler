@@ -34,6 +34,7 @@ default_virt_bridge: xenbr0
 # if koan is invoked without --virt-type and no virt-type
 # is set on the profile/system, what virtualization type
 # should be assumed?  Values: xenpv, xenfv, qemu, vmware
+# (NOTE: this does not change what virt_type is chosen by import)
 default_virt_type: xenpv
 
 # use this as the default disk size for virt guests (GB)
