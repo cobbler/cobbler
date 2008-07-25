@@ -120,7 +120,7 @@ class CobblerXMLRPCInterface:
            logger = self.logger.info
         logger(msg)
 
-    def get_size(self,collection_name):
+    def get_size(self,collection_name,**rest):
         """
         Returns the number of entries in a collection (but not the actual
         collection) for WUI/TUI interfaces that want to paginate the results.
@@ -165,7 +165,7 @@ class CobblerXMLRPCInterface:
 
         return self._fix_none(data)
 
-    def get_kickstart_templates(self,token):
+    def get_kickstart_templates(self,token,**rest):
         """
         Returns all of the kickstarts that are in use by the system.
         """
@@ -173,7 +173,7 @@ class CobblerXMLRPCInterface:
         self.check_access(token, "get_kickstart_templates")
         return utils.get_kickstart_templates(self.api)
 
-    def is_kickstart_in_use(self,ks,token):
+    def is_kickstart_in_use(self,ks,token,**rest):
         self.log("is_kickstart_in_use",token=token)
         self.check_access(token, "is_kickstart_in_use")
         for x in self.api.profiles():
@@ -184,7 +184,7 @@ class CobblerXMLRPCInterface:
                return True
         return False
 
-    def generate_kickstart(self,profile=None,system=None,REMOTE_ADDR=None,REMOTE_MAC=None):
+    def generate_kickstart(self,profile=None,system=None,REMOTE_ADDR=None,REMOTE_MAC=None,**rest):
         self.log("generate_kickstart")
 
         if profile and not system:
@@ -192,14 +192,14 @@ class CobblerXMLRPCInterface:
 
         return self.api.generate_kickstart(profile,system)
 
-    def get_settings(self,token=None):
+    def get_settings(self,token=None,**rest):
         """
         Return the contents of /etc/cobbler/settings, which is a hash.
         """
         self.log("get_settings",token=token)
         return self.__get_all("settings")
 
-    def profile_change(self,mac,newprofile,token=None):
+    def profile_change(self,mac,newprofile,token=None,**rest):
         """
         If allow_cgi_profile_change is enabled in settings, this allows
         kickstarts to set the profile of a machine to another profile
@@ -217,8 +217,7 @@ class CobblerXMLRPCInterface:
         system.set_profile(newprofile)
         self.api.add_system(system)
 
-
-    def get_repo_config_for_profile(self,profile_name):
+    def get_repo_config_for_profile(self,profile_name,**rest):
         """
         Return the yum configuration a given profile should use to obtain
         all of it's cobbler associated repos.
@@ -228,7 +227,7 @@ class CobblerXMLRPCInterface:
            return "# object not found: %s" % profile_name
         return self.api.get_repo_config_for_profile(obj)
     
-    def get_repo_config_for_system(self,system_name):
+    def get_repo_config_for_system(self,system_name,**rest):
         """
         Return the yum configuration a given profile should use to obtain
         all of it's cobbler associated repos.
@@ -238,8 +237,7 @@ class CobblerXMLRPCInterface:
            return "# object not found: %s" % system_name
         return self.api.get_repo_config_for_system(obj)
 
-
-    def register_mac(self,mac,profile,token=None):
+    def register_mac(self,mac,profile,token=None,**rest):
         """
         If allow_cgi_register_mac is enabled in settings, this allows
         kickstarts to add new system records for per-profile-provisioned
@@ -279,7 +277,7 @@ class CobblerXMLRPCInterface:
         self.api.add_system(obj)
         return 0
  
-    def disable_netboot(self,name,token=None):
+    def disable_netboot(self,name,token=None,**rest):
         """
         This is a feature used by the pxe_just_once support, see manpage.
         Sets system named "name" to no-longer PXE.  Disabled by default as
@@ -302,7 +300,7 @@ class CobblerXMLRPCInterface:
         systems.add(obj,save=True,with_triggers=False,with_sync=False,quick_pxe_update=True)
         return True
 
-    def run_install_triggers(self,mode,objtype,name,ip,token=None):
+    def run_install_triggers(self,mode,objtype,name,ip,token=None,**rest):
 
         """
         This is a feature used to run the pre/post install triggers.
@@ -336,7 +334,7 @@ class CobblerXMLRPCInterface:
         self.api.deserialize()
 
 
-    def version(self,token=None):
+    def version(self,token=None,**rest):
         """
         Return the cobbler version for compatibility testing with remote applications.
         Returns as a float, 0.6.1-2 should result in (int) "0.612".
@@ -344,35 +342,71 @@ class CobblerXMLRPCInterface:
         self.log("version",token=token)
         return self.api.version()
 
-    def get_distros(self,page=None,results_per_page=None,token=None):
+    def get_distros(self,page=None,results_per_page=None,token=None,**rest):
         """
         Returns all cobbler distros as an array of hashes.
         """
         self.log("get_distros",token=token)
         return self.__get_all("distro",page,results_per_page)
 
-    def get_profiles(self,page=None,results_per_page=None,token=None):
+    def get_profiles(self,page=None,results_per_page=None,token=None,**rest):
         """
         Returns all cobbler profiles as an array of hashes.
         """
         self.log("get_profiles",token=token)
         return self.__get_all("profile",page,results_per_page)
 
-    def get_systems(self,page=None,results_per_page=None,token=None):
+    def get_systems(self,page=None,results_per_page=None,token=None,**rest):
         """
         Returns all cobbler systems as an array of hashes.
         """
         self.log("get_systems",token=token)
         return self.__get_all("system",page,results_per_page)
 
-    def get_repos(self,page=None,results_per_page=None,token=None):
+    def get_repos(self,page=None,results_per_page=None,token=None,**rest):
         """
         Returns all cobbler repos as an array of hashes.
         """
         self.log("get_repos",token=token)
         return self.__get_all("repo",page,results_per_page)
-    
-    def get_images(self,page=None,results_per_page=None,token=None):
+   
+    def get_repos_compatible_with_profile(self,profile=None,token=None,**rest):
+        """
+        Get repos that can be used with a given profile name
+        """
+        self.log("get_repos_compatible_with_profile",token=token)
+        profile = self.api.find_profile(profile)
+        if profile is None:
+            return -1
+        results = []
+        distro = profile.get_conceptual_parent()
+        repos = self.get_repos()
+        for r in repos:
+           # there be dragons!
+           # accept all repos that are src/noarch
+           # but otherwise filter what repos are compatible
+           # with the profile based on the arch of the distro.
+           if r["arch"] is None or r["arch"] in [ "", "noarch", "src" ]:
+              results.append(r)
+           else:
+              # some backwards compatibility fuzz
+              # repo.arch is mostly a text field
+              # distro.arch is i386/x86_64/ia64/s390x/etc
+              if r["arch"] in [ "i386", "x86", "i686" ]:
+                  if distro.arch in [ "i386", "x86" ]:
+                      results.append(r)
+              elif r["arch"] in [ "x86_64" ]:
+                  if distro.arch in [ "x86_64" ]:
+                      results.append(r)
+              elif r["arch"].startswith("s390"):
+                  if distro.arch in [ "s390x" ]:
+                      results.append(r)
+              else:
+                  if distro.arch == r["arch"]:
+                      results.append(r)
+        return results    
+              
+    def get_images(self,page=None,results_per_page=None,token=None,**rest):
         """
         Returns all cobbler images as an array of hashes.
         """
@@ -393,42 +427,42 @@ class CobblerXMLRPCInterface:
             result = utils.flatten(result)
         return self._fix_none(result)
 
-    def get_distro(self,name,flatten=False,token=None):
+    def get_distro(self,name,flatten=False,token=None,**rest):
         """
         Returns the distro named "name" as a hash.
         """
         self.log("get_distro",token=token,name=name)
         return self.__get_specific(self.api.distros,name,flatten=flatten)
 
-    def get_profile(self,name,flatten=False,token=None):
+    def get_profile(self,name,flatten=False,token=None,**rest):
         """
         Returns the profile named "name" as a hash.
         """
         self.log("get_profile",token=token,name=name)
         return self.__get_specific(self.api.profiles,name,flatten=flatten)
 
-    def get_system(self,name,flatten=False,token=None):
+    def get_system(self,name,flatten=False,token=None,**rest):
         """
         Returns the system named "name" as a hash.
         """
         self.log("get_system",name=name,token=token)
         return self.__get_specific(self.api.systems,name,flatten=flatten)
 
-    def get_repo(self,name,flatten=False,token=None):
+    def get_repo(self,name,flatten=False,token=None,**rest):
         """
         Returns the repo named "name" as a hash.
         """
         self.log("get_repo",name=name,token=token)
         return self.__get_specific(self.api.repos,name,flatten=flatten)
     
-    def get_image(self,name,flatten=False,token=None):
+    def get_image(self,name,flatten=False,token=None,**rest):
         """
         Returns the repo named "name" as a hash.
         """
         self.log("get_image",name=name,token=token)
         return self.__get_specific(self.api.images,name,flatten=flatten)
 
-    def get_distro_as_rendered(self,name,token=None):
+    def get_distro_as_rendered(self,name,token=None,**rest):
         """
         Return the distribution as passed through cobbler's
         inheritance/graph engine.  Shows what would be installed, not
@@ -436,7 +470,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_distro_for_koan(self,name)
 
-    def get_distro_for_koan(self,name,token=None):
+    def get_distro_for_koan(self,name,token=None,**rest):
         """
         Same as get_distro_as_rendered.
         """
@@ -447,7 +481,7 @@ class CobblerXMLRPCInterface:
             return self._fix_none(utils.blender(self.api, True, obj))
         return self._fix_none({})
 
-    def get_profile_as_rendered(self,name,token=None):
+    def get_profile_as_rendered(self,name,token=None,**rest):
         """
         Return the profile as passed through cobbler's
         inheritance/graph engine.  Shows what would be installed, not
@@ -455,7 +489,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_profile_for_koan(name,token)
 
-    def get_profile_for_koan(self,name,token=None):
+    def get_profile_for_koan(self,name,token=None,**rest):
         """
         Same as get_profile_as_rendered
         """
@@ -466,7 +500,7 @@ class CobblerXMLRPCInterface:
             return self._fix_none(utils.blender(self.api, True, obj))
         return self._fix_none({})
 
-    def get_system_as_rendered(self,name,token=None):
+    def get_system_as_rendered(self,name,token=None,**rest):
         """
         Return the system as passed through cobbler's
         inheritance/graph engine.  Shows what would be installed, not
@@ -474,7 +508,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_system_for_koan(self,name)
 
-    def get_system_for_koan(self,name,token=None):
+    def get_system_for_koan(self,name,token=None,**rest):
         """
         Same as get_system_as_rendered.
         """
@@ -485,7 +519,7 @@ class CobblerXMLRPCInterface:
            return self._fix_none(utils.blender(self.api, True, obj))
         return self._fix_none({})
 
-    def get_repo_as_rendered(self,name,token=None):
+    def get_repo_as_rendered(self,name,token=None,**rest):
         """
         Return the repo as passed through cobbler's
         inheritance/graph engine.  Shows what would be installed, not
@@ -493,7 +527,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_repo_for_koan(self,name)
 
-    def get_repo_for_koan(self,name,token=None):
+    def get_repo_for_koan(self,name,token=None,**rest):
         """
         Same as get_repo_as_rendered.
         """
@@ -504,8 +538,7 @@ class CobblerXMLRPCInterface:
             return self._fix_none(utils.blender(self.api, True, obj))
         return self._fix_none({})
     
-
-    def get_image_as_rendered(self,name,token=None):
+    def get_image_as_rendered(self,name,token=None,**rest):
         """
         Return the image as passed through cobbler's
         inheritance/graph engine.  Shows what would be installed, not
@@ -513,7 +546,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_image_for_koan(self,name)
 
-    def get_image_for_koan(self,name,token=None):
+    def get_image_for_koan(self,name,token=None,**rest):
         """
         Same as get_image_as_rendered.
         """
@@ -524,7 +557,7 @@ class CobblerXMLRPCInterface:
             return self._fix_none(utils.blender(self.api, True, obj))
         return self._fix_none({})
 
-    def get_random_mac(self,token=None):
+    def get_random_mac(self,token=None,**rest):
         """
         Wrapper for utils.get_random_mac
 
@@ -552,7 +585,7 @@ class CobblerXMLRPCInterface:
 
         return data
 
-    def get_status(self):
+    def get_status(self,**rest):
         """
         Returns the same information as `cobbler status`
         """
@@ -576,7 +609,7 @@ class ProxiedXMLRPCInterface:
         self.logger  = logger
         self.proxied = proxy_class(api,logger,enable_auth_if_relevant)
 
-    def _dispatch(self, method, params):
+    def _dispatch(self, method, params, **rest):
 
         if not hasattr(self.proxied, method):
             self.logger.error("remote:unknown method %s" % method)

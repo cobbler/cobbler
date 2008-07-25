@@ -16,13 +16,6 @@ Cobbler CHANGELOG
 - upgrades to cobbler buildiso
 - added patch to allow --in-place editing of ksmeta/kopts
 - added patch to allow multiple duplicate kernel options
-- Wed Jun 03 2008 - 1.0.3
-- Fix typo in replicate code
-- remove rhpl reference
-- scrub references to manage_*_mode and rewrite the restart-services trigger
-- add new settings to control whether the restart-trigger restarts things
-- yum reposync should also pull i686 kernels, not just i386
-- make cobblerd close file handles
 - fix kickstart serving when the tree is on NFS
 - s390x import, added support for s390x "pseudo-PXE" trees
 - added support for tracking image objects and virtual ISO images
@@ -38,6 +31,15 @@ Cobbler CHANGELOG
 - during import non-xen kernels will default --virt-type to qemu
 - when editing/adding profiles, auto-rebuild the PXE menu
 - added http://cobbler.example.org/cblr/svc/op/list/what/systems (or profiles, etc)
+- in the webui, only show compatible repos when editing a profile
+
+- Wed Jun 03 2008 - 1.0.3
+- Fix typo in replicate code
+- remove rhpl reference
+- scrub references to manage_*_mode and rewrite the restart-services trigger
+- add new settings to control whether the restart-trigger restarts things
+- yum reposync should also pull i686 kernels, not just i386
+- make cobblerd close file handles
 
 - Mon Jun 09 2008 - 1.0.2
 - Fix mkdir invocation

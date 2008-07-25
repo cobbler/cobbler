@@ -479,13 +479,16 @@ class CobblerWeb(object):
         if name is not None:
             input_profile = self.remote.get_profile(name,True)
             can_edit = self.remote.check_access_no_fail(self.token,"modify_profile",name)
+            repos = self.remote.get_repos_compatible_with_profile(name)
         else:
+            repos = self.remote.get_repos()
             can_edit = self.remote.check_access_no_fail(self.token,"new_profile",None)
             if not can_edit:
                 return self.__render('message.tmpl', {
                     'message1' : "Access denied.",
                     'message2' : "You do not have permission to create new objects."        
                 })
+
 
 
         return self.__render( 'profile_edit.tmpl', {
@@ -495,7 +498,7 @@ class CobblerWeb(object):
             'profile': input_profile,
             'distros': self.remote.get_distros(),
             'profiles': self.remote.get_profiles(),
-            'repos':   self.remote.get_repos(),
+            'repos':   repos,
             'ksfiles': self.remote.get_kickstart_templates(self.token),
             'subprofile': subprofile
         } )

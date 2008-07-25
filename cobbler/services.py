@@ -50,20 +50,14 @@ class CobblerSvc(object):
             self.remote = xmlrpclib.Server(self.server, allow_none=True)
         self.remote.update()
 
-    def modes(self):
-        """
-        Returns a list of methods in this object that can be run as web
-        modes.   
-        """
-        retval = list()
-        for m in dir(self):
-            func = getattr( self, m )
-            if hasattr(func, 'exposed') and getattr(func,'exposed'):
-                retval.append(m) 
-        return retval
-
     def index(self,**args):
         return "no mode specified"
+
+    def debug(self,profile=None,**rest):
+        # the purpose of this method could change at any time
+        # and is intented for temporary test code only, don't rely on it
+        self.__xmlrpc_setup()
+        return self.remote.get_repos_compatible_with_profile(profile)
 
     def ks(self,profile=None,system=None,REMOTE_ADDR=None,REMOTE_MAC=None,**rest):
         """
@@ -112,7 +106,7 @@ class CobblerSvc(object):
            listing = self.remote.get_images()
         elif what == "repos":
            listing = self.remote.get_repos()
-        else
+        else:
            return "?"
         for x in listing:
            buf = buf + "%s\n" % x["name"]
