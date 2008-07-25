@@ -32,6 +32,7 @@ Cobbler CHANGELOG
 - when editing/adding profiles, auto-rebuild the PXE menu
 - added http://cobbler.example.org/cblr/svc/op/list/what/systems (or profiles, etc)
 - in the webui, only show compatible repos when editing a profile
+- refresh cobblerd cache before adding objects
 
 - Wed Jun 03 2008 - 1.0.3
 - Fix typo in replicate code

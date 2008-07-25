@@ -980,6 +980,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         Saves a newly created or modified distro object to disk.
         """
+        self._refresh()
         self.log("save_distro",object_id=object_id,token=token)
         obj = self.__get_object(object_id)
         self.check_access(token,"save_distro",obj)
@@ -992,6 +993,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         Saves a newly created or modified profile object to disk.
         """
+        self._refresh()
         self.log("save_profile",token=token,object_id=object_id)
         obj = self.__get_object(object_id)
         self.check_access(token,"save_profile",obj)
@@ -1004,6 +1006,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         Saves a newly created or modified system object to disk.
         """
+        self._refresh()
         self.log("save_system",token=token,object_id=object_id)
         obj = self.__get_object(object_id)
         self.check_access(token,"save_system",obj)
@@ -1019,6 +1022,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         Saves a newly created or modified repo object to disk.
         """
+        self._refresh()
         self.log("save_repo",object_id=object_id,token=token)
         obj = self.__get_object(object_id)
         self.check_access(token,"save_repo",obj)
@@ -1031,6 +1035,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         Saves a newly created or modified repo object to disk.
         """
+        self._refresh()
         self.log("save_image",object_id=object_id,token=token)
         obj = self.__get_object(object_id)
         self.check_access(token,"save_image",obj)
