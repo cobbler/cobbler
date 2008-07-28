@@ -355,10 +355,8 @@ class Importer:
 
            if x.startswith("initrd"):
                initrd = os.path.join(dirname,x)
-               print "DEBUG: assigned: %s" % initrd
            if x.startswith("vmlinuz") or x.startswith("kernel.img"):
                kernel = os.path.join(dirname,x)
-               print "DEBUG: assigned2: %s" % kernel
            if initrd is not None and kernel is not None and dirname.find("isolinux") == -1:
                self.add_entry(dirname,kernel,initrd)
                path_parts = kernel.split("/")[:-2]
