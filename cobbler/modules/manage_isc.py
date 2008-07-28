@@ -172,7 +172,7 @@ class IscManager:
         dhcp_tags = { "default": {} }
 
         for system in self.systems:
-            if not sys.is_management_supported(cidr_ok=False):
+            if not system.is_management_supported(cidr_ok=False):
                 continue
 
             profile = system.get_conceptual_parent()

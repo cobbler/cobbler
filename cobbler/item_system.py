@@ -219,7 +219,7 @@ class System(item.Item):
         else:
             return None
 
-    def is_management_supported(self,interface="intf0",cidr_ok=True):
+    def is_management_supported(self,cidr_ok=True):
         """
         Can only add system PXE records if a MAC or IP address is available, else it's a koan
         only record.  Actually Itanium goes beyond all this and needs the IP all of the time
@@ -237,8 +237,6 @@ class System(item.Item):
                 # has ip and/or mac
                 return True
         return False
-
-  
 
     def set_dhcp_tag(self,dhcp_tag,interface="intf0"):
         intf = self.__get_interface(interface)

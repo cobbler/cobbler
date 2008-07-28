@@ -95,7 +95,6 @@ def serialize_item(obj, item):
 def serialize_delete(obj, item):
     fd = open_db(obj.collection_type())
     if fd.has_key(item.name):
-        print "DEBUG: deleting: %s" % item.name
         del fd[item.name]
     # fd.sync()
     return True

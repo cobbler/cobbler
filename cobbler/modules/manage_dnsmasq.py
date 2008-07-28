@@ -99,7 +99,7 @@ class DnsmasqManager:
         
         for system in self.systems:
 
-            if not sys.is_management_supported(cidr_ok=False):
+            if not system.is_management_supported(cidr_ok=False):
                 continue
 
             profile = system.get_conceptual_parent()
@@ -163,10 +163,10 @@ class DnsmasqManager:
         # every time we add a system.
         # read 'man ethers' for format info
         fh = open("/etc/ethers","w+")
-        for sys in self.systems:
-            if not sys.is_management_supported(cidr_ok=False):
+        for system in self.systems:
+            if not system.is_management_supported(cidr_ok=False):
                 continue
-            for (name, interface) in sys.interfaces.iteritems():
+            for (name, interface) in system.interfaces.iteritems():
                 mac = interface["mac_address"]
                 ip  = interface["ip_address"]
                 if mac is None or mac == "":
@@ -180,10 +180,10 @@ class DnsmasqManager:
         # dnsmasq knows how to read this database for host info
         # (other things may also make use of this later)
         fh = open("/var/lib/cobbler/cobbler_hosts","w+")
-        for sys in self.systems:
-            if not sys.is_management_supported(cidr_ok=False):
+        for system in self.systems:
+            if not system.is_management_supported(cidr_ok=False):
                 continue
-            for (name, interface) in sys.interfaces.iteritems():
+            for (name, interface) in system.interfaces.iteritems():
                 mac  = interface["mac_address"]
                 host = interface["hostname"]
                 ip   = interface["ip_address"]

@@ -77,11 +77,11 @@ class BindManager:
         for zone in self.settings.manage_forward_zones:
            zones[zone] = []
 
-        for sys in self.systems:
-            for (name, interface) in sys.interfaces.iteritems():
+        for system in self.systems:
+            for (name, interface) in system.interfaces.iteritems():
                 host = interface["hostname"]
                 ip   = interface["ip_address"]
-                if not sys.is_management_supported(cidr_ok=False):
+                if not system.is_management_supported(cidr_ok=False):
                     continue
                 if not host or not ip:
                     # gotsta have some hostname and ip or else!
