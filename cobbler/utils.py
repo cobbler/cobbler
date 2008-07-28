@@ -928,9 +928,9 @@ def get_kickstart_templates(api):
 if __name__ == "__main__":
     # print redhat_release()
     # print tftpboot_location()
-    print get_host_ip("255.255.255.255")
+    print get_host_ip("255.255.255.250")
     for x in range(32,1,-1):
-       value = get_host_ip("255.255.255.255/%s" % x, shorten=False)
-       value2 = get_host_ip("255.255.255.255/%s" % x, shorten=True)
+       value = get_host_ip("255.255.255.0/%s" % x, shorten=False)
+       value2 = get_host_ip("255.255.255.0/%s" % x, shorten=True)
        print "%s -> %s" % (value,value2)
 
