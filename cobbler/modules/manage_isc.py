@@ -72,6 +72,8 @@ class IscManager:
         # /trunk/src/kits/base/packages/kusu-base-installer/lib/kusu/nodefun.py?r=3025
         # FIXME: should use subprocess
         """
+        if ip.find("/") != -1:
+            return 
         try:
             fromchild, tochild = popen2.popen2(self.settings.omshell_bin)
             tochild.write("port %s\n" % port)
@@ -170,6 +172,9 @@ class IscManager:
         dhcp_tags = { "default": {} }
 
         for system in self.systems:
+            if not sys.is_management_supported(cidr_ok=False):
+                continue
+
             profile = system.get_conceptual_parent()
             distro  = profile.get_conceptual_parent()
             for (name, interface) in system.interfaces.iteritems():

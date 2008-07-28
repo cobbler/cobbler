@@ -150,7 +150,7 @@ class PXEGen:
 
             f3 = os.path.join(self.settings.webdir, "systems", f1)
 
-            if system.netboot_enabled and system.is_pxe_supported():
+            if system.netboot_enabled and system.is_management_supported():
                 self.write_pxe_file(f2,system,profile,distro,distro.arch)
             else:
                 # ensure the file doesn't exist

@@ -33,6 +33,7 @@ Cobbler CHANGELOG
 - added http://cobbler.example.org/cblr/svc/op/list/what/systems (or profiles, etc)
 - in the webui, only show compatible repos when editing a profile
 - refresh cobblerd cache before adding objects
+- system object IP's ok in CIDR notation (AAA.BBB.CCC.DDD/EE) for defining PXE behavior.
 
 - Wed Jun 03 2008 - 1.0.3
 - Fix typo in replicate code

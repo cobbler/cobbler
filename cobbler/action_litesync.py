@@ -84,8 +84,9 @@ class BootLiteSync:
             if k.COLLECTION_TYPE == "profile":
                 self.add_single_profile(k.name, rebuild_menu=False)
             else:
-                self.add_single_system(k.name, rebuild_menu=False)
-        self.sync.pxegen.make_pxe_menu()
+                self.add_single_system(k.name)
+        if rebuild_menu:
+            self.sync.pxegen.make_pxe_menu()
         return True
          
     def remove_single_profile(self, name):
@@ -142,12 +143,6 @@ class BootLiteSync:
                         interface["hostname"]
                     )
 
-        # unneeded
-        #if not system_record.is_pxe_supported():
-        #   # no need to go any further with PXE cleanup
-        #   return
-        
-        # delete PXE Linux configuration file (which might be in one of two places)
         itanic = False
         profile = self.profiles.find(name=system_record.profile)
         if profile is not None:

@@ -81,6 +81,8 @@ class BindManager:
             for (name, interface) in sys.interfaces.iteritems():
                 host = interface["hostname"]
                 ip   = interface["ip_address"]
+                if not sys.is_management_supported(cidr_ok=False):
+                    continue
                 if not host or not ip:
                     # gotsta have some hostname and ip or else!
                     continue
@@ -129,6 +131,8 @@ class BindManager:
             for (name, interface) in sys.interfaces.iteritems():
                 host = interface["hostname"]
                 ip   = interface["ip_address"]
+                if not sys.is_management_supported(cidr_ok=False):
+                    continue
                 if not host or not ip:
                     # gotsta have some hostname and ip or else!
                     continue

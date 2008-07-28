@@ -98,6 +98,10 @@ class DnsmasqManager:
         # through each network interface of each system.
         
         for system in self.systems:
+
+            if not sys.is_management_supported(cidr_ok=False):
+                continue
+
             profile = system.get_conceptual_parent()
             distro  = profile.get_conceptual_parent()
             for (name, interface) in system.interfaces.iteritems():
@@ -160,6 +164,8 @@ class DnsmasqManager:
         # read 'man ethers' for format info
         fh = open("/etc/ethers","w+")
         for sys in self.systems:
+            if not sys.is_management_supported(cidr_ok=False):
+                continue
             for (name, interface) in sys.interfaces.iteritems():
                 mac = interface["mac_address"]
                 ip  = interface["ip_address"]
@@ -175,6 +181,8 @@ class DnsmasqManager:
         # (other things may also make use of this later)
         fh = open("/var/lib/cobbler/cobbler_hosts","w+")
         for sys in self.systems:
+            if not sys.is_management_supported(cidr_ok=False):
+                continue
             for (name, interface) in sys.interfaces.iteritems():
                 mac  = interface["mac_address"]
                 host = interface["hostname"]

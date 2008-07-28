@@ -95,14 +95,33 @@ def trace_me():
    bar = string.join(traceback.format_list(x))
    return bar
 
+
 def get_host_ip(ip):
     """
     Return the IP encoding needed for the TFTP boot tree.
     """
+
+    slash = None
+    if ip.find("/") != -1:
+       # CIDR notation
+       (ip, slash) = ip.split("/")
+
     handle = sub_process.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=sub_process.PIPE)
     out = handle.stdout
     results = out.read()
-    return results.split(" ")[-1][0:8]
+    converted = results.split(" ")[-1][0:8]
+
+    if slash is None:
+        return converted
+    else:
+        slash = int(slash)
+        num = int(converted, 16)
+        num = num & (0xFFFFFFFF << 32 - slash)
+        num = "%0x" % num
+        if len(num) != 8:
+            num = '0' * (8 - len(num)) + num
+        num = num.upper()
+        return num
 
 def get_config_filename(sys,interface):
     """
@@ -110,7 +129,7 @@ def get_config_filename(sys,interface):
     a form of the MAC address of the hex version of the IP.  If none
     of that is available, just use the given name, though the name
     given will be unsuitable for PXE configuration (For this, check
-    system.is_pxe_supported()).  This same file is used to store
+    system.is_management_supported()).  This same file is used to store
     system config information in the Apache tree, so it's still relevant.
     """
 
@@ -122,9 +141,9 @@ def get_config_filename(sys,interface):
         return "default"
     mac = sys.get_mac_address(interface)
     ip  = sys.get_ip_address(interface)
-    if mac != None:
+    if mac is not None and mac != "":
         return "01-" + "-".join(mac.split(":")).lower()
-    elif ip != None:
+    elif ip is not None and ip != "":
         return get_host_ip(ip)
     else:
         return sys.name
@@ -902,5 +921,9 @@ def get_kickstart_templates(api):
 
 if __name__ == "__main__":
     # print redhat_release()
-    print tftpboot_location()
+    # print tftpboot_location()
+    print get_host_ip("192.168.10.15")
+    print get_host_ip("192.168.10.15/24")
+    print get_host_ip("192.168.10.15/16")
+    print get_host_ip("192.168.10.15/8")
 

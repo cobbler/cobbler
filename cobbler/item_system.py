@@ -216,12 +216,10 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         if intf["ip_address"] != "": 
             return intf["ip_address"]
-        #elif utils.is_ip(self.name) and interface == "intf0":
-        #    return self.name
         else:
             return None
 
-    def is_pxe_supported(self,interface="intf0"):
+    def is_management_supported(self,interface="intf0",cidr_ok=True):
         """
         Can only add system PXE records if a MAC or IP address is available, else it's a koan
         only record.  Actually Itanium goes beyond all this and needs the IP all of the time
@@ -232,9 +230,15 @@ class System(item.Item):
         for (name,x) in self.interfaces.iteritems():
             mac = x.get("mac_address",None)
             ip  = x.get("ip_address",None)
+            if ip is not None and not cidr_ok and ip.find("/") != -1:
+                # ip is in CIDR notation
+                return False
             if mac is not None or ip is not None:
+                # has ip and/or mac
                 return True
         return False
+
+  
 
     def set_dhcp_tag(self,dhcp_tag,interface="intf0"):
         intf = self.__get_interface(interface)
