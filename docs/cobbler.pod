@@ -224,6 +224,8 @@ Note for Itanium users:  this setting is always required for IA64 regardless of 
 
 If DHCP management is disabled, setting this parameter may still be useful for record keeping, and it is also available in all kickstart templates, so it can be easily used for static IP configuration within kickstarts.
 
+Special feature: To control the default PXE behavior for an entire subnet, this field can also be passed in using CIDR notation.  If --ip is CIDR, do not specify any other arguments other than --name and --profile.
+
 =item hostname
 
 If using the DHCP configuration feature (see advanced section) with dnsmasq, use this to define a hostname for the system to recieve from DNS.  If not using DHCP management or not using dnsmasq, this field is treated as a descriptive comment and is basically ignored other than being made available in templates.
