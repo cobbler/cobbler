@@ -96,7 +96,7 @@ def trace_me():
    return bar
 
 
-def get_host_ip(ip):
+def get_host_ip(ip, shorten=True):
     """
     Return the IP encoding needed for the TFTP boot tree.
     """
@@ -116,11 +116,17 @@ def get_host_ip(ip):
     else:
         slash = int(slash)
         num = int(converted, 16)
-        num = num & (0xFFFFFFFF << 32 - slash)
+        delta = 32 - slash
+        mask = (0xFFFFFFFF << delta)
+        num = num & mask
         num = "%0x" % num
         if len(num) != 8:
             num = '0' * (8 - len(num)) + num
         num = num.upper()
+        if shorten:
+            nibbles = delta / 4
+            for x in range(0,nibbles):
+                num = num[0:-1]
         return num
 
 def get_config_filename(sys,interface):
@@ -922,8 +928,9 @@ def get_kickstart_templates(api):
 if __name__ == "__main__":
     # print redhat_release()
     # print tftpboot_location()
-    print get_host_ip("192.168.10.15")
-    print get_host_ip("192.168.10.15/24")
-    print get_host_ip("192.168.10.15/16")
-    print get_host_ip("192.168.10.15/8")
+    print get_host_ip("255.255.255.255")
+    for x in range(32,1,-1):
+       value = get_host_ip("255.255.255.255/%s" % x, shorten=False)
+       value2 = get_host_ip("255.255.255.255/%s" % x, shorten=True)
+       print "%s -> %s" % (value,value2)
 
