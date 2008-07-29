@@ -176,6 +176,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(664,root,root)
 %config(noreplace) /etc/cobbler/settings
 %config(noreplace) /var/lib/cobbler/snippets/partition_select
+%config(noreplace) /var/lib/cobbler/snippets/pre_partition_select
+%config(noreplace) /var/lib/cobbler/snippets/main_partition_select
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/lib/cobbler/menu.c32
 %defattr(660,root,root)

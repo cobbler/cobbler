@@ -112,6 +112,8 @@ if __name__ == "__main__":
 
                                 # useful kickstart snippets that we ship
                                 (snippets, ['snippets/partition_select']),
+                                (snippets, ['snippets/pre_partition_select']),
+                                (snippets, ['snippets/main_partition_select']),
 
                                 # documentation
                                 (manpath,  ['docs/cobbler.1.gz']),

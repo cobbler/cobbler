@@ -36,7 +36,9 @@ install
 zerombr
 
 # Magically figure out how to partition this thing
-SNIPPET::partition_select
+SNIPPET::main_partition_select
+%pre
+SNIPPET::pre_partition_select
 
 %packages
 

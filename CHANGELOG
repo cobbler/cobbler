@@ -34,6 +34,7 @@ Cobbler CHANGELOG
 - in the webui, only show compatible repos when editing a profile
 - refresh cobblerd cache before adding objects
 - system object IP's ok in CIDR notation (AAA.BBB.CCC.DDD/EE) for defining PXE behavior.
+- split partition select template into two parts (old one still ships)
 
 - Wed Jun 03 2008 - 1.0.3
 - Fix typo in replicate code
