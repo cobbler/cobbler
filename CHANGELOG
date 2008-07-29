@@ -35,6 +35,7 @@ Cobbler CHANGELOG
 - refresh cobblerd cache before adding objects
 - system object IP's ok in CIDR notation (AAA.BBB.CCC.DDD/EE) for defining PXE behavior.
 - split partition select template into two parts (old one still ships)
+- cleanup some stock kickstarts so we always use $kickstart_start
 
 - Wed Jun 03 2008 - 1.0.3
 - Fix typo in replicate code
