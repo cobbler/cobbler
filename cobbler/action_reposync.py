@@ -171,6 +171,10 @@ class RepoSync:
                 args = { "name" : repo.name, "rest" : rest }
                 raise CX(_("ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository must match the name of the RHN channel") % args)
 
+            if repo.arch == "i386":
+                # counter-intuitive, but we want the newish kernels too
+                repo.arch = "i686"
+
             if repo.arch != "":
                 cmd = "%s -a %s" % (cmd, repo.arch)
 
