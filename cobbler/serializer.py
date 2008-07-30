@@ -26,20 +26,27 @@ LOCK_ENABLED = True
 LOCK_HANDLE = None
 
 def __grab_lock():
-   if not LOCK_ENABLED:
-       return
-   if not os.path.exists("/var/lib/cobbler/lock"):
-       fd = open("/var/lib/cobbler/lock","w+")
-       fd.close()
-   LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
-   fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_EX)
+    """
+    Dual purpose locking:
+    (A) flock to avoid multiple process access
+    (B) block signal handler to avoid ctrl+c while writing YAML
+    """
+    if LOCK_ENABLED:
+        if not os.path.exists("/var/lib/cobbler/lock"):
+            fd = open("/var/lib/cobbler/lock","w+")
+            fd.close()
+        LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
+        fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_EX)
+    utils.no_ctrl_c()
+    return True
 
 def __release_lock():
-   if not LOCK_ENABLED:
-       return
-   LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
-   fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
-   LOCK_HANDLE.close()
+    if LOCK_ENABLED:
+        LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
+        fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
+        LOCK_HANDLE.close()
+    utils.ctrl_c_ok()
+    return True
 
 def serialize(obj):
     """
