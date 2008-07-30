@@ -947,6 +947,6 @@ if __name__ == "__main__":
     #   value2 = get_host_ip("255.255.255.0/%s" % x, shorten=True)
     #   print "%s -> %s" % (value,value2)
     no_ctrl_c()
-    allow_ctrl_c()
+    ctrl_c_ok()
 
 
