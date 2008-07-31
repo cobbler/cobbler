@@ -24,37 +24,22 @@ import api as cobbler_api
 
 LOCK_ENABLED = True
 LOCK_HANDLE = None
-BLOCK_SIGNAL = False # not ready yet
 
 def __grab_lock():
-    """
-    Dual purpose locking:
-    (A) flock to avoid multiple process access
-    (B) block signal handler to avoid ctrl+c while writing YAML
-    """
-    try:
-        if LOCK_ENABLED:
-            if not os.path.exists("/var/lib/cobbler/lock"):
-                fd = open("/var/lib/cobbler/lock","w+")
-                fd.close()
-            LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
-            fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_EX)
-        if BLOCK_SIGNAL:
-            utils.no_ctrl_c()
-        return True
-    except:
-        # this is pretty much FATAL, avoid corruption and quit now.
-        utils.log_exc()
-        sys.exit(7)
+   if not LOCK_ENABLED:
+       return
+   if not os.path.exists("/var/lib/cobbler/lock"):
+       fd = open("/var/lib/cobbler/lock","w+")
+       fd.close()
+   LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
+   fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_EX)
 
 def __release_lock():
-    if LOCK_ENABLED:
-        LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
-        fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
-        LOCK_HANDLE.close()
-    if BLOCK_SIGNAL:
-        utils.ctrl_c_ok()
-    return True
+   if not LOCK_ENABLED:
+       return
+   LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
+   fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
+   LOCK_HANDLE.close()
 
 def serialize(obj):
     """
@@ -123,7 +108,5 @@ def __get_storage_module(collection_type):
     capi = cobbler_api.BootAPI()
     return capi.get_module_from_file("serializers",collection_type,"serializer_yaml")
 
-if __name__ == "__main__":
-    __grab_lock()
-    __release_lock()
+
 
