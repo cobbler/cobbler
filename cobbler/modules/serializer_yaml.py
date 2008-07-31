@@ -16,6 +16,7 @@ import distutils.sysconfig
 import os
 import sys
 import glob
+import traceback
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
@@ -100,7 +101,11 @@ def deserialize(obj,topological=False):
         else:
             raise cexceptions.CX(_("Need permissions to read %s") % obj.filename())
     data = fd.read()
-    datastruct = yaml.load(data).next()  # first record
+    try:
+        datastruct = yaml.load(data).next()  # first record
+    except:
+        # load failure, make empty list
+        datastruct = [] 
     fd.close()
 
     if topological and type(datastruct) == list:
