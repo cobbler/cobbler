@@ -926,18 +926,6 @@ def get_kickstart_templates(api):
 
     return files.keys()
 
-def handler(num,frame):
-   print sys.stderr, _("Ctrl-C not allowed during writes.  Please wait.")
-   return True
-
-def no_ctrl_c():
-   signal.signal(signal.SIGINT, handler)
-   return True
-
-def ctrl_c_ok():
-   signal.signal(signal.SIGINT, signal.default_int_handler)
-   return True   
-
 if __name__ == "__main__":
     # print redhat_release()
     # print tftpboot_location()
