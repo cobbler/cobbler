@@ -121,6 +121,10 @@ def main():
                  dest="add_reinstall_entry",
                  action="store_true",
                  help="when used with --replace-self, just add entry to grub, do not make it the default")
+    p.add_option("-C", "--livecd",
+                 dest="live_cd",
+                 action="store_true",
+                 help="used by the custom livecd only, not for humans")
 
     (options, args) = p.parse_args()
 
@@ -138,7 +142,7 @@ def main():
         k.profile             = options.profile
         k.system              = options.system
         k.image               = options.image
-        # k.live_cd           = options.live_cd
+        k.live_cd           = options.live_cd
         k.virt_path           = options.virt_path
         k.virt_type           = options.virt_type
         k.virt_bridge         = options.virt_bridge
@@ -677,10 +681,10 @@ class Koan:
                cmd.append("--make-default")
                cmd.append("--title=kick%s" % int(time.time()))
                
-            #if self.live_cd:
-            #   cmd.append("--bad-image-okay")
-            #   cmd.append("--boot-filesystem=/dev/sda1")
-            #   cmd.append("--config-file=/tmp/boot/boot/grub/grub.conf")
+            if self.live_cd:
+               cmd.append("--bad-image-okay")
+               cmd.append("--boot-filesystem=/dev/sda1")
+               cmd.append("--config-file=/tmp/boot/boot/grub/grub.conf")
             utils.subprocess_call(["/sbin/grubby","--remove-kernel","/boot/vmlinuz"])
             utils.subprocess_call(cmd)
 

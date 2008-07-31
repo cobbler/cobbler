@@ -2,7 +2,7 @@
 Validates whether the system is reasonably well configured for
 serving up content.  This is the code behind 'cobbler check'.
 
-Copyright 2007, Red Hat, Inc
+Copyright 2007-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This software may be freely redistributed under the terms of the GNU
@@ -63,7 +63,7 @@ def main(args):
       options.koan = options.koan + " --replace-self"
 
    if not os.path.exists("/usr/bin/livecd-creator"):
-      print "livecd-creator needs to be installed"
+      print "livecd-tools needs to be installed"
       sys.exit(1)
 
    if not os.path.exists("/usr/bin/createrepo"):
