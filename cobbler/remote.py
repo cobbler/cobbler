@@ -395,16 +395,14 @@ class CobblerXMLRPCInterface:
         self.log("get_images",token=token)
         return self.__get_all("image",page,results_per_page)
 
-    def __get_specific(self,collection_fn,name,flatten=False):
+    def __get_specific(self,collection_type,name,flatten=False):
         """
         Internal function to return a hash representation of a given object if it exists,
         otherwise an empty hash will be returned.
         """
-        self._refresh()
-        item = collection_fn().find(name=name)
-        if item is None:
-            return self._fix_none({})
-        result = item.to_datastruct()
+        result = self.api.deserialize_item_raw(collection_type, name)
+        if result is None:
+            return {}
         if flatten:
             result = utils.flatten(result)
         return self._fix_none(result)
@@ -414,35 +412,35 @@ class CobblerXMLRPCInterface:
         Returns the distro named "name" as a hash.
         """
         self.log("get_distro",token=token,name=name)
-        return self.__get_specific(self.api.distros,name,flatten=flatten)
+        return self.__get_specific("distro",name,flatten=flatten)
 
     def get_profile(self,name,flatten=False,token=None,**rest):
         """
         Returns the profile named "name" as a hash.
         """
         self.log("get_profile",token=token,name=name)
-        return self.__get_specific(self.api.profiles,name,flatten=flatten)
+        return self.__get_specific("profile",name,flatten=flatten)
 
     def get_system(self,name,flatten=False,token=None,**rest):
         """
         Returns the system named "name" as a hash.
         """
         self.log("get_system",name=name,token=token)
-        return self.__get_specific(self.api.systems,name,flatten=flatten)
+        return self.__get_specific("system",name,flatten=flatten)
 
     def get_repo(self,name,flatten=False,token=None,**rest):
         """
         Returns the repo named "name" as a hash.
         """
         self.log("get_repo",name=name,token=token)
-        return self.__get_specific(self.api.repos,name,flatten=flatten)
+        return self.__get_specific("repo",name,flatten=flatten)
     
     def get_image(self,name,flatten=False,token=None,**rest):
         """
         Returns the repo named "name" as a hash.
         """
         self.log("get_image",name=name,token=token)
-        return self.__get_specific(self.api.images,name,flatten=flatten)
+        return self.__get_specific("image",name,flatten=flatten)
 
     def get_distro_as_rendered(self,name,token=None,**rest):
         """

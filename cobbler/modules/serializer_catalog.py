@@ -47,7 +47,16 @@ def serialize_delete(obj, item):
     os.remove(filename)
     return True
 
-# FIXME: why don't we have deserialize_item and lazy loading?
+def deserialize_item_raw(collection_type, item_name):
+    # this new fn is not really implemented performantly in this module.
+    # yet.
+    filename = "/var/lib/cobbler/config/%ss.d/%s" % (collection_type,item_name)
+    if not os.path.exists(filename):
+        return None
+    fd = open(filename)
+    datastruct = yaml.load(fd.read()).next()
+    fd.close() 
+    return datastruct
 
 def serialize(obj):
     """
@@ -108,4 +117,8 @@ def __depth_cmp(item1, item2):
     if not item2.has_key("depth"):
        return -1
     return cmp(item1["depth"],item2["depth"])
+
+if __name__ == "__main__":
+    print deserialize_item_raw("distro","D1")
+
 

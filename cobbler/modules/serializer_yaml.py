@@ -83,6 +83,16 @@ def deserialize_raw(collection_type):
     fd.close()
     return datastruct 
 
+def deserialize_item_raw(collection_type, item_name):
+    # this new fn is not really implemented performantly in this module.
+    # yet.
+    data = deserialize_raw(collection_type)
+    for x in data:
+        name = x.get("name","")
+        if name == item_name:
+            return x
+    return None
+
 def deserialize(obj,topological=False):
     """
     Populate an existing object with the contents of datastruct.
@@ -125,3 +135,5 @@ def __depth_cmp(item1, item2):
        return -1
     return cmp(item1["depth"],item2["depth"])
 
+if __name__ == "__main__":
+    print deserialize_item_raw("distro","D1")

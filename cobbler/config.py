@@ -193,5 +193,12 @@ class Config:
        """
        return serializer.deserialize_raw(collection_type)
 
+   def deserialize_item_raw(self,collection_type,obj_name):
+       """
+       Get a raw single object.
+       """
+       return serializer.deserialize_item_raw(collection_type,obj_name)
+
+
 
 

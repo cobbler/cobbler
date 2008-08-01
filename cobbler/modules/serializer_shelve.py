@@ -108,6 +108,12 @@ def deserialize_raw(collection_type):
     # fd.close()
     return datastruct
 
+def deserialize_item_raw(collection_type, item_name):
+    fd = open_db(collection_type)
+    data = fd.get(item_name)
+    fd.close()
+    return data
+
 def deserialize(obj,topological=False):
     """
     Populate an existing object with the contents of datastruct.
@@ -132,6 +138,12 @@ def deserialize(obj,topological=False):
        datastruct.sort(__depth_cmp)
     obj.from_datastruct(datastruct)
     return True
+
+def deserialize_item_raw(collection_type, item_name):
+    # this new fn is not really implemented performantly in this module.
+    # yet.
+    data = deserialize_raw(collection_type)
+    return data.get(item_name, None)
 
 def __depth_cmp(item1, item2):
     if not item1.has_key("depth"):

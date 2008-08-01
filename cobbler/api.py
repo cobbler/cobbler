@@ -445,6 +445,13 @@ class BootAPI:
         """
         return self._config.deserialize_raw(collection_name)
 
+    def deserialize_item_raw(self,collection_name,obj_name):
+        """
+        Get an object back as raw data.
+        Can be very fast for shelve or catalog serializers
+        """
+        return self._config.deserialize_item_raw(collection_name,obj_name)
+
     def get_module_by_name(self,module_name):
         """
         Returns a loaded cobbler module named 'name', if one exists, else None.

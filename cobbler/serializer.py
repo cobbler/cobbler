@@ -130,6 +130,23 @@ def deserialize_raw(collection_type):
     __release_lock()
     return rc
 
+def deserialize_item(collection_type, item_name):
+    """
+    Get a specific record.
+    """
+    __grab_lock()
+    storage_module = __get_storage_module(collection_type)
+    rc = storage_module.deserialize_item(collection_type, item_name)
+    __release_lock()
+    return rc
+
+def deserialize_item_raw(collection_type, item_name):
+    __grab_lock()
+    storage_module = __get_storage_module(collection_type)
+    rc = storage_module.deserialize_item_raw(collection_type, item_name)
+    __release_lock()
+    return rc
+
 def __get_storage_module(collection_type):
     """
     Look up serializer in /etc/cobbler/modules.conf
