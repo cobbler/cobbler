@@ -55,14 +55,18 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
 
 %post
-cp /var/lib/cobbler/distros*  /var/lib/cobbler/backup 2>/dev/null
-cp /var/lib/cobbler/profiles* /var/lib/cobbler/backup 2>/dev/null
-cp /var/lib/cobbler/systems*  /var/lib/cobbler/backup 2>/dev/null
-cp /var/lib/cobbler/repos*    /var/lib/cobbler/backup 2>/dev/null
+if [ -e /var/lib/cobbler/distros ]; then
+    cp /var/lib/cobbler/distros*  /var/lib/cobbler/backup 2>/dev/null
+    cp /var/lib/cobbler/profiles* /var/lib/cobbler/backup 2>/dev/null
+    cp /var/lib/cobbler/systems*  /var/lib/cobbler/backup 2>/dev/null
+    cp /var/lib/cobbler/repos*    /var/lib/cobbler/backup 2>/dev/null
+fi
+if [ -e /var/lib/cobbler/config ]; then
+    cp -a /var/lib/cobbler/config    /var/lib/cobbler/backup 2>/dev/null
+fi
 /usr/bin/cobbler reserialize
 /sbin/chkconfig --add cobblerd
 /sbin/service cobblerd condrestart
-
 
 %preun
 if [ $1 = 0 ]; then
@@ -143,6 +147,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(755,root,root)
 %dir /var/lib/cobbler
+%dir /var/lib/cobbler/config/
+%dir /var/lib/cobbler/config/distros.d/
+%dir /var/lib/cobbler/config/profiles.d/
+%dir /var/lib/cobbler/config/systems.d/
+%dir /var/lib/cobbler/config/repos.d/
+%dir /var/lib/cobbler/config/images.d/
 %dir /var/lib/cobbler/kickstarts/
 %dir /var/lib/cobbler/backup/
 %dir /var/lib/cobbler/triggers/add/distro/pre

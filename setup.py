@@ -89,6 +89,11 @@ if __name__ == "__main__":
                                 # bootloaders and syslinux support files
                                 (cobpath,  ['loaders/elilo-3.6-ia64.efi']),
                                 (cobpath,  ['loaders/menu.c32']),
+                                ("/var/lib/cobbler/config/distros.d",  []),
+                                ("/var/lib/cobbler/config/profiles.d", []),
+                                ("/var/lib/cobbler/config/systems.d",  []),
+                                ("/var/lib/cobbler/config/repos.d",    []),
+                                ("/var/lib/cobbler/config/images.d",   []),
 
                                 # sample kickstart files
                                 (etcpath,  ['kickstarts/legacy.ks']),

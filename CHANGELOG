@@ -37,6 +37,7 @@ Cobbler CHANGELOG
 - split partition select template into two parts (old one still ships)
 - cleanup some stock kickstarts so we always use $kickstart_start
 - hook ctrl+c during serializer writes to prevent possible corruption of data in /var/lib/cobbler
+- added 'serializer_catalog' as the new defualt serializer.  It is backward compatible and much faster.
 
 - Wed Jun 03 2008 - 1.0.3
 - Fix typo in replicate code
