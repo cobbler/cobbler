@@ -18,7 +18,7 @@ import os
 import os.path
 import glob
 from cexceptions import *
-from Cheetah.Template import Template
+from templateapi import Template
 from utils import *
 import utils
 
@@ -50,14 +50,6 @@ class Templar:
         # backward support for Cobbler's legacy (and slightly more readable) 
         # template syntax.
         raw_data = raw_data.replace("TEMPLATE::","$")
-
-        # replace snippets with the proper Cheetah include directives prior to processing.
-        # see Wiki for full details on how snippets operate.
-        snippet_results = ""
-        for line in raw_data.split("\n"):
-             line = self.replace_snippets(line,subject)
-             snippet_results = "\n".join((snippet_results, line))
-        raw_data = snippet_results
 
         # HACK:  the ksmeta field may contain nfs://server:/mount in which
         # case this is likely WRONG for kickstart, which needs the NFS
@@ -109,89 +101,3 @@ class Templar:
             fd.close()
 
         return data_out
-
-    def replace_snippets(self,line,subject):
-        """
-        Replace all SNIPPET:: syntaxes on a line with the
-        results of evaluating the snippet, taking care not
-        to replace tabs with spaces or anything like that
-        """
-        tokens = line.split(None)
-        for t in tokens:
-           if t.startswith("SNIPPET::"):
-               snippet_name = t.replace("SNIPPET::","")
-               line = line.replace(t,self.eval_snippet(snippet_name,subject))
-        return line
-
-    def eval_snippet(self,name,subject):
-        """
-        Replace SNIPPET::foo with contents of files:
-            Use /var/lib/cobbler/snippets/per_system/$name/$sysname
-                /var/lib/cobbler/snippets/per_profile/$name/$proname
-                /var/lib/cobbler/snippets/$name
-            in order... (first one wins)
-        """
-
-        sd = self.settings.snippetsdir
-        default_path = "%s/%s" % (sd,name)  
-
-        if subject is None:
-            if os.path.exists(default_path):
-                return self.slurp(default_path)
-            else:
-                return self.slurp(None)
-            
-
-        if subject.COLLECTION_TYPE == "system":
-            profile  = self.api.find_profile(name=subject.profile)
-            sys_path = "%s/per_system/%s/%s" % (sd,name,subject.name) 
-            pro_path = "%s/per_profile/%s/%s" % (sd,name,profile.name) 
-            if os.path.exists(sys_path):
-                return self.slurp(sys_path)
-            elif os.path.exists(pro_path):
-                return self.slurp(pro_path)
-            elif os.path.exists(default_path):
-                return self.slurp(default_path)
-            else:
-                return self.slurp(None)
-
-        if subject.COLLECTION_TYPE == "profile":
-            pro_path = "%s/per_profile/%s/%s" % (sd,name,subject.name) 
-            if os.path.exists(pro_path):
-                return self.slurp(pro_path)
-            elif os.path.exists(default_path):
-                return self.slurp(default_path)
-            else:
-                return self.slurp(None)
-
-        return self.slurp(None)
-
-    def slurp(self,filename):
-        """
-        Get the contents of a filename but if none is specified
-        just include some generic error text for the rendered
-        template.
-        """
-
-        if filename is None:
-            return "# error: no snippet data found"
-
-        # disabling this as it requires restarting cobblerd after
-        # making changes to snippets.  not good.  Since kickstart
-        # templates are now generated dynamically and we don't need
-        # to load all snippets to parse any given template, this should
-        # be ok, leaving this in as a footnote should we need it later.
-        #
-        ## potentially eliminate a ton of system calls if syncing
-        ## thousands of systems that use the same template
-        #if self.cache.has_key(filename):
-        #    
-        #    return self.cache[filename]
-
-        fd = open(filename,"r")
-        data = fd.read()
-        # self.cache[filename] = data
-        fd.close()
-
-        return data
-
