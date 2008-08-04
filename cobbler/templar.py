@@ -18,7 +18,7 @@ import os
 import os.path
 import glob
 from cexceptions import *
-from templateapi import Template
+from template_api import Template
 from utils import *
 import utils
 
