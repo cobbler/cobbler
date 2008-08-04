@@ -96,8 +96,7 @@ module Cobbler
     # Makes a remote call.
     #
     def self.make_call(*args)
-      raise Exception.new('No exception established.') unless @@connection
-      
+      raise Exception.new('No connection established.') unless @@connection
       @@connection.call(*args)
     end
     
