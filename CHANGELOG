@@ -40,6 +40,8 @@ Cobbler CHANGELOG
 - added 'serializer_catalog' as the new default serializer.  It is backward compatible and much faster.
 - removed serializer_shelve 
 - webui page lookups don't load the full object collection
+- systems can also inherit from images
+- changes to PXE images directly
 
 - Wed Jun 03 2008 - 1.0.3
 - Fix typo in replicate code
