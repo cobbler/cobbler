@@ -685,7 +685,7 @@ class Koan:
                cmd.append("--bad-image-okay")
                cmd.append("--boot-filesystem=/dev/sda1")
                cmd.append("--config-file=/tmp/boot/boot/grub/grub.conf")
-            utils.subprocess_call(["/sbin/grubby","--remove-kernel","/boot/vmlinuz"])
+               # utils.subprocess_call(["/sbin/grubby","--remove-kernel","/boot/vmlinuz"])
             utils.subprocess_call(cmd)
 
 

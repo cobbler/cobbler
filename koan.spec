@@ -5,7 +5,7 @@ Name: koan
 Version: 1.1.0
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
-License: GPL
+License: GPLv2+
 Group: Applications/System
 Requires: mkinitrd
 Requires: syslinux
@@ -56,6 +56,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+
+* Tue Aug 05 2008 Michael DeHaan <mdehaan@redhat.com> - 1.1.0-2
+- License in specfile changed to match code.
 
 * Thu Jul 24 2008 Michael DeHaan <mdehaan@redhat.com> - 1.1.0-1
 - Upstream changes (see CHANGELOG)
