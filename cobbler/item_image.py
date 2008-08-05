@@ -35,6 +35,7 @@ class Image(item.Item):
         Reset this object.
         """
         self.name            = ''
+        self.arch            = 'i386'
         self.file            = ''
         self.xml_file        = ''
         self.parent          = ''
@@ -65,11 +66,20 @@ class Image(item.Item):
         self.virt_type       = self.load_item(seed_data, 'virt_type', self.settings.default_virt_type)
         self.virt_cpus       = self.load_item(seed_data, 'virt_cpus')
         self.virt_bridge     = self.load_item(seed_data, 'virt_bridge', self.settings.default_virt_bridge)
+        self.arch            = self.load_item(seed_data,'arch','i386')
 
         self.xml_file        = self.load_item(seed_data, 'xml_file', '')
         self.set_owners(self.owners)
+        self.set_arch(self.arch)
 
         return self
+
+    def set_arch(self,arch):
+        """
+        The field is mainly relevant to PXE provisioning.
+        see comments for set_arch in item_distro.py, this works the same.
+        """
+        return utils.set_arch(self,arch)
 
     def set_file(self,filename):
         """
@@ -147,7 +157,8 @@ class Image(item.Item):
         A human readable representaton
         """
         buf =       _("image           : %s\n") % self.name
-        buf = buf + _("file (image)    : %s\n") % self.file
+        buf = buf + _("arch            : %s\n") % self.arch
+        buf = buf + _("file            : %s\n") % self.file
         buf = buf + _("xml file        : %s\n") % self.xml_file
         buf = buf + _("owners          : %s\n") % self.owners
         buf = buf + _("virt bridge     : %s\n") % self.virt_bridge
@@ -162,6 +173,7 @@ class Image(item.Item):
     def remote_methods(self):
         return {           
             'name'            :  self.set_name,
+            'arch'            :  self.set_arch,
             'file'            :  self.set_file,
             'xml_file'        :  self.set_xml_file,
             'owners'          :  self.set_owners,

@@ -241,7 +241,7 @@ class Collection(serializable.Serializable):
                 elif isinstance(ref, item_distro.Distro):
                     self.lite_sync.add_single_distro(ref.name)
                 elif isinstance(ref, item_image.Image):
-                    pass
+                    self.lite_sync.add_single_image(ref.name)
                 elif isinstance(ref, item_repo.Repo):
                     pass
                 else:

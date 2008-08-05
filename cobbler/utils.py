@@ -455,14 +455,25 @@ def blender(api_handle,remove_hashes, root_obj):
     # add in some variables for easier templating
     # as these variables change based on object type
     if results.has_key("interfaces"):
+        # is a system object
         results["system_name"]  = results["name"]
         results["profile_name"] = results["profile"]
-        results["distro_name"]  = results["distro"]
+        if results.has_key("distro"):
+            results["distro_name"]  = results["distro"]
+        elif results.has_key("image"):
+            results["distro_name"]  = "N/A"
+            results["image_name"]   = results["image"]
     elif results.has_key("distro"):
+        # is a profile or subprofile object
         results["profile_name"] = results["name"]
         results["distro_name"]  = results["distro"]
     elif results.has_key("kernel"):
+        # is a distro object
         results["distro_name"]  = results["name"]
+    elif results.has_key("file"):
+        # is an image object
+        results["distro_name"]  = "N/A"
+        results["image_name"]   = results["name"]
 
     return results
 
@@ -684,7 +695,7 @@ def tftpboot_location():
        return "/var/lib/tftpboot"
     return "/tftpboot"
 
-def linkfile(src, dst):
+def linkfile(src, dst, require_hardlink=False):
     """
     Attempt to create a link dst that points to src.  Because file
     systems suck we attempt several different methods or bail to
@@ -694,7 +705,14 @@ def linkfile(src, dst):
     try:
         return os.link(src, dst)
     except (IOError, OSError):
-        pass
+        if not require_hardlink:
+            pass
+        else:
+            if not os.path.exists(dst):
+               raise
+            else:
+               # already exists, FIXME: check for sameness or Errno 17
+               return True 
 
     try:
         return os.symlink(src, dst)

@@ -18,6 +18,7 @@ import utils
 import collection
 from cexceptions import *
 from utils import _
+import action_litesync
 
 #--------------------------------------------
 
@@ -43,6 +44,9 @@ class Images(collection.Collection):
             if with_delete:
                 if with_triggers:
                     self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/image/pre/*")
+                if with_sync:
+                    lite_sync = action_litesync.BootLiteSync(self.config)
+                    lite_sync.remove_single_image(name)
 
             del self.listing[name]
             self.config.serialize_delete(self, obj)

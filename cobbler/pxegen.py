@@ -31,6 +31,7 @@ import item_distro
 import item_profile
 import item_repo
 import item_system
+import item_image
 
 from utils import _
 
@@ -51,6 +52,7 @@ class PXEGen:
         self.systems     = config.systems()
         self.settings    = config.settings()
         self.repos       = config.repos()
+        self.images      = config.images()
         self.templar     = templar.Templar(config)
         self.bootloc     = utils.tftpboot_location()
 
@@ -86,6 +88,13 @@ class PXEGen:
         for d in self.distros:
             self.copy_single_distro_files(d)
 
+    def copy_images(self):
+        """
+        Like copy_distros except for images.
+        """
+        for i in self.images:
+            self.copy_single_image_files(i)
+
     def copy_single_distro_files(self, d):
         for dirtree in [self.bootloc, self.settings.webdir]: 
             distros = os.path.join(dirtree, "images")
@@ -108,15 +117,33 @@ class PXEGen:
             else:
                 utils.copyfile(initrd, os.path.join(distro_dir, b_initrd))
 
+    def copy_single_image_files(self, img):
+        images_dir = os.path.join(self.bootloc, "images2")
+        filename = img.file 
+        if not os.path.exists(filename):
+            # likely for virtual usage, cannot use
+            return
+        if not os.path.exists(images_dir):
+            os.makedirs(images_dir)
+        basename = os.path.basename(img.file)
+        newfile = os.path.join(images_dir, img.name)
+        utils.linkfile(filename, newfile, require_hardlink=True)
+        return True
+
     def write_all_system_files(self,system):
 
         profile = system.get_conceptual_parent()
         if profile is None:
             raise CX(_("system %(system)s references a missing profile %(profile)s") % { "system" : system.name, "profile" : system.profile})
         distro = profile.get_conceptual_parent()
+        image_based = False
+        image = None
         if distro is None:
-            raise CX(_("profile %(profile)s references a missing distro %(distro)s") % { "profile" : system.profile, "distro" : profile.distro})
-
+            if profile.COLLECTION_TYPE == "profile":
+               raise CX(_("profile %(profile)s references a missing distro %(distro)s") % { "profile" : system.profile, "distro" : profile.distro})
+            else:
+               image_based = True
+               image = profile
 
         # this used to just generate a single PXE config file, but now must
         # generate one record for each described NIC ...
@@ -127,14 +154,19 @@ class PXEGen:
 
             f1 = utils.get_config_filename(system,interface=name)
 
-            if distro.arch is None or distro.arch == "":
-                distro.arch = "x86"
+            if image_based:
+                working_arch = image.arch
+            else:
+                working_arch = distro.arch
+
+            if working_arch is None or working_arch == "":
+                working_arch = "x86"
 
             # for tftp only ...
-            if distro.arch in [ "i386", "x86", "x86_64", "standard"]:
+            if working_arch in [ "i386", "x86", "x86_64", "standard"]:
                 # pxelinux wants a file named $name under pxelinux.cfg
                 f2 = os.path.join(self.bootloc, "pxelinux.cfg", f1)
-            elif distro.arch == "ia64":
+            elif working_arch == "ia64":
                 # elilo expects files to be named "$name.conf" in the root
                 # and can not do files based on the MAC address
                 if ip is not None and ip != "":
@@ -142,16 +174,17 @@ class PXEGen:
 
                 filename = "%s.conf" % utils.get_config_filename(system,interface=name)
                 f2 = os.path.join(self.bootloc, filename)
-            elif distro.arch == "s390x":
+            elif working_arch == "s390x":
                 filename = "%s" % utils.get_config_filename(system,interface=name)
                 f2 = os.path.join(self.bootloc, "s390x", filename)
             else:
                 continue 
 
-            f3 = os.path.join(self.settings.webdir, "systems", f1)
-
             if system.netboot_enabled and system.is_management_supported():
-                self.write_pxe_file(f2,system,profile,distro,distro.arch)
+                if not image_based:
+                    self.write_pxe_file(f2,system,profile,distro,distro.arch)
+                else:
+                    self.write_pxe_file(f2,system,None,None,None,image=profile)
             else:
                 # ensure the file doesn't exist
                 utils.rmfile(f2)
@@ -165,9 +198,11 @@ class PXEGen:
         if not os.path.exists(s390path):
             utils.mkdir(s390path)
         profile_list = [profile for profile in self.profiles]
+        image_list = [image for image in self.images]
         def sort_name(a,b):
            return cmp(a.name,b.name)
         profile_list.sort(sort_name)
+        image_list.sort(sort_name)
         listfile = open(os.path.join(s390path, "profile_list"),"w+")
         for profile in profile_list:
             distro = profile.get_conceptual_parent()
@@ -175,7 +210,14 @@ class PXEGen:
                 listfile.write("%s\n" % profile.name)
             f2 = os.path.join(self.bootloc, "s390x", profile.name)
             self.write_pxe_file(f2,None,profile,distro,distro.arch)
+        listfile2 = open(os.path.join(s390path, "image_list"),"w+")
+        for image in image_list:
+            if os.path.exists(image.file):
+                listfile2.write("%s\n" % image.name)
+            f2 = os.path.join(self.bootloc, "s390x", image.name)
+            self.write_pxe_file(f2,None,None,None,None,image=image)
         listfile.close()
+        listfile2.close()
 
     def make_actual_pxe_menu(self):
         # only do this if there is NOT a system named default.
@@ -195,6 +237,10 @@ class PXEGen:
            return cmp(a.name,b.name)
         profile_list.sort(sort_name)
 
+        # sort the images
+        image_list = [image for image in self.images]
+        image_list.sort(sort_name)
+
         # build out the menu entries
         pxe_menu_items = ""
         for profile in profile_list:
@@ -206,6 +252,13 @@ class PXEGen:
             contents = self.write_pxe_file(None,None,profile,distro,distro.arch,include_header=False)
             if contents is not None:
                 pxe_menu_items = pxe_menu_items + contents + "\n"
+
+        # image names towards the bottom
+        for image in image_list:
+            if os.path.exists(image.file):
+                contents = self.write_pxe_file(None,None,None,None,None,image=image)
+                if contents is not None:
+                    pxe_menu_items = pxe_menu_items + contents + "\n"
 
         # if we have any memtest files in images, make entries for them
         # after we list the profiles
@@ -227,6 +280,9 @@ class PXEGen:
         """
         Write a configuration file for memtest
         """
+
+        # FIXME: this should be handled via "cobbler image add" now that it is available,
+        # though it would be nice if there was a less-manual way to add those as images.
 
         # just some random variables
         template = None
@@ -252,8 +308,7 @@ class PXEGen:
         return buffer
 
 
-
-    def write_pxe_file(self,filename,system,profile,distro,arch, include_header=True):
+    def write_pxe_file(self,filename,system,profile,distro,arch,image=None,include_header=True):
         """
         Write a configuration file for the boot loader(s).
         More system-specific configuration may come in later, if so
@@ -272,6 +327,8 @@ class PXEGen:
         # don't do anything else and flag the error condition.
         if system is not None and not system.netboot_enabled:
             return None
+        if image and not os.path.exists(image.file):
+            return None  # nfs:// URLs or something, can't use for TFTP
 
         # ---
         # just some random variables
@@ -280,16 +337,24 @@ class PXEGen:
         buffer = ""
 
         # ---
-        # find kernel and initrd
-        kernel_path = os.path.join("/images",distro.name,os.path.basename(distro.kernel))
-        initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
+        kickstart_path = None
+        kernel_path = None
+        initrd_path = None
+
+        if image is None: 
+            # profile or system+profile based, not image based, or system+image based
+
+            kernel_path = os.path.join("/images",distro.name,os.path.basename(distro.kernel))
+            initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
         
-        # Find the kickstart if we inherit from another profile
-        kickstart_path = utils.blender(self.api, True, profile)["kickstart"]
+            # Find the kickstart if we inherit from another profile
+            kickstart_path = utils.blender(self.api, True, profile)["kickstart"]
+        else:
+            kernel_path = os.path.join("/images2",image.name)
 
         # ---
         # choose a template
-        if arch in [ "standard", "x86", "i386", "i386", "x86_64" ]:
+        if arch in [ "standard", "x86", "i386", "i386", "x86_64" ] or (arch is None and system is None):
             template = "/etc/cobbler/pxeprofile.template"
         elif arch == "s390x":
             template = "/etc/cobbler/pxesystem_s390x.template"
@@ -298,17 +363,23 @@ class PXEGen:
         else:
             template = "/etc/cobbler/pxesystem.template"
 
+
         # now build the kernel command line
         if system is not None:
             blended = utils.blender(self.api, True, system)
+        elif profile is not None:
+            blended = utils.blender(self.api, True, profile)
         else:
-            blended = utils.blender(self.api, True,profile)
-        kopts = blended["kernel_options"]
+            blended = utils.blender(self.api, True, image)
+        kopts = blended.get("kernel_options","")
 
         # generate the append line
-        append_line = "append %s" % utils.hash_to_string(kopts)
-        if not arch =="ia64":
-            append_line = "%s initrd=%s" % (append_line, initrd_path)
+        hkopts = utils.hash_to_string(kopts)
+        if arch and not arch == "ia64":
+            append_line = "append initrd=%s %s" % (initrd_path, hkopts)
+        else:
+            append_line = "append %s" % hkopts
+
         if len(append_line) >= 255 + len("append "):
             print _("warning: kernel option length exceeds 255")
 
@@ -334,11 +405,16 @@ class PXEGen:
 
         # store variables for templating
         metadata["menu_label"] = ""
-        if not arch == "ia64" and system is None:
+        if profile and not arch == "ia64" and system is None:
             metadata["menu_label"] = "MENU LABEL %s" % profile.name
-        metadata["profile_name"] = profile.name
-        metadata["kernel_path"] = kernel_path
-        metadata["initrd_path"] = initrd_path
+            metadata["profile_name"] = profile.name
+        elif image:
+            metadata["menu_label"] = "MENU LABEL %s" % image.name
+            metadata["profile_name"] = image.name
+        if kernel_path is not None:
+            metadata["kernel_path"] = kernel_path
+        if initrd_path is not None:
+            metadata["initrd_path"] = initrd_path
         metadata["append_line"] = append_line
 
         # get the template

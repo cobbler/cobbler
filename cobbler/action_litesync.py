@@ -47,6 +47,7 @@ class BootLiteSync:
         self.distros     = config.distros()
         self.profiles    = config.profiles()
         self.systems     = config.systems()
+        self.images      = config.images()
         self.settings    = config.settings()
         self.repos       = config.repos()
         self.sync        = config.api.get_sync()
@@ -63,6 +64,14 @@ class BootLiteSync:
         for k in kids:
             self.add_single_profile(k.name)    
 
+    def add_single_image(self, name):
+        image = self.images.find(name=name)
+        self.sync.pxegen.copy_single_image_files(image)
+        kids = image.get_children()
+        for k in kids:
+            self.add_single_system(k.name)
+        self.sync.pxegen.make_pxe_menu()
+
     def remove_single_distro(self, name):
         bootloc = utils.tftpboot_location()
         # delete contents of images/$name directory in webdir
@@ -71,6 +80,10 @@ class BootLiteSync:
         utils.rmtree(os.path.join(bootloc, "images", name))
         # delete potential symlink to tree in webdir/links
         utils.rmfile(os.path.join(self.settings.webdir, "links", name)) 
+
+    def remove_single_image(self, name):
+        bootloc = utils.tftpboot_location()
+        utils.rmfile(os.path.join(bootloc, "images2", name))
 
     def add_single_profile(self, name, rebuild_menu=True):
         # get the profile object:
@@ -123,7 +136,6 @@ class BootLiteSync:
                         interface["mac_address"],
                         interface["ip_address"]
                     )
-
 
     def remove_single_system(self, name):
         bootloc = utils.tftpboot_location()

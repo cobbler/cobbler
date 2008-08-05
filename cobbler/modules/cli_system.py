@@ -47,6 +47,7 @@ class SystemFunction(commands.CobblerFunction):
 
             if not self.matches_args(args,["find"]):
                 p.add_option("--interface",       dest="interface",   help="edit this interface # (0-7, default 0)")
+            p.add_option("--image",           dest="image",       help="inherit values from this image, not compatible with --profile")
             p.add_option("--ip",              dest="ip",          help="ex: 192.168.1.55, (RECOMMENDED)")
             p.add_option("--kickstart",       dest="kickstart",   help="override profile kickstart template")
             p.add_option("--kopts",           dest="kopts",       help="ex: 'noipv6'")
@@ -98,6 +99,7 @@ class SystemFunction(commands.CobblerFunction):
             return self.object_manipulator_finish(obj, self.api.profiles, self.options)
 
         if self.options.profile:         obj.set_profile(self.options.profile)
+        if self.options.image:           obj.set_image(self.options.image)
         if self.options.kopts:           obj.set_kernel_options(self.options.kopts,self.options.inplace)
         if self.options.ksmeta:          obj.set_ksmeta(self.options.ksmeta,self.options.inplace)
         if self.options.kickstart:       obj.set_kickstart(self.options.kickstart)

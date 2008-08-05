@@ -86,6 +86,7 @@ class BootSync:
         self.clean_trees()
         self.pxegen.copy_bootloaders()
         self.pxegen.copy_distros()
+        self.pxegen.copy_images()
         for x in self.systems:
             self.pxegen.write_all_system_files(x)
         if self.settings.manage_dhcp:

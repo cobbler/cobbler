@@ -32,6 +32,7 @@ class System(item.Item):
         self.name            = None
         self.owners          = self.settings.default_ownership
         self.profile         = None
+        self.image           = None
         self.kernel_options  = {}
         self.ks_meta         = {}    
         self.interfaces      = {}
@@ -89,6 +90,7 @@ class System(item.Item):
         self.name            = self.load_item(seed_data, 'name')
         self.owners          = self.load_item(seed_data, 'owners', self.settings.default_ownership)
         self.profile         = self.load_item(seed_data, 'profile')
+        self.image           = self.load_item(seed_data, 'image')
         self.kernel_options  = self.load_item(seed_data, 'kernel_options', {})
         self.ks_meta         = self.load_item(seed_data, 'ks_meta', {})
         self.depth           = self.load_item(seed_data, 'depth', 2)        
@@ -152,8 +154,10 @@ class System(item.Item):
         """
         Return object next highest up the tree.
         """
-        if self.parent is None or self.parent == '':
+        if (self.parent is None or self.parent == '') and self.profile:
             return self.config.profiles().find(name=self.profile)
+        elif (self.parent is None or self.parent == '') and self.image:
+            return self.config.images().find(name=self.image)
         else:
             return self.config.systems().find(name=self.parent)
 
@@ -286,12 +290,34 @@ class System(item.Item):
         Set the system to use a certain named profile.  The profile
         must have already been loaded into the Profiles collection.
         """
+        if profile_name in [ "delete", ""] or profile_name is None:
+            self.profile = ""
+            return True
         p = self.config.profiles().find(name=profile_name)
         if p is not None:
+            if self.image is not None and self.image != "" and profile_name not in ["delete", ""]:
+                raise CX(_("image and profile settings are mutually exclusivei (%s,%s)") % (image.name,profile_name))
             self.profile = profile_name
             self.depth = p.depth + 1 # subprofiles have varying depths.
             return True
         raise CX(_("invalid profile name"))
+
+    def set_image(self,image_name):
+        """
+        Set the system to use a certain named image.  Works like set_profile
+        but cannot be used at the same time.  It's one or the other.
+        """
+        if image_name in [ "delete", ""] or image_name is None:
+            self.image = ""
+            return True
+        img = self.config.images().find(name=image_name)
+        if img is not None:
+            if self.profile is not None and self.profile != "" and image_name not in ["delete", ""]:
+                raise CX(_("image and profile settings are mutually exclusive (%s,%s)") % (image_name,self.profile))
+            self.image = image_name
+            self.depth = img.depth + 1
+            return True
+        raise CX(_("invalid image name"))
 
     def set_virt_cpus(self,num):
         return utils.set_virt_cpus(self,num)
@@ -337,10 +363,10 @@ class System(item.Item):
         # this is by design as inheritable systems don't make sense.
         if self.name is None:
             raise CX(_("need to specify a name for this object"))
-            return False
-        if self.profile is None:
-            raise CX(_("need to specify a profile for this system"))
-            return False
+        if self.profile is None and self.image is None:
+            raise CX(_("need to specify a profile or image as a parent for this system"))
+        if self.profile is not None and self.image is not None and self.profile != "" and self.image != "":
+            raise CX(_("image and profile are mutually exclusive (%s,%s)") % (self.profile,self.image))
         return True
 
     def set_kickstart(self,kickstart):
@@ -376,6 +402,7 @@ class System(item.Item):
            'owners'           : self.owners,
            'parent'           : self.parent,
            'profile'          : self.profile,
+           'image'            : self.image,
            'server'           : self.server,
 	   'virt_cpus'        : self.virt_cpus,
            'virt_bridge'      : self.virt_bridge,
@@ -389,6 +416,7 @@ class System(item.Item):
     def printable(self):
         buf =       _("system           : %s\n") % self.name
         buf = buf + _("profile          : %s\n") % self.profile
+        buf = buf + _("image            : %s\n") % self.image
         buf = buf + _("kernel options   : %s\n") % self.kernel_options
         buf = buf + _("kickstart        : %s\n") % self.kickstart
         buf = buf + _("ks metadata      : %s\n") % self.ks_meta
@@ -439,6 +467,7 @@ class System(item.Item):
         return {
            'name'             : self.set_name,
            'profile'          : self.set_profile,
+           'image'            : self.set_image,
            'kopts'            : self.set_kernel_options,
            'ksmeta'           : self.set_ksmeta,
            'hostname'         : self.set_hostname,
