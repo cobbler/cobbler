@@ -41,7 +41,7 @@ SPEC = Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
   s.summary = 'An interface for interacting with a Cobbler server.'
   s.files = PKG_FILES
-  s.require_path =  "."
+  s.require_path =  "lib"
   s.autorequire = "cobbler"
   s.description = <<EOF
   Provides Ruby bindings to interact with a Cobbler server.

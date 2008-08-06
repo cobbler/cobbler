@@ -1,4 +1,4 @@
-# cobbler.rb - Cobbler module declaration.
+# image.rb 
 # 
 # Copyright (C) 2008 Red Hat, Inc.
 # Written by Darryl L. Pierce <dpierce@redhat.com>
@@ -18,22 +18,38 @@
 # MA  02110-1301, USA.  A copy of the GNU General Public License is
 # also available at http://www.gnu.org/copyleft/gpl.html.
 
-require 'cobbler/base'
-require 'cobbler/distro'
-require 'cobbler/image'
-require 'cobbler/network_interface'
-require 'cobbler/profile'
-require 'cobbler/system'
- 
-module Cobbler      
-  config = (ENV['COBBLER_YML'] || File.expand_path("config/cobbler.yml"))
-      
-  yml = YAML::load(File.open(config)) if File.exist?(config)
-      
-  if yml
-    Base.hostname = yml['hostname']
-    Base.username = yml['username']
-    Base.password = yml['password']
-  end
+module Cobbler
+  
+  # +Image+ represents an image within Cobbler.
+  #
+  class Image < Base
     
+    cobbler_lifecycle :find_all => 'get_images', 
+      :find_one => 'get_image', 
+      :remove => 'remove_image'
+    
+    cobbler_field :name
+    cobbler_field :owners
+    cobbler_field :depth
+    cobbler_field :virt_file_size
+    cobbler_field :virt_path
+    cobbler_field :xml_file
+    cobbler_field :virt_bridge
+    cobbler_field :virt_ram
+    cobbler_field :file
+    cobbler_field :virt_cpus
+    cobbler_field :parent
+
+    def initialize(definitions)
+      super(definitions)
+    end
+    
+    private
+    
+    # Creates a new instance of +System+ from a result received from Cobbler.
+    #
+    def self.create(attrs)
+      Image.new(attrs)
+    end
+  end
 end

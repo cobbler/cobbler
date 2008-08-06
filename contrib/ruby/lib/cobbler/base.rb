@@ -30,9 +30,10 @@ module Cobbler
   # Child classes can define fields that will be retrieved from Cobbler by 
   # using the +cobbler_field+ method. For example:
   # 
-  #   class Farkle < Base
-  #       cobbler_field :name, findable => 'get_farkle'
-  #       cobbler_field :owner
+  #   class System < Base
+  #       cobbler_lifecycle :find_all => 'get_systems'
+  #       cobbler_field :name
+  #       cobbler_field :owner, :array => 'String'
   #   end
   #   
   # declares a class named Farkle that contains two fields. The first, "name",
@@ -106,7 +107,7 @@ module Cobbler
       @@connection = nil
     end
     
-    def definition(key)
+    def definition(key)      
       @definitions ? @definitions[key] : nil
     end
     
@@ -203,8 +204,8 @@ module Cobbler
               when :findable then      
               
                 module_eval <<-"end;"
-                  def self.find_by_#{field.to_s}(name,&block)
-                    properties = make_call('#{arg[key]}',name)
+                  def self.find_by_#{field.to_s}(value,&block)
+                    properties = make_call('#{arg[key]}',value)
 
                     return create(properties) if properties && !properties.empty?
 
@@ -232,17 +233,26 @@ module Cobbler
       # other class must be provided.
       #
       def cobbler_collection(field, *args) # :nodoc:
-        classname = args[0][:type]
+        classname = 'String' 
+        packing   = :array
+        
+        # process collection definition
+        args.each do |arg|
+          classname = arg[:type]    if arg[:type]
+          packing   = arg[:packing] if arg[:packing]
+        end
         
         module_eval <<-"end;"
           def #{field.to_s}(&block)
+
             unless @#{field.to_s}
               @#{field.to_s} = Array.new
 
-              definition('#{field.to_s}').values.each do |value|
-                @#{field.to_s} << #{classname}.new(value)
+              definition('#{field.to_s}').each do |value|
+                if value
+                  @#{field.to_s} << #{classname}.new(value)
+                end
               end
-
             end
 
             @#{field.to_s}

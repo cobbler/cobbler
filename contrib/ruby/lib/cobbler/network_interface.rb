@@ -30,8 +30,8 @@ module Cobbler
     cobbler_field :virt_bridge
     cobbler_field :ip_address
     
-    def initialize(definitions)
-      @definitions = definitions
+    def initialize(args)
+      @definitions = args[1]
     end
    
     # A hack for getting the NIC's details over the wire.

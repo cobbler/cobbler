@@ -60,9 +60,13 @@ end
   
 if name && profile 
   
+  System.hostname = hostname if hostname
+  System.username = username if username
+  System.password = password if password
+  
   system = System.new('name' => name,'profile' => profile)
   
-  system.interfaces=[ NetworkInterface.new('mac_address' => '00:11:22:33:44:55:66:77') ]
+  system.interfaces=[NetworkInterface.new(["intf",{'mac_address' => '00:11:22:33:44:55:66:77'}])]
 
   puts "Saving a new system with name #{system.name} based on the profile #{system.profile}."
 
