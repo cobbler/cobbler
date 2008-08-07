@@ -695,7 +695,7 @@ def tftpboot_location():
        return "/var/lib/tftpboot"
     return "/tftpboot"
 
-def linkfile(src, dst, require_hardlink=False):
+def linkfile(src, dst, symlink_ok=False):
     """
     Attempt to create a link dst that points to src.  Because file
     systems suck we attempt several different methods or bail to
@@ -705,21 +705,18 @@ def linkfile(src, dst, require_hardlink=False):
     try:
         return os.link(src, dst)
     except (IOError, OSError):
-        if not require_hardlink:
-            pass
+        if not os.path.exists(dst):
+           raise CX(_("Cannot hardlink across devices."))
         else:
-            if not os.path.exists(dst):
-               raise CX(_("Cannot hardlink across devices."))
-            else:
-               # already exists, FIXME: check for sameness or Errno 17
-               return True 
+           return True 
 
-    try:
-        return os.symlink(src, dst)
-    except (IOError, OSError):
-        pass
+    if symlink_ok:
+        try:
+            return os.symlink(src, dst)
+        except (IOError, OSError):
+            pass
 
-        return copyfile(src, dst)
+    return copyfile(src, dst)
 
 def copyfile(src,dst):
     try:
@@ -732,13 +729,13 @@ def copyfile(src,dst):
             # the file as a symlink/hardlink
             raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
-def copyfile_pattern(pattern,dst,require_match=True):
+def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False):
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
         raise CX(_("Could not find files matching %s") % pattern)
     for file in files:
         base = os.path.basename(file)
-        copyfile(file,os.path.join(dst,os.path.basename(file)))
+        linkfile(file,os.path.join(dst,os.path.basename(file)),symlink_ok)
 
 def rmfile(path):
     try:

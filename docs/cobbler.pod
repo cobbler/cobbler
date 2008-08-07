@@ -46,7 +46,7 @@ It is especially important that the server name field be accurate in /etc/cobble
 For PXE, if DHCP is to be run from the cobbler server, the dhcp configuration file should be changed as suggested by "cobbler check".  If DHCP is not run locally, the "next-server" field on the DHCP server should at minimum point to the cobbler server's IP and the filename should be set to "pxelinux.0".  Alternatively, cobbler can also generate your dhcp configuration file if you want to run dhcp locally -- this is covered in a later section.  If you don't already have a DHCP setup managed by some other tool, allowing cobbler to manage DHCP will prove to be useful as it can manage DHCP reservations and other data.  If you already have a DHCP setup, moving an existing setup to be managed from within cobbler is relatively painless -- though usage of the DHCP management feature is entirely optional.  If you are not interested
 in network booting via PXE and just want to use koan to install virtual systems or replace existing ones, DHCP configuration can be totally ignored.  Koan also has a live CD (see koan's manpage) capability that can be used to simulate PXE environments.
 
-=head2 ADDING A DISTRIBUTION
+=head2 DISTRIBUTIONS
 
 This first step towards configurating what you want to provision is to add a distribution to cobbler's configuration.  
 
@@ -108,7 +108,7 @@ Users with small sites and a limited number of admins can probably ignore this o
 
 =back
 
-=head2 ADDING A PROFILE
+=head2 PROFILES
 
 A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.  A profile might represent, for instance, a web server or desktop configuration.  In this way, profiles define a role to be performed.  
 
@@ -186,7 +186,7 @@ This parameter should be useful only in select circumstances.  If machines are o
 
 =back
 
-=head2 ADDING A SYSTEM
+=head2 SYSTEMS
 
 System records map a piece of hardware (or a virtual machine) with the cobbler profile to be assigned to run on it.  This may be thought of as chosing a role for a specific system.
 
@@ -275,7 +275,7 @@ NOTE: Additional interfaces can presently only be deleted via the web interface.
 
 =end
 
-=head2 ADDING A REPOSITORY TO MIRROR
+=head2 REPOSITORIES
 
 Repository mirroring allows cobbler to mirror not only install trees ("cobbler import" does this for you) but also optional packages, 3rd party content, and even updates.   Mirroring all of this content locally
 on your network will result in faster, more up-to-date installations and faster updates.  If you
@@ -591,7 +591,6 @@ If the avahi-tools package is installed, cobblerd will broadcast it's presence o
 
 =head2 IMPORTING TREES
 
-
 Cobbler can auto-add distributions and profiles from remote sources, whether this is a filesystem path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.  Import is a feature that many users will want to take advantage of, and is very simple to use.
   
 After an import is run, cobbler will try to detect the distribution type and automatically assign kickstarts.  By default, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of "cobbler".  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting after cobbler creates the profile.
@@ -673,6 +672,12 @@ To use this feature, the kickstart tree files need to be served via a http://ser
 If kickstart trees are somewhere else, one can still benefit from the kickstart tracking feature by adding a symlink to /var/www/cobbler/localmirror/distroname will allow the kickstarts to be served through the tracking URL mentioned above.   Be sure to use the http://server/cblr/ URL to point to the kickstart tree for each distro you want to track.
 
 Note that kickstart tracking support using syslog requires an Anaconda that supports syslog forwarding.  RHEL5 is good, as is FC6 and later.  URL tracking currently requires python2.3 or higher on the server for the mod_python piece to work.  This will likely be improved later to better support older distros acting as a cobbler server.
+
+
+=head2 IMAGES
+
+Cobbler can help with booting images physically and virtually, though the usage of these commands varies
+substantially by the type of image.   Non-image based deployments are generally easier to work with and lead to more sustaintable infrastructure. See https://fedorahosted.org/cobbler/wiki/AllAboutImages for details on things that are offered.  Some manual use of other commands beyond of what is typically required of cobbler may be needed to prepare images for use with this feature.
 
 =head2 TWEAKING
 

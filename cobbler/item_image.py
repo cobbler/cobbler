@@ -97,9 +97,10 @@ class Image(item.Item):
     def set_image_type(self,image_type):
         """
         Indicates what type of image this is.
-        direct     = something like "memdisk"
-        iso        = a bootable ISO that pxe's or can be used for virt installs
-        virt-clone = a cloned virtual disk (FIXME: not yet supported)
+        direct     = something like "memdisk", physical only
+        iso        = a bootable ISO that pxe's or can be used for virt installs, virtual only
+        virt-clone = a cloned virtual disk (FIXME: not yet supported), virtual only
+        memdisk    = hdd image (physical only)
         """
         if not image_type in [ "direct", "iso", "memdisk", "virt-clone" ]:
            raise CX(_("image type must be 'direct', 'iso', or 'virt-clone'"))

@@ -120,14 +120,11 @@ class PXEGen:
                 raise CX(_("initrd not found: %(file)s, distro: %(distro)s") % { "file" : d.initrd, "distro" : d.name })
             b_kernel = os.path.basename(kernel)
             b_initrd = os.path.basename(initrd)
-            if kernel.startswith(dirtree):
-                utils.linkfile(kernel, os.path.join(distro_dir, b_kernel))
-            else:
-                utils.copyfile(kernel, os.path.join(distro_dir, b_kernel))
-            if initrd.startswith(dirtree):
-                utils.linkfile(initrd, os.path.join(distro_dir, b_initrd))
-            else:
-                utils.copyfile(initrd, os.path.join(distro_dir, b_initrd))
+            allow_symlink=False
+            if dirtree == self.settings.webdir:
+                allow_symlink=True
+            utils.linkfile(kernel, os.path.join(distro_dir, b_kernel), symlink_ok=allow_symlink)
+            utils.linkfile(initrd, os.path.join(distro_dir, b_initrd), symlink_ok=allow_symlink)
 
     def copy_single_image_files(self, img):
         images_dir = os.path.join(self.bootloc, "images2")
@@ -139,7 +136,7 @@ class PXEGen:
             os.makedirs(images_dir)
         basename = os.path.basename(img.file)
         newfile = os.path.join(images_dir, img.name)
-        utils.linkfile(filename, newfile, require_hardlink=True)
+        utils.linkfile(filename, newfile)
         return True
 
     def write_all_system_files(self,system):
