@@ -45,6 +45,7 @@ class ImageFunction(commands.CobblerFunction):
         
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--file",             dest="file",             help="common filesystem path to image for all hosts (nfs is good)")
+            p.add_option("--image-type",       dest="image-type",       help="what kind of image is this?")
 
         if self.matches_args(args,["copy","rename"]):
 

@@ -62,17 +62,29 @@ class PXEGen:
         NOTE: we support different arch's if defined in
         /etc/cobbler/settings.
         """
-        for loader in self.settings.bootloaders.keys():
-            path = self.settings.bootloaders[loader]
-            newname = os.path.basename(path)
-            destpath = os.path.join(self.bootloc, newname)
-            utils.copyfile(path, destpath)
-        utils.copyfile("/var/lib/cobbler/menu.c32", os.path.join(self.bootloc, "menu.c32"))
+        dst = self.bootloc
 
-        # Copy memtest to tftpboot if package is installed on system          
-        for memtest in glob.glob('/boot/memtest*'):
-            base = os.path.basename(memtest)
-            utils.copyfile(memtest,os.path.join(self.bootloc,"images",base))
+        # copy syslinux from one of two locations
+        try:
+            utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',   dst)
+        except:
+            utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0', dst)
+   
+        # copy memtest only if we find it
+        utils.copyfile_pattern('/boot/memtest*', dst, require_match=False)
+  
+        # copy elilo which we include for IA64 targets
+        utils.copyfile_pattern('/var/lib/cobbler/elilo-3.6-ia64.efi', dst)
+ 
+        # copy menu.c32 as the older one has some bugs on certain RHEL
+        utils.copyfile_pattern('/var/lib/cobbler/menu.c32', dst)
+
+        # copy memdisk as we need it to boot ISOs
+        try:
+            utils.copyfile_pattern('/usr/lib/syslinux/memdisk',   dst)
+        except:
+            utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst)
+
 
     def copy_distros(self):
         """
@@ -350,7 +362,15 @@ class PXEGen:
             # Find the kickstart if we inherit from another profile
             kickstart_path = utils.blender(self.api, True, profile)["kickstart"]
         else:
-            kernel_path = os.path.join("/images2",image.name)
+            if image.image_type == "direct":
+                kernel_path = os.path.join("/images2",image.name)
+            elif image.image_type == "memdisk":
+                kernel_path = "/memdisk"
+                initrd_path = os.path.join("/images2",image.name)
+            else:
+                # CD-ROM ISO or virt-clone image? We can't PXE boot it.
+                kernel_path = None
+                initrd_path = None
 
         # ---
         # choose a template
@@ -375,7 +395,7 @@ class PXEGen:
 
         # generate the append line
         hkopts = utils.hash_to_string(kopts)
-        if arch and not arch == "ia64":
+        if not arch or arch != "ia64":
             append_line = "append initrd=%s %s" % (initrd_path, hkopts)
         else:
             append_line = "append %s" % hkopts
@@ -411,17 +431,23 @@ class PXEGen:
         elif image:
             metadata["menu_label"] = "MENU LABEL %s" % image.name
             metadata["profile_name"] = image.name
+
         if kernel_path is not None:
             metadata["kernel_path"] = kernel_path
         if initrd_path is not None:
             metadata["initrd_path"] = initrd_path
+
         metadata["append_line"] = append_line
 
         # get the template
-        template_fh = open(template)
-        template_data = template_fh.read()
-        template_fh.close()
-        
+        if kernel_path is not None and initrd_path is not None:
+            template_fh = open(template)
+            template_data = template_fh.read()
+            template_fh.close()
+        else:
+            # this is something we can't PXE boot
+            template_data = "\n"        
+
         # save file and/or return results, depending on how called.
         buffer = self.templar.render(template_data, metadata, None)
         if filename is not None:

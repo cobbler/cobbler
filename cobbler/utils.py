@@ -709,7 +709,7 @@ def linkfile(src, dst, require_hardlink=False):
             pass
         else:
             if not os.path.exists(dst):
-               raise
+               raise CX(_("Cannot hardlink across devices."))
             else:
                # already exists, FIXME: check for sameness or Errno 17
                return True 
@@ -731,6 +731,14 @@ def copyfile(src,dst):
             # accomodate for the possibility that we already copied
             # the file as a symlink/hardlink
             raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+
+def copyfile_pattern(pattern,dst,require_match=True):
+    files = glob.glob(pattern)
+    if require_match and not len(files) > 0:
+        raise CX(_("Could not find files matching %s") % pattern)
+    for file in files:
+        base = os.path.basename(file)
+        copyfile(file,os.path.join(dst,os.path.basename(file)))
 
 def rmfile(path):
     try:

@@ -19,11 +19,6 @@ allow_duplicate_ips: 0
 # the path to BIND's executable for this distribution.
 bind_bin: /usr/sbin/named
 
-# where to find various bootloaders on the filesystem
-bootloaders:
-    ia64: /var/lib/cobbler/elilo-3.6-ia64.efi
-    standard: /usr/lib/syslinux/pxelinux.0
-
 # if no kickstart is specified, use this template (FIXME)
 default_kickstart: /etc/cobbler/default.ks
 

@@ -47,6 +47,7 @@ class Image(item.Item):
         self.virt_cpus       = 1
         self.virt_bridge     = self.settings.default_virt_bridge
         self.owners          = self.settings.default_ownership
+        self.image_type      = "iso" # direct, iso, memdisk, virt-clone
 
     def from_datastruct(self,seed_data):
         """
@@ -69,6 +70,8 @@ class Image(item.Item):
         self.arch            = self.load_item(seed_data,'arch','i386')
 
         self.xml_file        = self.load_item(seed_data, 'xml_file', '')
+        self.image_type      = self.load_item(seed_data, 'image_type', 'iso')
+
         self.set_owners(self.owners)
         self.set_arch(self.arch)
 
@@ -91,10 +94,22 @@ class Image(item.Item):
         self.file = filename
         return True
 
+    def set_image_type(self,image_type):
+        """
+        Indicates what type of image this is.
+        direct     = something like "memdisk"
+        iso        = a bootable ISO that pxe's or can be used for virt installs
+        virt-clone = a cloned virtual disk (FIXME: not yet supported)
+        """
+        if not image_type in [ "direct", "iso", "memdisk", "virt-clone" ]:
+           raise CX(_("image type must be 'direct', 'iso', or 'virt-clone'"))
+        self.image_type = image_type
+
     def set_xml_file(self,filename):
         """
         Stores an xmlfile for virt-image.   This should be accessible
         on all nodes that need to access it also.  See set_file.
+        FIXME: not yet supported, just a stub.
         """
         self.xml_file = filename
         return True
@@ -139,6 +154,7 @@ class Image(item.Item):
         """
         return {
             'name'             : self.name,
+            'image type'       : self.image_type,
             'file'             : self.file,
             'xml_file'         : self.xml_file,
             'depth'            : 0,
@@ -157,6 +173,7 @@ class Image(item.Item):
         A human readable representaton
         """
         buf =       _("image           : %s\n") % self.name
+        buf = buf + _("image type      : %s\n") % self.image_type
         buf = buf + _("arch            : %s\n") % self.arch
         buf = buf + _("file            : %s\n") % self.file
         buf = buf + _("xml file        : %s\n") % self.xml_file
@@ -173,6 +190,7 @@ class Image(item.Item):
     def remote_methods(self):
         return {           
             'name'            :  self.set_name,
+            'image-type'      :  self.set_image_type,
             'arch'            :  self.set_arch,
             'file'            :  self.set_file,
             'xml_file'        :  self.set_xml_file,

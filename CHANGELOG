@@ -42,6 +42,8 @@ Cobbler CHANGELOG
 - webui page lookups don't load the full object collection
 - systems can also inherit from images
 - changes to PXE images directly
+- bootloaders is no longer a config file setting
+- we can now look for syslinux in one of two places (/usr/lib, /usr/share)
 
 - Wed Jun 03 2008 - 1.0.3
 - Fix typo in replicate code

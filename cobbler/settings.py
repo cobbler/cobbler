@@ -25,10 +25,6 @@ DEFAULTS = {
     "allow_duplicate_macs"        : 0,
     "allow_duplicate_ips"         : 0,
     "bind_bin"                    : "/usr/sbin/named",
-    "bootloaders"                 : {
-        "standard"                : "/usr/lib/syslinux/pxelinux.0",
-        "ia64"                    : "/var/lib/cobbler/elilo-3.6-ia64.efi"
-    },
     "cobbler_master"              : '',
     "default_kickstart"           : "/etc/cobbler/default.ks",
     "default_virt_bridge"         : "xenbr0",
