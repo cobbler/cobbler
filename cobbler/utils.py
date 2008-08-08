@@ -902,7 +902,7 @@ def set_virt_type(self,vtype):
          self.virt_type == "<<inherit>>"
          return True
 
-     if vtype.lower() not in [ "qemu", "xenpv", "xenfv", "vmware", "auto" ]:
+     if vtype.lower() not in [ "qemu", "xenpv", "xenfv", "vmware", "vmwarew", "auto" ]:
          raise CX(_("invalid virt type"))
      self.virt_type = vtype
      return True

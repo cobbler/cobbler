@@ -45,6 +45,7 @@ Cobbler CHANGELOG
 - bootloaders is no longer a config file setting
 - we can now look for syslinux in one of two places (/usr/lib, /usr/share)
 - cobbler hardlinks a bit more when it can for /var/www image copies
+- add Xen FV and VMware virt types to WebUI
 
 - Wed Jun 03 2008 - 1.0.3
 - Fix typo in replicate code
