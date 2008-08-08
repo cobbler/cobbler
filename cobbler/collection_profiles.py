@@ -41,7 +41,7 @@ class Profiles(collection.Collection):
 
         if not recursive:
             for v in self.config.systems():
-                if v.profile.lower() == name:
+                if v.profile is not None and v.profile.lower() == name:
                     raise CX(_("removal would orphan system: %s") % v.name)
 
         obj = self.find(name=name)
