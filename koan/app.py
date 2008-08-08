@@ -355,10 +355,10 @@ class Koan:
         # if --virt-type was specified and invalid, then fail
         if self.virt_type is not None:
             self.virt_type = self.virt_type.lower()
-            if self.virt_type not in [ "qemu", "xenpv", "xenfv", "xen", "vmware", "auto" ]:
+            if self.virt_type not in [ "qemu", "xenpv", "xenfv", "xen", "vmware", "vmwarew", "auto" ]:
                if self.virt_type == "xen":
                    self.virt_type = "xenpv"
-               raise InfoException, "--virttype should be qemu, xenpv, xenfv, vmware, or auto"
+               raise InfoException, "--virttype should be qemu, xenpv, xenfv, vmware, vmwarew, or auto"
 
         # perform one of three key operations
         if self.is_virt:
@@ -521,7 +521,7 @@ class Koan:
                     raise InfoException("need python-virtinst >= 0.2 to do installs for qemu/kvm")
 
             # for vmware
-            if self.virt_type == "vmware":
+            if self.virt_type == "vmware" or self.virt_type == "vmwarew":
                 # FIXME: if any vmware specific checks are required (for deps) do them here.
                 pass
 
@@ -540,7 +540,7 @@ class Koan:
             if self.virt_type in [ "xenpv" ]:
                 # we need to fetch the kernel/initrd to do this
                 download = "/var/lib/xen" 
-            elif self.virt_type in [ "xenfv", "vmware" ] :
+            elif self.virt_type in [ "xenfv", "vmware", "vmwarew" ] :
                 # we are downloading sufficient metadata to initiate PXE, no D/L needed
                 download = None 
             else: # qemu
@@ -935,6 +935,10 @@ class Koan:
             import vmwcreate
             uuid = None
             creator = vmwcreate.start_install
+        elif self.virt_type == "vmwarew":
+            import vmwwcreate
+            uuid = None
+            creator = vmwwcreate.start_install
         else:
             raise InfoException, "Unspecified virt type: %s" % self.virt_type
         return (uuid, creator, fullvirt)
@@ -1094,6 +1098,8 @@ class Koan:
                prefix = "/var/lib/xen/images/"
            elif self.virt_type == "qemu":
                prefix = "/opt/qemu/"
+           elif self.virt_type == "vmwarew":
+               prefix = "/var/lib/vmware/%s/" % name
            else:
                prefix = "/var/lib/vmware/images/"
            if not os.path.exists(prefix):
