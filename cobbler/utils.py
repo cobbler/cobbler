@@ -702,13 +702,23 @@ def linkfile(src, dst, symlink_ok=False):
     copyfile()
     """
 
+    if os.path.exists(dst):
+        if os.path.samefile(src, dst):
+            # hardlink already exists, no action needed
+            return True
+        elif os.path.islink(dst):
+            # existing path exists and is a symlink, update the symlink
+            os.remove(dst)
+        else:
+            # file already exists as is not a link, we'll try
+            # to copy over it
+            pass
+
     try:
         return os.link(src, dst)
     except (IOError, OSError):
-        if not os.path.exists(dst):
-           raise CX(_("Cannot hardlink across devices."))
-        else:
-           return True 
+        # hardlink across devices, or link already exists
+        pass
 
     if symlink_ok:
         try:
