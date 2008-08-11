@@ -37,7 +37,7 @@ BuiltinTemplate = Cheetah.Template.Template.compile(source="\n".join([
         "#if $fullpath",
             "#include $fullpath",
         "#else",
-            "# Error: no snippet data",
+            "# Error: no snippet data for $file",
         "#end if",
     "#end def",
     
@@ -240,7 +240,7 @@ class Template(BuiltinTemplate):
                 file = None # Stop Cheetah from throwing a fit.
 
              
-            rx = re.compile(r'SNIPPET::(\w+)')
+            rx = re.compile(r'SNIPPET::([A-Za-z0-9_\-\/\.]+)')
             results = rx.sub(replacer, source)
             return (results, file)
         preprocessors = [preprocess]
