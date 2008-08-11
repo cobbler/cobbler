@@ -129,15 +129,19 @@ class ListFunction(commands.CobblerFunction):
     def run(self):
         if self.options.what not in [ "all", "distros", "profiles", "systems", "repos", "images" ]:
             raise CX(_("invalid value for --what"))
-        if self.options.what in [ "all", "distros"]:
+        if self.options.what in ["all"]:
+            self.list_tree(self.api.distros(),0)
+            self.list_tree(self.api.repos(),0)
+            self.list_tree(self.api.images(),0)
+        if self.options.what in ["distros"]:
             self.list_list(self.api.distros())
-        if self.options.what in [ "all", "profiles"]:
+        if self.options.what in ["profiles"]:
             self.list_list(self.api.profiles())
-        if self.options.what in [ "all", "systems" ]:
+        if self.options.what in ["systems" ]:
             self.list_list(self.api.systems())
-        if self.options.what in [ "all", "repos"]:
+        if self.options.what in ["repos"]:
             self.list_list(self.api.repos())
-        if self.options.what in [ "all", "images"]:
+        if self.options.what in ["images"]:
             self.list_list(self.api.images())
 
 ########################################################
