@@ -232,9 +232,12 @@ class Template(BuiltinTemplate):
             # preprocess the actual source
             if source is None:
                 if isinstance(file, (str, unicode)):
-                    f = open(file)
-                    source = f.read()
-                    f.close()
+                    if os.path.exists(file):
+                       f = open(file)
+                       source = f.read()
+                       f.close()
+                    else:
+                       source = "# Unable to read %s\n" % file
                 elif hasattr(file, 'read'):
                     source = file.read()
                 file = None # Stop Cheetah from throwing a fit.
@@ -270,10 +273,7 @@ class Template(BuiltinTemplate):
             fullpath = '%s/per_profile/%s/%s' % (self.getVar('snippetsdir'), file, self.getVar('profile_name'))
             if os.path.exists(fullpath):
                 return fullpath
-        fullpath = '%s/%s' % (self.getVar('snippetsdir'), file)
-        if os.path.exists(fullpath):
-            return fullpath
-        return None
+        return '%s/%s' % (self.getVar('snippetsdir'), file)
     
     # This may be a little frobby, but it's really cool. This is a pure python
     # portion of SNIPPET that appends the snippet's searchList to the caller's
