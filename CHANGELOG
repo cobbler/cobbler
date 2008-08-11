@@ -2,7 +2,8 @@ Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
 - ??? - 1.1.1
-- make template replacement use regex module
+- (FEAT) make template replacement use regex module
+- (BUGF) remove bootloader check in settings as that code doesn't need it
 
 - ??? - 1.1.0
 - devel branch

@@ -58,7 +58,7 @@ class BootCheck:
 
        self.check_service(status, "cobblerd")
     
-       self.check_bootloaders(status)
+       # self.check_bootloaders(status)
        self.check_tftpd_bin(status)
        self.check_tftpd_dir(status)
        self.check_tftpd_conf(status)
@@ -199,18 +199,21 @@ class BootCheck:
            status.append(_("bind isn't installed, but management is enabled in /etc/cobbler/settings"))
        
 
-   def check_bootloaders(self,status):
-       """
-       Check if network bootloaders are installed
-       """
-       for loader in self.settings.bootloaders.keys():
-          filename = self.settings.bootloaders[loader]
-          if not os.path.exists(filename):
-              if filename.find("pxelinux") != -1:
-                 status.append(_("syslinux should be installed but is not, expecting to find something at %s" % filename))
-              else:
-                 status.append(_("bootloader missing: %s" % filename))
-              return
+   # FIXME: removed as we no longer source bootloaders from settings, it's now done
+   # directly in pxegen.py -- do we want some checks here though?  
+
+   #def check_bootloaders(self,status):
+   #    """
+   #    Check if network bootloaders are installed
+   #    """
+   #    for loader in self.settings.bootloaders.keys():
+   #       filename = self.settings.bootloaders[loader]
+   #       if not os.path.exists(filename):
+   #           if filename.find("pxelinux") != -1:
+   #              status.append(_("syslinux should be installed but is not, expecting to find something at %s" % filename))
+   #           else:
+   #              status.append(_("bootloader missing: %s" % filename))
+   #           return
 
    def check_tftpd_bin(self,status):
        """
