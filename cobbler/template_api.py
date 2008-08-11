@@ -2,8 +2,7 @@
 Cobbler provides builtin methods for use in Cheetah templates. $SNIPPET is one
 such function and is now used to implement Cobbler's SNIPPET:: syntax.
 
-Copyright 2008, The Defense Information Systems Agency
-Daniel Guernsey <danpg102@gmail.com>
+Written by Daniel Guernsey <danpg102@gmail.com>
 
 This software may be freely redistributed under the terms of the GNU
 general public license.
