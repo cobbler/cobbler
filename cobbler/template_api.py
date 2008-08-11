@@ -3,6 +3,7 @@ Cobbler provides builtin methods for use in Cheetah templates. $SNIPPET is one
 such function and is now used to implement Cobbler's SNIPPET:: syntax.
 
 Written by Daniel Guernsey <danpg102@gmail.com>
+Contributions by Michael DeHaan <mdehaan@redhat.com>
 
 This software may be freely redistributed under the terms of the GNU
 general public license.
@@ -14,6 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import Cheetah.Template
 import os.path
+import re
 
 # This class is defined using the Cheetah language. Using the 'compile' function
 # we can compile the source directly into a python class. This class will allow
@@ -215,26 +217,15 @@ class Template(BuiltinTemplate):
     # points to this class. Now any methods entered here (or in the base class
     # above) will be accessible to all cheetah templates compiled by cobbler.
 
+
     def compile(klass, *args, **kwargs):
         """
         Compile a cheetah template with cobbler modifications. Modifications
         include SNIPPET:: syntax replacement and inclusion of cobbler builtin
         methods.
         """
-
-        # We can do the SNIPPET:: syntax replacements here, effectively making
-        # it recursive. Any cheetah template compiled by cobbler will have this
-        # replacement
-
-        def replace_token(token):
-            if token.startswith('SNIPPET::'):
-                snippet_name = token.replace('SNIPPET::', '')
-                return "$SNIPPET('%s')" % snippet_name
-            else:
-                return token
-
-        def replace_line(line):
-            return ' '.join([replace_token(token) for token in line.split(' ')])
+        def replacer(match):
+            return "$SNIPPET('%s')" % match.group(1)
 
         def preprocess(source, file):
             # Normally, the cheetah compiler worries about this, but we need to
@@ -247,7 +238,11 @@ class Template(BuiltinTemplate):
                 elif hasattr(file, 'read'):
                     source = file.read()
                 file = None # Stop Cheetah from throwing a fit.
-            return ('\n'.join([replace_line(line) for line in source.split('\n')]), file)
+
+             
+            rx = re.compile(r'SNIPPET::(\w+)')
+            results = rx.sub(replacer, source)
+            return (results, file)
         preprocessors = [preprocess]
         if kwargs.has_key('preprocessors'):
             preprocessors.extend(kwargs['preprocessors'])
