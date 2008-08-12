@@ -368,7 +368,7 @@ class PXEGen:
                 # CD-ROM ISO or virt-clone image? We can't PXE boot it.
                 kernel_path = None
                 initrd_path = None
-
+                print "DEBUG: do not support (%s)" % image.image_type
         # ---
         # choose a template
         if arch in [ "standard", "x86", "i386", "i386", "x86_64" ] or (arch is None and system is None):
@@ -392,7 +392,7 @@ class PXEGen:
 
         # generate the append line
         hkopts = utils.hash_to_string(kopts)
-        if not arch or arch != "ia64":
+        if (not arch or arch != "ia64") and initrd_path:
             append_line = "append initrd=%s %s" % (initrd_path, hkopts)
         else:
             append_line = "append %s" % hkopts
@@ -437,7 +437,7 @@ class PXEGen:
         metadata["append_line"] = append_line
 
         # get the template
-        if kernel_path is not None and initrd_path is not None:
+        if kernel_path is not None:
             template_fh = open(template)
             template_data = template_fh.read()
             template_fh.close()

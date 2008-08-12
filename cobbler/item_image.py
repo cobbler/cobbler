@@ -105,6 +105,7 @@ class Image(item.Item):
         if not image_type in [ "direct", "iso", "memdisk", "virt-clone" ]:
            raise CX(_("image type must be 'direct', 'iso', or 'virt-clone'"))
         self.image_type = image_type
+        return True
 
     def set_xml_file(self,filename):
         """
@@ -155,7 +156,7 @@ class Image(item.Item):
         """
         return {
             'name'             : self.name,
-            'image type'       : self.image_type,
+            'image_type'       : self.image_type,
             'file'             : self.file,
             'xml_file'         : self.xml_file,
             'depth'            : 0,

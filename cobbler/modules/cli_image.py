@@ -45,7 +45,7 @@ class ImageFunction(commands.CobblerFunction):
         
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--file",             dest="file",             help="common filesystem path to image for all hosts (nfs is good)")
-            p.add_option("--image-type",       dest="image-type",       help="what kind of image is this?")
+            p.add_option("--image-type",       dest="image_type",       help="what kind of image is this?")
 
         if self.matches_args(args,["copy","rename"]):
 
@@ -88,6 +88,7 @@ class ImageFunction(commands.CobblerFunction):
             return self.object_manipulator_finish(obj, self.api.images, self.options)
 
         if self.options.file:             obj.set_file(self.options.file)
+        if self.options.image_type:       obj.set_image_type(self.options.image_type)
         if self.options.owners:           obj.set_owners(self.options.owners)
         if self.options.virt_bridge:      obj.set_file(self.options.virt_bridge)
         if self.options.virt_path:        obj.set_virt_path(self.options.virt_path)
