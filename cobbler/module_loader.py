@@ -37,7 +37,7 @@ sys.path.insert(1, "%s/cobbler" % plib)
 def load_modules(module_path=mod_path, blacklist=None):
     filenames = glob.glob("%s/*.py" % module_path)
     filenames = filenames + glob.glob("%s/*.pyc" % module_path)
-    filesnames = filenames + glob.glob("%s/*.pyo" % module_path)
+    filenames = filenames + glob.glob("%s/*.pyo" % module_path)
 
     mods = {}
 
