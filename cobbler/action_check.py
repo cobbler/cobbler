@@ -27,6 +27,7 @@ import sub_process
 import action_sync
 import utils
 from utils import _
+
 class BootCheck:
 
    def __init__(self,config):
@@ -312,5 +313,4 @@ class BootCheck:
               status.append(_("missing file: %(file)s") % { "file" : self.settings.dhcpd_conf })
        else:
            status.append(_("missing file: %(file)s") % { "file" : self.settings.dhcpd_conf })
-
 

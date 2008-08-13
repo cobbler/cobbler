@@ -24,6 +24,7 @@ import optparse
 from cexceptions import *
 from utils import _
 import sys
+import api
 
 HELP_FORMAT = "%-20s%s"
 
@@ -261,6 +262,14 @@ class CobblerFunction:
                 self.reporting_list_names2(collect_fn(),self.options.name)
             return None
 
+        if "getks" in self.args:
+            if not self.options.name:
+                raise CX(_("name is required"))
+            obj = collect_fn().find(self.options.name)
+            if obj is None:
+                raise CX(_("object not found")) 
+            return obj
+
         if not self.options.name:
             raise CX(_("name is required"))
 
@@ -286,6 +295,18 @@ class CobblerFunction:
 
         if "dumpvars" in self.args:
             print obj.dump_vars(True)
+            return True
+
+        if "getks" in self.args:
+            ba=api.BootAPI()
+            if "system" in self.args:
+                rc = ba.generate_kickstart(None, self.options.name)
+            if "profile" in self.args:
+                rc = ba.generate_kickstart(self.options.name, None)
+            if rc is None:
+                print "kickstart is not template based"
+            else:
+                print rc    
             return True
 
         clobber = False

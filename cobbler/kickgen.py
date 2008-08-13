@@ -91,6 +91,10 @@ class KickGen:
             except:
                 utils.log_exc(self.api.logger)
                 return _("# Error while rendering kickstart file, see /var/log/cobbler/cobbler.log for details")
+        elif kickstart_path is not None and not os.path.exists(kickstart_path):
+            if kickstart_path.find("http://") == -1 and kickstart_path.find("ftp://") == -1 and kickstart_path.find("nfs:") == -1:
+                return "# Error, cannot find %s" % kickstart_path
+        return "# kickstart is sourced externally: %s" % meta["kickstart"]
 
     def generate_kickstart_signal(self, is_pre=0, profile=None, system=None):
         """
@@ -223,6 +227,9 @@ class KickGen:
         if profile is None:
             raise CX(_("system %(system)s references missing profile %(profile)s") % { "system" : s.name, "profile" : s.profile })
         distro = profile.get_conceptual_parent()
+        if distro is None: 
+            # this is an image parented system, no kickstart available
+            return "# image based systems do not have kickstarts"
         meta = utils.blender(self.api, False, s)
         kickstart_path = utils.find_kickstart(meta["kickstart"])
         if kickstart_path and os.path.exists(kickstart_path):
@@ -242,4 +249,10 @@ class KickGen:
             except:
                 traceback.print_exc()
                 raise CX(_("Error templating file"))
+        elif kickstart_path is not None and not os.path.exists(kickstart_path):
+            if kickstart_path.find("http://") == -1 and kickstart_path.find("ftp://") == -1 and kickstart_path.find("nfs:") == -1:
+                return "# Error, cannot find %s" % kickstart_path
+        return "# kickstart is sourced externally: %s" % meta["kickstart"]
+
+
 

@@ -35,20 +35,20 @@ import cexceptions
 class SystemFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler system","<add|copy|edit|find|list|rename|remove|report> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler system","<add|copy|edit|find|list|rename|remove|report|getks> [ARGS|--help]")
 
     def command_name(self):
         return "system"
 
     def subcommands(self):
-        return [ "add", "copy", "dumpvars", "edit", "find", "list", "remove", "rename", "report" ]
+        return ["add","copy","dumpvars","edit","find","list","remove","rename","report","getks"]
 
     def add_options(self, p, args):
 
         if self.matches_args(args,["add"]):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
 
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
+        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
             p.add_option("--dhcp-tag",        dest="dhcp_tag",    help="for use in advanced DHCP configurations")
             p.add_option("--gateway",         dest="gateway",     help="for static IP / templating usage")
             p.add_option("--hostname",        dest="hostname",    help="ex: server.example.org")
@@ -66,19 +66,18 @@ class SystemFunction(commands.CobblerFunction):
 
         p.add_option("--name",   dest="name",                     help="a name for the system (REQUIRED)")
 
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
+        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
             p.add_option("--netboot-enabled", dest="netboot_enabled", help="PXE on (1) or off (0)")
 
         if self.matches_args(args,["copy","rename"]):
             p.add_option("--newname", dest="newname",                 help="for use with copy/edit")
 
-        if not self.matches_args(args,["dumpvars","find","remove","report","list"]):
+        if not self.matches_args(args,["dumpvars","find","remove","report","getks","list"]):
             p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
-        if not self.matches_args(args,["dumpvars","find","report","list"]):
+        if not self.matches_args(args,["dumpvars","find","report","getks","list"]):
             p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
 
-
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
+        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
             p.add_option("--owners",          dest="owners",          help="specify owners for authz_ownership module")
             p.add_option("--profile",         dest="profile",         help="name of cobbler profile (REQUIRED)")
             p.add_option("--server-override", dest="server_override", help="overrides server value in settings file")
@@ -93,7 +92,7 @@ class SystemFunction(commands.CobblerFunction):
 
 
     def run(self):
-
+        
         if "find" in self.args:
             items = self.api.find_system(return_list=True, no_errors=True, **self.options.__dict__)
             for x in items:
@@ -101,9 +100,14 @@ class SystemFunction(commands.CobblerFunction):
             return True
 
         obj = self.object_manipulator_start(self.api.new_system,self.api.systems)
+
         if obj is None:
             return True
+
         if self.matches_args(self.args,["dumpvars"]):
+            return self.object_manipulator_finish(obj, self.api.profiles, self.options)
+
+        if self.matches_args(self.args,["getks"]):
             return self.object_manipulator_finish(obj, self.api.profiles, self.options)
 
         if self.options.profile:         obj.set_profile(self.options.profile)
@@ -119,7 +123,6 @@ class SystemFunction(commands.CobblerFunction):
         if self.options.virt_type:       obj.set_virt_type(self.options.virt_type)
         if self.options.virt_cpus:       obj.set_virt_cpus(self.options.virt_cpus)
         if self.options.virt_path:       obj.set_virt_path(self.options.virt_path)
-
 
         if self.options.interface:
             my_interface = "intf%s" % self.options.interface
