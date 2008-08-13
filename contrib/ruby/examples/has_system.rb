@@ -50,16 +50,14 @@ end
 
 SystemExit.new('No hostname specified.') unless hostname
 
-if hostname
-  Base.hostname = hostname
+Base.hostname = hostname if hostname
   
-  puts "Finding any system that matches \"#{system}\""
+puts "Finding any system that matches \"#{system}\""
     
-  result = System.find_one(system)
+result = System.find_one(system)
   
-  if result
-    puts "#{result.name} exists, and is owned by #{result.owners}."
-  else
-    puts "No such system: #{system}"
-  end
+if result
+  puts "#{result.name} exists, and is owned by #{result.owners}."
+else
+  puts "No such system: #{system}"
 end

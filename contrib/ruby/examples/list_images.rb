@@ -1,4 +1,6 @@
-# cobbler.rb - Cobbler module declaration.
+#!/usr/bin/ruby 
+#
+# list_images.rb - example of using rubygem-cobbler to list images.
 # 
 # Copyright (C) 2008 Red Hat, Inc.
 # Written by Darryl L. Pierce <dpierce@redhat.com>
@@ -17,23 +19,34 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA  02110-1301, USA.  A copy of the GNU General Public License is
 # also available at http://www.gnu.org/copyleft/gpl.html.
-
-require 'cobbler/base'
-require 'cobbler/distro'
-require 'cobbler/image'
-require 'cobbler/network_interface'
-require 'cobbler/profile'
-require 'cobbler/system'
  
-module Cobbler      
-  config = (ENV['COBBLER_YML'] || File.expand_path("config/cobbler.yml"))
-      
-  yml = YAML::load(File.open(config)) if File.exist?(config)
-      
-  if yml
-    Base.hostname = yml['hostname']
-    Base.username = yml['username']
-    Base.password = yml['password']
+base = File.expand_path(File.join(File.dirname(__FILE__), ".."))
+$LOAD_PATH << File.join(base, "lib")
+$LOAD_PATH << File.join(base, "examples")
+
+require 'getoptlong'
+
+require 'cobbler'
+
+include Cobbler
+
+opts = GetoptLong.new(
+  ["--server", "-s", GetoptLong::REQUIRED_ARGUMENT ],
+  ["--help",   "-h", GetoptLong::NO_ARGUMENT]
+)
+
+hostname = nil
+
+opts.each do |opt, arg|
+  case opt
+  when '--server' then hostname = arg
+  when '--help'   then 
+    puts "Usage: #{$0} --server hostname\n"
   end
-    
 end
+
+
+Base.hostname = hostname if hostname
+  
+puts "Results:"
+Image.find { |image| puts "\"#{image.name}\" uses \"#{image.file}\"."}

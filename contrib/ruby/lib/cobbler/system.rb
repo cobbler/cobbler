@@ -28,24 +28,23 @@ module Cobbler
       :find_one => 'get_system', 
       :remove => 'remove_system'
     
-    cobbler_field :name
-    cobbler_field :parent
-    cobbler_field :profile
-    cobbler_field :depth
-    cobbler_field :kernel_options
-    cobbler_field :kickstart
-    cobbler_field :ks_meta
-    cobbler_field :netboot_enabled
-    cobbler_field :owners
-    cobbler_field :server
-    cobbler_field :virt_cpus
-    cobbler_field :virt_file_size
-    cobbler_field :virt_path
-    cobbler_field :virt_ram
-    cobbler_field :virt_type
-    cobbler_field :virt_bridge
-    
-    cobbler_collection :interfaces, :type => 'NetworkInterface'
+    cobbler_field      :name
+    cobbler_field      :parent
+    cobbler_field      :profile
+    cobbler_field      :depth
+    cobbler_field      :kernel_options
+    cobbler_field      :kickstart
+    cobbler_field      :ks_meta
+    cobbler_field      :netboot_enabled
+    cobbler_collection :owners
+    cobbler_field      :server
+    cobbler_field      :virt_cpus
+    cobbler_field      :virt_file_size
+    cobbler_field      :virt_path
+    cobbler_field      :virt_ram
+    cobbler_field      :virt_type
+    cobbler_field      :virt_bridge     
+    cobbler_collection :interfaces, :type => 'NetworkInterface', :packing => :hash
 
     def initialize(definitions)
       super(definitions)
@@ -62,13 +61,13 @@ module Cobbler
       Base.make_call('modify_system',sysid,'name',self.name,token)
       Base.make_call('modify_system',sysid,'profile',profile,token)
       
-      unless interfaces.empty?
+      if @interfaces
         count = 0
-        interfaces.each do |interface|
+        @interfaces.each do |interface|
         
-          values = interface.bundle_for_saving(count)
+          values = interface.bundle_for_saving(count)     
           
-          unless values.empty?
+          unless values.empty?            
             Base.make_call('modify_system',sysid,'modify-interface',values,token)        
             count = count + 1
           end

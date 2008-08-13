@@ -8,9 +8,9 @@
 Summary: 	An interface for interacting with a Cobbler server
 Name: 		rubygem-%{gemname}
 Version: 	0.0.1
-Release: 	1%{?dist}
+Release: 	2%{?dist}
 Group: 		Development/Languages
-License: 	LGPLv2+ or Ruby
+License: 	LGPLv2+
 URL: 		http://cobbler.et.redhat.com/
 Source0: 	http://fedorapeople.org/~mcpierce/%{gemname}-%{version}.gem
 BuildRoot: 	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -48,9 +48,13 @@ rm -rf %{buildroot}
 %doc %{geminstdir}/NEWS 
 %doc %{geminstdir}/README
 
-%config %{geminstdir}/config/cobbler.yml
+%{geminstdir}/config/cobbler.yml
 
 
 %changelog
+* Wed Aug 13 2008 Darryl Pierce <dpierce@redhat.com> - 0.0.1-2
+- Removed markup of cobbler.yml and a config file. Fixed a few small bugs 
+  in the code for using it as a gem.
+
 * Mon Aug 04 2008 Darryl Pierce <dpierce@redhat.com> - 0.0.1-1
 - Initial package

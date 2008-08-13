@@ -23,6 +23,7 @@ $:.unshift File.join(File.dirname(__FILE__),'..','lib')
 
 require 'test/unit'
 require 'flexmock/test_unit'
+require 'flexmock/argument_matchers'
 require 'cobbler'
 
 module Cobbler
@@ -43,20 +44,25 @@ module Cobbler
       @profile        = 'profile1'
       @nics           = Array.new
       @nic_details    = {'mac_address' => '00:11:22:33:44:55:66:77'}
-      @nics << 
-        NetworkInterface.new(@nic_details)
+      @nic            = NetworkInterface.new(['intf0',@nic_details])
+      @nics << @nic
             
       @systems = Array.new
       @systems << {
         'name'            => 'Web-Server',
-        'owners'          => 'admin',
+        'owners'          => ['admin','dpierce','mpdehaan'],
         'profile'         => 'Fedora-9-i386',
         'depth'           => '2',
         'virt_file_size'  => '<<inherit>>',
         'virt_path'       => '<<inherit>>',
         'virt_type'       => '<<inherit>>',
         'server'          => '<<inherit>>',
-        'interfaces'      => 'intf0dhcp_tagmac_address00:11:22:33:44:55subnetgatewayhostnamevirt_bridgeip_address',
+        'interfaces'      => {
+          'intf0' => {
+            'mac_address' => '00:11:22:33:44:55'},
+          'intf1' => {
+            'mac_address' => '00:11:22:33:44:55'}
+        },
         'virt_bridge'     => '<<inherit>>',
         'virt_ram'        => '<<inherit>>',
         'ks_meta'         => nil,
@@ -76,7 +82,9 @@ module Cobbler
         'virt_path'       => '<<inherit>>',
         'virt_type'       => '<<inherit>>',
         'server'          => '<<inherit>>',
-        'interfaces'      => 'intf0dhcp_tagmac_address00:11:22:33:44:55subnetgatewayhostnamevirt_bridgeip_address',
+        'interfaces'      => {
+          'intf0' => {
+            'mac_address' => 'AA:BB:CC:DD:EE:FF'}},
         'virt_bridge'     => '<<inherit>>',
         'virt_ram'        => '<<inherit>>',
         'ks_meta'         => nil,
@@ -97,7 +105,10 @@ module Cobbler
       result = System.find
 
       assert result, 'Expected a result set.'
-      assert_equal 2, result.size, 'Did not receive the right number of results'
+      assert_equal 2, result.size, 'Did not receive the right number of results.'
+      assert_equal 2, result[0].interfaces.size, 'Did not parse the NICs correctly.'
+      result[0].interfaces.collect do |nic| assert_equal "00:11:22:33:44:55", nic.mac_address end
+      assert_equal 3, result[0].owners.size, 'Did not parse the owners correctly.'
     end
     
     # Ensures that saving a system works as expected.
@@ -117,12 +128,13 @@ module Cobbler
     # Ensures that saving a system works as expected even when network interfaces
     # are involved.
     #
-    def test_save
+    def test_save_with_new_nics
       @connection.should_receive(:call).with('login',@username,@password).once.returns(@auth_token)
       @connection.should_receive(:call).with('new_system',@auth_token).once.returns(@system_id)
       @connection.should_receive(:call).with('modify_system',@system_id,'name',@system_name,@auth_token).once.returns(true)
       @connection.should_receive(:call).with('modify_system',@system_id,'profile',@profile_name,@auth_token).once.returns(true)
-      @connection.should_receive(:call).with('modify_system',@system_id,'modify-interface',any,@auth_token).once.returns(true)
+      @connection.should_receive(:call).with("modify_system",@system_id,'modify-interface',
+        @nic.bundle_for_saving(0),@auth_token).once.returns(true)
       @connection.should_receive(:call).with('save_system',@system_id,@auth_token).once.returns(true)
       
       system = System.new(:name => @system_name, :profile => @profile_name)

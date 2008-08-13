@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 #
-# has_distro.rb - example of using rubygem-cobbler to check if a distro exists.
+# has_image.rb - example of using rubygem-cobbler to check if an image exists.
 # 
 # Copyright (C) 2008 Red Hat, Inc.
 # Written by Darryl L. Pierce <dpierceredhat.com>
@@ -32,35 +32,34 @@ include Cobbler
 
 opts = GetoptLong.new(
   ["--server",  "-s", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--distro",  "-t", GetoptLong::REQUIRED_ARGUMENT ],
+  ["--image",   "-i", GetoptLong::REQUIRED_ARGUMENT ],
   ["--help",    "-h", GetoptLong::NO_ARGUMENT]
 )
 
 hostname = nil
-distro   = nil
-find_all = true
+image    = nil
 
 opts.each do |opt, arg|
   case opt
   when '--server'  then hostname = arg
-  when '--distro'  then distro   = arg
+  when '--image'   then image    = arg
   when '--help'    then 
-    puts "Usage: #{$0} --server hostname --distro distro-name\n"
+    puts "Usage: #{$0} --server hostname --image image-name\n"
   end
 end
 
 SystemExit.new('No hostname specified.') unless hostname
 
-if hostname && distro
-  Distro.hostname = hostname
+if hostname
+  Base.hostname = hostname
   
-  puts "Finding any distro that matches \"#{distro}\""
+  puts "Finding any system that matches \"#{image}\""
     
-  result = Distro.find_one(distro)
+  result = Image.find_one(image)
   
   if result
-    puts "#{result.name} exists, and is a breed of #{result.breed}."
+    puts "#{result.name} exists, and uses #{result.file}."
   else
-    puts "No such system: #{distro}"
+    puts "No such system: #{image}"
   end
 end
