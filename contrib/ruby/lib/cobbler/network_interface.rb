@@ -31,7 +31,7 @@ module Cobbler
     cobbler_field :ip_address
     
     def initialize(args)
-      @definitions = args[1]
+      @definitions = args
     end
    
     # A hack for getting the NIC's details over the wire.

@@ -31,23 +31,26 @@ require 'cobbler'
 include Cobbler
 
 opts = GetoptLong.new(
-  ["--server",  "-s", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--details", "-d", GetoptLong::NO_ARGUMENT ],
-  ["--help",    "-h", GetoptLong::NO_ARGUMENT ]
+  ['--hostname', '-s', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--details',  '-d', GetoptLong::NO_ARGUMENT ],
+  ['--help',     '-h', GetoptLong::NO_ARGUMENT ]
 )
 
 hostname = nil
 details  = false
 
-opts.each do |opt, arg|
-  case opt
-  when '--server'  then hostname = arg
-  when '--details' then details  = true
-  when '--help'   then 
-    puts "Usage: #{$0} --server hostname\n"
-  end
+def usage
+  puts "Usage: #{$0} [--hostname hostname] [--details]\n"
+  exit
 end
 
+opts.each do |opt, arg|
+  case opt
+  when '--hostname' then hostname = arg
+  when '--details'  then details  = true
+  when '--help'     then usage
+  end
+end
 
 Base.hostname = hostname if hostname
   
@@ -57,7 +60,6 @@ System.find do |system|
   
   if details
     puts "\tOwner: #{system.owners}"
-    system.interfaces.each { |nic| puts "\tNIC: #{nic.mac_address}"} 
-  end
-  
+    system.interfaces.each_pair { |id,nic| puts "\tNIC[#{id}]: #{nic.mac_address}"} 
+  end  
 end

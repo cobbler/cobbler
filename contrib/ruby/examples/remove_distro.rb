@@ -31,41 +31,42 @@ require 'cobbler'
 include Cobbler
 
 opts = GetoptLong.new(
-  ["--server",   "-s", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--distro",   "-d", GetoptLong::REQUIRED_ARGUMENT ],
+  ["--hostname",   "-s", GetoptLong::REQUIRED_ARGUMENT ],
+  ["--name",   "-d", GetoptLong::REQUIRED_ARGUMENT ],
   ["--username", "-u", GetoptLong::REQUIRED_ARGUMENT ],
   ["--password", "-p", GetoptLong::REQUIRED_ARGUMENT ],
   ["--help",    "-h", GetoptLong::NO_ARGUMENT]
 )
 
-hostname = nil
-distro   = nil
-username = nil
-password = nil
+hostname = name = username = password = nil
+
+def usage
+  puts "Usage: #{$0} --name distro-name [--hostname hostname] [--username username] [--password password]\n"
+  exit
+end
 
 opts.each do |opt, arg|
   case opt
-  when '--server'   then hostname = arg
-  when '--distro'   then distro   = arg
+  when '--hostname' then hostname = arg
+  when '--name'     then name   = arg
   when '--username' then username = arg
   when '--password' then password = arg
-  when '--help'     then 
-    puts "Usage: #{$0} --server hostname --distro distro-name --username username --password password\n"
+  when '--help'     then usage
   end
 end
 
-SystemExit.new('No hostname specified.') unless hostname
-
-if hostname && distro && username && password
-  System.hostname = hostname
-  System.username = username
-  System.password = password
+if name
+  Base.hostname = hostname if hostname
+  Base.username = username if username
+  Base.password = password if password
   
-  puts "Removing \"#{distro}\"..."
+  puts "Removing the distro named \"#{name}\"..."
     
   begin
-    puts "Deleted \"#{distro}" if System.remove(distro)
+    puts "Deleted." if Distro.remove(name)
   rescue Exception => e
     puts "Error: #{e.message}"
   end
+else
+  usage
 end

@@ -33,26 +33,40 @@ module Cobbler
   #   class System < Base
   #       cobbler_lifecycle :find_all => 'get_systems'
   #       cobbler_field :name
-  #       cobbler_field :owner, :array => 'String'
+  #       cobbler_collection :owners, :type => 'String', :packing => :hash
   #   end
   #   
-  # declares a class named Farkle that contains two fields. The first, "name",
-  # will be one that is searchable on Cobbler; i.e., a method named "find_by_name"
-  # will be generated and will use the "get_farkle" remote method to retrieve
-  # that instance from Cobbler. 
+  # declares a class named System that contains two fields and a class-level 
+  # method.
   # 
-  # The second field, "owner", will simply be a field named Farkle.owner that 
-  # returns a character string.
-  #
-  # +Base+ provides some common functionality for all child classes:
-  #
+  # The first field, "name", is a simple property. It will be retrieved from 
+  # the value "name" in the remote definition for a system, identifyed by the 
+  # +:owner+ argument.
+  # 
+  # The second field, "owners", is similarly retrieved from a property also 
+  # named "owners" in the remote definition. However, this property is a 
+  # collection: in this case, it is an array of definitions itself. The 
+  # +:type+ argument identifies what the +local+ class type is that will be 
+  # used to represent each element in the collection.
+  # 
+  # A +cobbler_collection+ is packed in one of two ways: either as an array
+  # of values or as a hash of keys and associated values. These are defined by
+  # the +:packing+ argument with the values +Array+ and +Hash+, respectively.
+  # 
+  # The +cobbler_lifecycle+ method allows for declaring different methods for
+  # retrieving remote instances of the class. These methods are:
+  # 
+  # +find_one+ - the remote method to find a single instance,
+  # +find_all+ - the remote method to find all instances,
+  # +remove+   - the remote method to remote an instance
   #  
   class Base
     
     @@hostname   = nil    
     @@connection = nil
+    @@auth_token = nil
     
-    @defintions = nil
+    @definitions = nil
     
     def initialize(definitions)
       @definitions = definitions
@@ -60,8 +74,8 @@ module Cobbler
     
     # Sets the connection. This method is only needed during unit testing.
     #
-    def self.connection=(mock)
-      @@connection = mock
+    def self.connection=(connection)
+      @@connection = connection
     end
     
     # Returns or creates a new connection.
@@ -91,13 +105,14 @@ module Cobbler
     # Logs into the Cobbler server.
     #
     def self.login
-      make_call('login', @@username, @@password)
+      (@@auth_token || make_call('login', @@username, @@password))
     end
     
     # Makes a remote call.
     #
     def self.make_call(*args)
       raise Exception.new('No connection established.') unless @@connection
+      
       @@connection.call(*args)
     end
     
@@ -105,6 +120,7 @@ module Cobbler
     #
     def self.end_transaction
       @@connection = nil
+      @@auth_token = nil
     end
     
     def definition(key)      
@@ -122,7 +138,7 @@ module Cobbler
     def self.hostname=(hostname)
       @@hostname = hostname
     end
- 
+    
     class << self
       # Creates a complete finder method
       # 
@@ -234,24 +250,37 @@ module Cobbler
       #
       def cobbler_collection(field, *args) # :nodoc:
         classname = 'String' 
-        packing   = :array
+        packing   = 'Array'
         
         # process collection definition
         args.each do |arg|
           classname = arg[:type]    if arg[:type]
-          packing   = arg[:packing] if arg[:packing]
+          if arg[:packing]
+            case arg[:packing]
+            when :hash  then packing = 'Hash'
+            when :array then packing = 'Array'
+            end
+          end
         end
         
         module_eval <<-"end;"
           def #{field.to_s}(&block)
 
             unless @#{field.to_s}
-              @#{field.to_s} = Array.new
+              @#{field.to_s} = #{packing}.new
 
-              definition('#{field.to_s}').each do |value|
-                if value
-                  @#{field.to_s} << #{classname}.new(value)
-                end
+              values = definition('#{field.to_s}')
+              
+              case "#{packing}"
+                when "Array" then
+                  values.each do |value|
+                    @#{field.to_s} << #{classname}.new(value)
+                  end 
+
+                when "Hash" then
+                  values.keys.each do |key|
+                    @#{field.to_s}[key] = #{classname}.new(values[key])
+                  end
               end
             end
 

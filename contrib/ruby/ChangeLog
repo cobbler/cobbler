@@ -1,0 +1,6 @@
+* Wed Aug 13 2008 Darryl Pierce <dpierce@redhat.com> 
+- Added caching for the auth_token to prevent extraneous calls to login.
+- Reworked and refined how cobbler_collection fields are processed, adding 
+  support for both array and has properties.
+- Rewrote the documentation for Cobbler::Base to make it easier to understand
+  how to extend it to support other Cobbler types.

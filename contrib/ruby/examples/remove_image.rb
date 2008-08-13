@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 #
-# has_distro.rb - example of using rubygem-cobbler to check if a distro exists.
+# remove_system.rb - example of using rubygem-cobbler to remove a system.
 # 
 # Copyright (C) 2008 Red Hat, Inc.
 # Written by Darryl L. Pierce <dpierceredhat.com>
@@ -33,13 +33,15 @@ include Cobbler
 opts = GetoptLong.new(
   ['--hostname', '-s', GetoptLong::REQUIRED_ARGUMENT ],
   ['--name',     '-n', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--username', '-u', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--password', '-p', GetoptLong::REQUIRED_ARGUMENT ],
   ['--help',     '-h', GetoptLong::NO_ARGUMENT]
 )
 
-name = hostname = nil
+hostname = name = username = password = nil
 
 def usage
-  puts "Usage: #{$0} --name distro-name [--hostname hostname]"
+  puts "Usage: #{$0} --name image-name [--hostname hostname] [--username username] [--password password]"
   exit
 end
 
@@ -47,22 +49,24 @@ opts.each do |opt, arg|
   case opt
   when '--hostname' then hostname = arg
   when '--name'     then name     = arg
+  when '--username' then username = arg
+  when '--password' then password = arg
   when '--help'     then usage
   end
 end
 
 if name
-  Distro.hostname = hostname
+  System.hostname = hostname if hostname
+  System.username = username if username
+  System.password = password if password
   
-  puts "Finding the distro named \"#{name}\""
+  puts "Removing image named \"#{name}\"..."
     
-  result = Distro.find_one(name)
-  
-  if result
-    puts "#{result.name} exists, and is a breed of #{result.breed}."
-  else
-    puts "No such distro"
+  begin
+    puts "Deleted \"#{name}" if Image.remove(name)
+  rescue Exception => e
+    puts "Error: #{e.message}"
   end
-else 
+else
   usage
 end

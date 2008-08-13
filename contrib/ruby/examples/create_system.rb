@@ -31,22 +31,25 @@ require 'cobbler'
 include Cobbler
 
 opts = GetoptLong.new(
-  ["--server",   "-s", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--name",     "-n", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--profile",  "-f", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--system",   "-y", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--username", "-u", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--password", "-p", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--help",     "-h", GetoptLong::NO_ARGUMENT]
+  ['--hostname', '-s', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--name',     '-n', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--profile',  '-f', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--username', '-u', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--password', '-p', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--help',     '-h', GetoptLong::NO_ARGUMENT]
 )
 
-hostname = name = profile = system = username = password = nil
+name = profile = hostname = username = password = nil
 
+def usage
+  puts "Usage: #{$0} --name system-name --profile profile-name [--hostname hostname] [--username username] [--password password]\n"
+  exit
+end
+  
 opts.each do |opt, arg|
   case opt
-  when '--server'   then hostname = arg
+  when '--hostname' then hostname = arg
   when '--name'     then name     = arg
-  when '--system'   then system   = arg
   when '--profile'  then profile  = arg
   when '--username' then username = arg
   when '--password' then password = arg
@@ -54,10 +57,6 @@ opts.each do |opt, arg|
   end
 end
 
-def usage
-  puts "Usage: #{$0} [--server hostname] --name system-name --system system-name [--username username] [--password password]\n"
-end
-  
 if name && profile 
   
   System.hostname = hostname if hostname
@@ -66,7 +65,7 @@ if name && profile
   
   system = System.new('name' => name,'profile' => profile)
   
-  system.interfaces=[NetworkInterface.new(["intf",{'mac_address' => '00:11:22:33:44:55:66:77'}])]
+  system.interfaces=[NetworkInterface.new({'mac_address' => '00:11:22:33:44:55:66:77'})]
 
   puts "Saving a new system with name #{system.name} based on the profile #{system.profile}."
 

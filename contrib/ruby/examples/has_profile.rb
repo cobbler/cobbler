@@ -31,35 +31,38 @@ require 'cobbler'
 include Cobbler
 
 opts = GetoptLong.new(
-  ["--server",  "-s", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--profile", "-t", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--help",    "-h", GetoptLong::NO_ARGUMENT]
+  ['--hostname', '-s', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--name',     '-t', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--help',     '-h', GetoptLong::NO_ARGUMENT]
 )
 
-hostname = nil
-profile  = nil
+hostname = name  = nil
+
+def usage
+  puts "Usage: #{$0} --name profile-name [--hostname hostname]\n"
+  exit
+end
 
 opts.each do |opt, arg|
   case opt
-  when '--server'  then hostname = arg
-  when '--profile' then profile  = arg
-  when '--help'    then 
-    puts "Usage: #{$0} --server hostname --system system-name\n"
+  when '--hostname' then hostname = arg
+  when '--name'     then name  = arg
+  when '--help'     then usage    
   end
 end
 
-SystemExit.new('No hostname specified.') unless hostname
-
-if hostname
-  Profile.hostname = hostname
+if name
+  Base.hostname = hostname if hostname
   
-  puts "Finding any system that matches \"#{profile}\""
+  puts "Finding any system that matches \'#{name}\""
     
-  result = Profile.find_one(profile)
+  result = Profile.find_one(name)
   
   if result
     puts "#{result.name} exists, and is owned by #{result.owners}."
   else
-    puts "No such system: #{profile}"
+    puts "No such profile."
   end
+else
+  usage
 end
