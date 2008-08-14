@@ -31,33 +31,39 @@ require 'cobbler'
 include Cobbler
 
 opts = GetoptLong.new(
-  ["--server",  "-s", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--system",  "-t", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--help",    "-h", GetoptLong::NO_ARGUMENT]
+  ['--hostname',  '-s', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--name',  '-t', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--help',    '-h', GetoptLong::NO_ARGUMENT]
 )
 
-hostname = nil
-system   = nil
+hostname = name = nil
+
+def usage
+  puts "Usage: #{$0} --name system-name [--hostname hostname]\n"
+  exit
+end
 
 opts.each do |opt, arg|
   case opt
-  when '--server'  then hostname = arg
-  when '--system'  then system  = arg
-  when '--help'    then 
-    puts "Usage: #{$0} --server hostname --system system-name\n"
+  when '--hostname' then hostname = arg
+  when '--name'     then name  = arg
+  when '--help'     then usage
   end
 end
 
-SystemExit.new('No hostname specified.') unless hostname
+if name
 
-Base.hostname = hostname if hostname
+  Base.hostname = hostname if hostname
   
-puts "Finding any system that matches \"#{system}\""
+  puts "Finding the system named \"#{name}\""
     
-result = System.find_one(system)
+  result = System.find_one(name)
   
-if result
-  puts "#{result.name} exists, and is owned by #{result.owners}."
+  if result
+    puts "#{result.name} exists, and is owned by #{result.owners}."
+  else
+    puts "No such system."
+  end
 else
-  puts "No such system: #{system}"
+  usage
 end

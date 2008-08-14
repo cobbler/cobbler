@@ -28,7 +28,7 @@ module Cobbler
       :remove => 'remove_distro'
     
     cobbler_field :name
-    cobbler_field :owners
+    cobbler_collection :owners, :packing => :array
     cobbler_field :kernel
     cobbler_field :breed
     cobbler_field :depth

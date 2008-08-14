@@ -32,19 +32,19 @@ module Cobbler
     cobbler_field      :parent
     cobbler_field      :profile
     cobbler_field      :depth
-    cobbler_field      :kernel_options
+    cobbler_collection :kernel_options, :packing => :hash
     cobbler_field      :kickstart
-    cobbler_field      :ks_meta
+    cobbler_collection :ks_meta, :packing => :hash
     cobbler_field      :netboot_enabled
     cobbler_collection :owners
     cobbler_field      :server
+    cobbler_collection :interfaces, :type => 'NetworkInterface', :packing => :hash
     cobbler_field      :virt_cpus
     cobbler_field      :virt_file_size
     cobbler_field      :virt_path
     cobbler_field      :virt_ram
     cobbler_field      :virt_type
     cobbler_field      :virt_bridge     
-    cobbler_collection :interfaces, :type => 'NetworkInterface', :packing => :hash
 
     def initialize(definitions)
       super(definitions)

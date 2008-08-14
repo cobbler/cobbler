@@ -44,7 +44,7 @@ module Cobbler
       @profile        = 'profile1'
       @nics           = Array.new
       @nic_details    = {'mac_address' => '00:11:22:33:44:55:66:77'}
-      @nic            = NetworkInterface.new(['intf0',@nic_details])
+      @nic            = NetworkInterface.new(@nic_details)
       @nics << @nic
             
       @systems = Array.new
@@ -103,11 +103,11 @@ module Cobbler
       @connection.should_receive(:call).with('get_systems').once.returns(@systems)
 
       result = System.find
-
+      
       assert result, 'Expected a result set.'
       assert_equal 2, result.size, 'Did not receive the right number of results.'
       assert_equal 2, result[0].interfaces.size, 'Did not parse the NICs correctly.'
-      result[0].interfaces.collect do |nic| assert_equal "00:11:22:33:44:55", nic.mac_address end
+      result[0].interfaces.keys.each { |intf| assert_equal "00:11:22:33:44:55", result[0].interfaces[intf].mac_address }
       assert_equal 3, result[0].owners.size, 'Did not parse the owners correctly.'
     end
     

@@ -1,3 +1,8 @@
 This is a list of features to be developed in future.
 
-* Cache auth tokens to avoid unnecessary logins.
+* Attempt to detech when a R/W call fails due to expired auth token and
+  retry the previous login.
+* Rework the "find_one" method to be "find_by_[field]" instead.
+* Add hierarchical relationships, so that a Profile will load it's 
+  Distro, a System will load it's Profile, etc.
+* Cache auth tokens to avoid unnecessary logins. [DONE: 13 Aug 2008]

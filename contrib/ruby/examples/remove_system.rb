@@ -31,41 +31,45 @@ require 'cobbler'
 include Cobbler
 
 opts = GetoptLong.new(
-  ["--server",   "-s", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--system",   "-t", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--username", "-u", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--password", "-p", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--help",    "-h", GetoptLong::NO_ARGUMENT]
+  ['--hostname', '-s', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--name',     '-n', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--username', '-u', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--password', '-p', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--help',     '-h', GetoptLong::NO_ARGUMENT]
 )
 
 hostname = nil
-system   = nil
+name   = nil
 username = nil
 password = nil
 
+def usage    
+  puts "Usage: #{$0} --name system-name [--hostname hostname] [--username username] [--password password]"
+  exit
+end
+
 opts.each do |opt, arg|
   case opt
-  when '--server'   then hostname = arg
-  when '--system'   then system   = arg
+  when '--hostname' then hostname = arg
+  when '--name'     then name     = arg
   when '--username' then username = arg
   when '--password' then password = arg
-  when '--help'     then 
-    puts "Usage: #{$0} --server hostname --system system-name\n"
+  when '--help'     then usage
   end
 end
 
-SystemExit.new('No hostname specified.') unless hostname
-
-if hostname && system && username && password
+if name 
   System.hostname = hostname
   System.username = username
   System.password = password
   
-  puts "Removing \"#{system}\"..."
+  puts "Removing the system named \"#{name}\"..."
     
   begin
-    puts "Deleted \"#{system}" if System.remove(system)
+    puts "Deleted \"#{name}" if System.remove(name)
   rescue Exception => e
     puts "Error: #{e.message}"
   end
+else
+  usage
 end
