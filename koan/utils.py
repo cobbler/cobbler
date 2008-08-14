@@ -179,7 +179,9 @@ def input_string_or_hash(options,delim=None):
                 new_dict[tokens2[0]] = tokens2[1]
             else:
                 return {}
-        new_dict.pop('', None)
+        # dict.pop is not avail in 2.2
+        if new_dict.has_key(""):
+           del new_dict[""]
         return new_dict
     elif type(options) == dict:
         options.pop('',None)
