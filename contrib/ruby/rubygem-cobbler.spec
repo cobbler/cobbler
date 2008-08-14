@@ -8,7 +8,7 @@
 Summary: 	An interface for interacting with a Cobbler server
 Name: 		rubygem-%{gemname}
 Version: 	0.0.1
-Release: 	2%{?dist}
+Release: 	3%{?dist}
 Group: 		Development/Languages
 License: 	LGPLv2+
 URL: 		http://cobbler.et.redhat.com/
@@ -44,6 +44,7 @@ chmod +x %{installroot}/examples/list_systems.rb
 chmod +x %{installroot}/examples/remove_distro.rb
 chmod +x %{installroot}/examples/remove_image.rb
 chmod +x %{installroot}/examples/remove_profile.rb
+chmod +x %{installroot}/examples/remove_system.rb
 
 %clean
 rm -rf %{buildroot}
@@ -68,6 +69,7 @@ rm -rf %{buildroot}
   support for both array and has properties.
 - Rewrote the documentation for Cobbler::Base to make it easier to understand
   how to extend it to support other Cobbler types.
+- Refactored the examples to clean up the code.
 
 * Wed Aug 13 2008 Darryl Pierce <dpierce@redhat.com> - 0.0.1-2
 - Removed markup of cobbler.yml and a config file. Fixed a few small bugs 
