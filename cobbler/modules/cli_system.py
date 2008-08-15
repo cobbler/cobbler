@@ -93,7 +93,7 @@ class SystemFunction(commands.CobblerFunction):
 
     def run(self):
         
-        if "find" in self.args:
+        if self.args and "find" in self.args:
             items = self.api.find_system(return_list=True, no_errors=True, **self.options.__dict__)
             for x in items:
                 print x.name
