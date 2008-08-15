@@ -61,13 +61,44 @@ class FunctionLoader:
             return self.show_options()
         called_name = args[1].lower()
 
+
         # also show avail options if command name is bogus
-        if not called_name in self.functions.keys():
+        if len(args) == 2 and not called_name in self.functions.keys():
             if "--helpbash" in args:
                 return self.show_options_bashcompletion()
             else:
                 return self.show_options()
-        fn = self.functions[called_name]
+
+        try:
+            fn = self.functions[called_name]
+        except:
+            return self.show_options()
+
+        subs = fn.subcommands()
+
+        # three cases to show subcommands:
+        # (A):  cobbler profile 
+        # (B):  cobbler profile --help
+        if len(subs) != 0:
+            problem = False
+            if (len(args) == 2):
+                problem = True
+                starter = args[-1]
+            if (("-h" in args or "--help" in args) and (len(args) ==  3)):
+                problem = True
+                starter = args[-2]
+            elif len(args) >= 3:
+                for x in args[2:]:
+                    if not x.startswith("-") and x not in subs:
+                        problem = True
+                        starter = args[1]
+            if problem:
+                print "usage:"
+                print "======"
+                for x in subs:
+                    print "cobbler %s %s" % (starter, x)
+                sys.exit(1)
+
 
         # some functions require args, if none given, show subcommands
         #if len(args) == 2:
@@ -156,6 +187,7 @@ class CobblerFunction:
         Constructor requires a Cobbler API handle.
         """
         self.api = api
+        self.args = []
 
     def command_name(self):
         """
@@ -195,7 +227,6 @@ class CobblerFunction:
             for opt in parser.option_list:
                 option_list.extend(opt.__str__().split('/'))
         print ' '.join(option_list)
-
 
     def parse_args(self,args):
         """

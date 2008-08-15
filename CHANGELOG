@@ -6,6 +6,8 @@ Cobbler CHANGELOG
 - (BUGF) remove bootloader check in settings as that code doesn't need it
 - (BUGF) refinements to image handling
 - (FEAT) getks command added to command line
+- (BUGF) don't print traceback during certain SystemExits
+- (BUGF) --help now works more intuitively on odd command line usage
 
 - ??? - 1.1.0
 - devel branch

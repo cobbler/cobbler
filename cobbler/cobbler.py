@@ -83,7 +83,7 @@ def main():
         return rc
     except Exception, exc:
         if sys.exc_type==SystemExit:
-            return 0
+            return exc.code
         else:
             utils.print_exc(exc,full=True)
             return 1
