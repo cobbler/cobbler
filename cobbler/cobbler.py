@@ -82,8 +82,11 @@ def main():
             return 1
         return rc
     except Exception, exc:
-        utils.print_exc(exc,full=True)
-        return 1
+        if sys.exc_type==SystemExit:
+            return 0
+        else:
+            utils.print_exc(exc,full=True)
+            return 1
 
 if __name__ == "__main__":
     sys.exit(main())
