@@ -90,7 +90,8 @@ class KickGen:
                 return data
             except:
                 utils.log_exc(self.api.logger)
-                return _("# Error while rendering kickstart file, see /var/log/cobbler/cobbler.log for details")
+                raise
+
         elif kickstart_path is not None and not os.path.exists(kickstart_path):
             if kickstart_path.find("http://") == -1 and kickstart_path.find("ftp://") == -1 and kickstart_path.find("nfs:") == -1:
                 return "# Error, cannot find %s" % kickstart_path

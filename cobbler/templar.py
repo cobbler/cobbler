@@ -79,16 +79,14 @@ class Templar:
             raw_data = newdata 
 
         # tell Cheetah not to blow up if it can't find a symbol for something
-        raw_data = "#errorCatcher Echo\n" + raw_data
+        #raw_data = "#errorCatcher Echo\n" + raw_data
 
         # now do full templating scan, where we will also templatify the snippet insertions
         t = Template(source=raw_data, searchList=[search_table])
         try:
             data_out = str(t)
-        except:
-            print "There appears to be an formatting error in the template file."
-            print "For completeness, the traceback from Cheetah has been included below."
-            raise
+        except Exception, e:
+            return utils.cheetah_exc(e)
 
         # now apply some magic post-filtering that is used by cobbler import and some
         # other places, but doesn't use Cheetah.  Forcing folks to double escape

@@ -378,14 +378,14 @@ class PXEGen:
                 initrd_path = None
         # ---
         # choose a template
-        if arch in [ "standard", "x86", "i386", "i386", "x86_64" ] or (arch is None and system is None):
-            template = "/etc/cobbler/pxeprofile.template"
-        elif arch == "s390x":
-            template = "/etc/cobbler/pxesystem_s390x.template"
-        elif arch == "ia64":
-            template = "/etc/cobbler/pxesystem_ia64.template"
-        else:
+        if system:
             template = "/etc/cobbler/pxesystem.template"
+            if arch == "s390x":
+                template = "/etc/cobbler/pxesystem_s390x.template"
+            elif arch == "ia64":
+                template = "/etc/cobbler/pxesystem_ia64.template"
+        else:
+            template = "/etc/cobbler/pxeprofile.template"
 
 
         # now build the kernel command line

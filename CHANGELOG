@@ -8,6 +8,7 @@ Cobbler CHANGELOG
 - (FEAT) getks command added to command line
 - (BUGF) don't print traceback during certain SystemExits
 - (BUGF) --help now works more intuitively on odd command line usage
+- (BUGF) use pxesystem for systems, not pxeprofile
 
 - ??? - 1.1.0
 - devel branch
