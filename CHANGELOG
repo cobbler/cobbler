@@ -1,13 +1,15 @@
 Koan CHANGELOG
- 
+
+- Tue Aug 19 2008 Michael DeHaan <mdehaan@redhat.com> - 1.1.1-1 
+- (FEAT) update livecd builder to use F9 as src, reinstate livecd code.
+- (BUGF) get --replace-self working on EL3 again
+- (FEAT) make koan --replace-self work for reinstalls to (not from) SuSE
+- (BUGF) remove debug print during --display
+
 - Thu Jul 24 2008 Michael DeHaan <mdehaan@redhat.com> - 1.1.0-1
 - (FEAT) Teach koan about ISO images 
 - (FEAT) --list now takes a type of thing to list, removed --list-profiles, etc
 - (DOC.) manpage cleanup
-- (BUGF) remove debug print during --display
-- (FEAT) update livecd builder to use F9 as src, reinstate livecd code.
-- (BUGF) get --replace-self working on EL3 again
-- (FEAT) make koan --replace-self work for reinstalls to (not from) SuSE
 
 - Mon Jun 16 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.2-1
 - Pay attention to remote http ports for kickstart URLs
