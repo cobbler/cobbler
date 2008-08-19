@@ -31,35 +31,39 @@ require 'cobbler'
 include Cobbler
 
 opts = GetoptLong.new(
-  ["--server",  "-s", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--image",   "-i", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--help",    "-h", GetoptLong::NO_ARGUMENT]
+  ['--hostname', '-s', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--name',     '-i', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--help',     '-h', GetoptLong::NO_ARGUMENT]
 )
 
 hostname = nil
-image    = nil
+name    = nil
+
+def usage
+  puts "Usage: #{$0} --name image-name [--hostname hostname]\n"
+  exit
+end
 
 opts.each do |opt, arg|
   case opt
-  when '--server'  then hostname = arg
-  when '--image'   then image    = arg
-  when '--help'    then 
-    puts "Usage: #{$0} --server hostname --image image-name\n"
+  when '--hostname' then hostname = arg
+  when '--name'     then name    = arg
+  when '--help'     then usage
   end
 end
 
-SystemExit.new('No hostname specified.') unless hostname
-
-if hostname
-  Base.hostname = hostname
+if name
+  Base.hostname = hostname if hostname
   
-  puts "Finding any system that matches \"#{image}\""
+  puts "Finding the image named \"#{name}\""
     
-  result = Image.find_one(image)
+  result = Image.find_one(name)
   
   if result
     puts "#{result.name} exists, and uses #{result.file}."
   else
-    puts "No such system: #{image}"
+    puts "No such system."
   end
+else
+  usage
 end

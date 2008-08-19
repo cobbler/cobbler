@@ -31,7 +31,7 @@ module Cobbler
     
     cobbler_field :name, :findable => 'get_profile'
     cobbler_field :parent
-    cobbler_field :owners
+    cobbler_collection :owners, :packing => :array
     cobbler_field :dhcp_tag
     cobbler_field :depth
     cobbler_field :virt_file_size

@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 #
-# remove_distro.rb - example of using rubygem-cobbler to remove a distro.
+# remove_profile.rb - example of using rubygem-cobbler to remove a profile.
 # 
 # Copyright (C) 2008 Red Hat, Inc.
 # Written by Darryl L. Pierce <dpierceredhat.com>
@@ -41,7 +41,7 @@ opts = GetoptLong.new(
 hostname = name = username = password = nil
 
 def usage
-  puts "Usage: #{$0} --name distro-name [--hostname hostname] [--username username] [--password password]\n"
+  puts "Usage: #{$0} --name profile-name [--hostname hostname] [--username username] [--password password]\n"
   exit
 end
 
@@ -60,10 +60,10 @@ if name
   Base.username = username if username
   Base.password = password if password
   
-  puts "Removing the distro named \"#{name}\"..."
+  puts "Removing the profile named \"#{name}\"..."
     
   begin
-    puts "Deleted." if Distro.remove(name)
+    puts "Deleted." if Profile.remove(name)
   rescue Exception => e
     puts "Error: #{e.message}"
   end

@@ -31,36 +31,38 @@ require 'cobbler'
 include Cobbler
 
 opts = GetoptLong.new(
-  ["--server",  "-s", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--distro",  "-t", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--help",    "-h", GetoptLong::NO_ARGUMENT]
+  ['--hostname', '-s', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--name',     '-n', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--help',     '-h', GetoptLong::NO_ARGUMENT]
 )
 
-hostname = nil
-distro   = nil
-find_all = true
+name = hostname = nil
+
+def usage
+  puts "Usage: #{$0} --name distro-name [--hostname hostname]"
+  exit
+end
 
 opts.each do |opt, arg|
   case opt
-  when '--server'  then hostname = arg
-  when '--distro'  then distro   = arg
-  when '--help'    then 
-    puts "Usage: #{$0} --server hostname --distro distro-name\n"
+  when '--hostname' then hostname = arg
+  when '--name'     then name     = arg
+  when '--help'     then usage
   end
 end
 
-SystemExit.new('No hostname specified.') unless hostname
-
-if hostname && distro
+if name
   Distro.hostname = hostname
   
-  puts "Finding any distro that matches \"#{distro}\""
+  puts "Finding the distro named \"#{name}\""
     
-  result = Distro.find_one(distro)
+  result = Distro.find_one(name)
   
   if result
     puts "#{result.name} exists, and is a breed of #{result.breed}."
   else
-    puts "No such system: #{distro}"
+    puts "No such distro"
   end
+else 
+  usage
 end

@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 #
-# remove_distro.rb - example of using rubygem-cobbler to remove a distro.
+# remove_system.rb - example of using rubygem-cobbler to remove a system.
 # 
 # Copyright (C) 2008 Red Hat, Inc.
 # Written by Darryl L. Pierce <dpierceredhat.com>
@@ -32,7 +32,7 @@ include Cobbler
 
 opts = GetoptLong.new(
   ['--hostname', '-s', GetoptLong::REQUIRED_ARGUMENT ],
-  ['--name',     '-d', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--name',     '-n', GetoptLong::REQUIRED_ARGUMENT ],
   ['--username', '-u', GetoptLong::REQUIRED_ARGUMENT ],
   ['--password', '-p', GetoptLong::REQUIRED_ARGUMENT ],
   ['--help',     '-h', GetoptLong::NO_ARGUMENT]
@@ -41,14 +41,14 @@ opts = GetoptLong.new(
 hostname = name = username = password = nil
 
 def usage
-  puts "Usage: #{$0} --name distro-name [--hostname hostname] [--username username] [--password password]\n"
+  puts "Usage: #{$0} --name image-name [--hostname hostname] [--username username] [--password password]"
   exit
 end
 
 opts.each do |opt, arg|
   case opt
   when '--hostname' then hostname = arg
-  when '--name'     then name   = arg
+  when '--name'     then name     = arg
   when '--username' then username = arg
   when '--password' then password = arg
   when '--help'     then usage
@@ -56,14 +56,14 @@ opts.each do |opt, arg|
 end
 
 if name
-  Base.hostname = hostname if hostname
-  Base.username = username if username
-  Base.password = password if password
+  System.hostname = hostname if hostname
+  System.username = username if username
+  System.password = password if password
   
-  puts "Removing the distro named \"#{name}\"..."
+  puts "Removing image named \"#{name}\"..."
     
   begin
-    puts "Deleted." if Distro.remove(name)
+    puts "Deleted \"#{name}" if Image.remove(name)
   rescue Exception => e
     puts "Error: #{e.message}"
   end

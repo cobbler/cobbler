@@ -31,17 +31,21 @@ require 'cobbler'
 include Cobbler
 
 opts = GetoptLong.new(
-  ["--server", "-s", GetoptLong::REQUIRED_ARGUMENT ],
-  ["--help",   "-h", GetoptLong::NO_ARGUMENT]
+  ['--hostname', '-s', GetoptLong::REQUIRED_ARGUMENT ],
+  ['--help',     '-h', GetoptLong::NO_ARGUMENT]
 )
 
 hostname = nil
 
+def usage
+  puts "Usage: #{$0} --hostname hostname\n"
+  exit
+end
+
 opts.each do |opt, arg|
   case opt
-  when '--server' then hostname = arg
-  when '--help'   then 
-    puts "Usage: #{$0} --server hostname\n"
+  when '--hostname' then hostname = arg
+  when '--help'     then usage
   end
 end
 

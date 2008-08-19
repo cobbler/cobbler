@@ -24,7 +24,7 @@ require 'rake/gempackagetask'
 PKG_NAME='rubygem-cobbler'
 PKG_VERSION='0.0.1'
 PKG_FILES=FileList[
-  'Rakefile', 'README', 'COPYING', 'NEWS', 
+  'Rakefile', 'README', 'ChangeLog', 'COPYING', 'NEWS', 'TODO',
   'lib/**/*.rb',
   'examples/**/*.rb',
   'config/*',
