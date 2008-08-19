@@ -23,7 +23,7 @@ function disablename(value)
 
 <!--
        cobbler profile add -name=string -distro=string [-kickstart=url]
-       [-kopts=string] [-ksmeta=string] [-virt-file-size=gigabytes]
+       [-kopts=string] [-kopts_post=string] [-ksmeta=string] [-virt-file-size=gigabytes]
        [-virt-ram=megabytes] [-virt-type=string] [-virt-path=string]
 -->
 
@@ -152,6 +152,20 @@ function disablename(value)
         #end if
     />
     <p class="context-tip">Example: noipv6 magic=foo</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="kopts_post">Post Kernel Options</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="kopts_post" id="kopts_post"
+        #if $profile
+            value="$profile.kernel_options_post"
+        #end if
+    />
+    <p class="context-tip">Example: clocksource=pit nosmp noapic nolapic</p>
     </td>
     </tr>
 

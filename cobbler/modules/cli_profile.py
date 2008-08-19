@@ -51,14 +51,15 @@ class ProfileFunction(commands.CobblerFunction):
 
         if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
 
-            p.add_option("--distro",           dest="distro", help="ex: 'RHEL-5-i386' (REQUIRED)")
-            p.add_option("--dhcp-tag",         dest="dhcp_tag", help="for use in advanced DHCP configuration")
-            p.add_option("--inherit",          dest="inherit", help="inherit from this profile name, defaults to no")
+            p.add_option("--distro",           dest="distro",    help="ex: 'RHEL-5-i386' (REQUIRED)")
+            p.add_option("--dhcp-tag",         dest="dhcp_tag",  help="for use in advanced DHCP configuration")
+            p.add_option("--inherit",          dest="inherit",   help="inherit from this profile name, defaults to no")
             p.add_option("--kickstart",        dest="kickstart", help="absolute path to kickstart template (RECOMMENDED)")
-            p.add_option("--ksmeta",           dest="ksmeta", help="ex: 'blippy=7'")
-            p.add_option("--kopts",            dest="kopts", help="ex: 'noipv6'")
+            p.add_option("--ksmeta",           dest="ksmeta",    help="ex: 'blippy=7'")
+            p.add_option("--kopts",            dest="kopts",     help="ex: 'noipv6'")
+            p.add_option("--kopts-post",       dest="kopts_post",help="ex: 'clocksource=pit'")
             if not self.matches_args(args,["find"]):
-                p.add_option("--in-place",action="store_true", dest="inplace", default=False, help="edit items in kopts or ksmeta without clearing the other items")
+                p.add_option("--in-place",action="store_true", dest="inplace", default=False, help="edit items in kopts, kopts_post or ksmeta without clearing the other items")
 
         p.add_option("--name",   dest="name",  help="a name for the profile (REQUIRED)")
 
@@ -107,6 +108,7 @@ class ProfileFunction(commands.CobblerFunction):
             if self.options.distro:          obj.set_distro(self.options.distro)
             if self.options.kickstart:       obj.set_kickstart(self.options.kickstart)
             if self.options.kopts:           obj.set_kernel_options(self.options.kopts,self.options.inplace)
+            if self.options.kopts_post:      obj.set_kernel_options_post(self.options.kopts_post,self.options.inplace)
             if self.options.ksmeta:          obj.set_ksmeta(self.options.ksmeta,self.options.inplace)
             if self.options.virt_file_size:  obj.set_virt_file_size(self.options.virt_file_size)
             if self.options.virt_ram:        obj.set_virt_ram(self.options.virt_ram)

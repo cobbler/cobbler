@@ -72,7 +72,6 @@ def main():
     """
     CLI entry point
     """
-    exitcode = 0
     try:
         run_upgrade_checks()
         rc = BootCLI().run(sys.argv)

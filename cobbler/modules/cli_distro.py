@@ -51,10 +51,11 @@ class DistroFunction(commands.CobblerFunction):
         if self.matches_args(args,["add"]):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            p.add_option("--initrd", dest="initrd", help="absolute path to initrd.img (REQUIRED)")
-            p.add_option("--kernel", dest="kernel", help="absolute path to vmlinuz (REQUIRED)")
-            p.add_option("--kopts",  dest="kopts",  help="ex: 'noipv6'")
-            p.add_option("--ksmeta", dest="ksmeta", help="ex: 'blippy=7'")
+            p.add_option("--initrd",      dest="initrd",      help="absolute path to initrd.img (REQUIRED)")
+            p.add_option("--kernel",      dest="kernel",      help="absolute path to vmlinuz (REQUIRED)")
+            p.add_option("--kopts",       dest="kopts",       help="ex: 'noipv6'")
+            p.add_option("--kopts-post",  dest="kopts_post",  help="ex: 'clocksource=pit'")
+            p.add_option("--ksmeta",      dest="ksmeta",      help="ex: 'blippy=7'")
             if not self.matches_args(args,["find"]): 
                 p.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts or ksmeta without clearing the other items")
 
@@ -93,6 +94,8 @@ class DistroFunction(commands.CobblerFunction):
                 obj.set_initrd(self.options.initrd)
             if self.options.kopts:
                 obj.set_kernel_options(self.options.kopts,self.options.inplace)
+            if self.options.kopts_post:
+                obj.set_kernel_options_post(self.options.kopts_post,self.options.inplace)
             if self.options.ksmeta:
                 obj.set_ksmeta(self.options.ksmeta,self.options.inplace)
             if self.options.breed:

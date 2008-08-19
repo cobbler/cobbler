@@ -48,5 +48,6 @@ SNIPPET::pre_partition_select
 
 %post
 $yum_config_stanza
+SNIPPET::post_install_kernel_options
 $kickstart_done
 

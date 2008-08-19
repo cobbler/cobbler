@@ -149,6 +149,22 @@ class Item(serializable.Serializable):
                 self.kernel_options = value
             return True
 
+    def set_kernel_options_post(self,options,inplace=False):
+        """
+        Post kernel options are a space delimited list,
+        like 'a=b c=d e=f g h i=j' or a hash.
+        """
+        (success, value) = utils.input_string_or_hash(options,None)
+        if not success:
+            raise CX(_("invalid post kernel options"))
+        else:
+            if inplace:
+                for key in value.keys():
+                    self.kernel_options_post[key] = value[key]
+            else:
+                self.kernel_options_post = value
+            return True
+
     def set_ksmeta(self,options,inplace=False):
         """
         A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a hash.

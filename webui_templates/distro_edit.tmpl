@@ -146,6 +146,20 @@ function disablename(value)
 
     <tr>
     <td>
+    <label for="kopts_post">Post Kernel Options</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="kopts_post" id="kopts_post"
+        #if $distro
+            value="$distro.kernel_options_post"
+        #end if
+    />
+    <p class="context-tip">Example: clocksource=pit nosmp noapic nolapic</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
     <label for="ksmeta">Kickstart Metadata</label>
     </td>
     <td>

@@ -176,6 +176,20 @@ function page_onload() {
 
     <tr id="id9005">
     <td>
+    <label for="kopts_post">Post Kernel Options</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="kopts_post" id="kopts_post"
+        #if $system
+            value="$system.kernel_options_post"
+        #end if
+    /> 
+    <p class="context-tip">Example: clocksource=pit nosmp noapic nolapic</p>
+    </td>
+    </tr>
+
+    <tr id="id9006">
+    <td>
     <label for="ksmeta">Kickstart Metadata</label>
     </td>
     <td>
@@ -188,7 +202,7 @@ function page_onload() {
     </td>
     </tr>
 
-    <tr id="id9006">
+    <tr id="id9007">
     <td>
     <label for="netboot">Netboot Enabled</label>
     </td>

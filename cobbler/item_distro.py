@@ -39,16 +39,17 @@ class Distro(item.Item):
         """
         Reset this object.
         """
-        self.name           = None
-        self.owners         = self.settings.default_ownership
-        self.kernel         = (None,     '<<inherit>>')[is_subobject]
-        self.initrd         = (None,     '<<inherit>>')[is_subobject]
-        self.kernel_options = ({},       '<<inherit>>')[is_subobject]
-        self.ks_meta        = ({},       '<<inherit>>')[is_subobject]
-        self.arch           = ('i386',    '<<inherit>>')[is_subobject]
-        self.breed          = ('redhat', '<<inherit>>')[is_subobject]
-        self.source_repos   = ([],       '<<inherit>>')[is_subobject]
-        self.depth          = 0
+        self.name                   = None
+        self.owners                 = self.settings.default_ownership
+        self.kernel                 = (None,     '<<inherit>>')[is_subobject]
+        self.initrd                 = (None,     '<<inherit>>')[is_subobject]
+        self.kernel_options         = ({},       '<<inherit>>')[is_subobject]
+        self.kernel_options_post    = ({},       '<<inherit>>')[is_subobject]
+        self.ks_meta                = ({},       '<<inherit>>')[is_subobject]
+        self.arch                   = ('i386',    '<<inherit>>')[is_subobject]
+        self.breed                  = ('redhat', '<<inherit>>')[is_subobject]
+        self.source_repos           = ([],       '<<inherit>>')[is_subobject]
+        self.depth                  = 0
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -67,22 +68,25 @@ class Distro(item.Item):
         """
         Modify this object to take on values in seed_data
         """
-        self.parent         = self.load_item(seed_data,'parent')
-        self.name           = self.load_item(seed_data,'name')
-        self.owners         = self.load_item(seed_data,'owners',self.settings.default_ownership)
-        self.kernel         = self.load_item(seed_data,'kernel')
-        self.initrd         = self.load_item(seed_data,'initrd')
-        self.kernel_options = self.load_item(seed_data,'kernel_options')
-        self.ks_meta        = self.load_item(seed_data,'ks_meta')
-        self.arch           = self.load_item(seed_data,'arch','i386')
-        self.breed          = self.load_item(seed_data,'breed','redhat')
-        self.source_repos   = self.load_item(seed_data,'source_repos',[])
-        self.depth          = self.load_item(seed_data,'depth',0)
+        self.parent                 = self.load_item(seed_data,'parent')
+        self.name                   = self.load_item(seed_data,'name')
+        self.owners                 = self.load_item(seed_data,'owners',self.settings.default_ownership)
+        self.kernel                 = self.load_item(seed_data,'kernel')
+        self.initrd                 = self.load_item(seed_data,'initrd')
+        self.kernel_options         = self.load_item(seed_data,'kernel_options')
+        self.kernel_options_post    = self.load_item(seed_data,'kernel_options_post')
+        self.ks_meta                = self.load_item(seed_data,'ks_meta')
+        self.arch                   = self.load_item(seed_data,'arch','i386')
+        self.breed                  = self.load_item(seed_data,'breed','redhat')
+        self.source_repos           = self.load_item(seed_data,'source_repos',[])
+        self.depth                  = self.load_item(seed_data,'depth',0)
 
         # backwards compatibility enforcement
         self.set_arch(self.arch)
         if self.kernel_options != "<<inherit>>" and type(self.kernel_options) != dict:
             self.set_kernel_options(self.kernel_options)
+        if self.kernel_options_post != "<<inherit>>" and type(self.kernel_options_post) != dict:
+            self.set_kernel_options_post(self.kernel_options_post)
         if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
             self.set_ksmeta(self.ks_meta)
 
@@ -168,17 +172,18 @@ class Distro(item.Item):
         Return a serializable datastructure representation of this object.
         """
         return {
-           'name'           : self.name,
-           'kernel'         : self.kernel,
-           'initrd'         : self.initrd,
-           'kernel_options' : self.kernel_options,
-           'ks_meta'        : self.ks_meta,
-           'arch'           : self.arch,
-           'breed'          : self.breed,
-           'source_repos'   : self.source_repos,
-           'parent'         : self.parent,
-           'depth'          : self.depth,
-           'owners'         : self.owners
+           'name'                   : self.name,
+           'kernel'                 : self.kernel,
+           'initrd'                 : self.initrd,
+           'kernel_options'         : self.kernel_options,
+           'kernel_options_post'    : self.kernel_options_post,
+           'ks_meta'                : self.ks_meta,
+           'arch'                   : self.arch,
+           'breed'                  : self.breed,
+           'source_repos'           : self.source_repos,
+           'parent'                 : self.parent,
+           'depth'                  : self.depth,
+           'owners'                 : self.owners
         }
 
     def printable(self):
@@ -187,26 +192,28 @@ class Distro(item.Item):
 	"""
         kstr = utils.find_kernel(self.kernel)
         istr = utils.find_initrd(self.initrd)
-        buf =       _("distro          : %s\n") % self.name
-        buf = buf + _("breed           : %s\n") % self.breed
-        buf = buf + _("architecture    : %s\n") % self.arch
-        buf = buf + _("initrd          : %s\n") % istr
-        buf = buf + _("kernel          : %s\n") % kstr
-        buf = buf + _("kernel options  : %s\n") % self.kernel_options
-        buf = buf + _("ks metadata     : %s\n") % self.ks_meta
-        buf = buf + _("owners          : %s\n") % self.owners
+        buf =       _("distro               : %s\n") % self.name
+        buf = buf + _("breed                : %s\n") % self.breed
+        buf = buf + _("architecture         : %s\n") % self.arch
+        buf = buf + _("initrd               : %s\n") % istr
+        buf = buf + _("kernel               : %s\n") % kstr
+        buf = buf + _("kernel options       : %s\n") % self.kernel_options
+        buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
+        buf = buf + _("ks metadata          : %s\n") % self.ks_meta
+        buf = buf + _("owners               : %s\n") % self.owners
         return buf
 
     def remote_methods(self):
         return {
-            'name'    :  self.set_name,
-            'kernel'  :  self.set_kernel,
-            'initrd'  :  self.set_initrd,
-            'kopts'   :  self.set_kernel_options,
-            'arch'    :  self.set_arch,
-            'ksmeta'  :  self.set_ksmeta,
-            'breed'   :  self.set_breed,
-            'owners'  :  self.set_owners
+            'name'          :  self.set_name,
+            'kernel'        :  self.set_kernel,
+            'initrd'        :  self.set_initrd,
+            'kopts'         :  self.set_kernel_options,
+            'kopts_post'    :  self.set_kernel_options_post,
+            'arch'          :  self.set_arch,
+            'ksmeta'        :  self.set_ksmeta,
+            'breed'         :  self.set_breed,
+            'owners'        :  self.set_owners
         }
 
 

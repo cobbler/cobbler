@@ -466,6 +466,11 @@ def blender(api_handle,remove_hashes, root_obj):
     if len(kernel_txt) < 244:
         results["kernel_options"]["kssendmac"] = None
 
+    # convert post kernel options to string
+    if results.has_key("kernel_options_post"):
+        results["kernel_options_post"] = hash_to_string(results["kernel_options_post"])
+
+
     # make interfaces accessible without Cheetah-voodoo in the templates
     # EXAMPLE:  $ip == $ip0, $ip1, $ip2 and so on.
  
@@ -522,6 +527,8 @@ def flatten(data):
     # this should not be done for everything
     if data.has_key("kernel_options"):
         data["kernel_options"] = hash_to_string(data["kernel_options"])
+    if data.has_key("kernel_options_post"):
+        data["kernel_options_post"] = hash_to_string(data["kernel_options_post"])
     if data.has_key("yumopts"):
         data["yumopts"]        = hash_to_string(data["yumopts"])
     if data.has_key("ks_meta"):
@@ -582,6 +589,7 @@ def __consolidate(node,results):
     # of kernel options set in a distro later in a profile, etc.
 
     hash_removals(results,"kernel_options")
+    hash_removals(results,"kernel_options_post")
     hash_removals(results,"ks_meta")
 
 def hash_removals(results,subkey):

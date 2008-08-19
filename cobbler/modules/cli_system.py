@@ -59,10 +59,11 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--ip",              dest="ip",          help="ex: 192.168.1.55, (RECOMMENDED)")
             p.add_option("--kickstart",       dest="kickstart",   help="override profile kickstart template")
             p.add_option("--kopts",           dest="kopts",       help="ex: 'noipv6'")
+            p.add_option("--kopts-post",      dest="kopts_post",  help="ex: 'clocksource=pit'")
             p.add_option("--ksmeta",          dest="ksmeta",      help="ex: 'blippy=7'")
             p.add_option("--mac",             dest="mac",         help="ex: 'AA:BB:CC:DD:EE:FF', (RECOMMENDED)")
             if not self.matches_args(args, ["find"]):
-                p.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts or ksmeta without clearing the other items")
+                p.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts, kopts_post or ksmeta without clearing the other items")
 
         p.add_option("--name",   dest="name",                     help="a name for the system (REQUIRED)")
 
@@ -113,6 +114,7 @@ class SystemFunction(commands.CobblerFunction):
         if self.options.profile:         obj.set_profile(self.options.profile)
         if self.options.image:           obj.set_image(self.options.image)
         if self.options.kopts:           obj.set_kernel_options(self.options.kopts,self.options.inplace)
+        if self.options.kopts_post:      obj.set_kernel_options_post(self.options.kopts_post,self.options.inplace)
         if self.options.ksmeta:          obj.set_ksmeta(self.options.ksmeta,self.options.inplace)
         if self.options.kickstart:       obj.set_kickstart(self.options.kickstart)
         if self.options.netboot_enabled: obj.set_netboot_enabled(self.options.netboot_enabled)
