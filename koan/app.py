@@ -852,10 +852,14 @@ class Koan:
     def calc_kernel_args(self, pd):
         kickstart = self.safe_load(pd,'kickstart')
         options   = self.safe_load(pd,'kernel_options',default='')
+        breed     = self.safe_load(pd,'breed')
 
         kextra    = ""
         if kickstart is not None and kickstart != "":
-            kextra = "ks=" + kickstart 
+            if breed is not None and breed == "suse":
+                kextra = "autoyast=" + kickstart
+            else:
+                kextra = "ks=" + kickstart 
         if options !="":
             kextra = kextra + " " + options
         # parser issues?  lang needs a trailing = and somehow doesn't have it.
