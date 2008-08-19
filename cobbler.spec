@@ -2,8 +2,8 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 1.1.0
-Release: 2%{?dist}
+Version: 1.1.1
+Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -188,6 +188,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/snippets/partition_select
 %config(noreplace) /var/lib/cobbler/snippets/pre_partition_select
 %config(noreplace) /var/lib/cobbler/snippets/main_partition_select
+%config(noreplace) /var/lib/cobbler/snippets/post_install_kernel_options
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/lib/cobbler/menu.c32
 %defattr(660,root,root)
@@ -205,8 +206,11 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
+* Tue Aug 17 2008 Michael DeHaan <mdehaan@redhat.com> - 1.1.1-1
+- Upstream changes (see CHANGELOG), test2 relese
+
 * Fri Aug 08 2008 Michael DeHaan <mdehaan@redhat.com> - 1.1.0-2
-- Upstream changes (see CHANGELOG)
+- Upstream changes (see CHANGELOG), test1 release
 
 * Tue Jun 10 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.3-1
 - Upstream changes (see CHANGELOG)
