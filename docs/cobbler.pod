@@ -54,7 +54,7 @@ If there is an rsync mirror, DVD, NFS, or filesystem tree available that you wou
 
 If you want to be explicit with distribution definition, however, here's how it works:
 
-B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--ksmeta=string] [--arch=x86|x86_64|ia64] [--breed=redhat|debian|suse]>
+B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--kopts-post=string] [--ksmeta=string] [--arch=x86|x86_64|ia64] [--breed=redhat|debian|suse]>
 
 =over
 
@@ -73,9 +73,20 @@ An absolute filesystem path to a initrd image
 =item kopts
 
 Sets kernel command-line arguments that the distro, and profiles/systems dependant
-on it, will use.
+on it, will use.  To remove a kernel argument that may be added by a higher cobbler object
+(or in the global settings), you can prefix it with a "!".
 
-Example: --kopts="foo=bar baz=3 asdf"
+Example: --kopts="foo=bar baz=3 asdf !gulp"
+
+This example passes the arguments "foo=bar baz=3 asdf" but will make sure "gulp" is not passed even
+if it was requested at a level higher up in the cobbler configuration.
+
+=item kopts-post
+
+This is just like --kopts, though it governs kernel options on the installed OS, as opposed to
+kernel options fed to the installer.  The syntax is exactly the same.
+
+Example: "noapic"
 
 =item arch
 
