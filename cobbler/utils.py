@@ -37,6 +37,22 @@ import tempfile
 import signal
 from cexceptions import *
 
+CHEETAH_ERROR_DISCLAIMER="""
+# There is a templating error preventing this file from rendering correctly. 
+#
+# This is most likely not due to a bug in Cobbler and is something you can fix.
+#
+# Look at the message below to see what things are causing problems.  
+#
+# (1) Does the template file reference a $variable that is not defined?
+# (2) is there a formatting error in a Cheetah directive?
+# (3) Should dollar signs ($) be escaped that are not being escaped?
+#
+# Try fixing the problem and then investigate to see if this message goes
+# away or changes.
+#
+"""
+
 #placeholder for translation
 def _(foo):
    return foo
@@ -107,11 +123,12 @@ def print_exc(exc,full=False):
    return buf
 
 def cheetah_exc(exc,full=False):
+   
    lines = get_exc(exc).split("\n")
    buf = ""
    for l in lines:
       buf = buf + "# %s\n" % l
-   return buf
+   return CHEETAH_ERROR_DISCLAIMER + buf
 
 def trace_me():
    x = traceback.extract_stack()
