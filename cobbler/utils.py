@@ -110,8 +110,8 @@ def get_exc(exc,full=True):
       getattr(exc, "from_cobbler")
       buf = str(exc)[1:-1] + "\n"
    except:
-      buf = buf + "%s" % exc.message
-      buf = sys.stderr, t
+      if not full:
+          buf = buf + str(t)
       buf = "%s\n%s" % (buf,v)
       if full:
           buf = buf + "\n" + "\n".join(traceback.format_list(traceback.extract_tb(tb)))

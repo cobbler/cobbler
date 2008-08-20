@@ -242,7 +242,7 @@ class Template(BuiltinTemplate):
                 if isinstance(file, (str, unicode)):
                     if os.path.exists(file):
                        f = open(file)
-                       source = f.read()
+                       source = "#errorCatcher Echo" + f.read()
                        f.close()
                     else:
                        source = "# Unable to read %s\n" % file

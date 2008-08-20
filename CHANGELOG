@@ -11,6 +11,7 @@ Cobbler CHANGELOG
 - (BUGF) use pxesystem for systems, not pxeprofile
 - (FEAT) make Cheetah formatting errors contain help text for users
 - (FEAT) --kopts-post can configure post-install kernel options
+- (BUGF) subtemplates are now errorCatcher Echo compatible
 
 - ??? - 1.1.0
 - devel branch
