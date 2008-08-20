@@ -79,7 +79,7 @@ class Templar:
             raw_data = newdata 
 
         # tell Cheetah not to blow up if it can't find a symbol for something
-        # raw_data = "#errorCatcher Echo\n" + raw_data
+        raw_data = "#errorCatcher Echo\n" + raw_data
 
         # now do full templating scan, where we will also templatify the snippet insertions
         t = Template(source=raw_data, errorCatcher="Echo", searchList=[search_table])
