@@ -111,10 +111,22 @@ module Cobbler
       assert_equal 3, result[0].owners.size, 'Did not parse the owners correctly.'
     end
     
+    # Ensures that saving stops when an update fails.
+    #
+    def test_save_and_update_fails
+      @connection.should_receive(:call).with('login',@username,@password).once.returns(@auth_token)
+      @connection.should_receive(:call).with('update').once.returns{ false }
+      
+      system = System.new(:name => @system_name, :profile => @profile_name)
+      
+      assert_raise(Exception) {system.save}
+    end
+
     # Ensures that saving a system works as expected.
     #
     def test_save
       @connection.should_receive(:call).with('login',@username,@password).once.returns(@auth_token)
+      @connection.should_receive(:call).with('update').once.returns { true }
       @connection.should_receive(:call).with('new_system',@auth_token).once.returns(@system_id)
       @connection.should_receive(:call).with('modify_system',@system_id,'name',@system_name,@auth_token).once.returns(true)
       @connection.should_receive(:call).with('modify_system',@system_id,'profile',@profile_name,@auth_token).once.returns(true)
@@ -130,6 +142,7 @@ module Cobbler
     #
     def test_save_with_new_nics
       @connection.should_receive(:call).with('login',@username,@password).once.returns(@auth_token)
+      @connection.should_receive(:call).with('update').once.returns { true }
       @connection.should_receive(:call).with('new_system',@auth_token).once.returns(@system_id)
       @connection.should_receive(:call).with('modify_system',@system_id,'name',@system_name,@auth_token).once.returns(true)
       @connection.should_receive(:call).with('modify_system',@system_id,'profile',@profile_name,@auth_token).once.returns(true)
