@@ -51,7 +51,7 @@ devinstall:
 	chown -R apache /var/www/cobbler 
 	chmod -R +x /var/www/cobbler/web
 	chmod -R +x /var/www/cobbler/svc
-	-rf /tmp/cobbler_*
+	-rm -rf /tmp/cobbler_*
 
 completion:
 	python mkbash.py
