@@ -38,18 +38,24 @@ class ImageFunction(commands.CobblerFunction):
     def add_options(self, p, args):
 
 
+        if not self.matches_args(args,["dumpvars","remove","report","list"]):
+            p.add_option("--breed",          dest="breed",        help="ex: redhat")
+
         if self.matches_args(args,["add"]):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
 
-        p.add_option("--name",                 dest="name",             help="ex: 'LemurSoft-v3000' (REQUIRED)")
+        p.add_option("--name",                 dest="name",       help="ex: 'LemurSoft-v3000' (REQUIRED)")
         
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            p.add_option("--file",             dest="file",             help="common filesystem path to image for all hosts (nfs is good)")
-            p.add_option("--image-type",       dest="image_type",       help="what kind of image is this?")
+            p.add_option("--file",             dest="file",       help="common filesystem path to image for all hosts (nfs is good)")
+            p.add_option("--image-type",       dest="image_type", help="what kind of image is this?")
+
+        if not self.matches_args(args,["dumpvars","remove","report","list"]):
+            p.add_option("--os-version",       dest="os_version", help="ex: rhel4") 
 
         if self.matches_args(args,["copy","rename"]):
 
-            p.add_option("--newname",          dest="newname",          help="used for copy/edit")
+            p.add_option("--newname",          dest="newname",    help="used for copy/edit")
 
         if not self.matches_args(args,["dumpvars","find","remove","report","list"]):
             # FIXME: there's really nothing to sync here.  Remove?
@@ -98,7 +104,9 @@ class ImageFunction(commands.CobblerFunction):
         if self.options.virt_ram:         obj.set_virt_ram(self.options.virt_ram)
         if self.options.virt_type:        obj.set_virt_type(self.options.virt_type)
         if self.options.xml_file:         obj.set_xml_file(self.options.xml_file)
-
+        if self.options.breed:            obj.set_breed(self.options.breed)
+        if self.options.os_version:       obj.set_os_version(self.options.os_version)
+ 
         return self.object_manipulator_finish(obj, self.api.images, self.options)
 
 
