@@ -7,8 +7,8 @@
 
 Summary: 	An interface for interacting with a Cobbler server
 Name: 		rubygem-%{gemname}
-Version: 	0.0.1
-Release: 	3%{?dist}
+Version: 	0.0.2
+Release: 	1%{?dist}
 Group: 		Development/Languages
 License: 	LGPLv2+
 URL: 		http://cobbler.et.redhat.com/
@@ -63,6 +63,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Aug 21 2008 Darryl Pierce <dpierce@redhat.com> - 0.0.2-1
+- Added a call to update prior to saving or updating a system. If the update
+  fails, then an Exception is raised.
+
 * Wed Aug 13 2008 Darryl Pierce <dpierce@redhat.com> - 0.0.1-3
 - Added caching for the auth_token to prevent extraneous calls to login.
 - Reworked and refined how cobbler_collection fields are processed, adding 

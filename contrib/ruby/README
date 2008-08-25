@@ -7,8 +7,8 @@ Ruby bindings for interacting with Cobbler.
 USAGE
 -----
 
-To include the code, you must install the ruby gem named "cobbler" and then
-require 'cobbler' in your application.
+To use the code, you must install the ruby gem named "cobbler" and then
+require 'cobbler' in your application. 
 
 Minimally you need to provide a server name for your Cobbler machine using:
 
@@ -23,7 +23,10 @@ Cobbler::Base.password = password
 CONFIGURATION
 -------------
 
-By default, Cobbler::Base will load the file config/cobbler.yml, if it exists, 
-and use that information for talking to Cobbler. To override where this file
-lives, set the COBBLER_ENV environment variable *before* requiring the 'cobbler'
-file.
+By default, Cobbler::Base will load the file $SEARCHPATH/config/cobbler.yml, 
+if it exists, and use that information for talking to Cobbler. To override 
+where this file lives, set the COBBLER_ENV environment variable *before* 
+requiring the 'cobbler' file. 
+
+However, these values can be overridden afterward by changing the fields in 
+Cobbler::Base directly.
