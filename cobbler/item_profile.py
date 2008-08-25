@@ -281,7 +281,7 @@ class Profile(item.Item):
             'distro'          :  self.set_distro,
             'kickstart'       :  self.set_kickstart,
             'kopts'           :  self.set_kernel_options,
-            'kopts_post'      :  self.set_kernel_options_post,
+            'kopts-post'      :  self.set_kernel_options_post,
             'virt-file-size'  :  self.set_virt_file_size,
             'virt-ram'        :  self.set_virt_ram,
             'ksmeta'          :  self.set_ksmeta,

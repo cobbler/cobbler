@@ -56,6 +56,8 @@ class Image(item.Item):
         self.virt_bridge     = self.settings.default_virt_bridge
         self.owners          = self.settings.default_ownership
         self.image_type      = "iso" # direct, iso, memdisk, virt-clone
+        self.breed           = 'redhat'
+        self.os_version      = ''
 
     def from_datastruct(self,seed_data):
         """
@@ -80,6 +82,9 @@ class Image(item.Item):
         self.xml_file        = self.load_item(seed_data, 'xml_file', '')
         self.image_type      = self.load_item(seed_data, 'image_type', 'iso')
 
+        self.breed           = self.load_item(seed_data, 'breed', 'redhat')
+        self.os_version      = self.load_item(seed_data, 'os_version', '')
+
         self.set_owners(self.owners)
         self.set_arch(self.arch)
 
@@ -101,6 +106,12 @@ class Image(item.Item):
         # FIXME: this should accept NFS paths or filesystem paths
         self.file = filename
         return True
+
+    def set_os_version(self,os_version):
+        return utils.set_os_version(os_version)
+
+    def set_breed(self,breed):
+        return utils.set_breed(breed)
 
     def set_image_type(self,image_type):
         """
@@ -175,7 +186,9 @@ class Image(item.Item):
             'virt_cpus'        : self.virt_cpus,
             'virt_bridge'      : self.virt_bridge,
             'virt_file_size'   : self.virt_file_size,
-            'xml_file'         : self.xml_file
+            'xml_file'         : self.xml_file,
+            'breed'            : self.breed,
+            'os_version'       : self.os_version
         }
 
     def printable(self):
@@ -185,8 +198,10 @@ class Image(item.Item):
         buf =       _("image           : %s\n") % self.name
         buf = buf + _("image type      : %s\n") % self.image_type
         buf = buf + _("arch            : %s\n") % self.arch
+        buf = buf + _("breed           : %s\n") % self.breed
         buf = buf + _("file            : %s\n") % self.file
         buf = buf + _("xml file        : %s\n") % self.xml_file
+        buf = buf + _("os version"     : %s\n") % self.os_version
         buf = buf + _("owners          : %s\n") % self.owners
         buf = buf + _("virt bridge     : %s\n") % self.virt_bridge
         buf = buf + _("virt cpus       : %s\n") % self.virt_cpus
@@ -201,9 +216,11 @@ class Image(item.Item):
         return {           
             'name'            :  self.set_name,
             'image-type'      :  self.set_image_type,
+            'breed'           :  self.set_breed,
+            'os-version'      :  self.set_os_version,
             'arch'            :  self.set_arch,
             'file'            :  self.set_file,
-            'xml_file'        :  self.set_xml_file,
+            'xml-file'        :  self.set_xml_file,
             'owners'          :  self.set_owners,
             'virt-cpus'       :  self.set_virt_cpus,
             'virt-file-size'  :  self.set_virt_file_size,

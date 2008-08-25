@@ -36,6 +36,7 @@ import shutil
 import tempfile
 import signal
 from cexceptions import *
+import codes
 
 CHEETAH_ERROR_DISCLAIMER="""
 # There is a templating error preventing this file from rendering correctly. 
@@ -838,6 +839,24 @@ def set_arch(self,arch):
        self.arch = arch
        return True
    raise CX(_("arch choices include: x86, x86_64, s390x and ia64"))
+
+def set_os_version(self,os_version):
+   if os_version is None:
+      raise CX(_("invalid value for --os-version, see manpage"))
+   self.os_version = os_version.lower()
+   if self.breed is None or self.breed == "":
+      raise CX(_("cannot set --os-version without setting --breed first"))
+   matched = codes.VALID_OS_VERSION[breed]
+   if not matched.has_key("os_version"):
+      raise CX(_("--os-version must be one of %s") % matched)   
+   self.os_version = os_version
+   return True
+
+def set_breed(self,breed):
+   if breed is not None and breed.lower() in codes.VALID_OS_VERSION.keys()
+       self.breed = breed.lower()
+   return True
+   raise CX(_("invalid value for --breed, see manpage"))
 
 def set_repos(self,repos,bypass_check=False):
    # WARNING: hack

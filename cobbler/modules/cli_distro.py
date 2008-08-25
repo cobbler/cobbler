@@ -48,6 +48,7 @@ class DistroFunction(commands.CobblerFunction):
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--arch",   dest="arch",   help="ex: x86, x86_64, ia64")
             p.add_option("--breed",  dest="breed",  help="ex: redhat, debian, suse")
+            p.add_option("--os-version",  dest="os_version",  help="ex: free format os version string")
         if self.matches_args(args,["add"]):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
@@ -100,6 +101,8 @@ class DistroFunction(commands.CobblerFunction):
                 obj.set_ksmeta(self.options.ksmeta,self.options.inplace)
             if self.options.breed:
                 obj.set_breed(self.options.breed)
+            if self.options.os_version:
+                obj.set_os_version(self.options.os_version)
             if self.options.owners:
                 obj.set_owners(self.options.owners)
 

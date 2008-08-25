@@ -483,7 +483,7 @@ class System(item.Item):
            'profile'          : self.set_profile,
            'image'            : self.set_image,
            'kopts'            : self.set_kernel_options,
-           'kopts_post'       : self.set_kernel_options_post,
+           'kopts-post'       : self.set_kernel_options_post,
            'ksmeta'           : self.set_ksmeta,
            'hostname'         : self.set_hostname,
            'kickstart'        : self.set_kickstart,

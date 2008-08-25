@@ -186,7 +186,7 @@ class CobblerWeb(object):
         } )
 
     def distro_save(self,name=None,oldname=None,new_or_edit=None,editmode='edit',kernel=None,
-                    initrd=None,kopts=None,ksmeta=None,owners=None,arch=None,breed=None,
+                    initrd=None,kopts=None,koptspost=None,ksmeta=None,owners=None,arch=None,breed=None,
                     delete1=None,delete2=None,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
@@ -239,6 +239,8 @@ class CobblerWeb(object):
             self.remote.modify_distro(distro, 'initrd', initrd, self.token)
             if kopts:
                 self.remote.modify_distro(distro, 'kopts', kopts, self.token)
+            if koptspost:
+                self.remote.modify_distro(distro, 'kopts-post', koptspost, self.token)
             if ksmeta:
                 self.remote.modify_distro(distro, 'ksmeta', ksmeta, self.token)
             if owners:
@@ -312,7 +314,7 @@ class CobblerWeb(object):
 
     def system_save(self,name=None,oldname=None,editmode="edit",profile=None,
                     new_or_edit=None,  
-                    kopts=None, ksmeta=None, owners=None, server_override=None, netboot='n', 
+                    kopts=None, koptspost=None, ksmeta=None, owners=None, server_override=None, netboot='n', 
                     virtpath=None,virtram=None,virttype=None,virtcpus=None,virtfilesize=None,delete1=None, delete2=None, **args):
 
 
@@ -355,6 +357,8 @@ class CobblerWeb(object):
             self.remote.modify_system(system, 'profile', profile, self.token)
             if kopts:
                self.remote.modify_system(system, 'kopts', kopts, self.token)
+            if koptspost:
+               self.remote.modify_system(system, 'kopts-post', koptspost, self.token)
             if ksmeta:
                self.remote.modify_system(system, 'ksmeta', ksmeta, self.token)
             if owners:
@@ -504,7 +508,7 @@ class CobblerWeb(object):
         } )
 
     def profile_save(self,new_or_edit=None,editmode='edit',name=None,oldname=None,
-                     distro=None,kickstart=None,kopts=None,
+                     distro=None,kickstart=None,kopts=None,koptspost=None,
                      ksmeta=None,owners=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,
                      parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,recursive=False,**args):
@@ -563,6 +567,8 @@ class CobblerWeb(object):
                 self.remote.modify_profile(profile, 'kickstart', kickstart, self.token)
             if kopts:
                 self.remote.modify_profile(profile, 'kopts', kopts, self.token)
+            if koptspost:
+                self.remote.modify_profile(profile, 'kopts-post', koptspost, self.token)
             if owners:
                 self.remote.modify_profile(profile, 'owners', owners, self.token)
             if ksmeta:

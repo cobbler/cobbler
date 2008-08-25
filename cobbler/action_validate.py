@@ -63,13 +63,17 @@ class Validate:
 
     def checkfile(self,obj,is_profile):
         blended = utils.blender(self.config.api, False, obj)
+
+        os_version = blended["os_version"]
+
         ks = blended["kickstart"]
+        if ks is None or ks == "":
+            print "%s has no kickstart, skipping" % obj.name
+            return True
+
         breed = blended["breed"]
         if breed != "redhat":
             print "%s has a breed of %s, skipping" % (obj.name, breed)
-            return True
-        if ks is None or ks == "":
-            print "%s has no kickstart, skipping" % obj.name
             return True
 
         server = blended["server"] 

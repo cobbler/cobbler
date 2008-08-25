@@ -26,6 +26,7 @@ import utils
 import item
 import weakref
 import os
+import codes
 from cexceptions import *
 
 from utils import _
@@ -46,8 +47,9 @@ class Distro(item.Item):
         self.kernel_options         = ({},       '<<inherit>>')[is_subobject]
         self.kernel_options_post    = ({},       '<<inherit>>')[is_subobject]
         self.ks_meta                = ({},       '<<inherit>>')[is_subobject]
-        self.arch                   = ('i386',    '<<inherit>>')[is_subobject]
+        self.arch                   = ('i386',   '<<inherit>>')[is_subobject]
         self.breed                  = ('redhat', '<<inherit>>')[is_subobject]
+        self.os_version             = ('',       '<<inherit>>')[is_subobject]
         self.source_repos           = ([],       '<<inherit>>')[is_subobject]
         self.depth                  = 0
 
@@ -78,6 +80,7 @@ class Distro(item.Item):
         self.ks_meta                = self.load_item(seed_data,'ks_meta')
         self.arch                   = self.load_item(seed_data,'arch','i386')
         self.breed                  = self.load_item(seed_data,'breed','redhat')
+        self.os_version             = self.load_item(seed_data,'os_version','')
         self.source_repos           = self.load_item(seed_data,'source_repos',[])
         self.depth                  = self.load_item(seed_data,'depth',0)
 
@@ -108,10 +111,10 @@ class Distro(item.Item):
         raise CX(_("kernel not found"))
 
     def set_breed(self, breed):
-        if breed is not None and breed.lower() in [ "redhat", "debian", "suse" ]:
-            self.breed = breed.lower()
-            return True
-        raise CX(_("invalid value for --breed, see manpage"))
+        return utils.set_breed(breed)
+
+    def set_os_version(self, os_version):
+        return utils.set_os_version(os_version)
 
     def set_initrd(self,initrd):
         """
@@ -172,18 +175,19 @@ class Distro(item.Item):
         Return a serializable datastructure representation of this object.
         """
         return {
-           'name'                   : self.name,
-           'kernel'                 : self.kernel,
-           'initrd'                 : self.initrd,
-           'kernel_options'         : self.kernel_options,
-           'kernel_options_post'    : self.kernel_options_post,
-           'ks_meta'                : self.ks_meta,
-           'arch'                   : self.arch,
-           'breed'                  : self.breed,
-           'source_repos'           : self.source_repos,
-           'parent'                 : self.parent,
-           'depth'                  : self.depth,
-           'owners'                 : self.owners
+            'name'                   : self.name,
+            'kernel'                 : self.kernel,
+            'initrd'                 : self.initrd,
+            'kernel_options'         : self.kernel_options,
+            'kernel_options_post'    : self.kernel_options_post,
+            'ks_meta'                : self.ks_meta,
+            'arch'                   : self.arch,
+            'breed'                  : self.breed,
+            'os_version'             : self.os_version,
+            'source_repos'           : self.source_repos,
+            'parent'                 : self.parent,
+            'depth'                  : self.depth,
+            'owners'                 : self.owners
         }
 
     def printable(self):
@@ -194,6 +198,7 @@ class Distro(item.Item):
         istr = utils.find_initrd(self.initrd)
         buf =       _("distro               : %s\n") % self.name
         buf = buf + _("breed                : %s\n") % self.breed
+        buf = buf + _("os version           : %s\n") % self.os_version
         buf = buf + _("architecture         : %s\n") % self.arch
         buf = buf + _("initrd               : %s\n") % istr
         buf = buf + _("kernel               : %s\n") % kstr
@@ -205,15 +210,15 @@ class Distro(item.Item):
 
     def remote_methods(self):
         return {
-            'name'          :  self.set_name,
-            'kernel'        :  self.set_kernel,
-            'initrd'        :  self.set_initrd,
-            'kopts'         :  self.set_kernel_options,
-            'kopts_post'    :  self.set_kernel_options_post,
-            'arch'          :  self.set_arch,
-            'ksmeta'        :  self.set_ksmeta,
-            'breed'         :  self.set_breed,
-            'owners'        :  self.set_owners
+            'name'          : self.set_name,
+            'kernel'        : self.set_kernel,
+            'initrd'        : self.set_initrd,
+            'kopts'         : self.set_kernel_options,
+            'kopts-post'    : self.set_kernel_options_post,
+            'arch'          : self.set_arch,
+            'ksmeta'        : self.set_ksmeta,
+            'breed'         : self.set_breed,
+            'os-version'    : self.set_os_version,
+            'owners'        : self.set_owners
         }
-
 
