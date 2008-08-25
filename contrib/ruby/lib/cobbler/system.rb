@@ -55,7 +55,10 @@ module Cobbler
     def save
       Base.begin_transaction(true)
       
-      token = Base.login      
+      token = Base.login 
+      
+      raise Exception.new('Update failed prior to saving') unless Base.make_call('update')
+      
       sysid = Base.make_call('new_system',token)
       
       Base.make_call('modify_system',sysid,'name',self.name,token)
@@ -76,7 +79,7 @@ module Cobbler
       end
       
       Base.make_call('save_system',sysid,token)
-
+      
       Base.end_transaction      
     end
     
