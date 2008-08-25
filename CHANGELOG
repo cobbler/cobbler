@@ -1,6 +1,12 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+- ??? - 1.2
+- (FEAT) All development work from 1.X merged in
+- (FEAT) when --netboot-enabled is toggled, rather than deleting the PXE config, create a local boot PXE config
+- (BUGF) disable some s390 aspects of cobbler check until it is supported
+
+
 - ??? - 1.1.1
 - (FEAT) make template replacement use regex module
 - (BUGF) remove bootloader check in settings as that code doesn't need it

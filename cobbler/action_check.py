@@ -77,7 +77,9 @@ class BootCheck:
        self.check_for_default_password(status)
        self.check_for_unreferenced_repos(status)
        self.check_for_unsynced_repos(status)
-       self.check_vsftpd_bin(status)
+       
+       # comment out until s390 virtual PXE is fully supported
+       # self.check_vsftpd_bin(status)
 
        return status
 

@@ -110,6 +110,7 @@ if __name__ == "__main__":
 				(etcpath,  ['templates/pxesystem_s390x.template']),
 				(etcpath,  ['templates/pxesystem_ia64.template']),
 				(etcpath,  ['templates/pxeprofile.template']),
+				(etcpath,  ['templates/pxelocal.template']),
                                 (etcpath,  ['templates/zone.template']),
 
                                 # kickstart dir

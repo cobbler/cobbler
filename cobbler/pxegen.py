@@ -197,7 +197,7 @@ class PXEGen:
             else:
                 continue 
 
-            if system.netboot_enabled and system.is_management_supported():
+            if system.is_management_supported():
                 if not image_based:
                     self.write_pxe_file(f2,system,profile,distro,distro.arch)
                 else:
@@ -339,11 +339,6 @@ class PXEGen:
         more details
         """
 
-        # ---
-        # system might have netboot_enabled set to False (see item_system.py), if so, 
-        # don't do anything else and flag the error condition.
-        if system is not None and not system.netboot_enabled:
-            return None
         if image and not os.path.exists(image.file):
             return None  # nfs:// URLs or something, can't use for TFTP
 
@@ -379,11 +374,14 @@ class PXEGen:
         # ---
         # choose a template
         if system:
-            template = "/etc/cobbler/pxesystem.template"
-            if arch == "s390x":
-                template = "/etc/cobbler/pxesystem_s390x.template"
-            elif arch == "ia64":
-                template = "/etc/cobbler/pxesystem_ia64.template"
+            if system.netboot_enabled:
+                template = "/etc/cobbler/pxesystem.template"
+                if arch == "s390x":
+                    template = "/etc/cobbler/pxesystem_s390x.template"
+                elif arch == "ia64":
+                    template = "/etc/cobbler/pxesystem_ia64.template"
+            else:
+                template = "/etc/cobbler/pxelocal.template"
         else:
             template = "/etc/cobbler/pxeprofile.template"
 
