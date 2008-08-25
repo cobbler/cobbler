@@ -187,7 +187,7 @@ class CobblerWeb(object):
 
     def distro_save(self,name=None,oldname=None,new_or_edit=None,editmode='edit',kernel=None,
                     initrd=None,kopts=None,koptspost=None,ksmeta=None,owners=None,arch=None,breed=None,
-                    delete1=None,delete2=None,recursive=False,**args):
+                    osversion=None,delete1=None,delete2=None,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -249,6 +249,8 @@ class CobblerWeb(object):
                 self.remote.modify_distro(distro, 'arch', arch, self.token)
             if breed:
                 self.remote.modify_distro(distro, 'breed', breed, self.token)
+            if osversion:
+                self.remote.modify_distro(distro, 'os-version', osversion, self.token)
             # now time to save, do we want to run duplication checks?
             self.remote.save_distro(distro, self.token, editmode)
         except Exception, e:

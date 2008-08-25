@@ -5,7 +5,7 @@ Cobbler CHANGELOG
 - (FEAT) All development work from 1.X merged in
 - (FEAT) when --netboot-enabled is toggled, rather than deleting the PXE config, create a local boot PXE config
 - (BUGF) disable some s390 aspects of cobbler check until it is supported
-
+- (FEAT) new --os-version, better validation for --breed, --breed/--os-version also for images
 
 - ??? - 1.1.1
 - (FEAT) make template replacement use regex module

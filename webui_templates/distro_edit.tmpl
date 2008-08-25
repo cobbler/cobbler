@@ -202,6 +202,20 @@ function disablename(value)
 
     <tr>
     <td>
+    <label for="osversion">OS Version</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="osversion" id="osversion"
+        #if $distro
+            value="$distro.os_version"
+        #end if
+    />
+    <p class="context-tip">Example: rhel2.1, rhel4, fedora8</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
     <label for="owners">Access Allowed For</label>
     </td>
     <td>
