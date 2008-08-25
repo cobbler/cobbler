@@ -111,10 +111,10 @@ class Distro(item.Item):
         raise CX(_("kernel not found"))
 
     def set_breed(self, breed):
-        return utils.set_breed(breed)
+        return utils.set_breed(self,breed)
 
     def set_os_version(self, os_version):
-        return utils.set_os_version(os_version)
+        return utils.set_os_version(self,os_version)
 
     def set_initrd(self,initrd):
         """

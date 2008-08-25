@@ -108,10 +108,10 @@ class Image(item.Item):
         return True
 
     def set_os_version(self,os_version):
-        return utils.set_os_version(os_version)
+        return utils.set_os_version(self,os_version)
 
     def set_breed(self,breed):
-        return utils.set_breed(breed)
+        return utils.set_breed(self,breed)
 
     def set_image_type(self,image_type):
         """
@@ -201,7 +201,7 @@ class Image(item.Item):
         buf = buf + _("breed           : %s\n") % self.breed
         buf = buf + _("file            : %s\n") % self.file
         buf = buf + _("xml file        : %s\n") % self.xml_file
-        buf = buf + _("os version"     : %s\n") % self.os_version
+        buf = buf + _("os version      : %s\n") % self.os_version
         buf = buf + _("owners          : %s\n") % self.owners
         buf = buf + _("virt bridge     : %s\n") % self.virt_bridge
         buf = buf + _("virt cpus       : %s\n") % self.virt_cpus
