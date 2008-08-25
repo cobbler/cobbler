@@ -850,7 +850,8 @@ def set_os_version(self,os_version):
       raise CX(_("fix --breed first before applying this setting"))
    matched = codes.VALID_OS_VERSIONS[self.breed]
    if not os_version in matched:
-      raise CX(_("--os-version for breed %s must be one of %s") % (self.breed, matched))
+      nicer = ", ".join(matched)
+      raise CX(_("--os-version for breed %s must be one of %s") % (self.breed, nicer))
    self.os_version = os_version
    return True
 
@@ -859,7 +860,8 @@ def set_breed(self,breed):
    if breed is not None and breed.lower() in valid_breeds:
        self.breed = breed.lower()
        return True
-   raise CX(_("invalid value for --breed, must be one of %s, different breeds have different levels of support") % valid_breeds)
+   nicer = ", ".join(valid_breeds)
+   raise CX(_("invalid value for --breed, must be one of %s, different breeds have different levels of support") % nicer)
 
 def set_repos(self,repos,bypass_check=False):
    # WARNING: hack
