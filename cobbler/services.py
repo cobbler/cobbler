@@ -174,7 +174,7 @@ class CobblerSvc(object):
         if system is not None:
             url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
         elif profile is not None:
-            url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
+            url = "%s/cblr/svc/op/ks/profile/%s" % (serverseg, name)
         else:
             name = self.autodetect(**rest)
             if name.startswith("FAILED"):
