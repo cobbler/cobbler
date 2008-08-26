@@ -115,8 +115,8 @@ The file used for the answer file, regardless of the breed setting, is the value
 
 =item os-version
 
-Generally this is a comment field, but it can affect some hardware setup for virtualized instances when
-provisioning guests with koan.  The valid options for --os-version vary depending on what is specified for --breed.  If you specify an invalid option, the error message will contain a list of valid os versions that can be used.  If you do not know the os version or it does not appear in the list, omitting this argument or using "other" should be perfectly fine.  Largely this is needed to support older distributions in virtualized settings, such as "rhel2.1", one of the OS choices if the breed is set to "redhat".
+Generally this field can be ignored.   It is intended to alter some hardware setup for virtualized instances when
+provisioning guests with koan.  The valid options for --os-version vary depending on what is specified for --breed.  If you specify an invalid option, the error message will contain a list of valid os versions that can be used.  If you do not know the os version or it does not appear in the list, omitting this argument or using "other" should be perfectly fine.  Largely this is needed to support older distributions in virtualized settings, such as "rhel2.1", one of the OS choices if the breed is set to "redhat".  If you do not encounter any problems with virtualized instances, this option can be safely ignored.
 
 =item owners
 

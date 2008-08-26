@@ -61,8 +61,7 @@ class DistroFunction(commands.CobblerFunction):
 
         p.add_option("--name",   dest="name", help="ex: 'RHEL-5-i386' (REQUIRED)")
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            p.add_option("--os-version",  dest="os_version",  help="ex: rhel4")
-
+            p.add_option("--os-version",  dest="os_version",  help="ex: rhel4, fedora9")
 
         if self.matches_args(args,["copy","rename"]):
             p.add_option("--newname", dest="newname", help="for copy/rename commands")
