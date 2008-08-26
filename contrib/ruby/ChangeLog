@@ -1,3 +1,8 @@
+* Tue Aug 26 2008 Darryl Pierce <dpierce@redhat.com> - 0.0.2-2
+- Fixed the licensing in each source module to show the code is released under
+  LGPLv2.1.
+- Added %check to the spec file to run tests prior to creating the RPM.
+
 * Thu Aug 21 2008 Darryl Pierce <dpierce@redhat.com> - 0.0.2-1
 - Added a call to update prior to saving or updating a system. If the update
   fails, then an Exception is raised.

@@ -8,7 +8,7 @@
 Summary: 	An interface for interacting with a Cobbler server
 Name: 		rubygem-%{gemname}
 Version: 	0.0.2
-Release: 	1%{?dist}
+Release: 	2%{?dist}
 Group: 		Development/Languages
 License: 	LGPLv2+
 URL: 		http://cobbler.et.redhat.com/
@@ -22,10 +22,15 @@ Provides: 	rubygem(%{gemname}) = %{version}
 %description
 Provides Ruby bindings to interact with a Cobbler server.
 
-
 %prep
 
 %build
+
+%check 
+
+cd %{installroot}
+
+rake test
 
 %install
 rm -rf %{buildroot}
@@ -63,6 +68,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Aug 26 2008 Darryl Pierce <dpierce@redhat.com> - 0.0.2-2
+- Fixed the licensing in each source module to show the code is released under
+  LGPLv2.1.
+- Added %check to the spec file to run tests prior to creating the RPM.
+
 * Thu Aug 21 2008 Darryl Pierce <dpierce@redhat.com> - 0.0.2-1
 - Added a call to update prior to saving or updating a system. If the update
   fails, then an Exception is raised.
