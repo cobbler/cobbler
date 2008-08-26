@@ -200,7 +200,7 @@ class Importer:
        for profile in self.profiles:
            distro = self.distros.find(name=profile.distro)
            if distro is None or not (distro in self.distros_added):
-               print _("- skipping distro %s since it wasn't imported this time") % profile.distro
+               # print _("- skipping distro %s since it wasn't imported this time") % profile.distro
                continue
 
            if (self.kickstart_file == None):
@@ -218,8 +218,8 @@ class Importer:
                            if results is None:
                                continue
                            (flavor, major, minor) = results
-                           print _("- finding default kickstart template for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
-                           kickstart = self.set_kickstart(profile, flavor, major, minor)
+                           # print _("- finding default kickstart template for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
+                           kickstart = self.set_variance(profile, flavor, major, minor, distro)
            else:
                print _("- using kickstart file %s") % self.kickstart_file
                profile.set_kickstart(self.kickstart_file)
@@ -268,7 +268,7 @@ class Importer:
               meta["tree"] = self.network_root[:-1]
            meta["tree"] = meta["tree"] + tail.rstrip()
 
-       print _("- tree: %s") % meta["tree"]
+       # print _("- tree: %s") % meta["tree"]
        distro.set_ksmeta(meta)
 
    # ---------------------------------------------------------------------
@@ -280,7 +280,8 @@ class Importer:
        position = bpath.find(apath)
        if position != 0:
            print "%s, %s, %s" % (apath, bpath, position)
-           raise CX(_("Error: possible symlink traversal?: %s") % bpath)
+           #raise CX(_("Error: possible symlink traversal?: %s") % bpath)
+           print _("- warning: possible symlink traversal?: %s") % bpath
        rposition = position + len(self.mirror)
        result = bpath[rposition:]
        if not result.startswith("/"):
@@ -289,15 +290,45 @@ class Importer:
 
    # ---------------------------------------------------------------------
 
-   def set_kickstart(self, profile, flavor, major, minor):
+   def set_variance(self, profile, flavor, major, minor, distro):
+  
+       # find the profile kickstart and set the distro breed/os-version based on what
+       # we can find out from the rpm filenames and then return the kickstart
+       # path to use.
+
        if flavor == "fedora":
+
+           # this may actually fail because the libvirt/virtinst database
+           # is not always up to date.  We keep a simplified copy of this
+           # in codes.py.  If it fails we set it to something generic
+           # and don't worry about it.
+           distro.set_breed("redhat")
+           try:
+               distro.set_os_version("fedora%s" % int(major))
+           except:
+               print "- warning: could not store os-version fedora%s" % int(major)
+               distro.set_os_version("other")
+
            if major >= 8:
                 return profile.set_kickstart("/etc/cobbler/sample_end.ks")
            if major >= 6:
-                return profile.set_kickstart("/etc/cobbler/sample.ks")
+                return profile.set_kickstart("/etc/cobbler/sample.ks") 
+
        if flavor == "redhat" or flavor == "centos":
+           distro.set_breed("redhat")
+           if major <= 2:
+                # rhel2.1 is the only rhel2
+                distro.set_os_version("rhel2.1")
+           else:
+                try:
+                    distro.set_os_version("rhel%s" % int(major))
+                except:
+                    print "- warning: could not store os-version %s" % int(major)
+                    distro.set_os_version("other")
+
            if major >= 5:
                 return profile.set_kickstart("/etc/cobbler/sample.ks")
+
        print _("- using default kickstart file choice")
        return profile.set_kickstart("/etc/cobbler/legacy.ks")
 
