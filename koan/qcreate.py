@@ -96,6 +96,25 @@ def start_install(name=None, ram=None, disks=None, mac=None,
     extra = extra.replace("&","&amp;") 
     guest.extraargs = extra
 
+    if profile_data.has_key("breed"):
+        breed = profile_data["breed"]
+        if breed != "other" and breed != "":
+            if breed in [ "debian", "suse", "redhat" ]:
+                guest.set_os_type("linux")
+            elif breed in [ "windows" ]:
+                guest.set_os_type("windows")
+            else:
+                guest.set_os_type("unix")
+            if profile_data.has_key("os_version"):
+                # FIXME: when os_version is not defined and it's linux, do we use generic24/generic26 ?
+                version = profile_data["os_version"]
+                if version != "other" and version != "":
+                    try:
+                        guest.set_os_variant(version)
+                    except:
+                        print "- virtinst library does not understand variant %s, treating as generic" % version
+                        pass
+
     guest.set_name(name)
     guest.set_memory(ram)
     guest.set_vcpus(vcpus)

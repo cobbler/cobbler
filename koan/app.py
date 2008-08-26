@@ -409,11 +409,11 @@ class Koan:
 
     #---------------------------------------------------
 
-    def safe_load(self,hash,primary_key,alternate_key=None,default=None):
-        if hash.has_key(primary_key): 
-            return hash[primary_key]
-        elif alternate_key is not None and hash.has_key(alternate_key):
-            return hash[alternate_key]
+    def safe_load(self,hashv,primary_key,alternate_key=None,default=None):
+        if hashv.has_key(primary_key): 
+            return hashv[primary_key]
+        elif alternate_key is not None and hashv.has_key(alternate_key):
+            return hashv[alternate_key]
         else:
             return default
 
@@ -866,16 +866,16 @@ class Koan:
 
         # convert the from-cobbler options back to a hash
         # so that we can override it in a way that works as intended
-        hash = utils.input_string_or_hash(kextra)
+        hashv = utils.input_string_or_hash(kextra)
         if self.kopts_override is not None:
            hash2 = utils.input_string_or_hash(self.kopts_override)
-           hash.update(hash2)
+           hashv.update(hash2)
         options = ""
-        for x in hash.keys():
-            if hash[x] is None:
+        for x in hashv.keys():
+            if hashv[x] is None:
                 options = options + "%s " % x
             else:
-                options = options + "%s=%s " % (x, hash[x])
+                options = options + "%s=%s " % (x, hashv[x])
         options = options.replace("lang ","lang= ")
         return options
 
