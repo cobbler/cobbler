@@ -54,6 +54,8 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None):
     All users in the file are permitted by this module.
     """
 
+    # FIXME: this must be modified to use the new ACL engine
+
     data = __parse_config()
     for g in data:
         if user in data[g]:

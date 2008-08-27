@@ -106,6 +106,8 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None):
     All users in the file are permitted by this module.
     """
 
+    # FIXME: this must be modified to use the new ACL engine
+
     # everybody can get read-only access to everything
     # if they pass authorization, they don't have to be in users.conf
     if resource is not None:
@@ -150,8 +152,10 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None):
     # kickstarts are even more special so we call those out to another
     # function, rather than going through the rest of the code here.
 
-    if resource.find("kickstart") != -1:
+    if resource.find("write_kickstart") != -1:
         return __authorize_kickstart(api_handle,user,user_groups,arg1)
+    elif resource.find("read_kickstart") != -1:
+        return True
 
     obj = None
     if resource.find("remove") != -1:

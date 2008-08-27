@@ -1223,8 +1223,13 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         Also if living in /etc/cobbler the file must be a kickstart file.
         """
 
-        self.log("read_or_write_kickstart_template",name=kickstart_file,token=token)
-        self.check_access(token,"read_or_write_kickstart_templates",kickstart_file,is_read)
+        if is_read:
+           what = "read_kickstart_template":
+        else:
+           what = "write_kickstart_template":
+
+        self.log(what,name=kickstart_file,token=token)
+        self.check_access(token,what,kickstart_file,is_read)
  
         if kickstart_file.find("..") != -1 or not kickstart_file.startswith("/"):
             raise CX(_("tainted file location"))
