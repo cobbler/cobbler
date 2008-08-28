@@ -1,6 +1,7 @@
 include loaders/COPYING_ELILO
 include loaders/elilo-3.6-ia64.efi
 include loaders/menu.c32
+include config/acls.conf
 include config/cobbler.conf
 include config/cobbler_svc.conf
 include config/rsync.exclude

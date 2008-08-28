@@ -38,6 +38,7 @@ import sub_process
 import module_loader
 import kickgen
 import yumgen
+import acls
 
 import logging
 import os
@@ -88,6 +89,8 @@ class BootAPI:
             module_loader.load_modules()
             self._config         = config.Config(self)
             self.deserialize()
+
+            self.acl_engine = acls.AclEngine()
 
             self.authn = self.get_module_from_file(
                 "authentication",
@@ -492,8 +495,9 @@ class BootAPI:
         """
         (Remote) access control.
         """
-        rc = self.authz.authorize(self,user,resource,arg1,arg2)
+        rc = self.authz.authorize(self,user,resource,arg1,arg2,self.acl_engine)
         self.log("authorize",[user,resource,arg1,arg2,rc],debug=True)
+        # if we clear authz, now ask the ACL engine
         return rc
 
     def build_iso(self,iso=None,profiles=None,systems=None,tempdir=None):

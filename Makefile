@@ -39,12 +39,14 @@ devinstall:
 	-cp /etc/cobbler/settings /tmp/cobbler_settings
 	-cp /etc/cobbler/modules.conf /tmp/cobbler_modules.conf
 	-cp /etc/httpd/conf.d/cobbler.conf /tmp/cobbler_http.conf
+	-cp /etc/cobbler/acls.conf /tmp/cobbler_acls.conf
 	-cp /etc/cobbler/users.conf /tmp/cobbler_users.conf
 	-cp /etc/cobbler/users.digest /tmp/cobbler_users.digest
 	make install
 	-cp /tmp/cobbler_settings /etc/cobbler/settings
 	-cp /tmp/cobbler_modules.conf /etc/cobbler/modules.conf
 	-cp /tmp/cobbler_users.conf /etc/cobbler/users.conf
+	-cp /tmp/cobbler_acls.conf /etc/cobbler/acls.conf
 	-cp /tmp/cobbler_users.digest /etc/cobbler/users.digest
 	-cp /tmp/cobbler_http.conf /etc/httpd/conf.d/cobbler.conf
 	find /var/lib/cobbler/triggers | xargs chmod +x

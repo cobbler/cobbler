@@ -40,7 +40,7 @@ def register():
     """
     return "authz"
 
-def authorize(api_handle,user,resource,arg1=None,arg2=None):
+def authorize(api_handle,user,resource,arg1=None,arg2=None,acl_engine=None):
     """
     Validate a user against a resource.
     """

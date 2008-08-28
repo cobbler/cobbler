@@ -1138,7 +1138,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         existing system object handle.
         """
         obj = self.__get_object(object_id)
-        self.check_access(token, "modify_system", obj, attribute)
+        self.check_access(token, "modify_system", obj, attribute, arg)
         return self.__call_method(obj, attribute, arg)
 
     def modify_repo(self,object_id,attribute,arg,token):
@@ -1224,9 +1224,9 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
 
         if is_read:
-           what = "read_kickstart_template":
+           what = "read_kickstart_template"
         else:
-           what = "write_kickstart_template":
+           what = "write_kickstart_template"
 
         self.log(what,name=kickstart_file,token=token)
         self.check_access(token,what,kickstart_file,is_read)

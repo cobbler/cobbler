@@ -79,6 +79,7 @@ if __name__ == "__main__":
                                 (etcpath,  ['config/users.digest']),
                                 (etcpath,  ['config/rsync.exclude']),
                                 (etcpath,  ['config/users.conf']),
+                                (etcpath,  ['config/acls.conf']),
                                 (initpath, ['config/cobblerd']),
                                 (etcpath,  ['config/settings']),
                                 # (bashpath, ['config/cobbler_bash']), 
