@@ -1,7 +1,11 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-- ??? - 1.2
+- ??? - 1.3
+- (FEAT) ACLs to extend authz (see Wiki)
+
+
+- Aug 29 2008 - 1.2
 - (FEAT) All development work from 1.X merged in
 - (FEAT) when --netboot-enabled is toggled, rather than deleting the PXE config, create a local boot PXE config
 - (BUGF) disable some s390 aspects of cobbler check until it is supported

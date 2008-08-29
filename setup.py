@@ -4,7 +4,7 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-VERSION = "1.1.3"
+VERSION = "1.3.0"
 SHORT_DESC = "Network Boot and Update Server"
 LONG_DESC = """
 Cobbler is a network boot and update server.  Cobbler supports PXE, provisioning virtualized images, and reinstalling existing Linux machines.  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler also has a Python and XMLRPC API for integration with other applications.
