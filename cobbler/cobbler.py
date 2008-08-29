@@ -6,12 +6,20 @@ as a good reference on how to drive the API (api.py).
 Copyright 2006, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import sys
@@ -23,6 +31,7 @@ import optparse
 import string
 import commands
 import cexceptions
+import utils
 from cexceptions import *
 
 from utils import _
@@ -34,13 +43,17 @@ class BootCLI:
 
     def __init__(self):
         self.api = api.BootAPI()
-        self.loader = commands.FunctionLoader()
+        self.loader = commands.FunctionLoader(self.api)
         climods = self.api.get_modules_in_category("cli")
         for mod in climods:
             for fn in mod.cli_functions(self.api):
                 self.loader.add_func(fn)
       
     def run(self,args):
+        if not self.api.perms_ok:
+            print >> sys.stderr, "Insufficient permissions.  Use cobbler aclsetup to grant access to non-root users."
+            sys.exit(1)
+
         return self.loader.run(args)
 
 ####################################################
@@ -59,22 +72,20 @@ def main():
     """
     CLI entry point
     """
-    exitcode = 0
     try:
         run_upgrade_checks()
-        return BootCLI().run(sys.argv)
-    except SystemExit, ex:
-        return 1
+        rc = BootCLI().run(sys.argv)
+        if rc == True or rc is None:
+            return 0
+        elif rc == False:
+            return 1
+        return rc
     except Exception, exc:
-        (t, v, tb) = sys.exc_info()
-        try:
-           getattr(exc, "from_cobbler")
-           print str(exc)[1:-1]
-        except: 
-           print t
-           print v
-           print string.join(traceback.format_list(traceback.extract_tb(tb)))
-        return 1
+        if sys.exc_type==SystemExit:
+            return exc.code
+        else:
+            utils.print_exc(exc,full=True)
+            return 1
 
 if __name__ == "__main__":
     sys.exit(main())

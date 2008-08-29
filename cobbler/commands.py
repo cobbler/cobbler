@@ -1,21 +1,30 @@
 """
 Command line handling for Cobbler.
 
-Copyright 2007, Red Hat, Inc
+Copyright 2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import optparse
 from cexceptions import *
 from utils import _
 import sys
+import api
 
 HELP_FORMAT = "%-20s%s"
 
@@ -27,10 +36,11 @@ class FunctionLoader:
     The F'n Loader controls processing of cobbler commands.
     """
 
-    def __init__(self):
+    def __init__(self, api):
         """
         When constructed the loader has no functions.
         """
+        self.api = api
         self.functions = {}
 
     def add_func(self, obj):
@@ -51,10 +61,44 @@ class FunctionLoader:
             return self.show_options()
         called_name = args[1].lower()
 
+
         # also show avail options if command name is bogus
-        if not called_name in self.functions.keys():
+        if len(args) == 2 and not called_name in self.functions.keys():
+            if "--helpbash" in args:
+                return self.show_options_bashcompletion()
+            else:
+                return self.show_options()
+
+        try:
+            fn = self.functions[called_name]
+        except:
             return self.show_options()
-        fn = self.functions[called_name]
+
+        subs = fn.subcommands()
+
+        # three cases to show subcommands:
+        # (A):  cobbler profile 
+        # (B):  cobbler profile --help
+        if len(subs) != 0:
+            problem = False
+            if (len(args) == 2):
+                problem = True
+                starter = args[-1]
+            if (("-h" in args or "--help" in args) and (len(args) ==  3)):
+                problem = True
+                starter = args[-2]
+            elif len(args) >= 3:
+                for x in args[2:]:
+                    if not x.startswith("-") and x not in subs:
+                        problem = True
+                        starter = args[1]
+            if problem:
+                print "usage:"
+                print "======"
+                for x in subs:
+                    print "cobbler %s %s" % (starter, x)
+                sys.exit(1)
+
 
         # some functions require args, if none given, show subcommands
         #if len(args) == 2:
@@ -97,7 +141,7 @@ class FunctionLoader:
         if not "report" in args:
             return args
         ok = False
-        for x in ["distro","profile","system","repo"]:
+        for x in ["distro","profile","system","repo","image"]:
             if x in args:
                 ok = True
         if not ok:
@@ -125,6 +169,15 @@ class FunctionLoader:
             if help != "":
                 print help
 
+    def show_options_bashcompletion(self):
+        """
+        Prints out all loaded functions in an easily parseable form for
+        bash-completion
+        """
+        names = self.functions.keys()
+        names.sort()
+        print ' '.join(names)
+
 #=============================================================
 
 class CobblerFunction:
@@ -134,6 +187,7 @@ class CobblerFunction:
         Constructor requires a Cobbler API handle.
         """
         self.api = api
+        self.args = []
 
     def command_name(self):
         """
@@ -159,6 +213,21 @@ class CobblerFunction:
         """
         pass
 
+    def helpbash(self, parser, args, print_options = True, print_subs = False):
+        """
+        Print out the arguments in an easily parseable format
+        """
+        # We only want to print either the subcommands available or the
+        # options, but not both
+        option_list = []
+        if print_subs:
+            for sub in self.subcommands():
+                option_list.append(sub.__str__())
+        elif print_options:
+            for opt in parser.option_list:
+                option_list.extend(opt.__str__().split('/'))
+        print ' '.join(option_list)
+
     def parse_args(self,args):
         """
         Processes arguments, called prior to run ... do not override.
@@ -172,8 +241,6 @@ class CobblerFunction:
                 break
         p = optparse.OptionParser(usage="cobbler %s [ARGS]" % accum)
         self.add_options(p, args)
-
-        # if using subcommands, ensure one and only one is used
         subs = self.subcommands()
         if len(subs) > 0:
             count = 0
@@ -185,8 +252,7 @@ class CobblerFunction:
                 print "======"
                 for x in subs: 
                     print "cobbler %s %s [ARGS|--help]" % (self.command_name(), x)
-                sys.exit(1)    
-
+                return True
         (self.options, self.args) = p.parse_args(args)
         return True
 
@@ -227,6 +293,14 @@ class CobblerFunction:
                 self.reporting_list_names2(collect_fn(),self.options.name)
             return None
 
+        if "getks" in self.args:
+            if not self.options.name:
+                raise CX(_("name is required"))
+            obj = collect_fn().find(self.options.name)
+            if obj is None:
+                raise CX(_("object not found")) 
+            return obj
+
         if not self.options.name:
             raise CX(_("name is required"))
 
@@ -252,6 +326,18 @@ class CobblerFunction:
 
         if "dumpvars" in self.args:
             print obj.dump_vars(True)
+            return True
+
+        if "getks" in self.args:
+            ba=api.BootAPI()
+            if "system" in self.args:
+                rc = ba.generate_kickstart(None, self.options.name)
+            if "profile" in self.args:
+                rc = ba.generate_kickstart(self.options.name, None)
+            if rc is None:
+                print "kickstart is not template based"
+            else:
+                print rc    
             return True
 
         clobber = False
@@ -362,7 +448,7 @@ class CobblerFunction:
         names = [ x.name for x in collection]
         names.sort() # sorted() is 2.4 only
         for name in names:
-           str = _("  %(name)s") % { "name" : name }
+           str = _("%(name)s") % { "name" : name }
            print str
         return True
 

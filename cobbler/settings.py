@@ -1,15 +1,23 @@
 """
 Cobbler app-wide settings
 
-Copyright 2006, Red Hat, Inc
+Copyright 2006-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import serializable
@@ -25,10 +33,6 @@ DEFAULTS = {
     "allow_duplicate_macs"        : 0,
     "allow_duplicate_ips"         : 0,
     "bind_bin"                    : "/usr/sbin/named",
-    "bootloaders"                 : {
-        "standard"                : "/usr/lib/syslinux/pxelinux.0",
-        "ia64"                    : "/var/lib/cobbler/elilo-3.6-ia64.efi"
-    },
     "cobbler_master"              : '',
     "default_kickstart"           : "/etc/cobbler/default.ks",
     "default_virt_bridge"         : "xenbr0",
@@ -73,15 +77,18 @@ DEFAULTS = {
     "run_install_triggers"        : 1,
     "server"                      : "127.0.0.1",
     "snippetsdir"                 : "/var/lib/cobbler/snippets",
+    "spacewalk_url"               : "http://satellite.example.com/rpc/api",
     "syslog_port"                 : 25150,
     "tftpd_bin"                   : "/usr/sbin/in.tftpd",
     "tftpd_conf"                  : "/etc/xinetd.d/tftp",
+    "vsftpd_bin"                  : "/usr/sbin/vsftpd",
     "webdir"                      : "/var/www/cobbler",
     "xmlrpc_port"                 : 25151,
     "xmlrpc_rw_enabled"           : 1,
     "xmlrpc_rw_port"              : 25152,
     "yum_post_install_mirror"     : 1,
-    "yumdownloader_flags"         : "--resolve"
+    "yumdownloader_flags"         : "--resolve",
+    "yumreposync_flags"           : "-l"
 }
 
 
@@ -130,7 +137,7 @@ class Settings(serializable.Serializable):
        if self._attributes.has_key(name):
            if name == "kernel_options":
                # backwards compatibility -- convert possible string value to hash
-               (success, result) = utils.input_string_or_hash(self._attributes[name], " ")
+               (success, result) = utils.input_string_or_hash(self._attributes[name], " ",allow_multiples=False)
                self._attributes[name] = result
                return result
            return self._attributes[name]

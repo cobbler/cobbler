@@ -18,6 +18,7 @@ import utils
 from cexceptions import *
 from utils import _
 import pprint
+import fnmatch
 
 class Item(serializable.Serializable):
 
@@ -132,7 +133,7 @@ class Item(serializable.Serializable):
         self.owners = owners
         return True
 
-    def set_kernel_options(self,options):
+    def set_kernel_options(self,options,inplace=False):
         """
 	Kernel options are a space delimited list,
 	like 'a=b c=d e=f g h i=j' or a hash.
@@ -141,20 +142,44 @@ class Item(serializable.Serializable):
         if not success:
             raise CX(_("invalid kernel options"))
         else:
-            self.kernel_options = value
+            if inplace:
+                for key in value.keys():
+                    self.kernel_options[key] = value[key]
+            else:
+                self.kernel_options = value
             return True
 
-    def set_ksmeta(self,options):
+    def set_kernel_options_post(self,options,inplace=False):
+        """
+        Post kernel options are a space delimited list,
+        like 'a=b c=d e=f g h i=j' or a hash.
+        """
+        (success, value) = utils.input_string_or_hash(options,None)
+        if not success:
+            raise CX(_("invalid post kernel options"))
+        else:
+            if inplace:
+                for key in value.keys():
+                    self.kernel_options_post[key] = value[key]
+            else:
+                self.kernel_options_post = value
+            return True
+
+    def set_ksmeta(self,options,inplace=False):
         """
         A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a hash.
         The meta tags are used as input to the templating system
         to preprocess kickstart files
         """
-        (success, value) = utils.input_string_or_hash(options,None)
+        (success, value) = utils.input_string_or_hash(options,None,allow_multiples=False)
         if not success:
             return False
         else:
-            self.ks_meta = value
+            if inplace:
+                for key in value.keys():
+                    self.ks_meta[key] = value[key]
+            else:
+                self.ks_meta = value
             return True
 
     def load_item(self,datastruct,key,default=''):
@@ -183,16 +208,16 @@ class Item(serializable.Serializable):
 	"""
         return False
 
-    def find_match(self,kwargs):
+    def find_match(self,kwargs,no_errors=False):
         # used by find() method in collection.py
         data = self.to_datastruct()
         for (key, value) in kwargs.iteritems():
-            if not self.find_match_single_key(data,key,value):
+            if not self.find_match_single_key(data,key,value,no_errors):
                 return False
         return True
  
 
-    def find_match_single_key(self,data,key,value):
+    def find_match_single_key(self,data,key,value,no_errors=False):
         # special case for systems
         key_found_already = False
         if data.has_key("interfaces"):
@@ -200,18 +225,63 @@ class Item(serializable.Serializable):
                 key_found_already = True
                 for (name, interface) in data["interfaces"].iteritems(): 
                     if value is not None:
-                        if interface[key].lower() == value.lower():
+                        if self.__find_compare(interface[key], value):
                             return True
 
         if not data.has_key(key):
             if not key_found_already:
-                raise CX(_("searching for field that does not exist: %s" % key))
+                if not no_errors:
+                   raise CX(_("searching for field that does not exist: %s" % key))
             else:
-                return False
-        if value.lower() == data[key].lower():
+                if value is not None: # FIXME: new?
+                   return False
+
+        if value is None:
             return True
         else:
-            return False
+            return self.__find_compare(value, data[key])
+
+
+    def __find_compare(self, from_search, from_obj):
+
+        if type(from_obj) == type(""):
+            # FIXME: fnmatch is only used for string to string comparisions
+            # which should cover most major usage, if not, this deserves fixing
+            if fnmatch.fnmatch(from_obj.lower(), from_search.lower()):
+                return True
+            else:
+                return False    
+        
+        else:
+            if type(from_search) == type(""):
+                if type(from_obj) == type([]):
+                    from_search = utils.input_string_or_list(from_search,delim=',')
+                    for x in from_search:
+                        if x not in from_obj:
+                            return False
+                    return True            
+
+                if type(from_obj) == type({}):
+                    (junk, from_search) = utils.input_string_or_hash(from_search,delim=" ",allow_multiples=True)
+                    for x in from_search.keys():
+                        y = from_search[x]
+                        if not from_obj.has_key(x):
+                            return False
+                        if not (y == from_obj[x]):
+                            return False
+                    return True
+
+                if type(from_obj) == type(True):
+                    if from_search.lower() in [ "true", "1", "y", "yes" ]:
+                        inp = True
+                    else:
+                        inp = False
+                    if inp == from_obj:
+                        return True
+                    return False
+                
+            raise CX(_("find cannot compare type: %s") % type(from_obj)) 
+
 
     def dump_vars(self,data,format=True):
         raw = utils.blender(self.config.api, False, self)

@@ -4,7 +4,7 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-VERSION = "1.0.4"
+VERSION = "1.2.0"
 SHORT_DESC = "Network Boot and Update Server"
 LONG_DESC = """
 Cobbler is a network boot and update server.  Cobbler supports PXE, provisioning virtualized images, and reinstalling existing Linux machines.  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler also has a Python and XMLRPC API for integration with other applications.
@@ -12,6 +12,7 @@ Cobbler is a network boot and update server.  Cobbler supports PXE, provisioning
 
 if __name__ == "__main__":
         # docspath="share/doc/koan-%s/" % VERSION
+        bashpath = "/etc/bash_completion.d/"
         manpath  = "share/man/man1/"
         cobpath  = "/var/lib/cobbler/"
         backpath = "/var/lib/cobbler/backup/"
@@ -32,8 +33,6 @@ if __name__ == "__main__":
         vw_kickstarts  = "/var/www/cobbler/kickstarts"
         vw_kickstarts_sys  = "/var/www/cobbler/kickstarts_sys"
         vw_repomirror = "/var/www/cobbler/repo_mirror"
-        vw_repoprofile = "/var/www/cobbler/repos_profile"
-        vw_reposystem =  "/var/www/cobbler/repos_system"
         vw_ksmirror   = "/var/www/cobbler/ks_mirror"
         vw_ksmirrorc  = "/var/www/cobbler/ks_mirror/config"
         vw_images     = "/var/www/cobbler/images"
@@ -62,7 +61,7 @@ if __name__ == "__main__":
                     "cobbler/server", 
                     "cobbler/webui",
                 ],
-                scripts = ["scripts/cobbler", "scripts/cobblerd"],
+                scripts = ["scripts/cobbler", "scripts/cobblerd", "scripts/cobbler-completion"],
                 data_files = [ 
                                 (modpython, ['scripts/index.py']),
                                 (modpythonsvc, ['scripts/services.py']),
@@ -74,6 +73,7 @@ if __name__ == "__main__":
                                 (rotpath,  ['config/cobblerd_rotate']),
                                 (wwwconf,  ['config/cobbler.conf']),
                                 (wwwconf,  ['config/cobbler_svc.conf']),
+                                (cobpath,  ['config/completions']),
                                 (cobpath,  ['config/cobbler_hosts']),
                                 (etcpath,  ['config/modules.conf']),
                                 (etcpath,  ['config/users.digest']),
@@ -81,6 +81,7 @@ if __name__ == "__main__":
                                 (etcpath,  ['config/users.conf']),
                                 (initpath, ['config/cobblerd']),
                                 (etcpath,  ['config/settings']),
+                                # (bashpath, ['config/cobbler_bash']), 
 
                                 # backups for upgrades
                                 (backpath, []),
@@ -88,6 +89,11 @@ if __name__ == "__main__":
                                 # bootloaders and syslinux support files
                                 (cobpath,  ['loaders/elilo-3.6-ia64.efi']),
                                 (cobpath,  ['loaders/menu.c32']),
+                                ("/var/lib/cobbler/config/distros.d",  []),
+                                ("/var/lib/cobbler/config/profiles.d", []),
+                                ("/var/lib/cobbler/config/systems.d",  []),
+                                ("/var/lib/cobbler/config/repos.d",    []),
+                                ("/var/lib/cobbler/config/images.d",   []),
 
                                 # sample kickstart files
                                 (etcpath,  ['kickstarts/legacy.ks']),
@@ -101,8 +107,10 @@ if __name__ == "__main__":
                                 (etcpath,  ['templates/named.template']),
 				(etcpath,  ['templates/pxedefault.template']),
 				(etcpath,  ['templates/pxesystem.template']),
+				(etcpath,  ['templates/pxesystem_s390x.template']),
 				(etcpath,  ['templates/pxesystem_ia64.template']),
 				(etcpath,  ['templates/pxeprofile.template']),
+				(etcpath,  ['templates/pxelocal.template']),
                                 (etcpath,  ['templates/zone.template']),
 
                                 # kickstart dir
@@ -110,6 +118,9 @@ if __name__ == "__main__":
 
                                 # useful kickstart snippets that we ship
                                 (snippets, ['snippets/partition_select']),
+                                (snippets, ['snippets/pre_partition_select']),
+                                (snippets, ['snippets/main_partition_select']),
+                                (snippets, ['snippets/post_install_kernel_options']),
 
                                 # documentation
                                 (manpath,  ['docs/cobbler.1.gz']),
@@ -125,8 +136,6 @@ if __name__ == "__main__":
                                 (vw_kickstarts,     []),
                                 (vw_kickstarts_sys, []),
                                 (vw_repomirror,     []),
-                                (vw_repoprofile,    []),
-                                (vw_reposystem,     []),
                                 (vw_ksmirror,       []),
                                 (vw_ksmirrorc,      []),
                                 (vw_distros,        []),

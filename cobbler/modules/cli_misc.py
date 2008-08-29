@@ -127,19 +127,22 @@ class ListFunction(commands.CobblerFunction):
         p.add_option("--what",              dest="what",          default="all", help="all/distros/profiles/systems/repos")
      
     def run(self):
-        if self.options.what not in [ "all", "distros", "profiles", "systems", "repos" ]:
+        if self.options.what not in [ "all", "distros", "profiles", "systems", "repos", "images" ]:
             raise CX(_("invalid value for --what"))
-        if self.options.what in [ "all" ]:       
+        if self.options.what in ["all"]:
             self.list_tree(self.api.distros(),0)
             self.list_tree(self.api.repos(),0)
-        if self.options.what in [ "distros"]:
+            self.list_tree(self.api.images(),0)
+        if self.options.what in ["distros"]:
             self.list_list(self.api.distros())
-        if self.options.what in [ "profiles"]:
+        if self.options.what in ["profiles"]:
             self.list_list(self.api.profiles())
-        if self.options.what in [ "systems" ]:
+        if self.options.what in ["systems" ]:
             self.list_list(self.api.systems())
-        if self.options.what in [ "repos"]:
+        if self.options.what in ["repos"]:
             self.list_list(self.api.repos())
+        if self.options.what in ["images"]:
+            self.list_list(self.api.images())
 
 ########################################################
 
@@ -156,7 +159,7 @@ class ReportFunction(commands.CobblerFunction):
         p.add_option("--name",              dest="name",                   help="report on just this object")
 
     def run(self):
-        if self.options.what not in [ "all", "distros", "profiles", "systems", "repos" ]:
+        if self.options.what not in [ "all", "distros", "profiles", "systems", "repos", "images" ]:
             raise CX(_("Invalid value for --what"))
 
         if self.options.what in [ "all", "distros"  ]:
@@ -182,7 +185,16 @@ class ReportFunction(commands.CobblerFunction):
                 self.reporting_list_names2(self.api.repos(),self.options.name)
             else:
                 self.reporting_print_sorted(self.api.repos())
+
+        if self.options.what in [ "all", "images"    ]:
+            if self.options.name:
+                self.reporting_list_names2(self.api.images(),self.options.name)
+            else:
+                self.reporting_print_sorted(self.api.images())
+
         return True
+
+
 
 ########################################################
 
@@ -246,6 +258,7 @@ class BuildIsoFunction(commands.CobblerFunction):
     def add_options(self,p,args): 
         p.add_option("--iso",      dest="isoname",  help="(OPTIONAL) output ISO to this path")
         p.add_option("--profiles", dest="profiles", help="(OPTIONAL) use these profiles only")
+        p.add_option("--systems",  dest="systems",  help="(OPTIONAL) use these systems only")
         p.add_option("--tempdir",  dest="tempdir",  help="(OPTIONAL) working directory")
 
     def help_me(self):
@@ -258,6 +271,7 @@ class BuildIsoFunction(commands.CobblerFunction):
        return self.api.build_iso(
            iso=self.options.isoname,
            profiles=self.options.profiles,
+           systems=self.options.systems,
            tempdir=self.options.tempdir
        )
 
@@ -272,11 +286,48 @@ class ReplicateFunction(commands.CobblerFunction):
         return "replicate"
 
     def add_options(self, p, args):
-        p.add_option("--master",           dest="master",             help="Cobbler server to replicate from.")
+        p.add_option("--master",               dest="master",           help="Cobbler server to replicate from.")
+        p.add_option("--include-systems",      dest="systems",          action="store_true", help="include systems in addition to distros, profiles, and repos")
+        p.add_option("--full-data-sync",       dest="all",              action="store_true", help="rsync everything")
+        p.add_option("--sync-kickstarts",      dest="kickstarts",       action="store_true", help="rsync kickstart templates")
+        p.add_option("--sync-trees",           dest="trees",            action="store_true", help="rsync imported trees")
+        p.add_option("--sync-triggers",        dest="triggers",         action="store_true", help="rsync trigger scripts")
+        p.add_option("--sync-repos",           dest="repos",            action="store_true", help="rsync mirrored repo data")
 
     def run(self):
-        return self.api.replicate(cobbler_master = self.options.master)
+        return self.api.replicate(
+             cobbler_master = self.options.master,
+             sync_all = self.options.all,
+             sync_kickstarts = self.options.kickstarts,
+             sync_trees = self.options.trees,
+             sync_repos = self.options.repos,
+             sync_triggers = self.options.triggers,
+             systems = self.options.systems
+        )
 
+########################################################
+
+class AclFunction(commands.CobblerFunction):
+
+    def help_me(self):
+        return HELP_FORMAT % ("cobbler aclsetup","[ARGS|--help]")
+
+    def command_name(self):
+        return "aclsetup"
+
+    def add_options(self, p, args):
+        p.add_option("--adduser",            dest="adduser",            help="give acls to this user")
+        p.add_option("--addgroup",           dest="addgroup",           help="give acls to this group")
+        p.add_option("--removeuser",         dest="removeuser",         help="remove acls from this user")
+        p.add_option("--removegroup",        dest="removegroup",        help="remove acls from this group")
+
+    def run(self):
+        return self.api.acl_config(
+            self.options.adduser,
+            self.options.addgroup,
+            self.options.removeuser,
+            self.options.removegroup
+        )
 
     
 ########################################################
@@ -294,7 +345,7 @@ def cli_functions(api):
        CheckFunction(api), ImportFunction(api), ReserializeFunction(api),
        ListFunction(api), ReportFunction(api), StatusFunction(api),
        SyncFunction(api), RepoSyncFunction(api), ValidateKsFunction(api),
-       ReplicateFunction(api)
+       ReplicateFunction(api), AclFunction(api)
     ]
     return []
 

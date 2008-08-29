@@ -1,15 +1,25 @@
-# Mod Python service functions for Cobbler's public interface
-# (aka cool stuff that works with wget)
-#
-# Copyright 2007 Albert P. Tobey <tobert@gmail.com>
-# additions: Michael DeHaan <mdehaan@redhat.com>
-# 
-# This software may be freely redistributed under the terms of the GNU
-# general public license.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+"""
+Mod Python service functions for Cobbler's public interface
+(aka cool stuff that works with wget)
+
+based on code copyright 2007 Albert P. Tobey <tobert@gmail.com>
+additions: 2007-2008 Michael DeHaan <mdehaan@redhat.com>
+ 
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
+"""
 
 import exceptions
 import xmlrpclib
@@ -50,20 +60,14 @@ class CobblerSvc(object):
             self.remote = xmlrpclib.Server(self.server, allow_none=True)
         self.remote.update()
 
-    def modes(self):
-        """
-        Returns a list of methods in this object that can be run as web
-        modes.   
-        """
-        retval = list()
-        for m in dir(self):
-            func = getattr( self, m )
-            if hasattr(func, 'exposed') and getattr(func,'exposed'):
-                retval.append(m) 
-        return retval
-
     def index(self,**args):
         return "no mode specified"
+
+    def debug(self,profile=None,**rest):
+        # the purpose of this method could change at any time
+        # and is intented for temporary test code only, don't rely on it
+        self.__xmlrpc_setup()
+        return self.remote.get_repos_compatible_with_profile(profile)
 
     def ks(self,profile=None,system=None,REMOTE_ADDR=None,REMOTE_MAC=None,**rest):
         """
@@ -72,6 +76,16 @@ class CobblerSvc(object):
         self.__xmlrpc_setup()
         data = self.remote.generate_kickstart(profile,system,REMOTE_ADDR,REMOTE_MAC)
         return u"%s" % data    
+
+    def yum(self,profile=None,system=None,**rest):
+        self.__xmlrpc_setup()
+        if profile is not None:
+            data = self.remote.get_repo_config_for_profile(profile)
+        elif system is not None:
+            data = self.remote.get_repo_config_for_system(system)
+        else:
+            data = "# must specify profile or system name"
+        return data
 
     def trig(self,mode="?",profile=None,system=None,REMOTE_ADDR=None,**rest):
         """
@@ -88,6 +102,25 @@ class CobblerSvc(object):
     def nopxe(self,system=None,**rest):
         self.__xmlrpc_setup()
         return str(self.remote.disable_netboot(system))
+
+    def list(self,what="systems",**rest):
+        self.__xmlrpc_setup()
+        buf = ""
+        if what == "systems":
+           listing = self.remote.get_systems()
+        elif what == "profiles":
+           listing = self.remote.get_profiles()
+        elif what == "distros":
+           listing = self.remote.get_distros()
+        elif what == "images":
+           listing = self.remote.get_images()
+        elif what == "repos":
+           listing = self.remote.get_repos()
+        else:
+           return "?"
+        for x in listing:
+           buf = buf + "%s\n" % x["name"]
+        return buf
 
     def autodetect(self,**rest):
         self.__xmlrpc_setup()
@@ -141,7 +174,11 @@ class CobblerSvc(object):
         if system is not None:
             url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
         elif profile is not None:
+<<<<<<< HEAD:cobbler/services.py
             url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
+=======
+            url = "%s/cblr/svc/op/ks/profile/%s" % (serverseg, name)
+>>>>>>> devel:cobbler/services.py
         else:
             name = self.autodetect(**rest)
             if name.startswith("FAILED"):

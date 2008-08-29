@@ -2,44 +2,81 @@
 Serializer code for cobbler
 Now adapted to support different storage backends
 
-Copyright 2006-2007, Red Hat, Inc
+Copyright 2006-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import errno
 import os
 from utils import _
 import fcntl
+import traceback
+import sys
+import signal
 
 from cexceptions import *
-import utils
 import api as cobbler_api
 
 LOCK_ENABLED = True
 LOCK_HANDLE = None
+BLOCK_SIGNAL = True
+
+def handler(num,frame): 
+   print sys.stderr, "Ctrl-C not allowed during writes.  Please wait."
+   return True
+    
+def no_ctrl_c():
+   signal.signal(signal.SIGINT, handler)
+   return True
+
+def ctrl_c_ok():
+   signal.signal(signal.SIGINT, signal.default_int_handler)
+   return True   
 
 def __grab_lock():
-   if not LOCK_ENABLED:
-       return
-   if not os.path.exists("/var/lib/cobbler/lock"):
-       fd = open("/var/lib/cobbler/lock","w+")
-       fd.close()
-   LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
-   fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_EX)
+    """
+    Dual purpose locking:
+    (A) flock to avoid multiple process access
+    (B) block signal handler to avoid ctrl+c while writing YAML
+    """
+    try:
+        if LOCK_ENABLED:
+            if not os.path.exists("/var/lib/cobbler/lock"):
+                fd = open("/var/lib/cobbler/lock","w+")
+                fd.close()
+            LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
+            fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_EX)
+        if BLOCK_SIGNAL:
+            no_ctrl_c()
+        return True
+    except:
+        # this is pretty much FATAL, avoid corruption and quit now.
+        traceback.print_exc()
+        sys.exit(7)
 
 def __release_lock():
-   if not LOCK_ENABLED:
-       return
-   LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
-   fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
-   LOCK_HANDLE.close()
+    if LOCK_ENABLED:
+        LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
+        fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
+        LOCK_HANDLE.close()
+    if BLOCK_SIGNAL:
+        ctrl_c_ok()
+    return True
 
 def serialize(obj):
     """
@@ -101,11 +138,31 @@ def deserialize_raw(collection_type):
     __release_lock()
     return rc
 
+def deserialize_item(collection_type, item_name):
+    """
+    Get a specific record.
+    """
+    __grab_lock()
+    storage_module = __get_storage_module(collection_type)
+    rc = storage_module.deserialize_item(collection_type, item_name)
+    __release_lock()
+    return rc
+
+def deserialize_item_raw(collection_type, item_name):
+    __grab_lock()
+    storage_module = __get_storage_module(collection_type)
+    rc = storage_module.deserialize_item_raw(collection_type, item_name)
+    __release_lock()
+    return rc
+
 def __get_storage_module(collection_type):
     """
     Look up serializer in /etc/cobbler/modules.conf
     """    
     capi = cobbler_api.BootAPI()
-    return capi.get_module_from_file("serializers",collection_type)
+    return capi.get_module_from_file("serializers",collection_type,"serializer_yaml")
 
+if __name__ == "__main__":
+    __grab_lock()
+    __release_lock()
 

@@ -6,19 +6,27 @@ some additional magic around that to deal with snippets/etc.
 Copyright 2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import os
 import os.path
 import glob
 from cexceptions import *
-from Cheetah.Template import Template
+from template_api import Template
 from utils import *
 import utils
 
@@ -51,14 +59,6 @@ class Templar:
         # template syntax.
         raw_data = raw_data.replace("TEMPLATE::","$")
 
-        # replace snippets with the proper Cheetah include directives prior to processing.
-        # see Wiki for full details on how snippets operate.
-        snippet_results = ""
-        for line in raw_data.split("\n"):
-             line = self.replace_snippets(line,subject)
-             snippet_results = "\n".join((snippet_results, line))
-        raw_data = snippet_results
-
         # HACK:  the ksmeta field may contain nfs://server:/mount in which
         # case this is likely WRONG for kickstart, which needs the NFS
         # directive instead.  Do this to make the templates work.
@@ -82,13 +82,11 @@ class Templar:
         raw_data = "#errorCatcher Echo\n" + raw_data
 
         # now do full templating scan, where we will also templatify the snippet insertions
-        t = Template(source=raw_data, searchList=[search_table])
+        t = Template(source=raw_data, errorCatcher="Echo", searchList=[search_table])
         try:
             data_out = str(t)
-        except:
-            print _("There appears to be an formatting error in the template file.")
-            print _("For completeness, the traceback from Cheetah has been included below.")
-            raise
+        except Exception, e:
+            return utils.cheetah_exc(e)
 
         # now apply some magic post-filtering that is used by cobbler import and some
         # other places, but doesn't use Cheetah.  Forcing folks to double escape
@@ -109,89 +107,3 @@ class Templar:
             fd.close()
 
         return data_out
-
-    def replace_snippets(self,line,subject):
-        """
-        Replace all SNIPPET:: syntaxes on a line with the
-        results of evaluating the snippet, taking care not
-        to replace tabs with spaces or anything like that
-        """
-        tokens = line.split(None)
-        for t in tokens:
-           if t.startswith("SNIPPET::"):
-               snippet_name = t.replace("SNIPPET::","")
-               line = line.replace(t,self.eval_snippet(snippet_name,subject))
-        return line
-
-    def eval_snippet(self,name,subject):
-        """
-        Replace SNIPPET::foo with contents of files:
-            Use /var/lib/cobbler/snippets/per_system/$name/$sysname
-                /var/lib/cobbler/snippets/per_profile/$name/$proname
-                /var/lib/cobbler/snippets/$name
-            in order... (first one wins)
-        """
-
-        sd = self.settings.snippetsdir
-        default_path = "%s/%s" % (sd,name)  
-
-        if subject is None:
-            if os.path.exists(default_path):
-                return self.slurp(default_path)
-            else:
-                return self.slurp(None)
-            
-
-        if subject.COLLECTION_TYPE == "system":
-            profile  = self.api.find_profile(name=subject.profile)
-            sys_path = "%s/per_system/%s/%s" % (sd,name,subject.name) 
-            pro_path = "%s/per_profile/%s/%s" % (sd,name,profile.name) 
-            if os.path.exists(sys_path):
-                return self.slurp(sys_path)
-            elif os.path.exists(pro_path):
-                return self.slurp(pro_path)
-            elif os.path.exists(default_path):
-                return self.slurp(default_path)
-            else:
-                return self.slurp(None)
-
-        if subject.COLLECTION_TYPE == "profile":
-            pro_path = "%s/per_profile/%s/%s" % (sd,name,subject.name) 
-            if os.path.exists(pro_path):
-                return self.slurp(pro_path)
-            elif os.path.exists(default_path):
-                return self.slurp(default_path)
-            else:
-                return self.slurp(None)
-
-        return self.slurp(None)
-
-    def slurp(self,filename):
-        """
-        Get the contents of a filename but if none is specified
-        just include some generic error text for the rendered
-        template.
-        """
-
-        if filename is None:
-            return "# error: no snippet data found"
-
-        # disabling this as it requires restarting cobblerd after
-        # making changes to snippets.  not good.  Since kickstart
-        # templates are now generated dynamically and we don't need
-        # to load all snippets to parse any given template, this should
-        # be ok, leaving this in as a footnote should we need it later.
-        #
-        ## potentially eliminate a ton of system calls if syncing
-        ## thousands of systems that use the same template
-        #if self.cache.has_key(filename):
-        #    
-        #    return self.cache[filename]
-
-        fd = open(filename,"r")
-        data = fd.read()
-        # self.cache[filename] = data
-        fd.close()
-
-        return data
-

@@ -6,12 +6,20 @@ Copyright 2006-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 John Eckersberg <jeckersb@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import os
@@ -98,6 +106,10 @@ class DnsmasqManager:
         # through each network interface of each system.
         
         for system in self.systems:
+
+            if not system.is_management_supported(cidr_ok=False):
+                continue
+
             profile = system.get_conceptual_parent()
             distro  = profile.get_conceptual_parent()
             for (name, interface) in system.interfaces.iteritems():
@@ -159,8 +171,10 @@ class DnsmasqManager:
         # every time we add a system.
         # read 'man ethers' for format info
         fh = open("/etc/ethers","w+")
-        for sys in self.systems:
-            for (name, interface) in sys.interfaces.iteritems():
+        for system in self.systems:
+            if not system.is_management_supported(cidr_ok=False):
+                continue
+            for (name, interface) in system.interfaces.iteritems():
                 mac = interface["mac_address"]
                 ip  = interface["ip_address"]
                 if mac is None or mac == "":
@@ -174,8 +188,10 @@ class DnsmasqManager:
         # dnsmasq knows how to read this database for host info
         # (other things may also make use of this later)
         fh = open("/var/lib/cobbler/cobbler_hosts","w+")
-        for sys in self.systems:
-            for (name, interface) in sys.interfaces.iteritems():
+        for system in self.systems:
+            if not system.is_management_supported(cidr_ok=False):
+                continue
+            for (name, interface) in system.interfaces.iteritems():
                 mac  = interface["mac_address"]
                 host = interface["hostname"]
                 ip   = interface["ip_address"]

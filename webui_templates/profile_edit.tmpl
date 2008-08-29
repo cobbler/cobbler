@@ -23,7 +23,7 @@ function disablename(value)
 
 <!--
        cobbler profile add -name=string -distro=string [-kickstart=url]
-       [-kopts=string] [-ksmeta=string] [-virt-file-size=gigabytes]
+       [-kopts=string] [-kopts_post=string] [-ksmeta=string] [-virt-file-size=gigabytes]
        [-virt-ram=megabytes] [-virt-type=string] [-virt-path=string]
 -->
 
@@ -157,6 +157,20 @@ function disablename(value)
 
     <tr>
     <td>
+    <label for="koptspost">Post Kernel Options</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="koptspost" id="koptspost"
+        #if $profile
+            value="$profile.kernel_options_post"
+        #end if
+    />
+    <p class="context-tip">Example: clocksource=pit nosmp noapic nolapic</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
     <label for="ksmeta">Kickstart Metadata</label>
     </td>
     <td>
@@ -216,10 +230,25 @@ function disablename(value)
     #else
         <input type="radio" name="virttype" id="virttype" value="xenpv">Xen (pv)
     #end if
+    #if $profile and $profile.virt_type == "xenfv"
+        <input type="radio" name="virttype" id="virttype" value="xenfv" checked>Xen (fv)
+    #else
+        <input type="radio" name="virttype" id="virttype" value="xenfv">Xen (fv)
+    #end if
     #if $profile and $profile.virt_type == "qemu"
         <input type="radio" name="virttype" id="virttype" value="qemu" checked>qemu/KVM
     #else
         <input type="radio" name="virttype" id="virttype" value="qemu">qemu/KVM
+    #end if
+    #if $profile and $profile.virt_type == "vmware"
+        <input type="radio" name="virttype" id="virttype" value="vmware" checked>VMW Server
+    #else
+        <input type="radio" name="virttype" id="virttype" value="vmware">VMW Server
+    #end if
+    #if $profile and $profile.virt_type == "vmwarew"
+        <input type="radio" name="virttype" id="virttype" value="vmwarew" checked>VMW WkStn
+    #else
+        <input type="radio" name="virttype" id="virttype" value="vmwarew">VMW WkStn
     #end if
     <p class="context-tip">What virtualization technology should koan use?</p>
     </td>

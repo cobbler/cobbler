@@ -42,14 +42,18 @@ install
 zerombr
 
 # Magically figure out how to partition this thing
-SNIPPET::partition_select
-$kickstart_start
+SNIPPET::main_partition_select
 
+%pre
+SNIPPET::pre_partition_select
+$kickstart_start
+%end
 
 %packages
 %end
 
 %post
 $yum_config_stanza
+SNIPPET::post_install_kernel_options
 $kickstart_done
 %end

@@ -7,12 +7,20 @@ been created.
 Copyright 2006, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 
@@ -47,6 +55,7 @@ class BootLiteSync:
         self.distros     = config.distros()
         self.profiles    = config.profiles()
         self.systems     = config.systems()
+        self.images      = config.images()
         self.settings    = config.settings()
         self.repos       = config.repos()
         self.sync        = config.api.get_sync()
@@ -63,6 +72,14 @@ class BootLiteSync:
         for k in kids:
             self.add_single_profile(k.name)    
 
+    def add_single_image(self, name):
+        image = self.images.find(name=name)
+        self.sync.pxegen.copy_single_image_files(image)
+        kids = image.get_children()
+        for k in kids:
+            self.add_single_system(k.name)
+        self.sync.pxegen.make_pxe_menu()
+
     def remove_single_distro(self, name):
         bootloc = utils.tftpboot_location()
         # delete contents of images/$name directory in webdir
@@ -72,21 +89,27 @@ class BootLiteSync:
         # delete potential symlink to tree in webdir/links
         utils.rmfile(os.path.join(self.settings.webdir, "links", name)) 
 
-    def add_single_profile(self, name):
+    def remove_single_image(self, name):
+        bootloc = utils.tftpboot_location()
+        utils.rmfile(os.path.join(bootloc, "images2", name))
+
+    def add_single_profile(self, name, rebuild_menu=True):
         # get the profile object:
         profile = self.profiles.find(name=name)
         if profile is None:
             raise CX(_("error in profile lookup"))
         # rebuild the yum configuration files for any attached repos
-        self.sync.yumgen.retemplate_yum_repos(profile,True)
         # cascade sync
         kids = profile.get_children()
         for k in kids:
             if k.COLLECTION_TYPE == "profile":
-                self.add_single_profile(k.name)
+                self.add_single_profile(k.name, rebuild_menu=False)
             else:
                 self.add_single_system(k.name)
- 
+        if rebuild_menu:
+            self.sync.pxegen.make_pxe_menu()
+        return True
+         
     def remove_single_profile(self, name):
         # delete profiles/$name file in webdir
         utils.rmfile(os.path.join(self.settings.webdir, "profiles", name))
@@ -112,7 +135,6 @@ class BootLiteSync:
         # write the PXE files for the system
         self.sync.pxegen.write_all_system_files(system)
         # per system kickstarts
-        self.sync.yumgen.retemplate_yum_repos(system,False)
         if self.settings.manage_dhcp:
             if self.settings.omapi_enabled: 
                 for (name,interface) in system.interfaces.iteritems():
@@ -122,7 +144,6 @@ class BootLiteSync:
                         interface["mac_address"],
                         interface["ip_address"]
                     )
-
 
     def remove_single_system(self, name):
         bootloc = utils.tftpboot_location()
@@ -142,12 +163,6 @@ class BootLiteSync:
                         interface["hostname"]
                     )
 
-        # unneeded
-        #if not system_record.is_pxe_supported():
-        #   # no need to go any further with PXE cleanup
-        #   return
-        
-        # delete PXE Linux configuration file (which might be in one of two places)
         itanic = False
         profile = self.profiles.find(name=system_record.profile)
         if profile is not None:

@@ -5,12 +5,20 @@ This is the code behind 'cobbler sync'.
 Copyright 2006-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import os
@@ -82,7 +90,12 @@ class KickGen:
                 return data
             except:
                 utils.log_exc(self.api.logger)
-                return _("# Error while rendering kickstart file, see /var/log/cobbler/cobbler.log for details")
+                raise
+
+        elif kickstart_path is not None and not os.path.exists(kickstart_path):
+            if kickstart_path.find("http://") == -1 and kickstart_path.find("ftp://") == -1 and kickstart_path.find("nfs:") == -1:
+                return "# Error, cannot find %s" % kickstart_path
+        return "# kickstart is sourced externally: %s" % meta["kickstart"]
 
     def generate_kickstart_signal(self, is_pre=0, profile=None, system=None):
         """
@@ -137,75 +150,45 @@ class KickGen:
 
         """
         Automatically attaches yum repos to profiles/systems in kickstart files
-        that contain the magic $yum_repo_stanza variable.
+        that contain the magic $yum_repo_stanza variable.  This includes repo
+        objects as well as the yum repos that are part of split tree installs,
+        whose data is stored with the distro (example: RHEL5 imports)
         """
 
         buf = ""
         blended = utils.blender(self.api, False, obj)
-        configs = self.get_repo_filenames(obj,is_profile)
-        repos = self.repos
+        repos = blended["repos"] 
 
-        # FIXME: this really should be dynamically generated as with the kickstarts
-        for c in configs:
-           name = c.split("/")[-1].replace(".repo","")
-           (is_core, baseurl) = self.analyze_repo_config(c)
-           for repo in repos:
-               if repo.name == name:
-                   if not repo.yumopts.has_key('enabled') or repo.yumopts['enabled'] == '1':
-                       if repo.mirror_locally:
-                           buf = buf + "repo --name=%s --baseurl=%s\n" % (name, baseurl)
-                       else:
-                           buf = buf + "repo --name=%s --baseurl=%s\n" % (name, repo.mirror)
+        for repo in repos:
+            # see if this is a source_repo or not
+            repo_obj = self.api.find_repo(repo)
+            if repo_obj is not None:
+                if not repo_obj.yumopts.has_key('enabled') or repo_obj.yumopts['enabled'] == '1':
+                   if repo_obj.mirror_locally:
+                       baseurl = "http://%s/cobbler/repo_mirror/%s" % (blended["http_server"], repo_obj.name)
+                       buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, baseurl)
+                   else:
+                       buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, repo_obj.mirror)
+            else:
+                # FIXME: what to do if we can't find the repo object that is listed?
+                # this should be a warning at another point, probably not here
+                # so we'll just not list it so the kickstart will still work
+                # as nothing will be here to read the output noise.  Logging might
+                # be useful.
+                pass
+
+        if is_profile:
+            distro = obj.get_conceptual_parent()
+        else:
+            distro = obj.get_conceptual_parent().get_conceptual_parent()
+
+        source_repos = distro.source_repos
+        count = 0
+        for x in source_repos:
+            count = count + 1
+            buf = buf + "repo --name=source-%s --baseurl=%s\n" % (count, x[1])
 
         return buf
-
-    def analyze_repo_config(self, filename):
-        fd = open(filename)
-        data = fd.read()
-        lines = data.split("\n")
-        ret = False
-        baseurl = None
-        for line in lines:
-            if line.find("ks_mirror") != -1:
-                ret = True
-            if line.find("baseurl") != -1:
-                try:
-                    first, baseurl = line.split("=",1)
-                except:
-                    raise CX(_("error scanning repo: %s" % filename))
-        fd.close()
-        return (ret, baseurl)
-
-    def get_repo_baseurl(self, server, repo_name, is_repo_mirror=True):
-        """
-        Construct the URL to a repo definition.
-        """
-        if is_repo_mirror:
-            return "http://%s/cobbler/repo_mirror/%s" % (server, repo_name)
-        else:
-            return "http://%s/cobbler/ks_mirror/config/%s" % (server, repo_name)
-
-    def get_repo_filenames(self, obj, is_profile=True):
-        """
-        For a given object, return the paths to repo configuration templates
-        that will be used to generate per-object repo configuration files and
-        baseurls
-        """        
-
-        blended = utils.blender(self.api, False, obj)
-        urlseg = self.get_repo_segname(is_profile)
-
-        topdir = "%s/%s/%s/*.repo" % (self.settings.webdir, urlseg, blended["name"])
-        files = glob.glob(topdir)
-        return files
-
-
-    def get_repo_segname(self, is_profile):
-        if is_profile:
-           return "repos_profile"
-        else:
-           return "repos_system"
-
 
     def generate_config_stanza(self, obj, is_profile=True):
 
@@ -217,25 +200,13 @@ class KickGen:
         if not self.settings.yum_post_install_mirror:
            return ""
 
-        urlseg = self.get_repo_segname(is_profile)
-
-        distro = obj.get_conceptual_parent()
-        if not is_profile:
-           distro = distro.get_conceptual_parent()
-
         blended = utils.blender(self.api, False, obj)
-        configs = self.get_repo_filenames(obj, is_profile)
-        buf = ""
- 
-        # for each kickstart template we have rendered ...
-        for c in configs:
+        if is_profile:
+           url = "http://%s/cblr/svc/op/yum/profile/%s" % (blended["http_server"], obj.name)
+        else:
+           url = "http://%s/cblr/svc/op/yum/system/%s" % (blended["http_server"], obj.name)
 
-           name = c.split("/")[-1].replace(".repo","")
-           # add the line to create the yum config file on the target box
-           conf = self.get_repo_config_file(blended["http_server"],urlseg,blended["name"],name)
-           buf = buf + "wget \"%s\" --output-document=/etc/yum.repos.d/%s.repo\n" % (conf, name)    
-
-        return buf
+        return "wget \"%s\" --output-document=/etc/yum.repos.d/cobbler-config.repo\n" % (url)
 
     def get_repo_config_file(self,server,urlseg,obj_name,repo_name):
         """
@@ -257,6 +228,9 @@ class KickGen:
         if profile is None:
             raise CX(_("system %(system)s references missing profile %(profile)s") % { "system" : s.name, "profile" : s.profile })
         distro = profile.get_conceptual_parent()
+        if distro is None: 
+            # this is an image parented system, no kickstart available
+            return "# image based systems do not have kickstarts"
         meta = utils.blender(self.api, False, s)
         kickstart_path = utils.find_kickstart(meta["kickstart"])
         if kickstart_path and os.path.exists(kickstart_path):
@@ -276,4 +250,10 @@ class KickGen:
             except:
                 traceback.print_exc()
                 raise CX(_("Error templating file"))
+        elif kickstart_path is not None and not os.path.exists(kickstart_path):
+            if kickstart_path.find("http://") == -1 and kickstart_path.find("ftp://") == -1 and kickstart_path.find("nfs:") == -1:
+                return "# Error, cannot find %s" % kickstart_path
+        return "# kickstart is sourced externally: %s" % meta["kickstart"]
+
+
 

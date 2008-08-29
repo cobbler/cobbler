@@ -16,6 +16,8 @@ from cobbler import settings
 from cobbler import collection_distros
 from cobbler import collection_profiles
 from cobbler import collection_systems
+from cobbler import collection_repos
+from cobbler import collection_images
 import cobbler.modules.authz_ownership as authz_module
 
 from cobbler import api
@@ -101,6 +103,11 @@ class BootTest(unittest.TestCase):
         self.assertTrue(repo.set_name("test_repo"))
         self.assertTrue(repo.set_mirror("/tmp/test_example_cobbler_repo"))
         self.assertTrue(self.api.repos().add(repo))
+
+        image = self.api.new_image()
+        self.assertTrue(image.set_name("test_image"))
+        self.assertTrue(image.set_file("/etc/hosts")) # meaningless path
+        self.assertTrue(self.api.images().add(image))
 
 class DuplicateNamesAndIpPrevention(BootTest):
 

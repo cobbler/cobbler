@@ -1,15 +1,23 @@
 """
 Misc heavy lifting functions for cobbler
 
-Copyright 2006, Red Hat, Inc
+Copyright 2006-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import sys
@@ -26,7 +34,28 @@ import errno
 import logging
 import shutil
 import tempfile
+<<<<<<< HEAD:cobbler/utils.py
+=======
+import signal
+>>>>>>> devel:cobbler/utils.py
 from cexceptions import *
+import codes
+
+CHEETAH_ERROR_DISCLAIMER="""
+# There is a templating error preventing this file from rendering correctly. 
+#
+# This is most likely not due to a bug in Cobbler and is something you can fix.
+#
+# Look at the message below to see what things are causing problems.  
+#
+# (1) Does the template file reference a $variable that is not defined?
+# (2) is there a formatting error in a Cheetah directive?
+# (3) Should dollar signs ($) be escaped that are not being escaped?
+#
+# Try fixing the problem and then investigate to see if this message goes
+# away or changes.
+#
+"""
 
 #placeholder for translation
 def _(foo):
@@ -76,7 +105,9 @@ def log_exc(logger):
    logger.info("Exception occured: %s" % t )
    logger.info("Exception value: %s" % v)
    logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+   
 
+<<<<<<< HEAD:cobbler/utils.py
 def print_exc(exc,full=False):
    (t, v, tb) = sys.exc_info()
    try:
@@ -89,20 +120,73 @@ def print_exc(exc,full=False):
           print >> sys.stderr, string.join(traceback.format_list(traceback.extract_tb(tb)))
    return 1
 
+=======
+def get_exc(exc,full=True):
+   (t, v, tb) = sys.exc_info()
+   buf = ""
+   try:
+      getattr(exc, "from_cobbler")
+      buf = str(exc)[1:-1] + "\n"
+   except:
+      if not full:
+          buf = buf + str(t)
+      buf = "%s\n%s" % (buf,v)
+      if full:
+          buf = buf + "\n" + "\n".join(traceback.format_list(traceback.extract_tb(tb)))
+   return buf
+
+def print_exc(exc,full=False):
+   buf = get_exc(exc)
+   sys.stderr.write(buf+"\n")
+   return buf
+
+def cheetah_exc(exc,full=False):
+   
+   lines = get_exc(exc).split("\n")
+   buf = ""
+   for l in lines:
+      buf = buf + "# %s\n" % l
+   return CHEETAH_ERROR_DISCLAIMER + buf
+>>>>>>> devel:cobbler/utils.py
 
 def trace_me():
    x = traceback.extract_stack()
    bar = string.join(traceback.format_list(x))
    return bar
 
-def get_host_ip(ip):
+
+def get_host_ip(ip, shorten=True):
     """
     Return the IP encoding needed for the TFTP boot tree.
     """
+
+    slash = None
+    if ip.find("/") != -1:
+       # CIDR notation
+       (ip, slash) = ip.split("/")
+
     handle = sub_process.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=sub_process.PIPE)
     out = handle.stdout
     results = out.read()
-    return results.split(" ")[-1][0:8]
+    converted = results.split(" ")[-1][0:8]
+
+    if slash is None:
+        return converted
+    else:
+        slash = int(slash)
+        num = int(converted, 16)
+        delta = 32 - slash
+        mask = (0xFFFFFFFF << delta)
+        num = num & mask
+        num = "%0x" % num
+        if len(num) != 8:
+            num = '0' * (8 - len(num)) + num
+        num = num.upper()
+        if shorten:
+            nibbles = delta / 4
+            for x in range(0,nibbles):
+                num = num[0:-1]
+        return num
 
 def get_config_filename(sys,interface):
     """
@@ -110,7 +194,7 @@ def get_config_filename(sys,interface):
     a form of the MAC address of the hex version of the IP.  If none
     of that is available, just use the given name, though the name
     given will be unsuitable for PXE configuration (For this, check
-    system.is_pxe_supported()).  This same file is used to store
+    system.is_management_supported()).  This same file is used to store
     system config information in the Apache tree, so it's still relevant.
     """
 
@@ -122,9 +206,9 @@ def get_config_filename(sys,interface):
         return "default"
     mac = sys.get_mac_address(interface)
     ip  = sys.get_ip_address(interface)
-    if mac != None:
+    if mac is not None and mac != "":
         return "01-" + "-".join(mac.split(":")).lower()
-    elif ip != None:
+    elif ip is not None and ip != "":
         return get_host_ip(ip)
     else:
         return sys.name
@@ -401,6 +485,11 @@ def blender(api_handle,remove_hashes, root_obj):
     if len(kernel_txt) < 244:
         results["kernel_options"]["kssendmac"] = None
 
+    # convert post kernel options to string
+    if results.has_key("kernel_options_post"):
+        results["kernel_options_post"] = hash_to_string(results["kernel_options_post"])
+
+
     # make interfaces accessible without Cheetah-voodoo in the templates
     # EXAMPLE:  $ip == $ip0, $ip1, $ip2 and so on.
  
@@ -429,14 +518,25 @@ def blender(api_handle,remove_hashes, root_obj):
     # add in some variables for easier templating
     # as these variables change based on object type
     if results.has_key("interfaces"):
+        # is a system object
         results["system_name"]  = results["name"]
         results["profile_name"] = results["profile"]
-        results["distro_name"]  = results["distro"]
+        if results.has_key("distro"):
+            results["distro_name"]  = results["distro"]
+        elif results.has_key("image"):
+            results["distro_name"]  = "N/A"
+            results["image_name"]   = results["image"]
     elif results.has_key("distro"):
+        # is a profile or subprofile object
         results["profile_name"] = results["name"]
         results["distro_name"]  = results["distro"]
     elif results.has_key("kernel"):
+        # is a distro object
         results["distro_name"]  = results["name"]
+    elif results.has_key("file"):
+        # is an image object
+        results["distro_name"]  = "N/A"
+        results["image_name"]   = results["name"]
 
     return results
 
@@ -446,6 +546,8 @@ def flatten(data):
     # this should not be done for everything
     if data.has_key("kernel_options"):
         data["kernel_options"] = hash_to_string(data["kernel_options"])
+    if data.has_key("kernel_options_post"):
+        data["kernel_options_post"] = hash_to_string(data["kernel_options_post"])
     if data.has_key("yumopts"):
         data["yumopts"]        = hash_to_string(data["yumopts"])
     if data.has_key("ks_meta"):
@@ -506,6 +608,7 @@ def __consolidate(node,results):
     # of kernel options set in a distro later in a profile, etc.
 
     hash_removals(results,"kernel_options")
+    hash_removals(results,"kernel_options_post")
     hash_removals(results,"ks_meta")
 
 def hash_removals(results,subkey):
@@ -658,24 +761,38 @@ def tftpboot_location():
        return "/var/lib/tftpboot"
     return "/tftpboot"
 
-def linkfile(src, dst):
+def linkfile(src, dst, symlink_ok=False):
     """
     Attempt to create a link dst that points to src.  Because file
     systems suck we attempt several different methods or bail to
     copyfile()
     """
 
+    if os.path.exists(dst):
+        if os.path.samefile(src, dst):
+            # hardlink already exists, no action needed
+            return True
+        elif os.path.islink(dst):
+            # existing path exists and is a symlink, update the symlink
+            os.remove(dst)
+        else:
+            # file already exists as is not a link, we'll try
+            # to copy over it
+            pass
+
     try:
         return os.link(src, dst)
     except (IOError, OSError):
+        # hardlink across devices, or link already exists
         pass
 
-    try:
-        return os.symlink(src, dst)
-    except (IOError, OSError):
-        pass
+    if symlink_ok:
+        try:
+            return os.symlink(src, dst)
+        except (IOError, OSError):
+            pass
 
-        return copyfile(src, dst)
+    return copyfile(src, dst)
 
 def copyfile(src,dst):
     try:
@@ -687,6 +804,14 @@ def copyfile(src,dst):
             # accomodate for the possibility that we already copied
             # the file as a symlink/hardlink
             raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+
+def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False):
+    files = glob.glob(pattern)
+    if require_match and not len(files) > 0:
+        raise CX(_("Could not find files matching %s") % pattern)
+    for file in files:
+        base = os.path.basename(file)
+        linkfile(file,os.path.join(dst,os.path.basename(file)),symlink_ok)
 
 def rmfile(path):
     try:
@@ -733,6 +858,32 @@ def set_arch(self,arch):
        return True
    raise CX(_("arch choices include: x86, x86_64, s390x and ia64"))
 
+<<<<<<< HEAD:cobbler/utils.py
+=======
+def set_os_version(self,os_version):
+   if os_version is None:
+      raise CX(_("invalid value for --os-version, see manpage"))
+   self.os_version = os_version.lower()
+   if self.breed is None or self.breed == "":
+      raise CX(_("cannot set --os-version without setting --breed first"))
+   if not self.breed in codes.VALID_OS_BREEDS:
+      raise CX(_("fix --breed first before applying this setting"))
+   matched = codes.VALID_OS_VERSIONS[self.breed]
+   if not os_version in matched:
+      nicer = ", ".join(matched)
+      raise CX(_("--os-version for breed %s must be one of %s") % (self.breed, nicer))
+   self.os_version = os_version
+   return True
+
+def set_breed(self,breed):
+   valid_breeds = codes.VALID_OS_BREEDS
+   if breed is not None and breed.lower() in valid_breeds:
+       self.breed = breed.lower()
+       return True
+   nicer = ", ".join(valid_breeds)
+   raise CX(_("invalid value for --breed, must be one of %s, different breeds have different levels of support") % nicer)
+
+>>>>>>> devel:cobbler/utils.py
 def set_repos(self,repos,bypass_check=False):
    # WARNING: hack
    repos = fix_mod_python_select_submission(repos)
@@ -843,7 +994,7 @@ def set_virt_type(self,vtype):
          self.virt_type == "<<inherit>>"
          return True
 
-     if vtype.lower() not in [ "qemu", "xenpv", "xenfv", "vmware", "auto" ]:
+     if vtype.lower() not in [ "qemu", "xenpv", "xenfv", "vmware", "vmwarew", "auto" ]:
          raise CX(_("invalid virt type"))
      self.virt_type = vtype
      return True
@@ -902,5 +1053,13 @@ def get_kickstart_templates(api):
 
 if __name__ == "__main__":
     # print redhat_release()
-    print tftpboot_location()
+    # print tftpboot_location()
+    #print get_host_ip("255.255.255.250")
+    #for x in range(32,1,-1):
+    #   value = get_host_ip("255.255.255.0/%s" % x, shorten=False)
+    #   value2 = get_host_ip("255.255.255.0/%s" % x, shorten=True)
+    #   print "%s -> %s" % (value,value2)
+    no_ctrl_c()
+    ctrl_c_ok()
+
 

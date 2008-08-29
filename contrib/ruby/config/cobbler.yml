@@ -1,0 +1,5 @@
+# Cobbler connection details
+
+hostname: my.cobbler.server.com
+username: admin
+password: farkle

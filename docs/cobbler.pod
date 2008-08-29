@@ -41,12 +41,12 @@ After installing, run "cobbler check" to verify that cobbler's ecosystem is conf
 
 Any problems detected should be corrected, with the potential exception of DHCP related warnings where you will need to use your judgement as to whether they apply to your environment.  Run "cobbler sync" after making any changes to the configuration files to ensure those changes are applied to the environment.
 
-It is especially important that the server name field be accurate in /etc/cobbler/settings, without this field being correct, kickstart trees will not be found, and automated installtions will fail.
+It is especially important that the server name field be accurate in /etc/cobbler/settings, without this field being correct, kickstart trees will not be found, and automated installations will fail.
 
 For PXE, if DHCP is to be run from the cobbler server, the dhcp configuration file should be changed as suggested by "cobbler check".  If DHCP is not run locally, the "next-server" field on the DHCP server should at minimum point to the cobbler server's IP and the filename should be set to "pxelinux.0".  Alternatively, cobbler can also generate your dhcp configuration file if you want to run dhcp locally -- this is covered in a later section.  If you don't already have a DHCP setup managed by some other tool, allowing cobbler to manage DHCP will prove to be useful as it can manage DHCP reservations and other data.  If you already have a DHCP setup, moving an existing setup to be managed from within cobbler is relatively painless -- though usage of the DHCP management feature is entirely optional.  If you are not interested
 in network booting via PXE and just want to use koan to install virtual systems or replace existing ones, DHCP configuration can be totally ignored.  Koan also has a live CD (see koan's manpage) capability that can be used to simulate PXE environments.
 
-=head2 ADDING A DISTRIBUTION
+=head2 DISTRIBUTIONS
 
 This first step towards configurating what you want to provision is to add a distribution to cobbler's configuration.  
 
@@ -54,7 +54,7 @@ If there is an rsync mirror, DVD, NFS, or filesystem tree available that you wou
 
 If you want to be explicit with distribution definition, however, here's how it works:
 
-B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--ksmeta=string] [--arch=x86|x86_64|ia64] [--breed=redhat|debian|suse]>
+B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--kopts-post=string] [--ksmeta=string] [--arch=x86|x86_64|ia64] [--breed=redhat|debian|suse]>
 
 =over
 
@@ -73,9 +73,20 @@ An absolute filesystem path to a initrd image
 =item kopts
 
 Sets kernel command-line arguments that the distro, and profiles/systems dependant
-on it, will use.
+on it, will use.  To remove a kernel argument that may be added by a higher cobbler object
+(or in the global settings), you can prefix it with a "!".
 
-Example: --kopts="foo=bar baz=3 asdf"
+Example: --kopts="foo=bar baz=3 asdf !gulp"
+
+This example passes the arguments "foo=bar baz=3 asdf" but will make sure "gulp" is not passed even
+if it was requested at a level higher up in the cobbler configuration.
+
+=item kopts-post
+
+This is just like --kopts, though it governs kernel options on the installed OS, as opposed to
+kernel options fed to the installer.  The syntax is exactly the same.
+
+Example: "noapic"
 
 =item arch
 
@@ -95,12 +106,17 @@ See the section on "Kickstart Templating" for further information.
 
 =item breed
 
-Controls how kernel arguments for automatic installation are to be treated.  Defaults to "redhat", which is a suitable value for Fedora and Centos as well.  It means anything redhat based.
+Controls how various physical and virtual parameters, including kernel arguments for automatic installation, are to be treated.  Defaults to "redhat", which is a suitable value for Fedora and CentOS as well.  It means anything redhat based.
 
 There is limited experimental support for specifying "debian" or "suse", which treats the kickstart file as a different format and changes the kernel
 arguments appropriately.   Support for other types of distributions is possible in the future.  
 
 The file used for the answer file, regardless of the breed setting, is the value used for --kickstart when creating the profile.  
+
+=item os-version
+
+Generally this field can be ignored.   It is intended to alter some hardware setup for virtualized instances when
+provisioning guests with koan.  The valid options for --os-version vary depending on what is specified for --breed.  If you specify an invalid option, the error message will contain a list of valid os versions that can be used.  If you do not know the os version or it does not appear in the list, omitting this argument or using "other" should be perfectly fine.  Largely this is needed to support older distributions in virtualized settings, such as "rhel2.1", one of the OS choices if the breed is set to "redhat".  If you do not encounter any problems with virtualized instances, this option can be safely ignored.
 
 =item owners
 
@@ -108,7 +124,7 @@ Users with small sites and a limited number of admins can probably ignore this o
 
 =back
 
-=head2 ADDING A PROFILE
+=head2 PROFILES
 
 A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.  A profile might represent, for instance, a web server or desktop configuration.  In this way, profiles define a role to be performed.  
 
@@ -186,7 +202,7 @@ This parameter should be useful only in select circumstances.  If machines are o
 
 =back
 
-=head2 ADDING A SYSTEM
+=head2 SYSTEMS
 
 System records map a piece of hardware (or a virtual machine) with the cobbler profile to be assigned to run on it.  This may be thought of as chosing a role for a specific system.
 
@@ -224,6 +240,8 @@ Note for Itanium users:  this setting is always required for IA64 regardless of 
 
 If DHCP management is disabled, setting this parameter may still be useful for record keeping, and it is also available in all kickstart templates, so it can be easily used for static IP configuration within kickstarts.
 
+Special feature: To control the default PXE behavior for an entire subnet, this field can also be passed in using CIDR notation.  If --ip is CIDR, do not specify any other arguments other than --name and --profile.
+
 =item hostname
 
 If using the DHCP configuration feature (see advanced section) with dnsmasq, use this to define a hostname for the system to recieve from DNS.  If not using DHCP management or not using dnsmasq, this field is treated as a descriptive comment and is basically ignored other than being made available in templates.
@@ -260,7 +278,7 @@ This is described further on the Cobbler Wiki.
 
 =item --interface
 
-By default flags like --ip, --mac, --dhcp-tag, --gateway, --subnet, and --virt-bridge operation on the first network
+By default flags like --ip, --mac, --dhcp-tag, --gateway, --subnet, and --virt-bridge operate on the first network
 interface defined for a system.  Additional interfaces can be specified (0 through 7) for use with the edit command.
 
 Example:  
@@ -273,7 +291,7 @@ NOTE: Additional interfaces can presently only be deleted via the web interface.
 
 =end
 
-=head2 ADDING A REPOSITORY TO MIRROR
+=head2 REPOSITORIES
 
 Repository mirroring allows cobbler to mirror not only install trees ("cobbler import" does this for you) but also optional packages, 3rd party content, and even updates.   Mirroring all of this content locally
 on your network will result in faster, more up-to-date installations and faster updates.  If you
@@ -401,11 +419,13 @@ B<cobbler distro|profile|system|repo rename --name=oldname --newname=newname>
 
 =head2 REPLICATING
 
-Cobbler can replicate distro and profile data from a master cobbler server.
+Cobbler can replicate configurations from a master cobbler server.  Each cobbler server is still
+expected to have a locally relevant /etc/cobbler/cobbler.conf and modules.conf, as these files are not
+synced. 
 
-B<cobbler replicate --master=cobbler.example.org>
+B<cobbler replicate --master=cobbler.example.org [--include-systems] [--full-data-sync] [--sync-kickstarts] [--sync-trees] [--sync-triggers] [--sync-repos]>
 
-This will bring over all distro data for which it can find data in /var/www/cobbler/ks_mirror can be found.  It will also bring over any default profiles for those distros.  A default cobbler master can be set in the settings file.  Tree data must still be rsync'd (or otherwise mirrored) manually.
+A default cobbler master can be configured in the settings file.  Unless --include-systems is specified, only distributions, profiles, and repos will be transferred.  To move the accompanying data via rsync/scp, use --full-data-sync or a combination of the more specific sync options.  If not using --full-data-sync, the files must be mirrored via some other means or the objects will not be imported successfully.  This command works best if you are using "cobbler import" and "cobbler reposync" to manage your trees and repos.  If doing some of this work outside of Cobbler, additional scripting will be required to achieve replication, though this command will still do a large part of the heavy lifting.
 
 =head2 REBUILDING CONFIGURATIONS
 
@@ -587,7 +607,6 @@ If the avahi-tools package is installed, cobblerd will broadcast it's presence o
 
 =head2 IMPORTING TREES
 
-
 Cobbler can auto-add distributions and profiles from remote sources, whether this is a filesystem path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.  Import is a feature that many users will want to take advantage of, and is very simple to use.
   
 After an import is run, cobbler will try to detect the distribution type and automatically assign kickstarts.  By default, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of "cobbler".  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting after cobbler creates the profile.
@@ -669,6 +688,12 @@ To use this feature, the kickstart tree files need to be served via a http://ser
 If kickstart trees are somewhere else, one can still benefit from the kickstart tracking feature by adding a symlink to /var/www/cobbler/localmirror/distroname will allow the kickstarts to be served through the tracking URL mentioned above.   Be sure to use the http://server/cblr/ URL to point to the kickstart tree for each distro you want to track.
 
 Note that kickstart tracking support using syslog requires an Anaconda that supports syslog forwarding.  RHEL5 is good, as is FC6 and later.  URL tracking currently requires python2.3 or higher on the server for the mod_python piece to work.  This will likely be improved later to better support older distros acting as a cobbler server.
+
+
+=head2 IMAGES
+
+Cobbler can help with booting images physically and virtually, though the usage of these commands varies
+substantially by the type of image.   Non-image based deployments are generally easier to work with and lead to more sustaintable infrastructure. See https://fedorahosted.org/cobbler/wiki/AllAboutImages for details on things that are offered.  Some manual use of other commands beyond of what is typically required of cobbler may be needed to prepare images for use with this feature.
 
 =head2 TWEAKING
 

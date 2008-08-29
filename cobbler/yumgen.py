@@ -5,12 +5,20 @@ This is the code behind 'cobbler sync'.
 Copyright 2006-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import os
@@ -50,24 +58,20 @@ class YumGen:
         self.repos       = config.repos()
         self.templar     = templar.Templar(config)
 
-    def retemplate_all_yum_repos(self):
-        for p in self.profiles:
-            self.retemplate_yum_repos(p,True)
-        for system in self.systems:
-            self.retemplate_yum_repos(system,False)
+    #def retemplate_all_yum_repos(self):
+    #    for p in self.profiles:
+    #        self.retemplate_yum_repos(p,True)
+    #    for system in self.systems:
+    #        self.retemplate_yum_repos(system,False)
 
-    def retemplate_yum_repos(self,obj,is_profile):
+    def get_yum_config(self,obj,is_profile):
         """
-        Yum repository management files are in self.settings.webdir/repo_mirror/$name/config.repo
-        and also potentially in listed in the source_repos structure of the distro object, however
-        these files have server URLs in them that must be templated out.  This function does this.
+        Return one large yum repo config blob suitable for use by any target system that requests it.
         """
+
+        totalbuf = ""
+
         blended  = utils.blender(self.api, False, obj)
-
-        if is_profile:
-           outseg = "repos_profile"
-        else:
-           outseg = "repos_system"
 
         input_files = []
 
@@ -92,9 +96,6 @@ class YumGen:
                 dispname = infile.split("/")[-2]
             else:
                 dispname = infile.split("/")[-1].replace(".repo","")
-            confdir = os.path.join(self.settings.webdir, outseg)
-            outdir = os.path.join(confdir, blended["name"])
-            utils.mkdir(outdir) 
             try:
                 infile_h = open(infile)
             except:
@@ -104,7 +105,11 @@ class YumGen:
                 continue
             infile_data = infile_h.read()
             infile_h.close()
-            outfile = os.path.join(outdir, "%s.repo" % (dispname))
-            self.templar.render(infile_data, blended, outfile, None)
+            outfile = None # disk output only
+            totalbuf = totalbuf + self.templar.render(infile_data, blended, outfile, None)
+            totalbuf = totalbuf + "\n\n"
+
+        return totalbuf
+
 
 

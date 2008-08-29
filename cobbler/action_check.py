@@ -5,12 +5,20 @@ serving up content.  This is the code behind 'cobbler check'.
 Copyright 2006, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import os
@@ -19,6 +27,7 @@ import sub_process
 import action_sync
 import utils
 from utils import _
+
 class BootCheck:
 
    def __init__(self,config):
@@ -58,7 +67,7 @@ class BootCheck:
 
        self.check_service(status, "cobblerd")
     
-       self.check_bootloaders(status)
+       # self.check_bootloaders(status)
        self.check_tftpd_bin(status)
        self.check_tftpd_dir(status)
        self.check_tftpd_conf(status)
@@ -68,22 +77,31 @@ class BootCheck:
        self.check_for_default_password(status)
        self.check_for_unreferenced_repos(status)
        self.check_for_unsynced_repos(status)
+       
+       # comment out until s390 virtual PXE is fully supported
+       # self.check_vsftpd_bin(status)
 
        return status
 
-   def check_service(self, status, which):
-     if utils.check_dist() == "redhat":
-        if os.path.exists("/etc/rc.d/init.d/%s" % which):
-          rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True)
-          if rc != 0:
-            status.append(_("service %s is not running") % which)
-     elif utils.check_dist() == "debian":
-        if os.path.exists("/etc/init.d/%s" % which):
-	  rc = sub_process.call("/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
-	  if rc != 0:
-	    status.append(_("service %s is not running") % which)
-     else:
-       status.append(_("Unknown distribution type, cannot check for running service %s" % which))
+   def check_service(self, status, which, notes=""):
+       if notes != "":
+           notes = " (NOTE: %s)" % notes
+       if utils.check_dist() == "redhat":
+           if os.path.exists("/etc/rc.d/init.d/%s" % which):
+               rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True)
+           if rc != 0:
+               status.append(_("service %s is not running%s") % (which,notes))
+               return False
+       elif utils.check_dist() == "debian":
+           if os.path.exists("/etc/init.d/%s" % which):
+	       rc = sub_process.call("/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
+	   if rc != 0:
+	       status.append(_("service %s is not running%s") % which,notes)
+               return False
+       else:
+           status.append(_("Unknown distribution type, cannot check for running service %s" % which))
+           return False
+       return True
 
    def check_iptables(self, status):
        if os.path.exists("/etc/rc.d/init.d/iptables"):
@@ -192,18 +210,21 @@ class BootCheck:
            status.append(_("bind isn't installed, but management is enabled in /etc/cobbler/settings"))
        
 
-   def check_bootloaders(self,status):
-       """
-       Check if network bootloaders are installed
-       """
-       for loader in self.settings.bootloaders.keys():
-          filename = self.settings.bootloaders[loader]
-          if not os.path.exists(filename):
-              if filename.find("pxelinux") != -1:
-                 status.append(_("syslinux should be installed but is not, expecting to find something at %s" % filename))
-              else:
-                 status.append(_("bootloader missing: %s" % filename))
-              return
+   # FIXME: removed as we no longer source bootloaders from settings, it's now done
+   # directly in pxegen.py -- do we want some checks here though?  
+
+   #def check_bootloaders(self,status):
+   #    """
+   #    Check if network bootloaders are installed
+   #    """
+   #    for loader in self.settings.bootloaders.keys():
+   #       filename = self.settings.bootloaders[loader]
+   #       if not os.path.exists(filename):
+   #           if filename.find("pxelinux") != -1:
+   #              status.append(_("syslinux should be installed but is not, expecting to find something at %s" % filename))
+   #           else:
+   #              status.append(_("bootloader missing: %s" % filename))
+   #           return
 
    def check_tftpd_bin(self,status):
        """
@@ -213,6 +234,30 @@ class BootCheck:
           status.append(_("tftp-server is not installed."))
        else:
           self.check_service(status,"xinetd")
+
+   def check_vsftpd_bin(self,status):
+       """
+       Check if vsftpd is installed
+       """
+       if not os.path.exists(self.settings.vsftpd_bin):
+           status.append(_("vsftpd is not installed (NOTE: needed for s390x support only)"))
+       else:
+           self.check_service(status,"vsftpd","needed for 390x support only")
+           
+       bootloc = utils.tftpboot_location()
+       if not os.path.exists("/etc/vsftpd/vsftpd.conf"):
+           status.append("missing /etc/vsftpd/vsftpd.conf")   
+       conf = open("/etc/vsftpd/vsftpd.conf")
+       data = conf.read()
+       lines = data.split("\n")
+       ok = False
+       for line in lines:
+           if line.find("anon_root") != -1 and line.find(bootloc) != -1:
+               ok = True
+               break
+       conf.close()
+       if not ok:
+           status.append("in /etc/vsftpd/vsftpd.conf the line 'anon_root=%s' should be added (needed for s390x support only)" % bootloc)
 
    def check_tftpd_dir(self,status):
        """
@@ -270,5 +315,4 @@ class BootCheck:
               status.append(_("missing file: %(file)s") % { "file" : self.settings.dhcpd_conf })
        else:
            status.append(_("missing file: %(file)s") % { "file" : self.settings.dhcpd_conf })
-
 

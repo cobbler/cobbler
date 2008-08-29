@@ -1,15 +1,23 @@
 """
 A Cobbler Profile.  A profile is a reference to a distribution, possibly some kernel options, possibly some Virt options, and some kickstart data.
 
-Copyright 2006, Red Hat, Inc
+Copyright 2006-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import utils
@@ -33,40 +41,42 @@ class Profile(item.Item):
         """
         Reset this object.
         """
-        self.name            = None
-        self.owners          = self.settings.default_ownership
-        self.distro          = (None,                              '<<inherit>>')[is_subobject]
-        self.kickstart       = (self.settings.default_kickstart ,  '<<inherit>>')[is_subobject]    
-        self.kernel_options  = ({},                                '<<inherit>>')[is_subobject]
-        self.ks_meta         = ({},                                '<<inherit>>')[is_subobject]
-        self.virt_cpus       = (1,                                 '<<inherit>>')[is_subobject]
-        self.virt_file_size  = (self.settings.default_virt_file_size,                                 '<<inherit>>')[is_subobject]
-        self.virt_ram        = (self.settings.default_virt_ram,                               '<<inherit>>')[is_subobject]
-        self.repos           = ([],                                '<<inherit>>')[is_subobject]
-        self.depth           = 1
-        self.virt_type       = (self.settings.default_virt_type,   '<<inherit>>')[is_subobject]
-        self.virt_path       = ("",                                '<<inherit>>')[is_subobject]
-        self.virt_bridge     = (self.settings.default_virt_bridge, '<<inherit>>')[is_subobject]
-        self.dhcp_tag        = ("default",                         '<<inherit>>')[is_subobject]
-        self.parent          = ''
-        self.server          = "<<inherit>>"
+        self.name                   = None
+        self.owners                 = self.settings.default_ownership
+        self.distro                 = (None,                                    '<<inherit>>')[is_subobject]
+        self.kickstart              = (self.settings.default_kickstart ,        '<<inherit>>')[is_subobject]    
+        self.kernel_options         = ({},                                      '<<inherit>>')[is_subobject]
+        self.kernel_options_post    = ({},                                      '<<inherit>>')[is_subobject]
+        self.ks_meta                = ({},                                      '<<inherit>>')[is_subobject]
+        self.virt_cpus              = (1,                                       '<<inherit>>')[is_subobject]
+        self.virt_file_size         = (self.settings.default_virt_file_size,    '<<inherit>>')[is_subobject]
+        self.virt_ram               = (self.settings.default_virt_ram,          '<<inherit>>')[is_subobject]
+        self.repos                  = ([],                                      '<<inherit>>')[is_subobject]
+        self.depth                  = 1
+        self.virt_type              = (self.settings.default_virt_type,         '<<inherit>>')[is_subobject]
+        self.virt_path              = ("",                                      '<<inherit>>')[is_subobject]
+        self.virt_bridge            = (self.settings.default_virt_bridge,       '<<inherit>>')[is_subobject]
+        self.dhcp_tag               = ("default",                               '<<inherit>>')[is_subobject]
+        self.parent                 = ''
+        self.server                 = "<<inherit>>"
 
     def from_datastruct(self,seed_data):
         """
         Load this object's properties based on seed_data
         """
 
-        self.parent          = self.load_item(seed_data,'parent','')
-        self.name            = self.load_item(seed_data,'name')
-        self.owners          = self.load_item(seed_data,'owners',self.settings.default_ownership)
-        self.distro          = self.load_item(seed_data,'distro')
-        self.kickstart       = self.load_item(seed_data,'kickstart')
-        self.kernel_options  = self.load_item(seed_data,'kernel_options')
-        self.ks_meta         = self.load_item(seed_data,'ks_meta')
-        self.repos           = self.load_item(seed_data,'repos', [])
-        self.depth           = self.load_item(seed_data,'depth', 1)     
-        self.dhcp_tag        = self.load_item(seed_data,'dhcp_tag', 'default')
-        self.server          = self.load_item(seed_data,'server', '<<inherit>>')
+        self.parent                 = self.load_item(seed_data,'parent','')
+        self.name                   = self.load_item(seed_data,'name')
+        self.owners                 = self.load_item(seed_data,'owners',self.settings.default_ownership)
+        self.distro                 = self.load_item(seed_data,'distro')
+        self.kickstart              = self.load_item(seed_data,'kickstart')
+        self.kernel_options         = self.load_item(seed_data,'kernel_options')
+        self.kernel_options_post    = self.load_item(seed_data,'kernel_options_post')
+        self.ks_meta                = self.load_item(seed_data,'ks_meta')
+        self.repos                  = self.load_item(seed_data,'repos', [])
+        self.depth                  = self.load_item(seed_data,'depth', 1)     
+        self.dhcp_tag               = self.load_item(seed_data,'dhcp_tag', 'default')
+        self.server                 = self.load_item(seed_data,'server', '<<inherit>>')
 
         # backwards compatibility
         if type(self.repos) != list:
@@ -87,6 +97,8 @@ class Profile(item.Item):
         # backwards compatibility -- convert string entries to dicts for storage
         if self.kernel_options != "<<inherit>>" and type(self.kernel_options) != dict:
             self.set_kernel_options(self.kernel_options)
+        if self.kernel_options_post != "<<inherit>>" and type(self.kernel_options_post) != dict:
+            self.set_kernel_options_post(self.kernel_options_post)
         if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
             self.set_ksmeta(self.ks_meta)
         if self.repos != "<<inherit>>" and type(self.ks_meta) != list:
@@ -214,23 +226,24 @@ class Profile(item.Item):
         Return hash representation for the serializer
         """
         return {
-            'name'             : self.name,
-            'owners'           : self.owners,
-            'distro'           : self.distro,
-            'kickstart'        : self.kickstart,
-            'kernel_options'   : self.kernel_options,
-            'virt_file_size'   : self.virt_file_size,
-            'virt_ram'         : self.virt_ram,
-            'virt_bridge'      : self.virt_bridge,
-            'virt_cpus'        : self.virt_cpus,
-            'ks_meta'          : self.ks_meta,
-            'repos'            : self.repos,
-            'parent'           : self.parent,
-            'depth'            : self.depth,
-            'virt_type'        : self.virt_type,
-            'virt_path'        : self.virt_path,
-            'dhcp_tag'         : self.dhcp_tag,
-            'server'           : self.server,
+            'name'                  : self.name,
+            'owners'                : self.owners,
+            'distro'                : self.distro,
+            'kickstart'             : self.kickstart,
+            'kernel_options'        : self.kernel_options,
+            'kernel_options_post'   : self.kernel_options_post,
+            'virt_file_size'        : self.virt_file_size,
+            'virt_ram'              : self.virt_ram,
+            'virt_bridge'           : self.virt_bridge,
+            'virt_cpus'             : self.virt_cpus,
+            'ks_meta'               : self.ks_meta,
+            'repos'                 : self.repos,
+            'parent'                : self.parent,
+            'depth'                 : self.depth,
+            'virt_type'             : self.virt_type,
+            'virt_path'             : self.virt_path,
+            'dhcp_tag'              : self.dhcp_tag,
+            'server'                : self.server,
 
         }
 
@@ -238,24 +251,25 @@ class Profile(item.Item):
         """
         A human readable representaton
         """
-        buf =       _("profile         : %s\n") % self.name
+        buf =       _("profile              : %s\n") % self.name
         if self.distro == "<<inherit>>":
-            buf = buf + _("parent          : %s\n") % self.parent
+            buf = buf + _("parent               : %s\n") % self.parent
         else:
-            buf = buf + _("distro          : %s\n") % self.distro
-        buf = buf + _("dhcp tag        : %s\n") % self.dhcp_tag
-        buf = buf + _("kernel options  : %s\n") % self.kernel_options
-        buf = buf + _("kickstart       : %s\n") % self.kickstart
-        buf = buf + _("ks metadata     : %s\n") % self.ks_meta
-        buf = buf + _("owners          : %s\n") % self.owners
-        buf = buf + _("repos           : %s\n") % self.repos
-        buf = buf + _("server          : %s\n") % self.server
-        buf = buf + _("virt bridge     : %s\n") % self.virt_bridge
-        buf = buf + _("virt cpus       : %s\n") % self.virt_cpus
-        buf = buf + _("virt file size  : %s\n") % self.virt_file_size
-        buf = buf + _("virt path       : %s\n") % self.virt_path
-        buf = buf + _("virt ram        : %s\n") % self.virt_ram
-        buf = buf + _("virt type       : %s\n") % self.virt_type
+            buf = buf + _("distro               : %s\n") % self.distro
+        buf = buf + _("dhcp tag             : %s\n") % self.dhcp_tag
+        buf = buf + _("kernel options       : %s\n") % self.kernel_options
+        buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
+        buf = buf + _("kickstart            : %s\n") % self.kickstart
+        buf = buf + _("ks metadata          : %s\n") % self.ks_meta
+        buf = buf + _("owners               : %s\n") % self.owners
+        buf = buf + _("repos                : %s\n") % self.repos
+        buf = buf + _("server               : %s\n") % self.server
+        buf = buf + _("virt bridge          : %s\n") % self.virt_bridge
+        buf = buf + _("virt cpus            : %s\n") % self.virt_cpus
+        buf = buf + _("virt file size       : %s\n") % self.virt_file_size
+        buf = buf + _("virt path            : %s\n") % self.virt_path
+        buf = buf + _("virt ram             : %s\n") % self.virt_ram
+        buf = buf + _("virt type            : %s\n") % self.virt_type
         return buf
 
   
@@ -267,6 +281,7 @@ class Profile(item.Item):
             'distro'          :  self.set_distro,
             'kickstart'       :  self.set_kickstart,
             'kopts'           :  self.set_kernel_options,
+            'kopts-post'      :  self.set_kernel_options_post,
             'virt-file-size'  :  self.set_virt_file_size,
             'virt-ram'        :  self.set_virt_ram,
             'ksmeta'          :  self.set_ksmeta,

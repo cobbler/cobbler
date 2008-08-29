@@ -1,15 +1,23 @@
 """
 A Cobbler repesentation of a yum repo.
 
-Copyright 2006, Red Hat, Inc
+Copyright 2006-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import utils
@@ -76,6 +84,8 @@ class Repo(item.Item):
               self.set_arch("i386")
            elif mirror.find("ia64") != -1:
               self.set_arch("ia64")
+           elif mirror.find("s390") != -1:
+              self.set_arch("s390x")
         return True
 
     def set_keep_updated(self,keep_updated):
@@ -90,16 +100,20 @@ class Repo(item.Item):
             self.keep_updated = False
         return True
 
-    def set_yumopts(self,options):
+    def set_yumopts(self,options,inplace=False):
         """
         Kernel options are a space delimited list,
         like 'a=b c=d e=f g h i=j' or a hash.
         """
-        (success, value) = utils.input_string_or_hash(options,None)
+        (success, value) = utils.input_string_or_hash(options,None,allow_multiples=False)
         if not success:
             raise CX(_("invalid yum options"))
         else:
-            self.yumopts = value
+            if inplace:
+                for key in value.keys():
+                    self.yumopts[key] = value[key]
+            else:
+                self.yumopts = value
             return True
 
     def set_priority(self,priority):
@@ -143,8 +157,7 @@ class Repo(item.Item):
         """
         Override the arch used for reposync
         """
-        self.arch = arch
-        return True
+        return utils.set_arch(self,arch)
 
     def is_valid(self):
         """

@@ -5,12 +5,20 @@ This is the code behind 'cobbler sync'.
 Copyright 2006-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import os
@@ -28,7 +36,6 @@ import utils
 from cexceptions import *
 import templar 
 import pxegen
-import yumgen
 
 import item_distro
 import item_profile
@@ -61,7 +68,6 @@ class BootSync:
         self.pxegen      = pxegen.PXEGen(config)
         self.dns         = dns
         self.dhcp        = dhcp
-        self.yumgen      = yumgen.YumGen(config)
         self.bootloc     = utils.tftpboot_location()
 
     def run(self):
@@ -83,15 +89,14 @@ class BootSync:
         self.settings = self.config.settings()
         self.repos    = self.config.repos()
         self.pxegen   = pxegen.PXEGen(self.config)
-        self.yumgen   = yumgen.YumGen(self.config)
 
         # execute the core of the sync operation
         self.clean_trees()
         self.pxegen.copy_bootloaders()
         self.pxegen.copy_distros()
+        self.pxegen.copy_images()
         for x in self.systems:
             self.pxegen.write_all_system_files(x)
-        self.yumgen.retemplate_all_yum_repos()
         if self.settings.manage_dhcp:
            self.dhcp.write_dhcp_file()
            self.dhcp.regen_ethers()
@@ -131,12 +136,14 @@ class BootSync:
                     utils.rmtree_contents(path)
         pxelinux_dir = os.path.join(self.bootloc, "pxelinux.cfg")
         images_dir = os.path.join(self.bootloc, "images")
+        s390_dir = os.path.join(self.bootloc, "s390x")
         if not os.path.exists(pxelinux_dir):
             utils.mkdir(pxelinux_dir)
         if not os.path.exists(images_dir):
             utils.mkdir(images_dir)
         utils.rmtree_contents(os.path.join(self.bootloc, "pxelinux.cfg"))
         utils.rmtree_contents(os.path.join(self.bootloc, "images"))
+        utils.rmtree_contents(os.path.join(self.bootloc, "s390x"))
         
 
 

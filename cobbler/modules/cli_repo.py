@@ -1,15 +1,23 @@
 """
 Repo CLI module.
 
-Copyright 2007, Red Hat, Inc
+Copyright 2007-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import distutils.sysconfig
@@ -27,13 +35,13 @@ import cexceptions
 class RepoFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler repo","<add|edit|copy|list|rename|remove|report> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler repo","<add|copy|edit|find|list|remove|rename|report> [ARGS|--help]")
 
     def command_name(self):
         return "repo"
 
     def subcommands(self):
-        return [ "add", "edit", "copy", "rename", "remove", "list", "report", "dumpvars" ]
+        return [ "add", "copy", "dumpvars", "edit", "find", "list", "remove", "rename", "report" ]
 
     def add_options(self, p, args):
 
@@ -56,19 +64,27 @@ class RepoFunction(commands.CobblerFunction):
             p.add_option("--rpm-list",         dest="rpm_list",         help="just mirror these rpms")
             p.add_option("--yumopts",          dest="yumopts",          help="ex: pluginvar=abcd")
 
-        if self.matches_args(args,["copy","rename"]):
+            if not self.matches_args(args, ["find"]):
+                p.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in yumopts without clearing the other items")
 
+        if self.matches_args(args,["copy","rename"]):
             p.add_option("--newname",          dest="newname",          help="used for copy/edit")
 
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
+        if not self.matches_args(args,["dumpvars","find","remove","report","list"]):
             p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
-        if not self.matches_args(args,["dumpvars","report","list"]):
+        if not self.matches_args(args,["dumpvars","find","report","list"]):
             p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--owners", dest="owners", help="specify owners for authz_ownership module")
 
 
     def run(self):
+
+        if self.args and "find" in self.args:
+            items = self.api.find_system(return_list=True, no_errors=True, **self.options.__dict__)
+            for x in items:
+                print x.name
+            return True
 
         obj = self.object_manipulator_start(self.api.new_repo,self.api.repos)
         if obj is None:
@@ -83,7 +99,7 @@ class RepoFunction(commands.CobblerFunction):
         if self.options.priority:         obj.set_priority(self.options.priority)
         if self.options.mirror:           obj.set_mirror(self.options.mirror)
         if self.options.mirror_locally:   obj.set_mirror_locally(self.options.mirror_locally)
-        if self.options.yumopts:          obj.set_yumopts(self.options.yumopts)
+        if self.options.yumopts:          obj.set_yumopts(self.options.yumopts,self.options.inplace)
 
         if self.options.owners:
             obj.set_owners(self.options.owners)

@@ -5,12 +5,20 @@ Initial support for rsync, perhaps reposync coming later.
 Copyright 2006-2007, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import os
@@ -45,7 +53,7 @@ class RepoSync:
         self.systems   = config.systems()
         self.settings  = config.settings()
         self.repos     = config.repos()
-
+        self.rflags     = self.settings.yumreposync_flags
 
     # ===================================================================
 
@@ -127,13 +135,13 @@ class RepoSync:
 
             if not has_rpm_list and repo.mirror_locally:
                 # if we have not requested only certain RPMs, use reposync
-                cmd = "/usr/bin/reposync --config=%s --repoid=%s --download_path=%s" % (temp_file, repo.name, store_path)
-            
+                cmd = "/usr/bin/reposync %s --config=%s --repoid=%s --download_path=%s" % (self.rflags, temp_file, repo.name, store_path)
                 if repo.arch != "":
                     if repo.arch == "x86":
                        repo.arch = "i386" # FIX potential arch errors
+                    if repo.arch == "i386":
                        # counter-intuitive, but we want the newish kernels too
-                       cmd = "%s -a i686" % (cmd, repo.arch)
+                       cmd = "%s -a i686" % (cmd)
                     else:
                        cmd = "%s -a %s" % (cmd, repo.arch)
                     
@@ -166,10 +174,14 @@ class RepoSync:
             if has_rpm_list:
                 print _("- warning: --rpm-list is not supported for RHN content")
             rest = repo.mirror[6:] # everything after rhn://
-            cmd = "/usr/bin/reposync -r %s --download_path=%s" % (rest, store_path)
+            cmd = "/usr/bin/reposync %s -r %s --download_path=%s" % (self.rflags, rest, store_path)
             if repo.name != rest:
                 args = { "name" : repo.name, "rest" : rest }
                 raise CX(_("ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository must match the name of the RHN channel") % args)
+
+            if repo.arch == "i386":
+                # counter-intuitive, but we want the newish kernels too
+                repo.arch = "i686"
 
             if repo.arch != "":
                 cmd = "%s -a %s" % (cmd, repo.arch)

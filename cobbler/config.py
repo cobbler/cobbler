@@ -1,15 +1,23 @@
 """
 Config.py is a repository of the Cobbler object model
 
-Copyright 2006, Red Hat, Inc
+Copyright 2006-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import os
@@ -19,11 +27,13 @@ import item_distro as distro
 import item_profile as profile
 import item_system as system
 import item_repo as repo
+import item_image as image
 
 import collection_distros as distros
 import collection_profiles as profiles
 import collection_systems as systems
 import collection_repos as repos
+import collection_images as images
 import modules.serializer_yaml as serializer_yaml
 
 import settings
@@ -58,19 +68,22 @@ class Config:
        self._repos        = repos.Repos(weakref.proxy(self))
        self._profiles     = profiles.Profiles(weakref.proxy(self))
        self._systems      = systems.Systems(weakref.proxy(self))
+       self._images       = images.Images(weakref.proxy(self))
        self._settings     = settings.Settings() # not a true collection
        self._serialize_graph_classes = [
           self._distros,
           self._repos,
           self._profiles,
-          self._systems
+          self._systems,
+          self._images
        ]
        self._graph_classes = [
           self._settings,
           self._distros,
           self._repos,
           self._profiles,
-          self._systems
+          self._systems,
+          self._images
        ]
        
    def __cmp(self,a,b):
@@ -106,6 +119,12 @@ class Config:
        """
        return self._repos
 
+   def images(self):
+       """
+       Return the definitive copy of the Images collection
+       """
+       return self._images
+
    def new_distro(self,is_subobject=False):
        """
        Create a new distro object with a backreference to this object
@@ -129,6 +148,12 @@ class Config:
        Create a new mirror to keep track of...
        """
        return repo.Repo(weakref.proxy(self),is_subobject=is_subobject)
+
+   def new_image(self,is_subobject=False):
+       """
+       Create a new image object...
+       """
+       return image.Image(weakref.proxy(self),is_subobject=is_subobject)
 
    def clear(self):
        """
@@ -175,6 +200,13 @@ class Config:
        Get object data from disk, not objects.
        """
        return serializer.deserialize_raw(collection_type)
+
+   def deserialize_item_raw(self,collection_type,obj_name):
+       """
+       Get a raw single object.
+       """
+       return serializer.deserialize_item_raw(collection_type,obj_name)
+
 
 
 

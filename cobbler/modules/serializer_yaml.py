@@ -1,21 +1,30 @@
 """
 Serializer code for cobbler
 
-Copyright 2006, Red Hat, Inc
+Copyright 2006-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import distutils.sysconfig
 import os
 import sys
 import glob
+import traceback
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
@@ -82,6 +91,16 @@ def deserialize_raw(collection_type):
     fd.close()
     return datastruct 
 
+def deserialize_item_raw(collection_type, item_name):
+    # this new fn is not really implemented performantly in this module.
+    # yet.
+    data = deserialize_raw(collection_type)
+    for x in data:
+        name = x.get("name","")
+        if name == item_name:
+            return x
+    return None
+
 def deserialize(obj,topological=False):
     """
     Populate an existing object with the contents of datastruct.
@@ -100,7 +119,11 @@ def deserialize(obj,topological=False):
         else:
             raise cexceptions.CX(_("Need permissions to read %s") % obj.filename())
     data = fd.read()
-    datastruct = yaml.load(data).next()  # first record
+    try:
+        datastruct = yaml.load(data).next()  # first record
+    except:
+        # load failure, make empty list
+        datastruct = [] 
     fd.close()
 
     if topological and type(datastruct) == list:
@@ -120,3 +143,5 @@ def __depth_cmp(item1, item2):
        return -1
     return cmp(item1["depth"],item2["depth"])
 
+if __name__ == "__main__":
+    print deserialize_item_raw("distro","D1")

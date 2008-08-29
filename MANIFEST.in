@@ -12,6 +12,8 @@ include config/auth.conf
 include config/settings
 include config/users.digest
 include config/users.conf
+include config/completions
+include config/cobbler_bash
 recursive-include templates *.template
 recursive-include kickstarts *.ks
 include docs/cobbler.1.gz

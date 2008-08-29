@@ -1,0 +1,127 @@
+#!/usr/bin/python
+
+"""
+Script to determine bash-completion data for cobbler.
+
+Copyright 2008, Red Hat, Inc
+Michael DeHaan <mdehaan@redhat.com>
+
+This software may be freely redistributed under the terms of the GNU
+general public license.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+"""
+
+import sys
+import cobbler.yaml as yaml
+
+TAKES_A_FILE = [
+   "--kernel",
+   "--initrd",
+   "--kickstart",
+   "--file",
+   "--xml-file",
+]
+
+def find_completion(args):
+ 
+   datafile = open("/var/lib/cobbler/completions")
+   data = datafile.read()
+   datafile.close()
+   datastruct = yaml.load(data).next()
+
+   if args and args[0] in ["cobbler", "/usr/bin/cobbler"]:
+       args = args[1:]
+   arguments = args
+
+   #arguments = []
+   #options   = []
+   #for x in args:
+   #    if not x.startswith("-"):
+   #        arguments.append(x)
+   #    else:
+   #        options.append(x)
+
+   #print "DEBUG: arguments are: %s" % arguments
+   #print "DEBUG: options are: %s" % options
+   try:
+       last = args[-1]
+   except:
+       last = None
+
+   return find_options(datastruct, arguments, last)
+
+
+def find_options(datastruct, arguments, last):
+
+   if last is None:
+       return datastruct
+
+   for x in TAKES_A_FILE:
+       x2 = "%s=" % x
+       if last == x or last == x2:
+           return { "*files*" : 1 }
+ 
+   arguments.reverse() 
+   top = arguments.pop()
+   while(True):
+       lookupkey = top.replace("'","-") # for YAML workaround
+       if datastruct.has_key(lookupkey):
+          datastruct = datastruct[lookupkey]
+          #print "DEBUG: lookup key is: %s" % lookupkey
+          #print "DEBUG: substruct is: %s" % datastruct 
+          try:
+              top = arguments.pop()
+              #print "DEBUG: poping and got %s"  % top
+          except:
+              #print "DEBUG: exhausted at: %s" % lookupkey
+              #print "DS is %s" % datastruct
+              # exhausted
+              return datastruct
+       else:
+          # (NEW) just return everything at this level
+          return datastruct
+
+          # attempt partial match only if this is the last element
+          # print "DEBUG %s == %s" % (lookupkey,last)
+          #if lookupkey == last:
+          #    
+          #   last2 = last.replace("-","'")
+          #   maybe = {}
+          #   for x in datastruct.keys():
+          #      lookupkey = lookupkey.replace("-","'")
+          #      transkey = x.replace("-","'")
+          #      if transkey.startswith(lookupkey):
+          #         maybe[x] = 1
+          #   return maybe
+          #
+          #else:
+          #   # FIXME
+          #
+          #   # an argument in the middle is percieved to be junk
+          #   # but it might just be of the form --key=value
+          #   # in which case that is perfectly fine and we should 
+          #   # offer completions based on the next element
+          #
+          #   return {}
+              
+
+   return datastruct.keys()
+
+def clean_output(datastruct):
+   keyz = datastruct.keys()
+   keyz.sort()
+   for x in keyz:
+      if x is not None:
+          sys.stdout.write("%s " % x.replace("'","-"))
+   print ""
+
+if __name__ == "__main__":
+   # FIMXE: replace ' with - in output
+   # FIXME: return as simple string
+   results = find_completion(sys.argv[1:])
+   clean_output(results)
+
+

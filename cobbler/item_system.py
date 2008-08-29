@@ -1,15 +1,23 @@
 """
 A Cobbler System.
 
-Copyright 2006, Red Hat, Inc
+Copyright 2006-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import utils
@@ -29,24 +37,26 @@ class System(item.Item):
         return cloned
 
     def clear(self,is_subobject=False):
-        self.name            = None
-        self.owners          = self.settings.default_ownership
-        self.profile         = None
-        self.kernel_options  = {}
-        self.ks_meta         = {}    
-        self.interfaces      = {}
-        self.netboot_enabled = True
-        self.depth           = 2
-        self.kickstart       = "<<inherit>>"   # use value in profile
-        self.server          = "<<inherit>>"   # "" (or settings)
-        self.virt_path       = "<<inherit>>"   # ""
-        self.virt_type       = "<<inherit>>"   # "" 
-        self.virt_cpus       = "<<inherit>>"   # ""
-        self.virt_file_size  = "<<inherit>>"   # ""
-        self.virt_ram        = "<<inherit>>"   # ""
-        self.virt_type       = "<<inherit>>"   # ""
-        self.virt_path       = "<<inherit>>"   # ""
-        self.virt_bridge     = "<<inherit>>"   # ""
+        self.name                 = None
+        self.owners               = self.settings.default_ownership
+        self.profile              = None
+        self.image                = None
+        self.kernel_options       = {}
+        self.kernel_options_post  = {}
+        self.ks_meta              = {}    
+        self.interfaces           = {}
+        self.netboot_enabled      = True
+        self.depth                = 2
+        self.kickstart            = "<<inherit>>"   # use value in profile
+        self.server               = "<<inherit>>"   # "" (or settings)
+        self.virt_path            = "<<inherit>>"   # ""
+        self.virt_type            = "<<inherit>>"   # "" 
+        self.virt_cpus            = "<<inherit>>"   # ""
+        self.virt_file_size       = "<<inherit>>"   # ""
+        self.virt_ram             = "<<inherit>>"   # ""
+        self.virt_type            = "<<inherit>>"   # ""
+        self.virt_path            = "<<inherit>>"   # ""
+        self.virt_bridge          = "<<inherit>>"   # ""
 
     def delete_interface(self,name):
         """
@@ -85,16 +95,18 @@ class System(item.Item):
         # and store (in-memory) in the new format.
         # (the main complexity here is the migration to NIC data structures)
 
-        self.parent          = self.load_item(seed_data, 'parent')
-        self.name            = self.load_item(seed_data, 'name')
-        self.owners          = self.load_item(seed_data, 'owners', self.settings.default_ownership)
-        self.profile         = self.load_item(seed_data, 'profile')
-        self.kernel_options  = self.load_item(seed_data, 'kernel_options', {})
-        self.ks_meta         = self.load_item(seed_data, 'ks_meta', {})
-        self.depth           = self.load_item(seed_data, 'depth', 2)        
-        self.kickstart       = self.load_item(seed_data, 'kickstart', '<<inherit>>')
-        self.netboot_enabled = self.load_item(seed_data, 'netboot_enabled', True)
-        self.server          = self.load_item(seed_data, 'server', '<<inherit>>')
+        self.parent               = self.load_item(seed_data, 'parent')
+        self.name                 = self.load_item(seed_data, 'name')
+        self.owners               = self.load_item(seed_data, 'owners', self.settings.default_ownership)
+        self.profile              = self.load_item(seed_data, 'profile')
+        self.image                = self.load_item(seed_data, 'image')
+        self.kernel_options       = self.load_item(seed_data, 'kernel_options', {})
+        self.kernel_options_post  = self.load_item(seed_data, 'kernel_options_post', {})
+        self.ks_meta              = self.load_item(seed_data, 'ks_meta', {})
+        self.depth                = self.load_item(seed_data, 'depth', 2)        
+        self.kickstart            = self.load_item(seed_data, 'kickstart', '<<inherit>>')
+        self.netboot_enabled      = self.load_item(seed_data, 'netboot_enabled', True)
+        self.server               = self.load_item(seed_data, 'server', '<<inherit>>')
 
         # virt specific 
         self.virt_path   = self.load_item(seed_data, 'virt_path', '<<inherit>>') 
@@ -136,6 +148,8 @@ class System(item.Item):
 
         if self.kernel_options != "<<inherit>>" and type(self.kernel_options) != dict:
             self.set_kernel_options(self.kernel_options)
+        if self.kernel_options_post != "<<inherit>>" and type(self.kernel_options_post) != dict:
+            self.set_kernel_options_post(self.kernel_options_post)
         if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
             self.set_ksmeta(self.ks_meta)
 
@@ -152,8 +166,10 @@ class System(item.Item):
         """
         Return object next highest up the tree.
         """
-        if self.parent is None or self.parent == '':
+        if (self.parent is None or self.parent == '') and self.profile:
             return self.config.profiles().find(name=self.profile)
+        elif (self.parent is None or self.parent == '') and self.image:
+            return self.config.images().find(name=self.image)
         else:
             return self.config.systems().find(name=self.parent)
 
@@ -216,12 +232,10 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         if intf["ip_address"] != "": 
             return intf["ip_address"]
-        #elif utils.is_ip(self.name) and interface == "intf0":
-        #    return self.name
         else:
             return None
 
-    def is_pxe_supported(self,interface="intf0"):
+    def is_management_supported(self,cidr_ok=True):
         """
         Can only add system PXE records if a MAC or IP address is available, else it's a koan
         only record.  Actually Itanium goes beyond all this and needs the IP all of the time
@@ -232,7 +246,11 @@ class System(item.Item):
         for (name,x) in self.interfaces.iteritems():
             mac = x.get("mac_address",None)
             ip  = x.get("ip_address",None)
+            if ip is not None and not cidr_ok and ip.find("/") != -1:
+                # ip is in CIDR notation
+                return False
             if mac is not None or ip is not None:
+                # has ip and/or mac
                 return True
         return False
 
@@ -284,12 +302,34 @@ class System(item.Item):
         Set the system to use a certain named profile.  The profile
         must have already been loaded into the Profiles collection.
         """
+        if profile_name in [ "delete", ""] or profile_name is None:
+            self.profile = ""
+            return True
         p = self.config.profiles().find(name=profile_name)
         if p is not None:
+            if self.image is not None and self.image != "" and profile_name not in ["delete", ""]:
+                raise CX(_("image and profile settings are mutually exclusivei (%s,%s)") % (image.name,profile_name))
             self.profile = profile_name
             self.depth = p.depth + 1 # subprofiles have varying depths.
             return True
         raise CX(_("invalid profile name"))
+
+    def set_image(self,image_name):
+        """
+        Set the system to use a certain named image.  Works like set_profile
+        but cannot be used at the same time.  It's one or the other.
+        """
+        if image_name in [ "delete", ""] or image_name is None:
+            self.image = ""
+            return True
+        img = self.config.images().find(name=image_name)
+        if img is not None:
+            if self.profile is not None and self.profile != "" and image_name not in ["delete", ""]:
+                raise CX(_("image and profile settings are mutually exclusive (%s,%s)") % (image_name,self.profile))
+            self.image = image_name
+            self.depth = img.depth + 1
+            return True
+        raise CX(_("invalid image name"))
 
     def set_virt_cpus(self,num):
         return utils.set_virt_cpus(self,num)
@@ -335,10 +375,10 @@ class System(item.Item):
         # this is by design as inheritable systems don't make sense.
         if self.name is None:
             raise CX(_("need to specify a name for this object"))
-            return False
-        if self.profile is None:
-            raise CX(_("need to specify a profile for this system"))
-            return False
+        if self.profile is None and self.image is None:
+            raise CX(_("need to specify a profile or image as a parent for this system"))
+        if self.profile is not None and self.image is not None and self.profile != "" and self.image != "":
+            raise CX(_("image and profile are mutually exclusive (%s,%s)") % (self.profile,self.image))
         return True
 
     def set_kickstart(self,kickstart):
@@ -364,42 +404,46 @@ class System(item.Item):
 
     def to_datastruct(self):
         return {
-           'name'             : self.name,
-           'kernel_options'   : self.kernel_options,
-           'depth'            : self.depth,
-           'interfaces'       : self.interfaces,
-           'ks_meta'          : self.ks_meta,
-           'kickstart'        : self.kickstart,
-           'netboot_enabled'  : self.netboot_enabled,
-           'owners'           : self.owners,
-           'parent'           : self.parent,
-           'profile'          : self.profile,
-           'server'           : self.server,
-	   'virt_cpus'        : self.virt_cpus,
-           'virt_bridge'      : self.virt_bridge,
-           'virt_file_size'   : self.virt_file_size,
-           'virt_path'        : self.virt_path,
-           'virt_ram'         : self.virt_ram,
-           'virt_type'        : self.virt_type
+           'name'                  : self.name,
+           'kernel_options'        : self.kernel_options,
+           'kernel_options_post'   : self.kernel_options_post,
+           'depth'                 : self.depth,
+           'interfaces'            : self.interfaces,
+           'ks_meta'               : self.ks_meta,
+           'kickstart'             : self.kickstart,
+           'netboot_enabled'       : self.netboot_enabled,
+           'owners'                : self.owners,
+           'parent'                : self.parent,
+           'profile'               : self.profile,
+           'image'                 : self.image,
+           'server'                : self.server,
+           'virt_cpus'             : self.virt_cpus,
+           'virt_bridge'           : self.virt_bridge,
+           'virt_file_size'        : self.virt_file_size,
+           'virt_path'             : self.virt_path,
+           'virt_ram'              : self.virt_ram,
+           'virt_type'             : self.virt_type
 
         }
 
     def printable(self):
-        buf =       _("system           : %s\n") % self.name
-        buf = buf + _("profile          : %s\n") % self.profile
-        buf = buf + _("kernel options   : %s\n") % self.kernel_options
-        buf = buf + _("kickstart        : %s\n") % self.kickstart
-        buf = buf + _("ks metadata      : %s\n") % self.ks_meta
-        
-        buf = buf + _("netboot enabled? : %s\n") % self.netboot_enabled 
-        buf = buf + _("owners           : %s\n") % self.owners
-        buf = buf + _("server           : %s\n") % self.server
+        buf =       _("system                : %s\n") % self.name
+        buf = buf + _("profile               : %s\n") % self.profile
+        buf = buf + _("image                 : %s\n") % self.image
+        buf = buf + _("kernel options        : %s\n") % self.kernel_options
+        buf = buf + _("kernel options post   : %s\n") % self.kernel_options_post
+        buf = buf + _("kickstart             : %s\n") % self.kickstart
+        buf = buf + _("ks metadata           : %s\n") % self.ks_meta
 
-        buf = buf + _("virt cpus        : %s\n") % self.virt_cpus
-        buf = buf + _("virt file size   : %s\n") % self.virt_file_size
-        buf = buf + _("virt path        : %s\n") % self.virt_path
-        buf = buf + _("virt ram         : %s\n") % self.virt_ram
-        buf = buf + _("virt type        : %s\n") % self.virt_type
+        buf = buf + _("netboot enabled?      : %s\n") % self.netboot_enabled 
+        buf = buf + _("owners                : %s\n") % self.owners
+        buf = buf + _("server                : %s\n") % self.server
+
+        buf = buf + _("virt cpus             : %s\n") % self.virt_cpus
+        buf = buf + _("virt file size        : %s\n") % self.virt_file_size
+        buf = buf + _("virt path             : %s\n") % self.virt_path
+        buf = buf + _("virt ram              : %s\n") % self.virt_ram
+        buf = buf + _("virt type             : %s\n") % self.virt_type
 
 
         counter = 0
@@ -437,7 +481,9 @@ class System(item.Item):
         return {
            'name'             : self.set_name,
            'profile'          : self.set_profile,
+           'image'            : self.set_image,
            'kopts'            : self.set_kernel_options,
+           'kopts-post'       : self.set_kernel_options_post,
            'ksmeta'           : self.set_ksmeta,
            'hostname'         : self.set_hostname,
            'kickstart'        : self.set_kickstart,

@@ -1,15 +1,23 @@
 """
 Base class for any serializable list of things...
 
-Copyright 2006, Red Hat, Inc
+Copyright 2006-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import exceptions
@@ -24,6 +32,7 @@ import item_system
 import item_profile
 import item_distro
 import item_repo
+import item_image
 
 from utils import _
 
@@ -52,7 +61,7 @@ class Collection(serializable.Serializable):
         """
         self.listing = {}
 
-    def find(self, name=None, return_list=False, **kargs):
+    def find(self, name=None, return_list=False, no_errors=False, **kargs):
         """
         Return first object in the collection that maches all item='value'
         pairs passed, else return None if no objects can be found.
@@ -66,6 +75,8 @@ class Collection(serializable.Serializable):
         if name is not None:
             kargs["name"] = name
 
+        kargs = self.__rekey(kargs)
+
         # no arguments is an error, so we don't return a false match
         if len(kargs) == 0:
             raise CX(_("calling find with no arguments"))
@@ -75,7 +86,7 @@ class Collection(serializable.Serializable):
             return self.listing.get(kargs["name"].lower(), None)
 
         for (name, obj) in self.listing.iteritems():
-            if obj.find_match(kargs):
+            if obj.find_match(kargs, no_errors=no_errors):
                 matches.append(obj)
 
         if not return_list:
@@ -84,6 +95,40 @@ class Collection(serializable.Serializable):
             return matches[0]
         else:
             return matches
+
+
+    SEARCH_REKEY = {
+           'kopts'           : 'kernel_options',
+           'kopts_post'      : 'kernel_options_post',
+           'ksmeta'          : 'ks_meta',
+           'inherit'         : 'parent',
+           'ip'              : 'ip_address',
+           'mac'             : 'mac_address',
+           'virt-file-size'  : 'virt_file_size',
+           'virt-ram'        : 'virt_ram',
+           'virt-path'       : 'virt_path',
+           'virt-type'       : 'virt_type',
+           'virt-bridge'     : 'virt_bridge',
+           'virt-cpus'       : 'virt_cpus',
+           'dhcp-tag'        : 'dhcp_tag',
+           'netboot-enabled' : 'netboot_enabled'
+    }
+
+    def __rekey(self,hash):
+        """
+        Find calls from the command line ("cobbler system find") 
+        don't always match with the keys from the datastructs and this
+        makes them both line up without breaking compatibility with either.
+        Thankfully we don't have a LOT to remap.
+        """
+        newhash = {}
+        for x in hash.keys():
+           if self.SEARCH_REKEY.has_key(x):
+              newkey = self.SEARCH_REKEY[x]
+              newhash[newkey] = hash[x]
+           else:
+              newhash[x] = hash[x]   
+        return newhash
 
     def to_datastruct(self):
         """
@@ -204,6 +249,8 @@ class Collection(serializable.Serializable):
                     self.lite_sync.add_single_profile(ref.name) 
                 elif isinstance(ref, item_distro.Distro):
                     self.lite_sync.add_single_distro(ref.name)
+                elif isinstance(ref, item_image.Image):
+                    self.lite_sync.add_single_image(ref.name)
                 elif isinstance(ref, item_repo.Repo):
                     pass
                 else:

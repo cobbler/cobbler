@@ -186,8 +186,8 @@ class CobblerWeb(object):
         } )
 
     def distro_save(self,name=None,oldname=None,new_or_edit=None,editmode='edit',kernel=None,
-                    initrd=None,kopts=None,ksmeta=None,owners=None,arch=None,breed=None,
-                    delete1=None,delete2=None,recursive=False,**args):
+                    initrd=None,kopts=None,koptspost=None,ksmeta=None,owners=None,arch=None,breed=None,
+                    osversion=None,delete1=None,delete2=None,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -239,6 +239,8 @@ class CobblerWeb(object):
             self.remote.modify_distro(distro, 'initrd', initrd, self.token)
             if kopts:
                 self.remote.modify_distro(distro, 'kopts', kopts, self.token)
+            if koptspost:
+                self.remote.modify_distro(distro, 'kopts-post', koptspost, self.token)
             if ksmeta:
                 self.remote.modify_distro(distro, 'ksmeta', ksmeta, self.token)
             if owners:
@@ -247,6 +249,8 @@ class CobblerWeb(object):
                 self.remote.modify_distro(distro, 'arch', arch, self.token)
             if breed:
                 self.remote.modify_distro(distro, 'breed', breed, self.token)
+            if osversion:
+                self.remote.modify_distro(distro, 'os-version', osversion, self.token)
             # now time to save, do we want to run duplication checks?
             self.remote.save_distro(distro, self.token, editmode)
         except Exception, e:
@@ -312,7 +316,7 @@ class CobblerWeb(object):
 
     def system_save(self,name=None,oldname=None,editmode="edit",profile=None,
                     new_or_edit=None,  
-                    kopts=None, ksmeta=None, owners=None, server_override=None, netboot='n', 
+                    kopts=None, koptspost=None, ksmeta=None, owners=None, server_override=None, netboot='n', 
                     virtpath=None,virtram=None,virttype=None,virtcpus=None,virtfilesize=None,delete1=None, delete2=None, **args):
 
 
@@ -355,6 +359,8 @@ class CobblerWeb(object):
             self.remote.modify_system(system, 'profile', profile, self.token)
             if kopts:
                self.remote.modify_system(system, 'kopts', kopts, self.token)
+            if koptspost:
+               self.remote.modify_system(system, 'kopts-post', koptspost, self.token)
             if ksmeta:
                self.remote.modify_system(system, 'ksmeta', ksmeta, self.token)
             if owners:
@@ -479,13 +485,16 @@ class CobblerWeb(object):
         if name is not None:
             input_profile = self.remote.get_profile(name,True)
             can_edit = self.remote.check_access_no_fail(self.token,"modify_profile",name)
+            repos = self.remote.get_repos_compatible_with_profile(name)
         else:
+            repos = self.remote.get_repos()
             can_edit = self.remote.check_access_no_fail(self.token,"new_profile",None)
             if not can_edit:
                 return self.__render('message.tmpl', {
                     'message1' : "Access denied.",
                     'message2' : "You do not have permission to create new objects."        
                 })
+
 
 
         return self.__render( 'profile_edit.tmpl', {
@@ -495,13 +504,13 @@ class CobblerWeb(object):
             'profile': input_profile,
             'distros': self.remote.get_distros(),
             'profiles': self.remote.get_profiles(),
-            'repos':   self.remote.get_repos(),
+            'repos':   repos,
             'ksfiles': self.remote.get_kickstart_templates(self.token),
             'subprofile': subprofile
         } )
 
     def profile_save(self,new_or_edit=None,editmode='edit',name=None,oldname=None,
-                     distro=None,kickstart=None,kopts=None,
+                     distro=None,kickstart=None,kopts=None,koptspost=None,
                      ksmeta=None,owners=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,
                      parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,recursive=False,**args):
@@ -560,6 +569,8 @@ class CobblerWeb(object):
                 self.remote.modify_profile(profile, 'kickstart', kickstart, self.token)
             if kopts:
                 self.remote.modify_profile(profile, 'kopts', kopts, self.token)
+            if koptspost:
+                self.remote.modify_profile(profile, 'kopts-post', koptspost, self.token)
             if owners:
                 self.remote.modify_profile(profile, 'owners', owners, self.token)
             if ksmeta:

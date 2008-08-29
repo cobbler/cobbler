@@ -1,0 +1,61 @@
+# Copyright (C) 2008 Red Hat, Inc.
+# Written by Darryl L. Pierce <dpierce@redhat.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA  02110-1301, USA.  A copy of the GNU General Public License is
+# also available at http://www.gnu.org/copyleft/gpl.html.
+
+require 'rake/clean'
+require 'rake/rdoctask'
+require 'rake/testtask'
+require 'rake/gempackagetask'
+
+PKG_NAME='rubygem-cobbler'
+PKG_VERSION='0.0.2'
+PKG_FILES=FileList[
+  'Rakefile', 'README', 'ChangeLog', 'COPYING', 'NEWS', 'TODO',
+  'lib/**/*.rb',
+  'examples/**/*.rb',
+  'config/*',
+  'test/**/*.rb'
+]
+SPEC_FILE='#{PKG_NAME}.spec'
+
+SPEC = Gem::Specification.new do |s|
+  s.name = 'cobbler'
+  s.version = PKG_VERSION
+  s.author = 'Darryl L. Pierce'
+  s.email = 'dpierce@redhat.com'
+  s.homepage = 'http://cobbler.et.redhat.com/'
+  s.platform = Gem::Platform::RUBY
+  s.summary = 'An interface for interacting with a Cobbler server.'
+  s.files = PKG_FILES
+  s.require_path =  "lib"
+  s.autorequire = "cobbler"
+  s.description = <<EOF
+  Provides Ruby bindings to interact with a Cobbler server.
+EOF
+end
+
+Rake::TestTask.new(:test) do |t|
+    t.test_files = FileList['test/*.rb']
+    t.libs = [ 'lib' ]
+end
+
+Rake::GemPackageTask.new(SPEC) do |pkg|
+    pkg.need_tar = true
+    pkg.need_zip = true
+end
+
+CLEAN.include [ "pkg" ]

@@ -114,12 +114,19 @@ function disablename(value)
     #else
         <input type="radio" name="arch" id="arch" value="x86_64">x86_64
     #end if
+
+    #if $distro and $distro.arch == "s390x"
+        <input type="radio" name="arch" id="arch" value="s390x" checked>s390x
+    #else
+        <input type="radio" name="arch" id="arch" value="s390x">s390x
+    #end if
+
     #if $distro and $distro.arch == "ia64"
         <input type="radio" name="arch" id="arch" value="ia64" checked>ia64
     #else
         <input type="radio" name="arch" id="arch" value="ia64">ia64
     #end if
-    <p class="context-tip">This determines what bootloader to use</p> 
+    <p class="context-tip">What architecture is the distro?</p> 
     </td>
     </tr>
 
@@ -134,6 +141,20 @@ function disablename(value)
         #end if
     />
     <p class="context-tip">Example: noipv6 magic=foo</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="koptspost">Post Kernel Options</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="koptspost" id="koptspost"
+        #if $distro
+            value="$distro.kernel_options_post"
+        #end if
+    />
+    <p class="context-tip">Example: clocksource=pit nosmp noapic nolapic</p>
     </td>
     </tr>
 
@@ -176,6 +197,20 @@ function disablename(value)
         <input type="radio" name="breed" id="breed" value="suse">SuSE
     #end if
     <p class="context-tip">This option determines how kernel options are prepared</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="osversion">OS Version</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="osversion" id="osversion"
+        #if $distro
+            value="$distro.os_version"
+        #end if
+    />
+    <p class="context-tip">Example: rhel2.1, rhel4, fedora8</p>
     </td>
     </tr>
 

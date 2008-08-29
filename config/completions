@@ -1,0 +1,508 @@
+---
+aclsetup:
+    "''addgroup": {}
+    "''adduser": {}
+    "''removegroup": {}
+    "''removeuser": {}
+buildiso:
+    "''iso": {}
+    "''profiles": {}
+    "''systems": {}
+    "''tempdir": {}
+check: {}
+distro:
+    add:
+        "''arch": {}
+        "''breed": {}
+        "''clobber": {}
+        "''in'place": {}
+        "''initrd": {}
+        "''kernel": {}
+        "''kopts": {}
+        "''ksmeta": {}
+        "''name": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+    copy:
+        "''arch": {}
+        "''breed": {}
+        "''in'place": {}
+        "''initrd": {}
+        "''kernel": {}
+        "''kopts": {}
+        "''ksmeta": {}
+        "''name": {}
+        "''newname": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+    dumpvars:
+        "''name": {}
+    edit:
+        "''arch": {}
+        "''breed": {}
+        "''in'place": {}
+        "''initrd": {}
+        "''kernel": {}
+        "''kopts": {}
+        "''ksmeta": {}
+        "''name": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+    find:
+        "''arch": {}
+        "''breed": {}
+        "''initrd": {}
+        "''kernel": {}
+        "''kopts": {}
+        "''ksmeta": {}
+        "''name": {}
+        "''no'triggers": {}
+        "''owners": {}
+    list:
+        "''name": {}
+    remove:
+        "''name": {}
+        "''no'triggers": {}
+        "''recursive": {}
+    rename:
+        "''arch": {}
+        "''breed": {}
+        "''in'place": {}
+        "''initrd": {}
+        "''kernel": {}
+        "''kopts": {}
+        "''ksmeta": {}
+        "''name": {}
+        "''newname": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+    report: {}
+image:
+    add:
+        "''clobber": {}
+        "''file": {}
+        "''name": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''virt'bridge": {}
+        "''virt'cpus": {}
+        "''virt'file'size": {}
+        "''virt'path": {}
+        "''virt'ram": {}
+        "''virt'type": {}
+        "''xml'file": {}
+    copy:
+        "''file": {}
+        "''name": {}
+        "''newname": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''virt'bridge": {}
+        "''virt'cpus": {}
+        "''virt'file'size": {}
+        "''virt'path": {}
+        "''virt'ram": {}
+        "''virt'type": {}
+        "''xml'file": {}
+    dumpvars:
+        "''name": {}
+    edit:
+        "''file": {}
+        "''name": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''virt'bridge": {}
+        "''virt'cpus": {}
+        "''virt'file'size": {}
+        "''virt'path": {}
+        "''virt'ram": {}
+        "''virt'type": {}
+        "''xml'file": {}
+    find:
+        "''file": {}
+        "''name": {}
+        "''owners": {}
+        "''virt'bridge": {}
+        "''virt'cpus": {}
+        "''virt'file'size": {}
+        "''virt'path": {}
+        "''virt'ram": {}
+        "''virt'type": {}
+        "''xml'file": {}
+    list:
+        "''name": {}
+    remove:
+        "''name": {}
+        "''no'triggers": {}
+    rename:
+        "''file": {}
+        "''name": {}
+        "''newname": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''virt'bridge": {}
+        "''virt'cpus": {}
+        "''virt'file'size": {}
+        "''virt'path": {}
+        "''virt'ram": {}
+        "''virt'type": {}
+        "''xml'file": {}
+    report: {}
+import:
+    "''arch": {}
+    "''available'as": {}
+    "''kickstart": {}
+    "''mirror": {}
+    "''name": {}
+    "''path": {}
+    "''rsync'flags": {}
+list:
+    "''what": {}
+profile:
+    add:
+        "''clobber": {}
+        "''dhcp'tag": {}
+        "''distro": {}
+        "''in'place": {}
+        "''inherit": {}
+        "''kickstart": {}
+        "''kopts": {}
+        "''ksmeta": {}
+        "''name": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''repos": {}
+        "''server'override": {}
+        "''virt'bridge": {}
+        "''virt'cpus": {}
+        "''virt'file'size": {}
+        "''virt'path": {}
+        "''virt'ram": {}
+        "''virt'type": {}
+    copy:
+        "''dhcp'tag": {}
+        "''distro": {}
+        "''in'place": {}
+        "''inherit": {}
+        "''kickstart": {}
+        "''kopts": {}
+        "''ksmeta": {}
+        "''name": {}
+        "''newname": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''repos": {}
+        "''server'override": {}
+        "''virt'bridge": {}
+        "''virt'cpus": {}
+        "''virt'file'size": {}
+        "''virt'path": {}
+        "''virt'ram": {}
+        "''virt'type": {}
+    dumpvars:
+        "''name": {}
+    edit:
+        "''dhcp'tag": {}
+        "''distro": {}
+        "''in'place": {}
+        "''inherit": {}
+        "''kickstart": {}
+        "''kopts": {}
+        "''ksmeta": {}
+        "''name": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''repos": {}
+        "''server'override": {}
+        "''virt'bridge": {}
+        "''virt'cpus": {}
+        "''virt'file'size": {}
+        "''virt'path": {}
+        "''virt'ram": {}
+        "''virt'type": {}
+    find:
+        "''dhcp'tag": {}
+        "''distro": {}
+        "''inherit": {}
+        "''kickstart": {}
+        "''kopts": {}
+        "''ksmeta": {}
+        "''name": {}
+        "''owners": {}
+        "''repos": {}
+        "''server'override": {}
+        "''virt'bridge": {}
+        "''virt'cpus": {}
+        "''virt'file'size": {}
+        "''virt'path": {}
+        "''virt'ram": {}
+        "''virt'type": {}
+    list:
+        "''name": {}
+    remove:
+        "''name": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''recursive": {}
+    rename:
+        "''dhcp'tag": {}
+        "''distro": {}
+        "''in'place": {}
+        "''inherit": {}
+        "''kickstart": {}
+        "''kopts": {}
+        "''ksmeta": {}
+        "''name": {}
+        "''newname": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''repos": {}
+        "''server'override": {}
+        "''virt'bridge": {}
+        "''virt'cpus": {}
+        "''virt'file'size": {}
+        "''virt'path": {}
+        "''virt'ram": {}
+        "''virt'type": {}
+    report: {}
+replicate:
+    "''full'data'sync": {}
+    "''include'systems": {}
+    "''master": {}
+    "''sync'kickstarts": {}
+    "''sync'repos": {}
+    "''sync'trees": {}
+    "''sync'triggers": {}
+repo:
+    add:
+        "''arch": {}
+        "''clobber": {}
+        "''createrepo'flags": {}
+        "''in'place": {}
+        "''keep'updated": {}
+        "''mirror": {}
+        "''mirror'locally": {}
+        "''name": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''priority": {}
+        "''rpm'list": {}
+        "''yumopts": {}
+    copy:
+        "''arch": {}
+        "''createrepo'flags": {}
+        "''in'place": {}
+        "''keep'updated": {}
+        "''mirror": {}
+        "''mirror'locally": {}
+        "''name": {}
+        "''newname": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''priority": {}
+        "''rpm'list": {}
+        "''yumopts": {}
+    dumpvars:
+        "''name": {}
+    edit:
+        "''arch": {}
+        "''createrepo'flags": {}
+        "''in'place": {}
+        "''keep'updated": {}
+        "''mirror": {}
+        "''mirror'locally": {}
+        "''name": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''priority": {}
+        "''rpm'list": {}
+        "''yumopts": {}
+    find:
+        "''arch": {}
+        "''createrepo'flags": {}
+        "''keep'updated": {}
+        "''mirror": {}
+        "''mirror'locally": {}
+        "''name": {}
+        "''owners": {}
+        "''priority": {}
+        "''rpm'list": {}
+        "''yumopts": {}
+    list:
+        "''name": {}
+    remove:
+        "''name": {}
+        "''no'triggers": {}
+    rename:
+        "''arch": {}
+        "''createrepo'flags": {}
+        "''in'place": {}
+        "''keep'updated": {}
+        "''mirror": {}
+        "''mirror'locally": {}
+        "''name": {}
+        "''newname": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''priority": {}
+        "''rpm'list": {}
+        "''yumopts": {}
+    report: {}
+report:
+    "''name": {}
+    "''what": {}
+reposync:
+    "''only": {}
+reserialize: {}
+status: {}
+sync: {}
+system:
+    add:
+        "''clobber": {}
+        "''dhcp'tag": {}
+        "''gateway": {}
+        "''hostname": {}
+        "''in'place": {}
+        "''interface": {}
+        "''ip": {}
+        "''kickstart": {}
+        "''kopts": {}
+        "''ksmeta": {}
+        "''mac": {}
+        "''name": {}
+        "''netboot'enabled": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''profile": {}
+        "''server'override": {}
+        "''subnet": {}
+        "''virt'bridge": {}
+        "''virt'cpus": {}
+        "''virt'file'size": {}
+        "''virt'path": {}
+        "''virt'ram": {}
+        "''virt'type": {}
+    copy:
+        "''dhcp'tag": {}
+        "''gateway": {}
+        "''hostname": {}
+        "''in'place": {}
+        "''interface": {}
+        "''ip": {}
+        "''kickstart": {}
+        "''kopts": {}
+        "''ksmeta": {}
+        "''mac": {}
+        "''name": {}
+        "''netboot'enabled": {}
+        "''newname": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''profile": {}
+        "''server'override": {}
+        "''subnet": {}
+        "''virt'bridge": {}
+        "''virt'cpus": {}
+        "''virt'file'size": {}
+        "''virt'path": {}
+        "''virt'ram": {}
+        "''virt'type": {}
+    dumpvars:
+        "''name": {}
+    edit:
+        "''dhcp'tag": {}
+        "''gateway": {}
+        "''hostname": {}
+        "''in'place": {}
+        "''interface": {}
+        "''ip": {}
+        "''kickstart": {}
+        "''kopts": {}
+        "''ksmeta": {}
+        "''mac": {}
+        "''name": {}
+        "''netboot'enabled": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''profile": {}
+        "''server'override": {}
+        "''subnet": {}
+        "''virt'bridge": {}
+        "''virt'cpus": {}
+        "''virt'file'size": {}
+        "''virt'path": {}
+        "''virt'ram": {}
+        "''virt'type": {}
+    find:
+        "''dhcp'tag": {}
+        "''gateway": {}
+        "''hostname": {}
+        "''ip": {}
+        "''kickstart": {}
+        "''kopts": {}
+        "''ksmeta": {}
+        "''mac": {}
+        "''name": {}
+        "''netboot'enabled": {}
+        "''owners": {}
+        "''profile": {}
+        "''server'override": {}
+        "''subnet": {}
+        "''virt'bridge": {}
+        "''virt'cpus": {}
+        "''virt'file'size": {}
+        "''virt'path": {}
+        "''virt'ram": {}
+        "''virt'type": {}
+    list:
+        "''name": {}
+    remove:
+        "''name": {}
+        "''no'triggers": {}
+    rename:
+        "''dhcp'tag": {}
+        "''gateway": {}
+        "''hostname": {}
+        "''in'place": {}
+        "''interface": {}
+        "''ip": {}
+        "''kickstart": {}
+        "''kopts": {}
+        "''ksmeta": {}
+        "''mac": {}
+        "''name": {}
+        "''netboot'enabled": {}
+        "''newname": {}
+        "''no'sync": {}
+        "''no'triggers": {}
+        "''owners": {}
+        "''profile": {}
+        "''server'override": {}
+        "''subnet": {}
+        "''virt'bridge": {}
+        "''virt'cpus": {}
+        "''virt'file'size": {}
+        "''virt'path": {}
+        "''virt'ram": {}
+        "''virt'type": {}
+    report: {}
+validateks: {}

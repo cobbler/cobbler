@@ -5,12 +5,20 @@ Copyright 2006-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 John Eckersberg <jeckersb@redhat.com>
 
-This software may be freely redistributed under the terms of the GNU
-general public license.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 """
 
 import os
@@ -72,6 +80,8 @@ class IscManager:
         # /trunk/src/kits/base/packages/kusu-base-installer/lib/kusu/nodefun.py?r=3025
         # FIXME: should use subprocess
         """
+        if ip.find("/") != -1:
+            return 
         try:
             fromchild, tochild = popen2.popen2(self.settings.omshell_bin)
             tochild.write("port %s\n" % port)
@@ -144,12 +154,11 @@ class IscManager:
         # from those that care about Itanium.  elilo seems to be unmaintained
         # so additional maintaince in other areas may be required to keep
         # this working.
-
         elilo = os.path.basename(self.settings.bootloaders["ia64"])
 
-        system_definitions = {}
+        # use a simple counter for generating generic names where a hostname
+        # is not available
         counter = 0
-        
         
         # Clean system definitions in /var/lib/dhcpd/dhcpd.leases just in
         # case to avoid conflicts with the hosts we're defining and to clean
@@ -168,45 +177,46 @@ class IscManager:
 
         # we used to just loop through each system, but now we must loop
         # through each network interface of each system.
-        
+        dhcp_tags = { "default": {} }
+
         for system in self.systems:
+            if not system.is_management_supported(cidr_ok=False):
+                continue
+
             profile = system.get_conceptual_parent()
             distro  = profile.get_conceptual_parent()
             for (name, interface) in system.interfaces.iteritems():
-
                 mac  = interface["mac_address"]
                 ip   = interface["ip_address"]
                 host = interface["hostname"]
+
+                # add references to the system, profile, and distro
+                # for use in the template
+                interface["system"]  = utils.blender( self.api, False, system )
+                interface["profile"] = utils.blender( self.api, False, profile )
+                interface["distro"]  = distro.to_datastruct()
 
                 if mac is None or mac == "":
                     # can't write a DHCP entry for this system
                     continue 
  
                 counter = counter + 1
-                systxt = "" 
-
 
                 # the label the entry after the hostname if possible
                 if host is not None and host != "":
-                    systxt = "\nhost %s {\n" % host
-                    if self.settings.isc_set_host_name:
-                        systxt = systxt + "    option host-name = \"%s\";\n" % host
+                    interface["name"] = host
                 else:
-                    systxt = "\nhost generic%d {\n" % counter
+                    interface["name"] = "generic%d" % counter
 
+                interface["filename"] = "/pxelinux.0"
+                # can't use pxelinux.0 anymore
                 if distro.arch == "ia64":
-                    # can't use pxelinux.0 anymore
-                    systxt = systxt + "    filename \"/%s\";\n" % elilo
-                systxt = systxt + "    hardware ethernet %s;\n" % mac
-                if ip is not None and ip != "":
-                    systxt = systxt + "    fixed-address %s;\n" % ip
-                systxt = systxt + "}\n"
+                    interface["filename"] = elilo
                     
                 # If we have all values defined and we're using omapi,
                 # we will just create entries dinamically into DHCPD
                 # without requiring a restart (but file will be written
                 # as usual for having it working after restart)
-                    
                 if ip is not None and ip != "":
                   if mac is not None and mac != "":
                     if host is not None and host != "":
@@ -218,27 +228,23 @@ class IscManager:
                 if dhcp_tag == "":
                    dhcp_tag = "default"
 
-                if not system_definitions.has_key(dhcp_tag):
-                    system_definitions[dhcp_tag] = ""
-                system_definitions[dhcp_tag] = system_definitions[dhcp_tag] + systxt
+                if not dhcp_tags.has_key(dhcp_tag):
+                    dhcp_tags[dhcp_tag] = {
+                        mac: interface
+                    }
+                else:
+                    dhcp_tags[dhcp_tag][mac] = interface
 
         # we are now done with the looping through each interface of each system
-
         metadata = {
            "omapi_enabled"  : self.settings.omapi_enabled,
            "omapi_port"     : self.settings.omapi_port,
-           "insert_cobbler_system_definitions" : system_definitions.get("default",""),
            "date"           : time.asctime(time.gmtime()),
            "cobbler_server" : self.settings.server,
            "next_server"    : self.settings.next_server,
-           "elilo"          : elilo
+           "elilo"          : elilo,
+           "dhcp_tags"      : dhcp_tags
         }
-
-        # now add in other DHCP expansions that are not tagged with "default"
-        for x in system_definitions.keys():
-            if x == "default":
-                continue
-            metadata["insert_cobbler_system_definitions_%s" % x] = system_definitions[x]   
 
         self.templar.render(template_data, metadata, settings_file, None)
 

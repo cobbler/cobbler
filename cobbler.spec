@@ -2,7 +2,7 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 1.0.4
+Version: 1.2.0
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
@@ -55,14 +55,18 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
 
 %post
-cp /var/lib/cobbler/distros*  /var/lib/cobbler/backup 2>/dev/null
-cp /var/lib/cobbler/profiles* /var/lib/cobbler/backup 2>/dev/null
-cp /var/lib/cobbler/systems*  /var/lib/cobbler/backup 2>/dev/null
-cp /var/lib/cobbler/repos*    /var/lib/cobbler/backup 2>/dev/null
+if [ -e /var/lib/cobbler/distros ]; then
+    cp /var/lib/cobbler/distros*  /var/lib/cobbler/backup 2>/dev/null
+    cp /var/lib/cobbler/profiles* /var/lib/cobbler/backup 2>/dev/null
+    cp /var/lib/cobbler/systems*  /var/lib/cobbler/backup 2>/dev/null
+    cp /var/lib/cobbler/repos*    /var/lib/cobbler/backup 2>/dev/null
+fi
+if [ -e /var/lib/cobbler/config ]; then
+    cp -a /var/lib/cobbler/config    /var/lib/cobbler/backup 2>/dev/null
+fi
 /usr/bin/cobbler reserialize
 /sbin/chkconfig --add cobblerd
 /sbin/service cobblerd condrestart
-
 
 %preun
 if [ $1 = 0 ]; then
@@ -98,8 +102,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cobbler/
 %dir /var/www/cobbler/localmirror
 %dir /var/www/cobbler/repo_mirror
-%dir /var/www/cobbler/repos_profile
-%dir /var/www/cobbler/repos_system
 %dir /var/www/cobbler/ks_mirror
 %dir /var/www/cobbler/ks_mirror/config
 %dir /var/www/cobbler/images
@@ -115,6 +117,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(755,root,root)
 %{_bindir}/cobbler
 %{_bindir}/cobblerd
+%{_bindir}/cobbler-completion
+
+# %defattr(644,root,root)
+# %config(noreplace) /etc/bash_completion.d/cobbler_bash
 
 %defattr(-,root,root)
 %dir /etc/cobbler
@@ -141,6 +147,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(755,root,root)
 %dir /var/lib/cobbler
+%dir /var/lib/cobbler/config/
+%dir /var/lib/cobbler/config/distros.d/
+%dir /var/lib/cobbler/config/profiles.d/
+%dir /var/lib/cobbler/config/systems.d/
+%dir /var/lib/cobbler/config/repos.d/
+%dir /var/lib/cobbler/config/images.d/
 %dir /var/lib/cobbler/kickstarts/
 %dir /var/lib/cobbler/backup/
 %dir /var/lib/cobbler/triggers/add/distro/pre
@@ -164,6 +176,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/triggers/install/pre
 %dir /var/lib/cobbler/triggers/install/post
 %dir /var/lib/cobbler/snippets/
+/var/lib/cobbler/completions
 
 %defattr(744,root,root)
 %config(noreplace) /var/lib/cobbler/triggers/sync/post/restart-services.trigger
@@ -173,6 +186,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(664,root,root)
 %config(noreplace) /etc/cobbler/settings
 %config(noreplace) /var/lib/cobbler/snippets/partition_select
+%config(noreplace) /var/lib/cobbler/snippets/pre_partition_select
+%config(noreplace) /var/lib/cobbler/snippets/main_partition_select
+%config(noreplace) /var/lib/cobbler/snippets/post_install_kernel_options
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/lib/cobbler/menu.c32
 %defattr(660,root,root)
@@ -190,7 +206,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Thu Jul 17 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.4-1
+* Fri Aug 29 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.0-1
 - Upstream changes (see CHANGELOG)
 
 * Tue Jun 10 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.3-1
