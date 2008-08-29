@@ -2,7 +2,7 @@
 
 Summary: Network provisioning tool for Xen and Bare Metal Machines 
 Name: koan
-Version: 1.1.1
+Version: 1.2.0
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
@@ -57,14 +57,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Tue Aug 19 2008 Michael DeHaan <mdehaan@redhat.com> - 1.1.1-1
-- Upstream changes (see CHANGELOG), test2 release
-
-* Fri Aug 08 2008 Michael DeHaan <mdehaan@redhat.com> - 1.1.0-2
-- License in specfile changed to match code (it's GPLv2+).
-- Upstream changes (see CHANGELOG), test1 release
-
-* Thu Jul 24 2008 Michael DeHaan <mdehaan@redhat.com> - 1.1.0-1
+* Wed Aug 29 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.0-1
 - Upstream changes (see CHANGELOG)
 
 * Mon Jun 16 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.2-1

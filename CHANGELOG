@@ -1,5 +1,8 @@
 Koan CHANGELOG
 
+- Wed Aug 29 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.0-1 
+- merge devel into stable
+
 - Tue Aug 19 2008 Michael DeHaan <mdehaan@redhat.com> - 1.1.1-1 
 - (FEAT) update livecd builder to use F9 as src, reinstate livecd code.
 - (BUGF) get --replace-self working on EL3 again
