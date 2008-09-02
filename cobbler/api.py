@@ -211,7 +211,7 @@ class BootAPI:
         self.log("remove_system",[ref.name])
         return self._config.systems().remove(ref.name)
 
-    def remove_repo(self, ref):
+    def remove_repo(self, ref,recursive=False):
         self.log("remove_repo",[ref.name])
         return self._config.repos().remove(ref.name)
     

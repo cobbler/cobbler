@@ -4,8 +4,81 @@ Cobbler CHANGELOG
 - ??? - 1.3
 - (FEAT) ACLs to extend authz (see Wiki)
 
+- Tue Sep 02 2008 - 1.2.1
+- (BUGF) fix merge problem with 1.2 
+- (BUGF) make RPM own some unowned directories in "triggers"
 
-- Aug 29 2008 - 1.2
+- Fri Aug 29 2008 - 1.2.0
+- (FEAT) All development work from 1.X merged in
+- (FEAT) when --netboot-enabled is toggled, rather than deleting the PXE config, create a local boot PXE config
+- (BUGF) disable some s390 aspects of cobbler check until it is supported
+- (FEAT) new --os-version, better validation for --breed, --breed/--os-version also for images
+
+- ??? - 1.1.1
+- (FEAT) make template replacement use regex module
+- (BUGF) remove bootloader check in settings as that code doesn't need it
+- (BUGF) refinements to image handling
+- (FEAT) getks command added to command line
+- (BUGF) don't print traceback during certain SystemExits
+- (BUGF) --help now works more intuitively on odd command line usage
+- (BUGF) use pxesystem for systems, not pxeprofile
+- (FEAT) make Cheetah formatting errors contain help text for users
+- (FEAT) --kopts-post can configure post-install kernel options
+- (BUGF) subtemplates are now errorCatcher Echo compatible
+
+- ??? - 1.1.0
+- devel branch
+- added cobbler aclsetup command for running cobbler as non-root
+- added cobbler find command to do searches from the command line
+- fix mkdir invocation
+- improved cobbler replicate, it now can rsync needed files
+- further templatize ISC dhcp config file (pay attention to /etc/cobbler/dhcp.template.rpmnew !)
+- fix for NFS imported URLs during kickstart generation
+- added yumreposync_flags to settings, default "-l" for use plugins
+- added an extra mkdir for rhn's reposync, though I believe the -l cures it already
+- allow mod python bits to work via non-80 http ports
+- when mirroring repos, act as 686 not 386 to get all the kernel updates
+- upgrades to cobbler buildiso
+- added patch to allow --in-place editing of ksmeta/kopts
+- added patch to allow multiple duplicate kernel options
+- fix kickstart serving when the tree is on NFS
+- s390x import, added support for s390x "pseudo-PXE" trees
+- added support for tracking image objects and virtual ISO images
+- support for multiple copies of the same kernel option in kopts
+- add cobbler bash completion script
+- fix bug with 255 kernel options line warning not firing soon enough
+- add findks.cgi support back as http://server/cblr/svc/op/findks
+- merge patch to surface status over API
+- make yum repos served up for /etc/yum.repos.d fully dynamic (mod_python)
+- cobbler find API calls and command line usage can now use fnmatch (wildcards)
+- return code cleanup (0/1 now more predictable)
+- added comments to /etc/cobbler/modules.conf
+- during import non-xen kernels will default --virt-type to qemu
+- when editing/adding profiles, auto-rebuild the PXE menu
+- added http://cobbler.example.org/cblr/svc/op/list/what/systems (or profiles, etc)
+- in the webui, only show compatible repos when editing a profile
+- refresh cobblerd cache before adding objects
+- system object IP's ok in CIDR notation (AAA.BBB.CCC.DDD/EE) for defining PXE behavior.
+- split partition select template into two parts (old one still ships)
+- cleanup some stock kickstarts so we always use $kickstart_start
+- hook ctrl+c during serializer writes to prevent possible corruption of data in /var/lib/cobbler
+- added 'serializer_catalog' as the new default serializer.  It is backward compatible and much faster.
+- removed serializer_shelve 
+- webui page lookups don't load the full object collection
+- systems can also inherit from images
+- changes to PXE images directly
+- bootloaders is no longer a config file setting
+- we can now look for syslinux in one of two places (/usr/lib, /usr/share)
+- cobbler hardlinks a bit more when it can for /var/www image copies
+- add Xen FV and VMware virt types to WebUI
+
+- Thu Jul 17 2008 - 1.0.4 (tentative)
+- Backported findks.cgi to mod_python, minor mod_python svc handler changes
+
+- Tue Jul 03 2008 - 1.0.3
+
+- ??? - 1.2
+>>>>>>> master:CHANGELOG
 - (FEAT) All development work from 1.X merged in
 - (FEAT) when --netboot-enabled is toggled, rather than deleting the PXE config, create a local boot PXE config
 - (BUGF) disable some s390 aspects of cobbler check until it is supported
@@ -70,12 +143,20 @@ Cobbler CHANGELOG
 - add Xen FV and VMware virt types to WebUI
 
 - Wed Jun 03 2008 - 1.0.3
+>>>>>>> devel:CHANGELOG
 - Fix typo in replicate code
 - remove rhpl reference
 - scrub references to manage_*_mode and rewrite the restart-services trigger
 - add new settings to control whether the restart-trigger restarts things
 - yum reposync should also pull i686 kernels, not just i386
 - make cobblerd close file handles
+<<<<<<< HEAD:CHANGELOG
+- fix kickstart serving when the tree is on NFS
+- fix missing reposync createdir (also now in stable branch)
+- add back missing remove_profile/remove_repo
+- remove profile_change support
+=======
+>>>>>>> devel:CHANGELOG
 
 - Mon Jun 09 2008 - 1.0.2
 - Fix mkdir invocation

@@ -104,6 +104,18 @@ def log_exc(logger):
    logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
    
 
+def print_exc(exc,full=False):
+   (t, v, tb) = sys.exc_info()
+   try:
+      getattr(exc, "from_cobbler")
+      print >> sys.stderr, str(exc)[1:-1]
+   except:
+      print >> sys.stderr, t
+      print >> sys.stderr, v
+      if full:
+          print >> sys.stderr, string.join(traceback.format_list(traceback.extract_tb(tb)))
+   return 1
+
 def get_exc(exc,full=True):
    (t, v, tb) = sys.exc_info()
    buf = ""
@@ -124,7 +136,6 @@ def print_exc(exc,full=False):
    return buf
 
 def cheetah_exc(exc,full=False):
-   
    lines = get_exc(exc).split("\n")
    buf = ""
    for l in lines:

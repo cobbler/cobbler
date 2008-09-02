@@ -16,7 +16,7 @@ manpage:
 	pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz
 	pod2html ./docs/cobbler.pod > ./docs/cobbler.html
  
-test: 
+test: devinstall
 	-mkdir -p /tmp/cobbler_test_bak
 	-cp /var/lib/cobbler/distros*  /tmp/cobbler_test_bak
 	-cp /var/lib/cobbler/profiles* /tmp/cobbler_test_bak
