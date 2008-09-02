@@ -1,0 +1,253 @@
+
+## Comment every line containing the $pattern given
+## Ex: preserve a record of an old value before changing it.
+## 
+## $comment_lines('/etc/resolv.conf', 'nameserver')
+## echo "nameserver 192.168.0.1" >> /etc/resolv.conf
+## 
+#def comment_lines($filename, $pattern, $commentchar='#')
+perl -npe 's/^(.*${pattern}.*)$/${commentchar}\${1}/' -i '$filename'
+#end def
+
+## Comments every line which contains only the exact pattern.
+## This one works like comment_lines(), except that a line cannot contain any
+## additional text.
+#def comment_lines_exact($filename, $pattern, $commentchar='#')
+perl -npe 's/^(${pattern})$/${commentchar}\${1}/' -f '$filename'
+#end def
+
+## Uncomments every (commented) line containing the pattern
+## Patterns should not contain the #
+## Ex: enable all the suggested values in the Samba configuration
+## (This isn't the greatest example, but it makes a point)
+## 
+## $uncomment_lines('/etc/samba/smb.conf', ';')
+## 
+#def uncomment_lines($filename, $pattern, $commentchar='#')
+perl -npe 's/^[ \t]*${commentchar}(.*${pattern}.*)$/\${1}/' -i '$filename'
+#end def
+
+## Nullify (by changing to 'true') all instances of a given sh command. This
+## does understand lines with multiple commands (separated by ';') and also
+## knows to ignore comments. Consider other options before using this
+## method.
+## Ex: remove 'exit 0' commands from a shell script, so that we can append the
+## script and be relatively certain that the new parts will be executed.
+## 
+## $delete_command('etc/cron.daily/some_script.sh', 'exit[ \t]*0')
+## echo '# More scipt' >> /etc/cron.daily/some_script.sh
+## 
+#def delete_command($filename, $pattern)
+sed -nr '
+    h
+    s/^([^#]*)(#?.*)$/\1/
+    s/((^|;)[ \t]*)${pattern}([ \t]*($|;))/\1true\3/g
+    s/((^|;)[ \t]*)${pattern}([ \t]*($|;))/\1true\3/g
+    x
+    s/^([^#]*)(#?.*)$/\2/
+    H
+    x
+    s/\n//
+    p
+' -i '$filename'
+#end def
+
+## Replace a configuration parameter value, or add it if it doesn't exist.
+## Assumes format is [param_name] [value]
+## Ex: Change the maximum password age to 30 days
+## 
+## $set_config_value('/etc/login.defs', 'PASS_MAX_DAYS', '30')
+## 
+#def set_config_value($filename, $param_name, $value)
+if [ -n \"\$(grep -Ee '^[ \t]*${param_name}[ \t]+' '$filename')\" ]
+then
+    perl -npe 's/^([ \t]*${param_name}[ \t]+)[\x21-\x7E]*([ \t]*(#.*)?)$/\${1}${sedesc($value)}\${2}/' -i '$filename'
+else
+    echo '$param_name $value' >> '$filename'
+fi
+#end def
+
+## Replace a configuration parameter value, or add it if it doesn't exist.
+## Assues format is [param_name] [delimiter] [value], where [delimiter] is
+## usually '='.
+## This works the same way as set_config_value(), except that this version
+## is used if a character separates a parameter from its value.
+#def set_config_value_delim($filename, $param_name, $delim, $value)
+if [ -n \"\$(grep -Ee '^[ \t]*${param_name}[ \t]*${delim}[ \t]*' '$filename')\" ]
+then
+    perl -npe 's/^([ \t]*${param_name}[ \t]*${delim}[ \t]*)[\x21-\x7E]*([ \t]*(#.*)?)$/${1}${sedesc($value)}${2}/' -i '$filename'
+else
+    echo '$param_name$delim$value' >> '$filename'
+fi
+#end def
+
+## Copy a file from the server to the client.
+## Ex: Copy a template for samba configuration
+## 
+## (once at the top of the kickstart template)
+## #set files = $snippetsdir + '/files/'
+## (when you need to copy a file)
+## $copy_over_file('etc/samba/smb.conf', '/etc/samba/smb.conf')
+## 
+## Additionally, copied files can be templated:
+## ---------etc/samba/smb.conf-------------
+## ...
+## [global]
+##     server string = $profile_name
+## ...
+## ----------------------------------------
+#def copy_over_file($serverfile, $clientfile)
+cat << 'EOF' > '$clientfile'
+#include $files + $serverfile
+EOF
+#end def
+
+## Copy a file from the server and append the contents to a file on the
+## client.
+## This works the same as copy_over_file(), except it appends the file rather
+## than replacing the file.
+#def copy_append_file($serverfile, $clientfile)
+cat << 'EOF' >> '$clientfile'
+#include $files + $serverfile
+EOF
+#end def
+
+## Convenience function: Copy/append several files at once. This accepts a
+## list of tuples. The first element indicates whether to overwrite ('w') or
+## append ('a'). The second element is the file name on both the server and
+## the client (a '/' is prepended on the client side).
+## Ex: copy a template for samba and audit configuration
+## 
+## $copy_files([
+##     ('w', 'etc/samba/smb.conf'),
+##     ('w', 'etc/audit.rules'),
+## ])
+## 
+#def copy_files($filelist)
+#for $thisfile in $filelist
+#if $thisfile[0] == 'a'
+$copy_append_file($thisfile[1], '/' + $thisfile[1])
+#else
+$copy_over_file($thisfile[1], '/' + $thisfile[1])
+#end if
+#end for
+#end def
+
+## Append some content to the todo file. NOTE: $todofile must be defined
+## before using this (unless you want unexpected results). Be sure to end
+## the content with 'EOF'
+## Ex: Instruct the admin to set an appropriate nameserver.
+## 
+## (once at the top of the kickstart template)
+## #set global $todofile = '/root/kstodo'
+## (as needed)
+## $TODO()
+## Edit /etc/resolv.conf to configure your local nameserver
+## EOF
+## 
+## This will prevent inconsistency and accidents. You should avoid using:
+## 
+## echo "Edit /etc/resolv.conf..." >> /root/kstodo
+## 
+## It's easy to forget to use >> to append instead of >, which will clobber all
+## previous todo notices. It's also easy to forget the filename, was it kstodo
+## or ks-todo?
+#def TODO()
+cat << 'EOF' >> '$todofile'
+#end def
+
+## Set the owner, group, and permissions for several files. Assignment can
+## be plain ('p') or recursive. If recursive you can assign everything ('r')
+## or just files ('f'). This method takes a list of tuples. The first element
+## of each indicates which style. The remaining elements are owner, group,
+## and mode respectively. If 'f' is used, an additional element is a find
+## pattern that can further restrict assignments (use '*' if no additional
+## restrict is desired).
+## NOTE: I used the word 'plain' instead of 'single', because wildcards can
+##       still be used in 'plain' mode.
+## Ex: correct the permissions of serveral important files and directories:
+## 
+## $set_permissions([
+##     ('p', 'root', 'root', '700', '/root'),
+##     ('f', 'root', 'root', '600', '/root', '*'),
+##     ('r', 'root', 'root', '/etc/cron.*'),
+##     ('p', 'root', 'root', '644', '/etc/samba/smb.conf'),
+## ])
+## 
+#def set_permissions($filelist)
+#for $file in $filelist
+#if $file[0] == 'p'
+#if $file[1] != '' and $file[2] != ''
+chown '$file[1]:$file[2]' '$file[4]'
+#else
+#if $file[1] != ''
+chown '$file[1]' '$file[4]'
+#end if
+#if $file[2] != ''
+chgrp '$file[2]' '$file[4]'
+#end if
+#end if
+#if $file[3] != ''
+chmod '$file[3]' '$file[4]'
+#end if
+#elif $file[0] == 'r'
+#if $file[1] != '' and $file[2] != ''
+chown -R '$file[1]:$file[2]' '$file[4]'
+#else
+#if $file[1] != ''
+chown -R '$file[1]' '$file[4]'
+#end if
+#if $file[2] != ''
+chgrp -R '$file[2]' '$file[4]'
+#end if
+#end if
+#if $file[3] != ''
+chmod -R '$file[3]' '$file[4]'
+#end if
+#elif $file[0] == 'f'
+#if $file[1] != '' and $file[2] != ''
+find $file[4] -name '$file[5]' -type f -exec chown -R '$file[1]:$file[2]' {} \;
+#else
+#if $file[1] != ''
+find $file[4] -name '$file[5]' -type f -exec chown -R '$file[1]' {} \;
+#end if
+#if $file[2] != ''
+find $file[4] -name '$file[5]' -type f -exec chgrp -R '$file[2]' {} \;
+#end if
+#end if
+#if $file[3] != ''
+find $file[4] -name '$file[5]' -type f -exec chmod -R '$file[3]' {} \;
+#end if
+#end if
+#end for
+#end def
+
+## Cheeseball an entire directory.
+## This will include (in sequence) all file in a given directory into a
+## kickstart template.
+## Ex: include a 'misc' directory of templates
+## 
+## $includeall('misc')
+## 
+## Now in cobbler/snippets/misc:
+## ---------------avinstall-----------------
+## wget http://some.server.com/some-av-package.tar.gz
+## tar -xzf some-av-package.tar.gz
+## ./some-av-package/install.sh
+## rm some-av-package.tar.gz
+## rm -rf some-av-package
+## -----------------------------------------
+## ---------------fwinstall-----------------
+## wget http://some.server.com/fw-linux-installer.sh
+## chmod +x fw-linux-installer.sh
+## ./fw-linux-installer.sh
+## rm fw-linux-installer.sh
+## -----------------------------------------
+## 
+#def includeall($dir)
+#import os
+#for $file in $os.listdir($snippetsdir + '/' + $dir)
+#include $snippetsdir + '/' + $dir + '/' + $file
+#end for
+#end def
+
