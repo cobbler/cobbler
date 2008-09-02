@@ -88,8 +88,11 @@ class FunctionLoader:
                 problem = True
                 starter = args[-2]
             elif len(args) >= 3:
+                ignore_it = False
                 for x in args[2:]:
-                    if not x.startswith("-") and x not in subs:
+                    if x.startswith("--"):
+                        ignore_it = True
+                    if not x.startswith("-") and x not in subs and not ignore_it:
                         problem = True
                         starter = args[1]
             if problem:
