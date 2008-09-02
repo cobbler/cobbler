@@ -131,6 +131,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/cobbler/modules.conf
 %config(noreplace) /etc/cobbler/users.conf
 %config(noreplace) /etc/cobbler/acls.conf
+%config(noreplace) /etc/cobbler/cheetah_macros
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/yaml
 %dir %{python_sitelib}/cobbler/modules
@@ -156,6 +157,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/config/images.d/
 %dir /var/lib/cobbler/kickstarts/
 %dir /var/lib/cobbler/backup/
+%dir /var/lib/cobbler/triggers
+%dir /var/lib/cobbler/triggers/add
 %dir /var/lib/cobbler/triggers/add/distro
 %dir /var/lib/cobbler/triggers/add/distro/pre
 %dir /var/lib/cobbler/triggers/add/distro/post
