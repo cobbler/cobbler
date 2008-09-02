@@ -34,10 +34,7 @@ import errno
 import logging
 import shutil
 import tempfile
-<<<<<<< HEAD:cobbler/utils.py
-=======
 import signal
->>>>>>> devel:cobbler/utils.py
 from cexceptions import *
 import codes
 
@@ -107,7 +104,6 @@ def log_exc(logger):
    logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
    
 
-<<<<<<< HEAD:cobbler/utils.py
 def print_exc(exc,full=False):
    (t, v, tb) = sys.exc_info()
    try:
@@ -120,7 +116,6 @@ def print_exc(exc,full=False):
           print >> sys.stderr, string.join(traceback.format_list(traceback.extract_tb(tb)))
    return 1
 
-=======
 def get_exc(exc,full=True):
    (t, v, tb) = sys.exc_info()
    buf = ""
@@ -141,13 +136,11 @@ def print_exc(exc,full=False):
    return buf
 
 def cheetah_exc(exc,full=False):
-   
    lines = get_exc(exc).split("\n")
    buf = ""
    for l in lines:
       buf = buf + "# %s\n" % l
    return CHEETAH_ERROR_DISCLAIMER + buf
->>>>>>> devel:cobbler/utils.py
 
 def trace_me():
    x = traceback.extract_stack()
@@ -858,8 +851,6 @@ def set_arch(self,arch):
        return True
    raise CX(_("arch choices include: x86, x86_64, s390x and ia64"))
 
-<<<<<<< HEAD:cobbler/utils.py
-=======
 def set_os_version(self,os_version):
    if os_version is None:
       raise CX(_("invalid value for --os-version, see manpage"))
@@ -883,7 +874,6 @@ def set_breed(self,breed):
    nicer = ", ".join(valid_breeds)
    raise CX(_("invalid value for --breed, must be one of %s, different breeds have different levels of support") % nicer)
 
->>>>>>> devel:cobbler/utils.py
 def set_repos(self,repos,bypass_check=False):
    # WARNING: hack
    repos = fix_mod_python_select_submission(repos)

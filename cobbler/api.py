@@ -204,11 +204,7 @@ class BootAPI:
         self.log("remove_profile",[ref.name])
         return self._config.profiles().remove(ref.name, recursive=recursive)
 
-<<<<<<< HEAD:cobbler/api.py
-    def remove_system(self,ref,recursive=False):
-=======
     def remove_system(self,ref, recursive=False):
->>>>>>> devel:cobbler/api.py
         self.log("remove_system",[ref.name])
         return self._config.systems().remove(ref.name)
 

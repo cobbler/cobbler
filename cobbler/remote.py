@@ -209,9 +209,6 @@ class CobblerXMLRPCInterface:
         self.log("get_settings",token=token)
         return self.__get_all("settings")
 
-<<<<<<< HEAD:cobbler/remote.py
-    def register_mac(self,mac,profile,token=None):
-=======
     def get_repo_config_for_profile(self,profile_name,**rest):
         """
         Return the yum configuration a given profile should use to obtain

@@ -1,7 +1,11 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-- ??? - 1.2
+- Tue Sep 02 2008 - 1.2.1
+- (BUGF) fix merge problem with 1.2 
+- (BUGF) make RPM own some unowned directories in "triggers"
+
+- Fri Aug 29 2008 - 1.2.0
 - (FEAT) All development work from 1.X merged in
 - (FEAT) when --netboot-enabled is toggled, rather than deleting the PXE config, create a local boot PXE config
 - (BUGF) disable some s390 aspects of cobbler check until it is supported
