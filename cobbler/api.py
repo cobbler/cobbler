@@ -84,13 +84,13 @@ class BootAPI:
                 return
 
             self.logger_remote = self.__setup_logger("remote")
+            self.acl_engine = acls.AclEngine()
 
             BootAPI.__has_loaded   = True
             module_loader.load_modules()
+
             self._config         = config.Config(self)
             self.deserialize()
-
-            self.acl_engine = acls.AclEngine()
 
             self.authn = self.get_module_from_file(
                 "authentication",
@@ -487,17 +487,16 @@ class BootAPI:
         """
         (Remote) access control.
         """
-        rc = self.authn.authenticate(self,user,password)
         self.log("authenticate",[user,rc])
+        rc = self.authn.authenticate(self,user,password)
         return rc 
 
     def authorize(self,user,resource,arg1=None,arg2=None):
         """
         (Remote) access control.
         """
-        rc = self.authz.authorize(self,user,resource,arg1,arg2,self.acl_engine)
         self.log("authorize",[user,resource,arg1,arg2,rc],debug=True)
-        # if we clear authz, now ask the ACL engine
+        rc = self.authz.authorize(self,user,resource,arg1,arg2,acl_engine=self.acl_engine)
         return rc
 
     def build_iso(self,iso=None,profiles=None,systems=None,tempdir=None):

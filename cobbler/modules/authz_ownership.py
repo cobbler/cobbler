@@ -58,7 +58,7 @@ def __parse_config():
            alldata[g][o] = 1
     return alldata 
 
-def __authorize_kickstart(api_handle, group, user, kickstart, resource, arg1, arg2, acl_engine):
+def __authorize_kickstart(api_handle, group, user, kickstart, acl_engine):
     # the authorization rules for kickstart editing are a bit
     # of a special case.  Non-admin users can edit a kickstart
     # only if all objects that depend on that kickstart are
@@ -80,23 +80,22 @@ def __authorize_kickstart(api_handle, group, user, kickstart, resource, arg1, ar
     lst = api_handle.find_profile(kickstart=kickstart, return_list=True)
     lst.extend(api_handle.find_system(kickstart=kickstart, return_list=True))
     for obj in lst:
-       if not __is_user_allowed(obj, group, user, resource, arg1, arg2, acl_engine):
+       if not __is_user_allowed(obj, group, user, "write_kickstart", kickstart, None, acl_engine):
           return 0
     return 1
 
 def __is_user_allowed(obj, group, user, resource, arg1, arg2, acl_engine):
+    if group in [ "admins", "admin" ]:
+        return acl_engine.can_access(group, user, resource, arg1, arg2)
     if obj.owners == []:
         # no ownership restrictions, cleared
-        print "DEBUG: check Z1"
         return acl_engine.can_access(group, user, resource, arg1, arg2)
     for allowed in obj.owners:
         if user == allowed:
            # user match
-           print "DEBUG: check Z2"
            return acl_engine.can_access(group, user, resource, arg1, arg2)
         # else look for a group match
         if group == allowed:
-           print "DEBUG: check Z3"
            return acl_engine.can_access(group, user, resource, arg1, arg2)
     return 0
 
@@ -116,7 +115,6 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,acl_engine=None):
        # FIXME: /cobbler/web should not be subject to user check in any case
        for x in [ "get", "read", "/cobbler/web" ]:
           if resource.startswith(x):
-             print "- DEBUG: get/read/other always ok"
              return 1 # read operation is always ok.
 
     user_groups = __parse_config()
@@ -141,7 +139,6 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,acl_engine=None):
                # if user is in the admin group, always authorize
                # regardless of the ownership of the object.
                if g == "admins" or g == "admin":
-                   print "DEBUG: check A"
                    return acl_engine.can_access(found_group,user,resource,arg1,arg2)
                break
 
@@ -152,7 +149,6 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,acl_engine=None):
     if not modify_operation:
         # sufficient to allow access for non save/remove ops to all
         # users for now, may want to refine later.
-        print "DEBUG: check B"
         return acl_engine.can_access(found_group,user,resource,arg1,arg2)
 
     # now we have a modify_operation op, so we must check ownership
@@ -162,10 +158,8 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,acl_engine=None):
     # function, rather than going through the rest of the code here.
 
     if resource.find("write_kickstart") != -1:
-        print "DEBUG: check C"
-        return __authorize_kickstart(api_handle,user,user_groups,arg1)
+        return __authorize_kickstart(api_handle,found_group,user,arg1,acl_engine)
     elif resource.find("read_kickstart") != -1:
-        print "DEBUG: check D"
         return acl_engine.can_access(found_group,user,resource,arg1,arg2)
 
     obj = None
@@ -182,11 +176,9 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,acl_engine=None):
         obj = arg1
 
     # if the object has no ownership data, allow access regardless
-    if obj.owners is None or obj.owners == []:
-        print "DEBUG: check E"
+    if obj is None or obj.owners is None or obj.owners == []:
         return acl_engine.can_access(found_group,user,resource,arg1,arg2)
      
-    print "DEBUG: check F"
     return __is_user_allowed(obj,found_group,user,resource,arg1,arg2,acl_engine)
            
 
@@ -218,5 +210,7 @@ if __name__ == "__main__":
     api.add_system(s)
     print "***** EDIT SYSTEM I DONT OWN"
     print authorize(api, "testing", "save_system",  s, acl_engine=acl_engine)
+    print authorize(api, "admin1", "write_kickstart", "/etc/cobbler/sample.ks", acl_engine=acl_engine)
+    print authorize(api, "admin1", "write_kickstart", "/etc/cobbler/sample2.ks", acl_engine=acl_engine)
 
 

@@ -11,13 +11,14 @@ import shutil
 import traceback
 
 from cobbler.cexceptions import *  
+from cobbler import acls
 
-from cobbler import settings
-from cobbler import collection_distros
-from cobbler import collection_profiles
-from cobbler import collection_systems
-from cobbler import collection_repos
-from cobbler import collection_images
+#from cobbler import settings
+#from cobbler import collection_distros
+#from cobbler import collection_profiles
+#from cobbler import collection_systems
+#from cobbler import collection_repos
+#from cobbler import collection_images
 import cobbler.modules.authz_ownership as authz_module
 
 from cobbler import api
@@ -268,7 +269,9 @@ class Ownership(BootTest):
         # now edit the groups file.  We won't test the full XMLRPC
         # auth stack here, but just the module in question
 
-        authorize = authz_module.authorize
+        acl_engine = acls.AclEngine()
+        def authorize(api, user, resource, arg1=None, arg2=None):
+            return authz_module.authorize(api, user,resource,arg1,arg2,acl_engine=acl_engine)
 
         # if the users.conf file exists, back it up for the tests
         if os.path.exists("/etc/cobbler/users.conf"):
@@ -310,47 +313,48 @@ class Ownership(BootTest):
         # Basement2 is rejected because the kickstart is shared by something
         # basmeent2 can not edit.
 
+
         for user in [ "admin1", "superlab1", "superlab2", "basement1" ]:
-           self.assertTrue(1==authorize(self.api, user, "modify_kickstart", "/tmp/test_cobbler_kickstart"), "%s can modify_kickstart" % user)
+           self.assertTrue(authorize(self.api, user, "write_kickstart", "/tmp/test_cobbler_kickstart"), "%s can modify_kickstart" % user)
 
         for user in [ "basement2", "dne" ]:
-           self.assertTrue(0==authorize(self.api, user, "modify_kickstart", "/tmp/test_cobbler_kickstart"), "%s can modify_kickstart" % user)
+           self.assertFalse(authorize(self.api, user, "write_kickstart", "/tmp/test_cobbler_kickstart"), "%s can modify_kickstart" % user)
 
         # ensure admin1 can edit (he's an admin) and do other tasks
         # same applies to basement1 who is explicitly added as a user
         # and superlab1 who is in a group in the ownership list
         for user in ["admin1","superlab1","basement1"]:
-           self.assertTrue(1==authorize(self.api, user, "save_distro", xo),"%s can save_distro" % user)
-           self.assertTrue(1==authorize(self.api, user, "modify_distro", xo),"%s can modify_distro" % user)
-           self.assertTrue(1==authorize(self.api, user, "copy_distro", xo),"%s can copy_distro" % user)
-           self.assertTrue(1==authorize(self.api, user, "remove_distro", xn),"%s can remove_distro" % user)  
+           self.assertTrue(authorize(self.api, user, "save_distro", xo),"%s can save_distro" % user)
+           self.assertTrue(authorize(self.api, user, "modify_distro", xo),"%s can modify_distro" % user)
+           self.assertTrue(authorize(self.api, user, "copy_distro", xo),"%s can copy_distro" % user)
+           self.assertTrue(authorize(self.api, user, "remove_distro", xn),"%s can remove_distro" % user)  
 
         # ensure all users in the file can sync
         for user in [ "admin1", "superlab1", "basement1", "basement2" ]:     
-           self.assertTrue(1==authorize(self.api, user, "sync"))
+           self.assertTrue(authorize(self.api, user, "sync"))
 
         # make sure basement2 can't edit (not in group)
         # and same goes for "dne" (does not exist in users.conf)
         
         for user in [ "basement2", "dne" ]:
-           self.assertTrue(0==authorize(self.api, user, "save_distro", xo), "user %s cannot save_distro" % user)
-           self.assertTrue(0==authorize(self.api, user, "modify_distro", xo), "user %s cannot modify_distro" % user)
-           self.assertTrue(0==authorize(self.api, user, "remove_distro", xn), "user %s cannot remove_distro" % user)
+           self.assertFalse(authorize(self.api, user, "save_distro", xo), "user %s cannot save_distro" % user)
+           self.assertFalse(authorize(self.api, user, "modify_distro", xo), "user %s cannot modify_distro" % user)
+           self.assertFalse(authorize(self.api, user, "remove_distro", xn), "user %s cannot remove_distro" % user)
  
         # basement2 is in the file so he can still copy
-        self.assertTrue(1==authorize(self.api, "basement2", "copy_distro", xo), "basement2 can copy_distro")
+        self.assertTrue(authorize(self.api, "basement2", "copy_distro", xo), "basement2 can copy_distro")
 
         # dne can not copy or sync either (not in the users.conf)
-        self.assertTrue(0==authorize(self.api, "dne", "copy_distro", xo), "dne cannot copy_distro")
-        self.assertTrue(0==authorize(self.api, "dne", "sync"), "dne cannot sync")
+        self.assertFalse(authorize(self.api, "dne", "copy_distro", xo), "dne cannot copy_distro")
+        self.assertFalse(authorize(self.api, "dne", "sync"), "dne cannot sync")
 
         # unlike the distro testdistro0, testrepo0 is unowned
         # so any user in the file will be able to edit it.
         for user in [ "admin1", "superlab1", "basement1", "basement2" ]:
-           self.assertTrue(1==authorize(self.api, user, "save_repo", ro), "user %s can save_repo" % user)
+           self.assertTrue(authorize(self.api, user, "save_repo", ro), "user %s can save_repo" % user)
 
         # though dne is still not listed and will be denied
-        self.assertTrue(0==authorize(self.api, "dne", "save_repo", ro), "dne cannot save_repo")
+        self.assertFalse(authorize(self.api, "dne", "save_repo", ro), "dne cannot save_repo")
 
         # if we survive, restore the users file as module testing is done
         if os.path.exists("/tmp/cobbler_ubak"):

@@ -43,6 +43,7 @@ def register():
 def authorize(api_handle,user,resource,arg1=None,arg2=None,acl_engine=None):
     """
     Validate a user against a resource.
+    NOTE: acls are not enforced as there is no group support in this module
     """
     return True
 
