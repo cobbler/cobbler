@@ -80,6 +80,7 @@ if __name__ == "__main__":
                                 (etcpath,  ['config/rsync.exclude']),
                                 (etcpath,  ['config/users.conf']),
                                 (etcpath,  ['config/acls.conf']),
+                                (etcpath,  ['config/cheetah_macros']),
                                 (initpath, ['config/cobblerd']),
                                 (etcpath,  ['config/settings']),
                                 # (bashpath, ['config/cobbler_bash']), 

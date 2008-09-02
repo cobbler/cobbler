@@ -25,6 +25,8 @@ import Cheetah.Template
 import os.path
 import re
 
+CHEETAH_MACROS_FILE = '/etc/cobbler/cheetah_macros'
+
 # This class is defined using the Cheetah language. Using the 'compile' function
 # we can compile the source directly into a python class. This class will allow
 # us to define the cheetah builtins.
@@ -36,10 +38,22 @@ BuiltinTemplate = Cheetah.Template.Template.compile(source="\n".join([
     # still need to make the snippet's namespace (searchList) available to the
     # template calling SNIPPET (done in the other part).
     
-    # TODO: Should this be in its own file? If so, should it go into
-    # /var/lib/cobbler or should it go with cobbler's site-package?
-    # how about /etc/cobbler/cheetah.conf ? -- mpd
+    # Moved the other functions into /etc/cobbler/cheetah_macros
+    # Left SNIPPET here since it is very important.
 
+    # This function can be used in two ways:
+    # Cheetah syntax:
+    # 
+    # $SNIPPET('my_snippet')
+    # 
+    # SNIPPET syntax:
+    # 
+    # SNIPPET::my_snippet
+    # 
+    # This follows all of the rules of snippets and advanced snippets. First it
+    # searches for a per-system snippet, then a per-profile snippet, then a
+    # general snippet. If none is found, a comment explaining the error is
+    # substituted.
     "#def SNIPPET($file)",
         "#set $fullpath = $find_snippet($file)",
         "#if $fullpath",
@@ -48,168 +62,11 @@ BuiltinTemplate = Cheetah.Template.Template.compile(source="\n".join([
             "# Error: no snippet data for $file",
         "#end if",
     "#end def",
-    
-    # Comment every line containing the $pattern given
-    "#def comment_lines($filename, $pattern, $commentchar='#')",
-        "perl -npe 's/^(.*${pattern}.*)$/${commentchar}\\${1}/' -i '$filename'",
-    "#end def",
-    
-    # Comments every line which contains only the exact pattern.
-    "#def comment_lines_exact($filename, $pattern, $commentchar='#')",
-        "perl -npe 's/^(${pattern})$/${commentchar}\\${1}/' -f '$filename'",
-    "#end def",
-    
-    # Uncomments every (commented) line containing the pattern
-    # Patterns should not contain the #
-    "#def uncomment_lines($filename, $pattern, $commentchar='#')",
-        "perl -npe 's/^[ \\t]*${commentchar}(.*${pattern}.*)$/\\${1}/' -i '$filename'",
-    "#end def",
-    
-    # Nullify (by changing to 'true') all instances of a given sh command. This
-    # does understand lines with multiple commands (separated by ';') and also
-    # knows to ignore comments. Consider other options before using this
-    # method.
-    "#def delete_command($filename, $pattern)",
-        "sed -nr '",
-        "    h",
-        "    s/^([^#]*)(#?.*)$/\\1/",
-        "    s/((^|;)[ \\t]*)${pattern}([ \\t]*($|;))/\\1true\\3/g",
-        "    s/((^|;)[ \\t]*)${pattern}([ \\t]*($|;))/\\1true\\3/g",
-        "    x",
-        "    s/^([^#]*)(#?.*)$/\\2/",
-        "    H",
-        "    x",
-        "    s/\\n//",
-        "    p",
-        "' -i '$filename'",
-    "#end def",
-    
-    # Replace a configuration parameter value, or add it if it doesn't exist.
-    # Assumes format is [param_name] [value]
-    "#def set_config_value($filename, $param_name, $value)",
-        "if [ -n \"\\$(grep -Ee '^[ \\t]*${param_name}[ \\t]+' '$filename')\" ]",
-        "then",
-        "    perl -npe 's/^([ \\t]*${param_name}[ \\t]+)[\\x21-\\x7E]*([ \\t]*(#.*)?)$/\\${1}${sedesc($value)}\\${2}/' -i '$filename'",
-        "else",
-        "    echo '$param_name $value' >> '$filename'",
-        "fi",
-    "#end def",
-    
-    # Replace a configuration parameter value, or add it if it doesn't exist.
-    # Assues format is [param_name] [delimiter] [value], where [delimiter] is
-    # usually '='.
-    "#def set_config_value_delim($filename, $param_name, $delim, $value)",
-        "if [ -n \"\\$(grep -Ee '^[ \\t]*${param_name}[ \\t]*${delim}[ \\t]*' '$filename')\" ]",
-        "then",
-        "    perl -npe 's/^([ \\t]*${param_name}[ \\t]*${delim}[ \\t]*)[\\x21-\\x7E]*([ \\t]*(#.*)?)$/${1}${sedesc($value)}${2}/' -i '$filename'",
-        "else",
-        "    echo '$param_name$delim$value' >> '$filename'",
-        "fi",
-    "#end def",
-    
-    # Copy a file from the server to the client.
-    "#def copy_over_file($serverfile, $clientfile)",
-        "cat << 'EOF' > '$clientfile'",
-        "#include $files + $serverfile",
-        "EOF",
-    "#end def",
-    
-    # Copy a file from the server and append the contents to a file on the
-    # client.
-    "#def copy_over_file($serverfile, $clientfile)",
-        "cat << 'EOF' >> '$clientfile'",
-        "#include $files + $serverfile",
-        "EOF",
-    "#end def",
-    
-    # Convenience function: Copy/append several files at once. This accepts a
-    # list of tuples. The first element indicates whether to overwrite ('w') or
-    # append ('a'). The second element is the file name on both the server and
-    # the client (a '/' is prepended on the client side).
-    "#def copy_files($filelist)",
-        "#for $thisfile in $filelist",
-            "#if $thisfile[0] == 'a'",
-                "$copy_append_file($thisfile[1], '/' + $thisfile[1])",
-            "#else",
-                "$copy_over_file($thisfile[1], '/' + $thisfile[1])",
-            "#end if",
-        "#end for",
-    "#end def",
-    
-    # Append some content to the todo file. NOTE: $todofile must be defined
-    # before using this (unless you want unexpected results). Be sure to end
-    # the content with 'EOF'
-    "#def TODO()",
-        "cat << 'EOF' >> '$todofile'",
-    "#end def",
-    
-    # Set the owner, group, and permissions for several files. Assignment can
-    # be plain ('p') or recursive. If recursive you can assign everything ('r')
-    # or just files ('f'). This method takes a list of tuples. The first element
-    # of each indicates which style. The remaining elements are owner, group,
-    # and mode respectively. If 'f' is used, an additional element is a find
-    # pattern that can further restrict assignments (use '*' if no additional
-    # restrict is desired).
-    "#def set_permissions($filelist)",
-        "#for $file in $filelist",
-            "#if $file[0] == 'p'",
-                "#if $file[1] != '' and $file[2] != ''",
-                    "chown '$file[1]:$file[2]' '$file[4]'",
-                "#else",
-                    "#if $file[1] != ''",
-                        "chown '$file[1]' '$file[4]'",
-                    "#end if",
-                    "#if $file[2] != ''",
-                        "chgrp '$file[2]' '$file[4]'",
-                    "#end if",
-                "#end if",
-                "#if $file[3] != ''",
-                    "chmod '$file[3]' '$file[4]'",
-                "#end if",
-            "#elif $file[0] == 'r'",
-                "#if $file[1] != '' and $file[2] != ''",
-                    "chown -R '$file[1]:$file[2]' '$file[4]'",
-                "#else",
-                    "#if $file[1] != ''",
-                        "chown -R '$file[1]' '$file[4]'",
-                    "#end if",
-                    "#if $file[2] != ''",
-                        "chgrp -R '$file[2]' '$file[4]'",
-                    "#end if",
-                "#end if",
-                "#if $file[3] != ''",
-                    "chmod -R '$file[3]' '$file[4]'",
-                "#end if",
-            "#elif $file[0] == 'f'",
-                "#if $file[1] != '' and $file[2] != ''",
-                    "find $file[4] -name '$file[5]' -type f -exec chown -R '$file[1]:$file[2]' {} \\;",
-                "#else",
-                    "#if $file[1] != ''",
-                        "find $file[4] -name '$file[5]' -type f -exec chown -R '$file[1]' {} \\;",
-                    "#end if",
-                    "#if $file[2] != ''",
-                        "find $file[4] -name '$file[5]' -type f -exec chgrp -R '$file[2]' {} \\;",
-                    "#end if",
-                "#end if",
-                "#if $file[3] != ''",
-                    "find $file[4] -name '$file[5]' -type f -exec chmod -R '$file[3]' {} \\;",
-                "#end if",
-            "#end if",
-        "#end for",
-    "#end def",
-    
-    # Cheeseball an entire directory.
-    "#def includeall($dir)",
-        "#import os",
-        "#for $file in $os.listdir($snippetsdir + '/' + $dir)",
-            "#include $snippetsdir + '/' + $dir + '/' + $file",
-        "#end for",
-    "#end def",
-
 ]) + "\n")
 
+MacrosTemplate = Cheetah.Template.Template.compile(file=CHEETAH_MACROS_FILE)
 
-class Template(BuiltinTemplate):
+class Template(BuiltinTemplate, MacrosTemplate):
 
     """
     This class will allow us to include any pure python builtin functions.
@@ -270,7 +127,7 @@ class Template(BuiltinTemplate):
     def find_snippet(self, file):
         """
         Locate the appropriate snippet for the current system and profile.
-        This will first check for a per_system snippet, a per_profile snippet,
+        This will first check for a per-system snippet, a per-profile snippet,
         and a general snippet. If no snippet is located, it returns None.
         """
         if self.varExists('system_name'):
@@ -315,6 +172,13 @@ class Template(BuiltinTemplate):
         
         return result
     
+    # This function is used by several cheetah methods in cheetah_macros.
+    # It can be used by the end user as well.
+    # Ex: Replace all instances of '/etc/banner' with a value stored in
+    # $new_banner
+    # 
+    # sed 's/$sedesc("/etc/banner")/$sedesc($new_banner)/'
+    # 
     def sedesc(self, value):
         """
 	Escape a string for use in sed.

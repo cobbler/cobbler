@@ -15,6 +15,7 @@ include config/users.digest
 include config/users.conf
 include config/completions
 include config/cobbler_bash
+include config/cheetah_macros
 recursive-include templates *.template
 recursive-include kickstarts *.ks
 include docs/cobbler.1.gz
