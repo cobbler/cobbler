@@ -8,7 +8,7 @@
 Summary: 	An interface for interacting with a Cobbler server
 Name: 		rubygem-%{gemname}
 Version: 	0.0.2
-Release: 	2%{?dist}
+Release: 	3%{?dist}
 Group: 		Development/Languages
 License: 	LGPLv2+
 URL: 		http://cobbler.et.redhat.com/
@@ -16,6 +16,7 @@ Source0: 	http://fedorapeople.org/~mcpierce/%{gemname}-%{version}.gem
 BuildRoot: 	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: 	rubygems
 BuildRequires: 	rubygems
+BuildRequires:  rubygem-cobbler
 BuildArch: 	noarch
 Provides: 	rubygem(%{gemname}) = %{version}
 
@@ -68,6 +69,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Sep 03 2008 Darryl Pierce <dpierce@redhat.com> - 0.0.2-3
+- Added a build requirement for rubygem-rake.
+
 * Tue Aug 26 2008 Darryl Pierce <dpierce@redhat.com> - 0.0.2-2
 - Fixed the licensing in each source module to show the code is released under
   LGPLv2.1.
