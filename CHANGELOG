@@ -5,6 +5,7 @@ Cobbler CHANGELOG
 - (BUGF) fix to where elilo location is loaded in manage_isc.py
 - (BUGF) populate netboot_enabled in WebUI correctly
 - (BUGF) make RPM own some unowned directories in "triggers"
+- (BUGF) add named_conf setting to settings
 
 - Tue Sep 02 2008 - 1.2.1
 - (BUGF) fix merge problem with 1.2 
