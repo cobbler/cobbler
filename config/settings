@@ -89,6 +89,10 @@ manage_dns: 0
 manage_forward_zones: []
 manage_reverse_zones: []
 
+# location where cobbler will write its named.conf when BIND dns management is
+# enabled
+named_conf: /etc/named.conf
+
 # if using cobbler with manage_dhcp, put the IP address
 # of the cobbler server here so that PXE booting guests can find it
 # if you do not set this correctly, this will be manifested in TFTP open timeouts.
