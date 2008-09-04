@@ -207,11 +207,17 @@ function page_onload() {
     <label for="netboot">Netboot Enabled</label>
     </td>
     <td>
-    <input type="checkbox" name="netboot" id="netboot"
-    #if not $system or $system.netboot_enabled
-        checked="True"
+
+    #if $system
+       #if str($system.netboot_enabled) != "False"
+           <input type="checkbox" name="netboot" id="netboot" checked=True>
+       #else
+           <input type="checkbox" name="netboot" id="netboot">
+       #end if
+    #else
+       <input type="checkbox" name="netboot" id="netboot" checked="True">
     #end if
-    >
+
     <p class="context-tip">Deselect to keep this system from PXE booting</p>
     </td>
     </tr>

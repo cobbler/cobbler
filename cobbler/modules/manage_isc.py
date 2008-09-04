@@ -149,13 +149,6 @@ class IscManager:
         template_data = f2.read()
         f2.close()
 
-        # build each per-system definition
-        # as configured, this only works for ISC, patches accepted
-        # from those that care about Itanium.  elilo seems to be unmaintained
-        # so additional maintaince in other areas may be required to keep
-        # this working.
-        elilo = os.path.basename(self.settings.bootloaders["ia64"])
-
         # use a simple counter for generating generic names where a hostname
         # is not available
         counter = 0
@@ -208,6 +201,7 @@ class IscManager:
                 else:
                     interface["name"] = "generic%d" % counter
 
+                elilo = "/elilo-3.6-ia64.efi"
                 interface["filename"] = "/pxelinux.0"
                 # can't use pxelinux.0 anymore
                 if distro.arch == "ia64":
