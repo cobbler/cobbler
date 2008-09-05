@@ -487,16 +487,16 @@ class BootAPI:
         """
         (Remote) access control.
         """
-        self.log("authenticate",[user,rc])
         rc = self.authn.authenticate(self,user,password)
+        self.log("authenticate",[user,rc])
         return rc 
 
     def authorize(self,user,resource,arg1=None,arg2=None):
         """
         (Remote) access control.
         """
-        self.log("authorize",[user,resource,arg1,arg2,rc],debug=True)
         rc = self.authz.authorize(self,user,resource,arg1,arg2,acl_engine=self.acl_engine)
+        self.log("authorize",[user,resource,arg1,arg2,rc],debug=True)
         return rc
 
     def build_iso(self,iso=None,profiles=None,systems=None,tempdir=None):
