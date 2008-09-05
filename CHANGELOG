@@ -1,7 +1,7 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-- ??? Sep 03 2008 - 1.2.2
+- Fri Sep 05 2008 - 1.2.2
 - (BUGF) fix to where elilo location is loaded in manage_isc.py
 - (BUGF) populate netboot_enabled in WebUI correctly
 - (BUGF) make RPM own some unowned directories in "triggers"
