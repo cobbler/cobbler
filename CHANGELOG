@@ -1,6 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+- Sun Sep 07 2008 - 1.2.2
+- (BUGF) fix to manage_isc.py code
+
 - Fri Sep 05 2008 - 1.2.2
 - (BUGF) fix to where elilo location is loaded in manage_isc.py
 - (BUGF) populate netboot_enabled in WebUI correctly
