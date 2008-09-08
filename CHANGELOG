@@ -1,7 +1,7 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-- Sun Sep 07 2008 - 1.2.2
+- Sun Sep 07 2008 - 1.2.3
 - (BUGF) fix to manage_isc.py code
 
 - Fri Sep 05 2008 - 1.2.2
