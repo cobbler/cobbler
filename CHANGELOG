@@ -3,6 +3,7 @@ Cobbler CHANGELOG
 
 - ??? - 1.2.5 (pending)
 - (BUGF) expose --arch for "cobbler image add"
+- (BUGF) unbreak dnsmasq DHCP management, similar to ISC bug
 
 - Mon Sep 08 2008 - 1.2.4
 - (BUGF) simple rebuild to remove cli_report.py, which is not in git

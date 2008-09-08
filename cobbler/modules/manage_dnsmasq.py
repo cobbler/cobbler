@@ -97,7 +97,8 @@ class DnsmasqManager:
         # so additional maintaince in other areas may be required to keep
         # this working.
 
-        elilo = os.path.basename(self.settings.bootloaders["ia64"])
+        elilo = "/var/lib/cobbler/elilo-3.6-ia64.efi"
+
 
         system_definitions = {}
         counter = 0
