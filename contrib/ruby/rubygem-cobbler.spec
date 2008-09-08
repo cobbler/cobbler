@@ -70,6 +70,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Sep 08 2008 Darryl Pierce <dpierce@redhat.com> - 0.1.0-1
+- First official build for Fedora.
+
 * Fri Sep 05 2008 Darryl Pierce <dpierce@redhat.com> - 0.0.2-4
 - Bad BuildRequires slipped into the last version.
 
