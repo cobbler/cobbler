@@ -7,8 +7,8 @@
 
 Summary: 	An interface for interacting with a Cobbler server
 Name: 		rubygem-%{gemname}
-Version: 	0.0.2
-Release: 	4%{?dist}
+Version: 	0.1.0
+Release: 	1%{?dist}
 Group: 		Development/Languages
 License: 	LGPLv2+
 URL: 		http://cobbler.et.redhat.com/
