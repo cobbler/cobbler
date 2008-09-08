@@ -4,7 +4,17 @@ Cobbler CHANGELOG
 - ??? - 1.3
 - (FEAT) ACLs to extend authz (see Wiki)
 
-- ??? Sep 03 2008 - 1.2.2
+- ??? - 1.2.5 (pending)
+- (BUGF) expose --arch for "cobbler image add"
+
+- Mon Sep 08 2008 - 1.2.4
+- (BUGF) simple rebuild to remove cli_report.py, which is not in git
+
+- Sun Sep 07 2008 - 1.2.3
+- (BUGF) fix to manage_isc.py code
+
+- Fri Sep 05 2008 - 1.2.2
+>>>>>>> master:CHANGELOG
 - (BUGF) fix to where elilo location is loaded in manage_isc.py
 - (BUGF) populate netboot_enabled in WebUI correctly
 - (BUGF) make RPM own some unowned directories in "triggers"

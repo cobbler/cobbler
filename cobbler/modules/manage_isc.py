@@ -171,6 +171,7 @@ class IscManager:
         # we used to just loop through each system, but now we must loop
         # through each network interface of each system.
         dhcp_tags = { "default": {} }
+        elilo = "/elilo-3.6-ia64.efi"
 
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
@@ -201,7 +202,6 @@ class IscManager:
                 else:
                     interface["name"] = "generic%d" % counter
 
-                elilo = "/elilo-3.6-ia64.efi"
                 interface["filename"] = "/pxelinux.0"
                 # can't use pxelinux.0 anymore
                 if distro.arch == "ia64":
