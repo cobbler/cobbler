@@ -4,6 +4,8 @@ Cobbler CHANGELOG
 - ??? - 1.3
 - (FEAT) ACLs to extend authz (see Wiki)
 - (FEAT) puppet integration with --mgmt-classes and external nodes URL
+- (FEAT) added puppet external nodes script, cobbler-ext-nodes
+         see https://fedorahosted.org/cobbler/wiki/UsingCobblerWithConfigManagementSystem
 
 - ??? - 1.2.5 (pending)
 - (BUGF) expose --arch for "cobbler image add"

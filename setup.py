@@ -61,7 +61,7 @@ if __name__ == "__main__":
                     "cobbler/server", 
                     "cobbler/webui",
                 ],
-                scripts = ["scripts/cobbler", "scripts/cobblerd", "scripts/cobbler-completion"],
+                scripts = ["scripts/cobbler", "scripts/cobblerd", "scripts/cobbler-ext-nodes", "scripts/cobbler-completion"],
                 data_files = [ 
                                 (modpython, ['scripts/index.py']),
                                 (modpythonsvc, ['scripts/services.py']),
