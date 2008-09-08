@@ -39,6 +39,7 @@ class ImageFunction(commands.CobblerFunction):
 
 
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
+            p.add_option("--arch",           dest="arch",         help="ex: i386, x86_64")
             p.add_option("--breed",          dest="breed",        help="ex: redhat")
 
         if self.matches_args(args,["add"]):
@@ -105,6 +106,7 @@ class ImageFunction(commands.CobblerFunction):
         if self.options.virt_type:        obj.set_virt_type(self.options.virt_type)
         if self.options.xml_file:         obj.set_xml_file(self.options.xml_file)
         if self.options.breed:            obj.set_breed(self.options.breed)
+        if self.options.arch:             obj.set_arch(self.options.arch)
         if self.options.os_version:       obj.set_os_version(self.options.os_version)
  
         return self.object_manipulator_finish(obj, self.api.images, self.options)

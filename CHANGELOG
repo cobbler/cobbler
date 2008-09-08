@@ -1,6 +1,12 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+- ??? - 1.2.5 (pending)
+- (BUGF) expose --arch for "cobbler image add"
+
+- Mon Sep 08 2008 - 1.2.4
+- (BUGF) simple rebuild to remove cli_report.py, which is not in git
+
 - Sun Sep 07 2008 - 1.2.3
 - (BUGF) fix to manage_isc.py code
 
