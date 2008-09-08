@@ -54,12 +54,14 @@ class ProfileFunction(commands.CobblerFunction):
             p.add_option("--distro",           dest="distro",    help="ex: 'RHEL-5-i386' (REQUIRED)")
             p.add_option("--dhcp-tag",         dest="dhcp_tag",  help="for use in advanced DHCP configuration")
             p.add_option("--inherit",          dest="inherit",   help="inherit from this profile name, defaults to no")
+            if not self.matches_args(args,["find"]):
+                p.add_option("--in-place",action="store_true", dest="inplace", default=False, help="edit items in kopts, kopts_post or ksmeta without clearing the other items")
             p.add_option("--kickstart",        dest="kickstart", help="absolute path to kickstart template (RECOMMENDED)")
             p.add_option("--ksmeta",           dest="ksmeta",    help="ex: 'blippy=7'")
             p.add_option("--kopts",            dest="kopts",     help="ex: 'noipv6'")
             p.add_option("--kopts-post",       dest="kopts_post",help="ex: 'clocksource=pit'")
-            if not self.matches_args(args,["find"]):
-                p.add_option("--in-place",action="store_true", dest="inplace", default=False, help="edit items in kopts, kopts_post or ksmeta without clearing the other items")
+            p.add_option("--mgmt-classes", dest="mgmt_classes",  help="list of config management classes (for Puppet, etc)")
+
 
         p.add_option("--name",   dest="name",  help="a name for the profile (REQUIRED)")
 
@@ -121,6 +123,7 @@ class ProfileFunction(commands.CobblerFunction):
             if self.options.server_override: obj.set_server(self.options.server)
 
             if self.options.owners:          obj.set_owners(self.options.owners)
+            if self.options.mgmt_classes:    obj.set_mgmt_classes(self.options.mgmt_classes)
 
         return self.object_manipulator_finish(obj, self.api.profiles, self.options)
 

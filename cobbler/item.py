@@ -182,6 +182,14 @@ class Item(serializable.Serializable):
                 self.ks_meta = value
             return True
 
+    def set_mgmt_classes(self,mgmt_classes):
+        """
+        Assigns a list of configuration management classes that can be assigned
+        to any object, such as those used by Puppet's external_nodes feature.
+        """
+        self.mgmt_classes = utils.input_string_or_list(mgmt_classes)
+        return True
+
     def load_item(self,datastruct,key,default=''):
         """
         Used in subclass from_datastruct functions to load items from

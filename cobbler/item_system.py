@@ -47,6 +47,7 @@ class System(item.Item):
         self.interfaces           = {}
         self.netboot_enabled      = True
         self.depth                = 2
+        self.mgmt_classes         = []              
         self.kickstart            = "<<inherit>>"   # use value in profile
         self.server               = "<<inherit>>"   # "" (or settings)
         self.virt_path            = "<<inherit>>"   # ""
@@ -107,6 +108,7 @@ class System(item.Item):
         self.kickstart            = self.load_item(seed_data, 'kickstart', '<<inherit>>')
         self.netboot_enabled      = self.load_item(seed_data, 'netboot_enabled', True)
         self.server               = self.load_item(seed_data, 'server', '<<inherit>>')
+        self.mgmt_classes         = self.load_item(seed_data, 'mgmt_classes', [])
 
         # virt specific 
         self.virt_path   = self.load_item(seed_data, 'virt_path', '<<inherit>>') 
@@ -159,6 +161,7 @@ class System(item.Item):
         # coerce types from input file
         self.set_netboot_enabled(self.netboot_enabled)
         self.set_owners(self.owners) 
+        self.set_mgmt_classes(self.mgmt_classes)
 
         return self
 
@@ -422,8 +425,8 @@ class System(item.Item):
            'virt_file_size'        : self.virt_file_size,
            'virt_path'             : self.virt_path,
            'virt_ram'              : self.virt_ram,
-           'virt_type'             : self.virt_type
-
+           'virt_type'             : self.virt_type,
+           'mgmt_classes'          : self.mgmt_classes
         }
 
     def printable(self):
@@ -434,6 +437,7 @@ class System(item.Item):
         buf = buf + _("kernel options post   : %s\n") % self.kernel_options_post
         buf = buf + _("kickstart             : %s\n") % self.kickstart
         buf = buf + _("ks metadata           : %s\n") % self.ks_meta
+        buf = buf + _("mgmt classes          : %s\n") % self.mgmt_classes
 
         buf = buf + _("netboot enabled?      : %s\n") % self.netboot_enabled 
         buf = buf + _("owners                : %s\n") % self.owners
@@ -498,6 +502,8 @@ class System(item.Item):
            'virt-cpus'        : self.set_virt_cpus,
            'virt-file-size'   : self.set_virt_file_size,
            'server'           : self.set_server,
-           'owners'           : self.set_owners
+           'owners'           : self.set_owners,
+           'mgmt-classes'     : self.mgmt_classes
         }
+
 

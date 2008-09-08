@@ -457,8 +457,6 @@ def blender(api_handle,remove_hashes, root_obj):
     consolidated data.
     """
  
-    blend_key = "%s/%s/%s" % (root_obj.TYPE_NAME, root_obj.name, remove_hashes)
-
     settings = api_handle.settings()
     tree = grab_tree(api_handle, root_obj)
     tree.reverse()  # start with top of tree, override going down
@@ -504,6 +502,10 @@ def blender(api_handle,remove_hashes, root_obj):
     else:
        results["http_server"] = results["server"]
 
+    mgmt_parameters = results.get("mgmt_parameters",{})
+    mgmt_parameters.update(results.get("ks_meta", {}))
+    results["mgmt_parameters"] = mgmt_parameters
+ 
     # sanitize output for koan and kernel option lines, etc
     if remove_hashes:
         results = flatten(results)

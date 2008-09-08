@@ -65,6 +65,8 @@ DEFAULTS = {
     "manage_dns"                  : 0,
     "manage_forward_zones"        : [],
     "manage_reverse_zones"        : [],
+    "mgmt_classes"                : [],
+    "mgmt_parameters"             : {},
     "named_conf"                  : "/etc/named.conf",
     "next_server"                 : "127.0.0.1",
     "omapi_enabled"		  : 0,

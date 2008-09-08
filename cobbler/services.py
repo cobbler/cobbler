@@ -29,6 +29,7 @@ import string
 import sys
 import time
 import urlgrabber
+import yaml # cobbler packaged version
 
 def log_exc(apache):
     """
@@ -185,4 +186,22 @@ class CobblerSvc(object):
             return urlgrabber.urlread(url)
         except:
             return "# kickstart retrieval failed (%s)" % url
+
+    def puppet(self,hostname=None,**rest):
+        self.__xmlrpc_setup()
+
+        if hostname is None:
+           return "hostname is required"
+         
+        results = self.remote.find_system_by_hostname(hostname)
+
+        classes = results.get("mgmt_classes", {})
+        params = results.get("mgmt_parameters",[])
+
+        newdata = {
+           "classes"    : classes,
+           "parameters" : params
+        }
+        
+        return yaml.dump(newdata)
 

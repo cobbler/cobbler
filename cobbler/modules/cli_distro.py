@@ -54,10 +54,11 @@ class DistroFunction(commands.CobblerFunction):
             p.add_option("--initrd",      dest="initrd",      help="absolute path to initrd.img (REQUIRED)")
             if not self.matches_args(args,["find"]): 
                 p.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts or ksmeta without clearing the other items")
-            p.add_option("--kernel",      dest="kernel",      help="absolute path to vmlinuz (REQUIRED)")
-            p.add_option("--kopts",       dest="kopts",       help="ex: 'noipv6'")
-            p.add_option("--kopts-post",  dest="kopts_post",  help="ex: 'clocksource=pit'")
-            p.add_option("--ksmeta",      dest="ksmeta",      help="ex: 'blippy=7'")
+            p.add_option("--kernel",       dest="kernel",      help="absolute path to vmlinuz (REQUIRED)")
+            p.add_option("--kopts",        dest="kopts",       help="ex: 'noipv6'")
+            p.add_option("--kopts-post",   dest="kopts_post",  help="ex: 'clocksource=pit'")
+            p.add_option("--ksmeta",       dest="ksmeta",      help="ex: 'blippy=7'")
+            p.add_option("--mgmt-classes", dest="mgmt_classes",  help="list of config management classes (for Puppet, etc)")
 
         p.add_option("--name",   dest="name", help="ex: 'RHEL-5-i386' (REQUIRED)")
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
@@ -104,6 +105,8 @@ class DistroFunction(commands.CobblerFunction):
                 obj.set_os_version(self.options.os_version)
             if self.options.owners:
                 obj.set_owners(self.options.owners)
+            if self.options.mgmt_classes:
+                obj.set_mgmt_classes(self.options.mgmt_classes)
 
         return self.object_manipulator_finish(obj, self.api.distros, self.options)
 

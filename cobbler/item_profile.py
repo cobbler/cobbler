@@ -57,6 +57,7 @@ class Profile(item.Item):
         self.virt_path              = ("",                                      '<<inherit>>')[is_subobject]
         self.virt_bridge            = (self.settings.default_virt_bridge,       '<<inherit>>')[is_subobject]
         self.dhcp_tag               = ("default",                               '<<inherit>>')[is_subobject]
+        self.mgmt_classes           = ([],                                      '<<inherit>>')[is_subobject]
         self.parent                 = ''
         self.server                 = "<<inherit>>"
 
@@ -77,6 +78,7 @@ class Profile(item.Item):
         self.depth                  = self.load_item(seed_data,'depth', 1)     
         self.dhcp_tag               = self.load_item(seed_data,'dhcp_tag', 'default')
         self.server                 = self.load_item(seed_data,'server', '<<inherit>>')
+        self.mgmt_classes           = self.load_item(seed_data,'mgmt_classes', [])
 
         # backwards compatibility
         if type(self.repos) != list:
@@ -105,6 +107,7 @@ class Profile(item.Item):
             self.set_repos(self.repos,bypass_check=True)
 
         self.set_owners(self.owners)
+        self.set_mgmt_classes(self.mgmt_classes)
 
         return self
 
@@ -244,7 +247,7 @@ class Profile(item.Item):
             'virt_path'             : self.virt_path,
             'dhcp_tag'              : self.dhcp_tag,
             'server'                : self.server,
-
+            'mgmt_classes'          : self.mgmt_classes
         }
 
     def printable(self):
@@ -261,6 +264,7 @@ class Profile(item.Item):
         buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
         buf = buf + _("kickstart            : %s\n") % self.kickstart
         buf = buf + _("ks metadata          : %s\n") % self.ks_meta
+        buf = buf + _("mgmt classes         : %s\n") % self.mgmt_classes
         buf = buf + _("owners               : %s\n") % self.owners
         buf = buf + _("repos                : %s\n") % self.repos
         buf = buf + _("server               : %s\n") % self.server
@@ -292,6 +296,7 @@ class Profile(item.Item):
             'virt-cpus'       :  self.set_virt_cpus,
             'dhcp-tag'        :  self.set_dhcp_tag,
             'server'          :  self.set_server,
-            'owners'          :  self.set_owners
+            'owners'          :  self.set_owners,
+            'mgmt-classes'    :  self.set_mgmt_classes
         }
 

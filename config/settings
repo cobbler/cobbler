@@ -89,6 +89,14 @@ manage_dns: 0
 manage_forward_zones: []
 manage_reverse_zones: []
 
+# cobbler has a feature that allows for integration with config management
+# systems such as Puppet.  The following parameters work in conjunction with 
+# --mgmt-classes  and are described in furhter detail at:
+# https://fedorahosted.org/cobbler/wiki/UsingCobblerWithConfigManagementSystem
+mgmt_classes: []
+mgmt_parameters:
+   from_cobbler: 1
+
 # location where cobbler will write its named.conf when BIND dns management is
 # enabled
 named_conf: /etc/named.conf

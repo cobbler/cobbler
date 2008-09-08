@@ -438,6 +438,18 @@ class CobblerXMLRPCInterface:
         self.log("get_system",name=name,token=token)
         return self.__get_specific("system",name,flatten=flatten)
 
+    def find_system_by_hostname(self,hostname):
+        # FIXME: implement using api.py's find API
+        # and expose generic finds for other methods
+        # WARNING: this function is /not/ expected to stay in cobbler long term
+        systems = self.get_systems()
+        for x in systems:
+           for y in x["interfaces"]:
+              if x["interfaces"][y]["hostname"] == hostname:
+                  name = x["name"]
+                  return self.get_system_for_koan(name)
+        return {}
+
     def get_repo(self,name,flatten=False,token=None,**rest):
         """
         Returns the repo named "name" as a hash.

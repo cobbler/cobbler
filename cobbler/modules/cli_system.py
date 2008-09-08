@@ -49,19 +49,21 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
 
         if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
-            p.add_option("--dhcp-tag",        dest="dhcp_tag",    help="for use in advanced DHCP configurations")
-            p.add_option("--gateway",         dest="gateway",     help="for static IP / templating usage")
-            p.add_option("--hostname",        dest="hostname",    help="ex: server.example.org")
+            p.add_option("--dhcp-tag",        dest="dhcp_tag",      help="for use in advanced DHCP configurations")
+            p.add_option("--gateway",         dest="gateway",       help="for static IP / templating usage")
+            p.add_option("--hostname",        dest="hostname",      help="ex: server.example.org")
 
             if not self.matches_args(args,["find"]):
-                p.add_option("--interface",       dest="interface",   help="edit this interface # (0-7, default 0)")
-            p.add_option("--image",           dest="image",       help="inherit values from this image, not compatible with --profile")
-            p.add_option("--ip",              dest="ip",          help="ex: 192.168.1.55, (RECOMMENDED)")
-            p.add_option("--kickstart",       dest="kickstart",   help="override profile kickstart template")
-            p.add_option("--kopts",           dest="kopts",       help="ex: 'noipv6'")
-            p.add_option("--kopts-post",      dest="kopts_post",  help="ex: 'clocksource=pit'")
-            p.add_option("--ksmeta",          dest="ksmeta",      help="ex: 'blippy=7'")
-            p.add_option("--mac",             dest="mac",         help="ex: 'AA:BB:CC:DD:EE:FF', (RECOMMENDED)")
+                p.add_option("--interface",       dest="interface", help="edit this interface # (0-7, default 0)")
+            p.add_option("--image",           dest="image",         help="inherit values from this image, not compatible with --profile")
+            p.add_option("--ip",              dest="ip",            help="ex: 192.168.1.55, (RECOMMENDED)")
+            p.add_option("--kickstart",       dest="kickstart",     help="override profile kickstart template")
+            p.add_option("--kopts",           dest="kopts",         help="ex: 'noipv6'")
+            p.add_option("--kopts-post",      dest="kopts_post",    help="ex: 'clocksource=pit'")
+            p.add_option("--ksmeta",          dest="ksmeta",        help="ex: 'blippy=7'")
+            p.add_option("--mac",             dest="mac",           help="ex: 'AA:BB:CC:DD:EE:FF', (RECOMMENDED)")
+            p.add_option("--mgmt-classes",    dest="mgmt_classes",  help="list of config management classes (for Puppet, etc)")
+
             if not self.matches_args(args, ["find"]):
                 p.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts, kopts_post or ksmeta without clearing the other items")
 
@@ -142,9 +144,10 @@ class SystemFunction(commands.CobblerFunction):
         if self.options.gateway:     obj.set_gateway(self.options.gateway,   my_interface)
         if self.options.dhcp_tag:    obj.set_dhcp_tag(self.options.dhcp_tag, my_interface)
         if self.options.virt_bridge: obj.set_virt_bridge(self.options.virt_bridge, my_interface)
+              
 
-        if self.options.owners:
-            obj.set_owners(self.options.owners)
+        if self.options.owners:       obj.set_owners(self.options.owners)
+        if self.options.mgmt_classes: obj.set_mgmt_classes(self.options.mgmt_classes)
 
         rc = self.object_manipulator_finish(obj, self.api.systems, self.options)
 

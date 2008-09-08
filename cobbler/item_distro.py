@@ -42,15 +42,16 @@ class Distro(item.Item):
         """
         self.name                   = None
         self.owners                 = self.settings.default_ownership
-        self.kernel                 = (None,     '<<inherit>>')[is_subobject]
-        self.initrd                 = (None,     '<<inherit>>')[is_subobject]
-        self.kernel_options         = ({},       '<<inherit>>')[is_subobject]
-        self.kernel_options_post    = ({},       '<<inherit>>')[is_subobject]
-        self.ks_meta                = ({},       '<<inherit>>')[is_subobject]
-        self.arch                   = ('i386',   '<<inherit>>')[is_subobject]
-        self.breed                  = ('redhat', '<<inherit>>')[is_subobject]
-        self.os_version             = ('',       '<<inherit>>')[is_subobject]
-        self.source_repos           = ([],       '<<inherit>>')[is_subobject]
+        self.kernel                 = None
+        self.initrd                 = None
+        self.kernel_options         = {}
+        self.kernel_options_post    = {}
+        self.ks_meta                = {}
+        self.arch                   = 'i386'
+        self.breed                  = 'redhat'
+        self.os_version             = ''
+        self.source_repos           = []
+        self.mgmt_classes           = []
         self.depth                  = 0
 
     def make_clone(self):
@@ -83,6 +84,7 @@ class Distro(item.Item):
         self.os_version             = self.load_item(seed_data,'os_version','')
         self.source_repos           = self.load_item(seed_data,'source_repos',[])
         self.depth                  = self.load_item(seed_data,'depth',0)
+        self.mgmt_classes           = self.load_item(seed_data,'mgmt_classes',[])
 
         # backwards compatibility enforcement
         self.set_arch(self.arch)
@@ -92,7 +94,8 @@ class Distro(item.Item):
             self.set_kernel_options_post(self.kernel_options_post)
         if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
             self.set_ksmeta(self.ks_meta)
-
+        
+        self.set_mgmt_classes(self.mgmt_classes)
         self.set_owners(self.owners)
 
         return self
@@ -181,6 +184,7 @@ class Distro(item.Item):
             'kernel_options'         : self.kernel_options,
             'kernel_options_post'    : self.kernel_options_post,
             'ks_meta'                : self.ks_meta,
+            'mgmt_classes'           : self.mgmt_classes,
             'arch'                   : self.arch,
             'breed'                  : self.breed,
             'os_version'             : self.os_version,
@@ -203,9 +207,10 @@ class Distro(item.Item):
         buf = buf + _("initrd               : %s\n") % istr
         buf = buf + _("kernel               : %s\n") % kstr
         buf = buf + _("kernel options       : %s\n") % self.kernel_options
-        buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
         buf = buf + _("ks metadata          : %s\n") % self.ks_meta
+        buf = buf + _("mgmt classes         : %s\n") % self.mgmt_classes 
         buf = buf + _("owners               : %s\n") % self.owners
+        buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
         return buf
 
     def remote_methods(self):
@@ -219,6 +224,7 @@ class Distro(item.Item):
             'ksmeta'        : self.set_ksmeta,
             'breed'         : self.set_breed,
             'os-version'    : self.set_os_version,
-            'owners'        : self.set_owners
+            'owners'        : self.set_owners,
+            'mgmt-classes'  : self.set_mgmt_classes
         }
 
