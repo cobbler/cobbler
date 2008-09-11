@@ -44,6 +44,7 @@ DEFAULTS = {
     "dhcpd_bin"                   : "/usr/sbin/dhcpd",
     "dnsmasq_bin"                 : "/usr/sbin/dnsmasq",
     "dnsmasq_conf"                : "/etc/dnsmasq.conf",
+    "enable_menu"                 : 1,
     "httpd_bin"                   : "/usr/sbin/httpd",
     "http_port"                   : "80",
     "isc_set_host_name"           : 0,

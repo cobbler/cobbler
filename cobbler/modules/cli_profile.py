@@ -53,6 +53,7 @@ class ProfileFunction(commands.CobblerFunction):
 
             p.add_option("--distro",           dest="distro",    help="ex: 'RHEL-5-i386' (REQUIRED)")
             p.add_option("--dhcp-tag",         dest="dhcp_tag",  help="for use in advanced DHCP configuration")
+            p.add_option("--enable-menu", dest="enable_menu", help="yes/no. When yes, adds profile to default PXE menu")
             p.add_option("--inherit",          dest="inherit",   help="inherit from this profile name, defaults to no")
             if not self.matches_args(args,["find"]):
                 p.add_option("--in-place",action="store_true", dest="inplace", default=False, help="edit items in kopts, kopts_post or ksmeta without clearing the other items")
@@ -108,6 +109,7 @@ class ProfileFunction(commands.CobblerFunction):
         if not self.matches_args(self.args,["dumpvars","getks"]):
             if self.options.inherit:         obj.set_parent(self.options.inherit)
             if self.options.distro:          obj.set_distro(self.options.distro)
+            if self.options.enable_menu:     obj.set_enable_menu(self.options.enable_menu)
             if self.options.kickstart:       obj.set_kickstart(self.options.kickstart)
             if self.options.kopts:           obj.set_kernel_options(self.options.kopts,self.options.inplace)
             if self.options.kopts_post:      obj.set_kernel_options_post(self.options.kopts_post,self.options.inplace)

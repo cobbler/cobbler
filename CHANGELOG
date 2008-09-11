@@ -6,6 +6,7 @@ Cobbler CHANGELOG
 - (FEAT) puppet integration with --mgmt-classes and external nodes URL
 - (FEAT) added puppet external nodes script, cobbler-ext-nodes
          see https://fedorahosted.org/cobbler/wiki/UsingCobblerWithConfigManagementSystem
+- (FEAT) ability to use --enable-menu=0/1 to hide profiles from the PXE menu, and config setting to change default value for --enable-menu
 
 - ??? - 1.2.5 (pending)
 - (BUGF) expose --arch for "cobbler image add"

@@ -43,6 +43,15 @@ default_virt_ram: 512
 # owner and/or group.  Can be a comma seperated list.
 default_ownership: "admin"
 
+# controls whether cobbler will add each new profile entry to the default
+# PXE boot menu.  This can be over-ridden on a per-profile
+# basis when adding/editing profiles with --enable-menu=0/1.  Users
+# should ordinarily leave this setting enabled unless they are concerned
+# with accidental reinstalls from users who select an entry at the PXE
+# boot menu.  Adding a password to the boot menus templates 
+# may also be a good solution to prevent unwanted reinstallations
+enable_menu: 1
+
 # location for some important binaries and config files 
 # that can vary based on the distribution.
 dhcpd_bin: /usr/sbin/dhcpd

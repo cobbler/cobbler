@@ -261,6 +261,9 @@ class PXEGen:
         # build out the menu entries
         pxe_menu_items = ""
         for profile in profile_list:
+            if not profile.enable_menu:
+               # This profile has been excluded from the menu
+               continue
             distro = profile.get_conceptual_parent()
             # xen distros can be ruled out as they won't boot
             if distro.name.find("-xen") != -1:

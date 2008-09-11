@@ -44,6 +44,7 @@ class Profile(item.Item):
         self.name                   = None
         self.owners                 = self.settings.default_ownership
         self.distro                 = (None,                                    '<<inherit>>')[is_subobject]
+        self.enable_menu            = (self.settings.enable_menu,               '<<inherit>>')[is_subobject]
         self.kickstart              = (self.settings.default_kickstart ,        '<<inherit>>')[is_subobject]    
         self.kernel_options         = ({},                                      '<<inherit>>')[is_subobject]
         self.kernel_options_post    = ({},                                      '<<inherit>>')[is_subobject]
@@ -70,6 +71,7 @@ class Profile(item.Item):
         self.name                   = self.load_item(seed_data,'name')
         self.owners                 = self.load_item(seed_data,'owners',self.settings.default_ownership)
         self.distro                 = self.load_item(seed_data,'distro')
+        self.enable_menu            = self.load_item(seed_data,'enable_menu')
         self.kickstart              = self.load_item(seed_data,'kickstart')
         self.kernel_options         = self.load_item(seed_data,'kernel_options')
         self.kernel_options_post    = self.load_item(seed_data,'kernel_options_post')
@@ -106,6 +108,7 @@ class Profile(item.Item):
         if self.repos != "<<inherit>>" and type(self.ks_meta) != list:
             self.set_repos(self.repos,bypass_check=True)
 
+        self.set_enable_menu(self.enable_menu)
         self.set_owners(self.owners)
         self.set_mgmt_classes(self.mgmt_classes)
 
@@ -147,6 +150,19 @@ class Profile(item.Item):
             self.depth  = d.depth +1 # reset depth if previously a subprofile and now top-level
             return True
         raise CX(_("distribution not found"))
+
+    def set_enable_menu(self,enable_menu):
+        """
+        Sets whether or not the profile will be listed in the default
+        PXE boot menu.  This is pretty forgiving for YAML's sake.
+        """
+        if type(enable_menu) == bool:
+            self.enable_menu = enable_menu
+        elif str(enable_menu).lower() in ["yes","y","on","1","true"]:
+            self.enable_menu = True
+        else:
+            self.enable_menu = False
+        return True
 
     def set_dhcp_tag(self,dhcp_tag):
         self.dhcp_tag = dhcp_tag
@@ -232,6 +248,7 @@ class Profile(item.Item):
             'name'                  : self.name,
             'owners'                : self.owners,
             'distro'                : self.distro,
+            'enable_menu'           : self.enable_menu,
             'kickstart'             : self.kickstart,
             'kernel_options'        : self.kernel_options,
             'kernel_options_post'   : self.kernel_options_post,
@@ -259,6 +276,7 @@ class Profile(item.Item):
             buf = buf + _("parent               : %s\n") % self.parent
         else:
             buf = buf + _("distro               : %s\n") % self.distro
+        buf = buf + _("enable_menu          : %s\n") % self.enable_menu
         buf = buf + _("dhcp tag             : %s\n") % self.dhcp_tag
         buf = buf + _("kernel options       : %s\n") % self.kernel_options
         buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
@@ -283,6 +301,7 @@ class Profile(item.Item):
             'parent'          :  self.set_parent,
             'profile'         :  self.set_name,
             'distro'          :  self.set_distro,
+            'enable_menu'     :  self.set_enable_menu,
             'kickstart'       :  self.set_kickstart,
             'kopts'           :  self.set_kernel_options,
             'kopts-post'      :  self.set_kernel_options_post,
