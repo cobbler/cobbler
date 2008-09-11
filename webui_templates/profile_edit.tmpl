@@ -185,6 +185,24 @@ function disablename(value)
 
     <tr>
     <td>
+    <label for="enablemenu">Enable menu</label>
+    </td>
+    <td>
+    #if $profile
+       #if str($profile.enable_menu) != "False"
+           <input type="checkbox" name="enablemenu" id="enablemenu" checked=True>
+       #else
+           <input type="checkbox" name="enablemenu" id="enablemenu">
+       #end if
+    #else
+       <input type="checkbox" name="enablemenu" id="enablemenu" checked="True">
+    #end if
+    <p class="context-tip">Show this profile in the PXE boot menu?</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
     <label for="virtfilesize">Virt Disk (GB)</label>
     </td>
     <td>

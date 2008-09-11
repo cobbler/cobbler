@@ -511,7 +511,7 @@ class CobblerWeb(object):
 
     def profile_save(self,new_or_edit=None,editmode='edit',name=None,oldname=None,
                      distro=None,kickstart=None,kopts=None,koptspost=None,
-                     ksmeta=None,owners=None,virtfilesize=None,virtram=None,virttype=None,
+                     ksmeta=None,owners=None,enablemenu=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,
                      parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,recursive=False,**args):
 
@@ -573,6 +573,8 @@ class CobblerWeb(object):
                 self.remote.modify_profile(profile, 'kopts-post', koptspost, self.token)
             if owners:
                 self.remote.modify_profile(profile, 'owners', owners, self.token)
+            if enablemenu:
+                self.remote.modify_profile(profile, 'enable-menu', enablemenu, self.token)
             if ksmeta:
                 self.remote.modify_profile(profile, 'ksmeta', ksmeta, self.token)
             if virtfilesize:
