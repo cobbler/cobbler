@@ -7,6 +7,7 @@ Cobbler CHANGELOG
 - (FEAT) added puppet external nodes script, cobbler-ext-nodes
          see https://fedorahosted.org/cobbler/wiki/UsingCobblerWithConfigManagementSystem
 - (FEAT) ability to use --enable-menu=0/1 to hide profiles from the PXE menu, and config setting to change default value for --enable-menu
+- (FEAT) added livecd based physical machine cloner script to "contrib"
 
 - ??? - 1.2.5 (pending)
 - (BUGF) expose --arch for "cobbler image add"
