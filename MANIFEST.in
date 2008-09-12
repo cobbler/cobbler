@@ -18,6 +18,7 @@ include config/cobbler_bash
 include config/cheetah_macros
 recursive-include templates *.template
 recursive-include kickstarts *.ks
+recursive-include kickstarts *.seed
 include docs/cobbler.1.gz
 include docs/cobbler.html
 include docs/wui.html

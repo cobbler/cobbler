@@ -1,0 +1,45 @@
+#platform=x86, AMD64, or Intel EM64T
+# System authorization information
+
+# System bootloader configuration
+
+# Partition clearing information
+
+# Use text mode install
+
+# Firewall configuration
+
+# Run the Setup Agent on first boot
+
+# System keyboard
+d-i	console-setup/dont_ask_layout	note	
+d-i	console-setup/layoutcode	string	us
+d-i	console-setup/layout	select	U.S. English
+# System language
+
+# Use network installation
+#d-i	mirror/http/hostname	string	mirror.domain
+#d-i	mirror/http/directory	string	/debian_directory
+# If any cobbler repo definitions were referenced in the kickstart profile, include them here.
+
+# Network information
+
+# Reboot after installation
+finish-install	finish-install/reboot_in_progress	note	
+
+#Root password
+d-i	passwd/root-password-crypted	password	\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.
+user-setup-udeb	passwd/root-login	boolean	true
+user-setup-udeb	passwd/make-user	boolean	false
+# SELinux configuration
+
+# Do not configure the X Window System
+
+# System timezone
+clock-setup	clock-setup/utc	boolean	false
+tzsetup-udeb	time/zone	select	America/New_York
+# Install OS instead of upgrade
+
+# Clear the Master Boot Record
+
+

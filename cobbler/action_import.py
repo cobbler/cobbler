@@ -37,6 +37,7 @@ WGET_CMD = "wget --mirror --no-parent --no-host-directories --directory-prefix %
 RSYNC_CMD =  "rsync -a %s '%s' %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --progress"
 
 TRY_LIST = [
+   "pool",
    "Fedora", "Packages", "RedHat", "Client", "Server", "Centos", "CentOS",
    "Fedora/RPMS", "RedHat/RPMS", "Client/RPMS", "Server/RPMS", "Centos/RPMS",
    "CentOS/RPMS", "RPMS"
@@ -44,7 +45,7 @@ TRY_LIST = [
 
 class Importer:
 
-   def __init__(self,api,config,mirror,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None):
+   def __init__(self,api,config,mirror,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None,breed=None):
        """
        Performs an import of a install tree (or trees) from the given
        mirror address.  The prefix of the distro is to be specified
@@ -68,6 +69,7 @@ class Importer:
        self.kickstart_file = kickstart_file
        self.rsync_flags = rsync_flags
        self.arch = arch
+       self.breed = breed
 
    # ----------------------------------------------------------------------
 
@@ -78,31 +80,30 @@ class Importer:
            raise CX(_("import failed.  no --name specified"))
        if self.arch is not None:
            self.arch = self.arch.lower()
-           if self.arch not in [ "i386", "x86", "ia64", "x86_64", "s390x" ]:
-               raise CX(_("arch must be x86, x86_64, s390x, or ia64"))
            if self.arch == "x86":
                # be consistent
                self.arch = "i386"
+           if self.arch not in [ "i386", "ia64", "x86_64", "s390x" ]:
+               raise CX(_("arch must be i386, ia64, x86_64, or s390x"))
 
        mpath = os.path.join(self.settings.webdir, "ks_mirror", self.mirror_name)
 
        if os.path.exists(mpath) and self.arch is None:
+           # FIXME : Raise exception even when network_root is given ?
            raise CX(_("Something already exists at this import location (%s).  You must specify --arch to avoid potentially overwriting existing files.") % mpath)
  
        if self.arch:
            # append the arch path to the name if the arch is not already
            # found in the name.
-           found = False
            for x in [ "ia64", "i386", "x86_64", "x86", "s390x" ]:
                if self.mirror_name.lower().find(x) != -1:
-                   found = True
+                   if self.arch != x :
+                       raise CX(_("Architecture found on pathname (%s) does not fit the one given in command line (%s)")%(x,self.arch))
                    break
-           if not found:
+           else:
+               # FIXME : This is very likely removed later at get_proposed_name, and the guessed arch appended again
                self.mirror_name = self.mirror_name + "-" + self.arch
 
-       if self.mirror_name is None:
-           raise CX(_("import failed.  no --name specified"))
-       
        # make the output path and mirror content but only if not specifying that a network
        # accessible support location already exists
 
@@ -139,18 +140,17 @@ class Importer:
            if not self.network_root.endswith("/"):
                self.network_root = self.network_root + "/"
            self.path = self.mirror
-           found_root = False
            valid_roots = [ "nfs://", "ftp://", "http://" ]
            for valid_root in valid_roots:
                if self.network_root.startswith(valid_root):
-                   found_root = True
+                   break
+           else:
+               raise CX(_("Network root given to --available-as must be nfs://, ftp://, or http://"))
            if self.network_root.startswith("nfs://"):
                try:
                    (a,b,rest) = self.network_root.split(":",3)
                except:
                    raise CX(_("Network root given to --available-as is missing a colon, please see the manpage example."))
-           if not found_root:
-               raise CX(_("Network root given to --available-as must be nfs://, ftp://, or http://"))
 
        self.processed_repos = {}
 
@@ -175,6 +175,9 @@ class Importer:
    def mkdir(self, dir):
        try:
            os.makedirs(dir)
+       except OSError , ex:
+           if ex.strerror == "Permission denied":
+               raise CX(_("Permission denied at %s")%dir)
        except:
            pass
 
@@ -203,9 +206,10 @@ class Importer:
                # print _("- skipping distro %s since it wasn't imported this time") % profile.distro
                continue
 
-           if (self.kickstart_file == None):
+           if self.kickstart_file == None:
                kdir = os.path.dirname(distro.kernel)   
-               base_dir = "/".join(kdir.split("/")[0:-2])
+               # FIXME : Some special handling for network_root might be required as in get_proposed_name,
+               base_dir = "/".join(kdir.split("/")[:6])
           
                for try_entry in TRY_LIST:
                    try_dir = os.path.join(base_dir, try_entry)
@@ -220,7 +224,20 @@ class Importer:
                            (flavor, major, minor) = results
                            # print _("- finding default kickstart template for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
                            kickstart = self.set_variance(profile, flavor, major, minor, distro)
+                       if not rpms:
+                           # search for base-files or base-installer ?
+                           rpms = glob.glob(os.path.join(try_dir, "main/b/base-files" , "base-files_*"))
+                           for rpm in rpms:
+                               results = self.scan_deb_filename(rpm)
+                               if results is None:
+                                   continue
+                               (flavor, major, minor) = results
+                               if self.breed and self.breed != flavor:
+                                   raise CX(_("Error: given breed does not match imported tree"))
+                               # print _("- finding default kickstart template for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
+                               kickstart = self.set_variance(profile, flavor, major, minor, distro)
            else:
+               # FIXME : Why not fix this while initially creating the profile ?
                print _("- using kickstart file %s") % self.kickstart_file
                profile.set_kickstart(self.kickstart_file)
 
@@ -329,6 +346,23 @@ class Importer:
            if major >= 5:
                 return profile.set_kickstart("/etc/cobbler/sample.ks")
 
+       if flavor == "debian":
+
+           distro.set_breed("debian")
+           dist_names = { '4.0' : "Etch" , '5.0' : "Lenny" }
+           dist_vers = "%s.%s" % ( major , minor )
+           distro.set_os_version("debian%s" % dist_names[dist_vers])
+           return profile.set_kickstart("/etc/cobbler/sample.seed")
+
+       if flavor == "ubuntu":
+
+           distro.set_breed("ubuntu")
+           # Release names taken from wikipedia
+           dist_names = { '4.10':"WartyWarthog", '5.4':"HoaryHedgehog", '5.10':"BreezyBadger", '6.4':"DapperDrake", '6.10':"EdgyEft", '7.4':"FeistyFawn", '7.10':"GutsyGibbon", '8.4':"HardyHeron", '8.10':"IntrepidIbex", '9.4':"JauntyJackalope" }
+           dist_vers = "%s.%s" % ( major , minor )
+           distro.set_os_version("ubuntu%s" % dist_names[dist_vers])
+           return profile.set_kickstart("/etc/cobbler/sample.seed")
+
        print _("- using default kickstart file choice")
        return profile.set_kickstart("/etc/cobbler/legacy.ks")
 
@@ -378,6 +412,35 @@ class Importer:
        minor = float(accum[1])
        return (flavor, major, minor)
 
+   def scan_deb_filename(self, deb):
+       """
+       Determine what the distro is based on the base-files dpkg filename.
+       """
+
+       deb = os.path.basename(deb)
+
+       # now get the flavor:
+       flavor = "debian"
+       if deb.lower().find("ubuntu") != -1:
+          flavor = "ubuntu"
+
+       # get all the tokens and try to guess a version
+       accum = []
+       tokens = deb.split("_")
+       tokens2 = tokens[1].split(".")
+       for t2 in tokens2:
+          try:
+              val = int(t2)
+              accum.append(val)
+          except:
+              pass
+       if flavor == "ubuntu":
+          accum.pop(0)
+          accum.pop(0)
+       accum.append(0)
+
+       return (flavor, accum[0], accum[1])
+
    # ----------------------------------------------------------------------
 
    def distro_adder(self,foo,dirname,fnames):
@@ -389,17 +452,27 @@ class Importer:
 
            fullname = os.path.join(dirname,x)
            if os.path.islink(fullname) and os.path.isdir(fullname):
+              if os.path.realpath(fullname) == os.path.realpath(dirname):
+                if not self.breed:
+                  self.breed = x
+                elif self.breed != x:
+                  print "- WARNING - symlink name (%s) does not fit the breed (%s)" % ( x , self.breed )
+                continue
               print "- following symlink: %s" % fullname
               os.path.walk(fullname, self.distro_adder, {})
 
            if x.startswith("initrd"):
                initrd = os.path.join(dirname,x)
            if x.startswith("vmlinuz") or x.startswith("kernel.img"):
+               # This ugly trick is to avoid inclusion of powerpc kernels from debian distros
+               if x.find("initrd") != -1:
+                   continue
                kernel = os.path.join(dirname,x)
            if initrd is not None and kernel is not None and dirname.find("isolinux") == -1:
                self.add_entry(dirname,kernel,initrd)
-               path_parts = kernel.split("/")[:-2]
-               comps_path = "/".join(path_parts)
+               # The values are reset because debian media has extra initrd images
+               initrd = None
+               kernel = None
 
 
 
@@ -411,7 +484,8 @@ class Importer:
            print _("- traversing distro %s") % distro.name
            if distro.kernel.find("ks_mirror") != -1:
                basepath = os.path.dirname(distro.kernel)
-               top = "/".join(basepath.split("/")[0:-2]) # up one level
+               # FIXME : Some special handling for network_root might be required as in get_proposed_name,
+               top = "/".join(basepath.split("/")[:6])
                print _("- descent into %s") % top
                os.path.walk(top, self.repo_scanner, distro)
            else:
@@ -525,46 +599,50 @@ class Importer:
         
 
    def add_entry(self,dirname,kernel,initrd):
-       pxe_arch = self.get_pxe_arch(dirname)
-       name = self.get_proposed_name(dirname, pxe_arch)
+       for pxe_arch in self.get_pxe_arch(dirname):
+           name = self.get_proposed_name(dirname, pxe_arch)
 
-       existing_distro = self.distros.find(name=name)
+           existing_distro = self.distros.find(name=name)
 
-       if existing_distro is not None:
-           print _("- modifying existing distro: %s") % name
-           distro = existing_distro
-       else:
-           print _("- creating new distro: %s") % name
-           distro = self.config.new_distro()
+           if existing_distro is not None:
+               raise CX(_("Distro %s does already exists") % name)
+               print _("- modifying existing distro: %s") % name
+               distro = existing_distro
+           else:
+               print _("- creating new distro: %s") % name
+               distro = self.config.new_distro()
            
-       distro.set_name(name)
-       distro.set_kernel(kernel)
-       distro.set_initrd(initrd)
-       distro.set_arch(pxe_arch)
-       distro.source_repos = []
-       self.distros.add(distro,save=True)
-       self.distros_added.append(distro)       
+           distro.set_name(name)
+           distro.set_kernel(kernel)
+           distro.set_initrd(initrd)
+           distro.set_arch(pxe_arch)
+           if self.breed:
+               distro.set_breed(self.breed)
+           distro.source_repos = []
+           self.distros.add(distro,save=True)
+           self.distros_added.append(distro)       
 
-       existing_profile = self.profiles.find(name=name) 
+           existing_profile = self.profiles.find(name=name) 
 
-       if existing_profile is None:
-           print _("- creating new profile: %s") % name 
-           profile = self.config.new_profile()
-       else:
-           print _("- modifying existing profile: %s") % name
-           profile = existing_profile
+           if existing_profile is None:
+               print _("- creating new profile: %s") % name 
+               profile = self.config.new_profile()
+           else:
+               raise CX(_("Profile %s does already exists") % name)
+               print _("- modifying existing profile: %s") % name
+               profile = existing_profile
 
-       profile.set_name(name)
-       profile.set_distro(name)
-       if name.find("-xen") != -1:
-           profile.set_virt_type("xenpv")
-       else:
-           profile.set_virt_type("qemu")
+           profile.set_name(name)
+           profile.set_distro(name)
+           #if self.kickstart_file:
+           #    profile.set_kickstart(self.kickstart_file)
+           if name.find("-xen") != -1:
+               profile.set_virt_type("xenpv")
+           else:
+               profile.set_virt_type("qemu")
 
-       self.profiles.add(profile,save=True)
-       self.api.serialize()
-
-       return distro
+           self.profiles.add(profile,save=True)
+           self.api.serialize()
 
    def get_proposed_name(self,dirname,pxe_arch):
        archname = pxe_arch
@@ -580,23 +658,18 @@ class Importer:
        if name.startswith("-"):
           name = name[1:]
        name = self.mirror_name + "-" + name
+       # FIXME : Why do we clean all these suffixes ?
        name = name.replace("-os","")
        name = name.replace("-images","")
        name = name.replace("-tree","")
        name = name.replace("var-www-cobbler-", "")
        name = name.replace("ks_mirror-","")
        name = name.replace("-pxeboot","")  
+       name = name.replace("-install","")  
        name = name.replace("--","-")
-       name = name.replace("-i386","")
-       name = name.replace("_i386","")
-       name = name.replace("-x86_64","")
-       name = name.replace("_x86_64","")
-       name = name.replace("-ia64","")
-       name = name.replace("_ia64","")
-       name = name.replace("-x86","")
-       name = name.replace("_x86","")
-       name = name.replace("-s390x","")
-       name = name.replace("_s390x","")
+       for separator in [ '-' , '_'  , '.' ] :
+         for arch in [ "i386" , "x86_64" , "ia64" , "x86" , "s390x" , "386" , "amd" ]:
+           name = name.replace("%s%s" % ( separator , arch ),"")
        # ensure arch is on the end, regardless of path used.
        name = name + "-" + archname
 
@@ -608,53 +681,44 @@ class Importer:
        """
  
        # don't care about certain directories
-       match = False
        for x in TRY_LIST:
            if dirname.find(x) != -1:
-               match = True
-               continue
-       if not match:
+               break
+       else:
           return
 
        # try to find a kernel header RPM and then look at it's arch.
        for x in fnames:
-           if not x.endswith("rpm"):
+           if not x.endswith("rpm") and not x.endswith("deb"):
                continue
-           if x.find("kernel-header") != -1:
+           if x.find("kernel-header") != -1 or x.find("linux-headers-") != -1:
                print _("- kernel header found: %s") % x
-               if x.find("i386") != -1:
-                   foo["result"] = "i386"
-                   return
-               elif x.find("x86_64") != -1: 
-                   foo["result"] = "x86_64"
-                   return
-               elif x.find("ia64") != -1:
-                   foo["result"] = "ia64"
-                   return
-               elif x.find("s390") != -1:
-                   foo["result"] = "s390x"
-                   return
+               for arch in [ "i386" , "x86_64" , "ia64" , "s390x" ]:
+                   if x.find(arch) != -1:
+                       foo[arch] = 1
+               if x.find("amd64") != -1:
+                   foo["x86_64"] = 1
+               if x.find("i686") != -1:
+                   foo["i386"] = 1
+
+       if foo.keys():
+          return
 
        # This extra code block is a temporary fix for rhel4.x 64bit [x86_64]
        # distro ARCH identification-- L.M.
        # NOTE: eventually refactor to merge in with the above block
        for x in fnames:
-          if not x.endswith("rpm"):
+          if not x.endswith("rpm") and not x.endswith("deb"):
              continue
-          if x.find("kernel-largesmp") != -1:
+          if x.find("kernel-largesmp") != -1 or x.find("kernel-hugemem") != -1 or x.find("linux-headers-") != -1:
              print _("- kernel header found: %s") % x
-             if x.find("i386") != -1:
-                foo["result"] = "i386"
-                return
-             elif x.find("x86_64") != -1:
-                foo["result"] = "x86_64"
-                return
-             elif x.find("ia64") != -1:
-                foo["result"] = "ia64"
-                return
-             elif x.find("s390") != -1:
-                foo["result"] = "s390x"
-                return
+             for arch in [ "i386" , "x86_64" , "ia64" , "s390x" ]:
+                 if x.find(arch) != -1:
+                    foo[arch] = 1
+             if x.find("amd64") != -1:
+                foo["x86_64"] = 1
+             if x.find("i686") != -1:
+                foo["i386"] = 1
 
    def learn_arch_from_tree(self,dirname):
        """ 
@@ -663,21 +727,22 @@ class Importer:
        figure out the arch name.  This is important for producing predictable distro names (and profile names)
        from differing import sources
        """
-       dirname2 = "/".join(dirname.split("/")[:-2])  # up two from images, then down as many as needed
+       # FIXME : Some special handling for network_root might be required as in get_proposed_name,
+       dirname2 = "/".join(dirname.split("/")[:6])
        print _("- scanning %s for architecture info") % dirname2
-       result = { "result" : "i386" } # default, but possibly not correct ... 
+       result = {}
        os.path.walk(dirname2, self.arch_walker, result)      
-       return result["result"]
+       return result.keys()
 
    def get_pxe_arch(self,dirname):
        t = dirname.lower()
-       if t.find("x86_64") != -1:
-          return "x86_64"
+       if t.find("x86_64") != -1 or t.find("amd") != -1:
+          return [ "x86_64" ]
        if t.find("ia64") != -1:
-          return "ia64"
+          return [ "ia64" ]
        if t.find("i386") != -1 or t.find("386") != -1 or t.find("x86") != -1:
-          return "i386"
+          return [ "i386" ]
        if t.find("s390") != -1:
-          return "s390x"
+          return [ "s390x" ]
        return self.learn_arch_from_tree(dirname)
 

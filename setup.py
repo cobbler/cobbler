@@ -102,6 +102,9 @@ if __name__ == "__main__":
                                 (etcpath,  ['kickstarts/sample.ks']),
                                 (etcpath,  ['kickstarts/sample_end.ks']),
                                 (etcpath,  ['kickstarts/default.ks']),
+                                
+                                # seed files for debian
+                                (etcpath,  ['kickstarts/sample.seed']),
  
                                 # templates for DHCP, DNS, and syslinux configs
 				(etcpath,  ['templates/dhcp.template']),

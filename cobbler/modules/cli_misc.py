@@ -74,6 +74,7 @@ class ImportFunction(commands.CobblerFunction):
 
     def add_options(self, p, args):
         p.add_option("--arch",               dest="arch",               help="explicitly specify the architecture being imported (RECOMENDED)")
+        p.add_option("--breed",              dest="breed",              help="explicitly specify the breed being imported (RECOMENDED)")
         p.add_option("--path",               dest="mirror",             help="local path or rsync location (REQUIRED)")
         p.add_option("--mirror",             dest="mirror_alt",         help="alias for --path")
         p.add_option("--name",               dest="name",               help="name, ex 'RHEL-5', (REQUIRED)")
@@ -94,7 +95,8 @@ class ImportFunction(commands.CobblerFunction):
                 network_root=self.options.available_as,
                 kickstart_file=self.options.kickstart_file,
                 rsync_flags=self.options.rsync_flags,
-                arch=self.options.arch
+                arch=self.options.arch,
+                breed=self.options.breed
         )
 
 

@@ -104,6 +104,12 @@ eraseconfig:
 	-rm /var/lib/cobbler/profiles*
 	-rm /var/lib/cobbler/systems*
 	-rm /var/lib/cobbler/repos*
+	-rm /var/lib/cobbler/config/distros.d/*
+	-rm /var/lib/cobbler/config/images.d/*
+	-rm /var/lib/cobbler/config/profiles.d/*
+	-rm /var/lib/cobbler/config/systems.d/
+	-rm /var/lib/cobbler/config/repos.d/*
+
 
 graphviz:
 	dot -Tpdf docs/cobbler.dot -o cobbler.pdf

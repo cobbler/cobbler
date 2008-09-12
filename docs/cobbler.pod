@@ -485,7 +485,7 @@ B<cobbler distro add --name=rhel4u3 --kernel=/dir1/vmlinuz --initrd=/dir1/initrd
 
 B<cobbler distro add --name=fc5 --kernel=/dir2/vmlinuz --initrd=/dir2/initrd.img>
 
-B<cobbler profile add --name=fc5webservers --distro=fc5-i386 --kickstart=/dir4/kick.ks --kopts="something_to_make_my_gfx_card_work=42,some_other_parameter=foo">
+B<cobbler profile add --name=fc5webservers --distro=fc5-i386 --kickstart=/dir4/kick.ks --kopts="something_to_make_my_gfx_card_work=42 some_other_parameter=foo">
 
 B<cobbler profile add --name=rhel4u3dbservers --distro=rhel4u3 --kickstart=/dir5/kick.ks>
 
