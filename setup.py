@@ -102,6 +102,7 @@ if __name__ == "__main__":
                                 (etcpath,  ['kickstarts/sample.ks']),
                                 (etcpath,  ['kickstarts/sample_end.ks']),
                                 (etcpath,  ['kickstarts/default.ks']),
+                                (etcpath,  ['kickstarts/pxerescue.ks']),
                                 
                                 # seed files for debian
                                 (etcpath,  ['kickstarts/sample.seed']),

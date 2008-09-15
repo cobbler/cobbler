@@ -642,6 +642,28 @@ class Importer:
                profile.set_virt_type("qemu")
 
            self.profiles.add(profile,save=True)
+
+           # Create a rescue image as well,
+           # assuming this isn't a xen distro
+           if name.find("-xen") == -1:
+               rescue_name = 'rescue-' + name
+               existing_profile = self.profiles.find(name=rescue_name)
+
+               if existing_profile is None:
+                   print _("- creating new profile: %s") % rescue_name
+                   profile = self.config.new_profile()
+               else:
+                   print _("- modifying existing profile: %s") % rescue_name
+                   profile = existing_profile
+
+               profile.set_name(rescue_name)
+               profile.set_distro(name)
+               profile.set_virt_type("qemu")
+               profile.kernel_options['rescue'] = None
+               profile.kickstart = '/etc/cobbler/pxerescue.ks'
+
+               self.profiles.add(profile,save=True)
+
            self.api.serialize()
 
    def get_proposed_name(self,dirname,pxe_arch):

@@ -116,6 +116,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(755,root,root)
 %{_bindir}/cobbler
+%{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd
 %{_bindir}/cobbler-completion
 
@@ -125,6 +126,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 %dir /etc/cobbler
 %config(noreplace) /etc/cobbler/*.ks
+%config(noreplace) /etc/cobbler/*.seed
 %config(noreplace) /etc/cobbler/*.template
 %config(noreplace) /etc/cobbler/rsync.exclude
 %config(noreplace) /etc/logrotate.d/cobblerd_rotate
@@ -221,8 +223,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Mon Sep 08 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.0-1
+* Mon Sep 15 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.0-1
 - Upstream changes (see CHANGELOG)
+- added sample.seed file
+- added /usr/bin/cobbler-ext-nodes
 
 * Mon Sep 08 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.4-1
 - Rebuild
