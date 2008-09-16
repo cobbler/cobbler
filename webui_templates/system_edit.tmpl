@@ -375,6 +375,7 @@ function page_onload() {
             #set $virtbridge  = $system.interfaces[$interface]["virt_bridge"]
             #set $subnet      = $system.interfaces[$interface]["subnet"]
             #set $gateway     = $system.interfaces[$interface]["gateway"]
+            #set $static      = $system.interfaces[$interface]["static"]
         #else
             #set $macaddress  = ""
             #set $ipaddress   = ""
@@ -383,6 +384,7 @@ function page_onload() {
             #set $virtbridge  = ""
             #set $subnet      = ""
             #set $gateway     = ""
+            #set $static      = "False"
         #end if
 
         ## ----------------------------------------
@@ -397,10 +399,6 @@ function page_onload() {
         <hr width="100%"/>
         </td>
         </tr>
-
-##
-##<td><a onclick="toggleRowVisibility('id263');" style="cursor: pointer;"><img name="id263-image" src="/img/list-expand.gif" alt=""/></a><a href="/network/software/channels/details.pxt?cid=263">Red Hat Enterprise Linux (v. 5 for 32-bit x86)</a></td>
-##
 
         <tr class="listrow" id="id${counter}">
         <td>
@@ -505,8 +503,23 @@ function page_onload() {
         </td>
         </tr>
 
+        <tr class="listrow" id="child-id${counter}-8">
+        <td>
+        <label for="static-$interface">Static?</label>
+        </td>
+        <td> 
+        #if str($static) != "False"
+           <input type="checkbox" name="static-$interface" id="static-$interface" checked=True>
+        #else
+           <input type="checkbox" name="static-$interface" id="static-$interface">
+        #end if
+        <p class="context-tip">Is this a static interface?</p>
+        </td>
+        </tr>
+
+
         #if $interface != "intf0"
-            <tr class="listrow" id="child-id${counter}-8">
+            <tr class="listrow" id="child-id${counter}-9">
             <td>
             #if $editable == True
                 <label for="enabled-$interface">Remove</label>

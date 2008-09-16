@@ -477,6 +477,7 @@ class System(item.Item):
             if field == "macaddress" : self.set_mac_address(value, interface)
             if field == "ipaddress"  : self.set_ip_address(value, interface)
             if field == "hostname"   : self.set_hostname(value, interface)
+            if field == "static"     : self.set_static(value, interface)
             if field == "dhcptag"    : self.set_dhcp_tag(value, interface)
             if field == "subnet"     : self.set_subnet(value, interface)
             if field == "gateway"    : self.set_gateway(value, interface)

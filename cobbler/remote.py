@@ -1150,7 +1150,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         existing system object handle.
         """
         obj = self.__get_object(object_id)
-        self.check_access(token, "modify_system", obj, attribute, arg)
+        self.check_access(token, "modify_system", obj, attribute)
         return self.__call_method(obj, attribute, arg)
 
     def modify_repo(self,object_id,attribute,arg,token):
