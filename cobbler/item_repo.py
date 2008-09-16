@@ -92,12 +92,7 @@ class Repo(item.Item):
         """
 	This allows the user to disable updates to a particular repo for whatever reason.
 	"""
-        if type(keep_updated) == bool:
-            self.keep_updated = keep_updated
-        elif str(keep_updated).lower() in ["yes","y","on","1","true"]:  
-            self.keep_updated = True
-        else:
-            self.keep_updated = False
+        self.keep_updated = utils.input_boolean(keep_updated)
         return True
 
     def set_yumopts(self,options,inplace=False):
@@ -193,11 +188,7 @@ class Repo(item.Item):
         }
 
     def set_mirror_locally(self,value):
-        value = str(value).lower()
-        if value in [ "yes", "y", "1", "on", "true" ]:
-            self.mirror_locally = 1
-        else:
-            self.mirror_locally = 0
+        self.mirror_locally = utils.input_boolean(value)
         return True
 
     def printable(self):

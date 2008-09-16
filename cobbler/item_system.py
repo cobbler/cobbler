@@ -86,7 +86,8 @@ class System(item.Item):
                 "subnet"      : "",
                 "gateway"     : "",
                 "hostname"    : "",
-                "virt_bridge" : ""
+                "virt_bridge" : "",
+                "static"      : False
             }
         return self.interfaces[name]
 
@@ -267,6 +268,11 @@ class System(item.Item):
         intf["hostname"] = hostname
         return True
 
+    def set_static(self,truthiness,interface="intf0"):
+        intf = self.__get_interface(interface)
+        intf["static"] = utils.input_boolean(truthiness)
+        return True
+
     def set_ip_address(self,address,interface="intf0"):
         """
         Assign a IP or hostname in DHCP when this MAC boots.
@@ -363,11 +369,7 @@ class System(item.Item):
         Use of this option does not affect the ability to use PXE menus.  If an admin has machines 
         set up to PXE only after local boot fails, this option isn't even relevant.
         """
-        if str(netboot_enabled).lower() in [ "true", "1", "on", "yes", "y" ]:
-            # this is a bit lame, though we don't know what the user will enter YAML wise...
-            self.netboot_enabled = True 
-        else:
-            self.netboot_enabled = False
+        self.netboot_enabled = utils.input_boolean(netboot_enabled)
         return True
 
     def is_valid(self):
@@ -460,6 +462,7 @@ class System(item.Item):
             buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
             buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
             buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
+            buf = buf + _("  is static?     : %s\n") % x.get("static",False)
             counter = counter + 1
          
 

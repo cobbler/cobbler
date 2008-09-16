@@ -127,6 +127,7 @@ if __name__ == "__main__":
                                 (snippets, ['snippets/pre_partition_select']),
                                 (snippets, ['snippets/main_partition_select']),
                                 (snippets, ['snippets/post_install_kernel_options']),
+                                (snippets, ['snippets/network_config']),
 
                                 # documentation
                                 (manpath,  ['docs/cobbler.1.gz']),

@@ -437,6 +437,13 @@ def input_string_or_hash(options,delim=",",allow_multiples=True):
     else:
         raise CX(_("invalid input type"))
 
+def input_boolean(value):
+    value = str(value)
+    if value.lower() in [ "true", "1", "on", "yes", "y" ]:
+       return True
+    else:
+       return False
+
 def grab_tree(api_handle, obj):
     """
     Climb the tree and get every node.

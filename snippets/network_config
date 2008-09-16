@@ -1,0 +1,41 @@
+## start of cobbler network_config generated code
+#if $getVar("system_name","") != ""
+    #set ikeys = $interfaces.keys()
+    #for $i in range(0,7)
+        #set $iname = "intf" + str($i)
+        #if $interfaces.has_key($iname)
+            #set $idata    = $interfaces[$iname]
+            #set $mac      = $idata["mac_address"]
+            #set $static   = $idata["static"]
+            #set $ip       = $idata["ip_address"]
+            #set $netmask  = $idata["subnet"]
+            #set $gateway  = $idata["gateway"]
+            #set $hostname = $idata["hostname"]
+            #if $mac != "" or $ip != ""
+                #if $static == "True":
+                    #set $network_str = "--bootproto=static"
+                    #if $ip != "":
+                        #set $network_str = $network_str + " --ip=" + $ip 
+                    #end if
+                    #if $netmask != "":
+                        #set $network_str = $network_str + " --netmask=" + $netmask 
+                    #end if
+                    #if $gateway != "":
+                        #set $network_str = $network_str + " --gateway=" + $gateway
+                    #end if
+                #else
+                    #set $network_str = "--bootproto=dhcp"
+                #end if
+                #if $hostname != ""
+                    #set $network_str = $network_str + " --hostname=" + $hostname
+                #end if
+            #end if
+## network details are populated from the cobbler system object
+network $network_str --device=eth$i --onboot=on
+        #end if
+    #end for
+#else
+## profile based install so just provide one interface for starters
+network --bootproto=dhcp --device=eth0 --onboot=on  
+#end if
+## end of cobbler network_config generated code

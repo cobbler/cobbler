@@ -18,7 +18,7 @@ lang en_US
 # Use network installation
 url --url=$tree
 # Network information
-network --bootproto=dhcp --device=eth0 --onboot=on
+SNIPPET::network_config
 # Reboot after installation
 reboot
 

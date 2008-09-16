@@ -156,12 +156,7 @@ class Profile(item.Item):
         Sets whether or not the profile will be listed in the default
         PXE boot menu.  This is pretty forgiving for YAML's sake.
         """
-        if type(enable_menu) == bool:
-            self.enable_menu = enable_menu
-        elif str(enable_menu).lower() in ["yes","y","on","1","true"]:
-            self.enable_menu = True
-        else:
-            self.enable_menu = False
+        self.enable_menu = utils.input_boolean(enable_menu)
         return True
 
     def set_dhcp_tag(self,dhcp_tag):

@@ -56,7 +56,7 @@ class SystemFunction(commands.CobblerFunction):
             if not self.matches_args(args,["find"]):
                 p.add_option("--interface",       dest="interface", help="edit this interface # (0-7, default 0)")
             p.add_option("--image",           dest="image",         help="inherit values from this image, not compatible with --profile")
-            p.add_option("--ip",              dest="ip",            help="ex: 192.168.1.55, (RECOMMENDED)")
+            p.add_option("--ip",              dest="ip",            help="ex: 192.168.1.55, for static IP or dynamic reservation, (RECOMMENDED)")
             p.add_option("--kickstart",       dest="kickstart",     help="override profile kickstart template")
             p.add_option("--kopts",           dest="kopts",         help="ex: 'noipv6'")
             p.add_option("--kopts-post",      dest="kopts_post",    help="ex: 'clocksource=pit'")
@@ -84,7 +84,8 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--owners",          dest="owners",          help="specify owners for authz_ownership module")
             p.add_option("--profile",         dest="profile",         help="name of cobbler profile (REQUIRED)")
             p.add_option("--server-override", dest="server_override", help="overrides server value in settings file")
-            p.add_option("--subnet",          dest="subnet",          help="for static IP / templating usage")
+            p.add_option("--static",          dest="static",          help="specifies this interface does (0) or does not use DHCP (1), default 0")
+            p.add_option("--subnet",          dest="subnet",          help="for static IP usage only")
 
             p.add_option("--virt-bridge",      dest="virt_bridge", help="ex: 'virbr0'")
             p.add_option("--virt-cpus",        dest="virt_cpus", help="integer (default: 1)")
@@ -144,6 +145,7 @@ class SystemFunction(commands.CobblerFunction):
         if self.options.gateway:     obj.set_gateway(self.options.gateway,   my_interface)
         if self.options.dhcp_tag:    obj.set_dhcp_tag(self.options.dhcp_tag, my_interface)
         if self.options.virt_bridge: obj.set_virt_bridge(self.options.virt_bridge, my_interface)
+        if self.options.static:      obj.set_static(self.options.static, my_interface)
               
 
         if self.options.owners:       obj.set_owners(self.options.owners)
