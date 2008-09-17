@@ -41,6 +41,7 @@ if __name__ == "__main__":
         vw_profiles   = "/var/www/cobbler/profiles"
         vw_links      = "/var/www/cobbler/links"
         zone_templates = "/etc/cobbler/zone_templates"
+        itemplates    = "/usr/share/cobbler/installer_templates"
         tftp_cfg      = "/tftpboot/pxelinux.cfg"
         tftp_images   = "/tftpboot/images"
         rotpath       = "/etc/logrotate.d"
@@ -61,13 +62,16 @@ if __name__ == "__main__":
                     "cobbler/server", 
                     "cobbler/webui",
                 ],
-                scripts = ["scripts/cobbler", "scripts/cobblerd", "scripts/cobbler-ext-nodes", "scripts/cobbler-completion"],
+                scripts = [
+                    "scripts/cobbler", 
+                    "scripts/cobblerd", 
+                    "scripts/cobbler-ext-nodes", 
+                    "scripts/cobbler-completion",
+                    "scripts/cobbler-setup",
+                ],
                 data_files = [ 
                                 (modpython, ['scripts/index.py']),
                                 (modpythonsvc, ['scripts/services.py']),
-                                # cgi files
-                                # (cgipath,   ['scripts/nopxe.cgi']),
-                                # (cgipath,   ['scripts/install_trigger.cgi']),
  
                                 # miscellaneous config files
                                 (rotpath,  ['config/cobblerd_rotate']),
@@ -118,6 +122,10 @@ if __name__ == "__main__":
 				(etcpath,  ['templates/pxeprofile.template']),
 				(etcpath,  ['templates/pxelocal.template']),
                                 (etcpath,  ['templates/zone.template']),
+
+                                # templates for /usr/bin/cobbler-setup
+                                (itemplates, ['installer_templates/modules.conf.template']),
+                                (itemplates, ['installer_templates/settings.template']),
 
                                 # kickstart dir
                                 (vl_kick,  []),
