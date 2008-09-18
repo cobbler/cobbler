@@ -36,7 +36,7 @@ class ReportFunction(commands.CobblerFunction):
     def add_options(self, p, args):
         p.add_option("--what",              dest="what",   default="all",  help="distros/profiles/systems/repos")
         p.add_option("--name",              dest="name",                   help="report on just this object")
-        p.add_option("--type",              dest="type",   default="text", help="text/csv/trac/doku/mediawiki")
+        p.add_option("--format",            dest="type",   default="text", help="text/csv/trac/doku/mediawiki")
         p.add_option("--fields",            dest="fields", default="all" , help="what fields to display")
 
 
