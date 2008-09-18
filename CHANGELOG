@@ -12,6 +12,7 @@ Cobbler CHANGELOG
 - (FEAT) auto-create rescue profile objects
 - (FEAT) included network_config snippet and added --static=0/1 to system objects
 - (FEAT) added /usr/bin/cobbler-setup tool
+- (FEAT) cobbler report gains additional options for Wiki formatting, csv, and showing only certain fields
 
 - ??? - 1.2.5 (pending)
 - (BUGF) expose --arch for "cobbler image add"
