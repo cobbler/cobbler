@@ -223,6 +223,8 @@ class PXEGen:
         listfile = open(os.path.join(s390path, "profile_list"),"w+")
         for profile in profile_list:
             distro = profile.get_conceptual_parent()
+            if distro is None:
+                raise CX(_("profile is missing distribution: %s, %s") % (profile.name, profile.distro))
             if distro.arch == "s390x":
                 listfile.write("%s\n" % profile.name)
             f2 = os.path.join(self.bootloc, "s390x", profile.name)
