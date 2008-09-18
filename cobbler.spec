@@ -121,6 +121,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(755,root,root)
 %{_bindir}/cobbler
 %{_bindir}/cobbler-ext-nodes
+%{_bindir}/cobbler-setup
 %{_bindir}/cobblerd
 %{_bindir}/cobbler-completion
 
@@ -210,6 +211,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/snippets/pre_partition_select
 %config(noreplace) /var/lib/cobbler/snippets/main_partition_select
 %config(noreplace) /var/lib/cobbler/snippets/post_install_kernel_options
+%config(noreplace) /var/lib/cobbler/snippets/network_config
 /var/lib/cobbler/elilo-3.6-ia64.efi
 /var/lib/cobbler/menu.c32
 %defattr(660,root,root)
