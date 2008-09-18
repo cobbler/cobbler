@@ -1,5 +1,8 @@
 Koan CHANGELOG
 
+- Thu Sep 18 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.1-1
+- (BUGF) use file:/ks.cfg for --replace-self to make non-DHCP easier
+
 - Wed Aug 29 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.0-1 
 - merge devel into stable
 

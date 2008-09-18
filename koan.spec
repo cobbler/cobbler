@@ -2,7 +2,7 @@
 
 Summary: Network provisioning tool for Xen and Bare Metal Machines 
 Name: koan
-Version: 1.2.0
+Version: 1.2.1
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
@@ -57,6 +57,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
+* Thu Sep 18 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.1-1
+- Upstream changes (see CHANGELOG)
+
 * Wed Aug 29 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.0-1
 - Upstream changes (see CHANGELOG)
 
@@ -66,42 +69,3 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 * Fri Jun 06 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.1-1
 - Upstream changes (see CHANGELOG)
 
-* Fri May 16 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.2-2
-- Upstream changes (see CHANGELOG)
-
-* Fri May 09 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.0-1
-- Upstream changes (see CHANGELOG)
-- truncate changelog (see git for history)
-
-* Thu Jan 31 2008 Michael DeHaan <mdehaan@redhat.com> - 0.6.5-1
-- Upstream changes (see CHANGELOG)
-
-* Thu Jan 10 2008 Michael DeHaan <mdehaan@redhat.com> - 0.6.4-1
-- Upstream changes (see CHANGELOG)
-
-* Thu Nov 15 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.3-3
-- Upstream changes (see CHANGELOG)
-
-* Wed Nov 07 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.3-3
-- Release bump to appease the build system.
-
-* Wed Nov 07 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.3-2
-- Upstream changes (see CHANGELOG)
-
-* Fri Sep 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.2-2
-- Upstream changes (see CHANGELOG)
-
-* Thu Aug 30 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.1-2
-- Upstream changes (see CHANGELOG)
-
-* Thu Aug 09 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.0-1
-- Upstream changes (see CHANGELOG)
-
-* Thu Jul 26 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.2-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Jul 20 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.1-1
-- Upstream changes (see CHANGELOG)
-
-* Wed Jun 27 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.0-1
-- Upstream changes (see CHANGELOG)

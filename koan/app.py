@@ -665,7 +665,8 @@ class Koan:
         def after_download(self, profile_data):
             if not os.path.exists("/sbin/grubby"):
                 raise InfoException, "grubby is not installed"
-            k_args = self.calc_kernel_args(profile_data)
+            k_args = self.calc_kernel_args(profile_data,replace_self=True)
+         
             kickstart = self.safe_load(profile_data,'kickstart')
 
             self.build_initrd(
@@ -849,7 +850,7 @@ class Koan:
 
     #---------------------------------------------------
 
-    def calc_kernel_args(self, pd):
+    def calc_kernel_args(self, pd, replace_self=False):
         kickstart = self.safe_load(pd,'kickstart')
         options   = self.safe_load(pd,'kernel_options',default='')
         breed     = self.safe_load(pd,'breed')
@@ -867,6 +868,10 @@ class Koan:
         # convert the from-cobbler options back to a hash
         # so that we can override it in a way that works as intended
         hashv = utils.input_string_or_hash(kextra)
+
+        if replace_self:
+           hashv["ks"] = "file:ks.cfg"
+
         if self.kopts_override is not None:
            hash2 = utils.input_string_or_hash(self.kopts_override)
            hashv.update(hash2)
