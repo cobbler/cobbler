@@ -14,6 +14,7 @@ Cobbler CHANGELOG
 - (FEAT) added /usr/bin/cobbler-setup tool
 - (FEAT) cobbler report gains additional options for Wiki formatting, csv, and showing only certain fields
 - (FEAT) changed default kernel options to include ksdevice=bootif (not ksdevice=eth0) and added ipappend 2 to PXE
+- (FEAT) distro edits now no longer require a sync to rebuild the PXE menu
 
 - ??? - 1.2.5 (pending)
 - (BUGF) expose --arch for "cobbler image add"

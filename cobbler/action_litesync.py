@@ -70,7 +70,9 @@ class BootLiteSync:
         # cascade sync
         kids = distro.get_children()
         for k in kids:
-            self.add_single_profile(k.name)    
+            self.add_single_profile(k.name, rebuild_menu=False)    
+        self.sync.pxegen.make_pxe_menu()
+
 
     def add_single_image(self, name):
         image = self.images.find(name=name)
