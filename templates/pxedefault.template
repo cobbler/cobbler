@@ -4,6 +4,7 @@ MENU TITLE Cobbler | http://cobbler.et.redhat.com
 TIMEOUT 200
 TOTALTIMEOUT 6000
 ONTIMEOUT local
+IPAPPEND 2
 
 LABEL local
         MENU LABEL (local)

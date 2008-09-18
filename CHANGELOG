@@ -13,6 +13,7 @@ Cobbler CHANGELOG
 - (FEAT) included network_config snippet and added --static=0/1 to system objects
 - (FEAT) added /usr/bin/cobbler-setup tool
 - (FEAT) cobbler report gains additional options for Wiki formatting, csv, and showing only certain fields
+- (FEAT) changed default kernel options to include ksdevice=bootif (not ksdevice=eth0) and added ipappend 2 to PXE
 
 - ??? - 1.2.5 (pending)
 - (BUGF) expose --arch for "cobbler image add"

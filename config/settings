@@ -68,7 +68,7 @@ http_port: 80
 # kernel options can also be applied at the distro/profile/system
 # level.
 kernel_options:
-    ksdevice: eth0
+    ksdevice: bootif
     lang: ' '
     text: ~
 
