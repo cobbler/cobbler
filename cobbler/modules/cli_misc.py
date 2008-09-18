@@ -148,58 +148,6 @@ class ListFunction(commands.CobblerFunction):
 
 ########################################################
 
-class ReportFunction(commands.CobblerFunction):
-
-    def help_me(self):
-        return HELP_FORMAT % ("cobbler report","[ARGS|--help]")
-
-    def command_name(self):
-        return "report"
-
-    def add_options(self, p, args):
-        p.add_option("--what",              dest="what",   default="all",  help="distros/profiles/systems/repos")
-        p.add_option("--name",              dest="name",                   help="report on just this object")
-
-    def run(self):
-        if self.options.what not in [ "all", "distros", "profiles", "systems", "repos", "images" ]:
-            raise CX(_("Invalid value for --what"))
-
-        if self.options.what in [ "all", "distros"  ]:
-            if self.options.name:
-                self.reporting_list_names2(self.api.distros(),self.options.name)
-            else:
-                self.reporting_print_sorted(self.api.distros())
-
-        if self.options.what in [ "all", "profiles" ]:
-            if self.options.name:
-                self.reporting_list_names2(self.api.profiles(),self.options.name)
-            else:
-                self.reporting_print_sorted(self.api.profiles())
-
-        if self.options.what in [ "all", "systems"  ]:
-            if self.options.name:
-                self.reporting_list_names2(self.api.systems(),self.options.name)
-            else:
-                self.reporting_print_sorted(self.api.systems())
-
-        if self.options.what in [ "all", "repos"    ]:
-            if self.options.name:
-                self.reporting_list_names2(self.api.repos(),self.options.name)
-            else:
-                self.reporting_print_sorted(self.api.repos())
-
-        if self.options.what in [ "all", "images"    ]:
-            if self.options.name:
-                self.reporting_list_names2(self.api.images(),self.options.name)
-            else:
-                self.reporting_print_sorted(self.api.images())
-
-        return True
-
-
-
-########################################################
-
 class StatusFunction(commands.CobblerFunction):
 
     def help_me(self):
@@ -345,7 +293,7 @@ def cli_functions(api):
     return [
        BuildIsoFunction(api), 
        CheckFunction(api), ImportFunction(api), ReserializeFunction(api),
-       ListFunction(api), ReportFunction(api), StatusFunction(api),
+       ListFunction(api), StatusFunction(api),
        SyncFunction(api), RepoSyncFunction(api), ValidateKsFunction(api),
        ReplicateFunction(api), AclFunction(api)
     ]

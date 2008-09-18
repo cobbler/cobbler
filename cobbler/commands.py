@@ -291,10 +291,11 @@ class CobblerFunction:
 
         if "report" in self.args:
             if self.options.name is None:
-                self.reporting_print_sorted(collect_fn())
+                return self.api.report(report_what = self.args[1], report_name = self.options.name, \
+                               report_type = 'text', report_fields = 'all')
             else:
-                self.reporting_list_names2(collect_fn(),self.options.name)
-            return None
+                return self.api.report(report_what = self.args[1], report_name = 'all', \
+                                report_type = 'text', report_fields = 'all')
 
         if "getks" in self.args:
             if not self.options.name:
@@ -395,31 +396,6 @@ class CobblerFunction:
             rc = collect_fn().rename(obj, self.options.newname, with_triggers=opt_triggers)
 
         return rc
-
-    def reporting_sorter(self, a, b):
-        """
-        Used for sorting cobbler objects for report commands
-        """
-        return cmp(a.name, b.name)
-
-    def reporting_print_sorted(self, collection):
-        """
-        Prints all objects in a collection sorted by name
-        """
-        collection = [x for x in collection]
-        collection.sort(self.reporting_sorter)
-        for x in collection:
-            print x.printable()
-        return True
-
-    def reporting_list_names2(self, collection, name):
-        """
-        Prints a specific object in a collection.
-        """
-        obj = collection.find(name=name)
-        if obj is not None:
-            print obj.printable()
-        return True
 
     def list_tree(self,collection,level):
         """
