@@ -39,9 +39,10 @@ default_virt_file_size: 5
 default_virt_ram: 512
 
 # if using the authz_ownership module (see the Wiki), objects
-# created without specifying an owner are assigned to this
-# owner and/or group.  Can be a comma seperated list.
-default_ownership: "admin"
+# created without specifying an owner are assigned to these
+# owners and/or groups.  
+default_ownership:
+    - "admin"
 
 # controls whether cobbler will add each new profile entry to the default
 # PXE boot menu.  This can be over-ridden on a per-profile

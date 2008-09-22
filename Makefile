@@ -17,14 +17,18 @@ manpage:
 	pod2html ./docs/cobbler.pod > ./docs/cobbler.html
  
 test: devinstall
-	-mkdir -p /tmp/cobbler_test_bak
-	-cp /var/lib/cobbler/distros*  /tmp/cobbler_test_bak
-	-cp /var/lib/cobbler/profiles* /tmp/cobbler_test_bak
-	-cp /var/lib/cobbler/systems*  /tmp/cobbler_test_bak
-	-cp /var/lib/cobbler/repos*    /tmp/cobbler_test_bak
-	-cp /var/lib/cobbler/repos*    /tmp/cobbler_test_bak
+	-rm -rf /tmp/cobbler_test_bak
+	mkdir -p /tmp/cobbler_test_bak
+	cp /etc/cobbler/settings /tmp/cobbler_test_bak/settings
+	cp /etc/cobbler/modules.conf /tmp/cobbler_test_bak/modules.conf
+	cp -a /var/lib/cobbler/config  /tmp/cobbler_test_bak/config
 	python tests/tests.py
-	-cp /tmp/cobbler_test_bak/* /var/lib/cobbler
+	-rm -rf /var/lib/cobbler/config
+	-rm /etc/cobbler/settings
+	-rm /etc/cobbler/modules.conf
+	cp -a /tmp/cobbler_test_bak/config /var/lib/cobbler/
+	cp /tmp/cobbler_test_bak/settings /etc/cobbler/settings
+	cp /tmp/cobbler_test_bak/modules.conf /etc/cobbler/modules.conf
 
 test2:
 	python tests/multi.py	
@@ -107,7 +111,7 @@ eraseconfig:
 	-rm /var/lib/cobbler/config/distros.d/*
 	-rm /var/lib/cobbler/config/images.d/*
 	-rm /var/lib/cobbler/config/profiles.d/*
-	-rm /var/lib/cobbler/config/systems.d/
+	-rm /var/lib/cobbler/config/systems.d/*
 	-rm /var/lib/cobbler/config/repos.d/*
 
 

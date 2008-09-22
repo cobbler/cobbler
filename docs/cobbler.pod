@@ -355,7 +355,7 @@ Specifies that the named repository should not be updated during a normal "cobbl
 
 =item mirror-locally
 
-When true, specifies that this yum repo is to be referenced directly via kickstarts and not mirrored locally on the cobbler server.  Only http:// and ftp:// mirror urls are supported when using --mirror-locally=1.
+When set to "N", specifies that this yum repo is to be referenced directly via kickstarts and not mirrored locally on the cobbler server.  Only http:// and ftp:// mirror urls are supported when using --mirror-locally=N, you cannot use filesystem URLs.
 
 =item priority
 
