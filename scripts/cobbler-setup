@@ -31,19 +31,20 @@ import shutil
 import os.path 
 import exceptions
 
-# FIXME: use subprocess.call() with shell=False instead
-# FIXME: check all return codes
-from os import system
-
 import sys
 import os
-from decimal import Decimal
+import subprocess
 
 try:
     import readline
     readline.parse_and_bind("tab: complete")
 except: 
     pass
+
+def execute(command, shell = False):
+    if subprocess.call(command, shell = shell) != 0:
+        sys.stderr.write(" -- ERROR:  command '%s' failed executing. Exiting..\n" % command)
+        sys.exit(1);
 
 class AnswerException(exceptions.Exception):
     """
@@ -92,39 +93,6 @@ def help_ask(caption, validators=[], transformers =[], default = None, required=
                         required = required, max_len = max_len)
     return input
 
-# =========================================================
-
-def to_int(input):
-   """
-   A transformer emthod to convert a string input to an integer
-   """
-
-   try:
-       return int(input)
-   except ValueError:
-       raise AnswerException ('Input is not an integer')
-        
-# =========================================================
-        
-def to_float(input):
-    """
-    A transformer emthod to convert a string input to a float.
-    """
-    try:
-        return float(input)
-    except ValueError, e:
-        raise AnswerException ('Input needs to be a number')
-
-# =========================================================
-
-def to_decimal(input):
-    """
-    A transformer emthod to convert a string input to an decimal
-    """
-    try:
-        return Decimal(input)
-    except:
-        raise AnswerException ('Input needs to be a number (can be a decimal)')        
 
 # =========================================================
 
@@ -190,22 +158,21 @@ def yes_no_check():
     return enum_check(["y","n"])
 
 # =========================================================
+def yes_no_params(default = 'y'):
+    return  {
+        "default"      : default, 
+        "validators"   : [yes_no_check()], 
+        "transformers" : [yes_no_translator()]
+    }
 
-def range_check(min_val = None, max_val = None):
-    """
-    Ensures that the numeric value o an input falls between a given range.
-    """
-    def check(input, min_val = min_val, max_val = max_val):
-        input = to_decimal(input)
-        if min_val and max_val and not (min_val <= input <= max_val):
-            raise AnswerException('Input needs to be between %d  and %d ' % (min_val, max_val))
-        elif min_val and input < min_val:
-            raise AnswerException('Input needs to be >= %d' % min_val)
-        elif max_val and input > max_val:
-            raise AnswerException('Input needs to be <= %d' % max_val)
-
-    return check
-
+# =========================================================
+def translation_params(default, translation):
+    return  {
+            "default" : default,
+            "validators" : [enum_check(translation.keys())],
+            "transformers" : [translator(translation)]
+    }    
+    
 # =========================================================
    
 def setup_server(answers):
@@ -216,15 +183,15 @@ def setup_server(answers):
         parameters
     )
 
+
 # =========================================================
 
 def setup_dhcp(answers):
-    parameters = {
-        "default"      : "y", 
-        "validators"   : [yes_no_check()], 
-        "transformers" : [yes_no_translator()]
-    }
-    ask(answers,'enable_dhcp',"Do you want to enable DHCP management [y/n] ?",parameters)
+    
+    ask(answers,
+        'enable_dhcp',
+        "Do you want to enable DHCP management [y/n] ?",
+        yes_no_params())
 
     if answers['enable_dhcp']:
         answers['next_server'] = answers['server']
@@ -235,20 +202,15 @@ def setup_dhcp(answers):
     if answers['enable_dhcp']:
 
         # DHCP management is either ISC or dnsmasq
-    	translators = { 
+    	translation = { 
            "isc"     : "manage_isc", 
            "dnsmasq" : "manage_dnsmasq" 
-        }
-        parameters = {
-           "default" : "isc",
-           "validators" : [enum_check(translators.keys())],
-           "transformers" : [translator(translators)]
         }
         ask(
             answers, 
             'dhcp_module',
             "Which DNS module do you want to use [isc/dnsmasq] ?",
-            parameters
+           translation_params("isc", translation) 
         )
 
     else:
@@ -258,19 +220,12 @@ def setup_dhcp(answers):
 # =========================================================
 				
 def setup_dns(answers):
-
-    parameters = {
-       "default" : "y", 
-       "validators" : [yes_no_check()],
-       "transformers" : [yes_no_translator()]
-    }
-
     # if the user already is using dnsmasq for DHCP, they must use dnsmasq for DNS
     # if they are not, they get the choice of BIND or no module
 
     if answers["enable_dhcp"] and answers["dhcp_module"] == "dnsmasq":
        
-       answers["enable_dns"] = True
+       answers["enable_dns"] = 1
        answers["dns_module"] = "manage_dnsmasq"
 
     else:
@@ -278,7 +233,7 @@ def setup_dns(answers):
        ask(answers,
            'enable_dns', 
            "Do you want to enable DNS management with BIND [y/n] ?",   
-           parameters
+           yes_no_params()
        )
  
        if answers["enable_dns"]:
@@ -287,74 +242,64 @@ def setup_dns(answers):
 # =========================================================
 
 def setup_pxe(answers):
-    parameters = {
-        "default" : "y", 
-        "validators" : [yes_no_check()],
-        "transformers" : [yes_no_translator()]
-    }
-
     ask(
         answers,
         'pxe_once', 
         "Enable PXE boot loop prevention feature [y/n] ?",
-        parameters
+        yes_no_params()
     )
 
 # =========================================================
 
 def setup_mirrors(answers):
-    parameters = {
-        "default" : "n", 
-        "validators" : [yes_no_check()], 
-        "transformers" : [yes_no_translator()]
-    }
     ask(
         answers,
         'yum_post_install_mirror', 
         "Make cobbler managed yum repos available to installed systems via yum.repos.d [y/n] ?",
-        parameters
+        yes_no_params()
     )
         
 # =========================================================
      
 
 def setup_remote_config(answers):
-
     ask (answers, "enable_remote_access", 
          "Allow cobbler to be managed by the web and other applications [y/n] ?",
-         dict(default="y", validators=[yes_no_check()], 
-         transformers=[yes_no_translator()]))
+         yes_no_params()
+        )
 
     if answers['enable_remote_access']:
-        translation = dict (testing = "authn_testing",
-                            passthru = "authn_passthru",
-                            denyall = "authn_denyall",
-                            ldap = "authn_ldap",
-                            configfile = "authn_configfile",
-                            spacewalk = "authn_spacewalk"
-        )
-        
-        ask (answers, "authn_module",
+        translation = {
+                "testing" : "authn_testing",
+                "passthru" : "authn_passthru",
+                "denyall" : "authn_denyall",
+                "ldap" : "authn_ldap",
+                "configfile" : "authn_configfile",
+                "spacewalk" :"authn_spacewalk"
+        }
+
+        ask (answers, 
+             "authn_module",
              "Which authentication module do you want to use [%s] ?" % "/".join(translation.keys()),
-             dict(default="denyall",
-             validators=[enum_check(translation.keys())],
-             transformers= [translator(translation)]))
+             translation_params("denyall", translation))
 
         if answers['authn_module'] == 'authn_configfile':
 
             print "* Updating cobbler user's password in user.digest file"
-            os.system('htdigest -c users.digest Cobbler cobbler')
+            execute('htdigest -c users.digest Cobbler cobbler',shell=False)
             print "* users can run 'htdigest /etc/users.digest Cobbler $username' later to add more users & change cobbler password"
+        
+        translation = {
+                "allowall" : "authz_allowall",
+                "ownership" : "authz_ownership",
+                "configfile" : "authz_configfile"
+        }
 
-        translation = dict (allowall = "authz_allowall",
-                            ownership = "authz_ownership",
-                            configfile = "authz_configfile")
-
-        ask (answers, "authz_module",
-                      "Which authorization module do you want to use [%s] ?" % "/".join(translation.keys()),
-                      dict(default="allowall",
-                      validators=[enum_check(translation.keys())],
-                      transformers= [translator(translation)]))
+        ask (answers, 
+             "authz_module",
+             "Which authorization module do you want to use [%s] ?" % "/".join(translation.keys()),
+              translation_params("allowall", translation))
+                      
 
     else: 
 
@@ -387,7 +332,7 @@ def ask(answers, key, question, params=None):
         transformers = params.get("transformers",[]),
         default = params.get("default",None),
         required = params.get("required",True),
-        max_len = params.get("max_len",True)
+        max_len = params.get("max_len",None)
     )
 
     answers[key] = answer
@@ -417,13 +362,21 @@ def copy_settings():
 # =========================================================
         
 def main():
+    parser = optparse.OptionParser()
+    setup(parser)
+    (options, args) = parser.parse_args()
+    answers = {}
+    # options.file is the name of the answers file..
+    if options.file:
+        data = yaml.loadFile(parser.file).next()
+        answers.update(data)
 
     print ""
     print "**********************************************"
     print "Setting up the Cobbler provisioning server."
     print "http://fedorahosted.org/cobbler"
 
-    os.system("rpm -q cobbler")
+    execute("rpm -q cobbler", shell = True)
 
     print ""
     print "if you have already configured cobbler, Ctrl+C now."
@@ -433,15 +386,7 @@ def main():
     print "**********************************************"
     print ""
 
-    parser = optparse.OptionParser()
-    setup(parser)
-    (options, args) = parser.parse_args()
 
-    answers = {}
-    # FIXME: add --file with help to option parser
-    #if options.file:
-    #    data = yaml.loadFile(parser.file).next()
-    #    answers.update(data)
     
     setup_server(answers)
     setup_dhcp(answers)
@@ -451,7 +396,10 @@ def main():
     setup_mirrors(answers)
     
     copy_settings()
-
+    defaults = yaml.loadFile("/usr/share/cobbler/installer_templates/defaults").next()
+    for key in defaults.keys():
+        if key not in answers: 
+            answers[key] = defaults[key]
     # copy settings /before/ overwriting them
     templatify("/usr/share/cobbler/installer_templates/settings.template",answers,"/etc/cobbler/settings")
     templatify("/usr/share/cobbler/installer_templates/modules.conf.template",answers,"/etc/cobbler/modules.conf")
@@ -467,8 +415,8 @@ def main():
     print "***********************************************"
     print ""
 
-    os.system("/sbin/service cobblerd restart")
-    os.system("/sbin/service httpd restart")
+    execute("/sbin/service cobblerd restart", shell=True)
+    execute("/sbin/service httpd restart", shell=True)
     
     print ""
     print "***********************************************"
@@ -483,7 +431,7 @@ def main():
     print ""
  
     #print "Running cobbler check ..."
-    os.system("cobbler check")
+    execute("cobbler check", shell=True)
     
     print ""
     print "***********************************************"

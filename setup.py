@@ -126,6 +126,7 @@ if __name__ == "__main__":
                                 # templates for /usr/bin/cobbler-setup
                                 (itemplates, ['installer_templates/modules.conf.template']),
                                 (itemplates, ['installer_templates/settings.template']),
+                                (itemplates, ['installer_templates/defaults']),
 
                                 # kickstart dir
                                 (vl_kick,  []),

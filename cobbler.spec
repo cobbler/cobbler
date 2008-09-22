@@ -95,6 +95,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /usr/share/cobbler/installer_templates
 %defattr(744,root,root)
 /usr/share/cobbler/installer_templates/*.template
+%defattr(744,root,root)
+/usr/share/cobbler/installer_templates/defaults
 %defattr(755,apache,apache)
 %dir /usr/share/cobbler/webui_templates
 %defattr(444,apache,apache)
