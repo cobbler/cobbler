@@ -564,6 +564,22 @@ def flatten(data):
  
     return data
 
+def uniquify(seq, idfun=None): 
+    # credit: http://www.peterbe.com/plog/uniqifiers-benchmark
+    # FIXME: if this is actually slower than some other way, overhaul it
+    if idfun is None:
+        def idfun(x): 
+           return x
+    seen = {}
+    result = []
+    for item in seq:
+        marker = idfun(item)
+        if marker in seen:
+            continue
+        seen[marker] = 1
+        result.append(item)
+    return result
+
 def __consolidate(node,results):
     """
     Merge data from a given node with the aggregate of all
@@ -592,13 +608,17 @@ def __consolidate(node,results):
  
           # now merge data types seperately depending on whether they are hash, list,
           # or scalar.
-          if type(data_item) == dict:
+
+          fielddata = results[field]
+
+          if type(fielddata) == dict:
              # interweave hash results
              results[field].update(data_item.copy())
-          elif type(data_item) == list or type(data_item) == tuple:
+          elif type(fielddata) == list or type(fielddata) == tuple:
              # add to lists (cobbler doesn't have many lists)
              # FIXME: should probably uniqueify list after doing this
              results[field].extend(data_item)
+             results[field] = uniquify(results[field])
           else:
              # just override scalars
              results[field] = data_item

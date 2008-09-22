@@ -35,22 +35,24 @@ import sys
 import os
 import subprocess
 
-try:
-    import readline
-    readline.parse_and_bind("tab: complete")
-except: 
-    pass
 
-def execute(command, shell = False):
+# =========================================================
+
+def execute(command, shell=False, ignore_rc=False):
     if subprocess.call(command, shell = shell) != 0:
-        sys.stderr.write(" -- ERROR:  command '%s' failed executing. Exiting..\n" % command)
-        sys.exit(1);
+        if not ignore_rc:
+            sys.stderr.write("\n -- ERROR:  command '%s' failed.  Setup aborted.\n" % command)
+            sys.exit(1);
+
+# =========================================================
 
 class AnswerException(exceptions.Exception):
     """
     Custom exceptions class so we only catch exceptions that we know are input related.
     """
     pass
+
+# =========================================================
 
 def help_ask(caption, validators=[], transformers =[], default = None, required=True, max_len = None):
     """
@@ -362,9 +364,18 @@ def copy_settings():
 # =========================================================
         
 def main():
+
+
+    try:
+        import readline
+        readline.parse_and_bind("tab: complete")
+    except: 
+        pass
+
     parser = optparse.OptionParser()
     setup(parser)
     (options, args) = parser.parse_args()
+
     answers = {}
     # options.file is the name of the answers file..
     if options.file:
@@ -395,22 +406,23 @@ def main():
     setup_pxe(answers)
     setup_mirrors(answers)
     
+    # copy settings /before/ overwriting them
     copy_settings()
+
     defaults = yaml.loadFile("/usr/share/cobbler/installer_templates/defaults").next()
     for key in defaults.keys():
         if key not in answers: 
             answers[key] = defaults[key]
-    # copy settings /before/ overwriting them
+
     templatify("/usr/share/cobbler/installer_templates/settings.template",answers,"/etc/cobbler/settings")
     templatify("/usr/share/cobbler/installer_templates/modules.conf.template",answers,"/etc/cobbler/modules.conf")
 
     # FIXME: missing code to ensure TFTP is enabled
-    # FIXME: missing code to configure firewall (???)
     # FIXME: missing code to ensure cobblerd, httpd, xinetd is chkconfig on
  
     print ""
     print "***********************************************"
-    print "Restarting install services prior to running"
+    print "Restarting required services prior to running"
     print "diagnostics on install server configuration"
     print "***********************************************"
     print ""
@@ -419,19 +431,16 @@ def main():
     execute("/sbin/service httpd restart", shell=True)
     
     print ""
-    print "***********************************************"
-    print "The following information may represent"
-    print "outstanding problems with your install server"
-    print "configuration that probably should be addressed."
-    print "These may be reviewed at any time by running"
-    print "'cobbler check'.  Any other runtime problems"
-    print "may be logged to the Apache error log or"
-    print "/var/log/cobbler.log."
+    print "************************************************************"
+    print "The following information may represent outstanding problems" 
+    print "with your install server configuration that probably should "
+    print "be addressed. These may be reviewed at any time by running"
+    print "'cobbler check'.  Any other runtime problems may be logged"
+    print "to the Apache error log or /var/log/cobbler.log"
     print "***********************************************"
     print ""
  
-    #print "Running cobbler check ..."
-    execute("cobbler check", shell=True)
+    execute("cobbler check", shell=True, ignore_rc=True)
     
     print ""
     print "***********************************************"
