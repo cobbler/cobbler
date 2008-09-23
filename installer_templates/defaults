@@ -1,0 +1,11 @@
+authn_module:'authn_denyall'
+authz_module:'authz_allowall'
+dns_module:'manage_bind'
+dhcp_module:'manage_isc'
+enable_dhcp:0
+enable_dns:0
+next_server:'127.0.0.1'
+pxe_once:0
+server:'127.0.0.1'
+spacewalk_url:'http://localhost/rpc/api'
+yum_post_install_mirror:0

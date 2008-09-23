@@ -16,6 +16,7 @@ Cobbler CHANGELOG
 - (FEAT) changed default kernel options to include ksdevice=bootif (not ksdevice=eth0) and added ipappend 2 to PXE
 - (FEAT) distro edits now no longer require a sync to rebuild the PXE menu
 - (BUGF) minor tweak to the blender function to remove a certain class of typing errors where a string is being blended with a list, should not have any noticable effect on existing installs
+- (BUGF) add missing import of "_" in remote.py
 
 - ??? - 1.2.5 (pending)
 - (BUGF) expose --arch for "cobbler image add"
