@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import sys
+import os.path
 from distutils.core import setup, Extension
 import string
 
@@ -20,7 +21,12 @@ if __name__ == "__main__":
         etcpath  = "/etc/cobbler/"
         wwwconf  = "/etc/httpd/conf.d/"
         wwwpath  = "/var/www/cobbler/"
-        wwwgfx   = "/var/www/cobbler/webui/"
+        wwwcon   = "/var/www/cobbler/webui/"
+        wwwui    = "/var/www/cobbler/webui/jquery.ui/ui"
+        wwwui_xlat = "/var/www/cobbler/webui/jquery.ui/ui/i18n"
+        wwwthm   = "/var/www/cobbler/webui/jquery.ui/themes"
+        wwwthm2  = "/var/www/cobbler/webui/jquery.ui/themes/flora"
+        wwwthm3  = "/var/www/cobbler/webui/jquery.ui/themes/flora/i"
         initpath = "/etc/init.d/"
         logpath  = "/var/log/cobbler/"
         logpath2 = "/var/log/cobbler/kicklog"
@@ -48,6 +54,32 @@ if __name__ == "__main__":
         # cgipath       = "/var/www/cgi-bin/cobbler"
         modpython     = "/var/www/cobbler/web"
         modpythonsvc  = "/var/www/cobbler/svc"
+
+        # hack to bundle jquery until we have packaging guidelines to avoid JS bundling
+        # bundling is evil, but temporary.
+
+        def file_slurper(arg, dirname, fnames):
+           # FIXME: shell glob would be simpler
+           for fn in fnames:
+               fn2 = os.path.join(dirname,fn)
+               if os.path.isfile(fn2):
+                   if not fn2 in arg:
+                       arg.append(fn2)
+               else:
+                   # don't recurse
+                   fnames.remove(fn)
+ 
+        jui_files = []
+        jui_files2 = []
+        jui_files3 = []
+        jui_files4 = []
+        jui_files5 = []
+        os.path.walk("./webui_content/jquery.ui/ui", file_slurper, jui_files)
+        os.path.walk("./webui_content/jquery.ui/ui/i18n", file_slurper, jui_files2)
+        os.path.walk("./webui_content/jquery.ui/themes", file_slurper, jui_files3)
+        os.path.walk("./webui_content/jquery.ui/themes/flora", file_slurper, jui_files4)
+        os.path.walk("./webui_content/jquery.ui/themes/flora/i", file_slurper, jui_files5)
+        
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -197,18 +229,26 @@ if __name__ == "__main__":
                                 (wwwtmpl,           ['webui_templates/ksfile_list.tmpl']),
 
                                 # Web UI support files
-				(wwwgfx,            ['docs/wui.html']),
-                                (wwwgfx,            ['docs/cobbler.html']),
-				(wwwgfx,            []),
-                                (wwwgfx,            ['webui_content/icon_16_sync.png']),
-                                (wwwgfx,            ['webui_content/list-expand.png']),
-                                (wwwgfx,            ['webui_content/list-collapse.png']),
-                                (wwwgfx,            ['webui_content/list-parent.png']),
-                                (wwwgfx,            ['webui_content/cobbler.js']),
-                                (wwwgfx,            ['webui_content/style.css']),
-                                (wwwgfx,            ['webui_content/logo-cobbler.png']),
-                                (wwwgfx,            ['webui_content/cobblerweb.css']),
- 
+				(wwwcon,            ['docs/wui.html']),
+                                (wwwcon,            ['docs/cobbler.html']),
+				(wwwcon,            []),
+                                (wwwcon,            ['webui_content/jquery.js']),
+                                (wwwui,             jui_files),
+                                (wwwui_xlat,        jui_files2),
+                                (wwwthm,            jui_files3),
+                                (wwwthm2,           jui_files4),
+                                (wwwthm3,           jui_files5),
+
+                                #(wwwcon,           ['webui_content/icon_16_sync.png']),
+                                #(wwwcon,           ['webui_content/list-expand.png']),
+                                #(wwwcon,           ['webui_content/list-collapse.png']),
+                                #(wwwcon,           ['webui_content/list-parent.png']),
+
+                                (wwwcon,            ['webui_content/cobbler.js']),
+                                (wwwcon,            ['webui_content/style.css']),
+                                (wwwcon,            ['webui_content/logo-cobbler.png']),
+                                (wwwcon,            ['webui_content/cobblerweb.css']),
+
                                 # Directories to hold cobbler triggers
                                 ("%sadd/distro/pre" % trigpath,      []),
                                 ("%sadd/distro/post" % trigpath,     []),

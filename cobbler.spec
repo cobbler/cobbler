@@ -115,10 +115,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(755,apache,apache)
 %dir /var/www/cobbler/webui
 %defattr(444,apache,apache)
-/var/www/cobbler/webui/*.css
-/var/www/cobbler/webui/*.js
-/var/www/cobbler/webui/*.png
-/var/www/cobbler/webui/*.html
+/var/www/cobbler/webui/*
 
 %defattr(755,root,root)
 %{_bindir}/cobbler
