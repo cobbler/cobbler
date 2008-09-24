@@ -114,11 +114,18 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cobbler/links
 %defattr(755,apache,apache)
 %dir /var/www/cobbler/webui
+%dir /var/www/cobbler/webui/jquery.ui/ui
+%dir /var/www/cobbler/webui/jquery.ui/ui/i18n
+%dir /var/www/cobbler/webui/jquery.ui/themes
+%dir /var/www/cobbler/webui/jquery.ui/themes/flora
+%dir /var/www/cobbler/webui/jquery.ui/themes/flora/i
 %defattr(444,apache,apache)
-/var/www/cobbler/webui/*.css
-/var/www/cobbler/webui/*.js
-/var/www/cobbler/webui/*.png
-/var/www/cobbler/webui/*.html
+/var/www/cobbler/webui/*
+/var/www/cobbler/webui/jquery.ui/ui/*
+/var/www/cobbler/webui/jquery.ui/ui/i18n/*
+/var/www/cobbler/webui/jquery.ui/themes/*
+/var/www/cobbler/webui/jquery.ui/themes/flora/*
+/var/www/cobbler/webui/jquery.ui/themes/flora/i/*
 
 %defattr(755,root,root)
 %{_bindir}/cobbler
