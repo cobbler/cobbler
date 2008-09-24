@@ -1,0 +1,66 @@
+#if $getVar("system_name","") != ""
+    #set ikeys = $interfaces.keys()
+    ##
+    ## Determine if we should use the MAC address to configure the interfaces first
+    #set $configbymac = True
+    #for $iname in $ikeys
+    	#$idata = $interfaces["$iname"]
+    	#if $idata["mac_address"] == ""
+    		#set $configbymac = False
+    	#end if
+    #end for
+    #set $i = 0
+    #set $hostname = ""
+    #for $iname in $ikeys
+        #set $idata    = $interfaces[$iname]
+        #set $mac      = $idata["mac_address"]
+        #set $static   = $idata["static"]
+        #set $ip       = $idata["ip_address"]
+        #set $netmask  = $idata["subnet"]
+        #set $gateway  = $idata["gateway"]
+        #set $ihostname = $idata["hostname"]
+        #set $devfile = "/etc/sysconfig/network-scripts/ifcfg-" + $iname
+        #if $configbymac
+            ## Remove the interface file anaconda made for this mac address
+            IFFILE=`grep -i "$mac" /etc/sysconfig/network-scripts/ifcfg-* | cut -d ":" -f 1`
+            IFNAME=`grep "DEVICE=" $iffile | cut -d "=" -f 2` 
+            ## Rename this interface in modprobe.conf
+            sed -i "s/\$IFNAME/\$iname/" /etc/modprobe.conf
+            ## Remove the old interface file the OS had for it
+            rm -f \$IFFILE
+            echo "DEVICE=$iname" > $devfile
+            echo "HWADDR=$mac" >> $devfile
+            echo "ONBOOT=yes"
+            #if $ip != ""
+                echo "BOOTPROTO=static" >> $devfile
+                echo "IPADDR=$ip" >> $devfile
+                #if $netmask == ""
+                    ## Default to 255.255.255.0?
+                    #set $netmask = "255.255.255.0"
+                #end if
+                echo "NETMASK=$netmask" >> $devfile
+                #if $gateway != ""
+                    echo "GATEWAY=$gateway" >> $devfile
+                #end if
+            #else
+                echo "BOOTPROTO=dhcp" >> $devfile
+            #end if
+        #else
+            ## jcapel note: I think we only have to rename the interfaces
+            ## I'm assuming eth0 is the first item in the list here.
+            ## This will fail when renaming ethX to ethY, avoid it!
+            ## (we can fix this later if we're staging temporary files
+            ## somewhere first.)
+            #set $curiname = "eth" + $i
+            #if $iname != $curiname
+                sed -i "s/$curiname/$iname/" /etc/modprobe.conf
+                (
+                grep -v "DEVICE=" /etc/sysconfig/network-scripts/ifcfg-$curiname
+                echo "DEVICE=$iname"
+                ) > /etc/sysconfig/network-scripts/ifcfg-$iname
+                rm -f /etc/sysconfig/network-scripts/ifcfg-$curiname
+            #end if
+		#end if
+		#set $i = $i + 1
+    #end for	
+#end if
