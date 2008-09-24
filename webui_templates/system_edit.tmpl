@@ -12,16 +12,6 @@
 
 <script language="javascript">
 
-function delete_interface(num)
-{
-    #if $editable == True
-       #for $field in $fields
-           document.getElementById("${field}-intf" + num).value = "";
-       #end for
-    #end if
-    toggleRowVisibility("id" + num);
-}
-
 #if $system
 function disablename(value)
 {
@@ -53,18 +43,10 @@ function get_random_mac(field)
 ##   determine a bit about what interfaces should be shown and which should not.
 ##
 
-#set $all_interfaces = [ "intf0", "intf1", "intf2", "intf3", "intf4", "intf5", "intf6", "intf7" ]
 #if $system
     #set $interfaces = $system.interfaces.keys()
-    #set $defined_interfaces = []
-    #for $potential in $all_interfaces
-        #if $potential in $interfaces
-            #set $rc = $defined_interfaces.append($potential)
-        #end if
-    #end for
 #else
-    #set $interfaces = [ "intf0", "intf1", "intf2", "intf3", "intf4", "intf5", "intf6", "intf7" ]
-    #set $defined_interfaces = [ "intf0" ]
+    #set $interfaces = [ "eth0" ]
 #end if
 
 ### 
@@ -78,7 +60,7 @@ function page_onload() {
     onLoadStuff(2);
     hideAllRows();
     #set counter = 0
-    #for $interface in $all_interfaces
+    #for $interface in $interfaces
         #if $interface in $defined_interfaces
             toggleRowVisibility("id${counter}");
         #end if
@@ -391,7 +373,9 @@ function page_onload() {
         ## render the toggle link to hide the interfaces not yet defined
         ## ----------------------------------------
 
-        <tr class="listrow" id="1000${counter}">
+        <div class="interface_definition" id="interface-$iname">
+
+        <tr>
         <td>
         <hr width="100%"/>
         </td>
@@ -400,7 +384,7 @@ function page_onload() {
         </td>
         </tr>
 
-        <tr class="listrow" id="id${counter}">
+        <tr>
         <td>
         Interface $interface.replace("intf","")
         </td>
@@ -409,12 +393,7 @@ function page_onload() {
         </td>
         </tr>
         
-        ## ----------------------------------------
-        ## now show all of the interface fields which may or may not
-        ## be hidden but are always there
-        ## ----------------------------------------
-
-        <tr class="listrow" id="child-id${counter}-0">
+        <tr>
         <td>
         <label for="macaddress-$interface">MAC</label>
         </td>
@@ -431,7 +410,7 @@ function page_onload() {
         </td>
         </tr>
 
-        <tr class="listrow" id="child-id${counter}-1">
+        <tr>
         <td>
         <label for="ipaddress-$interface">IP</label>
         </td>
@@ -443,7 +422,7 @@ function page_onload() {
         </td>
         </tr>
 
-        <tr class="listrow" id="child-id${counter}-3">
+        <tr>
         <td>
         <label for="hostname-$interface">Hostname</label>
         </td>
@@ -455,7 +434,7 @@ function page_onload() {
         </td>
         </tr>
 
-        <tr class="listrow" id="child-id${counter}-4">
+        <tr>
         <td>
         <label for="dhcptag-$interface">DHCP Tag</label>
         </td>
@@ -467,7 +446,7 @@ function page_onload() {
         </td>
         </tr>
 
-        <tr class="listrow" id="child-id${counter}-5">
+        <tr>
         <td>
         <label for="virtbridge-$interface">Virt Bridge</label>
         </td>
@@ -479,7 +458,7 @@ function page_onload() {
         </td>
         </tr>
 
-        <tr class="listrow" id="child-id${counter}-6">
+        <tr>
         <td>
         <label for="subnet-$interface">Subnet</label>
         </td>
@@ -491,7 +470,7 @@ function page_onload() {
         </td>
         </tr>
 
-        <tr class="listrow" id="child-id${counter}-7">
+        <tr>
         <td>
         <label for="gateway-$interface">Gateway</label>
         </td>
@@ -503,7 +482,7 @@ function page_onload() {
         </td>
         </tr>
 
-        <tr class="listrow" id="child-id${counter}-8">
+        <tr>
         <td>
         <label for="static-$interface">Static?</label>
         </td>
@@ -518,8 +497,10 @@ function page_onload() {
         </tr>
 
 
-        #if $interface != "intf0"
-            <tr class="listrow" id="child-id${counter}-9">
+        # FIXME: if interface is not first interface
+
+        #if $interface != "intf0" and $interface != "eth0"
+            <tr>
             <td>
             #if $editable == True
                 <label for="enabled-$interface">Remove</label>
@@ -547,7 +528,7 @@ function page_onload() {
     #end for
     ## ====================================== end of looping through interfaces
 
-    <tr class="listrow" id="id10000">
+    <tr>
     <td>
     <hr width="95%"/>
     </td>
@@ -557,7 +538,7 @@ function page_onload() {
     </tr>
 
     #if $system and $editable == True
-    <tr id="id10001">
+    <tr>
     <td>
     <label for="delete">Delete</label>
     </td>
@@ -570,7 +551,7 @@ function page_onload() {
     #end if
 
     #if $editable == True
-    <tr id="9008">
+    <tr>
     <td>
     </td>
     <td>

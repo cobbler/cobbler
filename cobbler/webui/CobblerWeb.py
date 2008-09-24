@@ -383,8 +383,10 @@ class CobblerWeb(object):
                self.remote.modify_system(system, 'virt-path', virtpath, self.token)
 
 
-            for x in range(0,7):
-                interface = "intf%s" % x
+            interfaces = args.get("interfaces","")
+            interfaces = interfaces.split(",")
+
+            for x in interfaces:
                 macaddress = args.get("macaddress-%s" % interface, "")
                 ipaddress  = args.get("ipaddress-%s" % interface, "")
                 hostname   = args.get("hostname-%s" % interface, "")
@@ -396,7 +398,7 @@ class CobblerWeb(object):
                 if not (macaddress != "" or ipaddress != "" or hostname != "" or virtbridge != "" or dhcptag != "" or subnet != "" or gateway != ""):
                     # if we have nothing to modify, request that we remove the interface unless it's the
                     # the first interface, in which case it is NOT removeable
-                    if not interface == "intf0":
+                    if not interface == interfaces[0]:
                         self.remote.modify_system(system,'delete-interface', interface, self.token) 
                 else:
                     # it looks like we have at least one value to submit, just send the ones over that are

@@ -45,6 +45,7 @@ class System(item.Item):
         self.kernel_options_post  = {}
         self.ks_meta              = {}    
         self.interfaces           = {}
+        self.default_interface    = self.settings.default_interface
         self.netboot_enabled      = True
         self.depth                = 2
         self.mgmt_classes         = []              
@@ -61,12 +62,10 @@ class System(item.Item):
 
     def delete_interface(self,name):
         """
-        Used to remove an interface.  Not valid for intf0.
+        Used to remove an interface.  Not valid for the default interface.
         """
-        if name == "intf0":
-            raise CX(_("the first interface cannot be deleted"))
-        if self.interfaces.has_key(name):
-            del self.interfaces[name]
+        if self.interfaces.has_key(name) and self.default_interface != name:
+                del self.interfaces[name]
         else:
             # NOTE: raising an exception here would break the WebUI as currently implemented
             return False
@@ -74,9 +73,8 @@ class System(item.Item):
         
 
     def __get_interface(self,name):
-
-        if name not in [ "intf0", "intf1", "intf2", "intf3", "intf4", "intf5", "intf6", "intf7" ]:
-            raise CX(_("internal error: invalid key for interface lookup or storage, must be 'intfX' where x is 0..7"))
+        if name is None:
+            return self.__get_default_interface()
 
         if not self.interfaces.has_key(name):
             self.interfaces[name] = {
@@ -90,6 +88,12 @@ class System(item.Item):
                 "static"      : False
             }
         return self.interfaces[name]
+
+    def __get_default_interface(self):
+        if self.default_interface != "":
+            return self.__get_interface(self.default_interface)
+        else:
+            raise CX(_("no default interface defined"))
 
     def from_datastruct(self,seed_data):
 
@@ -110,6 +114,7 @@ class System(item.Item):
         self.netboot_enabled      = self.load_item(seed_data, 'netboot_enabled', True)
         self.server               = self.load_item(seed_data, 'server', '<<inherit>>')
         self.mgmt_classes         = self.load_item(seed_data, 'mgmt_classes', [])
+        self.default_interface    = self.load_item(seed_data, 'default_interface', self.settings.default_interface)
 
         # virt specific 
         self.virt_path   = self.load_item(seed_data, 'virt_path', '<<inherit>>') 
@@ -182,7 +187,7 @@ class System(item.Item):
         Set the name.  If the name is a MAC or IP, and the first MAC and/or IP is not defined, go ahead
         and fill that value in.  
         """
-        intf = self.__get_interface("intf0")
+        intf = self.__get_default_interface()
 
 
         if self.name not in ["",None] and self.parent not in ["",None] and self.name == self.parent:
@@ -211,14 +216,14 @@ class System(item.Item):
         self.server = server
         return True
 
-    def get_mac_address(self,interface="intf0"):
+    def get_mac_address(self,interface):
         """
         Get the mac address, which may be implicit in the object name or explicit with --mac-address.
         Use the explicit location first.
         """
 
-
         intf = self.__get_interface(interface)
+
         if intf["mac_address"] != "":
             return intf["mac_address"]
         # obsolete, because we should have updated the mac field already with set_name (?)
@@ -227,13 +232,14 @@ class System(item.Item):
         else:
             return None
 
-    def get_ip_address(self,interface="intf0"):
+    def get_ip_address(self,interface):
         """
         Get the IP address, which may be implicit in the object name or explict with --ip-address.
         Use the explicit location first.
         """
 
         intf = self.__get_interface(interface)
+
         if intf["ip_address"] != "": 
             return intf["ip_address"]
         else:
@@ -258,22 +264,28 @@ class System(item.Item):
                 return True
         return False
 
-    def set_dhcp_tag(self,dhcp_tag,interface="intf0"):
+    def set_default_interface(self,interface):
+        if self.interfaces.has_key(interface):
+            self.default_interface = interface
+        else:
+            raise CX(_("invalid interface (%s)") % interface)
+
+    def set_dhcp_tag(self,dhcp_tag,interface):
         intf = self.__get_interface(interface)
         intf["dhcp_tag"] = dhcp_tag
         return True
 
-    def set_hostname(self,hostname,interface="intf0"):
+    def set_hostname(self,hostname,interface):
         intf = self.__get_interface(interface)
         intf["hostname"] = hostname
         return True
 
-    def set_static(self,truthiness,interface="intf0"):
+    def set_static(self,truthiness,interface):
         intf = self.__get_interface(interface)
         intf["static"] = utils.input_boolean(truthiness)
         return True
 
-    def set_ip_address(self,address,interface="intf0"):
+    def set_ip_address(self,address,interface):
         """
         Assign a IP or hostname in DHCP when this MAC boots.
         Only works if manage_dhcp is set in /etc/cobbler/settings
@@ -284,24 +296,24 @@ class System(item.Item):
            return True
         raise CX(_("invalid format for IP address (%s)") % address)
 
-    def set_mac_address(self,address,interface="intf0"):
+    def set_mac_address(self,address,interface):
         intf = self.__get_interface(interface)
         if address == "" or utils.is_mac(address):
            intf["mac_address"] = address
            return True
         raise CX(_("invalid format for MAC address (%s)" % address))
 
-    def set_gateway(self,gateway,interface="intf0"):
+    def set_gateway(self,gateway,interface):
         intf = self.__get_interface(interface)
         intf["gateway"] = gateway
         return True
 
-    def set_subnet(self,subnet,interface="intf0"):
+    def set_subnet(self,subnet,interface):
         intf = self.__get_interface(interface)
         intf["subnet"] = subnet
         return True
     
-    def set_virt_bridge(self,bridge,interface="intf0"):
+    def set_virt_bridge(self,bridge,interface):
         intf = self.__get_interface(interface)
         intf["virt_bridge"] = bridge
         return True
@@ -414,6 +426,7 @@ class System(item.Item):
            'kernel_options_post'   : self.kernel_options_post,
            'depth'                 : self.depth,
            'interfaces'            : self.interfaces,
+           'default_interface'     : self.default_interface,
            'ks_meta'               : self.ks_meta,
            'kickstart'             : self.kickstart,
            'netboot_enabled'       : self.netboot_enabled,
@@ -451,9 +464,21 @@ class System(item.Item):
         buf = buf + _("virt ram              : %s\n") % self.virt_ram
         buf = buf + _("virt type             : %s\n") % self.virt_type
 
+        # list the default interface first
+        name = self.default_interface
+        x    = self.interfaces[name]
+        buf = buf + _("interface        : %s (default)\n") % (name)
+        buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
+        buf = buf + _("  ip address     : %s\n") % x.get("ip_address","")
+        buf = buf + _("  hostname       : %s\n") % x.get("hostname","")
+        buf = buf + _("  gateway        : %s\n") % x.get("gateway","")
+        buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
+        buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
+        buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
+        buf = buf + _("  is static?     : %s\n") % x.get("static",False)
 
-        counter = 0
         for (name,x) in self.interfaces.iteritems():
+            if name == self.default_interface: continue
             buf = buf + _("interface        : %s\n") % (name)
             buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
             buf = buf + _("  ip address     : %s\n") % x.get("ip_address","")
@@ -463,8 +488,6 @@ class System(item.Item):
             buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
             buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
             buf = buf + _("  is static?     : %s\n") % x.get("static",False)
-            counter = counter + 1
-         
 
         return buf
 

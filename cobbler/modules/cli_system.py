@@ -29,7 +29,7 @@ sys.path.insert(0, mod_path)
 
 from utils import _, get_random_mac
 import commands
-import cexceptions
+from cexceptions import *
 
 
 class SystemFunction(commands.CobblerFunction):
@@ -54,9 +54,11 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--hostname",        dest="hostname",      help="ex: server.example.org")
 
             if not self.matches_args(args,["find"]):
-                p.add_option("--interface",       dest="interface", help="edit this interface # (0-7, default 0)")
+                p.add_option("--interface",       dest="interface", help="edit this interface")
+                p.add_option("--delete-interface", dest="delete_interface", metavar="INTERFACE", help="delete the selected interface")
+                p.add_option("--default-interface", dest="default_interface", metavar="INTERFACE", help="set INTERFACE as the system default")
             p.add_option("--image",           dest="image",         help="inherit values from this image, not compatible with --profile")
-            p.add_option("--ip",              dest="ip",            help="ex: 192.168.1.55, for static IP or dynamic reservation, (RECOMMENDED)")
+            p.add_option("--ip",              dest="ip",            help="ex: 192.168.1.55, (RECOMMENDED)")
             p.add_option("--kickstart",       dest="kickstart",     help="override profile kickstart template")
             p.add_option("--kopts",           dest="kopts",         help="ex: 'noipv6'")
             p.add_option("--kopts-post",      dest="kopts_post",    help="ex: 'clocksource=pit'")
@@ -130,9 +132,9 @@ class SystemFunction(commands.CobblerFunction):
         if self.options.virt_path:       obj.set_virt_path(self.options.virt_path)
 
         if self.options.interface:
-            my_interface = "intf%s" % self.options.interface
+            my_interface = self.options.interface
         else:
-            my_interface = "intf0"
+            my_interface = None
 
         if self.options.hostname:    obj.set_hostname(self.options.hostname, my_interface)
         if self.options.mac:
@@ -146,7 +148,12 @@ class SystemFunction(commands.CobblerFunction):
         if self.options.dhcp_tag:    obj.set_dhcp_tag(self.options.dhcp_tag, my_interface)
         if self.options.virt_bridge: obj.set_virt_bridge(self.options.virt_bridge, my_interface)
         if self.options.static:      obj.set_static(self.options.static, my_interface)
-              
+
+        if self.options.delete_interface:
+            success = obj.delete_interface(self.options.delete_interface)
+            if not success:
+                raise CX(_('interface does not exist or is the default interface (%s)') % self.options.delete_interface)
+        if self.options.default_interface: obj.set_default_interface(self.options.default_interface)
 
         if self.options.owners:       obj.set_owners(self.options.owners)
         if self.options.mgmt_classes: obj.set_mgmt_classes(self.options.mgmt_classes)
