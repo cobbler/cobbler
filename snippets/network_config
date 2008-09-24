@@ -1,7 +1,7 @@
 ## start of cobbler network_config generated code
 #if $getVar("system_name","") != ""
     #set ikeys = $interfaces.keys()
-    #set $i = 0
+    #set $i = -1
     #for $iname in $ikeys
         #set $i = $i + 1 
         #set $idata    = $interfaces[$iname]
