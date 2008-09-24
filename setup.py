@@ -22,11 +22,6 @@ if __name__ == "__main__":
         wwwconf  = "/etc/httpd/conf.d/"
         wwwpath  = "/var/www/cobbler/"
         wwwcon   = "/var/www/cobbler/webui/"
-        wwwui    = "/var/www/cobbler/webui/jquery.ui/ui"
-        wwwui_xlat = "/var/www/cobbler/webui/jquery.ui/ui/i18n"
-        wwwthm   = "/var/www/cobbler/webui/jquery.ui/themes"
-        wwwthm2  = "/var/www/cobbler/webui/jquery.ui/themes/flora"
-        wwwthm3  = "/var/www/cobbler/webui/jquery.ui/themes/flora/i"
         initpath = "/etc/init.d/"
         logpath  = "/var/log/cobbler/"
         logpath2 = "/var/log/cobbler/kicklog"
@@ -231,13 +226,6 @@ if __name__ == "__main__":
                                 # Web UI support files
 				(wwwcon,            ['docs/wui.html']),
                                 (wwwcon,            ['docs/cobbler.html']),
-				(wwwcon,            []),
-                                (wwwcon,            ['webui_content/jquery.js']),
-                                (wwwui,             jui_files),
-                                (wwwui_xlat,        jui_files2),
-                                (wwwthm,            jui_files3),
-                                (wwwthm2,           jui_files4),
-                                (wwwthm3,           jui_files5),
 
                                 #(wwwcon,           ['webui_content/icon_16_sync.png']),
                                 #(wwwcon,           ['webui_content/list-expand.png']),
