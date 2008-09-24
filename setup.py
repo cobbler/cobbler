@@ -63,7 +63,8 @@ if __name__ == "__main__":
            for fn in fnames:
                fn2 = os.path.join(dirname,fn)
                if os.path.isfile(fn2):
-                   arg.append(fn2)
+                   if not fn2 in arg:
+                       arg.append(fn2)
                else:
                    # don't recurse
                    fnames.remove(fn)
