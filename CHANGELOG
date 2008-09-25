@@ -4,6 +4,8 @@ Cobbler CHANGELOG
 - ??? - 1.2.5 (pending)
 - (BUGF) expose --arch for "cobbler image add"
 - (BUGF) unbreak dnsmasq DHCP management, similar to ISC bug
+- (BUGF) fix --arch for cobbler distro add/edit
+- (BUGF) fix merge error with remote.py's remove_profile function (fix webapp)
 
 - Mon Sep 08 2008 - 1.2.4
 - (BUGF) simple rebuild to remove cli_report.py, which is not in git

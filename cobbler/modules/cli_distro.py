@@ -88,6 +88,8 @@ class DistroFunction(commands.CobblerFunction):
             return True
 
         if not "dumpvars" in self.args:
+            if self.options.arch:
+                obj.set_arch(self.options.arch)
             if self.options.kernel:
                 obj.set_kernel(self.options.kernel)
             if self.options.initrd:
