@@ -1187,15 +1187,10 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         Deletes a profile from a collection.  Note that this just requires the name
         """
-        self.check_access(token, "get_kickstart_templates")
-        files = {} 
-        for x in self.api.profiles():
-           if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
-              files[x.kickstart] = 1
-        for x in self.api.systems():
-           if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
-              files[x.kickstart] = 1
-        return files.keys() 
+        self.log("remove_profile (%s)" % recursive,name=name,token=token)
+        self.check_access(token, "remove_profile", name)
+        rc = self.api._config.profiles().remove(name,recursive=True)
+        return rc
 
     def remove_system(self,name,token,recursive=1):
         """
