@@ -49,6 +49,7 @@ class Profile(item.Item):
         self.kernel_options         = ({},                                      '<<inherit>>')[is_subobject]
         self.kernel_options_post    = ({},                                      '<<inherit>>')[is_subobject]
         self.ks_meta                = ({},                                      '<<inherit>>')[is_subobject]
+        self.template_files         = ({},                                      '<<inherit>>')[is_subobject]
         self.virt_cpus              = (1,                                       '<<inherit>>')[is_subobject]
         self.virt_file_size         = (self.settings.default_virt_file_size,    '<<inherit>>')[is_subobject]
         self.virt_ram               = (self.settings.default_virt_ram,          '<<inherit>>')[is_subobject]
@@ -76,6 +77,7 @@ class Profile(item.Item):
         self.kernel_options         = self.load_item(seed_data,'kernel_options')
         self.kernel_options_post    = self.load_item(seed_data,'kernel_options_post')
         self.ks_meta                = self.load_item(seed_data,'ks_meta')
+        self.template_files         = self.load_item(seed_data,'template_files', {})
         self.repos                  = self.load_item(seed_data,'repos', [])
         self.depth                  = self.load_item(seed_data,'depth', 1)     
         self.dhcp_tag               = self.load_item(seed_data,'dhcp_tag', 'default')
@@ -111,6 +113,7 @@ class Profile(item.Item):
         self.set_enable_menu(self.enable_menu)
         self.set_owners(self.owners)
         self.set_mgmt_classes(self.mgmt_classes)
+        self.set_template_files(self.template_files)
 
         return self
 
@@ -252,6 +255,7 @@ class Profile(item.Item):
             'virt_bridge'           : self.virt_bridge,
             'virt_cpus'             : self.virt_cpus,
             'ks_meta'               : self.ks_meta,
+            'template_files'        : self.template_files,
             'repos'                 : self.repos,
             'parent'                : self.parent,
             'depth'                 : self.depth,
@@ -281,6 +285,7 @@ class Profile(item.Item):
         buf = buf + _("owners               : %s\n") % self.owners
         buf = buf + _("repos                : %s\n") % self.repos
         buf = buf + _("server               : %s\n") % self.server
+        buf = buf + _("template_files       : %s\n") % self.template_files
         buf = buf + _("virt bridge          : %s\n") % self.virt_bridge
         buf = buf + _("virt cpus            : %s\n") % self.virt_cpus
         buf = buf + _("virt file size       : %s\n") % self.virt_file_size
@@ -303,6 +308,7 @@ class Profile(item.Item):
             'virt-file-size'  :  self.set_virt_file_size,
             'virt-ram'        :  self.set_virt_ram,
             'ksmeta'          :  self.set_ksmeta,
+            'template-files'  :  self.set_template_files,
             'repos'           :  self.set_repos,
             'virt-path'       :  self.set_virt_path,
             'virt-type'       :  self.set_virt_type,

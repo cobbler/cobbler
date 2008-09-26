@@ -53,6 +53,7 @@ class Distro(item.Item):
         self.source_repos           = []
         self.mgmt_classes           = []
         self.depth                  = 0
+        self.template_files         = {}
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -85,6 +86,7 @@ class Distro(item.Item):
         self.source_repos           = self.load_item(seed_data,'source_repos',[])
         self.depth                  = self.load_item(seed_data,'depth',0)
         self.mgmt_classes           = self.load_item(seed_data,'mgmt_classes',[])
+        self.template_files         = self.load_item(seed_data,'template_files',{})
 
         # backwards compatibility enforcement
         self.set_arch(self.arch)
@@ -96,6 +98,7 @@ class Distro(item.Item):
             self.set_ksmeta(self.ks_meta)
         
         self.set_mgmt_classes(self.mgmt_classes)
+        self.set_template_files(self.template_files)
         self.set_owners(self.owners)
 
         return self
@@ -185,6 +188,7 @@ class Distro(item.Item):
             'kernel_options_post'    : self.kernel_options_post,
             'ks_meta'                : self.ks_meta,
             'mgmt_classes'           : self.mgmt_classes,
+            'template_files'         : self.template_files,
             'arch'                   : self.arch,
             'breed'                  : self.breed,
             'os_version'             : self.os_version,
@@ -211,6 +215,7 @@ class Distro(item.Item):
         buf = buf + _("mgmt classes         : %s\n") % self.mgmt_classes 
         buf = buf + _("owners               : %s\n") % self.owners
         buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
+        buf = buf + _("template files       : %s\n") % self.template_files
         return buf
 
     def remote_methods(self):
@@ -225,6 +230,7 @@ class Distro(item.Item):
             'breed'         : self.set_breed,
             'os-version'    : self.set_os_version,
             'owners'        : self.set_owners,
-            'mgmt-classes'  : self.set_mgmt_classes
+            'mgmt-classes'  : self.set_mgmt_classes,
+            'template-files': self.set_template_files
         }
 

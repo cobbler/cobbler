@@ -190,6 +190,23 @@ class Item(serializable.Serializable):
         self.mgmt_classes = utils.input_string_or_list(mgmt_classes)
         return True
 
+    def set_template_files(self,template_files,inplace=False):
+        """
+        A comma seperated list of source=destination templates
+        that should be generated during a sync.
+        """
+        (success, value) = utils.input_string_or_hash(template_files,None,allow_multiples=False)
+        print 'DEBUG: %s set_template_files() value: %s' % (self.name,str(value))
+        if not success:
+            return False
+        else:
+            if inplace:
+                for key in value.keys():
+                    self.template_files[key] = value[key]
+            else:
+                self.template_files = value
+            return True
+
     def load_item(self,datastruct,key,default=''):
         """
         Used in subclass from_datastruct functions to load items from

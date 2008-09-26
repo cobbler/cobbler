@@ -65,6 +65,7 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--ksmeta",          dest="ksmeta",        help="ex: 'blippy=7'")
             p.add_option("--mac",             dest="mac",           help="ex: 'AA:BB:CC:DD:EE:FF', (RECOMMENDED)")
             p.add_option("--mgmt-classes",    dest="mgmt_classes",  help="list of config management classes (for Puppet, etc)")
+            p.add_option("--template-files",  dest="template_files",help="specify files to be generated from templates during a sync")
 
             if not self.matches_args(args, ["find"]):
                 p.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts, kopts_post or ksmeta without clearing the other items")
@@ -157,6 +158,8 @@ class SystemFunction(commands.CobblerFunction):
 
         if self.options.owners:       obj.set_owners(self.options.owners)
         if self.options.mgmt_classes: obj.set_mgmt_classes(self.options.mgmt_classes)
+        if self.options.template_files: obj.set_template_files(self.options.template_files,self.options.inplace)
+
 
         rc = self.object_manipulator_finish(obj, self.api.systems, self.options)
 
