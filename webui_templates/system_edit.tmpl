@@ -82,6 +82,8 @@ function delete_interface()
       }
    }
    interface_table.unset(selected)
+   // now load the top one
+   load_intf()
 } 
 
 function save_intf() 
@@ -116,11 +118,11 @@ function load_intf()
     // this populates the interface widget with the data for the currently selected interface
     // and is called when the user picks a certain interface from the drop-down
     intf = get_selected_interface()
-    elem = document.getElementById("macaddress").value  = interface_table[intf]["mac_address"]
-    elem = document.getElementById("ipaddress").value   = interface_table[intf]["ip_address"]
+    elem = document.getElementById("macaddress").value  = interface_table[intf]["macaddress"]
+    elem = document.getElementById("ipaddress").value   = interface_table[intf]["ipaddress"]
     elem = document.getElementById("hostname").value    = interface_table[intf]["hostname"]
-    elem = document.getElementById("dhcptag").value     = interface_table[intf]["dhcp_tag"]
-    elem = document.getElementById("virtbridge").value  = interface_table[intf]["virt_bridge"]
+    elem = document.getElementById("dhcptag").value     = interface_table[intf]["dhcptag"]
+    elem = document.getElementById("virtbridge").value  = interface_table[intf]["virtbridge"]
     elem = document.getElementById("subnet").value      = interface_table[intf]["subnet"]
     elem = document.getElementById("gateway").value     = interface_table[intf]["gateway"]
     elem = document.getElementById("static").value      = interface_table[intf]["static"]
@@ -192,6 +194,7 @@ function on_form_submit()
 
 function page_onload() {
     interface_table = build_interface_table()
+    load_intf()
 }
 </script>
 
