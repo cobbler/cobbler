@@ -85,9 +85,13 @@ function disablename(value)
     <label for="keep_updated">Keep Updated</label>
     </td>
     <td>
-    <input type="checkbox" name="keep_updated" id="keep_updated"
-        #if (not $repo) or $repo.keep_updated
-            checked="true"  
+    <input type="checkbox" name="keep_updated" id="keep_updated" 
+        #if $repo 
+            #if str($repo.keep_updated) != "False"
+                checked="true"  
+            #end if
+        #else
+            checked="true"
         #end if
     />
     <p class="context-tip">Uncheck to prevent the mirror from being updated again.</p>    
@@ -100,9 +104,13 @@ function disablename(value)
     <label for="keep_updated">Mirror Locally</label>
     </td>
     <td>
-    <input type="checkbox" name="mirror_locally" id="mirror_locally"
-        #if (not $repo) or $repo.mirror_locally
-            checked="true"
+    <input type="checkbox" name="mirror_locally" id="mirror_locally" 
+        #if $repo 
+            #if str($repo.mirror_locally) != "False"
+                checked="true"
+            #end if
+        #else
+                checked="true"
         #end if
     />
     <p class="context-tip">Uncheck to reference the repository directly instead of mirroring.</p>

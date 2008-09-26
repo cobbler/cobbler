@@ -228,10 +228,13 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Mon Sep 15 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.0-1
+* Fri Sep 26 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.0-1
 - Upstream changes (see CHANGELOG)
 - added sample.seed file
 - added /usr/bin/cobbler-ext-nodes
+
+* Fri Sep 26 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.5-1
+- Upstream changes (see CHANGELOG)
 
 * Mon Sep 08 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.4-1
 - Rebuild
@@ -240,7 +243,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 - Upstream changes (see CHANGELOG)
 
 * Fri Sep 05 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.2-1
->>>>>>> master:cobbler.spec
 - Upstream changes (see CHANGELOG)
 
 * Tue Sep 02 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.1-1

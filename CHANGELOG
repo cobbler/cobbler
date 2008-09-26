@@ -18,11 +18,12 @@ Cobbler CHANGELOG
 - (BUGF) minor tweak to the blender function to remove a certain class of typing errors where a string is being blended with a list, should not have any noticable effect on existing installs
 - (BUGF) add missing import of "_" in remote.py
 
-- ??? - 1.2.5 (pending)
+- Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
 - (BUGF) unbreak dnsmasq DHCP management, similar to ISC bug
 - (BUGF) fix --arch for cobbler distro add/edit
 - (BUGF) fix merge error with remote.py's remove_profile function (fix webapp)
+- (BUGF) makekeep_updated and mirror_locally checkboxes in WebUI display correctly
 
 - Mon Sep 08 2008 - 1.2.4
 - (BUGF) simple rebuild to remove cli_report.py, which is not in git
