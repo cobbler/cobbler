@@ -41,7 +41,7 @@ class Repo(item.Item):
         self.name             = None
         # FIXME: subobject code does not really make sense for repos
         self.mirror           = (None,       '<<inherit>>')[is_subobject]
-        self.keep_updated     = ('y',        '<<inherit>>')[is_subobject]
+        self.keep_updated     = (True,        '<<inherit>>')[is_subobject]
         self.priority         = (99,         '<<inherit>>')[is_subobject]
         self.rpm_list         = ("",         '<<inherit>>')[is_subobject]
         self.createrepo_flags = ("-c cache", '<<inherit>>')[is_subobject]
@@ -49,13 +49,13 @@ class Repo(item.Item):
         self.arch             = "" # use default arch
         self.yumopts          = {}
         self.owners           = self.settings.default_ownership
-        self.mirror_locally   = 1
+        self.mirror_locally   = True
 
     def from_datastruct(self,seed_data):
         self.parent           = self.load_item(seed_data, 'parent')
         self.name             = self.load_item(seed_data, 'name')
         self.mirror           = self.load_item(seed_data, 'mirror')
-        self.keep_updated     = self.load_item(seed_data, 'keep_updated','y')
+        self.keep_updated     = self.load_item(seed_data, 'keep_updated',True)
         self.priority         = self.load_item(seed_data, 'priority',99)
         self.rpm_list         = self.load_item(seed_data, 'rpm_list')
         self.createrepo_flags = self.load_item(seed_data, 'createrepo_flags', '-c cache')
@@ -63,10 +63,11 @@ class Repo(item.Item):
         self.depth            = self.load_item(seed_data, 'depth', 2)
         self.yumopts          = self.load_item(seed_data, 'yumopts', {})
         self.owners           = self.load_item(seed_data, 'owners', self.settings.default_ownership)
-        self.mirror_locally   = self.load_item(seed_data, 'mirror_locally', '1')
+        self.mirror_locally   = self.load_item(seed_data, 'mirror_locally', True)
 
         # coerce types from input file
         self.set_keep_updated(self.keep_updated)
+        self.set_mirror_locally(self.mirror_locally)
         self.set_owners(self.owners)
 
         return self
@@ -195,9 +196,9 @@ class Repo(item.Item):
     def set_mirror_locally(self,value):
         value = str(value).lower()
         if value in [ "yes", "y", "1", "on", "true" ]:
-            self.mirror_locally = 1
+            self.mirror_locally = True
         else:
-            self.mirror_locally = 0
+            self.mirror_locally = False
         return True
 
     def printable(self):
