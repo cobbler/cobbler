@@ -36,13 +36,13 @@ function get_selected_interface()
    // FIXME: this function returns what interface is currently selected in the dropdown
    selector = document.getElementById("interfaces")
    rc = selector.options[selector.selectedIndex].value
-   alert("get selected interface = " + rc)
+   //alert("get selected interface = " + rc)
    return rc
 }
 
 function on_interface_change()
 {
-    alert("on interface change")
+    //alert("on interface change")
     // called when the user picks something new from the interface selector
     selected = get_selected_interface()
     if (interface_table[selected]["seen"] == 1) {
@@ -54,7 +54,7 @@ function on_interface_change()
 
 function on_interface_add(iname)
 {
-   alert("on interface add")
+   //alert("on interface add")
    // called when the user hits the "new interface" button
    // FIXME if they name is blank throw up an alert
    // FIXME if iname is already in the table throw an alert and do not continue
@@ -70,13 +70,19 @@ function on_interface_add(iname)
 
 function delete_interface()
 {
-   alert("delete_interface")
+   //alert("delete_interface")
    // when the user hits the remove button we remove the interface cells from the table
    // and then from the dropdown and the javascript bits
    clear_intf()
    selected = get_selected_interface()
    interfaces = document.getElementById("interfaces")
-   for (i = interfaces.length - 1; i>=0; i--) {
+
+   if (interfaces.length == 1) {
+      alert("systems must always have at least one interface")
+      return
+   }
+
+   for (i = interfaces.options.length - 1; i>=0; i--) {
       if (interfaces.options[i].value == selected) {
          interfaces.remove(i)
       }
@@ -88,7 +94,7 @@ function delete_interface()
 
 function save_intf() 
 {
-    alert("save_intf")
+    //alert("save_intf")
 
     // this populates the interface widget with the data for the currently selected interface
     // and is called when the user picks a certain interface from the drop-down
@@ -108,12 +114,12 @@ function save_intf()
     itable["virtbridge"] = document.getElementById("virtbridge").value
     itable["subnet"]     = document.getElementById("subnet").value
     itable["gateway"]    = document.getElementById("gateway").value
-    itable["static"]     = document.getElementById("static").value
+    itable["static"]     = document.getElementById("static").checked
 }
 
 function load_intf()
 {
-    alert("load_intf")
+    //alert("load_intf")
  
     // this populates the interface widget with the data for the currently selected interface
     // and is called when the user picks a certain interface from the drop-down
@@ -125,7 +131,7 @@ function load_intf()
     elem = document.getElementById("virtbridge").value  = interface_table[intf]["virtbridge"]
     elem = document.getElementById("subnet").value      = interface_table[intf]["subnet"]
     elem = document.getElementById("gateway").value     = interface_table[intf]["gateway"]
-    elem = document.getElementById("static").value      = interface_table[intf]["static"]
+    elem = document.getElementById("static").checked    = interface_table[intf]["static"]
 
 }
 
@@ -140,7 +146,7 @@ function clear_intf()
     document.getElementById("virtbridge").value  = ""
     document.getElementById("subnet").value      = ""
     document.getElementById("gateway").value     = ""
-    document.getElementById("static").value     = ""
+    document.getElementById("static").value      = false
 
 }
 #end raw
@@ -149,20 +155,24 @@ function build_interface_table()
 {
     // called during onload, this stores all of the interfaces from Cheetah in javascript
     // so that we can manipulate them dynamically in more interesting ways
-    alert("building interface table")
+    //alert("building interface table")
     interface_table = new Array()
     #if $system
        #for $iname in $system.interfaces.keys()
            interface_table['$iname'] = new Array()
            interface_table['$iname']["macaddress"] = "$system.interfaces[$iname]['mac_address']"
-           alert("$iname has a mac:" + interface_table["$iname"]["macaddress"])
+           //alert("$iname has a mac:" + interface_table["$iname"]["macaddress"])
            interface_table['$iname']["ipaddress"]  = "$system.interfaces[$iname]['ip_address']"
            interface_table['$iname']["hostname"]   = "$system.interfaces[$iname]['hostname']"
            interface_table['$iname']["dhcptag"]    = "$system.interfaces[$iname]['dhcp_tag']"
            interface_table['$iname']["virtbridge"] = "$system.interfaces[$iname]['virt_bridge']"
            interface_table['$iname']["subnet"]     = "$system.interfaces[$iname]['subnet']"
            interface_table['$iname']["gateway"]    = "$system.interfaces[$iname]['gateway']"
-           interface_table['$iname']["static"]     = "$system.interfaces[$iname]['static']"
+           if ("$system.interfaces[$iname]['static']" != "False") {
+               interface_table['$iname']["static"]     = true
+           } else {
+               interface_table['$iname']["static"]     = false
+           }
        #end for
     #else
        interface_table["eth0"] = new Array()
@@ -180,15 +190,39 @@ function build_interface_table()
 #raw
 function on_form_submit()
 {
-    cells = document.getElementById("interface_cells")
-    for (var iname in interface_table) {
-       details = interface_table[iname]
-       for (var ikey in details[iname]) {
-           field_name = ikey + "-" + iname
-           current_value = interface_table[iname][ikey]
-           cells.innerHtml = cells.innerHtml + "<input id='" + field_name + "' value='" + current_value + "'/>"
-       }
-    }
+
+    alert("on form submit")
+    //try {
+        save_intf()
+        cells = document.getElementById("interface_cells")
+        listing = ""
+        for (var iname in interface_table) {
+            if (listing == "") {
+                listing = iname
+            } else {
+                listing = iname + "," + listing
+            }
+            details = interface_table[iname]
+            for (var ikey in details[iname]) {
+                field_name = ikey + "-" + iname
+                current_value = interface_table[iname][ikey]
+                alert("saving keypair " + iname + "," + ikey + "," + current_value)
+                cells.innerHtml = cells.innerHtml + "<input type='hidden' id='" + field_name + "' value='" + current_value + "'/>"
+            }
+        }
+        document.getElementById("interface_list").value = listing
+    //}
+    //catch (err) {
+    //   alert(err.description)
+    //   return -1
+    // }
+    
+    alert("form submit done")
+
+    //alert("ready to submit")
+    //alert(cells.innerHtml)
+    document.getElementById("myform").submit()
+
 }
 #end raw
 
@@ -198,14 +232,16 @@ function page_onload() {
 }
 </script>
 
-<DIV id="interface_cells" visible=false/>
+<DIV id="interface_cells"/>
+
+<input name="interface_list" type="hidden" value="" id="interface_list"/>
 
 #if $editable != True
 #set global $owners = $system.owners
 #include "/usr/share/cobbler/webui_templates/enoaccess.tmpl"
 #end if
 
-<form method="post" action="$base_url?mode=system_save">
+<form name=myform method="post" action="$base_url?mode=system_save">
 <fieldset id="cform">
    
     #if $system
@@ -635,7 +671,7 @@ function page_onload() {
     <td>
     </td>
     <td>
-    <input type="submit" name="submit" onSubmit="on_form_submit();" value="Save"/>
+    <input type="button" name="submit" onClick="on_form_submit();" value="Save"/>
     <input type="reset" name="reset" value="Reset"/>
     </td>
     </tr>
