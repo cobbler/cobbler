@@ -1,7 +1,3 @@
 
-function global_onload() {
-   if (page_onload) {
-       page_onload();
-   }
-}
+// this page intentionally left blank
 
