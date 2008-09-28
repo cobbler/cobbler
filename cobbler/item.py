@@ -196,7 +196,6 @@ class Item(serializable.Serializable):
         that should be generated during a sync.
         """
         (success, value) = utils.input_string_or_hash(template_files,None,allow_multiples=False)
-        print 'DEBUG: %s set_template_files() value: %s' % (self.name,str(value))
         if not success:
             return False
         else:

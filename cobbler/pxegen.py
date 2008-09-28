@@ -474,9 +474,6 @@ class PXEGen:
         The return value is a hash of the destination file
         names (after variable substitution is done) and the
         data in the file.
-
-        # TODO: check for relative dest. path and use
-        #       /var/www/cobbler/rendered as the base
         """
 
         results = {}
@@ -495,6 +492,9 @@ class PXEGen:
             template = self.templar.render(template, blended, None).strip()
             dest     = self.templar.render(dest, blended, None).strip()
             dest_dir = os.path.dirname(dest)
+
+            if not os.path.isabs(dest_dir):
+               dest_dir = os.path.join(self.settings.webdir, "rendered", dest_dir)
 
             # Check for problems
             if not os.path.exists(template):

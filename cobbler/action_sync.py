@@ -128,22 +128,26 @@ class BootSync:
                 if not x.endswith(".py"):
                     utils.rmfile(path)
             if os.path.isdir(path):
-                if not x in ["web", "webui", "localmirror","repo_mirror","ks_mirror","images","links","repo_profile","repo_system","svc"] :
+                if not x in ["web", "webui", "localmirror","repo_mirror","ks_mirror","images","links","repo_profile","repo_system","svc","rendered"] :
                     # delete directories that shouldn't exist
                     utils.rmtree(path)
-                if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system"]:
+                if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system","rendered"]:
                     # clean out directory contents
                     utils.rmtree_contents(path)
         pxelinux_dir = os.path.join(self.bootloc, "pxelinux.cfg")
         images_dir = os.path.join(self.bootloc, "images")
         s390_dir = os.path.join(self.bootloc, "s390x")
+        rendered_dir = os.path.join(self.settings.webdir, "rendered")
         if not os.path.exists(pxelinux_dir):
             utils.mkdir(pxelinux_dir)
         if not os.path.exists(images_dir):
             utils.mkdir(images_dir)
+        if not os.path.exists(rendered_dir):
+            utils.mkdir(rendered_dir)
         utils.rmtree_contents(os.path.join(self.bootloc, "pxelinux.cfg"))
         utils.rmtree_contents(os.path.join(self.bootloc, "images"))
         utils.rmtree_contents(os.path.join(self.bootloc, "s390x"))
+        utils.rmtree_contents(rendered_dir)
         
 
 
