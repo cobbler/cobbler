@@ -88,6 +88,7 @@ class System(item.Item):
                 "virt_bridge" : "",
                 "static"      : False
             }
+
         return self.interfaces[name]
 
     def __get_default_interface(self):
@@ -152,6 +153,15 @@ class System(item.Item):
                 self.set_ip_address(__ip_address, "intf0")
             if __dhcp_tag != "":
                 self.set_dhcp_tag(__dhcp_tag, "intf0")
+
+        # backwards compatibility:
+        # for interfaces that do not have all the fields filled in, populate the new fields
+        # that have been added (applies to any new interface fields Cobbler 1.3 and later)
+        # other fields have been created because of upgrade usage        
+
+        for k in self.interfaces.keys():
+            if not self.interfaces[k].has_key("static"):
+               self.interfaces[k]["static"] = False
 
         # backwards compatibility -- convert string entries to dicts for storage
         # this allows for better usage from the API.
@@ -229,9 +239,6 @@ class System(item.Item):
 
         if intf["mac_address"] != "":
             return intf["mac_address"]
-        # obsolete, because we should have updated the mac field already with set_name (?)
-        # elif utils.is_mac(self.name) and interface == "intf0":
-        #    return self.name
         else:
             return None
 

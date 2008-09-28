@@ -2,14 +2,6 @@
 
 #block body
 
-###
-### here's a list of all the NIC fields we use
-###
-### FIXME: add gateway, subnet, and any other missing fields
-
-#set $fields = [ "macaddress", "ipaddress", "hostname", "dhcptag", "virtbridge", "subnet", "gateway"]
-
-
 <script language="javascript">
 
 #if $system
@@ -21,7 +13,7 @@ function disablename(value)
     }
 }
 #else
-function get_random_mac(field)
+function get_random_mac()
 {
     xmlHttp = new XMLHttpRequest();
     xmlHttp.open("GET", "$base_url?mode=random_mac", true);
@@ -30,52 +22,226 @@ function get_random_mac(field)
             var mac_field = document.getElementById("macaddress")
             var result = xmlHttp.responseText;
             if (result.charAt(2) == ':' && result.charAt(5) == ':') {
-                document.getElementById(field).value = result;
+                mac_field.value = result;
             }
         }
     };
     xmlHttp.send(null);
 }
 #end if
-</script>
 
-## 
-##   determine a bit about what interfaces should be shown and which should not.
-##
+#raw
+function get_selected_interface()
+{
+   // FIXME: this function returns what interface is currently selected in the dropdown
+   selector = document.getElementById("interfaces")
+   rc = selector.options[selector.selectedIndex].value
+   //alert("get selected interface = " + rc)
+   return rc
+}
 
-#if $system
-    #set $interfaces = $system.interfaces.keys()
-#else
-    #set $interfaces = [ "eth0" ]
-#end if
+function on_interface_change()
+{
+    //alert("on interface change")
+    // called when the user picks something new from the interface selector
+    selected = get_selected_interface()
+    if (interface_table[selected]["seen"] == 1) {
+       save_intf()
+    }
+    load_intf()
+    interface_table[selected]["seen"] = 1
+}
 
-### 
-### now generate the onload function.
-###
+function on_interface_add(iname)
+{
+   //alert("on interface add")
+   // called when the user hits the "new interface" button
+   // FIXME if they name is blank throw up an alert
+   // FIXME if iname is already in the table throw an alert and do not continue
+   var iname = document.getElementById("newinterfacename").value
+   interface_table[iname] = new Array()
+   var interfaces = document.getElementById("interfaces")
+   ilen = interfaces.length
+   var new_option = new Option(iname,iname)
+   interfaces.options[ilen] = new_option
+   clear_intf(iname)
+   return false
+}
 
-<script language="javascript">
+function delete_interface()
+{
+   //alert("delete_interface")
+   // when the user hits the remove button we remove the interface cells from the table
+   // and then from the dropdown and the javascript bits
+   clear_intf()
+   selected = get_selected_interface()
+   interfaces = document.getElementById("interfaces")
 
-function page_onload() {
+   if (interfaces.length == 1) {
+      alert("systems must always have at least one interface")
+      return
+   }
 
-    onLoadStuff(2);
-    hideAllRows();
-    #set counter = 0
-    #for $interface in $interfaces
-        #if $interface in $defined_interfaces
-            toggleRowVisibility("id${counter}");
-        #end if
-        #set $counter = $counter+1
-    #end for
+   for (i = interfaces.options.length - 1; i>=0; i--) {
+      if (interfaces.options[i].value == selected) {
+         interfaces.remove(i)
+      }
+   }
+   interface_table.unset(selected)
+   // now load the top one
+   load_intf()
+} 
+
+function save_intf() 
+{
+    //alert("save_intf")
+
+    // this populates the interface widget with the data for the currently selected interface
+    // and is called when the user picks a certain interface from the drop-down
+
+    iname = get_selected_interface()
+    var itable = interface_table[iname]
+    if (itable == null) {
+       interface_table[iname] = new Array()
+       itable = interface_table[iname]
+    }
+
+    itable["name"]       = iname
+    itable["macaddress"] = document.getElementById("macaddress").value
+    itable["ipaddress"]  = document.getElementById("ipaddress").value
+    itable["hostname"]   = document.getElementById("hostname").value
+    itable["dhcptag"]    = document.getElementById("dhcptag").value
+    itable["virtbridge"] = document.getElementById("virtbridge").value
+    itable["subnet"]     = document.getElementById("subnet").value
+    itable["gateway"]    = document.getElementById("gateway").value
+    itable["static"]     = document.getElementById("static").checked
+}
+
+function load_intf()
+{
+    //alert("load_intf")
+ 
+    // this populates the interface widget with the data for the currently selected interface
+    // and is called when the user picks a certain interface from the drop-down
+    intf = get_selected_interface()
+    elem = document.getElementById("macaddress").value  = interface_table[intf]["macaddress"]
+    elem = document.getElementById("ipaddress").value   = interface_table[intf]["ipaddress"]
+    elem = document.getElementById("hostname").value    = interface_table[intf]["hostname"]
+    elem = document.getElementById("dhcptag").value     = interface_table[intf]["dhcptag"]
+    elem = document.getElementById("virtbridge").value  = interface_table[intf]["virtbridge"]
+    elem = document.getElementById("subnet").value      = interface_table[intf]["subnet"]
+    elem = document.getElementById("gateway").value     = interface_table[intf]["gateway"]
+    elem = document.getElementById("static").checked    = interface_table[intf]["static"]
 
 }
+
+function clear_intf()
+{
+    // this clears the interface list and populates it with the currently selected interface data
+
+    document.getElementById("macaddress").value  = ""
+    document.getElementById("ipaddress").value   = ""
+    document.getElementById("hostname").value    = ""
+    document.getElementById("dhcptag").value     = ""
+    document.getElementById("virtbridge").value  = ""
+    document.getElementById("subnet").value      = ""
+    document.getElementById("gateway").value     = ""
+    document.getElementById("static").value      = false
+
+}
+#end raw
+
+function build_interface_table()
+{
+    // called during onload, this stores all of the interfaces from Cheetah in javascript
+    // so that we can manipulate them dynamically in more interesting ways
+    //alert("building interface table")
+    interface_table = new Array()
+    #if $system
+       #for $iname in $system.interfaces.keys()
+           interface_table['$iname'] = new Array()
+           interface_table['$iname']["macaddress"] = "$system.interfaces[$iname]['mac_address']"
+           //alert("$iname has a mac:" + interface_table["$iname"]["macaddress"])
+           interface_table['$iname']["ipaddress"]  = "$system.interfaces[$iname]['ip_address']"
+           interface_table['$iname']["hostname"]   = "$system.interfaces[$iname]['hostname']"
+           interface_table['$iname']["dhcptag"]    = "$system.interfaces[$iname]['dhcp_tag']"
+           interface_table['$iname']["virtbridge"] = "$system.interfaces[$iname]['virt_bridge']"
+           interface_table['$iname']["subnet"]     = "$system.interfaces[$iname]['subnet']"
+           interface_table['$iname']["gateway"]    = "$system.interfaces[$iname]['gateway']"
+           if ("$system.interfaces[$iname]['static']" != "False") {
+               interface_table['$iname']["static"]     = true
+           } else {
+               interface_table['$iname']["static"]     = false
+           }
+       #end for
+    #else
+       interface_table["eth0"] = new Array()
+       interface_table["eth0"]["mac_address"] = ""
+       interface_table["eth0"]["hostname"] = ""
+       interface_table["eth0"]["dhcptag"] = ""
+       interface_table["eth0"]["virtbridge"] = ""
+       interface_table["eth0"]["subnet"] = ""
+       interface_table["eth0"]["gateway"] = ""
+       interface_table["eth0"]["static"] = ""
+    #end if
+    return interface_table
+}
+
+#raw
+function on_form_submit()
+{
+
+    alert("on form submit")
+    //try {
+        save_intf()
+        cells = document.getElementById("interface_cells")
+        listing = ""
+        for (var iname in interface_table) {
+            if (listing == "") {
+                listing = iname
+            } else {
+                listing = iname + "," + listing
+            }
+            details = interface_table[iname]
+            for (var ikey in details[iname]) {
+                field_name = ikey + "-" + iname
+                current_value = interface_table[iname][ikey]
+                alert("saving keypair " + iname + "," + ikey + "," + current_value)
+                cells.innerHtml = cells.innerHtml + "<input type='hidden' id='" + field_name + "' value='" + current_value + "'/>"
+            }
+        }
+        document.getElementById("interface_list").value = listing
+    //}
+    //catch (err) {
+    //   alert(err.description)
+    //   return -1
+    // }
+    
+    alert("form submit done")
+
+    //alert("ready to submit")
+    //alert(cells.innerHtml)
+    document.getElementById("myform").submit()
+
+}
+#end raw
+
+function page_onload() {
+    interface_table = build_interface_table()
+    load_intf()
+}
 </script>
+
+<DIV id="interface_cells"/>
+
+<input name="interface_list" type="hidden" value="" id="interface_list"/>
 
 #if $editable != True
 #set global $owners = $system.owners
 #include "/usr/share/cobbler/webui_templates/enoaccess.tmpl"
 #end if
 
-<form method="post" action="$base_url?mode=system_save">
+<form name=myform method="post" action="$base_url?mode=system_save">
 <fieldset id="cform">
    
     #if $system
@@ -88,9 +254,9 @@ function page_onload() {
     <legend>Edit a System</legend>
 
     ## FIXME: this ID doesn't make sense but it's there for the javascript
-    <table border=0 id="channel-list">
+    <table border=0>
 
-    <tr id="id9000">
+    <tr>
     <td>
     <label for="name">System Name</label>
     </td>
@@ -109,7 +275,7 @@ function page_onload() {
     </tr>
 
     #if $system
-    <tr id="id9001">
+    <tr>
     <td>
     <label for="mode">Edit Mode</label>
     </td>
@@ -124,7 +290,7 @@ function page_onload() {
     <input type="hidden" name="editmode" value="new"/>
     #end if
 
-    <tr id="id9002">
+    <tr>
     <td>
     <label for="profile">Profile</label>
     </td>
@@ -142,7 +308,7 @@ function page_onload() {
     </td>
     </tr>
 
-    <tr id="id9004">
+    <tr>
     <td>
     <label for="kopts">Kernel Options</label>
     </td>
@@ -156,7 +322,7 @@ function page_onload() {
     </td>
     </tr>
 
-    <tr id="id9005">
+    <tr>
     <td>
     <label for="koptspost">Post Kernel Options</label>
     </td>
@@ -170,7 +336,7 @@ function page_onload() {
     </td>
     </tr>
 
-    <tr id="id9006">
+    <tr>
     <td>
     <label for="ksmeta">Kickstart Metadata</label>
     </td>
@@ -184,7 +350,7 @@ function page_onload() {
     </td>
     </tr>
 
-    <tr id="id9007">
+    <tr>
     <td>
     <label for="netboot">Netboot Enabled</label>
     </td>
@@ -336,74 +502,56 @@ function page_onload() {
     </td>
     </tr>
 
+    <tr>
+    <td>
+    <label for="new-interface">Add Interface</label>
+    </td>
+    <td>
+    <input name="new-interface" id="new-interface"/>&nbsp;&nbsp;
+    <a href="javascript: on_interface_add()" style="font-size: 0.8em;">Add interface name</a>
+    <p class="context-tip">Add an interface to the system, ex: eth1</p>
+    </td>
+    </tr>
 
-
-
-    ## ====================================== start of looping through interfaces
-
-    #set $counter = -1
-    #for $interface in $all_interfaces
-        #set $counter = $counter+1        
-
-        ## ----------------------------------
-        ## load up initial variable values
-        ## ----------------------------------
-
-        #if $system and $interface in $defined_interfaces
-            #set $macaddress  = $system.interfaces[$interface]["mac_address"]
-            #set $ipaddress   = $system.interfaces[$interface]["ip_address"]
-            #set $hostname    = $system.interfaces[$interface]["hostname"]
-            #set $dhcptag     = $system.interfaces[$interface]["dhcp_tag"]
-            #set $virtbridge  = $system.interfaces[$interface]["virt_bridge"]
-            #set $subnet      = $system.interfaces[$interface]["subnet"]
-            #set $gateway     = $system.interfaces[$interface]["gateway"]
-            #set $static      = $system.interfaces[$interface]["static"]
+    <tr>
+    <td>
+    <label for="interfaces">Inteface</label>
+    </td>
+    <td>
+    <select name="interfaces" id="interfaces" onchange="on_interface_change();">
+        #if $system
+            #for $iname in  $system.interfaces.keys
+                <option name="$iname"
+                    #if $iname == "eth0" or $iname == "intf0"
+                        selected="1"
+                    #end if
+                >$iname</option>
+            #end for
         #else
-            #set $macaddress  = ""
-            #set $ipaddress   = ""
-            #set $hostname    = ""
-            #set $dhcptag     = ""
-            #set $virtbridge  = ""
-            #set $subnet      = ""
-            #set $gateway     = ""
-            #set $static      = "False"
+            <option name="eth0" selected="1">eth0</option>
         #end if
+    </select>
+    <p class="context-tip">Select what interface to edit below</p>
+    </td>
+    </tr>
+
+    ## ====================================== start of interface section
+    ## FIXME: should be different color
 
         ## ----------------------------------------
-        ## render the toggle link to hide the interfaces not yet defined
+        ## now show all of the interface fields which may or may not
+        ## be hidden but are always there
         ## ----------------------------------------
 
-        <div class="interface_definition" id="interface-$iname">
-
         <tr>
-        <td>
-        <hr width="100%"/>
+        <td class="nicedit">
+        <label for="macaddress">MAC</label>
         </td>
-        <td>
-        <hr width="100%"/>
-        </td>
-        </tr>
-
-        <tr>
-        <td>
-        Interface $interface.replace("intf","")
-        </td>
-        <td>
-        <a onclick="toggleRowVisibility('id${counter}');" style="cursor: pointer;"><img name="id${counter}-image" src="/cobbler/webui/list-expand.png" alt=""/></A>
-        </td>
-        </tr>
-        
-        <tr>
-        <td>
-        <label for="macaddress-$interface">MAC</label>
-        </td>
-        <td>
-        <input type="text" size="64" style="width: 150px;" name="macaddress-$interface" id="macaddress-$interface"
-               value="$macaddress"
-        />
+        <td class="nicedit">
+        <input type="text" size="64" style="width: 150px;" name="macaddress" id="macaddress" />
 
 	#if not $system
-        <a href="javascript: get_random_mac('macaddress-$interface')" style="font-size: 0.8em;">Random MAC</a>   
+        <a href="javascript: get_random_mac()" style="font-size: 0.8em;">Random MAC</a>   
 	#end if
 
         <p class="context-tip">Example: AA:BB:CC:DD:EE:FF</p>
@@ -411,122 +559,90 @@ function page_onload() {
         </tr>
 
         <tr>
-        <td>
-        <label for="ipaddress-$interface">IP</label>
+        <td class="nicedit">
+        <label for="ipaddress">IP</label>
         </td>
-        <td>
-        <input type="text" size="64" style="width: 150px;" name="ipaddress-$interface" id="ipaddress-$interface"
-                value="$ipaddress"
-        />
+        <td class="nicedit">
+        <input type="text" size="64" style="width: 150px;" name="ipaddress" id="ipaddress" />
         <p class="context-tip">Example: 192.168.10.15</p>
         </td>
         </tr>
 
         <tr>
-        <td>
-        <label for="hostname-$interface">Hostname</label>
+        <td class="nicedit">
+        <label for="hostname">Hostname</label>
         </td>
-        <td>
-        <input type="text" size="255" style="width: 150px;" name="hostname-$interface" id="hostname-$interface"
-                value="$hostname"
-        />
+        <td class="nicedit">
+        <input type="text" size="255" style="width: 150px;" name="hostname" id="hostname" />
         <p class="context-tip">Example: vanhalen.example.org</p>
         </td>
         </tr>
 
         <tr>
-        <td>
-        <label for="dhcptag-$interface">DHCP Tag</label>
+        <td class="nicedit">
+        <label for="dhcptag">DHCP Tag</label>
         </td>
-        <td>
-        <input type="text" size="128" style="width: 150px;" name="dhcptag-$interface" id="dhcptag-$interface"
-               value="$dhcptag"
-        />
+        <td class="nicedit">
+        <input type="text" size="128" style="width: 150px;" name="dhcptag" id="dhcptag" />
         <p class="context-tip">Selects alternative subnets, see manpage or leave blank</p>
         </td>
         </tr>
 
         <tr>
-        <td>
-        <label for="virtbridge-$interface">Virt Bridge</label>
+        <td class="nicedit">
+        <label for="virtbridge">Virt Bridge</label>
         </td>
-        <td>
-        <input type="text" size="20" style="width: 150px;" name="virtbridge-$interface" id="virtbridge-$interface"
-                value="$virtbridge"
-        />
+        <td class="nicedit">
+        <input type="text" size="20" style="width: 150px;" name="virtbridge" id="virtbridge" />
         <p class="context-tip">Example: 'xenbr0' or 'virbr0'.  Can be blank if set in profile or settings.</p>
         </td>
         </tr>
 
         <tr>
-        <td>
-        <label for="subnet-$interface">Subnet</label>
+        <td class="nicedit">
+        <label for="subnet">Subnet</label>
         </td>
-        <td>
-        <input type="text" size="64" style="width: 150px;" name="subnet-$interface" id="subnet-$interface"
-                value="$subnet"
-        />
+        <td class="nicedit">
+        <input type="text" size="64" style="width: 150px;" name="subnet" id="subnet" />
         <p class="context-tip">Ex: "255.255.255.0".  For use in kickstart templates for static IPs.</p>
         </td>
         </tr>
 
         <tr>
-        <td>
-        <label for="gateway-$interface">Gateway</label>
+        <td class="nicedit">
+        <label for="gateway">Gateway</label>
         </td>
-        <td>
-        <input type="text" size="64" style="width: 150px;" name="gateway-$interface" id="gateway-$interface"
-                value="$gateway"
-        />
+        <td class="nicedit">
+        <input type="text" size="64" style="width: 150px;" name="gateway" id="gateway" />
         <p class="context-tip">Ex: "192.168.1.11".  For use in kickstart templates for static IPs.</p>
         </td>
         </tr>
 
         <tr>
-        <td>
-        <label for="static-$interface">Static?</label>
+        <td class="nicedit">
+        <label for="static">Static?</label>
         </td>
-        <td> 
-        #if str($static) != "False"
-           <input type="checkbox" name="static-$interface" id="static-$interface" checked=True>
-        #else
-           <input type="checkbox" name="static-$interface" id="static-$interface">
-        #end if
-        <p class="context-tip">Is this a static interface?</p>
+        <td class="nicedit">
+        <input type="checkbox" name="static" id="static">
+        <p class="context-tip">Is this interface statically configured?</p>
         </td>
         </tr>
 
 
-        # FIXME: if interface is not first interface
-
-        #if $interface != "intf0" and $interface != "eth0"
-            <tr>
-            <td>
-            #if $editable == True
-                <label for="enabled-$interface">Remove</label>
-            #else
-                <label for="enabled-$interface">Hide</label>
-            #end if
-            </td>
-            <td>
-            #if $editable == True
-                <input type="button" name="delete-$interface" value="remove" onclick="delete_interface($counter)">
-                <p class="context-tip">Clicking this button removes the interface from the configuration.</p>
-            #else
-                <input type="button" name="delete-$interface" value="hide" onclick="delete_interface($counter)">
-
-            #end if
-            </td>
-            </tr>
+        #if $editable == True
+        <tr>
+        <td class="nicedit">
+            <label for="enabled">Remove</label>
+        </td>
+        <td class="nicedit">
+            <input type="button" name="delete-interface" value="remove" onclick="delete_interface()">
+            <p class="context-tip">Clicking this button removes the interface from the configuration.</p>
+        </td>
+        </tr>
         #end if
 
 
-        ## FIXME: make the save function understand the new fieldname-$interface variables
-        ##        only enable an interface for saving if one of it's fields is non-empty
-        ## FIXME: delete checkboxes and accompanying API method.  No delete for intf0.
-
-    #end for
-    ## ====================================== end of looping through interfaces
+    ## ====================================== end of interface section
 
     <tr>
     <td>
@@ -555,7 +671,7 @@ function page_onload() {
     <td>
     </td>
     <td>
-    <input type="submit" name="submit" value="Save"/>
+    <input type="button" name="submit" onClick="on_form_submit();" value="Save"/>
     <input type="reset" name="reset" value="Reset"/>
     </td>
     </tr>
