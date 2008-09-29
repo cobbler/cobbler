@@ -70,21 +70,6 @@ class Config:
        self._systems      = systems.Systems(weakref.proxy(self))
        self._images       = images.Images(weakref.proxy(self))
        self._settings     = settings.Settings() # not a true collection
-       self._serialize_graph_classes = [
-          self._distros,
-          self._repos,
-          self._profiles,
-          self._systems,
-          self._images
-       ]
-       self._graph_classes = [
-          self._settings,
-          self._distros,
-          self._repos,
-          self._profiles,
-          self._systems,
-          self._images
-       ]
        
    def __cmp(self,a,b):
        return cmp(a.name,b.name)
@@ -159,17 +144,23 @@ class Config:
        """
        Forget about all loaded configuration data
        """
-       for x in self._graph_classes:
-          x.clear()
+
+       self._distros.clear(),
+       self._repos.clear(),
+       self._profiles.clear(),
+       self._images.clear()
+       self._systems.clear(),
        return True
 
    def serialize(self):
        """
        Save the object hierarchy to disk, using the filenames referenced in each object.
        """
-       for x in self._serialize_graph_classes:
-          if not serializer.serialize(x):
-              return False
+       serializer.serialize(self._distros)
+       serializer.serialize(self._repos)
+       serializer.serialize(self._profiles)
+       serializer.serialize(self._images)
+       serializer.serialize(self._systems)
        return True
 
    def serialize_item(self,collection,item):
@@ -190,9 +181,11 @@ class Config:
        """
        Load the object hierachy from disk, using the filenames referenced in each object.
        """
-       for x in self._graph_classes:
-          if not serializer.deserialize(x,topological=True):
-              return False
+       serializer.deserialize(self._distros)
+       serializer.deserialize(self._repos)
+       serializer.deserialize(self._profiles)
+       serializer.deserialize(self._images)
+       serializer.deserialize(self._systems)
        return True
 
    def deserialize_raw(self,collection_type):

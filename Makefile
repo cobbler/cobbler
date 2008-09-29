@@ -62,7 +62,7 @@ devinstall:
 completion:
 	python mkbash.py
 
-webtest: updatewui devinstall
+webtest: clean updatewui devinstall
 	/sbin/service cobblerd restart
 	/sbin/service httpd restart
 
