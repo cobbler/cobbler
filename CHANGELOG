@@ -17,6 +17,8 @@ Cobbler CHANGELOG
 - (FEAT) distro edits now no longer require a sync to rebuild the PXE menu
 - (BUGF) minor tweak to the blender function to remove a certain class of typing errors where a string is being blended with a list, should not have any noticable effect on existing installs
 - (BUGF) add missing import of "_" in remote.py
+- (FEAT) upgraded webui editing for multiple NICs
+- (FEAT) "template_universe" variable created for snake's usage, variable contains all template variables and is also passed to the template.
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
