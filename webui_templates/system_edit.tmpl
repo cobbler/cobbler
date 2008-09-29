@@ -12,7 +12,8 @@ function disablename(value)
         document.getElementById("name").value = "$system.name";
     }
 }
-#else
+#end if
+
 function get_random_mac()
 {
     xmlHttp = new XMLHttpRequest();
@@ -28,12 +29,10 @@ function get_random_mac()
     };
     xmlHttp.send(null);
 }
-#end if
 
 #raw
 function get_selected_interface()
 {
-   // FIXME: this function returns what interface is currently selected in the dropdown
    return document.getElementById("interfaces").value
 }
 
@@ -41,6 +40,7 @@ function on_interface_change()
 {
     // called when the user picks something new from the interface selector
     save_intf(last_interface)
+    clear_intf()
     last_interface = get_selected_interface()
     load_intf()
 }
@@ -60,9 +60,9 @@ function on_interface_add()
       return
    }
 
-   interface_table[iname] = new Array()
-
-
+   if (interface_table[iname] == null) {
+      interface_table[iname] = new Array()
+   }
 
    interface_table[iname]["macaddress"] = ""
    interface_table[iname]["ipaddress"] = ""
@@ -72,6 +72,8 @@ function on_interface_add()
    interface_table[iname]["subnet"] = ""
    interface_table[iname]["gateway"] = ""
    interface_table[iname]["static"] = false
+   interface_table[iname]["present"] = "1"
+   interface_table[iname]["original"] = "0"
 
    var interfaces = document.getElementById("interfaces")
    ilen = interfaces.length
@@ -88,19 +90,26 @@ function on_interface_delete()
    selected = get_selected_interface()
    interfaces = document.getElementById("interfaces")
 
+
+   if (interfaces.value == no_delete) {
+      alert("the default interface cannot be deleted")
+      return
+   }
+   
    if (interfaces.length == 1) {
       alert("systems must always have at least one interface")
-   } else {
-      clear_intf()
-      for (i = interfaces.options.length - 1; i>=0; i--) {
-         if (interfaces.options[i].value == selected) {
-            interfaces.remove(i)
-         }
-      }
-      delete interface_table[selected]
-      interfaces.selectedIndex = 0
-      load_intf()
+      return
+   } 
+   
+   clear_intf()
+   for (i = interfaces.options.length - 1; i>=0; i--) {
+     if (interfaces.options[i].value == selected) {
+        interfaces.remove(i)
+     }
    }
+   interface_table[selected]["present"] = 0
+   interfaces.selectedIndex = 0
+   load_intf()
 } 
 
 function save_intf(which) 
@@ -126,24 +135,26 @@ function save_intf(which)
     itable["subnet"]     = document.getElementById("subnet").value
     itable["gateway"]    = document.getElementById("gateway").value
     itable["static"]     = document.getElementById("static").checked
+    itable["present"]    = document.getElementById("present").value
+    itable["original"]   = document.getElementById("original").value
+
 }
 
 function load_intf()
 {
-    //alert("load_intf")
- 
     // this populates the interface widget with the data for the currently selected interface
     // and is called when the user picks a certain interface from the drop-down
     intf = get_selected_interface()
-    elem = document.getElementById("macaddress").value  = interface_table[intf]["macaddress"]
-    elem = document.getElementById("ipaddress").value   = interface_table[intf]["ipaddress"]
-    elem = document.getElementById("hostname").value    = interface_table[intf]["hostname"]
-    elem = document.getElementById("dhcptag").value     = interface_table[intf]["dhcptag"]
-    elem = document.getElementById("virtbridge").value  = interface_table[intf]["virtbridge"]
-    elem = document.getElementById("subnet").value      = interface_table[intf]["subnet"]
-    elem = document.getElementById("gateway").value     = interface_table[intf]["gateway"]
-    elem = document.getElementById("static").checked    = interface_table[intf]["static"]
-
+    document.getElementById("macaddress").value    = interface_table[intf]["macaddress"]
+    document.getElementById("ipaddress").value     = interface_table[intf]["ipaddress"]
+    document.getElementById("hostname").value      = interface_table[intf]["hostname"]
+    document.getElementById("dhcptag").value       = interface_table[intf]["dhcptag"]
+    document.getElementById("virtbridge").value    = interface_table[intf]["virtbridge"]
+    document.getElementById("subnet").value        = interface_table[intf]["subnet"]
+    document.getElementById("gateway").value       = interface_table[intf]["gateway"]
+    document.getElementById("static").checked      = interface_table[intf]["static"]
+    document.getElementById("present").value       = interface_table[intf]["present"]
+    document.getElementById("original").value      = interface_table[intf]["original"]
 }
 
 function clear_intf()
@@ -157,6 +168,8 @@ function clear_intf()
     document.getElementById("virtbridge").value  = ""
     document.getElementById("subnet").value      = ""
     document.getElementById("gateway").value     = ""
+    document.getElementById("present").value     = "1"
+    document.getElementById("original").value    = "0"
     document.getElementById("static").value      = false
 
 }
@@ -181,6 +194,8 @@ function build_interface_table()
            interface_table['$iname']["virtbridge"] = "$system.interfaces[$iname]['virt_bridge']"
            interface_table['$iname']["subnet"]     = "$system.interfaces[$iname]['subnet']"
            interface_table['$iname']["gateway"]    = "$system.interfaces[$iname]['gateway']"
+           interface_table['$iname']["present"]    = "1"
+           interface_table['$iname']["original"]   = "1"
            if ("$system.interfaces[$iname]['static']" != "False") {
                interface_table['$iname']["static"]     = true
            } else {
@@ -197,6 +212,8 @@ function build_interface_table()
        interface_table["eth0"]["subnet"] = ""
        interface_table["eth0"]["gateway"] = ""
        interface_table["eth0"]["static"] = ""
+       interface_table["eth0"]["present"] = "1"
+       interface_table["eth0"]["original"] = "0"
     #end if
     return interface_table
 }
@@ -233,6 +250,12 @@ function page_onload() {
     interface_table = build_interface_table()
     last_interface = get_selected_interface()
     load_intf()
+
+    #if $system
+       no_delete = "$system.default_interface"
+    #else
+       no_delete = "eth0"
+    #end if
 }
 </script>
 
@@ -257,7 +280,6 @@ function page_onload() {
 
     <legend>Edit a System</legend>
 
-    ## FIXME: this ID doesn't make sense but it's there for the javascript
     <table border=0>
 
     <tr>
@@ -540,7 +562,6 @@ function page_onload() {
     </tr>
 
     ## ====================================== start of interface section
-    ## FIXME: should be different color
 
         ## ----------------------------------------
         ## now show all of the interface fields which may or may not
@@ -554,9 +575,9 @@ function page_onload() {
         <td class="nicedit">
         <input type="text" size="64" style="width: 150px;" name="macaddress" id="macaddress" />
 
-	#if not $system
+        ## FIXME: random MAC needs to pass the virt-type to get it in the selected range
+
         <a href="javascript: get_random_mac()" style="font-size: 0.8em;">Random MAC</a>   
-	#end if
 
         <p class="context-tip">Example: AA:BB:CC:DD:EE:FF</p>
         </td>
@@ -643,6 +664,10 @@ function page_onload() {
             <p class="context-tip">Clicking this button removes the interface from the configuration.</p>
         </td>
         </tr>
+
+        <input type="hidden" id="present" name="present" value="0">
+        <input type="hidden" id="original" name="original" value="0">
+
         #end if
 
 

@@ -65,10 +65,12 @@ class System(item.Item):
         Used to remove an interface.  Not valid for the default interface.
         """
         if self.interfaces.has_key(name) and self.default_interface != name:
-                del self.interfaces[name]
+            del self.interfaces[name]
         else:
-            # NOTE: raising an exception here would break the WebUI as currently implemented
-            return False
+            if self.default_interface == name:
+                raise CX(_("Cannot delete default interface: %s") % name)
+            else:
+                raise CX(_("Cannot delete interface that is not present: %s") % name)
         return True
         
 

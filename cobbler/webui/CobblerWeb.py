@@ -400,11 +400,14 @@ class CobblerWeb(object):
                 dhcptag    = args.get("dhcptag-%s" % interface, "")
                 subnet     = args.get("subnet-%s" % interface, "")
                 gateway    = args.get("gateway-%s" % interface, "")
-                if not (macaddress != "" or ipaddress != "" or hostname != "" or virtbridge != "" or dhcptag != "" or subnet != "" or gateway != ""):
+                present    = args.get("present-%s" % interface, "")
+                original   = args.get("original-%s" % interface, "")
+
+                if (present == "0") and (original == "1"):
+                    # interfaces already stored and flagged for deletion must be destroyed
                     self.remote.modify_system(system,'delete-interface', interface, self.token) 
-                else:
-                    # it looks like we have at least one value to submit, just send the ones over that are
-                    # /not/ None (just to be paranoid about XMLRPC and allow-none)
+                elif (present == "1"):
+                    # interfaces new or existing must be edited
                     mods = {}
                     mods["macaddress-%s" % interface] = macaddress
                     mods["ipaddress-%s" % interface] = ipaddress
@@ -414,6 +417,8 @@ class CobblerWeb(object):
                     mods["dhcptag-%s" % interface] = dhcptag
                     mods["subnet-%s" % interface] = subnet
                     mods["gateway-%s" % interface] = gateway
+                    mods["present-%s" % interface] = present
+                    mods["original-%s" % interface] = original
                     self.remote.modify_system(system,'modify-interface', mods, self.token)
 
             self.remote.save_system(system, self.token, editmode)
