@@ -491,16 +491,27 @@ class PXEGen:
             # templar first to allow for variables in the path 
             template = self.templar.render(template, blended, None).strip()
             dest     = self.templar.render(dest, blended, None).strip()
+            # Get the path for the destination output
             dest_dir = os.path.dirname(dest)
 
-            if not os.path.isabs(dest_dir):
-               dest_dir = os.path.join(self.settings.webdir, "rendered", dest_dir)
+            # Force all templated configs into the rendered directory
+            # to ensure that a user granted cobbler privileges via sudo
+            # can't overwrite arbitrary system files (This also makes
+            # cleanup easier).
+            if os.path.isabs(dest_dir):
+               print _(" warning: template destination (%s) is an absolute path, skipping.") % dest_dir
+               continue
+            dest_dir = os.path.join(self.settings.webdir, "rendered", dest_dir)
+            dest     = os.path.join(dest_dir, os.path.basename(dest))
+
+            if not os.path.exists(dest_dir):
+               utils.mkdir(dest_dir)
 
             # Check for problems
             if not os.path.exists(template):
                print _(" warning: template source %s does not exist, skipping.") % template
                continue
-            elif not os.path.exists(dest_dir) or not os.path.isdir(dest_dir):
+            elif not os.path.isdir(dest_dir):
                print _(" warning: template destination (%s) is invalid, skipping") % dest_dir
                continue
             elif os.path.exists(dest): 
