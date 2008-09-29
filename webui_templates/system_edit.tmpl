@@ -65,7 +65,6 @@ function on_interface_add(iname)
    var new_option = new Option(iname,iname)
    interfaces.options[ilen] = new_option
    clear_intf(iname)
-   return false
 }
 
 function delete_interface()
@@ -190,39 +189,28 @@ function build_interface_table()
 #raw
 function on_form_submit()
 {
-
-    alert("on form submit")
-    //try {
-        save_intf()
-        cells = document.getElementById("interface_cells")
-        listing = ""
-        for (var iname in interface_table) {
-            if (listing == "") {
-                listing = iname
-            } else {
-                listing = iname + "," + listing
-            }
-            details = interface_table[iname]
-            for (var ikey in details[iname]) {
-                field_name = ikey + "-" + iname
-                current_value = interface_table[iname][ikey]
-                alert("saving keypair " + iname + "," + ikey + "," + current_value)
-                cells.innerHtml = cells.innerHtml + "<input type='hidden' id='" + field_name + "' value='" + current_value + "'/>"
-            }
+    // form submission handler
+    save_intf()
+    var listing = ""
+    for (var iname in interface_table) {
+        if (listing == "") {
+            listing = iname
+        } else {
+            listing = iname + "," + listing
         }
-        document.getElementById("interface_list").value = listing
-    //}
-    //catch (err) {
-    //   alert(err.description)
-    //   return -1
-    // }
-    
-    alert("form submit done")
+        for (var ikey in interface_table[iname]) {
+            var field_name = ikey + "-" + iname
+            var current_value = interface_table[iname][ikey]
+            var new_input=document.createElement('input')
+            new_input.name=field_name
+            new_input.value=current_value
+            new_input.style.display='none'
+            document.forms.myform.appendChild(new_input)
 
-    //alert("ready to submit")
-    //alert(cells.innerHtml)
-    document.getElementById("myform").submit()
-
+        }
+    }
+    document.getElementById("interface_list").value = listing
+    document.myform.submit()
 }
 #end raw
 
@@ -232,17 +220,17 @@ function page_onload() {
 }
 </script>
 
-<DIV id="interface_cells"/>
 
-<input name="interface_list" type="hidden" value="" id="interface_list"/>
 
 #if $editable != True
 #set global $owners = $system.owners
 #include "/usr/share/cobbler/webui_templates/enoaccess.tmpl"
 #end if
 
-<form name=myform method="post" action="$base_url?mode=system_save">
+<form name="myform" id="myform" method="post" action="$base_url?mode=system_save">
 <fieldset id="cform">
+
+    <input name="interface_list" type="hidden" value="" id="interface_list"/>
    
     #if $system
         <input type="hidden" name="new_or_edit" value="edit"/>
@@ -507,7 +495,7 @@ function page_onload() {
     <label for="new-interface">Add Interface</label>
     </td>
     <td>
-    <input name="new-interface" id="new-interface"/>&nbsp;&nbsp;
+    <input name="newinterfacename" id="newinterfacename"/>&nbsp;&nbsp;
     <a href="javascript: on_interface_add()" style="font-size: 0.8em;">Add interface name</a>
     <p class="context-tip">Add an interface to the system, ex: eth1</p>
     </td>
@@ -671,7 +659,7 @@ function page_onload() {
     <td>
     </td>
     <td>
-    <input type="button" name="submit" onClick="on_form_submit();" value="Save"/>
+    <input type="button" name="submitter" onClick="on_form_submit();" value="Save"/>
     <input type="reset" name="reset" value="Reset"/>
     </td>
     </tr>
