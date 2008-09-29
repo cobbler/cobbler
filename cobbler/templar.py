@@ -82,6 +82,12 @@ class Templar:
         raw_data = "#errorCatcher Echo\n" + raw_data
 
         table_copy = search_table.copy()
+ 
+        # for various reasons we may want to call a module inside a template and pass
+        # it all of the template variables.  The variable "template_universe" serves
+        # this purpose to make it easier to iterate through all of the variables without
+        # using internal Cheetah variables
+
         search_table.update({
            "template_universe" : table_copy
         })
