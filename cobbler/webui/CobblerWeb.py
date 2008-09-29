@@ -386,6 +386,11 @@ class CobblerWeb(object):
             interfaces = args.get("interface_list","")
             interfaces = interfaces.split(",")
 
+            # BOOKMARK
+            # DEBUG ONLY
+            self.apache.log_error("interfaces = %s" % interfaces)
+            self.apache.log_error("args: %s" % args)
+
             for interface in interfaces:
                 macaddress = args.get("macaddress-%s" % interface, "")
                 ipaddress  = args.get("ipaddress-%s" % interface, "")
