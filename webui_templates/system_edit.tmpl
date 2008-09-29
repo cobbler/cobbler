@@ -34,71 +34,83 @@ function get_random_mac()
 function get_selected_interface()
 {
    // FIXME: this function returns what interface is currently selected in the dropdown
-   selector = document.getElementById("interfaces")
-   rc = selector.options[selector.selectedIndex].value
-   //alert("get selected interface = " + rc)
-   return rc
+   return document.getElementById("interfaces").value
 }
 
 function on_interface_change()
 {
-    //alert("on interface change")
     // called when the user picks something new from the interface selector
-    selected = get_selected_interface()
-    if (interface_table[selected]["seen"] == 1) {
-       save_intf()
-    }
+    save_intf(last_interface)
+    last_interface = get_selected_interface()
     load_intf()
-    interface_table[selected]["seen"] = 1
 }
 
-function on_interface_add(iname)
+function on_interface_add()
 {
-   //alert("on interface add")
    // called when the user hits the "new interface" button
-   // FIXME if they name is blank throw up an alert
-   // FIXME if iname is already in the table throw an alert and do not continue
+
    var iname = document.getElementById("newinterfacename").value
+   if ((iname == "") || (iname == " ")) {
+      alert("invalid interface name")
+      return
+   }
+
+   if (interface_table[iname] != null) {
+      alert("interface already exists")
+      return
+   }
+
    interface_table[iname] = new Array()
+
+
+
+   interface_table[iname]["macaddress"] = ""
+   interface_table[iname]["ipaddress"] = ""
+   interface_table[iname]["hostname"] = ""
+   interface_table[iname]["dhcptag"] = ""
+   interface_table[iname]["virtbridge"] = ""
+   interface_table[iname]["subnet"] = ""
+   interface_table[iname]["gateway"] = ""
+   interface_table[iname]["static"] = false
+
    var interfaces = document.getElementById("interfaces")
    ilen = interfaces.length
    var new_option = new Option(iname,iname)
    interfaces.options[ilen] = new_option
-   clear_intf(iname)
+   interfaces.selectedIndex = ilen
+   on_interface_change() // explicit firing required   
+
+  
 }
 
-function delete_interface()
+function on_interface_delete()
 {
-   //alert("delete_interface")
-   // when the user hits the remove button we remove the interface cells from the table
-   // and then from the dropdown and the javascript bits
-   clear_intf()
    selected = get_selected_interface()
    interfaces = document.getElementById("interfaces")
 
    if (interfaces.length == 1) {
       alert("systems must always have at least one interface")
-      return
-   }
-
-   for (i = interfaces.options.length - 1; i>=0; i--) {
-      if (interfaces.options[i].value == selected) {
-         interfaces.remove(i)
+   } else {
+      clear_intf()
+      for (i = interfaces.options.length - 1; i>=0; i--) {
+         if (interfaces.options[i].value == selected) {
+            interfaces.remove(i)
+         }
       }
+      delete interface_table[selected]
+      interfaces.selectedIndex = 0
+      load_intf()
    }
-   interface_table.unset(selected)
-   // now load the top one
-   load_intf()
 } 
 
-function save_intf() 
+function save_intf(which) 
 {
     //alert("save_intf")
 
     // this populates the interface widget with the data for the currently selected interface
     // and is called when the user picks a certain interface from the drop-down
 
-    iname = get_selected_interface()
+    iname = which
     var itable = interface_table[iname]
     if (itable == null) {
        interface_table[iname] = new Array()
@@ -156,7 +168,9 @@ function build_interface_table()
     // so that we can manipulate them dynamically in more interesting ways
     //alert("building interface table")
     interface_table = new Array()
+    var last = ""
     #if $system
+       var ifound = 0
        #for $iname in $system.interfaces.keys()
            interface_table['$iname'] = new Array()
            interface_table['$iname']["macaddress"] = "$system.interfaces[$iname]['mac_address']"
@@ -172,6 +186,7 @@ function build_interface_table()
            } else {
                interface_table['$iname']["static"]     = false
            }
+           last = "$iname"
        #end for
     #else
        interface_table["eth0"] = new Array()
@@ -190,7 +205,7 @@ function build_interface_table()
 function on_form_submit()
 {
     // form submission handler
-    save_intf()
+    save_intf(get_selected_interface())
     var listing = ""
     for (var iname in interface_table) {
         if (listing == "") {
@@ -216,6 +231,7 @@ function on_form_submit()
 
 function page_onload() {
     interface_table = build_interface_table()
+    last_interface = get_selected_interface()
     load_intf()
 }
 </script>
@@ -510,7 +526,7 @@ function page_onload() {
         #if $system
             #for $iname in  $system.interfaces.keys
                 <option name="$iname"
-                    #if $iname == "eth0" or $iname == "intf0"
+                    #if $iname == $system.default_interface
                         selected="1"
                     #end if
                 >$iname</option>
@@ -623,7 +639,7 @@ function page_onload() {
             <label for="enabled">Remove</label>
         </td>
         <td class="nicedit">
-            <input type="button" name="delete-interface" value="remove" onclick="delete_interface()">
+            <input type="button" name="delete-interface" value="remove" onclick="on_interface_delete()">
             <p class="context-tip">Clicking this button removes the interface from the configuration.</p>
         </td>
         </tr>
