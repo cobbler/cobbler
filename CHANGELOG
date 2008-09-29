@@ -1,12 +1,15 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+- Mon Sep 27 2008 - 1.2.6 (PENDING)
+- (BUGF) fix image vs system parentage problem affecting cobbler replicate
+
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
 - (BUGF) unbreak dnsmasq DHCP management, similar to ISC bug
 - (BUGF) fix --arch for cobbler distro add/edit
 - (BUGF) fix merge error with remote.py's remove_profile function (fix webapp)
-- (BUGF) makekeep_updated and mirror_locally checkboxes in WebUI display correctly
+- (BUGF) make keep_updated and mirror_locally checkboxes in WebUI display correctly
 
 - Mon Sep 08 2008 - 1.2.4
 - (BUGF) simple rebuild to remove cli_report.py, which is not in git
