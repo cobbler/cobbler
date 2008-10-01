@@ -45,9 +45,11 @@ $kickstart_start
 SNIPPET::pre_partition_select
 
 %packages
+$func_install_if_enabled
 
 %post
 $yum_config_stanza
 SNIPPET::post_install_kernel_options
+$func_register_if_enabled
 $kickstart_done
 

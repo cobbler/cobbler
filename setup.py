@@ -164,6 +164,8 @@ if __name__ == "__main__":
                                 (snippets, ['snippets/main_partition_select']),
                                 (snippets, ['snippets/post_install_kernel_options']),
                                 (snippets, ['snippets/network_config']),
+                                (snippets, ['func_install_if_enabled']),
+                                (snippets, ['func_register_if_enabled']),
 
                                 # documentation
                                 (manpath,  ['docs/cobbler.1.gz']),

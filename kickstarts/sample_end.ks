@@ -50,10 +50,12 @@ $kickstart_start
 %end
 
 %packages
+$func_install_if_enabled
 %end
 
 %post
 $yum_config_stanza
 SNIPPET::post_install_kernel_options
+$func_register_if_enabled
 $kickstart_done
 %end

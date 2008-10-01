@@ -19,6 +19,8 @@ Cobbler CHANGELOG
 - (BUGF) add missing import of "_" in remote.py
 - (FEAT) upgraded webui editing for multiple NICs
 - (FEAT) "template_universe" variable created for snake's usage, variable contains all template variables and is also passed to the template.
+- (FEAT) refactored import with better Debian/Ubuntu support
+- (FEAT) Func integration snippets and new settings
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
