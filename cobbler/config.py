@@ -181,6 +181,7 @@ class Config:
        """
        Load the object hierachy from disk, using the filenames referenced in each object.
        """
+       serializer.deserialize(self._settings)
        serializer.deserialize(self._distros)
        serializer.deserialize(self._repos)
        serializer.deserialize(self._profiles)
