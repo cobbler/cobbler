@@ -46,6 +46,8 @@ DEFAULTS = {
     "dnsmasq_bin"                 : "/usr/sbin/dnsmasq",
     "dnsmasq_conf"                : "/etc/dnsmasq.conf",
     "enable_menu"                 : 1,
+    "func_master"                 : "overlord.example.org",
+    "func_auto_setup"             : 0,
     "httpd_bin"                   : "/usr/sbin/httpd",
     "http_port"                   : "80",
     "isc_set_host_name"           : 0,

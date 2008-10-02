@@ -66,10 +66,12 @@ class System(item.Item):
         Used to remove an interface.  Not valid for the default interface.
         """
         if self.interfaces.has_key(name) and self.default_interface != name:
-                del self.interfaces[name]
+            del self.interfaces[name]
         else:
-            # NOTE: raising an exception here would break the WebUI as currently implemented
-            return False
+            if self.default_interface == name:
+                raise CX(_("Cannot delete default interface: %s") % name)
+            else:
+                raise CX(_("Cannot delete interface that is not present: %s") % name)
         return True
         
 
@@ -108,6 +110,7 @@ class System(item.Item):
         self.owners               = self.load_item(seed_data, 'owners', self.settings.default_ownership)
         self.profile              = self.load_item(seed_data, 'profile')
         self.image                = self.load_item(seed_data, 'image')
+
         self.kernel_options       = self.load_item(seed_data, 'kernel_options', {})
         self.kernel_options_post  = self.load_item(seed_data, 'kernel_options_post', {})
         self.ks_meta              = self.load_item(seed_data, 'ks_meta', {})
@@ -181,6 +184,12 @@ class System(item.Item):
         self.set_owners(self.owners) 
         self.set_mgmt_classes(self.mgmt_classes)
         self.set_template_files(self.template_files)
+
+
+        # enforce that the system extends from a profile or system but not both
+        # profile wins as it's the more common usage
+        self.set_image(self.image)
+        self.set_profile(self.profile)
 
         return self
 
@@ -333,13 +342,14 @@ class System(item.Item):
         Set the system to use a certain named profile.  The profile
         must have already been loaded into the Profiles collection.
         """
-        if profile_name in [ "delete", ""] or profile_name is None:
+        if profile_name in [ "delete", "None", "~", ""] or profile_name is None:
             self.profile = ""
             return True
+
+        self.image = "" # mutual exclusion rule
+
         p = self.config.profiles().find(name=profile_name)
         if p is not None:
-            if self.image is not None and self.image != "" and profile_name not in ["delete", ""]:
-                raise CX(_("image and profile settings are mutually exclusivei (%s,%s)") % (image.name,profile_name))
             self.profile = profile_name
             self.depth = p.depth + 1 # subprofiles have varying depths.
             return True
@@ -350,17 +360,19 @@ class System(item.Item):
         Set the system to use a certain named image.  Works like set_profile
         but cannot be used at the same time.  It's one or the other.
         """
-        if image_name in [ "delete", ""] or image_name is None:
+        if image_name in [ "delete", "None", "~", ""] or image_name is None:
             self.image = ""
             return True
+
+        self.profile = "" # mutual exclusion rule
+
         img = self.config.images().find(name=image_name)
+
         if img is not None:
-            if self.profile is not None and self.profile != "" and image_name not in ["delete", ""]:
-                raise CX(_("image and profile settings are mutually exclusive (%s,%s)") % (image_name,self.profile))
             self.image = image_name
             self.depth = img.depth + 1
             return True
-        raise CX(_("invalid image name"))
+        raise CX(_("invalid image name (%s)") % image_name)
 
     def set_virt_cpus(self,num):
         return utils.set_virt_cpus(self,num)
@@ -402,10 +414,9 @@ class System(item.Item):
         # this is by design as inheritable systems don't make sense.
         if self.name is None:
             raise CX(_("need to specify a name for this object"))
-        if self.profile is None and self.image is None:
+        if self.profile in [ None, "" ] and self.image in [ None,"" ]:
             raise CX(_("need to specify a profile or image as a parent for this system"))
-        if self.profile is not None and self.image is not None and self.profile != "" and self.image != "":
-            raise CX(_("image and profile are mutually exclusive (%s,%s)") % (self.profile,self.image))
+
         return True
 
     def set_kickstart(self,kickstart):

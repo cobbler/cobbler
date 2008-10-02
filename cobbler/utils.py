@@ -894,7 +894,7 @@ def set_os_version(self,os_version):
    matched = codes.VALID_OS_VERSIONS[self.breed]
    if not os_version in matched:
       nicer = ", ".join(matched)
-      raise CX(_("--os-version for breed %s must be one of %s") % (self.breed, nicer))
+      raise CX(_("--os-version for breed %s must be one of %s, given was %s") % (self.breed, nicer, os_version))
    self.os_version = os_version
    return True
 

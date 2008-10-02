@@ -60,6 +60,21 @@ dhcpd_bin: /usr/sbin/dhcpd
 dhcpd_conf: /etc/dhcpd.conf
 dnsmasq_bin: /usr/sbin/dnsmasq
 dnsmasq_conf: /etc/dnsmasq.conf
+
+# auto-enslave new hosts to the func network in really easy simple
+# ways?  You may want to set up auto-signing, you might not.
+# read more at https://fedorahosted.org/cobbler/wiki/FuncIntegration
+func_auto_setup: 0
+
+# if enabling func integration, what is the name of the already
+# running func overlord/certmaster that we want to enslave new
+# hosts to?  (NOTE: later we might want to be able to override this on a
+# network-by-network basis to use Func delegation for large networks
+# but presently it's one overlord per cobbler server which should
+# still scale pretty well).
+func_master: overlord.example.org
+
+# where is apache?
 httpd_bin: /usr/sbin/httpd
 
 # change this port if Apache is not running plaintext on port
