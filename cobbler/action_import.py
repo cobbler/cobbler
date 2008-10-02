@@ -418,13 +418,13 @@ class Importer:
            # store the yum configs on the filesystem so we can use them later.
            # and configure them in the kickstart post, etc
 
-           print "- possible source repo match"
+           # print "- possible source repo match"
            counter = len(distro.source_repos)
 
            # find path segment for yum_url (changing filesystem path to http:// trailing fragment)
            seg = comps_path.rfind("ks_mirror")
            urlseg = comps_path[seg+10:]
-           print "- segment: %s" % urlseg
+           # print "- segment: %s" % urlseg
 
            # write a yum config file that shows how to use the repo.
            if counter == 0:
@@ -444,7 +444,7 @@ class Importer:
            # during sync, that's why we have the @@http_server@@ left as templating magic.
            # repo_url2 is actually no longer used. (?)
 
-           print _("- url: %s") % repo_url
+           # print _("- url: %s") % repo_url
            config_file = open(fname, "w+")
            config_file.write("[core-%s]\n" % counter)
            config_file.write("name=core-%s\n" % counter)
@@ -756,7 +756,7 @@ def import_factory(kerneldir,path):
     # the real root directory available, so allowing kernels at different levels within 
     # the same tree (removing the isolinux rejection from distro_adder) -- JP
 
-    print _("- Found breed %s at %s") % (breed,kerneldir)
+    print _("- found content (breed=%s) at %s") % (breed,kerneldir)
 
     if breed == "redhat":
         return RedHatImporter(rootdir)
@@ -823,7 +823,7 @@ class BaseImporter:
        """
        result = {}
        os.path.walk(self.get_pkgdir(), self.arch_walker, result)      
-       print _("- architectures found at %s: %s") % ( self.get_pkgdir(), result.keys() )
+       # print _("- architectures found at %s: %s") % ( self.get_pkgdir(), result.keys() )
        if result.pop("amd64",False):
            result["x86_64"] = 1
        if result.pop("i686",False):
@@ -871,7 +871,7 @@ class RedHatImporter ( BaseImporter ) :
        """
 
        rpm = os.path.basename(rpm)
-       print "- processing rpm : %s" % rpm
+       # print "- processing rpm : %s" % rpm
 
        # if it looks like a RHEL RPM we'll cheat.
        # it may be slightly wrong, but it will be close enough
@@ -927,7 +927,6 @@ class RedHatImporter ( BaseImporter ) :
            try:
                os_version = "fedora%s" % int(major)
            except:
-               print "- warning: could not store os-version fedora%s" % int(major)
                os_version = "other"
 
            if major >= 8:
@@ -943,7 +942,6 @@ class RedHatImporter ( BaseImporter ) :
                 try:
                     os_version = "rhel%s" % int(major)
                 except:
-                    print "- warning: could not store os-version %s" % int(major)
                     os_version = "other"
 
            if major >= 5:
@@ -951,7 +949,7 @@ class RedHatImporter ( BaseImporter ) :
 
            return os_version , "/etc/cobbler/legacy.ks"
 
-       print _("- using default kickstart file choice")
+       print _("- warning: could not use distro specifics, using rhel 4 compatible kickstart")
        return None , "/etc/cobbler/legacy.ks"
 
 class DebianImporter ( BaseImporter ) :
