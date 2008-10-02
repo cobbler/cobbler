@@ -65,6 +65,22 @@ dhcpd_bin: /usr/sbin/dhcpd
 dhcpd_conf: /etc/dhcpd.conf
 dnsmasq_bin: /usr/sbin/dnsmasq
 dnsmasq_conf: /etc/dnsmasq.conf
+
+# enable Func-integration?  This makes sure each installed machine is set up
+# to use func out of the box, which is a powerful way to script and control
+# remote machines.  
+#
+# Func lives at http://fedorahosted.org/func
+# read more at https://fedorahosted.org/cobbler/wiki/FuncIntegration
+# 
+# you will need to mirror Fedora/EPEL packages for this feature, so see
+# https://fedorahosted.org/cobbler/wiki/ManageYumRepos if you want cobbler
+# to help you with this
+
+func_auto_setup: 0
+func_master: overlord.example.org
+
+# more important file locations...
 httpd_bin: /usr/sbin/httpd
 
 # change this port if Apache is not running plaintext on port
