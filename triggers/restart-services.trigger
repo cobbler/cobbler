@@ -33,7 +33,7 @@ if manage_dhcp != "0":
         print "- error: unknown DHCP engine: %s" % bootapi.dhcp.what()
         rc = 411
 
-if manage_dns != "0" and restart_dns:
+if manage_dns != "0" and restart_dns != "0":
     if bootapi.dns.what() == "bind":
         rc = os.system("/sbin/service named restart")
     elif bootapi.dns.what() == "dnsmasq" and not has_restarted_dnsmasq:
