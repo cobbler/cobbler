@@ -483,24 +483,6 @@ Cobbler CHANGELOG
   now exclusively just uses methods with "virt" in them, however.
 - ...
 
-* Thu Dec 14 2007 - 0.7.0
-- Testing branch
-- Fix bug related to <<inherit>> and kickstart args 
-- Make CLI functions modular and use optparse
-- Quote wget args to avoid creating stray files on target system
-- Support Xen FV as virt type (requires F8+)
-- Implemented fully pluggable authn/authz system
-- WebUI is now mod_python based
-- Greatly enhanced logging (goes to /var/log/cobbler/cobbler.log)
-- New --no-triggers and --no-sync on "adds" for performance and other reasons
-- pxe_just_once is now much faster.
-- performance testing scripts (in source checkout)
-- webui now uses Apache logging
-- misc webui fixes
-- remove -b from wgets since busybox doesn't have -b in wget
-- rename default/sample kickstarts to avoid confusion
-- Fixed some bugs related to kickstart templating
-
 * Tue Oct 24 2006 - 0.3.0
 - Reload httpd during sync
 - New profiles without set kickstarts default to /etc/cobbler/default.ks
