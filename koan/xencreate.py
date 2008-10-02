@@ -123,22 +123,31 @@ def start_install(name=None, ram=None, disks=None,
 
         interfaces = profile_data["interfaces"].keys()
         interfaces.sort()
-
+        counter = -1
         for iname in interfaces:
+            counter = counter + 1
             intf = profile_data["interfaces"][iname]
 
             mac = intf["mac_address"]
             if mac == "":
                 mac = random_mac()
 
-            profile_bridge = profile_data["virt_bridge"]
+            if not bridge:
+                profile_bridge = profile_data["virt_bridge"]
 
-            intf_bridge = intf["virt_bridge"]
-            if intf_bridge == "":
-                if profile_bridge == "":
-                    raise koan.InfoException("virt-bridge setting is not defined in cobbler")
-                intf_bridge = profile_bridge
-    
+                intf_bridge = intf["virt_bridge"]
+                if intf_bridge == "":
+                    if profile_bridge == "":
+                        raise koan.InfoException("virt-bridge setting is not defined in cobbler")
+                    intf_bridge = profile_bridge
+
+            else:
+                if bridge.find(",") == -1:
+                    intf_bridge = bridge
+                else:
+                    bridges = bridge.split(",")
+                    intf_bridge = bridges[counter]
+
 
             nic_obj = virtinst.XenNetworkInterface(macaddr=mac, bridge=intf_bridge)
             guest.nics.append(nic_obj)
