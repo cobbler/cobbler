@@ -4,14 +4,34 @@ import sys
 import os.path
 from distutils.core import setup, Extension
 import string
+import cobbler.yaml as yaml
+import Cheetah.Template as Template
 
 VERSION = "1.3.0"
 SHORT_DESC = "Network Boot and Update Server"
 LONG_DESC = """
 Cobbler is a network boot and update server.  Cobbler supports PXE, provisioning virtualized images, and reinstalling existing Linux machines.  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler also has a Python and XMLRPC API for integration with other applications.
 """
+TEMPLATES_DIR = "installer_templates"
+DEFAULTS = os.path.join(TEMPLATES_DIR, "defaults")
+MODULES_TEMPLATE = os.path.join(TEMPLATES_DIR, "modules.conf.template")
+SETTINGS_TEMPLATE = os.path.join(TEMPLATES_DIR, "settings.template")
+OUTPUT_DIR = "config"
+
+# =========================================================        
+def templatify(template, answers, output):
+    t = Template.Template(file=template, searchList=answers)
+    open(output,"w").write(t.respond())
+
+def gen_config():
+    defaults = {}
+    data = yaml.loadFile(DEFAULTS).next()
+    defaults.update(data)
+    templatify(MODULES_TEMPLATE, defaults, os.path.join(OUTPUT_DIR, "modules.conf"))
+    templatify(SETTINGS_TEMPLATE, defaults, os.path.join(OUTPUT_DIR, "settings"))
 
 if __name__ == "__main__":
+        gen_config()
         # docspath="share/doc/koan-%s/" % VERSION
         bashpath = "/etc/bash_completion.d/"
         manpath  = "share/man/man1/"
