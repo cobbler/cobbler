@@ -291,10 +291,10 @@ class CobblerFunction:
 
         if "report" in self.args:
             if self.options.name is None:
-                return self.api.report(report_what = self.args[1], report_name = self.options.name, \
+                return self.api.report(report_what = self.args[1], report_name = None, \
                                report_type = 'text', report_fields = 'all')
             else:
-                return self.api.report(report_what = self.args[1], report_name = 'all', \
+                return self.api.report(report_what = self.args[1], report_name = self.options.name, \
                                 report_type = 'text', report_fields = 'all')
 
         if "getks" in self.args:
