@@ -1,4 +1,7 @@
+
 #if $str($getVar('func_auto_setup','')) == "1"
+
+# func configuration and registration
 
 /sbin/chkconfig --level 345 funcd on
 

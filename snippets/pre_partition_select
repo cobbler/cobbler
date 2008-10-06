@@ -1,3 +1,5 @@
+# partition details calculation
+
 # Determine how many drives we have
 set \$(list-harddrives)
 let numd=\$#/2

@@ -84,7 +84,7 @@ class KickGen:
                 meta["kickstart_done"]  = self.generate_kickstart_signal(0, g, None)
                 meta["kickstart_start"] = self.generate_kickstart_signal(1, g, None)
                 meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
-                meta["kickstart_template_files"] = self.generate_template_files_stanza(g, True)
+                # meta["config_template_files"] = self.generate_template_files_stanza(g, True)
                 kfile = open(kickstart_path)
                 data = self.templar.render(kfile, meta, None, g)
                 kfile.close()
@@ -244,7 +244,7 @@ class KickGen:
                 meta["kickstart_done"]  = self.generate_kickstart_signal(0, profile, s)
                 meta["kickstart_start"] = self.generate_kickstart_signal(1, profile, s)
                 meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
-                meta["kickstart_template_files"] = self.generate_template_files_stanza(g, False)
+                # meta["config_template_files"] = self.generate_template_files_stanza(g, False)
                 kfile = open(kickstart_path)
                 data = self.templar.render(kfile, meta, None, s)
                 kfile.close()
@@ -258,24 +258,24 @@ class KickGen:
         return "# kickstart is sourced externally: %s" % meta["kickstart"]
 
 
-    def generate_template_files_stanza(self, obj, is_profile=True):
-        """
-        """
-
-        results = "\n# Kickstart template files\n"
-
-        blended = utils.blender(self.api, False, obj)
-        for template in obj.template_files.keys():
-            original_path = obj.template_files[template]
-            path = original_path.replace("_", "__")
-            path = path.replace("/", "_")
-
-            if is_profile:
-               url = "http://%s/cblr/svc/op/template/profile/%s/path/%s" % (blended["http_server"], obj.name, path)
-            else:
-               url = "http://%s/cblr/svc/op/template/system/%s/path/%s" % (blended["http_server"], obj.name, path)
-
-            results += "wget \"%s\" --output-document=\"%s\"\n" % (url, original_path)
-
-        return results
+#    def generate_template_files_stanza(self, obj, is_profile=True):
+#        """
+#        """
+#
+#        results = "\n# Cobbler-managed configuration files\n"
+#
+#        blended = utils.blender(self.api, False, obj)
+#        for template in obj.template_files.keys():
+#            original_path = obj.template_files[template]
+#            path = original_path.replace("_", "__")
+#            path = path.replace("/", "_")
+#
+#            if is_profile:
+#               url = "http://%s/cblr/svc/op/template/profile/%s/path/%s" % (blended["http_server"], obj.name, path)
+#            else:
+#               url = "http://%s/cblr/svc/op/template/system/%s/path/%s" % (blended["http_server"], obj.name, path)
+#
+#            results += "wget \"%s\" --output-document=\"%s\"\n" % (url, original_path)
+#
+#        return results
 

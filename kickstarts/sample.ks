@@ -20,7 +20,7 @@ url --url=$tree
 # If any cobbler repo definitions were referenced in the kickstart profile, include them here.
 $yum_repo_stanza
 # Network information
-SNIPPET::network_config
+$SNIPPET('network_config')
 # Reboot after installation
 reboot
 
@@ -38,19 +38,20 @@ install
 zerombr
 
 # Magically figure out how to partition this thing
-SNIPPET::main_partition_select
+$SNIPPET('main_partition_select')
 
 %pre
 $kickstart_start
-SNIPPET::pre_partition_select
+$SNIPPET('pre_partition_select')
 
 %packages
 $func_install_if_enabled
 
 %post
+
 $yum_config_stanza
-SNIPPET::post_install_kernel_options
-$func_register_if_enabled
-$kickstart_template_files
+$SNIPPET('post_install_kernel_options')
+$SNIPPET('func_register_if_enabled')
+$SNIPPET('download_config_files')
 $kickstart_done
 

@@ -56,6 +56,6 @@ $func_install_if_enabled
 %post
 $yum_config_stanza
 SNIPPET::post_install_kernel_options
-$func_register_if_enabled
-$kickstart_done
+SNIPPET::func_register_if_enabled
+SNIPPET::download_config_files
 %end

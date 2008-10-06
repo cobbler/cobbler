@@ -1,0 +1,22 @@
+
+# download cobbler managed config files
+
+#for $tkey, $tpath in $template_files.items()
+
+    #set $orig = $tpath
+    #set $tpath = $tpath.replace("_","__").replace("/","_")
+    
+    #if $getVar("$system","") != ""
+        #set $ttype = "system"
+        #set $tname = $system_name
+    #else
+        #set $ttype = "profile"
+        #set $tname = $profile_name
+    #end if
+
+    #set $turl = "http://"+$http_server+"/cblr/svc/op/template/"+$ttype+"/"+$tname+"/path/"+$tpath
+
+wget "$turl" --output-document="$orig"
+
+#end for
+

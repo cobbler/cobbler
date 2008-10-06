@@ -463,7 +463,7 @@ class PXEGen:
             fd.close()
         return buffer
 
-    def write_templates(self,obj,write_file=True,path=None):
+    def write_templates(self,obj,write_file=False,path=None):
         """
         A semi-generic function that will take an object
         with a template_files hash {source:destiation}, and 
@@ -515,19 +515,19 @@ class PXEGen:
 
             # Check for problems
             if not os.path.exists(template):
-               raise CX(_(" warning: template source %s does not exist, skipping.") % template)
+               raise CX(_("template source %s does not exist") % template)
                continue
             elif not os.path.isdir(dest_dir):
-               raise CX(_(" warning: template destination (%s) is invalid, skipping") % dest_dir)
+               raise CX(_("template destination (%s) is invalid") % dest_dir)
                continue
             elif os.path.exists(dest): 
-               raise CX(_(" warning: template destination (%s) already exists, skipping") % dest)
+               raise CX(_("template destination (%s) already exists") % dest)
                continue
             elif os.path.isdir(dest):
-               raise CX(_(" warning: template destination (%s) is a directory, skipping.") % dest)
+               raise CX(_("template destination (%s) is a directory") % dest)
                continue
             elif template == "" or dest == "": 
-               raise CX(_(" warning: either the template source or destination was blank (unknown variable used?), skipping.") % dest)
+               raise CX(_("either the template source or destination was blank (unknown variable used?)") % dest)
                continue
             
             template_fh = open(template)
@@ -542,7 +542,7 @@ class PXEGen:
                 fd.write(buffer)
                 fd.close()
 
-            print _(" template %s created ok") % dest
+            # print _(" template %s created ok") % dest
 
         return results
 

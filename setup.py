@@ -186,6 +186,7 @@ if __name__ == "__main__":
                                 (snippets, ['snippets/network_config']),
                                 (snippets, ['snippets/func_install_if_enabled']),
                                 (snippets, ['snippets/func_register_if_enabled']),
+                                (snippets, ['snippets/download_config_files']),
 
                                 # documentation
                                 (manpath,  ['docs/cobbler.1.gz']),
