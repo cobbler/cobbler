@@ -33,7 +33,8 @@ import utils
 import shutil
 from utils import _
 
-RSYNC_CMD =  "rsync --quiet -a %s '%s' %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --progress"
+# FIXME: add --quiet depending on if not --verbose?
+RSYNC_CMD =  "rsync -a %s '%s' %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --progress"
 
 class Importer:
 
@@ -701,26 +702,27 @@ def guess_breed(kerneldir,path):
     be at the same level, as a local '.' symlink
     The lowercase names are required for fat32/vfat filesystems
     """
-    signatures = {
-       'pool'        : "debian",
-       'RedHat/RPMS' : "redhat",
-       'RedHat/rpms' : "redhat",
-       'RedHat/Base' : "redhat",
-       'Fedora/RPMS' : "redhat",
-       'Fedora/rpms' : "redhat",
-       'CentOS/RPMS' : "redhat",
-       'CentOS/rpms' : "redhat",
-       'Packages'    : "redhat",
-       'Server'      : "redhat",
-    }
+    signatures = [
+       [ 'pool'        , "debian" ],
+       [ 'RedHat/RPMS' , "redhat" ],
+       [ 'RedHat/rpms' , "redhat" ],
+       [ 'RedHat/Base' , "redhat" ],
+       [ 'Fedora/RPMS' , "redhat" ],
+       [ 'Fedora/rpms' , "redhat" ],
+       [ 'CentOS/RPMS' , "redhat" ],
+       [ 'CentOS/rpms' , "redhat" ],
+       [ 'CentOS'      , "redhat" ],
+       [ 'Packages'    , "redhat" ],
+       [ 'Server'      , "redhat" ],
+    ]
     guess = None
 
     while kerneldir != os.path.dirname(path) :
         # print _("- scanning %s for distro signature") % kerneldir
-        for x in signatures.keys():
+        for (x, breedguess) in signatures:
             d = os.path.join( kerneldir , x )
             if os.path.exists( d ):
-                guess = signatures[x]
+                guess = breedguess
                 break
         if guess: 
             break

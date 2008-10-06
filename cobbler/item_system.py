@@ -315,7 +315,7 @@ class System(item.Item):
     def set_mac_address(self,address,interface):
         intf = self.__get_interface(interface)
         if address == "" or utils.is_mac(address):
-           intf["mac_address"] = address
+           intf["mac_address"] = address.strip()
            return True
         raise CX(_("invalid format for MAC address (%s)" % address))
 
