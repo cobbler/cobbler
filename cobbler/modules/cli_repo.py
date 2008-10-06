@@ -47,7 +47,7 @@ class RepoFunction(commands.CobblerFunction):
 
 
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
-
+            p.add_option("--breed",             dest="breed",             help="sets the breed of the repo")
             p.add_option("--arch",             dest="arch",             help="overrides repo arch if required")
         if self.matches_args(args,["add"]):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
@@ -92,6 +92,7 @@ class RepoFunction(commands.CobblerFunction):
         if self.matches_args(self.args,["dumpvars"]):
             return self.object_manipulator_finish(obj, self.api.profiles, self.options)
 
+        if self.options.breed:            obj.set_breed(self.options.breed)
         if self.options.arch:             obj.set_arch(self.options.arch)
         if self.options.createrepo_flags: obj.set_createrepo_flags(self.options.createrepo_flags)
         if self.options.rpm_list:         obj.set_rpm_list(self.options.rpm_list)

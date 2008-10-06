@@ -51,3 +51,7 @@ VALID_OS_VERSIONS = {
     "other"   : [ "msdos", "netware4", "netware5", "netware6", "generic", "other" ]
 }
 
+VALID_REPO_BREEDS = [
+    "rsync", "rhn", "yum", "apt"
+]
+

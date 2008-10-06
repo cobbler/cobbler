@@ -906,6 +906,14 @@ def set_breed(self,breed):
    nicer = ", ".join(valid_breeds)
    raise CX(_("invalid value for --breed, must be one of %s, different breeds have different levels of support") % nicer)
 
+def set_repo_breed(self,breed):
+   valid_breeds = codes.VALID_REPO_BREEDS
+   if breed is not None and breed.lower() in valid_breeds:
+       self.breed = breed.lower()
+       return True
+   nicer = ", ".join(valid_breeds)
+   raise CX(_("invalid value for --breed, must be one of %s, different breeds have different levels of support") % nicer)
+
 def set_repos(self,repos,bypass_check=False):
    # WARNING: hack
    repos = fix_mod_python_select_submission(repos)
