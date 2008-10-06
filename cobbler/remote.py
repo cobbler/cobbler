@@ -230,6 +230,24 @@ class CobblerXMLRPCInterface:
            return "# object not found: %s" % system_name
         return self.api.get_repo_config_for_system(obj)
 
+    def get_template_file_for_profile(self,profile_name,path,**rest):
+        """
+        Return the templated file requested for this profile
+        """
+        obj = self.api.find_profile(profile_name)
+        if obj is None:
+           return "# object not found: %s" % profile_name
+        return self.api.get_template_file_for_profile(obj,path)
+
+    def get_template_file_for_system(self,system_name,path,**rest):
+        """
+        Return the templated file requested for this system
+        """
+        obj = self.api.find_system(system_name)
+        if obj is None:
+           return "# object not found: %s" % system_name
+        return self.api.get_template_file_for_system(obj,path)
+
     def register_mac(self,mac,profile,token=None,**rest):
         """
         If allow_cgi_register_mac is enabled in settings, this allows

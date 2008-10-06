@@ -463,6 +463,88 @@ class PXEGen:
             fd.close()
         return buffer
 
+    def write_templates(self,obj,write_file=True,path=None):
+        """
+        A semi-generic function that will take an object
+        with a template_files hash {source:destiation}, and 
+        generate a rendered file.  The write_file option 
+        allows for generating of the rendered output without
+        actually creating any files.
+
+        The return value is a hash of the destination file
+        names (after variable substitution is done) and the
+        data in the file.
+        """
+
+        results = {}
+
+        try:
+           templates = obj.template_files
+        except:
+           return results
+
+        blended = utils.blender(self.api, False, obj)
+        for template in templates.keys():
+            dest = templates[template]
+            
+            # Run the source and destination files through 
+            # templar first to allow for variables in the path 
+            template = self.templar.render(template, blended, None).strip()
+            dest     = self.templar.render(dest, blended, None).strip()
+            # Get the path for the destination output
+            dest_dir = os.path.dirname(dest)
+
+            # If we're looking for a single template, skip if this ones
+            # destination is not it.
+            if not path is None and path != dest:
+               continue
+
+            # If we are writing output to a file, force all templated 
+            # configs into the rendered directory to ensure that a user 
+            # granted cobbler privileges via sudo can't overwrite 
+            # arbitrary system files (This also makes cleanup easier).
+            if os.path.isabs(dest_dir):
+               if write_file:
+                   raise CX(_(" warning: template destination (%s) is an absolute path, skipping.") % dest_dir)
+                   continue
+            else:
+                dest_dir = os.path.join(self.settings.webdir, "rendered", dest_dir)
+                dest = os.path.join(dest_dir, os.path.basename(dest))
+                if not os.path.exists(dest_dir):
+                    utils.mkdir(dest_dir)
+
+            # Check for problems
+            if not os.path.exists(template):
+               raise CX(_(" warning: template source %s does not exist, skipping.") % template)
+               continue
+            elif not os.path.isdir(dest_dir):
+               raise CX(_(" warning: template destination (%s) is invalid, skipping") % dest_dir)
+               continue
+            elif os.path.exists(dest): 
+               raise CX(_(" warning: template destination (%s) already exists, skipping") % dest)
+               continue
+            elif os.path.isdir(dest):
+               raise CX(_(" warning: template destination (%s) is a directory, skipping.") % dest)
+               continue
+            elif template == "" or dest == "": 
+               raise CX(_(" warning: either the template source or destination was blank (unknown variable used?), skipping.") % dest)
+               continue
+            
+            template_fh = open(template)
+            template_data = template_fh.read()
+            template_fh.close()
+
+            buffer = self.templar.render(template_data, blended, None)
+            results[dest] = buffer
+
+            if write_file:
+                fd = open(dest, "w")
+                fd.write(buffer)
+                fd.close()
+
+            print _(" template %s created ok") % dest
+
+        return results
 
 
 

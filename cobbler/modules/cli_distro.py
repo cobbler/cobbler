@@ -59,6 +59,7 @@ class DistroFunction(commands.CobblerFunction):
             p.add_option("--kopts-post",   dest="kopts_post",  help="ex: 'clocksource=pit'")
             p.add_option("--ksmeta",       dest="ksmeta",      help="ex: 'blippy=7'")
             p.add_option("--mgmt-classes", dest="mgmt_classes",  help="list of config management classes (for Puppet, etc)")
+            p.add_option("--template-files", dest="template_files", help="specify files to be generated from templates during a sync")
 
         p.add_option("--name",   dest="name", help="ex: 'RHEL-5-i386' (REQUIRED)")
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
@@ -109,6 +110,8 @@ class DistroFunction(commands.CobblerFunction):
                 obj.set_owners(self.options.owners)
             if self.options.mgmt_classes:
                 obj.set_mgmt_classes(self.options.mgmt_classes)
+            if self.options.template_files:
+                obj.set_template_files(self.options.template_files,self.options.inplace)
 
         return self.object_manipulator_finish(obj, self.api.distros, self.options)
 

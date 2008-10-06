@@ -49,6 +49,7 @@ class System(item.Item):
         self.netboot_enabled      = True
         self.depth                = 2
         self.mgmt_classes         = []              
+        self.template_files       = {}
         self.kickstart            = "<<inherit>>"   # use value in profile
         self.server               = "<<inherit>>"   # "" (or settings)
         self.virt_path            = "<<inherit>>"   # ""
@@ -118,6 +119,7 @@ class System(item.Item):
         self.netboot_enabled      = self.load_item(seed_data, 'netboot_enabled', True)
         self.server               = self.load_item(seed_data, 'server', '<<inherit>>')
         self.mgmt_classes         = self.load_item(seed_data, 'mgmt_classes', [])
+        self.template_files       = self.load_item(seed_data, 'template_files', {})
         self.default_interface    = self.load_item(seed_data, 'default_interface', self.settings.default_interface)
 
         # virt specific 
@@ -181,6 +183,7 @@ class System(item.Item):
         self.set_netboot_enabled(self.netboot_enabled)
         self.set_owners(self.owners) 
         self.set_mgmt_classes(self.mgmt_classes)
+        self.set_template_files(self.template_files)
 
 
         # enforce that the system extends from a profile or system but not both
@@ -459,7 +462,8 @@ class System(item.Item):
            'virt_path'             : self.virt_path,
            'virt_ram'              : self.virt_ram,
            'virt_type'             : self.virt_type,
-           'mgmt_classes'          : self.mgmt_classes
+           'mgmt_classes'          : self.mgmt_classes,
+           'template_files'        : self.template_files
         }
 
     def printable(self):
@@ -475,6 +479,7 @@ class System(item.Item):
         buf = buf + _("netboot enabled?      : %s\n") % self.netboot_enabled 
         buf = buf + _("owners                : %s\n") % self.owners
         buf = buf + _("server                : %s\n") % self.server
+        buf = buf + _("template files        : %s\n") % self.template_files
 
         buf = buf + _("virt cpus             : %s\n") % self.virt_cpus
         buf = buf + _("virt file size        : %s\n") % self.virt_file_size
@@ -548,7 +553,8 @@ class System(item.Item):
            'virt-file-size'   : self.set_virt_file_size,
            'server'           : self.set_server,
            'owners'           : self.set_owners,
-           'mgmt-classes'     : self.mgmt_classes
+           'mgmt-classes'     : self.mgmt_classes,
+           'template-files'   : self.set_template_files
         }
 
 

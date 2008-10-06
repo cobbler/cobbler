@@ -78,6 +78,25 @@ class CobblerSvc(object):
         data = self.remote.generate_kickstart(profile,system,REMOTE_ADDR,REMOTE_MAC)
         return u"%s" % data    
 
+    def template(self,profile=None,system=None,path=None,**rest):
+        """
+        Generate a templated file for the system
+        """
+        self.__xmlrpc_setup()
+        if path is not None:
+            path = path.replace("_","/")
+            path = path.replace("//","_")
+        else:
+            return "# must specify a template path"
+
+        if profile is not None:
+            data = self.remote.get_template_file_for_profile(profile,path)
+        elif system is not None:
+            data = self.remote.get_template_file_for_system(system,path)
+        else:
+            data = "# must specify profile or system name"
+        return data
+
     def yum(self,profile=None,system=None,**rest):
         self.__xmlrpc_setup()
         if profile is not None:
