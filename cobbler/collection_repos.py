@@ -52,16 +52,17 @@ class Repos(collection.Collection):
             elif seed_data['breed'] == "apt":
                 return repo.AptRepo(config).from_datastruct(seed_data)
             else:
-                raise CX(_("Uknown repository breed %s")%seed_data['breed'])
+                # we didn't store a --breed with the repository so we must
+                # attempt to discover it.
+                if seed_data['breed'] != '':
+                    raise CX(_("Unknown repository breed: %s") % seed_data['breed'])
+
         # Required until rsync breed is properly set on every required case
         # Block, taken from is_rsync_mirror
         lower = seed_data.get("mirror")
-        print "hola tu",lower
         if not ( lower.startswith("http://") or lower.startswith("ftp://") or lower.startswith("rhn://") ):
             seed_data['breed'] = "rsync"
-            print "adios tu",seed_data['breed']
             return repo.RsyncRepo(config).from_datastruct(seed_data)
-        # 
         return repo.Repo(config).from_datastruct(seed_data)
 
     def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False):
