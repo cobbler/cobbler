@@ -54,7 +54,7 @@ If there is an rsync mirror, DVD, NFS, or filesystem tree available that you wou
 
 If you want to be explicit with distribution definition, however, here's how it works:
 
-B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--kopts-post=string] [--ksmeta=string] [--arch=x86|x86_64|ia64] [--breed=redhat|debian|suse]>
+B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--kopts-post=string] [--ksmeta=string] [--arch=x86|x86_64|ia64] [--breed=redhat|debian|suse] [--template-files=string]>
 
 =over
 
@@ -121,6 +121,10 @@ provisioning guests with koan.  The valid options for --os-version vary dependin
 =item owners
 
 Users with small sites and a limited number of admins can probably ignore this option.  All cobbler objects (distros, profiles, systems, and repos) can take a --owners parameter to specify what cobbler users can edit particular objects.  This only applies to the Cobbler WebUI and XMLRPC interface, not the "cobbler" command line tool run from the shell.  Furthermore, this is only respected by the "authz_ownership" module which must be enabled in /etc/cobbler/modules.conf.  The value for --owners is a comma seperated list of users and groups as specified in /etc/cobbler/users.conf.  For more information see the users.conf file as well as the Cobbler Wiki.  In the default Cobbler configuration, this value is completely ignored, as is users.conf.
+
+=item template-files
+
+This feature allows cobbler to be used as a configuration management system.  The argument is a space delimited string of key=value pairs. Each key is the path to a template file, each value is the path to install the file on the system.  This is described in further detail on the Cobbler Wiki and is implemented using special code in the post install.  Koan also can retrieve these files from a cobbler server on demand, effectively allowing cobbler to function as a lightweight templated configuration management system.
 
 =back
 
@@ -298,7 +302,7 @@ on your network will result in faster, more up-to-date installations and faster 
 are only provisioning a home setup, this will probably be overkill, though it can be very useful
 for larger setups (labs, datacenters, etc).
 
-B<cobbler repo add --mirror=url --name=string [--rpmlist=list] [--creatrepo-flags=string] [--keep-updated=Y/N] [--priority=number] [--arch=string] [--mirror-locally=Y/N]>
+B<cobbler repo add --mirror=url --name=string [--rpmlist=list] [--creatrepo-flags=string] [--keep-updated=Y/N] [--priority=number] [--arch=string] [--mirror-locally=Y/N] [--breed=yum|apt|rsync|rhn]>
 
 =over
 
@@ -368,6 +372,10 @@ Specifies what architecture the repository should use.  By default the current s
 =item yumopts
 
 Sets values for additional yum options that the repo should use on installed systems.  For instance if a yum plugin takes a certain parameter "alpha" and "beta", use something like --yumopts="alpha=2 beta=3".
+
+=item breed
+
+Ordinarily cobbler's repo system will understand what you mean without supplying this parameter, though if you want to mirror a destination source using apt, you'll need to supply "apt" as the value for this parameter.
 
 =back
 
