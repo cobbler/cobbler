@@ -86,6 +86,10 @@ def main():
                  dest="is_virt",
                  action="store_true",
                  help="install new virtual guest")
+    p.add_option("-u", "--update-files",
+                 dest="is_update_files",
+                 action="store_true",
+                 help="update templated files from cobbler config management")
     p.add_option("-V", "--virt-name",
                  dest="virt_name",
                  help="use this name for the virtual guest")
@@ -145,6 +149,7 @@ def main():
         k.list_items          = options.list_items
         k.server              = options.server
         k.is_virt             = options.is_virt
+        k.is_update_files     = options.is_update_files
         k.is_replace          = options.is_replace
         k.is_display          = options.is_display
         k.profile             = options.profile
@@ -214,8 +219,8 @@ class Koan:
         self.list_profiles     = None
         self.list_systems      = None
         self.is_virt           = None
+        self.is_update_files   = None
         self.is_replace        = None
-        self.dryrun            = None
         self.port              = None
         self.virt_name         = None
         self.virt_type         = None
@@ -235,11 +240,11 @@ class Koan:
 
         # check to see that exclusive arguments weren't used together
         found = 0
-        for x in (self.is_virt, self.is_replace, self.is_display, self.list_items):
+        for x in (self.is_virt, self.is_replace, self.is_update_files, self.is_display, self.list_items):
             if x:
                found = found+1
         if found != 1:
-            raise InfoException, "choose: --virt, --replace-self, --list=what, or --display"
+            raise InfoException, "choose: --virt, --replace-self, --update-files, --list=what, or --display"
  
 
         # This set of options are only valid with --server
@@ -373,6 +378,8 @@ class Koan:
             self.virt()
         elif self.is_replace:
             self.replace()
+        elif self.is_update_files:
+            self.update_files()
         else:
             self.display()
     
@@ -643,6 +650,56 @@ class Koan:
 
         return self.net_install(after_download)
 
+    #---------------------------------------------------
+
+    def update_files(self):
+        """
+        Contact the cobbler server and wget any config-management
+        files in cobbler that we are providing to nodes.  Basically
+        this turns cobbler into a lighweight configuration management
+        system for folks who are not needing a more complex CMS.
+        
+        Read more at:
+        https://fedorahosted.org/cobbler/wiki/BuiltinConfigManagement
+        """
+
+        # FIXME: make this a utils.py function
+        if self.profile:
+            profile_data = self.get_data("profile",self.profile)
+        elif self.system:
+            profile_data = self.get_data("system",self.system)
+        elif self.image:
+            profile_data = self.get_data("image",self.image)
+        else:
+            # shouldn't end up here, right?
+            profile_data = {}
+
+        # BOOKMARK
+        template_files = profile_data["template_files"]
+        template_files = utils.input_string_or_hash(template_files)
+        template_keys  = template_files.keys()
+
+        print "- template map: %s" % template_files
+
+        print "- processing for files to download..."
+        for src in template_keys: 
+            dest = template_files[src]
+            print "- file: %s" % dest
+            save_as = dest
+            dest = dest.replace("_","__")
+            dest = dest.replace("/","_")
+            pattern = "http://%s/cblr/svc/op/template/%s/%s/path/%s"
+            if profile_data.has_key("interfaces"):
+                url = pattern % (profile_data["http_server"],"system",profile_data["name"],dest)
+            else:
+                url = pattern % (profile_data["http_server"],"profile",profile_data["name"],dest)
+            cmd = [ "/usr/bin/wget", url, "--output-document", save_as ]
+            utils.subprocess_call(cmd)
+       
+        return True 
+
+  
+ 
     #---------------------------------------------------
 
     def replace(self):
