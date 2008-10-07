@@ -1047,25 +1047,25 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         obj = self.__get_object(object_id)
         return self.api.copy_distro(obj,newname)
 
-    def copy_profile(self,object_id,token=None):
+    def copy_profile(self,object_id,newname,token=None):
         self.log("copy_profile",object_id=object_id,token=token)
         self.check_access(token,"copy_profile")
         obj = self.__get_object(object_id)
         return self.api.copy_profile(obj,newname)
 
-    def copy_system(self,object_id,token=None):
+    def copy_system(self,object_id,newname,token=None):
         self.log("copy_system",object_id=object_id,token=token)
         self.check_access(token,"copy_system")
         obj = self.__get_object(object_id)
         return self.api.copy_system(obj,newname)
 
-    def copy_repo(self,object_id,token=None):
+    def copy_repo(self,object_id,newname,token=None):
         self.log("copy_repo",object_id=object_id,token=token)
         self.check_access(token,"copy_repo")
         obj = self.__get_object(object_id)
         return self.api.copy_repo(obj,newname)
 
-    def copy_image(self,object_id,token=None):
+    def copy_image(self,object_id,newname,token=None):
         self.log("copy_image",object_id=object_id,token=token)
         self.check_access(token,"copy_image")
         obj = self.__get_object(object_id)
