@@ -184,11 +184,11 @@ class RepoSyncFunction(commands.CobblerFunction):
 
     def add_options(self, p, args):
         p.add_option("--only",           dest="only",             help="update only this repository name")
-        p.add_option("--retries",        dest="retries",          help="retry each repo this many times", default=1)
+        p.add_option("--tries",          dest="tries",            help="try each repo this many times", default=1)
         p.add_option("--no-fail",        dest="nofail",           help="don't stop reposyncing if a failure occurs", action="store_true")
 
     def run(self):
-        return self.api.reposync(self.options.only, retries=self.options.retries, nofail=self.options.nofail)
+        return self.api.reposync(self.options.only, tries=self.options.tries, nofail=self.options.nofail)
 
 ########################################################
 

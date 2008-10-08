@@ -42,7 +42,7 @@ class RepoSync:
 
     # ==================================================================================
 
-    def __init__(self,config):
+    def __init__(self,config,tries=1,nofail=False):
         """
         Constructor
         """
@@ -53,17 +53,27 @@ class RepoSync:
         self.systems   = config.systems()
         self.settings  = config.settings()
         self.repos     = config.repos()
-        self.rflags     = self.settings.yumreposync_flags
+        self.rflags    = self.settings.yumreposync_flags
+        self.tries     = tries
+        self.nofail    = nofail
 
     # ===================================================================
 
-    def run(self, name=None, verbose=True, retries=1, nofail=False):
+    def run(self, name=None, verbose=True):
         """
         Syncs the current repo configuration file with the filesystem.
         """
+            
+        try:
+            self.tries = int(self.tries)
+        except:
+            raise CX(_("retry value must be an integer"))
 
         self.verbose = verbose
+
+        report_failure = False
         for repo in self.repos:
+
             if name is not None and repo.name != name:
                 # invoked to sync only a specific repo, this is not the one
                 continue
@@ -81,8 +91,27 @@ class RepoSync:
             
             # which may actually NOT reposync if the repo is set to not mirror locally
             # but that's a technicality
-            repo.sync(repo_mirror,self)
+
+            for x in range(self.tries+1,1,-1):
+                success = False
+                try:
+                    repo.sync(repo_mirror,self) 
+                    success = True
+                except:
+                    traceback.print_exc()
+                    print _("- reposync failed, tries left: %s") % (x-2)
+
+            if not success:
+                report_failure = True
+                if not self.nofail:
+                    raise CX(_("reposync failed, retry limit reached, aborting"))
+                else:
+                    print _("- reposync failed, retry limit reached, skipping")
+
             self.update_permissions(repo_path)
+
+        if report_failure:
+            raise CX(_("overall reposync failed, at least one repo failed to synchronize"))
 
         return True
     
