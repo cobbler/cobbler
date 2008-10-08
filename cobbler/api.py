@@ -413,13 +413,13 @@ class BootAPI:
         ).get_manager(self._config)
         return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns)
 
-    def reposync(self, name=None):
+    def reposync(self, name=None, retries=1, nofail=False):
         """
         Take the contents of /var/lib/cobbler/repos and update them --
         or create the initial copy if no contents exist yet.
         """
         self.log("reposync",[name])
-        reposync = action_reposync.RepoSync(self._config)
+        reposync = action_reposync.RepoSync(self._config, retries=retries, nofail=nofail)
         return reposync.run(name)
 
     def status(self,mode=None):

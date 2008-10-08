@@ -57,7 +57,7 @@ class RepoSync:
 
     # ===================================================================
 
-    def run(self, name=None, verbose=True):
+    def run(self, name=None, verbose=True, retries=1, nofail=False):
         """
         Syncs the current repo configuration file with the filesystem.
         """

@@ -517,13 +517,13 @@ class PXEGen:
             if not os.path.exists(template):
                raise CX(_("template source %s does not exist") % template)
                continue
-            elif not os.path.isdir(dest_dir):
+            elif write_file and not os.path.isdir(dest_dir):
                raise CX(_("template destination (%s) is invalid") % dest_dir)
                continue
-            elif os.path.exists(dest): 
+            elif write_file and os.path.exists(dest): 
                raise CX(_("template destination (%s) already exists") % dest)
                continue
-            elif os.path.isdir(dest):
+            elif write_file and os.path.isdir(dest):
                raise CX(_("template destination (%s) is a directory") % dest)
                continue
             elif template == "" or dest == "": 
