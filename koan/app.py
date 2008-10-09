@@ -728,7 +728,7 @@ class Koan:
             if not os.path.exists("/sbin/grubby"):
                 raise InfoException, "grubby is not installed"
             k_args = self.calc_kernel_args(profile_data,replace_self=True)
-         
+
             kickstart = self.safe_load(profile_data,'kickstart')
 
             self.build_initrd(
@@ -923,34 +923,36 @@ class Koan:
                 kextra = "autoyast=" + kickstart
             else:
                 kextra = "ks=" + kickstart 
-                if self.static_interface is not None:
-                    # Pass IP configuration as kernel parameters, so anaconda
-                    # stage1 doesn't need DHCP.
-                    interface_name = self.static_interface
-                    interfaces = self.safe_load(pd, "interfaces")
-                    if interface_name.startswith("eth"):
-                        alt_interface_name = interface_name.replace("eth", "intf")
-                        interface_data = self.safe_load(interfaces, interface_name, alt_interface_name)
-                    else:
-                        interface_data = self.safe_load(interfaces, interface_name)
 
-                    ip = self.safe_load(interface_data, "ip_address")
-                    subnet = self.safe_load(interface_data, "subnet")
-                    gateway = self.safe_load(interface_data, "gateway")
-                    kextra = kextra + " ksdevice=%s" % interface_name
-                    if ip is not None:
-                        kextra = kextra + " ip=%s" % ip
-                    if subnet is not None:
-                        kextra = kextra + " netmask=%s" % subnet
-                    if gateway is not None:
-                        kextra = kextra + " gateway=%s" % gateway
         if options !="":
             kextra = kextra + " " + options
         # parser issues?  lang needs a trailing = and somehow doesn't have it.
 
         # convert the from-cobbler options back to a hash
         # so that we can override it in a way that works as intended
+
         hashv = utils.input_string_or_hash(kextra)
+
+        if self.static_interface is not None and (breed is None or breed == "redhat"):
+            interface_name = self.static_interface
+            interfaces = self.safe_load(pd, "interfaces")
+            if interface_name.startswith("eth"):
+                alt_interface_name = interface_name.replace("eth", "intf")
+                interface_data = self.safe_load(interfaces, interface_name, alt_interface_name)
+            else:
+                interface_data = self.safe_load(interfaces, interface_name)
+
+            ip = self.safe_load(interface_data, "ip_address")
+            subnet = self.safe_load(interface_data, "subnet")
+            gateway = self.safe_load(interface_data, "gateway")
+
+            hashv["ksdevice"] = self.static_interface
+            if ip is not None:
+                hashv["ip"] = ip
+            if subnet is not None:
+                hashv["netmask"] = subnet
+            if gateway is not None:
+                hashv["gateway"] = gateway
 
         if replace_self:
            hashv["ks"] = "file:ks.cfg"
