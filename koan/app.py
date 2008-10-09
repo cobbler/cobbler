@@ -113,6 +113,9 @@ def main():
     p.add_option("-s", "--server",
                  dest="server",
                  help="attach to this cobbler server")
+    p.add_option("-S", "--static-interface",
+                 dest="static_interface",
+                 help="use static network configuration from this interface while installing")
     p.add_option("-t", "--port",
                  dest="port",
                  help="cobbler xmlrpc port (default 25151)")
@@ -155,13 +158,14 @@ def main():
         k.profile             = options.profile
         k.system              = options.system
         k.image               = options.image
-        k.live_cd           = options.live_cd
+        k.live_cd             = options.live_cd
         k.virt_path           = options.virt_path
         k.virt_type           = options.virt_type
         k.virt_bridge         = options.virt_bridge
         k.no_gfx              = options.no_gfx
         k.add_reinstall_entry = options.add_reinstall_entry
         k.kopts_override      = options.kopts_override
+        k.static_interface    = options.static_interface
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -222,6 +226,7 @@ class Koan:
         self.is_update_files   = None
         self.is_replace        = None
         self.port              = None
+        self.static_interface  = None
         self.virt_name         = None
         self.virt_type         = None
         self.virt_path         = None 
@@ -918,6 +923,27 @@ class Koan:
                 kextra = "autoyast=" + kickstart
             else:
                 kextra = "ks=" + kickstart 
+                if self.static_interface is not None:
+                    # Pass IP configuration as kernel parameters, so anaconda
+                    # stage1 doesn't need DHCP.
+                    interface_name = self.static_interface
+                    interfaces = self.safe_load(pd, "interfaces")
+                    if interface_name.startswith("eth"):
+                        alt_interface_name = interface_name.replace("eth", "intf")
+                        interface_data = self.safe_load(interfaces, interface_name, alt_interface_name)
+                    else:
+                        interface_data = self.safe_load(interfaces, interface_name)
+
+                    ip = self.safe_load(interface_data, "ip_address")
+                    subnet = self.safe_load(interface_data, "subnet")
+                    gateway = self.safe_load(interface_data, "gateway")
+                    kextra = kextra + " ksdevice=%s" % interface_name
+                    if ip is not None:
+                        kextra = kextra + " ip=%s" % ip
+                    if subnet is not None:
+                        kextra = kextra + " netmask=%s" % subnet
+                    if gateway is not None:
+                        kextra = kextra + " gateway=%s" % gateway
         if options !="":
             kextra = kextra + " " + options
         # parser issues?  lang needs a trailing = and somehow doesn't have it.
