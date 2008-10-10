@@ -2,7 +2,7 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 1.2.5
+Version: 1.2.6
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
@@ -217,6 +217,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
+* Fri Oct 07 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.6-1
+- Upstream changes (see CHANGELOG)
+
 * Fri Sep 26 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.5-1
 - Upstream changes (see CHANGELOG)
 
@@ -250,123 +253,3 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 * Wed May 27 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.0-2
 - Upstream changes (see CHANGELOG)
 
-* Fri May 16 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.2-2
-- Upstream changes (see CHANGELOG)
-- moved /var/lib/cobbler/settings to /etc/cobbler/settings
-
-* Fri May 09 2008 Michael DeHaan <mdehaan@redhat.com> - 0.9.1-1
-- Upstream changes (see CHANGELOG)
-- packaged /etc/cobbler/users.conf
-- remaining CGI replaced with mod_python
-
-* Tue Apr 08 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.3-2
-- Upstream changes (see CHANGELOG)
-
-* Fri Mar 07 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.2-1
-- Upstream changes (see CHANGELOG)
-
-* Wed Feb 20 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.1-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Feb 15 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.0-2
-- Fix egg packaging
-
-* Fri Feb 15 2008 Michael DeHaan <mdehaan@redhat.com> - 0.8.0-1
-- Upstream changes (see CHANGELOG)
-
-* Mon Jan 21 2008 Michael DeHaan <mdehaan@redhat.com> - 0.7.2-1
-- Upstream changes (see CHANGELOG)
-- prune changelog, see git for full
-
-* Mon Jan 07 2008 Michael DeHaan <mdehaan@redhat.com> - 0.7.1-1
-- Upstream changes (see CHANGELOG)
-- Generalize what files are included in RPM
-- Add new python module directory
-- Fixes for builds on F9 and later
-
-* Thu Dec 14 2007 Michael DeHaan <mdehaan@redhat.com> - 0.7.0-1
-- Upstream changes (see CHANGELOG), testing branch
-- Don't require syslinux
-- Added requires on rsync
-- Disable autoreq to avoid slurping in perl modules
-
-* Wed Nov 14 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.4-2
-- Upstream changes (see CHANGELOG)
-- Permissions changes
-
-* Wed Nov 07 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.3-2
-- Upstream changes (see CHANGELOG)
-- now packaging javascript file(s) seperately for WUI
-- backup state files on upgrade 
-- cobbler sync now has pre/post triggers, so package those dirs/files
-- WebUI now has .htaccess file
-- removed yum-utils as a requirement
-
-* Fri Sep 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.2-2
-- Upstream changes (see CHANGELOG)
-- removed syslinux as a requirement (cobbler check will detect absense)
-- packaged /var/lib/cobbler/settings as a config file
-- added BuildRequires of redhat-rpm-config to help src RPM rebuilds on other platforms
-- permissions cleanup
-- make license field conform to rpmlint
-- relocate cgi-bin files to cobbler subdirectory 
-- include the WUI!
-
-* Thu Aug 30 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.1-2
-- Upstream changes (see CHANGELOG)
-
-* Thu Aug 09 2007 Michael DeHaan <mdehaan@redhat.com> - 0.6.0-1
-- Upstream changes (see CHANGELOG)
-
-* Thu Jul 26 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.2-1
-- Upstream changes (see CHANGELOG)
-- Tweaked description
-
-* Fri Jul 20 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.1-1
-- Upstream changes (see CHANGELOG)
-- Modified description
-- Added logrotate script
-- Added findks.cgi
-
-* Wed Jun 27 2007 Michael DeHaan <mdehaan@redhat.com> - 0.5.0-1
-- Upstream changes (see CHANGELOG)
-- Added dnsmasq.template 
-
-* Fri Apr 27 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.9-1
-- Upstream changes (see CHANGELOG)
-
-* Thu Apr 26 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.8-1
-- Upstream changes (see CHANGELOG)
-- Fix defattr in spec file
-
-* Fri Apr 20 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.7-5
-- Upstream changes (see CHANGELOG)
-- Added triggers to /var/lib/cobbler/triggers
-
-* Thu Apr 05 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.6-0
-- Upstream changes (see CHANGELOG)
-- Packaged 'config' directory under ks_mirror
-
-* Fri Mar 23 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.5-3
-- Upstream changes (see CHANGELOG)
-- Fix sticky bit on /var/www/cobbler files
-
-* Fri Mar 23 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.4-0
-- Upstream changes (see CHANGELOG)
-
-* Wed Feb 28 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.3-0
-- Upstream changes (see CHANGELOG)
-- Description cleanup
-
-* Mon Feb 19 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.2-0
-- Upstream changes (see CHANGELOG)
-
-* Mon Feb 19 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.1-0
-- Bundles menu.c32 (syslinux) for those distros that don't provide it.
-- Unbundles Cheetah since it's available at http://www.python.org/pyvault/centos-4-i386/
-- Upstream changes (see CHANGELOG)
-
-* Mon Feb 19 2007 Michael DeHaan <mdehaan@redhat.com> - 0.4.0-1
-- Upstream changes (see CHANGELOG)
-- Cobbler RPM now owns various directories it uses versus creating them using commands.
-- Bundling a copy of Cheetah for older distros

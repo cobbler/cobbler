@@ -186,7 +186,7 @@ class CobblerXMLRPCInterface:
 
     def is_kickstart_in_use(self,ks,token,**rest):
         self.log("is_kickstart_in_use",token=token)
-        self.check_access(token, "is_kickstart_in_use")
+        # do not check access on this method, it's essentially read-only
         for x in self.api.profiles():
            if x.kickstart is not None and x.kickstart == ks:
                return True

@@ -1,10 +1,11 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-- Mon Sep 27 2008 - 1.2.6 (PENDING)
+- Fri Oct 10 2008 - 1.2.6
 - (BUGF) fix image vs system parentage problem affecting cobbler replicate
 - (BUGF) fix restart-services trigger to not restart dns unneccessarily
 - (BUGF) add missing variable newname to signature for remote copy_ functions
+- (BUGF) fix for ownership ownership module when editing kickstarts
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
