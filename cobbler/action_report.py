@@ -215,7 +215,7 @@ class Report:
                 if key == "interfaces":
                     for (device, info) in value.iteritems():
                         for (info_header, info_value) in info.iteritems():
-                            item[info_header] = device + ': ' + info_value
+                            item[info_header] = str(device) + ': ' + str(info_value)
                             # needs to create order list for print_formatted_fields
                             if count == 0:
                                 out_order.append(info_header)

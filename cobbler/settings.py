@@ -30,6 +30,7 @@ TESTMODE = False
 # we need.
 
 DEFAULTS = {
+    "allow_duplicate_hostnames"   : 0,
     "allow_duplicate_macs"        : 0,
     "allow_duplicate_ips"         : 0,
     "bind_bin"                    : "/usr/sbin/named",

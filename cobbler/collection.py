@@ -301,15 +301,20 @@ class Collection(serializable.Serializable):
        
         if isinstance(ref, item_system.System):
            for (name, intf) in ref.interfaces.iteritems():
-               match_ip = []
-               match_mac = []
-               input_mac = intf["mac_address"] 
-               input_ip  = intf["ip_address"]
+               match_ip    = []
+               match_mac   = []
+               match_hosts = []
+               input_mac   = intf["mac_address"] 
+               input_ip    = intf["ip_address"]
+               input_host  = intf["hostname"]
                if not self.api.settings().allow_duplicate_macs and input_mac is not None and input_mac != "":
                    match_mac = self.api.find_system(mac_address=input_mac,return_list=True)   
                if not self.api.settings().allow_duplicate_ips and input_ip is not None and input_ip != "":
                    match_ip  = self.api.find_system(ip_address=input_ip,return_list=True) 
                # it's ok to conflict with your own net info.
+
+               if not self.api.settings().allow_duplicate_hostnames and input_host is not None and input_host != "":
+                   match_hosts = self.api.find_system(hostname=input_host,return_list=True)
 
                for x in match_mac:
                    if x.name != ref.name:
@@ -317,7 +322,10 @@ class Collection(serializable.Serializable):
                for x in match_ip:
                    if x.name != ref.name:
                        raise CX(_("Can't save system %s. The IP address (%s) is already used by system %s (%s)") % (ref.name, intf["ip_address"], x.name, name))
-
+               for x in match_hosts:
+                   if x.name != ref.name:
+                       raise CX(_("Can't save system %s.  The hostname (%s) is already used by system %s (%s)") % (ref.name, intf["hostname"], x.name, name))
+ 
     def printable(self):
         """
         Creates a printable representation of the collection suitable
