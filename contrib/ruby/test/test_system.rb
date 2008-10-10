@@ -41,8 +41,9 @@ module Cobbler
 
       @auth_token     = 'OICU812B4'
       @system_id      = 717
-      @new_system     = 'system1'
-      @profile        = 'profile1'
+      @system_name    = 'system1'
+      @profile_name   = 'profile1'
+      @image_name     = 'image1'
       @nics           = Array.new
       @nic_details    = {'mac_address' => '00:11:22:33:44:55:66:77'}
       @nic            = NetworkInterface.new(@nic_details)
@@ -118,14 +119,14 @@ module Cobbler
       @connection.should_receive(:call).with('login',@username,@password).once.returns(@auth_token)
       @connection.should_receive(:call).with('update').once.returns{ false }
       
-      system = System.new(:name => @system_name, :profile => @profile_name)
+      system = System.new('name' => @system_name, 'profile' => @profile_name)
       
       assert_raise(Exception) {system.save}
     end
 
-    # Ensures that saving a system works as expected.
+    # Ensures that saving a system based on a profile works as expected.
     #
-    def test_save
+    def test_save_with_profile
       @connection.should_receive(:call).with('login',@username,@password).once.returns(@auth_token)
       @connection.should_receive(:call).with('update').once.returns { true }
       @connection.should_receive(:call).with('new_system',@auth_token).once.returns(@system_id)
@@ -133,7 +134,22 @@ module Cobbler
       @connection.should_receive(:call).with('modify_system',@system_id,'profile',@profile_name,@auth_token).once.returns(true)
       @connection.should_receive(:call).with('save_system',@system_id,@auth_token).once.returns(true)
       
-      system = System.new(:name => @system_name, :profile => @profile_name)
+      system = System.new('name' => @system_name, 'profile' => @profile_name)
+      
+      system.save
+    end
+
+    # Ensures that saving a system based on an image works as expected.
+    #
+    def test_save_with_image
+      @connection.should_receive(:call).with('login',@username,@password).once.returns(@auth_token)
+      @connection.should_receive(:call).with('update').once.returns { true }
+      @connection.should_receive(:call).with('new_system',@auth_token).once.returns(@system_id)
+      @connection.should_receive(:call).with('modify_system',@system_id,'name',@system_name,@auth_token).once.returns(true)
+      @connection.should_receive(:call).with('modify_system',@system_id,'image',@image_name,@auth_token).once.returns(true)
+      @connection.should_receive(:call).with('save_system',@system_id,@auth_token).once.returns(true)
+      
+      system = System.new('name' => @system_name, 'image' => @image_name)
       
       system.save
     end
@@ -151,7 +167,7 @@ module Cobbler
         @nic.bundle_for_saving(0),@auth_token).once.returns(true)
       @connection.should_receive(:call).with('save_system',@system_id,@auth_token).once.returns(true)
       
-      system = System.new(:name => @system_name, :profile => @profile_name)
+      system = System.new('name' => @system_name, 'profile' => @profile_name)
       system.interfaces = @nics
       
       system.save

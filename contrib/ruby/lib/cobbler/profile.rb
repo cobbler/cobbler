@@ -49,7 +49,7 @@ module Cobbler
     cobbler_field :ks_meta
     cobbler_field :kickstart
     
-    def initialize(definitions)
+    def initialize(definitions = nil)
       super(definitions)
     end
     

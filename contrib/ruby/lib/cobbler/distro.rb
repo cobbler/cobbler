@@ -41,7 +41,7 @@ module Cobbler
     cobbler_field :parent
     cobbler_field :ks_meta
     
-    def initialize(definitions)
+    def initialize(definitions = nil)
       super(definitions)
     end
     
