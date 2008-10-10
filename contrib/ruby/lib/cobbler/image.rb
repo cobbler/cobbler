@@ -42,7 +42,7 @@ module Cobbler
     cobbler_field :virt_cpus
     cobbler_field :parent
 
-    def initialize(definitions)
+    def initialize(definitions = nil)
       super(definitions)
     end
     
