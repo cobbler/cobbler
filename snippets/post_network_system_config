@@ -4,7 +4,7 @@
     ## Determine if we should use the MAC address to configure the interfaces first
     #set $configbymac = True
     #for $iname in $ikeys
-    	#$idata = $interfaces["$iname"]
+    	#set $idata = $interfaces[$iname]
     	#if $idata["mac_address"] == ""
     		#set $configbymac = False
     	#end if
@@ -23,14 +23,14 @@
         #if $configbymac
             ## Remove the interface file anaconda made for this mac address
             IFFILE=`grep -i "$mac" /etc/sysconfig/network-scripts/ifcfg-* | cut -d ":" -f 1`
-            IFNAME=`grep "DEVICE=" $iffile | cut -d "=" -f 2` 
+            IFNAME=`grep "DEVICE=" \$IFFILE | cut -d "=" -f 2` 
             ## Rename this interface in modprobe.conf
-            sed -i "s/\$IFNAME/\$iname/" /etc/modprobe.conf
+            sed -i "s/\$IFNAME/$iname/" /etc/modprobe.conf
             ## Remove the old interface file the OS had for it
             rm -f \$IFFILE
             echo "DEVICE=$iname" > $devfile
             echo "HWADDR=$mac" >> $devfile
-            echo "ONBOOT=yes"
+            echo "ONBOOT=yes" >> $devfile
             #if $ip != ""
                 echo "BOOTPROTO=static" >> $devfile
                 echo "IPADDR=$ip" >> $devfile
