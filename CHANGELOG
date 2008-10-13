@@ -27,6 +27,7 @@ Cobbler CHANGELOG
 - (FEAT) duplicate hostname prevention, on by default
 - (FEAT) make import work for Scientific Linux
 - (FEAT) distro remove will remove mirrored content when it's safe to do so
+- (FEAT) repo remove will remove mirrored repo content
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
