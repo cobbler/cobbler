@@ -31,7 +31,7 @@
             echo "DEVICE=$iname" > $devfile
             echo "HWADDR=$mac" >> $devfile
             echo "ONBOOT=yes" >> $devfile
-            #if $ip != ""
+            #if $static.lower() == "true"
                 echo "BOOTPROTO=static" >> $devfile
                 echo "IPADDR=$ip" >> $devfile
                 #if $netmask == ""
