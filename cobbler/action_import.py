@@ -496,9 +496,6 @@ class Importer:
 
            fullname = os.path.join(dirname,x)
            if os.path.islink(fullname) and os.path.isdir(fullname):
-              if os.path.realpath(fullname) == os.path.realpath(dirname):
-                  # Prevent infinite loops importing debian media
-                  continue
               if fullname.startswith(self.path):
                   # Prevent infinite loop with Sci Linux 5 
                   print "- warning: avoiding symlink loop"
