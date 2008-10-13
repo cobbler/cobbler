@@ -86,7 +86,7 @@ class Distros(collection.Collection):
 
             # if we found a mirrored path above, we can delete the mirrored storage /if/
             # no other object is using the same mirrored storage.
-            if os.path.exists(path) and kernel.find("/var/www/cobbler") != -1:
+            if with_delete and os.path.exists(path) and kernel.find("/var/www/cobbler") != -1:
                # this distro was originally imported so we know we can clean up the associated
                # storage as long as nothing else is also using this storage.
                found = False
