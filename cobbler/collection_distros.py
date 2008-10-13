@@ -27,6 +27,8 @@ import item_distro as distro
 from cexceptions import *
 import action_litesync
 from utils import _
+import os.path
+import glob
 
 class Distros(collection.Collection):
 
@@ -52,7 +54,9 @@ class Distros(collection.Collection):
                     raise CX(_("removal would orphan profile: %s") % v.name)
 
         obj = self.find(name=name)
+
         if obj is not None:
+            kernel = obj.kernel
             if recursive:
                 kids = obj.get_children()
                 for k in kids:
@@ -70,6 +74,29 @@ class Distros(collection.Collection):
                 self.log_func("deleted distro %s" % name)
                 if with_triggers: 
                     self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/distro/post/*")
+
+            # look through all mirrored directories and find if any directory is holding
+            # this particular distribution's kernel and initrd
+            possible_storage = glob.glob("/var/www/cobbler/ks_mirror/*")
+            path = None
+            for storage in possible_storage:
+                if os.path.dirname(obj.kernel).find(storage) != -1:
+                    path = storage
+                    continue
+
+            # if we found a mirrored path above, we can delete the mirrored storage /if/
+            # no other object is using the same mirrored storage.
+            if os.path.exists(path) and kernel.find("/var/www/cobbler") != -1:
+               # this distro was originally imported so we know we can clean up the associated
+               # storage as long as nothing else is also using this storage.
+               found = False
+               distros = self.api.distros()
+               for d in distros:
+                   if d.kernel.find(path) != -1:
+                       found = True
+               if not found:
+                   utils.rmtree(path)
+
             return True
         raise CX(_("cannot delete object that does not exist: %s") % name)
 

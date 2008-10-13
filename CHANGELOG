@@ -25,6 +25,8 @@ Cobbler CHANGELOG
 - (FEAT) --template-files makes cobbler more of a full config management system!
 - (FEAT) cobbler reposync now supports --tries=N and --no-fail
 - (FEAT) duplicate hostname prevention, on by default
+- (FEAT) make import work for Scientific Linux
+- (FEAT) distro remove will remove mirrored content when it's safe to do so
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
