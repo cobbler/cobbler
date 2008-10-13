@@ -883,7 +883,7 @@ class RedHatImporter ( BaseImporter ) :
        # it may be slightly wrong, but it will be close enough
        # for RHEL5 we can get it exactly.
        
-       for x in [ "4AS", "4ES", "4WS" ]:
+       for x in [ "4AS", "4ES", "4WS", "4common", "4Desktop" ]:
           if rpm.find(x) != -1:
              return ("redhat", 4, 0)
        for x in [ "3AS", "3ES", "3WS", "3Desktop" ]:
