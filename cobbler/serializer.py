@@ -116,7 +116,7 @@ def serialize_delete(collection, item):
     __release_lock()
     return rc
 
-def deserialize(obj,topological=False):
+def deserialize(obj,topological=True):
     """
     Fill in an empty collection from disk or other storage
     """
