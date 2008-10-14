@@ -1,8 +1,9 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-- ??? ??? ?? 2008 - 1.2.7
+- Tue Oct 14 2008 - 1.2.7
 - (BUGF) go easier on restrictings when importing subprofiles to prevent load errors
+- (FEAT) added debuginator script to scripts/ (not shipped with RPM)
 
 - Fri Oct 10 2008 - 1.2.6
 - (BUGF) fix image vs system parentage problem affecting cobbler replicate
