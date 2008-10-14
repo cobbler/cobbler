@@ -90,7 +90,9 @@ class Profile(item.Item):
             # defs don't exist on this side, don't fail as we need
             # to convert everything -- cobbler check can report it
             self.set_repos(self.repos,bypass_check=True)
-        self.set_parent(self.parent)
+
+        # don't enforce this here, it can cause load problems
+        #self.set_parent(self.parent)
 
         # virt specific 
         self.virt_ram    = self.load_item(seed_data,'virt_ram',self.settings.default_virt_ram)
