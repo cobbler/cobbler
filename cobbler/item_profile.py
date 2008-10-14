@@ -85,8 +85,7 @@ class Profile(item.Item):
             # to convert everything -- cobbler check can report it
             self.set_repos(self.repos,bypass_check=True)
         
-        # do not enforce this here, it's too harsh and may break things
-        # self.set_parent(self.parent)
+        self.set_parent(self.parent)
 
         # virt specific 
         self.virt_ram    = self.load_item(seed_data,'virt_ram',self.settings.default_virt_ram)

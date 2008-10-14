@@ -132,16 +132,16 @@ def deserialize(obj,topological=False):
        # if the depth were 0.  It will be assigned a proper depth at serialization
        # time.  This is a bit cleaner implementation wise than a topological sort,
        # though that would make a shiny upgrade.
+
        datastruct.sort(__depth_cmp)
+
     obj.from_datastruct(datastruct)
     return True
 
 def __depth_cmp(item1, item2):
-    if not item1.has_key("depth"):
-       return 1
-    if not item2.has_key("depth"):
-       return -1
-    return cmp(item1["depth"],item2["depth"])
+    d1 = item1.get("depth",1)
+    d2 = item2.get("depth",2)
+    return cmp(d1,d2)
 
 if __name__ == "__main__":
     print deserialize_item_raw("distro","D1")

@@ -102,7 +102,7 @@ def deserialize_raw(collection_type):
              fd.close()
          return results    
 
-def deserialize(obj,topological=False):
+def deserialize(obj,topological=True):
     """
     Populate an existing object with the contents of datastruct.
     Object must "implement" Serializable.  
@@ -120,11 +120,9 @@ def deserialize(obj,topological=False):
     return True
 
 def __depth_cmp(item1, item2):
-    if not item1.has_key("depth"):
-       return 1
-    if not item2.has_key("depth"):
-       return -1
-    return cmp(item1["depth"],item2["depth"])
+    d1 = item1.get("depth",1)
+    d2 = item2.get("depth",1)
+    return cmp(d1,d2)
 
 if __name__ == "__main__":
     print deserialize_item_raw("distro","D1")
