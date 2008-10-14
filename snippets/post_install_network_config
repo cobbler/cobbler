@@ -1,17 +1,23 @@
+# Start post_install_network_config generated code
 #if $getVar("system_name","") != ""
     #set ikeys = $interfaces.keys()
+    #import re
+    #set $vlanpattern = $re.compile("[a-zA-Z0-9]+\.[0-9]+")
     ##
     ## Determine if we should use the MAC address to configure the interfaces first
+    ## Only physical interfaces are required to have a MAC address
     #set $configbymac = True
     #for $iname in $ikeys
     	#set $idata = $interfaces[$iname]
-    	#if $idata["mac_address"] == ""
+    	#if $idata["mac_address"] == "" and not $vlanpattern.match($iname):
     		#set $configbymac = False
     	#end if
     #end for
     #set $i = 0
     #set $hostname = ""
+
     #for $iname in $ikeys
+#  Start $iname
         #set $idata    = $interfaces[$iname]
         #set $mac      = $idata["mac_address"]
         #set $static   = $idata["static"]
@@ -20,30 +26,71 @@
         #set $gateway  = $idata["gateway"]
         #set $ihostname = $idata["hostname"]
         #set $devfile = "/etc/sysconfig/network-scripts/ifcfg-" + $iname
-        #if $configbymac
+        #if $vlanpattern.match($iname)
+            ## If this is a VLAN interface, skip it, anaconda doesn't know
+            ## about VLANs.
+            #set $is_vlan = "true"
+        #else
+            #set $is_vlan = "false"
+        #end if
+        #if $configbymac and $is_vlan == "false"
             ## Remove the interface file anaconda made for this mac address
-            IFFILE=`grep -i "$mac" /etc/sysconfig/network-scripts/ifcfg-* | cut -d ":" -f 1`
-            IFNAME=`grep "DEVICE=" \$IFFILE | cut -d "=" -f 2` 
+IFFILE=`grep -i "$mac" /etc/sysconfig/network-scripts/ifcfg-* | cut -d ":" -f 1`
+IFNAME=`grep "DEVICE=" \$IFFILE | cut -d "=" -f 2` 
             ## Rename this interface in modprobe.conf
-            sed -i "s/\$IFNAME/$iname/" /etc/modprobe.conf
+sed -i "s/\$IFNAME/$iname/" /etc/modprobe.conf
             ## Remove the old interface file the OS had for it
-            rm -f \$IFFILE
-            echo "DEVICE=$iname" > $devfile
-            echo "HWADDR=$mac" >> $devfile
-            echo "ONBOOT=yes" >> $devfile
+rm -f \$IFFILE
+echo "DEVICE=$iname" > $devfile
+echo "HWADDR=$mac" >> $devfile
+echo "ONBOOT=yes" >> $devfile
             #if $static.lower() == "true"
-                echo "BOOTPROTO=static" >> $devfile
-                echo "IPADDR=$ip" >> $devfile
-                #if $netmask == ""
-                    ## Default to 255.255.255.0?
-                    #set $netmask = "255.255.255.0"
-                #end if
-                echo "NETMASK=$netmask" >> $devfile
-                #if $gateway != ""
-                    echo "GATEWAY=$gateway" >> $devfile
+                #if $ip != ""
+                    ## Only configure static networking if an IP-address is
+                    ## configured
+echo "BOOTPROTO=static" >> $devfile
+echo "IPADDR=$ip" >> $devfile
+                    #if $netmask == ""
+                        ## Default to 255.255.255.0?
+                        #set $netmask = "255.255.255.0"
+                    #end if
+echo "NETMASK=$netmask" >> $devfile
+                    #if $gateway != ""
+echo "GATEWAY=$gateway" >> $devfile
+                    #end if
+                #else
+                    ## Leave the interface unconfigured
+echo "BOOTPROTO=none" >> $devfile
                 #end if
             #else
-                echo "BOOTPROTO=dhcp" >> $devfile
+echo "BOOTPROTO=dhcp" >> $devfile
+            #end if
+        #else if $is_vlan == "true"
+            ## Handle VLAN interfaces with special care. :)
+echo "# Cobbler generated VLAN interface" > $devfile
+echo "DEVICE=$iname" >> $devfile
+echo "VLAN=yes" >> $devfile
+echo "ONPARENT=yes" >> $devfile
+            #if $static.lower() == "true"
+                #if $ip != ""
+                    ## Only configure static networking if an IP-address is
+                    ## configured
+echo "BOOTPROTO=static" >> $devfile
+echo "IPADDR=$ip" >> $devfile
+                    #if $netmask == ""
+                        ## Default to 255.255.255.0?
+                        #set $netmask = "255.255.255.0"
+                    #end if
+echo "NETMASK=$netmask" >> $devfile
+                    #if $gateway != ""
+echo "GATEWAY=$gateway" >> $devfile
+                    #end if
+                #else
+                    ## Leave the interface unconfigured
+echo "BOOTPROTO=none" >> $devfile
+                #end if
+            #else
+echo "BOOTPROTO=dhcp" >> $devfile
             #end if
         #else
             ## jcapel note: I think we only have to rename the interfaces
@@ -51,16 +98,18 @@
             ## This will fail when renaming ethX to ethY, avoid it!
             ## (we can fix this later if we're staging temporary files
             ## somewhere first.)
-            #set $curiname = "eth" + $i
+            #set $curiname = "eth" + $str($i)
             #if $iname != $curiname
-                sed -i "s/$curiname/$iname/" /etc/modprobe.conf
-                (
-                grep -v "DEVICE=" /etc/sysconfig/network-scripts/ifcfg-$curiname
-                echo "DEVICE=$iname"
-                ) > /etc/sysconfig/network-scripts/ifcfg-$iname
-                rm -f /etc/sysconfig/network-scripts/ifcfg-$curiname
+sed -i "s/$curiname/$iname/" /etc/modprobe.conf
+(
+grep -v "DEVICE=" /etc/sysconfig/network-scripts/ifcfg-$curiname
+echo "DEVICE=$iname"
+) > /etc/sysconfig/network-scripts/ifcfg-$iname
+rm -f /etc/sysconfig/network-scripts/ifcfg-$curiname
             #end if
 		#end if
 		#set $i = $i + 1
+#  End $iname
     #end for	
 #end if
+# End post_install_network_config generated code
