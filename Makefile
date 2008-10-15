@@ -17,18 +17,20 @@ manpage:
 	pod2html ./docs/cobbler.pod > ./docs/cobbler.html
  
 test: devinstall
-	-rm -rf /tmp/cobbler_test_bak
-	mkdir -p /tmp/cobbler_test_bak
-	cp /etc/cobbler/settings /tmp/cobbler_test_bak/settings
-	cp /etc/cobbler/modules.conf /tmp/cobbler_test_bak/modules.conf
-	cp -a /var/lib/cobbler/config  /tmp/cobbler_test_bak/config
-	python tests/tests.py
-	-rm -rf /var/lib/cobbler/config
-	-rm /etc/cobbler/settings
-	-rm /etc/cobbler/modules.conf
-	cp -a /tmp/cobbler_test_bak/config /var/lib/cobbler/
-	cp /tmp/cobbler_test_bak/settings /etc/cobbler/settings
-	cp /tmp/cobbler_test_bak/modules.conf /etc/cobbler/modules.conf
+	-(rm -rf /tmp/cobbler_test_bak >/dev/null 2>/dev/null)
+	(mkdir -p /tmp/cobbler_test_bak >/dev/null 2>/dev/null)
+	(cp /etc/cobbler/settings /tmp/cobbler_test_bak/settings >/dev/null 2>/dev/null)
+	(cp /etc/cobbler/modules.conf /tmp/cobbler_test_bak/modules.conf >/dev/null 2>/dev/null)
+	(cp -a /var/lib/cobbler/config  /tmp/cobbler_test_bak/config >/dev/null 2>/dev/null)
+	-(rm test.log >/dev/null 2>/dev/null)
+	#nosetests tests/tests.py --with-coverage --cover-package=cobbler --cover-erase --quiet | tee test.log
+	nosetests tests/tests.py --quiet | tee test.log
+	-(rm -rf /var/lib/cobbler/config >/dev/null 2>/dev/null)
+	-(rm /etc/cobbler/settings >/dev/null 2>/dev/null)
+	-(rm /etc/cobbler/modules.conf >/dev/null 2>/dev/null)
+	(cp -a /tmp/cobbler_test_bak/config /var/lib/cobbler/)
+	(cp /tmp/cobbler_test_bak/settings /etc/cobbler/settings)
+	(cp /tmp/cobbler_test_bak/modules.conf /etc/cobbler/modules.conf)
 
 test2:
 	python tests/multi.py	
