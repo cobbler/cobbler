@@ -160,6 +160,9 @@ class KickGen:
         blended = utils.blender(self.api, False, obj)
         repos = blended["repos"] 
 
+        # keep track of URLs and be sure to not include any duplicates
+        included = {}
+
         for repo in repos:
             # see if this is a source_repo or not
             repo_obj = self.api.find_repo(repo)
@@ -167,9 +170,13 @@ class KickGen:
                 if not repo_obj.yumopts.has_key('enabled') or repo_obj.yumopts['enabled'] == '1':
                    if repo_obj.mirror_locally:
                        baseurl = "http://%s/cobbler/repo_mirror/%s" % (blended["http_server"], repo_obj.name)
-                       buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, baseurl)
+                       if not included.has_key(baseurl):
+                           buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, baseurl)
+                       included[baseurl] = 1
                    else:
-                       buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, repo_obj.mirror)
+                       if not included.has_key(repo_obj.mirror):
+                           buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, repo_obj.mirror)
+                       included[repo_obj.mirror] = 1
             else:
                 # FIXME: what to do if we can't find the repo object that is listed?
                 # this should be a warning at another point, probably not here
@@ -187,7 +194,9 @@ class KickGen:
         count = 0
         for x in source_repos:
             count = count + 1
-            buf = buf + "repo --name=source-%s --baseurl=%s\n" % (count, x[1])
+            if not included.has_key(x[1]):
+                buf = buf + "repo --name=source-%s --baseurl=%s\n" % (count, x[1])
+                included[x[1]] = 1
 
         return buf
 
@@ -208,15 +217,6 @@ class KickGen:
            url = "http://%s/cblr/svc/op/yum/system/%s" % (blended["http_server"], obj.name)
 
         return "wget \"%s\" --output-document=/etc/yum.repos.d/cobbler-config.repo\n" % (url)
-
-    def get_repo_config_file(self,server,urlseg,obj_name,repo_name):
-        """
-        Construct the URL to a repo config file that is usable in kickstart
-        for use with yum.  This is different than the templates cobbler reposync
-        creates, as this file will allow the server to migrate and have different
-        variables for different subnets/profiles/etc.
-        """ 
-        return "http://%s/cblr/%s/%s/%s.repo" % (server,urlseg,obj_name,repo_name)
 
     def generate_kickstart_for_system(self,s):
 

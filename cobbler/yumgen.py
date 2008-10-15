@@ -58,12 +58,6 @@ class YumGen:
         self.repos       = config.repos()
         self.templar     = templar.Templar(config)
 
-    #def retemplate_all_yum_repos(self):
-    #    for p in self.profiles:
-    #        self.retemplate_yum_repos(p,True)
-    #    for system in self.systems:
-    #        self.retemplate_yum_repos(system,False)
-
     def get_yum_config(self,obj,is_profile):
         """
         Return one large yum repo config blob suitable for use by any target system that requests it.
@@ -84,12 +78,18 @@ class YumGen:
         # this is basically to support things like RHEL5 split trees
         # if there is only one, then there is no need to do this.
 
+        included = {}
         for r in blended["source_repos"]:
             filename = self.settings.webdir + "/" + "/".join(r[0].split("/")[4:])
-            input_files.append(filename)
+            if not included.has_key(filename):
+                input_files.append(filename)
+            included[filename] = 1
 
         for repo in blended["repos"]:
-            input_files.append(os.path.join(self.settings.webdir, "repo_mirror", repo, "config.repo"))
+            path = os.path.join(self.settings.webdir, "repo_mirror", repo, "config.repo")
+            if not included.has_key(path):
+                input_files.append(path)
+            included[path] = 1
 
         for infile in input_files:
             if infile.find("ks_mirror") == -1:
@@ -102,7 +102,9 @@ class YumGen:
                 # file does not exist and the user needs to run reposync
                 # before we will use this, cobbler check will mention
                 # this problem
+                totalbuf = totalbuf +  "\n# error: could not read repo source: %s\n\n" % infile
                 continue
+
             infile_data = infile_h.read()
             infile_h.close()
             outfile = None # disk output only
