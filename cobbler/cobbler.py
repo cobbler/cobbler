@@ -87,5 +87,9 @@ def main():
             utils.print_exc(exc,full=True)
             return 1
 
+def test_hello():
+    # trivial command line testing, by no means exhaustive
+    assert BootCLI().run(["/usr/bin/cobbler", "cobbler", "--help"]) == 0
+
 if __name__ == "__main__":
     sys.exit(main())
