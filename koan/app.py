@@ -689,10 +689,14 @@ class Koan:
         print "- processing for files to download..."
         for src in template_keys: 
             dest = template_files[src]
-            print "- file: %s" % dest
             save_as = dest
             dest = dest.replace("_","__")
             dest = dest.replace("/","_")
+            if not save_as.startswith("/"):
+                # this is a file in the template system that is not to be downloaded
+                continue
+            print "- file: %s" % save_as
+
             pattern = "http://%s/cblr/svc/op/template/%s/%s/path/%s"
             if profile_data.has_key("interfaces"):
                 url = pattern % (profile_data["http_server"],"system",profile_data["name"],dest)
