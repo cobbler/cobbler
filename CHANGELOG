@@ -1,6 +1,12 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
+- ??? - ???
+- (BUGF) duplicate repo supression feature
+
+- Wed Oct 15 2008 - 1.2.8
+- (BUGF) make cobbler read /etc/cobbler/settings.py (introduced in 1.2.6)
+
 - Tue Oct 14 2008 - 1.2.7
 - (BUGF) go easier on restrictings when importing subprofiles to prevent load errors
 - (FEAT) added debuginator script to scripts/ (not shipped with RPM)
