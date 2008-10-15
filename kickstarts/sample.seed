@@ -18,11 +18,18 @@ d-i	console-setup/layout	select	U.S. English
 # System language
 
 # Use network installation
-#d-i	mirror/http/hostname	string	mirror.domain
-#d-i	mirror/http/directory	string	/debian_directory
+# NOTE : The suite seems to be hardcoded on installer
+d-i	mirror/suite		string	$suite
+d-i	mirror/country		string	enter information manually
+d-i	mirror/http/hostname	string	$hostname
+d-i	mirror/http/directory	string	$directory
+d-i	mirror/http/proxy	string	
 # If any cobbler repo definitions were referenced in the kickstart profile, include them here.
 
 # Network information
+# NOTE : this questions are asked befor downloading preseed
+#d-i	netcfg/get_hostname	string unassigned-hostname
+#d-i	netcfg/get_domain	string unassigned-hostname
 
 # Reboot after installation
 finish-install	finish-install/reboot_in_progress	note	

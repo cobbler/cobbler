@@ -424,7 +424,8 @@ class PXEGen:
                 append_line = "%s autoyast=%s" % (append_line, kickstart_path)
             elif distro.breed == "debian":
                 append_line = "%s auto=true url=%s" % (append_line, kickstart_path)
-                append_line = append_line.replace("ksdevice","interface")
+            # interface=bootif causes a failure
+            #    append_line = append_line.replace("ksdevice","interface")
 
         if arch == "s390x":
             # remove the prefix "append"

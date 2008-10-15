@@ -294,14 +294,11 @@ class Importer:
        """
 
        base = importer.get_rootdir()
-       dest_link = os.path.join(self.settings.webdir, "links", distro.name)
-
-       meta = distro.ks_meta
-
-       # create the links directory only if we are mirroring because with
-       # SELinux Apache can't symlink to NFS (without some doing)
 
        if self.network_root is None:
+           dest_link = os.path.join(self.settings.webdir, "links", distro.name)
+           # create the links directory only if we are mirroring because with
+           # SELinux Apache can't symlink to NFS (without some doing)
            if not os.path.exists(dest_link):
                try:
                    os.symlink(base, dest_link)
@@ -309,17 +306,18 @@ class Importer:
                    # this shouldn't happen but I've seen it ... debug ...
                    print _("- symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
            # how we set the tree depends on whether an explicit network_root was specified
-           meta["tree"] = "http://@@http_server@@/cblr/links/%s" % (distro.name)
+           tree = "http://@@http_server@@/cblr/links/%s" % (distro.name)
+           importer.set_install_tree( distro, tree)
        else:
            # where we assign the kickstart source is relative to our current directory
            # and the input start directory in the crawl.  We find the path segments
            # between and tack them on the network source path to find the explicit
            # network path to the distro that Anaconda can digest.  
            tail = self.path_tail(self.path, base)
-           meta["tree"] = self.network_root[:-1] + tail
+           tree = self.network_root[:-1] + tail
+           importer.set_install_tree( distro, tree)
 
        # print _("- tree: %s") % meta["tree"]
-       distro.set_ksmeta(meta)
 
    # ============================================================================
 
@@ -817,6 +815,11 @@ class BaseImporter:
    
    # ===================================================================
 
+   def set_install_tree(self, distro, url):
+       distro.ks_meta["tree"] = url
+   
+   # ===================================================================
+
    def learn_arch_from_tree(self):
        """ 
        If a distribution is imported from DVD, there is a good chance the path doesn't 
@@ -994,12 +997,23 @@ class DebianImporter ( BaseImporter ) :
 
    def set_variance(self, flavor, major, minor):
 
-       dist_names = { '4.0' : "Etch" , '5.0' : "Lenny" }
+       dist_names = { '4.0' : "etch" , '5.0' : "lenny" }
        dist_vers = "%s.%s" % ( major , minor )
-       os_version = "debian%s" % dist_names[dist_vers]
+       os_version = dist_names[dist_vers]
 
        return os_version , "/etc/cobbler/sample.seed"
 
+   def set_install_tree(self, distro, url):
+       idx = url.find("://")
+       url = url[idx+3:]
+
+       idx = url.find("/")
+       distro.ks_meta["hostname"] = url[:idx]
+       distro.ks_meta["directory"] = url[idx+1:]
+       if not distro.os_version :
+           raise CX(_("OS version is required for debian distros"))
+       distro.ks_meta["suite"] = distro.os_version
+   
 class UbuntuImporter ( DebianImporter ) :
 
    def __init__(self,(rootdir,pkgdir)):
@@ -1034,7 +1048,7 @@ class UbuntuImporter ( DebianImporter ) :
        # Release names taken from wikipedia
        dist_names = { '4.10':"WartyWarthog", '5.4':"HoaryHedgehog", '5.10':"BreezyBadger", '6.4':"DapperDrake", '6.10':"EdgyEft", '7.4':"FeistyFawn", '7.10':"GutsyGibbon", '8.4':"HardyHeron", '8.10':"IntrepidIbex", '9.4':"JauntyJackalope" }
        dist_vers = "%s.%s" % ( major , minor )
-       os_version = "ubuntu%s" % dist_names[dist_vers]
+       os_version = dist_names[dist_vers]
 
        return os_version , "/etc/cobbler/sample.seed"
 
