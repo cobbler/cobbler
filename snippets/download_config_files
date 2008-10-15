@@ -16,7 +16,9 @@
 
     #set $turl = "http://"+$http_server+"/cblr/svc/op/template/"+$ttype+"/"+$tname+"/path/"+$tpath
 
+#if $orig.startswith("/")
 wget "$turl" --output-document="$orig"
+#end if
 
 #end for
 
