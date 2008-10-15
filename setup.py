@@ -140,7 +140,7 @@ if __name__ == "__main__":
                                 (backpath, []),
 
                                 # bootloaders and syslinux support files
-                                (cobpath,  ['loaders/elilo-3.6-ia64.efi']),
+                                (cobpath,  ['loaders/elilo-3.8-ia64.efi']),
                                 (cobpath,  ['loaders/menu.c32']),
                                 ("/var/lib/cobbler/config/distros.d",  []),
                                 ("/var/lib/cobbler/config/profiles.d", []),

@@ -214,7 +214,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/snippets/func_install_if_enabled
 %config(noreplace) /var/lib/cobbler/snippets/func_register_if_enabled
 %config(noreplace) /var/lib/cobbler/snippets/download_config_files
-/var/lib/cobbler/elilo-3.6-ia64.efi
+/var/lib/cobbler/elilo-3.8-ia64.efi
 /var/lib/cobbler/menu.c32
 %defattr(660,root,root)
 %config(noreplace) /etc/cobbler/users.digest 

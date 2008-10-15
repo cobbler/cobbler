@@ -82,7 +82,7 @@ class PXEGen:
         utils.copyfile_pattern('/boot/memtest*', dst, require_match=False)
   
         # copy elilo which we include for IA64 targets
-        utils.copyfile_pattern('/var/lib/cobbler/elilo-3.6-ia64.efi', dst)
+        utils.copyfile_pattern('/var/lib/cobbler/elilo-3.8-ia64.efi', dst)
  
         # copy menu.c32 as the older one has some bugs on certain RHEL
         utils.copyfile_pattern('/var/lib/cobbler/menu.c32', dst)
