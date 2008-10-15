@@ -1,0 +1,6 @@
+Do the following to enable "make test" from top-level
+
+yum install python-nose
+easy_install coverage
+
+

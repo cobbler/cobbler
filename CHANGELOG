@@ -31,6 +31,7 @@ Cobbler CHANGELOG
 - (FEAT) added snippet for better post-install network configuration
 - (BUGF) duplicate repo supression to prevent errors in certain Andaconda's
 - (FEAT) post_network_snippet/interfaces can set up VLANs
+- (FEAT) call unittests with nose, which offers cleaner output, see tests/README
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"

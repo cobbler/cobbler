@@ -16,53 +16,65 @@ manpage:
 	pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz
 	pod2html ./docs/cobbler.pod > ./docs/cobbler.html
  
-test: devinstall
-	-rm -rf /tmp/cobbler_test_bak
-	mkdir -p /tmp/cobbler_test_bak
-	cp /etc/cobbler/settings /tmp/cobbler_test_bak/settings
-	cp /etc/cobbler/modules.conf /tmp/cobbler_test_bak/modules.conf
-	cp -a /var/lib/cobbler/config  /tmp/cobbler_test_bak/config
-	python tests/tests.py
-	-rm -rf /var/lib/cobbler/config
-	-rm /etc/cobbler/settings
-	-rm /etc/cobbler/modules.conf
-	cp -a /tmp/cobbler_test_bak/config /var/lib/cobbler/
-	cp /tmp/cobbler_test_bak/settings /etc/cobbler/settings
-	cp /tmp/cobbler_test_bak/modules.conf /etc/cobbler/modules.conf
+test: 
+	prefix=test
+	export prefix
+	make savestate
+	make eraseconfig
+	make install
+	-make nosetests
+	make restorestate
 
-test2:
-	python tests/multi.py	
+nosetests:
+	#nosetests tests cobbler tests.py --with-coverage --cover-package=cobbler --cover-erase --quiet | tee test.log
+	nosetests tests cobbler | tee test.log
 
-build: clean updatewui
+build: clean manpage updatewui
 	python setup.py build -f
 
-install: clean manpage
+install: clean manpage updatewui
 	python setup.py install -f
 
-devinstall:
-	-cp /etc/cobbler/settings /tmp/cobbler_settings
-	-cp /etc/cobbler/modules.conf /tmp/cobbler_modules.conf
-	-cp /etc/httpd/conf.d/cobbler.conf /tmp/cobbler_http.conf
-	-cp /etc/cobbler/acls.conf /tmp/cobbler_acls.conf
-	-cp /etc/cobbler/users.conf /tmp/cobbler_users.conf
-	-cp /etc/cobbler/users.digest /tmp/cobbler_users.digest
-	make install
-	-cp /tmp/cobbler_settings /etc/cobbler/settings
-	-cp /tmp/cobbler_modules.conf /etc/cobbler/modules.conf
-	-cp /tmp/cobbler_users.conf /etc/cobbler/users.conf
-	-cp /tmp/cobbler_acls.conf /etc/cobbler/acls.conf
-	-cp /tmp/cobbler_users.digest /etc/cobbler/users.digest
-	-cp /tmp/cobbler_http.conf /etc/httpd/conf.d/cobbler.conf
+devinstall: 
+	prefix=devinstall
+	make savestate 
+	make install 
+	make restorestate
+
+savestate:
+	path=/tmp/cobbler_settings/$(prefix)
+	-cp /etc/cobbler/settings $(path)/settings
+	-cp /etc/cobbler/modules.conf $(path)/modules.conf
+	-cp /etc/httpd/conf.d/cobbler.conf $(path)http.conf
+	-cp /etc/cobbler/acls.conf $(path)/acls.conf
+	-cp /etc/cobbler/users.conf $(path)/users.conf
+	-cp /etc/cobbler/users.digest $(path)/users.digest
+
+
+restorestate:
+	path=/tmp/cobbler_settings/$(prefix)
+	-cp $(path)/settings /etc/cobbler/settings
+	-cp $(path)/modules.conf /etc/cobbler/modules.conf
+	-cp $(path)/users.conf /etc/cobbler/users.conf
+	-cp $(path)/acls.conf /etc/cobbler/acls.conf
+	-cp $(path)/users.digest /etc/cobbler/users.digest
+	-cp $(path)/http.conf /etc/httpd/conf.d/cobbler.conf
 	find /var/lib/cobbler/triggers | xargs chmod +x
 	chown -R apache /var/www/cobbler 
 	chmod -R +x /var/www/cobbler/web
 	chmod -R +x /var/www/cobbler/svc
-	-rm -rf /tmp/cobbler_*
+	#-rm -rf $(path)
 
 completion:
 	python mkbash.py
 
-webtest: clean updatewui devinstall
+webtest: 
+	make clean 
+	make updatewui 
+	make devinstall 
+	make restartservices
+
+restartservices:
 	/sbin/service cobblerd restart
 	/sbin/service httpd restart
 

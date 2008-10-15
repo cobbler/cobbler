@@ -6,7 +6,7 @@
     #set $orig = $tpath
     #set $tpath = $tpath.replace("_","__").replace("/","_")
     
-    #if $getVar("$system","") != ""
+    #if $getVar("system_name","") != ""
         #set $ttype = "system"
         #set $tname = $system_name
     #else
