@@ -935,11 +935,6 @@ class RedHatImporter ( BaseImporter ) :
            except:
                os_version = "other"
 
-           if major >= 8:
-                return os_version , "/etc/cobbler/sample_end.ks"
-           if major >= 6:
-                return os_version , "/etc/cobbler/sample.ks"
-
        if flavor == "redhat" or flavor == "centos":
            if major <= 2:
                 # rhel2.1 is the only rhel2
@@ -950,6 +945,26 @@ class RedHatImporter ( BaseImporter ) :
                 except:
                     os_version = "other"
 
+       kickbase = "/var/lib/cobbler/kickstarts"
+       # Look for ARCH/OS_VERSION kickstart first
+       #          OS_VERSION next
+       #          ARCH/default.ks next
+       #          default.ks finally.
+       kickstarts = ["%s/%s/%s.ks" % (kickbase,distro.arch,distro.os_version), 
+                     "%s/%s.ks" % (kickbase,distro.os_version),
+                     "%s/%s/default.ks" % (kickbase,distro.arch),
+                     "%s/default.ks" % kickbase]
+       for kickstart in kickstarts:
+           if os.path.exists(kickstart):
+               return os_version, kickstart
+
+       if flavor == "fedora":
+           if major >= 8:
+                return os_version , "/etc/cobbler/sample_end.ks"
+           if major >= 6:
+                return os_version , "/etc/cobbler/sample.ks"
+
+       if flavor == "redhat" or flavor == "centos":
            if major >= 5:
                 return os_version , "/etc/cobbler/sample.ks"
 
