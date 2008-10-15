@@ -43,6 +43,7 @@ $SNIPPET('main_partition_select')
 %pre
 $kickstart_start
 $SNIPPET('pre_partition_select')
+$SNIPPET('pre_install_network_config')
 
 %packages
 $func_install_if_enabled
@@ -51,6 +52,7 @@ $func_install_if_enabled
 
 $yum_config_stanza
 $SNIPPET('post_install_kernel_options')
+$SNIPPET('post_install_network_config')
 $SNIPPET('func_register_if_enabled')
 $SNIPPET('download_config_files')
 $kickstart_done
