@@ -32,6 +32,8 @@ Cobbler CHANGELOG
 - (BUGF) duplicate repo supression to prevent errors in certain Andaconda's
 - (FEAT) post_network_snippet/interfaces can set up VLANs
 - (FEAT) call unittests with nose, which offers cleaner output, see tests/README
+- (FEAT) update included elilo to 3.8
+- (BUGF) quote append line for elilo
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
