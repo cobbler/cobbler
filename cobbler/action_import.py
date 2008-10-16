@@ -941,19 +941,25 @@ class RedHatImporter ( BaseImporter ) :
                 os_version = "rhel2.1"
            else:
                 try:
-                    os_version = "rhel%s" % int(major)
+                    os_version = "rhel%s.%s" % (int(major), int(minor))
                 except:
                     os_version = "other"
 
        kickbase = "/var/lib/cobbler/kickstarts"
-       # Look for ARCH/OS_VERSION kickstart first
+       # Look for ARCH/OS_VERSION.MINOR kickstart first
+       #          ARCH/OS_VERSION next
        #          OS_VERSION next
+       #          OS_VERSION.MINOR next
        #          ARCH/default.ks next
        #          default.ks finally.
-       kickstarts = ["%s/%s/%s.ks" % (kickbase,distro.arch,distro.os_version), 
-                     "%s/%s.ks" % (kickbase,distro.os_version),
-                     "%s/%s/default.ks" % (kickbase,distro.arch),
-                     "%s/default.ks" % kickbase]
+       kickstarts = [
+           "%s/%s/%s.ks" % (kickbase,distro.arch,distro.os_version), 
+           "%s/%s/%s.ks" % (kickbase,distro.arch,distro.os_version.split('.')[0]), 
+           "%s/%s.ks" % (kickbase,distro.os_version),
+           "%s/%s.ks" % (kickbase,distro.os_version.split('.')[0]),
+           "%s/%s/default.ks" % (kickbase,distro.arch),
+           "%s/default.ks" % kickbase
+       ]
        for kickstart in kickstarts:
            if os.path.exists(kickstart):
                return os_version, kickstart
