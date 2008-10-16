@@ -802,7 +802,7 @@ class Koan:
                cp /var/spool/koan/ks.cfg . ; \
                ln ks.cfg tmp/ks.cfg ; \
                find . | \
-               cpio -c -o | gzip -9 ) \
+               cpio -o -H newc | gzip -9 ) \
             > initrd_final
             echo "done"
         fi
