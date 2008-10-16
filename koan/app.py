@@ -789,8 +789,7 @@ class Koan:
         cd /var/spool/koan
         mkdir initrd
         gzip -dc %s > initrd.tmp
-        if file initrd.tmp | grep "filesystem data" >& /dev/null; then
-            mount -o loop -t ext2 initrd.tmp initrd
+        if mount -o loop -t ext2 initrd.tmp initrd >&/dev/null ; then
             cp ks.cfg initrd/
             ln initrd/ks.cfg initrd/tmp/ks.cfg
             umount initrd
