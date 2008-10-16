@@ -41,12 +41,14 @@ SNIPPET::main_partition_select
 %pre
 $kickstart_start
 SNIPPET::pre_partition_select
+SNIPPET::pre_install_network_config
 
 %packages
 
 %post
 $yum_config_stanza
 SNIPPET::post_install_kernel_options
+SNIPPET::post_install_network_config
 SNIPPET::download_config_files
 $kickstart_done
 
