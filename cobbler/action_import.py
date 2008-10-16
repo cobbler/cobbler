@@ -952,12 +952,14 @@ class RedHatImporter ( BaseImporter ) :
        #          OS_VERSION.MINOR next
        #          ARCH/default.ks next
        #          default.ks finally.
-       kickstarts = ["%s/%s/%s.ks" % (kickbase,distro.arch,distro.os_version]), 
-                     "%s/%s/%s.ks" % (kickbase,distro.arch,distro.os_version.split('.')[0]), 
-                     "%s/%s.ks" % (kickbase,distro.os_version),
-                     "%s/%s.ks" % (kickbase,distro.os_version.split('.')[0]),
-                     "%s/%s/default.ks" % (kickbase,distro.arch),
-                     "%s/default.ks" % kickbase]
+       kickstarts = [
+           "%s/%s/%s.ks" % (kickbase,distro.arch,distro.os_version), 
+           "%s/%s/%s.ks" % (kickbase,distro.arch,distro.os_version.split('.')[0]), 
+           "%s/%s.ks" % (kickbase,distro.os_version),
+           "%s/%s.ks" % (kickbase,distro.os_version.split('.')[0]),
+           "%s/%s/default.ks" % (kickbase,distro.arch),
+           "%s/default.ks" % kickbase
+       ]
        for kickstart in kickstarts:
            if os.path.exists(kickstart):
                return os_version, kickstart
