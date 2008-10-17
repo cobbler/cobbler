@@ -4,6 +4,7 @@ Koan CHANGELOG
 - update files feature for built in config management
 - static-interface feature for non-DHCP virt installs re-added
 - support for --kexec with --replace-self
+- changed some internals of --replace-self to support busybox
 
 - Thu Sep 18 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.5-1
 - (BUGF) use file:/ks.cfg for --replace-self to make non-DHCP easier
