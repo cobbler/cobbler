@@ -35,6 +35,7 @@ Cobbler CHANGELOG
 - (FEAT) update included elilo to 3.8
 - (BUGF) quote append line for elilo
 - (BUGF) added ExcludeArch: ppc64
+- (FEAT) --environment parameter added to reposync
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"

@@ -53,6 +53,7 @@ class Repo(item.Item):
         self.yumopts          = {}
         self.owners           = self.settings.default_ownership
         self.mirror_locally   = True
+        self.environment      = {}
 
     def from_datastruct(self,seed_data):
         self.parent           = self.load_item(seed_data, 'parent')
@@ -68,11 +69,13 @@ class Repo(item.Item):
         self.yumopts          = self.load_item(seed_data, 'yumopts', {})
         self.owners           = self.load_item(seed_data, 'owners', self.settings.default_ownership)
         self.mirror_locally   = self.load_item(seed_data, 'mirror_locally', True)
+        self.environment      = self.load_item(seed_data, 'environment', {})
 
         # coerce types from input file
         self.set_keep_updated(self.keep_updated)
         self.set_mirror_locally(self.mirror_locally)
         self.set_owners(self.owners)
+        self.set_environment(self.environment)
 
         return self
 
@@ -115,6 +118,23 @@ class Repo(item.Item):
             else:
                 self.yumopts = value
             return True
+
+    def set_environment(self,options,inplace=False):
+        """
+        Yum can take options from the environment.  This puts them there before
+        each reposync.
+        """
+        (success, value) = utils.input_string_or_hash(options,None,allow_multiples=False)
+        if not success:
+            raise CX(_("invalid environment options"))
+        else:
+            if inplace:
+                for key in value.keys():
+                    self.environment[key] = value[key]
+            else:
+                self.environment = value
+            return True
+
 
     def set_priority(self,priority):
         """
@@ -194,7 +214,8 @@ class Repo(item.Item):
            'arch'             : self.arch,
            'parent'           : self.parent,
            'depth'            : self.depth,
-           'yumopts'          : self.yumopts
+           'yumopts'          : self.yumopts,
+           'environment'      : self.environment
         }
 
     def set_mirror_locally(self,value):
@@ -206,6 +227,7 @@ class Repo(item.Item):
         buf = buf + _("breed            : %s\n") % self.breed
         buf = buf + _("arch             : %s\n") % self.arch
         buf = buf + _("createrepo_flags : %s\n") % self.createrepo_flags
+        buf = buf + _("environment      : %s\n") % self.environment
         buf = buf + _("keep updated     : %s\n") % self.keep_updated
         buf = buf + _("mirror           : %s\n") % self.mirror
         buf = buf + _("mirror locally   : %s\n") % self.mirror_locally
@@ -235,7 +257,8 @@ class Repo(item.Item):
             'createrepo-flags' :  self.set_createrepo_flags,
             'yumopts'          :  self.set_yumopts,
             'owners'           :  self.set_owners,
-            'mirror-locally'   :  self.set_mirror_locally
+            'mirror-locally'   :  self.set_mirror_locally,
+            'environment'      :  self.set_environment
         }
 
     def sync(self, repo_mirror, obj_sync):
