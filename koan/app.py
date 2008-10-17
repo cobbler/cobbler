@@ -55,7 +55,7 @@ DISPLAY_PARAMS = [
    "name",
    "distro","profile",
    "kickstart","ks_meta",
-   "install_tree","kernel","initrd","kexec",
+   "install_tree","kernel","initrd",
    "kernel_options",
    "repos",
    "virt_ram","virt_disk","virt_type", "virt_path"
