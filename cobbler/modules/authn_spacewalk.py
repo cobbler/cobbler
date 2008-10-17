@@ -48,7 +48,7 @@ def authenticate(api_handle,username,password):
 
     client = xmlrpclib.Server(spacewalk_url, verbose=0)
 
-    key = client.auth.login(username,password)
+    key = client.auth.loginAndSkipIntegrationAuth(username,password)
     if key is None:
         return False
 
