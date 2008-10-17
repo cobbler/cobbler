@@ -1,13 +1,13 @@
 #
 #  test_system.rb - Tests the System class.
-# 
+#
 # Copyright (C) 2008 Red Hat, Inc.
 # Written by Darryl L. Pierce <dpierce@redhat.com>
 #
 # This file is part of rubygem-cobbler.
 #
 # rubygem-cobbleris free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published 
+# it under the terms of the GNU Lesser General Public License as published
 # by the Free Software Foundation, either version 2.1 of the License, or
 # (at your option) any later version.
 #
@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with rubygem-cobbler.  If not, see <http://www.gnu.org/licenses/>.
 #
- 
+
 $:.unshift File.join(File.dirname(__FILE__),'..','lib')
 
 require 'test/unit'
@@ -33,7 +33,7 @@ module Cobbler
       @connection = flexmock('connection')
       Profile.connection = @connection
       Profile.hostname   = "localhost"
-      
+
       @username        = 'dpierce'
       @password        = 'farkle'
       Profile.username = @username
@@ -48,7 +48,7 @@ module Cobbler
       @nic_details    = {'mac_address' => '00:11:22:33:44:55:66:77'}
       @nic            = NetworkInterface.new(@nic_details)
       @nics << @nic
-            
+
       @systems = Array.new
       @systems << {
         'name'            => 'Web-Server',
@@ -105,22 +105,22 @@ module Cobbler
       @connection.should_receive(:call).with('get_systems').once.returns(@systems)
 
       result = System.find
-      
+
       assert result, 'Expected a result set.'
       assert_equal 2, result.size, 'Did not receive the right number of results.'
       assert_equal 2, result[0].interfaces.size, 'Did not parse the NICs correctly.'
       result[0].interfaces.keys.each { |intf| assert_equal "00:11:22:33:44:55", result[0].interfaces[intf].mac_address }
       assert_equal 3, result[0].owners.size, 'Did not parse the owners correctly.'
     end
-    
+
     # Ensures that saving stops when an update fails.
     #
     def test_save_and_update_fails
       @connection.should_receive(:call).with('login',@username,@password).once.returns(@auth_token)
       @connection.should_receive(:call).with('update').once.returns{ false }
-      
+
       system = System.new('name' => @system_name, 'profile' => @profile_name)
-      
+
       assert_raise(Exception) {system.save}
     end
 
@@ -133,9 +133,9 @@ module Cobbler
       @connection.should_receive(:call).with('modify_system',@system_id,'name',@system_name,@auth_token).once.returns(true)
       @connection.should_receive(:call).with('modify_system',@system_id,'profile',@profile_name,@auth_token).once.returns(true)
       @connection.should_receive(:call).with('save_system',@system_id,@auth_token).once.returns(true)
-      
+
       system = System.new('name' => @system_name, 'profile' => @profile_name)
-      
+
       system.save
     end
 
@@ -148,9 +148,9 @@ module Cobbler
       @connection.should_receive(:call).with('modify_system',@system_id,'name',@system_name,@auth_token).once.returns(true)
       @connection.should_receive(:call).with('modify_system',@system_id,'image',@image_name,@auth_token).once.returns(true)
       @connection.should_receive(:call).with('save_system',@system_id,@auth_token).once.returns(true)
-      
+
       system = System.new('name' => @system_name, 'image' => @image_name)
-      
+
       system.save
     end
 
@@ -166,11 +166,22 @@ module Cobbler
       @connection.should_receive(:call).with("modify_system",@system_id,'modify-interface',
         @nic.bundle_for_saving(0),@auth_token).once.returns(true)
       @connection.should_receive(:call).with('save_system',@system_id,@auth_token).once.returns(true)
-      
+
       system = System.new('name' => @system_name, 'profile' => @profile_name)
       system.interfaces = @nics
-      
+
       system.save
+    end
+
+    # Ensures that removing a system works as expected.
+    #
+    def test_remove_system
+      @connection.should_receive(:call).with('login',@username,@password).once.returns(@auth_token)
+      @connection.should_receive(:call).with('remove_system',@system_name,@auth_token).once.returns(true)
+
+      system = System.new('name' => @system_name, 'profile' => @profile_name)
+
+      system.remove
     end
   end
 end
