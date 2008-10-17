@@ -4,7 +4,7 @@ koan
 
 =head1 SYNOPSIS
 
-koan --server=hostname [--list=type] [--virt|--replace-self|--display] [--profile=name] [--system=name] [--image=name] [--add-reinstall-entry] [--virt-name=name] [--virt-path=path] [--virt-type=type] [--nogfx] [--static-interface=name]
+koan --server=hostname [--list=type] [--virt|--replace-self|--display] [--profile=name] [--system=name] [--image=name] [--add-reinstall-entry] [--virt-name=name] [--virt-path=path] [--virt-type=type] [--nogfx] [--static-interface=name] [--kexec]
 
 =head1 DESCRIPTION
  
@@ -43,6 +43,9 @@ koan --server=cobbler.example.org --replace-self --system=name
 
 Additionally, adding the flag --add-reinstall-entry will make it add the entry to grub for reinstallation
 but will not make it automatically pick that option on the next boot.
+
+Also the flag --kexec can be appended, which will launch the installer without needing to reboot.  Not
+all kernels support this option.
 
 =head1 INSTALLING VIRTUALIZED SYSTEMS
 
