@@ -34,8 +34,9 @@ class Report:
         self.report_what = None
         self.report_name = None
         self.report_fields = None
+        self.report_noheaders = None
 
-    def reporting_csv(self, info, order):
+    def reporting_csv(self, info, order, noheaders):
         """
         Formats data on 'info' for csv output
         """
@@ -60,9 +61,13 @@ class Report:
             outputbody += '\n'
 
         outputheaders += '\n'
+
+        if noheaders:
+            outputheaders = '';
+
         return outputheaders + outputbody
  
-    def reporting_trac(self, info, order):
+    def reporting_trac(self, info, order, noheaders):
         """
         Formats data on 'info' for trac wiki table output
         """        
@@ -88,9 +93,13 @@ class Report:
             outputbody += '||\n'
 
         outputheaders += '||\n'
+        
+        if noheaders:
+            outputheaders = '';
+        
         return outputheaders + outputbody
 
-    def reporting_doku(self, info, order):
+    def reporting_doku(self, info, order, noheaders):
         """
         Formats data on 'info' for doku wiki table output
         """      
@@ -117,9 +126,13 @@ class Report:
             outputbody += sep2 + '\n'
 
         outputheaders += sep1 + '\n'
+        
+        if noheaders:
+            outputheaders = '';
+        
         return outputheaders + outputbody
 
-    def reporting_mediawiki(self, info, order):
+    def reporting_mediawiki(self, info, order, noheaders):
         """
         Formats data on 'info' for mediawiki table output
         """
@@ -154,20 +167,24 @@ class Report:
             outputbody += '\n' + sep3 + '\n'
 
         outputheaders += '\n' + sep3 + '\n'
+
+        if noheaders:
+            outputheaders = '';
+
         return opentable + outputheaders + outputbody + closetable
     
-    def print_formatted_data(self, data, order, report_type):
+    def print_formatted_data(self, data, order, report_type, noheaders):
         """
         Used for picking the correct format to output data as
         """
         if report_type == "csv":
-            print self.reporting_csv(data, order)
+            print self.reporting_csv(data, order, noheaders)
         if report_type == "mediawiki":
-            print self.reporting_mediawiki(data, order)
+            print self.reporting_mediawiki(data, order, noheaders)
         if report_type == "trac":
-            print self.reporting_trac(data, order)
+            print self.reporting_trac(data, order, noheaders)
         if report_type == "doku":
-            print self.reporting_doku(data, order)
+            print self.reporting_doku(data, order, noheaders)
 
         return True
 
@@ -196,7 +213,7 @@ class Report:
             print obj.printable()
         return True
     
-    def reporting_print_all_fields(self, collection, report_type):
+    def reporting_print_all_fields(self, collection, report_type, report_noheaders):
         """
         Prints all fields in a collection as a table given the report type
         """
@@ -229,11 +246,11 @@ class Report:
   
             data.append(item) 
 
-        self.print_formatted_data(data = data, order = out_order, report_type = report_type)
+        self.print_formatted_data(data = data, order = out_order, report_type = report_type, noheaders = report_noheaders)
         
         return True
     
-    def reporting_print_x_fields(self, collection, report_type, report_fields):
+    def reporting_print_x_fields(self, collection, report_type, report_fields, report_noheaders):
         """
         Prints specific fields in a collection as a table given the report type
         """
@@ -260,13 +277,13 @@ class Report:
 
             data.append(item)
          
-        self.print_formatted_data(data = data, order = fields_list, report_type = report_type)
+        self.print_formatted_data(data = data, order = fields_list, report_type = report_type, noheaders = report_noheaders)
                         
         return True
         
     # -------------------------------------------------------
 
-    def run(self, report_what = None, report_name = None, report_type = None, report_fields = None):
+    def run(self, report_what = None, report_name = None, report_type = None, report_fields = None, report_noheaders = None):
         """
         Get remote profiles and distros and sync them locally
         """
@@ -310,27 +327,27 @@ class Report:
         elif report_type != 'text' and report_fields == 'all':
             
             if report_what in [ "all", "distros", "distro" ]:
-                self.reporting_print_all_fields(self.api.distros(), report_type)
+                self.reporting_print_all_fields(self.api.distros(), report_type, report_noheaders)
 
             if report_what in [ "all", "profiles", "profile" ]:
-                self.reporting_print_all_fields(self.api.profiles(), report_type)
+                self.reporting_print_all_fields(self.api.profiles(), report_type, report_noheaders)
 
             if report_what in [ "all", "systems", "system" ]:
-                self.reporting_print_all_fields(self.api.systems(), report_type)
+                self.reporting_print_all_fields(self.api.systems(), report_type, report_noheaders)
 
             if report_what in [ "all", "repos", "repo" ]:
-                self.reporting_print_all_fields(self.api.repos(), report_type) 
+                self.reporting_print_all_fields(self.api.repos(), report_type, report_noheaders) 
         
         else:
             
             if report_what in [ "all", "distros", "distro" ]:
-                self.reporting_print_x_fields(self.api.distros(), report_type, report_fields)
+                self.reporting_print_x_fields(self.api.distros(), report_type, report_fields, report_noheaders)
 
             if report_what in [ "all", "profiles", "profile" ]:
-                self.reporting_print_x_fields(self.api.profiles(), report_type, report_fields)
+                self.reporting_print_x_fields(self.api.profiles(), report_type, report_fields, report_noheaders)
 
             if report_what in [ "all", "systems", "system" ]:
-                self.reporting_print_x_fields(self.api.systems(), report_type, report_fields)
+                self.reporting_print_x_fields(self.api.systems(), report_type, report_fields, report_noheaders)
 
             if report_what in [ "all", "repos", "repo" ]:
-                self.reporting_print_x_fields(self.api.repos(), report_type, report_fields)
+                self.reporting_print_x_fields(self.api.repos(), report_type, report_fields, report_noheaders)

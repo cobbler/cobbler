@@ -538,13 +538,14 @@ class BootAPI:
               include_systems = systems
         )
 
-    def report(self, report_what = None, report_name = None, report_type = None, report_fields = None):
+    def report(self, report_what = None, report_name = None, report_type = None, report_fields = None, report_noheaders = None):
         """
         Report functionality for cobbler
         """
         reporter = action_report.Report(self._config)
         return reporter.run(report_what = report_what, report_name = report_name,\
-                            report_type = report_type, report_fields = report_fields)
+                            report_type = report_type, report_fields = report_fields,\
+                            report_noheaders = report_noheaders)
 
     def get_kickstart_templates(self):
         return utils.get_kickstar_templates(self)
