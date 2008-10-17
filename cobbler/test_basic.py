@@ -10,8 +10,8 @@ import tempfile
 import shutil
 import traceback
 
-from cobbler.cexceptions import *  
-from cobbler import acls
+from cexceptions import *  
+import acls
 
 #from cobbler import settings
 #from cobbler import collection_distros
@@ -19,12 +19,10 @@ from cobbler import acls
 #from cobbler import collection_systems
 #from cobbler import collection_repos
 #from cobbler import collection_images
-import cobbler.modules.authz_ownership as authz_module
-
-from cobbler import api
-
-from cobbler import config
-from cobbler import utils
+import modules.authz_ownership as authz_module
+import api
+import config
+import utils
 utils.TEST_MODE = True
 
 FAKE_INITRD="initrd-2.6.15-1.2054_FAKE.img"
@@ -103,12 +101,12 @@ class BootTest(unittest.TestCase):
         fd.close()
         self.assertTrue(repo.set_name("test_repo"))
         self.assertTrue(repo.set_mirror("/tmp/test_example_cobbler_repo"))
-        self.assertTrue(self.api.repos().add(repo))
+        self.assertTrue(self.api.add_repo(repo))
 
         image = self.api.new_image()
         self.assertTrue(image.set_name("test_image"))
         self.assertTrue(image.set_file("/etc/hosts")) # meaningless path
-        self.assertTrue(self.api.images().add(image))
+        self.assertTrue(self.api.add_image(image))
 
 class DuplicateNamesAndIpPrevention(BootTest):
 

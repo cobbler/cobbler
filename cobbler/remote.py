@@ -1304,36 +1304,97 @@ class CobblerReadWriteXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
 # *********************************************************************
 # *********************************************************************
 
-def test_bootstrap_start_clean()
+def test_bootstrap_start_clean():
 
-   # first some API calls (non-remote) to prep our data
-   # clean out the distribution list
-   api = cobbler_api.BootAPI()
-   for d in api.distros():
-       self.api.remove_distro(d,recursive=True)
-   for i in api.images()
-       self.api.remove_image(i)
-   for r in api.repos()
-       self.api.remove_repo(r)
+   subprocess.call("rm -rf /var/lib/cobbler/config/distros.d/*",shell=True)
+   subprocess.call("rm -rf /var/lib/cobbler/config/profiles.d/*",shell=True)
+   subprocess.call("rm -rf /var/lib/cobbler/config/systems.d/*",shell=True)
+   subprocess.call("rm -rf /var/lib/cobbler/config/images.d/*",shell=True)
+   subprocess.call("rm -rf /var/lib/cobbler/config/repos.d/*",shell=True)
+   rc1 = subprocess.call("/sbin/service cobblerd restart",shell=True)
+   assert rc1 == 0
+   rc2 = subprocess.call("/sbin/service httpd restart",shell=True)
+   assert rc2 == 0
+   time.sleep(2)
    
 
-def test_xmlrpc_ro()
+def test_xmlrpc_ro():
 
    test_bootstrap_start_clean()
-
-   rc1 = subprocess.call("/sbin/service cobblerd restart")
-   assert rc1 == 0, "cobblerd restart ok"
- 
-   rc2 = subprocess.call("/sbin/service httpd restart")
-   assert rc2 == 0, "httpd restart ok"
-
-   xmlrpclib.server = Server("127.0.0.1/cobbler_api_rw")
+   server = xmlrpclib.Server("http://127.0.0.1/cobbler_api_rw")
+   time.sleep(2) 
 
    # delete all distributions
-   distros = xmlrpclib.server.get_distros()
+   distros  = server.get_distros()
+   profiles = server.get_profiles()
+   systems  = server.get_systems()
+   repos    = server.get_repos()
+   images   = server.get_systems()
+   settings = server.get_settings()
    
+   assert distros == []
+   assert profiles == [] 
+   assert systems == []
+   assert repos == []
+   assert images == []
+   assert type(settings) == type({})
 
-def test_xmlrpc_rw()
+   # now populate with something more useful
+   # using the non-remote API
+
+   api = cobbler_api.BootAPI()
+   distro = api.new_distro()
+   distro.set_name("distro0")
+   distro.set_kernel("/etc/hosts")
+   distro.set_initrd("/etc/hosts")
+   api.add_distro(distro)
+
+   profile = api.new_profile()
+   profile.set_name("profile0")
+   profile.set_distro("distro0")
+   api.add_profile(profile)
+
+   system = api.new_system()
+   system.set_name("system0")
+   system.set_profile("profile0")
+   api.add_system(system)
+
+   repo = api.new_repo()
+   repo.set_name("repo0")
+   repo.set_mirror("/tmp")
+   api.add_repo(repo)
+
+   image = api.new_image()
+   image.set_name("image0")
+   image.set_file("/etc/hosts")
+   api.add_image(image)
+   
+   # verify we have the new config in cobblerd
+   server.update()
+
+   distros = server.get_distros()
+   assert len(distros) == 1
+   assert distros[0]["name"] == "distro0"
+
+   profiles = server.get_profiles()
+   assert len(profiles) == 1
+   assert profiles[0]["name"] == "profile0"
+
+   systems = server.get_systems()
+   assert len(systems) == 1
+   assert systems[0]["name"] == "system0"
+
+   repos = server.get_repos()
+   assert len(repos) == 1
+   assert repos[0]["name"] == "repo0"
+
+   images = server.get_images()
+   assert len(images) == 1
+   assert images[0]["name"] == "image0"
+
+   # now test specific gets that koan uses
+
+def test_xmlrpc_rw():
 
    # need tests for the various auth modes, not just one 
    pass
