@@ -34,6 +34,7 @@ import base64
 import string
 import traceback
 import glob
+import subprocess
 
 import api as cobbler_api
 import utils
@@ -1299,4 +1300,41 @@ class CobblerReadWriteXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
     def __init__(self, args):
         self.allow_reuse_address = True
         SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self,args)
+
+# *********************************************************************
+# *********************************************************************
+
+def test_bootstrap_start_clean()
+
+   # first some API calls (non-remote) to prep our data
+   # clean out the distribution list
+   api = cobbler_api.BootAPI()
+   for d in api.distros():
+       self.api.remove_distro(d,recursive=True)
+   for i in api.images()
+       self.api.remove_image(i)
+   for r in api.repos()
+       self.api.remove_repo(r)
+   
+
+def test_xmlrpc_ro()
+
+   test_bootstrap_start_clean()
+
+   rc1 = subprocess.call("/sbin/service cobblerd restart")
+   assert rc1 == 0, "cobblerd restart ok"
+ 
+   rc2 = subprocess.call("/sbin/service httpd restart")
+   assert rc2 == 0, "httpd restart ok"
+
+   xmlrpclib.server = Server("127.0.0.1/cobbler_api_rw")
+
+   # delete all distributions
+   distros = xmlrpclib.server.get_distros()
+   
+
+def test_xmlrpc_rw()
+
+   # need tests for the various auth modes, not just one 
+   pass
 

@@ -34,6 +34,7 @@ Cobbler CHANGELOG
 - (FEAT) call unittests with nose, which offers cleaner output, see tests/README
 - (FEAT) update included elilo to 3.8
 - (BUGF) quote append line for elilo
+- (BUGF) added ExcludeArch: ppc64
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
