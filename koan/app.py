@@ -48,14 +48,14 @@ COBBLER_REQUIRED = 0.900
 
 """
 koan --virt [--profile=webserver|--system=name] --server=hostname
-koan --replace-self --profile=foo --server=hostname
+koan --replace-self --profile=foo --server=hostname [--kexec]
 """
 
 DISPLAY_PARAMS = [
    "name",
    "distro","profile",
    "kickstart","ks_meta",
-   "install_tree","kernel","initrd",
+   "install_tree","kernel","initrd","kexec",
    "kernel_options",
    "repos",
    "virt_ram","virt_disk","virt_type", "virt_path"
@@ -140,6 +140,10 @@ def main():
                  dest="live_cd",
                  action="store_true",
                  help="used by the custom livecd only, not for humans")
+    p.add_option("", "--kexec",
+                 dest="use_kexec",
+                 action="store_true",
+                 help="Instead of writing a new bootloader when doing replace_self, just kexec the new kernel and initrd")
 
     (options, args) = p.parse_args()
 
@@ -166,6 +170,7 @@ def main():
         k.add_reinstall_entry = options.add_reinstall_entry
         k.kopts_override      = options.kopts_override
         k.static_interface    = options.static_interface
+        k.use_kexec           = options.use_kexec
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -382,7 +387,10 @@ class Koan:
         if self.is_virt:
             self.virt()
         elif self.is_replace:
-            self.replace()
+            if self.use_kexec:
+                self.kexec_replace()
+            else:
+                self.replace()
         elif self.is_update_files:
             self.update_files()
         else:
@@ -703,8 +711,39 @@ class Koan:
        
         return True 
 
+    #---------------------------------------------------
   
- 
+    def kexec_replace(self):
+        """
+        Prepare to morph existing system by downloading new kernel and initrd
+        and preparing kexec to execute them. Allow caller to do final 'kexec
+        -e' invocation; this allows modules such as network drivers to be
+        unloaded (for cases where an immediate kexec would leave the driver in
+        an invalid state.
+        """
+        def after_download(self, profile_data):
+            k_args = self.calc_kernel_args(profile_data)
+            kickstart = self.safe_load(profile_data,'kickstart')
+
+            self.build_initrd(
+                self.safe_load(profile_data,'initrd_local'),
+                kickstart,
+                profile_data
+            )
+
+            if len(k_args) > 255:
+                raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
+
+            utils.subprocess_call([
+                'kexec',
+                '--load',
+                '--initrd=%s' % (self.safe_load(profile_data,'initrd_local'),),
+                '--command-line=%s' % (k_args,),
+                self.safe_load(profile_data,'kernel_local')
+            ])
+            print "Kernel loaded; run 'kexec -e' to execute"
+        return self.net_install(after_download)
+
     #---------------------------------------------------
 
     def replace(self):
