@@ -38,7 +38,7 @@ class ReportFunction(commands.CobblerFunction):
         p.add_option("--name",              dest="name",                       help="report on just this object")
         p.add_option("--format",            dest="type",      default="text",  help="text/csv/trac/doku/mediawiki")
         p.add_option("--fields",            dest="fields",    default="all" ,  help="what fields to display")
-        p.add_option("--noheaders",         dest="noheaders", help="don't output headers", action='store_true', default=False)
+        p.add_option("--no-headers",         dest="noheaders", help="don't output headers", action='store_true', default=False)
 
 
     def run(self):
