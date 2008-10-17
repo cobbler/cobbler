@@ -785,7 +785,7 @@ class Koan:
         Create bash script for inserting kickstart into initrd.
         Code heavily borrowed from internal auto-ks scripts.
         """
-        return """
+        return r"""
         cd /var/spool/koan
         mkdir initrd
         gzip -dc %s > initrd.tmp
@@ -795,16 +795,13 @@ class Koan:
             umount initrd
             gzip -c initrd.tmp > initrd_final
         else
-            echo "cpio"
-            cat initrd.tmp | (
-               cd initrd ; \
-               cpio -id ; \
-               cp /var/spool/koan/ks.cfg . ; \
-               ln ks.cfg tmp/ks.cfg ; \
-               find . | \
-               cpio -o -H newc | gzip -9 ) \
-            > initrd_final
-            echo "done"
+            echo "mount failed; treating initrd as a cpio archive..."
+            cd initrd
+            cpio -id <../initrd.tmp
+            cp /var/spool/koan/ks.cfg .
+            ln ks.cfg tmp/ks.cfg
+            find . | cpio -o -H newc | gzip -9 > ../initrd_final
+            echo "...done"
         fi
         """ % initrd
 
