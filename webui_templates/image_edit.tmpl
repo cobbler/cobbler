@@ -126,7 +126,7 @@ function disablename(value)
     </td>
     <td>
 
-    <select name="breed" id="breed" multiple="1">
+    <select name="breed" id="breed">
     #for $br in [ "redhat", "debian", "generic", "suse", "ubuntu", "unix", "windows" ]:
 
           <option value="$br"
@@ -277,7 +277,7 @@ function disablename(value)
     </td>
     <td>
 
-    <select name="imagetype" id="imagetype" multiple="1">
+    <select name="imagetype" id="imagetype">
     #for $it in [ "direct", "iso", "memdisk", "virt-clone" ]:
           <option value="$it"
                #if $image and $image.image_type == $it
