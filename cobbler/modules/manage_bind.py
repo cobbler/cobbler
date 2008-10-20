@@ -118,12 +118,6 @@ class BindManager:
                    host = host[:-1]
                 zones[best_match].append((host, ip))
 
-        # axe zones that are defined in manage_forward_zones
-        # but don't actually match any hosts
-        for (k,v) in zones.items():
-           if v == []:
-              zones.pop(k)
-
         return zones
 
     def __reverse_zones(self):
@@ -169,12 +163,6 @@ class BindManager:
                 tokens.reverse()
                 ip = '.'.join(tokens)
                 zones[best_match].append((ip, host + '.'))
-
-        # axe zones that are defined in manage_forward_zones
-        # but don't actually match any hosts
-        for (k,v) in zones.items():
-           if v == []:
-              zones.pop(k)
 
         return zones
 
