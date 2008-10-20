@@ -211,6 +211,21 @@ function disablename(value)
 
     <tr>
     <td>
+    <label for="environment">Environment</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="environment" id="environment" 
+        #if $repo
+            value="$repo.environment" 
+        #end if
+    />
+    <p class="context-tip">Sets environment variables for each rsync/reposync operation.</p>
+    </td>
+    </tr>
+
+
+    <tr>
+    <td>
     <label for="owners">Access Allowed For</label>
     </td>
     <td>

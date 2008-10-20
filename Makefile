@@ -22,12 +22,12 @@ test:
 	make savestate
 	make eraseconfig
 	make install
-	-make nosetests
+	-(make nosetests)
 	make restorestate
 
 nosetests:
-	#nosetests tests cobbler tests.py --with-coverage --cover-package=cobbler --cover-erase --quiet | tee test.log
-	nosetests tests cobbler | tee test.log
+	#nosetests tests -w cobbler --with-coverage --cover-package=cobbler --cover-erase --quiet | tee test.log
+	nosetests cobbler/*.py -v | tee test.log
 
 build: clean manpage updatewui
 	python setup.py build -f

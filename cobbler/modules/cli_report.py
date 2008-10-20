@@ -34,10 +34,11 @@ class ReportFunction(commands.CobblerFunction):
         return "report"
 
     def add_options(self, p, args):
-        p.add_option("--what",              dest="what",   default="all",  help="distros/profiles/systems/repos")
-        p.add_option("--name",              dest="name",                   help="report on just this object")
-        p.add_option("--format",            dest="type",   default="text", help="text/csv/trac/doku/mediawiki")
-        p.add_option("--fields",            dest="fields", default="all" , help="what fields to display")
+        p.add_option("--what",              dest="what",      default="all",   help="distros/profiles/systems/repos")
+        p.add_option("--name",              dest="name",                       help="report on just this object")
+        p.add_option("--format",            dest="type",      default="text",  help="text/csv/trac/doku/mediawiki")
+        p.add_option("--fields",            dest="fields",    default="all" ,  help="what fields to display")
+        p.add_option("--no-headers",         dest="noheaders", help="don't output headers", action='store_true', default=False)
 
 
     def run(self):
@@ -45,9 +46,11 @@ class ReportFunction(commands.CobblerFunction):
             raise CX(_("Invalid value for --what"))
         if self.options.type not in ["text", "csv", "trac", "doku", "mediawiki" ]:
             raise CX(_("Invalid vavlue for --type"))
- 
+
+
         return self.api.report(report_what = self.options.what, report_name = self.options.name, \
-                               report_type = self.options.type, report_fields = self.options.fields)
+                               report_type = self.options.type, report_fields = self.options.fields, \
+                               report_noheaders = self.options.noheaders)
     
 ########################################################
 # MODULE HOOKS

@@ -683,8 +683,8 @@ def run_triggers(ref,globber,additional=[]):
     triggers.sort()
     for file in triggers:
         try:
-            if file.find(".rpm") != -1:
-                # skip .rpmnew files that may have been installed
+            if file.startswith(".") or file.find(".rpm") != -1:
+                # skip dotfiles or .rpmnew files that may have been installed
                 # in the triggers directory
                 continue
             arglist = [ file ]

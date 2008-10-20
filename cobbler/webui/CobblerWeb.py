@@ -674,7 +674,7 @@ class CobblerWeb(object):
 
     def repo_save(self,name=None,oldname=None,new_or_edit=None,editmode="edit",
                   mirror=None,owners=None,keep_updated=None,mirror_locally=0,priority=99,
-                  rpm_list=None,createrepo_flags=None,arch=None,yumopts=None,
+                  rpm_list=None,createrepo_flags=None,arch=None,environment=None,yumopts=None,
                   delete1=None,delete2=None,**args):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -727,6 +727,8 @@ class CobblerWeb(object):
                 self.remote.modify_repo(repo, 'arch', arch, self.token)
             if yumopts:
                 self.remote.modify_repo(repo, 'yumopts', yumopts, self.token)
+            if environment:
+                self.remote.modify_repo(repo, 'environment', environment, self.token)
             if owners:
                 self.remote.modify_repo(repo, 'owners', owners, self.token)
 
