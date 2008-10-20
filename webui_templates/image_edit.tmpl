@@ -133,7 +133,7 @@ function disablename(value)
                #if $image and $image.breed == $br
                     selected="1"  
                #end if
-          >$br.name</option>
+          >$br</option>
     #end for
     </select>
 
@@ -271,8 +271,6 @@ function disablename(value)
     </tr>
 
 
-    ## self.image_type      = "iso" # direct, iso, memdisk, virt-clone
-   
     <tr>
     <td>
     <label for="imagetype">Image Type</label>
@@ -287,7 +285,7 @@ function disablename(value)
                #else if $it == "iso"
                     selected="1"
                #end if
-          >$image.image_type</option>
+          >$it</option>
     #end for
     </select>
 
