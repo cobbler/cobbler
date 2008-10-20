@@ -240,7 +240,7 @@ class BootAPI:
     
     def rename_image(self, ref, newname):
         self.log("rename_image",[ref.name,newname])
-        return self._config.image().rename(ref,newname)
+        return self._config.images().rename(ref,newname)
 
     def new_distro(self,is_subobject=False):
         self.log("new_distro",[is_subobject])

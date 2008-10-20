@@ -796,7 +796,9 @@ class CobblerWeb(object):
 
 
     def image_save(self,name=None,oldname=None,new_or_edit=None,editmode='edit',field1=None,
-                   delete1=None,delete2=None,recursive=False,**args):
+                   file=None,arch=None,breed=None,virtram=None,virtfilesize=None,virtpath=None,
+                   virttype=None,virtcpus=None,virtbridge=None,imagetype=None,owners=None,
+                   osversion=None,delete1=None,delete2=None,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -838,8 +840,31 @@ class CobblerWeb(object):
         try:
             if editmode != "rename" and name:
                 self.remote.modify_image(image, 'name', name, self.token)
+            if imagetype is not None:    
+                self.remote.modify_image(image, 'image-type', imagetype, self.token)
+            if breed is not None:        
+                self.remote.modify_image(image, 'breed',      breed,     self.token)
+            if osversion is not None:    
+                self.remote.modify_image(image, 'os-version', osversion, self.token)
+            if arch is not None:         
+                self.remote.modify_image(image, 'arch',       arch,      self.token)
+            if file is not None:         
+                self.remote.modify_image(image, 'file',       file,      self.token)
+            if owners is not None:       
+                self.remote.modify_image(image, 'owners',     owners,    self.token)
+            if virtcpus is not None:     
+                self.remote.modify_image(image, 'virt-cpus',  virtcpus,  self.token)
+            if virtfilesize is not None: 
+                self.remote.modify_image(image, 'virt-file-size', virtfilesize, self.token)
+            if virtpath is not None:     
+                self.remote.modify_image(image, 'virt-path',   virtpath,   self.token)
+            if virtbridge is not None:     
+                self.remote.modify_image(image, 'virt-bridge', virtbridge, self.token)
+            if virtram is not None:      
+                self.remote.modify_image(image, 'virt-ram',    virtram,    self.token)
+            if virttype is not None:     
+                self.remote.modify_image(image, 'virt-type',   virttype,   self.token)
 
-            # self.remote.modify_image(image, 'field1', field1, self.token)
             self.remote.save_image(image, self.token, editmode)
         except Exception, e:
             log_exc(self.apache)

@@ -90,7 +90,7 @@ function disablename(value)
     <label for="arch">Architecture</label>
     </td>
     <td>
-    #if $image and $image.arch == "i386"
+    #if ($image and $image.arch == "i386") or not $image
         <input type="radio"  name="arch" id="arch" value="i386" checked>x86
     #else
         <input type="radio" name="arch" id="arch" value="i386">i386
@@ -323,7 +323,6 @@ function disablename(value)
     <td>
        <input type="checkbox" name="delete1" value="delete1">Yes
        <input type="checkbox" name="delete2" value="delete2">Really
-       <input type="checkbox" name="recursive" value="recursive">Delete child objects?
        <p class="context-tip">Check both buttons and click save to delete this object</p>
     </td>
     </tr>
