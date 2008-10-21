@@ -185,6 +185,7 @@ class CobblerWeb(object):
             'distro': input_distro,
         } )
 
+
     def distro_save(self,name=None,oldname=None,new_or_edit=None,editmode='edit',kernel=None,
                     initrd=None,kopts=None,koptspost=None,ksmeta=None,owners=None,arch=None,breed=None,
                     osversion=None,delete1=None,delete2=None,recursive=False,**args):
@@ -747,6 +748,139 @@ class CobblerWeb(object):
         return self.repo_list()
 
     # ------------------------------------------------------------------------ #
+    # Images
+    # ------------------------------------------------------------------------ #
+
+    def image_list(self,page=None,limit=None,**spam):
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+
+        (page, results_per_page, pages) = self.__compute_pagination(page,limit,"image")
+        images = self.remote.get_images(page,results_per_page)
+
+        if len(images) > 0:
+            return self.__render( 'image_list.tmpl', {
+                'images'           : images,
+                'pages'            : pages,
+                'page'             : page,
+                'results_per_page' : results_per_page
+            })
+        else:
+            return self.__render('empty.tmpl', {})  
+  
+    def image_edit(self, name=None,**spam):
+
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+        
+        input_image = None
+        if name is not None:
+            input_image = self.remote.get_image(name, True)
+            can_edit = self.remote.check_access_no_fail(self.token,"modify_image",name)
+        else:
+            can_edit = self.remote.check_access_no_fail(self.token,"new_image",None)
+        
+            if not can_edit:
+                return self.__render('message.tmpl', {
+                    'message1' : "Access denied.",
+                    'message2' : "You do not have permission to create new objects."
+                })
+
+ 
+        return self.__render( 'image_edit.tmpl', {
+            'user' : self.username,
+            'edit' : True,
+            'editable' : can_edit,
+            'image': input_image,
+        } )
+
+
+    def image_save(self,name=None,oldname=None,new_or_edit=None,editmode='edit',field1=None,
+                   file=None,arch=None,breed=None,virtram=None,virtfilesize=None,virtpath=None,
+                   virttype=None,virtcpus=None,virtbridge=None,imagetype=None,owners=None,
+                   osversion=None,delete1=None,delete2=None,recursive=False,**args):
+
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+        
+        # pre-command paramter checking
+        # HTML forms do not transmit disabled fields
+        if name is None and oldname is not None:
+            name = oldname
+
+        # handle deletes as a special case
+        if new_or_edit == 'edit' and delete1 and delete2:
+            try:    
+                if recursive is None: 
+                    self.remote.remove_image(name,self.token,False)
+                else:
+                    self.remote.remove_image(name,self.token,True)
+                       
+            except Exception, e:
+                return self.error_page("could not delete %s, %s" % (name,str(e)))
+            return self.image_list()
+
+        if name is None:
+            return self.error_page("name is required")
+ 
+        # grab a reference to the object
+        if new_or_edit == "edit" and editmode in [ "edit", "rename" ]:
+            try:
+                if editmode == "edit":
+                    image = self.remote.get_image_handle( name, self.token)
+                else:
+                    image = self.remote.get_image_handle( oldname, self.token)
+
+            except:
+                log_exc(self.apache)
+                return self.error_page("Failed to lookup image: %s" % name)
+        else:
+            image = self.remote.new_image(self.token)
+
+        try:
+            if editmode != "rename" and name:
+                self.remote.modify_image(image, 'name', name, self.token)
+            if imagetype is not None:    
+                self.remote.modify_image(image, 'image-type', imagetype, self.token)
+            if breed is not None:        
+                self.remote.modify_image(image, 'breed',      breed,     self.token)
+            if osversion is not None:    
+                self.remote.modify_image(image, 'os-version', osversion, self.token)
+            if arch is not None:         
+                self.remote.modify_image(image, 'arch',       arch,      self.token)
+            if file is not None:         
+                self.remote.modify_image(image, 'file',       file,      self.token)
+            if owners is not None:       
+                self.remote.modify_image(image, 'owners',     owners,    self.token)
+            if virtcpus is not None:     
+                self.remote.modify_image(image, 'virt-cpus',  virtcpus,  self.token)
+            if virtfilesize is not None: 
+                self.remote.modify_image(image, 'virt-file-size', virtfilesize, self.token)
+            if virtpath is not None:     
+                self.remote.modify_image(image, 'virt-path',   virtpath,   self.token)
+            if virtbridge is not None:     
+                self.remote.modify_image(image, 'virt-bridge', virtbridge, self.token)
+            if virtram is not None:      
+                self.remote.modify_image(image, 'virt-ram',    virtram,    self.token)
+            if virttype is not None:     
+                self.remote.modify_image(image, 'virt-type',   virttype,   self.token)
+
+            self.remote.save_image(image, self.token, editmode)
+        except Exception, e:
+            log_exc(self.apache)
+            return self.error_page("Error while saving image: %s" % str(e))
+
+        if editmode == "rename" and name != oldname:
+            try:
+                self.remote.rename_image(image, name, self.token)
+            except Exception, e:
+                return self.error_page("Rename unsuccessful.")
+
+
+        return self.image_list()
+
+
+    # ------------------------------------------------------------------------ #
     # Kickstart files
     # ------------------------------------------------------------------------ #
 
@@ -864,7 +998,7 @@ class CobblerWeb(object):
     distro_edit.exposed = True
     distro_list.exposed = True
     distro_save.exposed = True
-
+    
     subprofile_edit.exposed = True
     profile_edit.exposed = True
     profile_list.exposed = True
@@ -877,6 +1011,10 @@ class CobblerWeb(object):
     repo_edit.exposed = True
     repo_list.exposed = True
     repo_save.exposed = True
+    
+    image_edit.exposed = True
+    image_list.exposed = True
+    image_save.exposed = True
 
     settings_view.exposed = True
     ksfile_edit.exposed = True

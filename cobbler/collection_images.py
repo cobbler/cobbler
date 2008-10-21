@@ -30,7 +30,7 @@ class Images(collection.Collection):
     def factory_produce(self,config,seed_data):
         return image.Image(config).from_datastruct(seed_data)
 
-    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True):
+    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=True):
         """
         Remove element named 'name' from the collection
         """

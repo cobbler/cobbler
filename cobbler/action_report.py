@@ -320,6 +320,12 @@ class Report:
                     self.reporting_list_names2(self.api.repos(), report_name)
                 else:
                     self.reporting_print_sorted(self.api.repos())
+
+            if report_what in [ "all", "images", "image" ]:
+                if report_name is not None:
+                    self.reporting_list_names2(self.api.images(), report_name)
+                else:
+                    self.reporting_print_sorted(self.api.images())
                    
         elif report_type == 'text' and report_fields != 'all':
             raise CX(_("The 'text' type can only be used with field set to 'all'"))
@@ -337,6 +343,9 @@ class Report:
 
             if report_what in [ "all", "repos", "repo" ]:
                 self.reporting_print_all_fields(self.api.repos(), report_type, report_noheaders) 
+
+            if report_what in [ "all", "images", "image" ]:
+                self.reporting_print_all_fields(self.api.images(), report_type, report_noheaders) 
         
         else:
             
@@ -351,3 +360,6 @@ class Report:
 
             if report_what in [ "all", "repos", "repo" ]:
                 self.reporting_print_x_fields(self.api.repos(), report_type, report_fields, report_noheaders)
+            if report_what in [ "all", "images", "image" ]:
+                self.reporting_print_x_fields(self.api.images(), report_type, report_fields, report_noheaders)
+
