@@ -1,4 +1,4 @@
-#
+
 # base.rb
 #
 # Copyright (C) 2008 Red Hat, Inc.
@@ -74,13 +74,34 @@ module Cobbler
       @definitions = defs ? defs : Hash.new
     end
 
+    # Sets the hostname for the Cobbler server, overriding any settings
+    # from cobbler.yml.
+    #
+    def self.hostname=(hostname)
+      @@hostname = hostname
+    end
+
+    # Sets the username for the Cobbler server, overriding any settings
+    # from cobbler.yml.
+    #
+    def self.username=(username)
+      @@username = username
+    end
+
+    # Sets the password for the Cobbler server, overriding any settings
+    # from cobbler.yml.
+    #
+    def self.password=(password)
+      @@password = password
+    end
+
     # Sets the connection. This method is only needed during unit testing.
     #
     def self.connection=(connection)
       @@connection = connection
     end
 
-    # Returns or creates a new connection.
+    # Returns a connection to the Cobbler server.
     #
     def self.connect(writable)
       @@connection || XMLRPC::Client.new2("http://#{@@hostname}/cobbler_api#{writable ? '_rw' : ''}")
@@ -89,19 +110,7 @@ module Cobbler
     # Establishes a connection with the Cobbler system.
     #
     def self.begin_transaction(writable = false)
-      @@connection = connect(writable)
-    end
-
-    # Sets the username.
-    #
-    def self.username=(username)
-      @@username = username
-    end
-
-    # Sets the password.
-    #
-    def self.password=(password)
-      @@password = password
+      @@connection = self.connect(writable)
     end
 
     # Logs into the Cobbler server.
@@ -123,10 +132,6 @@ module Cobbler
     def self.end_transaction
       @@connection = nil
       @@auth_token = nil
-    end
-
-    def self.hostname=(hostname)
-      @@hostname = hostname
     end
 
     class << self
@@ -179,13 +184,13 @@ module Cobbler
 
           when :remove then
             module_eval <<-"end;"
-              def self.remove(name)
+              def remove
                 begin
-                  begin_transaction(true)
-                  token = login
-                  result = make_call('#{method}',name,token)
+                  Base.begin_transaction(true)
+                  token = Base.login
+                  result = Base.make_call('#{method}',name,token)
                 ensure
-                  end_transaction
+                  Base.end_transaction
                 end
 
                 result
@@ -220,7 +225,7 @@ module Cobbler
             end
           end
         end
-        
+
         module_eval("def #{field}() @definitions['#{field.to_s}']; end")
         module_eval("def #{field}=(val) @definitions['#{field.to_s}'] = val; end")
       end
