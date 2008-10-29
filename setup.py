@@ -184,6 +184,8 @@ if __name__ == "__main__":
                                 (snippets, ['snippets/main_partition_select']),
                                 (snippets, ['snippets/post_install_kernel_options']),
                                 (snippets, ['snippets/network_config']),
+                                (snippets, ['snippets/pre_install_network_config']),
+                                (snippets, ['snippets/post_install_network_config']),
                                 (snippets, ['snippets/func_install_if_enabled']),
                                 (snippets, ['snippets/func_register_if_enabled']),
                                 (snippets, ['snippets/download_config_files']),

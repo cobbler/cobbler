@@ -212,6 +212,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/snippets/main_partition_select
 %config(noreplace) /var/lib/cobbler/snippets/post_install_kernel_options
 %config(noreplace) /var/lib/cobbler/snippets/network_config
+%config(noreplace) /var/lib/cobbler/snippets/pre_install_network_config
+%config(noreplace) /var/lib/cobbler/snippets/post_install_network_config
 %config(noreplace) /var/lib/cobbler/snippets/func_install_if_enabled
 %config(noreplace) /var/lib/cobbler/snippets/func_register_if_enabled
 %config(noreplace) /var/lib/cobbler/snippets/download_config_files
