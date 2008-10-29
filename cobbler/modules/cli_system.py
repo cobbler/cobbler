@@ -49,6 +49,9 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
 
         if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
+            p.add_option("--bonding",         dest="bonding",       help="NIC bonding, ex: master, slave, none (default)")
+            p.add_option("--bonding-master",  dest="bonding_master",metavar="INTERFACE", help="master interface for this slave, ex: bond0")
+            p.add_option("--bonding-opts",    dest="bonding_opts",  help="ex: 'miimon=100'")
             p.add_option("--dhcp-tag",        dest="dhcp_tag",      help="for use in advanced DHCP configurations")
             p.add_option("--gateway",         dest="gateway",       help="for static IP / templating usage")
             p.add_option("--hostname",        dest="hostname",      help="ex: server.example.org")
@@ -148,7 +151,10 @@ class SystemFunction(commands.CobblerFunction):
         if self.options.gateway:     obj.set_gateway(self.options.gateway,   my_interface)
         if self.options.dhcp_tag:    obj.set_dhcp_tag(self.options.dhcp_tag, my_interface)
         if self.options.virt_bridge: obj.set_virt_bridge(self.options.virt_bridge, my_interface)
-        if self.options.static:      obj.set_static(self.options.static, my_interface)
+        if self.options.static:      obj.set_static(self.options.static,     my_interface)
+        if self.options.bonding:     obj.set_bonding(self.options.bonding,   my_interface)
+        if self.options.bonding_master: obj.set_bonding_master(self.options.bonding_master, my_interface)
+        if self.options.bonding_opts: obj.set_bonding_opts(self.options.bonding_opts, my_interface)
 
         if self.options.delete_interface:
             success = obj.delete_interface(self.options.delete_interface)
