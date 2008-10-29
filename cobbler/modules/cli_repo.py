@@ -53,6 +53,7 @@ class RepoFunction(commands.CobblerFunction):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--createrepo-flags", dest="createrepo_flags", help="additional flags for createrepo")
+            p.add_option("--environment",      dest="environment",      help="key=value parameters to add into environment before syncing this")
             p.add_option("--keep-updated",     dest="keep_updated",     help="update on each reposync, yes/no")
 
         p.add_option("--name",                 dest="name",             help="ex: 'Fedora-8-updates-i386' (REQUIRED)")
@@ -95,6 +96,7 @@ class RepoFunction(commands.CobblerFunction):
         if self.options.breed:            obj.set_breed(self.options.breed)
         if self.options.arch:             obj.set_arch(self.options.arch)
         if self.options.createrepo_flags: obj.set_createrepo_flags(self.options.createrepo_flags)
+        if self.options.environment:      obj.set_environment(self.options.environment)
         if self.options.rpm_list:         obj.set_rpm_list(self.options.rpm_list)
         if self.options.keep_updated:     obj.set_keep_updated(self.options.keep_updated)
         if self.options.priority:         obj.set_priority(self.options.priority)

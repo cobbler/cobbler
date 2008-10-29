@@ -175,6 +175,7 @@ class Image(item.Item):
         """
         return {
             'name'             : self.name,
+            'arch'             : self.arch,
             'image_type'       : self.image_type,
             'file'             : self.file,
             'xml_file'         : self.xml_file,
@@ -183,6 +184,7 @@ class Image(item.Item):
             'owners'           : self.owners,
             'virt_ram'         : self.virt_ram,
             'virt_path'        : self.virt_path,
+            'virt_type'        : self.virt_type,
             'virt_cpus'        : self.virt_cpus,
             'virt_bridge'      : self.virt_bridge,
             'virt_file_size'   : self.virt_file_size,
@@ -224,6 +226,7 @@ class Image(item.Item):
             'owners'          :  self.set_owners,
             'virt-cpus'       :  self.set_virt_cpus,
             'virt-file-size'  :  self.set_virt_file_size,
+            'virt-bridge'     :  self.set_virt_bridge,
             'virt-path'       :  self.set_virt_path,
             'virt-ram'        :  self.set_virt_ram,
             'virt-type'       :  self.set_virt_type

@@ -88,8 +88,10 @@ def main():
             return 1
 
 def test_hello():
-    # trivial command line testing, by no means exhaustive
-    assert BootCLI().run(["/usr/bin/cobbler", "cobbler", "--help"]) == 0
+    # extra trivial command line testing, by no means exhaustive
+    rc = main()
+    print "rc=%s" % rc
+    assert rc  == 0
 
 if __name__ == "__main__":
     sys.exit(main())
