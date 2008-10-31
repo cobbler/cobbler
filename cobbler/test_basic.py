@@ -64,18 +64,18 @@ class BootTest(unittest.TestCase):
         self.make_basic_config()
 
     def tearDown(self):
-        try:
-            self.api.remove_distro("D1",recursive=True)
-        except:
-            pass
-        try:
-            self.api.remove_repo("test_repo") 
-        except:
-            pass
-        try:
-            self.api.remove_image("test_image")
-        except:
-            pass
+        d1 = self.api.find_distro("D1")
+        if d1:
+            self.api.remove_distro(d1,recursive=True)
+
+        testrepo = self.api.find_repo("testrepo")
+        if testrepo:
+            testrepo = self.api.remove_repo(testrepo)
+
+        testimage = self.api.find_repo("testimage")
+        if testimage:
+            self.api.remove_image(testimage)
+
         shutil.rmtree(self.topdir,ignore_errors=True)
         self.api = None
 
