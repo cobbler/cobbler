@@ -62,7 +62,7 @@ Some of the overrides that can be used with --virt are:
 
 Flag                Explanation                             Example
 
---virt-ram          name of virtual machine to create       testmachine
+--virt-name         name of virtual machine to create       testmachine
 
 --virt-type         forces usage of qemu/xen/vmware         qemu
 
