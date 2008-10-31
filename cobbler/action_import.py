@@ -353,6 +353,7 @@ class Importer:
                importer = import_factory(basepath,self.path)
                top = importer.get_rootdir()
                print _("- descent into %s") % top
+               # FIXME : The location of repo definition is known from breed
                os.path.walk(top, self.repo_scanner, distro)
            else:
                print _("- this distro isn't mirrored")
@@ -828,6 +829,7 @@ class BaseImporter:
        for producing predictable distro names (and profile names) from differing import sources
        """
        result = {}
+       # FIXME : this is called only once, should not be a walk      
        os.path.walk(self.get_pkgdir(), self.arch_walker, result)      
        # print _("- architectures found at %s: %s") % ( self.get_pkgdir(), result.keys() )
        if result.pop("amd64",False):
@@ -1011,7 +1013,7 @@ class DebianImporter ( BaseImporter ) :
 
        idx = url.find("/")
        distro.ks_meta["hostname"] = url[:idx]
-       distro.ks_meta["directory"] = url[idx+1:]
+       distro.ks_meta["directory"] = url[idx:]
        if not distro.os_version :
            raise CX(_("OS version is required for debian distros"))
        distro.ks_meta["suite"] = distro.os_version

@@ -13,8 +13,7 @@
 
 # System keyboard
 d-i	console-setup/dont_ask_layout	note	
-d-i	console-setup/layoutcode	string	us
-d-i	console-setup/layout	select	U.S. English
+d-i	console-keymaps-at/keymap	select	us
 # System language
 
 # Use network installation
@@ -49,4 +48,22 @@ tzsetup-udeb	time/zone	select	America/New_York
 
 # Clear the Master Boot Record
 
+
+# Select individual packages and groups for install
+d-i	pkgsel/include	string	openssh-server
+tasksel	tasksel/first	multiselect	standard, desktop
+
+# Debian specific configuration
+# See http://www.debian.org/releases/stable/i386/apbs04.html.en & preseed documentation
+
+# By default the installer requires that repositories be authenticated
+# using a known gpg key. This setting can be used to disable that
+# authentication. Warning: Insecure, not recommended.
+d-i	debian-installer/allow_unauthenticated	string	true
+
+# Some versions of the installer can report back on what software you have
+# installed, and what software you use. The default is not to report back,
+# but sending reports helps the project determine what software is most
+# popular and include it on CDs.
+popularity-contest	popularity-contest/participate	boolean	false
 

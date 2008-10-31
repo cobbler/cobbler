@@ -601,7 +601,10 @@ class AptRepo(Repo):
         if self.rpm_list != "":
             raise CX(_("has_rpm_list not yet supported on apt repos"))
 
-        # create yum config file for use by reposync
+        if not self.arch:
+            raise CX(_("Architecture is required for apt repositories"))
+
+        # built destination path for the repo
         dest_path = os.path.join(repo_mirror, self.name)
          
         if self.mirror_locally:
@@ -615,8 +618,8 @@ class AptRepo(Repo):
             host = mirror[:idx]
             mirror = mirror[idx+1:]
 
-            idx = mirror.rfind("/")
-            suite = mirror[idx+1:]
+            idx = mirror.rfind("/dists/")
+            suite = mirror[idx+7:]
             mirror = mirror[:idx]
 
             mirror_data = "--method=%s --host=%s --root=%s --dist=%s " % ( method , host , mirror , suite )
@@ -624,15 +627,15 @@ class AptRepo(Repo):
             # FIXME : flags should come from obj_sync instead of being hardcoded
             rflags = "--passive --nocleanup --ignore-release-gpg --verbose"
             cmd = "%s %s %s %s" % (mirror_program, rflags, mirror_data, dest_path)
-            if not self.arch:
-                raise CX(_("Architecture is required for apt repositories"))
             if self.arch == "src":
-                cmd = "%s --source"
+                cmd = "%s --source" % cmd
             else:
-                use_source = "--source"
-                if self.arch == "x86":
-                   self.arch = "i386" # FIX potential arch errors
-                cmd = "%s -a %s" % (cmd, self.arch)
+                arch = self.arch
+                if arch == "x86":
+                   arch = "i386" # FIX potential arch errors
+                if arch == "x86_64":
+                   arch = "amd64" # FIX potential arch errors
+                cmd = "%s --nosource -a %s" % (cmd, arch)
                     
             print _("- %s") % cmd
 
