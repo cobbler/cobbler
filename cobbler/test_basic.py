@@ -64,7 +64,18 @@ class BootTest(unittest.TestCase):
         self.make_basic_config()
 
     def tearDown(self):
-        # only off during refactoring, fix later
+        try:
+            self.api.remove_distro("D1",recursive=True)
+        except:
+            pass
+        try:
+            self.api.remove_repo("test_repo") 
+        except:
+            pass
+        try:
+            self.api.remove_image("test_image")
+        except:
+            pass
         shutil.rmtree(self.topdir,ignore_errors=True)
         self.api = None
 

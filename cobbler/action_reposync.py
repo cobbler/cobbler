@@ -151,7 +151,10 @@ class RepoSync:
             if repo.mirror_locally:
                 line = "baseurl=http://${server}/cobbler/repo_mirror/%s\n" % (repo.name)
             else:
-                line = "baseurl=%s\n" % (repo.mirror)
+                mstr = repo.mirror
+                if mstr.startswith("/"):
+                    mstr = "file://%s" % mstr
+                line = "baseurl=%s\n" % mstr
   
             config_file.write(line)
             # user may have options specific to certain yum plugins
@@ -163,7 +166,10 @@ class RepoSync:
                 if x == "gpgcheck":
                     optgpgcheck = True
         else:
-            line = "baseurl=%s\n" % repo.mirror
+            mstr = repo.mirror
+            if mstr.startswith("/"):
+                mstr = "file://%s" % mstr
+            line = "baseurl=%s\n" % mstr
             http_server = "%s:%s" % (self.settings.server, self.settings.http_port)
             line = line.replace("@@server@@",http_server)
             config_file.write(line)

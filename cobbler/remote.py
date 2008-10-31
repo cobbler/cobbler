@@ -1304,23 +1304,24 @@ class CobblerReadWriteXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
 # *********************************************************************
 # *********************************************************************
 
-def test_bootstrap_start_clean():
+def __test_bootstrap_start_clean():
 
-   subprocess.call("rm -rf /var/lib/cobbler/config/distros.d/*",shell=True)
-   subprocess.call("rm -rf /var/lib/cobbler/config/profiles.d/*",shell=True)
-   subprocess.call("rm -rf /var/lib/cobbler/config/systems.d/*",shell=True)
-   subprocess.call("rm -rf /var/lib/cobbler/config/images.d/*",shell=True)
-   subprocess.call("rm -rf /var/lib/cobbler/config/repos.d/*",shell=True)
-   rc1 = subprocess.call("/sbin/service cobblerd restart",shell=True)
+   #subprocess.call("rm -rf /var/lib/cobbler/config/distros.d/*",shell=True)
+   #subprocess.call("rm -rf /var/lib/cobbler/config/profiles.d/*",shell=True)
+   #subprocess.call("rm -rf /var/lib/cobbler/config/systems.d/*",shell=True)
+   #subprocess.call("rm -rf /var/lib/cobbler/config/images.d/*",shell=True)
+   #subprocess.call("rm -rf /var/lib/cobbler/config/repos.d/*",shell=True)
+
+   rc1 = subprocess.call(["/sbin/service","cobblerd","restart"],shell=False)
    assert rc1 == 0
-   rc2 = subprocess.call("/sbin/service httpd restart",shell=True)
+   rc2 = subprocess.call(["/sbin/service","httpd","restart"],shell=False)
    assert rc2 == 0
    time.sleep(2)
    
 
 def test_xmlrpc_ro():
 
-   test_bootstrap_start_clean()
+   __test_bootstrap_start_clean()
    server = xmlrpclib.Server("http://127.0.0.1/cobbler_api_rw")
    time.sleep(2) 
 
@@ -1331,18 +1332,25 @@ def test_xmlrpc_ro():
    repos    = server.get_repos()
    images   = server.get_systems()
    settings = server.get_settings()
-   
-   assert distros == []
-   assert profiles == [] 
-   assert systems == []
-   assert repos == []
-   assert images == []
+    
+   assert type(distros) == type([])
+   assert type(profiles) == type([]) 
+   assert type(systems) == type([])
+   assert type(repos) == type([])
+   assert type(images) == type([])
    assert type(settings) == type({})
 
    # now populate with something more useful
    # using the non-remote API
 
    api = cobbler_api.BootAPI()
+
+   before_distros  = len(api.distros())
+   before_profiles = len(api.profiles())
+   before_systems  = len(api.systems())
+   before_repos    = len(api.repos())
+   before_images   = len(api.images())
+
    distro = api.new_distro()
    distro.set_name("distro0")
    distro.set_kernel("/etc/hosts")
@@ -1351,7 +1359,14 @@ def test_xmlrpc_ro():
    
    repo = api.new_repo()
    repo.set_name("repo0")
-   repo.set_mirror("/tmp")
+
+   if not os.path.exists("/tmp/empty"):
+      os.mkdir("/tmp/empty",770)
+   repo.set_mirror("/tmp/empty")
+   files = glob.glob("rpm-build/*.rpm")
+   if len(files) == 0:
+      raise Exception("Tests must be run from the cobbler checkout directory.")
+   subprocess.call("cp rpm-build/*.rpm /tmp/empty",shell=True)
    api.add_repo(repo)
 
    profile = api.new_profile()
@@ -1371,32 +1386,45 @@ def test_xmlrpc_ro():
    image.set_name("image0")
    image.set_file("/etc/hosts")
    api.add_image(image)
+
+   # reposync is required in order to create the repo config files
+   api.reposync()
    
    # verify we have the new config in cobblerd
    server.update()
 
+   # FIXME: the following tests do not yet look to see that all elements
+   # retrieved match what they were created with, but we presume this
+   # all works.  It is not a high priority item to test but do not assume
+   # this is a complete test of access functions.
+
+   def comb(haystack, needle):
+      for x in haystack:
+         if x["name"] == needle:
+             return True
+      return False
+
    distros = server.get_distros()
-   assert len(distros) == 1
-   assert distros[0]["name"] == "distro0"
+   assert len(distros) == before_distros + 1
+   assert comb(distros, "distro0")
 
    profiles = server.get_profiles()
-   assert len(profiles) == 1
-   assert profiles[0]["name"] == "profile0"
+   assert len(profiles) == before_profiles + 1
+   assert comb(profiles, "profile0")
 
    systems = server.get_systems()
-   assert len(systems) == 1
-   assert systems[0]["name"] == "system0"
+   assert len(systems) == before_systems + 1
+   assert comb(systems, "system0")
 
    repos = server.get_repos()
-   assert len(repos) == 1
-   assert repos[0]["name"] == "repo0"
+   assert len(repos) == before_repos + 1
+   assert comb(repos, "repo0")
 
    images = server.get_images()
-   assert len(images) == 1
-   assert images[0]["name"] == "image0"
+   assert len(images) == before_images + 1
+   assert comb(images, "image0")
 
    # now test specific gets
-
    distro = server.get_distro("distro0")
    assert distro["name"] == "distro0"
    assert type(distro["kernel_options"] == type({}))
@@ -1419,7 +1447,6 @@ def test_xmlrpc_ro():
    # the difference is that koan's object types are flattened somewhat
    # and also that they are passed through utils.blender() so they represent
    # not the object but the evaluation of the object tree at that object.
-
    distro  = server.get_distro_for_koan("distro0")
    assert distro["name"] == "distro0"
    assert type(distro["kernel_options"] == type(""))
@@ -1452,12 +1479,9 @@ def test_xmlrpc_ro():
 
    templates = server.get_kickstart_templates("???")
    assert "/etc/cobbler/sample.ks" in templates
-
    assert server.is_kickstart_in_use("/etc/cobbler/sample.ks","???") == True
    assert server.is_kickstart_in_use("/etc/cobbler/legacy.ks","???") == False
-
    generated = server.generate_kickstart("profile0")
-   print generated
    assert type(generated) == type("")
    assert generated.find("ERROR") == -1
    assert generated.find("url") != -1
@@ -1466,11 +1490,6 @@ def test_xmlrpc_ro():
    yumcfg = server.get_repo_config_for_profile("profile0")
    assert type(yumcfg) == type("")
    assert yumcfg.find("ERROR") == -1
-
-   return
-
-   ### BOOKMARK: FIXME: not done testing tests :)
-
    assert yumcfg.find("http://") != -1
  
    yumcfg = server.get_repo_config_for_system("system0")
@@ -1498,15 +1517,39 @@ def test_xmlrpc_ro():
    system = server.get_system("system0")
    assert system["netboot_enabled"] == False
 
-   # FIXME: testing for get_template_file_for_profile
-   # FIXME: testing for get_template_file_for_system
+   data = server.get_template_file_for_profile("profile0")
+   assert data.find("url") != -1
+   assert data.find("wget") != -1   
+   data = server.get_template_file_for_system("system0")
+   assert data.find("url") != -1
+   assert data.find("wget") != -1
 
-   # FIXME: def run_install_triggers(self,mode,objtype,name,ip,token=None,**rest):
-  
-   # FIXME: get_version
-
-   ver = self.get_version()
+   assert server.run_install_triggers(self,"pre","profile","profile0","127.0.0.1")
+   assert server.run_install_triggers(self,"post","profile","profile0","127.0.0.1")
+   assert server.run_install_triggers(self,"pre","system","system0","127.0.0.1")
+   assert server.run_install_triggers(self,"post","system","system0","127.0.0.1")
+   
+   ver = server.get_version()
    assert type(ver) == type("")
+
+   # do removals via the API since the read-only API can't do them
+   # and the read-write tests are seperate
+
+   d0 = api.get_distro("distro0")
+   i0 = api.get_image("image0")
+   r0 = api.get_image("repo0")
+   api.remove_distro(d0, recursive = True)
+   api.remove_image(i0)
+   api.remove_repo(r0)
+
+   # this last bit mainly tests the tests, to ensure we've left nothing behind
+   # not XMLRPC.  Tests polluting the user config is not desirable.
+
+   assert len(self.api.get_distros() == before_distros)
+   assert len(self.api.get_profiles() == before_profiles)
+   assert len(self.api.get_systems() == before_systems)
+   assert len(self.api.get_images() == before_images)
+   assert len(self.api.get_repos() == before_repos)
   
 def test_xmlrpc_rw():
 
