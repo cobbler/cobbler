@@ -37,6 +37,7 @@ Cobbler CHANGELOG
 - (BUGF) added ExcludeArch: ppc64
 - (FEAT) --environment parameter added to reposync
 - (BUGF) have triggers ignore dotfiles so directories can be version controlled (and so on)
+- (FEAT) init scripts and specfiles now install on SuSE
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
