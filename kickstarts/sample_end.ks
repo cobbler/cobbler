@@ -46,6 +46,7 @@ SNIPPET::main_partition_select
 
 %pre
 SNIPPET::pre_partition_select
+SNIPPET::pre_install_network_config
 $kickstart_start
 %end
 
@@ -56,6 +57,7 @@ $func_install_if_enabled
 %post
 $yum_config_stanza
 SNIPPET::post_install_kernel_options
+SNIPPET::post_install_network_config
 SNIPPET::func_register_if_enabled
 SNIPPET::download_config_files
 %end

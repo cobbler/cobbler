@@ -88,7 +88,10 @@ class System(item.Item):
                 "gateway"     : "",
                 "hostname"    : "",
                 "virt_bridge" : "",
-                "static"      : False
+                "static"      : False,
+                "bonding"     : "",
+                "bonding_master" : "",
+                "bonding_opts" : ""
             }
 
         return self.interfaces[name]
@@ -337,6 +340,21 @@ class System(item.Item):
         intf["virt_bridge"] = bridge
         return True
 
+    def set_bonding(self,bonding,interface):
+        intf = self.__get_interface(interface)
+        intf["bonding"] = bonding
+        return True
+
+    def set_bonding_master(self,bonding_master,interface):
+        intf = self.__get_interface(interface)
+        intf["bonding_master"] = bonding_master
+        return True
+
+    def set_bonding_opts(self,bonding_opts,interface):
+        intf = self.__get_interface(interface)
+        intf["bonding_opts"] = bonding_opts
+        return True
+
     def set_profile(self,profile_name):
         """
         Set the system to use a certain named profile.  The profile
@@ -499,6 +517,9 @@ class System(item.Item):
         buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
         buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
         buf = buf + _("  is static?     : %s\n") % x.get("static",False)
+        buf = buf + _("  bonding        : %s\n") % x.get("bonding","")
+        buf = buf + _("  bonding master : %s\n") % x.get("bonding_master","")
+        buf = buf + _("  bonding opts   : %s\n") % x.get("bonding_opts","")
 
         for (name,x) in self.interfaces.iteritems():
             if name == self.default_interface: continue
@@ -511,6 +532,9 @@ class System(item.Item):
             buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
             buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
             buf = buf + _("  is static?     : %s\n") % x.get("static",False)
+            buf = buf + _("  bonding        : %s\n") % x.get("bonding","")
+            buf = buf + _("  bonding_master : %s\n") % x.get("bonding_master","")
+            buf = buf + _("  bonding_opts   : %s\n") % x.get("bonding_opts","")
 
         return buf
 
@@ -528,6 +552,9 @@ class System(item.Item):
             if field == "subnet"     : self.set_subnet(value, interface)
             if field == "gateway"    : self.set_gateway(value, interface)
             if field == "virtbridge" : self.set_virt_bridge(value, interface)
+            if field == "bonding"    : self.set_bonding(value, interface)
+            if field == "bonding_master" : self.set_bonding_master(value, interface)
+            if field == "bonding_opts" : self.set_bonding_opts(value, interface)
         return True
          
 
