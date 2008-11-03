@@ -1322,7 +1322,7 @@ def __test_bootstrap_start_clean():
 def test_xmlrpc_ro():
 
    __test_bootstrap_start_clean()
-   server = xmlrpclib.Server("http://127.0.0.1/cobbler_api_rw")
+   server = xmlrpclib.Server("http://127.0.0.1/cobbler_api")
    time.sleep(2) 
 
    # delete all distributions
@@ -1545,14 +1545,57 @@ def test_xmlrpc_ro():
    # this last bit mainly tests the tests, to ensure we've left nothing behind
    # not XMLRPC.  Tests polluting the user config is not desirable.
 
-   assert len(self.api.get_distros() == before_distros)
-   assert len(self.api.get_profiles() == before_profiles)
-   assert len(self.api.get_systems() == before_systems)
-   assert len(self.api.get_images() == before_images)
-   assert len(self.api.get_repos() == before_repos)
+   assert len(api.get_distros() == before_distros)
+   assert len(api.get_profiles() == before_profiles)
+   assert len(api.get_systems() == before_systems)
+   assert len(api.get_images() == before_images)
+   assert len(api.get_repos() == before_repos)
   
 def test_xmlrpc_rw():
 
-   # need tests for the various auth modes, not just one 
-   pass
+   # ideally we need tests for the various auth modes, not just one 
+   # and the ownership module, though this will provide decent coverage.
 
+   __test_bootstrap_start_clean()
+   server = xmlrpclib.Server("http://127.0.0.1/cobbler_api_rw") # remote 
+   api = cobbler_api.BootAPI() # local
+
+   # read our settings file to see if it looks like the "testing" mode is engaged
+   modules = open("/etc/cobbler/modules.conf")
+   data = modules.read()
+   modules.close()
+
+   if data.find("= authn_testing") == -1 and data.find("=authn_testing"):
+       raise Exception("switch to authn_testing in /etc/cobbler/modules.conf to proceed with tests")
+
+   # test getting token, will raise remote exception on fail 
+   token = self.server.login("testing","testing")
+
+   # create distro
+   distro_id = self.serer.new_distro(token)
+   self.modify_distro(did, "name", "distro1", token)
+   self.modify_distro(did, "kernel", "/etc/hosts", token) # not a kernel, just for testing
+   self.modify_distro(did, "initrd", "/etc/hosts", token) # not a kernel, just for testing  
+   self.modify_distro(did, "kopts", { "dog" : "fido", "cat" : "fluffy" }, token) # hash or string
+   self.modify_distro(did, "ksmeta", "good=sg1 evil=gould", token) # hash or string
+   self.modify_distro(did, "breed", "redhat", token)
+   self.modify_distro(did, "os-version", "rhel5", token)
+   self.modify_distro(did, "owners", "sam dave", token) # array or string
+   self.modify_distro(did, "mgmt-classes", "blip") # list or string
+   self.modify_distro(did, "template-files", "/etc/hosts=/tmp/a /etc/fstab=/tmp/b") # hash or string
+   self.server.save_distro(did)
+
+   # now check via /non-xmlrpc/ API to make sure it's properly there and saved.
+   api.get_distro("distro1")
+
+   #profile_id = self.server.new_profile(token)
+
+   # FIXME: test renames
+   # FIXME: test copies
+   # FIXME: test deletes
+
+   # cleanup
+   distro = api.get_distro("distro1")
+   api.remove_distro(distro, recursive=True)
+ 
+   
