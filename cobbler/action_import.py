@@ -943,7 +943,8 @@ class RedHatImporter ( BaseImporter ) :
                 os_version = "rhel2.1"
            else:
                 try:
-                    os_version = "rhel%s.%s" % (int(major), int(minor))
+                    # must use libvirt version
+                    os_version = "rhel%s" % (int(major))
                 except:
                     os_version = "other"
 
