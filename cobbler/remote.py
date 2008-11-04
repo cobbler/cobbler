@@ -1388,7 +1388,7 @@ def test_xmlrpc_ro():
    api.add_image(image)
 
    # reposync is required in order to create the repo config files
-   api.reposync()
+   api.reposync(name="repo0")
    
    # verify we have the new config in cobblerd
    server.update()
@@ -1565,7 +1565,7 @@ def test_xmlrpc_rw():
    data = modules.read()
    modules.close()
 
-   if data.find("= authn_testing") == -1 and data.find("=authn_testing"):
+   if data.find("= authn_testing") == -1 and data.find("=authn_testing") == -1:
        raise Exception("switch to authn_testing in /etc/cobbler/modules.conf to proceed with tests")
 
    # test getting token, will raise remote exception on fail 

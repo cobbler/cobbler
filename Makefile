@@ -23,9 +23,6 @@ test:
 	make rpms
 	make install
 	-(make nosetests)
-
-untest:
-	prefix=test
 	make restorestate
 
 nosetests:

@@ -71,22 +71,24 @@ class Repo(item.Item):
         self.mirror_locally   = self.load_item(seed_data, 'mirror_locally', True)
         self.environment      = self.load_item(seed_data, 'environment', {})
 
-        # coerce types from input file
+        # coerce types/values from input file
         self.set_keep_updated(self.keep_updated)
         self.set_mirror_locally(self.mirror_locally)
         self.set_owners(self.owners)
         self.set_environment(self.environment)
+        self._guess_breed()
 
+        return self
+
+    def _guess_breed(self):
         # backwards compatibility
-        if self.breed == "":
+        if (self.breed == "" or self.breed is None) and self.mirror is not None:
            if self.mirror.startswith("http://") or self.mirror.startswith("ftp://"):
               self.set_breed("yum")
            elif self.mirror.startswith("rhn://"):
               self.set_breed("rhn")
            else:
               self.set_breed("rsync")
-
-        return self
 
     def set_mirror(self,mirror):
         """
@@ -103,6 +105,7 @@ class Repo(item.Item):
               self.set_arch("ia64")
            elif mirror.find("s390") != -1:
               self.set_arch("s390x")
+        self._guess_breed()
         return True
 
     def set_keep_updated(self,keep_updated):
