@@ -9,7 +9,7 @@
     #set $configbymac = True
     #for $iname in $ikeys
         #set $idata = $interfaces[$iname]
-        #if $idata["mac_address"] == "" and not $vlanpattern.match($iname):
+        #if $idata["mac_address"] == "" and not $vlanpattern.match($iname) and not $idata["bonding"].lower() == "master"
             #set $configbymac = False
         #end if
     #end for
@@ -28,6 +28,9 @@
         #set $ip       = $idata["ip_address"]
         #set $netmask  = $idata["subnet"]
         #set $gateway  = $idata["gateway"]
+        #set $bonding  = $idata["bonding"]
+        #set $bonding_master = $idata["bonding_master"]
+        #set $bonding_opts = $idata["bonding_opts"]
         #set $ihostname = $idata["hostname"]
         #set $devfile = "/etc/sysconfig/network-scripts/ifcfg-" + $iname
         #if $vlanpattern.match($iname)
@@ -37,8 +40,20 @@
         #else
             #set $is_vlan = "false"
         #end if
-        #if $configbymac and $is_vlan == "false"
-            ## This is a physical interface, hand it to anaconda.
+        #if ($configbymac and $is_vlan == "false" and $bonding.lower() != "slave") or $bonding.lower() == "master"
+            ## This is a physical interface, hand it to anaconda. Do not
+            ## process bonding slaves here.
+            #if $bonding.lower() == "master"
+                ## Find a slave for this interface
+                #for $tiname in $ikeys
+                    #set $tidata = $interfaces[$tiname]
+                    #if $tidata["bonding"].lower() == "slave" and $tidata["bonding_master"].lower() == $iname
+                        #set $mac = $tidata["mac_address"]
+#  Found a slave for this interface: $tiname ($mac)
+                        #break
+                    #end if
+                #end for
+            #end if
             #if $static.lower() == "true" and $ip != ""
                 #if $netmask == ""
                     ## Netmask not provided, default to /24.
@@ -66,7 +81,11 @@ then
   echo "network --device=\$IFNAME $netinfo" >> /tmp/pre_install_network_config
 fi
         #else
+            #if $bonding.lower() == "slave"
+#  Skipping (slave-interface)
+            #else
 #  Skipping (not a physical interface)...
+            #end if
         #end if
     #end for
 #end if

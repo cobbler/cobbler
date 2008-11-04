@@ -9,7 +9,7 @@
     #set $configbymac = True
     #for $iname in $ikeys
         #set $idata = $interfaces[$iname]
-        #if $idata["mac_address"] == "" and not $vlanpattern.match($iname):
+        #if $idata["mac_address"] == "" and not $vlanpattern.match($iname) and not $idata["bonding"].lower() == "master"
             #set $configbymac = False
         #end if
     #end for
