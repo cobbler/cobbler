@@ -78,7 +78,8 @@ class RepoSync:
 
             for k in env.keys():
                 print _("environment: %s=%s") % (k,env[k])
-                os.putenv(k,env[k])
+                if env[k] is not None:
+                    os.putenv(k,env[k])
 
             if name is not None and repo.name != name:
                 # invoked to sync only a specific repo, this is not the one

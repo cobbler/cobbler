@@ -26,8 +26,8 @@ test:
 	make restorestate
 
 nosetests:
-	#nosetests tests -w cobbler --with-coverage --cover-package=cobbler --cover-erase --quiet | tee test.log
-	nosetests cobbler/*.py -v | tee test.log
+	#nosetests tests -w cobbler -d --with-coverage --cover-package=cobbler --cover-erase --quiet | tee test.log
+	nosetests cobbler/*.py -v -d | tee test.log
 
 build: manpage updatewui
 	python setup.py build -f
