@@ -1072,30 +1072,35 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         All copy methods are pretty much the same.  Get an object handle, pass in the new
         name for it.
         """
+        self._refresh()
         self._log("copy_distro",object_id=object_id,token=token)
         self.check_access(token,"copy_distro")
         obj = self.__get_object(object_id)
         return self.api.copy_distro(obj,newname)
 
     def copy_profile(self,object_id,token=None):
+        self._refresh()
         self._log("copy_profile",object_id=object_id,token=token)
         self.check_access(token,"copy_profile")
         obj = self.__get_object(object_id)
         return self.api.copy_profile(obj,newname)
 
     def copy_system(self,object_id,token=None):
+        self._refresh()
         self._log("copy_system",object_id=object_id,token=token)
         self.check_access(token,"copy_system")
         obj = self.__get_object(object_id)
         return self.api.copy_system(obj,newname)
 
     def copy_repo(self,object_id,token=None):
+        self._refresh()
         self._log("copy_repo",object_id=object_id,token=token)
         self.check_access(token,"copy_repo")
         obj = self.__get_object(object_id)
         return self.api.copy_repo(obj,newname)
 
     def copy_image(self,object_id,token=None):
+        self._refresh()
         self._log("copy_image",object_id=object_id,token=token)
         self.check_access(token,"copy_image")
         obj = self.__get_object(object_id)
@@ -1107,32 +1112,38 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         name for it.  Rename will modify dependencies to point them at the new
         object.  
         """
+        self._refresh()
         self._log("rename_distro",object_id=object_id,token=token)
-        self.check_access(token,"copy_repo")
+        self.api.deserialize() # FIXME: make this unneeded
         obj = self.__get_object(object_id)
         return self.api.rename_distro(obj,newname)
 
     def rename_profile(self,object_id,newname,token=None):
+        self._refresh()
         self._log("rename_profile",object_id=object_id,token=token)
         self.check_access(token,"rename_profile")
         obj = self.__get_object(object_id)
         return self.api.rename_profile(obj,newname)
 
     def rename_system(self,object_id,newname,token=None):
+        self._refresh()
         self._log("rename_system",object_id=object_id,token=token)
         self.check_access(token,"rename_system")
         obj = self.__get_object(object_id)
         return self.api.rename_system(obj,newname)
 
     def rename_repo(self,object_id,newname,token=None):
+        self._refresh()
         self._log("rename_repo",object_id=object_id,token=token)
         self.check_access(token,"rename_repo")
         obj = self.__get_object(object_id)
         return self.api.rename_repo(obj,newname)
     
     def rename_image(self,object_id,newname,token=None):
+        self._refresh()
         self._log("rename_image",object_id=object_id,token=token)
         self.check_access(token,"rename_image")
+        self.api.deserialize() # FIXME: make this unneeded
         obj = self.__get_object(object_id)
         return self.api.rename_image(obj,newname)
 
@@ -1726,11 +1737,98 @@ def test_xmlrpc_rw():
    assert api.find_repo("repo1") != None
    # FIXME: add some checks on object contents
 
-   # FIXME: test renames
-   # FIXME: test copies
-   # FIXME: test deletes
+   # test handle lookup
 
-   # FIXME: cleanup routines should also remove distro1, etc 
+   did = server.get_distro_handle("distro1", token)
+   assert did != None
+   rid = server.get_repo_handle("repo1", token)
+   assert rid != None
+   iid = server.get_image_handle("image1", token)
+   assert iid != None
+
+   # test renames
+   server.rename_distro(did, "distro2", token)
+   # note: have to get new handles after rename (??)
+   pid = server.get_profile_handle("profile1", token)
+   assert pid != None
+   server.rename_profile(pid, "profile2", token)
+   sid = server.get_system_handle("system1", token)
+   assert sid != None
+   server.rename_system(sid, "system2", token)
+   server.rename_repo(rid, "repo2", token)
+   server.rename_image(iid, "image2", token)
+   api.deserialize()
+
+   assert api.find_distro("distro2") != None
+   assert api.find_profile("profile2") != None
+   assert api.find_repo("repo2") != None
+   assert api.find_image("image2") != None
+   assert api.find_system("system2") != None
+
+   # BOOKMARK: currently here in terms of test testing.
+
+   assert api.find_distro("distro1") is None
+   assert api.find_profile("profile1") is None
+   assert api.find_repo("repo1") is None
+   assert api.find_image("image1") is None
+   assert api.find_system("system1") is None
    
+   did = server.get_distro_handle("distro2", token)
+   assert did != None
+   pid = server.get_profile_handle("profile2", token)
+   assert pid != None
+   rid = server.get_repo_handle("repo2", token)
+   assert rid != None
+   sid = server.get_system_handle("system2", token)
+   assert sid != None
+   iid = server.get_image_handle("image2", token)
+   assert iid != None
+
+   # test copies
+   server.copy_distro(did, "distro1", token)
+   server.copy_profile(pid, "profile1", token)
+   server.copy_repo(rid, "repo1", token)
+   server.copy_image(iid, "image1", token)
+   server.copy_system(sid, "system1", token)
+
+   api.deserialize()
+   assert api.find_distro("distro2") != None
+   assert api.find_profile("profile2") != None
+   assert api.find_repo("repo2") != None
+   assert api.find_image("image2") != None
+   assert api.find_system("system2") != None
+
+   assert api.find_distro("distro1") != None
+   assert api.find_profile("profile1") != None
+   assert api.find_repo("repo1") != None
+   assert api.find_image("image1") != None
+   assert api.find_system("system1") != None
+   
+   server.remove_system("system1", token)
+   server.remove_profile("profile1", token)
+   server.remove_distro("distro1", token)
+   server.remove_repo("repo1", token)
+   server.remove_image("image1", token)
+   server.remove_system("system2", token)
+   server.remove_profile("profile2", token)
+   server.remove_distro("distro2", token)
+   server.remove_repo("repo2", token)
+   server.remove_image("image2", token)
+
+   # FIXME: reduce boilerplate code here
+
+   assert api.find_distro("distro1") is None
+   assert api.find_profile("profile1") is None
+   assert api.find_repo("repo1") is None
+   assert api.find_image("image1") is None
+   assert api.find_system("system1") is None
+
+   assert api.find_distro("distro2") is None
+   assert api.find_profile("profile2") is None
+   assert api.find_repo("repo2") is None
+   assert api.find_image("image2") is None
+   assert api.find_system("system2") is None
+
+   # FIXME: should not need cleanup as we've done it above 
    __test_remove_objects()
 
