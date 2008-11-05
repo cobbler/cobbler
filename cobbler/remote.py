@@ -1658,9 +1658,56 @@ def test_xmlrpc_rw():
    api.deserialize() 
    assert api.find_profile("profile1") != None
 
-   # FIXME: image adds
+   sid = server.new_system(token)
+   server.modify_system(sid, 'name', 'system1', token)
+   server.modify_system(sid, 'profile', 'profile1', token)
+   server.modify_system(sid, 'kopts', { "dog" : "fido" }, token)
+   server.modify_system(sid, 'kopts-post', { "cat" : "fluffy" }, token)
+   server.modify_system(sid, 'kickstart', '/etc/cobbler/sample.ks', token)
+   server.modify_system(sid, 'netboot-enabled', True, token)
+   server.modify_system(sid, 'virt-path', "/opt/images", token)
+   server.modify_system(sid, 'virt-type', 'qemu', token)
+   server.modify_system(sid, 'modify-interface', { 
+       "macaddress-eth0" : "AA:BB:CC:EE:EE:EE",
+       "ipaddress-eth0"  : "192.168.10.50",
+       "gateway-eth0"    : "192.168.10.1",
+       "virtbridge-eth0" : "virbr0",
+       "hostname-eth0"   : "foo.example.com",
+       "static-eth0"     : False,
+       "dhcptag-eth0"    : "section2"
+   }, token)
+   server.modify_system(sid, 'modify-interface', {
+       "static-eth1"     : False
+   }, token)
+   server.modify_system(sid, "mgmt-classes", [ "one", "two", "three"], token)
+   server.modify_system(sid, "template-files", {}, token)
+   server.save_system(sid,token)
+   
+   api.deserialize() 
+   assert api.find_system("system1") != None
+   # FIXME: add some checks on object contents
+
+   iid = server.new_image(token)
+   server.modify_image(iid, "name", "image1", token)
+   server.modify_image(iid, "image-type", "iso", token)
+   server.modify_image(iid, "breed", "redhat", token)
+   server.modify_image(iid, "os-version", "rhel5", token)
+   server.modify_image(iid, "arch", "x86_64", token)
+   server.modify_image(iid, "file", "nfs://server/path/to/x.iso", token)
+   server.modify_image(iid, "owners", [ "alex", "michael" ], token)
+   server.modify_image(iid, "virt-cpus", 1, token)
+   server.modify_image(iid, "virt-file-size", 5, token)
+   server.modify_image(iid, "virt-bridge", "virbr0", token)
+   server.modify_image(iid, "virt-path", "VolGroup01", token)
+   server.modify_image(iid, "virt-ram", 1024, token)
+   server.modify_image(iid, "virt-type", "xenpv", token)
+   server.save_image(iid, token)
+
+   api.deserialize() 
+   assert api.find_image("image1") != None
+   # FIXME: add some checks on object contents
+   
    # FIXME: repo adds
-   # FIXME: system adds
 
    # FIXME: test renames
    # FIXME: test copies
