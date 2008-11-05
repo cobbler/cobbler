@@ -1637,7 +1637,30 @@ def test_xmlrpc_rw():
    api.deserialize() 
    assert api.find_distro("distro1") != None
 
-   #profile_id = self.server.new_profile(token)
+   pid = server.new_profile(token)
+   server.modify_profile(pid, "name",   "profile1", token)
+   server.modify_profile(pid, "distro", "distro1", token)
+   server.modify_profile(pid, "enable-menu", True, token)
+   server.modify_profile(pid, "kickstart", "/etc/cobbler/sample.ks", token)
+   server.modify_profile(pid, "kopts", { "level" : "11" }, token)
+   server.modify_profile(pid, "kopts-post", "noapic", token)
+   server.modify_profile(pid, "virt-file-size", 20, token)
+   server.modify_profile(pid, "virt-ram", 2048, token)
+   server.modify_profile(pid, "repos", [], token)
+   server.modify_profile(pid, "template-files", {}, token)
+   server.modify_profile(pid, "virt-path", "VolGroup00", token)
+   server.modify_profile(pid, "virt-bridge", "virbr1", token)
+   server.modify_profile(pid, "virt-cpus", 2, token)
+   server.modify_profile(pid, "owners", [ "sam", "dave" ], token)
+   server.modify_profile(pid, "mgmt-classes", "one two three", token)
+   server.save_profile(pid, token)
+
+   api.deserialize() 
+   assert api.find_profile("profile1") != None
+
+   # FIXME: image adds
+   # FIXME: repo adds
+   # FIXME: system adds
 
    # FIXME: test renames
    # FIXME: test copies
