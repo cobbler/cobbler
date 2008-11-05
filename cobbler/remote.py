@@ -1708,6 +1708,23 @@ def test_xmlrpc_rw():
    # FIXME: add some checks on object contents
    
    # FIXME: repo adds
+   rid = server.new_repo(token)
+   server.modify_repo(rid, "name", "repo1", token)
+   server.modify_repo(rid, "arch", "x86_64", token)
+   server.modify_repo(rid, "mirror", "http://example.org/foo/x86_64", token)
+   server.modify_repo(rid, "keep-updated", True, token)
+   server.modify_repo(rid, "priority", "50", token)
+   server.modify_repo(rid, "rpm-list", [], token)
+   server.modify_repo(rid, "createrepo-flags", "--verbose", token)
+   server.modify_repo(rid, "yumopts", {}, token)
+   server.modify_repo(rid, "owners", [ "slash", "axl" ], token)
+   server.modify_repo(rid, "mirror-locally", True, token)
+   server.modify_repo(rid, "environment", {}, token)
+   server.save_repo(rid, token)
+   
+   api.deserialize() 
+   assert api.find_repo("repo1") != None
+   # FIXME: add some checks on object contents
 
    # FIXME: test renames
    # FIXME: test copies
