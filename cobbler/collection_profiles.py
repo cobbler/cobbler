@@ -76,5 +76,4 @@ class Profiles(collection.Collection):
                     self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/profile/post/*")
             return True
 
-        # raise CX(_("cannot delete an object that does not exist: %s") % name)
-        return False
+        raise CX(_("cannot delete an object that does not exist: %s") % name)

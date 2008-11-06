@@ -70,7 +70,6 @@ class Distros(collection.Collection):
                     lite_sync.remove_single_profile(name)
             del self.listing[name]
 
-            print "DEBUG: serialize delete called"
             self.config.serialize_delete(self, obj)
 
             if with_delete:
@@ -102,6 +101,5 @@ class Distros(collection.Collection):
 
             return True
 
-        # raise CX(_("cannot delete object that does not exist: %s") % name)
-        return False
+        raise CX(_("cannot delete object that does not exist: %s") % name)
 

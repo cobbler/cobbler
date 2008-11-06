@@ -72,8 +72,6 @@ class BootAPI:
         self.perms_ok = False
         if not BootAPI.__has_loaded:
 
-            self.modified_timestamp = 0
-
             # NOTE: we do not log all API actions, because
             # a simple CLI invocation may call adds and such
             # to load the config, which would just fill up
@@ -128,24 +126,6 @@ class BootAPI:
         fd = open("/var/lib/cobbler/.mtime")
         data = fd.read().strip()
         return float(data)
-
-    def __needs_refresh(self):
-        """
-        Returns whether the configuration as of /now/ matches the configuration
-        on disk, requiring an API reload.
-        """
-        now = self.last_modified_time()
-        return (self.modified_timestamp < now)
-
-    def __refresh(self):
-        """
-        Reloads the configuration from disk in the event of an API change that
-        was initiated from /outside/ this current API handle. 
-        """
-        if self.__needs_refresh():
-           self.clear()
-           self.deserialize()
-           self.modified_timestamp = self.last_modified_time()
 
     def log(self,msg,args=None,debug=False):
         if debug:
@@ -216,78 +196,95 @@ class BootAPI:
         """
         return self._config.settings()
 
+    def update(self):
+        """
+        This can be called when you expect a cobbler object
+        to have changed outside of your API call.  It does not
+        have to be called before read operations but should be
+        called before write operations depending on the last
+        modification time.  For the local API it is not needed.
+        """
+        self.clear()
+        self.deserialize()
+
     def copy_distro(self, ref, newname):
-        self.__refresh()
         self.log("copy_distro",[ref.name, newname])
         return self._config.distros().copy(ref,newname)
 
     def copy_profile(self, ref, newname):
-        self.__refresh()
         self.log("copy_profile",[ref.name, newname])
         return self._config.profiles().copy(ref,newname)
 
     def copy_system(self, ref, newname):
-        self.__refresh()
         self.log("copy_system",[ref.name, newname])
         return self._config.systems().copy(ref,newname)
 
     def copy_repo(self, ref, newname):
-        self.__refresh()
         self.log("copy_repo",[ref.name, newname])
         return self._config.repos().copy(ref,newname)
     
     def copy_image(self, ref, newname):
-        self.__refresh()
         self.log("copy_image",[ref.name, newname])
         return self._config.images().copy(ref,newname)
 
     def remove_distro(self, ref, recursive=False):
-        self.__refresh()
-        self.log("remove_distro",[ref.name])
-        return self._config.distros().remove(ref.name, recursive=recursive)
+        if type(ref) != str:
+           self.log("remove_distro",[ref.name])
+           return self._config.distros().remove(ref.name, recursive=recursive)
+        else:
+           self.log("remove_distro",ref)
+           return self._config.distros().remove(ref, recursive=recursive)
+           
 
     def remove_profile(self,ref, recursive=False):
-        self.__refresh()
-        self.log("remove_profile",[ref.name])
-        return self._config.profiles().remove(ref.name, recursive=recursive)
+        if type(ref) != str:
+           self.log("remove_profile",[ref.name])
+           return self._config.profiles().remove(ref.name, recursive=recursive)
+        else:
+           self.log("remove_profile",ref)
+           return self._config.profiles().remove(ref, recursive=recursive)
 
     def remove_system(self, ref, recursive=False):
-        self.__refresh()
-        self.log("remove_system",[ref.name])
-        return self._config.systems().remove(ref.name)
+        if type(ref) != str:
+           self.log("remove_system",[ref.name])
+           return self._config.systems().remove(ref.name)
+        else:
+           self.log("remove_system",ref)
+           return self._config.systems().remove(ref)
 
     def remove_repo(self, ref, recursive=False):
-        self.__refresh()
-        self.log("remove_repo",[ref.name])
-        return self._config.repos().remove(ref.name)
-    
+        if type(ref) != str:
+           self.log("remove_repo",[ref.name])
+           return self._config.repos().remove(ref.name)
+        else:    
+           self.log("remove_repo",ref)
+           return self._config.repos().remove(ref)
+
     def remove_image(self, ref, recursive=False):
-        self.__refresh()
-        self.log("remove_image",[ref.name])
-        return self._config.images().remove(ref.name, recursive=recursive)
+        if type(ref) != str:
+           self.log("remove_image",[ref.name])
+           return self._config.images().remove(ref.name, recursive=recursive)
+        else:
+           self.log("remove_image",ref)
+           return self._config.images().remove(ref, recursive=recursive)
 
     def rename_distro(self, ref, newname):
-        self.__refresh()
         self.log("rename_distro",[ref.name,newname])
         return self._config.distros().rename(ref,newname)
 
     def rename_profile(self, ref, newname):
-        self.__refresh()
         self.log("rename_profiles",[ref.name,newname])
         return self._config.profiles().rename(ref,newname)
 
     def rename_system(self, ref, newname):
-        self.__refresh()
         self.log("rename_system",[ref.name,newname])
         return self._config.systems().rename(ref,newname)
 
     def rename_repo(self, ref, newname):
-        self.__refresh()
         self.log("rename_repo",[ref.name,newname])
         return self._config.repos().rename(ref,newname)
     
     def rename_image(self, ref, newname):
-        self.__refresh()
         self.log("rename_image",[ref.name,newname])
         return self._config.images().rename(ref,newname)
 
@@ -312,48 +309,38 @@ class BootAPI:
         return self._config.new_image(is_subobject=is_subobject)
 
     def add_distro(self, ref, check_for_duplicate_names=False):
-        self.__refresh()
         self.log("add_distro",[ref.name])
         return self._config.distros().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
 
     def add_profile(self, ref, check_for_duplicate_names=False):
-        self.__refresh()
         self.log("add_profile",[ref.name])
         return self._config.profiles().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
 
     def add_system(self, ref, check_for_duplicate_names=False, check_for_duplicate_netinfo=False):
-        self.__refresh()
         self.log("add_system",[ref.name])
         return self._config.systems().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names,check_for_duplicate_netinfo=check_for_duplicate_netinfo)
 
     def add_repo(self, ref, check_for_duplicate_names=False):
-        self.__refresh()
         self.log("add_repo",[ref.name])
         return self._config.repos().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
     
     def add_image(self, ref, check_for_duplicate_names=False):
-        self.__refresh()
         self.log("add_image",[ref.name])
         return self._config.images().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
 
     def find_distro(self, name=None, return_list=False, no_errors=False, **kargs):
-        self.__refresh()
         return self._config.distros().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     def find_profile(self, name=None, return_list=False, no_errors=False, **kargs):
-        self.__refresh()
         return self._config.profiles().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     def find_system(self, name=None, return_list=False, no_errors=False, **kargs):
-        self.__refresh()
         return self._config.systems().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     def find_repo(self, name=None, return_list=False, no_errors=False, **kargs):
-        self.__refresh()
         return self._config.repos().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     def find_image(self, name=None, return_list=False, no_errors=False, **kargs):
-        self.__refresh()
         return self._config.images().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     def dump_vars(self, obj, format=False):
@@ -455,7 +442,6 @@ class BootAPI:
         /tftpboot.  Any operations done in the API that have not been
         saved with serialize() will NOT be synchronized with this command.
         """
-        self.__refresh()
         self.log("sync")
         sync = self.get_sync()
         return sync.run()
@@ -478,7 +464,6 @@ class BootAPI:
         Take the contents of /var/lib/cobbler/repos and update them --
         or create the initial copy if no contents exist yet.
         """
-        self.__refresh()
         self.log("reposync",[name])
         reposync = action_reposync.RepoSync(self._config, tries=tries, nofail=nofail)
         return reposync.run(name)

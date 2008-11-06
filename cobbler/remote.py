@@ -71,9 +71,17 @@ class CobblerXMLRPCInterface:
         self.api = api
         self.logger = logger
         self.auth_enabled = enable_auth_if_relevant
+        self.timestamp = self.api.last_modified_time()
 
     def __sorter(self,a,b):
         return cmp(a["name"],b["name"])
+
+    def update(self, token=None):
+        now = self.api.last_modified_time()
+        if (now > self.timestamp):
+           self.timestamp = now
+           self.api.update()
+        return True
 
     def ping(self):
         return True
@@ -631,6 +639,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         self.logger = logger
         self.token_cache = TOKEN_CACHE
         self.object_cache = OBJECT_CACHE
+        self.timestamp = self.api.last_modified_time()
         random.seed(time.time())
 
     def __next_id(self,retry=0):
@@ -922,7 +931,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self._log("get_distro_handle",token=token,name=name)
         self.check_access(token,"get_distro_handle")
-        found = self.api.distros().find(name)
+        found = self.api.find_distro(name)
         return self.__store_object(found)   
 
     def get_profile_handle(self,name,token):
@@ -933,7 +942,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self._log("get_profile_handle",token=token,name=name)
         self.check_access(token,"get_profile_handle")
-        found = self.api.profiles().find(name)
+        found = self.api.find_profile(name)
         return self.__store_object(found)   
 
     def get_system_handle(self,name,token):
@@ -944,7 +953,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self._log("get_system_handle",name=name,token=token)
         self.check_access(token,"get_system_handle")
-        found = self.api.systems().find(name)
+        found = self.api.find_system(name)
         return self.__store_object(found)   
 
     def get_repo_handle(self,name,token):
@@ -955,7 +964,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self._log("get_repo_handle",name=name,token=token)
         self.check_access(token,"get_repo_handle")
-        found = self.api.repos().find(name)
+        found = self.api.find_repo(name)
         return self.__store_object(found)   
 
     def get_image_handle(self,name,token):
@@ -966,7 +975,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self._log("get_image_handle",name=name,token=token)
         self.check_access(token,"get_image_handle")
-        found = self.api.images().find(name)
+        found = self.api.find_image(name)
         return self.__store_object(found)
 
     def save_distro(self,object_id,token,editmode="bypass"):
@@ -1166,10 +1175,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self._log("remove_distro (%s)" % recursive,name=name,token=token)
         self.check_access(token, "remove_distro", name)
-        distro = self.api.find_distro(name)
-        if distro is None:
-            return False
-        rc = self.api.remove_distro(distro,recursive=True)
+        rc = self.api.remove_distro(name,recursive=True)
         return rc
 
     def remove_profile(self,name,token,recursive=1):
@@ -1178,10 +1184,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self._log("remove_profile (%s)" % recursive,name=name,token=token)
         self.check_access(token, "remove_profile", name)
-        profile = self.api.find_profile(name)
-        if profile is None:
-            return False
-        rc = self.api.remove_profile(profile,recursive=True)
+        rc = self.api.remove_profile(name,recursive=True)
         return rc
 
     def remove_system(self,name,token,recursive=1):
@@ -1191,10 +1194,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self._log("remove_system (%s)" % recursive,name=name,token=token)
         self.check_access(token, "remove_system", name)
-        system = self.api.find_system(name)
-        if system is None:
-            return False
-        rc = self.api.remove_system(system)
+        rc = self.api.remove_system(name)
         return rc
 
     def remove_repo(self,name,token,recursive=1):
@@ -1204,10 +1204,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self._log("remove_repo (%s)" % recursive,name=name,token=token)
         self.check_access(token, "remove_repo", name)
-        repo = self.api.find_repo(name)
-        if repo is None:
-            return False
-        rc = self.api.remove_repo(repo, recursive=True)
+        rc = self.api.remove_repo(name, recursive=True)
         return rc
 
     def remove_image(self,name,token,recursive=1):
@@ -1217,8 +1214,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self._log("remove_image (%s)" % recursive,name=name,token=token)
         self.check_access(token, "remove_image", name)
-        image = self.api.find_image(name)
-        rc = self.api.remove_image(image, recursive=True)
+        rc = self.api.remove_image(name, recursive=True)
         return rc
 
     def read_or_write_kickstart_template(self,kickstart_file,is_read,new_data,token):
@@ -1473,6 +1469,8 @@ def test_xmlrpc_ro():
    # the difference is that koan's object types are flattened somewhat
    # and also that they are passed through utils.blender() so they represent
    # not the object but the evaluation of the object tree at that object.
+
+   server.update() # should be unneeded
    distro  = server.get_distro_for_koan("distro0")
    assert distro["name"] == "distro0"
    assert type(distro["kernel_options"] == type(""))
@@ -1784,24 +1782,37 @@ def test_xmlrpc_rw():
    assert api.find_image("image1") != None
    assert api.find_system("system1") != None
    
+   # it would be cleaner to do this from the distro down
+   # and the server.update calls would then be unneeded.
    server.remove_system("system1", token)
+   server.update()
    server.remove_profile("profile1", token)
+   server.update()
    server.remove_distro("distro1", token)
    server.remove_repo("repo1", token)
    server.remove_image("image1", token)
 
    server.remove_system("system2", token)
+   # again, calls are needed because we're deleting in the wrong
+   # order.  A fix is probably warranted for this.
+   server.update()
    server.remove_profile("profile2", token)
+   server.update()
    server.remove_distro("distro2", token)
    server.remove_repo("repo2", token)
    server.remove_image("image2", token)
 
+   # have to update the API as it has changed
+   api.update()
    d1 = api.find_distro("distro1")
    assert d1 is None
    assert api.find_profile("profile1") is None
    assert api.find_repo("repo1") is None
    assert api.find_image("image1") is None
    assert api.find_system("system1") is None
+
+   for x in api.distros():
+      print "DISTRO REMAINING: %s" % x.name
 
    assert api.find_distro("distro2") is None
    assert api.find_profile("profile2") is None
