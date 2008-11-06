@@ -8,7 +8,7 @@ import time
 import sys
 import random
 
-N = 1000
+N = 10000
 print "sample size is %s" % N
 
 api = capi.BootAPI()
@@ -40,7 +40,6 @@ print "ELAPSED: %s seconds" % (time2 - time1)
 print "Creating test systems from scratch"
 time1 = time.time()
 for x in xrange(0,N):
-   print "."
    sys = api.new_system()
    sys.set_name("autotest-%s" % x)
    sys.set_mac_address(random_mac(), "eth0")
@@ -53,7 +52,7 @@ print "ELAPSED %s seconds" % (time2 - time1)
 #for mode2 in [ "fast", "normal", "full" ]:
 for mode in [ "on", "off" ]:
 
-   print "Running netboot edit benchmarks (turn %s, %s)" % (mode, mode2)
+   print "Running netboot edit benchmarks (turn %s)" % (mode)
    time1 = time.time()
    for x in xrange(0,N):
        sys = api.systems().find("autotest-%s" % x)
