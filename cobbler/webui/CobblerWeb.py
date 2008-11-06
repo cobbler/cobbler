@@ -62,7 +62,6 @@ class CobblerWeb(object):
                 self.remote.token_check(self.token)
                 self.username = self.remote.get_user_from_token(self.token)
                 # ensure config is up2date
-                self.remote.update(self.token)
                 return True
             except Exception, e:
                 if str(e).find("invalid token") != -1:
@@ -82,7 +81,6 @@ class CobblerWeb(object):
                 return False
             self.password = None # don't need it anymore, get rid of it
             # ensure configuration is up2date
-            self.remote.update(self.token)
             return True
         
         # login failed

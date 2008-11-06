@@ -28,6 +28,7 @@ import fcntl
 import traceback
 import sys
 import signal
+import time
 
 from cexceptions import *
 import api as cobbler_api
@@ -69,7 +70,14 @@ def __grab_lock():
         traceback.print_exc()
         sys.exit(7)
 
-def __release_lock():
+def __release_lock(with_changes=False):
+    if with_changes:
+        # this file is used to know when the last config change
+        # was made -- allowing the API to work more smoothly without
+        # a lot of unneccessary reloads.  
+        fd = open("/var/lib/cobbler/.mtime","w")
+        fd.write("%f" % time.time())
+        fd.close()
     if LOCK_ENABLED:
         LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
         fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
@@ -99,7 +107,7 @@ def serialize_item(collection, item):
         rc = storage_module.serialize(collection)
     else:
         rc = save_fn(collection,item)
-    __release_lock()
+    __release_lock(with_changes=True)
     return rc
 
 def serialize_delete(collection, item):
@@ -113,7 +121,7 @@ def serialize_delete(collection, item):
         rc = storage_module.serialize(collection)
     else:
         rc = delete_fn(collection,item)
-    __release_lock()
+    __release_lock(with_changes=True)
     return rc
 
 def deserialize(obj,topological=True):

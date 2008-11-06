@@ -44,8 +44,8 @@ from utils import _
 
 class Config:
 
-   #has_loaded = False
-   #__shared_state = {}
+   has_loaded = False
+   __shared_state = {}
 
 
    def __init__(self,api):
@@ -54,14 +54,15 @@ class Config:
        Constructor.  Manages a definitive copy of all data collections with weakrefs
        pointing back into the class so they can understand each other's contents
        """
-       #self.__dict__ = Config.__shared_state
-       #if not Config.has_loaded:
-       self.__load(api)
+
+       self.__dict__ = Config.__shared_state
+       if not Config.has_loaded:
+          self.__load(api)
            
 
    def __load(self,api):
 
-       #Config.has_loaded  = True
+       Config.has_loaded  = True
 
        self.api           = api
        self._distros      = distros.Distros(weakref.proxy(self))
