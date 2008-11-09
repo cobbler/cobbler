@@ -726,6 +726,8 @@ def check_dist():
     """
     if os.path.exists("/etc/debian_version"):
        return "debian"
+    elif os.path.exists("/etc/SuSE-release"):
+       return "suse"
     else:
        # valid for Fedora and all Red Hat / Fedora derivatives
        return "redhat"
@@ -760,6 +762,15 @@ def os_release():
       version = parts[0]
       rest = parts[1]
       make = "debian"
+      return (make, float(version), rest)
+   elif check_dist() == "suse":
+      fd = open("/etc/SuSE-release")
+      for line in fd.read().split("\n"):
+         if line.find("VERSION") != -1:
+            version = line.replace("VERSION = ","")
+         if line.find("PATCHLEVEL") != -1:
+            rest = line.replace("PATCHLEVEL = ","")
+      make = "suse"
       return (make, float(version), rest)
    else:
       return ("unknown",0)

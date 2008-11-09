@@ -54,9 +54,10 @@ class Config:
        Constructor.  Manages a definitive copy of all data collections with weakrefs
        pointing back into the class so they can understand each other's contents
        """
-       self.__dict__ == Config.__shared_state
+
+       self.__dict__ = Config.__shared_state
        if not Config.has_loaded:
-           self.__load(api)
+          self.__load(api)
            
 
    def __load(self,api):

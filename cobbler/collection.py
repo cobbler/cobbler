@@ -144,6 +144,9 @@ class Collection(serializable.Serializable):
             item = self.factory_produce(self.config,seed_data)
             self.add(item)
 
+    def copy(self,ref,newname):
+        ref.name = newname
+        return self.add(ref,save=True,with_copy=True,with_triggers=True,with_sync=True,check_for_duplicate_names=True,check_for_duplicate_netinfo=False)
 
     def rename(self,ref,newname,with_sync=True,with_triggers=True):
         """

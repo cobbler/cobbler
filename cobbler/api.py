@@ -112,6 +112,20 @@ class BootAPI:
  
     def __setup_logger(self,name):
         return utils.setup_logger(name)
+    
+    def last_modified_time(self):
+        """
+        Returns the time of the last modification to cobbler, made by any
+        API instance, regardless of the serializer type.
+        """
+        if not os.path.exists("/var/lib/cobbler/.mtime"):
+            fd = open("/var/lib/cobbler/.mtime")
+            fd.write("0")
+            fd.close()
+            return 0
+        fd = open("/var/lib/cobbler/.mtime")
+        data = fd.read().strip()
+        return float(data)
 
     def log(self,msg,args=None,debug=False):
         if debug:
@@ -182,6 +196,17 @@ class BootAPI:
         """
         return self._config.settings()
 
+    def update(self):
+        """
+        This can be called when you expect a cobbler object
+        to have changed outside of your API call.  It does not
+        have to be called before read operations but should be
+        called before write operations depending on the last
+        modification time.  For the local API it is not needed.
+        """
+        self.clear()
+        self.deserialize()
+
     def copy_distro(self, ref, newname):
         self.log("copy_distro",[ref.name, newname])
         return self._config.distros().copy(ref,newname)
@@ -203,24 +228,45 @@ class BootAPI:
         return self._config.images().copy(ref,newname)
 
     def remove_distro(self, ref, recursive=False):
-        self.log("remove_distro",[ref.name])
-        return self._config.distros().remove(ref.name, recursive=recursive)
+        if type(ref) != str:
+           self.log("remove_distro",[ref.name])
+           return self._config.distros().remove(ref.name, recursive=recursive)
+        else:
+           self.log("remove_distro",ref)
+           return self._config.distros().remove(ref, recursive=recursive)
+           
 
     def remove_profile(self,ref, recursive=False):
-        self.log("remove_profile",[ref.name])
-        return self._config.profiles().remove(ref.name, recursive=recursive)
+        if type(ref) != str:
+           self.log("remove_profile",[ref.name])
+           return self._config.profiles().remove(ref.name, recursive=recursive)
+        else:
+           self.log("remove_profile",ref)
+           return self._config.profiles().remove(ref, recursive=recursive)
 
-    def remove_system(self,ref, recursive=False):
-        self.log("remove_system",[ref.name])
-        return self._config.systems().remove(ref.name)
+    def remove_system(self, ref, recursive=False):
+        if type(ref) != str:
+           self.log("remove_system",[ref.name])
+           return self._config.systems().remove(ref.name)
+        else:
+           self.log("remove_system",ref)
+           return self._config.systems().remove(ref)
 
-    def remove_repo(self, ref,recursive=False):
-        self.log("remove_repo",[ref.name])
-        return self._config.repos().remove(ref.name)
-    
-    def remove_image(self, ref):
-        self.log("remove_image",[ref.name])
-        return self._config.images().remove(ref.name)
+    def remove_repo(self, ref, recursive=False):
+        if type(ref) != str:
+           self.log("remove_repo",[ref.name])
+           return self._config.repos().remove(ref.name)
+        else:    
+           self.log("remove_repo",ref)
+           return self._config.repos().remove(ref)
+
+    def remove_image(self, ref, recursive=False):
+        if type(ref) != str:
+           self.log("remove_image",[ref.name])
+           return self._config.images().remove(ref.name, recursive=recursive)
+        else:
+           self.log("remove_image",ref)
+           return self._config.images().remove(ref, recursive=recursive)
 
     def rename_distro(self, ref, newname):
         self.log("rename_distro",[ref.name,newname])
@@ -464,12 +510,14 @@ class BootAPI:
     def deserialize(self):
         """
         Load the current configuration from config file(s)
+        Cobbler internal use only.
         """
         return self._config.deserialize()
 
     def deserialize_raw(self,collection_name):
         """
         Get the collection back just as raw data.
+        Cobbler internal use only.
         """
         return self._config.deserialize_raw(collection_name)
 
@@ -477,12 +525,14 @@ class BootAPI:
         """
         Get an object back as raw data.
         Can be very fast for shelve or catalog serializers
+        Cobbler internal use only.
         """
         return self._config.deserialize_item_raw(collection_name,obj_name)
 
     def get_module_by_name(self,module_name):
         """
         Returns a loaded cobbler module named 'name', if one exists, else None.
+        Cobbler internal use only.
         """
         return module_loader.get_module_by_name(module_name)
 
@@ -491,18 +541,21 @@ class BootAPI:
         Looks in /etc/cobbler/modules.conf for a section called 'section'
         and a key called 'name', and then returns the module that corresponds
         to the value of that key.
+        Cobbler internal use only.
         """
         return module_loader.get_module_from_file(section,name,fallback)
 
     def get_modules_in_category(self,category):
         """
         Returns all modules in a given category, for instance "serializer", or "cli".
+        Cobbler internal use only.
         """
         return module_loader.get_modules_in_category(category)
 
     def authenticate(self,user,password):
         """
         (Remote) access control.
+        Cobbler internal use only.
         """
         rc = self.authn.authenticate(self,user,password)
         self.log("authenticate",[user,rc])
@@ -511,6 +564,7 @@ class BootAPI:
     def authorize(self,user,resource,arg1=None,arg2=None):
         """
         (Remote) access control.
+        Cobbler internal use only.
         """
         rc = self.authz.authorize(self,user,resource,arg1,arg2,acl_engine=self.acl_engine)
         self.log("authorize",[user,resource,arg1,arg2,rc],debug=True)

@@ -566,7 +566,6 @@ class System(item.Item):
            'kopts'            : self.set_kernel_options,
            'kopts-post'       : self.set_kernel_options_post,
            'ksmeta'           : self.set_ksmeta,
-           'hostname'         : self.set_hostname,
            'kickstart'        : self.set_kickstart,
            'netboot-enabled'  : self.set_netboot_enabled,
            'virt-path'        : self.set_virt_path,
@@ -580,7 +579,7 @@ class System(item.Item):
            'virt-file-size'   : self.set_virt_file_size,
            'server'           : self.set_server,
            'owners'           : self.set_owners,
-           'mgmt-classes'     : self.mgmt_classes,
+           'mgmt-classes'     : self.set_mgmt_classes,
            'template-files'   : self.set_template_files
         }
 

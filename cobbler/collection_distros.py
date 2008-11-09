@@ -69,7 +69,9 @@ class Distros(collection.Collection):
                     lite_sync = action_litesync.BootLiteSync(self.config)
                     lite_sync.remove_single_profile(name)
             del self.listing[name]
+
             self.config.serialize_delete(self, obj)
+
             if with_delete:
                 self.log_func("deleted distro %s" % name)
                 if with_triggers: 
@@ -98,5 +100,6 @@ class Distros(collection.Collection):
                    utils.rmtree(path)
 
             return True
+
         raise CX(_("cannot delete object that does not exist: %s") % name)
 

@@ -8,17 +8,25 @@ Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
 Requires: python >= 2.3
+%if 0%{?suse_version} >= 1000
+Requires: apache2
+Requires: apache2-mod_python
+Requires: tftp
+%else
 Requires: httpd
 Requires: tftp-server
+Requires: mod_python
+%endif
 Requires: python-devel
 Requires: createrepo
-Requires: mod_python
 Requires: python-cheetah
 Requires: rsync
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
+%if 0%{?suse_version} < 0
 BuildRequires: redhat-rpm-config
+%endif
 BuildRequires: python-devel
 BuildRequires: python-cheetah
 %if 0%{?fedora} >= 8
@@ -53,7 +61,10 @@ applications.
 
 %install
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
-%{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
+%if 0%{?suse_version} >= 1000
+PREFIX="--prefix=/usr"
+%endif
+%{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
 
 %post
 if [ -e /var/lib/cobbler/distros ]; then
@@ -150,8 +161,13 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/cobbler/webui/*.py*
 %{_mandir}/man1/cobbler.1.gz
 /etc/init.d/cobblerd
+%if 0%{?suse_version} >= 1000
+%config(noreplace) /etc/apache2/conf.d/cobbler.conf
+%config(noreplace) /etc/apache2/conf.d/cobbler_svc.conf
+%else
 %config(noreplace) /etc/httpd/conf.d/cobbler.conf
 %config(noreplace) /etc/httpd/conf.d/cobbler_svc.conf
+%endif
 %dir /var/log/cobbler/syslog
 
 %defattr(755,root,root)

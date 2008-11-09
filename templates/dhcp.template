@@ -2,6 +2,9 @@
 # Cobbler managed dhcpd.conf file
 #
 # generated from cobbler dhcp.conf template ($date)
+# Do NOT make changes to /etc/dhcpd.conf. Instead, make your changes
+# in /etc/cobbler/dhcp.template, as /etc/dhcpd.conf will be
+# overwritten.
 #
 # ******************************************************************
 

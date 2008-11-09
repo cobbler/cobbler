@@ -39,7 +39,10 @@ if __name__ == "__main__":
         backpath = "/var/lib/cobbler/backup/"
         trigpath = "/var/lib/cobbler/triggers/"
         etcpath  = "/etc/cobbler/"
-        wwwconf  = "/etc/httpd/conf.d/"
+        if os.path.exists("/etc/SuSE-release"):
+            wwwconf  = "/etc/apache2/conf.d/"
+        else:
+            wwwconf  = "/etc/httpd/conf.d/"
         wwwpath  = "/var/www/cobbler/"
         wwwcon   = "/var/www/cobbler/webui/"
         initpath = "/etc/init.d/"

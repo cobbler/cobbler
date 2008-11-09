@@ -40,29 +40,8 @@ class Repos(collection.Collection):
 
     def factory_produce(self,config,seed_data):
         """
-        Return a system forged from seed_data
+        Return a repo forged from seed_data
         """
-        if seed_data.has_key('breed'):
-            if seed_data['breed'] == "rsync":
-                return repo.RsyncRepo(config).from_datastruct(seed_data)
-            elif seed_data['breed'] == "rhn":
-                return repo.RhnRepo(config).from_datastruct(seed_data)
-            elif seed_data['breed'] == "yum":
-                return repo.YumRepo(config).from_datastruct(seed_data)
-            elif seed_data['breed'] == "apt":
-                return repo.AptRepo(config).from_datastruct(seed_data)
-            else:
-                # we didn't store a --breed with the repository so we must
-                # attempt to discover it.
-                if seed_data['breed'] != '':
-                    raise CX(_("Unknown repository breed: %s") % seed_data['breed'])
-
-        # Required until rsync breed is properly set on every required case
-        # Block, taken from is_rsync_mirror
-        lower = seed_data.get("mirror")
-        if not ( lower.startswith("http://") or lower.startswith("ftp://") or lower.startswith("rhn://") ):
-            seed_data['breed'] = "rsync"
-            return repo.RsyncRepo(config).from_datastruct(seed_data)
         return repo.Repo(config).from_datastruct(seed_data)
 
     def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False):

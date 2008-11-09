@@ -26,10 +26,13 @@
 [ -x /usr/bin/cobblerd ] || exit 0
 
 DEBIAN_VERSION=/etc/debian_version
+SUSE_RELEASE=/etc/SuSE-release
 # Source function library.
 if [ -e $DEBIAN_VERSION ]; then
 
 	. /etc/init.d/functions
+elif [ -f $SUSE_RELEASE -a -r /etc/rc.status ]; then
+	. /etc/rc.status
 else
 	. /etc/rc.d/init.d/functions
 fi
@@ -47,7 +50,12 @@ RETVAL=0
 
 start() {
     echo -n $"Starting cobbler daemon: "
-    daemon --check $SERVICE $PROCESS --daemon $CONFIG_ARGS
+    if [ -e $SUSE_RELEASE ]; then
+        startproc -f -p /var/run/$SERVICE.pid /usr/bin/cobblerd $CONFIG_ARGS
+        rc_status -v
+    else
+        daemon --check $SERVICE $PROCESS --daemon $CONFIG_ARGS
+    fi
     RETVAL=$?
     echo
     [ $RETVAL -eq 0 ] && touch $LOCKFILE
@@ -56,7 +64,12 @@ start() {
 
 stop() {
     echo -n $"Stopping cobbler daemon: "
-    killproc $PROCESS
+    if [ -e $SUSE_RELEASE ]; then
+        killproc -TERM /usr/bin/cobblerd
+        rc_status -v
+    else
+        killproc $PROCESS
+    fi
     RETVAL=$?
     echo
     if [ $RETVAL -eq 0 ]; then
@@ -76,8 +89,14 @@ case "$1" in
         $1
         ;;
     status)
-        status $PROCESS
-        RETVAL=$?
+        if [ -e $SUSE_RELEASE ]; then
+            echo -n "Checking for service cobblerd "
+            checkproc /usr/bin/cobblerd
+            rc_status -v
+        else
+            status $PROCESS
+            RETVAL=$?
+        fi
         ;;
     condrestart)
         [ -f $LOCKFILE ] && restart || :

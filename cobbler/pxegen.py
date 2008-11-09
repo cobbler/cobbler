@@ -489,6 +489,12 @@ class PXEGen:
         del blended["ks_meta"]
         blended.update(ksmeta) # make available at top level
 
+        (success, templates) = utils.input_string_or_hash(templates)
+
+        if not success:
+            return results
+
+
         for template in templates.keys():
             dest = templates[template]
             

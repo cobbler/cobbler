@@ -1,6 +1,6 @@
 #MESSAGESPOT=po/messages.pot
 
-all: rpms
+all: clean rpms
 
 clean:
 	-rm -f pod2htm*.tmp
@@ -20,8 +20,9 @@ test:
 	prefix=test
 	export prefix
 	make savestate
-	make eraseconfig
+	make rpms
 	make install
+	make eraseconfig
 	-(make nosetests)
 	make restorestate
 
@@ -29,10 +30,10 @@ nosetests:
 	#nosetests tests -w cobbler --with-coverage --cover-package=cobbler --cover-erase --quiet | tee test.log
 	nosetests cobbler/*.py -v | tee test.log
 
-build: clean manpage updatewui
+build: manpage updatewui
 	python setup.py build -f
 
-install: clean manpage updatewui
+install: manpage updatewui
 	python setup.py install -f
 
 devinstall: 
