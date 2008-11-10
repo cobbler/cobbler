@@ -54,6 +54,7 @@ class Distro(item.Item):
         self.mgmt_classes           = []
         self.depth                  = 0
         self.template_files         = {}
+	self.comment                = None
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -87,6 +88,7 @@ class Distro(item.Item):
         self.depth                  = self.load_item(seed_data,'depth',0)
         self.mgmt_classes           = self.load_item(seed_data,'mgmt_classes',[])
         self.template_files         = self.load_item(seed_data,'template_files',{})
+	self.comment                = self.load_item(seed_data,'comment')
 
         # backwards compatibility enforcement
         self.set_arch(self.arch)
@@ -121,6 +123,10 @@ class Distro(item.Item):
 
     def set_os_version(self, os_version):
         return utils.set_os_version(self,os_version)
+
+    def set_comment(self, comment):
+        self.comment = comment
+        return True
 
     def set_initrd(self,initrd):
         """
@@ -195,7 +201,8 @@ class Distro(item.Item):
             'source_repos'           : self.source_repos,
             'parent'                 : self.parent,
             'depth'                  : self.depth,
-            'owners'                 : self.owners
+            'owners'                 : self.owners,
+            'comment'                : self.comment
         }
 
     def printable(self):
@@ -216,6 +223,7 @@ class Distro(item.Item):
         buf = buf + _("owners               : %s\n") % self.owners
         buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
         buf = buf + _("template files       : %s\n") % self.template_files
+        buf = buf + _("comment              : %s\n") % self.comment
         return buf
 
     def remote_methods(self):
@@ -231,6 +239,7 @@ class Distro(item.Item):
             'os-version'    : self.set_os_version,
             'owners'        : self.set_owners,
             'mgmt-classes'  : self.set_mgmt_classes,
-            'template-files': self.set_template_files
+            'template-files': self.set_template_files,
+            'comment'       : self.set_comment
         }
 

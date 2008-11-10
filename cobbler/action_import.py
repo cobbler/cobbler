@@ -274,7 +274,8 @@ class Importer:
                          continue
                      (flavor, major, minor) = results
                      # print _("- finding default kickstart template for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
-                     version , ks = importer.set_variance(flavor, major, minor)
+                     version , ks = importer.set_variance(flavor, major, minor, distro.arch)
+                     distro.set_comment("%s.%s:%s" % (version, int(minor), importer.get_datestamp()))
                      distro.set_os_version(version)
                      profile.set_kickstart(ks)
 
@@ -838,6 +839,11 @@ class BaseImporter:
            result["i386"] = 1
        return result.keys()
 
+   def get_datestamp(self):
+       """
+       Allows each breed to return its datetime stamp
+       """
+       return None
    # ===================================================================
 
    def __init__(self,(rootdir,pkgdir)):
@@ -918,7 +924,18 @@ class RedHatImporter ( BaseImporter ) :
        minor = float(accum[1])
        return (flavor, major, minor)
 
-   def set_variance(self, flavor, major, minor):
+   def get_datestamp(self):
+       """
+       Based on a RedHat tree find the creation timestamp
+       """
+       base = self.get_rootdir()
+       if os.path.exists("%s/.discinfo" % base):
+           discinfo = open("%s/.discinfo" % base, "r")
+           datestamp = discinfo.read().split("\n")[0]
+           discinfo.close()
+       return datestamp
+
+   def set_variance(self, flavor, major, minor, arch):
   
        """
        find the profile kickstart and set the distro breed/os-version based on what
@@ -947,6 +964,25 @@ class RedHatImporter ( BaseImporter ) :
                     os_version = "rhel%s" % (int(major))
                 except:
                     os_version = "other"
+
+       kickbase = "/var/lib/cobbler/kickstarts"
+       # Look for ARCH/OS_VERSION.MINOR kickstart first
+       #          ARCH/OS_VERSION next
+       #          OS_VERSION next
+       #          OS_VERSION.MINOR next
+       #          ARCH/default.ks next
+       #          default.ks finally.
+       kickstarts = [
+           "%s/%s/%s.%i.ks" % (kickbase,arch,os_version,int(minor)), 
+           "%s/%s/%s.ks" % (kickbase,arch,os_version), 
+           "%s/%s.%i.ks" % (kickbase,os_version,int(minor)),
+           "%s/%s.ks" % (kickbase,os_version),
+           "%s/%s/default.ks" % (kickbase,arch),
+           "%s/default.ks" % kickbase
+       ]
+       for kickstart in kickstarts:
+           if os.path.exists(kickstart):
+               return os_version, kickstart
 
        if flavor == "fedora":
            if major >= 8:
@@ -1000,7 +1036,7 @@ class DebianImporter ( BaseImporter ) :
 
        return (None, accum[0], accum[1])
 
-   def set_variance(self, flavor, major, minor):
+   def set_variance(self, flavor, major, minor, arch):
 
        dist_names = { '4.0' : "etch" , '5.0' : "lenny" }
        dist_vers = "%s.%s" % ( major , minor )
@@ -1048,7 +1084,7 @@ class UbuntuImporter ( DebianImporter ) :
 
        return (None, accum[0], accum[1])
 
-   def set_variance(self, flavor, major, minor):
+   def set_variance(self, flavor, major, minor, arch):
   
        # Release names taken from wikipedia
        dist_names = { '4.10':"WartyWarthog", '5.4':"HoaryHedgehog", '5.10':"BreezyBadger", '6.4':"DapperDrake", '6.10':"EdgyEft", '7.4':"FeistyFawn", '7.10':"GutsyGibbon", '8.4':"HardyHeron", '8.10':"IntrepidIbex", '9.4':"JauntyJackalope" }
