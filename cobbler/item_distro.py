@@ -56,6 +56,7 @@ class Distro(item.Item):
         self.depth                  = 0
         self.template_files         = {}
 	self.comment                = ""
+        self.tree_build_time        = 0
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -104,8 +105,11 @@ class Distro(item.Item):
         self.set_template_files(self.template_files)
         self.set_owners(self.owners)
 
+        self.tree_build_time = self.load_item(seed_data, 'tree_build_time', -1)
         self.ctime = self.load_item(seed_data, 'ctime', 0)
         self.mtime = self.load_item(seed_data, 'mtime', 0)
+
+        self.set_tree_build_time(self.tree_build_time)
 
         return self
 
@@ -121,6 +125,14 @@ class Distro(item.Item):
             self.kernel = kernel
             return True
         raise CX(_("kernel not found"))
+
+    def set_tree_build_time(self, datestamp):
+        """
+        Sets the import time of the distro, for use by action_import.py.
+        If not imported, this field is not meaningful.
+        """
+        self.tree_build_time = float(datestamp)
+        return True
 
     def set_breed(self, breed):
         return utils.set_breed(self,breed)
@@ -203,6 +215,7 @@ class Distro(item.Item):
             'depth'                  : self.depth,
             'owners'                 : self.owners,
             'comment'                : self.comment,
+            'tree_build_time'        : self.tree_build_time,
             'ctime'                  : self.ctime,
             'mtime'                  : self.mtime,
         }
@@ -222,6 +235,10 @@ class Distro(item.Item):
         buf = buf + _("kernel               : %s\n") % kstr
         buf = buf + _("kernel options       : %s\n") % self.kernel_options
         buf = buf + _("ks metadata          : %s\n") % self.ks_meta
+        if self.tree_build_time != -1:
+            buf = buf + _("tree build time      : %s\n") % time.ctime(self.tree_build_time)
+        else:
+            buf = buf + _("tree build time      : %s\n") % "N/A"
         buf = buf + _("modified             : %s\n") % time.ctime(self.mtime)
         buf = buf + _("mgmt classes         : %s\n") % self.mgmt_classes 
         buf = buf + _("os version           : %s\n") % self.os_version

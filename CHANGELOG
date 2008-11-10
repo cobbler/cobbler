@@ -40,7 +40,8 @@ Cobbler CHANGELOG
 - (FEAT) init scripts and specfiles now install on SuSE
 - (TEST) added remote tests, moved existing unit tests to api.py methods 
 - (FEAT) import can auto assign kickstarts based on distro (feature for beaker)
-- (FEAT) import now adds tree build time in comment (feature for beaker)
+- (FEAT) import now saves the dot version of the OS in the comment field
+- (FEAT) import now adds tree build time
 - (FEAT) --comment field added to all objects
 - (FEAT) keep creation and modification times with each object
 

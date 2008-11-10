@@ -275,8 +275,11 @@ class Importer:
                      (flavor, major, minor) = results
                      # print _("- finding default kickstart template for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
                      version , ks = importer.set_variance(flavor, major, minor, distro.arch)
-                     distro.set_comment("%s.%s:%s" % (version, int(minor), importer.get_datestamp()))
+                     ds = importer.get_datestamp()
+                     distro.set_comment("%s.%s" % (version, int(minor)))
                      distro.set_os_version(version)
+                     if ds is not None:
+                         distro.set_tree_build_time(ds)
                      profile.set_kickstart(ks)
 
            self.configure_tree_location(distro,importer)
@@ -933,7 +936,7 @@ class RedHatImporter ( BaseImporter ) :
            discinfo = open("%s/.discinfo" % base, "r")
            datestamp = discinfo.read().split("\n")[0]
            discinfo.close()
-       return datestamp
+       return float(datestamp)
 
    def set_variance(self, flavor, major, minor, arch):
   
