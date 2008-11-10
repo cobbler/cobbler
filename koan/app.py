@@ -1338,7 +1338,8 @@ class Koan:
                         raise InfoException, "LVM creation failed"
 
                 # return partition location
-                return "/dev/mapper/%s-%s" % (location,name.replace('-','--'))
+                return "/dev/mapper/%s-%s" % (location.replace('-','--'),
+                    name.replace('-','--'))
             else:
                 raise InfoException, "volume group needs %s GB free space." % virt_size
 
