@@ -2,6 +2,9 @@
 # Cobbler managed dhcpd.conf file
 #
 # generated from cobbler dhcp.conf template ($date)
+# Do NOT make changes to /etc/dhcpd.conf. Instead, make your changes
+# in /etc/cobbler/dhcp.template, as /etc/dhcpd.conf will be
+# overwritten.
 #
 # ******************************************************************
 
@@ -17,13 +20,14 @@ ignore client-updates;
 set vendorclass = option vendor-class-identifier;
 
 subnet 192.168.1.0 netmask 255.255.255.0 {
-     option routers          192.168.1.5;
-     option subnet-mask      255.255.255.0;
-     range dynamic-bootp     192.168.1.100 192.168.1.254;
-     filename                "/pxelinux.0";
-     default-lease-time      21600;
-     max-lease-time          43200;
-     next-server             $next_server;
+     option routers             192.168.1.5;
+     option domain-name-servers 192.168.1.1;
+     option subnet-mask         255.255.255.0;
+     range dynamic-bootp        192.168.1.100 192.168.1.254;
+     filename                   "/pxelinux.0";
+     default-lease-time         21600;
+     max-lease-time             43200;
+     next-server                $next_server;
 }
 
 #for dhcp_tag in $dhcp_tags.keys():

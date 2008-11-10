@@ -231,7 +231,7 @@ A system created with name "default" has special semantics.  If a default system
 
 Specifying a mac address via --mac allows the system object to boot via PXE.  If the name of the cobbler system already looks like a mac address, this is inferred from the system name and does not need to be specified.  
 
-MAC addresses have the format AA:BB:CC:DD:EE:FF.
+MAC addresses have the format AA:BB:CC:DD:EE:FF. It's higly recommended to register your MAC-addresses in Cobbler if you're using static adressing with multiple interfaces, or if you are using any of the advanced networking features like bonding or VLANs.
 
 =item ip
 
@@ -283,15 +283,29 @@ This is described further on the Cobbler Wiki.
 =item --interface
 
 By default flags like --ip, --mac, --dhcp-tag, --gateway, --subnet, and --virt-bridge operate on the first network
-interface defined for a system.  Additional interfaces can be specified (0 through 7) for use with the edit command.
+interface defined for a system.
+
+Interface naming:
+
+Additional interfaces can be specified (for example: eth0, or any name you like, as long as it does not conflict with any kernel modules or other reserved names) for use with the edit command. Defining VLANs this way is also supported, of you want to add VLAN 5 on interface eth0, simply name your interface eth0:5.
 
 Example:  
 
 cobbler system edit --name=foo --ip=192.168.1.50 --mac=AA:BB:CC:DD:EE:A0
-cobbler system edit --name=foo --interface=2 --ip=192.168.1.51 --mac=AA:BB:CC:DD:EE:A1
+cobbler system edit --name=foo --interface=eth0 --ip=192.168.1.51 --mac=AA:BB:CC:DD:EE:A1
 cobbler system report foo
 
-NOTE: Additional interfaces can presently only be deleted via the web interface.
+NOTE: Interfaces can be deleted using the --delete-interface option.
+
+=item --bonding, --bonding-master and --bonding-opts
+
+One of the other advanced networking features supported by Cobbler is NIC bonding. You can use this to bond multiple physical network interfaces to one single logical interface to reduce single points of failure in your network. Supported values for the --bonding parameter are "master" and "slave". If "slave" is specified, you also need to define the master-interface for this bond using --bonding-master=INTERFACE. Bonding options for the master-interface may be specified using --bonding-opts="foo=1 bar=2"
+
+Example:
+
+cobbler system edit --name=foo --interface=eth0 --mac=AA:BB:CC:DD:EE:00 --bonding=slave --bonding-master=bond0
+cobbler system edit --name=foo --interface=eth1 --mac=AA:BB:CC:DD:EE:01 --bonding=slave --bonding-master=bond0
+cobbler system edit --name=foo --interface=bond0 --bonding=master --bonding-opts="mode=active-backup miimon=100" --ip=192.168.0.63 --subnet=255.255.255.0 --gateway=192.168.0.1 --static=1 
 
 =end
 
