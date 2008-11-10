@@ -383,7 +383,7 @@ class RepoSync:
             raise CX(_("Architecture is required for apt repositories"))
 
         # built destination path for the repo
-        dest_path = os.path.join(repo_mirror, repo.name)
+        dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
          
         if repo.mirror_locally:
             mirror = repo.mirror
