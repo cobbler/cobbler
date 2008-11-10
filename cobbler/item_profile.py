@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import utils
 import item
+import time
 from cexceptions import *
 
 from utils import _
@@ -63,6 +64,8 @@ class Profile(item.Item):
         self.parent                 = ''
         self.server                 = "<<inherit>>"
         self.comment                = ""
+        self.ctime                  = 0
+        self.mtime                  = 0
 
     def from_datastruct(self,seed_data):
         """
@@ -85,6 +88,8 @@ class Profile(item.Item):
         self.server                 = self.load_item(seed_data,'server', '<<inherit>>')
         self.mgmt_classes           = self.load_item(seed_data,'mgmt_classes', [])
         self.comment                = self.load_item(seed_data,'comment','')
+        self.ctime                  = self.load_item(seed_data,'ctime',0)
+        self.mtime                  = self.load_item(seed_data,'mtime',0)
 
         # backwards compatibility
         if type(self.repos) != list:
@@ -267,7 +272,9 @@ class Profile(item.Item):
             'dhcp_tag'              : self.dhcp_tag,
             'server'                : self.server,
             'mgmt_classes'          : self.mgmt_classes,
-            'comment'               : self.comment
+            'comment'               : self.comment,
+            'ctime'                 : self.ctime,
+            'mtime'                 : self.mtime
          }
 
     def printable(self):
@@ -280,12 +287,14 @@ class Profile(item.Item):
         else:
             buf = buf + _("distro               : %s\n") % self.distro
         buf = buf + _("comment              : %s\n") % self.comment
+        buf = buf + _("created              : %s\n") % time.ctime(self.ctime)
         buf = buf + _("dhcp tag             : %s\n") % self.dhcp_tag
         buf = buf + _("enable menu          : %s\n") % self.enable_menu
         buf = buf + _("kernel options       : %s\n") % self.kernel_options
         buf = buf + _("kickstart            : %s\n") % self.kickstart
         buf = buf + _("ks metadata          : %s\n") % self.ks_meta
         buf = buf + _("mgmt classes         : %s\n") % self.mgmt_classes
+        buf = buf + _("modified             : %s\n") % time.ctime(self.mtime)
         buf = buf + _("owners               : %s\n") % self.owners
         buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
         buf = buf + _("repos                : %s\n") % self.repos

@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import utils
 import item
+import time
 from cexceptions import *
 from utils import _
 
@@ -61,6 +62,8 @@ class System(item.Item):
         self.virt_path            = "<<inherit>>"   # ""
         self.virt_bridge          = "<<inherit>>"   # ""
         self.comment              = ""
+        self.ctime                = 0
+        self.mtime                = 0
 
     def delete_interface(self,name):
         """
@@ -136,6 +139,9 @@ class System(item.Item):
         self.virt_type   = self.load_item(seed_data,'virt_type','<<inherit>>')
         self.virt_bridge = self.load_item(seed_data,'virt_bridge','<<inherit>>')
         self.virt_cpus   = self.load_item(seed_data,'virt_cpus','<<inherit>>')
+
+        self.ctime       = self.load_item(seed_data,'ctime',0)
+        self.mtime       = self.load_item(seed_data,'mtime',0)
 
         # backwards compat, these settings are now part of the interfaces data structure
         # and will contain data only in upgrade scenarios.
@@ -484,19 +490,23 @@ class System(item.Item):
            'virt_type'             : self.virt_type,
            'mgmt_classes'          : self.mgmt_classes,
            'template_files'        : self.template_files,
-           'comment'               : self.comment
+           'comment'               : self.comment,
+           'ctime'                 : self.ctime,
+           'mtime'                 : self.mtime
         }
 
     def printable(self):
         buf =       _("system                : %s\n") % self.name
         buf = buf + _("profile               : %s\n") % self.profile
         buf = buf + _("comment               : %s\n") % self.comment
+        buf = buf + _("created               : %s\n") % time.ctime(self.ctime)
         buf = buf + _("image                 : %s\n") % self.image
         buf = buf + _("kernel options        : %s\n") % self.kernel_options
         buf = buf + _("kernel options post   : %s\n") % self.kernel_options_post
         buf = buf + _("kickstart             : %s\n") % self.kickstart
         buf = buf + _("ks metadata           : %s\n") % self.ks_meta
         buf = buf + _("mgmt classes          : %s\n") % self.mgmt_classes
+        buf = buf + _("modified              : %s\n") % time.ctime(self.mtime)
 
         buf = buf + _("netboot enabled?      : %s\n") % self.netboot_enabled 
         buf = buf + _("owners                : %s\n") % self.owners

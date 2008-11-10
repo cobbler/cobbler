@@ -27,6 +27,7 @@ import item
 import weakref
 import os
 import codes
+import time
 from cexceptions import *
 
 from utils import _
@@ -102,6 +103,9 @@ class Distro(item.Item):
         self.set_mgmt_classes(self.mgmt_classes)
         self.set_template_files(self.template_files)
         self.set_owners(self.owners)
+
+        self.ctime = self.load_item(seed_data, 'ctime', 0)
+        self.mtime = self.load_item(seed_data, 'mtime', 0)
 
         return self
 
@@ -198,7 +202,9 @@ class Distro(item.Item):
             'parent'                 : self.parent,
             'depth'                  : self.depth,
             'owners'                 : self.owners,
-            'comment'                : self.comment
+            'comment'                : self.comment,
+            'ctime'                  : self.ctime,
+            'mtime'                  : self.mtime,
         }
 
     def printable(self):
@@ -210,11 +216,13 @@ class Distro(item.Item):
         buf =       _("distro               : %s\n") % self.name
         buf = buf + _("architecture         : %s\n") % self.arch
         buf = buf + _("breed                : %s\n") % self.breed
+        buf = buf + _("created              : %s\n") % time.ctime(self.ctime)
         buf = buf + _("comment              : %s\n") % self.comment
         buf = buf + _("initrd               : %s\n") % istr
         buf = buf + _("kernel               : %s\n") % kstr
         buf = buf + _("kernel options       : %s\n") % self.kernel_options
         buf = buf + _("ks metadata          : %s\n") % self.ks_meta
+        buf = buf + _("modified             : %s\n") % time.ctime(self.mtime)
         buf = buf + _("mgmt classes         : %s\n") % self.mgmt_classes 
         buf = buf + _("os version           : %s\n") % self.os_version
         buf = buf + _("owners               : %s\n") % self.owners

@@ -24,8 +24,7 @@ import utils
 import item
 from cexceptions import *
 from utils import _
-import os.path
-import sub_process
+import time
 
 class Repo(item.Item):
 
@@ -55,6 +54,8 @@ class Repo(item.Item):
         self.mirror_locally   = True
         self.environment      = {}
         self.comment          = ""
+        self.ctime            = 0
+        self.mtime            = 0
 
     def from_datastruct(self,seed_data):
         self.parent           = self.load_item(seed_data, 'parent')
@@ -72,6 +73,9 @@ class Repo(item.Item):
         self.mirror_locally   = self.load_item(seed_data, 'mirror_locally', True)
         self.environment      = self.load_item(seed_data, 'environment', {})
         self.comment          = self.load_item(seed_data, 'comment', '')
+
+        self.ctime            = self.load_item(seed_data, 'ctime', 0)
+        self.mtime            = self.load_item(seed_data, 'mtime', 0)
 
         # coerce types/values from input file
         self.set_keep_updated(self.keep_updated)
@@ -230,7 +234,9 @@ class Repo(item.Item):
            'depth'            : self.depth,
            'yumopts'          : self.yumopts,
            'environment'      : self.environment,
-           'comment'          : self.comment
+           'comment'          : self.comment,
+           'ctime'            : self.ctime,
+           'mtime'            : self.mtime
         }
 
     def set_mirror_locally(self,value):
@@ -242,11 +248,13 @@ class Repo(item.Item):
         buf = buf + _("arch             : %s\n") % self.arch
         buf = buf + _("breed            : %s\n") % self.breed
         buf = buf + _("comment          : %s\n") % self.comment
+        buf = buf + _("created          : %s\n") % time.ctime(self.ctime)
         buf = buf + _("createrepo_flags : %s\n") % self.createrepo_flags
         buf = buf + _("environment      : %s\n") % self.environment
         buf = buf + _("keep updated     : %s\n") % self.keep_updated
         buf = buf + _("mirror           : %s\n") % self.mirror
         buf = buf + _("mirror locally   : %s\n") % self.mirror_locally
+        buf = buf + _("modified         : %s\n") % time.ctime(self.mtime)
         buf = buf + _("owners           : %s\n") % self.owners
         buf = buf + _("priority         : %s\n") % self.priority
         buf = buf + _("rpm list         : %s\n") % self.rpm_list

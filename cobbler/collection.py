@@ -25,6 +25,7 @@ from cexceptions import *
 import serializable
 import utils
 import glob
+import time
 import sub_process
 
 import action_litesync
@@ -33,7 +34,6 @@ import item_profile
 import item_distro
 import item_repo
 import item_image
-
 from utils import _
 
 class Collection(serializable.Serializable):
@@ -47,6 +47,7 @@ class Collection(serializable.Serializable):
         self.api = self.config.api
         self.log_func = self.api.log
         self.lite_sync = None
+
 
     def factory_produce(self,config,seed_data):
         """
@@ -204,6 +205,13 @@ class Collection(serializable.Serializable):
         So, in that case, don't run any triggers and don't deal with any actual files.
 
         """
+
+        if save is True:
+            now = time.time()
+            if ref.ctime == 0:
+                ref.ctime = now
+            ref.mtime = now
+
         if self.lite_sync is None:
             self.lite_sync = action_litesync.BootLiteSync(self.config)
 

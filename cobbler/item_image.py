@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import utils
 import item
+import time
 from cexceptions import *
 
 from utils import _
@@ -58,6 +59,8 @@ class Image(item.Item):
         self.breed           = 'redhat'
         self.os_version      = ''
         self.comment         = ''
+        self.ctime           = 0
+        self.mtime           = 0
 
     def from_datastruct(self,seed_data):
         """
@@ -87,6 +90,9 @@ class Image(item.Item):
 
         self.set_owners(self.owners)
         self.set_arch(self.arch)
+
+        self.ctime           = self.load_item(seed_data, 'ctime', 0)
+        self.mtime           = self.load_item(seed_data, 'mtime', 0)
 
         return self
 
@@ -180,7 +186,9 @@ class Image(item.Item):
             'virt_file_size'   : self.virt_file_size,
             'breed'            : self.breed,
             'os_version'       : self.os_version,
-            'comment'          : self.comment
+            'comment'          : self.comment,
+            'ctime'            : self.ctime,
+            'mtime'            : self.mtime
         }
 
     def printable(self):
@@ -191,8 +199,10 @@ class Image(item.Item):
         buf = buf + _("arch            : %s\n") % self.arch
         buf = buf + _("breed           : %s\n") % self.breed
         buf = buf + _("comment         : %s\n") % self.comment
+        buf = buf + _("created         : %s\n") % time.ctime(self.ctime)
         buf = buf + _("file            : %s\n") % self.file
         buf = buf + _("image type      : %s\n") % self.image_type
+        buf = buf + _("modified        : %s\n") % time.ctime(self.mtime)
         buf = buf + _("os version      : %s\n") % self.os_version
         buf = buf + _("owners          : %s\n") % self.owners
         buf = buf + _("virt bridge     : %s\n") % self.virt_bridge

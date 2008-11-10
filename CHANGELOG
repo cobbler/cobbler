@@ -42,6 +42,7 @@ Cobbler CHANGELOG
 - (FEAT) import can auto assign kickstarts based on distro (feature for beaker)
 - (FEAT) import now adds tree build time in comment (feature for beaker)
 - (FEAT) --comment field added to all objects
+- (FEAT) keep creation and modification times with each object
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
