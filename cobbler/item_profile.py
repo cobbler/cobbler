@@ -62,6 +62,7 @@ class Profile(item.Item):
         self.mgmt_classes           = ([],                                      '<<inherit>>')[is_subobject]
         self.parent                 = ''
         self.server                 = "<<inherit>>"
+        self.comment                = ""
 
     def from_datastruct(self,seed_data):
         """
@@ -83,6 +84,7 @@ class Profile(item.Item):
         self.dhcp_tag               = self.load_item(seed_data,'dhcp_tag', 'default')
         self.server                 = self.load_item(seed_data,'server', '<<inherit>>')
         self.mgmt_classes           = self.load_item(seed_data,'mgmt_classes', [])
+        self.comment                = self.load_item(seed_data,'comment','')
 
         # backwards compatibility
         if type(self.repos) != list:
@@ -264,8 +266,9 @@ class Profile(item.Item):
             'virt_path'             : self.virt_path,
             'dhcp_tag'              : self.dhcp_tag,
             'server'                : self.server,
-            'mgmt_classes'          : self.mgmt_classes
-        }
+            'mgmt_classes'          : self.mgmt_classes,
+            'comment'               : self.comment
+         }
 
     def printable(self):
         """
@@ -276,14 +279,15 @@ class Profile(item.Item):
             buf = buf + _("parent               : %s\n") % self.parent
         else:
             buf = buf + _("distro               : %s\n") % self.distro
-        buf = buf + _("enable menu          : %s\n") % self.enable_menu
+        buf = buf + _("comment              : %s\n") % self.comment
         buf = buf + _("dhcp tag             : %s\n") % self.dhcp_tag
+        buf = buf + _("enable menu          : %s\n") % self.enable_menu
         buf = buf + _("kernel options       : %s\n") % self.kernel_options
-        buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
         buf = buf + _("kickstart            : %s\n") % self.kickstart
         buf = buf + _("ks metadata          : %s\n") % self.ks_meta
         buf = buf + _("mgmt classes         : %s\n") % self.mgmt_classes
         buf = buf + _("owners               : %s\n") % self.owners
+        buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
         buf = buf + _("repos                : %s\n") % self.repos
         buf = buf + _("server               : %s\n") % self.server
         buf = buf + _("template_files       : %s\n") % self.template_files
@@ -318,6 +322,7 @@ class Profile(item.Item):
             'dhcp-tag'        :  self.set_dhcp_tag,
             'server'          :  self.set_server,
             'owners'          :  self.set_owners,
-            'mgmt-classes'    :  self.set_mgmt_classes
+            'mgmt-classes'    :  self.set_mgmt_classes,
+            'comment'         :  self.comment
         }
 

@@ -45,7 +45,6 @@ class Image(item.Item):
         self.name            = ''
         self.arch            = 'i386'
         self.file            = ''
-        self.xml_file        = ''
         self.parent          = ''
         self.depth           = 0
         self.virt_ram        = self.settings.default_virt_ram
@@ -58,6 +57,7 @@ class Image(item.Item):
         self.image_type      = "iso" # direct, iso, memdisk, virt-clone
         self.breed           = 'redhat'
         self.os_version      = ''
+        self.comment         = ''
 
     def from_datastruct(self,seed_data):
         """
@@ -67,7 +67,6 @@ class Image(item.Item):
         self.name            = self.load_item(seed_data,'name','')
         self.parent          = self.load_item(seed_data,'parent','')
         self.file            = self.load_item(seed_data,'file','')
-        self.xml_file        = self.load_item(seed_data,'xml_file','')
         self.depth           = self.load_item(seed_data,'depth',0)
         self.owners          = self.load_item(seed_data,'owners',self.settings.default_ownership)
 
@@ -79,11 +78,12 @@ class Image(item.Item):
         self.virt_bridge     = self.load_item(seed_data, 'virt_bridge', self.settings.default_virt_bridge)
         self.arch            = self.load_item(seed_data,'arch','i386')
 
-        self.xml_file        = self.load_item(seed_data, 'xml_file', '')
         self.image_type      = self.load_item(seed_data, 'image_type', 'iso')
 
         self.breed           = self.load_item(seed_data, 'breed', 'redhat')
         self.os_version      = self.load_item(seed_data, 'os_version', '')
+
+        self.comment         = self.load_item(seed_data, 'comment', '')
 
         self.set_owners(self.owners)
         self.set_arch(self.arch)
@@ -124,15 +124,6 @@ class Image(item.Item):
         if not image_type in [ "direct", "iso", "memdisk", "virt-clone" ]:
            raise CX(_("image type must be 'direct', 'iso', or 'virt-clone'"))
         self.image_type = image_type
-        return True
-
-    def set_xml_file(self,filename):
-        """
-        Stores an xmlfile for virt-image.   This should be accessible
-        on all nodes that need to access it also.  See set_file.
-        FIXME: not yet supported, just a stub.
-        """
-        self.xml_file = filename
         return True
 
     def set_virt_cpus(self,num):
@@ -178,7 +169,6 @@ class Image(item.Item):
             'arch'             : self.arch,
             'image_type'       : self.image_type,
             'file'             : self.file,
-            'xml_file'         : self.xml_file,
             'depth'            : 0,
             'parent'           : '',
             'owners'           : self.owners,
@@ -188,9 +178,9 @@ class Image(item.Item):
             'virt_cpus'        : self.virt_cpus,
             'virt_bridge'      : self.virt_bridge,
             'virt_file_size'   : self.virt_file_size,
-            'xml_file'         : self.xml_file,
             'breed'            : self.breed,
-            'os_version'       : self.os_version
+            'os_version'       : self.os_version,
+            'comment'          : self.comment
         }
 
     def printable(self):
@@ -198,11 +188,11 @@ class Image(item.Item):
         A human readable representaton
         """
         buf =       _("image           : %s\n") % self.name
-        buf = buf + _("image type      : %s\n") % self.image_type
         buf = buf + _("arch            : %s\n") % self.arch
         buf = buf + _("breed           : %s\n") % self.breed
+        buf = buf + _("comment         : %s\n") % self.comment
         buf = buf + _("file            : %s\n") % self.file
-        buf = buf + _("xml file        : %s\n") % self.xml_file
+        buf = buf + _("image type      : %s\n") % self.image_type
         buf = buf + _("os version      : %s\n") % self.os_version
         buf = buf + _("owners          : %s\n") % self.owners
         buf = buf + _("virt bridge     : %s\n") % self.virt_bridge
@@ -222,13 +212,13 @@ class Image(item.Item):
             'os-version'      :  self.set_os_version,
             'arch'            :  self.set_arch,
             'file'            :  self.set_file,
-            'xml-file'        :  self.set_xml_file,
             'owners'          :  self.set_owners,
             'virt-cpus'       :  self.set_virt_cpus,
             'virt-file-size'  :  self.set_virt_file_size,
             'virt-bridge'     :  self.set_virt_bridge,
             'virt-path'       :  self.set_virt_path,
             'virt-ram'        :  self.set_virt_ram,
-            'virt-type'       :  self.set_virt_type
+            'virt-type'       :  self.set_virt_type,
+            'comment'         :  self.comment
         }
 

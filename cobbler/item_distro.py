@@ -54,7 +54,7 @@ class Distro(item.Item):
         self.mgmt_classes           = []
         self.depth                  = 0
         self.template_files         = {}
-	self.comment                = None
+	self.comment                = ""
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -123,10 +123,6 @@ class Distro(item.Item):
 
     def set_os_version(self, os_version):
         return utils.set_os_version(self,os_version)
-
-    def set_comment(self, comment):
-        self.comment = comment
-        return True
 
     def set_initrd(self,initrd):
         """
@@ -212,18 +208,18 @@ class Distro(item.Item):
         kstr = utils.find_kernel(self.kernel)
         istr = utils.find_initrd(self.initrd)
         buf =       _("distro               : %s\n") % self.name
-        buf = buf + _("breed                : %s\n") % self.breed
-        buf = buf + _("os version           : %s\n") % self.os_version
         buf = buf + _("architecture         : %s\n") % self.arch
+        buf = buf + _("breed                : %s\n") % self.breed
+        buf = buf + _("comment              : %s\n") % self.comment
         buf = buf + _("initrd               : %s\n") % istr
         buf = buf + _("kernel               : %s\n") % kstr
         buf = buf + _("kernel options       : %s\n") % self.kernel_options
         buf = buf + _("ks metadata          : %s\n") % self.ks_meta
         buf = buf + _("mgmt classes         : %s\n") % self.mgmt_classes 
+        buf = buf + _("os version           : %s\n") % self.os_version
         buf = buf + _("owners               : %s\n") % self.owners
         buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
         buf = buf + _("template files       : %s\n") % self.template_files
-        buf = buf + _("comment              : %s\n") % self.comment
         return buf
 
     def remote_methods(self):

@@ -123,6 +123,10 @@ class Item(serializable.Serializable):
         self.name = name
         return True
 
+    def set_comment(self, comment):
+        self.comment = comment
+        return True
+
     def set_owners(self,data):
         """
         The owners field is a comment unless using an authz module that pays attention to it,

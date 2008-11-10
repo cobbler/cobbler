@@ -46,11 +46,12 @@ class DistroFunction(commands.CobblerFunction):
     def add_options(self, p, args):
 
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            p.add_option("--arch",   dest="arch",   help="ex: x86, x86_64, ia64")
-            p.add_option("--breed",  dest="breed",  help="ex: redhat, debian, suse")
+            p.add_option("--arch",     dest="arch",     help="ex: x86, x86_64, ia64")
+            p.add_option("--breed",    dest="breed",    help="ex: redhat, debian, suse")
         if self.matches_args(args,["add"]):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
+            p.add_option("--comment",  dest="comment",  help="user field")
             p.add_option("--initrd",      dest="initrd",      help="absolute path to initrd.img (REQUIRED)")
             if not self.matches_args(args,["find"]): 
                 p.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts or ksmeta without clearing the other items")
@@ -90,6 +91,8 @@ class DistroFunction(commands.CobblerFunction):
             return True
 
         if not "dumpvars" in self.args:
+            if self.options.comment:
+                obj.set_comment(self.options.comment)
             if self.options.arch:
                 obj.set_arch(self.options.arch)
             if self.options.kernel:

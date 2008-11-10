@@ -44,6 +44,9 @@ class ProfileFunction(commands.CobblerFunction):
         return ["add","copy","dumpvars","edit","find","list","remove","rename","report","getks"]
 
     def add_options(self, p, args):
+            
+        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
+            p.add_option("--comment",  dest="comment",  help="user field")
 
         if self.matches_args(args,["add"]):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
@@ -108,6 +111,7 @@ class ProfileFunction(commands.CobblerFunction):
             return True
 
         if not self.matches_args(self.args,["dumpvars","getks"]):
+            if self.options.comment:         obj.set_comment(self.options.comment)
             if self.options.inherit:         obj.set_parent(self.options.inherit)
             if self.options.distro:          obj.set_distro(self.options.distro)
             if self.options.enable_menu:     obj.set_enable_menu(self.options.enable_menu)

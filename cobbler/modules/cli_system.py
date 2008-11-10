@@ -45,20 +45,24 @@ class SystemFunction(commands.CobblerFunction):
 
     def add_options(self, p, args):
 
-        if self.matches_args(args,["add"]):
-            p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
-
         if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
             p.add_option("--bonding",         dest="bonding",       help="NIC bonding, ex: master, slave, none (default)")
             p.add_option("--bonding-master",  dest="bonding_master",metavar="INTERFACE", help="master interface for this slave, ex: bond0")
             p.add_option("--bonding-opts",    dest="bonding_opts",  help="ex: 'miimon=100'")
+            p.add_option("--comment", dest="comment", help="user field")
+        if self.matches_args(args,["add"]):
+            p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
+
+        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
             p.add_option("--dhcp-tag",        dest="dhcp_tag",      help="for use in advanced DHCP configurations")
             p.add_option("--gateway",         dest="gateway",       help="for static IP / templating usage")
             p.add_option("--hostname",        dest="hostname",      help="ex: server.example.org")
 
             if not self.matches_args(args,["find"]):
                 p.add_option("--interface",       dest="interface", help="edit this interface")
+                # FIXME: not alphabetized!
                 p.add_option("--delete-interface", dest="delete_interface", metavar="INTERFACE", help="delete the selected interface")
+                # FIXME: this logic needs to go away
                 p.add_option("--default-interface", dest="default_interface", metavar="INTERFACE", help="set INTERFACE as the system default")
             p.add_option("--image",           dest="image",         help="inherit values from this image, not compatible with --profile")
             p.add_option("--ip",              dest="ip",            help="ex: 192.168.1.55, (RECOMMENDED)")
@@ -120,6 +124,7 @@ class SystemFunction(commands.CobblerFunction):
         if self.matches_args(self.args,["getks"]):
             return self.object_manipulator_finish(obj, self.api.profiles, self.options)
 
+        if self.options.comment:         obj.set_comment(self.options.comment)
         if self.options.profile:         obj.set_profile(self.options.profile)
         if self.options.image:           obj.set_image(self.options.image)
         if self.options.kopts:           obj.set_kernel_options(self.options.kopts,self.options.inplace)
