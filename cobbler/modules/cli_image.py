@@ -41,6 +41,7 @@ class ImageFunction(commands.CobblerFunction):
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--arch",           dest="arch",         help="ex: i386, x86_64")
             p.add_option("--breed",          dest="breed",        help="ex: redhat")
+            p.add_option("--comment",        dest="comment",      help="user field")
 
         if self.matches_args(args,["add"]):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
@@ -94,6 +95,7 @@ class ImageFunction(commands.CobblerFunction):
         if self.matches_args(self.args,["dumpvars"]):
             return self.object_manipulator_finish(obj, self.api.images, self.options)
 
+        if self.options.comment:          obj.set_comment(self.options.comment)
         if self.options.file:             obj.set_file(self.options.file)
         if self.options.image_type:       obj.set_image_type(self.options.image_type)
         if self.options.owners:           obj.set_owners(self.options.owners)

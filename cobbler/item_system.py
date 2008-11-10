@@ -60,6 +60,7 @@ class System(item.Item):
         self.virt_type            = "<<inherit>>"   # ""
         self.virt_path            = "<<inherit>>"   # ""
         self.virt_bridge          = "<<inherit>>"   # ""
+        self.comment              = ""
 
     def delete_interface(self,name):
         """
@@ -124,6 +125,7 @@ class System(item.Item):
         self.mgmt_classes         = self.load_item(seed_data, 'mgmt_classes', [])
         self.template_files       = self.load_item(seed_data, 'template_files', {})
         self.default_interface    = self.load_item(seed_data, 'default_interface', self.settings.default_interface)
+        self.comment              = self.load_item(seed_data, 'comment', '')
 
         # virt specific 
         self.virt_path   = self.load_item(seed_data, 'virt_path', '<<inherit>>') 
@@ -481,12 +483,14 @@ class System(item.Item):
            'virt_ram'              : self.virt_ram,
            'virt_type'             : self.virt_type,
            'mgmt_classes'          : self.mgmt_classes,
-           'template_files'        : self.template_files
+           'template_files'        : self.template_files,
+           'comment'               : self.comment
         }
 
     def printable(self):
         buf =       _("system                : %s\n") % self.name
         buf = buf + _("profile               : %s\n") % self.profile
+        buf = buf + _("comment               : %s\n") % self.comment
         buf = buf + _("image                 : %s\n") % self.image
         buf = buf + _("kernel options        : %s\n") % self.kernel_options
         buf = buf + _("kernel options post   : %s\n") % self.kernel_options_post
@@ -509,32 +513,32 @@ class System(item.Item):
         name = self.default_interface
         x    = self.interfaces[name]
         buf = buf + _("interface        : %s (default)\n") % (name)
-        buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
-        buf = buf + _("  ip address     : %s\n") % x.get("ip_address","")
-        buf = buf + _("  hostname       : %s\n") % x.get("hostname","")
-        buf = buf + _("  gateway        : %s\n") % x.get("gateway","")
-        buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
-        buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
-        buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
-        buf = buf + _("  is static?     : %s\n") % x.get("static",False)
         buf = buf + _("  bonding        : %s\n") % x.get("bonding","")
         buf = buf + _("  bonding master : %s\n") % x.get("bonding_master","")
         buf = buf + _("  bonding opts   : %s\n") % x.get("bonding_opts","")
+        buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
+        buf = buf + _("  gateway        : %s\n") % x.get("gateway","")
+        buf = buf + _("  hostname       : %s\n") % x.get("hostname","")
+        buf = buf + _("  ip address     : %s\n") % x.get("ip_address","")
+        buf = buf + _("  is static?     : %s\n") % x.get("static",False)
+        buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
+        buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
+        buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
 
         for (name,x) in self.interfaces.iteritems():
             if name == self.default_interface: continue
             buf = buf + _("interface        : %s\n") % (name)
-            buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
-            buf = buf + _("  ip address     : %s\n") % x.get("ip_address","")
-            buf = buf + _("  hostname       : %s\n") % x.get("hostname","")
-            buf = buf + _("  gateway        : %s\n") % x.get("gateway","")
-            buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
-            buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
-            buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
-            buf = buf + _("  is static?     : %s\n") % x.get("static",False)
             buf = buf + _("  bonding        : %s\n") % x.get("bonding","")
             buf = buf + _("  bonding_master : %s\n") % x.get("bonding_master","")
             buf = buf + _("  bonding_opts   : %s\n") % x.get("bonding_opts","")
+            buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
+            buf = buf + _("  gateway        : %s\n") % x.get("gateway","")
+            buf = buf + _("  hostname       : %s\n") % x.get("hostname","")
+            buf = buf + _("  ip address     : %s\n") % x.get("ip_address","")
+            buf = buf + _("  is static?     : %s\n") % x.get("static",False)
+            buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
+            buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
+            buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
 
         return buf
 
@@ -580,7 +584,8 @@ class System(item.Item):
            'server'           : self.set_server,
            'owners'           : self.set_owners,
            'mgmt-classes'     : self.set_mgmt_classes,
-           'template-files'   : self.set_template_files
+           'template-files'   : self.set_template_files,
+           'comment'          : self.set_comment
         }
 
 

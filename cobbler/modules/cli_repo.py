@@ -47,8 +47,9 @@ class RepoFunction(commands.CobblerFunction):
 
 
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            p.add_option("--breed",             dest="breed",             help="sets the breed of the repo")
             p.add_option("--arch",             dest="arch",             help="overrides repo arch if required")
+            p.add_option("--breed",            dest="breed",            help="sets the breed of the repo")
+            p.add_option("--comment",          dest="comment",          help="user field")
         if self.matches_args(args,["add"]):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
@@ -103,9 +104,8 @@ class RepoFunction(commands.CobblerFunction):
         if self.options.mirror:           obj.set_mirror(self.options.mirror)
         if self.options.mirror_locally:   obj.set_mirror_locally(self.options.mirror_locally)
         if self.options.yumopts:          obj.set_yumopts(self.options.yumopts,self.options.inplace)
-
-        if self.options.owners:
-            obj.set_owners(self.options.owners)
+        if self.options.owners:           obj.set_owners(self.options.owners)
+        if self.options.comment:          obj.set_comment(self.options.comment)
 
         return self.object_manipulator_finish(obj, self.api.repos, self.options)
 

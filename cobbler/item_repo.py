@@ -54,6 +54,7 @@ class Repo(item.Item):
         self.owners           = self.settings.default_ownership
         self.mirror_locally   = True
         self.environment      = {}
+        self.comment          = ""
 
     def from_datastruct(self,seed_data):
         self.parent           = self.load_item(seed_data, 'parent')
@@ -70,6 +71,7 @@ class Repo(item.Item):
         self.owners           = self.load_item(seed_data, 'owners', self.settings.default_ownership)
         self.mirror_locally   = self.load_item(seed_data, 'mirror_locally', True)
         self.environment      = self.load_item(seed_data, 'environment', {})
+        self.comment          = self.load_item(seed_data, 'comment', '')
 
         # coerce types/values from input file
         self.set_keep_updated(self.keep_updated)
@@ -227,7 +229,8 @@ class Repo(item.Item):
            'parent'           : self.parent,
            'depth'            : self.depth,
            'yumopts'          : self.yumopts,
-           'environment'      : self.environment
+           'environment'      : self.environment,
+           'comment'          : self.comment
         }
 
     def set_mirror_locally(self,value):
@@ -236,8 +239,9 @@ class Repo(item.Item):
 
     def printable(self):
         buf =       _("repo             : %s\n") % self.name
-        buf = buf + _("breed            : %s\n") % self.breed
         buf = buf + _("arch             : %s\n") % self.arch
+        buf = buf + _("breed            : %s\n") % self.breed
+        buf = buf + _("comment          : %s\n") % self.comment
         buf = buf + _("createrepo_flags : %s\n") % self.createrepo_flags
         buf = buf + _("environment      : %s\n") % self.environment
         buf = buf + _("keep updated     : %s\n") % self.keep_updated
@@ -270,6 +274,7 @@ class Repo(item.Item):
             'yumopts'          :  self.set_yumopts,
             'owners'           :  self.set_owners,
             'mirror-locally'   :  self.set_mirror_locally,
-            'environment'      :  self.set_environment
+            'environment'      :  self.set_environment,
+            'comment'          :  self.set_comment
         }
 

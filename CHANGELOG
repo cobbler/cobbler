@@ -39,6 +39,9 @@ Cobbler CHANGELOG
 - (BUGF) have triggers ignore dotfiles so directories can be version controlled (and so on)
 - (FEAT) init scripts and specfiles now install on SuSE
 - (TEST) added remote tests, moved existing unit tests to api.py methods 
+- (FEAT) import can auto assign kickstarts based on distro (feature for beaker)
+- (FEAT) import now adds tree build time in comment (feature for beaker)
+- (FEAT) --comment field added to all objects
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
