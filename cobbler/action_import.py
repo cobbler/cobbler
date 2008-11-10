@@ -33,6 +33,8 @@ import utils
 import shutil
 from utils import _
 
+import item_repo
+
 # FIXME: add --quiet depending on if not --verbose?
 RSYNC_CMD =  "rsync -a %s '%s' %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --progress"
 
@@ -352,13 +354,17 @@ class Importer:
        
        for distro in distros_added:
            print _("- traversing distro %s") % distro.name
+           # FIXME : Shouldn't decide this the value of self.network_root ?
            if distro.kernel.find("ks_mirror") != -1:
                basepath = os.path.dirname(distro.kernel)
                importer = import_factory(basepath,self.path)
                top = importer.get_rootdir()
                print _("- descent into %s") % top
-               # FIXME : The location of repo definition is known from breed
-               os.path.walk(top, self.repo_scanner, distro)
+               if distro.breed in [ "debian" , "ubuntu" ]:
+                   importer.process_repos( self , distro )
+               else:
+                   # FIXME : The location of repo definition is known from breed
+                   os.path.walk(top, self.repo_scanner, distro)
            else:
                print _("- this distro isn't mirrored")
 
@@ -852,6 +858,11 @@ class BaseImporter:
    def __init__(self,(rootdir,pkgdir)):
        raise CX(_("ERROR - BaseImporter is an abstract class"))
    
+   # ===================================================================
+
+   def process_repos(self, main_importer, distro):
+       raise CX(_("ERROR - process_repos is an abstract method"))
+
 # ===================================================================
 # ===================================================================
 
@@ -1058,6 +1069,29 @@ class DebianImporter ( BaseImporter ) :
            raise CX(_("OS version is required for debian distros"))
        distro.ks_meta["suite"] = distro.os_version
    
+   def process_repos(self, main_importer, distro):
+
+       # Create a disabled repository for the new distro, and the security updates
+       #
+       # NOTE : We cannot use ks_meta nor os_version because they get fixed at a later stage
+
+       seed_data = { 'breed':"apt" , 'keep_updated':False , 'arch':distro.arch }
+       # NOTE : The location of the mirror should come from timezone
+       seed_data['mirror'] = "http://ftp.%s.debian.org/debian/dists/%s" % ( 'us' , '@@suite@@' )
+       seed_data['name'] = distro.name
+       repo = item_repo.Repo(main_importer.config).from_datastruct(seed_data)
+
+       # There are no official mirrors for security updates
+       seed_data['mirror'] = "http://security.debian.org/debian-security/dists/%s/updates" % '@@suite@@'
+       seed_data['name'] += "-security"
+       security_repo = item_repo.Repo(main_importer.config).from_datastruct(seed_data)
+
+       print "- Added repos for %s" % distro.name
+       repos  = main_importer.config.repos()
+       repos.add(repo,save=True)
+       repos.add(security_repo,save=True)
+
+
 class UbuntuImporter ( DebianImporter ) :
 
    def __init__(self,(rootdir,pkgdir)):
