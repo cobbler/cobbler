@@ -17,7 +17,6 @@ BuildRequires: python-setuptools
 %endif
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
-ExcludeArch: ppc
 ExcludeArch: ppc64
 Url: http://cobbler.et.redhat.com/
 
