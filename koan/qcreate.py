@@ -55,7 +55,7 @@ def start_install(name=None, ram=None, disks=None, mac=None,
                   uuid=None,  
                   extra=None,
                   vcpus=None, 
-                  profile_data=None, arch=None, no_gfx=False, fullvirt=True, bridge=None):
+                  profile_data=None, arch=None, no_gfx=False, fullvirt=True, bridge=None, virt_type=None):
 
     vtype = "qemu"
     if virtinst.util.is_kvm_capable():

@@ -381,7 +381,7 @@ class Koan:
             if self.virt_type not in [ "qemu", "xenpv", "xenfv", "xen", "vmware", "vmwarew", "auto" ]:
                if self.virt_type == "xen":
                    self.virt_type = "xenpv"
-               raise InfoException, "--virttype should be qemu, xenpv, xenfv, vmware, vmwarew, or auto"
+               raise InfoException, "--virt-type should be qemu, xenpv, xenfv, vmware, vmwarew, or auto"
 
         # perform one of three key operations
         if self.is_virt:
@@ -501,8 +501,7 @@ class Koan:
                     raise InfoException("xmlfile based installations are not supported")
 
                 elif profile_data.has_key("file"):
-                    # FIXME: this is actually an image based install, assume qemu/KVM
-                    print "- ISO based installation, always uses --virt-type=qemu"
+                    print "- ISO or Image based installation, always uses --virt-type=qemu"
                     self.virt_type = "qemu"
                     
                 else:
@@ -1060,7 +1059,8 @@ class Koan:
                 arch          =  arch,
                 no_gfx        =  self.no_gfx,   
                 fullvirt      =  fullvirt,    
-                bridge        =  self.virt_bridge 
+                bridge        =  self.virt_bridge,
+                virt_type     =  self.virt_type
         )
 
         print results
@@ -1072,6 +1072,7 @@ class Koan:
         try:
             import xencreate
             import qcreate
+            import imagecreate
         except:
             traceback.print_exc()
             raise InfoException("no virtualization support available, install python-virtinst?")
@@ -1080,7 +1081,12 @@ class Koan:
 
     def virt_choose(self, pd):
         fullvirt = False
-        if self.virt_type in [ "xenpv", "xenfv" ]:
+        if (self.image is not None) and (pd["image_type"] == "virt-clone"):
+            fullvirt = True
+            uuid = None
+            import imagecreate
+            creator = imagecreate.start_install            
+        elif self.virt_type in [ "xenpv", "xenfv" ]:
             uuid    = self.get_uuid(self.calc_virt_uuid(pd))
             import xencreate
             creator = xencreate.start_install
