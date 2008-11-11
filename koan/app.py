@@ -800,19 +800,38 @@ class Koan:
                cmd.append("--boot-filesystem=/dev/sda1")
                cmd.append("--config-file=/tmp/boot/boot/grub/grub.conf")
                # utils.subprocess_call(["/sbin/grubby","--remove-kernel","/boot/vmlinuz"])
+
+            # Are we running on ppc?
+            arch_cmd = sub_process.Popen("/bin/uname -m", stdout=sub_process.PIPE, shell=True)
+            uname_str = arch_cmd.communicate()[0]
+            if uname_str.startswith("ppc"):
+               cmd.append("--yaboot")
+            elif uname_str.startswith("s390"):
+               cmd.append("--zipl")
+
             utils.subprocess_call(cmd)
 
-
-            # if grubby --bootloader-probe returns lilo,
-            #    apply lilo changes
-            cmd = [ "/sbin/grubby", "--bootloader-probe" ]
-            probe_process = sub_process.Popen(cmd, stdout=sub_process.PIPE)
-            which_loader = probe_process.communicate()[0]
-            if probe_process.returncode == 0 and \
-                   which_loader.find("lilo") != -1:
-                print "- applying lilo changes"
-                cmd = [ "/sbin/lilo" ]
+            # Any post-grubby processing required (e.g. ybin, zipl, lilo)?
+            if uname_str.startswith("ppc"):
+                # FIXME - CHRP hardware uses a 'PPC PReP Boot' partition and doesn't require running ybin
+                print "- applying ybin changes"
+                cmd = [ "/sbin/ybin" ]
                 sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
+            elif uname_str.startswith("s390"):
+                print "- applying zipl changes"
+                cmd = [ "/sbin/zipl" ]
+                sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
+            else:
+                # if grubby --bootloader-probe returns lilo,
+                #    apply lilo changes
+                cmd = [ "/sbin/grubby", "--bootloader-probe" ]
+                probe_process = sub_process.Popen(cmd, stdout=sub_process.PIPE)
+                which_loader = probe_process.communicate()[0]
+                if probe_process.returncode == 0 and \
+                       which_loader.find("lilo") != -1:
+                    print "- applying lilo changes"
+                    cmd = [ "/sbin/lilo" ]
+                    sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
 
             if not self.add_reinstall_entry:
                 print "- reboot to apply changes"
