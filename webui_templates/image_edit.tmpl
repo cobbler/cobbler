@@ -1,6 +1,8 @@
 #extends cobbler.webui.master
 #block body
 
+#import time
+
 #if $image
 <script language="javascript">
 function disablename(value)
@@ -69,6 +71,27 @@ function disablename(value)
     #else
     <input type="hidden" name="editmode" value="new"/>
     #end if
+
+    #if $image
+    <tr>
+    <td>
+    <label>Created</label>
+    </td>
+    <td>
+    $time.ctime($image.ctime)
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label>Last Modified</label>
+    </td>
+    <td>
+    $time.ctime($image.mtime)
+    </td>
+    </tr>
+    #end if
+
 
 
     <tr>

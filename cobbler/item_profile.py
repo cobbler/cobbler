@@ -332,6 +332,6 @@ class Profile(item.Item):
             'server'          :  self.set_server,
             'owners'          :  self.set_owners,
             'mgmt-classes'    :  self.set_mgmt_classes,
-            'comment'         :  self.comment
+            'comment'         :  self.set_comment
         }
 

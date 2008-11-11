@@ -1,6 +1,8 @@
 #extends cobbler.webui.master
 #block body
 
+#import time
+
 #if $distro
 <script language="javascript">
 function disablename(value)
@@ -70,6 +72,39 @@ function disablename(value)
     <input type="hidden" name="editmode" value="new"/>
     #end if
 
+    #if $distro
+    <tr>
+    <td>
+    <label>Created</label>
+    </td>
+    <td>
+    $time.ctime($distro.ctime)
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label>Last Modified</label>
+    </td>
+    <td>
+    $time.ctime($distro.mtime)
+    </td>
+    </tr>
+    #end if
+
+    <tr>
+    <td>
+    <label for="comment">Comment</label>
+    </td>
+    <td>
+    <textarea rows="5" cols="30" 400px;" name="comment" id="comment">
+#if $distro
+$distro.comment
+#end if
+    </textarea>
+    <p class="context-tip">This is a free-form description field</p>
+    </td>
+    </tr>
 
     <tr>
     <td>

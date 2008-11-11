@@ -229,6 +229,6 @@ class Image(item.Item):
             'virt-path'       :  self.set_virt_path,
             'virt-ram'        :  self.set_virt_ram,
             'virt-type'       :  self.set_virt_type,
-            'comment'         :  self.comment
+            'comment'         :  self.set_comment
         }
 
