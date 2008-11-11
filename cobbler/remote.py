@@ -1606,6 +1606,7 @@ def test_xmlrpc_rw():
    server.modify_distro(did, "owners", "sam dave", token) # array or string
    server.modify_distro(did, "mgmt-classes", "blip", token) # list or string
    server.modify_distro(did, "template-files", "/etc/hosts=/tmp/a /etc/fstab=/tmp/b",token) # hash or string
+   server.modify_distro(did, "comment", "...", token)
    server.save_distro(did, token)
 
    # use the non-XMLRPC API to check that it's added seeing we tested XMLRPC RW APIs above
@@ -1629,6 +1630,7 @@ def test_xmlrpc_rw():
    server.modify_profile(pid, "virt-cpus", 2, token)
    server.modify_profile(pid, "owners", [ "sam", "dave" ], token)
    server.modify_profile(pid, "mgmt-classes", "one two three", token)
+   server.modify_profile(pid, "comment", "...", token)
    server.save_profile(pid, token)
 
    api.deserialize() 
@@ -1657,6 +1659,7 @@ def test_xmlrpc_rw():
    }, token)
    server.modify_system(sid, "mgmt-classes", [ "one", "two", "three"], token)
    server.modify_system(sid, "template-files", {}, token)
+   server.modify_system(sid, "comment", "...", token)
    server.save_system(sid,token)
    
    api.deserialize() 
@@ -1677,6 +1680,7 @@ def test_xmlrpc_rw():
    server.modify_image(iid, "virt-path", "VolGroup01", token)
    server.modify_image(iid, "virt-ram", 1024, token)
    server.modify_image(iid, "virt-type", "xenpv", token)
+   server.modify_image(iid, "comment", "...", token)
    server.save_image(iid, token)
 
    api.deserialize() 
@@ -1696,6 +1700,7 @@ def test_xmlrpc_rw():
    server.modify_repo(rid, "owners", [ "slash", "axl" ], token)
    server.modify_repo(rid, "mirror-locally", True, token)
    server.modify_repo(rid, "environment", {}, token)
+   server.modify_repo(rid, "comment", "...", token)
    server.save_repo(rid, token)
    
    api.deserialize() 
