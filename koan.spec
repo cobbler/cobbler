@@ -8,7 +8,6 @@ Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
 Requires: mkinitrd
-Requires: syslinux
 Requires: python >= 2.2
 BuildRequires: python-devel
 %if 0%{?fedora} >= 8
