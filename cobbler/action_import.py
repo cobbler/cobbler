@@ -861,7 +861,7 @@ class BaseImporter:
    # ===================================================================
 
    def process_repos(self, main_importer, distro):
-       raise CX(_("ERROR - process_repos is an abstract method"))
+       raise exceptions.NotImplementedError
 
 # ===================================================================
 # ===================================================================
@@ -1075,16 +1075,21 @@ class DebianImporter ( BaseImporter ) :
        #
        # NOTE : We cannot use ks_meta nor os_version because they get fixed at a later stage
 
-       seed_data = { 'breed':"apt" , 'keep_updated':False , 'arch':distro.arch }
+       repo = item_repo.Repo(main_importer.config)
+       repo.set_breed( "apt" )
+       repo.set_arch( distro.arch )
+       repo.set_keep_updated( False )
+       repo.set_name( distro.name )
        # NOTE : The location of the mirror should come from timezone
-       seed_data['mirror'] = "http://ftp.%s.debian.org/debian/dists/%s" % ( 'us' , '@@suite@@' )
-       seed_data['name'] = distro.name
-       repo = item_repo.Repo(main_importer.config).from_datastruct(seed_data)
+       repo.set_mirror( "http://ftp.%s.debian.org/debian/dists/%s" % ( 'us' , '@@suite@@' )
 
+       security_repo = item_repo.Repo(main_importer.config)
+       security_repo.set_breed( "apt" )
+       security_repo.set_arch( distro.arch )
+       security_repo.set_keep_updated( False )
+       security_repo.set_name( distro.name + "-security" )
        # There are no official mirrors for security updates
-       seed_data['mirror'] = "http://security.debian.org/debian-security/dists/%s/updates" % '@@suite@@'
-       seed_data['name'] += "-security"
-       security_repo = item_repo.Repo(main_importer.config).from_datastruct(seed_data)
+       security_repo.set_mirror( "http://security.debian.org/debian-security/dists/%s/updates" % '@@suite@@' )
 
        print "- Added repos for %s" % distro.name
        repos  = main_importer.config.repos()
