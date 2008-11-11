@@ -1081,7 +1081,7 @@ class DebianImporter ( BaseImporter ) :
        repo.set_keep_updated( False )
        repo.set_name( distro.name )
        # NOTE : The location of the mirror should come from timezone
-       repo.set_mirror( "http://ftp.%s.debian.org/debian/dists/%s" % ( 'us' , '@@suite@@' )
+       repo.set_mirror( "http://ftp.%s.debian.org/debian/dists/%s" % ( 'us' , '@@suite@@' ) )
 
        security_repo = item_repo.Repo(main_importer.config)
        security_repo.set_breed( "apt" )
