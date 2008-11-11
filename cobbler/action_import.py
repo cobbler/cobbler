@@ -187,8 +187,6 @@ class Importer:
                except:
                    raise CX(_("Network root given to --available-as is missing a colon, please see the manpage example."))
 
-       self.processed_repos = {}
-
        # now walk the filesystem looking for distributions that match certain patterns
 
        print _("---------------- (adding distros)")
@@ -406,6 +404,8 @@ class Importer:
        in yum.  This code identifies those areas.
        """
 
+       processed_repos = {}
+
        masterdir = "repodata"
        if not os.path.exists(os.path.join(comps_path, "repodata")):
            # older distros...
@@ -467,13 +467,13 @@ class Importer:
            # don't run creatrepo twice -- this can happen easily for Xen and PXE, when
            # they'll share same repo files.
 
-           if not self.processed_repos.has_key(comps_path):
+           if not processed_repos.has_key(comps_path):
                utils.remove_yum_olddata(comps_path)
                #cmd = "createrepo --basedir / --groupfile %s %s" % (os.path.join(comps_path, masterdir, comps_file), comps_path)
                cmd = "createrepo -c cache --groupfile %s %s" % (os.path.join(comps_path, masterdir, comps_file), comps_path)
                print _("- %s") % cmd
                sub_process.call(cmd,shell=True)
-               self.processed_repos[comps_path] = 1
+               processed_repos[comps_path] = 1
                # for older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up one...
                p1 = os.path.join(comps_path, "repodata", "comps.xml")
                p2 = os.path.join(comps_path, "base", "comps.xml")
