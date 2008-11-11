@@ -92,6 +92,20 @@ function disablename(value)
     </tr>
     #end if
 
+    <tr>
+    <td>
+    <label for="comment">Comment</label>
+    </td>
+    <td>
+    <textarea rows="5" cols="30" 400px;" name="comment" id="comment">
+#if $image
+$image.comment
+#end if
+    </textarea>
+    <p class="context-tip">This is a free-form description field</p>
+    </td>
+    </tr>
+
 
 
     <tr>
