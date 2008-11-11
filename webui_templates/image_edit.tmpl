@@ -290,6 +290,22 @@ function disablename(value)
     <p class="context-tip">How many virtual CPUs?  This is an integer.</p>
     </td>
     </tr>
+    
+    ## self.network_count       = 1
+
+    <tr>
+    <td>
+    <label for="virtpath">NICs</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="networkcount" id="networkcount"
+        #if $image
+           value="$image.network_count"
+        #end if
+    />
+    <p class="context-tip">How many nics should be created  This is an integer.</p>
+    </td>
+    </tr>    
 
 
     ## self.virt_bridge     = self.settings.default_virt_bridge

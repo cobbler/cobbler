@@ -809,7 +809,7 @@ class CobblerWeb(object):
     def image_save(self,name=None,comment=None,oldname=None,new_or_edit=None,editmode='edit',field1=None,
                    file=None,arch=None,breed=None,virtram=None,virtfilesize=None,virtpath=None,
                    virttype=None,virtcpus=None,virtbridge=None,imagetype=None,owners=None,
-                   osversion=None,delete1=None,delete2=None,recursive=False,**args):
+                   osversion=None,delete1=None,delete2=None,recursive=False,networkcount=None,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -865,6 +865,8 @@ class CobblerWeb(object):
                 self.remote.modify_image(image, 'owners',     owners,    self.token)
             if virtcpus is not None:     
                 self.remote.modify_image(image, 'virt-cpus',  virtcpus,  self.token)
+            if networkcount is not None:     
+                self.remote.modify_image(image, 'network-count',  networkcount,  self.token)                
             if virtfilesize is not None: 
                 self.remote.modify_image(image, 'virt-file-size', virtfilesize, self.token)
             if virtpath is not None:     
