@@ -93,11 +93,12 @@ function disablename(value)
     <label for="comment">Comment</label>
     </td>
     <td>
-    <textarea rows="5" cols="30" 400px;" name="comment" id="comment">
-#if $repo
-$repo.comment
-#end if
-    </textarea>
+    #if $repo
+       #set $comm = $repo.comment
+    #else
+       #set $comm = ""
+    #end if
+    <textarea rows="5" cols="30" 400px;" name="comment" id="comment">$comm</textarea>
     <p class="context-tip">This is a free-form description field</p>
     </td>
     </tr>
