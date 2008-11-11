@@ -44,6 +44,8 @@ Cobbler CHANGELOG
 - (FEAT) import now adds tree build time
 - (FEAT) --comment field added to all objects
 - (FEAT) keep creation and modification times with each object
+- (FEAT) added ppc imports and arches to supplement s390x (and assoc koan chage)
+- (FEAT) added number of interfaces required to each image
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
