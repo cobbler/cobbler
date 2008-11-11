@@ -358,6 +358,22 @@ function page_onload() {
 
     <tr>
     <td>
+    <label for="comment">Comment</label>
+    </td>
+    <td>
+    #if $system
+       #set $comm = $system.comment
+    #else
+       #set $comm = ""
+    #end if
+    <textarea rows="5" cols="30" 400px;" name="comment" id="comment">$comm</textarea>
+    <p class="context-tip">This is a free-form description field</p>
+    </td>
+    </tr>
+
+
+    <tr>
+    <td>
     <label for="profile">Profile</label>
     </td>
     <td>

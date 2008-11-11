@@ -106,6 +106,21 @@ function disablename(value)
     </tr>
     #end if
 
+    <tr>
+    <td>
+    <label for="comment">Comment</label>
+    </td>
+    <td>
+    #if $profile
+       #set $comm = $profile.comment
+    #else
+       #set $comm = ""
+    #end if
+    <textarea rows="5" cols="30" 400px;" name="comment" id="comment">$comm</textarea>
+    <p class="context-tip">This is a free-form description field</p>
+    </td>
+    </tr>
+
 
     #if $subprofile
        <tr>
