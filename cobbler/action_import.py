@@ -33,6 +33,8 @@ import utils
 import shutil
 from utils import _
 
+import item_repo
+
 # FIXME: add --quiet depending on if not --verbose?
 RSYNC_CMD =  "rsync -a %s '%s' %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --progress"
 
@@ -184,8 +186,6 @@ class Importer:
                    (a,b,rest) = self.network_root.split(":",3)
                except:
                    raise CX(_("Network root given to --available-as is missing a colon, please see the manpage example."))
-
-       self.processed_repos = {}
 
        # now walk the filesystem looking for distributions that match certain patterns
 
@@ -352,13 +352,17 @@ class Importer:
        
        for distro in distros_added:
            print _("- traversing distro %s") % distro.name
+           # FIXME : Shouldn't decide this the value of self.network_root ?
            if distro.kernel.find("ks_mirror") != -1:
                basepath = os.path.dirname(distro.kernel)
                importer = import_factory(basepath,self.path)
                top = importer.get_rootdir()
                print _("- descent into %s") % top
-               # FIXME : The location of repo definition is known from breed
-               os.path.walk(top, self.repo_scanner, distro)
+               if distro.breed in [ "debian" , "ubuntu" ]:
+                   importer.process_repos( self , distro )
+               else:
+                   # FIXME : The location of repo definition is known from breed
+                   os.path.walk(top, self.repo_scanner, distro)
            else:
                print _("- this distro isn't mirrored")
 
@@ -399,6 +403,8 @@ class Importer:
        as yum repos containing packages that might not yet be available via updates
        in yum.  This code identifies those areas.
        """
+
+       processed_repos = {}
 
        masterdir = "repodata"
        if not os.path.exists(os.path.join(comps_path, "repodata")):
@@ -461,13 +467,13 @@ class Importer:
            # don't run creatrepo twice -- this can happen easily for Xen and PXE, when
            # they'll share same repo files.
 
-           if not self.processed_repos.has_key(comps_path):
+           if not processed_repos.has_key(comps_path):
                utils.remove_yum_olddata(comps_path)
                #cmd = "createrepo --basedir / --groupfile %s %s" % (os.path.join(comps_path, masterdir, comps_file), comps_path)
                cmd = "createrepo -c cache --groupfile %s %s" % (os.path.join(comps_path, masterdir, comps_file), comps_path)
                print _("- %s") % cmd
                sub_process.call(cmd,shell=True)
-               self.processed_repos[comps_path] = 1
+               processed_repos[comps_path] = 1
                # for older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up one...
                p1 = os.path.join(comps_path, "repodata", "comps.xml")
                p2 = os.path.join(comps_path, "base", "comps.xml")
@@ -852,6 +858,11 @@ class BaseImporter:
    def __init__(self,(rootdir,pkgdir)):
        raise CX(_("ERROR - BaseImporter is an abstract class"))
    
+   # ===================================================================
+
+   def process_repos(self, main_importer, distro):
+       raise exceptions.NotImplementedError
+
 # ===================================================================
 # ===================================================================
 
@@ -1058,6 +1069,34 @@ class DebianImporter ( BaseImporter ) :
            raise CX(_("OS version is required for debian distros"))
        distro.ks_meta["suite"] = distro.os_version
    
+   def process_repos(self, main_importer, distro):
+
+       # Create a disabled repository for the new distro, and the security updates
+       #
+       # NOTE : We cannot use ks_meta nor os_version because they get fixed at a later stage
+
+       repo = item_repo.Repo(main_importer.config)
+       repo.set_breed( "apt" )
+       repo.set_arch( distro.arch )
+       repo.set_keep_updated( False )
+       repo.set_name( distro.name )
+       # NOTE : The location of the mirror should come from timezone
+       repo.set_mirror( "http://ftp.%s.debian.org/debian/dists/%s" % ( 'us' , '@@suite@@' ) )
+
+       security_repo = item_repo.Repo(main_importer.config)
+       security_repo.set_breed( "apt" )
+       security_repo.set_arch( distro.arch )
+       security_repo.set_keep_updated( False )
+       security_repo.set_name( distro.name + "-security" )
+       # There are no official mirrors for security updates
+       security_repo.set_mirror( "http://security.debian.org/debian-security/dists/%s/updates" % '@@suite@@' )
+
+       print "- Added repos for %s" % distro.name
+       repos  = main_importer.config.repos()
+       repos.add(repo,save=True)
+       repos.add(security_repo,save=True)
+
+
 class UbuntuImporter ( DebianImporter ) :
 
    def __init__(self,(rootdir,pkgdir)):
