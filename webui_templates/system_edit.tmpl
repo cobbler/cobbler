@@ -270,12 +270,7 @@ function page_onload() {
     interface_table = build_interface_table()
     last_interface = get_selected_interface()
     load_intf()
-
-    #if $system
-       no_delete = "$system.default_interface"
-    #else
-       no_delete = "eth0"
-    #end if
+    no_delete = "eth0"
 }
 </script>
 
@@ -604,7 +599,7 @@ function page_onload() {
         #if $system
             #for $iname in  $system.interfaces.keys
                 <option name="$iname"
-                    #if $iname == $system.default_interface
+                    #if $iname == "eth0"
                         selected="1"
                     #end if
                 >$iname</option>
