@@ -1,5 +1,7 @@
 #extends cobbler.webui.master
 
+#import time
+
 #block body
 
 <script language="javascript">
@@ -333,6 +335,42 @@ function page_onload() {
     #else
     <input type="hidden" name="editmode" value="new"/>
     #end if
+
+    #if $system
+    <tr>
+    <td>
+    <label>Created</label>
+    </td>
+    <td>
+    $time.ctime($system.ctime)
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label>Last Modified</label>
+    </td>
+    <td>
+    $time.ctime($system.mtime)
+    </td>
+    </tr>
+    #end if
+
+    <tr>
+    <td>
+    <label for="comment">Comment</label>
+    </td>
+    <td>
+    #if $system
+       #set $comm = $system.comment
+    #else
+       #set $comm = ""
+    #end if
+    <textarea rows="5" cols="30" 400px;" name="comment" id="comment">$comm</textarea>
+    <p class="context-tip">This is a free-form description field</p>
+    </td>
+    </tr>
+
 
     <tr>
     <td>

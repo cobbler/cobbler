@@ -53,6 +53,7 @@ class Image(item.Item):
         self.virt_path       = ''
         self.virt_type       = self.settings.default_virt_type
         self.virt_cpus       = 1
+        self.network_count   = 1
         self.virt_bridge     = self.settings.default_virt_bridge
         self.owners          = self.settings.default_ownership
         self.image_type      = "iso" # direct, iso, memdisk, virt-clone
@@ -78,7 +79,8 @@ class Image(item.Item):
         self.virt_path       = self.load_item(seed_data, 'virt_path')
         self.virt_type       = self.load_item(seed_data, 'virt_type', self.settings.default_virt_type)
         self.virt_cpus       = self.load_item(seed_data, 'virt_cpus')
-        self.virt_bridge     = self.load_item(seed_data, 'virt_bridge', self.settings.default_virt_bridge)
+        self.network_count   = self.load_item(seed_data, 'network_count')
+        self.virt_bridge     = self.load_item(seed_data, 'virt_bridge')
         self.arch            = self.load_item(seed_data,'arch','i386')
 
         self.image_type      = self.load_item(seed_data, 'image_type', 'iso')
@@ -134,6 +136,10 @@ class Image(item.Item):
 
     def set_virt_cpus(self,num):
         return utils.set_virt_cpus(self,num)
+        
+    def set_network_count(self, num):
+        self.network_count = num
+        return True
 
     def set_virt_file_size(self,num):
         return utils.set_virt_file_size(self,num)
@@ -182,6 +188,7 @@ class Image(item.Item):
             'virt_path'        : self.virt_path,
             'virt_type'        : self.virt_type,
             'virt_cpus'        : self.virt_cpus,
+            'network_count'    : self.network_count,
             'virt_bridge'      : self.virt_bridge,
             'virt_file_size'   : self.virt_file_size,
             'breed'            : self.breed,
@@ -207,6 +214,7 @@ class Image(item.Item):
         buf = buf + _("owners          : %s\n") % self.owners
         buf = buf + _("virt bridge     : %s\n") % self.virt_bridge
         buf = buf + _("virt cpus       : %s\n") % self.virt_cpus
+        buf = buf + _("network count   : %s\n") % self.network_count
         buf = buf + _("virt file size  : %s\n") % self.virt_file_size
         buf = buf + _("virt path       : %s\n") % self.virt_path
         buf = buf + _("virt ram        : %s\n") % self.virt_ram
@@ -224,6 +232,7 @@ class Image(item.Item):
             'file'            :  self.set_file,
             'owners'          :  self.set_owners,
             'virt-cpus'       :  self.set_virt_cpus,
+            'network-count'   :  self.set_network_count,
             'virt-file-size'  :  self.set_virt_file_size,
             'virt-bridge'     :  self.set_virt_bridge,
             'virt-path'       :  self.set_virt_path,

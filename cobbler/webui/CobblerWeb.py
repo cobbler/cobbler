@@ -186,7 +186,7 @@ class CobblerWeb(object):
         } )
 
 
-    def distro_save(self,name=None,oldname=None,new_or_edit=None,editmode='edit',kernel=None,
+    def distro_save(self,name=None,comment=None,oldname=None,new_or_edit=None,editmode='edit',kernel=None,
                     initrd=None,kopts=None,koptspost=None,ksmeta=None,owners=None,arch=None,breed=None,
                     osversion=None,delete1=None,delete2=None,recursive=False,**args):
 
@@ -252,6 +252,9 @@ class CobblerWeb(object):
                 self.remote.modify_distro(distro, 'breed', breed, self.token)
             if osversion:
                 self.remote.modify_distro(distro, 'os-version', osversion, self.token)
+            if comment:
+                self.remote.modify_distro(distro, 'comment', comment, self.token)
+
             # now time to save, do we want to run duplication checks?
             self.remote.save_distro(distro, self.token, editmode)
         except Exception, e:
@@ -315,7 +318,7 @@ class CobblerWeb(object):
         else:
             return self.__render('empty.tmpl',{})
 
-    def system_save(self,name=None,oldname=None,editmode="edit",profile=None,
+    def system_save(self,name=None,oldname=None,comment=None,editmode="edit",profile=None,
                     new_or_edit=None,  
                     kopts=None, koptspost=None, ksmeta=None, owners=None, server_override=None, netboot='n', 
                     virtpath=None,virtram=None,virttype=None,virtcpus=None,virtfilesize=None,delete1=None, delete2=None, **args):
@@ -382,6 +385,8 @@ class CobblerWeb(object):
 
             if virtpath:
                self.remote.modify_system(system, 'virt-path', virtpath, self.token)
+            if comment:
+               self.remote.modify_system(system, 'comment', comment, self.token)
 
 
             interfaces = args.get("interface_list","")
@@ -521,7 +526,7 @@ class CobblerWeb(object):
             'subprofile': subprofile
         } )
 
-    def profile_save(self,new_or_edit=None,editmode='edit',name=None,oldname=None,
+    def profile_save(self,new_or_edit=None,editmode='edit',name=None,comment=None,oldname=None,
                      distro=None,kickstart=None,kopts=None,koptspost=None,
                      ksmeta=None,owners=None,enablemenu=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,
@@ -603,6 +608,9 @@ class CobblerWeb(object):
                 self.remote.modify_profile(profile, 'virt-cpus', virtcpus, self.token)
             if server_override:
                 self.remote.modify_profile(profile, 'server', server_override, self.token)
+            if comment:
+                self.remote.modify_profile(profile, 'comment', comment, self.token)
+
 
             if repos is None:
                 repos = []
@@ -673,7 +681,7 @@ class CobblerWeb(object):
             'editable' : can_edit
         } )
 
-    def repo_save(self,name=None,oldname=None,new_or_edit=None,editmode="edit",
+    def repo_save(self,name=None,comment=None,oldname=None,new_or_edit=None,editmode="edit",
                   mirror=None,owners=None,keep_updated=None,mirror_locally=0,priority=99,
                   rpm_list=None,createrepo_flags=None,arch=None,environment=None,yumopts=None,
                   delete1=None,delete2=None,**args):
@@ -732,6 +740,9 @@ class CobblerWeb(object):
                 self.remote.modify_repo(repo, 'environment', environment, self.token)
             if owners:
                 self.remote.modify_repo(repo, 'owners', owners, self.token)
+            if comment:
+                self.remote.modify_repo(repo, 'comment', comment, self.token)
+
 
             self.remote.save_repo(repo, self.token, editmode)
 
@@ -795,10 +806,10 @@ class CobblerWeb(object):
         } )
 
 
-    def image_save(self,name=None,oldname=None,new_or_edit=None,editmode='edit',field1=None,
+    def image_save(self,name=None,comment=None,oldname=None,new_or_edit=None,editmode='edit',field1=None,
                    file=None,arch=None,breed=None,virtram=None,virtfilesize=None,virtpath=None,
                    virttype=None,virtcpus=None,virtbridge=None,imagetype=None,owners=None,
-                   osversion=None,delete1=None,delete2=None,recursive=False,**args):
+                   osversion=None,delete1=None,delete2=None,recursive=False,networkcount=None,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -854,6 +865,8 @@ class CobblerWeb(object):
                 self.remote.modify_image(image, 'owners',     owners,    self.token)
             if virtcpus is not None:     
                 self.remote.modify_image(image, 'virt-cpus',  virtcpus,  self.token)
+            if networkcount is not None:     
+                self.remote.modify_image(image, 'network-count',  networkcount,  self.token)                
             if virtfilesize is not None: 
                 self.remote.modify_image(image, 'virt-file-size', virtfilesize, self.token)
             if virtpath is not None:     
@@ -864,6 +877,8 @@ class CobblerWeb(object):
                 self.remote.modify_image(image, 'virt-ram',    virtram,    self.token)
             if virttype is not None:     
                 self.remote.modify_image(image, 'virt-type',   virttype,   self.token)
+            if comment:
+                self.remote.modify_image(image, 'comment', comment, self.token)
 
             self.remote.save_image(image, self.token, editmode)
         except Exception, e:
