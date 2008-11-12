@@ -226,18 +226,27 @@ class Image(item.Item):
         return {           
             'name'            :  self.set_name,
             'image-type'      :  self.set_image_type,
+            'image_type'      :  self.set_image_type,            
             'breed'           :  self.set_breed,
             'os-version'      :  self.set_os_version,
+            'os_version'      :  self.set_os_version,            
             'arch'            :  self.set_arch,
             'file'            :  self.set_file,
             'owners'          :  self.set_owners,
             'virt-cpus'       :  self.set_virt_cpus,
+            'virt_cpus'       :  self.set_virt_cpus,            
             'network-count'   :  self.set_network_count,
+            'network_count'   :  self.set_network_count,            
             'virt-file-size'  :  self.set_virt_file_size,
+            'virt_file_size'  :  self.set_virt_file_size,            
             'virt-bridge'     :  self.set_virt_bridge,
+            'virt_bridge'     :  self.set_virt_bridge,            
             'virt-path'       :  self.set_virt_path,
+            'virt_path'       :  self.set_virt_path,            
             'virt-ram'        :  self.set_virt_ram,
+            'virt_ram'        :  self.set_virt_ram,            
             'virt-type'       :  self.set_virt_type,
+            'virt_type'       :  self.set_virt_type,            
             'comment'         :  self.set_comment
         }
 
