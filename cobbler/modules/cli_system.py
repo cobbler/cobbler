@@ -59,11 +59,9 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--hostname",        dest="hostname",      help="ex: server.example.org")
 
             if not self.matches_args(args,["find"]):
-                p.add_option("--interface",       dest="interface", help="edit this interface")
+                p.add_option("--interface",       dest="interface",  default="eth0", help="edit this interface")
                 # FIXME: not alphabetized!
                 p.add_option("--delete-interface", dest="delete_interface", metavar="INTERFACE", help="delete the selected interface")
-                # FIXME: this logic needs to go away
-                p.add_option("--default-interface", dest="default_interface", metavar="INTERFACE", help="set INTERFACE as the system default")
             p.add_option("--image",           dest="image",         help="inherit values from this image, not compatible with --profile")
             p.add_option("--ip",              dest="ip",            help="ex: 192.168.1.55, (RECOMMENDED)")
             p.add_option("--kickstart",       dest="kickstart",     help="override profile kickstart template")
@@ -140,10 +138,26 @@ class SystemFunction(commands.CobblerFunction):
         if self.options.virt_cpus:       obj.set_virt_cpus(self.options.virt_cpus)
         if self.options.virt_path:       obj.set_virt_path(self.options.virt_path)
 
+        # if we haven't said what interface we are editing, it's eth0.
+
         if self.options.interface:
             my_interface = self.options.interface
         else:
-            my_interface = None
+            my_interface = "eth0"
+
+        # if the interface is an integer stick "eth" in front of it as that's likely what
+        # the user means.
+ 
+        remap = False
+        try:
+            int(my_interface)
+            remap = True
+        except:
+            pass
+
+        if remap:
+            my_interface = "eth%s" % my_interface
+
 
         if self.options.hostname:    obj.set_hostname(self.options.hostname, my_interface)
         if self.options.mac:
@@ -165,7 +179,6 @@ class SystemFunction(commands.CobblerFunction):
             success = obj.delete_interface(self.options.delete_interface)
             if not success:
                 raise CX(_('interface does not exist or is the default interface (%s)') % self.options.delete_interface)
-        if self.options.default_interface: obj.set_default_interface(self.options.default_interface)
 
         if self.options.owners:       obj.set_owners(self.options.owners)
         if self.options.mgmt_classes: obj.set_mgmt_classes(self.options.mgmt_classes)

@@ -72,8 +72,8 @@ class System(item.Item):
         if self.interfaces.has_key(name) and name != "eth0":
             del self.interfaces[name]
         else:
-            if name == "eth0"
-                raise CX(_("Interface %s can never be deleted") % name
+            if name == "eth0":
+                raise CX(_("Interface %s can never be deleted") % name)
             else:
                 raise CX(_("Cannot delete interface that is not present: %s") % name)
         return True
@@ -114,7 +114,7 @@ class System(item.Item):
         intf = self.load_item(seed_data, "interfaces", {})
         for x in range(0,8):
            key1 = "intf%d" % x
-           key2 = "intf%d" % y
+           key2 = "eth%d" % x
            if intf.has_key(key1):
                # copy intfN to ethN
                seed_data["interfaces"][key2] = seed_data["interfaces"][key1].copy()
@@ -529,7 +529,7 @@ class System(item.Item):
         buf = buf + _("virt ram              : %s\n") % self.virt_ram
         buf = buf + _("virt type             : %s\n") % self.virt_type
 
-        ikeys = self.interface.keys()
+        ikeys = self.interfaces.keys()
         ikeys.sort()
         for name in ikeys:
             x = self.__get_interface(name)
