@@ -99,7 +99,7 @@ class ImageFunction(commands.CobblerFunction):
         if self.options.file:             obj.set_file(self.options.file)
         if self.options.image_type:       obj.set_image_type(self.options.image_type)
         if self.options.owners:           obj.set_owners(self.options.owners)
-        if self.options.virt_bridge:      obj.set_file(self.options.virt_bridge)
+        if self.options.virt_bridge:      obj.set_virt_bridge(self.options.virt_bridge)
         if self.options.virt_path:        obj.set_virt_path(self.options.virt_path)
         if self.options.virt_file_size:   obj.set_virt_file_size(self.options.virt_file_size)
         if self.options.virt_bridge:      obj.set_virt_bridge(self.options.virt_bridge)
