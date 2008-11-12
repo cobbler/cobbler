@@ -115,7 +115,7 @@ class System(item.Item):
         for x in range(0,8):
            key1 = "intf%d" % x
            key2 = "eth%d" % x
-           if intf.has_key(key1):
+           if intf.has_key(key1) and not intf.has_key(key2):
                # copy intfN to ethN
                seed_data["interfaces"][key2] = seed_data["interfaces"][key1].copy()
                del seed_data["interfaces"][key1]
