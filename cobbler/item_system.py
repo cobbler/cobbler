@@ -69,11 +69,11 @@ class System(item.Item):
         """
         Used to remove an interface.  Not valid for the default interface.
         """
-        if self.interfaces.has_key(name) and self.default_interface != name:
+        if self.interfaces.has_key(name) and name != "eth0":
             del self.interfaces[name]
         else:
-            if self.default_interface == name:
-                raise CX(_("Cannot delete default interface: %s") % name)
+            if name == "eth0"
+                raise CX(_("Interface %s can never be deleted") % name
             else:
                 raise CX(_("Cannot delete interface that is not present: %s") % name)
         return True
@@ -101,12 +101,24 @@ class System(item.Item):
         return self.interfaces[name]
 
     def __get_default_interface(self):
-        if self.default_interface != "":
-            return self.__get_interface(self.default_interface)
-        else:
-            raise CX(_("no default interface defined"))
+        return self.__get_interface("eth0")
 
     def from_datastruct(self,seed_data):
+
+        # this is to upgrade older cobbler installs.
+        # previously we had interfaces in a hash from intf0 ... intf8
+        # now we support arbitrary names but want to make sure any interfaces named intfN
+        # are named after the actual interface name -- before we couldn't assure order so
+        # we didn't want apply intf0 == eth0, now we can.
+
+        intf = self.load_item(seed_data, "interfaces", {})
+        for x in range(0,8):
+           key1 = "intf%d" % x
+           key2 = "intf%d" % y
+           if intf.has_key(key1):
+               # copy intfN to ethN
+               seed_data["interfaces"][key2] = seed_data["interfaces"][key1].copy()
+               del seed_data["interfaces"][key1]
 
         # load datastructures from previous and current versions of cobbler
         # and store (in-memory) in the new format.
@@ -127,7 +139,6 @@ class System(item.Item):
         self.server               = self.load_item(seed_data, 'server', '<<inherit>>')
         self.mgmt_classes         = self.load_item(seed_data, 'mgmt_classes', [])
         self.template_files       = self.load_item(seed_data, 'template_files', {})
-        self.default_interface    = self.load_item(seed_data, 'default_interface', self.settings.default_interface)
         self.comment              = self.load_item(seed_data, 'comment', '')
 
         # virt specific 
@@ -473,7 +484,6 @@ class System(item.Item):
            'kernel_options_post'   : self.kernel_options_post,
            'depth'                 : self.depth,
            'interfaces'            : self.interfaces,
-           'default_interface'     : self.default_interface,
            'ks_meta'               : self.ks_meta,
            'kickstart'             : self.kickstart,
            'netboot_enabled'       : self.netboot_enabled,
@@ -519,24 +529,10 @@ class System(item.Item):
         buf = buf + _("virt ram              : %s\n") % self.virt_ram
         buf = buf + _("virt type             : %s\n") % self.virt_type
 
-        # list the default interface first
-        name = self.default_interface
-        x    = self.interfaces[name]
-        buf = buf + _("interface        : %s (default)\n") % (name)
-        buf = buf + _("  bonding        : %s\n") % x.get("bonding","")
-        buf = buf + _("  bonding master : %s\n") % x.get("bonding_master","")
-        buf = buf + _("  bonding opts   : %s\n") % x.get("bonding_opts","")
-        buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
-        buf = buf + _("  gateway        : %s\n") % x.get("gateway","")
-        buf = buf + _("  hostname       : %s\n") % x.get("hostname","")
-        buf = buf + _("  ip address     : %s\n") % x.get("ip_address","")
-        buf = buf + _("  is static?     : %s\n") % x.get("static",False)
-        buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
-        buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
-        buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
-
-        for (name,x) in self.interfaces.iteritems():
-            if name == self.default_interface: continue
+        ikeys = self.interface.keys()
+        ikeys.sort()
+        for name in ikeys:
+            x = self.__get_interface(name)
             buf = buf + _("interface        : %s\n") % (name)
             buf = buf + _("  bonding        : %s\n") % x.get("bonding","")
             buf = buf + _("  bonding_master : %s\n") % x.get("bonding_master","")
