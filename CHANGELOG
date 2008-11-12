@@ -8,6 +8,7 @@ Koan CHANGELOG
 - tolerate volume group names (for LVM) that contain hyphens
 - virtualized image cloning support
 - ppc and s390 provisioning
+- COBBLER_SERVER environment variable can be used in place of --server
 
 - Thu Sep 18 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.5-1
 - (BUGF) use file:/ks.cfg for --replace-self to make non-DHCP easier
