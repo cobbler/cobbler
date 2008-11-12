@@ -103,6 +103,9 @@ class Importer:
  
        if self.kickstart_file and not self.breed:
            raise CX(_("Kickstart file can only be specified when a specific breed is selected"))
+
+       if self.breed and self.breed.lower() not in [ "redhat", "debian", "ubuntu" ]:
+           raise CX(_("Supplied import breed is not supported"))
  
        # if --arch is supplied, make sure the user is not importing a path with a different
        # arch, which would just be silly.  
