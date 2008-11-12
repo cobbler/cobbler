@@ -31,11 +31,10 @@ module Cobbler
       :remove => 'remove_image'
 
     ATTRIBUTES = [:name, :owners, :depth, :virt_file_size,
-      :virt_path, :xml_file, :virt_bridge, :file, :parent]
-    # These attributes seem to not exist yet. :virt_ram, :virt_cpus,
+      :virt_path, :xml_file, :virt_bridge, :file, :parent,
+      :image_type, :virt_ram, :virt_cpus, :virt_type, :network_count]
 
     ATTRIBUTES.each do |attr|
-      puts "Creating field with #{attr}"
       cobbler_field attr
     end
 
@@ -72,3 +71,4 @@ module Cobbler
     end
   end
 end
+
