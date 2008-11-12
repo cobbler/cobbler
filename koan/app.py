@@ -112,6 +112,7 @@ def main():
                  help="use this cobbler image")
     p.add_option("-s", "--server",
                  dest="server",
+                 default=os.environ.get("COBBLER_SERVER",""),
                  help="attach to this cobbler server")
     p.add_option("-S", "--static-interface",
                  dest="static_interface",
@@ -258,17 +259,9 @@ class Koan:
  
 
         # This set of options are only valid with --server
-        if not self.server:
-            if self.list_profiles:
-                raise InfoException, "--list-profiles only valid with --server"
-            if self.list_systems:
-                raise InfoException, "--list-systems only valid with --server"
-            if self.profile:
-                raise InfoException, "--profile only valid with --server"
-            if self.system:
-                raise InfoException, "--system only valid with --server"
-            if self.port:
-                raise InfoException, "--port only valid with --server"
+        if not self.server or self.server == "":
+            if self.list_items or self.profile or self.system or self.port:
+                raise InfoException, "--server is required"
 
 
         # set up XMLRPC connection
