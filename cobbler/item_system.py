@@ -169,15 +169,15 @@ class System(item.Item):
         # now backfill the interface structure with any old values from
         # before the upgrade
 
-        if not self.interfaces.has_key("intf0"):
+        if not self.interfaces.has_key("eth0"):
             if __hostname != "":
-                self.set_hostname(__hostname, "intf0")
+                self.set_hostname(__hostname, "eth0")
             if __mac_address != "":
-                self.set_mac_address(__mac_address, "intf0")
+                self.set_mac_address(__mac_address, "eth0")
             if __ip_address != "":
-                self.set_ip_address(__ip_address, "intf0")
+                self.set_ip_address(__ip_address, "eth0")
             if __dhcp_tag != "":
-                self.set_dhcp_tag(__dhcp_tag, "intf0")
+                self.set_dhcp_tag(__dhcp_tag, "eth0")
 
         # backwards compatibility:
         # for interfaces that do not have all the fields filled in, populate the new fields
