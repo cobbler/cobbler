@@ -554,6 +554,7 @@ class System(item.Item):
         """
         for (key,value) in hash.iteritems():
             (field,interface) = key.split("-")
+            field = field.replace("_","").replace("-","")
             if field == "macaddress" : self.set_mac_address(value, interface)
             if field == "ipaddress"  : self.set_ip_address(value, interface)
             if field == "hostname"   : self.set_hostname(value, interface)
@@ -563,8 +564,8 @@ class System(item.Item):
             if field == "gateway"    : self.set_gateway(value, interface)
             if field == "virtbridge" : self.set_virt_bridge(value, interface)
             if field == "bonding"    : self.set_bonding(value, interface)
-            if field == "bonding_master" : self.set_bonding_master(value, interface)
-            if field == "bonding_opts" : self.set_bonding_opts(value, interface)
+            if field == "bondingmaster" : self.set_bonding_master(value, interface)
+            if field == "bondingopts" : self.set_bonding_opts(value, interface)
         return True
          
 
