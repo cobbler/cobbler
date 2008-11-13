@@ -360,6 +360,10 @@ class System(item.Item):
         return True
 
     def set_bonding(self,bonding,interface):
+        if bonding not in ["master","slave","na",""] : 
+            raise CX(_("bonding value must be one of: master, slave, na"))
+        if bonding == "na":
+            bonding = ""
         intf = self.__get_interface(interface)
         intf["bonding"] = bonding
         return True
@@ -555,17 +559,17 @@ class System(item.Item):
         for (key,value) in hash.iteritems():
             (field,interface) = key.split("-")
             field = field.replace("_","").replace("-","")
-            if field == "macaddress" : self.set_mac_address(value, interface)
-            if field == "ipaddress"  : self.set_ip_address(value, interface)
-            if field == "hostname"   : self.set_hostname(value, interface)
-            if field == "static"     : self.set_static(value, interface)
-            if field == "dhcptag"    : self.set_dhcp_tag(value, interface)
-            if field == "subnet"     : self.set_subnet(value, interface)
-            if field == "gateway"    : self.set_gateway(value, interface)
-            if field == "virtbridge" : self.set_virt_bridge(value, interface)
-            if field == "bonding"    : self.set_bonding(value, interface)
+            if field == "macaddress"    : self.set_mac_address(value, interface)
+            if field == "ipaddress"     : self.set_ip_address(value, interface)
+            if field == "hostname"      : self.set_hostname(value, interface)
+            if field == "static"        : self.set_static(value, interface)
+            if field == "dhcptag"       : self.set_dhcp_tag(value, interface)
+            if field == "subnet"        : self.set_subnet(value, interface)
+            if field == "gateway"       : self.set_gateway(value, interface)
+            if field == "virtbridge"    : self.set_virt_bridge(value, interface)
+            if field == "bonding"       : self.set_bonding(value, interface)
             if field == "bondingmaster" : self.set_bonding_master(value, interface)
-            if field == "bondingopts" : self.set_bonding_opts(value, interface)
+            if field == "bondingopts"   : self.set_bonding_opts(value, interface)
         return True
          
 

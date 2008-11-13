@@ -392,22 +392,20 @@ class CobblerWeb(object):
             interfaces = args.get("interface_list","")
             interfaces = interfaces.split(",")
 
-            # BOOKMARK
-            # DEBUG ONLY
-            self.apache.log_error("interfaces = %s" % interfaces)
-            self.apache.log_error("args: %s" % args)
-
             for interface in interfaces:
-                macaddress = args.get("macaddress-%s" % interface, "")
-                ipaddress  = args.get("ipaddress-%s" % interface, "")
-                hostname   = args.get("hostname-%s" % interface, "")
-                static     = args.get("static-%s" % interface, "")
-                virtbridge = args.get("virtbridge-%s" % interface, "")
-                dhcptag    = args.get("dhcptag-%s" % interface, "")
-                subnet     = args.get("subnet-%s" % interface, "")
-                gateway    = args.get("gateway-%s" % interface, "")
-                present    = args.get("present-%s" % interface, "")
-                original   = args.get("original-%s" % interface, "")
+                macaddress     = args.get("macaddress-%s" % interface, "")
+                ipaddress      = args.get("ipaddress-%s" % interface, "")
+                hostname       = args.get("hostname-%s" % interface, "")
+                static         = args.get("static-%s" % interface, "")
+                virtbridge     = args.get("virtbridge-%s" % interface, "")
+                dhcptag        = args.get("dhcptag-%s" % interface, "")
+                subnet         = args.get("subnet-%s" % interface, "")
+                gateway        = args.get("gateway-%s" % interface, "")
+                bonding        = args.get("bonding-%s" % interface, "")
+                bondingopts    = args.get("bondingopts-%s" % interface, "")
+                bondingmaster  = args.get("bondingmaster-%s" % interface, "")
+                present        = args.get("present-%s" % interface, "")
+                original       = args.get("original-%s" % interface, "")
 
                 if (present == "0") and (original == "1"):
                     # interfaces already stored and flagged for deletion must be destroyed
@@ -425,6 +423,9 @@ class CobblerWeb(object):
                     mods["gateway-%s" % interface] = gateway
                     mods["present-%s" % interface] = present
                     mods["original-%s" % interface] = original
+                    mods["bonding-%s" % interface] = bonding
+                    mods["bondingopts-%s" % interface] = bondingopts
+                    mods["bondingmaster-%s" % interface] = bondingmaster
                     self.remote.modify_system(system,'modify-interface', mods, self.token)
 
             self.remote.save_system(system, self.token, editmode)
