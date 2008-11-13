@@ -74,8 +74,8 @@ function on_interface_add()
    interface_table[iname]["subnet"] = ""
    interface_table[iname]["gateway"] = ""
    interface_table[iname]["bonding"] = ""
-   interface_table[iname]["bonding_master"] = ""
-   interface_table[iname]["bonding_opts"] = ""
+   interface_table[iname]["bondingmaster"] = ""
+   interface_table[iname]["bondingopts"] = ""
    interface_table[iname]["static"] = false
    interface_table[iname]["present"] = "1"
    interface_table[iname]["original"] = "0"
@@ -138,8 +138,8 @@ function save_intf(which)
     itable["subnet"]     = document.getElementById("subnet").value
     itable["gateway"]    = document.getElementById("gateway").value
     itable["bonding"]    = document.getElementById("bonding").value
-    itable["bonding_master"] = document.getElementById("bonding_master").value
-    itable["bonding_opts"] = document.getElementById("bonding_opts").value
+    itable["bondingmaster"] = document.getElementById("bondingmaster").value
+    itable["bondingopts"] = document.getElementById("bondingopts").value
     itable["static"]     = document.getElementById("static").checked
     itable["present"]    = document.getElementById("present").value
     itable["original"]   = document.getElementById("original").value
@@ -159,8 +159,8 @@ function load_intf()
     document.getElementById("subnet").value        = interface_table[intf]["subnet"]
     document.getElementById("gateway").value       = interface_table[intf]["gateway"]
     document.getElementById("bonding").value       = interface_table[intf]["bonding"]
-    document.getElementById("bonding_master").value = interface_table[intf]["bonding_master"]
-    document.getElementById("bonding_opts").value  = interface_table[intf]["bonding_opts"]
+    document.getElementById("bondingmaster").value = interface_table[intf]["bondingmaster"]
+    document.getElementById("bondingopts").value   = interface_table[intf]["bondingopts"]
     document.getElementById("static").checked      = interface_table[intf]["static"]
     document.getElementById("present").value       = interface_table[intf]["present"]
     document.getElementById("original").value      = interface_table[intf]["original"]
@@ -170,19 +170,19 @@ function clear_intf()
 {
     // this clears the interface list and populates it with the currently selected interface data
 
-    document.getElementById("macaddress").value  = ""
-    document.getElementById("ipaddress").value   = ""
-    document.getElementById("hostname").value    = ""
-    document.getElementById("dhcptag").value     = ""
-    document.getElementById("virtbridge").value  = ""
-    document.getElementById("subnet").value      = ""
-    document.getElementById("gateway").value     = ""
-    document.getElementById("bonding").value     = ""
-    document.getElementById("bonding_master").value = ""
-    document.getElementById("bonding_opts").value = ""
-    document.getElementById("present").value     = "1"
-    document.getElementById("original").value    = "0"
-    document.getElementById("static").value      = false
+    document.getElementById("macaddress").value    = ""
+    document.getElementById("ipaddress").value     = ""
+    document.getElementById("hostname").value      = ""
+    document.getElementById("dhcptag").value       = ""
+    document.getElementById("virtbridge").value    = ""
+    document.getElementById("subnet").value        = ""
+    document.getElementById("gateway").value       = ""
+    document.getElementById("bonding").value       = ""
+    document.getElementById("bondingmaster").value = ""
+    document.getElementById("bondingopts").value   = ""
+    document.getElementById("present").value       = "1"
+    document.getElementById("original").value      = "0"
+    document.getElementById("static").value        = false
 
 }
 #end raw
@@ -207,8 +207,8 @@ function build_interface_table()
            interface_table['$iname']["subnet"]     = "$system.interfaces[$iname]['subnet']"
            interface_table['$iname']["gateway"]    = "$system.interfaces[$iname]['gateway']"
            interface_table['$iname']["bonding"]    = "$system.interfaces[$iname]['bonding']"
-           interface_table['$iname']["bonding_master"] = "$system.interfaces[$iname]['bonding_master']"
-           interface_table['$iname']["bonding_opts"] = "$system.interfaces[$iname]['bonding_opts']"
+           interface_table['$iname']["bondingmaster"] = "$system.interfaces[$iname]['bonding_master']"
+           interface_table['$iname']["bondingopts"] = "$system.interfaces[$iname]['bonding_opts']"
            interface_table['$iname']["present"]    = "1"
            interface_table['$iname']["original"]   = "1"
            if ("$system.interfaces[$iname]['static']" != "False") {
@@ -228,8 +228,8 @@ function build_interface_table()
        interface_table["eth0"]["subnet"] = ""
        interface_table["eth0"]["gateway"] = ""
        interface_table["eth0"]["bonding"] = ""
-       interface_table["eth0"]["bonding_master"] = ""
-       interface_table["eth0"]["bonding_opts"] = ""
+       interface_table["eth0"]["bondingmaster"] = ""
+       interface_table["eth0"]["bondingopts"] = ""
        interface_table["eth0"]["static"] = ""
        interface_table["eth0"]["present"] = "1"
        interface_table["eth0"]["original"] = "0"
@@ -707,20 +707,20 @@ function page_onload() {
 
         <tr>
         <td class="nicedit">
-        <label for="bonding_master">Bonding master</label>
+        <label for="bondingmaster">Bonding master</label>
         </td>
         <td class="nicedit">
-        <input type="text" size="64" style="width: 150px;" name="bonding_master" id="bonding_master" />
+        <input type="text" size="64" style="width: 150px;" name="bondingmaster" id="bondingmaster" />
         <p class="context-tip">If bonding is "slave", specify the master interface here.</p>
         </td>
         </tr>
 
         <tr>
         <td class="nicedit">
-        <label for="bonding_opts">Bonding options</label>
+        <label for="bondingopts">Bonding options</label>
         </td>
         <td class="nicedit">
-        <input type="text" size="64" style="width: 150px;" name="bonding_opts" id="bonding_opts" />
+        <input type="text" size="64" style="width: 150px;" name="bondingopts" id="bondingopts" />
         <p class="context-tip">If bonding is "master", specify the bonding options here.</p>
         </td>
         </tr>
