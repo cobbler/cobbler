@@ -59,16 +59,16 @@ DEBUG = 5
 
 class BootAPI:
 
-
     __shared_state = {}
     __has_loaded = False
 
-    def __init__(self):
+    def __init__(self, log_settings={}):
         """
         Constructor
         """
 
         self.__dict__ = BootAPI.__shared_state
+        self.log_settings = log_settings
         self.perms_ok = False
         if not BootAPI.__has_loaded:
 
@@ -111,7 +111,7 @@ class BootAPI:
             self.perms_ok = True
  
     def __setup_logger(self,name):
-        return utils.setup_logger(name)
+        return utils.setup_logger(name, **self.log_settings)
     
     def last_modified_time(self):
         """

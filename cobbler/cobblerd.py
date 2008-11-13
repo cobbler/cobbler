@@ -59,6 +59,7 @@ def core(logger=None):
     else:
         # part two: syslog, or syslog+avahi if avahi is installed
         do_other_tasks(bootapi, settings, syslog_port, logger)
+        os.waitpid(pid, 0)
 
 def regen_ss_file():
     # this is only used for Kerberos auth at the moment.
@@ -82,6 +83,7 @@ def do_xmlrpc_tasks(bootapi, settings, xmlrpc_port, xmlrpc_port2, logger):
             do_mandatory_xmlrpc_tasks(bootapi, settings, xmlrpc_port, logger)
         else:
             do_xmlrpc_rw(bootapi, settings, xmlrpc_port2, logger)
+            os.waitpid(pid2, 0)
     else:
         logger.debug("xmlrpc_rw is disabled in the settings file")
         do_mandatory_xmlrpc_tasks(bootapi, settings, xmlrpc_port, logger)
@@ -109,6 +111,7 @@ def do_other_tasks(bootapi, settings, syslog_port, logger):
            do_syslog(bootapi, settings, syslog_port, logger)
         else:
            do_avahi(bootapi, settings, logger)
+           os.waitpid(pid2, 0)
     else:
         do_syslog(bootapi, settings, syslog_port, logger)
 

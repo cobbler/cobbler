@@ -54,7 +54,7 @@ start() {
         startproc -f -p /var/run/$SERVICE.pid /usr/bin/cobblerd $CONFIG_ARGS
         rc_status -v
     else
-        daemon --check $SERVICE $PROCESS --daemon $CONFIG_ARGS
+        daemon --check $SERVICE $PROCESS --daemonize $CONFIG_ARGS
     fi
     RETVAL=$?
     echo

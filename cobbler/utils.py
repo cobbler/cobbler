@@ -81,14 +81,14 @@ MODULE_CACHE = {}
 _re_kernel = re.compile(r'vmlinuz(.*)')
 _re_initrd = re.compile(r'initrd(.*).img')
 
-def setup_logger(name):
+def setup_logger(name, log_level=logging.INFO, log_file="/var/log/cobbler/cobbler.log"):
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(log_level)
     try:
-        ch = logging.FileHandler("/var/log/cobbler/cobbler.log")
+        ch = logging.FileHandler(log_file)
     except:
         raise CX(_("No write permissions on log file.  Are you root?"))
-    ch.setLevel(logging.INFO)
+    ch.setLevel(log_level)
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(message)s")
     ch.setFormatter(formatter)
     logger.addHandler(ch)
