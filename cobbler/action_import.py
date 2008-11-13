@@ -1125,6 +1125,8 @@ class UbuntuImporter ( DebianImporter ) :
        if deb.lower().find("ubuntu") != -1:
           accum.pop(0)
           accum.pop(0)
+       if not accum:
+           accum.extend( tokens2[2:] )
        accum.append(0)
 
        return (None, accum[0], accum[1])
@@ -1134,6 +1136,8 @@ class UbuntuImporter ( DebianImporter ) :
        # Release names taken from wikipedia
        dist_names = { '4.10':"WartyWarthog", '5.4':"HoaryHedgehog", '5.10':"BreezyBadger", '6.4':"DapperDrake", '6.10':"EdgyEft", '7.4':"FeistyFawn", '7.10':"GutsyGibbon", '8.4':"HardyHeron", '8.10':"IntrepidIbex", '9.4':"JauntyJackalope" }
        dist_vers = "%s.%s" % ( major , minor )
+       if not dist_names.has_key( dist_vers ):
+           dist_names['4ubuntu2.0'] = "IntrepidIbex"
        os_version = dist_names[dist_vers]
 
        return os_version , "/etc/cobbler/sample.seed"
