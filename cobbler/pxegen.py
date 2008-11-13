@@ -87,6 +87,9 @@ class PXEGen:
         # copy menu.c32 as the older one has some bugs on certain RHEL
         utils.copyfile_pattern('/var/lib/cobbler/menu.c32', dst)
 
+        # copy yaboot which we include for PowerPC targets
+        utils.copyfile_pattern('/var/lib/cobbler/yaboot-1.3.14', dst)
+
         # copy memdisk as we need it to boot ISOs
         try:
             utils.copyfile_pattern('/usr/lib/syslinux/memdisk',   dst)
@@ -191,6 +194,26 @@ class PXEGen:
 
                 filename = "%s.conf" % utils.get_config_filename(system,interface=name)
                 f2 = os.path.join(self.bootloc, filename)
+            elif working_arch.startswith("ppc"):
+                # If no ip address is stored with this interface, try the hostname
+                if not ip:
+                    ip = interface.get("hostname", "")
+
+                # yaboot wants a filename using the IP address in hex under etc/
+                if ip is None or ip == "":
+                    # print _("Warning: Skipping PowerPC system object (%s) with interface '%s'.  Needs an IP address or hostname to PXE") % (system.name, interface["mac_address"])
+                    continue 
+                else:
+                    # Determine filename for system-specific yaboot.conf
+                    filename = "%s" % utils.get_config_filename(system, interface=name).lower()
+                    f2 = os.path.join(self.bootloc, "etc", filename)
+
+                    # Link to the yaboot binary
+                    f3 = os.path.join(self.bootloc, "ppc", filename)
+                    if os.path.lexists(f3):
+                        utils.rmfile(f3)
+                    os.symlink("../yaboot-1.3.14", f3)
+
             elif working_arch == "s390x":
                 filename = "%s" % utils.get_config_filename(system,interface=name)
                 f2 = os.path.join(self.bootloc, "s390x", filename)
@@ -385,8 +408,41 @@ class PXEGen:
                     template = "/etc/cobbler/pxesystem_s390x.template"
                 elif arch == "ia64":
                     template = "/etc/cobbler/pxesystem_ia64.template"
+                elif arch.startswith("ppc"):
+                    template = "/etc/cobbler/pxesystem_ppc.template"
             else:
-                template = "/etc/cobbler/pxelocal.template"
+                # local booting on ppc requires removing the system-specific dhcpd.conf filename
+                if arch.startswith("ppc"):
+                    # Disable yaboot network booting for all interfaces on the system
+                    for (name,interface) in system.interfaces.iteritems():
+
+                        # If no ip address is stored with this interface, try the hostname
+                        ip_or_hostname = None
+                        for key in ["ip_address", "hostname"]:
+                            ip_or_hostname = interface.get(key, None)
+                            if ip_or_hostname:
+                                break
+
+                        # If an ip or hostname was found, attempt to remove the yaboot.conf and symlink
+                        if ip_or_hostname:
+                            # Determine filename for system-specific yaboot.conf
+                            filename = "%s" % utils.get_config_filename(system, interface=name).lower()
+
+                            # Remove symlink to the yaboot binary
+                            f3 = os.path.join(self.bootloc, "ppc", filename)
+                            if os.path.lexists(f3):
+                                utils.rmfile(f3)
+
+                            # Remove the interface-specific config file
+                            f3 = os.path.join(self.bootloc, "etc", filename)
+                            if os.path.lexists(f3):
+                                utils.rmfile(f3)
+
+                    # Yaboot/OF doesn't support booting locally once you've
+                    # booted off the network, so nothing left to do
+                    return None
+                else:
+                    template = "/etc/cobbler/pxelocal.template"
         else:
             template = "/etc/cobbler/pxeprofile.template"
 
@@ -402,7 +458,7 @@ class PXEGen:
 
         # generate the append line
         hkopts = utils.hash_to_string(kopts)
-        if (not arch or arch != "ia64") and initrd_path:
+        if (not arch or arch not in ["ia64","ppc"]) and initrd_path:
             append_line = "append initrd=%s %s" % (initrd_path, hkopts)
         else:
             append_line = "append %s" % hkopts
@@ -427,7 +483,7 @@ class PXEGen:
             # interface=bootif causes a failure
             #    append_line = append_line.replace("ksdevice","interface")
 
-        if arch == "s390x":
+        if arch in ["s390x", "ppc", "ppc64"]:
             # remove the prefix "append"
             append_line = append_line[7:]
 
