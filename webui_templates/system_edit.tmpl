@@ -596,7 +596,9 @@ function page_onload() {
     <td>
     <select name="interfaces" id="interfaces" onchange="on_interface_change();">
         #if $system
-            #for $iname in  $system.interfaces.keys
+            #set inames = $system.interfaces.keys()
+            #set nothing = $inames.sort()
+            #for $iname in  $inames
                 <option name="$iname"
                     #if $iname == "eth0"
                         selected="1"
