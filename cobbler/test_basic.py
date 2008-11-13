@@ -90,8 +90,8 @@ class BootTest(unittest.TestCase):
 
         system = self.api.new_system()
         self.assertTrue(system.set_name("testsystem0"))
-        self.assertTrue(system.set_mac_address("BB:EE:EE:EE:EE:FF","intf0"))
-        self.assertTrue(system.set_ip_address("192.51.51.50","intf0"))
+        self.assertTrue(system.set_mac_address("BB:EE:EE:EE:EE:FF","eth0"))
+        self.assertTrue(system.set_ip_address("192.51.51.50","eth0"))
         self.assertTrue(system.set_profile("testprofile0"))
         self.assertTrue(self.api.add_system(system))
         self.assertTrue(self.api.find_system(name="testsystem0"))
@@ -229,7 +229,7 @@ class DuplicateNamesAndIpPrevention(BootTest):
         self.assertTrue(system3.set_name("unused_name"))
         self.assertTrue(system3.set_profile("testprofile0"))
         # MAC is initially accepted
-        self.assertTrue(system3.set_mac_address("BB:EE:EE:EE:EE:FF","intf3"))
+        self.assertTrue(system3.set_mac_address("BB:EE:EE:EE:EE:FF","eth3"))
         # can't add as this MAC already exists!  
 
         #self.failUnlessRaises(CobblerException,self.api.add_system,[system3,check_for_duplicate_names=True,check_for_duplicate_netinfo=True)
@@ -242,11 +242,11 @@ class DuplicateNamesAndIpPrevention(BootTest):
            self.assertTrue(1==2,"wrong exception type")
 
         # set the MAC to a different value and try again
-        self.assertTrue(system3.set_mac_address("FF:EE:EE:EE:EE:DD","intf3"))
+        self.assertTrue(system3.set_mac_address("FF:EE:EE:EE:EE:DD","eth3"))
         # it should work
         self.assertTrue(self.api.add_system(system3,check_for_duplicate_names=False,check_for_duplicate_netinfo=True))
         # now set the IP so that collides
-        self.assertTrue(system3.set_ip_address("192.51.51.50","intf6"))
+        self.assertTrue(system3.set_ip_address("192.51.51.50","eth6"))
         # this should also fail
 
         # self.failUnlessRaises(CobblerException,self.api.add_system,[system3,check_for_duplicate_names=True,check_for_duplicate_netinfo=True)
@@ -259,8 +259,8 @@ class DuplicateNamesAndIpPrevention(BootTest):
            self.assertTrue(1==2,"wrong exception type")
 
         # fix the IP and Mac back 
-        self.assertTrue(system3.set_ip_address("192.86.75.30","intf6"))
-        self.assertTrue(system3.set_mac_address("AE:BE:DE:CE:AE:EE","intf3"))
+        self.assertTrue(system3.set_ip_address("192.86.75.30","eth6"))
+        self.assertTrue(system3.set_mac_address("AE:BE:DE:CE:AE:EE","eth3"))
         # now it works again
         # note that we will not check for duplicate names as we want
         # to test this as an 'edit' operation.
@@ -404,18 +404,18 @@ class MultiNIC(BootTest):
         system = self.api.new_system()
         self.assertTrue(system.set_name("nictest"))
         self.assertTrue(system.set_profile("testprofile0"))
-        self.assertTrue(system.set_hostname("zero","intf0"))
-        self.assertTrue(system.set_mac_address("EE:FF:DD:CC:DD:CC","intf1"))
-        self.assertTrue(system.set_ip_address("127.0.0.5","intf2"))
-        self.assertTrue(system.set_dhcp_tag("zero","intf3"))
-        self.assertTrue(system.set_virt_bridge("zero","intf4"))
-        self.assertTrue(system.set_gateway("192.168.1.25","intf4"))
-        self.assertTrue(system.set_mac_address("AA:AA:BB:BB:CC:CC","intf4"))
-        self.assertTrue(system.set_hostname("fooserver","intf4"))
-        self.assertTrue(system.set_dhcp_tag("red","intf4"))
-        self.assertTrue(system.set_ip_address("192.168.1.26","intf4"))
-        self.assertTrue(system.set_subnet("255.255.255.0","intf4"))
-        self.assertTrue(system.set_dhcp_tag("tag2","intf5"))
+        self.assertTrue(system.set_hostname("zero","eth0"))
+        self.assertTrue(system.set_mac_address("EE:FF:DD:CC:DD:CC","eth1"))
+        self.assertTrue(system.set_ip_address("127.0.0.5","eth2"))
+        self.assertTrue(system.set_dhcp_tag("zero","eth3"))
+        self.assertTrue(system.set_virt_bridge("zero","eth4"))
+        self.assertTrue(system.set_gateway("192.168.1.25","eth4"))
+        self.assertTrue(system.set_mac_address("AA:AA:BB:BB:CC:CC","eth4"))
+        self.assertTrue(system.set_hostname("fooserver","eth4"))
+        self.assertTrue(system.set_dhcp_tag("red","eth4"))
+        self.assertTrue(system.set_ip_address("192.168.1.26","eth4"))
+        self.assertTrue(system.set_subnet("255.255.255.0","eth4"))
+        self.assertTrue(system.set_dhcp_tag("tag2","eth5"))
         self.assertTrue(self.api.add_system(system))
         self.assertTrue(self.api.find_system(hostname="fooserver"))
         self.assertTrue(self.api.find_system(mac_address="EE:FF:DD:CC:DD:CC"))
@@ -432,9 +432,9 @@ class MultiNIC(BootTest):
         # now check one interface to make sure it's exactly right
         # and we didn't accidentally fill in any other fields elsewhere
 
-        self.assertTrue(system.interfaces.has_key("intf4"))
+        self.assertTrue(system.interfaces.has_key("eth4"))
         for (name,intf) in system.interfaces.iteritems():
-            if name == "intf4": # xmlrpc dicts must have string keys, so we must also
+            if name == "eth4": # xmlrpc dicts must have string keys, so we must also
                 self.assertTrue(intf["gateway"] == "192.168.1.25")
                 self.assertTrue(intf["virt_bridge"] == "zero")
                 self.assertTrue(intf["subnet"] == "255.255.255.0")
@@ -781,7 +781,7 @@ class SyncContents(BootTest):
 
         system = self.api.new_system()
         self.assertTrue(system.set_name("S1"))
-        self.assertTrue(system.set_mac_address("BB:EE:EE:EE:EE:FF","intf0"))
+        self.assertTrue(system.set_mac_address("BB:EE:EE:EE:EE:FF","eth0"))
         self.assertTrue(system.set_profile("P1"))
         self.assertTrue(self.api.add_system(system))
         assert self.api.find_system(name="S1") != None
