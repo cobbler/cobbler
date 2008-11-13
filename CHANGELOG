@@ -9,6 +9,7 @@ Koan CHANGELOG
 - virtualized image cloning support
 - ppc and s390 provisioning
 - COBBLER_SERVER environment variable can be used in place of --server
+- replace bootif with link for ksdevice for non-PXE installs
 
 - Thu Sep 18 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.5-1
 - (BUGF) use file:/ks.cfg for --replace-self to make non-DHCP easier

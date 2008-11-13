@@ -1017,6 +1017,9 @@ class Koan:
             else:
                 options = options + "%s=%s " % (x, hashv[x])
         options = options.replace("lang ","lang= ")
+        # if using ksdevice=bootif that only works for PXE so replace
+        # it with something that will work
+        options = options.replace("ksdevice=bootif","ksdevice=link")
         return options
 
     #---------------------------------------------------
