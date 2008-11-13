@@ -1,5 +1,8 @@
 #MESSAGESPOT=po/messages.pot
 
+prefix=devinstall
+statepath=/tmp/cobbler_settings/$(prefix)
+
 all: clean rpms
 
 clean:
@@ -17,14 +20,12 @@ manpage:
 	pod2html ./docs/cobbler.pod > ./docs/cobbler.html
  
 test: 
-	prefix=test
-	export prefix
-	make savestate
+	make savestate prefix=test
 	make rpms
 	make install
 	make eraseconfig
 	-(make nosetests)
-	make restorestate
+	make restorestate prefix=test
 
 nosetests:
 	#nosetests tests -w cobbler --with-coverage --cover-package=cobbler --cover-erase --quiet | tee test.log
@@ -37,34 +38,34 @@ install: manpage updatewui
 	python setup.py install -f
 
 devinstall: 
-	prefix=devinstall
 	make savestate 
 	make install 
 	make restorestate
 
 savestate:
-	path=/tmp/cobbler_settings/$(prefix)
-	-cp /etc/cobbler/settings $(path)/settings
-	-cp /etc/cobbler/modules.conf $(path)/modules.conf
-	-cp /etc/httpd/conf.d/cobbler.conf $(path)http.conf
-	-cp /etc/cobbler/acls.conf $(path)/acls.conf
-	-cp /etc/cobbler/users.conf $(path)/users.conf
-	-cp /etc/cobbler/users.digest $(path)/users.digest
+	mkdir -p $(statepath)
+	cp -a /var/lib/cobbler/config $(statepath)
+	cp /etc/cobbler/settings $(statepath)/settings
+	cp /etc/cobbler/modules.conf $(statepath)/modules.conf
+	cp /etc/httpd/conf.d/cobbler.conf $(statepath)/http.conf
+	cp /etc/cobbler/acls.conf $(statepath)/acls.conf
+	cp /etc/cobbler/users.conf $(statepath)/users.conf
+	cp /etc/cobbler/users.digest $(statepath)/users.digest
 
 
 restorestate:
-	path=/tmp/cobbler_settings/$(prefix)
-	-cp $(path)/settings /etc/cobbler/settings
-	-cp $(path)/modules.conf /etc/cobbler/modules.conf
-	-cp $(path)/users.conf /etc/cobbler/users.conf
-	-cp $(path)/acls.conf /etc/cobbler/acls.conf
-	-cp $(path)/users.digest /etc/cobbler/users.digest
-	-cp $(path)/http.conf /etc/httpd/conf.d/cobbler.conf
+	cp -a $(statepath)/config /var/lib/cobbler
+	cp $(statepath)/settings /etc/cobbler/settings
+	cp $(statepath)/modules.conf /etc/cobbler/modules.conf
+	cp $(statepath)/users.conf /etc/cobbler/users.conf
+	cp $(statepath)/acls.conf /etc/cobbler/acls.conf
+	cp $(statepath)/users.digest /etc/cobbler/users.digest
+	cp $(statepath)/http.conf /etc/httpd/conf.d/cobbler.conf
 	find /var/lib/cobbler/triggers | xargs chmod +x
 	chown -R apache /var/www/cobbler 
 	chmod -R +x /var/www/cobbler/web
 	chmod -R +x /var/www/cobbler/svc
-	#-rm -rf $(path)
+	#-[ "$(statepath)" != "/" ] && rm -rf $(statepath)
 
 completion:
 	python mkbash.py
