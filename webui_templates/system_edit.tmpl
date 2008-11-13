@@ -119,8 +119,6 @@ function on_interface_delete()
 
 function save_intf(which) 
 {
-    //alert("save_intf")
-
     // this populates the interface widget with the data for the currently selected interface
     // and is called when the user picks a certain interface from the drop-down
 
@@ -222,7 +220,8 @@ function build_interface_table()
        #end for
     #else
        interface_table["eth0"] = new Array()
-       interface_table["eth0"]["mac_address"] = ""
+       interface_table["eth0"]["macaddress"] = ""
+       interface_table["eth0"]["ipaddress"] = ""
        interface_table["eth0"]["hostname"] = ""
        interface_table["eth0"]["dhcptag"] = ""
        interface_table["eth0"]["virtbridge"] = ""
