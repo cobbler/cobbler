@@ -235,6 +235,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/snippets/download_config_files
 /var/lib/cobbler/elilo-3.8-ia64.efi
 /var/lib/cobbler/menu.c32
+/var/lib/cobbler/yaboot-1.3.14
 %defattr(660,root,root)
 %config(noreplace) /etc/cobbler/users.digest 
 
