@@ -32,6 +32,24 @@ function get_random_mac()
     xmlHttp.send(null);
 }
 
+function bonding_change(value)
+{
+    if (value == "master") {
+        document.getElementById("bondingmaster").disabled = true
+        document.getElementById("bondingopts").disabled = false
+        document.getElementById("bondingmaster").value = ""
+    } else if (value == "slave") {
+        document.getElementById("bondingmaster").disabled = false
+        document.getElementById("bondingopts").disabled = true
+        document.getElementById("bondingopts").value = ""
+    } else {
+        document.getElementById("bondingmaster").disabled = true
+        document.getElementById("bondingopts").disabled = true
+        document.getElementById("bondingmaster").value = ""
+        document.getElementById("bondingopts").value = ""
+    }
+}
+
 #raw
 function get_selected_interface()
 {
@@ -158,12 +176,26 @@ function load_intf()
     document.getElementById("virtbridge").value    = interface_table[intf]["virtbridge"]
     document.getElementById("subnet").value        = interface_table[intf]["subnet"]
     document.getElementById("gateway").value       = interface_table[intf]["gateway"]
-    document.getElementById("bonding").value       = interface_table[intf]["bonding"]
+    bond                                           = interface_table[intf]["bonding"]
     document.getElementById("bondingmaster").value = interface_table[intf]["bondingmaster"]
     document.getElementById("bondingopts").value   = interface_table[intf]["bondingopts"]
     document.getElementById("static").checked      = interface_table[intf]["static"]
     document.getElementById("present").value       = interface_table[intf]["present"]
     document.getElementById("original").value      = interface_table[intf]["original"]
+    
+
+    if (bond == "master") {
+       document.getElementById("bonding_is_master").checked = true       
+       bonding_change("master")
+    } else if (bond == "slave") {
+       document.getElementById("bonding_is_slave").checked = true       
+       bonding_change("slave")
+    } else {
+       document.getElementById("bonding_is_na").checked = true       
+       bonding_change("na")
+    }
+
+
 }
 
 function clear_intf()
@@ -514,7 +546,7 @@ function page_onload() {
     </td>
     <td>
 
-   #if $system and $system.virt_type == "<<inherit>>"
+    #if $system and $system.virt_type == "<<inherit>>"
         <input type="radio" name="virttype" id="virttype" value="<<inherit>>" checked>Inherit
     #else
         #if $system
@@ -700,8 +732,11 @@ function page_onload() {
         <label for="bonding">Bonding</label>
         </td>
         <td class="nicedit">
-        <input type="text" size="64" style="width: 150px;" name="bonding" id="bonding" />
-        <p class="context-tip">Ex: "master", "slave, "".</p>
+        <input type="radio" id="bonding_is_na" name="bonding" value="na" checked onclick="javascript:bonding_change('na')">N/A 
+        <input type="radio" id="bonding_is_master" name="bonding" value="master" onclick="javascript:bonding_change('master')">master 
+        <input type="radio" id="bonding_is_slave" name="bonding" value="slave"  onclick="javascript:bonding_change('slave')">slave
+        
+        <p class="context-tip">Bonding mode if applicable</p>
         </td>
         </tr>
 

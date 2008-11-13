@@ -360,6 +360,10 @@ class System(item.Item):
         return True
 
     def set_bonding(self,bonding,interface):
+        if bonding not in ["master","slave","na",""] : 
+            raise CX(_("bonding value must be one of: master, slave, na"))
+        if bonding == "na":
+            bonding = ""
         intf = self.__get_interface(interface)
         intf["bonding"] = bonding
         return True
