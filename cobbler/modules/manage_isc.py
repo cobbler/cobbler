@@ -172,6 +172,7 @@ class IscManager:
         # through each network interface of each system.
         dhcp_tags = { "default": {} }
         elilo = "/elilo-3.6-ia64.efi"
+        yaboot = "/yaboot-1.3.14"
 
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
@@ -206,6 +207,8 @@ class IscManager:
                 # can't use pxelinux.0 anymore
                 if distro.arch == "ia64":
                     interface["filename"] = elilo
+                elif distro.arch.startswith("ppc"):
+                    interface["filename"] = yaboot
                     
                 # If we have all values defined and we're using omapi,
                 # we will just create entries dinamically into DHCPD
@@ -237,6 +240,7 @@ class IscManager:
            "cobbler_server" : self.settings.server,
            "next_server"    : self.settings.next_server,
            "elilo"          : elilo,
+           "yaboot"         : yaboot,
            "dhcp_tags"      : dhcp_tags
         }
 
