@@ -77,9 +77,9 @@ class PowerTool:
 
         print "- %s" % cmd
 
-        tool_needed = cmd.split(" ")[0]
-        if not os.path.exists(tool_needed):
-           raise CX("error: %s is not installed" % tool_needed)
+        #tool_needed = cmd.split(" ")[0]
+        #if not os.path.exists(tool_needed):
+        #   print "warning: %s does not seem to be installed" % tool_needed
 
         rc = sub_process.call(cmd, shell=True)
         if not rc == 0:

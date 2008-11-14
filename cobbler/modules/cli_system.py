@@ -41,7 +41,7 @@ class SystemFunction(commands.CobblerFunction):
         return "system"
 
     def subcommands(self):
-        return ["add","copy","dumpvars","edit","find","poweroff","poweron","list","reboot""remove","rename","report","getks"]
+        return ["add","copy","dumpvars","edit","find","poweroff","poweron","list","reboot","remove","rename","report","getks"]
 
     def add_options(self, p, args):
 
