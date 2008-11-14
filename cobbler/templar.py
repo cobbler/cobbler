@@ -51,6 +51,7 @@ class Templar:
             if line.find("#import") != -1:
                rest=line.replace("#import","").replace(" ","").strip()
                if rest not in [ "time", "random" ]:
+                   print "warning"
                    raise CX("potentially insecure import in template: %s" % rest)
 
     def render(self, data_input, search_table, out_path, subject=None):
