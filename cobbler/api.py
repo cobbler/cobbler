@@ -606,24 +606,24 @@ class BootAPI:
     def get_kickstart_templates(self):
         return utils.get_kickstar_templates(self)
 
-    def power_on(self, system):
+    def power_on(self, system, user, password):
         """
         Powers up a system that has power management configured.
         """
-        return action_power.PowerTool(system,self).power("on")
+        return action_power.PowerTool(system,self,user,password).power("on")
 
-    def power_off(self, system):
+    def power_off(self, system, user, password):
         """
         Powers down a system that has power management configured.
         """
-        return action_power.PowerTool(system,self).power("off")
+        return action_power.PowerTool(system,self,user,password).power("off")
 
-    def reboot(self,system):
+    def reboot(self,system, user, password):
         """
         Cycles power on a system that has power management configured.
         """
-        self.power_off(system)
+        self.power_off(system, user, password)
         time.sleep(1)
-        return self.power_on(system)
+        return self.power_on(system, user, password)
         
 

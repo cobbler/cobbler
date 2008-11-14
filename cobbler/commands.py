@@ -276,21 +276,21 @@ class CobblerFunction:
             obj = collect_fn().find(self.options.name)
             if obj is None:
                 raise CX(_("object not found"))
-            self.api.power_on(obj)
+            self.api.power_on(obj,self.options.power_user,self.options.power_pass)
             return None
 
         if "poweroff" in self.args:
             obj = collect_fn().find(self.options.name)
             if obj is None:
                 raise CX(_("object not found"))
-            self.api.power_off(obj)
+            self.api.power_off(obj,self.options.power_user,self.options.power_pass)
             return None
 
         if "reboot" in self.args:
             obj = collect_fn().find(self.options.name)
             if obj is None:
                 raise CX(_("object not found"))
-            self.api.reboot(obj)
+            self.api.reboot(obj,self.options.power_user,self.options.power_pass)
             return None
 
         if "remove" in self.args:
