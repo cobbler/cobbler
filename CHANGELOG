@@ -1,8 +1,8 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-- ??? - ???
-- (BUGF) duplicate repo supression feature
+- ??? - 1.2.9
+- (BUGF) do not allow unsafe Cheetah imports
 
 - Wed Oct 15 2008 - 1.2.8
 - (BUGF) make cobbler read /etc/cobbler/settings.py (introduced in 1.2.6)
