@@ -77,11 +77,14 @@ class PowerTool:
 
         print "- %s" % cmd
 
+        # now reprocess the command so we don't feed it through the shell
+        cmd = cmd.split(" ")
+
         #tool_needed = cmd.split(" ")[0]
         #if not os.path.exists(tool_needed):
         #   print "warning: %s does not seem to be installed" % tool_needed
 
-        rc = sub_process.call(cmd, shell=True)
+        rc = sub_process.call(cmd, shell=False)
         if not rc == 0:
            raise CX("command failed (rc=%s), please validate the physical setup and cobler config" % rc)
 
