@@ -321,7 +321,9 @@ class CobblerWeb(object):
     def system_save(self,name=None,oldname=None,comment=None,editmode="edit",profile=None,
                     new_or_edit=None,  
                     kopts=None, koptspost=None, ksmeta=None, owners=None, server_override=None, netboot='n', 
-                    virtpath=None,virtram=None,virttype=None,virtcpus=None,virtfilesize=None,delete1=None, delete2=None, **args):
+                    virtpath=None,virtram=None,virttype=None,virtcpus=None,virtfilesize=None,
+                    power_type=None, power_user=None, power_pass=None, power_id=None, power_address=None,
+                    delete1=None, delete2=None, **args):
 
 
         if not self.__xmlrpc_setup():
@@ -382,12 +384,22 @@ class CobblerWeb(object):
                self.remote.modify_system(system, 'virt-ram', virtram, self.token)
             if virttype:
                self.remote.modify_system(system, 'virt-type', virttype, self.token)
-
             if virtpath:
                self.remote.modify_system(system, 'virt-path', virtpath, self.token)
+
             if comment:
                self.remote.modify_system(system, 'comment', comment, self.token)
 
+            if power_type:  
+               self.remote.modify_system(system, 'power_type', power_type, self.token)
+            if power_user:
+               self.remote.modify_system(system, 'power_user', power_user, self.token)
+            if power_pass:
+               self.remote.modify_system(system, 'power_pass', power_pass, self.token)
+            if power_id:
+               self.remote.modify_system(system, 'power_id', power_id, self.token)
+            if power_address:
+               self.remote.modify_system(system, 'power_address', power_address, self.token)
 
             interfaces = args.get("interface_list","")
             interfaces = interfaces.split(",")

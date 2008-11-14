@@ -41,7 +41,7 @@ class SystemFunction(commands.CobblerFunction):
         return "system"
 
     def subcommands(self):
-        return ["add","copy","dumpvars","edit","find","poweroff","poweron","list","reboot""remove","rename","report","getks"]
+        return ["add","copy","dumpvars","edit","find","poweroff","poweron","list","reboot","remove","rename","report","getks"]
 
     def add_options(self, p, args):
 
@@ -95,8 +95,7 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--power-address",   dest="power_address",   help="address of power mgmt device, if required")
             p.add_option("--power-id",        dest="power_id",        help="plug-number or blade name, if required")
             p.add_option("--power-pass",      dest="power_pass",      help="password for power management interface")
-
-            p.add_option("--power-type",      dest="power_type",      help="one of: none, bullpap, wti, apc_snmp, ether-wake, ipmilan, drac, ipmitool, ilo")
+            p.add_option("--power-type",      dest="power_type",      help="one of: none, apc_snmp, bullpap, drac, ether-wake, ilo, ipmilan, ipmitool, wti")
 
             p.add_option("--power-user",      dest="power_user",      help="username for power management interface, if required")
 

@@ -1660,6 +1660,12 @@ def test_xmlrpc_rw():
    server.modify_system(sid, "mgmt-classes", [ "one", "two", "three"], token)
    server.modify_system(sid, "template-files", {}, token)
    server.modify_system(sid, "comment", "...", token)
+   server.modify_system(sid, "power_address", "power.example.org", token)
+   server.modify_system(sid, "power_type", "ipmitool", token)
+   server.modify_system(sid, "power_user", "Admin", token)
+   server.modify_system(sid, "power_pass", "magic", token)
+   server.modify_system(sid, "power_id", "7", token)
+
    server.save_system(sid,token)
    
    api.deserialize() 

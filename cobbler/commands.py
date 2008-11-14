@@ -264,8 +264,6 @@ class CobblerFunction:
         Boilerplate for objects that offer add/edit/delete/remove/copy functionality.
         """
 
-        print "DEBUG: args = %s" % self.args
-
         if "dumpvars" in self.args:
             if not self.options.name:
                 raise CX(_("name is required"))
