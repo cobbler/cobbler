@@ -49,7 +49,7 @@ $kickstart_start
 %end
 
 %packages
-$func_install_if_enabled
+SNIPPET::func_install_if_enabled
 %end
 
 %post
