@@ -612,6 +612,87 @@ function page_onload() {
 
     <tr>
     <td>
+    <label for="power_type">Power Type</label>
+    </td>
+    <td>
+    <select name="power_type" id="power_type">
+        #set valid_power = [ "bullpap", "wti", "apc_snmp", "ether-wake", "ipmilan", "drac", "ipmitool", "ilo", "rsa"
+        #set nothing = valid_power.sort()
+
+        #for $value in $valid_power:
+        <option name="$value"
+            #if $system and (($system.power_type == $value) or ($system.power_type == "" and $value == "none"))
+                    selected="1"
+            #end if
+        >$value</option>
+        #end for
+    </select>
+    <p class="context-tip">Is a power management device attached?</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="power_address">Power Address</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="power_address" id="power_address"
+        #if $system
+           value="$system.power_address"
+        #end if
+    />
+    <p class="context-tip">Ex: hostname-mgmt.example.org</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="power_id">Power Id</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="power_id" id="power_id"
+        #if $system
+           value="$system.power_id"
+        #end if
+    />
+    <p class="context-tip">Plug number or blade name, if applicable.</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="power_user">Power User</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="power_user" id="power_user"
+        #if $system
+           value="$system.power_user"
+        #end if
+    />
+    <p class="context-tip">Power management username, if device requires one.</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="power_pass">Power Password</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="power_pass" id="power_pass"
+        #if $system
+           value="$system.power_pass"
+        #end if
+    />
+    <p class="context-tip">Power management password.</p>
+    </td>
+    </tr>
+
+    ## FIXME: it might be a good idea to color code the power section in the same
+    ## way we color code the interface section (see "nicedit" in CSS) as well as
+    ## the virt section being a different color
+
+    <tr>
+    <td>
     <label for="new-interface">Add Interface</label>
     </td>
     <td>
@@ -623,7 +704,7 @@ function page_onload() {
 
     <tr>
     <td>
-    <label for="interfaces">Inteface</label>
+    <label for="interfaces">Interface</label>
     </td>
     <td>
     <select name="interfaces" id="interfaces" onchange="on_interface_change();">
