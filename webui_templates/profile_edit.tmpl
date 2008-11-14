@@ -240,10 +240,10 @@ function disablename(value)
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtfilesize">Virt Disk (GB)</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="5" style="width: 150px;" name="virtfilesize" id="virtfilesize"
         #if $profile
            value="$profile.virt_file_size"
@@ -254,10 +254,10 @@ function disablename(value)
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtram">Virt RAM (MB)</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="5" style="width: 150px;" name="virtram" id="virtram"
         #if $profile
            value="$profile.virt_ram"
@@ -268,10 +268,10 @@ function disablename(value)
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virttype">Virt Type</label>
     </td>
-    <td>
+    <td class="virtedit">
     #if $profile and $profile.virt_type == "auto"
         <input type="radio" name="virttype" id="virttype" value="auto" checked>Any
     #else
@@ -311,10 +311,10 @@ function disablename(value)
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtpath">Virt Path</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="255" style="width: 400px;" name="virtpath" id="virtpath"
         #if $profile
            value="$profile.virt_path"
@@ -325,10 +325,10 @@ function disablename(value)
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtpath">Virt Bridge</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="255" style="width: 150px;" name="virtbridge" id="virtbridge"
         #if $profile
            value="$profile.virt_bridge"
@@ -339,10 +339,10 @@ function disablename(value)
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtpath">Virt CPUs</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="255" style="width: 150px;" name="virtcpus" id="virtcpus"
         #if $profile
            value="$profile.virt_cpus"

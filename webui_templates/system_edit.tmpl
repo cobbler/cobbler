@@ -155,7 +155,16 @@ function save_intf(which)
     itable["virtbridge"] = document.getElementById("virtbridge").value
     itable["subnet"]     = document.getElementById("subnet").value
     itable["gateway"]    = document.getElementById("gateway").value
-    itable["bonding"]    = document.getElementById("bonding").value
+
+    var bond = "na"
+    if (document.getElementById("bonding_is_master").checked == true) {
+       bond = "master"
+    } else if (document.getElementById("bonding_is_slave").checked == true) {
+       bond = "slave"
+    }
+
+    itable["bonding"]    = bond
+
     itable["bondingmaster"] = document.getElementById("bondingmaster").value
     itable["bondingopts"] = document.getElementById("bondingopts").value
     itable["static"]     = document.getElementById("static").checked
@@ -209,7 +218,9 @@ function clear_intf()
     document.getElementById("virtbridge").value    = ""
     document.getElementById("subnet").value        = ""
     document.getElementById("gateway").value       = ""
-    document.getElementById("bonding").value       = ""
+
+    document.getElementById("bonding_is_na").checked = True
+
     document.getElementById("bondingmaster").value = ""
     document.getElementById("bondingopts").value   = ""
     document.getElementById("present").value       = "1"
@@ -513,10 +524,10 @@ function page_onload() {
 
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtfilesize">Virt Disk (GB)</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="5" style="width: 150px;" name="virtfilesize" id="virtfilesize"
         #if $system
            value="$system.virt_file_size"
@@ -527,10 +538,10 @@ function page_onload() {
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtram">Virt RAM (MB)</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="5" style="width: 150px;" name="virtram" id="virtram"
         #if $system
            value="$system.virt_ram"
@@ -541,10 +552,10 @@ function page_onload() {
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virttype">Virt Type</label>
     </td>
-    <td>
+    <td class="virtedit">
 
     #if $system and $system.virt_type == "<<inherit>>"
         <input type="radio" name="virttype" id="virttype" value="<<inherit>>" checked>Inherit
@@ -583,10 +594,10 @@ function page_onload() {
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtpath">Virt Path</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="255" style="width: 400px;" name="virtpath" id="virtpath"
         #if $system
            value="$system.virt_path"
@@ -597,10 +608,10 @@ function page_onload() {
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtpath">Virt CPUs</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="255" style="width: 150px;" name="virtcpus" id="virtcpus"
         #if $system
            value="$system.virt_cpus"
@@ -611,12 +622,12 @@ function page_onload() {
     </tr>
 
     <tr>
-    <td>
+    <td class="poweredit">
     <label for="power_type">Power Type</label>
     </td>
-    <td>
+    <td class="poweredit">
     <select name="power_type" id="power_type">
-        #set valid_power = [ "bullpap", "wti", "apc_snmp", "ether-wake", "ipmilan", "drac", "ipmitool", "ilo", "rsa"
+        #set valid_power = [ "bullpap", "wti", "apc_snmp", "ether-wake", "ipmilan", "drac", "ipmitool", "ilo", "rsa" ]
         #set nothing = valid_power.sort()
 
         #for $value in $valid_power:
@@ -632,10 +643,10 @@ function page_onload() {
     </tr>
 
     <tr>
-    <td>
+    <td class="poweredit">
     <label for="power_address">Power Address</label>
     </td>
-    <td>
+    <td class="poweredit">
     <input type="text" size="255" style="width: 150px;" name="power_address" id="power_address"
         #if $system
            value="$system.power_address"
@@ -646,10 +657,10 @@ function page_onload() {
     </tr>
 
     <tr>
-    <td>
+    <td class="poweredit">
     <label for="power_id">Power Id</label>
     </td>
-    <td>
+    <td class="poweredit">
     <input type="text" size="255" style="width: 150px;" name="power_id" id="power_id"
         #if $system
            value="$system.power_id"
@@ -660,10 +671,10 @@ function page_onload() {
     </tr>
 
     <tr>
-    <td>
+    <td class="poweredit">
     <label for="power_user">Power User</label>
     </td>
-    <td>
+    <td class="poweredit">
     <input type="text" size="255" style="width: 150px;" name="power_user" id="power_user"
         #if $system
            value="$system.power_user"
@@ -674,10 +685,10 @@ function page_onload() {
     </tr>
 
     <tr>
-    <td>
+    <td class="poweredit">
     <label for="power_pass">Power Password</label>
     </td>
-    <td>
+    <td class="poweredit">
     <input type="text" size="255" style="width: 150px;" name="power_pass" id="power_pass"
         #if $system
            value="$system.power_pass"

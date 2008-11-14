@@ -504,8 +504,9 @@ class System(item.Item):
 
     def set_power_type(self, power_type):
         power_type = power_type.lower()
-        valid = "bullpap wti apc_snmp ether-wake ipmilan drac ipmitool ilo rsa"
+        valid = "bullpap wti apc_snmp ether-wake ipmilan drac ipmitool ilo rsai none"
         choices = valid.split(" ")
+        choices.sort()
         if power_type not in choices:
             raise CX("power type must be one of: %s" % ",".join(choices))
         self.power_type = power_type
@@ -583,6 +584,12 @@ class System(item.Item):
         buf = buf + _("virt path             : %s\n") % self.virt_path
         buf = buf + _("virt ram              : %s\n") % self.virt_ram
         buf = buf + _("virt type             : %s\n") % self.virt_type
+
+        buf = buf + _("power type            : %s\n") % self.power_type
+        buf = buf + _("power address         : %s\n") % self.power_address
+        buf = buf + _("power user            : %s\n") % self.power_user
+        buf = buf + _("power password        : %s\n") % self.power_pass
+        buf = buf + _("power id              : %s\n") % self.power_id
 
         ikeys = self.interfaces.keys()
         ikeys.sort()
@@ -665,11 +672,11 @@ class System(item.Item):
            'template-files'   : self.set_template_files,
            'template_files'   : self.set_template_files,           
            'comment'          : self.set_comment,
-           'power_type'       : self.power_type,
-           'power_address'    : self.power_address,
-           'power_user'       : self.power_user,
-           'power_pass'       : self.power_pass,
-           'power_id'         : self.power_id
+           'power_type'       : self.set_power_type,
+           'power_address'    : self.set_power_address,
+           'power_user'       : self.set_power_user,
+           'power_pass'       : self.set_power_pass,
+           'power_id'         : self.set_power_id
         }
 
 

@@ -399,7 +399,7 @@ class CobblerWeb(object):
             if power_id:
                self.remote.modify_system(system, 'power_id', power_id, self.token)
             if power_address:
-               self.remote.modify_sysetm(system, 'power_address', power_address, self.token)
+               self.remote.modify_system(system, 'power_address', power_address, self.token)
 
             interfaces = args.get("interface_list","")
             interfaces = interfaces.split(",")
