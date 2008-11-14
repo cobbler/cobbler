@@ -64,6 +64,11 @@ class System(item.Item):
         self.comment              = ""
         self.ctime                = 0
         self.mtime                = 0
+        self.power_type           = self.settings.power_management_default_type
+        self.power_address        = ""
+        self.power_user           = ""
+        self.power_pass           = ""
+        self.power_id             = ""
 
     def delete_interface(self,name):
         """
@@ -153,6 +158,16 @@ class System(item.Item):
 
         self.ctime       = self.load_item(seed_data,'ctime',0)
         self.mtime       = self.load_item(seed_data,'mtime',0)
+
+        # power management integration features
+
+        self.power_type     = self.load_item(seed_data, 'power_type', self.settings.power_management_default_type)
+
+        self.power_address  = self.load_item(seed_data, 'power_address', '')
+        self.power_user     = self.load_item(seed_data, 'power_user', '')
+        self.power_pass     = self.load_item(seed_data, 'power_pass', '')
+        self.power_id       = self.load_item(seed_data, 'power_id', '')
+
 
         # backwards compat, these settings are now part of the interfaces data structure
         # and will contain data only in upgrade scenarios.
@@ -481,6 +496,37 @@ class System(item.Item):
         raise CX(_("kickstart not found"))
 
 
+        #self.power_type           = self.settings.power_management_default_type
+        #self.power_address        = ""
+        #self.power_user           = ""
+        #self.power_pass           = ""
+        #self.power_id             = ""
+
+    def set_power_type(self, power_type):
+        power_type = power_type.lower()
+        valid = "bullpap wti apc_snmp ether-wake ipmilan drac ipmitool ilo rsa"
+        choices = valid.split(" ")
+        if power_type not in choices:
+            raise CX("power type must be one of: %s" % ",".join(choices))
+        self.power_type = power_type
+        return True
+
+    def set_power_user(self, power_user):
+        self.power_user = power_user
+        return True 
+
+    def set_power_pass(self, power_pass):
+        self.power_pass = power_pass
+        return True    
+
+    def set_power_address(self, power_address):
+        self.power_address = power_address
+        return True
+
+    def set_power_id(self, power_id):
+        self.power_id = power_id
+        return True
+
     def to_datastruct(self):
         return {
            'name'                  : self.name,
@@ -506,7 +552,12 @@ class System(item.Item):
            'template_files'        : self.template_files,
            'comment'               : self.comment,
            'ctime'                 : self.ctime,
-           'mtime'                 : self.mtime
+           'mtime'                 : self.mtime,
+           'power_type'            : self.power_type,
+           'power_address'         : self.power_address,
+           'power_user'            : self.power_user,
+           'power_pass'            : self.power_pass,
+           'power_id'              : self.power_id 
         }
 
     def printable(self):
@@ -574,6 +625,10 @@ class System(item.Item):
          
 
     def remote_methods(self):
+
+        # WARNING: versions with hyphens are old and are in for backwards
+        # compatibility.  At some point they may be removed.
+
         return {
            'name'             : self.set_name,
            'profile'          : self.set_profile,
@@ -609,7 +664,12 @@ class System(item.Item):
            'mgmt_classes'     : self.set_mgmt_classes,           
            'template-files'   : self.set_template_files,
            'template_files'   : self.set_template_files,           
-           'comment'          : self.set_comment
+           'comment'          : self.set_comment,
+           'power_type'       : self.power_type,
+           'power_address'    : self.power_address,
+           'power_user'       : self.power_user,
+           'power_pass'       : self.power_pass,
+           'power_id'         : self.power_id
         }
 
 

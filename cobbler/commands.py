@@ -264,6 +264,8 @@ class CobblerFunction:
         Boilerplate for objects that offer add/edit/delete/remove/copy functionality.
         """
 
+        print "DEBUG: args = %s" % self.args
+
         if "dumpvars" in self.args:
             if not self.options.name:
                 raise CX(_("name is required"))
@@ -271,6 +273,27 @@ class CobblerFunction:
             if obj is None:
                 raise CX(_("object not found")) 
             return obj
+
+        if "poweron" in self.args:
+            obj = collect_fn().find(self.options.name)
+            if obj is None:
+                raise CX(_("object not found"))
+            self.api.power_on(obj)
+            return None
+
+        if "poweroff" in self.args:
+            obj = collect_fn().find(self.options.name)
+            if obj is None:
+                raise CX(_("object not found"))
+            self.api.power_off(obj)
+            return None
+
+        if "reboot" in self.args:
+            obj = collect_fn().find(self.options.name)
+            if obj is None:
+                raise CX(_("object not found"))
+            self.api.reboot(obj)
+            return None
 
         if "remove" in self.args:
             recursive = False

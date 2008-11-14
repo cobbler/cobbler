@@ -175,6 +175,17 @@ if __name__ == "__main__":
 				(etcpath,  ['templates/pxelocal.template']),
                                 (etcpath,  ['templates/zone.template']),
 
+                                # templates for power management
+                                (etcpath, ['templates/power_apc_snmp.template']), 
+                                (etcpath, ['templates/power_ipmilan.template']),
+                                (etcpath, ['templates/power_bullpap.template']),     
+                                (etcpath, ['templates/power_ipmitool.template']),
+                                (etcpath, ['templates/power_drac.template']),        
+                                (etcpath, ['templates/power_rsa.template']),
+                                (etcpath, ['templates/power_ether_wake.template']),  
+                                (etcpath, ['templates/power_wti.template']),
+                                (etcpath, ['templates/power_ilo.template']),
+
                                 # templates for /usr/bin/cobbler-setup
                                 (itemplates, ['installer_templates/modules.conf.template']),
                                 (itemplates, ['installer_templates/settings.template']),
