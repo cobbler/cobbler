@@ -45,7 +45,7 @@ $kickstart_start
 $SNIPPET('pre_install_network_config')
 
 %packages
-$func_install_if_enabled
+$SNIPPET('func_install_if_enabled')
 
 %post
 
