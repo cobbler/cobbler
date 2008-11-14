@@ -76,20 +76,28 @@ class PowerTool:
            raise CX("error: %s is not installed" % tool_needed)
 
         rc = sub_process.call(cmd, shell=True)
-        if not rc:
-           raise CX("command failed, check physical setup and cobler config")
+        if not rc == 0:
+           raise CX("command failed (rc=%s), please validate the physical setup and cobler config" % rc)
 
         return rc
 
     def get_command_template(self):
+
+        """
+        In case the user wants to customize the power management commands, 
+        we source the code for each command from /etc/cobbler and run
+        them through Cheetah.
+        """
+
         if self.system.power_type in [ "", "none" ]:
             raise CX("Power management is not enabled for this system")
+
         if self.system.type == "bullpap":
             return "/etc/cobbler/power_bullpap.template"
         if self.system.type == "apc_snmp":
             return "/etc/cobbler/power_apc_snmp.template"
         if self.system.type == "ether-wake":
-            return "/etc/cobbler/power_ether-wake.template"
+            return "/etc/cobbler/power_ether_wake.template"
         if self.system.type == "ipmilan":
             return "/etc/cobbler/power_ipmilan.template"
         if self.system.type == "drac":
@@ -100,5 +108,6 @@ class PowerTool:
             return "/etc/cobbler/power_ilo.template"
         if self.system.type == "rsa":
             return "/etc/cobbler/power_rsa.template"
+
         raise CX("Invalid power management type for this system")
 
