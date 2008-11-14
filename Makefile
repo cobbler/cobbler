@@ -14,6 +14,11 @@ clean:
 	#-rm -f docs/cobbler.1.gz
 	#-rm -f docs/cobbler.html
 	#-rm -f po/messages.pot*
+	-rm -f cobbler/*.pyc
+	-rm -f cobbler/yaml/*.pyc
+	-rm -f cobbler/webui/master.py
+	-rm -f config/modules.conf config/settings
+	-rm -f docs/cobbler.1.gz docs/cobbler.html
 
 manpage:
 	pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz

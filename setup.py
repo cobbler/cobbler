@@ -145,6 +145,7 @@ if __name__ == "__main__":
                                 # bootloaders and syslinux support files
                                 (cobpath,  ['loaders/elilo-3.8-ia64.efi']),
                                 (cobpath,  ['loaders/menu.c32']),
+                                (cobpath,  ['loaders/yaboot-1.3.14']),
                                 ("/var/lib/cobbler/config/distros.d",  []),
                                 ("/var/lib/cobbler/config/profiles.d", []),
                                 ("/var/lib/cobbler/config/systems.d",  []),
@@ -169,6 +170,7 @@ if __name__ == "__main__":
 				(etcpath,  ['templates/pxesystem.template']),
 				(etcpath,  ['templates/pxesystem_s390x.template']),
 				(etcpath,  ['templates/pxesystem_ia64.template']),
+				(etcpath,  ['templates/pxesystem_ppc.template']),
 				(etcpath,  ['templates/pxeprofile.template']),
 				(etcpath,  ['templates/pxelocal.template']),
                                 (etcpath,  ['templates/zone.template']),
