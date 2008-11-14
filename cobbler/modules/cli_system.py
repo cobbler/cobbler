@@ -92,13 +92,13 @@ class SystemFunction(commands.CobblerFunction):
         if not self.matches_args(args,["dumpvars","poweron","poweroff","reboot","remove","report","getks","list"]):
             p.add_option("--owners",          dest="owners",          help="specify owners for authz_ownership module")
 
-            p.add_option("--power-address",   dest="power_address",   help="address of power mgmt device, if any"
-            p.add_option("--power-id",        dest="power_id",        help="WTI plug-number or DRAC blade name")
+            p.add_option("--power-address",   dest="power_address",   help="address of power mgmt device, if required")
+            p.add_option("--power-id",        dest="power_id",        help="plug-number or blade name, if required")
             p.add_option("--power-pass",      dest="power_pass",      help="password for power management interface")
 
-            p.add_option("--power-type",      dest="power_type",      help="bullpap, wti, apc_snmp, ether-wake, ipmilan, drac, ipmitool, ilo, none")
+            p.add_option("--power-type",      dest="power_type",      help="one of: none, bullpap, wti, apc_snmp, ether-wake, ipmilan, drac, ipmitool, ilo")
 
-            p.add_option("--power-user",      dest="power_user",      help="username for power management interface")
+            p.add_option("--power-user",      dest="power_user",      help="username for power management interface, if required")
 
             p.add_option("--profile",         dest="profile",         help="name of cobbler profile (REQUIRED)")
             p.add_option("--server-override", dest="server_override", help="overrides server value in settings file")

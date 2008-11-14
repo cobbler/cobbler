@@ -30,46 +30,52 @@ import os
 import os.path
 import sub_process
 import sys
+import traceback
 
 import utils
 from cexceptions import *
-import traceback
+import templar
 
 class PowerTool:
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,system):
+    def __init__(self,system,api):
         """
         Power library constructor requires a cobbler system object.
         """
         self.system      = system
+        self.api         = api
 
-    def power(self, desired_state)
+    def power(self, desired_state):
         """
         state is either "on" or "off".  Rebooting is implemented at the api.py
         level.
         """
 
         template = self.get_command_template()
+        template_file = open(template, "r")
 
-        meta = utils.blender(self.system, False)
+        meta = utils.blender(self.api, False, self.system)
         meta["power_mode"] = desired_state
 
-        cmd = templar.render(self, template, meta, None, self.system)
+        tmp = templar.Templar(self.api._config)
+        cmd = tmp.render(template_file, meta, None, self.system)
+        template_file.close()
+
         cmd = cmd.strip()
 
         print "cobbler power configuration is:\n"
 
-        pritn "      type   : %s" % self.system.power_type
+        print "      type   : %s" % self.system.power_type
         print "      address: %s" % self.system.power_address
         print "      user   : %s" % self.system.power_user
         print "      id     : %s" % self.system.power_id
 
         print ""
 
-        print "- " % cmd
+        print "- %s" % cmd
 
         tool_needed = cmd.split(" ")[0]
         if not os.path.exists(tool_needed):
@@ -92,22 +98,20 @@ class PowerTool:
         if self.system.power_type in [ "", "none" ]:
             raise CX("Power management is not enabled for this system")
 
-        if self.system.type == "bullpap":
-            return "/etc/cobbler/power_bullpap.template"
-        if self.system.type == "apc_snmp":
-            return "/etc/cobbler/power_apc_snmp.template"
-        if self.system.type == "ether-wake":
-            return "/etc/cobbler/power_ether_wake.template"
-        if self.system.type == "ipmilan":
-            return "/etc/cobbler/power_ipmilan.template"
-        if self.system.type == "drac":
-            return "/etc/cobbler/power_drac.template"
-        if self.system.type == "ipmitool":
-            return "/etc/cobbler/power_ipmitool.template"
-        if self.system.type == "ilo":
-            return "/etc/cobbler/power_ilo.template"
-        if self.system.type == "rsa":
-            return "/etc/cobbler/power_rsa.template"
+        map = {
+            "bullpap"    : "/etc/cobbler/power_bullpap.template",
+            "apc_snmp"   : "/etc/cobbler/power_apc_snmp.template",
+            "ether-wake" : "/etc/cobbler/power_ether_wake.template",
+            "ipmilan"    : "/etc/cobbler/power_ipmilan.template",
+            "drac"       : "/etc/cobbler/power_drac.template",
+            "ipmitool"   : "/etc/cobbler/power_ipmitool.template",
+            "ipmilan"    : "/etc/cobbler/power_ipmilan.template",
+            "ilo"        : "/etc/cobbler/power_ilo.template",
+            "rsa"        : "/etc/cobbler/power_rsa.template"
+        }
 
-        raise CX("Invalid power management type for this system")
+        result = map.get(self.system.power_type, "")
+        if result == "":
+            raise CX("Invalid power management type for this system (%s, %s)" % (self.system.power_type, self.system.name))
+        return result
 
