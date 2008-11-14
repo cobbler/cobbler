@@ -148,6 +148,11 @@ omapi_enabled: 1
 omapi_port: 647
 omshell_bin: /usr/bin/omshell
 
+# settings for power management features.  optional.
+# See https://fedorahosted.org/cobbler/wiki/PowerManagement to learn more
+
+power_management_default_type: 'ipmi'
+
 # if this setting is set to 1, cobbler systems that pxe boot
 # will request at the end of their installation to toggle the 
 # --netboot-enabled record in the cobbler system record.  This eliminates

@@ -77,6 +77,7 @@ DEFAULTS = {
     "omapi_enabled"		  : 0,
     "omapi_port"		  : 647,
     "omshell_bin"                 : "/usr/bin/omshell",
+    "power_management_default_type" : "ipmi",
     "pxe_just_once"               : 0,
     "register_new_installs"       : 0,
     "restart_dns"                 : 1,

@@ -34,6 +34,7 @@ import action_buildiso
 import action_replicate
 import action_acl
 import action_report
+import action_power
 from cexceptions import *
 import sub_process
 import module_loader
@@ -41,11 +42,12 @@ import kickgen
 import yumgen
 import pxegen
 import acls
+from utils import _
 
 import logging
+import time
 import os
 import fcntl
-from utils import _
 
 ERROR = 100
 INFO  = 10
@@ -603,4 +605,25 @@ class BootAPI:
 
     def get_kickstart_templates(self):
         return utils.get_kickstar_templates(self)
+
+    def power_on(self, system):
+        """
+        Powers up a system that has power management configured.
+        """
+        return action_power.PowerTool(system).power("on")
+
+    def power_off(self, system):
+        """
+        Powers down a system that has power management configured.
+        """
+        return action_power.PowerTool(system).power("off")
+
+    def reboot(self,system):
+        """
+        Cycles power on a system that has power management configured.
+        """
+        self.power_off(system)
+        time.sleep(1)
+        return self.power_on(system)
+        
 
