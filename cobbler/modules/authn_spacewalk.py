@@ -39,33 +39,21 @@ def register():
 def authenticate(api_handle,username,password):
     """
     Validate a username/password combo, returning True/False
-
-    Thanks to http://trac.edgewall.org/ticket/845 for supplying
-    the algorithm info.
+    
+    This will pass the username and password back to Spacewalk
+    to see if this authentication request is valid.
     """
 
     spacewalk_url = api_handle.settings().spacewalk_url  
 
     client = xmlrpclib.Server(spacewalk_url, verbose=0)
 
-    key = client.auth.loginAndSkipIntegrationAuth(username,password)
-    if key is None:
+    valid = client.auth.checkAuthToken(username,password)
+    
+    if valid is None:
         return False
-
-    # NOTE: this is technically a little bit of authz, but
-    # not enough to warrant a seperate module yet.
-    list = client.user.list_roles(key, username)
-    success = False
-    for role in list:
-       if role == "org_admin" or "kickstart_admin":
-           success = True
-
-    try:
-        client.auth.logout(key)
-    except:
-        # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=454474
-        # which is a Java exception from Spacewalk
-        pass
-    return success
+    
+    return (valid == 1)
+        
 
 
