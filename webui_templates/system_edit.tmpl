@@ -403,11 +403,31 @@ function page_onload() {
     #else
        #set $comm = ""
     #end if
-    <textarea rows="5" cols="30" 400px;" name="comment" id="comment">$comm</textarea>
+    <textarea rows="5" cols="30" style="width: 400px;" name="comment" id="comment">$comm</textarea>
     <p class="context-tip">This is a free-form description field</p>
     </td>
     </tr>
 
+
+    <tr>
+    <td>
+    <label for="netboot">Netboot Enabled</label>
+    </td>
+    <td>
+
+    #if $system
+       #if str($system.netboot_enabled) != "False"
+           <input type="checkbox" name="netboot" id="netboot" checked=True>
+       #else
+           <input type="checkbox" name="netboot" id="netboot">
+       #end if
+    #else
+       <input type="checkbox" name="netboot" id="netboot" checked="True">
+    #end if
+
+    <p class="context-tip">For PXE setups, select to boot the profile below for the system.<br/>De-select to boot the system from local disk.</p>
+    </td>
+    </tr>
 
     <tr>
     <td>
@@ -424,6 +444,20 @@ function page_onload() {
         #end for
     </select>
     <p class="context-tip">What profile should be installed on this system?</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="ksmeta">Kickstart Metadata</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="ksmeta" id="ksmeta"
+        #if $system
+            value="$system.ks_meta"
+        #end if
+    />
+    <p class="context-tip">Example: dog=fido gnome=yes</p>
     </td>
     </tr>
 
@@ -452,40 +486,6 @@ function page_onload() {
         #end if
     /> 
     <p class="context-tip">Example: clocksource=pit nosmp noapic nolapic</p>
-    </td>
-    </tr>
-
-    <tr>
-    <td>
-    <label for="ksmeta">Kickstart Metadata</label>
-    </td>
-    <td>
-    <input type="text" size="255" style="width: 400px;" name="ksmeta" id="ksmeta"
-        #if $system
-            value="$system.ks_meta"
-        #end if
-    />
-    <p class="context-tip">Example: dog=fido gnome=yes</p>
-    </td>
-    </tr>
-
-    <tr>
-    <td>
-    <label for="netboot">Netboot Enabled</label>
-    </td>
-    <td>
-
-    #if $system
-       #if str($system.netboot_enabled) != "False"
-           <input type="checkbox" name="netboot" id="netboot" checked=True>
-       #else
-           <input type="checkbox" name="netboot" id="netboot">
-       #end if
-    #else
-       <input type="checkbox" name="netboot" id="netboot" checked="True">
-    #end if
-
-    <p class="context-tip">Deselect to keep this system from PXE booting</p>
     </td>
     </tr>
 
