@@ -94,11 +94,15 @@ class SystemFunction(commands.CobblerFunction):
 
             p.add_option("--power-address",   dest="power_address",   help="address of power mgmt device, if required")
             p.add_option("--power-id",        dest="power_id",        help="plug-number or blade name, if required")
+        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
             p.add_option("--power-pass",      dest="power_pass",      help="password for power management interface")
+        if not self.matches_args(args,["dumpvars","poweron","poweroff","reboot","remove","report","getks","list"]):
             p.add_option("--power-type",      dest="power_type",      help="one of: none, apc_snmp, bullpap, drac, ether-wake, ilo, ipmilan, ipmitool, wti")
 
+        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
             p.add_option("--power-user",      dest="power_user",      help="username for power management interface, if required")
 
+        if not self.matches_args(args,["dumpvars","poweron","poweroff","reboot","remove","report","getks","list"]):
             p.add_option("--profile",         dest="profile",         help="name of cobbler profile (REQUIRED)")
             p.add_option("--server-override", dest="server_override", help="overrides server value in settings file")
             p.add_option("--static",          dest="static",          help="specifies this interface does (0) or does not use DHCP (1), default 0")

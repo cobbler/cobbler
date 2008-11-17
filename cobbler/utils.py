@@ -1092,6 +1092,10 @@ def get_kickstart_templates(api):
 
     return files.keys()
 
+def safe_filter(var):
+    if var.find("/") != -1 or var.find(";") != -1:
+       raise CX("Invalid characters found in input")
+
 if __name__ == "__main__":
     # print redhat_release()
     # print tftpboot_location()

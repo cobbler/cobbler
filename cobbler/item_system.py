@@ -513,18 +513,22 @@ class System(item.Item):
         return True
 
     def set_power_user(self, power_user):
+        utils.safe_filter(power_user)
         self.power_user = power_user
         return True 
 
     def set_power_pass(self, power_pass):
+        utils.safe_filter(power_pass)
         self.power_pass = power_pass
         return True    
 
     def set_power_address(self, power_address):
+        utils.safe_filter(power_address)
         self.power_address = power_address
         return True
 
     def set_power_id(self, power_id):
+        utils.safe_filter(power_id)
         self.power_id = power_id
         return True
 

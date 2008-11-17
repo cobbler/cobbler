@@ -41,17 +41,24 @@ class PowerTool:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,system,api):
+    def __init__(self,system,api,force_user,force_pass):
         """
         Power library constructor requires a cobbler system object.
         """
         self.system      = system
         self.api         = api
+        self.force_user  = force_user
+        self.force_pass  = force_pass
 
     def power(self, desired_state):
         """
         state is either "on" or "off".  Rebooting is implemented at the api.py
         level.
+
+        The user and password need not be supplied.  If not supplied they
+        will be taken from the environment, COBBLER_POWER_USER and COBBLER_POWER_PASS.
+        If provided, these will override any other data and be used instead.  Users
+        interested in maximum security should take that route.
         """
 
         template = self.get_command_template()
@@ -59,6 +66,12 @@ class PowerTool:
 
         meta = utils.blender(self.api, False, self.system)
         meta["power_mode"] = desired_state
+
+        # allow command line overrides of the username/password 
+        if self.force_user is not None:
+           meta["power_user"] = self.force_user
+        if self.force_pass is not None:
+           meta["power_pass"] = self.force_pass
 
         tmp = templar.Templar(self.api._config)
         cmd = tmp.render(template_file, meta, None, self.system)
@@ -73,15 +86,25 @@ class PowerTool:
         print "      user   : %s" % self.system.power_user
         print "      id     : %s" % self.system.power_id
 
+        # if no username/password data, check the environment
+
+        if meta.get("power_user","") == "":
+            meta["power_user"] = os.environ.get("COBBLER_POWER_USER","")
+        if meta.get("power_pass","") == "":
+            meta["power_pass"] = os.environ.get("COBBLER_POWER_PASS","")
+
         print ""
 
         print "- %s" % cmd
+
+        # now reprocess the command so we don't feed it through the shell
+        cmd = cmd.split(" ")
 
         #tool_needed = cmd.split(" ")[0]
         #if not os.path.exists(tool_needed):
         #   print "warning: %s does not seem to be installed" % tool_needed
 
-        rc = sub_process.call(cmd, shell=True)
+        rc = sub_process.call(cmd, shell=False)
         if not rc == 0:
            raise CX("command failed (rc=%s), please validate the physical setup and cobler config" % rc)
 

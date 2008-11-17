@@ -40,6 +40,20 @@ class Templar:
         self.api         = config.api
         self.settings    = config.settings()
 
+    def check_for_invalid_imports(self,data):
+        """
+        Ensure that Cheetah code is not importing Python modules
+        that may allow for advanced priveledges by ensuring we whitelist
+        the imports that we allow
+        """
+        lines = data.split("\n")
+        for line in lines:
+            if line.find("#import") != -1:
+               rest=line.replace("#import","").replace(" ","").strip()
+               if rest not in [ "time", "random", "re" ]:
+                   print "warning"
+                   raise CX("potentially insecure import in template: %s" % rest)
+
     def render(self, data_input, search_table, out_path, subject=None):
         """
         Render data_input back into a file.
@@ -54,6 +68,8 @@ class Templar:
            raw_data = data_input.read()
         else:
            raw_data = data_input
+
+        self.check_for_invalid_imports(raw_data)
 
         # backward support for Cobbler's legacy (and slightly more readable) 
         # template syntax.
