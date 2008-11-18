@@ -47,6 +47,8 @@ Cobbler CHANGELOG
 - (FEAT) added ppc imports and arches to supplement s390x (and assoc koan chage)
 - (FEAT) added number of interfaces required to each image
 - (BUGF) fix for possible import of insecure modules by Cheetah in Cobbler web.
+- (FEAT) new version function
+- (FEAT) misc WUI organization
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
