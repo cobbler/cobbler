@@ -600,16 +600,16 @@ class System(item.Item):
         for name in ikeys:
             x = self.__get_interface(name)
             buf = buf + _("interface        : %s\n") % (name)
+            buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
             buf = buf + _("  bonding        : %s\n") % x.get("bonding","")
             buf = buf + _("  bonding_master : %s\n") % x.get("bonding_master","")
             buf = buf + _("  bonding_opts   : %s\n") % x.get("bonding_opts","")
-            buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
+            buf = buf + _("  is static?     : %s\n") % x.get("static",False)
+            buf = buf + _("  ip address     : %s\n") % x.get("ip_address","")
+            buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
             buf = buf + _("  gateway        : %s\n") % x.get("gateway","")
             buf = buf + _("  hostname       : %s\n") % x.get("hostname","")
-            buf = buf + _("  ip address     : %s\n") % x.get("ip_address","")
-            buf = buf + _("  is static?     : %s\n") % x.get("static",False)
-            buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
-            buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
+            buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
             buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
 
         return buf
