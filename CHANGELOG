@@ -50,6 +50,8 @@ Cobbler CHANGELOG
 - (FEAT) new version function
 - (FEAT) misc WUI organization
 - (FEAT) allow auth against multiple LDAP servers
+- (FEAT) replicate now copies image objects
+- (BUGF) replicate now uses higher level API methods to avoid some profile sync errors when distros fail
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
