@@ -49,6 +49,7 @@ Cobbler CHANGELOG
 - (BUGF) fix for possible import of insecure modules by Cheetah in Cobbler web.
 - (FEAT) new version function
 - (FEAT) misc WUI organization
+- (FEAT) allow auth against multiple LDAP servers
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
