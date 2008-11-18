@@ -16,6 +16,7 @@ from Cheetah.Template import Template
 import os
 import traceback
 import string
+import math
 from cobbler.utils import *
 import sys
 
@@ -116,7 +117,17 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
 
     def index(self,**args):
-        return self.__render( 'index.tmpl', { } )
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+
+        vernum=self.remote.version()
+        vermajor=math.floor(vernum)
+        verminor=math.floor((vernum*10)%10)
+        vermicro=math.floor((vernum*1000)%100)
+        verstr="%d.%d.%d" % (vermajor, verminor, vermicro)
+        return self.__render( 'index.tmpl', {
+            'version': verstr,
+            })
 
     def menu(self,**args):
         return self.__render( 'blank.tmpl', { } )
@@ -311,6 +322,7 @@ class CobblerWeb(object):
         if len(systems) > 0:
             return self.__render( 'system_list.tmpl', {
                 'systems'          : systems,
+                'profiles'         : self.remote.get_profiles(),
                 'pages'            : pages,
                 'page'             : page,
                 'results_per_page' : results_per_page

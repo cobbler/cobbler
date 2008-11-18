@@ -149,7 +149,7 @@ class BootAPI:
         cmd = sub_process.Popen("/bin/rpm -q cobbler", stdout=sub_process.PIPE, shell=True)
         result = cmd.communicate()[0].replace("cobbler-","")
         if result.find("not installed") != -1:
-            return "?"
+            return ""
         tokens = result[:result.rfind("-")].split(".")
         return int(tokens[0]) + 0.1 * int(tokens[1]) + 0.001 * int(tokens[2])
 
