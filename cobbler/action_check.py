@@ -94,6 +94,7 @@ class BootCheck:
    def check_service(self, status, which, notes=""):
        if notes != "":
            notes = " (NOTE: %s)" % notes
+       rc = 0
        if utils.check_dist() == "redhat":
            if os.path.exists("/etc/rc.d/init.d/%s" % which):
                rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True)
