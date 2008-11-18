@@ -46,7 +46,6 @@ class System(item.Item):
         self.kernel_options_post  = {}
         self.ks_meta              = {}    
         self.interfaces           = {}
-        self.default_interface    = self.settings.default_interface
         self.netboot_enabled      = True
         self.depth                = 2
         self.mgmt_classes         = []              
