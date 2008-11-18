@@ -22,8 +22,7 @@ The main advantage of cobbler is that it glues together a lot of disjoint techno
 
 This manpage will focus on the cobbler command line tool for use in configuring cobbler.  There is also mention
 of the Cobbler WebUI which is usable for day-to-day operation of Cobbler once installed/configured.  Docs on
-the API and XMLRPC components are available online at http://cobbler.et.redhat.com and the companion Wiki:
-https://hosted.fedoraproject.org/projects/cobbler/.
+the API and XMLRPC components are available online at http://fedorahosted.org/cobbler.
 
 Most users will be interested in the Web UI and should set it up, though the command line is needed for initial configuration -- in particular "cobbler check" and "cobbler import".
 
@@ -731,7 +730,7 @@ Triggers provide a way to integrate cobbler with arbitrary 3rd party software wi
 
 =head2 API
 
-Cobbler also makes itself available as a Python API for use by higher level management software.  Learn more at http://cobbler.et.redhat.com
+Cobbler also makes itself available as a Python API for use by higher level management software.  Learn more at http://fedorahosted.org/cobbler
 
 =head2 WEB USER INTERFACE
 
@@ -753,7 +752,7 @@ Cobbler has a mailing list for user and development-related questions/comments a
 
 IRC channel:  irc.freenode.net (#cobbler)
 
-Official web site: http://cobbler.et.redhat.com/
+Official web site: http://fedorahosted.org/cobbler/
 
 Wiki and user contributed content: https://hosted.fedoraproject.org/projects/cobbler/
 
