@@ -195,24 +195,15 @@ class PXEGen:
                 filename = "%s.conf" % utils.get_config_filename(system,interface=name)
                 f2 = os.path.join(self.bootloc, filename)
             elif working_arch.startswith("ppc"):
-                # If no ip address is stored with this interface, try the hostname
-                if not ip:
-                    ip = interface.get("hostname", "")
+                # Determine filename for system-specific yaboot.conf
+                filename = "%s" % utils.get_config_filename(system, interface=name).lower()
+                f2 = os.path.join(self.bootloc, "etc", filename)
 
-                # yaboot wants a filename using the IP address in hex under etc/
-                if ip is None or ip == "":
-                    # print _("Warning: Skipping PowerPC system object (%s) with interface '%s'.  Needs an IP address or hostname to PXE") % (system.name, interface["mac_address"])
-                    continue 
-                else:
-                    # Determine filename for system-specific yaboot.conf
-                    filename = "%s" % utils.get_config_filename(system, interface=name).lower()
-                    f2 = os.path.join(self.bootloc, "etc", filename)
-
-                    # Link to the yaboot binary
-                    f3 = os.path.join(self.bootloc, "ppc", filename)
-                    if os.path.lexists(f3):
-                        utils.rmfile(f3)
-                    os.symlink("../yaboot-1.3.14", f3)
+                # Link to the yaboot binary
+                f3 = os.path.join(self.bootloc, "ppc", filename)
+                if os.path.lexists(f3):
+                    utils.rmfile(f3)
+                os.symlink("../yaboot-1.3.14", f3)
 
             elif working_arch == "s390x":
                 filename = "%s" % utils.get_config_filename(system,interface=name)
@@ -416,27 +407,18 @@ class PXEGen:
                     # Disable yaboot network booting for all interfaces on the system
                     for (name,interface) in system.interfaces.iteritems():
 
-                        # If no ip address is stored with this interface, try the hostname
-                        ip_or_hostname = None
-                        for key in ["ip_address", "hostname"]:
-                            ip_or_hostname = interface.get(key, None)
-                            if ip_or_hostname:
-                                break
+                        # Determine filename for system-specific yaboot.conf
+                        filename = "%s" % utils.get_config_filename(system, interface=name).lower()
 
-                        # If an ip or hostname was found, attempt to remove the yaboot.conf and symlink
-                        if ip_or_hostname:
-                            # Determine filename for system-specific yaboot.conf
-                            filename = "%s" % utils.get_config_filename(system, interface=name).lower()
+                        # Remove symlink to the yaboot binary
+                        f3 = os.path.join(self.bootloc, "ppc", filename)
+                        if os.path.lexists(f3):
+                            utils.rmfile(f3)
 
-                            # Remove symlink to the yaboot binary
-                            f3 = os.path.join(self.bootloc, "ppc", filename)
-                            if os.path.lexists(f3):
-                                utils.rmfile(f3)
-
-                            # Remove the interface-specific config file
-                            f3 = os.path.join(self.bootloc, "etc", filename)
-                            if os.path.lexists(f3):
-                                utils.rmfile(f3)
+                        # Remove the interface-specific config file
+                        f3 = os.path.join(self.bootloc, "etc", filename)
+                        if os.path.lexists(f3):
+                            utils.rmfile(f3)
 
                     # Yaboot/OF doesn't support booting locally once you've
                     # booted off the network, so nothing left to do
@@ -458,7 +440,7 @@ class PXEGen:
 
         # generate the append line
         hkopts = utils.hash_to_string(kopts)
-        if (not arch or arch not in ["ia64","ppc"]) and initrd_path:
+        if initrd_path and (not arch or arch not in ["ia64", "ppc", "ppc64"]):
             append_line = "append initrd=%s %s" % (initrd_path, hkopts)
         else:
             append_line = "append %s" % hkopts
