@@ -28,7 +28,7 @@ HELP_FORMAT = commands.HELP_FORMAT
 class ReportFunction(commands.CobblerFunction):
     
     def help_me(self):
-        return HELP_FORMAT % ("cobbler report","[ARGS|--help]")
+        return HELP_FORMAT % ("cobbler report","[ARGS]")
 
     def command_name(self):
         return "report"

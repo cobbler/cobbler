@@ -223,6 +223,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(664,root,root)
 %config(noreplace) /etc/cobbler/settings
+/var/lib/cobbler/version
 %config(noreplace) /var/lib/cobbler/snippets/partition_select
 %config(noreplace) /var/lib/cobbler/snippets/pre_partition_select
 %config(noreplace) /var/lib/cobbler/snippets/main_partition_select
@@ -251,9 +252,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Mon Nov 17 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.2-1
+* Tue Nov 18 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.2-1
 - Upstream changes (see CHANGELOG)
 - placeholder for future test release
+- packaged /var/lib/cobbler/version
 
 * Fri Nov 14 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.1-1
 - Upstream changes (see CHANGELOG)

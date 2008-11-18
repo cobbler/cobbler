@@ -35,7 +35,7 @@ import cexceptions
 class DistroFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler distro", "<add|copy|edit|find|list|rename|remove|report> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler distro", "<add|copy|edit|find|list|rename|remove|report> [ARGS]")
 
     def command_name(self):
         return "distro"

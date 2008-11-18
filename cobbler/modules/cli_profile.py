@@ -35,13 +35,13 @@ import cexceptions
 class ProfileFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler profile","<add|copy|edit|find|list|rename|remove|report|getks> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler profile","<add|copy|edit|find|getks|list|rename|remove|report> [ARGS]")
 
     def command_name(self):
         return "profile"
 
     def subcommands(self):
-        return ["add","copy","dumpvars","edit","find","list","remove","rename","report","getks"]
+        return ["add","copy","dumpvars","edit","find","getks","list","remove","rename","report"]
 
     def add_options(self, p, args):
             
