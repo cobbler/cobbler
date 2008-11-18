@@ -35,7 +35,6 @@ DEFAULTS = {
     "allow_duplicate_ips"         : 0,
     "bind_bin"                    : "/usr/sbin/named",
     "cobbler_master"              : '',
-    "default_interface"           : 'eth0',
     "default_kickstart"           : "/etc/cobbler/default.ks",
     "default_virt_bridge"         : "xenbr0",
     "default_virt_type"           : "auto",
