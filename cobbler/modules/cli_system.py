@@ -35,13 +35,13 @@ from cexceptions import *
 class SystemFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler system","<add|copy|edit|find|list|poweroff|poweron|reboot|rename|remove|report|getks> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler system","<add|copy|edit|find|list|power[off|on]|reboot|rename|remove|report|getks> [ARGS]")
 
     def command_name(self):
         return "system"
 
     def subcommands(self):
-        return ["add","copy","dumpvars","edit","find","poweroff","poweron","list","reboot","remove","rename","report","getks"]
+        return ["add","copy","dumpvars","edit","find","getks","poweroff","poweron","list","reboot","remove","rename","report"]
 
     def add_options(self, p, args):
 

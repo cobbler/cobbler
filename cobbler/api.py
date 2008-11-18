@@ -47,7 +47,7 @@ from utils import _
 import logging
 import time
 import os
-import fcntl
+import yaml
 
 ERROR = 100
 INFO  = 10
@@ -139,19 +139,29 @@ class BootAPI:
         else:
             logger("%s; %s" % (msg, str(args)))
 
-    def version(self):
+    def version(self, extended=False):
         """
         What version is cobbler?
-        Currently checks the RPM DB, which is not perfect.
-        Will return "?" if not installed.
+
+        If extended == False, returns a float for backwards compatibility
+         
+        If extended == True, returns a dict:
+
+            gitstamp      -- the last git commit hash
+            gitdate       -- the last git commit date on the builder machine
+            builddate     -- the time of the build
+            version       -- something like "1.3.2"
+            version_tuple -- something like [ 1, 3, 2 ]
         """
-        self.log("version")
-        cmd = sub_process.Popen("/bin/rpm -q cobbler", stdout=sub_process.PIPE, shell=True)
-        result = cmd.communicate()[0].replace("cobbler-","")
-        if result.find("not installed") != -1:
-            return ""
-        tokens = result[:result.rfind("-")].split(".")
-        return int(tokens[0]) + 0.1 * int(tokens[1]) + 0.001 * int(tokens[2])
+        fd = open("/var/lib/cobbler/version")
+        data = yaml.load(fd.read()).next()
+        fd.close()
+        if not extended:
+            # for backwards compatibility and use with koan's comparisons
+            elems = data["version_tuple"] 
+            return int(elems[0]) + 0.1*int(elems[1]) + 0.001*int(elems[2])
+        else:
+            return data    
 
     def clear(self):
         """

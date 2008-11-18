@@ -5,7 +5,9 @@ import os.path
 from distutils.core import setup, Extension
 import string
 import cobbler.yaml as yaml
+import cobbler.sub_process as subprocess
 import Cheetah.Template as Template
+import time
 
 VERSION = "1.3.2"
 SHORT_DESC = "Network Boot and Update Server"
@@ -23,6 +25,34 @@ def templatify(template, answers, output):
     t = Template.Template(file=template, searchList=answers)
     open(output,"w").write(t.respond())
 
+def gen_build_version():
+    fd = open(os.path.join(OUTPUT_DIR, "version"),"w+")
+    gitdate = "?"
+    gitstamp = "?"
+    builddate = time.asctime()
+    if os.path.exists(".git"): 
+       # for builds coming from git, include the date of the last commit
+       cmd = subprocess.Popen(["/usr/bin/git","log"],stdout=subprocess.PIPE)
+       data = cmd.communicate()[0].strip()
+       for line in data.split("\n"):
+           if line.startswith("commit"):
+               tokens = line.split(" ",1)
+               gitstamp = tokens[1].strip()
+           if line.startswith("Date:"):
+               tokens = line.split(":",1)
+               gitdate = tokens[1].strip()
+               break
+    data = {
+       "gitdate" : gitdate,
+       "gitstamp"      : gitstamp,
+       "builddate"     : builddate,
+       "version"       : VERSION,
+       "version_tuple" : [ int(x) for x in VERSION.split(".")]
+    }
+    fd.write(yaml.dump(data))
+    fd.close()
+    
+
 def gen_config():
     defaults = {}
     data = yaml.loadFile(DEFAULTS).next()
@@ -31,6 +61,7 @@ def gen_config():
     templatify(SETTINGS_TEMPLATE, defaults, os.path.join(OUTPUT_DIR, "settings"))
 
 if __name__ == "__main__":
+        gen_build_version()
         gen_config()
         # docspath="share/doc/koan-%s/" % VERSION
         bashpath = "/etc/bash_completion.d/"
@@ -141,6 +172,9 @@ if __name__ == "__main__":
 
                                 # backups for upgrades
                                 (backpath, []),
+
+                                # for --version support across distros
+                                (cobpath,  ['config/version']),
 
                                 # bootloaders and syslinux support files
                                 (cobpath,  ['loaders/elilo-3.8-ia64.efi']),

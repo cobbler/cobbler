@@ -59,7 +59,13 @@ class FunctionLoader:
         # if no args given, show all loaded fns
         if len(args) == 1:
             return self.show_options()
+
         called_name = args[1].lower()
+
+        # if -v or --version, make it work
+        if called_name in [ "--version", "-v" ]:
+           called_name = "version"
+           args = [ "/usr/bin/cobbler", "version" ]
 
 
         # also show avail options if command name is bogus
@@ -161,8 +167,8 @@ class FunctionLoader:
         Prints out all loaded functions.
         """
 
-        print "commands:"
-        print "========="
+        print "commands:  (use --help on a subcommand for usage)"
+        print "========"
 
         names = self.functions.keys()
         names.sort()
@@ -254,7 +260,7 @@ class CobblerFunction:
                 print "usage:"
                 print "======"
                 for x in subs: 
-                    print "cobbler %s %s [ARGS|--help]" % (self.command_name(), x)
+                    print "cobbler %s %s [ARGS]" % (self.command_name(), x)
                 return True
         (self.options, self.args) = p.parse_args(args)
         return True

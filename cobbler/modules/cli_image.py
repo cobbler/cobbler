@@ -27,7 +27,7 @@ import cexceptions
 class ImageFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler image","<add|copy|edit|find|list|remove|rename|report> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler image","<add|copy|edit|find|list|remove|rename|report> [ARGS]")
 
     def command_name(self):
         return "image"
