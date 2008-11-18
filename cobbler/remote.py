@@ -339,10 +339,17 @@ class CobblerXMLRPCInterface:
     def version(self,token=None,**rest):
         """
         Return the cobbler version for compatibility testing with remote applications.
-        Returns as a float, 0.6.1-2 should result in (int) "0.612".
+        See api.py for documentation.
         """
         self._log("version",token=token)
         return self.api.version()
+
+    def extended_version(self,token=None,**rest):
+        """
+        Returns the full dictionary of version information.  See api.py for documentation.
+        """
+        self._log("version",token=token)
+        return self.api.version(extended=True)
 
     def get_distros(self,page=None,results_per_page=None,token=None,**rest):
         """

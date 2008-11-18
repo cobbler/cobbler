@@ -120,14 +120,10 @@ class CobblerWeb(object):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
-        vernum=self.remote.version()
-        vermajor=math.floor(vernum)
-        verminor=math.floor((vernum*10)%10)
-        vermicro=math.floor((vernum*1000)%100)
-        verstr="%d.%d.%d" % (vermajor, verminor, vermicro)
+        vdata =self.remote.extended_version()
         return self.__render( 'index.tmpl', {
-            'version': verstr,
-            })
+            'version': vdata["version"],
+        })
 
     def menu(self,**args):
         return self.__render( 'blank.tmpl', { } )
