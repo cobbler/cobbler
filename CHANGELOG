@@ -1,7 +1,7 @@
 Cobbler CHANGELOG
 (all entries mdehaan@redhat.com unless noted otherwise)
 
-- ??? - 1.3
+- Fri Nov 14 2008 - 1.3
 - (FEAT) ACLs to extend authz (see Wiki)
 - (FEAT) puppet integration with --mgmt-classes and external nodes URL
 - (FEAT) added puppet external nodes script, cobbler-ext-nodes
@@ -46,6 +46,7 @@ Cobbler CHANGELOG
 - (FEAT) keep creation and modification times with each object
 - (FEAT) added ppc imports and arches to supplement s390x (and assoc koan chage)
 - (FEAT) added number of interfaces required to each image
+- (BUGF) fix for possible import of insecure modules by Cheetah in Cobbler web.
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
