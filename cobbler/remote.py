@@ -286,7 +286,7 @@ class CobblerXMLRPCInterface:
         obj.set_profile(profile)
         name = mac.replace(":","_")
         obj.set_name(name)
-        obj.set_mac_address(mac, "intf0")
+        obj.set_mac_address(mac, "eth0")
         obj.set_netboot_enabled(False)
         self.api.add_system(obj)
         return 0
