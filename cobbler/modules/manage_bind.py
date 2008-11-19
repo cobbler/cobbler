@@ -87,12 +87,12 @@ class BindManager:
 
         for system in self.systems:
             for (name, interface) in system.interfaces.iteritems():
-                host = interface["hostname"]
+                host = interface["dns_name"]
                 ip   = interface["ip_address"]
                 if not system.is_management_supported(cidr_ok=False):
                     continue
                 if not host or not ip:
-                    # gotsta have some hostname and ip or else!
+                    # gotsta have some dns_name and ip or else!
                     continue
                 if host.find(".") == -1:
                     continue
@@ -111,7 +111,7 @@ class BindManager:
                 if best_match == '': # no match
                    continue
 
-                # strip the zone off the hostname and append the
+                # strip the zone off the dns_name and append the
                 # remainder + ip to the zone list
                 host = host.replace(best_match, '')
                 if host[-1] == '.': # strip trailing '.' if it's there
@@ -131,12 +131,12 @@ class BindManager:
 
         for sys in self.systems:
             for (name, interface) in sys.interfaces.iteritems():
-                host = interface["hostname"]
+                host = interface["dns_name"]
                 ip   = interface["ip_address"]
                 if not sys.is_management_supported(cidr_ok=False):
                     continue
                 if not host or not ip:
-                    # gotsta have some hostname and ip or else!
+                    # gotsta have some dns_name and ip or else!
                     continue
 
                 # match the longest zone!
@@ -155,7 +155,7 @@ class BindManager:
 
                 # strip the zone off the front of the ip
                 # reverse the rest of the octets
-                # append the remainder + hostname
+                # append the remainder + dns_name
                 ip = ip.replace(best_match, '', 1)
                 if ip[0] == '.': # strip leading '.' if it's there
                    ip = ip[1:]
