@@ -55,9 +55,10 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
 
         if not self.matches_args(args,["dumpvars","poweron","poweroff","reboot","remove","report","getks","list"]):
+            p.add_option("--dns-name",        dest="dns_name",      help="ex: server.example.org, used by manage_dns feature")
             p.add_option("--dhcp-tag",        dest="dhcp_tag",      help="for use in advanced DHCP configurations")
             p.add_option("--gateway",         dest="gateway",       help="for static IP / templating usage")
-            p.add_option("--hostname",        dest="hostname",      help="ex: server.example.org")
+            p.add_option("--hostname",        dest="hostname",      help="ex: server.example.org, sets system hostname")
 
             if not self.matches_args(args,["find"]):
                 p.add_option("--interface",       dest="interface",  default="eth0", help="edit this interface")
@@ -71,6 +72,7 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--ksmeta",          dest="ksmeta",        help="ex: 'blippy=7'")
             p.add_option("--mac",             dest="mac",           help="ex: 'AA:BB:CC:DD:EE:FF', (RECOMMENDED)")
             p.add_option("--mgmt-classes",    dest="mgmt_classes",  help="list of config management classes (for Puppet, etc)")
+            p.add_option("--static-routes",   dest="static_routes", help="sets static routes (see manpage)")
             p.add_option("--template-files",  dest="template_files",help="specify files to be generated from templates during a sync")
 
             if not self.matches_args(args, ["find"]):
@@ -180,28 +182,29 @@ class SystemFunction(commands.CobblerFunction):
         if remap:
             my_interface = "eth%s" % my_interface
 
-
-        if self.options.hostname:    obj.set_hostname(self.options.hostname, my_interface)
+        if self.options.dns_name:    obj.set_dns_name(self.options.dns_name, my_interface)
         if self.options.mac:
             if self.options.mac.lower() == 'random':
                 obj.set_mac_address(get_random_mac(self.api), my_interface)
             else:
                 obj.set_mac_address(self.options.mac,   my_interface)
-        if self.options.ip:          obj.set_ip_address(self.options.ip,     my_interface)
-        if self.options.subnet:      obj.set_subnet(self.options.subnet,     my_interface)
-        if self.options.gateway:     obj.set_gateway(self.options.gateway,   my_interface)
-        if self.options.dhcp_tag:    obj.set_dhcp_tag(self.options.dhcp_tag, my_interface)
-        if self.options.virt_bridge: obj.set_virt_bridge(self.options.virt_bridge, my_interface)
-        if self.options.static:      obj.set_static(self.options.static,     my_interface)
-        if self.options.bonding:     obj.set_bonding(self.options.bonding,   my_interface)
+        if self.options.ip:             obj.set_ip_address(self.options.ip,     my_interface)
+        if self.options.subnet:         obj.set_subnet(self.options.subnet,     my_interface)
+        if self.options.dhcp_tag:       obj.set_dhcp_tag(self.options.dhcp_tag, my_interface)
+        if self.options.virt_bridge:    obj.set_virt_bridge(self.options.virt_bridge, my_interface)
+        if self.options.static:         obj.set_static(self.options.static,     my_interface)
+        if self.options.bonding:        obj.set_bonding(self.options.bonding,   my_interface)
         if self.options.bonding_master: obj.set_bonding_master(self.options.bonding_master, my_interface)
-        if self.options.bonding_opts: obj.set_bonding_opts(self.options.bonding_opts, my_interface)
+        if self.options.bonding_opts:   obj.set_bonding_opts(self.options.bonding_opts, my_interface)
+        if self.options.static_routes:  obj.set_static_routes(self.options.static_routes, my_interface)
 
         if self.options.delete_interface:
             success = obj.delete_interface(self.options.delete_interface)
             if not success:
                 raise CX(_('interface does not exist or is the default interface (%s)') % self.options.delete_interface)
 
+        if self.options.hostname:     obj.set_hostname(self.options.hostname)
+        if self.options.gateway:      obj.set_gateway(self.options.gateway)
         if self.options.owners:       obj.set_owners(self.options.owners)
         if self.options.mgmt_classes: obj.set_mgmt_classes(self.options.mgmt_classes)
         if self.options.template_files: obj.set_template_files(self.options.template_files,self.options.inplace)
