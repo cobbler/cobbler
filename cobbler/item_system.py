@@ -201,6 +201,9 @@ class System(item.Item):
         for k in self.interfaces.keys():
             if not self.interfaces[k].has_key("static"):
                self.interfaces[k]["static"] = False
+               self.interfaces[k]["bonding"] = ""
+               self.interfaces[k]["bondingmaster"] = ""
+               self.interfaces[k]["bondingopts"] = ""
 
         # backwards compatibility -- convert string entries to dicts for storage
         # this allows for better usage from the API.
