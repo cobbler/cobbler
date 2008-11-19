@@ -378,8 +378,9 @@ class System(item.Item):
         intf["hostname"] = hostname
         return True
  
-    def set_static_routes(self,routes):
-        data = self.input_string_or_list(routes)
+    def set_static_routes(self,routes,interface):
+        intf = self.__get_interface(interface)
+        data = utils.input_string_or_list(routes)
         intf["static_routes"] = data
         return True
 
@@ -410,9 +411,8 @@ class System(item.Item):
            return True
         raise CX(_("invalid format for MAC address (%s)" % address))
 
-    def set_gateway(self,gateway,interface):
-        intf = self.__get_interface(interface)
-        intf["gateway"] = gateway
+    def set_gateway(self,gateway):
+        self.gateway = gateway
         return True
 
     def set_subnet(self,subnet,interface):

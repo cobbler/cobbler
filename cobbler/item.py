@@ -251,7 +251,7 @@ class Item(serializable.Serializable):
         # special case for systems
         key_found_already = False
         if data.has_key("interfaces"):
-            if key in [ "mac_address", "ip_address", "subnet", "gateway", "virt_bridge", "dhcp_tag", "hostname" ]:
+            if key in [ "mac_address", "ip_address", "subnet", "virt_bridge", "dhcp_tag", "dns_name", "static_routes", "bonding", "bonding_opts", "bonding_master" ]:
                 key_found_already = True
                 for (name, interface) in data["interfaces"].iteritems(): 
                     if value is not None:

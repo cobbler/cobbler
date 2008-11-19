@@ -317,15 +317,15 @@ class Collection(serializable.Serializable):
                match_hosts = []
                input_mac   = intf["mac_address"] 
                input_ip    = intf["ip_address"]
-               input_host  = intf["hostname"]
+               input_dns   = intf["dns_name"]
                if not self.api.settings().allow_duplicate_macs and input_mac is not None and input_mac != "":
                    match_mac = self.api.find_system(mac_address=input_mac,return_list=True)   
                if not self.api.settings().allow_duplicate_ips and input_ip is not None and input_ip != "":
                    match_ip  = self.api.find_system(ip_address=input_ip,return_list=True) 
                # it's ok to conflict with your own net info.
 
-               if not self.api.settings().allow_duplicate_hostnames and input_host is not None and input_host != "":
-                   match_hosts = self.api.find_system(hostname=input_host,return_list=True)
+               if not self.api.settings().allow_duplicate_hostnames and input_dns is not None and input_dns != "":
+                   match_hosts = self.api.find_system(dns_name=input_host,return_list=True)
 
                for x in match_mac:
                    if x.name != ref.name:
@@ -335,7 +335,7 @@ class Collection(serializable.Serializable):
                        raise CX(_("Can't save system %s. The IP address (%s) is already used by system %s (%s)") % (ref.name, intf["ip_address"], x.name, name))
                for x in match_hosts:
                    if x.name != ref.name:
-                       raise CX(_("Can't save system %s.  The hostname (%s) is already used by system %s (%s)") % (ref.name, intf["hostname"], x.name, name))
+                       raise CX(_("Can't save system %s.  The dns name (%s) is already used by system %s (%s)") % (ref.name, intf["dns_name"], x.name, name))
  
     def printable(self):
         """

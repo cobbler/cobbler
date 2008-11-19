@@ -409,7 +409,7 @@ class MultiNIC(BootTest):
         self.assertTrue(system.set_ip_address("127.0.0.5","eth2"))
         self.assertTrue(system.set_dhcp_tag("zero","eth3"))
         self.assertTrue(system.set_virt_bridge("zero","eth4"))
-        self.assertTrue(system.set_gateway("192.168.1.25") # is global
+        self.assertTrue(system.set_gateway("192.168.1.25")) # is global
         self.assertTrue(system.set_mac_address("AA:AA:BB:BB:CC:CC","eth4"))
         self.assertTrue(system.set_dns_name("fooserver","eth4"))
         self.assertTrue(system.set_dhcp_tag("red","eth4"))
