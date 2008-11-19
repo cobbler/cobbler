@@ -101,6 +101,7 @@ class System(item.Item):
                 "bonding_master" : "",
                 "bonding_opts"   : "",
                 "dns_name"       : "",
+                "static_routes"  : [],
             }
 
         return self.interfaces[name]
@@ -233,13 +234,16 @@ class System(item.Item):
             if not self.interfaces[k].has_key("dns_name"):
                # hostname is global for the system, dns_name is per interface
                # this handles the backwards compatibility update details for
-               # older versions of cobbler.
+               # older versions of cobbler which had hostname per interface
+               # which is wrong.
                possible = self.interfaces[k].get("hostname","")
                self.interfaces[k]["dns_name"] = possible
                if self.interfaces[k].has_key("hostname"):
                   del self.interfaces[k]["hostname"]
             if self.interfaces[k].has_key("gateway"):
                del self.interfaces[k]["gateway"]
+            if not self.interfaces[k].has_key("static_routes"):
+               self.interfaces[k]["static_routes"] = []
 
         # backwards compatibility -- convert string entries to dicts for storage
         # this allows for better usage from the API.
@@ -372,6 +376,11 @@ class System(item.Item):
     def set_dns_name(self,hostname,interface):
         intf = self.__get_interface(interface)
         intf["hostname"] = hostname
+        return True
+ 
+    def set_static_routes(self,routes):
+        data = self.input_string_or_list(routes)
+        intf["static_routes"] = data
         return True
 
     def set_hostname(self,hostname):
@@ -653,6 +662,7 @@ class System(item.Item):
             buf = buf + _("  is static?     : %s\n") % x.get("static",False)
             buf = buf + _("  ip address     : %s\n") % x.get("ip_address","")
             buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
+            buf = buf + _("  static routes  : %s\n") % x.get("static_routes",[])
             buf = buf + _("  dns name       : %s\n") % x.get("dns_name","")
             buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
             buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
@@ -676,6 +686,7 @@ class System(item.Item):
             if field == "bonding"       : self.set_bonding(value, interface)
             if field == "bondingmaster" : self.set_bonding_master(value, interface)
             if field == "bondingopts"   : self.set_bonding_opts(value, interface)
+            if field == "staticroutes"  : self.set_static_routes(value, interface)
         return True
          
 
