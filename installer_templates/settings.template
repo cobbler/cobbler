@@ -161,6 +161,7 @@ omshell_bin: /usr/bin/omshell
 #    ipmitool
 #    ilo
 #    rsa
+#    lpar
 
 power_management_default_type: 'ipmitool'
 
