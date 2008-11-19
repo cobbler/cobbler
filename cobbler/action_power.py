@@ -106,7 +106,7 @@ class PowerTool:
 
         rc = sub_process.call(cmd, shell=False)
         if not rc == 0:
-           raise CX("command failed (rc=%s), please validate the physical setup and cobler config" % rc)
+           raise CX("command failed (rc=%s), please validate the physical setup and cobbler config" % rc)
 
         return rc
 
@@ -130,7 +130,8 @@ class PowerTool:
             "ipmitool"   : "/etc/cobbler/power_ipmitool.template",
             "ipmilan"    : "/etc/cobbler/power_ipmilan.template",
             "ilo"        : "/etc/cobbler/power_ilo.template",
-            "rsa"        : "/etc/cobbler/power_rsa.template"
+            "rsa"        : "/etc/cobbler/power_rsa.template",
+            "lpar"       : "/etc/cobbler/power_lpar.template",
         }
 
         result = map.get(self.system.power_type, "")
