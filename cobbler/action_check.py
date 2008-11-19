@@ -81,11 +81,20 @@ class BootCheck:
        # comment out until s390 virtual PXE is fully supported
        # self.check_vsftpd_bin(status)
 
+       self.check_for_cman(status)
+
        return status
+
+   def check_for_cman(self, status):
+       # not doing rpm -q here to be cross-distro friendly
+       if not os.path.exists("/sbin/fence_ilo"):
+           status.append("fencing tools were not found, and are required to use the (optional) power management features. install cman to use them")
+       return True
 
    def check_service(self, status, which, notes=""):
        if notes != "":
            notes = " (NOTE: %s)" % notes
+       rc = 0
        if utils.check_dist() == "redhat":
            if os.path.exists("/etc/rc.d/init.d/%s" % which):
                rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True)

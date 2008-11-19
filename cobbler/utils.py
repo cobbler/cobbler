@@ -886,13 +886,13 @@ def mkdir(path,mode=0777):
            raise CX(_("Error creating") % path)
 
 def set_arch(self,arch):
-   if arch in [ "standard", "ia64", "x86", "i386", "x86_64", "s390x" ]:
+   if arch in [ "standard", "ia64", "x86", "i386", "ppc", "ppc64", "x86_64", "s390x" ]:
        if arch == "x86" or arch == "standard":
            # be consistent 
            arch = "i386"
        self.arch = arch
        return True
-   raise CX(_("arch choices include: x86, x86_64, s390x and ia64"))
+   raise CX(_("arch choices include: x86, x86_64, ppc, ppc64, s390x and ia64"))
 
 def set_os_version(self,os_version):
    if os_version is None:
@@ -1091,6 +1091,10 @@ def get_kickstart_templates(api):
             files[x] = 1
 
     return files.keys()
+
+def safe_filter(var):
+    if var.find("/") != -1 or var.find(";") != -1:
+       raise CX("Invalid characters found in input")
 
 if __name__ == "__main__":
     # print redhat_release()

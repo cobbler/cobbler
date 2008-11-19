@@ -106,7 +106,7 @@ class Replicate:
                 new_distro.from_datastruct(distro)
                 self.link_distro(new_distro)
                 try:
-                    self.api.distros().add(new_distro, save=True)
+                    self.api.add_distro(new_distro)
                     print _("Copied distro %s.") % distro['name']
                 except Exception, e:
                     utils.print_exc(e) 
@@ -134,7 +134,7 @@ class Replicate:
             new_repo = self.api.new_repo()
             new_repo.from_datastruct(repo)
             try:
-                self.api.repos().add(new_repo, save=True)
+                self.api.add_repo(new_repo)
                 print _("Copied repo %s.") % repo['name']
             except Exception, e:
                 utils.print_exc(e) 
@@ -155,14 +155,28 @@ class Replicate:
             new_profile = self.api.new_profile()
             new_profile.from_datastruct(profile)
             try:
-                self.api.profiles().add(new_profile, save=True)
+                self.api.add_profile(new_profile)
                 print _("Copyied profile %s.") % profile['name']
             except Exception, e:
                 utils.print_exc(e)
                 print _("Failed to copy profile %s.") % profile['name']
 
+        # images
+        print _("----- Copying Images")
+        remote_images = self.remote.get_images()
+        for image in remote_images:
+            print _("Importing remote image %s" % image['name'])
+            new_image = self.api.new_image()
+            new_image.from_datastruct(image)
+            try:
+                self.api.add_image(new_image)
+                print _("Copyied image %s.") % image['name']
+            except Exception, e:
+                utils.print_exc(e)
+                print _("Failed to copy image %s.") % profile['image']
+
         # systems
-        # FIXME: seems like this should be optional ?
+        # (optional)
         if self.include_systems:
             print _("----- Copying Systems")
             local_systems = self.api.systems()
@@ -172,7 +186,7 @@ class Replicate:
                 new_system = self.api.new_system()
                 new_system.from_datastruct(system)
                 try:
-                    self.api.systems().add(new_system, save=True)
+                    self.api.add_system(new_system)
                     print _("Copied system %s.") % system['name']
                 except Exception, e:
                     utils.print_exc(e)

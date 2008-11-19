@@ -1,0 +1,1 @@
+/usr/local/sbin/fence_apc_snmp -a $power_address -n $power_id -o $power_mode

@@ -2,7 +2,7 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 1.3.0
+Version: 1.3.2
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
@@ -223,6 +223,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(664,root,root)
 %config(noreplace) /etc/cobbler/settings
+/var/lib/cobbler/version
 %config(noreplace) /var/lib/cobbler/snippets/partition_select
 %config(noreplace) /var/lib/cobbler/snippets/pre_partition_select
 %config(noreplace) /var/lib/cobbler/snippets/main_partition_select
@@ -235,6 +236,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/snippets/download_config_files
 /var/lib/cobbler/elilo-3.8-ia64.efi
 /var/lib/cobbler/menu.c32
+/var/lib/cobbler/yaboot-1.3.14
 %defattr(660,root,root)
 %config(noreplace) /etc/cobbler/users.digest 
 
@@ -249,6 +251,14 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+
+* Tue Nov 18 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.2-1
+- Upstream changes (see CHANGELOG)
+- placeholder for future test release
+- packaged /var/lib/cobbler/version
+
+* Fri Nov 14 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.1-1
+- Upstream changes (see CHANGELOG)
 
 * Fri Sep 26 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.0-1
 - Upstream changes (see CHANGELOG)

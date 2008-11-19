@@ -46,7 +46,6 @@ class System(item.Item):
         self.kernel_options_post  = {}
         self.ks_meta              = {}    
         self.interfaces           = {}
-        self.default_interface    = self.settings.default_interface
         self.netboot_enabled      = True
         self.depth                = 2
         self.mgmt_classes         = []              
@@ -64,6 +63,11 @@ class System(item.Item):
         self.comment              = ""
         self.ctime                = 0
         self.mtime                = 0
+        self.power_type           = self.settings.power_management_default_type
+        self.power_address        = ""
+        self.power_user           = ""
+        self.power_pass           = ""
+        self.power_id             = ""
 
     def delete_interface(self,name):
         """
@@ -153,6 +157,16 @@ class System(item.Item):
 
         self.ctime       = self.load_item(seed_data,'ctime',0)
         self.mtime       = self.load_item(seed_data,'mtime',0)
+
+        # power management integration features
+
+        self.power_type     = self.load_item(seed_data, 'power_type', self.settings.power_management_default_type)
+
+        self.power_address  = self.load_item(seed_data, 'power_address', '')
+        self.power_user     = self.load_item(seed_data, 'power_user', '')
+        self.power_pass     = self.load_item(seed_data, 'power_pass', '')
+        self.power_id       = self.load_item(seed_data, 'power_id', '')
+
 
         # backwards compat, these settings are now part of the interfaces data structure
         # and will contain data only in upgrade scenarios.
@@ -481,6 +495,42 @@ class System(item.Item):
         raise CX(_("kickstart not found"))
 
 
+        #self.power_type           = self.settings.power_management_default_type
+        #self.power_address        = ""
+        #self.power_user           = ""
+        #self.power_pass           = ""
+        #self.power_id             = ""
+
+    def set_power_type(self, power_type):
+        power_type = power_type.lower()
+        valid = "bullpap wti apc_snmp ether-wake ipmilan drac ipmitool ilo rsai none"
+        choices = valid.split(" ")
+        choices.sort()
+        if power_type not in choices:
+            raise CX("power type must be one of: %s" % ",".join(choices))
+        self.power_type = power_type
+        return True
+
+    def set_power_user(self, power_user):
+        utils.safe_filter(power_user)
+        self.power_user = power_user
+        return True 
+
+    def set_power_pass(self, power_pass):
+        utils.safe_filter(power_pass)
+        self.power_pass = power_pass
+        return True    
+
+    def set_power_address(self, power_address):
+        utils.safe_filter(power_address)
+        self.power_address = power_address
+        return True
+
+    def set_power_id(self, power_id):
+        utils.safe_filter(power_id)
+        self.power_id = power_id
+        return True
+
     def to_datastruct(self):
         return {
            'name'                  : self.name,
@@ -506,7 +556,12 @@ class System(item.Item):
            'template_files'        : self.template_files,
            'comment'               : self.comment,
            'ctime'                 : self.ctime,
-           'mtime'                 : self.mtime
+           'mtime'                 : self.mtime,
+           'power_type'            : self.power_type,
+           'power_address'         : self.power_address,
+           'power_user'            : self.power_user,
+           'power_pass'            : self.power_pass,
+           'power_id'              : self.power_id 
         }
 
     def printable(self):
@@ -533,21 +588,27 @@ class System(item.Item):
         buf = buf + _("virt ram              : %s\n") % self.virt_ram
         buf = buf + _("virt type             : %s\n") % self.virt_type
 
+        buf = buf + _("power type            : %s\n") % self.power_type
+        buf = buf + _("power address         : %s\n") % self.power_address
+        buf = buf + _("power user            : %s\n") % self.power_user
+        buf = buf + _("power password        : %s\n") % self.power_pass
+        buf = buf + _("power id              : %s\n") % self.power_id
+
         ikeys = self.interfaces.keys()
         ikeys.sort()
         for name in ikeys:
             x = self.__get_interface(name)
             buf = buf + _("interface        : %s\n") % (name)
+            buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
             buf = buf + _("  bonding        : %s\n") % x.get("bonding","")
             buf = buf + _("  bonding_master : %s\n") % x.get("bonding_master","")
             buf = buf + _("  bonding_opts   : %s\n") % x.get("bonding_opts","")
-            buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
+            buf = buf + _("  is static?     : %s\n") % x.get("static",False)
+            buf = buf + _("  ip address     : %s\n") % x.get("ip_address","")
+            buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
             buf = buf + _("  gateway        : %s\n") % x.get("gateway","")
             buf = buf + _("  hostname       : %s\n") % x.get("hostname","")
-            buf = buf + _("  ip address     : %s\n") % x.get("ip_address","")
-            buf = buf + _("  is static?     : %s\n") % x.get("static",False)
-            buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
-            buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
+            buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
             buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
 
         return buf
@@ -574,6 +635,10 @@ class System(item.Item):
          
 
     def remote_methods(self):
+
+        # WARNING: versions with hyphens are old and are in for backwards
+        # compatibility.  At some point they may be removed.
+
         return {
            'name'             : self.set_name,
            'profile'          : self.set_profile,
@@ -609,7 +674,12 @@ class System(item.Item):
            'mgmt_classes'     : self.set_mgmt_classes,           
            'template-files'   : self.set_template_files,
            'template_files'   : self.set_template_files,           
-           'comment'          : self.set_comment
+           'comment'          : self.set_comment,
+           'power_type'       : self.set_power_type,
+           'power_address'    : self.set_power_address,
+           'power_user'       : self.set_power_user,
+           'power_pass'       : self.set_power_pass,
+           'power_id'         : self.set_power_id
         }
 
 

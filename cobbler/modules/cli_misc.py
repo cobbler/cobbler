@@ -67,7 +67,7 @@ class CheckFunction(commands.CobblerFunction):
 class ImportFunction(commands.CobblerFunction):
     
     def help_me(self):
-        return HELP_FORMAT % ("cobbler import","[ARGS|--help]")
+        return HELP_FORMAT % ("cobbler import","[ARGS]")
 
     def command_name(self):
         return "import"
@@ -120,7 +120,7 @@ class ReserializeFunction(commands.CobblerFunction):
 class ListFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return HELP_FORMAT % ("cobbler list","[ARGS|--help]")
+        return HELP_FORMAT % ("cobbler list","[ARGS]")
 
     def command_name(self):
         return "list"
@@ -151,7 +151,7 @@ class ListFunction(commands.CobblerFunction):
 class StatusFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return HELP_FORMAT % ("cobbler status","[ARGS|--help]")
+        return HELP_FORMAT % ("cobbler status","[ARGS]")
 
     def command_name(self):
         return "status"
@@ -177,7 +177,7 @@ class SyncFunction(commands.CobblerFunction):
 class RepoSyncFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return HELP_FORMAT % ("cobbler reposync","[ARGS|--help]")
+        return HELP_FORMAT % ("cobbler reposync","[ARGS]")
 
     def command_name(self):
         return "reposync"
@@ -214,7 +214,7 @@ class BuildIsoFunction(commands.CobblerFunction):
         p.add_option("--tempdir",  dest="tempdir",  help="(OPTIONAL) working directory")
 
     def help_me(self):
-       return HELP_FORMAT % ("cobbler buildiso","")
+       return HELP_FORMAT % ("cobbler buildiso","[ARGS]")
     
     def command_name(self):
        return "buildiso"
@@ -232,7 +232,7 @@ class BuildIsoFunction(commands.CobblerFunction):
 class ReplicateFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return HELP_FORMAT % ("cobbler replicate","[ARGS|--help]")
+        return HELP_FORMAT % ("cobbler replicate","[ARGS]")
 
     def command_name(self):
         return "replicate"
@@ -262,7 +262,7 @@ class ReplicateFunction(commands.CobblerFunction):
 class AclFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return HELP_FORMAT % ("cobbler aclsetup","[ARGS|--help]")
+        return HELP_FORMAT % ("cobbler aclsetup","[ARGS]")
 
     def command_name(self):
         return "aclsetup"
@@ -281,6 +281,48 @@ class AclFunction(commands.CobblerFunction):
             self.options.removegroup
         )
 
+########################################################
+
+class VersionFunction(commands.CobblerFunction):
+
+    def help_me(self):
+        return HELP_FORMAT % ("cobbler version","")
+
+    def command_name(self):
+        return "version"
+
+    def add_options(self, p, args):
+        pass
+
+    def run(self):
+ 
+        # --version output format borrowed from ls, so it must be right :)
+
+        versions = self.api.version(extended=True)
+
+        print "cobbler %s" % versions["version"]
+        print ""
+
+        # print extended info if available, which is useful for devel branch testing
+        print "build date  : %s" % versions["builddate"]
+        if versions.get("gitstamp","?") != "?":
+           print "git hash    : %s" % versions["gitstamp"]
+        if versions.get("gitdate", "?") != "?":
+           print "git date    : %s" % versions["gitdate"]
+
+        print ""
+
+        print "Copyright (C) 2006-2008 Red Hat, Inc."
+        print "License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl.html>"
+        print "This is free software: you are free to change and redistribute it."
+        print "There is NO WARRANTY, to the extent permitted by law."
+
+        print ""
+        
+        print "Written by Michael DeHaan."
+
+        return True
+
     
 ########################################################
 # MODULE HOOKS
@@ -297,7 +339,8 @@ def cli_functions(api):
        CheckFunction(api), ImportFunction(api), ReserializeFunction(api),
        ListFunction(api), StatusFunction(api),
        SyncFunction(api), RepoSyncFunction(api), ValidateKsFunction(api),
-       ReplicateFunction(api), AclFunction(api)
+       ReplicateFunction(api), AclFunction(api),
+       VersionFunction(api)
     ]
     return []
 

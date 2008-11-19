@@ -59,13 +59,24 @@ def authenticate(api_handle,username,password):
     anon_bind = api_handle.settings().ldap_anonymous_bind
     prefix    = api_handle.settings().ldap_search_prefix
 
-    # form our ldap uri based on connection port
-    if port == '389':
-        uri = 'ldap://' + server
-    elif port == '636':
-        uri = 'ldaps://' + server
+    # allow multiple servers split by a space
+    if server.find(" "):
+        servers = server.split()
     else:
-        uri = 'ldap://' + "%s:%s" % (server,port)
+        servers = [server]
+
+    uri = ""
+    for server in servers:
+        # form our ldap uri based on connection port
+        if port == '389':
+            uri += 'ldap://' + server
+        elif port == '636':
+            uri += 'ldaps://' + server
+        else:
+            uri += 'ldap://' + "%s:%s" % (server,port)
+	uri += ' '
+
+    uri = uri.strip()
 
     # connect to LDAP host
     dir = ldap.initialize(uri)

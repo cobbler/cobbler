@@ -40,18 +40,16 @@ timezone  America/New_York
 install
 # Clear the Master Boot Record
 zerombr
-
-# Magically figure out how to partition this thing
-SNIPPET::main_partition_select
+# Allow anaconda to partition the system as needed
+autopart
 
 %pre
-SNIPPET::pre_partition_select
 SNIPPET::pre_install_network_config
 $kickstart_start
 %end
 
 %packages
-$func_install_if_enabled
+SNIPPET::func_install_if_enabled
 %end
 
 %post

@@ -35,7 +35,7 @@ import cexceptions
 class RepoFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler repo","<add|copy|edit|find|list|remove|rename|report> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler repo","<add|copy|edit|find|list|remove|rename|report> [ARGS]")
 
     def command_name(self):
         return "repo"

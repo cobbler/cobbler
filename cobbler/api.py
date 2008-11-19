@@ -34,6 +34,7 @@ import action_buildiso
 import action_replicate
 import action_acl
 import action_report
+import action_power
 from cexceptions import *
 import sub_process
 import module_loader
@@ -41,11 +42,12 @@ import kickgen
 import yumgen
 import pxegen
 import acls
+from utils import _
 
 import logging
+import time
 import os
-import fcntl
-from utils import _
+import yaml
 
 ERROR = 100
 INFO  = 10
@@ -137,19 +139,29 @@ class BootAPI:
         else:
             logger("%s; %s" % (msg, str(args)))
 
-    def version(self):
+    def version(self, extended=False):
         """
         What version is cobbler?
-        Currently checks the RPM DB, which is not perfect.
-        Will return "?" if not installed.
+
+        If extended == False, returns a float for backwards compatibility
+         
+        If extended == True, returns a dict:
+
+            gitstamp      -- the last git commit hash
+            gitdate       -- the last git commit date on the builder machine
+            builddate     -- the time of the build
+            version       -- something like "1.3.2"
+            version_tuple -- something like [ 1, 3, 2 ]
         """
-        self.log("version")
-        cmd = sub_process.Popen("/bin/rpm -q cobbler", stdout=sub_process.PIPE, shell=True)
-        result = cmd.communicate()[0].replace("cobbler-","")
-        if result.find("not installed") != -1:
-            return "?"
-        tokens = result[:result.rfind("-")].split(".")
-        return int(tokens[0]) + 0.1 * int(tokens[1]) + 0.001 * int(tokens[2])
+        fd = open("/var/lib/cobbler/version")
+        data = yaml.load(fd.read()).next()
+        fd.close()
+        if not extended:
+            # for backwards compatibility and use with koan's comparisons
+            elems = data["version_tuple"] 
+            return int(elems[0]) + 0.1*int(elems[1]) + 0.001*int(elems[2])
+        else:
+            return data    
 
     def clear(self):
         """
@@ -603,4 +615,25 @@ class BootAPI:
 
     def get_kickstart_templates(self):
         return utils.get_kickstar_templates(self)
+
+    def power_on(self, system, user, password):
+        """
+        Powers up a system that has power management configured.
+        """
+        return action_power.PowerTool(system,self,user,password).power("on")
+
+    def power_off(self, system, user, password):
+        """
+        Powers down a system that has power management configured.
+        """
+        return action_power.PowerTool(system,self,user,password).power("off")
+
+    def reboot(self,system, user, password):
+        """
+        Cycles power on a system that has power management configured.
+        """
+        self.power_off(system, user, password)
+        time.sleep(1)
+        return self.power_on(system, user, password)
+        
 

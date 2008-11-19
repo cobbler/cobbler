@@ -286,7 +286,7 @@ class CobblerXMLRPCInterface:
         obj.set_profile(profile)
         name = mac.replace(":","_")
         obj.set_name(name)
-        obj.set_mac_address(mac, "intf0")
+        obj.set_mac_address(mac, "eth0")
         obj.set_netboot_enabled(False)
         self.api.add_system(obj)
         return 0
@@ -339,10 +339,17 @@ class CobblerXMLRPCInterface:
     def version(self,token=None,**rest):
         """
         Return the cobbler version for compatibility testing with remote applications.
-        Returns as a float, 0.6.1-2 should result in (int) "0.612".
+        See api.py for documentation.
         """
         self._log("version",token=token)
         return self.api.version()
+
+    def extended_version(self,token=None,**rest):
+        """
+        Returns the full dictionary of version information.  See api.py for documentation.
+        """
+        self._log("version",token=token)
+        return self.api.version(extended=True)
 
     def get_distros(self,page=None,results_per_page=None,token=None,**rest):
         """
@@ -1660,6 +1667,12 @@ def test_xmlrpc_rw():
    server.modify_system(sid, "mgmt-classes", [ "one", "two", "three"], token)
    server.modify_system(sid, "template-files", {}, token)
    server.modify_system(sid, "comment", "...", token)
+   server.modify_system(sid, "power_address", "power.example.org", token)
+   server.modify_system(sid, "power_type", "ipmitool", token)
+   server.modify_system(sid, "power_user", "Admin", token)
+   server.modify_system(sid, "power_pass", "magic", token)
+   server.modify_system(sid, "power_id", "7", token)
+
    server.save_system(sid,token)
    
    api.deserialize() 

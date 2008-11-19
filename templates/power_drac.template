@@ -1,0 +1,1 @@
+/sbin/fence_drac -a $power_address -l $power_user -p $power_pass -m $power_id -o $power_mode 

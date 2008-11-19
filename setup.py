@@ -5,9 +5,11 @@ import os.path
 from distutils.core import setup, Extension
 import string
 import cobbler.yaml as yaml
+import cobbler.sub_process as subprocess
 import Cheetah.Template as Template
+import time
 
-VERSION = "1.3.0"
+VERSION = "1.3.2"
 SHORT_DESC = "Network Boot and Update Server"
 LONG_DESC = """
 Cobbler is a network boot and update server.  Cobbler supports PXE, provisioning virtualized images, and reinstalling existing Linux machines.  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler also has a Python and XMLRPC API for integration with other applications.
@@ -23,6 +25,34 @@ def templatify(template, answers, output):
     t = Template.Template(file=template, searchList=answers)
     open(output,"w").write(t.respond())
 
+def gen_build_version():
+    fd = open(os.path.join(OUTPUT_DIR, "version"),"w+")
+    gitdate = "?"
+    gitstamp = "?"
+    builddate = time.asctime()
+    if os.path.exists(".git"): 
+       # for builds coming from git, include the date of the last commit
+       cmd = subprocess.Popen(["/usr/bin/git","log"],stdout=subprocess.PIPE)
+       data = cmd.communicate()[0].strip()
+       for line in data.split("\n"):
+           if line.startswith("commit"):
+               tokens = line.split(" ",1)
+               gitstamp = tokens[1].strip()
+           if line.startswith("Date:"):
+               tokens = line.split(":",1)
+               gitdate = tokens[1].strip()
+               break
+    data = {
+       "gitdate" : gitdate,
+       "gitstamp"      : gitstamp,
+       "builddate"     : builddate,
+       "version"       : VERSION,
+       "version_tuple" : [ int(x) for x in VERSION.split(".")]
+    }
+    fd.write(yaml.dump(data))
+    fd.close()
+    
+
 def gen_config():
     defaults = {}
     data = yaml.loadFile(DEFAULTS).next()
@@ -31,6 +61,7 @@ def gen_config():
     templatify(SETTINGS_TEMPLATE, defaults, os.path.join(OUTPUT_DIR, "settings"))
 
 if __name__ == "__main__":
+        gen_build_version()
         gen_config()
         # docspath="share/doc/koan-%s/" % VERSION
         bashpath = "/etc/bash_completion.d/"
@@ -142,9 +173,13 @@ if __name__ == "__main__":
                                 # backups for upgrades
                                 (backpath, []),
 
+                                # for --version support across distros
+                                (cobpath,  ['config/version']),
+
                                 # bootloaders and syslinux support files
                                 (cobpath,  ['loaders/elilo-3.8-ia64.efi']),
                                 (cobpath,  ['loaders/menu.c32']),
+                                (cobpath,  ['loaders/yaboot-1.3.14']),
                                 ("/var/lib/cobbler/config/distros.d",  []),
                                 ("/var/lib/cobbler/config/profiles.d", []),
                                 ("/var/lib/cobbler/config/systems.d",  []),
@@ -169,9 +204,21 @@ if __name__ == "__main__":
 				(etcpath,  ['templates/pxesystem.template']),
 				(etcpath,  ['templates/pxesystem_s390x.template']),
 				(etcpath,  ['templates/pxesystem_ia64.template']),
+				(etcpath,  ['templates/pxesystem_ppc.template']),
 				(etcpath,  ['templates/pxeprofile.template']),
 				(etcpath,  ['templates/pxelocal.template']),
                                 (etcpath,  ['templates/zone.template']),
+
+                                # templates for power management
+                                (etcpath, ['templates/power_apc_snmp.template']), 
+                                (etcpath, ['templates/power_ipmilan.template']),
+                                (etcpath, ['templates/power_bullpap.template']),     
+                                (etcpath, ['templates/power_ipmitool.template']),
+                                (etcpath, ['templates/power_drac.template']),        
+                                (etcpath, ['templates/power_rsa.template']),
+                                (etcpath, ['templates/power_ether_wake.template']),  
+                                (etcpath, ['templates/power_wti.template']),
+                                (etcpath, ['templates/power_ilo.template']),
 
                                 # templates for /usr/bin/cobbler-setup
                                 (itemplates, ['installer_templates/modules.conf.template']),

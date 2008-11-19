@@ -32,25 +32,33 @@ function get_random_mac()
     xmlHttp.send(null);
 }
 
-function bonding_change(value)
+#raw
+function intf_enable_field(field,enabled)
 {
-    if (value == "master") {
-        document.getElementById("bondingmaster").disabled = true
-        document.getElementById("bondingopts").disabled = false
-        document.getElementById("bondingmaster").value = ""
-    } else if (value == "slave") {
-        document.getElementById("bondingmaster").disabled = false
-        document.getElementById("bondingopts").disabled = true
-        document.getElementById("bondingopts").value = ""
+    if (enabled) {
+        document.getElementById(field + "_row").style.display="table-row"
     } else {
-        document.getElementById("bondingmaster").disabled = true
-        document.getElementById("bondingopts").disabled = true
-        document.getElementById("bondingmaster").value = ""
-        document.getElementById("bondingopts").value = ""
+        document.getElementById(field + "_row").style.display="none"
     }
 }
 
-#raw
+function intf_update_visibility()
+{
+    is_slave=document.getElementById("bonding_is_slave").checked
+    is_master=document.getElementById("bonding_is_master").checked
+    is_static=document.getElementById("static_true").checked
+    
+    intf_enable_field("static",!is_slave)
+    intf_enable_field("ipaddress",(!is_slave) && is_static)
+    intf_enable_field("subnet",(!is_slave) && is_static)
+    intf_enable_field("gateway",(!is_slave) && is_static)
+    intf_enable_field("hostname",!is_slave)
+    intf_enable_field("dhcptag",!is_slave)
+    intf_enable_field("virtbridge",!is_master)
+    intf_enable_field("bondingopts",is_master)
+    intf_enable_field("bondingmaster",is_slave)
+}
+
 function get_selected_interface()
 {
    return document.getElementById("interfaces").value
@@ -85,15 +93,15 @@ function on_interface_add()
    }
 
    interface_table[iname]["macaddress"] = ""
+   interface_table[iname]["bonding"] = ""
+   interface_table[iname]["bondingmaster"] = ""
+   interface_table[iname]["bondingopts"] = ""
    interface_table[iname]["ipaddress"] = ""
    interface_table[iname]["hostname"] = ""
    interface_table[iname]["dhcptag"] = ""
    interface_table[iname]["virtbridge"] = ""
    interface_table[iname]["subnet"] = ""
    interface_table[iname]["gateway"] = ""
-   interface_table[iname]["bonding"] = ""
-   interface_table[iname]["bondingmaster"] = ""
-   interface_table[iname]["bondingopts"] = ""
    interface_table[iname]["static"] = false
    interface_table[iname]["present"] = "1"
    interface_table[iname]["original"] = "0"
@@ -135,6 +143,15 @@ function on_interface_delete()
    load_intf()
 } 
 
+function get_enabled_field(field,enabled)
+{
+    if (enabled) {
+        return document.getElementById(field).value
+    } else {
+        return ""
+    }
+}
+
 function save_intf(which) 
 {
     // this populates the interface widget with the data for the currently selected interface
@@ -147,18 +164,30 @@ function save_intf(which)
        itable = interface_table[iname]
     }
 
+    is_slave=document.getElementById("bonding_is_slave").checked
+    is_master=document.getElementById("bonding_is_master").checked
+    is_static=document.getElementById("static_true").checked
+
     itable["name"]       = iname
     itable["macaddress"] = document.getElementById("macaddress").value
-    itable["ipaddress"]  = document.getElementById("ipaddress").value
-    itable["hostname"]   = document.getElementById("hostname").value
-    itable["dhcptag"]    = document.getElementById("dhcptag").value
-    itable["virtbridge"] = document.getElementById("virtbridge").value
-    itable["subnet"]     = document.getElementById("subnet").value
-    itable["gateway"]    = document.getElementById("gateway").value
-    itable["bonding"]    = document.getElementById("bonding").value
-    itable["bondingmaster"] = document.getElementById("bondingmaster").value
-    itable["bondingopts"] = document.getElementById("bondingopts").value
-    itable["static"]     = document.getElementById("static").checked
+
+    var bond = "na"
+    if (document.getElementById("bonding_is_master").checked == true) {
+       bond = "master"
+    } else if (document.getElementById("bonding_is_slave").checked == true) {
+       bond = "slave"
+    }
+    itable["bonding"]    = bond
+    
+    itable["bondingmaster"] = get_enabled_field("bondingmaster",is_slave)
+    itable["bondingopts"]   = get_enabled_field("bondingopts",is_master)
+    itable["static"]     = document.getElementById("static_true").checked
+    itable["ipaddress"]  = get_enabled_field("ipaddress",(!is_slave) && is_static)
+    itable["subnet"]     = get_enabled_field("subnet",(!is_slave) && is_static)
+    itable["gateway"]    = get_enabled_field("gateway",(!is_slave) && is_static)
+    itable["hostname"]   = get_enabled_field("hostname",!is_slave)
+    itable["dhcptag"]    = get_enabled_field("dhcptag",!is_slave)
+    itable["virtbridge"] = get_enabled_field("virtbridge",!is_master)
     itable["present"]    = document.getElementById("present").value
     itable["original"]   = document.getElementById("original").value
 
@@ -170,32 +199,30 @@ function load_intf()
     // and is called when the user picks a certain interface from the drop-down
     intf = get_selected_interface()
     document.getElementById("macaddress").value    = interface_table[intf]["macaddress"]
+    if (interface_table[intf]["bonding"] == "master") {
+       document.getElementById("bonding_is_master").checked = true       
+    } else if (interface_table[intf]["bonding"] == "slave") {
+       document.getElementById("bonding_is_slave").checked = true       
+    } else {
+       document.getElementById("bonding_is_na").checked = true       
+    }
+    document.getElementById("bondingmaster").value = interface_table[intf]["bondingmaster"]
+    document.getElementById("bondingopts").value   = interface_table[intf]["bondingopts"]
+    if (interface_table[intf]["static"]) {
+        document.getElementById("static_true").checked = true
+    } else {
+        document.getElementById("static_false").checked = true
+    }
     document.getElementById("ipaddress").value     = interface_table[intf]["ipaddress"]
+    document.getElementById("subnet").value        = interface_table[intf]["subnet"]
+    document.getElementById("gateway").value       = interface_table[intf]["gateway"]
     document.getElementById("hostname").value      = interface_table[intf]["hostname"]
     document.getElementById("dhcptag").value       = interface_table[intf]["dhcptag"]
     document.getElementById("virtbridge").value    = interface_table[intf]["virtbridge"]
-    document.getElementById("subnet").value        = interface_table[intf]["subnet"]
-    document.getElementById("gateway").value       = interface_table[intf]["gateway"]
-    bond                                           = interface_table[intf]["bonding"]
-    document.getElementById("bondingmaster").value = interface_table[intf]["bondingmaster"]
-    document.getElementById("bondingopts").value   = interface_table[intf]["bondingopts"]
-    document.getElementById("static").checked      = interface_table[intf]["static"]
     document.getElementById("present").value       = interface_table[intf]["present"]
     document.getElementById("original").value      = interface_table[intf]["original"]
     
-
-    if (bond == "master") {
-       document.getElementById("bonding_is_master").checked = true       
-       bonding_change("master")
-    } else if (bond == "slave") {
-       document.getElementById("bonding_is_slave").checked = true       
-       bonding_change("slave")
-    } else {
-       document.getElementById("bonding_is_na").checked = true       
-       bonding_change("na")
-    }
-
-
+    intf_update_visibility()
 }
 
 function clear_intf()
@@ -203,18 +230,18 @@ function clear_intf()
     // this clears the interface list and populates it with the currently selected interface data
 
     document.getElementById("macaddress").value    = ""
+    document.getElementById("bonding_is_na").checked = true
+    document.getElementById("bondingmaster").value = ""
+    document.getElementById("bondingopts").value   = ""
+    document.getElementById("static_false").checked = true
     document.getElementById("ipaddress").value     = ""
+    document.getElementById("subnet").value        = ""
+    document.getElementById("gateway").value       = ""
     document.getElementById("hostname").value      = ""
     document.getElementById("dhcptag").value       = ""
     document.getElementById("virtbridge").value    = ""
-    document.getElementById("subnet").value        = ""
-    document.getElementById("gateway").value       = ""
-    document.getElementById("bonding").value       = ""
-    document.getElementById("bondingmaster").value = ""
-    document.getElementById("bondingopts").value   = ""
     document.getElementById("present").value       = "1"
     document.getElementById("original").value      = "0"
-    document.getElementById("static").value        = false
 
 }
 #end raw
@@ -232,37 +259,37 @@ function build_interface_table()
            interface_table['$iname'] = new Array()
            interface_table['$iname']["macaddress"] = "$system.interfaces[$iname]['mac_address']"
            //alert("$iname has a mac:" + interface_table["$iname"]["macaddress"])
-           interface_table['$iname']["ipaddress"]  = "$system.interfaces[$iname]['ip_address']"
-           interface_table['$iname']["hostname"]   = "$system.interfaces[$iname]['hostname']"
-           interface_table['$iname']["dhcptag"]    = "$system.interfaces[$iname]['dhcp_tag']"
-           interface_table['$iname']["virtbridge"] = "$system.interfaces[$iname]['virt_bridge']"
-           interface_table['$iname']["subnet"]     = "$system.interfaces[$iname]['subnet']"
-           interface_table['$iname']["gateway"]    = "$system.interfaces[$iname]['gateway']"
            interface_table['$iname']["bonding"]    = "$system.interfaces[$iname]['bonding']"
            interface_table['$iname']["bondingmaster"] = "$system.interfaces[$iname]['bonding_master']"
            interface_table['$iname']["bondingopts"] = "$system.interfaces[$iname]['bonding_opts']"
-           interface_table['$iname']["present"]    = "1"
-           interface_table['$iname']["original"]   = "1"
            if ("$system.interfaces[$iname]['static']" != "False") {
                interface_table['$iname']["static"]     = true
            } else {
                interface_table['$iname']["static"]     = false
            }
+           interface_table['$iname']["ipaddress"]  = "$system.interfaces[$iname]['ip_address']"
+           interface_table['$iname']["subnet"]     = "$system.interfaces[$iname]['subnet']"
+           interface_table['$iname']["gateway"]    = "$system.interfaces[$iname]['gateway']"
+           interface_table['$iname']["hostname"]   = "$system.interfaces[$iname]['hostname']"
+           interface_table['$iname']["dhcptag"]    = "$system.interfaces[$iname]['dhcp_tag']"
+           interface_table['$iname']["virtbridge"] = "$system.interfaces[$iname]['virt_bridge']"
+           interface_table['$iname']["present"]    = "1"
+           interface_table['$iname']["original"]   = "1"
            last = "$iname"
        #end for
     #else
        interface_table["eth0"] = new Array()
        interface_table["eth0"]["macaddress"] = ""
-       interface_table["eth0"]["ipaddress"] = ""
-       interface_table["eth0"]["hostname"] = ""
-       interface_table["eth0"]["dhcptag"] = ""
-       interface_table["eth0"]["virtbridge"] = ""
-       interface_table["eth0"]["subnet"] = ""
-       interface_table["eth0"]["gateway"] = ""
        interface_table["eth0"]["bonding"] = ""
        interface_table["eth0"]["bondingmaster"] = ""
        interface_table["eth0"]["bondingopts"] = ""
        interface_table["eth0"]["static"] = ""
+       interface_table["eth0"]["ipaddress"] = ""
+       interface_table["eth0"]["subnet"] = ""
+       interface_table["eth0"]["gateway"] = ""
+       interface_table["eth0"]["hostname"] = ""
+       interface_table["eth0"]["dhcptag"] = ""
+       interface_table["eth0"]["virtbridge"] = ""
        interface_table["eth0"]["present"] = "1"
        interface_table["eth0"]["original"] = "0"
     #end if
@@ -392,11 +419,31 @@ function page_onload() {
     #else
        #set $comm = ""
     #end if
-    <textarea rows="5" cols="30" 400px;" name="comment" id="comment">$comm</textarea>
+    <textarea rows="5" cols="30" style="width: 400px;" name="comment" id="comment">$comm</textarea>
     <p class="context-tip">This is a free-form description field</p>
     </td>
     </tr>
 
+
+    <tr>
+    <td>
+    <label for="netboot">Netboot Enabled</label>
+    </td>
+    <td>
+
+    #if $system
+       #if str($system.netboot_enabled) != "False"
+           <input type="checkbox" name="netboot" id="netboot" checked=True>
+       #else
+           <input type="checkbox" name="netboot" id="netboot">
+       #end if
+    #else
+       <input type="checkbox" name="netboot" id="netboot" checked="True">
+    #end if
+
+    <p class="context-tip">For PXE setups, select to boot the profile below for the system.<br/>De-select to boot the system from local disk.</p>
+    </td>
+    </tr>
 
     <tr>
     <td>
@@ -413,6 +460,20 @@ function page_onload() {
         #end for
     </select>
     <p class="context-tip">What profile should be installed on this system?</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="ksmeta">Kickstart Metadata</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="ksmeta" id="ksmeta"
+        #if $system
+            value="$system.ks_meta"
+        #end if
+    />
+    <p class="context-tip">Example: dog=fido gnome=yes</p>
     </td>
     </tr>
 
@@ -441,40 +502,6 @@ function page_onload() {
         #end if
     /> 
     <p class="context-tip">Example: clocksource=pit nosmp noapic nolapic</p>
-    </td>
-    </tr>
-
-    <tr>
-    <td>
-    <label for="ksmeta">Kickstart Metadata</label>
-    </td>
-    <td>
-    <input type="text" size="255" style="width: 400px;" name="ksmeta" id="ksmeta"
-        #if $system
-            value="$system.ks_meta"
-        #end if
-    />
-    <p class="context-tip">Example: dog=fido gnome=yes</p>
-    </td>
-    </tr>
-
-    <tr>
-    <td>
-    <label for="netboot">Netboot Enabled</label>
-    </td>
-    <td>
-
-    #if $system
-       #if str($system.netboot_enabled) != "False"
-           <input type="checkbox" name="netboot" id="netboot" checked=True>
-       #else
-           <input type="checkbox" name="netboot" id="netboot">
-       #end if
-    #else
-       <input type="checkbox" name="netboot" id="netboot" checked="True">
-    #end if
-
-    <p class="context-tip">Deselect to keep this system from PXE booting</p>
     </td>
     </tr>
 
@@ -513,10 +540,10 @@ function page_onload() {
 
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtfilesize">Virt Disk (GB)</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="5" style="width: 150px;" name="virtfilesize" id="virtfilesize"
         #if $system
            value="$system.virt_file_size"
@@ -527,10 +554,10 @@ function page_onload() {
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtram">Virt RAM (MB)</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="5" style="width: 150px;" name="virtram" id="virtram"
         #if $system
            value="$system.virt_ram"
@@ -541,10 +568,10 @@ function page_onload() {
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virttype">Virt Type</label>
     </td>
-    <td>
+    <td class="virtedit">
 
     #if $system and $system.virt_type == "<<inherit>>"
         <input type="radio" name="virttype" id="virttype" value="<<inherit>>" checked>Inherit
@@ -583,10 +610,10 @@ function page_onload() {
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtpath">Virt Path</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="255" style="width: 400px;" name="virtpath" id="virtpath"
         #if $system
            value="$system.virt_path"
@@ -597,10 +624,10 @@ function page_onload() {
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtpath">Virt CPUs</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="255" style="width: 150px;" name="virtcpus" id="virtcpus"
         #if $system
            value="$system.virt_cpus"
@@ -609,6 +636,87 @@ function page_onload() {
     <p class="context-tip">How many virtual CPUs?  This is an integer.</p>
     </td>
     </tr>
+
+    <tr>
+    <td class="poweredit">
+    <label for="power_type">Power Type</label>
+    </td>
+    <td class="poweredit">
+    <select name="power_type" id="power_type">
+        #set valid_power = [ "bullpap", "wti", "apc_snmp", "ether-wake", "ipmilan", "drac", "ipmitool", "ilo", "rsa" ]
+        #set nothing = valid_power.sort()
+
+        #for $value in $valid_power:
+        <option name="$value"
+            #if $system and (($system.power_type == $value) or ($system.power_type == "" and $value == "none"))
+                    selected="1"
+            #end if
+        >$value</option>
+        #end for
+    </select>
+    <p class="context-tip">Is a power management device attached?</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td class="poweredit">
+    <label for="power_address">Power Address</label>
+    </td>
+    <td class="poweredit">
+    <input type="text" size="255" style="width: 150px;" name="power_address" id="power_address"
+        #if $system
+           value="$system.power_address"
+        #end if
+    />
+    <p class="context-tip">Ex: hostname-mgmt.example.org</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td class="poweredit">
+    <label for="power_id">Power Id</label>
+    </td>
+    <td class="poweredit">
+    <input type="text" size="255" style="width: 150px;" name="power_id" id="power_id"
+        #if $system
+           value="$system.power_id"
+        #end if
+    />
+    <p class="context-tip">Plug number or blade name, if applicable.</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td class="poweredit">
+    <label for="power_user">Power User</label>
+    </td>
+    <td class="poweredit">
+    <input type="text" size="255" style="width: 150px;" name="power_user" id="power_user"
+        #if $system
+           value="$system.power_user"
+        #end if
+    />
+    <p class="context-tip">Power management username, if device requires one.</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td class="poweredit">
+    <label for="power_pass">Power Password</label>
+    </td>
+    <td class="poweredit">
+    <input type="text" size="255" style="width: 150px;" name="power_pass" id="power_pass"
+        #if $system
+           value="$system.power_pass"
+        #end if
+    />
+    <p class="context-tip">Power management password.</p>
+    </td>
+    </tr>
+
+    ## FIXME: it might be a good idea to color code the power section in the same
+    ## way we color code the interface section (see "nicedit" in CSS) as well as
+    ## the virt section being a different color
 
     <tr>
     <td>
@@ -623,7 +731,7 @@ function page_onload() {
 
     <tr>
     <td>
-    <label for="interfaces">Inteface</label>
+    <label for="interfaces">Interface</label>
     </td>
     <td>
     <select name="interfaces" id="interfaces" onchange="on_interface_change();">
@@ -652,7 +760,7 @@ function page_onload() {
         ## be hidden but are always there
         ## ----------------------------------------
 
-        <tr>
+        <tr id="macaddress_row">
         <td class="nicedit">
         <label for="macaddress">MAC</label>
         </td>
@@ -667,80 +775,19 @@ function page_onload() {
         </td>
         </tr>
 
-        <tr>
-        <td class="nicedit">
-        <label for="ipaddress">IP</label>
-        </td>
-        <td class="nicedit">
-        <input type="text" size="64" style="width: 150px;" name="ipaddress" id="ipaddress" />
-        <p class="context-tip">Example: 192.168.10.15</p>
-        </td>
-        </tr>
-
-        <tr>
-        <td class="nicedit">
-        <label for="hostname">Hostname</label>
-        </td>
-        <td class="nicedit">
-        <input type="text" size="255" style="width: 150px;" name="hostname" id="hostname" />
-        <p class="context-tip">Example: vanhalen.example.org</p>
-        </td>
-        </tr>
-
-        <tr>
-        <td class="nicedit">
-        <label for="dhcptag">DHCP Tag</label>
-        </td>
-        <td class="nicedit">
-        <input type="text" size="128" style="width: 150px;" name="dhcptag" id="dhcptag" />
-        <p class="context-tip">Selects alternative subnets, see manpage or leave blank</p>
-        </td>
-        </tr>
-
-        <tr>
-        <td class="nicedit">
-        <label for="virtbridge">Virt Bridge</label>
-        </td>
-        <td class="nicedit">
-        <input type="text" size="20" style="width: 150px;" name="virtbridge" id="virtbridge" />
-        <p class="context-tip">Example: 'xenbr0' or 'virbr0'.  Can be blank if set in profile or settings.</p>
-        </td>
-        </tr>
-
-        <tr>
-        <td class="nicedit">
-        <label for="subnet">Subnet</label>
-        </td>
-        <td class="nicedit">
-        <input type="text" size="64" style="width: 150px;" name="subnet" id="subnet" />
-        <p class="context-tip">Ex: "255.255.255.0".  For use in kickstart templates for static IPs.</p>
-        </td>
-        </tr>
-
-        <tr>
-        <td class="nicedit">
-        <label for="gateway">Gateway</label>
-        </td>
-        <td class="nicedit">
-        <input type="text" size="64" style="width: 150px;" name="gateway" id="gateway" />
-        <p class="context-tip">Ex: "192.168.1.11".  For use in kickstart templates for static IPs.</p>
-        </td>
-        </tr>
-
-        <tr>
+        <tr id="bonding_row">
         <td class="nicedit">
         <label for="bonding">Bonding</label>
         </td>
         <td class="nicedit">
-        <input type="radio" id="bonding_is_na" name="bonding" value="na" checked onclick="javascript:bonding_change('na')">N/A 
-        <input type="radio" id="bonding_is_master" name="bonding" value="master" onclick="javascript:bonding_change('master')">master 
-        <input type="radio" id="bonding_is_slave" name="bonding" value="slave"  onclick="javascript:bonding_change('slave')">slave
-        
-        <p class="context-tip">Bonding mode if applicable</p>
+        <input type="radio" id="bonding_is_na" name="bonding" value="na" checked onclick="javascript: intf_update_visibility();">No bonding
+        <input type="radio" id="bonding_is_master" name="bonding" value="master" onclick="javascript: intf_update_visibility();">master
+        <input type="radio" id="bonding_is_slave" name="bonding" value="slave"  onclick="javascript: intf_update_visibility();">slave
+        <p class="context-tip">Use bonding? If enabled specify bonding mode to use</p>
         </td>
         </tr>
 
-        <tr>
+        <tr id="bondingmaster_row">
         <td class="nicedit">
         <label for="bondingmaster">Bonding master</label>
         </td>
@@ -750,26 +797,86 @@ function page_onload() {
         </td>
         </tr>
 
-        <tr>
+        <tr id="bondingopts_row">
         <td class="nicedit">
         <label for="bondingopts">Bonding options</label>
         </td>
         <td class="nicedit">
-        <input type="text" size="64" style="width: 150px;" name="bondingopts" id="bondingopts" />
+        <input type="text" size="64" style="width: 300px;" name="bondingopts" id="bondingopts" />
         <p class="context-tip">If bonding is "master", specify the bonding options here.</p>
         </td>
         </tr>
 
-        <tr>
+        <tr id="static_row">
         <td class="nicedit">
-        <label for="static">Static?</label>
+        <label for="static">IP assignment</label>
         </td>
         <td class="nicedit">
-        <input type="checkbox" name="static" id="static">
-        <p class="context-tip">Is this interface statically configured?</p>
+        <input type="radio" id="static_true" name="static" value="true" checked onclick="javascript: intf_update_visibility();">Static
+        <input type="radio" id="static_false" name="static" value="false" onclick="javascript: intf_update_visibility();">DHCP
+        <p class="context-tip">Is the IP address of the interface statically or by DHCP configured?</p>
         </td>
         </tr>
 
+        <tr id="ipaddress_row">
+        <td class="nicedit">
+        <label for="ipaddress">IP</label>
+        </td>
+        <td class="nicedit">
+        <input type="text" size="64" style="width: 150px;" name="ipaddress" id="ipaddress" />
+        <p class="context-tip">Example: 192.168.10.15</p>
+        </td>
+        </tr>
+
+        <tr id="subnet_row">
+        <td class="nicedit">
+        <label for="subnet">Subnet</label>
+        </td>
+        <td class="nicedit">
+        <input type="text" size="64" style="width: 150px;" name="subnet" id="subnet" />
+        <p class="context-tip">Ex: "255.255.255.0".  For use in kickstart templates for static IPs.</p>
+        </td>
+        </tr>
+
+        <tr id="gateway_row">
+        <td class="nicedit">
+        <label for="gateway">Gateway</label>
+        </td>
+        <td class="nicedit">
+        <input type="text" size="64" style="width: 150px;" name="gateway" id="gateway" />
+        <p class="context-tip">Ex: "192.168.1.11".  For use in kickstart templates for static IPs.</p>
+        </td>
+        </tr>
+
+        <tr id="hostname_row">
+        <td class="nicedit">
+        <label for="hostname">Hostname</label>
+        </td>
+        <td class="nicedit">
+        <input type="text" size="255" style="width: 300px;" name="hostname" id="hostname" />
+        <p class="context-tip">Example: vanhalen.example.org</p>
+        </td>
+        </tr>
+
+        <tr id="dhcptag_row">
+        <td class="nicedit">
+        <label for="dhcptag">DHCP Tag</label>
+        </td>
+        <td class="nicedit">
+        <input type="text" size="128" style="width: 150px;" name="dhcptag" id="dhcptag" />
+        <p class="context-tip">Selects alternative subnets, see manpage or leave blank</p>
+        </td>
+        </tr>
+
+        <tr id="virtbridge_row">
+        <td class="nicedit">
+        <label for="virtbridge">Virt Bridge</label>
+        </td>
+        <td class="nicedit">
+        <input type="text" size="20" style="width: 150px;" name="virtbridge" id="virtbridge" />
+        <p class="context-tip">Example: 'xenbr0' or 'virbr0'.  Can be blank if set in profile or settings.</p>
+        </td>
+        </tr>
 
         #if $editable == True
         <tr>

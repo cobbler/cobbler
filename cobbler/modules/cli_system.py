@@ -35,25 +35,26 @@ from cexceptions import *
 class SystemFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler system","<add|copy|edit|find|list|rename|remove|report|getks> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler system","<add|copy|edit|find|list|power[off|on]|reboot|rename|remove|report|getks> [ARGS]")
 
     def command_name(self):
         return "system"
 
     def subcommands(self):
-        return ["add","copy","dumpvars","edit","find","list","remove","rename","report","getks"]
+        return ["add","copy","dumpvars","edit","find","getks","poweroff","poweron","list","reboot","remove","rename","report"]
 
     def add_options(self, p, args):
 
-        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
+        if not self.matches_args(args,["dumpvars","poweron","poweroff","reboot","remove","report","getks","list"]):
             p.add_option("--bonding",         dest="bonding",       help="NIC bonding, ex: master, slave, none (default)")
             p.add_option("--bonding-master",  dest="bonding_master",metavar="INTERFACE", help="master interface for this slave, ex: bond0")
             p.add_option("--bonding-opts",    dest="bonding_opts",  help="ex: 'miimon=100'")
             p.add_option("--comment", dest="comment", help="user field")
+
         if self.matches_args(args,["add"]):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
 
-        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
+        if not self.matches_args(args,["dumpvars","poweron","poweroff","reboot","remove","report","getks","list"]):
             p.add_option("--dhcp-tag",        dest="dhcp_tag",      help="for use in advanced DHCP configurations")
             p.add_option("--gateway",         dest="gateway",       help="for static IP / templating usage")
             p.add_option("--hostname",        dest="hostname",      help="ex: server.example.org")
@@ -77,19 +78,31 @@ class SystemFunction(commands.CobblerFunction):
 
         p.add_option("--name",   dest="name",                     help="a name for the system (REQUIRED)")
 
-        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
+        if not self.matches_args(args,["dumpvars","poweron","poweroff","reboot","remove","report","getks","list"]):
             p.add_option("--netboot-enabled", dest="netboot_enabled", help="PXE on (1) or off (0)")
 
         if self.matches_args(args,["copy","rename"]):
             p.add_option("--newname", dest="newname",                 help="for use with copy/edit")
 
-        if not self.matches_args(args,["dumpvars","find","remove","report","getks","list"]):
+        if not self.matches_args(args,["dumpvars","find","poweron","poweroff","reboot","remove","report","getks","list"]):
             p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
-        if not self.matches_args(args,["dumpvars","find","report","getks","list"]):
+        if not self.matches_args(args,["dumpvars","find","poweron","poweroff","reboot","report","getks","list"]):
             p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
 
-        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
+        if not self.matches_args(args,["dumpvars","poweron","poweroff","reboot","remove","report","getks","list"]):
             p.add_option("--owners",          dest="owners",          help="specify owners for authz_ownership module")
+
+            p.add_option("--power-address",   dest="power_address",   help="address of power mgmt device, if required")
+            p.add_option("--power-id",        dest="power_id",        help="plug-number or blade name, if required")
+        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
+            p.add_option("--power-pass",      dest="power_pass",      help="password for power management interface")
+        if not self.matches_args(args,["dumpvars","poweron","poweroff","reboot","remove","report","getks","list"]):
+            p.add_option("--power-type",      dest="power_type",      help="one of: none, apc_snmp, bullpap, drac, ether-wake, ilo, ipmilan, ipmitool, wti")
+
+        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
+            p.add_option("--power-user",      dest="power_user",      help="username for power management interface, if required")
+
+        if not self.matches_args(args,["dumpvars","poweron","poweroff","reboot","remove","report","getks","list"]):
             p.add_option("--profile",         dest="profile",         help="name of cobbler profile (REQUIRED)")
             p.add_option("--server-override", dest="server_override", help="overrides server value in settings file")
             p.add_option("--static",          dest="static",          help="specifies this interface does (0) or does not use DHCP (1), default 0")
@@ -134,9 +147,18 @@ class SystemFunction(commands.CobblerFunction):
 
         if self.options.virt_file_size:  obj.set_virt_file_size(self.options.virt_file_size)
         if self.options.virt_ram:        obj.set_virt_ram(self.options.virt_ram)
+
+        if self.options.power_address:   obj.set_power_address(self.options.power_address)
+        if self.options.power_pass:      obj.set_power_pass(self.options.power_pass)
+        if self.options.power_id:        obj.set_power_pass(self.options.power_id)
+        if self.options.power_type:      obj.set_power_type(self.options.power_type)
+        if self.options.power_user:      obj.set_power_user(self.options.power_user)
+
         if self.options.virt_type:       obj.set_virt_type(self.options.virt_type)
         if self.options.virt_cpus:       obj.set_virt_cpus(self.options.virt_cpus)
         if self.options.virt_path:       obj.set_virt_path(self.options.virt_path)
+
+
 
         # if we haven't said what interface we are editing, it's eth0.
 
