@@ -150,7 +150,7 @@ class SystemFunction(commands.CobblerFunction):
 
         if self.options.power_address:   obj.set_power_address(self.options.power_address)
         if self.options.power_pass:      obj.set_power_pass(self.options.power_pass)
-        if self.options.power_id:        obj.set_power_pass(self.options.power_id)
+        if self.options.power_id:        obj.set_power_id(self.options.power_id)
         if self.options.power_type:      obj.set_power_type(self.options.power_type)
         if self.options.power_user:      obj.set_power_user(self.options.power_user)
 
