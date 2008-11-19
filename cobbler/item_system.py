@@ -68,6 +68,8 @@ class System(item.Item):
         self.power_user           = ""
         self.power_pass           = ""
         self.power_id             = ""
+        self.hostname             = ""
+        self.gateway              = ""
 
     def delete_interface(self,name):
         """
@@ -89,17 +91,16 @@ class System(item.Item):
 
         if not self.interfaces.has_key(name):
             self.interfaces[name] = {
-                "mac_address" : "",
-                "ip_address"  : "",
-                "dhcp_tag"    : "",
-                "subnet"      : "",
-                "gateway"     : "",
-                "hostname"    : "",
-                "virt_bridge" : "",
-                "static"      : False,
-                "bonding"     : "",
+                "mac_address"    : "",
+                "ip_address"     : "",
+                "dhcp_tag"       : "",
+                "subnet"         : "",
+                "virt_bridge"    : "",
+                "static"         : False,
+                "bonding"        : "",
                 "bonding_master" : "",
-                "bonding_opts" : ""
+                "bonding_opts"   : "",
+                "dns_name"       : "",
             }
 
         return self.interfaces[name]
@@ -124,6 +125,22 @@ class System(item.Item):
                seed_data["interfaces"][key2] = seed_data["interfaces"][key1].copy()
                del seed_data["interfaces"][key1]
 
+        # certain per-interface settings are now global settings and not-per interface
+        # these are "gateway" and "hostname", so we migrate the first one we can find.
+        # I don't expect new users of cobbler to understand this but it's important
+        # for backwards-compatibility upgrade reasons.
+
+        __gateway  = ""
+        __hostname = ""
+        keyz = intf.keys()
+        keyz.sort()
+        for x in keyz:
+            y = intf[x]
+            if y.get("gateway","") != "":
+                __gateway = y["gateway"]
+            if y.get("hostname","") != "":
+                __hostname = y["hostname"]
+
         # load datastructures from previous and current versions of cobbler
         # and store (in-memory) in the new format.
         # (the main complexity here is the migration to NIC data structures)
@@ -145,7 +162,14 @@ class System(item.Item):
         self.template_files       = self.load_item(seed_data, 'template_files', {})
         self.comment              = self.load_item(seed_data, 'comment', '')
 
+        # here are some global settings that have weird defaults, since they might
+        # have been moved over from a cobbler upgrade
+
+        self.gateway     = self.load_item(seed_data, 'gateway', __gateway)
+        self.hostname    = self.load_item(seed_data, 'hostname', __hostname)
+
         # virt specific 
+
         self.virt_path   = self.load_item(seed_data, 'virt_path', '<<inherit>>') 
         self.virt_type   = self.load_item(seed_data, 'virt_type', '<<inherit>>')
         self.virt_ram    = self.load_item(seed_data,'virt_ram','<<inherit>>')
@@ -184,8 +208,6 @@ class System(item.Item):
         # before the upgrade
 
         if not self.interfaces.has_key("eth0"):
-            if __hostname != "":
-                self.set_hostname(__hostname, "eth0")
             if __mac_address != "":
                 self.set_mac_address(__mac_address, "eth0")
             if __ip_address != "":
@@ -197,13 +219,27 @@ class System(item.Item):
         # for interfaces that do not have all the fields filled in, populate the new fields
         # that have been added (applies to any new interface fields Cobbler 1.3 and later)
         # other fields have been created because of upgrade usage        
+        # and remove fields that are no longer part of the interface in this version
 
         for k in self.interfaces.keys():
             if not self.interfaces[k].has_key("static"):
                self.interfaces[k]["static"] = False
+            if not self.interfaces[k].has_key("bonding"):
                self.interfaces[k]["bonding"] = ""
+            if not self.interfaces[k].has_key("bondingmaster"):
                self.interfaces[k]["bondingmaster"] = ""
+            if not self.interfaces[k].has_key("bondingopts"):
                self.interfaces[k]["bondingopts"] = ""
+            if not self.interfaces[k].has_key("dns_name"):
+               # hostname is global for the system, dns_name is per interface
+               # this handles the backwards compatibility update details for
+               # older versions of cobbler.
+               possible = self.interfaces[k].get("hostname","")
+               self.interfaces[k]["dns_name"] = possible
+               if self.interfaces[k].has_key("hostname"):
+                  del self.interfaces[k]["hostname"]
+            if self.interfaces[k].has_key("gateway"):
+               del self.interfaces[k]["gateway"]
 
         # backwards compatibility -- convert string entries to dicts for storage
         # this allows for better usage from the API.
@@ -333,9 +369,13 @@ class System(item.Item):
         intf["dhcp_tag"] = dhcp_tag
         return True
 
-    def set_hostname(self,hostname,interface):
+    def set_dns_name(self,hostname,interface):
         intf = self.__get_interface(interface)
         intf["hostname"] = hostname
+        return True
+
+    def set_hostname(self,hostname):
+        self.hostname = hostname
         return True
 
     def set_static(self,truthiness,interface):
@@ -564,7 +604,9 @@ class System(item.Item):
            'power_address'         : self.power_address,
            'power_user'            : self.power_user,
            'power_pass'            : self.power_pass,
-           'power_id'              : self.power_id 
+           'power_id'              : self.power_id, 
+           'hostname'              : self.hostname,
+           'gateway'               : self.gateway
         }
 
     def printable(self):
@@ -572,6 +614,8 @@ class System(item.Item):
         buf = buf + _("profile               : %s\n") % self.profile
         buf = buf + _("comment               : %s\n") % self.comment
         buf = buf + _("created               : %s\n") % time.ctime(self.ctime)
+        buf = buf + _("gateway               : %s\n") % self.gateway
+        buf = buf + _("hostname              : %s\n") % self.hostname
         buf = buf + _("image                 : %s\n") % self.image
         buf = buf + _("kernel options        : %s\n") % self.kernel_options
         buf = buf + _("kernel options post   : %s\n") % self.kernel_options_post
@@ -609,8 +653,7 @@ class System(item.Item):
             buf = buf + _("  is static?     : %s\n") % x.get("static",False)
             buf = buf + _("  ip address     : %s\n") % x.get("ip_address","")
             buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
-            buf = buf + _("  gateway        : %s\n") % x.get("gateway","")
-            buf = buf + _("  hostname       : %s\n") % x.get("hostname","")
+            buf = buf + _("  dns name       : %s\n") % x.get("dns_name","")
             buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
             buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
 
@@ -625,11 +668,10 @@ class System(item.Item):
             field = field.replace("_","").replace("-","")
             if field == "macaddress"    : self.set_mac_address(value, interface)
             if field == "ipaddress"     : self.set_ip_address(value, interface)
-            if field == "hostname"      : self.set_hostname(value, interface)
+            if field == "dnsname"       : self.set_dns_name(value, interface)
             if field == "static"        : self.set_static(value, interface)
             if field == "dhcptag"       : self.set_dhcp_tag(value, interface)
             if field == "subnet"        : self.set_subnet(value, interface)
-            if field == "gateway"       : self.set_gateway(value, interface)
             if field == "virtbridge"    : self.set_virt_bridge(value, interface)
             if field == "bonding"       : self.set_bonding(value, interface)
             if field == "bondingmaster" : self.set_bonding_master(value, interface)
@@ -682,7 +724,9 @@ class System(item.Item):
            'power_address'    : self.set_power_address,
            'power_user'       : self.set_power_user,
            'power_pass'       : self.set_power_pass,
-           'power_id'         : self.set_power_id
+           'power_id'         : self.set_power_id,
+           'hostname'         : self.set_hostname,
+           'gateway'          : self.set_gateway
         }
 
 
