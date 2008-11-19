@@ -410,6 +410,7 @@ class MultiNIC(BootTest):
         self.assertTrue(system.set_dhcp_tag("zero","eth3"))
         self.assertTrue(system.set_virt_bridge("zero","eth4"))
         self.assertTrue(system.set_gateway("192.168.1.25")) # is global
+        self.assertTrue(system.set_name_servers("a.example.org b.example.org")) # is global
         self.assertTrue(system.set_mac_address("AA:AA:BB:BB:CC:CC","eth4"))
         self.assertTrue(system.set_dns_name("fooserver","eth4"))
         self.assertTrue(system.set_dhcp_tag("red","eth4"))
@@ -582,6 +583,7 @@ class Utilities(BootTest):
         self.assertTrue(profile.set_distro("testdistro0"))
         self.assertTrue(profile.set_kickstart("http://127.0.0.1/foo"))
         self.assertTrue(profile.set_repos(["testrepo"]))
+        self.assertTrue(profile.set_name_servers(["asdf"]))
         self.assertTrue(self.api.add_profile(profile))
 
         # disable this test as it's not a valid repo yet

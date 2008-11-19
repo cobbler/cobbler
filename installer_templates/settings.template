@@ -32,6 +32,11 @@ bind_bin: /usr/sbin/named
 # if no kickstart is specified, use this template (FIXME)
 default_kickstart: /etc/cobbler/default.ks
 
+# configure all installed systems to use these nameservers by default
+# unless defined differently in the profile.  For DHCP configurations
+# you probably do /not/ want to supply this.
+default_name_servers: []
+
 # for libvirt based installs in koan, if no virt bridge
 # is specified, which bridge do we try?
 default_virt_bridge: xenbr0

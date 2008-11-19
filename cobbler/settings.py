@@ -36,6 +36,7 @@ DEFAULTS = {
     "bind_bin"                    : "/usr/sbin/named",
     "cobbler_master"              : '',
     "default_kickstart"           : "/etc/cobbler/default.ks",
+    "default_name_servers"        : '',
     "default_virt_bridge"         : "xenbr0",
     "default_virt_type"           : "auto",
     "default_virt_file_size"      : "5",

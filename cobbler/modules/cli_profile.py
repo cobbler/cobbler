@@ -65,6 +65,7 @@ class ProfileFunction(commands.CobblerFunction):
             p.add_option("--kopts",            dest="kopts",     help="ex: 'noipv6'")
             p.add_option("--kopts-post",       dest="kopts_post",help="ex: 'clocksource=pit'")
             p.add_option("--mgmt-classes", dest="mgmt_classes",  help="list of config management classes (for Puppet, etc)")
+            p.add_option("--name-servers", dest="name_servers",  help="name servers for static setups")
             p.add_option("--template-files",   dest="template_files", help="specify files to be generated from templates during a sync")
 
 
@@ -132,6 +133,7 @@ class ProfileFunction(commands.CobblerFunction):
             if self.options.owners:          obj.set_owners(self.options.owners)
             if self.options.mgmt_classes:    obj.set_mgmt_classes(self.options.mgmt_classes)
             if self.options.template_files:  obj.set_template_files(self.options.template_files,self.options.inplace)
+            if self.options.name_servers:    obj.set_name_servers(self.options.name_servers)
 
         return self.object_manipulator_finish(obj, self.api.profiles, self.options)
 

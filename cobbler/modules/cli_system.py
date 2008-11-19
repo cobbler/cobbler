@@ -72,6 +72,7 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--ksmeta",          dest="ksmeta",        help="ex: 'blippy=7'")
             p.add_option("--mac",             dest="mac",           help="ex: 'AA:BB:CC:DD:EE:FF', (RECOMMENDED)")
             p.add_option("--mgmt-classes",    dest="mgmt_classes",  help="list of config management classes (for Puppet, etc)")
+            p.add_option("--name-servers",    dest="name_servers",  help="name servers for static setups")
             p.add_option("--static-routes",   dest="static_routes", help="sets static routes (see manpage)")
             p.add_option("--template-files",  dest="template_files",help="specify files to be generated from templates during a sync")
 
@@ -182,7 +183,7 @@ class SystemFunction(commands.CobblerFunction):
         if remap:
             my_interface = "eth%s" % my_interface
 
-        if self.options.dns_name:    obj.set_dns_name(self.options.dns_name, my_interface)
+        if self.options.dns_name:       obj.set_dns_name(self.options.dns_name, my_interface)
         if self.options.mac:
             if self.options.mac.lower() == 'random':
                 obj.set_mac_address(get_random_mac(self.api), my_interface)
@@ -208,6 +209,7 @@ class SystemFunction(commands.CobblerFunction):
         if self.options.owners:       obj.set_owners(self.options.owners)
         if self.options.mgmt_classes: obj.set_mgmt_classes(self.options.mgmt_classes)
         if self.options.template_files: obj.set_template_files(self.options.template_files,self.options.inplace)
+        if self.options.name_servers: obj.set_name_servers(self.options.name_servers)
 
 
         rc = self.object_manipulator_finish(obj, self.api.systems, self.options)

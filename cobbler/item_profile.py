@@ -66,7 +66,7 @@ class Profile(item.Item):
         self.comment                = ""
         self.ctime                  = 0
         self.mtime                  = 0
-
+        self.name_servers           = (self.settings.default_name_servers,      '<<inherit>>')[is_subobject]
     def from_datastruct(self,seed_data):
         """
         Load this object's properties based on seed_data
@@ -90,6 +90,7 @@ class Profile(item.Item):
         self.comment                = self.load_item(seed_data,'comment','')
         self.ctime                  = self.load_item(seed_data,'ctime',0)
         self.mtime                  = self.load_item(seed_data,'mtime',0)
+        self.name_servers           = self.load_item(seed_data,'name_servers',[])
 
         # backwards compatibility
         if type(self.repos) != list:
@@ -161,6 +162,11 @@ class Profile(item.Item):
             self.depth  = d.depth +1 # reset depth if previously a subprofile and now top-level
             return True
         raise CX(_("distribution not found"))
+
+    def set_name_servers(self,data):
+        data = utils.input_string_or_list(data)
+        self.name_servers = data
+        return True
 
     def set_enable_menu(self,enable_menu):
         """
@@ -274,7 +280,8 @@ class Profile(item.Item):
             'mgmt_classes'          : self.mgmt_classes,
             'comment'               : self.comment,
             'ctime'                 : self.ctime,
-            'mtime'                 : self.mtime
+            'mtime'                 : self.mtime,
+            'name_servers'          : self.name_servers,
          }
 
     def printable(self):
@@ -295,6 +302,7 @@ class Profile(item.Item):
         buf = buf + _("ks metadata          : %s\n") % self.ks_meta
         buf = buf + _("mgmt classes         : %s\n") % self.mgmt_classes
         buf = buf + _("modified             : %s\n") % time.ctime(self.mtime)
+        buf = buf + _("name servers         : %s\n") % self.name_servers
         buf = buf + _("owners               : %s\n") % self.owners
         buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
         buf = buf + _("repos                : %s\n") % self.repos
@@ -343,6 +351,7 @@ class Profile(item.Item):
             'owners'          :  self.set_owners,
             'mgmt-classes'    :  self.set_mgmt_classes,
             'mgmt_classes'    :  self.set_mgmt_classes,            
-            'comment'         :  self.set_comment
+            'comment'         :  self.set_comment,
+            'name_servers'    :  self.set_name_servers
         }
 

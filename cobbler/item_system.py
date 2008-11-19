@@ -70,6 +70,7 @@ class System(item.Item):
         self.power_id             = ""
         self.hostname             = ""
         self.gateway              = ""
+        self.name_servers         = ""
 
     def delete_interface(self,name):
         """
@@ -166,8 +167,10 @@ class System(item.Item):
         # here are some global settings that have weird defaults, since they might
         # have been moved over from a cobbler upgrade
 
-        self.gateway     = self.load_item(seed_data, 'gateway', __gateway)
-        self.hostname    = self.load_item(seed_data, 'hostname', __hostname)
+        self.gateway      = self.load_item(seed_data, 'gateway', __gateway)
+        self.hostname     = self.load_item(seed_data, 'hostname', __hostname)
+        
+        self.name_servers = self.load_item(seed_data, 'name_servers', '<<inherit>>')
 
         # virt specific 
 
@@ -373,14 +376,14 @@ class System(item.Item):
         intf["dhcp_tag"] = dhcp_tag
         return True
 
-    def set_dns_name(self,hostname,interface):
+    def set_dns_name(self,dns_name,interface):
         intf = self.__get_interface(interface)
-        intf["hostname"] = hostname
+        intf["dns_name"] = dns_name
         return True
  
     def set_static_routes(self,routes,interface):
         intf = self.__get_interface(interface)
-        data = utils.input_string_or_list(routes)
+        data = utils.input_string_or_list(routes,delim=" ")
         intf["static_routes"] = data
         return True
 
@@ -413,6 +416,11 @@ class System(item.Item):
 
     def set_gateway(self,gateway):
         self.gateway = gateway
+        return True
+ 
+    def set_name_servers(self,data):
+        data = utils.input_string_or_list(data)
+        self.name_servers = data
         return True
 
     def set_subnet(self,subnet,interface):
@@ -615,7 +623,8 @@ class System(item.Item):
            'power_pass'            : self.power_pass,
            'power_id'              : self.power_id, 
            'hostname'              : self.hostname,
-           'gateway'               : self.gateway
+           'gateway'               : self.gateway,
+           'name_servers'          : self.name_servers
         }
 
     def printable(self):
@@ -633,6 +642,7 @@ class System(item.Item):
         buf = buf + _("mgmt classes          : %s\n") % self.mgmt_classes
         buf = buf + _("modified              : %s\n") % time.ctime(self.mtime)
 
+        buf = buf + _("name servers          : %s\n") % self.name_servers
         buf = buf + _("netboot enabled?      : %s\n") % self.netboot_enabled 
         buf = buf + _("owners                : %s\n") % self.owners
         buf = buf + _("server                : %s\n") % self.server
@@ -737,7 +747,8 @@ class System(item.Item):
            'power_pass'       : self.set_power_pass,
            'power_id'         : self.set_power_id,
            'hostname'         : self.set_hostname,
-           'gateway'          : self.set_gateway
+           'gateway'          : self.set_gateway,
+           'name_servers'     : self.set_name_servers
         }
 
 

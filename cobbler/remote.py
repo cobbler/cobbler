@@ -1644,6 +1644,7 @@ def test_xmlrpc_rw():
    server.modify_profile(pid, "owners", [ "sam", "dave" ], token)
    server.modify_profile(pid, "mgmt-classes", "one two three", token)
    server.modify_profile(pid, "comment", "...", token)
+   server.modify_profile(pid, "name_servers", ["one","two"], token)
    server.save_profile(pid, token)
 
    api.deserialize() 
@@ -1660,6 +1661,7 @@ def test_xmlrpc_rw():
    server.modify_system(sid, 'netboot-enabled', True, token)
    server.modify_system(sid, 'virt-path', "/opt/images", token)
    server.modify_system(sid, 'virt-type', 'qemu', token)
+   server.modify_system(sid, 'name_servers', 'one two three four', token)
    server.modify_system(sid, 'modify-interface', { 
        "macaddress-eth0"   : "AA:BB:CC:EE:EE:EE",
        "ipaddress-eth0"    : "192.168.10.50",
