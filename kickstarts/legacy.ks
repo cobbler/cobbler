@@ -48,5 +48,6 @@ $yum_config_stanza
 SNIPPET::post_install_kernel_options
 SNIPPET::post_install_network_config
 SNIPPET::download_config_files
+SNIPPET::koan_environment
 $kickstart_done
 
