@@ -52,7 +52,7 @@ echo "alias $iname bonding" >> /etc/modprobe.conf
         #if $configbymac and $is_vlan == "false" and $bonding.lower() != "master"
             ## This is the code path physical interfaces will follow.
             ## Remove the interface file anaconda made for this mac address
-IFNAME=\$(ifconfig | grep -i '$mac' | cut -d ' ' -f 1)
+IFNAME=\$(ifconfig -a | grep -i '$mac' | cut -d ' ' -f 1)
             ## Rename this interface in modprobe.conf
 sed -i "s/\$IFNAME/$iname/" /etc/modprobe.conf
             ## Remove the old interface file the OS had for it

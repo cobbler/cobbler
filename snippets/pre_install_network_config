@@ -77,7 +77,7 @@
 # Configuring $iname ($mac)
 if ifconfig | grep -i $mac
 then
-  IFNAME=\$(ifconfig | grep -i '$mac' | cut -d " " -f 1)
+  IFNAME=\$(ifconfig -a | grep -i '$mac' | cut -d " " -f 1)
   echo "network --device=\$IFNAME $netinfo" >> /tmp/pre_install_network_config
 fi
         #else
