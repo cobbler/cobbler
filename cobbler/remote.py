@@ -455,17 +455,21 @@ class CobblerXMLRPCInterface:
         self._log("get_system",name=name,token=token)
         return self.__get_specific("system",name,flatten=flatten)
 
-    def find_system_by_hostname(self,hostname):
-        # FIXME: implement using api.py's find API
-        # and expose generic finds for other methods
-        # WARNING: this function is /not/ expected to stay in cobbler long term
-        systems = self.get_systems()
-        for x in systems:
-           for y in x["interfaces"]:
-              if x["interfaces"][y]["hostname"] == hostname:
-                  name = x["name"]
-                  return self.get_system_for_koan(name)
-        return {}
+    # removing this /SOON/ as it's not compatible with the way hostnames
+    # are stored, do we need find_by_dnsname or was this just experimental?
+    # (11/19/08 -- MPD)
+    # 
+    #def find_system_by_hostname(self,hostname):
+    #    # FIXME: implement using api.py's find API
+    #    # and expose generic finds for other methods
+    #    # WARNING: this function is /not/ expected to stay in cobbler long term
+    #    systems = self.get_systems()
+    #    for x in systems:
+    #       for y in x["interfaces"]:
+    #          if x["interfaces"][y]["hostname"] == hostname:
+    #              name = x["name"]
+    #              return self.get_system_for_koan(name)
+    #    return {}
 
     def get_repo(self,name,flatten=False,token=None,**rest):
         """
@@ -1399,8 +1403,10 @@ def test_xmlrpc_ro():
 
    system = api.new_system()
    system.set_name("system0")
+   system.set_hostname("hostname0")
+   system.set_gateway("192.168.1.1")
    system.set_profile("profile0")
-   system.set_hostname("hostname0","eth0")
+   system.set_dns_name("hostname0","eth0")
    api.add_system(system)
 
    image = api.new_image()
@@ -1645,6 +1651,8 @@ def test_xmlrpc_rw():
 
    sid = server.new_system(token)
    server.modify_system(sid, 'name', 'system1', token)
+   server.modify_system(sid, 'hostname', 'system1', token)
+   server.modify_system(sid, 'gateway', '127.0.0.1', token)
    server.modify_system(sid, 'profile', 'profile1', token)
    server.modify_system(sid, 'kopts', { "dog" : "fido" }, token)
    server.modify_system(sid, 'kopts-post', { "cat" : "fluffy" }, token)
@@ -1653,16 +1661,18 @@ def test_xmlrpc_rw():
    server.modify_system(sid, 'virt-path', "/opt/images", token)
    server.modify_system(sid, 'virt-type', 'qemu', token)
    server.modify_system(sid, 'modify-interface', { 
-       "macaddress-eth0" : "AA:BB:CC:EE:EE:EE",
-       "ipaddress-eth0"  : "192.168.10.50",
-       "gateway-eth0"    : "192.168.10.1",
-       "virtbridge-eth0" : "virbr0",
-       "hostname-eth0"   : "foo.example.com",
-       "static-eth0"     : False,
-       "dhcptag-eth0"    : "section2"
+       "macaddress-eth0"   : "AA:BB:CC:EE:EE:EE",
+       "ipaddress-eth0"    : "192.168.10.50",
+       "gateway-eth0"      : "192.168.10.1",
+       "virtbridge-eth0"   : "virbr0",
+       "dnsname-eth0"      : "foo.example.com",
+       "static-eth0"       : False,
+       "dhcptag-eth0"      : "section2",
+       "staticroutes-eth0" : "a:b:c d:e:f"
    }, token)
    server.modify_system(sid, 'modify-interface', {
-       "static-eth1"     : False
+       "static-eth1"     : False,
+       "staticroutes-eth1" : [ "g:h:i", "j:k:l" ]
    }, token)
    server.modify_system(sid, "mgmt-classes", [ "one", "two", "three"], token)
    server.modify_system(sid, "template-files", {}, token)
