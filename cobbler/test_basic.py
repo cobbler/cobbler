@@ -404,20 +404,20 @@ class MultiNIC(BootTest):
         system = self.api.new_system()
         self.assertTrue(system.set_name("nictest"))
         self.assertTrue(system.set_profile("testprofile0"))
-        self.assertTrue(system.set_hostname("zero","eth0"))
+        self.assertTrue(system.set_dns_name("zero","eth0"))
         self.assertTrue(system.set_mac_address("EE:FF:DD:CC:DD:CC","eth1"))
         self.assertTrue(system.set_ip_address("127.0.0.5","eth2"))
         self.assertTrue(system.set_dhcp_tag("zero","eth3"))
         self.assertTrue(system.set_virt_bridge("zero","eth4"))
-        self.assertTrue(system.set_gateway("192.168.1.25","eth4"))
+        self.assertTrue(system.set_gateway("192.168.1.25") # is global
         self.assertTrue(system.set_mac_address("AA:AA:BB:BB:CC:CC","eth4"))
-        self.assertTrue(system.set_hostname("fooserver","eth4"))
+        self.assertTrue(system.set_dns_name("fooserver","eth4"))
         self.assertTrue(system.set_dhcp_tag("red","eth4"))
         self.assertTrue(system.set_ip_address("192.168.1.26","eth4"))
         self.assertTrue(system.set_subnet("255.255.255.0","eth4"))
         self.assertTrue(system.set_dhcp_tag("tag2","eth5"))
         self.assertTrue(self.api.add_system(system))
-        self.assertTrue(self.api.find_system(hostname="fooserver"))
+        self.assertTrue(self.api.find_system(dns_name="fooserver"))
         self.assertTrue(self.api.find_system(mac_address="EE:FF:DD:CC:DD:CC"))
         self.assertTrue(self.api.find_system(ip_address="127.0.0.5"))
         self.assertTrue(self.api.find_system(virt_bridge="zero"))
@@ -433,14 +433,14 @@ class MultiNIC(BootTest):
         # and we didn't accidentally fill in any other fields elsewhere
 
         self.assertTrue(system.interfaces.has_key("eth4"))
+        self.assertTrue(system.gateway == "192.168.1.25")
         for (name,intf) in system.interfaces.iteritems():
             if name == "eth4": # xmlrpc dicts must have string keys, so we must also
-                self.assertTrue(intf["gateway"] == "192.168.1.25")
                 self.assertTrue(intf["virt_bridge"] == "zero")
                 self.assertTrue(intf["subnet"] == "255.255.255.0")
                 self.assertTrue(intf["mac_address"] == "AA:AA:BB:BB:CC:CC")
                 self.assertTrue(intf["ip_address"] == "192.168.1.26")
-                self.assertTrue(intf["hostname"] == "fooserver")
+                self.assertTrue(intf["dns_name"] == "fooserver")
                 self.assertTrue(intf["dhcp_tag"] == "red")
  
 class Utilities(BootTest):
