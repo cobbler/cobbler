@@ -97,7 +97,7 @@ class SystemFunction(commands.CobblerFunction):
         if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
             p.add_option("--power-pass",      dest="power_pass",      help="password for power management interface")
         if not self.matches_args(args,["dumpvars","poweron","poweroff","reboot","remove","report","getks","list"]):
-            p.add_option("--power-type",      dest="power_type",      help="one of: none, apc_snmp, bullpap, drac, ether-wake, ilo, ipmilan, ipmitool, wti")
+            p.add_option("--power-type",      dest="power_type",      help="one of: none, apc_snmp, bullpap, drac, ether-wake, ilo, ipmilan, ipmitool, wti, lpar, bladecenter")
 
         if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
             p.add_option("--power-user",      dest="power_user",      help="username for power management interface, if required")
@@ -150,7 +150,7 @@ class SystemFunction(commands.CobblerFunction):
 
         if self.options.power_address:   obj.set_power_address(self.options.power_address)
         if self.options.power_pass:      obj.set_power_pass(self.options.power_pass)
-        if self.options.power_id:        obj.set_power_pass(self.options.power_id)
+        if self.options.power_id:        obj.set_power_id(self.options.power_id)
         if self.options.power_type:      obj.set_power_type(self.options.power_type)
         if self.options.power_user:      obj.set_power_user(self.options.power_user)
 

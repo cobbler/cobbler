@@ -17,7 +17,7 @@ clean:
 	-rm -f cobbler/*.pyc
 	-rm -f cobbler/yaml/*.pyc
 	-rm -f cobbler/webui/master.py
-	-rm -f config/modules.conf config/settings
+	-rm -f config/modules.conf config/settings config/version
 	-rm -f docs/cobbler.1.gz docs/cobbler.html
 
 manpage:
