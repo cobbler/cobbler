@@ -162,6 +162,7 @@ omshell_bin: /usr/bin/omshell
 #    ilo
 #    rsa
 #    lpar
+#    bladecenter
 
 power_management_default_type: 'ipmitool'
 

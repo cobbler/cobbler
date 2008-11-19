@@ -503,7 +503,7 @@ class System(item.Item):
 
     def set_power_type(self, power_type):
         power_type = power_type.lower()
-        valid = "bullpap wti apc_snmp ether-wake ipmilan drac ipmitool ilo rsai lpar none"
+        valid = "bullpap wti apc_snmp ether-wake ipmilan drac ipmitool ilo rsai lpar bladecenter none"
         choices = valid.split(" ")
         choices.sort()
         if power_type not in choices:

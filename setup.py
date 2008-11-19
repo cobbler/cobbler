@@ -220,6 +220,7 @@ if __name__ == "__main__":
                                 (etcpath, ['templates/power_wti.template']),
                                 (etcpath, ['templates/power_ilo.template']),
                                 (etcpath, ['templates/power_lpar.template']),        
+                                (etcpath, ['templates/power_bladecenter.template']),        
 
                                 # templates for /usr/bin/cobbler-setup
                                 (itemplates, ['installer_templates/modules.conf.template']),

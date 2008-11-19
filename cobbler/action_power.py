@@ -132,6 +132,7 @@ class PowerTool:
             "ilo"        : "/etc/cobbler/power_ilo.template",
             "rsa"        : "/etc/cobbler/power_rsa.template",
             "lpar"       : "/etc/cobbler/power_lpar.template",
+            "bladecenter": "/etc/cobbler/power_bladecenter.template",
         }
 
         result = map.get(self.system.power_type, "")
