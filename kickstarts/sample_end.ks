@@ -24,7 +24,7 @@ url --url=$tree
 # If any cobbler repo definitions were referenced in the kickstart profile, include them here.
 $yum_repo_stanza
 # Network information
-SNIPPET::network_config
+$SNIPPET('network_config')
 # Reboot after installation
 reboot
 
@@ -44,20 +44,20 @@ zerombr
 autopart
 
 %pre
-SNIPPET::pre_install_network_config
+$SNIPPET('pre_install_network_config')
 $kickstart_start
 %end
 
 %packages
-SNIPPET::func_install_if_enabled
+$SNIPPET('func_install_if_enabled')
 %end
 
 %post
 $yum_config_stanza
-SNIPPET::post_install_kernel_options
-SNIPPET::post_install_network_config
-SNIPPET::func_register_if_enabled
-SNIPPET::download_config_files
-SNIPPET::koan_environment
+$SNIPPET('post_install_kernel_options')
+$SNIPPET('post_install_network_config')
+$SNIPPET('func_register_if_enabled')
+$SNIPPET('download_config_files')
+$SNIPPET('koan_environment')
 $kickstart_done
 %end
