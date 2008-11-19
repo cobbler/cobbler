@@ -25,6 +25,8 @@
     #if $numbondingdevs > 0
 echo "options bonding max_bonds=$numbondingdevs" >> /etc/modprobe.conf
     #end if
+mkdir /etc/sysconfig/network-scripts/cobbler
+cp /etc/sysconfig/network-scripts/ifcfg-lo /etc/sysconfig/network-scripts/cobbler/
     #for $iname in $ikeys
 #  Start $iname
         #set $idata    = $interfaces[$iname]
@@ -37,7 +39,7 @@ echo "options bonding max_bonds=$numbondingdevs" >> /etc/modprobe.conf
         #set $bonding_master = $idata["bonding_master"]
         #set $bonding_opts = $idata["bonding_opts"]
         #set $ihostname = $idata["hostname"]
-        #set $devfile = "/etc/sysconfig/network-scripts/ifcfg-" + $iname
+        #set $devfile = "/etc/sysconfig/network-scripts/cobbler/ifcfg-" + $iname
         #if $vlanpattern.match($iname)
             ## If this is a VLAN interface, skip it, anaconda doesn't know
             ## about VLANs.
@@ -56,7 +58,6 @@ IFNAME=\$(ifconfig -a | grep -i '$mac' | cut -d ' ' -f 1)
             ## Rename this interface in modprobe.conf
 sed -i "s/\$IFNAME/$iname/" /etc/modprobe.conf
             ## Remove the old interface file the OS had for it
-rm -f /etc/sysconfig/network-scripts/ifcfg-\$IFNAME
 echo "DEVICE=$iname" > $devfile
 echo "ONBOOT=yes" >> $devfile
             #if $bonding.lower() == "slave" and $bonding_master != ""
@@ -132,12 +133,15 @@ sed -i "s/$curiname/$iname/" /etc/modprobe.conf
 (
 grep -v "DEVICE=" /etc/sysconfig/network-scripts/ifcfg-$curiname
 echo "DEVICE=$iname"
-) > /etc/sysconfig/network-scripts/ifcfg-$iname
-rm -f /etc/sysconfig/network-scripts/ifcfg-$curiname
+) > /etc/sysconfig/network-scripts/cobbler/ifcfg-$iname
             #end if
 		#end if
 		#set $i = $i + 1
 #  End $iname
     #end for	
+## Move all staged files to their final location
+rm -f /etc/sysconfig/network-scripts/ifcfg-*
+mv /etc/sysconfig/network-scripts/cobbler/* /etc/sysconfig/network-scripts/
+rm -r /etc/sysconfig/network-scripts/cobbler
 #end if
 # End post_install_network_config generated code
