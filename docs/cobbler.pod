@@ -299,7 +299,7 @@ This is a per-interface setting.
 
 =item --static-routes
 
-This is a space delimited list of ipaddress:subnet:gateway routing information.  Most systems will not need this information.   
+This is a space delimited list of ip/mask:gateway routing information in that format.  Most systems will not need this information.   
 
 This is a per-interface setting.
 
