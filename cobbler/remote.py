@@ -1397,7 +1397,7 @@ def test_xmlrpc_ro():
    profile = api.new_profile()
    profile.set_name("profile0")
    profile.set_distro("distro0")
-   profile.set_kickstart("/etc/cobbler/sample.ks")
+   profile.set_kickstart("/var/lib/cobbler/kickstarts/sample.ks")
    profile.set_repos(["repo0"])
    api.add_profile(profile)
 
@@ -1514,9 +1514,9 @@ def test_xmlrpc_ro():
    assert server.get_size("images") == 1
 
    templates = server.get_kickstart_templates("???")
-   assert "/etc/cobbler/sample.ks" in templates
-   assert server.is_kickstart_in_use("/etc/cobbler/sample.ks","???") == True
-   assert server.is_kickstart_in_use("/etc/cobbler/legacy.ks","???") == False
+   assert "/var/lib/cobbler/kickstarts/sample.ks" in templates
+   assert server.is_kickstart_in_use("/var/lib/cobbler/kickstarts/sample.ks","???") == True
+   assert server.is_kickstart_in_use("/var/lib/cobbler/kickstarts/legacy.ks","???") == False
    generated = server.generate_kickstart("profile0")
    assert type(generated) == type("")
    assert generated.find("ERROR") == -1
@@ -1631,7 +1631,7 @@ def test_xmlrpc_rw():
    server.modify_profile(pid, "name",   "profile1", token)
    server.modify_profile(pid, "distro", "distro1", token)
    server.modify_profile(pid, "enable-menu", True, token)
-   server.modify_profile(pid, "kickstart", "/etc/cobbler/sample.ks", token)
+   server.modify_profile(pid, "kickstart", "/var/lib/cobbler/kickstarts/sample.ks", token)
    server.modify_profile(pid, "kopts", { "level" : "11" }, token)
    server.modify_profile(pid, "kopts-post", "noapic", token)
    server.modify_profile(pid, "virt-file-size", 20, token)
@@ -1657,7 +1657,7 @@ def test_xmlrpc_rw():
    server.modify_system(sid, 'profile', 'profile1', token)
    server.modify_system(sid, 'kopts', { "dog" : "fido" }, token)
    server.modify_system(sid, 'kopts-post', { "cat" : "fluffy" }, token)
-   server.modify_system(sid, 'kickstart', '/etc/cobbler/sample.ks', token)
+   server.modify_system(sid, 'kickstart', '/var/lib/cobbler/kickstarts/sample.ks', token)
    server.modify_system(sid, 'netboot-enabled', True, token)
    server.modify_system(sid, 'virt-path', "/opt/images", token)
    server.modify_system(sid, 'virt-type', 'qemu', token)

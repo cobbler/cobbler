@@ -84,7 +84,7 @@ class BootTest(unittest.TestCase):
         profile = self.api.new_profile()
         self.assertTrue(profile.set_name("testprofile0"))
         self.assertTrue(profile.set_distro("testdistro0"))
-        self.assertTrue(profile.set_kickstart("/etc/cobbler/sample_end.ks"))
+        self.assertTrue(profile.set_kickstart("/var/lib/cobbler/kickstarts/sample_end.ks"))
         self.assertTrue(self.api.add_profile(profile))
         self.assertTrue(self.api.find_profile(name="testprofile0"))
 
@@ -525,7 +525,7 @@ class Utilities(BootTest):
         profile = self.api.new_profile()
         self.assertTrue(profile.set_name("testprofile11"))
         self.failUnlessRaises(CobblerException, profile.set_distro, "distrodoesntexist")
-        self.assertTrue(profile.set_kickstart("/etc/cobbler/sample.ks"))
+        self.assertTrue(profile.set_kickstart("/var/lib/cobbler/kickstarts/sample.ks"))
         self.failUnlessRaises(CobblerException, self.api.add_profile, profile)
         self.assertFalse(self.api.profiles().find(name="testprofile2"))
 

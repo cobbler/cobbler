@@ -196,7 +196,7 @@ class Profile(item.Item):
         if utils.find_kickstart(kickstart):
             self.kickstart = kickstart
             return True
-        raise CX(_("kickstart not found"))
+        raise CX(_("kickstart not found: %s") % kickstart)
 
     def set_virt_cpus(self,num):
         return utils.set_virt_cpus(self,num)
