@@ -171,6 +171,10 @@ omshell_bin: /usr/bin/omshell
 
 power_management_default_type: 'ipmitool'
 
+# the commands used by the power management module are sourced
+# from what directory?
+power_template_dir: "/etc/cobbler/power"
+
 # if this setting is set to 1, cobbler systems that pxe boot
 # will request at the end of their installation to toggle the 
 # --netboot-enabled record in the cobbler system record.  This eliminates
@@ -179,6 +183,10 @@ power_management_default_type: 'ipmitool'
 # boot order, otherwise leave this disabled.   See the manpage
 # for --netboot-enabled.
 pxe_just_once: $pxe_once
+
+# the templates used for PXE config generation are sourced
+# from what directory?
+pxe_template_dir: "/etc/cobbler/pxe"
 
 # when DHCP and DNS management are enabled, cobbler sync can automatically
 # restart those services to apply changes.  The exception for this is
