@@ -20,7 +20,6 @@
     	#end if
     #end for
     #set $i = 0
-    #set $hostname = ""
     
     #if $numbondingdevs > 0
 echo "options bonding max_bonds=$numbondingdevs" >> /etc/modprobe.conf
@@ -34,11 +33,9 @@ cp /etc/sysconfig/network-scripts/ifcfg-lo /etc/sysconfig/network-scripts/cobble
         #set $static   = $idata["static"]
         #set $ip       = $idata["ip_address"]
         #set $netmask  = $idata["subnet"]
-        #set $gateway  = $idata["gateway"]
         #set $bonding  = $idata["bonding"]
         #set $bonding_master = $idata["bonding_master"]
         #set $bonding_opts = $idata["bonding_opts"]
-        #set $ihostname = $idata["hostname"]
         #set $devfile = "/etc/sysconfig/network-scripts/cobbler/ifcfg-" + $iname
         #if $vlanpattern.match($iname)
             ## If this is a VLAN interface, skip it, anaconda doesn't know
@@ -77,9 +74,6 @@ echo "IPADDR=$ip" >> $devfile
                         #set $netmask = "255.255.255.0"
                     #end if
 echo "NETMASK=$netmask" >> $devfile
-                    #if $gateway != ""
-echo "GATEWAY=$gateway" >> $devfile
-                    #end if
                 #else
                     ## Leave the interface unconfigured
 echo "BOOTPROTO=none" >> $devfile
@@ -111,9 +105,6 @@ echo "IPADDR=$ip" >> $devfile
                         #set $netmask = "255.255.255.0"
                     #end if
 echo "NETMASK=$netmask" >> $devfile
-                    #if $gateway != ""
-echo "GATEWAY=$gateway" >> $devfile
-                    #end if
                 #else
                     ## Leave the interface unconfigured
 echo "BOOTPROTO=none" >> $devfile

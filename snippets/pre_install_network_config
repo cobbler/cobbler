@@ -14,7 +14,6 @@
         #end if
     #end for
     #set $i = 0
-    #set $hostname = ""
 
     #if $configbymac
         ## Output diagnostic message
@@ -27,11 +26,9 @@
         #set $static   = $idata["static"]
         #set $ip       = $idata["ip_address"]
         #set $netmask  = $idata["subnet"]
-        #set $gateway  = $idata["gateway"]
         #set $bonding  = $idata["bonding"]
         #set $bonding_master = $idata["bonding_master"]
         #set $bonding_opts = $idata["bonding_opts"]
-        #set $ihostname = $idata["hostname"]
         #set $devfile = "/etc/sysconfig/network-scripts/ifcfg-" + $iname
         #if $vlanpattern.match($iname)
             ## If this is a VLAN interface, skip it, anaconda doesn't know
@@ -61,8 +58,8 @@
                 #end if
                 #set $netinfo = "--bootproto=static --ip=%s --netmask=%s" % ($ip, $netmask)
                 #if $gateway != ""
-                    #set $netinfo = "%s --gateway=%s" % ($netinfo, $gateway)
-                #end if
+	            #set $netinfo = "%s --gateway=%s" % ($netinfo, $gateway)
+    	        #end if
             #else if $static.lower() == "false"
                 #set $netinfo = "--bootproto=dhcp"
             #else
@@ -71,8 +68,8 @@
 #  Skipping (no configuration)...
                 #continue
             #end if
-            #if $ihostname != ""
-                #set $netinfo = "%s --hostname=%s" % ($netinfo, $ihostname)
+            #if $hostname != ""
+                #set $netinfo = "%s --hostname=%s" % ($netinfo, $hostname)
             #end if
 # Configuring $iname ($mac)
 if ifconfig -a | grep -i $mac
