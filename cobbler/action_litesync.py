@@ -150,7 +150,7 @@ class BootLiteSync:
                 for (name,interface) in system.interfaces.iteritems():
                     self.sync.dhcp.write_dhcp_lease(
                         self.settings.omapi_port,
-                        interface["hostname"],
+                        interface["dns_name"],
                         interface["mac_address"],
                         interface["ip_address"]
                     )
@@ -170,7 +170,7 @@ class BootLiteSync:
                 for (name,interface) in system_record.interfaces.iteritems():
                     self.sync.dhcp.remove_dhcp_lease(
                         self.settings.omapi_port,
-                        interface["hostname"]
+                        interface["dns_name"]
                     )
 
         itanic = False

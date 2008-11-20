@@ -70,7 +70,7 @@ restorestate:
 	chown -R apache /var/www/cobbler 
 	chmod -R +x /var/www/cobbler/web
 	chmod -R +x /var/www/cobbler/svc
-	#-[ "$(statepath)" != "/" ] && rm -rf $(statepath)
+	rm -rf $(statepath)
 
 completion:
 	python mkbash.py

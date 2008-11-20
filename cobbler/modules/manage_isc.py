@@ -183,7 +183,7 @@ class IscManager:
             for (name, interface) in system.interfaces.iteritems():
                 mac  = interface["mac_address"]
                 ip   = interface["ip_address"]
-                host = interface["hostname"]
+                host = interface["dns_name"]
 
                 # add references to the system, profile, and distro
                 # for use in the template
