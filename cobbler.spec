@@ -67,6 +67,7 @@ PREFIX="--prefix=/usr"
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
 
 %post
+# backup config
 if [ -e /var/lib/cobbler/distros ]; then
     cp /var/lib/cobbler/distros*  /var/lib/cobbler/backup 2>/dev/null
     cp /var/lib/cobbler/profiles* /var/lib/cobbler/backup 2>/dev/null
@@ -76,6 +77,23 @@ fi
 if [ -e /var/lib/cobbler/config ]; then
     cp -a /var/lib/cobbler/config    /var/lib/cobbler/backup 2>/dev/null
 fi
+# move power and pxe-templates from /etc/cobbler, backup new templates to *.rpmnew
+for n in power pxe; do
+  rm -f /etc/cobbler/$n*.rpmnew
+  find /etc/cobbler -maxdepth 1 -name "$n*" -type f | while read f; do
+    newf=/etc/cobbler/$n/`basename $f`
+    [ -e $newf ] &&  mv $newf $newf.rpmnew
+    mv $f $newf
+  done
+done
+# copy kickstarts from /etc/cobbler to /var/lib/cobbler/kickstarts
+rm -f /etc/cobbler/*.ks.rpmnew
+find /etc/cobbler -maxdepth 1 -name "*.ks" -type f | while read f; do
+  newf=/var/lib/cobbler/kickstarts/`basename $f`
+  [ -e $newf ] &&  mv $newf $newf.rpmnew
+  cp $f $newf
+done
+# reserialize and restart
 /usr/bin/cobbler reserialize
 /sbin/chkconfig --add cobblerd
 /sbin/service cobblerd condrestart
@@ -141,9 +159,11 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(-,root,root)
 %dir /etc/cobbler
-%config(noreplace) /etc/cobbler/*.ks
-%config(noreplace) /etc/cobbler/*.seed
+%config(noreplace) /var/lib/cobbler/kickstarts/*.ks
+%config(noreplace) /var/lib/cobbler/kickstarts/*.seed
 %config(noreplace) /etc/cobbler/*.template
+%config(noreplace) /etc/cobbler/pxe/*.template
+%config(noreplace) /etc/cobbler/power/*.template
 %config(noreplace) /etc/cobbler/rsync.exclude
 %config(noreplace) /etc/logrotate.d/cobblerd_rotate
 %config(noreplace) /etc/cobbler/modules.conf

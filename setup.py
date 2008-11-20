@@ -64,45 +64,62 @@ if __name__ == "__main__":
         gen_build_version()
         gen_config()
         # docspath="share/doc/koan-%s/" % VERSION
-        bashpath = "/etc/bash_completion.d/"
-        manpath  = "share/man/man1/"
-        cobpath  = "/var/lib/cobbler/"
-        backpath = "/var/lib/cobbler/backup/"
-        trigpath = "/var/lib/cobbler/triggers/"
-        etcpath  = "/etc/cobbler/"
+        
+        # etc configs
+        etcpath     = "/etc/cobbler"
+        bashpath    = "/etc/bash_completion.d"
+        initpath    = "/etc/init.d"
+        rotpath       = "/etc/logrotate.d"
+        powerpath   = etcpath + "/power"
+        pxepath     = etcpath + "/pxe"
+        zonepath    = etcpath + "/zone_templates"
+        
+        # lib paths
+        libpath     = "/var/lib/cobbler"
+        backpath    = libpath + "/backup"
+        trigpath    = libpath + "/triggers"
+        snippetpath = libpath + "/snippets"
+        kickpath    = libpath + "/kickstarts"
+        dbpath      = libpath + "/config"
+
+        # share paths
+        sharepath   = "/usr/share/cobbler"
+        itemplates  = sharepath + "/installer_templates"
+        wwwtmpl     = sharepath + "/webui_templates"
+        manpath     = "share/man/man1"
+        
+        # www paths
+        wwwpath  = "/var/www/cobbler"
         if os.path.exists("/etc/SuSE-release"):
-            wwwconf  = "/etc/apache2/conf.d/"
+            wwwconf  = "/etc/apache2/conf.d"
         else:
-            wwwconf  = "/etc/httpd/conf.d/"
-        wwwpath  = "/var/www/cobbler/"
-        wwwcon   = "/var/www/cobbler/webui/"
-        initpath = "/etc/init.d/"
-        logpath  = "/var/log/cobbler/"
-        logpath2 = "/var/log/cobbler/kicklog"
-        logpath3 = "/var/log/cobbler/syslog"
+            wwwconf  = "/etc/httpd/conf.d"
+        wwwcon   = wwwpath + "/webui"
+        vw_localmirror = wwwpath + "/localmirror"
+        vw_kickstarts  = wwwpath + "/kickstarts"
+        vw_kickstarts_sys  = wwwpath + "/kickstarts_sys"
+        vw_repomirror = wwwpath + "/repo_mirror"
+        vw_ksmirror   = wwwpath + "/ks_mirror"
+        vw_ksmirrorc  = wwwpath + "/ks_mirror/config"
+        vw_images     = wwwpath + "/images"
+        vw_distros    = wwwpath + "/distros"
+        vw_systems    = wwwpath + "/systems"
+        vw_profiles   = wwwpath + "/profiles"
+        vw_links      = wwwpath + "/links"
+        # cgipath       = "/var/www/cgi-bin/cobbler"
+        modpython     = wwwpath + "/web"
+        modpythonsvc  = wwwpath + "/svc"
+        
+        # log paths
+        logpath  = "/var/log/cobbler"
+        logpath2 = logpath + "/kicklog"
+        logpath3 = logpath + "/syslog"
         logpath4 = "/var/log/httpd/cobbler"
-        snippets = "/var/lib/cobbler/snippets"
-        vl_kick  = "/var/lib/cobbler/kickstarts"
-        wwwtmpl  = "/usr/share/cobbler/webui_templates/"
-        vw_localmirror = "/var/www/cobbler/localmirror"
-        vw_kickstarts  = "/var/www/cobbler/kickstarts"
-        vw_kickstarts_sys  = "/var/www/cobbler/kickstarts_sys"
-        vw_repomirror = "/var/www/cobbler/repo_mirror"
-        vw_ksmirror   = "/var/www/cobbler/ks_mirror"
-        vw_ksmirrorc  = "/var/www/cobbler/ks_mirror/config"
-        vw_images     = "/var/www/cobbler/images"
-        vw_distros    = "/var/www/cobbler/distros"
-        vw_systems    = "/var/www/cobbler/systems"
-        vw_profiles   = "/var/www/cobbler/profiles"
-        vw_links      = "/var/www/cobbler/links"
-        zone_templates = "/etc/cobbler/zone_templates"
-        itemplates    = "/usr/share/cobbler/installer_templates"
+
+        # tftp paths        
         tftp_cfg      = "/tftpboot/pxelinux.cfg"
         tftp_images   = "/tftpboot/images"
-        rotpath       = "/etc/logrotate.d"
-        # cgipath       = "/var/www/cgi-bin/cobbler"
-        modpython     = "/var/www/cobbler/web"
-        modpythonsvc  = "/var/www/cobbler/svc"
+        
 
         # hack to bundle jquery until we have packaging guidelines to avoid JS bundling
         # bundling is evil, but temporary.
@@ -158,8 +175,8 @@ if __name__ == "__main__":
                                 (rotpath,  ['config/cobblerd_rotate']),
                                 (wwwconf,  ['config/cobbler.conf']),
                                 (wwwconf,  ['config/cobbler_svc.conf']),
-                                (cobpath,  ['config/completions']),
-                                (cobpath,  ['config/cobbler_hosts']),
+                                (libpath,  ['config/completions']),
+                                (libpath,  ['config/cobbler_hosts']),
                                 (etcpath,  ['config/modules.conf']),
                                 (etcpath,  ['config/users.digest']),
                                 (etcpath,  ['config/rsync.exclude']),
@@ -174,74 +191,75 @@ if __name__ == "__main__":
                                 (backpath, []),
 
                                 # for --version support across distros
-                                (cobpath,  ['config/version']),
+                                (libpath,  ['config/version']),
 
                                 # bootloaders and syslinux support files
-                                (cobpath,  ['loaders/elilo-3.8-ia64.efi']),
-                                (cobpath,  ['loaders/menu.c32']),
-                                (cobpath,  ['loaders/yaboot-1.3.14']),
-                                ("/var/lib/cobbler/config/distros.d",  []),
-                                ("/var/lib/cobbler/config/profiles.d", []),
-                                ("/var/lib/cobbler/config/systems.d",  []),
-                                ("/var/lib/cobbler/config/repos.d",    []),
-                                ("/var/lib/cobbler/config/images.d",   []),
+                                (libpath,  ['loaders/elilo-3.8-ia64.efi']),
+                                (libpath,  ['loaders/menu.c32']),
+                                (libpath,  ['loaders/yaboot-1.3.14']),
+                                
+                                # database/serializer
+                                (dbpath + "/distros.d",  []),
+                                (dbpath + "/profiles.d", []),
+                                (dbpath + "/systems.d",  []),
+                                (dbpath + "/repos.d",    []),
+                                (dbpath + "/images.d",   []),
 
                                 # sample kickstart files
-                                (etcpath,  ['kickstarts/legacy.ks']),
-                                (etcpath,  ['kickstarts/sample.ks']),
-                                (etcpath,  ['kickstarts/sample_end.ks']),
-                                (etcpath,  ['kickstarts/default.ks']),
-                                (etcpath,  ['kickstarts/pxerescue.ks']),
+                                (kickpath,  ['kickstarts/legacy.ks']),
+                                (kickpath,  ['kickstarts/sample.ks']),
+                                (kickpath,  ['kickstarts/sample_end.ks']),
+                                (kickpath,  ['kickstarts/default.ks']),
+                                (kickpath,  ['kickstarts/pxerescue.ks']),
                                 
                                 # seed files for debian
-                                (etcpath,  ['kickstarts/sample.seed']),
+                                (kickpath,  ['kickstarts/sample.seed']),
  
-                                # templates for DHCP, DNS, and syslinux configs
+                                # templates for DHCP, DNS
 				(etcpath,  ['templates/dhcp.template']),
 				(etcpath,  ['templates/dnsmasq.template']),
                                 (etcpath,  ['templates/named.template']),
-				(etcpath,  ['templates/pxedefault.template']),
-				(etcpath,  ['templates/pxesystem.template']),
-				(etcpath,  ['templates/pxesystem_s390x.template']),
-				(etcpath,  ['templates/pxesystem_ia64.template']),
-				(etcpath,  ['templates/pxesystem_ppc.template']),
-				(etcpath,  ['templates/pxeprofile.template']),
-				(etcpath,  ['templates/pxelocal.template']),
                                 (etcpath,  ['templates/zone.template']),
+                                
+                                # templates for syslinux PXE configs
+				(pxepath,  ['templates/pxedefault.template']),
+				(pxepath,  ['templates/pxesystem.template']),
+				(pxepath,  ['templates/pxesystem_s390x.template']),
+				(pxepath,  ['templates/pxesystem_ia64.template']),
+				(pxepath,  ['templates/pxesystem_ppc.template']),
+				(pxepath,  ['templates/pxeprofile.template']),
+				(pxepath,  ['templates/pxelocal.template']),
 
                                 # templates for power management
-                                (etcpath, ['templates/power_apc_snmp.template']), 
-                                (etcpath, ['templates/power_ipmilan.template']),
-                                (etcpath, ['templates/power_bullpap.template']),     
-                                (etcpath, ['templates/power_ipmitool.template']),
-                                (etcpath, ['templates/power_drac.template']),        
-                                (etcpath, ['templates/power_rsa.template']),
-                                (etcpath, ['templates/power_ether_wake.template']),  
-                                (etcpath, ['templates/power_wti.template']),
-                                (etcpath, ['templates/power_ilo.template']),
-                                (etcpath, ['templates/power_lpar.template']),        
-                                (etcpath, ['templates/power_bladecenter.template']),        
+                                (powerpath, ['templates/power_apc_snmp.template']), 
+                                (powerpath, ['templates/power_ipmilan.template']),
+                                (powerpath, ['templates/power_bullpap.template']),     
+                                (powerpath, ['templates/power_ipmitool.template']),
+                                (powerpath, ['templates/power_drac.template']),        
+                                (powerpath, ['templates/power_rsa.template']),
+                                (powerpath, ['templates/power_ether_wake.template']),  
+                                (powerpath, ['templates/power_wti.template']),
+                                (powerpath, ['templates/power_ilo.template']),
+                                (powerpath, ['templates/power_lpar.template']),        
+                                (powerpath, ['templates/power_bladecenter.template']),        
 
                                 # templates for /usr/bin/cobbler-setup
                                 (itemplates, ['installer_templates/modules.conf.template']),
                                 (itemplates, ['installer_templates/settings.template']),
                                 (itemplates, ['installer_templates/defaults']),
 
-                                # kickstart dir
-                                (vl_kick,  []),
-
                                 # useful kickstart snippets that we ship
-                                (snippets, ['snippets/partition_select']),
-                                (snippets, ['snippets/pre_partition_select']),
-                                (snippets, ['snippets/main_partition_select']),
-                                (snippets, ['snippets/post_install_kernel_options']),
-                                (snippets, ['snippets/network_config']),
-                                (snippets, ['snippets/pre_install_network_config']),
-                                (snippets, ['snippets/post_install_network_config']),
-                                (snippets, ['snippets/func_install_if_enabled']),
-                                (snippets, ['snippets/func_register_if_enabled']),
-                                (snippets, ['snippets/download_config_files']),
-                                (snippets, ['snippets/koan_environment']),
+                                (snippetpath, ['snippets/partition_select']),
+                                (snippetpath, ['snippets/pre_partition_select']),
+                                (snippetpath, ['snippets/main_partition_select']),
+                                (snippetpath, ['snippets/post_install_kernel_options']),
+                                (snippetpath, ['snippets/network_config']),
+                                (snippetpath, ['snippets/pre_install_network_config']),
+                                (snippetpath, ['snippets/post_install_network_config']),
+                                (snippetpath, ['snippets/func_install_if_enabled']),
+                                (snippetpath, ['snippets/func_register_if_enabled']),
+                                (snippetpath, ['snippets/download_config_files']),
+                                (snippetpath, ['snippets/koan_environment']),
 
                                 # documentation
                                 (manpath,  ['docs/cobbler.1.gz']),
@@ -266,7 +284,7 @@ if __name__ == "__main__":
                                 (vw_links,          []),
 
                                 # zone-specific templates directory
-                                (zone_templates,    []),
+                                (zonepath,    []),
 
                                 # tftp directories that we own
                                 (tftp_cfg,          []),
@@ -318,27 +336,27 @@ if __name__ == "__main__":
                                 (wwwcon,            ['webui_content/cobblerweb.css']),
 
                                 # Directories to hold cobbler triggers
-                                ("%sadd/distro/pre" % trigpath,      []),
-                                ("%sadd/distro/post" % trigpath,     []),
-                                ("%sadd/profile/pre" % trigpath,     []),
-                                ("%sadd/profile/post" % trigpath,    []),
-                                ("%sadd/system/pre" % trigpath,      []),
-                                ("%sadd/system/post" % trigpath,     []),
-                                ("%sadd/repo/pre" % trigpath,        []),
-                                ("%sadd/repo/post" % trigpath,       []),
-                                ("%sdelete/distro/pre" % trigpath,   []),
-                                ("%sdelete/distro/post" % trigpath,  []),
-                                ("%sdelete/profile/pre" % trigpath,  []),
-                                ("%sdelete/profile/post" % trigpath, []),
-                                ("%sdelete/system/pre" % trigpath,   []),
-                                ("%sdelete/system/post" % trigpath,  []),
-                                ("%sdelete/repo/pre" % trigpath,     []),
-                                ("%sdelete/repo/post" % trigpath,    []),
-                                ("%sdelete/repo/post" % trigpath,    []),
-                                ("%sinstall/pre" % trigpath,         [ "triggers/status_pre.trigger"]),
-                                ("%sinstall/post" % trigpath,        [ "triggers/status_post.trigger"]),
-                                ("%ssync/pre" % trigpath,            []),
-                                ("%ssync/post" % trigpath,           [ "triggers/restart-services.trigger" ])
+                                ("%s/add/distro/pre" % trigpath,      []),
+                                ("%s/add/distro/post" % trigpath,     []),
+                                ("%s/add/profile/pre" % trigpath,     []),
+                                ("%s/add/profile/post" % trigpath,    []),
+                                ("%s/add/system/pre" % trigpath,      []),
+                                ("%s/add/system/post" % trigpath,     []),
+                                ("%s/add/repo/pre" % trigpath,        []),
+                                ("%s/add/repo/post" % trigpath,       []),
+                                ("%s/delete/distro/pre" % trigpath,   []),
+                                ("%s/delete/distro/post" % trigpath,  []),
+                                ("%s/delete/profile/pre" % trigpath,  []),
+                                ("%s/delete/profile/post" % trigpath, []),
+                                ("%s/delete/system/pre" % trigpath,   []),
+                                ("%s/delete/system/post" % trigpath,  []),
+                                ("%s/delete/repo/pre" % trigpath,     []),
+                                ("%s/delete/repo/post" % trigpath,    []),
+                                ("%s/delete/repo/post" % trigpath,    []),
+                                ("%s/install/pre" % trigpath,         [ "triggers/status_pre.trigger"]),
+                                ("%s/install/post" % trigpath,        [ "triggers/status_post.trigger"]),
+                                ("%s/sync/pre" % trigpath,            []),
+                                ("%s/sync/post" % trigpath,           [ "triggers/restart-services.trigger" ])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC
