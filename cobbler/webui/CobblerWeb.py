@@ -422,7 +422,8 @@ class CobblerWeb(object):
             for interface in interfaces:
                 macaddress     = args.get("macaddress-%s" % interface, "")
                 ipaddress      = args.get("ipaddress-%s" % interface, "")
-                hostname       = args.get("hostname-%s" % interface, "")
+                dnsname        = args.get("dns_name-%s" % interface, "")
+                staticroutes   = args.get("static_routes-%s" % interface, "")
                 static         = args.get("static-%s" % interface, "")
                 virtbridge     = args.get("virtbridge-%s" % interface, "")
                 dhcptag        = args.get("dhcptag-%s" % interface, "")
@@ -441,7 +442,8 @@ class CobblerWeb(object):
                     mods = {}
                     mods["macaddress-%s" % interface] = macaddress
                     mods["ipaddress-%s" % interface] = ipaddress
-                    mods["dnsname-%s" % interface]  = hostname
+                    mods["dnsname-%s" % interface]  = dnsname
+                    mods["static_routes-%s" % interface] = staticroutes
                     mods["static-%s" % interface]  = static
                     mods["virtbridge-%s" % interface] = virtbridge
                     mods["dhcptag-%s" % interface] = dhcptag

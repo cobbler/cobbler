@@ -52,6 +52,7 @@ function intf_update_visibility()
     intf_enable_field("ipaddress",(!is_slave) && is_static)
     intf_enable_field("subnet",(!is_slave) && is_static)
     intf_enable_field("dns_name",!is_slave)
+    intf_enable_field("static_routes",!is_slave)
     intf_enable_field("dhcptag",!is_slave)
     intf_enable_field("virtbridge",!is_master)
     intf_enable_field("bondingopts",is_master)
@@ -97,6 +98,7 @@ function on_interface_add()
    interface_table[iname]["bondingopts"] = ""
    interface_table[iname]["ipaddress"] = ""
    interface_table[iname]["dns_name"] = ""
+   interface_table[iname]["static_routes"] = ""
    interface_table[iname]["dhcptag"] = ""
    interface_table[iname]["virtbridge"] = ""
    interface_table[iname]["subnet"] = ""
@@ -183,6 +185,7 @@ function save_intf(which)
     itable["ipaddress"]  = get_enabled_field("ipaddress",(!is_slave) && is_static)
     itable["subnet"]     = get_enabled_field("subnet",(!is_slave) && is_static)
     itable["dns_name"]   = get_enabled_field("dns_name",!is_slave)
+    itable["static_routes"]   = get_enabled_field("static_routes",!is_slave)
     itable["dhcptag"]    = get_enabled_field("dhcptag",!is_slave)
     itable["virtbridge"] = get_enabled_field("virtbridge",!is_master)
     itable["present"]    = document.getElementById("present").value
@@ -213,6 +216,7 @@ function load_intf()
     document.getElementById("ipaddress").value     = interface_table[intf]["ipaddress"]
     document.getElementById("subnet").value        = interface_table[intf]["subnet"]
     document.getElementById("dns_name").value      = interface_table[intf]["dns_name"]
+    document.getElementById("static_routes").value = interface_table[intf]["static_routes"]
     document.getElementById("dhcptag").value       = interface_table[intf]["dhcptag"]
     document.getElementById("virtbridge").value    = interface_table[intf]["virtbridge"]
     document.getElementById("present").value       = interface_table[intf]["present"]
@@ -233,6 +237,7 @@ function clear_intf()
     document.getElementById("ipaddress").value     = ""
     document.getElementById("subnet").value        = ""
     document.getElementById("dns_name").value      = ""
+    document.getElementById("static_routes").value = ""
     document.getElementById("dhcptag").value       = ""
     document.getElementById("virtbridge").value    = ""
     document.getElementById("present").value       = "1"
@@ -265,6 +270,7 @@ function build_interface_table()
            interface_table['$iname']["ipaddress"]  = "$system.interfaces[$iname]['ip_address']"
            interface_table['$iname']["subnet"]     = "$system.interfaces[$iname]['subnet']"
            interface_table['$iname']["dns_name"]   = "$system.interfaces[$iname]['dns_name']"
+           interface_table['$iname']["static_routes"] = "$system.interfaces[$iname]['static_routes']"
            interface_table['$iname']["dhcptag"]    = "$system.interfaces[$iname]['dhcp_tag']"
            interface_table['$iname']["virtbridge"] = "$system.interfaces[$iname]['virt_bridge']"
            interface_table['$iname']["present"]    = "1"
@@ -281,6 +287,7 @@ function build_interface_table()
        interface_table["eth0"]["ipaddress"] = ""
        interface_table["eth0"]["subnet"] = ""
        interface_table["eth0"]["dns_name"] = ""
+       interface_table["eth0"]["static_routes"] = ""
        interface_table["eth0"]["dhcptag"] = ""
        interface_table["eth0"]["virtbridge"] = ""
        interface_table["eth0"]["present"] = "1"
@@ -531,12 +538,40 @@ function page_onload() {
     </td>
     </tr>
 
+    <tr id="hostname_row">
+        <td class="netedit">
+        <label for="hostname">Hostname</label>
+        </td>
+        <td class="netedit">
+        #if $system
+            <input type="text" size="64" style="width: 150px;" name="hostname" id="hostname" value="$system.hostname" />
+        #else
+            <input type="text" size="64" style="width: 150px;" name="hostname" id="hostname" />
+        #end
+        <p class="context-tip">Ex: "vanhalen.example.org".  Used for /etc/sysconfig/network.</p>
+        </td>
+    </tr>
+
+    <tr id="gateway_row">
+        <td class="netedit">
+        <label for="gateway">Gateway</label>
+        </td>
+        <td class="netedit">
+        #if $system
+            <input type="text" size="64" style="width: 150px;" name="gateway" id="gateway" />
+        #else
+            <input type="text" size="64" style="width: 150px;" name="gateway" id="gateway" value="$system.gateway" />
+        #end
+        <p class="context-tip">Ex: "192.168.1.11".  For use with static IP configs.</p>
+        </td>
+    </tr>
+
 
     <tr>
-    <td>
+    <td class="netedit">
     <label for="name_servers">Name Servers</label>
     </td>
-    <td>
+    <td class="netedit">
     #if $system
        <input type="text" name="name_servers" id="name_servers" value="$system.name_servers">
     #else
@@ -721,16 +756,6 @@ function page_onload() {
     </td>
     </tr>
 
-    <tr id="gateway_row">
-        <td>
-        <label for="gateway">Gateway</label>
-        </td>
-        <td>
-        <input type="text" size="64" style="width: 150px;" name="gateway" id="gateway" />
-        <p class="context-tip">Ex: "192.168.1.11".  For use with static IP configs.</p>
-        </td>
-    </tr>
-
     ## FIXME: it might be a good idea to color code the power section in the same
     ## way we color code the interface section (see "nicedit" in CSS) as well as
     ## the virt section being a different color
@@ -874,6 +899,17 @@ function page_onload() {
         <p class="context-tip">Selects alternative subnets, see manpage or leave blank</p>
         </td>
         </tr>
+
+        <tr id="static_routes_row">
+        <td class="nicedit">
+        <label for="static_routes">Static Routes</label>
+        </td>
+        <td class="static_routes">
+        <input type="text" size="128" style="width: 150px;" name="static_routes" id="static_routes" />
+        <p class="context-tip">optional list of ipaddress:netmask:gateway, space delimited</p>
+        </td>
+        </tr>
+
 
         <tr id="virtbridge_row">
         <td class="nicedit">
