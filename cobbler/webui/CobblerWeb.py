@@ -413,6 +413,8 @@ class CobblerWeb(object):
                self.remote.modify_system(system, 'power_address', power_address, self.token)
             if name_servers:
                self.remote.modify_system(system, 'name_servers', name_servers, self.token)
+            if gateway:
+               self.remote.modify_systems(system, 'gateway', gateway, self.token)
 
             interfaces = args.get("interface_list","")
             interfaces = interfaces.split(",")
@@ -425,7 +427,6 @@ class CobblerWeb(object):
                 virtbridge     = args.get("virtbridge-%s" % interface, "")
                 dhcptag        = args.get("dhcptag-%s" % interface, "")
                 subnet         = args.get("subnet-%s" % interface, "")
-                gateway        = args.get("gateway-%s" % interface, "")
                 bonding        = args.get("bonding-%s" % interface, "")
                 bondingopts    = args.get("bondingopts-%s" % interface, "")
                 bondingmaster  = args.get("bondingmaster-%s" % interface, "")
@@ -440,12 +441,11 @@ class CobblerWeb(object):
                     mods = {}
                     mods["macaddress-%s" % interface] = macaddress
                     mods["ipaddress-%s" % interface] = ipaddress
-                    mods["hostname-%s" % interface]  = hostname
+                    mods["dnsname-%s" % interface]  = hostname
                     mods["static-%s" % interface]  = static
                     mods["virtbridge-%s" % interface] = virtbridge
                     mods["dhcptag-%s" % interface] = dhcptag
                     mods["subnet-%s" % interface] = subnet
-                    mods["gateway-%s" % interface] = gateway
                     mods["present-%s" % interface] = present
                     mods["original-%s" % interface] = original
                     mods["bonding-%s" % interface] = bonding
