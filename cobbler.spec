@@ -77,6 +77,7 @@ fi
 if [ -e /var/lib/cobbler/config ]; then
     cp -a /var/lib/cobbler/config    /var/lib/cobbler/backup 2>/dev/null
 fi
+# upgrade older installs
 # move power and pxe-templates from /etc/cobbler, backup new templates to *.rpmnew
 for n in power pxe; do
   rm -f /etc/cobbler/$n*.rpmnew
@@ -86,6 +87,7 @@ for n in power pxe; do
     mv $f $newf
   done
 done
+# upgrade older installs
 # copy kickstarts from /etc/cobbler to /var/lib/cobbler/kickstarts
 rm -f /etc/cobbler/*.ks.rpmnew
 find /etc/cobbler -maxdepth 1 -name "*.ks" -type f | while read f; do
