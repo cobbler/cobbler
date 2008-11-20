@@ -44,7 +44,7 @@ import glob
 import socket
 import utils
 
-COBBLER_REQUIRED = 0.900
+COBBLER_REQUIRED = 1.300
 
 """
 koan --virt [--profile=webserver|--system=name] --server=hostname
@@ -994,7 +994,7 @@ class Koan:
 
             ip = self.safe_load(interface_data, "ip_address")
             subnet = self.safe_load(interface_data, "subnet")
-            gateway = self.safe_load(interface_data, "gateway")
+            gateway = self.safe_load(pd, "gateway")
 
             hashv["ksdevice"] = self.static_interface
             if ip is not None:
