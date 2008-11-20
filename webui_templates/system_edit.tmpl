@@ -540,6 +540,20 @@ function page_onload() {
 
 
     <tr>
+    <td>
+    <label for="name_servers">Name Servers</label>
+    </td>
+    <td>
+    #if $system
+       <input type="text" name="name_servers" id="name_servers" value="$system.name_servers">
+    #else
+       <input type="text" name="name_servers" id="name_servers" value="<<inherit>>">
+    #end
+    <p class="context-tip">Name servers, space delimited, if not provided by DHCP</p>
+    </td>
+    </tr>
+
+    <tr>
     <td class="virtedit">
     <label for="virtfilesize">Virt Disk (GB)</label>
     </td>

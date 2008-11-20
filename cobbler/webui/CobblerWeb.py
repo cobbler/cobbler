@@ -332,6 +332,7 @@ class CobblerWeb(object):
                     new_or_edit=None,  
                     kopts=None, koptspost=None, ksmeta=None, owners=None, server_override=None, netboot='n', 
                     virtpath=None,virtram=None,virttype=None,virtcpus=None,virtfilesize=None,
+                    name_servers=None,
                     power_type=None, power_user=None, power_pass=None, power_id=None, power_address=None,
                     delete1=None, delete2=None, **args):
 
@@ -410,6 +411,8 @@ class CobblerWeb(object):
                self.remote.modify_system(system, 'power_id', power_id, self.token)
             if power_address:
                self.remote.modify_system(system, 'power_address', power_address, self.token)
+            if name_servers:
+               self.remote.modify_system(system, 'name_servers', name_servers, self.token)
 
             interfaces = args.get("interface_list","")
             interfaces = interfaces.split(",")
@@ -553,7 +556,8 @@ class CobblerWeb(object):
                      distro=None,kickstart=None,kopts=None,koptspost=None,
                      ksmeta=None,owners=None,enablemenu=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,
-                     parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,recursive=False,**args):
+                     parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,
+                     name_servers=None,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -633,7 +637,8 @@ class CobblerWeb(object):
                 self.remote.modify_profile(profile, 'server', server_override, self.token)
             if comment:
                 self.remote.modify_profile(profile, 'comment', comment, self.token)
-
+            if name_servers:
+                self.remote.modify_profile(profile, 'name_servers', name_servers, self.token)
 
             if repos is None:
                 repos = []
