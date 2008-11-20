@@ -33,10 +33,12 @@ cp /etc/sysconfig/network-scripts/ifcfg-lo /etc/sysconfig/network-scripts/cobble
         #set $static   = $idata["static"]
         #set $ip       = $idata["ip_address"]
         #set $netmask  = $idata["subnet"]
+        #set $static_routes = $idata["static_routes"]
         #set $bonding  = $idata["bonding"]
         #set $bonding_master = $idata["bonding_master"]
         #set $bonding_opts = $idata["bonding_opts"]
         #set $devfile = "/etc/sysconfig/network-scripts/cobbler/ifcfg-" + $iname
+        #set $routesfile = "/etc/sysconfig/network-scripts/cobbler/route-" + $iname
         #if $vlanpattern.match($iname)
             ## If this is a VLAN interface, skip it, anaconda doesn't know
             ## about VLANs.
@@ -127,6 +129,16 @@ echo "DEVICE=$iname"
 ) > /etc/sysconfig/network-scripts/cobbler/ifcfg-$iname
             #end if
 		#end if
+		#for $route in $static_routes
+		    #set routepattern = $re.compile("[0-9/.]+:[0-9.]+")
+		    #if $routepattern.match($route)
+                #set $routebits = $route.split(":")
+                #set [$network, $router] = $route.split(":")
+echo "$network via $router" >> $routesfile
+		    #else
+# Warning: invalid route "$route"
+            #end if
+		#end for
 		#set $i = $i + 1
 #  End $iname
     #end for	
