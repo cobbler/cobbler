@@ -41,11 +41,13 @@ class PowerTool:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,system,api,force_user,force_pass):
+    def __init__(self,config,system,api,force_user,force_pass):
         """
         Power library constructor requires a cobbler system object.
         """
         self.system      = system
+        self.config      = config
+        self.settings    = config.settings()
         self.api         = api
         self.force_user  = force_user
         self.force_pass  = force_pass
@@ -121,18 +123,19 @@ class PowerTool:
         if self.system.power_type in [ "", "none" ]:
             raise CX("Power management is not enabled for this system")
 
+        powerdir=self.settings.power_template_dir
         map = {
-            "bullpap"    : "/etc/cobbler/power_bullpap.template",
-            "apc_snmp"   : "/etc/cobbler/power_apc_snmp.template",
-            "ether-wake" : "/etc/cobbler/power_ether_wake.template",
-            "ipmilan"    : "/etc/cobbler/power_ipmilan.template",
-            "drac"       : "/etc/cobbler/power_drac.template",
-            "ipmitool"   : "/etc/cobbler/power_ipmitool.template",
-            "ipmilan"    : "/etc/cobbler/power_ipmilan.template",
-            "ilo"        : "/etc/cobbler/power_ilo.template",
-            "rsa"        : "/etc/cobbler/power_rsa.template",
-            "lpar"       : "/etc/cobbler/power_lpar.template",
-            "bladecenter": "/etc/cobbler/power_bladecenter.template",
+            "bullpap"    : os.path.join(powerdir,"power_bullpap.template"),
+            "apc_snmp"   : os.path.join(powerdir,"power_apc_snmp.template"),
+            "ether-wake" : os.path.join(powerdir,"power_ether_wake.template"),
+            "ipmilan"    : os.path.join(powerdir,"power_ipmilan.template"),
+            "drac"       : os.path.join(powerdir,"power_drac.template"),
+            "ipmitool"   : os.path.join(powerdir,"power_ipmitool.template"),
+            "ipmilan"    : os.path.join(powerdir,"power_ipmilan.template"),
+            "ilo"        : os.path.join(powerdir,"power_ilo.template"),
+            "rsa"        : os.path.join(powerdir,"power_rsa.template"),
+            "lpar"       : os.path.join(powerdir,"power_lpar.template"),
+            "bladecenter": os.path.join(powerdir,"power_bladecenter.template"),
         }
 
         result = map.get(self.system.power_type, "")

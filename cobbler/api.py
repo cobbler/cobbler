@@ -620,13 +620,13 @@ class BootAPI:
         """
         Powers up a system that has power management configured.
         """
-        return action_power.PowerTool(system,self,user,password).power("on")
+        return action_power.PowerTool(self._config,system,self,user,password).power("on")
 
     def power_off(self, system, user, password):
         """
         Powers down a system that has power management configured.
         """
-        return action_power.PowerTool(system,self,user,password).power("off")
+        return action_power.PowerTool(self._config,system,self,user,password).power("off")
 
     def reboot(self,system, user, password):
         """

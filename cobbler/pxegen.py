@@ -261,7 +261,7 @@ class PXEGen:
         fname = os.path.join(self.bootloc, "pxelinux.cfg", "default")
 
         # read the default template file
-        template_src = open("/etc/cobbler/pxedefault.template")
+        template_src = open(os.path.join(self.settings.pxe_template_dir,"pxedefault.template"))
         template_data = template_src.read()
 
         # sort the profiles
@@ -325,7 +325,7 @@ class PXEGen:
         metadata = {}
         buffer = ""
 
-        template = "/etc/cobbler/pxeprofile.template"
+        template = os.path.join(self.settings.pxe_template_dir,"pxeprofile.template")
 
         # store variables for templating
         metadata["menu_label"] = "MENU LABEL %s" % os.path.basename(filename)
@@ -394,13 +394,13 @@ class PXEGen:
         # choose a template
         if system:
             if system.netboot_enabled:
-                template = "/etc/cobbler/pxesystem.template"
+                template = os.path.join(self.settings.pxe_template_dir,"pxesystem.template")
                 if arch == "s390x":
-                    template = "/etc/cobbler/pxesystem_s390x.template"
+                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_s390x.template")
                 elif arch == "ia64":
-                    template = "/etc/cobbler/pxesystem_ia64.template"
+                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ia64.template")
                 elif arch.startswith("ppc"):
-                    template = "/etc/cobbler/pxesystem_ppc.template"
+                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ppc.template")
             else:
                 # local booting on ppc requires removing the system-specific dhcpd.conf filename
                 if arch.startswith("ppc"):
@@ -424,9 +424,9 @@ class PXEGen:
                     # booted off the network, so nothing left to do
                     return None
                 else:
-                    template = "/etc/cobbler/pxelocal.template"
+                    template = os.path.join(self.settings.pxe_template_dir,"pxelocal.template")
         else:
-            template = "/etc/cobbler/pxeprofile.template"
+            template = os.path.join(self.settings.pxe_template_dir,"pxeprofile.template")
 
 
         # now build the kernel command line
