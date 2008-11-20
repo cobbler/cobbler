@@ -245,10 +245,11 @@ function disablename(value)
     </td>
     <td>
     #if $profile
-       <input type="text" name="name_servers" id="name_servers" value="$profile.name_servers">
+       #set joined = " ".join($profile.name_servers)
+       <input type="text" name="name_servers" id="name_servers" value="$joined">
     #else
        <input type="text" name="name_servers" id="name_servers" value="">
-    #end
+    #end if
     <p class="context-tip">Name servers, space delimited, if not provided by DHCP</p>
     </td>
     </tr>

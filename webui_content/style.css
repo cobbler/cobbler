@@ -67,11 +67,6 @@ ul#nav li a {
   text-decoration: none;
 }
 
-ul#nav li#active a, ul#nav li#active a:link, ul#nav li#active a:visited { */
-  list-style-image: url('/cobbler/webui/current-page.png');
-  color: white;
-}
-
 ul#navaction {
   margin-left: 1em;
   padding-left: 0;

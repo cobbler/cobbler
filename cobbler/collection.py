@@ -325,7 +325,7 @@ class Collection(serializable.Serializable):
                # it's ok to conflict with your own net info.
 
                if not self.api.settings().allow_duplicate_hostnames and input_dns is not None and input_dns != "":
-                   match_hosts = self.api.find_system(dns_name=input_host,return_list=True)
+                   match_hosts = self.api.find_system(dns_name=input_dns,return_list=True)
 
                for x in match_mac:
                    if x.name != ref.name:
