@@ -107,17 +107,19 @@ def handler(req):
 
     http_port = utils.parse_settings_lame("http_port",default="80")
 
+    mode = form.get('mode','index')
+
     # instantiate a CobblerWeb object
     cw = CobblerWeb.CobblerWeb(
          apache   = apache,
          token    = token, 
          base_url = "/cobbler/web/",
+         mode     = mode,
          server   = "http://127.0.0.1:%s/cobbler_api_rw" % http_port
     )
 
     # check for a valid path/mode
     # handle invalid paths gracefully
-    mode = form.get('mode','index')
     if mode in cw.modes():
         func = getattr( cw, mode )
         content = func( **form )

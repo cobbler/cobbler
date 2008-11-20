@@ -67,12 +67,20 @@ ul#nav li a {
   text-decoration: none;
 }
 
-ul#nav li#active {
-  list-style-image: url('http://cobbler.et.redhat.com/img/current-page.png');
+ul#nav li#active a, ul#nav li#active a:link, ul#nav li#active a:visited { */
+  list-style-image: url('/cobbler/webui/current-page.png');
+  color: white;
 }
 
-ul#nav li#active a, ul#nav li#active a:link, ul#nav li#active a:visited {
-  color: white;
+ul#navaction {
+  margin-left: 1em;
+  padding-left: 0;
+  list-style-type: none;
+}
+
+ul#navaction li a {
+  color: #C8C800;
+  text-decoration: none;
 }
 
 div#feed {
@@ -159,7 +167,7 @@ dd {
 }
 
 .back-to-top {
-  background: url('http://cobbler.et.redhat.com/img/up-arrow.gif') left no-repeat;
+  background: url('/cobbler/webui/up-arrow.gif') left no-repeat;
   padding-left: 20px;
   font-size: small;
 }
@@ -222,5 +230,3 @@ span.tip p {
         background-image:       url('icon-tip.png');
         background-repeat:      no-repeat;
 }
-
-

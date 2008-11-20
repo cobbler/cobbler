@@ -36,9 +36,10 @@ class CobblerWeb(object):
     it all run either under cgi-bin or CherryPy.  Supporting other Python
     frameworks should be trivial.
     """
-    def __init__(self, server=None, base_url='/', username=None, password=None, token=None, apache=None):
+    def __init__(self, server=None, base_url='/', mode=None, username=None, password=None, token=None, apache=None):
         self.server = server
         self.base_url = base_url
+        self.mode = mode
         self.remote = None
         self.token = token
         self.username = username
@@ -95,6 +96,7 @@ class CobblerWeb(object):
         of files while we're at it.
         """
         data['base_url'] = self.base_url
+        data['mode'] = self.mode
         filepath = os.path.join("/usr/share/cobbler/webui_templates/",template)
         tmpl = Template( file=filepath, searchList=[data] )
         return str(tmpl)
