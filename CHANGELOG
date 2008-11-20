@@ -46,12 +46,18 @@ Cobbler CHANGELOG
 - (FEAT) keep creation and modification times with each object
 - (FEAT) added ppc imports and arches to supplement s390x (and assoc koan chage)
 - (FEAT) added number of interfaces required to each image
+- ~~~ 1.3.2
 - (BUGF) fix for possible import of insecure modules by Cheetah in Cobbler web.
 - (FEAT) new version function
 - (FEAT) misc WUI organization
 - (FEAT) allow auth against multiple LDAP servers
 - (FEAT) replicate now copies image objects
 - (BUGF) replicate now uses higher level API methods to avoid some profile sync errors when distros fail
+- (FEAT) /etc/cobbler/pxe and /etc/cobbler/power are new config file paths
+- (FEAT) /var/lib/cobbler/kickstarts is the new home for kicktart files
+- (FEAT) webui sidebar reorg
+- (FEAT) manage_dhcpd feature (ISC) now checks service status before restarting
+- (BUGF) omapi for manage_dhcp feature (ISC) now defaults to off
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"

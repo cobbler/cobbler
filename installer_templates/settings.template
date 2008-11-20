@@ -148,8 +148,11 @@ named_conf: /etc/named.conf
 next_server: $next_server
 
 # if using cobbler with manage_dhcp and ISC, omapi allows realtime DHCP
-# updates without restarting ISC dhcpd.
-omapi_enabled: 1
+# updates without restarting ISC dhcpd.  However, it may cause
+# problems with removing leases and make things less reliable. OMAPI
+# usage is experimental and not recommended at this time.
+
+omapi_enabled: 0
 omapi_port: 647
 omshell_bin: /usr/bin/omshell
 
@@ -191,6 +194,8 @@ pxe_template_dir: "/etc/cobbler/pxe"
 # when DHCP and DNS management are enabled, cobbler sync can automatically
 # restart those services to apply changes.  The exception for this is
 # if using ISC for DHCP, then omapi eliminates the need for a restart.
+# omapi, however, is experimental and not recommended for most configurations.
+#
 # If DHCP and DNS are going to be managed, but hosted on a box that
 # is not on this server, disable restarts here and write some other
 # script to ensure that the config files get copied/rsynced to the destination
