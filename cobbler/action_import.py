@@ -1013,18 +1013,18 @@ class RedHatImporter ( BaseImporter ) :
 
        if flavor == "fedora":
            if major >= 8:
-                return os_version , "/etc/cobbler/sample_end.ks"
+                return os_version , "/var/lib/cobbler/kickstarts/sample_end.ks"
            if major >= 6:
-                return os_version , "/etc/cobbler/sample.ks"
+                return os_version , "/var/lib/cobbler/kickstarts/sample.ks"
 
        if flavor == "redhat" or flavor == "centos":
            if major >= 5:
-                return os_version , "/etc/cobbler/sample.ks"
+                return os_version , "/var/lib/cobbler/kickstarts/sample.ks"
 
-           return os_version , "/etc/cobbler/legacy.ks"
+           return os_version , "/var/lib/cobbler/kickstarts/legacy.ks"
 
        print _("- warning: could not use distro specifics, using rhel 4 compatible kickstart")
-       return None , "/etc/cobbler/legacy.ks"
+       return None , "/var/lib/cobbler/kickstarts/legacy.ks"
 
 class DebianImporter ( BaseImporter ) :
 
@@ -1069,7 +1069,7 @@ class DebianImporter ( BaseImporter ) :
        dist_vers = "%s.%s" % ( major , minor )
        os_version = dist_names[dist_vers]
 
-       return os_version , "/etc/cobbler/sample.seed"
+       return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
 
    def set_install_tree(self, distro, url):
        idx = url.find("://")
@@ -1150,5 +1150,5 @@ class UbuntuImporter ( DebianImporter ) :
            dist_names['4ubuntu2.0'] = "IntrepidIbex"
        os_version = dist_names[dist_vers]
 
-       return os_version , "/etc/cobbler/sample.seed"
+       return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
 
