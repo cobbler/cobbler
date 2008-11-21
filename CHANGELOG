@@ -58,6 +58,7 @@ Cobbler CHANGELOG
 - (FEAT) webui sidebar reorg
 - (FEAT) manage_dhcpd feature (ISC) now checks service status before restarting
 - (BUGF) omapi for manage_dhcp feature (ISC) now defaults to off
+- (FEAT) added module whitelist to settings file
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"

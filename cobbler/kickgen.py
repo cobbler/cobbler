@@ -96,7 +96,7 @@ class KickGen:
         elif kickstart_path is not None and not os.path.exists(kickstart_path):
             if kickstart_path.find("http://") == -1 and kickstart_path.find("ftp://") == -1 and kickstart_path.find("nfs:") == -1:
                 return "# Error, cannot find %s" % kickstart_path
-        return "# kickstart is sourced externally: %s" % meta["kickstart"]
+        return "# kickstart is sourced externally, or is missing, and cannot be displayed here: %s" % meta["kickstart"]
 
     def generate_kickstart_signal(self, is_pre=0, profile=None, system=None):
         """

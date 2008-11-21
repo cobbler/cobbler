@@ -29,6 +29,18 @@ allow_duplicate_macs: 0
 # the path to BIND's executable for this distribution.
 bind_bin: /usr/sbin/named
 
+# Cheetah-language kickstart templates can import Python modules.
+# while this is a useful feature, it is not safe to allow them to 
+# import anything they want. This whitelists which modules can be 
+# imported through Cheetah.  Users can expand this as needed but
+# should never allow modules such as subprocess or those that
+# allow access to the filesystem as Cheetah templates are evaluated
+# by cobblerd as code.
+cheetah_import_whitelist:
+   - "random"
+   - "re"
+   - "time"
+
 # if no kickstart is specified, use this template (FIXME)
 default_kickstart: /etc/cobbler/default.ks
 

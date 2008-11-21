@@ -34,6 +34,7 @@ DEFAULTS = {
     "allow_duplicate_macs"        : 0,
     "allow_duplicate_ips"         : 0,
     "bind_bin"                    : "/usr/sbin/named",
+    "cheetah_import_whitelist"    : [ "re", "random", "time" ],
     "cobbler_master"              : '',
     "default_kickstart"           : "/var/lib/cobbler/kickstarts/default.ks",
     "default_name_servers"        : '',

@@ -50,7 +50,7 @@ class Templar:
         for line in lines:
             if line.find("#import") != -1:
                rest=line.replace("#import","").replace(" ","").strip()
-               if rest not in [ "time", "random", "re" ]:
+               if rest not in self.settings.cheetah_import_whitelist:
                    print "warning"
                    raise CX("potentially insecure import in template: %s" % rest)
 
