@@ -26,6 +26,12 @@ echo "options bonding max_bonds=$numbondingdevs" >> /etc/modprobe.conf
     #end if
 mkdir /etc/sysconfig/network-scripts/cobbler
 cp /etc/sysconfig/network-scripts/ifcfg-lo /etc/sysconfig/network-scripts/cobbler/
+    #if $gateway != ""
+grep -v GATEWAY /etc/sysconfig/network > /etc/sysconfig/network.cobbler
+echo "GATEWAY=$gateway" >> /etc/sysconfig/network.cobbler
+rm -f /etc/sysconfig/network
+mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
+    #end if
     #for $iname in $ikeys
 #  Start $iname
         #set $idata    = $interfaces[$iname]
