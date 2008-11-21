@@ -26,10 +26,16 @@ echo "options bonding max_bonds=$numbondingdevs" >> /etc/modprobe.conf
     #end if
 mkdir /etc/sysconfig/network-scripts/cobbler
 cp /etc/sysconfig/network-scripts/ifcfg-lo /etc/sysconfig/network-scripts/cobbler/
+    #if $gateway != ""
+grep -v GATEWAY /etc/sysconfig/network > /etc/sysconfig/network.cobbler
+echo "GATEWAY=$gateway" >> /etc/sysconfig/network.cobbler
+rm -f /etc/sysconfig/network
+mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
+    #end if
     #for $iname in $ikeys
 #  Start $iname
         #set $idata    = $interfaces[$iname]
-        #set $mac      = $idata["mac_address"]
+        #set $mac      = $idata["mac_address"].upper()
         #set $static   = $idata["static"]
         #set $ip       = $idata["ip_address"]
         #set $netmask  = $idata["subnet"]
@@ -48,16 +54,20 @@ cp /etc/sysconfig/network-scripts/ifcfg-lo /etc/sysconfig/network-scripts/cobble
         #end if
         #if $bonding.lower() == "master"
             ## Add required entry to modprobe.conf
-echo "alias $iname bonding" >> /etc/modprobe.conf
+echo "alias $iname bonding" >> /etc/modprobe.conf.cobbler
         #end if
         #if $configbymac and $is_vlan == "false" and $bonding.lower() != "master"
             ## This is the code path physical interfaces will follow.
-            ## Remove the interface file anaconda made for this mac address
+            ## Get the current interface name
 IFNAME=\$(ifconfig -a | grep -i '$mac' | cut -d ' ' -f 1)
             ## Rename this interface in modprobe.conf
-sed -i "s/\$IFNAME/$iname/" /etc/modprobe.conf
+grep \$IFNAME /etc/modprobe.conf | sed "s/\$IFNAME/$iname/" >> /etc/modprobe.conf.cobbler
+grep -v \$IFNAME /etc/modprobe.conf >> /etc/modprobe.conf.new
+rm -f /etc/modprobe.conf
+mv /etc/modprobe.conf.new /etc/modprobe.conf
             ## Remove the old interface file the OS had for it
 echo "DEVICE=$iname" > $devfile
+echo "HWADDR=$mac" >> $devfile
 echo "ONBOOT=yes" >> $devfile
             #if $bonding.lower() == "slave" and $bonding_master != ""
 echo "SLAVE=yes" >> $devfile
@@ -146,5 +156,7 @@ echo "$network via $router" >> $routesfile
 rm -f /etc/sysconfig/network-scripts/ifcfg-*
 mv /etc/sysconfig/network-scripts/cobbler/* /etc/sysconfig/network-scripts/
 rm -r /etc/sysconfig/network-scripts/cobbler
+cat /etc/modprobe.conf.cobbler >> /etc/modprobe.conf
+rm -f /etc/modprobe.conf.cobbler
 #end if
 # End post_install_network_config generated code
