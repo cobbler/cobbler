@@ -888,7 +888,12 @@ class RedHatImporter ( BaseImporter ) :
    # ================================================================
 
    def get_release_files(self):
-       return glob.glob(os.path.join(self.get_pkgdir(), "*release-*"))
+       data = glob.glob(os.path.join(self.get_pkgdir(), "*release-*"))
+       data2 = []
+       for x in data:
+          if x.find("generic") == -1:
+             data2.append(x)
+       return data2
 
    # ================================================================
 
