@@ -27,6 +27,7 @@ import utils
 import glob
 import time
 import sub_process
+import random
 
 import action_litesync
 import item_system
@@ -47,7 +48,6 @@ class Collection(serializable.Serializable):
         self.api = self.config.api
         self.log_func = self.api.log
         self.lite_sync = None
-
 
     def factory_produce(self,config,seed_data):
         """
@@ -147,6 +147,7 @@ class Collection(serializable.Serializable):
 
     def copy(self,ref,newname):
         ref.name = newname
+        ref.uid = self.config.generate_uid()
         return self.add(ref,save=True,with_copy=True,with_triggers=True,with_sync=True,check_for_duplicate_names=True,check_for_duplicate_netinfo=False)
 
     def rename(self,ref,newname,with_sync=True,with_triggers=True):
@@ -159,6 +160,7 @@ class Collection(serializable.Serializable):
         oldname = ref.name
         newref = ref.make_clone()
         newref.set_name(newname)
+
         self.add(newref, with_triggers=with_triggers,save=True)
 
         # now descend to any direct ancestors and point them at the new object allowing
@@ -205,7 +207,7 @@ class Collection(serializable.Serializable):
         So, in that case, don't run any triggers and don't deal with any actual files.
 
         """
-
+            
         if save is True:
             now = time.time()
             if ref.ctime == 0:

@@ -56,6 +56,7 @@ class Item(serializable.Serializable):
         self.log_func = self.config.api.log        
         self.ctime = 0 # to be filled in by collection class
         self.mtime = 0 # to be filled in by collection class
+        self.uid = ""  # to be filled in by collection class
 
     def clear(self):
         raise exceptions.NotImplementedError

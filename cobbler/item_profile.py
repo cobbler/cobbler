@@ -43,6 +43,7 @@ class Profile(item.Item):
         Reset this object.
         """
         self.name                   = None
+        self.uid                    = ""
         self.owners                 = self.settings.default_ownership
         self.distro                 = (None,                                    '<<inherit>>')[is_subobject]
         self.enable_menu            = (self.settings.enable_menu,               '<<inherit>>')[is_subobject]
@@ -123,6 +124,10 @@ class Profile(item.Item):
         self.set_owners(self.owners)
         self.set_mgmt_classes(self.mgmt_classes)
         self.set_template_files(self.template_files)
+
+        self.uid         = self.load_item(seed_data,'uid','')
+        if self.uid == '':
+           self.uid = self.config.generate_uid()
 
         return self
 
@@ -282,6 +287,7 @@ class Profile(item.Item):
             'ctime'                 : self.ctime,
             'mtime'                 : self.mtime,
             'name_servers'          : self.name_servers,
+            'uid'                   : self.uid
          }
 
     def printable(self):

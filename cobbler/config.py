@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import weakref
+import time
+import random
+import binascii
 
 import item_distro as distro
 import item_profile as profile
@@ -64,6 +67,8 @@ class Config:
 
        Config.has_loaded  = True
 
+       self.init_time     = time.time()
+       self.current_id    = 0
        self.api           = api
        self._distros      = distros.Distros(weakref.proxy(self))
        self._repos        = repos.Repos(weakref.proxy(self))
@@ -71,6 +76,16 @@ class Config:
        self._systems      = systems.Systems(weakref.proxy(self))
        self._images       = images.Images(weakref.proxy(self))
        self._settings     = settings.Settings() # not a true collection
+
+   def generate_uid(self):
+       """
+       Cobbler itself does not use this GUID's though they are provided
+       to allow for easier API linkage with other applications.
+       Cobbler uses unique names in each collection as the object id
+       aka primary key
+       """
+       data = "%s%s" % (time.time(), random.uniform(1,9999999))
+       return binascii.b2a_base64(data).replace("=","").strip()
        
    def __cmp(self,a,b):
        return cmp(a.name,b.name)

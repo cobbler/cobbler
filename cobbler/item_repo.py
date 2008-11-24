@@ -40,6 +40,7 @@ class Repo(item.Item):
     def clear(self,is_subobject=False):
         self.parent           = None
         self.name             = None
+        self.uid              = ""
         # FIXME: subobject code does not really make sense for repos
         self.mirror           = (None,       '<<inherit>>')[is_subobject]
         self.keep_updated     = (True,        '<<inherit>>')[is_subobject]
@@ -83,6 +84,10 @@ class Repo(item.Item):
         self.set_owners(self.owners)
         self.set_environment(self.environment)
         self._guess_breed()
+
+        self.uid = self.load_item(seed_data,'uid','')
+        if self.uid == '':
+           self.uid = self.config.generate_uid()
 
         return self
 
@@ -236,7 +241,8 @@ class Repo(item.Item):
            'environment'      : self.environment,
            'comment'          : self.comment,
            'ctime'            : self.ctime,
-           'mtime'            : self.mtime
+           'mtime'            : self.mtime,
+           'uid'              : self.uid
         }
 
     def set_mirror_locally(self,value):

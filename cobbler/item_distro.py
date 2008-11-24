@@ -42,6 +42,7 @@ class Distro(item.Item):
         Reset this object.
         """
         self.name                   = None
+        self.uid                    = ""
         self.owners                 = self.settings.default_ownership
         self.kernel                 = None
         self.initrd                 = None
@@ -110,6 +111,10 @@ class Distro(item.Item):
         self.mtime = self.load_item(seed_data, 'mtime', 0)
 
         self.set_tree_build_time(self.tree_build_time)
+
+        self.uid         = self.load_item(seed_data,'uid','')
+        if self.uid == '':
+           self.uid = self.config.generate_uid()
 
         return self
 
@@ -218,6 +223,7 @@ class Distro(item.Item):
             'tree_build_time'        : self.tree_build_time,
             'ctime'                  : self.ctime,
             'mtime'                  : self.mtime,
+            'uid'                    : self.uid
         }
 
     def printable(self):

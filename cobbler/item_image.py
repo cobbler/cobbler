@@ -44,6 +44,7 @@ class Image(item.Item):
         Reset this object.
         """
         self.name            = ''
+        self.uid             = ""
         self.arch            = 'i386'
         self.file            = ''
         self.parent          = ''
@@ -95,6 +96,10 @@ class Image(item.Item):
 
         self.ctime           = self.load_item(seed_data, 'ctime', 0)
         self.mtime           = self.load_item(seed_data, 'mtime', 0)
+
+        self.uid = self.load_item(seed_data,'uid','')
+        if self.uid == '':
+           self.uid = self.config.generate_uid()
 
         return self
 
@@ -195,7 +200,8 @@ class Image(item.Item):
             'os_version'       : self.os_version,
             'comment'          : self.comment,
             'ctime'            : self.ctime,
-            'mtime'            : self.mtime
+            'mtime'            : self.mtime,
+            'uid'              : self.uid
         }
 
     def printable(self):

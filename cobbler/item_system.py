@@ -39,6 +39,7 @@ class System(item.Item):
 
     def clear(self,is_subobject=False):
         self.name                 = None
+        self.uid                  = ""
         self.owners               = self.settings.default_ownership
         self.profile              = None
         self.image                = None
@@ -63,6 +64,7 @@ class System(item.Item):
         self.comment              = ""
         self.ctime                = 0
         self.mtime                = 0
+        self.uid                  = ""
         self.power_type           = self.settings.power_management_default_type
         self.power_address        = ""
         self.power_user           = ""
@@ -185,6 +187,10 @@ class System(item.Item):
 
         self.ctime       = self.load_item(seed_data,'ctime',0)
         self.mtime       = self.load_item(seed_data,'mtime',0)
+
+        self.uid         = self.load_item(seed_data,'uid','')
+        if self.uid == '':
+           self.uid = self.config.generate_uid()
 
         # power management integration features
 
@@ -594,6 +600,7 @@ class System(item.Item):
     def to_datastruct(self):
         return {
            'name'                  : self.name,
+           'uid'                   : self.uid,
            'kernel_options'        : self.kernel_options,
            'kernel_options_post'   : self.kernel_options_post,
            'depth'                 : self.depth,

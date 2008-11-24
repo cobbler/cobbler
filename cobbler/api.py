@@ -46,6 +46,7 @@ from utils import _
 
 import logging
 import time
+import random
 import os
 import yaml
 
@@ -79,6 +80,8 @@ class BootAPI:
             # to load the config, which would just fill up
             # the logs, so we'll do that logging at CLI
             # level (and remote.py web service level) instead.
+
+            random.seed()
 
             try:
                 self.logger = self.__setup_logger("api")
