@@ -31,6 +31,13 @@ import time
 import urlgrabber
 import yaml # cobbler packaged version
 
+# the following imports are largely for the test code
+import urlgrabber
+import remote
+import glob
+import sub_process
+import api as cobbler_api
+
 def log_exc(apache):
     """
     Log active traceback to logfile.
@@ -223,4 +230,78 @@ class CobblerSvc(object):
         }
         
         return yaml.dump(newdata)
+
+def __test_setup():
+
+    # this contains some code from remote.py that has been modified
+    # slightly to add in some extra parameters for these checks.
+    # it can probably be combined into something like a test_utils
+    # module later.
+
+    api = cobbler_api.BootAPI()
+    api.deserialize() # FIXME: redundant
+
+    distro = api.new_distro()
+    distro.set_name("distro0")
+    distro.set_kernel("/etc/hosts")
+    distro.set_initrd("/etc/hosts")
+    api.add_distro(distro)
+
+    repo = api.new_repo()
+    repo.set_name("repo0")
+
+    if not os.path.exists("/tmp/empty"):
+       os.mkdir("/tmp/empty",770)
+    repo.set_mirror("/tmp/empty")
+    files = glob.glob("rpm-build/*.rpm")
+    if len(files) == 0:
+       raise Exception("Tests must be run from the cobbler checkout directory.")
+    sub_process.call("cp rpm-build/*.rpm /tmp/empty",shell=True)
+    api.add_repo(repo)
+
+    profile = api.new_profile()
+    profile.set_name("profile0")
+    profile.set_distro("distro0")
+    profile.set_kickstart("/var/lib/cobbler/kickstarts/sample.ks")
+    profile.set_repos(["repo0"])
+    profile.set_ksmeta({"tree":"look_for_this1"})
+    api.add_profile(profile)
+
+    system = api.new_system()
+    system.set_name("system0")
+    system.set_hostname("hostname0")
+    system.set_gateway("192.168.1.1")
+    system.set_profile("profile0")
+    system.set_dns_name("hostname0","eth0")
+    system.set_ksmeta({"tree":"look_for_this2"})
+    api.add_system(system)
+
+    image = api.new_image()
+    image.set_name("image0")
+    image.set_file("/etc/hosts")
+    api.add_image(image)
+
+    api.reposync(name="repo0")
+   
+
+def test_services_access():
+    import remote
+    remote._test_setup_modules(authn="authn_testing",authz="authz_allowall")
+    remote._test_bootstrap_restart()
+    remote._test_remove_objects()
+    __test_setup()
+    api = cobbler_api.BootAPI()
+
+    # test mod_python service URLs -- more to be added here
+
+    url = "http://127.0.0.1/cblr/svc/op/ks/profile/profile0"
+    data = urlgrabber.urlread(url)
+    assert data.find("look_for_this1") != -1
+
+    url = "http://127.0.0.1/cblr/svc/op/ks/system/system0"
+    data = urlgrabber.urlread(url)
+    print "DATA: %s" % data
+    assert data.find("look_for_this2") != -1
+
+    remote._test_remove_objects()
 

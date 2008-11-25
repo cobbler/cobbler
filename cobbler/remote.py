@@ -1309,7 +1309,7 @@ class CobblerReadWriteXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
 # *********************************************************************
 # *********************************************************************
 
-def __test_setup_modules(authn="authn_testing",authz="authz_allowall"):
+def _test_setup_modules(authn="authn_testing",authz="authz_allowall"):
 
     # rewrite modules.conf so we know we can use the testing module
     # for xmlrpc rw testing (Makefile will put the user value back)
@@ -1326,7 +1326,7 @@ def __test_setup_modules(authn="authn_testing",authz="authz_allowall"):
     t = Template.Template(file=MODULES_TEMPLATE, searchList=[data])
     open("/etc/cobbler/modules.conf","w").write(t.respond())
 
-def __test_bootstrap_restart():
+def _test_bootstrap_restart():
 
    rc1 = subprocess.call(["/sbin/service","cobblerd","restart"],shell=False)
    assert rc1 == 0
@@ -1334,9 +1334,9 @@ def __test_bootstrap_restart():
    assert rc2 == 0
    time.sleep(2)
    
-   __test_remove_objects()
+   _test_remove_objects()
 
-def __test_remove_objects():
+def _test_remove_objects():
 
    api = cobbler_api.BootAPI()
 
@@ -1360,7 +1360,7 @@ def __test_remove_objects():
 
 def test_xmlrpc_ro():
 
-   __test_bootstrap_restart()
+   _test_bootstrap_restart()
 
    server = xmlrpclib.Server("http://127.0.0.1/cobbler_api")
    time.sleep(2) 
@@ -1595,7 +1595,7 @@ def test_xmlrpc_ro():
    # do removals via the API since the read-only API can't do them
    # and the read-write tests are seperate
 
-   __test_remove_objects()
+   _test_remove_objects()
 
    # this last bit mainly tests the tests, to ensure we've left nothing behind
    # not XMLRPC.  Tests polluting the user config is not desirable even though
@@ -1612,8 +1612,8 @@ def test_xmlrpc_rw():
    # ideally we need tests for the various auth modes, not just one 
    # and the ownership module, though this will provide decent coverage.
 
-   __test_setup_modules(authn="authn_testing",authz="authz_allowall")
-   __test_bootstrap_restart()
+   _test_setup_modules(authn="authn_testing",authz="authz_allowall")
+   _test_bootstrap_restart()
 
    server = xmlrpclib.Server("http://127.0.0.1/cobbler_api_rw") # remote 
    api = cobbler_api.BootAPI() # local
@@ -1867,5 +1867,5 @@ def test_xmlrpc_rw():
    assert api.find_system("system2") is None
 
    # FIXME: should not need cleanup as we've done it above 
-   __test_remove_objects()
+   _test_remove_objects()
 
