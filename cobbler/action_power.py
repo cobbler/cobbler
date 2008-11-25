@@ -41,7 +41,7 @@ class PowerTool:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,config,system,api,force_user,force_pass):
+    def __init__(self,config,system,api,force_user=None,force_pass=None):
         """
         Power library constructor requires a cobbler system object.
         """

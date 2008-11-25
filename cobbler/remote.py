@@ -1277,6 +1277,22 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
                 fileh.close()
             return True
 
+    def power_system(self,object_id,power=None,token=None):
+        """
+        Allows poweron/poweroff/reboot of a system
+        """
+        obj = self.__get_object(object_id)
+        self.check_access(token, "power_system", obj)
+        if power=="on":
+            rc=self.api.power_on(obj)
+        elif power=="off":
+            rc=self.api.power_off(obj)
+        elif power=="reboot":
+            rc=self.api.reboot(obj)
+        else:
+            raise CX(_("invalid power mode '%s', expected on/off/reboot" % power))
+        return rc
+
 
 # *********************************************************************
 # *********************************************************************
