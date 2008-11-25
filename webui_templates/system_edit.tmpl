@@ -558,9 +558,9 @@ function page_onload() {
         </td>
         <td class="netedit">
         #if $system
-            <input type="text" size="64" style="width: 150px;" name="gateway" id="gateway" />
-        #else
             <input type="text" size="64" style="width: 150px;" name="gateway" id="gateway" value="$system.gateway" />
+        #else
+            <input type="text" size="64" style="width: 150px;" name="gateway" id="gateway" />
         #end if
         <p class="context-tip">Ex: "192.168.1.11".  For use with static IP configs.</p>
         </td>
