@@ -305,13 +305,22 @@ def test_services_access():
 
         url = "http://127.0.0.1/cblr/svc/op/ks/profile/profile0"
         data = urlgrabber.urlread(url)
-        print "DATA1: %s" % data
         assert data.find("look_for_this1") != -1
 
         url = "http://127.0.0.1/cblr/svc/op/ks/system/system0"
         data = urlgrabber.urlread(url)
-        print "DATA2: %s" % data
         assert data.find("look_for_this2") != -1
 
+    # see if we can pull up the yum configs
+    url = "http://127.0.0.1/cblr/svc/op/yum/profile/profile0"
+    data = urlgrabber.urlread(url)
+    print "D1=%s" % data
+    assert data.find("repo0") != -1
+    
+    url = "http://127.0.0.1/cblr/svc/op/yum/system/system0"
+    data = urlgrabber.urlread(url)
+    print "D2=%s" % data 
+    assert data.find("repo0") != -1
+   
     remote._test_remove_objects()
 
