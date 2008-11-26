@@ -221,7 +221,7 @@ class CobblerSvc(object):
         if hostname is None:
            return "hostname is required"
          
-        results = self.remote.find_system_by_hostname(hostname)
+        results = self.remote.find_system_by_dns_name(hostname)
 
         classes = results.get("mgmt_classes", {})
         params = results.get("mgmt_parameters",[])
@@ -266,7 +266,8 @@ def __test_setup():
     profile.set_distro("distro0")
     profile.set_kickstart("/var/lib/cobbler/kickstarts/sample.ks")
     profile.set_repos(["repo0"])
-    profile.set_ksmeta({"tree":"look_for_this1"})
+    profile.set_mgmt_classes(["alpha","beta"])
+    profile.set_ksmeta({"tree":"look_for_this1","gamma":3})
     api.add_profile(profile)
 
     system = api.new_system()
@@ -290,10 +291,11 @@ def __test_setup():
 
 def test_services_access():
     import remote
-    remote._test_setup_modules(authn="authn_testing",authz="authz_allowall")
+    remote._test_setup_settings(pxe_once=1)
     remote._test_bootstrap_restart()
     remote._test_remove_objects()
     __test_setup()
+    time.sleep(5)
     api = cobbler_api.BootAPI()
 
     # test mod_python service URLs -- more to be added here
@@ -328,12 +330,12 @@ def test_services_access():
   
     for a in [ "pre", "post" ]:
        filename = "/var/lib/cobbler/triggers/install/%s/unit_testing" % a
-       os.system("chmod +x %s" % filename)
        fd = open(filename, "w+")
        fd.write("#!/bin/bash\n")
-       fd.write("echo \"TESTING %s type ($1) name ($2) ip ($3) >> /var/log/cobbler/cobbler_trigger_test\"\n" % a)
+       fd.write("echo \"TESTING %s type ($1) name ($2) ip ($3)\" >> /var/log/cobbler/kicklog/cobbler_trigger_test\n" % a)
        fd.write("exit 0\n")
        fd.close()
+       os.system("chmod +x %s" % filename)
 
     urls = [
         "http://127.0.0.1/cblr/svc/op/trig/mode/pre/profile/profile0"
@@ -345,21 +347,10 @@ def test_services_access():
         print "reading: %s" % url
         data = urlgrabber.urlread(x)
         print "read: %s" % data        
+        time.sleep(5) 
+        assert os.path.exists("/var/log/cobbler/kicklog/cobbler_trigger_test")
+        os.unlink("/var/log/cobbler/kicklog/cobbler_trigger_test")
 
-    fd = open("/var/log/cobbler/cobbler_trigger_test")
-    data = fd.read()
-
-    expected = [
-        "TESTING post type profile name profile0http: ip 127.0.0.1",
-        "TESTING pre type profile name profile0 ip 127.0.0.1",
-        "TESTING post type profile name profile0 ip 127.0.0.1",
-        "TESTING pre type system name system0 ip 127.0.0.1",
-        "TESTING post type system name system0 ip 127.0.0.1",
-    ]
-    for x in expected:
-        assert data.find(x) != -1
-
-    os.unlink("/var/log/cobbler/cobbler_trigger_test")
     os.unlink("/var/lib/cobbler/triggers/install/pre/unit_testing")
     os.unlink("/var/lib/cobbler/triggers/install/post/unit_testing")
 
@@ -367,12 +358,62 @@ def test_services_access():
 
     # now let's test the nopxe URL (Boot loop prevention)
 
+    sys = api.find_system("system0")
+    sys.set_netboot_enabled(True)
+    api.add_system(sys) # save the system to ensure it's set True
+
+    url = "http://127.0.0.1/cblr/svc/op/nopxe/system/system0"
+    data = urlgrabber.urlread(url)
+    print "NOPXE DATA: %s" % data
+    time.sleep(10)
+
+    api.deserialize() # ensure we have the latest data in the API handle
+    sys = api.find_system("system0")
+    print "NE STATUS: %s" % sys.netboot_enabled
+    assert str(sys.netboot_enabled).lower() not in [ "1", "true", "yes" ]
+    
+    # now let's test the listing URLs since we document
+    # them even know I don't know of anything relying on them.
+
+    url = "http://127.0.0.1/cblr/svc/op/list/what/distros"
+    assert urlgrabber.urlread(url).find("distro0") != -1
+
+    url = "http://127.0.0.1/cblr/svc/op/list/what/profiles"
+    assert urlgrabber.urlread(url).find("profile0") != -1
+
+    url = "http://127.0.0.1/cblr/svc/op/list/what/systems"
+    assert urlgrabber.urlread(url).find("system0") != -1
+
+    url = "http://127.0.0.1/cblr/svc/op/list/what/repos"
+    assert urlgrabber.urlread(url).find("repo0") != -1
+
+    url = "http://127.0.0.1/cblr/svc/op/list/what/images"
+    assert urlgrabber.urlread(url).find("image0") != -1
+
     # the following modes are implemented by external apps
     # and are not concerned part of cobbler's core, so testing
     # is less of a priority:
     #    autodetect
     #    findks
+    # these features may be removed in a later release
+    # of cobbler but really aren't hurting anything so there
+    # is no pressing need.
+  
+    # now let's test the puppet external nodes support
+    # and just see if we get valid YAML back without
+    # doing much more
 
+    url = "http://127.0.0.1/cblr/svc/op/puppet/hostname/narf"
+    data = urlgrabber.urlread(url)
+    assert data.find("alpha") != -1
+    assert data.find("beta") != -1
+    assert data.find("gamma") != -1
+    assert data.find("3") != -1
+    
+    data = yaml.load(data).next()
+    assert data.has_key("classes")
+    assert data.has_key("parameters")
+    
     # now let's test the template file serving
 
     remote._test_remove_objects()

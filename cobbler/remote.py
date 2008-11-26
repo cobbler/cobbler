@@ -455,21 +455,18 @@ class CobblerXMLRPCInterface:
         self._log("get_system",name=name,token=token)
         return self.__get_specific("system",name,flatten=flatten)
 
-    # removing this /SOON/ as it's not compatible with the way hostnames
-    # are stored, do we need find_by_dnsname or was this just experimental?
-    # (11/19/08 -- MPD)
-    # 
-    #def find_system_by_hostname(self,hostname):
-    #    # FIXME: implement using api.py's find API
-    #    # and expose generic finds for other methods
-    #    # WARNING: this function is /not/ expected to stay in cobbler long term
-    #    systems = self.get_systems()
-    #    for x in systems:
-    #       for y in x["interfaces"]:
-    #          if x["interfaces"][y]["hostname"] == hostname:
-    #              name = x["name"]
-    #              return self.get_system_for_koan(name)
-    #    return {}
+    # this is used by the puppet external nodes feature
+    def find_system_by_dns_name(self,dns_name):
+        # FIXME: implement using api.py's find API
+        # and expose generic finds for other methods
+        # WARNING: this function is /not/ expected to stay in cobbler long term
+        systems = self.get_systems()
+        for x in systems:
+           for y in x["interfaces"]:
+              if x["interfaces"][y]["dns_name"] == dns_name:
+                  name = x["name"]
+                  return self.get_system_for_koan(name)
+        return {}
 
     def get_repo(self,name,flatten=False,token=None,**rest):
         """
@@ -1309,7 +1306,7 @@ class CobblerReadWriteXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
 # *********************************************************************
 # *********************************************************************
 
-def _test_setup_modules(authn="authn_testing",authz="authz_allowall"):
+def _test_setup_modules(authn="authn_testing",authz="authz_allowall",pxe_once=1):
 
     # rewrite modules.conf so we know we can use the testing module
     # for xmlrpc rw testing (Makefile will put the user value back)
@@ -1322,9 +1319,29 @@ def _test_setup_modules(authn="authn_testing",authz="authz_allowall"):
     data = yaml.loadFile(DEFAULTS).next()
     data["authn_module"] = authn
     data["authz_module"] = authz
+    data["pxe_once"] = pxe_once
     
     t = Template.Template(file=MODULES_TEMPLATE, searchList=[data])
-    open("/etc/cobbler/modules.conf","w").write(t.respond())
+    open("/etc/cobbler/modules.conf","w+").write(t.respond())
+
+
+def _test_setup_settings(pxe_once=1):
+
+    # rewrite modules.conf so we know we can use the testing module
+    # for xmlrpc rw testing (Makefile will put the user value back)
+   
+    import yaml
+    import Cheetah.Template as Template
+
+    MODULES_TEMPLATE = "installer_templates/settings.template"
+    DEFAULTS = "installer_templates/defaults"
+    data = yaml.loadFile(DEFAULTS).next()
+    data["pxe_once"] = pxe_once
+
+    t = Template.Template(file=MODULES_TEMPLATE, searchList=[data])
+    open("/etc/cobbler/settings","w+").write(t.respond())
+
+    
 
 def _test_bootstrap_restart():
 
