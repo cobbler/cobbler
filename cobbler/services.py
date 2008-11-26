@@ -294,14 +294,24 @@ def test_services_access():
 
     # test mod_python service URLs -- more to be added here
 
-    url = "http://127.0.0.1/cblr/svc/op/ks/profile/profile0"
-    data = urlgrabber.urlread(url)
-    assert data.find("look_for_this1") != -1
+    templates = [ "sample.ks", "sample_end.ks", "legacy.ks" ]
 
-    url = "http://127.0.0.1/cblr/svc/op/ks/system/system0"
-    data = urlgrabber.urlread(url)
-    print "DATA: %s" % data
-    assert data.find("look_for_this2") != -1
+    for template in templates:
+        ks = "/var/lib/cobbler/kickstarts/%s" % template
+        p = api.find_profile("profile0")
+        assert p is not None
+        p.set_kickstart(ks)
+        api.add_profile(p)
+
+        url = "http://127.0.0.1/cblr/svc/op/ks/profile/profile0"
+        data = urlgrabber.urlread(url)
+        print "DATA1: %s" % data
+        assert data.find("look_for_this1") != -1
+
+        url = "http://127.0.0.1/cblr/svc/op/ks/system/system0"
+        data = urlgrabber.urlread(url)
+        print "DATA2: %s" % data
+        assert data.find("look_for_this2") != -1
 
     remote._test_remove_objects()
 
