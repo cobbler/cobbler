@@ -37,6 +37,8 @@ import remote
 import glob
 import sub_process
 import api as cobbler_api
+import os
+import os.path
 
 def log_exc(apache):
     """
@@ -281,8 +283,10 @@ def __test_setup():
     image.set_file("/etc/hosts")
     api.add_image(image)
 
+    # perhaps an artifact of the test process?
+    os.system("rm -rf /var/www/cobbler/repo_mirror/repo0")
+
     api.reposync(name="repo0")
-   
 
 def test_services_access():
     import remote
@@ -321,6 +325,55 @@ def test_services_access():
     data = urlgrabber.urlread(url)
     print "D2=%s" % data 
     assert data.find("repo0") != -1
-   
+  
+    for a in [ "pre", "post" ]:
+       filename = "/var/lib/cobbler/triggers/install/%s/unit_testing" % a
+       os.system("chmod +x %s" % filename)
+       fd = open(filename, "w+")
+       fd.write("#!/bin/bash\n")
+       fd.write("echo \"TESTING %s type ($1) name ($2) ip ($3) >> /var/log/cobbler/cobbler_trigger_test\"\n" % a)
+       fd.write("exit 0\n")
+       fd.close()
+
+    urls = [
+        "http://127.0.0.1/cblr/svc/op/trig/mode/pre/profile/profile0"
+        "http://127.0.0.1/cblr/svc/op/trig/mode/post/profile/profile0"
+        "http://127.0.0.1/cblr/svc/op/trig/mode/pre/system/system0"
+        "http://127.0.0.1/cblr/svc/op/trig/mode/post/system/system0"
+    ]
+    for x in urls:
+        print "reading: %s" % url
+        data = urlgrabber.urlread(x)
+        print "read: %s" % data        
+
+    fd = open("/var/log/cobbler/cobbler_trigger_test")
+    data = fd.read()
+
+    expected = [
+        "TESTING post type profile name profile0http: ip 127.0.0.1",
+        "TESTING pre type profile name profile0 ip 127.0.0.1",
+        "TESTING post type profile name profile0 ip 127.0.0.1",
+        "TESTING pre type system name system0 ip 127.0.0.1",
+        "TESTING post type system name system0 ip 127.0.0.1",
+    ]
+    for x in expected:
+        assert data.find(x) != -1
+
+    os.unlink("/var/log/cobbler/cobbler_trigger_test")
+    os.unlink("/var/lib/cobbler/triggers/install/pre/unit_testing")
+    os.unlink("/var/lib/cobbler/triggers/install/post/unit_testing")
+
+    # trigger testing complete
+
+    # now let's test the nopxe URL (Boot loop prevention)
+
+    # the following modes are implemented by external apps
+    # and are not concerned part of cobbler's core, so testing
+    # is less of a priority:
+    #    autodetect
+    #    findks
+
+    # now let's test the template file serving
+
     remote._test_remove_objects()
 
