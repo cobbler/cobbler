@@ -112,28 +112,49 @@ class ProfileFunction(commands.CobblerFunction):
             return True
 
         if not self.matches_args(self.args,["dumpvars","getks"]):
-            if self.options.comment:         obj.set_comment(self.options.comment)
-            if self.options.inherit:         obj.set_parent(self.options.inherit)
-            if self.options.distro:          obj.set_distro(self.options.distro)
-            if self.options.enable_menu:     obj.set_enable_menu(self.options.enable_menu)
-            if self.options.kickstart:       obj.set_kickstart(self.options.kickstart)
-            if self.options.kopts:           obj.set_kernel_options(self.options.kopts,self.options.inplace)
-            if self.options.kopts_post:      obj.set_kernel_options_post(self.options.kopts_post,self.options.inplace)
-            if self.options.ksmeta:          obj.set_ksmeta(self.options.ksmeta,self.options.inplace)
-            if self.options.virt_file_size:  obj.set_virt_file_size(self.options.virt_file_size)
-            if self.options.virt_ram:        obj.set_virt_ram(self.options.virt_ram)
-            if self.options.virt_bridge:     obj.set_virt_bridge(self.options.virt_bridge)
-            if self.options.virt_type:       obj.set_virt_type(self.options.virt_type)
-            if self.options.virt_cpus:       obj.set_virt_cpus(self.options.virt_cpus)
-            if self.options.repos:           obj.set_repos(self.options.repos)
-            if self.options.virt_path:       obj.set_virt_path(self.options.virt_path)
-            if self.options.dhcp_tag:        obj.set_dhcp_tag(self.options.dhcp_tag)
-            if self.options.server_override: obj.set_server(self.options.server)
+            if self.options.comment is not None:         
+                obj.set_comment(self.options.comment)
+            if self.options.inherit is not None:         
+                obj.set_parent(self.options.inherit)
+            if self.options.distro is not None:          
+                obj.set_distro(self.options.distro)
+            if self.options.enable_menu is not None:
+                obj.set_enable_menu(self.options.enable_menu)
+            if self.options.kickstart is not None:       
+                obj.set_kickstart(self.options.kickstart)
+            if self.options.kopts is not None:           
+                obj.set_kernel_options(self.options.kopts,self.options.inplace)
+            if self.options.kopts_post is not None:      
+                obj.set_kernel_options_post(self.options.kopts_post,self.options.inplace)
+            if self.options.ksmeta is not None:          
+                obj.set_ksmeta(self.options.ksmeta,self.options.inplace)
+            if self.options.virt_file_size is not None:  
+                obj.set_virt_file_size(self.options.virt_file_size)
+            if self.options.virt_ram is not None:        
+                obj.set_virt_ram(self.options.virt_ram)
+            if self.options.virt_bridge is not None:     
+                obj.set_virt_bridge(self.options.virt_bridge)
+            if self.options.virt_type is not None:       
+                obj.set_virt_type(self.options.virt_type)
+            if self.options.virt_cpus is not None:       
+                obj.set_virt_cpus(self.options.virt_cpus)
+            if self.options.repos is not None:           
+                obj.set_repos(self.options.repos)
+            if self.options.virt_path is not None:       
+                obj.set_virt_path(self.options.virt_path)
+            if self.options.dhcp_tag is not None:        
+                obj.set_dhcp_tag(self.options.dhcp_tag)
+            if self.options.server_override is not None: 
+                obj.set_server(self.options.server)
 
-            if self.options.owners:          obj.set_owners(self.options.owners)
-            if self.options.mgmt_classes:    obj.set_mgmt_classes(self.options.mgmt_classes)
-            if self.options.template_files:  obj.set_template_files(self.options.template_files,self.options.inplace)
-            if self.options.name_servers:    obj.set_name_servers(self.options.name_servers)
+            if self.options.owners is not None:          
+                obj.set_owners(self.options.owners)
+            if self.options.mgmt_classes is not None:    
+                obj.set_mgmt_classes(self.options.mgmt_classes)
+            if self.options.template_files is not None:  
+                obj.set_template_files(self.options.template_files,self.options.inplace)
+            if self.options.name_servers is not None:    
+                obj.set_name_servers(self.options.name_servers)
 
         return self.object_manipulator_finish(obj, self.api.profiles, self.options)
 

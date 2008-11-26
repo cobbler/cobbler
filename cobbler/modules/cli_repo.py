@@ -94,18 +94,30 @@ class RepoFunction(commands.CobblerFunction):
         if self.matches_args(self.args,["dumpvars"]):
             return self.object_manipulator_finish(obj, self.api.profiles, self.options)
 
-        if self.options.breed:            obj.set_breed(self.options.breed)
-        if self.options.arch:             obj.set_arch(self.options.arch)
-        if self.options.createrepo_flags: obj.set_createrepo_flags(self.options.createrepo_flags)
-        if self.options.environment:      obj.set_environment(self.options.environment)
-        if self.options.rpm_list:         obj.set_rpm_list(self.options.rpm_list)
-        if self.options.keep_updated:     obj.set_keep_updated(self.options.keep_updated)
-        if self.options.priority:         obj.set_priority(self.options.priority)
-        if self.options.mirror:           obj.set_mirror(self.options.mirror)
-        if self.options.mirror_locally:   obj.set_mirror_locally(self.options.mirror_locally)
-        if self.options.yumopts:          obj.set_yumopts(self.options.yumopts,self.options.inplace)
-        if self.options.owners:           obj.set_owners(self.options.owners)
-        if self.options.comment:          obj.set_comment(self.options.comment)
+        if self.options.breed is not None:            
+            obj.set_breed(self.options.breed)
+        if self.options.arch is not None:             
+            obj.set_arch(self.options.arch)
+        if self.options.createrepo_flags is not None: 
+            obj.set_createrepo_flags(self.options.createrepo_flags)
+        if self.options.environment is not None:      
+            obj.set_environment(self.options.environment)
+        if self.options.rpm_list is not None:         
+            obj.set_rpm_list(self.options.rpm_list)
+        if self.options.keep_updated is not None:     
+            obj.set_keep_updated(self.options.keep_updated)
+        if self.options.priority is not None:         
+            obj.set_priority(self.options.priority)
+        if self.options.mirror is not None:           
+            obj.set_mirror(self.options.mirror)
+        if self.options.mirror_locally is not None:   
+            obj.set_mirror_locally(self.options.mirror_locally)
+        if self.options.yumopts is not None:          
+            obj.set_yumopts(self.options.yumopts,self.options.inplace)
+        if self.options.owners is not None:           
+            obj.set_owners(self.options.owners)
+        if self.options.comment is not None:          
+            obj.set_comment(self.options.comment)
 
         return self.object_manipulator_finish(obj, self.api.repos, self.options)
 

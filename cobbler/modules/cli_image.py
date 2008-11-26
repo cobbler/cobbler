@@ -95,21 +95,34 @@ class ImageFunction(commands.CobblerFunction):
         if self.matches_args(self.args,["dumpvars"]):
             return self.object_manipulator_finish(obj, self.api.images, self.options)
 
-        if self.options.comment:          obj.set_comment(self.options.comment)
-        if self.options.file:             obj.set_file(self.options.file)
-        if self.options.image_type:       obj.set_image_type(self.options.image_type)
-        if self.options.owners:           obj.set_owners(self.options.owners)
-        if self.options.virt_bridge:      obj.set_virt_bridge(self.options.virt_bridge)
-        if self.options.virt_path:        obj.set_virt_path(self.options.virt_path)
-        if self.options.virt_file_size:   obj.set_virt_file_size(self.options.virt_file_size)
-        if self.options.virt_bridge:      obj.set_virt_bridge(self.options.virt_bridge)
-        if self.options.virt_cpus:        obj.set_virt_cpus(self.options.virt_cpus)
-        if self.options.virt_ram:         obj.set_virt_ram(self.options.virt_ram)
-        if self.options.virt_type:        obj.set_virt_type(self.options.virt_type)
-        if self.options.xml_file:         obj.set_xml_file(self.options.xml_file)
-        if self.options.breed:            obj.set_breed(self.options.breed)
-        if self.options.arch:             obj.set_arch(self.options.arch)
-        if self.options.os_version:       obj.set_os_version(self.options.os_version)
+        if self.options.comment is not None: 
+            obj.set_comment(self.options.comment)
+        if self.options.file is not None:             
+            obj.set_file(self.options.file)
+        if self.options.image_type is not None:       
+            obj.set_image_type(self.options.image_type)
+        if self.options.owners is not None:           
+            obj.set_owners(self.options.owners)
+        if self.options.virt_bridge is not None:      
+            obj.set_virt_bridge(self.options.virt_bridge)
+        if self.options.virt_path is not None:        
+            obj.set_virt_path(self.options.virt_path)
+        if self.options.virt_file_size is not None:   
+            obj.set_virt_file_size(self.options.virt_file_size)
+        if self.options.virt_bridge is not None:      
+            obj.set_virt_bridge(self.options.virt_bridge)
+        if self.options.virt_cpus is not None:        
+            obj.set_virt_cpus(self.options.virt_cpus)
+        if self.options.virt_ram is not None:         
+            obj.set_virt_ram(self.options.virt_ram)
+        if self.options.virt_type is not None:        
+            obj.set_virt_type(self.options.virt_type)
+        if self.options.breed is not None:            
+            obj.set_breed(self.options.breed)
+        if self.options.arch is not None:             
+            obj.set_arch(self.options.arch)
+        if self.options.os_version is not None:       
+            obj.set_os_version(self.options.os_version)
  
         return self.object_manipulator_finish(obj, self.api.images, self.options)
 
