@@ -131,8 +131,12 @@ def handler(req):
     req.content_type = "text/html;charset=utf-8"
     req.write(unicode(content).encode('utf-8'))
     
-    return apache.OK
-
+    if not content.startswith("# ERROR") and content.find("<!-- ERROR -->") == -1:
+       return apache.OK
+    else:
+       # catch Cheetah errors and web errors
+       return apache.HTTP_ERROR
+ 
 #======================================================
 
 def authenhandler(req):

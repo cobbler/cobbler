@@ -39,6 +39,8 @@ from cexceptions import *
 import codes
 
 CHEETAH_ERROR_DISCLAIMER="""
+# *** ERROR ***
+#
 # There is a templating error preventing this file from rendering correctly. 
 #
 # This is most likely not due to a bug in Cobbler and is something you can fix.

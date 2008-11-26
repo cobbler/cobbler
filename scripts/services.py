@@ -88,7 +88,14 @@ def handler(req):
     # apache.log_error("%s:%s ... %s" % (my_user, my_uri, str(form)))
     req.content_type = "text/plain;charset=utf-8"
     content = unicode(content).encode('utf-8')
-    req.write(content)
     
-    return apache.OK
+    if content.find("# *** ERROR ***") != -1:
+        req.write(content)
+        return apache.HTTP_ERROR
+    elif content.find("# profile not found") != -1 or content.find("# system not found") != -1:
+        req.content_type = "text/html;charset=utf-8"
+        return apache.HTTP_NOT_FOUND
+    else:
+        req.write(content)
+        return apache.HTTP_OK
 
