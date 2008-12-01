@@ -113,7 +113,12 @@ class Templar:
         try:
             data_out = str(t)
         except Exception, e:
-            return utils.cheetah_exc(e)
+            if out_path is None:
+               return utils.cheetah_exc(e)
+            else:
+               # FIXME: log this
+               print utils.cheetah_exc(e)
+               raise CX("Error templating file: %s" % out_path)
 
         # now apply some magic post-filtering that is used by cobbler import and some
         # other places, but doesn't use Cheetah.  Forcing folks to double escape
