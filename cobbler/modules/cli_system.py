@@ -110,6 +110,7 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--server-override", dest="server_override", help="overrides server value in settings file")
             p.add_option("--static",          dest="static",          help="specifies this interface does (0) or does not use DHCP (1), default 0")
             p.add_option("--subnet",          dest="subnet",          help="for static IP usage only")
+            p.add_option("--netmask",         dest="subnet",          help="alias for --subnet")
 
             p.add_option("--virt-bridge",      dest="virt_bridge", help="ex: 'virbr0'")
             p.add_option("--virt-cpus",        dest="virt_cpus", help="integer (default: 1)")
