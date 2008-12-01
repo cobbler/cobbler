@@ -181,6 +181,12 @@ class IscManager:
             profile = system.get_conceptual_parent()
             distro  = profile.get_conceptual_parent()
             for (name, interface) in system.interfaces.iteritems():
+
+                # this is really not a per-interface setting
+                # but we do this to make the templates work
+                # without upgrade
+                interface["gateway"] = system.gateway
+
                 mac  = interface["mac_address"]
                 ip   = interface["ip_address"]
                 host = interface["dns_name"]
@@ -225,9 +231,10 @@ class IscManager:
                 if dhcp_tag == "":
                    dhcp_tag = "default"
 
+
                 if not dhcp_tags.has_key(dhcp_tag):
                     dhcp_tags[dhcp_tag] = {
-                        mac: interface
+                       mac: interface
                     }
                 else:
                     dhcp_tags[dhcp_tag][mac] = interface
