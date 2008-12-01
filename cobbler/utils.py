@@ -982,6 +982,10 @@ def set_virt_file_size(self,num):
     # num is a non-negative integer (0 means default)
     # can also be a comma seperated list -- for usage with multiple disks
 
+    if num is None or num == "":
+        self.virt_file_size = 0
+        return True
+
     if num == "<<inherit>>":
         self.virt_file_size = "<<inherit>>"
         return True
@@ -1066,6 +1070,10 @@ def set_virt_cpus(self,num):
      will not yelp if you try to feed it 9999 CPUs.  No formatting
      like 9,999 please :)
      """
+     if num == "" or num is None:
+         self.virt_cpus = 1
+         return True
+ 
      if num == "<<inherit>>":
          self.virt_cpus = "<<inherit>>"
          return True

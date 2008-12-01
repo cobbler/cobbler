@@ -195,6 +195,9 @@ class Profile(item.Item):
 	Sets the kickstart.  This must be a NFS, HTTP, or FTP URL.
 	Or filesystem path.  Minor checking of the URL is performed here.
 	"""
+        if kickstart == "" or kickstart is None:
+            self.kickstart = ""
+            return True
         if kickstart == "<<inherit>>":
             self.kickstart = kickstart
             return True
