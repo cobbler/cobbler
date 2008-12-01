@@ -888,6 +888,8 @@ def mkdir(path,mode=0777):
            raise CX(_("Error creating") % path)
 
 def set_arch(self,arch):
+   if arch is None or arch == "":
+       arch = "x86"
    if arch in [ "standard", "ia64", "x86", "i386", "ppc", "ppc64", "x86_64", "s390x" ]:
        if arch == "x86" or arch == "standard":
            # be consistent 
@@ -897,8 +899,9 @@ def set_arch(self,arch):
    raise CX(_("arch choices include: x86, x86_64, ppc, ppc64, s390x and ia64"))
 
 def set_os_version(self,os_version):
-   if os_version is None:
-      raise CX(_("invalid value for --os-version, see manpage"))
+   if os_version == "" or os_version is None:
+      self.os_version = ""
+      return True
    self.os_version = os_version.lower()
    if self.breed is None or self.breed == "":
       raise CX(_("cannot set --os-version without setting --breed first"))
@@ -1095,6 +1098,8 @@ def get_kickstart_templates(api):
     return files.keys()
 
 def safe_filter(var):
+    if var is None:
+       return
     if var.find("/") != -1 or var.find(";") != -1:
        raise CX("Invalid characters found in input")
 
