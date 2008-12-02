@@ -323,6 +323,8 @@ class System(item.Item):
         If a system can't reach the boot server at the value configured in settings
         because it doesn't have the same name on it's subnet this is there for an override.
         """
+        if server is None:
+            server = ""
         self.server = server
         return True
 
