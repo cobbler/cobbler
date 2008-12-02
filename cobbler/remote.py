@@ -371,31 +371,36 @@ class CobblerXMLRPCInterface:
         Return all of the distro objects that have been modified
         after mtime.
         """
-        return self.api.get_distros_since(mtime, collapse=True)
+        data = self.api.get_distros_since(mtime, collapse=True)
+        return self._fix_none(data)
 
     def get_profiles_since(self,mtime):
         """
         See documentation for get_distros_since
         """
-        return self.api.get_profiles_since(mtime, collapse=True)
+        data = self.api.get_profiles_since(mtime, collapse=True)
+        return self._fix_none(data)
 
     def get_systems_since(self,mtime):
         """
         See documentation for get_distros_since
         """
-        return self.api.get_systems_since(mtime, collapse=True)
+        data = self.api.get_systems_since(mtime, collapse=True)
+        return self._fix_none(data)
 
     def get_repos_since(self,mtime):
         """
         See documentation for get_distros_since
         """
-        return self.api.get_repos_since(mtime, collapse=True)
+        data = self.api.get_repos_since(mtime, collapse=True)
+        return self._fix_none(data)
 
     def get_images_since(self,mtime):
         """
         See documentation for get_distros_since
         """
-        return self.api.get_images_since(mtime, collapse=True)
+        data = self.api.get_images_since(mtime, collapse=True)
+        return self._fix_none(data)
 
     def get_profiles(self,page=None,results_per_page=None,token=None,**rest):
         """
@@ -1883,7 +1888,20 @@ def test_xmlrpc_rw():
    assert api.find_repo("repo1") != None
    assert api.find_image("image1") != None
    assert api.find_system("system1") != None
-   
+  
+   assert server.last_modified_time() > 0
+   print server.get_distros_since(2)
+   assert len(server.get_distros_since(2)) > 0
+   assert len(server.get_profiles_since(2)) > 0
+   assert len(server.get_systems_since(2)) > 0
+   assert len(server.get_images_since(2)) > 0
+   assert len(server.get_repos_since(2)) > 0
+   assert len(server.get_distros_since(2)) > 0
+
+   now = time.time()
+   the_future = time.time() + 99999
+   assert len(server.get_distros_since(the_future)) == 0
+ 
    # it would be cleaner to do this from the distro down
    # and the server.update calls would then be unneeded.
    server.remove_system("system1", token)
@@ -1921,15 +1939,6 @@ def test_xmlrpc_rw():
    assert api.find_repo("repo2") is None
    assert api.find_image("image2") is None
    assert api.find_system("system2") is None
-
-   # just make sure these don't explode for now
-   assert server.last_modified_time > 0
-   assert len(server.get_distros_since(2)) == 1
-   assert len(server.get_profiles_since(2)) == 1
-   assert len(server.get_systems_since(2)) == 1
-   assert len(server.get_images_since(2)) == 1
-   assert len(server.get_repos_since(2)) == 1
-   assert len(server.get_distros_since(2)) == 1
 
    # FIXME: should not need cleanup as we've done it above 
    _test_remove_objects()

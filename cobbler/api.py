@@ -362,9 +362,10 @@ class BootAPI:
         """
         Called by get_*_since functions.
         """
-        results1 = self.collector()
+        results1 = collector()
         results2 = []
         for x in results1:
+           print "INPUT: %s ACTUAL: %s" % (mtime, x.mtime)
            if x.mtime == 0 or x.mtime >= mtime:
               if not collapse:
                   results2.append(results1)
