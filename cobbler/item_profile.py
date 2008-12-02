@@ -182,10 +182,14 @@ class Profile(item.Item):
         return True
 
     def set_dhcp_tag(self,dhcp_tag):
+        if dhcp_tag is None:
+           dhcp_tag = ""
         self.dhcp_tag = dhcp_tag
         return True
 
     def set_server(self,server):
+        if server is None:
+           server = ""
         self.server = server
         return True
 
@@ -219,8 +223,7 @@ class Profile(item.Item):
         return utils.set_virt_type(self,vtype)
 
     def set_virt_bridge(self,vbridge):
-        self.virt_bridge = vbridge
-        return True
+        return utils.set_virt_bridge(self,vbridge)
 
     def set_virt_path(self,path):
         return utils.set_virt_path(self,path)

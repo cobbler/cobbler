@@ -394,6 +394,8 @@ class System(item.Item):
         return True
 
     def set_hostname(self,hostname):
+        if hostname is None:
+           hostname = ""
         self.hostname = hostname
         return True
 
@@ -421,6 +423,8 @@ class System(item.Item):
         raise CX(_("invalid format for MAC address (%s)" % address))
 
     def set_gateway(self,gateway):
+        if gateway is None:
+           gateway = ""
         self.gateway = gateway
         return True
  
@@ -568,6 +572,8 @@ class System(item.Item):
         #self.power_id             = ""
 
     def set_power_type(self, power_type):
+        if power_type is None:
+            power_type = ""
         power_type = power_type.lower()
         valid = "bullpap wti apc_snmp ether-wake ipmilan drac ipmitool ilo rsai lpar bladecenter virsh none"
         choices = valid.split(" ")
@@ -578,21 +584,29 @@ class System(item.Item):
         return True
 
     def set_power_user(self, power_user):
+        if power_user is None:
+           power_user = ""
         utils.safe_filter(power_user)
         self.power_user = power_user
         return True 
 
     def set_power_pass(self, power_pass):
+        if power_pass is None:
+           power_pass = ""
         utils.safe_filter(power_pass)
         self.power_pass = power_pass
         return True    
 
     def set_power_address(self, power_address):
+        if power_address is None:
+           power_address = ""
         utils.safe_filter(power_address)
         self.power_address = power_address
         return True
 
     def set_power_id(self, power_id):
+        if power_id is None:
+           power_id = ""
         utils.safe_filter(power_id)
         self.power_id = power_id
         return True

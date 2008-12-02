@@ -127,6 +127,8 @@ class Item(serializable.Serializable):
         return True
 
     def set_comment(self, comment):
+        if comment is None:
+           comment = ""
         self.comment = comment
         return True
 
