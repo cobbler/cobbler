@@ -76,6 +76,14 @@ class CobblerXMLRPCInterface:
     def __sorter(self,a,b):
         return cmp(a["name"],b["name"])
 
+    def last_modified_time(self):
+        """
+        Return the time of the last modification to any object
+        so that we can tell if we need to check for any other
+        modified objects via more specific calls.
+        """
+        return self.api.last_modified_time()
+
     def update(self, token=None):
         now = self.api.last_modified_time()
         if (now > self.timestamp):
@@ -357,6 +365,37 @@ class CobblerXMLRPCInterface:
         """
         self._log("get_distros",token=token)
         return self.__get_all("distro",page,results_per_page)
+
+    def get_distros_since(self,mtime):
+        """
+        Return all of the distro objects that have been modified
+        after mtime.
+        """
+        return self.api.get_distros_since(mtime, collapse=True)
+
+    def get_profiles_since(self,mtime):
+        """
+        See documentation for get_distros_since
+        """
+        return self.api.get_profiles_since(mtime, collapse=True)
+
+    def get_systems_since(self,mtime):
+        """
+        See documentation for get_distros_since
+        """
+        return self.api.get_systems_since(mtime, collapse=True)
+
+    def get_repos_since(self,mtime):
+        """
+        See documentation for get_distros_since
+        """
+        return self.api.get_repos_since(mtime, collapse=True)
+
+    def get_images_since(self,mtime):
+        """
+        See documentation for get_distros_since
+        """
+        return self.api.get_images_since(mtime, collapse=True)
 
     def get_profiles(self,page=None,results_per_page=None,token=None,**rest):
         """
@@ -1882,6 +1921,15 @@ def test_xmlrpc_rw():
    assert api.find_repo("repo2") is None
    assert api.find_image("image2") is None
    assert api.find_system("system2") is None
+
+   # just make sure these don't explode for now
+   assert server.last_modified_time > 0
+   assert len(server.get_distros_since(2)) == 1
+   assert len(server.get_profiles_since(2)) == 1
+   assert len(server.get_systems_since(2)) == 1
+   assert len(server.get_images_since(2)) == 1
+   assert len(server.get_repos_since(2)) == 1
+   assert len(server.get_distros_since(2)) == 1
 
    # FIXME: should not need cleanup as we've done it above 
    _test_remove_objects()
