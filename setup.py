@@ -242,6 +242,7 @@ if __name__ == "__main__":
                                 (powerpath, ['templates/power_ilo.template']),
                                 (powerpath, ['templates/power_lpar.template']),        
                                 (powerpath, ['templates/power_bladecenter.template']),        
+                                (powerpath, ['templates/power_virsh.template']),        
 
                                 # templates for /usr/bin/cobbler-setup
                                 (itemplates, ['installer_templates/modules.conf.template']),

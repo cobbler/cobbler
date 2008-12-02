@@ -179,6 +179,7 @@ omshell_bin: /usr/bin/omshell
 #    rsa
 #    lpar
 #    bladecenter
+#    virsh
 
 power_management_default_type: 'ipmitool'
 
