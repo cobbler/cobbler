@@ -20,6 +20,7 @@ import xmlrpclib
 import cgi
 import os
 from cobbler.services import CobblerSvc
+import cobbler.yaml as yaml
 import cobbler.utils as utils
 
 #=======================================
@@ -70,12 +71,16 @@ def handler(req):
     #form["REMOTE_MAC"]  = req.subprocess_env.get("HTTP_X_RHN_PROVISIONING_MAC_0",None)
     form["REMOTE_MAC"]  = form.get("HTTP_X_RHN_PROVISIONING_MAC_0",None)
 
-    http_port = utils.parse_settings_lame("http_port",default="80")
-    
+    fd = open("/etc/cobbler/settings")
+    data = fd.read()
+    fd.close()
+    ydata = yaml.load(data).next()
+    remote_port = ydata.get("xmlrpc_port",25151)
+
     # instantiate a CobblerWeb object
     cw = CobblerSvc(
          apache   = apache,
-         server   = "http://127.0.0.1:%s/cobbler_api" % http_port
+         server   = "http://127.0.0.1:%s" % remote_port
     )
 
     # check for a valid path/mode
