@@ -207,7 +207,10 @@ class Collection(serializable.Serializable):
         So, in that case, don't run any triggers and don't deal with any actual files.
 
         """
-            
+    
+        if ref.uid == '':
+           ref.uid = self.config.generate_uid()
+        
         if save is True:
             now = time.time()
             if ref.ctime == 0:

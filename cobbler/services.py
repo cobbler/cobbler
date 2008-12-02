@@ -405,6 +405,7 @@ def test_services_access():
 
     url = "http://127.0.0.1/cblr/svc/op/puppet/hostname/narf"
     data = urlgrabber.urlread(url)
+    print "puppet DATA: %s" % data
     assert data.find("alpha") != -1
     assert data.find("beta") != -1
     assert data.find("gamma") != -1

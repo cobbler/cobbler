@@ -358,6 +358,43 @@ class BootAPI:
     def find_image(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.images().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
+    def __since(self,mtime,collector,collapse=False):
+        """
+        Called by get_*_since functions.
+        """
+        results1 = collector()
+        results2 = []
+        for x in results1:
+           print "INPUT: %s ACTUAL: %s" % (mtime, x.mtime)
+           if x.mtime == 0 or x.mtime >= mtime:
+              if not collapse:
+                  results2.append(results1)
+              else:
+                  results2.append(results1.to_datastruct())
+        return results2
+
+    def get_distros_since(self,mtime,collapse=False):
+        """
+        Returns distros modified since a certain time (in seconds since Epoch)
+        collapse=True specifies returning a hash instead of objects.
+        """
+        return self.__since(mtime,self.distros,collapse=collapse)
+
+    def get_profiles_since(self,mtime,collapse=False):
+        return self.__since(mtime,self.profiles,collapse=collapse)
+
+    def get_systems_since(self,mtime,collapse=False):
+        return self.__since(mtime,self.systems,collapse=collapse)
+
+    def get_repos_since(self,mtime,collapse=False):
+        return self.__since(mtime,self.repos,collapse=collapse)
+
+    def get_images_since(self,mtime,collapse=False):
+        return self.__since(mtime,self.images,collapse=collapse)
+
+    
+
+
     def dump_vars(self, obj, format=False):
         return obj.dump_vars(format)
 

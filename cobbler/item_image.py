@@ -143,7 +143,12 @@ class Image(item.Item):
         return utils.set_virt_cpus(self,num)
         
     def set_network_count(self, num):
-        self.network_count = num
+        if num is None or num == "":
+            num = 1
+        try:
+            self.network_count = int(num)
+        except:
+            raise CX("invalid network count")
         return True
 
     def set_virt_file_size(self,num):
@@ -156,8 +161,7 @@ class Image(item.Item):
         return utils.set_virt_type(self,vtype)
 
     def set_virt_bridge(self,vbridge):
-        self.virt_bridge = vbridge
-        return True
+        return utils.set_virt_bridge(self,vbridge)
 
     def set_virt_path(self,path):
         return utils.set_virt_path(self,path)

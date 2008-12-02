@@ -76,6 +76,14 @@ class CobblerXMLRPCInterface:
     def __sorter(self,a,b):
         return cmp(a["name"],b["name"])
 
+    def last_modified_time(self):
+        """
+        Return the time of the last modification to any object
+        so that we can tell if we need to check for any other
+        modified objects via more specific calls.
+        """
+        return self.api.last_modified_time()
+
     def update(self, token=None):
         now = self.api.last_modified_time()
         if (now > self.timestamp):
@@ -357,6 +365,42 @@ class CobblerXMLRPCInterface:
         """
         self._log("get_distros",token=token)
         return self.__get_all("distro",page,results_per_page)
+
+    def get_distros_since(self,mtime):
+        """
+        Return all of the distro objects that have been modified
+        after mtime.
+        """
+        data = self.api.get_distros_since(mtime, collapse=True)
+        return self._fix_none(data)
+
+    def get_profiles_since(self,mtime):
+        """
+        See documentation for get_distros_since
+        """
+        data = self.api.get_profiles_since(mtime, collapse=True)
+        return self._fix_none(data)
+
+    def get_systems_since(self,mtime):
+        """
+        See documentation for get_distros_since
+        """
+        data = self.api.get_systems_since(mtime, collapse=True)
+        return self._fix_none(data)
+
+    def get_repos_since(self,mtime):
+        """
+        See documentation for get_distros_since
+        """
+        data = self.api.get_repos_since(mtime, collapse=True)
+        return self._fix_none(data)
+
+    def get_images_since(self,mtime):
+        """
+        See documentation for get_distros_since
+        """
+        data = self.api.get_images_since(mtime, collapse=True)
+        return self._fix_none(data)
 
     def get_profiles(self,page=None,results_per_page=None,token=None,**rest):
         """
@@ -1844,7 +1888,20 @@ def test_xmlrpc_rw():
    assert api.find_repo("repo1") != None
    assert api.find_image("image1") != None
    assert api.find_system("system1") != None
-   
+  
+   assert server.last_modified_time() > 0
+   print server.get_distros_since(2)
+   assert len(server.get_distros_since(2)) > 0
+   assert len(server.get_profiles_since(2)) > 0
+   assert len(server.get_systems_since(2)) > 0
+   assert len(server.get_images_since(2)) > 0
+   assert len(server.get_repos_since(2)) > 0
+   assert len(server.get_distros_since(2)) > 0
+
+   now = time.time()
+   the_future = time.time() + 99999
+   assert len(server.get_distros_since(the_future)) == 0
+ 
    # it would be cleaner to do this from the distro down
    # and the server.update calls would then be unneeded.
    server.remove_system("system1", token)

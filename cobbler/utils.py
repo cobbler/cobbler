@@ -1053,6 +1053,8 @@ def set_virt_bridge(self,vbridge):
      """
      The default bridge for all virtual interfaces under this profile.
      """
+     if vbridge is None:
+        vbridge = ""
      self.virt_bridge = vbridge
      return True
 
@@ -1060,6 +1062,8 @@ def set_virt_path(self,path):
      """
      Virtual storage location suggestion, can be overriden by koan.
      """
+     if path is None:
+        path = ""
      self.virt_path = path
      return True
 

@@ -195,6 +195,8 @@ class Repo(item.Item):
         Flags passed to createrepo when it is called.  Common flags to use would be
         -c cache or -g comps.xml to generate group information.
         """
+        if createrepo_flags is None:
+            createrepo_flags = ""
         self.createrepo_flags = createrepo_flags
         return True
 

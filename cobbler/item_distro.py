@@ -112,7 +112,7 @@ class Distro(item.Item):
 
         self.set_tree_build_time(self.tree_build_time)
 
-        self.uid         = self.load_item(seed_data,'uid','')
+        self.uid = self.load_item(seed_data,'uid','')
         if self.uid == '':
            self.uid = self.config.generate_uid()
 

@@ -136,6 +136,7 @@ class PowerTool:
             "rsa"        : os.path.join(powerdir,"power_rsa.template"),
             "lpar"       : os.path.join(powerdir,"power_lpar.template"),
             "bladecenter": os.path.join(powerdir,"power_bladecenter.template"),
+            "virsh"      : os.path.join(powerdir,"power_virsh.template"),
         }
 
         result = map.get(self.system.power_type, "")
