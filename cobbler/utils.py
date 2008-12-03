@@ -60,22 +60,6 @@ CHEETAH_ERROR_DISCLAIMER="""
 def _(foo):
    return foo
 
-# we can't use the API as non-root to read settings, so
-# this is a hack for mod python to find the port.  It's
-# fragile and ugly, but presently needed
-def parse_settings_lame(look_for,default="?"):
-   fd = open("/etc/cobbler/settings","r")
-   data = fd.read()
-   fd.close()
-   for line in data.split("\n"):
-      if line.find(look_for) !=-1 and line.find(":") != -1:
-          try:
-              tokens = line.split(":")
-              return tokens[-1].replace(" ","")
-          except:
-              return default
-   return default
-
 MODULE_CACHE = {}
 
 # import api # factor out

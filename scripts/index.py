@@ -21,6 +21,7 @@ import cgi
 import os
 from cobbler.webui import CobblerWeb
 import cobbler.utils as utils
+import cobbler.yaml as yaml
 
 XMLRPC_SERVER = "http://127.0.0.1:25152" # was http://127.0.0.1/cobbler_api_rw"
 
@@ -105,7 +106,11 @@ def handler(req):
     for x in fs.keys():
         form[x] = str(fs.get(x,'default'))
 
-    http_port = utils.parse_settings_lame("http_port",default="80")
+    fd = open("/etc/cobbler/settings")
+    data = fd.read()
+    fd.close()
+    ydata = yaml.load(data).next()
+    remote_port = ydata.get("xmlrpc_rw_port", 25152)
 
     mode = form.get('mode','index')
 
@@ -115,7 +120,7 @@ def handler(req):
          token    = token, 
          base_url = "/cobbler/web/",
          mode     = mode,
-         server   = "http://127.0.0.1:%s/cobbler_api_rw" % http_port
+         server   = "http://127.0.0.1:%s" % remote_port
     )
 
     # check for a valid path/mode

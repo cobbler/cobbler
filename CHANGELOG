@@ -59,6 +59,9 @@ Cobbler CHANGELOG
 - (FEAT) manage_dhcpd feature (ISC) now checks service status before restarting
 - (BUGF) omapi for manage_dhcp feature (ISC) now defaults to off
 - (FEAT) added module whitelist to settings file
+- (BUGF) don't let the service handler connect to itself over mod_python/proxy, RH 5.3 does not like
+- (FEAT) mtimes and ctimes and uids in the API
+- (FEAT) new functions to get objects based on last modified time, for sync with other apps
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
