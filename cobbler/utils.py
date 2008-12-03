@@ -365,7 +365,7 @@ def input_string_or_list(options,delim=","):
     """
     Accepts a delimited list of stuff or a list, but always returns a list.
     """
-    if options is None or options == "delete":
+    if options is None or options == "" or options == "delete":
        return []
     elif type(options) == list:
        return options

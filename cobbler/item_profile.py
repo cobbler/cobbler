@@ -189,7 +189,7 @@ class Profile(item.Item):
 
     def set_server(self,server):
         if server is None:
-           server = ""
+           server = "<inherit>"
         self.server = server
         return True
 
