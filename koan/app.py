@@ -305,9 +305,16 @@ class Koan:
                     if uses_avahi:
                         print "- connecting to: %s" % server
                     try:
-                        # first try port 80
-                        self.xmlrpc_server = ServerProxy(url)
-                        self.xmlrpc_server.get_profiles()
+                        try:
+                            #first try port 443
+                            url = "https://%s:443/cobbler_api" % (server)
+                            self.xmlrpc_server = ServerProxy(url)
+                            self.xmlrpc_server.get_profiles()
+                        except:
+                            #then try port 80
+                            url = "http://%s:80/cobbler_api" % (server)
+                            self.xmlrpc_server = ServerProxy(url)
+                            self.xmlrpc_server.get_profiles()
                     except:
                         # now try specified port in case Apache proxying
                         # is not configured
