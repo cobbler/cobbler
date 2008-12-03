@@ -261,6 +261,14 @@ def __test_setup():
     sub_process.call("cp rpm-build/*.rpm /tmp/empty",shell=True)
     api.add_repo(repo)
 
+    fd = open("/tmp/cobbler_t1","w+")
+    fd.write("$profile_name")
+    fd.close()
+
+    fd = open("/tmp/cobbler_t2","w+")
+    fd.write("$system_name")
+    fd.close()
+
     profile = api.new_profile()
     profile.set_name("profile0")
     profile.set_distro("distro0")
@@ -268,6 +276,7 @@ def __test_setup():
     profile.set_repos(["repo0"])
     profile.set_mgmt_classes(["alpha","beta"])
     profile.set_ksmeta({"tree":"look_for_this1","gamma":3})
+    profile.set_template_files("/tmp/cobbler_t1=/tmp/t1-rendered")
     api.add_profile(profile)
 
     system = api.new_system()
@@ -277,6 +286,7 @@ def __test_setup():
     system.set_profile("profile0")
     system.set_dns_name("hostname0","eth0")
     system.set_ksmeta({"tree":"look_for_this2"})
+    system.set_template_files({"/tmp/cobbler_t2":"/tmp/t2-rendered"})
     api.add_system(system)
 
     image = api.new_image()
@@ -416,6 +426,23 @@ def test_services_access():
     assert data.has_key("parameters")
     
     # now let's test the template file serving
+    # which is used by the snippet download_config_files
+    # and also by koan's --update-files
+
+    url = "http://127.0.0.1/cblr/svc/op/template/profile/profile0/path/_tmp_t1-rendered"
+    data = urlgrabber.urlread(url)
+    print "T1: %s" % data
+    assert data.find("profile0") != -1
+    assert data.find("$profile_name") == -1    
+
+    url = "http://127.0.0.1/cblr/svc/op/template/system/system0/path/_tmp_t2-rendered"
+    data = urlgrabber.urlread(url)
+    print "T2: %s" % data
+    assert data.find("system0") != -1
+    assert data.find("$system_name") == -1
+
+    os.unlink("/tmp/cobbler_t1")
+    os.unlink("/tmp/cobbler_t2") 
 
     remote._test_remove_objects()
 
