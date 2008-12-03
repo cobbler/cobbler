@@ -1,6 +1,7 @@
-# post install kernel options update
-
 #if $getVar('kernel_options_post','') != ''
+# Start post install kernel options update
 /sbin/grubby --update-kernel=`/sbin/grubby --default-kernel` --args="$kernel_options_post"
+# End post install kernel options update
 #end if
+
 
