@@ -306,21 +306,30 @@ class Koan:
                         print "- connecting to: %s" % server
                     try:
                         try:
-                            #first try port 443
+                            # first try port 443 (SSL)
                             url = "https://%s:443/cobbler_api" % (server)
                             self.xmlrpc_server = ServerProxy(url)
                             self.xmlrpc_server.get_profiles()
                         except:
-                            #then try port 80
+                            # then try port 80 (non-SSL)
                             url = "http://%s:80/cobbler_api" % (server)
                             self.xmlrpc_server = ServerProxy(url)
                             self.xmlrpc_server.get_profiles()
                     except:
                         # now try specified port in case Apache proxying
                         # is not configured
-                        url = "http://%s:%s" % (server, self.port)
-                        self.xmlrpc_server = ServerProxy(url)
-                        self.xmlrpc_server.get_profiles()
+                        try:
+                            # assume the port is not encrypted
+                            url = "http://%s:%s" % (server, self.port)
+                            self.xmlrpc_server = ServerProxy(url)
+                            self.xmlrpc_server.get_profiles()
+                        except:
+                            # this should not happen as cobbler
+                            # uses apache proxying to provide SSL
+                            # though try it anyway
+                            url = "https://%s:%s" % (server, self.port)
+                            self.xmlrpc_server = ServerProxy(url)
+                            self.xmlrpc_server.get_profiles()
                     connect_ok = True
                     break
                 except:
