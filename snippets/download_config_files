@@ -20,7 +20,7 @@
 wget "$turl" --output-document="$orig"
 #end if
 
-# End download cobbler managed config files
 
 #end for
 
+# End download cobbler managed config files (if applicable)

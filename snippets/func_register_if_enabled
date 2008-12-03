@@ -1,7 +1,6 @@
 
 #if $str($getVar('func_auto_setup','')) == "1"
-
-# func configuration and registration
+# Start func registration section
 
 /sbin/chkconfig --level 345 funcd on
 
@@ -18,5 +17,6 @@ log_level = DEBUG
 cert_dir = /etc/pki/certmaster
 EOCM
 
+# End func registration section
 #end if
 
