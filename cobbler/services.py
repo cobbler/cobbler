@@ -403,7 +403,7 @@ def test_services_access():
     # and just see if we get valid YAML back without
     # doing much more
 
-    url = "http://127.0.0.1/cblr/svc/op/puppet/hostname/narf"
+    url = "http://127.0.0.1/cblr/svc/op/puppet/hostname/hostname0"
     data = urlgrabber.urlread(url)
     print "puppet DATA: %s" % data
     assert data.find("alpha") != -1
