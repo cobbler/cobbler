@@ -662,6 +662,8 @@ function page_onload() {
     <input type="text" size="255" style="width: 400px;" name="virtpath" id="virtpath"
         #if $system
            value="$system.virt_path"
+        #else
+           value="<<inherit>>"
         #end if
     />
     <p class="context-tip">Sets koan's storage preferences, read manpage or leave blank.</p>

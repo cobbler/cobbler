@@ -1042,12 +1042,15 @@ def set_virt_bridge(self,vbridge):
      self.virt_bridge = vbridge
      return True
 
-def set_virt_path(self,path):
+def set_virt_path(self,path,for_system=False):
      """
      Virtual storage location suggestion, can be overriden by koan.
      """
      if path is None:
         path = ""
+     if for_system:
+        if path == "":
+           path = "<<inherit>>"
      self.virt_path = path
      return True
 

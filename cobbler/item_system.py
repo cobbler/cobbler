@@ -323,10 +323,8 @@ class System(item.Item):
         If a system can't reach the boot server at the value configured in settings
         because it doesn't have the same name on it's subnet this is there for an override.
         """
-        if server is None:
+        if server is None or server == "":
             server = "<<inherit>>"
-        if server == "":
-            raise CX("The server override field should never be blank.  Try <<inherit>> as a value if you want to use the profile's value.")
         self.server = server
         return True
 
@@ -516,7 +514,7 @@ class System(item.Item):
         return utils.set_virt_type(self,vtype)
 
     def set_virt_path(self,path):
-        return utils.set_virt_path(self,path)
+        return utils.set_virt_path(self,path,for_system=True)
 
     def set_netboot_enabled(self,netboot_enabled):
         """

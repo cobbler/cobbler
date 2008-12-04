@@ -188,10 +188,8 @@ class Profile(item.Item):
         return True
 
     def set_server(self,server):
-        if server is None:
+        if server is None or server == "":
            server = "<inherit>"
-        if server == "":
-            raise CX("The server override field should never be blank.  Try <<inherit>> as a value if you want to use the profile's value.")
         self.server = server
         return True
 
