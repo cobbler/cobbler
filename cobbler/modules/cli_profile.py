@@ -87,7 +87,7 @@ class ProfileFunction(commands.CobblerFunction):
 
         if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
             p.add_option("--repos",            dest="repos", help="names of cobbler repos")
-            p.add_option("--server-override",  dest="server_override", help="overrides value in settings file")
+            p.add_option("--server",           dest="server_override", help="overrides value in settings file")
             p.add_option("--virt-bridge",      dest="virt_bridge", help="ex: 'virbr0'")
             p.add_option("--virt-cpus",        dest="virt_cpus", help="integer (default: 1)")
             p.add_option("--virt-file-size",   dest="virt_file_size", help="size in GB")
