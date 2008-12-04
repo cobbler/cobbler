@@ -324,7 +324,9 @@ class System(item.Item):
         because it doesn't have the same name on it's subnet this is there for an override.
         """
         if server is None:
-            server = ""
+            server = "<<inherit>>"
+        if server == "":
+            raise CX("The server override field should never be blank.  Try <<inherit>> as a value if you want to use the profile's value.")
         self.server = server
         return True
 

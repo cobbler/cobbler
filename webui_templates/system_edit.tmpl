@@ -513,6 +513,8 @@ function page_onload() {
     <input type="text" size="128" style="width: 150px;" name="server_override" id="server_override"
         #if $system
            value="$system.server" 
+        #else
+           value="<<inherit>>"
         #end if
     />
     <p class="context-tip">Use this server for kickstarts, not the value in settings.  Usually this should be left alone.</p>
