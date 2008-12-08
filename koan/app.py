@@ -905,6 +905,7 @@ class Koan:
 
     def get_data(self,what,name=None):
         try:
+            self.xmlrpc_server.update()
             if what[-1] == "s":
                 data = getattr(self.xmlrpc_server, "get_%s" % what)()
             else:
