@@ -1332,7 +1332,7 @@ class Koan:
                 raise InfoException, "virt path is not a valid block device"
         else:
             # it's a volume group, verify that it exists
-            args = "/usr/sbin/vgs -o vg_name"
+            args = "vgs -o vg_name"
             print "%s" % args
             vgnames = sub_process.Popen(args, shell=True, stdout=sub_process.PIPE).communicate()[0]
             print vgnames
@@ -1341,7 +1341,7 @@ class Koan:
                 raise InfoException, "The volume group [%s] does not exist." % location
             
             # check free space
-            args = "/usr/sbin/vgs --noheadings -o vg_free --units g %s" % location
+            args = "vgs --noheadings -o vg_free --units g %s" % location
             print args
             cmd = sub_process.Popen(args, stdout=sub_process.PIPE, shell=True)
             freespace_str = cmd.communicate()[0]
@@ -1360,7 +1360,7 @@ class Koan:
             if freespace >= int(virt_size):
             
                 # look for LVM partition named foo, create if doesn't exist
-                args = "/usr/sbin/lvs -o lv_name %s" % location
+                args = "lvs -o lv_name %s" % location
                 print "%s" % args
                 lvs_str=sub_process.Popen(args, stdout=sub_process.PIPE, shell=True).communicate()[0]
                 print lvs_str
@@ -1369,7 +1369,7 @@ class Koan:
  
                 # have to create it?
                 if lvs_str.find(name) == -1:
-                    args = "/usr/sbin/lvcreate -L %sG -n %s %s" % (virt_size, name, location)
+                    args = "lvcreate -L %sG -n %s %s" % (virt_size, name, location)
                     print "%s" % args
                     lv_create = sub_process.call(args, shell=True)
                     if lv_create != 0:
