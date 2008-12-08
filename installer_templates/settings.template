@@ -40,6 +40,15 @@ cheetah_import_whitelist:
 # if no kickstart is specified, use this template (FIXME)
 default_kickstart: /etc/cobbler/default.ks
 
+# cobbler has various sample kickstart templates stored
+# in /var/lib/cobbler/kickstarts/.  This controls
+# what install (root) password is set up for those
+# systems that reference this variable.  The factory
+# default is "cobbler" and cobbler check will warn if
+# this is not changed.
+
+default_password_crypted: "\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac"
+
 # configure all installed systems to use these nameservers by default
 # unless defined differently in the profile.  For DHCP configurations
 # you probably do /not/ want to supply this.

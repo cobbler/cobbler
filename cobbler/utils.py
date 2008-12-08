@@ -457,6 +457,12 @@ def blender(api_handle,remove_hashes, root_obj):
     for node in tree:
         __consolidate(node,results)
 
+    # the password field is inputed as escaped strings but Cheetah
+    # does weird things when expanding it due to multiple dollar signs
+    # so this is the workaround
+    if results.has_key("default_password_crypted"):
+        results["default_password_crypted"] = results["default_password_crypted"].replace("\$","$")
+
     # add in syslog to results (magic)    
     if settings.syslog_port != 0:
         if not results.has_key("kernel_options"):

@@ -151,16 +151,9 @@ class BootCheck:
 
 
    def check_for_default_password(self,status):
-       templates = utils.get_kickstart_templates(self.config.api)
-       files = []
-       for t in templates:
-           fd = open(t)
-           data = fd.read()
-           fd.close()
-           if data.find("\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.") != -1:
-               files.append(t)
-       if len(files) > 0:
-           status.append(_("One or more kickstart templates references default password 'cobbler' and should be changed for security reasons: %s") % ", ".join(files))
+       default_pass = self.settings.default_password_crypted
+       if default_pass == "\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac":
+           status.append(_("The default password used by the sample templates for newly installed machines (default_password_crypted in /etc/cobbler/settings) is still set to 'cobbler' and should be changed"))
 
 
    def check_for_unreferenced_repos(self,status):

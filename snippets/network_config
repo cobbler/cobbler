@@ -56,6 +56,8 @@
                 #if $hostname != ""
                     #set $network_str = $network_str + " --hostname=" + $hostname
                 #end if
+            #else
+                #set $network_str = "--bootproto=dhcp"
             #end if
     ## network details are populated from the cobbler system object
             #if $is_vlan == "false"
