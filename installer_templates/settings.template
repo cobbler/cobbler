@@ -47,7 +47,7 @@ default_kickstart: /etc/cobbler/default.ks
 # default is "cobbler" and cobbler check will warn if
 # this is not changed.
 
-default_password_crypted: "\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac"
+default_password_crypted: "\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac."
 
 # configure all installed systems to use these nameservers by default
 # unless defined differently in the profile.  For DHCP configurations
