@@ -73,10 +73,14 @@ class System(item.Item):
         self.hostname             = ""
         self.gateway              = ""
         self.name_servers         = ""
+        self.bonding              = ""
+        self.bonding_master       = ""
+        self.bonding_opts         = ""
 
     def delete_interface(self,name):
         """
-        Used to remove an interface.  Not valid for the default interface.
+        Used to remove an interface.  Not valid for the default 
+interface.
         """
         if self.interfaces.has_key(name) and name != "eth0":
             del self.interfaces[name]
@@ -236,10 +240,10 @@ class System(item.Item):
                self.interfaces[k]["static"] = False
             if not self.interfaces[k].has_key("bonding"):
                self.interfaces[k]["bonding"] = ""
-            if not self.interfaces[k].has_key("bondingmaster"):
-               self.interfaces[k]["bondingmaster"] = ""
-            if not self.interfaces[k].has_key("bondingopts"):
-               self.interfaces[k]["bondingopts"] = ""
+            if not self.interfaces[k].has_key("bonding_master"):
+               self.interfaces[k]["bonding_master"] = ""
+            if not self.interfaces[k].has_key("bonding_opts"):
+               self.interfaces[k]["bonding_opts"] = ""
             if not self.interfaces[k].has_key("dns_name"):
                # hostname is global for the system, dns_name is per interface
                # this handles the backwards compatibility update details for
