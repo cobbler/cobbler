@@ -217,24 +217,61 @@
             #else
                 echo "BOOTPROTO=dhcp" >> $devfile
             #end if
+        #else if $configbymac == False
+            ## We'll end up here when not all physical interfaces present for
+            ## this system have MAC-addresses configured for them. We don't
+            ## support interface renaming here.
 
-        #else
-            ## jcapel note: I think we only have to rename the interfaces
-            ## I'm assuming eth0 is the first item in the list here.
-            ## This will fail when renaming ethX to ethY, avoid it!
-            ## (we can fix this later if we're staging temporary files
-            ## somewhere first.)
-            ##
-            ## FIXME: there's a bug in this when having both named eth, skip it -- MPD
+            MAC=\$(ifconfig -a | grep $iname | awk '{ print \$5 }')
+            
+            echo "DEVICE=$iname" > $devfile
+            echo "HWADDR=\$MAC" >> $devfile
+            echo "ONBOOT=yes" >> $devfile
 
-            #set $curiname = "eth" + $str($i)
-            #if $iname != $curiname
-                sed -i "s/$curiname/$iname/" /etc/modprobe.conf
-                (
-                grep -v "DEVICE=" /etc/sysconfig/network-scripts/ifcfg-$curiname
-                echo "DEVICE=$iname"
-                ) > /etc/sysconfig/network-scripts/cobbler/ifcfg-$iname
+            #if $bonding.lower() == "slave" and $bonding_master != ""
+                
+                ## if needed setup bonding
+
+                echo "SLAVE=yes" >> $devfile
+                echo "MASTER=$bonding_master" >> $devfile
+                ## see Red Hat bugzilla 442339
+                echo "HOTPLUG=no" >> $devfile
             #end if
+
+            #if $static.lower() == "true" or $bonding.lower() == "slave"
+
+                ## for static or slave interfaces
+
+                #if $ip != "" and $bonding.lower() != "slave"
+                
+
+                    ## Only configure static networking if an IP-address is
+                    ## configured
+
+                    echo "BOOTPROTO=static" >> $devfile
+                    echo "IPADDR=$ip" >> $devfile
+                    #if $netmask == ""
+                        ## Default to 255.255.255.0?
+                        #set $netmask = "255.255.255.0"
+                    #end if
+                    echo "NETMASK=$netmask" >> $devfile
+
+                #else
+
+                    ## Leave the interface unconfigured
+                    ## we don't have enough info for static configuration
+                    echo "BOOTPROTO=none" >> $devfile
+
+                #end if
+
+            #else
+                ## this is a DHCP interface, much less work to do
+                echo "BOOTPROTO=dhcp" >> $devfile
+            #end if
+        #else
+            # jcapel:
+            # If you end up here, please mail the list... This shouldn't
+            # happen. ;-)
 	#end if
 	
 	#for $route in $static_routes
