@@ -94,6 +94,13 @@ class Templar:
                newdata = newdata + line + "\n"
             raw_data = newdata 
 
+        if search_table.has_key("tree") and search_table["tree"].find("@@http_server@@") != -1:
+            hp = search_table.get("http_port","80")
+            server = search_table.get("server","server.example.org")
+            repstr = "%s:%s" % (server, hp)
+            search_table["tree"] = search_table["tree"].replace("@@http_server@@",repstr)
+
+
         # tell Cheetah not to blow up if it can't find a symbol for something
         raw_data = "#errorCatcher Echo\n" + raw_data
 
@@ -126,8 +133,11 @@ class Templar:
 
         for x in search_table:
            if type(search_table[x]) == str:
-               data_out = data_out.replace("@@%s@@" % x, search_table[x])
+              if search_table[x] == "http_server":
+                 print "DEBUG: FOUND"
+              data_out = data_out.replace("@@%s@@" % x, search_table[x])
         
+ 
         # remove leading newlines which apparently breaks AutoYAST ?
         if data_out.startswith("\n"):
             data_out = data_out.strip() 
