@@ -10,7 +10,7 @@ Group: Applications/System
 Requires: mkinitrd
 Requires: python >= 2.2
 BuildRequires: python-devel
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 5
+%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 Requires: python(abi)=%{pyver}
 %endif
