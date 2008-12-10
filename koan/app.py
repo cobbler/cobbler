@@ -43,6 +43,7 @@ import re
 import glob
 import socket
 import utils
+import time
 
 COBBLER_REQUIRED = 1.300
 
@@ -120,6 +121,10 @@ def main():
     p.add_option("-t", "--port",
                  dest="port",
                  help="cobbler xmlrpc port (default 25151)")
+    p.add_option("-w", "--vm-poll",
+                 dest="should_poll",
+                 action="store_true",
+                 help="for xen/qemu/KVM, poll & restart the VM after the install is done")
     p.add_option("-P", "--virt-path",
                  dest="virt_path",
                  help="override virt install location")  
@@ -172,6 +177,7 @@ def main():
         k.kopts_override      = options.kopts_override
         k.static_interface    = options.static_interface
         k.use_kexec           = options.use_kexec
+        k.should_poll         = options.should_poll
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -1050,7 +1056,7 @@ class Koan:
 
         arch                          = self.safe_load(pd,'arch','x86')
         kextra                        = self.calc_kernel_args(pd)
-        (uuid, create_func, fullvirt) = self.virt_choose(pd)
+        (uuid, create_func, fullvirt, can_poll) = self.virt_choose(pd)
 
         virtname            = self.calc_virt_name(pd)
 
@@ -1077,6 +1083,35 @@ class Koan:
         )
 
         print results
+
+        if can_poll is not None and self.should_poll:
+            import libvirt
+            print "- polling for virt completion"
+            conn = None
+            if can_poll == "xen":
+               conn = libvirt.open(None)
+            elif can_poll == "qemu":
+               conn = libvirt.open("qemu:///system")
+            else:
+               raise InfoException("Don't know how to poll this virt-type")
+            ct = 0
+            while True:
+               time.sleep(3)
+               state = utils.get_vm_state(conn, virtname)
+               if state == "running":
+                   print "- install is still running, sleeping for 1 minute (%s)" % ct
+                   ct = ct + 1
+                   time.sleep(60)
+               elif state == "crashed":
+                   print "- the install seems to have crashed."
+                   return "failed"
+               elif state == "shutdown":
+                   print "- shutdown VM detected, is the install done?  Restarting!"
+                   utils.find_vm(virtname).create()    
+                   return results
+               else:
+                   raise InfoException("internal error, bad virt state")
+
         return results
 
     #---------------------------------------------------
@@ -1094,22 +1129,25 @@ class Koan:
 
     def virt_choose(self, pd):
         fullvirt = False
+        can_poll = None
         if (self.image is not None) and (pd["image_type"] == "virt-clone"):
             fullvirt = True
             uuid = None
             import imagecreate
-            creator = imagecreate.start_install            
+            creator = imagecreate.start_install
         elif self.virt_type in [ "xenpv", "xenfv" ]:
             uuid    = self.get_uuid(self.calc_virt_uuid(pd))
             import xencreate
             creator = xencreate.start_install
             if self.virt_type == "xenfv":
                fullvirt = True 
+            can_poll = "xen"
         elif self.virt_type == "qemu":
             fullvirt = True
             uuid    = None
             import qcreate
             creator = qcreate.start_install
+            can_poll = "qemu"
         elif self.virt_type == "vmware":
             import vmwcreate
             uuid = None
@@ -1120,7 +1158,7 @@ class Koan:
             creator = vmwwcreate.start_install
         else:
             raise InfoException, "Unspecified virt type: %s" % self.virt_type
-        return (uuid, creator, fullvirt)
+        return (uuid, creator, fullvirt, can_poll)
 
     #---------------------------------------------------
 

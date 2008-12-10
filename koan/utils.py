@@ -42,6 +42,16 @@ import socket
 import shutil
 import tempfile
 
+VIRT_STATE_NAME_MAP = {
+   0 : "running",
+   1 : "running",
+   2 : "running",
+   3 : "paused",
+   4 : "shutdown",
+   5 : "shutdown",
+   6 : "crashed"
+}
+
 class InfoException(exceptions.Exception):
     """
     Custom exception for tracking of fatal errors.
@@ -211,5 +221,44 @@ def nfsmount(input_path):
     # automatically, if supported by python-virtinst
     print "after install completes, you may unmount and delete %s" % tempdir
     return (tempdir, filename)
+
+
+def find_vm(conn, vmid):
+    """
+    Extra bonus feature: vmid = -1 returns a list of everything
+    This function from Func:  fedorahosted.org/func
+    """
+
+    vms = []
+
+    # this block of code borrowed from virt-manager:
+    # get working domain's name
+    ids = conn.listDomainsID();
+    for id in ids:
+        vm = conn.lookupByID(id)
+        vms.append(vm)
+        
+    # get defined domain
+    names = conn.listDefinedDomains()
+    for name in names:
+        vm = conn.lookupByName(name)
+        vms.append(vm)
+
+    if vmid == -1:
+        return vms
+
+    for vm in vms:
+        if vm.name() == vmid:
+            return vm
+     
+    raise InfoException("koan could not find the VM to watch: %s" % vmid)
+
+def get_vm_state(conn, vmid):
+    """
+    Returns the state of a libvirt VM, by name.
+    From Func:  fedorahosted.org/func
+    """
+    state = find_vm(conn, vmid).info()[0]
+    return VIRT_STATE_NAME_MAP.get(state,"unknown")
 
 
