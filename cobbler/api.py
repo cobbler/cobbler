@@ -91,6 +91,8 @@ class BootAPI:
                 return
 
             self.logger_remote = self.__setup_logger("remote")
+            self.selinux_enabled = utils.is_selinux_enabled()
+
             self.acl_engine = acls.AclEngine()
 
             BootAPI.__has_loaded   = True
@@ -118,6 +120,15 @@ class BootAPI:
     def __setup_logger(self,name):
         return utils.setup_logger(name, **self.log_settings)
     
+    def is_selinux_enabled(self):
+        """
+        Returns whether selinux is enabled on the cobbler server.
+        We check this just once at cobbler API init time, because
+        a restart is required to change this; this does /not/ check
+        enforce/permissive, nor does it need to.
+        """
+        return self.selinux_enabled
+
     def last_modified_time(self):
         """
         Returns the time of the last modification to cobbler, made by any

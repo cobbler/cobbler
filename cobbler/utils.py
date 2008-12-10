@@ -789,7 +789,7 @@ def tftpboot_location():
        return "/var/lib/tftpboot"
     return "/tftpboot"
 
-def linkfile(src, dst, symlink_ok=False):
+def linkfile(src, dst, symlink_ok=False, api=None):
     """
     Attempt to create a link dst that points to src.  Because file
     systems suck we attempt several different methods or bail to
@@ -820,26 +820,41 @@ def linkfile(src, dst, symlink_ok=False):
         except (IOError, OSError):
             pass
 
-    return copyfile(src, dst)
+    return copyfile(src, dst, api=api)
 
-def copyfile(src,dst):
+def copyfile(src,dst,api=None):
     try:
-        return shutil.copyfile(src,dst)
+        rc = shutil.copyfile(src,dst)
+        restorecon(dst,api)
+        return rc
     except:
         if not os.access(src,os.R_OK):
             raise CX(_("Cannot read: %s") % src)
         if not os.path.samefile(src,dst):
             # accomodate for the possibility that we already copied
             # the file as a symlink/hardlink
+            traceback.print_exc()
             raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
-def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False):
+def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None):
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
         raise CX(_("Could not find files matching %s") % pattern)
     for file in files:
         base = os.path.basename(file)
-        linkfile(file,os.path.join(dst,os.path.basename(file)),symlink_ok)
+        dst1 = os.path.join(dst,os.path.basename(file))
+        linkfile(file,dst1,symlink_ok=symlink_ok)
+        restorecon(dst1,api=api)
+
+def restorecon(dest, api=None):
+    if api is None:
+       run = True
+    else:
+       run = api.is_selinux_enabled()
+    rc = 0
+    if run:
+       rc = sub_process.call(["/sbin/restorecon","-f",dest],shell=False)
+    return rc
 
 def rmfile(path):
     try:
@@ -1107,6 +1122,14 @@ def safe_filter(var):
        return
     if var.find("/") != -1 or var.find(";") != -1:
        raise CX("Invalid characters found in input")
+
+def is_selinux_enabled():
+    args = "/usr/sbin/selinuxenabled"
+    selinuxenabled = sub_process.call(args)
+    if selinuxenabled == 0:
+        return True
+    else:
+        return False
 
 if __name__ == "__main__":
     # print redhat_release()
