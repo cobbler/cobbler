@@ -136,6 +136,8 @@ class BootSync:
                     utils.rmtree_contents(path)
         pxelinux_dir = os.path.join(self.bootloc, "pxelinux.cfg")
         images_dir = os.path.join(self.bootloc, "images")
+        yaboot_bin_dir = os.path.join(self.bootloc, "ppc")
+        yaboot_cfg_dir = os.path.join(self.bootloc, "etc")
         s390_dir = os.path.join(self.bootloc, "s390x")
         rendered_dir = os.path.join(self.settings.webdir, "rendered")
         if not os.path.exists(pxelinux_dir):
@@ -144,9 +146,15 @@ class BootSync:
             utils.mkdir(images_dir)
         if not os.path.exists(rendered_dir):
             utils.mkdir(rendered_dir)
+        if not os.path.exists(yaboot_bin_dir):
+            utils.mkdir(yaboot_bin_dir)
+        if not os.path.exists(yaboot_cfg_dir):
+            utils.mkdir(yaboot_cfg_dir)
         utils.rmtree_contents(os.path.join(self.bootloc, "pxelinux.cfg"))
         utils.rmtree_contents(os.path.join(self.bootloc, "images"))
         utils.rmtree_contents(os.path.join(self.bootloc, "s390x"))
+        utils.rmtree_contents(os.path.join(self.bootloc, "ppc"))
+        utils.rmtree_contents(os.path.join(self.bootloc, "etc"))
         utils.rmtree_contents(rendered_dir)
         
 
