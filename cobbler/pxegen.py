@@ -74,27 +74,27 @@ class PXEGen:
 
         # copy syslinux from one of two locations
         try:
-            utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',   dst)
+            utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',   dst, api=self.api)
         except:
-            utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0', dst)
-   
+            utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0', dst, api=self.api)
+ 
         # copy memtest only if we find it
-        utils.copyfile_pattern('/boot/memtest*', dst, require_match=False)
+        utils.copyfile_pattern('/boot/memtest*', dst, require_match=False, api=self.api)
   
         # copy elilo which we include for IA64 targets
-        utils.copyfile_pattern('/var/lib/cobbler/elilo-3.8-ia64.efi', dst)
+        utils.copyfile_pattern('/var/lib/cobbler/elilo-3.8-ia64.efi', dst, api=self.api)
  
         # copy menu.c32 as the older one has some bugs on certain RHEL
-        utils.copyfile_pattern('/var/lib/cobbler/menu.c32', dst)
+        utils.copyfile_pattern('/var/lib/cobbler/menu.c32', dst, api=self.api)
 
         # copy yaboot which we include for PowerPC targets
-        utils.copyfile_pattern('/var/lib/cobbler/yaboot-1.3.14', dst)
+        utils.copyfile_pattern('/var/lib/cobbler/yaboot-1.3.14', dst, api=self.api)
 
         # copy memdisk as we need it to boot ISOs
         try:
-            utils.copyfile_pattern('/usr/lib/syslinux/memdisk',   dst)
+            utils.copyfile_pattern('/usr/lib/syslinux/memdisk',   dst, api=self.api)
         except:
-            utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst)
+            utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst, api=self.api)
 
 
     def copy_distros(self):
@@ -134,8 +134,11 @@ class PXEGen:
             allow_symlink=False
             if dirtree == self.settings.webdir:
                 allow_symlink=True
-            utils.linkfile(kernel, os.path.join(distro_dir, b_kernel), symlink_ok=allow_symlink)
-            utils.linkfile(initrd, os.path.join(distro_dir, b_initrd), symlink_ok=allow_symlink)
+            dst1 = os.path.join(distro_dir, b_kernel)
+            dst2 = os.path.join(distro_dir, b_initrd)
+            utils.linkfile(kernel, dst1, symlink_ok=allow_symlink, api=self.api)
+
+            utils.linkfile(initrd, dst2, symlink_ok=allow_symlink, api=self.api)
 
     def copy_single_image_files(self, img):
         images_dir = os.path.join(self.bootloc, "images2")
@@ -147,7 +150,7 @@ class PXEGen:
             os.makedirs(images_dir)
         basename = os.path.basename(img.file)
         newfile = os.path.join(images_dir, img.name)
-        utils.linkfile(filename, newfile)
+        utils.linkfile(filename, newfile, api=self.api)
         return True
 
     def write_all_system_files(self,system):

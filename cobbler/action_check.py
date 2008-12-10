@@ -138,10 +138,8 @@ class BootCheck:
           status.append(_("For PXE to be functional, the 'next_server' field in /etc/cobbler/settings must be set to something other than 127.0.0.1, and should match the IP of the boot server on the PXE network."))
 
    def check_selinux(self,status):
-       prc = sub_process.Popen("/usr/sbin/getenforce",shell=True,stdout=sub_process.PIPE)
-       data = prc.communicate()[0]
-       if data.lower().find("disabled") == -1:
-           # permissive or enforcing or something else
+       enabled = self.config.api.is_selinux_enabled()
+       if enabled:
            prc2 = sub_process.Popen("/usr/sbin/getsebool -a",shell=True,stdout=sub_process.PIPE)
            data2 = prc2.communicate()[0]
            for line in data2.split("\n"):
