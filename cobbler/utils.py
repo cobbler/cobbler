@@ -365,7 +365,7 @@ def input_string_or_list(options,delim=","):
     """
     Accepts a delimited list of stuff or a list, but always returns a list.
     """
-    if options is None or options == "delete":
+    if options is None or options == "" or options == "delete":
        return []
     elif type(options) == list:
        return options
@@ -502,6 +502,12 @@ def blender(api_handle,remove_hashes, root_obj):
     # sanitize output for koan and kernel option lines, etc
     if remove_hashes:
         results = flatten(results)
+
+    # the password field is inputed as escaped strings but Cheetah
+    # does weird things when expanding it due to multiple dollar signs
+    # so this is the workaround
+    if results.has_key("default_password_crypted"):
+        results["default_password_crypted"] = results["default_password_crypted"].replace("\$","$")
 
     # add in some variables for easier templating
     # as these variables change based on object type
@@ -1042,12 +1048,15 @@ def set_virt_bridge(self,vbridge):
      self.virt_bridge = vbridge
      return True
 
-def set_virt_path(self,path):
+def set_virt_path(self,path,for_system=False):
      """
      Virtual storage location suggestion, can be overriden by koan.
      """
      if path is None:
         path = ""
+     if for_system:
+        if path == "":
+           path = "<<inherit>>"
      self.virt_path = path
      return True
 

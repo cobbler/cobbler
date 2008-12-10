@@ -1,5 +1,5 @@
 
-# download cobbler managed config files
+# Start download cobbler managed config files (if applicable)
 
 #for $tkey, $tpath in $template_files.items()
 
@@ -20,5 +20,7 @@
 wget "$turl" --output-document="$orig"
 #end if
 
+
 #end for
 
+# End download cobbler managed config files (if applicable)

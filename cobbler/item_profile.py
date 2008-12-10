@@ -188,8 +188,8 @@ class Profile(item.Item):
         return True
 
     def set_server(self,server):
-        if server is None:
-           server = ""
+        if server is None or server == "":
+           server = "<inherit>"
         self.server = server
         return True
 

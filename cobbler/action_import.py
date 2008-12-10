@@ -917,7 +917,6 @@ class RedHatImporter ( BaseImporter ) :
        """
 
        rpm = os.path.basename(rpm)
-       # print "- processing rpm : %s" % rpm
 
        # if it looks like a RHEL RPM we'll cheat.
        # it may be slightly wrong, but it will be close enough
@@ -981,12 +980,14 @@ class RedHatImporter ( BaseImporter ) :
            # is not always up to date.  We keep a simplified copy of this
            # in codes.py.  If it fails we set it to something generic
            # and don't worry about it.
+
            try:
                os_version = "fedora%s" % int(major)
            except:
                os_version = "other"
 
        if flavor == "redhat" or flavor == "centos":
+
            if major <= 2:
                 # rhel2.1 is the only rhel2
                 os_version = "rhel2.1"
@@ -1010,11 +1011,12 @@ class RedHatImporter ( BaseImporter ) :
            "%s/%s.%i.ks" % (kickbase,os_version,int(minor)),
            "%s/%s.ks" % (kickbase,os_version),
            "%s/%s/default.ks" % (kickbase,arch),
-           "%s/default.ks" % kickbase
        ]
        for kickstart in kickstarts:
            if os.path.exists(kickstart):
                return os_version, kickstart
+
+       major = int(major) 
 
        if flavor == "fedora":
            if major >= 8:

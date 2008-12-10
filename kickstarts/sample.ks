@@ -25,7 +25,7 @@ $SNIPPET('network_config')
 reboot
 
 #Root password
-rootpw --iscrypted \$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.
+rootpw --iscrypted $default_password_crypted
 # SELinux configuration
 selinux --disabled
 # Do not configure the X Window System

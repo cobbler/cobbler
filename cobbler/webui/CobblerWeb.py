@@ -197,7 +197,7 @@ class CobblerWeb(object):
 
     def distro_save(self,name=None,comment=None,oldname=None,new_or_edit=None,editmode='edit',kernel=None,
                     initrd=None,kopts=None,koptspost=None,ksmeta=None,owners=None,arch=None,breed=None,
-                    osversion=None,delete1=None,delete2=None,recursive=False,**args):
+                    osversion=None,delete1=False,delete2=False,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -210,10 +210,10 @@ class CobblerWeb(object):
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:    
-                if recursive is None: 
-                    self.remote.remove_distro(name,self.token,False)
-                else:
+                if recursive: 
                     self.remote.remove_distro(name,self.token,True)
+                else:
+                    self.remote.remove_distro(name,self.token,False)
                        
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
@@ -533,7 +533,7 @@ class CobblerWeb(object):
     def profile_save(self,new_or_edit=None,editmode='edit',name=None,comment=None,oldname=None,
                      distro=None,kickstart=None,kopts=None,koptspost=None,
                      ksmeta=None,owners=None,enablemenu=None,virtfilesize=None,virtram=None,virttype=None,
-                     virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,
+                     virtpath=None,repos=None,dhcptag=None,delete1=False,delete2=False,
                      parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,
                      name_servers=None,recursive=False,**args):
 
@@ -792,7 +792,7 @@ class CobblerWeb(object):
     def image_save(self,name=None,comment=None,oldname=None,new_or_edit=None,editmode='edit',field1=None,
                    file=None,arch=None,breed=None,virtram=None,virtfilesize=None,virtpath=None,
                    virttype=None,virtcpus=None,virtbridge=None,imagetype=None,owners=None,
-                   osversion=None,delete1=None,delete2=None,recursive=False,networkcount=None,**args):
+                   osversion=None,delete1=False,delete2=False,recursive=False,networkcount=None,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -805,10 +805,10 @@ class CobblerWeb(object):
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:    
-                if recursive is None: 
-                    self.remote.remove_image(name,self.token,False)
-                else:
+                if recursive: 
                     self.remote.remove_image(name,self.token,True)
+                else:
+                    self.remote.remove_image(name,self.token,False)
                        
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))

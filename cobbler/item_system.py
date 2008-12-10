@@ -73,10 +73,14 @@ class System(item.Item):
         self.hostname             = ""
         self.gateway              = ""
         self.name_servers         = ""
+        self.bonding              = ""
+        self.bonding_master       = ""
+        self.bonding_opts         = ""
 
     def delete_interface(self,name):
         """
-        Used to remove an interface.  Not valid for the default interface.
+        Used to remove an interface.  Not valid for the default 
+interface.
         """
         if self.interfaces.has_key(name) and name != "eth0":
             del self.interfaces[name]
@@ -236,10 +240,10 @@ class System(item.Item):
                self.interfaces[k]["static"] = False
             if not self.interfaces[k].has_key("bonding"):
                self.interfaces[k]["bonding"] = ""
-            if not self.interfaces[k].has_key("bondingmaster"):
-               self.interfaces[k]["bondingmaster"] = ""
-            if not self.interfaces[k].has_key("bondingopts"):
-               self.interfaces[k]["bondingopts"] = ""
+            if not self.interfaces[k].has_key("bonding_master"):
+               self.interfaces[k]["bonding_master"] = ""
+            if not self.interfaces[k].has_key("bonding_opts"):
+               self.interfaces[k]["bonding_opts"] = ""
             if not self.interfaces[k].has_key("dns_name"):
                # hostname is global for the system, dns_name is per interface
                # this handles the backwards compatibility update details for
@@ -323,8 +327,8 @@ class System(item.Item):
         If a system can't reach the boot server at the value configured in settings
         because it doesn't have the same name on it's subnet this is there for an override.
         """
-        if server is None:
-            server = ""
+        if server is None or server == "":
+            server = "<<inherit>>"
         self.server = server
         return True
 
@@ -514,7 +518,7 @@ class System(item.Item):
         return utils.set_virt_type(self,vtype)
 
     def set_virt_path(self,path):
-        return utils.set_virt_path(self,path)
+        return utils.set_virt_path(self,path,for_system=True)
 
     def set_netboot_enabled(self,netboot_enabled):
         """

@@ -1,5 +1,5 @@
-# Start pre_install_network_config generated code
 #if $getVar("system_name","") != ""
+# Start pre_install_network_config generated code
     #set ikeys = $interfaces.keys()
     #import re
     #set $vlanpattern = $re.compile("[a-zA-Z0-9]+\.[0-9]+")
@@ -85,5 +85,5 @@ fi
             #end if
         #end if
     #end for
+# End pre_install_network_config generated code
 #end if
-# Start pre_install_network_config generated code

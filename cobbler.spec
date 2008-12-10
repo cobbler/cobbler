@@ -2,7 +2,7 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 1.3.2
+Version: 1.3.3
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
@@ -24,6 +24,10 @@ Requires: rsync
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
+%if 0%{?fedora} >= 11 || 0%{?rhel} >= 5
+%{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
+Requires: python(abi)=%{pyver}
+%endif
 %if 0%{?suse_version} < 0
 BuildRequires: redhat-rpm-config
 %endif
@@ -274,6 +278,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+
+* Mon Dec 08 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.3-1
+- Upstream changes (see CHANGELOG)
+- Added specfile changes for python 2.6
 
 * Tue Nov 18 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.2-1
 - Upstream changes (see CHANGELOG)

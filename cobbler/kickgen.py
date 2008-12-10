@@ -84,7 +84,6 @@ class KickGen:
                 meta["kickstart_done"]  = self.generate_kickstart_signal(0, g, None)
                 meta["kickstart_start"] = self.generate_kickstart_signal(1, g, None)
                 meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
-                # meta["config_template_files"] = self.generate_template_files_stanza(g, True)
                 kfile = open(kickstart_path)
                 data = self.templar.render(kfile, meta, None, g)
                 kfile.close()

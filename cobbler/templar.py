@@ -124,10 +124,14 @@ class Templar:
         # other places, but doesn't use Cheetah.  Forcing folks to double escape
         # things would be very unwelcome.
 
-        for x in search_table:
-           if type(search_table[x]) == str:
-               data_out = data_out.replace("@@%s@@" % x, search_table[x])
-        
+        hp = search_table.get("http_port","80")
+        server = search_table.get("server","server.example.org")
+        repstr = "%s:%s" % (server, hp)
+        search_table["http_server"] = repstr
+
+        for x in search_table.keys():
+           data_out = data_out.replace("@@%s@@" % str(x), str(search_table[str(x)]))
+ 
         # remove leading newlines which apparently breaks AutoYAST ?
         if data_out.startswith("\n"):
             data_out = data_out.strip() 

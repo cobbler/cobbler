@@ -489,9 +489,10 @@ class PXEGen:
 
         # store variables for templating
         metadata["menu_label"] = ""
-        if profile and not arch == "ia64" and system is None:
-            metadata["menu_label"] = "MENU LABEL %s" % profile.name
-            metadata["profile_name"] = profile.name
+        if profile:
+            if not arch in [ "ia64", "ppc", "ppc64", "s390x" ]:
+                metadata["menu_label"] = "MENU LABEL %s" % profile.name
+                metadata["profile_name"] = profile.name
         elif image:
             metadata["menu_label"] = "MENU LABEL %s" % image.name
             metadata["profile_name"] = image.name
