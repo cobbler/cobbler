@@ -1375,8 +1375,24 @@ class Koan:
                     if lv_create != 0:
                         raise InfoException, "LVM creation failed"
 
+                # partition location
+                partition_location = "/dev/mapper/%s-%s" % (location,name.replace('-','--'))
+
+                # check whether we have SELinux enabled system
+                args = "/usr/sbin/selinuxenabled"
+                selinuxenabled = sub_process.call(args)
+                if selinuxenabled == 0:
+                    # permissive or enforcing or something else, and
+                    # set appropriate security context for LVM partition
+                    args = "/usr/bin/chcon -t virt_image_t %s" % partition_location
+                    print "%s" % args
+                    change_context = sub_process.call(args, shell=True)
+                    if change_context != 0:
+                        raise InfoException, "SELinux security context setting to LVM partition failed"
+
                 # return partition location
-                return "/dev/mapper/%s-%s" % (location.replace('-','--'), name.replace('-','--'))
+                return partition_location
+
             else:
                 raise InfoException, "volume group needs %s GB free space." % virt_size
 
