@@ -1,0 +1,4 @@
+%pre
+cd /tmp
+wget "http://$server/cobbler/aux/anamon.py"
+python anamon.py --name "$name"
