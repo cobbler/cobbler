@@ -1,5 +1,5 @@
 
-#if $redhat_management_type != "off"
+#if $redhat_management_type != "off" and $redhat_management_key != ""
 # begin Red Hat management server registration
 mkdir -p /usr/share/rhn/
    #if $redhat_management_type == "site"
