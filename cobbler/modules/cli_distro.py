@@ -60,6 +60,7 @@ class DistroFunction(commands.CobblerFunction):
             p.add_option("--kopts-post",   dest="kopts_post",  help="ex: 'clocksource=pit'")
             p.add_option("--ksmeta",       dest="ksmeta",      help="ex: 'blippy=7'")
             p.add_option("--mgmt-classes", dest="mgmt_classes",  help="list of config management classes (for Puppet, etc)")
+            p.add_option("--redhat-management-key", dest="redhat_management_key", help="authentication token for RHN/Spacewalk/Satellite")
             p.add_option("--template-files", dest="template_files", help="specify files to be generated from templates during a sync")
 
         p.add_option("--name",   dest="name", help="ex: 'RHEL-5-i386' (REQUIRED)")
@@ -115,6 +116,8 @@ class DistroFunction(commands.CobblerFunction):
                 obj.set_mgmt_classes(self.options.mgmt_classes)
             if self.options.template_files is not None:
                 obj.set_template_files(self.options.template_files,self.options.inplace)
+            if self.otpions.redhat_management_key is not None:
+                obj.set_redhat_management_key(self.options.redhat_management_key)
 
         return self.object_manipulator_finish(obj, self.api.distros, self.options)
 

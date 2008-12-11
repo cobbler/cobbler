@@ -68,6 +68,8 @@ class Profile(item.Item):
         self.ctime                  = 0
         self.mtime                  = 0
         self.name_servers           = (self.settings.default_name_servers,      '<<inherit>>')[is_subobject]
+        self.redhat_management_key  = "<<inherit>>"
+
     def from_datastruct(self,seed_data):
         """
         Load this object's properties based on seed_data
@@ -92,6 +94,7 @@ class Profile(item.Item):
         self.ctime                  = self.load_item(seed_data,'ctime',0)
         self.mtime                  = self.load_item(seed_data,'mtime',0)
         self.name_servers           = self.load_item(seed_data,'name_servers',[])
+        self.redhat_management_key  = self.load_item(seed_data,'redhat_management_key', '<<inherit>>')
 
         # backwards compatibility
         if type(self.repos) != list:
@@ -167,6 +170,9 @@ class Profile(item.Item):
             self.depth  = d.depth +1 # reset depth if previously a subprofile and now top-level
             return True
         raise CX(_("distribution not found"))
+
+    def set_redhat_management_key(self,key):
+        utils.set_redhat_management_key(self,key)
 
     def set_name_servers(self,data):
         data = utils.input_string_or_list(data)
@@ -293,7 +299,8 @@ class Profile(item.Item):
             'ctime'                 : self.ctime,
             'mtime'                 : self.mtime,
             'name_servers'          : self.name_servers,
-            'uid'                   : self.uid
+            'uid'                   : self.uid,
+            'redhat_management_key' : self.redhat_management_key
          }
 
     def printable(self):
@@ -317,6 +324,7 @@ class Profile(item.Item):
         buf = buf + _("name servers         : %s\n") % self.name_servers
         buf = buf + _("owners               : %s\n") % self.owners
         buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
+        buf = buf + _("redhat mgmt key      : %s\n") % self.redhat_management_key
         buf = buf + _("repos                : %s\n") % self.repos
         buf = buf + _("server               : %s\n") % self.server
         buf = buf + _("template_files       : %s\n") % self.template_files
@@ -364,6 +372,7 @@ class Profile(item.Item):
             'mgmt-classes'    :  self.set_mgmt_classes,
             'mgmt_classes'    :  self.set_mgmt_classes,            
             'comment'         :  self.set_comment,
-            'name_servers'    :  self.set_name_servers
+            'name_servers'    :  self.set_name_servers,
+            'redhat_management_key' : self.set_redhat_management_key
         }
 

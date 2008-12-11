@@ -58,6 +58,7 @@ class Distro(item.Item):
         self.template_files         = {}
 	self.comment                = ""
         self.tree_build_time        = 0
+        self.redhat_management_key  = "<<inherit>>"
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -92,6 +93,7 @@ class Distro(item.Item):
         self.mgmt_classes           = self.load_item(seed_data,'mgmt_classes',[])
         self.template_files         = self.load_item(seed_data,'template_files',{})
 	self.comment                = self.load_item(seed_data,'comment')
+        self.redhat_management_key  = self.load_item(seed_data,'redhat_management_key',"<<inherit>>")
 
         # backwards compatibility enforcement
         self.set_arch(self.arch)
@@ -155,6 +157,9 @@ class Distro(item.Item):
             return True
         raise CX(_("initrd not found"))
 
+    def set_redhat_management_key(self,key):
+        return utils.set_redhat_management_key(self,key)
+ 
     def set_source_repos(self, repos):
         """
         A list of http:// URLs on the cobbler server that point to
@@ -223,7 +228,8 @@ class Distro(item.Item):
             'tree_build_time'        : self.tree_build_time,
             'ctime'                  : self.ctime,
             'mtime'                  : self.mtime,
-            'uid'                    : self.uid
+            'uid'                    : self.uid,
+            'redhat_management_key'  : self.redhat_management_key
         }
 
     def printable(self):
@@ -250,6 +256,7 @@ class Distro(item.Item):
         buf = buf + _("os version           : %s\n") % self.os_version
         buf = buf + _("owners               : %s\n") % self.owners
         buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
+        buf = buf + _("redhat mgmt key      : %s\n") % self.redhat_management_key
         buf = buf + _("template files       : %s\n") % self.template_files
         return buf
 
@@ -271,6 +278,7 @@ class Distro(item.Item):
             'mgmt_classes'  : self.set_mgmt_classes,            
             'template-files': self.set_template_files,
             'template_files': self.set_template_files,            
-            'comment'       : self.set_comment
+            'comment'               : self.set_comment,
+            'redhat_management_key' : self.redhat_management_key
         }
 
