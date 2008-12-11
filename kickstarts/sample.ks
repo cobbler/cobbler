@@ -43,6 +43,7 @@ autopart
 %pre
 $kickstart_start
 $SNIPPET('pre_install_network_config')
+$SNIPPET('pre_anamon')
 
 %packages
 $SNIPPET('func_install_if_enabled')
@@ -56,4 +57,3 @@ $SNIPPET('func_register_if_enabled')
 $SNIPPET('download_config_files')
 $SNIPPET('koan_environment')
 $kickstart_done
-
