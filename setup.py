@@ -106,6 +106,7 @@ if __name__ == "__main__":
         vw_systems    = wwwpath + "/systems"
         vw_profiles   = wwwpath + "/profiles"
         vw_links      = wwwpath + "/links"
+        vw_aux        = wwwpath + "/aux"
         # cgipath       = "/var/www/cgi-bin/cobbler"
         modpython     = wwwpath + "/web"
         modpythonsvc  = wwwpath + "/svc"
@@ -115,6 +116,7 @@ if __name__ == "__main__":
         logpath2 = logpath + "/kicklog"
         logpath3 = logpath + "/syslog"
         logpath4 = "/var/log/httpd/cobbler"
+        logpath5 = logpath + "/anamon"
 
         # tftp paths        
         tftp_cfg      = "/tftpboot/pxelinux.cfg"
@@ -261,6 +263,7 @@ if __name__ == "__main__":
                                 (snippetpath, ['snippets/func_register_if_enabled']),
                                 (snippetpath, ['snippets/download_config_files']),
                                 (snippetpath, ['snippets/koan_environment']),
+                                (snippetpath, ['snippets/pre_anamon']),
 
                                 # documentation
                                 (manpath,  ['docs/cobbler.1.gz']),
@@ -270,6 +273,7 @@ if __name__ == "__main__":
                                 (logpath2, []),
                                 (logpath3, []),
 				(logpath4, []),
+                                (logpath5, []),
 
                                 # web page directories that we own
                                 (vw_localmirror,    []),
@@ -283,6 +287,7 @@ if __name__ == "__main__":
                                 (vw_systems,        []),
                                 (vw_profiles,       []),
                                 (vw_links,          []),
+                                (vw_aux,            []),
 
                                 # zone-specific templates directory
                                 (zonepath,    []),
@@ -335,6 +340,9 @@ if __name__ == "__main__":
                                 (wwwcon,            ['webui_content/style.css']),
                                 (wwwcon,            ['webui_content/logo-cobbler.png']),
                                 (wwwcon,            ['webui_content/cobblerweb.css']),
+
+                                # Anamon script
+                                (vw_aux,            ['aux/anamon.py']),
 
                                 # Directories to hold cobbler triggers
                                 ("%s/add/distro/pre" % trigpath,      []),
