@@ -161,6 +161,8 @@ def anamon_loop():
 
 # process args
 name = ""
+server = ""
+port = "80"
 daemon = 1
 debug = lambda x,**y: None
 
@@ -170,13 +172,19 @@ while n < len(sys.argv):
     if arg == '--name':
         n = n+1
         name = sys.argv[n]
+    elif arg == '--server':
+        n = n+1
+        server = sys.argv[n]
+    elif arg == '--port':
+        n = n+1
+        port = sys.argv[n]
     elif arg == '--debug':
         debug = lambda x,**y: sys.stderr.write(x % y)
     elif arg == '--fg':
         daemon = 0
     n = n+1
 
-session = xmlrpclib.Server("http://dell-t5400.test.redhat.com:80/cobbler_api")
+session = xmlrpclib.Server("http://%s:%s/cobbler_api" % (server, port))
 
 if daemon:
     if not os.fork():

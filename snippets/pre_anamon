@@ -1,5 +1,5 @@
 #if $str($getVar('anamon_enabled','')) == "1"
 cd /tmp
 wget "http://$server/cobbler/aux/anamon.py"
-python anamon.py --name "$name"
+python anamon.py --name "$name" --server "$server" --port "$http_port"
 #end if
