@@ -332,9 +332,8 @@ class CobblerXMLRPCInterface:
         """
         self._log("upload_log_data (file: '%s', size: %s, offset: %s)" % (file, size, offset), token=token, name=sys_name)
 
-        # FIXME: Check if enabled in self.api.settings()
-        #if not self.api.settings().pxe_just_once:
-        if False:
+        # Check if enabled in self.api.settings()
+        if not self.api.settings().anamon_enabled:
             # feature disabled!
             return False
 
