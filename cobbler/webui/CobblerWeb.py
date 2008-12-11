@@ -604,7 +604,7 @@ class CobblerWeb(object):
             self.remote.modify_profile(profile, 'server', server_override, self.token)
             self.remote.modify_profile(profile, 'comment', comment, self.token)
             self.remote.modify_profile(profile, 'name_servers', name_servers, self.token)
-            self.remote.modify_profile(profile, 'redhat_management_key', redhatmanagementkey)
+            self.remote.modify_profile(profile, 'redhat_management_key', redhatmanagementkey, self.token)
 
             if repos is None:
                 repos = []

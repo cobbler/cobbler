@@ -1697,6 +1697,7 @@ def test_xmlrpc_rw():
    server.modify_distro(did, "mgmt-classes", "blip", token) # list or string
    server.modify_distro(did, "template-files", "/etc/hosts=/tmp/a /etc/fstab=/tmp/b",token) # hash or string
    server.modify_distro(did, "comment", "...", token)
+   server.modify_distro(did, "redhat_management_key", "ALPHA", token)
    server.save_distro(did, token)
 
    # use the non-XMLRPC API to check that it's added seeing we tested XMLRPC RW APIs above
@@ -1722,6 +1723,7 @@ def test_xmlrpc_rw():
    server.modify_profile(pid, "mgmt-classes", "one two three", token)
    server.modify_profile(pid, "comment", "...", token)
    server.modify_profile(pid, "name_servers", ["one","two"], token)
+   server.modify_profile(pid, "redhat_management_key", "BETA", token)
    server.save_profile(pid, token)
 
    api.deserialize() 
@@ -1761,6 +1763,7 @@ def test_xmlrpc_rw():
    server.modify_system(sid, "power_user", "Admin", token)
    server.modify_system(sid, "power_pass", "magic", token)
    server.modify_system(sid, "power_id", "7", token)
+   server.modify_system(sid, "redhat_management_key", "GAMMA", token)
 
    server.save_system(sid,token)
    

@@ -255,6 +255,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/snippets/func_register_if_enabled
 %config(noreplace) /var/lib/cobbler/snippets/download_config_files
 %config(noreplace) /var/lib/cobbler/snippets/koan_environment
+%config(noreplace) /var/lib/cobbler/snippets/redhat_register
 /var/lib/cobbler/elilo-3.8-ia64.efi
 /var/lib/cobbler/menu.c32
 /var/lib/cobbler/yaboot-1.3.14
