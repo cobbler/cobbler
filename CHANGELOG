@@ -11,7 +11,6 @@ Cobbler CHANGELOG
 - (FEAT) enable import for debian ISOs and mirrors (1 distro at a time for now)
 - (FEAT) auto-create rescue profile objects
 - (FEAT) included network_config snippet and added --static=0/1 to system objects
-- (FEAT) added /usr/bin/cobbler-setup tool
 - (FEAT) cobbler report gains additional options for Wiki formatting, csv, and showing only certain fields
 - (FEAT) changed default kernel options to include ksdevice=bootif (not ksdevice=eth0) and added ipappend 2 to PXE
 - (FEAT) distro edits now no longer require a sync to rebuild the PXE menu
