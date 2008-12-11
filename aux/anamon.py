@@ -7,7 +7,12 @@ import time
 import re
 import md5
 import base64
-import xmlrpclib
+
+try:
+    import xmlrpclib
+except ImportError, e:
+    print "xmlrpclib not available, exiting"
+    sys.exit(0)
 
 class WatchedFile:
     def __init__(self, fn, alias):
