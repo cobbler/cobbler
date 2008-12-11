@@ -172,7 +172,7 @@ class Profile(item.Item):
         raise CX(_("distribution not found"))
 
     def set_redhat_management_key(self,key):
-        utils.set_redhat_management_key(self,key)
+        return utils.set_redhat_management_key(self,key)
 
     def set_name_servers(self,data):
         data = utils.input_string_or_list(data)
