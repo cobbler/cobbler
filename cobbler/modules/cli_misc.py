@@ -14,6 +14,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import distutils.sysconfig
 import sys
+import time
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
@@ -49,17 +50,26 @@ class CheckFunction(commands.CobblerFunction):
     def add_options(self, p, args):
         pass
 
+    def logprint(self,fd,msg,log_only=False):
+        fd.write("%s\n" % msg)
+        if log_only:
+           return
+        print msg
+
     def run(self):
         status = self.api.check()
-        if len(status) == 0:
-            print _("No setup problems found")
-            print _("Manual review and editing of /var/lib/cobbler/settings is recommended to tailor cobbler to your particular configuration.")
-            print _("Good luck.")
+        fd = open("/var/log/cobbler/check.log","w+")
+        self.logprint(fd,"cobbler check log from %s" % time.asctime(),log_only=True)
+        if len(status) != 0:
+            self.logprint(fd,"No setup problems found")
+             
+            self.logprint(fd,"Manual review and editing of /var/lib/cobbler/settings is recommended to tailor cobbler to your particular configuration.")
+            self.logprint(fd,"Good luck.")
             return True
         else:
-            print _("The following potential problems were detected:")
+            self.logprint(fd,"The following potential problems were detected:")
             for i,x in enumerate(status):
-               print _("#%(number)d: %(problem)s") % { "number" : i, "problem" : x }
+               self.logprint(fd,"#%(number)d: %(problem)s" % { "number" : i, "problem" : x })
             return False
 
 ########################################################
