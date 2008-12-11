@@ -27,10 +27,14 @@ import sys
 import socket
 import time
 import os
+import md5
+import base64
 import SimpleXMLRPCServer
 import xmlrpclib
 import random
+import stat
 import base64
+import fcntl
 import string
 import traceback
 import glob
@@ -318,6 +322,133 @@ class CobblerXMLRPCInterface:
         obj.set_netboot_enabled(0)
         # disabling triggers and sync to make this extremely fast.
         systems.add(obj,save=True,with_triggers=False,with_sync=False,quick_pxe_update=True)
+        return True
+
+    def upload_log_data(self, sys_name, file, size, md5sum, offset, data, token=None,**rest):
+        """
+        This is a feature used by the pxe_just_once support, see manpage.
+        Sets system named "name" to no-longer PXE.  Disabled by default as
+        this requires public API access and is technically a read-write operation.
+        """
+        self._log("upload_log_data (file: '%s', size: %s, offset: %s)" % (file, size, offset), token=token, name=sys_name)
+
+        # FIXME: Check if enabled in self.api.settings()
+        #if not self.api.settings().pxe_just_once:
+        if False:
+            # feature disabled!
+            return False
+
+        # Find matching system record
+        systems = self.api.systems()
+        obj = systems.find(name=sys_name)
+        if obj == None:
+            # system not found!
+            self._log("upload_log_data - system '%s' not found" % sys_name, token=token, name=sys_name)
+            return False
+
+        return self.__upload_file(sys_name, file, size, md5sum, offset, data)
+
+    def __upload_file(self, sys_name, file, size, md5sum, offset, data):
+        '''
+        system: the name of the system
+        name: the name of the file
+        size: size of contents (bytes)
+        md5: md5sum (hex digest) of contents
+        data: base64 encoded file contents
+        offset: the offset of the chunk
+         files can be uploaded in chunks, if so the md5 and size describe
+         the chunk rather than the whole file. the offset indicates where
+         the chunk belongs
+         the special offset -1 is used to indicate the final chunk'''
+        contents = base64.decodestring(data)
+        del data
+        if offset != -1:
+            if size is not None:
+                if size != len(contents): return False
+            if md5sum is not None:
+                if md5sum != md5.new(contents).hexdigest():
+                    return False
+
+        #XXX - have an incoming dir and move after upload complete
+        # SECURITY - ensure path remains under uploadpath
+        tt = string.maketrans("/","+")
+        fn = string.translate(file, tt)
+        if fn.startswith('..'):
+            raise CX(_("invalid filename used: %s") % fn)
+
+        # FIXME ... get the base dir from cobbler settings()
+        udir = "/var/log/cobbler/anamon/%s" % sys_name
+        if not os.path.isdir(udir):
+            os.makedirs(udir)
+
+        fn = "%s/%s" % (udir, fn)
+        try:
+            st = os.lstat(fn)
+        except OSError, e:
+            if e.errno == errno.ENOENT:
+                pass
+            else:
+                raise
+        else:
+            if not stat.S_ISREG(st.st_mode):
+                raise CX(_("destination not a file: %s") % fn)
+            elif offset == 0:
+                #first chunk, so file should not exist yet
+                if not fn.endswith('.log'):
+                    # but we allow .log files to be uploaded multiple times to support
+                    # realtime log-file viewing
+                    raise CX(_("file already exists: %s") % fn)
+
+        fd = os.open(fn, os.O_RDWR | os.O_CREAT, 0666)
+        # log_error("fd=%r" %fd)
+        try:
+            if offset == 0 or (offset == -1 and size == len(contents)):
+                #truncate file
+                fcntl.lockf(fd, fcntl.LOCK_EX|fcntl.LOCK_NB)
+                try:
+                    os.ftruncate(fd, 0)
+                    # log_error("truncating fd %r to 0" %fd)
+                finally:
+                    fcntl.lockf(fd, fcntl.LOCK_UN)
+            if offset == -1:
+                os.lseek(fd,0,2)
+            else:
+                os.lseek(fd,offset,0)
+            #write contents
+            fcntl.lockf(fd, fcntl.LOCK_EX|fcntl.LOCK_NB, len(contents), 0, 2)
+            try:
+                os.write(fd, contents)
+                # log_error("wrote contents")
+            finally:
+                fcntl.lockf(fd, fcntl.LOCK_UN, len(contents), 0, 2)
+            if offset == -1:
+                if size is not None:
+                    #truncate file
+                    fcntl.lockf(fd, fcntl.LOCK_EX|fcntl.LOCK_NB)
+                    try:
+                        os.ftruncate(fd, size)
+                        # log_error("truncating fd %r to size %r" % (fd,size))
+                    finally:
+                        fcntl.lockf(fd, fcntl.LOCK_UN)
+                if md5sum is not None:
+                    #check final md5sum
+                    sum = md5.new()
+                    fcntl.lockf(fd, fcntl.LOCK_SH|fcntl.LOCK_NB)
+                    try:
+                        # log_error("checking md5sum")
+                        os.lseek(fd,0,0)
+                        while True:
+                            block = os.read(fd, 819200)
+                            if not block: break
+                            sum.update(block)
+                        if md5sum != sum.hexdigest():
+                            # log_error("md5sum did not match")
+                            #os.close(fd)
+                            return False
+                    finally:
+                        fcntl.lockf(fd, fcntl.LOCK_UN)
+        finally:
+            os.close(fd)
         return True
 
     def run_install_triggers(self,mode,objtype,name,ip,token=None,**rest):
