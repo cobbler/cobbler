@@ -1107,7 +1107,7 @@ class Koan:
                    return "failed"
                elif state == "shutdown":
                    print "- shutdown VM detected, is the install done?  Restarting!"
-                   utils.find_vm(virtname).create()    
+                   utils.find_vm(conn, virtname).create()    
                    return results
                else:
                    raise InfoException("internal error, bad virt state")
