@@ -279,6 +279,6 @@ class Distro(item.Item):
             'template-files': self.set_template_files,
             'template_files': self.set_template_files,            
             'comment'               : self.set_comment,
-            'redhat_management_key' : self.redhat_management_key
+            'redhat_management_key' : self.set_redhat_management_key
         }
 

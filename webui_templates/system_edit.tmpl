@@ -523,6 +523,21 @@ function page_onload() {
 
     <tr>
     <td>
+    <label for="redhatmanagementkey">Management Key</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="redhatmanagementkey" id="
+redhatmanagementkey"
+        #if $system
+            value="$system.redhat_management_key"
+        #end if
+    />
+    <p class="context-tip">Registration key for RHN, Satellite, or Spacewalk</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
     <label for="owners">Access Allowed For</label>
     </td>
     <td>

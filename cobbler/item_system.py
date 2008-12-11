@@ -781,7 +781,8 @@ interface.
            'power_id'         : self.set_power_id,
            'hostname'         : self.set_hostname,
            'gateway'          : self.set_gateway,
-           'name_servers'     : self.set_name_servers
+           'name_servers'     : self.set_name_servers,
+           'redhat_management_key' : self.set_redhat_management_key
         }
 
 
