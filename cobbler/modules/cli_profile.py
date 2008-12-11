@@ -158,7 +158,7 @@ class ProfileFunction(commands.CobblerFunction):
                 obj.set_template_files(self.options.template_files,self.options.inplace)
             if self.options.name_servers is not None:    
                 obj.set_name_servers(self.options.name_servers)
-            if self.otpions.redhat_management_key is not None:
+            if self.options.redhat_management_key is not None:
                 obj.set_redhat_management_key(self.options.redhat_management_key)
 
 

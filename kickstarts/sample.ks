@@ -55,5 +55,6 @@ $SNIPPET('post_install_network_config')
 $SNIPPET('func_register_if_enabled')
 $SNIPPET('download_config_files')
 $SNIPPET('koan_environment')
+$SNIPPET('redhat_register')
 $kickstart_done
 

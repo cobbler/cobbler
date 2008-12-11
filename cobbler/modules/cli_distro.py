@@ -116,7 +116,7 @@ class DistroFunction(commands.CobblerFunction):
                 obj.set_mgmt_classes(self.options.mgmt_classes)
             if self.options.template_files is not None:
                 obj.set_template_files(self.options.template_files,self.options.inplace)
-            if self.otpions.redhat_management_key is not None:
+            if self.options.redhat_management_key is not None:
                 obj.set_redhat_management_key(self.options.redhat_management_key)
 
         return self.object_manipulator_finish(obj, self.api.distros, self.options)

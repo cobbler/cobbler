@@ -156,12 +156,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(755,root,root)
 %{_bindir}/cobbler
 %{_bindir}/cobbler-ext-nodes
-%{_bindir}/cobbler-setup
 %{_bindir}/cobblerd
-%{_bindir}/cobbler-completion
-
-# %defattr(644,root,root)
-# %config(noreplace) /etc/bash_completion.d/cobbler_bash
 
 %defattr(-,root,root)
 %dir /etc/cobbler
@@ -240,7 +235,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/triggers/install/pre
 %dir /var/lib/cobbler/triggers/install/post
 %dir /var/lib/cobbler/snippets/
-/var/lib/cobbler/completions
 
 %defattr(744,root,root)
 %config(noreplace) /var/lib/cobbler/triggers/sync/post/restart-services.trigger
