@@ -267,6 +267,13 @@ spacewalk_url: $spacewalk_url
 # is UDP and may not be available depending on network/firewall configuration.
 syslog_port: 25150
 
+# by default, installs are *not* set to send installation logs to the cobbler
+# server.  With 'anamon_enabled', kickstart templates may use the pre_anamon
+# snippet to allow remote live monitoring of their installations from the
+# cobbler server.  Installation logs will be stored under
+# /var/log/cobbler/anamon.
+anamon_enabled: 0
+
 # locations of the TFTP binary and config file
 tftpd_bin: /usr/sbin/in.tftpd
 tftpd_conf: /etc/xinetd.d/tftp

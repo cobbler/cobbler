@@ -101,6 +101,7 @@ DEFAULTS = {
     "yum_post_install_mirror"     : 1,
     "yumdownloader_flags"         : "--resolve",
     "yumreposync_flags"           : "-l"
+    "anamon_enabled"              : 0,
 }
 
 
