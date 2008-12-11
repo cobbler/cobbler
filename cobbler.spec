@@ -24,7 +24,7 @@ Requires: rsync
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 5
+%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 Requires: python(abi)=%{pyver}
 %endif
