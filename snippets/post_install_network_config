@@ -130,6 +130,12 @@
             rm -f /etc/modprobe.conf
             mv /etc/modprobe.conf.new /etc/modprobe.conf
 
+            #set $nct = 0
+            #for $nameserver in $name_servers
+               #set $ct = $nct + 1
+               echo "DNS$ct=$nameserver" >> $devfile
+            #end for
+
             echo "DEVICE=$iname" > $devfile
             echo "HWADDR=$mac" >> $devfile
             echo "ONBOOT=yes" >> $devfile
