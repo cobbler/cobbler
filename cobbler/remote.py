@@ -378,7 +378,7 @@ class CobblerXMLRPCInterface:
         # FIXME ... get the base dir from cobbler settings()
         udir = "/var/log/cobbler/anamon/%s" % sys_name
         if not os.path.isdir(udir):
-            os.makedirs(udir)
+            os.mkdir(udir, 0755)
 
         fn = "%s/%s" % (udir, fn)
         try:
@@ -398,7 +398,7 @@ class CobblerXMLRPCInterface:
                     # realtime log-file viewing
                     raise CX(_("file already exists: %s") % fn)
 
-        fd = os.open(fn, os.O_RDWR | os.O_CREAT, 0666)
+        fd = os.open(fn, os.O_RDWR | os.O_CREAT, 0644)
         # log_error("fd=%r" %fd)
         try:
             if offset == 0 or (offset == -1 and size == len(contents)):
