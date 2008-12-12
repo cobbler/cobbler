@@ -133,6 +133,10 @@ Users with small sites and a limited number of admins can probably ignore this o
 
 This feature allows cobbler to be used as a configuration management system.  The argument is a space delimited string of key=value pairs. Each key is the path to a template file, each value is the path to install the file on the system.  This is described in further detail on the Cobbler Wiki and is implemented using special code in the post install.  Koan also can retrieve these files from a cobbler server on demand, effectively allowing cobbler to function as a lightweight templated configuration management system.
 
+=item redhat-management-key
+
+If you're using Red Hat Network, Red Hat Satellite Server, or Spacewalk, you can store your authentication keys here and Cobbler can add the neccessary authentication code to your kickstart where the snippet named "redhat_register" is included.  Read more about setup in /etc/cobbler/settings.
+
 =back
 
 =head2 PROFILES

@@ -76,6 +76,7 @@ class System(item.Item):
         self.bonding              = ""
         self.bonding_master       = ""
         self.bonding_opts         = ""
+        self.redhat_management_key = "<<inherit>>"
 
     def delete_interface(self,name):
         """
@@ -177,6 +178,7 @@ interface.
         self.hostname     = self.load_item(seed_data, 'hostname', __hostname)
         
         self.name_servers = self.load_item(seed_data, 'name_servers', '<<inherit>>')
+        self.redhat_management_key = self.load_item(seed_data, 'redhat_management_key', '<<inherit>>')
 
         # virt specific 
 
@@ -321,6 +323,9 @@ interface.
         self.name = name 
 
         return True
+
+    def set_redhat_management_key(self,key):
+        return utils.set_redhat_management_key(self,key)
 
     def set_server(self,server):
         """
@@ -651,7 +656,8 @@ interface.
            'power_id'              : self.power_id, 
            'hostname'              : self.hostname,
            'gateway'               : self.gateway,
-           'name_servers'          : self.name_servers
+           'name_servers'          : self.name_servers,
+           'redhat_management_key' : self.redhat_management_key
         }
 
     def printable(self):
@@ -775,7 +781,8 @@ interface.
            'power_id'         : self.set_power_id,
            'hostname'         : self.set_hostname,
            'gateway'          : self.set_gateway,
-           'name_servers'     : self.set_name_servers
+           'name_servers'     : self.set_name_servers,
+           'redhat_management_key' : self.set_redhat_management_key
         }
 
 

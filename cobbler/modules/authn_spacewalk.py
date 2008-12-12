@@ -44,7 +44,11 @@ def authenticate(api_handle,username,password):
     to see if this authentication request is valid.
     """
 
-    spacewalk_url = api_handle.settings().spacewalk_url  
+    #spacewalk_url = api_handle.settings().spacewalk_url  
+    server = api_handle.settings().redhat_management_server
+    if server == "xmlrpc.rhn.redhat.com":
+        return False # don't bother RHN!
+    spacewalk_url = "https://%s/rpc/api" % server
 
     client = xmlrpclib.Server(spacewalk_url, verbose=0)
 

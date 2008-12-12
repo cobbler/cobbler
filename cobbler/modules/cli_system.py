@@ -73,6 +73,7 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--mac",             dest="mac",           help="ex: 'AA:BB:CC:DD:EE:FF', (RECOMMENDED)")
             p.add_option("--mgmt-classes",    dest="mgmt_classes",  help="list of config management classes (for Puppet, etc)")
             p.add_option("--name-servers",    dest="name_servers",  help="name servers for static setups")
+            p.add_option("--redhat-management-key", dest="redhat_management_key", help="authentication token for RHN/Spacewalk/Satellite")
             p.add_option("--static-routes",   dest="static_routes", help="sets static routes (see manpage)")
             p.add_option("--template-files",  dest="template_files",help="specify files to be generated from templates during a sync")
 
@@ -244,6 +245,8 @@ class SystemFunction(commands.CobblerFunction):
             obj.set_template_files(self.options.template_files,self.options.inplace)
         if self.options.name_servers is not None: 
             obj.set_name_servers(self.options.name_servers)
+        if self.options.redhat_management_key is not None:
+            obj.set_redhat_management_key(self.options.redhat_management_key)
 
 
         rc = self.object_manipulator_finish(obj, self.api.systems, self.options)

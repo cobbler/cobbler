@@ -6,6 +6,8 @@ enable_dhcp:0
 enable_dns:0
 next_server:'127.0.0.1'
 pxe_once:0
+redhat_management_type: "off"
+redhat_management_server: "xmlrpc.rhn.redhat.com"
+redhat_management_key: ""
 server:'127.0.0.1'
-spacewalk_url:'http://localhost/rpc/api'
 yum_post_install_mirror:0

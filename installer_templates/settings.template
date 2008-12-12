@@ -209,6 +209,27 @@ pxe_just_once: $pxe_once
 # from what directory?
 pxe_template_dir: "/etc/cobbler/pxe"
 
+# Are you using a Red Hat management platform in addition to Cobbler?
+# Cobbler can help you register to it.  Choose one of the following:
+#
+#   "off"    : I'm not using Red Hat Network, Satellite, or Spacewalk
+#   "hosted" : I'm using Red Hat Network
+#   "site"   : I'm using Red Hat Satellite Server or Spacewalk
+#   
+# You will also want to read: https://fedorahosted.org/cobbler/wiki/TipsForRhn
+redhat_management_type: "$redhat_management_type"
+
+# if redhat_management_type is enabled, choose your server
+#   "management.example.org" : For Satellite or Spacewalk
+#   "xmlrpc.rhn.redhat.com"  : For Red Hat Network
+redhat_management_server: "$redhat_management_server"
+
+# specify the default Red Hat authorization key to use to register
+# system.  If left blank, no registration will be attempted.  Similarly
+# you can set the --redhat-management-key to blank on any system to 
+# keep it from trying to register.
+redhat_management_key: ""
+
 # when DHCP and DNS management are enabled, cobbler sync can automatically
 # restart those services to apply changes.  The exception for this is
 # if using ISC for DHCP, then omapi eliminates the need for a restart.
@@ -253,12 +274,6 @@ server: $server
 # templating easier.  See the Wiki for more information.  Changing
 # this directory should not be required.
 snippetsdir: /var/lib/cobbler/snippets
-
-# if modules.conf specifies authn_spacewalk, this is the XMLRPC
-# endpoint to authenticate against.  If Satellite/Spacewalk is
-# not in use, ignore this setting entirely.  
-# See fedorahosted.org/spacewalk for details on that project.
-spacewalk_url: $spacewalk_url
 
 # by default, installs are set to send syslog traffic on this port
 # and cobblerd will listen on this port.  syslog data (for installs

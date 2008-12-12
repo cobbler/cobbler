@@ -892,6 +892,10 @@ def mkdir(path,mode=0777):
            print oe.errno
            raise CX(_("Error creating") % path)
 
+def set_redhat_management_key(self,key):
+   self.redhat_management_key = key
+   return True
+
 def set_arch(self,arch):
    if arch is None or arch == "":
        arch = "x86"

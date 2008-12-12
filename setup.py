@@ -67,7 +67,6 @@ if __name__ == "__main__":
         
         # etc configs
         etcpath     = "/etc/cobbler"
-        bashpath    = "/etc/bash_completion.d"
         initpath    = "/etc/init.d"
         rotpath       = "/etc/logrotate.d"
         powerpath   = etcpath + "/power"
@@ -166,8 +165,6 @@ if __name__ == "__main__":
                     "scripts/cobbler", 
                     "scripts/cobblerd", 
                     "scripts/cobbler-ext-nodes", 
-                    "scripts/cobbler-completion",
-                    "scripts/cobbler-setup",
                 ],
                 data_files = [ 
                                 (modpython, ['scripts/index.py']),
@@ -177,7 +174,6 @@ if __name__ == "__main__":
                                 (rotpath,  ['config/cobblerd_rotate']),
                                 (wwwconf,  ['config/cobbler.conf']),
                                 (wwwconf,  ['config/cobbler_svc.conf']),
-                                (libpath,  ['config/completions']),
                                 (libpath,  ['config/cobbler_hosts']),
                                 (etcpath,  ['config/modules.conf']),
                                 (etcpath,  ['config/users.digest']),
@@ -187,7 +183,6 @@ if __name__ == "__main__":
                                 (etcpath,  ['config/cheetah_macros']),
                                 (initpath, ['config/cobblerd']),
                                 (etcpath,  ['config/settings']),
-                                # (bashpath, ['config/cobbler_bash']), 
 
                                 # backups for upgrades
                                 (backpath, []),
@@ -264,6 +259,7 @@ if __name__ == "__main__":
                                 (snippetpath, ['snippets/download_config_files']),
                                 (snippetpath, ['snippets/koan_environment']),
                                 (snippetpath, ['snippets/pre_anamon']),
+                                (snippetpath, ['snippets/redhat_register']),
 
                                 # documentation
                                 (manpath,  ['docs/cobbler.1.gz']),

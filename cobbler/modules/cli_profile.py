@@ -65,12 +65,13 @@ class ProfileFunction(commands.CobblerFunction):
             p.add_option("--kopts",            dest="kopts",     help="ex: 'noipv6'")
             p.add_option("--kopts-post",       dest="kopts_post",help="ex: 'clocksource=pit'")
             p.add_option("--mgmt-classes", dest="mgmt_classes",  help="list of config management classes (for Puppet, etc)")
-            p.add_option("--name-servers", dest="name_servers",  help="name servers for static setups")
-            p.add_option("--template-files",   dest="template_files", help="specify files to be generated from templates during a sync")
 
 
         p.add_option("--name",   dest="name",  help="a name for the profile (REQUIRED)")
 
+        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
+
+            p.add_option("--name-servers", dest="name_servers",  help="name servers for static setups")
 
         if "copy" in args or "rename" in args:
             p.add_option("--newname", dest="newname")
@@ -86,8 +87,10 @@ class ProfileFunction(commands.CobblerFunction):
             p.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
 
         if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
+            p.add_option("--redhat-management-key", dest="redhat_management_key", help="authentication token for RHN/Spacewalk/Satellite")
             p.add_option("--repos",            dest="repos", help="names of cobbler repos")
             p.add_option("--server",           dest="server_override", help="overrides value in settings file")
+            p.add_option("--template-files",   dest="template_files", help="specify files to be generated from templates during a sync")
             p.add_option("--virt-bridge",      dest="virt_bridge", help="ex: 'virbr0'")
             p.add_option("--virt-cpus",        dest="virt_cpus", help="integer (default: 1)")
             p.add_option("--virt-file-size",   dest="virt_file_size", help="size in GB")
@@ -155,6 +158,9 @@ class ProfileFunction(commands.CobblerFunction):
                 obj.set_template_files(self.options.template_files,self.options.inplace)
             if self.options.name_servers is not None:    
                 obj.set_name_servers(self.options.name_servers)
+            if self.options.redhat_management_key is not None:
+                obj.set_redhat_management_key(self.options.redhat_management_key)
+
 
         return self.object_manipulator_finish(obj, self.api.profiles, self.options)
 
