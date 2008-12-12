@@ -228,6 +228,7 @@
             echo "HWADDR=\$MAC" >> $devfile
             echo "ONBOOT=yes" >> $devfile
 
+
             #if $bonding.lower() == "slave" and $bonding_master != ""
                 
                 ## if needed setup bonding
@@ -273,6 +274,12 @@
             # If you end up here, please mail the list... This shouldn't
             # happen. ;-)
 	#end if
+            
+        #set $nct = 0
+        #for $nameserver in $name_servers
+            #set $ct = $nct + 1
+            echo "DNS$ct=$nameserver" >> $devfile
+        #end for
 	
 	#for $route in $static_routes
 	    #set routepattern = $re.compile("[0-9/.]+:[0-9.]+")
