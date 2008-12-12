@@ -853,7 +853,7 @@ def restorecon(dest, api=None):
        run = api.is_selinux_enabled()
     rc = 0
     if run:
-       rc = sub_process.call(["/sbin/restorecon","-f",dest],shell=False)
+       rc = sub_process.call(["/sbin/restorecon",dest],shell=False)
     return rc
 
 def rmfile(path):
