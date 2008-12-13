@@ -68,17 +68,11 @@ def setupLogging(appname, debug=False):
     """
     import logging
     import logging.handlers
-    vi_dir = os.path.expanduser("~/.koan")
-    if not os.access(vi_dir,os.W_OK):
-        try:
-            os.mkdir(vi_dir)
-        except IOError, e:
-            raise RuntimeError, "Could not create %d directory: " % vi_dir, e
 
     dateFormat = "%a, %d %b %Y %H:%M:%S"
     fileFormat = "[%(asctime)s " + appname + " %(process)d] %(levelname)s (%(module)s:%(lineno)d) %(message)s"
     streamFormat = "%(asctime)s %(levelname)-8s %(message)s"
-    filename = os.path.join(vi_dir, appname + ".log")
+    filename = "/var/log/koan/koan.log"
 
     rootLogger = logging.getLogger()
     rootLogger.setLevel(logging.DEBUG)

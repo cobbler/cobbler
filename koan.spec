@@ -54,10 +54,15 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir %{python_sitelib}/koan
 %{python_sitelib}/koan/*.py*
 %{_mandir}/man1/koan.1.gz
+%defattr(755,-,-)
+%dir /var/log/koan
 
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+
+* Sat Dec 17 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.5-1
+- Logging to /var/log/koan
 
 * Wed Dec 10 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.4-1
 - New test release

@@ -16,6 +16,7 @@ existing systems.  For use with a boot-server configured with
 if __name__ == "__main__":
         docspath="share/doc/koan-%s/" % VERSION
         manpath="share/man/man1/"
+        logpath="/var/log/koan"
 	setup(
                 name="koan",
                 version = VERSION,
@@ -28,6 +29,7 @@ if __name__ == "__main__":
                 data_files = [
 				("/var/spool/koan", []),
 				(manpath, ['koan.1.gz']),
+                                (logpath, [])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC
