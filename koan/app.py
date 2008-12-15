@@ -1420,11 +1420,20 @@ class Koan:
                 args = "/usr/sbin/selinuxenabled"
                 selinuxenabled = sub_process.call(args)
                 if selinuxenabled == 0:
-                    # permissive or enforcing or something else, and
-                    # set appropriate security context for LVM partition
-                    args = "/usr/bin/chcon -t virt_image_t %s" % partition_location
+                    # required context type
+                    context_type = "virt_image_t"
+
+                    # change security context type to required one
+                    args = "/usr/bin/chcon -t %s %s" % (context_type, partition_location)
                     print "%s" % args
-                    change_context = sub_process.call(args, shell=True)
+                    change_context = sub_process.call(args, close_fds=True, shell=True)
+
+                    # modify SELinux policy in order to preserve security context
+                    # between reboots
+                    args = "/usr/sbin/semanage fcontext -a -t %s %s" % (context_type, partition_location)
+                    print "%s" % args
+                    change_context |= sub_process.call(args, close_fds=True, shell=True)
+                    
                     if change_context != 0:
                         raise InfoException, "SELinux security context setting to LVM partition failed"
 
