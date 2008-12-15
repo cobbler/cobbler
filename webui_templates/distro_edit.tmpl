@@ -244,6 +244,13 @@ function disablename(value)
     #else
         <input type="radio" name="breed" id="breed" value="suse">SuSE
     #end if
+    #if $distro and $distro.breed == "ubuntu"
+        <input type="radio"  name="breed" id="breed" value="ubuntu" 
+checked>Ubuntu
+    #else
+        <input type="radio" name="breed" id="breed" value="ubuntu">Ubuntu
+    #end if
+
     <p class="context-tip">This option determines how kernel options are prepared</p>
     </td>
     </tr>
