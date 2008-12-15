@@ -789,6 +789,16 @@ def tftpboot_location():
        return "/var/lib/tftpboot"
     return "/tftpboot"
 
+def can_do_public_content(api):
+    """
+    Returns whether we can use public_content_t which greatly
+    simplifies SELinux usage.
+    """
+    (dist, ver) = api.get_os_details()
+    if dist == "redhat" and ver <= 4:
+       return False
+    return True
+
 def linkfile(src, dst, symlink_ok=False, api=None):
     """
     Attempt to create a link dst that points to src.  Because file
@@ -796,10 +806,24 @@ def linkfile(src, dst, symlink_ok=False, api=None):
     copyfile()
     """
 
+    if api is None:
+        raise "Internal error: API handle is required"
+
+
     if os.path.exists(dst):
         if os.path.samefile(src, dst):
-            # hardlink already exists, no action needed
-            return True
+            # hardlink already exists, though this is old cobbler
+            # behavior and will cause problems with selinux if enabled
+            if api.is_selinux_enabled():
+                # if we have RHEL 4 we must remove the destination 
+                # and copy it to assign differing context
+                if not can_do_public_content(api):
+                    os.remove(dst)
+            else:
+                # selinux is DISABLED so we can hardlink to save space.
+                # differing httpd and tftp-server requirements don't
+                # matter
+                return True
         elif os.path.islink(dst):
             # existing path exists and is a symlink, update the symlink
             os.remove(dst)
@@ -808,17 +832,25 @@ def linkfile(src, dst, symlink_ok=False, api=None):
             # to copy over it
             pass
 
-    try:
-        return os.link(src, dst)
-    except (IOError, OSError):
-        # hardlink across devices, or link already exists
-        pass
-
-    if symlink_ok:
+    if not api.is_selinux_enabled() or can_do_public_content(api):
         try:
-            return os.symlink(src, dst)
+            rc = os.link(src, dst)
+            restorecon(dst,api=api)
+            return rc
         except (IOError, OSError):
+            # hardlink across devices, or link already exists
+            # can result in extra call to restorecon but no
+            # major harm, we'll just symlink it if we can
+            # or otherwise copy it
             pass
+
+        if symlink_ok:
+            try:
+                rc = os.symlink(src, dst)
+                restorecon(dst,api=api)
+                return rc
+            except (IOError, OSError):
+                pass
 
     return copyfile(src, dst, api=api)
 
@@ -833,8 +865,9 @@ def copyfile(src,dst,api=None):
         if not os.path.samefile(src,dst):
             # accomodate for the possibility that we already copied
             # the file as a symlink/hardlink
-            traceback.print_exc()
-            raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+            raise
+            # traceback.print_exc()
+            # raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
 def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None):
     files = glob.glob(pattern)
@@ -843,17 +876,63 @@ def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None):
     for file in files:
         base = os.path.basename(file)
         dst1 = os.path.join(dst,os.path.basename(file))
-        linkfile(file,dst1,symlink_ok=symlink_ok)
+        linkfile(file,dst1,symlink_ok=symlink_ok,api=api)
         restorecon(dst1,api=api)
 
-def restorecon(dest, api=None):
-    if api is None:
-       run = True
-    else:
-       run = api.is_selinux_enabled()
+def restorecon(dest, api):
+
+    """
+    You'd think this function would just run restorecon but it's not that
+    simple.  Some things are symlinks.  For those we care about the
+    source and the destination.  RHEL 4 doesn't support public_content_t
+    and we must also deal with that.  This makes this all a bit more
+    complicated.  
+    """
+
+
+    run = api.is_selinux_enabled()
     rc = 0
+    tdest = os.path.realpath(dest)
+    
+    should_step_one = False
+    should_step_two = False
+
+    matched_path = False
+
+    if dest.startswith("/var/www"):
+       matched_path = True
+    elif dest.find("/tftpboot/"):
+       matched_path = True
+ 
     if run:
-       rc = sub_process.call(["/sbin/restorecon",dest],shell=False,close_fds=True)
+       if can_do_public_content(api) and matched_path:
+           # this allows us to symlink/hardlink more when using
+           # content that needs to be accessed both by HTTP and TFTP.
+           # though RHEL 4 cannot do this.
+           should_step_one = True
+           if not os.path.samefile(dest,tdest):
+               # it's not a hardlink, but the symlink itself needs 
+               # context applied.
+               # otherwise it will still not be readable
+               should_step_two = True
+
+       else:
+           should_step_two = True
+
+    if should_step_one:
+        # ensure the true destination is flagged as public_content_t
+        cmd = ["/usr/bin/chcon","-t","public_content_t", tdest]
+        rc = sub_process.call(cmd,shell=False,close_fds=True)
+        if rc != 0:
+            raise CX("chcon operation failed: %s" % cmd)
+
+    if should_step_two:
+        # the basic restorecon stuff...
+        cmd = [ "/sbin/restorecon",dest ]
+        rc = sub_process.call(cmd,shell=False,close_fds=True)
+        if rc != 0:
+            raise CX("restorecon operation failed: %s" % cmd)
+
     return rc
 
 def rmfile(path):

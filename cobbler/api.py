@@ -92,6 +92,8 @@ class BootAPI:
 
             self.logger_remote = self.__setup_logger("remote")
             self.selinux_enabled = utils.is_selinux_enabled()
+            self.dist = utils.check_dist()
+            self.os_version = utils.os_release()
 
             self.acl_engine = acls.AclEngine()
 
@@ -687,4 +689,7 @@ class BootAPI:
         time.sleep(1)
         return self.power_on(system, user, password)
         
+    def get_os_details(self):
+        return (self.dist, self.os_version)
+
 
