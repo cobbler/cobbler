@@ -398,15 +398,16 @@ class PXEGen:
         if system:
             if system.netboot_enabled:
                 template = os.path.join(self.settings.pxe_template_dir,"pxesystem.template")
-                if arch == "s390x":
-                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_s390x.template")
-                elif arch == "ia64":
-                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ia64.template")
-                elif arch.startswith("ppc"):
-                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ppc.template")
+                if arch is not None:
+                    if arch == "s390x":
+                        template = os.path.join(self.settings.pxe_template_dir,"pxesystem_s390x.template")
+                    elif arch == "ia64":
+                        template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ia64.template")
+                    elif arch.startswith("ppc"):
+                        template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ppc.template")
             else:
                 # local booting on ppc requires removing the system-specific dhcpd.conf filename
-                if arch.startswith("ppc"):
+                if arch is not None and arch.startswith("ppc"):
                     # Disable yaboot network booting for all interfaces on the system
                     for (name,interface) in system.interfaces.iteritems():
 
