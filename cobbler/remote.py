@@ -391,12 +391,6 @@ class CobblerXMLRPCInterface:
         else:
             if not stat.S_ISREG(st.st_mode):
                 raise CX(_("destination not a file: %s") % fn)
-            elif offset == 0:
-                #first chunk, so file should not exist yet
-                if not fn.endswith('.log'):
-                    # but we allow .log files to be uploaded multiple times to support
-                    # realtime log-file viewing
-                    raise CX(_("file already exists: %s") % fn)
 
         fd = os.open(fn, os.O_RDWR | os.O_CREAT, 0644)
         # log_error("fd=%r" %fd)
