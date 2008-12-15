@@ -21,6 +21,7 @@ Requires: python-devel
 Requires: createrepo
 Requires: python-cheetah
 Requires: rsync
+Requires: genisoimage
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
