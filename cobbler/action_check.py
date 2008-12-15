@@ -97,13 +97,13 @@ class BootCheck:
        rc = 0
        if utils.check_dist() == "redhat":
            if os.path.exists("/etc/rc.d/init.d/%s" % which):
-               rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True)
+               rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True, close_fds=True)
            if rc != 0:
                status.append(_("service %s is not running%s") % (which,notes))
                return False
        elif utils.check_dist() == "debian":
            if os.path.exists("/etc/init.d/%s" % which):
-	       rc = sub_process.call("/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
+	       rc = sub_process.call("/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True, close_fds=True)
 	   if rc != 0:
 	       status.append(_("service %s is not running%s") % which,notes)
                return False
@@ -114,7 +114,7 @@ class BootCheck:
 
    def check_iptables(self, status):
        if os.path.exists("/etc/rc.d/init.d/iptables"):
-           rc = sub_process.call("/sbin/service iptables status >/dev/null 2>/dev/null", shell=True)
+           rc = sub_process.call("/sbin/service iptables status >/dev/null 2>/dev/null", shell=True, close_fds=True)
            if rc == 0:
               status.append(_("since iptables may be running, ensure 69, 80, %(syslog)s, and %(xmlrpc)s are unblocked") % { "syslog" : self.settings.syslog_port, "xmlrpc" : self.settings.xmlrpc_port })
 
@@ -140,7 +140,7 @@ class BootCheck:
    def check_selinux(self,status):
        enabled = self.config.api.is_selinux_enabled()
        if enabled:
-           prc2 = sub_process.Popen("/usr/sbin/getsebool -a",shell=True,stdout=sub_process.PIPE)
+           prc2 = sub_process.Popen("/usr/sbin/getsebool -a",shell=True,stdout=sub_process.PIPE, close_fds=True)
            data2 = prc2.communicate()[0]
            for line in data2.split("\n"):
               if line.find("httpd_can_network_connect ") != -1:

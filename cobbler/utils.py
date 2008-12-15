@@ -144,7 +144,7 @@ def get_host_ip(ip, shorten=True):
        # CIDR notation
        (ip, slash) = ip.split("/")
 
-    handle = sub_process.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=sub_process.PIPE)
+    handle = sub_process.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=sub_process.PIPE, close_fds=True)
     out = handle.stdout
     results = out.read()
     converted = results.split(" ")[-1][0:8]
@@ -684,7 +684,7 @@ def run_triggers(ref,globber,additional=[]):
                 arglist.append(ref.name)
             for x in additional:
                 arglist.append(x)
-            rc = sub_process.call(arglist, shell=False)
+            rc = sub_process.call(arglist, shell=False, close_fds=True)
         except:
             print _("Warning: failed to execute trigger: %s" % file)
             continue
@@ -731,7 +731,7 @@ def os_release():
       if not os.path.exists("/bin/rpm"):
          return ("unknown", 0)
       args = ["/bin/rpm", "-q", "--whatprovides", "redhat-release"]
-      cmd = sub_process.Popen(args,shell=False,stdout=sub_process.PIPE)
+      cmd = sub_process.Popen(args,shell=False,stdout=sub_process.PIPE,close_fds=True)
       data = cmd.communicate()[0]
       data = data.rstrip().lower()
       make = "other"
@@ -853,7 +853,7 @@ def restorecon(dest, api=None):
        run = api.is_selinux_enabled()
     rc = 0
     if run:
-       rc = sub_process.call(["/sbin/restorecon",dest],shell=False)
+       rc = sub_process.call(["/sbin/restorecon",dest],shell=False,close_fds=True)
     return rc
 
 def rmfile(path):
@@ -1129,7 +1129,7 @@ def safe_filter(var):
 
 def is_selinux_enabled():
     args = "/usr/sbin/selinuxenabled"
-    selinuxenabled = sub_process.call(args)
+    selinuxenabled = sub_process.call(args,close_fds=True)
     if selinuxenabled == 0:
         return True
     else:

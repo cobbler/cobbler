@@ -99,11 +99,11 @@ class AclConfig:
 
             cmd2 = "%s %s" % (cmd2,d)
             print "- setfacl -d %s" % cmd2
-            rc = sub_process.call("setfacl -d %s" % cmd2,shell=True)
+            rc = sub_process.call("setfacl -d %s" % cmd2,shell=True,close_fds=True)
             if not rc == 0:
                raise CX(_("command failed"))
             print "- setfacl %s" % cmd2
-            rc = sub_process.call("setfacl %s" % cmd2,shell=True)
+            rc = sub_process.call("setfacl %s" % cmd2,shell=True,close_fds=True)
             if not rc == 0:
                raise CX(_("command failed"))
 

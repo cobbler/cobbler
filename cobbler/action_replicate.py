@@ -71,7 +71,7 @@ class Replicate:
         from_path = "%s:%s" % (self.host, from_path)
         cmd = "rsync -avz %s %s" % (from_path, to_path)
         print _("- %s") % cmd
-        rc = sub_process.call(cmd, shell=True)
+        rc = sub_process.call(cmd, shell=True, close_fds=True)
         if rc !=0:
             raise CX(_("rsync failed"))
     
@@ -79,7 +79,7 @@ class Replicate:
         from_path = "%s:%s" % (self.host, from_path)
         cmd = "scp %s %s" % (from_path, to_path)
         print _("- %s") % cmd
-        rc = sub_process.call(cmd, shell=True)
+        rc = sub_process.call(cmd, shell=True, close_fds=True)
         if rc !=0:
             raise CX(_("scp failed"))
 

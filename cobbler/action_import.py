@@ -244,7 +244,7 @@ class Importer:
 
        my_cmd = cmd % args
        print _("- %s") % my_cmd
-       rc = sub_process.call(my_cmd,shell=True)
+       rc = sub_process.call(my_cmd,shell=True,close_fds=True)
        if rc != 0:
           raise CX(_("Command failed"))
 
@@ -475,7 +475,7 @@ class Importer:
                #cmd = "createrepo --basedir / --groupfile %s %s" % (os.path.join(comps_path, masterdir, comps_file), comps_path)
                cmd = "createrepo -c cache --groupfile %s %s" % (os.path.join(comps_path, masterdir, comps_file), comps_path)
                print _("- %s") % cmd
-               sub_process.call(cmd,shell=True)
+               sub_process.call(cmd,shell=True,close_fds=True)
                processed_repos[comps_path] = 1
                # for older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up one...
                p1 = os.path.join(comps_path, "repodata", "comps.xml")
