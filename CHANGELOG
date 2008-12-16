@@ -66,6 +66,8 @@ Cobbler CHANGELOG
 - ~~~ 1.3.X
 - (FEAT) cobbler check output is always logged to /var/log/cobbler/check.log
 - (FEAT) new redhat_register snippet and --redhat-management-key options!
+- (BUGF) SELinux optimizations to symlink/hardlink/chcon/restorecon behavior
+- (----) no SELinux support on EL 4
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
