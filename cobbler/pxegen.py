@@ -106,7 +106,6 @@ class PXEGen:
 
         NOTE:  this has to be done for both tftp and http methods
         """
-        # copy is a 4-letter word but tftpboot runs chroot, thus it's required.
         errors = list()
         for d in self.distros:
             try:
