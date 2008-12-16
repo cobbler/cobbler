@@ -107,15 +107,33 @@ class PXEGen:
         NOTE:  this has to be done for both tftp and http methods
         """
         # copy is a 4-letter word but tftpboot runs chroot, thus it's required.
+        errors = list()
         for d in self.distros:
-            self.copy_single_distro_files(d)
+            try:
+                self.copy_single_distro_files(d)
+            except CX, e:
+                errors.append(e)
+                print e.value
+
+        # FIXME: using logging module so this ends up in cobbler.log?
+        if len(errors) > 0:
+            raise CX(_("Error(s) encountered while copying distro files"))
 
     def copy_images(self):
         """
         Like copy_distros except for images.
         """
+        errors = list()
         for i in self.images:
-            self.copy_single_image_files(i)
+            try:
+                self.copy_single_image_files(i)
+            except CX, e:
+                errors.append(e)
+                print e.value
+
+        # FIXME: using logging module so this ends up in cobbler.log?
+        if len(errors) > 0:
+            raise CX(_("Error(s) encountered while copying image files"))
 
     def copy_single_distro_files(self, d):
         for dirtree in [self.bootloc, self.settings.webdir]: 
