@@ -25,7 +25,6 @@ import os
 import os.path
 import shutil
 import time
-import sub_process
 import sys
 import glob
 import traceback
@@ -234,9 +233,9 @@ class PXEGen:
 
             if system.is_management_supported():
                 if not image_based:
-                    self.write_pxe_file(f2,system,profile,distro,distro.arch)
+                    self.write_pxe_file(f2,system,profile,distro,working_arch)
                 else:
-                    self.write_pxe_file(f2,system,None,None,None,image=profile)
+                    self.write_pxe_file(f2,system,None,None,working_arch,image=profile)
             else:
                 # ensure the file doesn't exist
                 utils.rmfile(f2)
@@ -269,7 +268,7 @@ class PXEGen:
             if os.path.exists(image.file):
                 listfile2.write("%s\n" % image.name)
             f2 = os.path.join(self.bootloc, "s390x", image.name)
-            self.write_pxe_file(f2,None,None,None,None,image=image)
+            self.write_pxe_file(f2,None,None,None,image.arch,image=image)
         listfile.close()
         listfile2.close()
 
@@ -313,7 +312,7 @@ class PXEGen:
         # image names towards the bottom
         for image in image_list:
             if os.path.exists(image.file):
-                contents = self.write_pxe_file(None,None,None,None,None,image=image)
+                contents = self.write_pxe_file(None,None,None,None,image.arch,image=image)
                 if contents is not None:
                     pxe_menu_items = pxe_menu_items + contents + "\n"
 
@@ -424,7 +423,7 @@ class PXEGen:
                     template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ppc.template")
             else:
                 # local booting on ppc requires removing the system-specific dhcpd.conf filename
-                if arch.startswith("ppc"):
+                if arch is not None and arch.startswith("ppc"):
                     # Disable yaboot network booting for all interfaces on the system
                     for (name,interface) in system.interfaces.iteritems():
 

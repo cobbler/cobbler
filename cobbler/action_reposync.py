@@ -152,7 +152,7 @@ class RepoSync:
             try:
                 cmd = "createrepo %s %s" % (repo.createrepo_flags, dirname)
                 print _("- %s") % cmd
-                sub_process.call(cmd, shell=True)
+                sub_process.call(cmd, shell=True, close_fds=True)
             except:
                 print _("- createrepo failed.  Is it installed?")
             del fnames[:] # we're in the right place
@@ -183,7 +183,7 @@ class RepoSync:
             repo.mirror = "%s/" % repo.mirror
         cmd = "rsync -rltDv %s --delete --delete-excluded --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)       
         print _("- %s") % cmd
-        rc = sub_process.call(cmd, shell=True)
+        rc = sub_process.call(cmd, shell=True, close_fds=True)
         if rc !=0:
             raise CX(_("cobbler reposync failed"))
         print _("- walking: %s") % dest_path
@@ -251,7 +251,7 @@ class RepoSync:
         # commands here.  Any failure at any point stops the operation.
 
         if repo.mirror_locally:
-            rc = sub_process.call(cmd, shell=True)
+            rc = sub_process.call(cmd, shell=True, close_fds=True)
             if rc !=0:
                 raise CX(_("cobbler reposync failed"))
 
@@ -341,7 +341,7 @@ class RepoSync:
         # commands here.  Any failure at any point stops the operation.
 
         if repo.mirror_locally:
-            rc = sub_process.call(cmd, shell=True)
+            rc = sub_process.call(cmd, shell=True, close_fds=True)
             if rc !=0:
                 raise CX(_("cobbler reposync failed"))
 
@@ -418,7 +418,7 @@ class RepoSync:
                     
             print _("- %s") % cmd
 
-            rc = sub_process.call(cmd, shell=True)
+            rc = sub_process.call(cmd, shell=True, close_fds=True)
             if rc !=0:
                 raise CX(_("cobbler reposync failed"))
  
@@ -498,17 +498,14 @@ class RepoSync:
         """
         # all_path = os.path.join(repo_path, "*")
         cmd1 = "chown -R root:apache %s" % repo_path
-        sub_process.call(cmd1, shell=True)
+        sub_process.call(cmd1, shell=True, close_fds=True)
 
         cmd2 = "chmod -R 755 %s" % repo_path
-        sub_process.call(cmd2, shell=True)
+        sub_process.call(cmd2, shell=True, close_fds=True)
 
-        getenforce = "/usr/sbin/getenforce"
-        if os.path.exists(getenforce):
-            data = sub_process.Popen(getenforce, shell=True, stdout=sub_process.PIPE).communicate()[0]
-            if data.lower().find("disabled") == -1:
-                cmd3 = "chcon --reference /var/www %s >/dev/null 2>/dev/null" % repo_path
-                sub_process.call(cmd3, shell=True)
+        if self.config.api.is_selinux_enabled():
+            cmd3 = "chcon --reference /var/www %s >/dev/null 2>/dev/null" % repo_path
+            sub_process.call(cmd3, shell=True, close_fds=True)
 
 
             

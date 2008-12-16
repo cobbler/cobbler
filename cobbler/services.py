@@ -258,7 +258,7 @@ def __test_setup():
     files = glob.glob("rpm-build/*.rpm")
     if len(files) == 0:
        raise Exception("Tests must be run from the cobbler checkout directory.")
-    sub_process.call("cp rpm-build/*.rpm /tmp/empty",shell=True)
+    sub_process.call("cp rpm-build/*.rpm /tmp/empty",shell=True,close_fds=True)
     api.add_repo(repo)
 
     fd = open("/tmp/cobbler_t1","w+")

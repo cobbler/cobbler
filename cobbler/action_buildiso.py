@@ -253,7 +253,7 @@ class BuildIso:
         cmd = cmd + "  -boot-info-table -V Cobbler\ Install -R -J -T %s" % tempdir
 
         print _("- running: %s") % cmd
-        rc = sub_process.call(cmd, shell=True)
+        rc = sub_process.call(cmd, shell=True, close_fds=True)
         if rc:
             raise CX(_("mkisofs failed"))
         

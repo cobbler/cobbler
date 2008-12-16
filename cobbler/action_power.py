@@ -106,7 +106,7 @@ class PowerTool:
         #if not os.path.exists(tool_needed):
         #   print "warning: %s does not seem to be installed" % tool_needed
 
-        rc = sub_process.call(cmd, shell=False)
+        rc = sub_process.call(cmd, shell=False, close_fds=True)
         if not rc == 0:
            raise CX("command failed (rc=%s), please validate the physical setup and cobbler config" % rc)
 

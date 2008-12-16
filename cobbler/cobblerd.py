@@ -129,7 +129,7 @@ def do_avahi(bootapi, settings, logger):
             "cobblerd",
             "_http._tcp",
             "%s" % settings.xmlrpc_port ]
-    proc = sub_process.Popen(cmd, shell=False, stderr=sub_process.PIPE, stdout=sub_process.PIPE)
+    proc = sub_process.Popen(cmd, shell=False, stderr=sub_process.PIPE, stdout=sub_process.PIPE, close_fds=True)
     proc.communicate()[0]
     log(logger, "avahi service terminated") 
 
