@@ -799,6 +799,24 @@ def can_do_public_content(api):
        return False
     return True
 
+def is_safe_to_hardlink(src,dst,api):
+    (dev1, path1) = get_file_device_path(src)
+    (dev2, path2) = get_file_device_path(dst)
+    if dev1 != dev2:
+       return False
+    if dev1.find(":") != -1:
+       # is remoted
+       return False
+    # note: this is very cobbler implementation specific!
+    if not api.is_selinux_enabled():
+       return True
+    if src.find("initrd") != -1:
+       return True
+    if src.find("vmlinuz") != -1:
+       return True
+    # we're dealing with SELinux and files that are not safe to chcon
+    return False
+
 def linkfile(src, dst, symlink_ok=False, api=None):
     """
     Attempt to create a link dst that points to src.  Because file
@@ -807,32 +825,30 @@ def linkfile(src, dst, symlink_ok=False, api=None):
     """
 
     if api is None:
+        # FIXME: this really should not be a keyword
+        # arg
         raise "Internal error: API handle is required"
 
+    is_remote = is_remote_file(src)
 
     if os.path.exists(dst):
+        # if the destination exists, is it right in terms of accuracy
+        # and context?
         if os.path.samefile(src, dst):
-            # hardlink already exists, though this is old cobbler
-            # behavior and will cause problems with selinux if enabled
-            if api.is_selinux_enabled():
-                # if we have RHEL 4 we must remove the destination 
-                # and copy it to assign differing context
-                if not can_do_public_content(api):
-                    os.remove(dst)
+            if not is_safe_to_hardlink(src,dst,api):
+                # may have to remove old hardlinks for SELinux reasons
+                # as previous implementations were not complete
+                os.remove(dst)
             else:
-                # selinux is DISABLED so we can hardlink to save space.
-                # differing httpd and tftp-server requirements don't
-                # matter
+                restorecon(dst,api=api)
                 return True
         elif os.path.islink(dst):
             # existing path exists and is a symlink, update the symlink
             os.remove(dst)
-        else:
-            # file already exists as is not a link, we'll try
-            # to copy over it
-            pass
 
-    if not api.is_selinux_enabled() or can_do_public_content(api):
+    if is_safe_to_hardlink(src,dst,api):
+        # we can try a hardlink if the destination isn't to NFS or Samba
+        # this will help save space and sync time.
         try:
             rc = os.link(src, dst)
             restorecon(dst,api=api)
@@ -844,13 +860,17 @@ def linkfile(src, dst, symlink_ok=False, api=None):
             # or otherwise copy it
             pass
 
-        if symlink_ok:
-            try:
-                rc = os.symlink(src, dst)
-                restorecon(dst,api=api)
-                return rc
-            except (IOError, OSError):
-                pass
+    if symlink_ok:
+        # we can symlink anywhere except for /tftpboot because
+        # that is run chroot, so if we can symlink now, try it.
+        try:
+            rc = os.symlink(src, dst)
+            restorecon(dst,api=api)
+            return rc
+        except (IOError, OSError):
+            pass
+
+    # we couldn't hardlink and we couldn't symlink so we must copy
 
     return copyfile(src, dst, api=api)
 
@@ -882,58 +902,42 @@ def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None):
 def restorecon(dest, api):
 
     """
-    You'd think this function would just run restorecon but it's not that
-    simple.  Some things are symlinks.  For those we care about the
-    source and the destination.  RHEL 4 doesn't support public_content_t
-    and we must also deal with that.  This makes this all a bit more
-    complicated.  
+    Wrapper around functions to manage SELinux contexts.
+    Use chcon public_content_t where we can to allow
+    hardlinking between /var/www and tftpboot but use
+    restorecon everywhere else.
     """
+    
+    if not api.is_selinux_enabled():
+        return True
 
-
-    run = api.is_selinux_enabled()
-    rc = 0
     tdest = os.path.realpath(dest)
     
-    should_step_one = False
-    should_step_two = False
-
     matched_path = False
-
     if dest.startswith("/var/www"):
        matched_path = True
     elif dest.find("/tftpboot/"):
        matched_path = True
- 
-    if run:
-       if can_do_public_content(api) and matched_path:
-           # this allows us to symlink/hardlink more when using
-           # content that needs to be accessed both by HTTP and TFTP.
-           # though RHEL 4 cannot do this.
-           should_step_one = True
-           if not os.path.samefile(dest,tdest):
-               # it's not a hardlink, but the symlink itself needs 
-               # context applied.
-               # otherwise it will still not be readable
-               should_step_two = True
+    remoted = is_remote_file(tdest)
 
-       else:
-           should_step_two = True
 
-    if should_step_one:
-        # ensure the true destination is flagged as public_content_t
+    if matched_path and not is_remote_file(tdest):
+        # ensure the file is flagged as public_content_t
+        # because it's something we've likely hardlinked
+        # three ways between tftpboot, /var/www and the source
         cmd = ["/usr/bin/chcon","-t","public_content_t", tdest]
         rc = sub_process.call(cmd,shell=False,close_fds=True)
         if rc != 0:
             raise CX("chcon operation failed: %s" % cmd)
 
-    if should_step_two:
+    if (not matched_path) or (matched_path and remoted):
         # the basic restorecon stuff...
         cmd = [ "/sbin/restorecon",dest ]
         rc = sub_process.call(cmd,shell=False,close_fds=True)
         if rc != 0:
             raise CX("restorecon operation failed: %s" % cmd)
 
-    return rc
+    return 0
 
 def rmfile(path):
     try:
@@ -1214,6 +1218,109 @@ def is_selinux_enabled():
     else:
         return False
 
+import os
+import sys
+import random
+
+# We cache the contents of /etc/mtab ... the following variables are used 
+# to keep our cache in sync
+mtab_mtime = None
+mtab_map = []
+
+class MntEntObj(object):
+    mnt_fsname = None #* name of mounted file system */
+    mnt_dir = None    #* file system path prefix */
+    mnt_type = None   #* mount type (see mntent.h) */
+    mnt_opts = None   #* mount options (see mntent.h) */
+    mnt_freq = 0      #* dump frequency in days */
+    mnt_passno = 0    #* pass number on parallel fsck */
+
+    def __init__(self,input=None):
+        if input and isinstance(input, str):
+            (self.mnt_fsname, self.mnt_dir, self.mnt_type, self.mnt_opts, \
+             self.mnt_freq, self.mnt_passno) = input.split()
+    def __dict__(self):
+        return {"mnt_fsname": self.mnt_fsname, "mnt_dir": self.mnt_dir, \
+                "mnt_type": self.mnt_type, "mnt_opts": self.mnt_opts, \
+                "mnt_freq": self.mnt_freq, "mnt_passno": self.mnt_passno}
+    def __str__(self):
+        return "%s %s %s %s %s %s" % (self.mnt_fsname, self.mnt_dir, self.mnt_type, \
+                                      self.mnt_opts, self.mnt_freq, self.mnt_passno)
+
+def get_mtab(mtab="/etc/mtab", vfstype=None):
+    global mtab_mtime, mtab_map
+
+    mtab_stat = os.stat(mtab)
+    if mtab_stat.st_mtime != mtab_mtime:
+        '''cache is stale ... refresh'''
+        mtab_mtime = mtab_stat.st_mtime
+        mtab_map = __cache_mtab__(mtab)
+
+    # was a specific fstype requested?
+    if vfstype:
+        mtab_type_map = []
+        for ent in mtab_map:
+            if ent.mnt_type == "nfs":
+                mtab_type_map.append(ent)
+        return mtab_type_map
+
+    return mtab_map
+
+def __cache_mtab__(mtab="/etc/mtab"):
+    global mtab_mtime
+
+    f = open(mtab)
+    mtab = [MntEntObj(line) for line in f.read().split('\n') if len(line) > 0]
+    f.close()
+
+    return mtab
+
+def get_file_device_path(fname):
+    '''What this function attempts to do is take a file and return:
+         - the device the file is on
+         - the path of the file relative to the device.
+       For example:
+         /boot/vmlinuz -> (/dev/sda3, /vmlinuz)
+         /boot/efi/efi/redhat/elilo.conf -> (/dev/cciss0, /elilo.conf)
+         /etc/fstab -> (/dev/sda4, /etc/fstab)
+    '''
+
+    # resolve any symlinks
+    fname = os.path.realpath(fname)
+
+    # convert mtab to a dict
+    mtab_dict = {}
+    for ent in get_mtab():
+        mtab_dict[ent.mnt_dir] = ent.mnt_fsname
+
+    # find a best match
+    fdir = os.path.dirname(fname)
+    match = mtab_dict.has_key(fdir)
+    while not match:
+        fdir = os.path.realpath(os.path.join(fdir, os.path.pardir))
+        match = mtab_dict.has_key(fdir)
+
+    # construct file path relative to device
+    if fdir != os.path.sep:
+        fname = fname[len(fdir):]
+
+    return (mtab_dict[fdir], fname)
+
+def is_remote_file(file):
+    (dev, path) = get_file_device_path(file)
+    if dev.find(":") != -1:
+       return True
+    else:
+       return False 
+
+def popen2(args, **kwargs):
+    """ 
+    Leftovers from borrowing some bits from Snake, replace this 
+    function with just the subprocess call.
+    """
+    p = sub_process.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, **kwargs)
+    return (p.stdout, p.stdin)
+
 if __name__ == "__main__":
     # print redhat_release()
     # print tftpboot_location()
@@ -1224,5 +1331,5 @@ if __name__ == "__main__":
     #   print "%s -> %s" % (value,value2)
     #no_ctrl_c()
     #ctrl_c_ok()
-    pass
+    print get_file_device_path("/mnt/engarchive2/released/F-10/GOLD/Fedora/i386/os/images/pxeboot/vmlinuz")
 
