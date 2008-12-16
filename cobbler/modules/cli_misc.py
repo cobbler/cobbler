@@ -60,7 +60,7 @@ class CheckFunction(commands.CobblerFunction):
         status = self.api.check()
         fd = open("/var/log/cobbler/check.log","w+")
         self.logprint(fd,"cobbler check log from %s" % time.asctime(),log_only=True)
-        if len(status) != 0:
+        if len(status) == 0:
             self.logprint(fd,"No setup problems found")
              
             self.logprint(fd,"Manual review and editing of /var/lib/cobbler/settings is recommended to tailor cobbler to your particular configuration.")

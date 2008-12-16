@@ -747,6 +747,10 @@ def os_release():
          parts = version.split("-")
          version = parts[0]
          rest = parts[1]
+      try:
+         version = float(version)
+      except:
+         version = float(version[0])
       return (make, float(version), rest)
    elif check_dist() == "debian":
       fd = open("/etc/debian_version")

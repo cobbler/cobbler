@@ -55,7 +55,11 @@ default_password_crypted: "\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac."
 default_name_servers: []
 
 # for libvirt based installs in koan, if no virt bridge
-# is specified, which bridge do we try?
+# is specified, which bridge do we try?  For EL 4/5 hosts
+# this should be xenbr0, for all versions of Fedora, try
+# "virbr0".  This can be overriden on a per-profile
+# basis or at the koan command line though this saves
+# typing to just set it here to the most common option.
 default_virt_bridge: xenbr0
 
 # if koan is invoked without --virt-type and no virt-type
