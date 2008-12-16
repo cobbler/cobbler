@@ -131,6 +131,17 @@ class BootAPI:
         """
         return self.selinux_enabled
 
+    def is_selinux_supported(self):
+        """
+        Returns whether or not the OS is sufficient enough
+        to run with SELinux enabled (currently EL 5 or later).
+        """
+        self.dist
+        if self.dist == "redhat" and self.os_version < 5:
+           # doesn't support public_content_t
+           return False 
+        return True
+
     def last_modified_time(self):
         """
         Returns the time of the last modification to cobbler, made by any
