@@ -180,6 +180,10 @@ class IscManager:
 
             profile = system.get_conceptual_parent()
             distro  = profile.get_conceptual_parent()
+
+            # if distro is None then the profile is really an image
+            # record!         
+
             for (name, interface) in system.interfaces.iteritems():
 
                 # this is really not a per-interface setting
@@ -195,7 +199,9 @@ class IscManager:
                 # for use in the template
                 interface["system"]  = utils.blender( self.api, False, system )
                 interface["profile"] = utils.blender( self.api, False, profile )
-                interface["distro"]  = distro.to_datastruct()
+
+                if distro is not None:
+                    interface["distro"]  = distro.to_datastruct()
 
                 if mac is None or mac == "":
                     # can't write a DHCP entry for this system
@@ -211,15 +217,17 @@ class IscManager:
 
                 interface["filename"] = "/pxelinux.0"
                 # can't use pxelinux.0 anymore
-                if distro.arch == "ia64":
-                    interface["filename"] = elilo
-                elif distro.arch.startswith("ppc"):
-                    interface["filename"] = yaboot
+                if distro is not None:
+                    if distro.arch == "ia64":
+                        interface["filename"] = elilo
+                    elif distro.arch.startswith("ppc"):
+                        interface["filename"] = yaboot
                     
                 # If we have all values defined and we're using omapi,
                 # we will just create entries dinamically into DHCPD
                 # without requiring a restart (but file will be written
                 # as usual for having it working after restart)
+
                 if ip is not None and ip != "":
                   if mac is not None and mac != "":
                     if host is not None and host != "":

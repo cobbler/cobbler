@@ -48,11 +48,15 @@ class BootCLI:
         for mod in climods:
             for fn in mod.cli_functions(self.api):
                 self.loader.add_func(fn)
-      
+ 
     def run(self,args):
         if not self.api.perms_ok:
             print >> sys.stderr, "Insufficient permissions.  Use cobbler aclsetup to grant access to non-root users."
             sys.exit(1)
+
+        if self.api.is_selinux_enabled and not self.api.is_selinux_supported():
+            print >> sys.stderr, "EL 5 or later is required for SELinux support; upgrade the OS, move cobbler to an EL 5 server, or disable SELinux"
+            sys.exit(2)
 
         return self.loader.run(args)
 
@@ -67,6 +71,8 @@ def run_upgrade_checks():
     # for users running pre-1.0 upgrading to 1.0
     if os.path.exists("/var/lib/cobbler/settings"):
        raise CX(_("/var/lib/cobbler/settings is no longer in use, remove this file to acknowledge you have migrated your configuration to /etc/cobbler/settings.  Do not simply copy the file over or you will lose new configuration entries. Run 'cobbler check' and then 'cobbler sync' after making changes."))
+
+
 
 def main():
     """
