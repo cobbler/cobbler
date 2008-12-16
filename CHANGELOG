@@ -68,6 +68,7 @@ Cobbler CHANGELOG
 - (FEAT) new redhat_register snippet and --redhat-management-key options!
 - (BUGF) SELinux optimizations to symlink/hardlink/chcon/restorecon behavior
 - (----) no SELinux support on EL 4
+- (FEAT) yum_post_install_mirror now on by default
 
 - Fri Sep 26 2008 - 1.2.5
 - (BUGF) expose --arch for "cobbler image add"
