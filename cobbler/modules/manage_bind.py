@@ -176,8 +176,11 @@ class BindManager:
         forward_zones = self.settings.manage_forward_zones
         reverse_zones = self.settings.manage_reverse_zones
 
-        metadata = {'zone_include': ''}
-        for zone in self.__forward_zones().keys():
+        metadata = {'forward_zones': self.__forward_zones().keys(),
+                    'reverse_zones': [],
+                    'zone_include': ''}
+
+        for zone in metadata['forward_zones']:
                 txt =  """
 zone "%(zone)s." {
     type master;
@@ -190,6 +193,7 @@ zone "%(zone)s." {
                 tokens = zone.split('.')
                 tokens.reverse()
                 arpa = '.'.join(tokens) + '.in-addr.arpa'
+                metadata['reverse_zones'].append((zone, arpa))
                 txt = """
 zone "%(arpa)s." {
     type master;
