@@ -215,7 +215,7 @@ echo "$network via $router" >> $routesfile
             #end if
 	#end for
 	#set $i = $i + 1
-        #  End configuration for $iname
+#  End configuration for $iname
 #end for	
 ## Move all staged files to their final location
 rm -f /etc/sysconfig/network-scripts/ifcfg-*
