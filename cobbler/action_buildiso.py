@@ -115,7 +115,7 @@ class BuildIso:
             if not os.path.exists(f):
                raise CX(_("Required file not found: %s") % f)
             else:
-               utils.copyfile(f, os.path.join(isolinuxdir, os.path.basename(f)))
+               utils.copyfile(f, os.path.join(isolinuxdir, os.path.basename(f)), self.api)
  
         print _("- copying kernels and initrds - for profiles")
         # copy all images in included profiles to images dir
