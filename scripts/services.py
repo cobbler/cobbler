@@ -58,10 +58,8 @@ def handler(req):
        for t in tokens:
           if label:
              field = t
-             apache.log_error("field %s" % field)
           else:
              form[field] = t
-             apache.log_error("adding %s to %s" % (field,t))
           label = not label
 
     # TESTING..
