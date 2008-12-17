@@ -37,6 +37,7 @@ import tempfile
 import signal
 from cexceptions import *
 import codes
+import time
 
 CHEETAH_ERROR_DISCLAIMER="""
 # *** ERROR ***
@@ -934,9 +935,17 @@ def restorecon(dest, api):
         if rc != 0:
             raise CX("chcon operation failed: %s" % cmd)
         # make it sticky
-        cmd = "/usr/sbin/semanage fcontext -a -t public_content_t %s" % tdest
+        cmd = ["/usr/sbin/semanage","fcontext","-a","-t","public_content_t",tdest]
+        rc = sub_process.call(cmd,shell=False,close_fds=True)
         if rc != 0:
-            raise CX("semanage operation failed: %s" % cmd)
+            # this seems to lock up...
+            # maybe it's already set!
+            #cmd = ["/usr/sbin/semanage","fcontext","-m","-t","public_content_t",tdest]
+            #time.sleep(0.1)
+            #rc = sub_process.call(cmd,shell=False,close_fds=True)
+            #if rc != 0:
+            #    raise CX("semanage operation failed: %s" % cmd)
+            pass
 
     if (not matched_path) or (matched_path and remoted):
         # the basic restorecon stuff...
