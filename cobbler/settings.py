@@ -142,8 +142,9 @@ class Settings(serializable.Serializable):
        if datastruct is None:
           print _("warning: not loading empty structure for %s") % self.filename()
           return
-
-       self._attributes = datastruct
+  
+       self._attributes = DEFAULTS
+       self._attributes.update(datastruct)
 
        return self
 
