@@ -53,12 +53,16 @@ $SNIPPET('func_install_if_enabled')
 %end
 
 %post
+# Start yum configuration
 $yum_config_stanza
+# End yum configuration
 $SNIPPET('post_install_kernel_options')
 $SNIPPET('post_install_network_config')
 $SNIPPET('func_register_if_enabled')
 $SNIPPET('download_config_files')
 $SNIPPET('koan_environment')
-$kickstart_done
 $SNIPPET('redhat_register')
+# Start final steps
+$kickstart_done
+# End final steps
 %end
