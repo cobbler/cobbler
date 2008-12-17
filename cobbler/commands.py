@@ -377,8 +377,18 @@ class CobblerFunction:
 
         if "copy" in self.args:
             if self.options.newname:
-                obj = obj.make_clone()
-                obj.set_name(self.options.newname)
+                # FIXME: this should just use the copy function!
+                if obj.COLLECTION_TYPE == "distro":
+                   return self.api.copy_distro(obj, self.options.newname)
+                if obj.COLLECTION_TYPE == "profile":
+                   return self.api.copy_profile(obj, self.options.newname)
+                if obj.COLLECTION_TYPE == "system":
+                   return self.api.copy_system(obj, self.options.newname)
+                if obj.COLLECTION_TYPE == "repo":
+                   return self.api.copy_repo(obj, self.options.newname)
+                if obj.COLLECTION_TYPE == "image":
+                   return self.api.copy_image(obj, self.options.newname)
+                raise CX(_("internal error, don't know how to copy"))
             else:
                 raise CX(_("--newname is required"))
 
