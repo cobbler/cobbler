@@ -933,6 +933,10 @@ def restorecon(dest, api):
         rc = sub_process.call(cmd,shell=False,close_fds=True)
         if rc != 0:
             raise CX("chcon operation failed: %s" % cmd)
+        # make it sticky
+        cmd = "/usr/sbin/semanage fcontext -a -t public_content_t %s" % tdest
+        if rc != 0:
+            raise CX("semanage operation failed: %s" % cmd)
 
     if (not matched_path) or (matched_path and remoted):
         # the basic restorecon stuff...
