@@ -1,16 +1,11 @@
 # Start post_install_network_config generated code
-
 #if $getVar("system_name","") != ""
-
     ## this is being provisioned by system records, not profile records
     ## so we can do the more complex stuff
-
     ## get the list of interface names
     #set ikeys = $interfaces.keys()
-
     #import re
     #set $vlanpattern = $re.compile("[a-zA-Z0-9]+\.[0-9]+")
-
     ## Determine if we should use the MAC address to configure the interfaces first
     ## Only physical interfaces are required to have a MAC address
     ## Also determine the number of bonding devices we have, so we can set the
@@ -18,76 +13,49 @@
     #
     #set $configbymac = True
     #set $numbondingdevs = 0
-
     ## =============================================================================
-
     #for $iname in $ikeys
-
         ## look at the interface hash data for the specific interface
-
     	#set $idata = $interfaces[$iname]
-
         ## do not configure by mac address if we don't have one AND it's not for bonding/vlans
         ## as opposed to a "real" physical interface
-
     	#if $idata["mac_address"] == "" and not $vlanpattern.match($iname) and not $idata["bonding"].lower() == "master":
     		## we have to globally turn off the config by mac feature as we can't
     		## use it now
-
     		#set $configbymac = False
-
     	#end if
-    	
     	## count the number of bonding devices we have.
-
     	#if $idata["bonding"].lower() == "master"
     	    #set $numbondingdevs += 1
     	#end if
     #end for
-    
     ## end looping through the interfaces to see which ones we need to configure.
-
     ## =============================================================================
-
     #set $i = 0
-    
     ## setup bonding if we have to
-
     #if $numbondingdevs > 0
-        if [-x "/etc/modprobe.conf"]; then;
-            echo "options bonding max_bonds=$numbondingdevs" >> /etc/modprobe.conf
-        fi 
+if [-x "/etc/modprobe.conf"]; then;
+    echo "options bonding max_bonds=$numbondingdevs" >> /etc/modprobe.conf
+fi 
     #end if
-    
     ## =============================================================================
-    
     ## create a staging directory to build out our network scripts into
     ## make sure we preserve the loopback device
-
-    mkdir /etc/sysconfig/network-scripts/cobbler
-    cp /etc/sysconfig/network-scripts/ifcfg-lo /etc/sysconfig/network-scripts/cobbler/
-
+mkdir /etc/sysconfig/network-scripts/cobbler
+cp /etc/sysconfig/network-scripts/ifcfg-lo /etc/sysconfig/network-scripts/cobbler/
     ## =============================================================================
-    
     ## configure the gateway if set up (this is global, not a per-interface setting)
-
     #if $gateway != ""
-        grep -v GATEWAY /etc/sysconfig/network > /etc/sysconfig/network.cobbler
-        echo "GATEWAY=$gateway" >> /etc/sysconfig/network.cobbler
-        rm -f /etc/sysconfig/network
-        mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
+grep -v GATEWAY /etc/sysconfig/network > /etc/sysconfig/network.cobbler
+echo "GATEWAY=$gateway" >> /etc/sysconfig/network.cobbler
+rm -f /etc/sysconfig/network
+mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
     #end if
-    
     ## =============================================================================
-
     ## now create the config file for each interface
-
     #for $iname in $ikeys
-
 # Start configuration for $iname
-
         ## create lots of variables to use later
-
         #set $idata          = $interfaces[$iname]
         #set $mac            = $idata["mac_address"].upper()
         #set $static         = $idata["static"]
@@ -99,9 +67,7 @@
         #set $bonding_opts   = $idata["bonding_opts"]
         #set $devfile        = "/etc/sysconfig/network-scripts/cobbler/ifcfg-" + $iname
         #set $routesfile     = "/etc/sysconfig/network-scripts/cobbler/route-" + $iname
-
         ## determine if this interface is for a VLAN
-
         #if $vlanpattern.match($iname)
             ## If this is a VLAN interface, skip it, anaconda doesn't know
             ## about VLANs.
@@ -109,198 +75,148 @@
         #else
             #set $is_vlan = "false"
         #end if
-
         ## if this is a bonded interface, configure it in modprobe.conf
-
         #if $bonding.lower() == "master"
             ## Add required entry to modprobe.conf
-            if [-x "/etc/modprobe.conf"]; then
-            echo "alias $iname bonding" >> /etc/modprobe.conf.cobbler
-            fi
+if [-x "/etc/modprobe.conf"]; then
+    echo "alias $iname bonding" >> /etc/modprobe.conf.cobbler
+fi
         #end if
-
         #if $configbymac and $is_vlan == "false" and $bonding.lower() != "master"
-
             ## This is the code path physical interfaces will follow.
-            
             ## Get the current interface name
-            IFNAME=\$(ifconfig -a | grep -i '$mac' | cut -d ' ' -f 1)
-
+IFNAME=\$(ifconfig -a | grep -i '$mac' | cut -d ' ' -f 1)
             ## Rename this interface in modprobe.conf
             ## FIXME: if both interfaces startwith eth this is wrong
-
-            if [-x "/etc/modprobe.conf"]; then;
-            grep \$IFNAME /etc/modprobe.conf | sed "s/\$IFNAME/$iname/" >> /etc/modprobe.conf.cobbler
-            grep -v \$IFNAME /etc/modprobe.conf >> /etc/modprobe.conf.new
-            rm -f /etc/modprobe.conf
-            mv /etc/modprobe.conf.new /etc/modprobe.conf
-            fi
-
-            echo "DEVICE=$iname" > $devfile
-            echo "HWADDR=$mac" >> $devfile
-            echo "ONBOOT=yes" >> $devfile
-
+if [-x "/etc/modprobe.conf"]; then;
+    grep \$IFNAME /etc/modprobe.conf | sed "s/\$IFNAME/$iname/" >> /etc/modprobe.conf.cobbler
+    grep -v \$IFNAME /etc/modprobe.conf >> /etc/modprobe.conf.new
+    rm -f /etc/modprobe.conf
+    mv /etc/modprobe.conf.new /etc/modprobe.conf
+fi
+echo "DEVICE=$iname" > $devfile
+echo "HWADDR=$mac" >> $devfile
+echo "ONBOOT=yes" >> $devfile
             #if $bonding.lower() == "slave" and $bonding_master != ""
-                
                 ## if needed setup bonding
-
-                echo "SLAVE=yes" >> $devfile
-                echo "MASTER=$bonding_master" >> $devfile
+echo "SLAVE=yes" >> $devfile
+echo "MASTER=$bonding_master" >> $devfile
                 ## see Red Hat bugzilla 442339
-                echo "HOTPLUG=no" >> $devfile
+echo "HOTPLUG=no" >> $devfile
             #end if
-
             #if $static.lower() == "true" or $bonding.lower() == "slave"
-
                 ## for static or slave interfaces
-
                 #if $ip != "" and $bonding.lower() != "slave"
-                
-
                     ## Only configure static networking if an IP-address is
                     ## configured
-
-                    echo "BOOTPROTO=static" >> $devfile
-                    echo "IPADDR=$ip" >> $devfile
+echo "BOOTPROTO=static" >> $devfile
+echo "IPADDR=$ip" >> $devfile
                     #if $netmask == ""
                         ## Default to 255.255.255.0?
                         #set $netmask = "255.255.255.0"
                     #end if
-                    echo "NETMASK=$netmask" >> $devfile
-
+echo "NETMASK=$netmask" >> $devfile
                 #else
-
                     ## Leave the interface unconfigured
                     ## we don't have enough info for static configuration
-                    echo "BOOTPROTO=none" >> $devfile
-
+echo "BOOTPROTO=none" >> $devfile
                 #end if
-
             #else
                 ## this is a DHCP interface, much less work to do
-                echo "BOOTPROTO=dhcp" >> $devfile
+echo "BOOTPROTO=dhcp" >> $devfile
             #end if
-
         #else if $is_vlan == "true" or $bonding.lower() == "master"
-
             ## Handle non-physical interfaces with special care. :)
-
-            echo "# Cobbler generated non-physical interface" > $devfile
-            echo "DEVICE=$iname" >> $devfile
-            
+echo "# Cobbler generated non-physical interface" > $devfile
+echo "DEVICE=$iname" >> $devfile
             #if $is_vlan == "true"
                 ## configure vlan if required
-                echo "VLAN=yes" >> $devfile
+echo "VLAN=yes" >> $devfile
             #end if
-
             #if $bonding.lower() == "master" and $bonding_opts != ""
                 ## configure bonding if required
-                cat >> $devfile << EOF
-                BONDING_OPTS="$bonding_opts"
-                EOF
+cat >> $devfile << EOF
+BONDING_OPTS="$bonding_opts"
+EOF
             #end if
-
-            echo "ONPARENT=yes" >> $devfile
-            
+echo "ONPARENT=yes" >> $devfile
             #if $static.lower() == "true"
-
                 ## for static non-physical interfaces...
-
                 #if $ip != ""
                     ## Only configure static networking if an IP-address is
                     ## configured
-                    echo "BOOTPROTO=static" >> $devfile
-                    echo "IPADDR=$ip" >> $devfile
+echo "BOOTPROTO=static" >> $devfile
+echo "IPADDR=$ip" >> $devfile
                     #if $netmask == ""
                         ## Default to 255.255.255.0?
                         #set $netmask = "255.255.255.0"
                     #end if
-                    echo "NETMASK=$netmask" >> $devfile
+echo "NETMASK=$netmask" >> $devfile
                 #else
                     ## Leave the interface unconfigured
-                    echo "BOOTPROTO=none" >> $devfile
+echo "BOOTPROTO=none" >> $devfile
                 #end if
             #else
-                echo "BOOTPROTO=dhcp" >> $devfile
+echo "BOOTPROTO=dhcp" >> $devfile
             #end if
         #else if $configbymac == False
             ## We'll end up here when not all physical interfaces present for
             ## this system have MAC-addresses configured for them. We don't
             ## support interface renaming here.
-
-            MAC=\$(ifconfig -a | grep $iname | awk '{ print \$5 }')
-            
-            echo "DEVICE=$iname" > $devfile
-            echo "HWADDR=\$MAC" >> $devfile
-            echo "ONBOOT=yes" >> $devfile
-
-
+MAC=\$(ifconfig -a | grep $iname | awk '{ print \$5 }')
+echo "DEVICE=$iname" > $devfile
+echo "HWADDR=\$MAC" >> $devfile
+echo "ONBOOT=yes" >> $devfile
             #if $bonding.lower() == "slave" and $bonding_master != ""
-                
                 ## if needed setup bonding
-
-                echo "SLAVE=yes" >> $devfile
-                echo "MASTER=$bonding_master" >> $devfile
+echo "SLAVE=yes" >> $devfile
+echo "MASTER=$bonding_master" >> $devfile
                 ## see Red Hat bugzilla 442339
-                echo "HOTPLUG=no" >> $devfile
+echo "HOTPLUG=no" >> $devfile
             #end if
-
             #if $static.lower() == "true" or $bonding.lower() == "slave"
-
                 ## for static or slave interfaces
-
                 #if $ip != "" and $bonding.lower() != "slave"
-                
-
                     ## Only configure static networking if an IP-address is
                     ## configured
-
-                    echo "BOOTPROTO=static" >> $devfile
-                    echo "IPADDR=$ip" >> $devfile
+echo "BOOTPROTO=static" >> $devfile
+echo "IPADDR=$ip" >> $devfile
                     #if $netmask == ""
                         ## Default to 255.255.255.0?
                         #set $netmask = "255.255.255.0"
                     #end if
-                    echo "NETMASK=$netmask" >> $devfile
-
+echo "NETMASK=$netmask" >> $devfile
                 #else
-
                     ## Leave the interface unconfigured
                     ## we don't have enough info for static configuration
-                    echo "BOOTPROTO=none" >> $devfile
-
+echo "BOOTPROTO=none" >> $devfile
                 #end if
-
             #else
                 ## this is a DHCP interface, much less work to do
-                echo "BOOTPROTO=dhcp" >> $devfile
+echo "BOOTPROTO=dhcp" >> $devfile
             #end if
         #else
-            # jcapel:
             # If you end up here, please mail the list... This shouldn't
-            # happen. ;-)
+            # happen. ;-) -- jcapel
 	#end if
-            
         #set $nct = 0
         #for $nameserver in $name_servers
             #set $ct = $nct + 1
-            echo "DNS$ct=$nameserver" >> $devfile
+echo "DNS$ct=$nameserver" >> $devfile
         #end for
-	
 	#for $route in $static_routes
 	    #set routepattern = $re.compile("[0-9/.]+:[0-9.]+")
 	    #if $routepattern.match($route)
                 #set $routebits = $route.split(":")
                 #set [$network, $router] = $route.split(":")
-                echo "$network via $router" >> $routesfile
+echo "$network via $router" >> $routesfile
 	    #else
                 # Warning: invalid route "$route"
             #end if
 	#end for
 	#set $i = $i + 1
-        #  End configuration for $iname
+#  End configuration for $iname
 #end for	
-
 ## Move all staged files to their final location
 rm -f /etc/sysconfig/network-scripts/ifcfg-*
 mv /etc/sysconfig/network-scripts/cobbler/* /etc/sysconfig/network-scripts/
@@ -309,7 +225,5 @@ if [-x "/etc/modprobe.conf"]; then;
 cat /etc/modprobe.conf.cobbler >> /etc/modprobe.conf
 rm -f /etc/modprobe.conf.cobbler
 fi
-
 #end if
-
 # End post_install_network_config generated code
