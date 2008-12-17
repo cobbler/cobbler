@@ -54,7 +54,9 @@
     ## setup bonding if we have to
 
     #if $numbondingdevs > 0
-        echo "options bonding max_bonds=$numbondingdevs" >> /etc/modprobe.conf
+        if [-x "/etc/modprobe.conf"]; then;
+            echo "options bonding max_bonds=$numbondingdevs" >> /etc/modprobe.conf
+        fi 
     #end if
     
     ## =============================================================================
@@ -112,7 +114,9 @@
 
         #if $bonding.lower() == "master"
             ## Add required entry to modprobe.conf
+            if [-x "/etc/modprobe.conf"]; then
             echo "alias $iname bonding" >> /etc/modprobe.conf.cobbler
+            fi
         #end if
 
         #if $configbymac and $is_vlan == "false" and $bonding.lower() != "master"
@@ -125,10 +129,12 @@
             ## Rename this interface in modprobe.conf
             ## FIXME: if both interfaces startwith eth this is wrong
 
+            if [-x "/etc/modprobe.conf"]; then;
             grep \$IFNAME /etc/modprobe.conf | sed "s/\$IFNAME/$iname/" >> /etc/modprobe.conf.cobbler
             grep -v \$IFNAME /etc/modprobe.conf >> /etc/modprobe.conf.new
             rm -f /etc/modprobe.conf
             mv /etc/modprobe.conf.new /etc/modprobe.conf
+            fi
 
             echo "DEVICE=$iname" > $devfile
             echo "HWADDR=$mac" >> $devfile
@@ -299,8 +305,10 @@
 rm -f /etc/sysconfig/network-scripts/ifcfg-*
 mv /etc/sysconfig/network-scripts/cobbler/* /etc/sysconfig/network-scripts/
 rm -r /etc/sysconfig/network-scripts/cobbler
+if [-x "/etc/modprobe.conf"]; then;
 cat /etc/modprobe.conf.cobbler >> /etc/modprobe.conf
 rm -f /etc/modprobe.conf.cobbler
+fi
 
 #end if
 
