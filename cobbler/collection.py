@@ -148,6 +148,13 @@ class Collection(serializable.Serializable):
     def copy(self,ref,newname):
         ref.name = newname
         ref.uid = self.config.generate_uid()
+        if ref.COLLECTION_TYPE == "system":
+            # this should only happen for systems
+            for iname in ref.interfaces.keys():
+                # clear all these out to avoid DHCP/DNS conflicts
+                ref.set_dns_name("",iname)
+                ref.set_mac_address("",iname)
+                ref.set_ip_address("",iname)
         return self.add(ref,save=True,with_copy=True,with_triggers=True,with_sync=True,check_for_duplicate_names=True,check_for_duplicate_netinfo=False)
 
     def rename(self,ref,newname,with_sync=True,with_triggers=True):
