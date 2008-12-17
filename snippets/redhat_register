@@ -1,5 +1,5 @@
-#if $redhat_management_type != "off" and $redhat_management_key != ""
 # begin Red Hat management server registration
+#if $redhat_management_type != "off" and $redhat_management_key != ""
 mkdir -p /usr/share/rhn/
    #if $redhat_management_type == "site"
       #set $mycert = "/usr/share/rhn/RHN-ORG-TRUSTED-SSL-CERT"
@@ -10,7 +10,7 @@ wget http://$redhat_management_server/pub/RHN-ORG-TRUSTED-SSL-CERT -O $mycert
    #end if 
    #set $endpoint = "https://%s/XMLRPC" % $redhat_management_server
 rhnreg_ks --serverUrl=$endpoint --sslCACert=$mycert --activationkey=$redhat_management_key
-# end Red Hat management server registration
 #else
 # not configured to register to any Red Hat management server (ok)
 #end if
+# end Red Hat management server registration
