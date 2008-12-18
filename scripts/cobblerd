@@ -20,6 +20,7 @@ import cobbler.api as bootapi
 import cobbler.cobblerd as app
 import logging
 import cobbler.utils as utils
+import cobbler.sub_process as sub_process
 
 import optparse
 
@@ -31,9 +32,36 @@ import optparse
 #ch.setFormatter(formatter)
 #logger.addHandler(ch)
 
+SELINUX_PUBLIC_PATTERNS = {
+   "/var/lib/tftpboot" : "/var/lib/tftpboot/.*",
+   "/tftpboot" : "/tftpboot/.*",
+   "/var/www/cobbler/images" : "/var/www/cobbler/images/.*",
+}
+
+def selinux_setup():
+
+    if not utils.is_selinux_enabled():
+        return False
+
+    # install rules that will ensure content we are likely
+    # to hardlink between multiple locations gets the right
+    # context (public_content_t) instead of httpd_sys_content_t
+    # or tftpdir_t
+
+    for x in SELINUX_PUBLIC_PATTERNS.keys():
+        y = SELINUX_PUBLIC_PATTERNS[x]
+        if os.path.exists(x):
+            cmd = [ "/usr/sbin/semanage",
+                "fcontext",
+                "-a","-t","public_content_t",y
+            ]
+            print cmd
+            rc = sub_process.call(cmd)
+            
 def daemonize_self(logger):
     # daemonizing code:  http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66012
     logger.info("cobblerd started")
+    selinux_setup()
     try: 
         pid = os.fork() 
         if pid > 0:
