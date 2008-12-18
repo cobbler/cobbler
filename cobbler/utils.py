@@ -912,47 +912,17 @@ def restorecon(dest, api):
     hardlinking between /var/www and tftpboot but use
     restorecon everywhere else.
     """
-    
+ 
     if not api.is_selinux_enabled():
         return True
 
     tdest = os.path.realpath(dest)
-    
-    matched_path = False
-    if dest.startswith("/var/www"):
-       matched_path = True
-    elif dest.find("/tftpboot/"):
-       matched_path = True
-    remoted = is_remote_file(tdest)
+    # remoted = is_remote_file(tdest)
 
-
-    if matched_path and not is_remote_file(tdest):
-        # ensure the file is flagged as public_content_t
-        # because it's something we've likely hardlinked
-        # three ways between tftpboot, /var/www and the source
-        cmd = ["/usr/bin/chcon","-t","public_content_t", tdest]
-        rc = sub_process.call(cmd,shell=False,close_fds=True)
-        if rc != 0:
-            raise CX("chcon operation failed: %s" % cmd)
-        # make it sticky
-        cmd = ["/usr/sbin/semanage","fcontext","-a","-t","public_content_t",tdest]
-        rc = sub_process.call(cmd,shell=False,close_fds=True)
-        if rc != 0:
-            # this seems to lock up...
-            # maybe it's already set!
-            #cmd = ["/usr/sbin/semanage","fcontext","-m","-t","public_content_t",tdest]
-            #time.sleep(0.1)
-            #rc = sub_process.call(cmd,shell=False,close_fds=True)
-            #if rc != 0:
-            #    raise CX("semanage operation failed: %s" % cmd)
-            pass
-
-    if (not matched_path) or (matched_path and remoted):
-        # the basic restorecon stuff...
-        cmd = [ "/sbin/restorecon",dest ]
-        rc = sub_process.call(cmd,shell=False,close_fds=True)
-        if rc != 0:
-            raise CX("restorecon operation failed: %s" % cmd)
+    cmd = [ "/sbin/restorecon",dest ]
+    rc = sub_process.call(cmd,shell=False,close_fds=True)
+    if rc != 0:
+        raise CX("restorecon operation failed: %s" % cmd)
 
     return 0
 
@@ -1228,6 +1198,8 @@ def safe_filter(var):
        raise CX("Invalid characters found in input")
 
 def is_selinux_enabled():
+    if not os.path.exists("/usr/sbin/selinuxenabled"):
+       return False
     args = "/usr/sbin/selinuxenabled"
     selinuxenabled = sub_process.call(args,close_fds=True)
     if selinuxenabled == 0:
