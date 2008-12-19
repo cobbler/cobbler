@@ -136,10 +136,10 @@ class BuildIso:
               # FIXME: this will likely crash on non-Linux breeds
               f1 = os.path.join(isolinuxdir, "%s.krn" % distname)
               f2 = os.path.join(isolinuxdir, "%s.img" % distname)
-              if not os.path.exists(f1):
-                 raise CX("path does not exist: %s" % f1)
-              if not os.path.exists(f2):
-                 raise CX("path does not exist: %s" % f2)
+              if not os.path.exists(dist.kernel):
+                 raise CX("path does not exist: %s" % dist.kernel)
+              if not os.path.exists(dist.initrd):
+                 raise CX("path does not exist: %s" % dist.initrd)
               shutil.copyfile(dist.kernel, f1)
               shutil.copyfile(dist.initrd, f2)
 
