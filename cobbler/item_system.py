@@ -285,6 +285,12 @@ interface.
         self.set_image(self.image)
         self.set_profile(self.profile)
 
+
+        # enforce that the system extends from a profile or system but not both
+        # profile wins as it's the more common usage
+        self.set_image(self.image)
+        self.set_profile(self.profile)
+
         return self
 
     def get_parent(self):

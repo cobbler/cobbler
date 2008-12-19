@@ -75,7 +75,7 @@ restorestate:
 completion:
 	python mkbash.py
 
-webtest: 
+webtest: updatewui devinstall
 	make clean 
 	make updatewui 
 	make devinstall 

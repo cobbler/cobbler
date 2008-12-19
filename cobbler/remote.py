@@ -49,7 +49,7 @@ import item_system
 import item_repo
 import item_image
 from utils import *
-from utils import _ # * does not import _
+from utils import _
 
 # FIXME: make configurable?
 TOKEN_TIMEOUT = 60*60 # 60 minutes
