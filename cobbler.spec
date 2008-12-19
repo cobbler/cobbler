@@ -80,7 +80,6 @@ PREFIX="--prefix=/usr"
 if [ -x /usr/sbin/semanage ]; then
    /usr/sbin/selinuxenabled
    if [ "$?" -eq "0" ]; then
-       echo "selinux is enabled"
        /usr/sbin/semanage fcontext -a -t public_content_t "/var/www/cobbler/images/.*" >/dev/null &2>1 || /bin/true
        /usr/sbin/semanage fcontext -a -t public_content_t "/var/lib/tftpboot/images/.*" >/dev/null &2>1 || /bin/true
        /usr/sbin/semanage fcontext -a -t public_content_t "/tftpboot/images/.*" >/dev/null &2>1 || /bin/true
