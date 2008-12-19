@@ -1106,7 +1106,6 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         return self.api.copy_distro(obj,newname)
 
     def copy_profile(self,object_id,newname,token=None):
-        self.log("copy_profile",object_id=object_id,token=token)
         self._log("copy_profile",object_id=object_id,token=token)
         self.check_access(token,"copy_profile")
         obj = self.__get_object(object_id)
