@@ -2,11 +2,7 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-<<<<<<< HEAD:cobbler.spec
-Version: 1.2.9
-=======
 Version: 1.4.0
->>>>>>> devel:cobbler.spec
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+

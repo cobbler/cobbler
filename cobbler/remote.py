@@ -196,14 +196,8 @@ class CobblerXMLRPCInterface:
         #self.check_access(token, "get_kickstart_templates")
         return utils.get_kickstart_templates(self.api)
 
-<<<<<<< HEAD:cobbler/remote.py
-    def is_kickstart_in_use(self,ks,token,**rest):
-        self.log("is_kickstart_in_use",token=token)
-        # do not check access on this method, it's essentially read-only
-=======
     def is_kickstart_in_use(self,ks,token=None,**rest):
         self._log("is_kickstart_in_use",token=token)
->>>>>>> devel:cobbler/remote.py
         for x in self.api.profiles():
            if x.kickstart is not None and x.kickstart == ks:
                return True
@@ -1112,41 +1106,26 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         return self.api.copy_distro(obj,newname)
 
     def copy_profile(self,object_id,newname,token=None):
-<<<<<<< HEAD:cobbler/remote.py
         self.log("copy_profile",object_id=object_id,token=token)
-=======
         self._log("copy_profile",object_id=object_id,token=token)
->>>>>>> devel:cobbler/remote.py
         self.check_access(token,"copy_profile")
         obj = self.__get_object(object_id)
         return self.api.copy_profile(obj,newname)
 
     def copy_system(self,object_id,newname,token=None):
-<<<<<<< HEAD:cobbler/remote.py
-        self.log("copy_system",object_id=object_id,token=token)
-=======
         self._log("copy_system",object_id=object_id,token=token)
->>>>>>> devel:cobbler/remote.py
         self.check_access(token,"copy_system")
         obj = self.__get_object(object_id)
         return self.api.copy_system(obj,newname)
 
     def copy_repo(self,object_id,newname,token=None):
-<<<<<<< HEAD:cobbler/remote.py
-        self.log("copy_repo",object_id=object_id,token=token)
-=======
         self._log("copy_repo",object_id=object_id,token=token)
->>>>>>> devel:cobbler/remote.py
         self.check_access(token,"copy_repo")
         obj = self.__get_object(object_id)
         return self.api.copy_repo(obj,newname)
 
     def copy_image(self,object_id,newname,token=None):
-<<<<<<< HEAD:cobbler/remote.py
-        self.log("copy_image",object_id=object_id,token=token)
-=======
         self._log("copy_image",object_id=object_id,token=token)
->>>>>>> devel:cobbler/remote.py
         self.check_access(token,"copy_image")
         obj = self.__get_object(object_id)
         return self.api.copy_image(obj,newname)
