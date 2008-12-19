@@ -78,9 +78,13 @@ PREFIX="--prefix=/usr"
 %post
 # add selinux rules
 if [ -x /usr/sbin/semanage ]; then
-   /usr/sbin/semanage fcontext -a -t public_content_t "/var/www/cobbler/images/.*"
-   /usr/sbin/semanage fcontext -a -t public_content_t "/var/lib/tftpboot/images/.*"
-   /usr/sbin/semanage fcontext -a -t public_content_t "/tftpboot/images/.*"
+   /usr/sbin/selinuxenabled
+   if [ "$?" -eq "0" ]; then
+       echo "selinux is enabled"
+       /usr/sbin/semanage fcontext -a -t public_content_t "/var/www/cobbler/images/.*" >/dev/null &2>1 || /bin/true
+       /usr/sbin/semanage fcontext -a -t public_content_t "/var/lib/tftpboot/images/.*" >/dev/null &2>1 || /bin/true
+       /usr/sbin/semanage fcontext -a -t public_content_t "/tftpboot/images/.*" >/dev/null &2>1 || /bin/true
+   fi
 fi
 
 # backup config
@@ -129,9 +133,12 @@ if [ "$1" -ge "1" ]; then
 fi
 # remove selinux rules
 if [ -x /usr/sbin/semanage ]; then
-   /usr/sbin/semanage fcontext -d "/var/www/cobbler/images/.*"
-   /usr/sbin/semanage fcontext -d "/var/lib/tftpboot/images/.*"
-   /usr/sbin/semanage fcontext -d "/tftpboot/images/.*"
+   /usr/sbin/selinuxenabled
+   if [ "$?" -eq "0" ]; then
+       /usr/sbin/semanage fcontext -d "/var/www/cobbler/images/.*" 1>/dev/null 2>&1 || /bin/true
+       /usr/sbin/semanage fcontext -d "/var/lib/tftpboot/images/.*" 1>/dev/null 2>&1 || /bin/true
+        /usr/sbin/semanage fcontext -d "/tftpboot/images/.*" 1>/dev/null 2>&1 || /bin/true
+   fi
 fi
 
 
