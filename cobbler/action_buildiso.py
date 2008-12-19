@@ -134,8 +134,14 @@ class BuildIso:
               distname = self.make_shorter(dist.name)
               # tempdir/isolinux/$distro/vmlinuz, initrd.img
               # FIXME: this will likely crash on non-Linux breeds
-              shutil.copyfile(dist.kernel, os.path.join(isolinuxdir, "%s.krn" % distname))
-              shutil.copyfile(dist.initrd, os.path.join(isolinuxdir, "%s.img" % distname))
+              f1 = os.path.join(isolinuxdir, "%s.krn" % distname)
+              f2 = os.path.join(isolinuxdir, "%s.img" % distname)
+              if not os.path.exists(f1):
+                 raise CX("path does not exist: %s" % f1)
+              if not os.path.exists(f2):
+                 raise CX("path does not exist: %s" % f2)
+              shutil.copyfile(dist.kernel, f1)
+              shutil.copyfile(dist.initrd, f2)
 
         if systems is not None:
            print _("- copying kernels and initrds - for systems")
