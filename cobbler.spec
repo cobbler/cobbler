@@ -283,7 +283,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 * Fri Dec 19 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.0-1
 - Upstream changes (see CHANGELOG)
-- Updated selinux setup
 
 * Wed Dec 10 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.4-1
 - Updated test release (see CHANGELOG)
