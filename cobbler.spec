@@ -76,15 +76,6 @@ PREFIX="--prefix=/usr"
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
 
 %post
-# add selinux rules
-if [ -x /usr/sbin/semanage ]; then
-   /usr/sbin/selinuxenabled
-   if [ "$?" -eq "0" ]; then
-       /usr/sbin/semanage fcontext -a -t public_content_t "/var/www/cobbler/images/.*" >/dev/null &2>1 || /bin/true
-       /usr/sbin/semanage fcontext -a -t public_content_t "/var/lib/tftpboot/images/.*" >/dev/null &2>1 || /bin/true
-       /usr/sbin/semanage fcontext -a -t public_content_t "/tftpboot/images/.*" >/dev/null &2>1 || /bin/true
-   fi
-fi
 
 # backup config
 if [ -e /var/lib/cobbler/distros ]; then
@@ -129,15 +120,6 @@ fi
 if [ "$1" -ge "1" ]; then
     /sbin/service cobblerd condrestart >/dev/null 2>&1 || :
     /sbin/service httpd condrestart >/dev/null 2>&1 || :
-fi
-# remove selinux rules
-if [ -x /usr/sbin/semanage ]; then
-   /usr/sbin/selinuxenabled
-   if [ "$?" -eq "0" ]; then
-       /usr/sbin/semanage fcontext -d "/var/www/cobbler/images/.*" 1>/dev/null 2>&1 || /bin/true
-       /usr/sbin/semanage fcontext -d "/var/lib/tftpboot/images/.*" 1>/dev/null 2>&1 || /bin/true
-        /usr/sbin/semanage fcontext -d "/tftpboot/images/.*" 1>/dev/null 2>&1 || /bin/true
-   fi
 fi
 
 
