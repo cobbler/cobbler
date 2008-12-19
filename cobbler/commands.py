@@ -59,7 +59,13 @@ class FunctionLoader:
         # if no args given, show all loaded fns
         if len(args) == 1:
             return self.show_options()
+
         called_name = args[1].lower()
+
+        # if -v or --version, make it work
+        if called_name in [ "--version", "-v" ]:
+           called_name = "version"
+           args = [ "/usr/bin/cobbler", "version" ]
 
 
         # also show avail options if command name is bogus
@@ -161,8 +167,8 @@ class FunctionLoader:
         Prints out all loaded functions.
         """
 
-        print "commands:"
-        print "========="
+        print "commands:  (use --help on a subcommand for usage)"
+        print "========"
 
         names = self.functions.keys()
         names.sort()
@@ -254,7 +260,7 @@ class CobblerFunction:
                 print "usage:"
                 print "======"
                 for x in subs: 
-                    print "cobbler %s %s [ARGS|--help]" % (self.command_name(), x)
+                    print "cobbler %s %s [ARGS]" % (self.command_name(), x)
                 return True
         (self.options, self.args) = p.parse_args(args)
         return True
@@ -271,6 +277,27 @@ class CobblerFunction:
             if obj is None:
                 raise CX(_("object not found")) 
             return obj
+
+        if "poweron" in self.args:
+            obj = collect_fn().find(self.options.name)
+            if obj is None:
+                raise CX(_("object not found"))
+            self.api.power_on(obj,self.options.power_user,self.options.power_pass)
+            return None
+
+        if "poweroff" in self.args:
+            obj = collect_fn().find(self.options.name)
+            if obj is None:
+                raise CX(_("object not found"))
+            self.api.power_off(obj,self.options.power_user,self.options.power_pass)
+            return None
+
+        if "reboot" in self.args:
+            obj = collect_fn().find(self.options.name)
+            if obj is None:
+                raise CX(_("object not found"))
+            self.api.reboot(obj,self.options.power_user,self.options.power_pass)
+            return None
 
         if "remove" in self.args:
             recursive = False
@@ -291,10 +318,11 @@ class CobblerFunction:
 
         if "report" in self.args:
             if self.options.name is None:
-                self.reporting_print_sorted(collect_fn())
+                return self.api.report(report_what = self.args[1], report_name = None, \
+                               report_type = 'text', report_fields = 'all')
             else:
-                self.reporting_list_names2(collect_fn(),self.options.name)
-            return None
+                return self.api.report(report_what = self.args[1], report_name = self.options.name, \
+                                report_type = 'text', report_fields = 'all')
 
         if "getks" in self.args:
             if not self.options.name:
@@ -349,8 +377,18 @@ class CobblerFunction:
 
         if "copy" in self.args:
             if self.options.newname:
-                obj = obj.make_clone()
-                obj.set_name(self.options.newname)
+                # FIXME: this should just use the copy function!
+                if obj.COLLECTION_TYPE == "distro":
+                   return self.api.copy_distro(obj, self.options.newname)
+                if obj.COLLECTION_TYPE == "profile":
+                   return self.api.copy_profile(obj, self.options.newname)
+                if obj.COLLECTION_TYPE == "system":
+                   return self.api.copy_system(obj, self.options.newname)
+                if obj.COLLECTION_TYPE == "repo":
+                   return self.api.copy_repo(obj, self.options.newname)
+                if obj.COLLECTION_TYPE == "image":
+                   return self.api.copy_image(obj, self.options.newname)
+                raise CX(_("internal error, don't know how to copy"))
             else:
                 raise CX(_("--newname is required"))
 
@@ -395,31 +433,6 @@ class CobblerFunction:
             rc = collect_fn().rename(obj, self.options.newname, with_triggers=opt_triggers)
 
         return rc
-
-    def reporting_sorter(self, a, b):
-        """
-        Used for sorting cobbler objects for report commands
-        """
-        return cmp(a.name, b.name)
-
-    def reporting_print_sorted(self, collection):
-        """
-        Prints all objects in a collection sorted by name
-        """
-        collection = [x for x in collection]
-        collection.sort(self.reporting_sorter)
-        for x in collection:
-            print x.printable()
-        return True
-
-    def reporting_list_names2(self, collection, name):
-        """
-        Prints a specific object in a collection.
-        """
-        obj = collection.find(name=name)
-        if obj is not None:
-            print obj.printable()
-        return True
 
     def list_tree(self,collection,level):
         """

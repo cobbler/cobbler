@@ -83,16 +83,16 @@ class BindManager:
         """
         zones = {}
         for zone in self.settings.manage_forward_zones:
-           zones[zone] = []
+           zones[zone] = {}
 
         for system in self.systems:
             for (name, interface) in system.interfaces.iteritems():
-                host = interface["hostname"]
+                host = interface["dns_name"]
                 ip   = interface["ip_address"]
                 if not system.is_management_supported(cidr_ok=False):
                     continue
                 if not host or not ip:
-                    # gotsta have some hostname and ip or else!
+                    # gotsta have some dns_name and ip or else!
                     continue
                 if host.find(".") == -1:
                     continue
@@ -111,18 +111,12 @@ class BindManager:
                 if best_match == '': # no match
                    continue
 
-                # strip the zone off the hostname and append the
+                # strip the zone off the dns_name and append the
                 # remainder + ip to the zone list
                 host = host.replace(best_match, '')
                 if host[-1] == '.': # strip trailing '.' if it's there
                    host = host[:-1]
-                zones[best_match].append((host, ip))
-
-        # axe zones that are defined in manage_forward_zones
-        # but don't actually match any hosts
-        for (k,v) in zones.items():
-           if v == []:
-              zones.pop(k)
+                zones[best_match][host] = ip
 
         return zones
 
@@ -133,16 +127,16 @@ class BindManager:
         """
         zones = {}
         for zone in self.settings.manage_reverse_zones:
-           zones[zone] = []
+           zones[zone] = {}
 
         for sys in self.systems:
             for (name, interface) in sys.interfaces.iteritems():
-                host = interface["hostname"]
+                host = interface["dns_name"]
                 ip   = interface["ip_address"]
                 if not sys.is_management_supported(cidr_ok=False):
                     continue
                 if not host or not ip:
-                    # gotsta have some hostname and ip or else!
+                    # gotsta have some dns_name and ip or else!
                     continue
 
                 # match the longest zone!
@@ -161,20 +155,14 @@ class BindManager:
 
                 # strip the zone off the front of the ip
                 # reverse the rest of the octets
-                # append the remainder + hostname
+                # append the remainder + dns_name
                 ip = ip.replace(best_match, '', 1)
                 if ip[0] == '.': # strip leading '.' if it's there
                    ip = ip[1:]
                 tokens = ip.split('.')
                 tokens.reverse()
                 ip = '.'.join(tokens)
-                zones[best_match].append((ip, host + '.'))
-
-        # axe zones that are defined in manage_forward_zones
-        # but don't actually match any hosts
-        for (k,v) in zones.items():
-           if v == []:
-              zones.pop(k)
+                zones[best_match][ip] = host + '.'
 
         return zones
 
@@ -188,8 +176,11 @@ class BindManager:
         forward_zones = self.settings.manage_forward_zones
         reverse_zones = self.settings.manage_reverse_zones
 
-        metadata = {'zone_include': ''}
-        for zone in self.__forward_zones().keys():
+        metadata = {'forward_zones': self.__forward_zones().keys(),
+                    'reverse_zones': [],
+                    'zone_include': ''}
+
+        for zone in metadata['forward_zones']:
                 txt =  """
 zone "%(zone)s." {
     type master;
@@ -202,6 +193,7 @@ zone "%(zone)s." {
                 tokens = zone.split('.')
                 tokens.reverse()
                 arpa = '.'.join(tokens) + '.in-addr.arpa'
+                metadata['reverse_zones'].append((zone, arpa))
                 txt = """
 zone "%(arpa)s." {
     type master;
@@ -219,6 +211,39 @@ zone "%(arpa)s." {
         f2.close()
 
         self.templar.render(template_data, metadata, settings_file, None)
+
+    def __ip_sort(self, ips):
+        """
+        Sorts IP addresses (or partial addresses) in a numerical fashion per-octet
+        """
+        # strings to integer octet chunks so we can sort numerically
+        octets = map(lambda x: [int(i) for i in x.split('.')], ips)
+        octets.sort()
+        # integers back to strings
+        octets = map(lambda x: [str(i) for i in x], octets)
+        return ['.'.join(i) for i in octets]
+
+    def __pretty_print_host_records(self, hosts, type='A', rclass='IN'):
+        """
+        Format host records by order and with consistent indentation
+        """
+        names = [k for k,v in hosts.iteritems()]
+        if not names: return '' # zones with no hosts
+
+        if type == 'PTR':
+           names = self.__ip_sort(names)
+        else:
+           names.sort()
+
+        max_name = max([len(i) for i in names])
+
+        s = ""
+        for name in names:
+           s += "%s  %s  %s  %s\n" % (name + (" " * (max_name - len(name))),
+                                      rclass,
+                                      type,
+                                      hosts[name])
+        return s
 
     def __write_zone_files(self):
         """
@@ -253,9 +278,7 @@ zone "%(arpa)s." {
             except:
                template_data = default_template_data
 
-            for host in hosts:
-                txt = '%s\tIN\tA\t%s\n' % host
-                metadata['host_record'] = metadata['host_record'] + txt
+            metadata['host_record'] = self.__pretty_print_host_records(hosts)
 
             self.templar.render(template_data, metadata, '/var/named/' + zone, None)
 
@@ -274,9 +297,7 @@ zone "%(arpa)s." {
             except:
                template_data = default_template_data
 
-            for host in hosts:
-                txt = '%s\tIN\tPTR\t%s\n' % host
-                metadata['host_record'] = metadata['host_record'] + txt
+            metadata['host_record'] = self.__pretty_print_host_records(hosts, type='PTR')
 
             self.templar.render(template_data, metadata, '/var/named/' + zone, None)
 

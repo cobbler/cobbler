@@ -1,0 +1,22 @@
+#!/usr/bin/python
+
+from cobbler import yaml as yaml
+import urlgrabber
+import sys
+
+if __name__ == "__main__":
+   hostname = None
+   try:
+      hostname = sys.argv[1]
+   except:
+      print "usage: cobbler-ext-nodes <hostname>"
+
+   if hostname is not None:
+       conf = open("/etc/cobbler/settings")
+       data = conf.read()
+       conf.close()
+       server = yaml.load(data).next()["server"]
+       url = "http://%s/cblr/svc/op/puppet/hostname/%s" % (server, hostname)
+       print urlgrabber.urlread(url)
+
+

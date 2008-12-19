@@ -25,7 +25,6 @@ import os
 import os.path
 import shutil
 import time
-import sub_process
 import sys
 import glob
 import traceback
@@ -95,7 +94,7 @@ class KickGen:
         elif kickstart_path is not None and not os.path.exists(kickstart_path):
             if kickstart_path.find("http://") == -1 and kickstart_path.find("ftp://") == -1 and kickstart_path.find("nfs:") == -1:
                 return "# Error, cannot find %s" % kickstart_path
-        return "# kickstart is sourced externally: %s" % meta["kickstart"]
+        return "# kickstart is sourced externally, or is missing, and cannot be displayed here: %s" % meta["kickstart"]
 
     def generate_kickstart_signal(self, is_pre=0, profile=None, system=None):
         """
@@ -243,6 +242,7 @@ class KickGen:
                 meta["kickstart_done"]  = self.generate_kickstart_signal(0, profile, s)
                 meta["kickstart_start"] = self.generate_kickstart_signal(1, profile, s)
                 meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
+                # meta["config_template_files"] = self.generate_template_files_stanza(g, False)
                 kfile = open(kickstart_path)
                 data = self.templar.render(kfile, meta, None, s)
                 kfile.close()
@@ -256,4 +256,24 @@ class KickGen:
         return "# kickstart is sourced externally: %s" % meta["kickstart"]
 
 
+#    def generate_template_files_stanza(self, obj, is_profile=True):
+#        """
+#        """
+#
+#        results = "\n# Cobbler-managed configuration files\n"
+#
+#        blended = utils.blender(self.api, False, obj)
+#        for template in obj.template_files.keys():
+#            original_path = obj.template_files[template]
+#            path = original_path.replace("_", "__")
+#            path = path.replace("/", "_")
+#
+#            if is_profile:
+#               url = "http://%s/cblr/svc/op/template/profile/%s/path/%s" % (blended["http_server"], obj.name, path)
+#            else:
+#               url = "http://%s/cblr/svc/op/template/system/%s/path/%s" % (blended["http_server"], obj.name, path)
+#
+#            results += "wget \"%s\" --output-document=\"%s\"\n" % (url, original_path)
+#
+#        return results
 

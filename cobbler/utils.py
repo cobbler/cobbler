@@ -37,8 +37,11 @@ import tempfile
 import signal
 from cexceptions import *
 import codes
+import time
 
 CHEETAH_ERROR_DISCLAIMER="""
+# *** ERROR ***
+#
 # There is a templating error preventing this file from rendering correctly. 
 #
 # This is most likely not due to a bug in Cobbler and is something you can fix.
@@ -58,22 +61,6 @@ CHEETAH_ERROR_DISCLAIMER="""
 def _(foo):
    return foo
 
-# we can't use the API as non-root to read settings, so
-# this is a hack for mod python to find the port.  It's
-# fragile and ugly, but presently needed
-def parse_settings_lame(look_for,default="?"):
-   fd = open("/etc/cobbler/settings","r")
-   data = fd.read()
-   fd.close()
-   for line in data.split("\n"):
-      if line.find(look_for) !=-1 and line.find(":") != -1:
-          try:
-              tokens = line.split(":")
-              return tokens[-1].replace(" ","")
-          except:
-              return default
-   return default
-
 MODULE_CACHE = {}
 
 # import api # factor out
@@ -81,14 +68,14 @@ MODULE_CACHE = {}
 _re_kernel = re.compile(r'vmlinuz(.*)')
 _re_initrd = re.compile(r'initrd(.*).img')
 
-def setup_logger(name):
+def setup_logger(name, log_level=logging.INFO, log_file="/var/log/cobbler/cobbler.log"):
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(log_level)
     try:
-        ch = logging.FileHandler("/var/log/cobbler/cobbler.log")
+        ch = logging.FileHandler(log_file)
     except:
         raise CX(_("No write permissions on log file.  Are you root?"))
-    ch.setLevel(logging.INFO)
+    ch.setLevel(log_level)
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(message)s")
     ch.setFormatter(formatter)
     logger.addHandler(ch)
@@ -158,7 +145,7 @@ def get_host_ip(ip, shorten=True):
        # CIDR notation
        (ip, slash) = ip.split("/")
 
-    handle = sub_process.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=sub_process.PIPE)
+    handle = sub_process.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=sub_process.PIPE, close_fds=True)
     out = handle.stdout
     results = out.read()
     converted = results.split(" ")[-1][0:8]
@@ -379,7 +366,7 @@ def input_string_or_list(options,delim=","):
     """
     Accepts a delimited list of stuff or a list, but always returns a list.
     """
-    if options is None or options == "delete":
+    if options is None or options == "" or options == "delete":
        return []
     elif type(options) == list:
        return options
@@ -437,6 +424,13 @@ def input_string_or_hash(options,delim=",",allow_multiples=True):
     else:
         raise CX(_("invalid input type"))
 
+def input_boolean(value):
+    value = str(value)
+    if value.lower() in [ "true", "1", "on", "yes", "y" ]:
+       return True
+    else:
+       return False
+
 def grab_tree(api_handle, obj):
     """
     Climb the tree and get every node.
@@ -457,8 +451,6 @@ def blender(api_handle,remove_hashes, root_obj):
     consolidated data.
     """
  
-    blend_key = "%s/%s/%s" % (root_obj.TYPE_NAME, root_obj.name, remove_hashes)
-
     settings = api_handle.settings()
     tree = grab_tree(api_handle, root_obj)
     tree.reverse()  # start with top of tree, override going down
@@ -504,9 +496,19 @@ def blender(api_handle,remove_hashes, root_obj):
     else:
        results["http_server"] = results["server"]
 
+    mgmt_parameters = results.get("mgmt_parameters",{})
+    mgmt_parameters.update(results.get("ks_meta", {}))
+    results["mgmt_parameters"] = mgmt_parameters
+ 
     # sanitize output for koan and kernel option lines, etc
     if remove_hashes:
         results = flatten(results)
+
+    # the password field is inputed as escaped strings but Cheetah
+    # does weird things when expanding it due to multiple dollar signs
+    # so this is the workaround
+    if results.has_key("default_password_crypted"):
+        results["default_password_crypted"] = results["default_password_crypted"].replace("\$","$")
 
     # add in some variables for easier templating
     # as these variables change based on object type
@@ -545,6 +547,8 @@ def flatten(data):
         data["yumopts"]        = hash_to_string(data["yumopts"])
     if data.has_key("ks_meta"):
         data["ks_meta"] = hash_to_string(data["ks_meta"])
+    if data.has_key("template_files"):
+        data["template_files"] = hash_to_string(data["template_files"])
     if data.has_key("repos") and type(data["repos"]) == list:
         data["repos"]   = " ".join(data["repos"])
     if data.has_key("rpm_list") and type(data["rpm_list"]) == list:
@@ -554,6 +558,22 @@ def flatten(data):
     # it to be a string, nor do we use it on a kernel options line, etc...
  
     return data
+
+def uniquify(seq, idfun=None): 
+    # credit: http://www.peterbe.com/plog/uniqifiers-benchmark
+    # FIXME: if this is actually slower than some other way, overhaul it
+    if idfun is None:
+        def idfun(x): 
+           return x
+    seen = {}
+    result = []
+    for item in seq:
+        marker = idfun(item)
+        if marker in seen:
+            continue
+        seen[marker] = 1
+        result.append(item)
+    return result
 
 def __consolidate(node,results):
     """
@@ -583,13 +603,17 @@ def __consolidate(node,results):
  
           # now merge data types seperately depending on whether they are hash, list,
           # or scalar.
-          if type(data_item) == dict:
+
+          fielddata = results[field]
+
+          if type(fielddata) == dict:
              # interweave hash results
              results[field].update(data_item.copy())
-          elif type(data_item) == list or type(data_item) == tuple:
+          elif type(fielddata) == list or type(fielddata) == tuple:
              # add to lists (cobbler doesn't have many lists)
              # FIXME: should probably uniqueify list after doing this
              results[field].extend(data_item)
+             results[field] = uniquify(results[field])
           else:
              # just override scalars
              results[field] = data_item
@@ -603,6 +627,7 @@ def __consolidate(node,results):
     hash_removals(results,"kernel_options")
     hash_removals(results,"kernel_options_post")
     hash_removals(results,"ks_meta")
+    hash_removals(results,"template_files")
 
 def hash_removals(results,subkey):
     if not results.has_key(subkey):
@@ -651,8 +676,8 @@ def run_triggers(ref,globber,additional=[]):
     triggers.sort()
     for file in triggers:
         try:
-            if file.find(".rpm") != -1:
-                # skip .rpmnew files that may have been installed
+            if file.startswith(".") or file.find(".rpm") != -1:
+                # skip dotfiles or .rpmnew files that may have been installed
                 # in the triggers directory
                 continue
             arglist = [ file ]
@@ -660,7 +685,7 @@ def run_triggers(ref,globber,additional=[]):
                 arglist.append(ref.name)
             for x in additional:
                 arglist.append(x)
-            rc = sub_process.call(arglist, shell=False)
+            rc = sub_process.call(arglist, shell=False, close_fds=True)
         except:
             print _("Warning: failed to execute trigger: %s" % file)
             continue
@@ -694,6 +719,8 @@ def check_dist():
     """
     if os.path.exists("/etc/debian_version"):
        return "debian"
+    elif os.path.exists("/etc/SuSE-release"):
+       return "suse"
     else:
        # valid for Fedora and all Red Hat / Fedora derivatives
        return "redhat"
@@ -705,7 +732,7 @@ def os_release():
       if not os.path.exists("/bin/rpm"):
          return ("unknown", 0)
       args = ["/bin/rpm", "-q", "--whatprovides", "redhat-release"]
-      cmd = sub_process.Popen(args,shell=False,stdout=sub_process.PIPE)
+      cmd = sub_process.Popen(args,shell=False,stdout=sub_process.PIPE,close_fds=True)
       data = cmd.communicate()[0]
       data = data.rstrip().lower()
       make = "other"
@@ -721,6 +748,10 @@ def os_release():
          parts = version.split("-")
          version = parts[0]
          rest = parts[1]
+      try:
+         version = float(version)
+      except:
+         version = float(version[0])
       return (make, float(version), rest)
    elif check_dist() == "debian":
       fd = open("/etc/debian_version")
@@ -728,6 +759,15 @@ def os_release():
       version = parts[0]
       rest = parts[1]
       make = "debian"
+      return (make, float(version), rest)
+   elif check_dist() == "suse":
+      fd = open("/etc/SuSE-release")
+      for line in fd.read().split("\n"):
+         if line.find("VERSION") != -1:
+            version = line.replace("VERSION = ","")
+         if line.find("PATCHLEVEL") != -1:
+            rest = line.replace("PATCHLEVEL = ","")
+      make = "suse"
       return (make, float(version), rest)
    else:
       return ("unknown",0)
@@ -754,57 +794,137 @@ def tftpboot_location():
        return "/var/lib/tftpboot"
     return "/tftpboot"
 
-def linkfile(src, dst, symlink_ok=False):
+def can_do_public_content(api):
+    """
+    Returns whether we can use public_content_t which greatly
+    simplifies SELinux usage.
+    """
+    (dist, ver) = api.get_os_details()
+    if dist == "redhat" and ver <= 4:
+       return False
+    return True
+
+def is_safe_to_hardlink(src,dst,api):
+    (dev1, path1) = get_file_device_path(src)
+    (dev2, path2) = get_file_device_path(dst)
+    if dev1 != dev2:
+       return False
+    if dev1.find(":") != -1:
+       # is remoted
+       return False
+    # note: this is very cobbler implementation specific!
+    if not api.is_selinux_enabled():
+       return True
+    if src.find("initrd") != -1:
+       return True
+    if src.find("vmlinuz") != -1:
+       return True
+    # we're dealing with SELinux and files that are not safe to chcon
+    return False
+
+def linkfile(src, dst, symlink_ok=False, api=None):
     """
     Attempt to create a link dst that points to src.  Because file
     systems suck we attempt several different methods or bail to
     copyfile()
     """
 
+    if api is None:
+        # FIXME: this really should not be a keyword
+        # arg
+        raise "Internal error: API handle is required"
+
+    is_remote = is_remote_file(src)
+
     if os.path.exists(dst):
+        # if the destination exists, is it right in terms of accuracy
+        # and context?
         if os.path.samefile(src, dst):
-            # hardlink already exists, no action needed
-            return True
+            if not is_safe_to_hardlink(src,dst,api):
+                # may have to remove old hardlinks for SELinux reasons
+                # as previous implementations were not complete
+                os.remove(dst)
+            else:
+                restorecon(dst,api=api)
+                return True
         elif os.path.islink(dst):
             # existing path exists and is a symlink, update the symlink
             os.remove(dst)
-        else:
-            # file already exists as is not a link, we'll try
-            # to copy over it
+
+    if is_safe_to_hardlink(src,dst,api):
+        # we can try a hardlink if the destination isn't to NFS or Samba
+        # this will help save space and sync time.
+        try:
+            rc = os.link(src, dst)
+            restorecon(dst,api=api)
+            return rc
+        except (IOError, OSError):
+            # hardlink across devices, or link already exists
+            # can result in extra call to restorecon but no
+            # major harm, we'll just symlink it if we can
+            # or otherwise copy it
             pass
 
-    try:
-        return os.link(src, dst)
-    except (IOError, OSError):
-        # hardlink across devices, or link already exists
-        pass
-
     if symlink_ok:
+        # we can symlink anywhere except for /tftpboot because
+        # that is run chroot, so if we can symlink now, try it.
         try:
-            return os.symlink(src, dst)
+            rc = os.symlink(src, dst)
+            restorecon(dst,api=api)
+            return rc
         except (IOError, OSError):
             pass
 
-    return copyfile(src, dst)
+    # we couldn't hardlink and we couldn't symlink so we must copy
 
-def copyfile(src,dst):
+    return copyfile(src, dst, api=api)
+
+def copyfile(src,dst,api=None):
     try:
-        return shutil.copyfile(src,dst)
+        rc = shutil.copyfile(src,dst)
+        restorecon(dst,api)
+        return rc
     except:
         if not os.access(src,os.R_OK):
             raise CX(_("Cannot read: %s") % src)
         if not os.path.samefile(src,dst):
             # accomodate for the possibility that we already copied
             # the file as a symlink/hardlink
-            raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+            raise
+            # traceback.print_exc()
+            # raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
-def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False):
+def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None):
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
         raise CX(_("Could not find files matching %s") % pattern)
     for file in files:
         base = os.path.basename(file)
-        linkfile(file,os.path.join(dst,os.path.basename(file)),symlink_ok)
+        dst1 = os.path.join(dst,os.path.basename(file))
+        linkfile(file,dst1,symlink_ok=symlink_ok,api=api)
+        restorecon(dst1,api=api)
+
+def restorecon(dest, api):
+
+    """
+    Wrapper around functions to manage SELinux contexts.
+    Use chcon public_content_t where we can to allow
+    hardlinking between /var/www and tftpboot but use
+    restorecon everywhere else.
+    """
+ 
+    if not api.is_selinux_enabled():
+        return True
+
+    tdest = os.path.realpath(dest)
+    # remoted = is_remote_file(tdest)
+
+    cmd = [ "/sbin/restorecon",dest ]
+    rc = sub_process.call(cmd,shell=False,close_fds=True)
+    if rc != 0:
+        raise CX("restorecon operation failed: %s" % cmd)
+
+    return 0
 
 def rmfile(path):
     try:
@@ -842,18 +962,25 @@ def mkdir(path,mode=0777):
            print oe.errno
            raise CX(_("Error creating") % path)
 
+def set_redhat_management_key(self,key):
+   self.redhat_management_key = key
+   return True
+
 def set_arch(self,arch):
-   if arch in [ "standard", "ia64", "x86", "i386", "x86_64", "s390x" ]:
+   if arch is None or arch == "":
+       arch = "x86"
+   if arch in [ "standard", "ia64", "x86", "i386", "ppc", "ppc64", "x86_64", "s390x" ]:
        if arch == "x86" or arch == "standard":
            # be consistent 
            arch = "i386"
        self.arch = arch
        return True
-   raise CX(_("arch choices include: x86, x86_64, s390x and ia64"))
+   raise CX(_("arch choices include: x86, x86_64, ppc, ppc64, s390x and ia64"))
 
 def set_os_version(self,os_version):
-   if os_version is None:
-      raise CX(_("invalid value for --os-version, see manpage"))
+   if os_version == "" or os_version is None:
+      self.os_version = ""
+      return True
    self.os_version = os_version.lower()
    if self.breed is None or self.breed == "":
       raise CX(_("cannot set --os-version without setting --breed first"))
@@ -862,12 +989,20 @@ def set_os_version(self,os_version):
    matched = codes.VALID_OS_VERSIONS[self.breed]
    if not os_version in matched:
       nicer = ", ".join(matched)
-      raise CX(_("--os-version for breed %s must be one of %s") % (self.breed, nicer))
+      raise CX(_("--os-version for breed %s must be one of %s, given was %s") % (self.breed, nicer, os_version))
    self.os_version = os_version
    return True
 
 def set_breed(self,breed):
    valid_breeds = codes.VALID_OS_BREEDS
+   if breed is not None and breed.lower() in valid_breeds:
+       self.breed = breed.lower()
+       return True
+   nicer = ", ".join(valid_breeds)
+   raise CX(_("invalid value for --breed, must be one of %s, different breeds have different levels of support") % nicer)
+
+def set_repo_breed(self,breed):
+   valid_breeds = codes.VALID_REPO_BREEDS
    if breed is not None and breed.lower() in valid_breeds:
        self.breed = breed.lower()
        return True
@@ -925,6 +1060,10 @@ def set_virt_file_size(self,num):
     """
     # num is a non-negative integer (0 means default)
     # can also be a comma seperated list -- for usage with multiple disks
+
+    if num is None or num == "":
+        self.virt_file_size = 0
+        return True
 
     if num == "<<inherit>>":
         self.virt_file_size = "<<inherit>>"
@@ -993,13 +1132,20 @@ def set_virt_bridge(self,vbridge):
      """
      The default bridge for all virtual interfaces under this profile.
      """
+     if vbridge is None:
+        vbridge = ""
      self.virt_bridge = vbridge
      return True
 
-def set_virt_path(self,path):
+def set_virt_path(self,path,for_system=False):
      """
      Virtual storage location suggestion, can be overriden by koan.
      """
+     if path is None:
+        path = ""
+     if for_system:
+        if path == "":
+           path = "<<inherit>>"
      self.virt_path = path
      return True
 
@@ -1010,6 +1156,10 @@ def set_virt_cpus(self,num):
      will not yelp if you try to feed it 9999 CPUs.  No formatting
      like 9,999 please :)
      """
+     if num == "" or num is None:
+         self.virt_cpus = 1
+         return True
+ 
      if num == "<<inherit>>":
          self.virt_cpus = "<<inherit>>"
          return True
@@ -1041,6 +1191,125 @@ def get_kickstart_templates(api):
 
     return files.keys()
 
+def safe_filter(var):
+    if var is None:
+       return
+    if var.find("/") != -1 or var.find(";") != -1:
+       raise CX("Invalid characters found in input")
+
+def is_selinux_enabled():
+    if not os.path.exists("/usr/sbin/selinuxenabled"):
+       return False
+    args = "/usr/sbin/selinuxenabled"
+    selinuxenabled = sub_process.call(args,close_fds=True)
+    if selinuxenabled == 0:
+        return True
+    else:
+        return False
+
+import os
+import sys
+import random
+
+# We cache the contents of /etc/mtab ... the following variables are used 
+# to keep our cache in sync
+mtab_mtime = None
+mtab_map = []
+
+class MntEntObj(object):
+    mnt_fsname = None #* name of mounted file system */
+    mnt_dir = None    #* file system path prefix */
+    mnt_type = None   #* mount type (see mntent.h) */
+    mnt_opts = None   #* mount options (see mntent.h) */
+    mnt_freq = 0      #* dump frequency in days */
+    mnt_passno = 0    #* pass number on parallel fsck */
+
+    def __init__(self,input=None):
+        if input and isinstance(input, str):
+            (self.mnt_fsname, self.mnt_dir, self.mnt_type, self.mnt_opts, \
+             self.mnt_freq, self.mnt_passno) = input.split()
+    def __dict__(self):
+        return {"mnt_fsname": self.mnt_fsname, "mnt_dir": self.mnt_dir, \
+                "mnt_type": self.mnt_type, "mnt_opts": self.mnt_opts, \
+                "mnt_freq": self.mnt_freq, "mnt_passno": self.mnt_passno}
+    def __str__(self):
+        return "%s %s %s %s %s %s" % (self.mnt_fsname, self.mnt_dir, self.mnt_type, \
+                                      self.mnt_opts, self.mnt_freq, self.mnt_passno)
+
+def get_mtab(mtab="/etc/mtab", vfstype=None):
+    global mtab_mtime, mtab_map
+
+    mtab_stat = os.stat(mtab)
+    if mtab_stat.st_mtime != mtab_mtime:
+        '''cache is stale ... refresh'''
+        mtab_mtime = mtab_stat.st_mtime
+        mtab_map = __cache_mtab__(mtab)
+
+    # was a specific fstype requested?
+    if vfstype:
+        mtab_type_map = []
+        for ent in mtab_map:
+            if ent.mnt_type == "nfs":
+                mtab_type_map.append(ent)
+        return mtab_type_map
+
+    return mtab_map
+
+def __cache_mtab__(mtab="/etc/mtab"):
+    global mtab_mtime
+
+    f = open(mtab)
+    mtab = [MntEntObj(line) for line in f.read().split('\n') if len(line) > 0]
+    f.close()
+
+    return mtab
+
+def get_file_device_path(fname):
+    '''What this function attempts to do is take a file and return:
+         - the device the file is on
+         - the path of the file relative to the device.
+       For example:
+         /boot/vmlinuz -> (/dev/sda3, /vmlinuz)
+         /boot/efi/efi/redhat/elilo.conf -> (/dev/cciss0, /elilo.conf)
+         /etc/fstab -> (/dev/sda4, /etc/fstab)
+    '''
+
+    # resolve any symlinks
+    fname = os.path.realpath(fname)
+
+    # convert mtab to a dict
+    mtab_dict = {}
+    for ent in get_mtab():
+        mtab_dict[ent.mnt_dir] = ent.mnt_fsname
+
+    # find a best match
+    fdir = os.path.dirname(fname)
+    match = mtab_dict.has_key(fdir)
+    while not match:
+        fdir = os.path.realpath(os.path.join(fdir, os.path.pardir))
+        match = mtab_dict.has_key(fdir)
+
+    # construct file path relative to device
+    if fdir != os.path.sep:
+        fname = fname[len(fdir):]
+
+    return (mtab_dict[fdir], fname)
+
+def is_remote_file(file):
+    (dev, path) = get_file_device_path(file)
+    if dev.find(":") != -1:
+       return True
+    else:
+       return False 
+
+def popen2(args, **kwargs):
+    """ 
+    Leftovers from borrowing some bits from Snake, replace this 
+    function with just the subprocess call.
+    """
+    p = sub_process.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, **kwargs)
+    return (p.stdout, p.stdin)
+
 if __name__ == "__main__":
     # print redhat_release()
     # print tftpboot_location()
@@ -1049,7 +1318,7 @@ if __name__ == "__main__":
     #   value = get_host_ip("255.255.255.0/%s" % x, shorten=False)
     #   value2 = get_host_ip("255.255.255.0/%s" % x, shorten=True)
     #   print "%s -> %s" % (value,value2)
-    no_ctrl_c()
-    ctrl_c_ok()
-
+    #no_ctrl_c()
+    #ctrl_c_ok()
+    print get_file_device_path("/mnt/engarchive2/released/F-10/GOLD/Fedora/i386/os/images/pxeboot/vmlinuz")
 

@@ -29,6 +29,16 @@ import string
 import sys
 import time
 import urlgrabber
+import yaml # cobbler packaged version
+
+# the following imports are largely for the test code
+import urlgrabber
+import remote
+import glob
+import sub_process
+import api as cobbler_api
+import os
+import os.path
 
 def log_exc(apache):
     """
@@ -76,6 +86,25 @@ class CobblerSvc(object):
         self.__xmlrpc_setup()
         data = self.remote.generate_kickstart(profile,system,REMOTE_ADDR,REMOTE_MAC)
         return u"%s" % data    
+
+    def template(self,profile=None,system=None,path=None,**rest):
+        """
+        Generate a templated file for the system
+        """
+        self.__xmlrpc_setup()
+        if path is not None:
+            path = path.replace("_","/")
+            path = path.replace("//","_")
+        else:
+            return "# must specify a template path"
+
+        if profile is not None:
+            data = self.remote.get_template_file_for_profile(profile,path)
+        elif system is not None:
+            data = self.remote.get_template_file_for_system(system,path)
+        else:
+            data = "# must specify profile or system name"
+        return data
 
     def yum(self,profile=None,system=None,**rest):
         self.__xmlrpc_setup()
@@ -185,4 +214,239 @@ class CobblerSvc(object):
             return urlgrabber.urlread(url)
         except:
             return "# kickstart retrieval failed (%s)" % url
+
+    def puppet(self,hostname=None,**rest):
+        self.__xmlrpc_setup()
+
+        if hostname is None:
+           return "hostname is required"
+         
+        results = self.remote.find_system_by_dns_name(hostname)
+
+        classes = results.get("mgmt_classes", {})
+        params = results.get("mgmt_parameters",[])
+
+        newdata = {
+           "classes"    : classes,
+           "parameters" : params
+        }
+        
+        return yaml.dump(newdata)
+
+def __test_setup():
+
+    # this contains some code from remote.py that has been modified
+    # slightly to add in some extra parameters for these checks.
+    # it can probably be combined into something like a test_utils
+    # module later.
+
+    api = cobbler_api.BootAPI()
+    api.deserialize() # FIXME: redundant
+
+    fake = open("/tmp/cobbler.fake","w+")
+    fake.write("")
+    fake.close()
+
+    distro = api.new_distro()
+    distro.set_name("distro0")
+    distro.set_kernel("/tmp/cobbler.fake")
+    distro.set_initrd("/tmp/cobbler.fake")
+    api.add_distro(distro)
+
+    repo = api.new_repo()
+    repo.set_name("repo0")
+
+    if not os.path.exists("/tmp/empty"):
+       os.mkdir("/tmp/empty",770)
+    repo.set_mirror("/tmp/empty")
+    files = glob.glob("rpm-build/*.rpm")
+    if len(files) == 0:
+       raise Exception("Tests must be run from the cobbler checkout directory.")
+    sub_process.call("cp rpm-build/*.rpm /tmp/empty",shell=True,close_fds=True)
+    api.add_repo(repo)
+
+    fd = open("/tmp/cobbler_t1","w+")
+    fd.write("$profile_name")
+    fd.close()
+
+    fd = open("/tmp/cobbler_t2","w+")
+    fd.write("$system_name")
+    fd.close()
+
+    profile = api.new_profile()
+    profile.set_name("profile0")
+    profile.set_distro("distro0")
+    profile.set_kickstart("/var/lib/cobbler/kickstarts/sample.ks")
+    profile.set_repos(["repo0"])
+    profile.set_mgmt_classes(["alpha","beta"])
+    profile.set_ksmeta({"tree":"look_for_this1","gamma":3})
+    profile.set_template_files("/tmp/cobbler_t1=/tmp/t1-rendered")
+    api.add_profile(profile)
+
+    system = api.new_system()
+    system.set_name("system0")
+    system.set_hostname("hostname0")
+    system.set_gateway("192.168.1.1")
+    system.set_profile("profile0")
+    system.set_dns_name("hostname0","eth0")
+    system.set_ksmeta({"tree":"look_for_this2"})
+    system.set_template_files({"/tmp/cobbler_t2":"/tmp/t2-rendered"})
+    api.add_system(system)
+
+    image = api.new_image()
+    image.set_name("image0")
+    image.set_file("/tmp/cobbler.fake")
+    api.add_image(image)
+
+    # perhaps an artifact of the test process?
+    os.system("rm -rf /var/www/cobbler/repo_mirror/repo0")
+
+    api.reposync(name="repo0")
+
+def test_services_access():
+    import remote
+    remote._test_setup_settings(pxe_once=1)
+    remote._test_bootstrap_restart()
+    remote._test_remove_objects()
+    __test_setup()
+    time.sleep(5)
+    api = cobbler_api.BootAPI()
+
+    # test mod_python service URLs -- more to be added here
+
+    templates = [ "sample.ks", "sample_end.ks", "legacy.ks" ]
+
+    for template in templates:
+        ks = "/var/lib/cobbler/kickstarts/%s" % template
+        p = api.find_profile("profile0")
+        assert p is not None
+        p.set_kickstart(ks)
+        api.add_profile(p)
+
+        url = "http://127.0.0.1/cblr/svc/op/ks/profile/profile0"
+        data = urlgrabber.urlread(url)
+        assert data.find("look_for_this1") != -1
+
+        url = "http://127.0.0.1/cblr/svc/op/ks/system/system0"
+        data = urlgrabber.urlread(url)
+        assert data.find("look_for_this2") != -1
+
+    # see if we can pull up the yum configs
+    url = "http://127.0.0.1/cblr/svc/op/yum/profile/profile0"
+    data = urlgrabber.urlread(url)
+    print "D1=%s" % data
+    assert data.find("repo0") != -1
+    
+    url = "http://127.0.0.1/cblr/svc/op/yum/system/system0"
+    data = urlgrabber.urlread(url)
+    print "D2=%s" % data 
+    assert data.find("repo0") != -1
+  
+    for a in [ "pre", "post" ]:
+       filename = "/var/lib/cobbler/triggers/install/%s/unit_testing" % a
+       fd = open(filename, "w+")
+       fd.write("#!/bin/bash\n")
+       fd.write("echo \"TESTING %s type ($1) name ($2) ip ($3)\" >> /var/log/cobbler/kicklog/cobbler_trigger_test\n" % a)
+       fd.write("exit 0\n")
+       fd.close()
+       os.system("chmod +x %s" % filename)
+
+    urls = [
+        "http://127.0.0.1/cblr/svc/op/trig/mode/pre/profile/profile0"
+        "http://127.0.0.1/cblr/svc/op/trig/mode/post/profile/profile0"
+        "http://127.0.0.1/cblr/svc/op/trig/mode/pre/system/system0"
+        "http://127.0.0.1/cblr/svc/op/trig/mode/post/system/system0"
+    ]
+    for x in urls:
+        print "reading: %s" % url
+        data = urlgrabber.urlread(x)
+        print "read: %s" % data        
+        time.sleep(5) 
+        assert os.path.exists("/var/log/cobbler/kicklog/cobbler_trigger_test")
+        os.unlink("/var/log/cobbler/kicklog/cobbler_trigger_test")
+
+    os.unlink("/var/lib/cobbler/triggers/install/pre/unit_testing")
+    os.unlink("/var/lib/cobbler/triggers/install/post/unit_testing")
+
+    # trigger testing complete
+
+    # now let's test the nopxe URL (Boot loop prevention)
+
+    sys = api.find_system("system0")
+    sys.set_netboot_enabled(True)
+    api.add_system(sys) # save the system to ensure it's set True
+
+    url = "http://127.0.0.1/cblr/svc/op/nopxe/system/system0"
+    data = urlgrabber.urlread(url)
+    print "NOPXE DATA: %s" % data
+    time.sleep(10)
+
+    api.deserialize() # ensure we have the latest data in the API handle
+    sys = api.find_system("system0")
+    print "NE STATUS: %s" % sys.netboot_enabled
+    assert str(sys.netboot_enabled).lower() not in [ "1", "true", "yes" ]
+    
+    # now let's test the listing URLs since we document
+    # them even know I don't know of anything relying on them.
+
+    url = "http://127.0.0.1/cblr/svc/op/list/what/distros"
+    assert urlgrabber.urlread(url).find("distro0") != -1
+
+    url = "http://127.0.0.1/cblr/svc/op/list/what/profiles"
+    assert urlgrabber.urlread(url).find("profile0") != -1
+
+    url = "http://127.0.0.1/cblr/svc/op/list/what/systems"
+    assert urlgrabber.urlread(url).find("system0") != -1
+
+    url = "http://127.0.0.1/cblr/svc/op/list/what/repos"
+    assert urlgrabber.urlread(url).find("repo0") != -1
+
+    url = "http://127.0.0.1/cblr/svc/op/list/what/images"
+    assert urlgrabber.urlread(url).find("image0") != -1
+
+    # the following modes are implemented by external apps
+    # and are not concerned part of cobbler's core, so testing
+    # is less of a priority:
+    #    autodetect
+    #    findks
+    # these features may be removed in a later release
+    # of cobbler but really aren't hurting anything so there
+    # is no pressing need.
+  
+    # now let's test the puppet external nodes support
+    # and just see if we get valid YAML back without
+    # doing much more
+
+    url = "http://127.0.0.1/cblr/svc/op/puppet/hostname/hostname0"
+    data = urlgrabber.urlread(url)
+    print "puppet DATA: %s" % data
+    assert data.find("alpha") != -1
+    assert data.find("beta") != -1
+    assert data.find("gamma") != -1
+    assert data.find("3") != -1
+    
+    data = yaml.load(data).next()
+    assert data.has_key("classes")
+    assert data.has_key("parameters")
+    
+    # now let's test the template file serving
+    # which is used by the snippet download_config_files
+    # and also by koan's --update-files
+
+    url = "http://127.0.0.1/cblr/svc/op/template/profile/profile0/path/_tmp_t1-rendered"
+    data = urlgrabber.urlread(url)
+    print "T1: %s" % data
+    assert data.find("profile0") != -1
+    assert data.find("$profile_name") == -1    
+
+    url = "http://127.0.0.1/cblr/svc/op/template/system/system0/path/_tmp_t2-rendered"
+    data = urlgrabber.urlread(url)
+    print "T2: %s" % data
+    assert data.find("system0") != -1
+    assert data.find("$system_name") == -1
+
+    os.unlink("/tmp/cobbler_t1")
+    os.unlink("/tmp/cobbler_t2") 
+
+    remote._test_remove_objects()
 

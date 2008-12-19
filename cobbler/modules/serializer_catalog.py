@@ -52,7 +52,8 @@ def serialize_item(obj, item):
 
 def serialize_delete(obj, item):
     filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
-    os.remove(filename)
+    if os.path.exists(filename):
+        os.remove(filename)
     return True
 
 def deserialize_item_raw(collection_type, item_name):

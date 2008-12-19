@@ -7,8 +7,28 @@ let numd=\$#/2
 d1=\$1
 d2=\$3
 
-cat << EOF > /tmp/partinfo
-part / --fstype ext3 --size=1024 --grow --ondisk=\$d1 --asprimary
-part swap --size=1024 --ondisk=\$d1 --asprimary
-EOF
+# Determine architecture-specific partitioning needs
+EFI_PART=""
+PPC_PREP_PART=""
+BOOT_PART=""
 
+case $(uname -m) in
+    ia64)
+        EFI_PART="part /boot/efi --fstype vfat --size 200 --recommended"
+        ;;
+    ppc*)
+        PPC_PREP_PART="part None --fstype 'PPC PReP Boot' --size 8"
+        BOOT_PART="part /boot --fstype ext3 --size 200 --recommended"
+        ;;
+    *)
+        BOOT_PART="part /boot --fstype ext3 --size 200 --recommended"
+        ;;
+esac
+
+cat << EOF > /tmp/partinfo
+\$EFI_PART
+\$PPC_PREP_PART
+\$BOOT_PART
+part / --fstype ext3 --size=1024 --grow --ondisk=\$d1 --asprimary
+part swap --recommended --ondisk=\$d1 --asprimary
+EOF

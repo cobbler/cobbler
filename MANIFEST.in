@@ -1,6 +1,8 @@
 include loaders/COPYING_ELILO
-include loaders/elilo-3.6-ia64.efi
+include loaders/elilo-3.8-ia64.efi
 include loaders/menu.c32
+include loaders/yaboot-1.3.14
+include config/acls.conf
 include config/cobbler.conf
 include config/cobbler_svc.conf
 include config/rsync.exclude
@@ -10,12 +12,16 @@ include config/cobbler_hosts
 include config/modules.conf
 include config/auth.conf
 include config/settings
+include config/version
 include config/users.digest
 include config/users.conf
 include config/completions
 include config/cobbler_bash
+include config/cheetah_macros
 recursive-include templates *.template
+recursive-include installer_templates *.template defaults
 recursive-include kickstarts *.ks
+recursive-include kickstarts *.seed
 include docs/cobbler.1.gz
 include docs/cobbler.html
 include docs/wui.html

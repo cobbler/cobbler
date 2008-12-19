@@ -20,12 +20,12 @@ url --url=$tree
 # If any cobbler repo definitions were referenced in the kickstart profile, include them here.
 $yum_repo_stanza
 # Network information
-network --bootproto=dhcp --device=eth0 --onboot=on
+$SNIPPET('network_config')
 # Reboot after installation
 reboot
 
 #Root password
-rootpw --iscrypted \$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.
+rootpw --iscrypted $default_password_crypted
 # SELinux configuration
 selinux --disabled
 # Do not configure the X Window System
@@ -36,18 +36,28 @@ timezone  America/New_York
 install
 # Clear the Master Boot Record
 zerombr
+# Allow anaconda to partition the system as needed
+autopart
 
-# Magically figure out how to partition this thing
-SNIPPET::main_partition_select
 
 %pre
 $kickstart_start
-SNIPPET::pre_partition_select
+$SNIPPET('pre_install_network_config')
 
 %packages
+$SNIPPET('func_install_if_enabled')
 
 %post
-$yum_config_stanza
-SNIPPET::post_install_kernel_options
-$kickstart_done
 
+# Start yum configuration 
+$yum_config_stanza
+# End yum configuration
+$SNIPPET('post_install_kernel_options')
+$SNIPPET('post_install_network_config')
+$SNIPPET('func_register_if_enabled')
+$SNIPPET('download_config_files')
+$SNIPPET('koan_environment')
+$SNIPPET('redhat_register')
+# Start final steps
+$kickstart_done
+# End final steps

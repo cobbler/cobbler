@@ -117,7 +117,7 @@ class DnsmasqManager:
 
                 mac  = interface["mac_address"]
                 ip   = interface["ip_address"]
-                host = interface["hostname"]
+                host = interface["dns_name"]
 
                 if mac is None or mac == "":
                     # can't write a DHCP entry for this system
@@ -194,7 +194,7 @@ class DnsmasqManager:
                 continue
             for (name, interface) in system.interfaces.iteritems():
                 mac  = interface["mac_address"]
-                host = interface["hostname"]
+                host = interface["dns_name"]
                 ip   = interface["ip_address"]
                 if mac is None or mac == "":
                     continue

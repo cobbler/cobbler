@@ -27,7 +27,7 @@ import utils
 import collection
 from cexceptions import *
 from utils import _
-
+import os.path
 
 TESTMODE = False
 
@@ -40,7 +40,7 @@ class Repos(collection.Collection):
 
     def factory_produce(self,config,seed_data):
         """
-        Return a system forged from seed_data
+        Return a repo forged from seed_data
         """
         return repo.Repo(config).from_datastruct(seed_data)
 
@@ -65,6 +65,11 @@ class Repos(collection.Collection):
                 self.log_func("deleted repo %s" % name)
                 if with_triggers: 
                     self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/repo/post/*")
+            
+                path = "/var/www/cobbler/repo_mirror/%s" % obj.name
+                if os.path.exists(path):
+                    utils.rmtree(path)
+
             return True
         raise CX(_("cannot delete an object that does not exist: %s") % name)
 

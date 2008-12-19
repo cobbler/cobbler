@@ -20,22 +20,11 @@ import cobbler.api as bootapi
 import cobbler.cobblerd as app
 import logging
 import cobbler.utils as utils
+import cobbler.sub_process as sub_process
 
-#logger = logging.getLogger("cobbler.cobblerd")
-#logger.setLevel(logging.DEBUG)
-#ch = logging.FileHandler("/var/log/cobbler/cobblerd.log")
-#ch.setLevel(logging.DEBUG)
-#formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-#ch.setFormatter(formatter)
-#logger.addHandler(ch)
+import optparse
 
-api = bootapi.BootAPI()
-logger = api.logger_remote
-
-if __name__ == "__main__":
-
-    #############################################
-
+def daemonize_self(logger):
     # daemonizing code:  http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66012
     logger.info("cobblerd started")
     try: 
@@ -69,10 +58,38 @@ if __name__ == "__main__":
     os.dup2(dev_null.fileno(), sys.stdout.fileno()) 
     os.dup2(dev_null.fileno(), sys.stderr.fileno()) 
 
-    #################
+def main():
+    op = optparse.OptionParser()
+    op.set_defaults(daemonize=True, log_level=None)
+    op.add_option('-B', '--daemonize', dest='daemonize', action='store_true',
+        help='run in background (default)')
+    op.add_option('-F', '--no-daemonize', dest='daemonize', action='store_false',
+        help='run in foreground (do not daemonize)')
+    op.add_option('-f', '--log-file', dest='log_file', metavar='NAME',
+        help='file to log to')
+    op.add_option('-l', '--log-level', dest='log_level', metavar='LEVEL',
+        help='log level (ie. INFO, WARNING, ERROR, CRITICAL)')
+
+    options, args = op.parse_args()
+
+    log_settings = {}
+    if options.log_file:
+        log_settings['log_file'] = options.log_file
+    if options.log_level:
+        log_level = logging.getLevelName(options.log_level)
+        if not isinstance(log_level, int):
+            op.error('Unrecognized log level %r given')
+        log_settings['log_level'] = log_level
+    api = bootapi.BootAPI(log_settings=log_settings)
+    logger = api.logger
+
+    if options.daemonize:
+        daemonize_self(logger)
 
     try:
         app.core(logger=logger)
     except:
         utils.log_exc(logger)
 
+if __name__ == "__main__":
+    main()

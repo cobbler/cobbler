@@ -24,6 +24,10 @@ rc = 0
 if manage_dhcp != "0":
     if bootapi.dhcp.what() == "isc":
         if not omapi_enabled and restart_dhcp:
+            rc = os.system("/usr/sbin/dhcpd -t")
+            if rc != 0:
+               print "/usr/sbin/dhcpd -t failed"
+               sys.exit(rc)
             rc = os.system("/sbin/service dhcpd restart")
     elif bootapi.dhcp.what() == "dnsmasq":
         if restart_dhcp:

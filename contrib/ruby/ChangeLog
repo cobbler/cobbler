@@ -1,3 +1,12 @@
+* Fri Oct 10 2008 Darryl Pierce <dpierce@redhat.com> - 0.1.1-1
+- Added support for image-based systems.
+
+* Mon Sep 08 2008 Darryl Pierce <dpierce@redhat.com> - 0.1.0-1
+- First official build for Fedora.
+
+* Wed Sep 03 2008 Darryl Pierce <dpierce@redhat.com> - 0.0.2-3
+- Added a build requirement for rubygem-rake.
+
 * Tue Aug 26 2008 Darryl Pierce <dpierce@redhat.com> - 0.0.2-2
 - Fixed the licensing in each source module to show the code is released under
   LGPLv2.1.

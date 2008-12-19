@@ -35,15 +35,18 @@ import cexceptions
 class ProfileFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler profile","<add|copy|edit|find|list|rename|remove|report|getks> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler profile","<add|copy|edit|find|getks|list|rename|remove|report> [ARGS]")
 
     def command_name(self):
         return "profile"
 
     def subcommands(self):
-        return ["add","copy","dumpvars","edit","find","list","remove","rename","report","getks"]
+        return ["add","copy","dumpvars","edit","find","getks","list","remove","rename","report"]
 
     def add_options(self, p, args):
+            
+        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
+            p.add_option("--comment",  dest="comment",  help="user field")
 
         if self.matches_args(args,["add"]):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
@@ -53,16 +56,22 @@ class ProfileFunction(commands.CobblerFunction):
 
             p.add_option("--distro",           dest="distro",    help="ex: 'RHEL-5-i386' (REQUIRED)")
             p.add_option("--dhcp-tag",         dest="dhcp_tag",  help="for use in advanced DHCP configuration")
+            p.add_option("--enable-menu", dest="enable_menu", help="yes/no. When yes, adds profile to default PXE menu")
             p.add_option("--inherit",          dest="inherit",   help="inherit from this profile name, defaults to no")
+            if not self.matches_args(args,["find"]):
+                p.add_option("--in-place",action="store_true", dest="inplace", default=False, help="edit items in kopts, kopts_post or ksmeta without clearing the other items")
             p.add_option("--kickstart",        dest="kickstart", help="absolute path to kickstart template (RECOMMENDED)")
             p.add_option("--ksmeta",           dest="ksmeta",    help="ex: 'blippy=7'")
             p.add_option("--kopts",            dest="kopts",     help="ex: 'noipv6'")
             p.add_option("--kopts-post",       dest="kopts_post",help="ex: 'clocksource=pit'")
-            if not self.matches_args(args,["find"]):
-                p.add_option("--in-place",action="store_true", dest="inplace", default=False, help="edit items in kopts, kopts_post or ksmeta without clearing the other items")
+            p.add_option("--mgmt-classes", dest="mgmt_classes",  help="list of config management classes (for Puppet, etc)")
+
 
         p.add_option("--name",   dest="name",  help="a name for the profile (REQUIRED)")
 
+        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
+
+            p.add_option("--name-servers", dest="name_servers",  help="name servers for static setups")
 
         if "copy" in args or "rename" in args:
             p.add_option("--newname", dest="newname")
@@ -78,8 +87,10 @@ class ProfileFunction(commands.CobblerFunction):
             p.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
 
         if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
+            p.add_option("--redhat-management-key", dest="redhat_management_key", help="authentication token for RHN/Spacewalk/Satellite")
             p.add_option("--repos",            dest="repos", help="names of cobbler repos")
-            p.add_option("--server-override",  dest="server_override", help="overrides value in settings file")
+            p.add_option("--server",           dest="server_override", help="overrides value in settings file")
+            p.add_option("--template-files",   dest="template_files", help="specify files to be generated from templates during a sync")
             p.add_option("--virt-bridge",      dest="virt_bridge", help="ex: 'virbr0'")
             p.add_option("--virt-cpus",        dest="virt_cpus", help="integer (default: 1)")
             p.add_option("--virt-file-size",   dest="virt_file_size", help="size in GB")
@@ -104,23 +115,52 @@ class ProfileFunction(commands.CobblerFunction):
             return True
 
         if not self.matches_args(self.args,["dumpvars","getks"]):
-            if self.options.inherit:         obj.set_parent(self.options.inherit)
-            if self.options.distro:          obj.set_distro(self.options.distro)
-            if self.options.kickstart:       obj.set_kickstart(self.options.kickstart)
-            if self.options.kopts:           obj.set_kernel_options(self.options.kopts,self.options.inplace)
-            if self.options.kopts_post:      obj.set_kernel_options_post(self.options.kopts_post,self.options.inplace)
-            if self.options.ksmeta:          obj.set_ksmeta(self.options.ksmeta,self.options.inplace)
-            if self.options.virt_file_size:  obj.set_virt_file_size(self.options.virt_file_size)
-            if self.options.virt_ram:        obj.set_virt_ram(self.options.virt_ram)
-            if self.options.virt_bridge:     obj.set_virt_bridge(self.options.virt_bridge)
-            if self.options.virt_type:       obj.set_virt_type(self.options.virt_type)
-            if self.options.virt_cpus:       obj.set_virt_cpus(self.options.virt_cpus)
-            if self.options.repos:           obj.set_repos(self.options.repos)
-            if self.options.virt_path:       obj.set_virt_path(self.options.virt_path)
-            if self.options.dhcp_tag:        obj.set_dhcp_tag(self.options.dhcp_tag)
-            if self.options.server_override: obj.set_server(self.options.server)
+            if self.options.comment is not None:         
+                obj.set_comment(self.options.comment)
+            if self.options.inherit is not None:         
+                obj.set_parent(self.options.inherit)
+            if self.options.distro is not None:          
+                obj.set_distro(self.options.distro)
+            if self.options.enable_menu is not None:
+                obj.set_enable_menu(self.options.enable_menu)
+            if self.options.kickstart is not None:       
+                obj.set_kickstart(self.options.kickstart)
+            if self.options.kopts is not None:           
+                obj.set_kernel_options(self.options.kopts,self.options.inplace)
+            if self.options.kopts_post is not None:      
+                obj.set_kernel_options_post(self.options.kopts_post,self.options.inplace)
+            if self.options.ksmeta is not None:          
+                obj.set_ksmeta(self.options.ksmeta,self.options.inplace)
+            if self.options.virt_file_size is not None:  
+                obj.set_virt_file_size(self.options.virt_file_size)
+            if self.options.virt_ram is not None:        
+                obj.set_virt_ram(self.options.virt_ram)
+            if self.options.virt_bridge is not None:     
+                obj.set_virt_bridge(self.options.virt_bridge)
+            if self.options.virt_type is not None:       
+                obj.set_virt_type(self.options.virt_type)
+            if self.options.virt_cpus is not None:       
+                obj.set_virt_cpus(self.options.virt_cpus)
+            if self.options.repos is not None:           
+                obj.set_repos(self.options.repos)
+            if self.options.virt_path is not None:       
+                obj.set_virt_path(self.options.virt_path)
+            if self.options.dhcp_tag is not None:        
+                obj.set_dhcp_tag(self.options.dhcp_tag)
+            if self.options.server_override is not None: 
+                obj.set_server(self.options.server)
 
-            if self.options.owners:          obj.set_owners(self.options.owners)
+            if self.options.owners is not None:          
+                obj.set_owners(self.options.owners)
+            if self.options.mgmt_classes is not None:    
+                obj.set_mgmt_classes(self.options.mgmt_classes)
+            if self.options.template_files is not None:  
+                obj.set_template_files(self.options.template_files,self.options.inplace)
+            if self.options.name_servers is not None:    
+                obj.set_name_servers(self.options.name_servers)
+            if self.options.redhat_management_key is not None:
+                obj.set_redhat_management_key(self.options.redhat_management_key)
+
 
         return self.object_manipulator_finish(obj, self.api.profiles, self.options)
 

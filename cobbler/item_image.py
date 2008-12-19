@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import utils
 import item
+import time
 from cexceptions import *
 
 from utils import _
@@ -43,9 +44,9 @@ class Image(item.Item):
         Reset this object.
         """
         self.name            = ''
+        self.uid             = ""
         self.arch            = 'i386'
         self.file            = ''
-        self.xml_file        = ''
         self.parent          = ''
         self.depth           = 0
         self.virt_ram        = self.settings.default_virt_ram
@@ -53,11 +54,15 @@ class Image(item.Item):
         self.virt_path       = ''
         self.virt_type       = self.settings.default_virt_type
         self.virt_cpus       = 1
+        self.network_count   = 1
         self.virt_bridge     = self.settings.default_virt_bridge
         self.owners          = self.settings.default_ownership
         self.image_type      = "iso" # direct, iso, memdisk, virt-clone
         self.breed           = 'redhat'
         self.os_version      = ''
+        self.comment         = ''
+        self.ctime           = 0
+        self.mtime           = 0
 
     def from_datastruct(self,seed_data):
         """
@@ -67,7 +72,6 @@ class Image(item.Item):
         self.name            = self.load_item(seed_data,'name','')
         self.parent          = self.load_item(seed_data,'parent','')
         self.file            = self.load_item(seed_data,'file','')
-        self.xml_file        = self.load_item(seed_data,'xml_file','')
         self.depth           = self.load_item(seed_data,'depth',0)
         self.owners          = self.load_item(seed_data,'owners',self.settings.default_ownership)
 
@@ -76,17 +80,26 @@ class Image(item.Item):
         self.virt_path       = self.load_item(seed_data, 'virt_path')
         self.virt_type       = self.load_item(seed_data, 'virt_type', self.settings.default_virt_type)
         self.virt_cpus       = self.load_item(seed_data, 'virt_cpus')
-        self.virt_bridge     = self.load_item(seed_data, 'virt_bridge', self.settings.default_virt_bridge)
+        self.network_count   = self.load_item(seed_data, 'network_count')
+        self.virt_bridge     = self.load_item(seed_data, 'virt_bridge')
         self.arch            = self.load_item(seed_data,'arch','i386')
 
-        self.xml_file        = self.load_item(seed_data, 'xml_file', '')
         self.image_type      = self.load_item(seed_data, 'image_type', 'iso')
 
         self.breed           = self.load_item(seed_data, 'breed', 'redhat')
         self.os_version      = self.load_item(seed_data, 'os_version', '')
 
+        self.comment         = self.load_item(seed_data, 'comment', '')
+
         self.set_owners(self.owners)
         self.set_arch(self.arch)
+
+        self.ctime           = self.load_item(seed_data, 'ctime', 0)
+        self.mtime           = self.load_item(seed_data, 'mtime', 0)
+
+        self.uid = self.load_item(seed_data,'uid','')
+        if self.uid == '':
+           self.uid = self.config.generate_uid()
 
         return self
 
@@ -126,17 +139,17 @@ class Image(item.Item):
         self.image_type = image_type
         return True
 
-    def set_xml_file(self,filename):
-        """
-        Stores an xmlfile for virt-image.   This should be accessible
-        on all nodes that need to access it also.  See set_file.
-        FIXME: not yet supported, just a stub.
-        """
-        self.xml_file = filename
-        return True
-
     def set_virt_cpus(self,num):
         return utils.set_virt_cpus(self,num)
+        
+    def set_network_count(self, num):
+        if num is None or num == "":
+            num = 1
+        try:
+            self.network_count = int(num)
+        except:
+            raise CX("invalid network count")
+        return True
 
     def set_virt_file_size(self,num):
         return utils.set_virt_file_size(self,num)
@@ -148,8 +161,7 @@ class Image(item.Item):
         return utils.set_virt_type(self,vtype)
 
     def set_virt_bridge(self,vbridge):
-        self.virt_bridge = vbridge
-        return True
+        return utils.set_virt_bridge(self,vbridge)
 
     def set_virt_path(self,path):
         return utils.set_virt_path(self,path)
@@ -175,20 +187,25 @@ class Image(item.Item):
         """
         return {
             'name'             : self.name,
+            'arch'             : self.arch,
             'image_type'       : self.image_type,
             'file'             : self.file,
-            'xml_file'         : self.xml_file,
             'depth'            : 0,
             'parent'           : '',
             'owners'           : self.owners,
             'virt_ram'         : self.virt_ram,
             'virt_path'        : self.virt_path,
+            'virt_type'        : self.virt_type,
             'virt_cpus'        : self.virt_cpus,
+            'network_count'    : self.network_count,
             'virt_bridge'      : self.virt_bridge,
             'virt_file_size'   : self.virt_file_size,
-            'xml_file'         : self.xml_file,
             'breed'            : self.breed,
-            'os_version'       : self.os_version
+            'os_version'       : self.os_version,
+            'comment'          : self.comment,
+            'ctime'            : self.ctime,
+            'mtime'            : self.mtime,
+            'uid'              : self.uid
         }
 
     def printable(self):
@@ -196,15 +213,18 @@ class Image(item.Item):
         A human readable representaton
         """
         buf =       _("image           : %s\n") % self.name
-        buf = buf + _("image type      : %s\n") % self.image_type
         buf = buf + _("arch            : %s\n") % self.arch
         buf = buf + _("breed           : %s\n") % self.breed
+        buf = buf + _("comment         : %s\n") % self.comment
+        buf = buf + _("created         : %s\n") % time.ctime(self.ctime)
         buf = buf + _("file            : %s\n") % self.file
-        buf = buf + _("xml file        : %s\n") % self.xml_file
+        buf = buf + _("image type      : %s\n") % self.image_type
+        buf = buf + _("modified        : %s\n") % time.ctime(self.mtime)
         buf = buf + _("os version      : %s\n") % self.os_version
         buf = buf + _("owners          : %s\n") % self.owners
         buf = buf + _("virt bridge     : %s\n") % self.virt_bridge
         buf = buf + _("virt cpus       : %s\n") % self.virt_cpus
+        buf = buf + _("network count   : %s\n") % self.network_count
         buf = buf + _("virt file size  : %s\n") % self.virt_file_size
         buf = buf + _("virt path       : %s\n") % self.virt_path
         buf = buf + _("virt ram        : %s\n") % self.virt_ram
@@ -216,16 +236,27 @@ class Image(item.Item):
         return {           
             'name'            :  self.set_name,
             'image-type'      :  self.set_image_type,
+            'image_type'      :  self.set_image_type,            
             'breed'           :  self.set_breed,
             'os-version'      :  self.set_os_version,
+            'os_version'      :  self.set_os_version,            
             'arch'            :  self.set_arch,
             'file'            :  self.set_file,
-            'xml-file'        :  self.set_xml_file,
             'owners'          :  self.set_owners,
             'virt-cpus'       :  self.set_virt_cpus,
+            'virt_cpus'       :  self.set_virt_cpus,            
+            'network-count'   :  self.set_network_count,
+            'network_count'   :  self.set_network_count,            
             'virt-file-size'  :  self.set_virt_file_size,
+            'virt_file_size'  :  self.set_virt_file_size,            
+            'virt-bridge'     :  self.set_virt_bridge,
+            'virt_bridge'     :  self.set_virt_bridge,            
             'virt-path'       :  self.set_virt_path,
+            'virt_path'       :  self.set_virt_path,            
             'virt-ram'        :  self.set_virt_ram,
-            'virt-type'       :  self.set_virt_type
+            'virt_ram'        :  self.set_virt_ram,            
+            'virt-type'       :  self.set_virt_type,
+            'virt_type'       :  self.set_virt_type,            
+            'comment'         :  self.set_comment
         }
 

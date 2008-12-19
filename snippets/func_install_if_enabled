@@ -1,0 +1,4 @@
+#if $str($getVar('func_auto_setup','')) == "1"
+func
+#end if
+

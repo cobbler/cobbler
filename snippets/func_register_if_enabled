@@ -1,0 +1,17 @@
+#if $str($getVar('func_auto_setup','')) == "1"
+# Start func registration section
+/sbin/chkconfig --level 345 funcd on
+cat << EOFM >> /etc/func/minion.conf
+[main]
+log_level = INFO
+acl_dir = /etc/func/minion-acl.d
+EOFM
+cat << EOCM >> /etc/certmaster/minion.conf
+[main]
+certmaster = $func_master
+log_level = DEBUG
+cert_dir = /etc/pki/certmaster
+EOCM
+# End func registration section
+#end if
+

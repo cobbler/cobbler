@@ -115,7 +115,7 @@ class BuildIso:
             if not os.path.exists(f):
                raise CX(_("Required file not found: %s") % f)
             else:
-               utils.copyfile(f, os.path.join(isolinuxdir, os.path.basename(f)))
+               utils.copyfile(f, os.path.join(isolinuxdir, os.path.basename(f)), self.api)
  
         print _("- copying kernels and initrds - for profiles")
         # copy all images in included profiles to images dir
@@ -230,12 +230,12 @@ class BuildIso:
 
                    # add network info to avoid DHCP only if it is available
 
-                   if data.has_key("ip_address_intf0") and data["ip_address_intf0"] != "":
-                       append_line = append_line + " ip=%s" % data["ip_address_intf0"]
-                   if data.has_key("subnet_intf0") and data["subnet_intf0"] != "":
-                       append_line = append_line + " netmask=%s" % data["subnet_intf0"]
-                   if data.has_key("gateway_intf0") and data["gateway_intf0"] != "":
-                       append_line = append_line + " gateway=%s\n" % data["gateway_intf0"]
+                   if data.has_key("ip_address_eth0") and data["ip_address_eth0"] != "":
+                       append_line = append_line + " ip=%s" % data["ip_address_eth0"]
+                   if data.has_key("subnet_eth0") and data["subnet_eth0"] != "":
+                       append_line = append_line + " netmask=%s" % data["subnet_eth0"]
+                   if data.has_key("gateway_eth0") and data["gateway_eth0"] != "":
+                       append_line = append_line + " gateway=%s\n" % data["gateway_eth0"]
 
                    length=len(append_line)
                    if length > 254:
@@ -253,7 +253,7 @@ class BuildIso:
         cmd = cmd + "  -boot-info-table -V Cobbler\ Install -R -J -T %s" % tempdir
 
         print _("- running: %s") % cmd
-        rc = sub_process.call(cmd, shell=True)
+        rc = sub_process.call(cmd, shell=True, close_fds=True)
         if rc:
             raise CX(_("mkisofs failed"))
         

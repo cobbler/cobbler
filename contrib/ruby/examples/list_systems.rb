@@ -64,3 +64,4 @@ System.find do |system|
     system.interfaces.each_pair { |id,nic| puts "\tNIC[#{id}]: #{nic.mac_address}"} 
   end  
 end
+

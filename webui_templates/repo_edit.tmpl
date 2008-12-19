@@ -1,6 +1,8 @@
 #extends cobbler.webui.master
 #block body
 
+#import time
+
 #if $repo
 <script language="javascript">
 function disablename(value)
@@ -65,6 +67,42 @@ function disablename(value)
     #else
     <input type="hidden" name="editmode" value="new"/>
     #end if
+
+    #if $repo
+    <tr>
+    <td>
+    <label>Created</label>
+    </td>
+    <td>
+    $time.ctime($repo.ctime)
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label>Last Modified</label>
+    </td>
+    <td>
+    $time.ctime($repo.mtime)
+    </td>
+    </tr>
+    #end if
+
+    <tr>
+    <td>
+    <label for="comment">Comment</label>
+    </td>
+    <td>
+    #if $repo
+       #set $comm = $repo.comment
+    #else
+       #set $comm = ""
+    #end if
+    <textarea rows="5" cols="30" 400px;" name="comment" id="comment">$comm</textarea>
+    <p class="context-tip">This is a free-form description field</p>
+    </td>
+    </tr>
+
 
     <tr>
     <td>
@@ -180,6 +218,16 @@ function disablename(value)
     #else
         <input type="radio" name="arch" id="arch" value="x86_64">x86_64
     #end if
+    #if $repo and $repo.arch == "ppc"
+        <input type="radio" name="arch" id="arch" value="ppc" checked>ppc
+    #else
+        <input type="radio" name="arch" id="arch" value="ppc">ppc
+    #end if
+    #if $repo and $repo.arch == "ppc64"
+        <input type="radio" name="arch" id="arch" value="ppc64" checked>ppc64
+    #else
+        <input type="radio" name="arch" id="arch" value="ppc64">ppc64
+    #end if
     #if $repo and $repo.arch == "s390x"
         <input type="radio" name="arch" id="arch" value="s390x" checked>s390x
     #else
@@ -208,6 +256,21 @@ function disablename(value)
     <p class="context-tip">Sets specific yum plugin parameters on the installed system.</p>
     </td>
     </tr>
+
+    <tr>
+    <td>
+    <label for="environment">Environment</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="environment" id="environment" 
+        #if $repo
+            value="$repo.environment" 
+        #end if
+    />
+    <p class="context-tip">Sets environment variables for each rsync/reposync operation.</p>
+    </td>
+    </tr>
+
 
     <tr>
     <td>

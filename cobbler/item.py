@@ -54,6 +54,9 @@ class Item(serializable.Serializable):
         self.parent = ''              # all objects by default are not subobjects
         self.children = {}            # caching for performance reasons, not serialized
         self.log_func = self.config.api.log        
+        self.ctime = 0 # to be filled in by collection class
+        self.mtime = 0 # to be filled in by collection class
+        self.uid = ""  # to be filled in by collection class
 
     def clear(self):
         raise exceptions.NotImplementedError
@@ -123,6 +126,12 @@ class Item(serializable.Serializable):
         self.name = name
         return True
 
+    def set_comment(self, comment):
+        if comment is None:
+           comment = ""
+        self.comment = comment
+        return True
+
     def set_owners(self,data):
         """
         The owners field is a comment unless using an authz module that pays attention to it,
@@ -182,6 +191,30 @@ class Item(serializable.Serializable):
                 self.ks_meta = value
             return True
 
+    def set_mgmt_classes(self,mgmt_classes):
+        """
+        Assigns a list of configuration management classes that can be assigned
+        to any object, such as those used by Puppet's external_nodes feature.
+        """
+        self.mgmt_classes = utils.input_string_or_list(mgmt_classes)
+        return True
+
+    def set_template_files(self,template_files,inplace=False):
+        """
+        A comma seperated list of source=destination templates
+        that should be generated during a sync.
+        """
+        (success, value) = utils.input_string_or_hash(template_files,None,allow_multiples=False)
+        if not success:
+            return False
+        else:
+            if inplace:
+                for key in value.keys():
+                    self.template_files[key] = value[key]
+            else:
+                self.template_files = value
+            return True
+
     def load_item(self,datastruct,key,default=''):
         """
         Used in subclass from_datastruct functions to load items from
@@ -221,7 +254,7 @@ class Item(serializable.Serializable):
         # special case for systems
         key_found_already = False
         if data.has_key("interfaces"):
-            if key in [ "mac_address", "ip_address", "subnet", "gateway", "virt_bridge", "dhcp_tag", "hostname" ]:
+            if key in [ "mac_address", "ip_address", "subnet", "virt_bridge", "dhcp_tag", "dns_name", "static_routes", "bonding", "bonding_opts", "bonding_master" ]:
                 key_found_already = True
                 for (name, interface) in data["interfaces"].iteritems(): 
                     if value is not None:

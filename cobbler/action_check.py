@@ -81,20 +81,29 @@ class BootCheck:
        # comment out until s390 virtual PXE is fully supported
        # self.check_vsftpd_bin(status)
 
+       self.check_for_cman(status)
+
        return status
+
+   def check_for_cman(self, status):
+       # not doing rpm -q here to be cross-distro friendly
+       if not os.path.exists("/sbin/fence_ilo"):
+           status.append("fencing tools were not found, and are required to use the (optional) power management features. install cman to use them")
+       return True
 
    def check_service(self, status, which, notes=""):
        if notes != "":
            notes = " (NOTE: %s)" % notes
+       rc = 0
        if utils.check_dist() == "redhat":
            if os.path.exists("/etc/rc.d/init.d/%s" % which):
-               rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True)
+               rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True, close_fds=True)
            if rc != 0:
                status.append(_("service %s is not running%s") % (which,notes))
                return False
        elif utils.check_dist() == "debian":
            if os.path.exists("/etc/init.d/%s" % which):
-	       rc = sub_process.call("/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
+	       rc = sub_process.call("/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True, close_fds=True)
 	   if rc != 0:
 	       status.append(_("service %s is not running%s") % which,notes)
                return False
@@ -105,7 +114,7 @@ class BootCheck:
 
    def check_iptables(self, status):
        if os.path.exists("/etc/rc.d/init.d/iptables"):
-           rc = sub_process.call("/sbin/service iptables status >/dev/null 2>/dev/null", shell=True)
+           rc = sub_process.call("/sbin/service iptables status >/dev/null 2>/dev/null", shell=True, close_fds=True)
            if rc == 0:
               status.append(_("since iptables may be running, ensure 69, 80, %(syslog)s, and %(xmlrpc)s are unblocked") % { "syslog" : self.settings.syslog_port, "xmlrpc" : self.settings.xmlrpc_port })
 
@@ -129,11 +138,9 @@ class BootCheck:
           status.append(_("For PXE to be functional, the 'next_server' field in /etc/cobbler/settings must be set to something other than 127.0.0.1, and should match the IP of the boot server on the PXE network."))
 
    def check_selinux(self,status):
-       prc = sub_process.Popen("/usr/sbin/getenforce",shell=True,stdout=sub_process.PIPE)
-       data = prc.communicate()[0]
-       if data.lower().find("disabled") == -1:
-           # permissive or enforcing or something else
-           prc2 = sub_process.Popen("/usr/sbin/getsebool -a",shell=True,stdout=sub_process.PIPE)
+       enabled = self.config.api.is_selinux_enabled()
+       if enabled:
+           prc2 = sub_process.Popen("/usr/sbin/getsebool -a",shell=True,stdout=sub_process.PIPE, close_fds=True)
            data2 = prc2.communicate()[0]
            for line in data2.split("\n"):
               if line.find("httpd_can_network_connect ") != -1:
@@ -142,16 +149,9 @@ class BootCheck:
 
 
    def check_for_default_password(self,status):
-       templates = utils.get_kickstart_templates(self.config.api)
-       files = []
-       for t in templates:
-           fd = open(t)
-           data = fd.read()
-           fd.close()
-           if data.find("\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.") != -1:
-               files.append(t)
-       if len(files) > 0:
-           status.append(_("One or more kickstart templates references default password 'cobbler' and should be changed for security reasons: %s") % ", ".join(files))
+       default_pass = self.settings.default_password_crypted
+       if default_pass == "\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.":
+           status.append(_("The default password used by the sample templates for newly installed machines (default_password_crypted in /etc/cobbler/settings) is still set to 'cobbler' and should be changed"))
 
 
    def check_for_unreferenced_repos(self,status):

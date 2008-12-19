@@ -20,6 +20,7 @@ import xmlrpclib
 import cgi
 import os
 from cobbler.services import CobblerSvc
+import cobbler.yaml as yaml
 import cobbler.utils as utils
 
 #=======================================
@@ -57,10 +58,8 @@ def handler(req):
        for t in tokens:
           if label:
              field = t
-             apache.log_error("field %s" % field)
           else:
              form[field] = t
-             apache.log_error("adding %s to %s" % (field,t))
           label = not label
 
     # TESTING..
@@ -70,12 +69,16 @@ def handler(req):
     #form["REMOTE_MAC"]  = req.subprocess_env.get("HTTP_X_RHN_PROVISIONING_MAC_0",None)
     form["REMOTE_MAC"]  = form.get("HTTP_X_RHN_PROVISIONING_MAC_0",None)
 
-    http_port = utils.parse_settings_lame("http_port",default="80")
-    
+    fd = open("/etc/cobbler/settings")
+    data = fd.read()
+    fd.close()
+    ydata = yaml.load(data).next()
+    remote_port = ydata.get("xmlrpc_port",25151)
+
     # instantiate a CobblerWeb object
     cw = CobblerSvc(
          apache   = apache,
-         server   = "http://127.0.0.1:%s/cobbler_api" % http_port
+         server   = "http://127.0.0.1:%s" % remote_port
     )
 
     # check for a valid path/mode
@@ -88,7 +91,17 @@ def handler(req):
     # apache.log_error("%s:%s ... %s" % (my_user, my_uri, str(form)))
     req.content_type = "text/plain;charset=utf-8"
     content = unicode(content).encode('utf-8')
-    req.write(content)
     
-    return apache.OK
+    if content.find("# *** ERROR ***") != -1:
+        req.write(content)
+        apache.log_error("possible cheetah template error")
+        return apache.HTTP_ERROR
+    elif content.find("# profile not found") != -1 or content.find("# system not found") != -1 or content.find("# object not found") != -1:
+        req.content_type = "text/html;charset=utf-8"
+        req.write(" ")
+        apache.log_error("content not found")
+        return apache.HTTP_NOT_FOUND
+    else:
+        req.write(content)
+        return apache.OK
 

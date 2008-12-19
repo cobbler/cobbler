@@ -1,0 +1,72 @@
+## start of cobbler network_config generated code
+#if $getVar("system_name","") != ""
+    #set ikeys = $interfaces.keys()
+    #import re
+    #set $vlanpattern = $re.compile("[a-zA-Z0-9]+\.[0-9]+")
+    ##
+    ## Determine if we should use the MAC address to configure the interfaces first
+    ## Only physical interfaces are required to have a MAC address
+    #set $configbymac = True
+    #for $iname in $ikeys
+        #set $idata = $interfaces[$iname]
+        #if $idata["mac_address"] == "" and not $vlanpattern.match($iname) and not $idata["bonding"].lower() == "master"
+            #set $configbymac = False
+        #end if
+    #end for
+    #set $i = -1
+    #if $configbymac
+# Using "new" style networking config, by matching networking information to the physical interface's 
+# MAC-address
+%include /tmp/pre_install_network_config
+    #else
+# Using "old" style networking config. Make sure all MAC-addresses are in cobbler to use the new-style config
+        #set $vlanpattern = $re.compile("[a-zA-Z0-9]+\.[0-9]+")
+        #for $iname in $ikeys
+            #set $idata    = $interfaces[$iname]
+            #set $mac      = $idata["mac_address"]
+            #set $static   = $idata["static"]
+            #set $ip       = $idata["ip_address"]
+            #set $netmask  = $idata["subnet"]
+            #if $vlanpattern.match($iname)
+                ## If this is a VLAN interface, skip it, anaconda doesn't know
+                ## about VLANs.
+                #set $is_vlan = "true"
+            #else
+                #set $is_vlan = "false"
+                ## Only up the counter on physical interfaces!
+                #set $i = $i + 1 
+            #end if
+            #if $mac != "" or $ip != "" and $is_vlan == "false"
+                #if $static == "True":
+                    #if $ip != "":
+                        #set $network_str = "--bootproto=static"
+                        #set $network_str = $network_str + " --ip=" + $ip 
+                        #if $netmask != "":
+                            #set $network_str = $network_str + " --netmask=" + $netmask 
+                        #end if
+                        #if $gateway != "":
+                            #set $network_str = $network_str + " --gateway=" + $gateway
+                        #end if
+                    #else
+                        #set $network_str = "--bootproto=none"
+                    #end if
+                #else
+                    #set $network_str = "--bootproto=dhcp"
+                #end if
+                #if $hostname != ""
+                    #set $network_str = $network_str + " --hostname=" + $hostname
+                #end if
+            #else
+                #set $network_str = "--bootproto=dhcp"
+            #end if
+    ## network details are populated from the cobbler system object
+            #if $is_vlan == "false"
+network $network_str --device=eth$i --onboot=on
+            #end if
+        #end for
+    #end if
+#else
+## profile based install so just provide one interface for starters
+network --bootproto=dhcp --device=eth0 --onboot=on  
+#end if
+## end of cobbler network_config generated code

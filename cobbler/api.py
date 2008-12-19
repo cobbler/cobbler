@@ -33,16 +33,22 @@ import action_validate
 import action_buildiso
 import action_replicate
 import action_acl
+import action_report
+import action_power
 from cexceptions import *
 import sub_process
 import module_loader
 import kickgen
 import yumgen
+import pxegen
+import acls
+from utils import _
 
 import logging
+import time
+import random
 import os
-import fcntl
-from utils import _
+import yaml
 
 ERROR = 100
 INFO  = 10
@@ -56,16 +62,16 @@ DEBUG = 5
 
 class BootAPI:
 
-
     __shared_state = {}
     __has_loaded = False
 
-    def __init__(self):
+    def __init__(self, log_settings={}):
         """
         Constructor
         """
 
         self.__dict__ = BootAPI.__shared_state
+        self.log_settings = log_settings
         self.perms_ok = False
         if not BootAPI.__has_loaded:
 
@@ -75,6 +81,8 @@ class BootAPI:
             # the logs, so we'll do that logging at CLI
             # level (and remote.py web service level) instead.
 
+            random.seed()
+
             try:
                 self.logger = self.__setup_logger("api")
             except CX:
@@ -83,9 +91,15 @@ class BootAPI:
                 return
 
             self.logger_remote = self.__setup_logger("remote")
+            self.selinux_enabled = utils.is_selinux_enabled()
+            self.dist = utils.check_dist()
+            self.os_version = utils.os_release()
+
+            self.acl_engine = acls.AclEngine()
 
             BootAPI.__has_loaded   = True
             module_loader.load_modules()
+
             self._config         = config.Config(self)
             self.deserialize()
 
@@ -101,11 +115,46 @@ class BootAPI:
             )
             self.kickgen = kickgen.KickGen(self._config)
             self.yumgen  = yumgen.YumGen(self._config)
+            self.pxegen  = pxegen.PXEGen(self._config)
             self.logger.debug("API handle initialized")
             self.perms_ok = True
  
     def __setup_logger(self,name):
-        return utils.setup_logger(name)
+        return utils.setup_logger(name, **self.log_settings)
+    
+    def is_selinux_enabled(self):
+        """
+        Returns whether selinux is enabled on the cobbler server.
+        We check this just once at cobbler API init time, because
+        a restart is required to change this; this does /not/ check
+        enforce/permissive, nor does it need to.
+        """
+        return self.selinux_enabled
+
+    def is_selinux_supported(self):
+        """
+        Returns whether or not the OS is sufficient enough
+        to run with SELinux enabled (currently EL 5 or later).
+        """
+        self.dist
+        if self.dist == "redhat" and self.os_version < 5:
+           # doesn't support public_content_t
+           return False 
+        return True
+
+    def last_modified_time(self):
+        """
+        Returns the time of the last modification to cobbler, made by any
+        API instance, regardless of the serializer type.
+        """
+        if not os.path.exists("/var/lib/cobbler/.mtime"):
+            fd = open("/var/lib/cobbler/.mtime","w")
+            fd.write("0")
+            fd.close()
+            return 0
+        fd = open("/var/lib/cobbler/.mtime")
+        data = fd.read().strip()
+        return float(data)
 
     def log(self,msg,args=None,debug=False):
         if debug:
@@ -117,19 +166,29 @@ class BootAPI:
         else:
             logger("%s; %s" % (msg, str(args)))
 
-    def version(self):
+    def version(self, extended=False):
         """
         What version is cobbler?
-        Currently checks the RPM DB, which is not perfect.
-        Will return "?" if not installed.
+
+        If extended == False, returns a float for backwards compatibility
+         
+        If extended == True, returns a dict:
+
+            gitstamp      -- the last git commit hash
+            gitdate       -- the last git commit date on the builder machine
+            builddate     -- the time of the build
+            version       -- something like "1.3.2"
+            version_tuple -- something like [ 1, 3, 2 ]
         """
-        self.log("version")
-        cmd = sub_process.Popen("/bin/rpm -q cobbler", stdout=sub_process.PIPE, shell=True)
-        result = cmd.communicate()[0].replace("cobbler-","")
-        if result.find("not installed") != -1:
-            return "?"
-        tokens = result[:result.rfind("-")].split(".")
-        return int(tokens[0]) + 0.1 * int(tokens[1]) + 0.001 * int(tokens[2])
+        fd = open("/var/lib/cobbler/version")
+        data = yaml.load(fd.read()).next()
+        fd.close()
+        if not extended:
+            # for backwards compatibility and use with koan's comparisons
+            elems = data["version_tuple"] 
+            return int(elems[0]) + 0.1*int(elems[1]) + 0.001*int(elems[2])
+        else:
+            return data    
 
     def clear(self):
         """
@@ -176,6 +235,17 @@ class BootAPI:
         """
         return self._config.settings()
 
+    def update(self):
+        """
+        This can be called when you expect a cobbler object
+        to have changed outside of your API call.  It does not
+        have to be called before read operations but should be
+        called before write operations depending on the last
+        modification time.  For the local API it is not needed.
+        """
+        self.clear()
+        self.deserialize()
+
     def copy_distro(self, ref, newname):
         self.log("copy_distro",[ref.name, newname])
         return self._config.distros().copy(ref,newname)
@@ -197,24 +267,45 @@ class BootAPI:
         return self._config.images().copy(ref,newname)
 
     def remove_distro(self, ref, recursive=False):
-        self.log("remove_distro",[ref.name])
-        return self._config.distros().remove(ref.name, recursive=recursive)
+        if type(ref) != str:
+           self.log("remove_distro",[ref.name])
+           return self._config.distros().remove(ref.name, recursive=recursive)
+        else:
+           self.log("remove_distro",ref)
+           return self._config.distros().remove(ref, recursive=recursive)
+           
 
     def remove_profile(self,ref, recursive=False):
-        self.log("remove_profile",[ref.name])
-        return self._config.profiles().remove(ref.name, recursive=recursive)
+        if type(ref) != str:
+           self.log("remove_profile",[ref.name])
+           return self._config.profiles().remove(ref.name, recursive=recursive)
+        else:
+           self.log("remove_profile",ref)
+           return self._config.profiles().remove(ref, recursive=recursive)
 
-    def remove_system(self,ref, recursive=False):
-        self.log("remove_system",[ref.name])
-        return self._config.systems().remove(ref.name)
+    def remove_system(self, ref, recursive=False):
+        if type(ref) != str:
+           self.log("remove_system",[ref.name])
+           return self._config.systems().remove(ref.name)
+        else:
+           self.log("remove_system",ref)
+           return self._config.systems().remove(ref)
 
-    def remove_repo(self, ref,recursive=False):
-        self.log("remove_repo",[ref.name])
-        return self._config.repos().remove(ref.name)
-    
-    def remove_image(self, ref):
-        self.log("remove_image",[ref.name])
-        return self._config.images().remove(ref.name)
+    def remove_repo(self, ref, recursive=False):
+        if type(ref) != str:
+           self.log("remove_repo",[ref.name])
+           return self._config.repos().remove(ref.name)
+        else:    
+           self.log("remove_repo",ref)
+           return self._config.repos().remove(ref)
+
+    def remove_image(self, ref, recursive=False):
+        if type(ref) != str:
+           self.log("remove_image",[ref.name])
+           return self._config.images().remove(ref.name, recursive=recursive)
+        else:
+           self.log("remove_image",ref)
+           return self._config.images().remove(ref, recursive=recursive)
 
     def rename_distro(self, ref, newname):
         self.log("rename_distro",[ref.name,newname])
@@ -234,7 +325,7 @@ class BootAPI:
     
     def rename_image(self, ref, newname):
         self.log("rename_image",[ref.name,newname])
-        return self._config.image().rename(ref,newname)
+        return self._config.images().rename(ref,newname)
 
     def new_distro(self,is_subobject=False):
         self.log("new_distro",[is_subobject])
@@ -291,6 +382,43 @@ class BootAPI:
     def find_image(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.images().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
+    def __since(self,mtime,collector,collapse=False):
+        """
+        Called by get_*_since functions.
+        """
+        results1 = collector()
+        results2 = []
+        for x in results1:
+           print "INPUT: %s ACTUAL: %s" % (mtime, x.mtime)
+           if x.mtime == 0 or x.mtime >= mtime:
+              if not collapse:
+                  results2.append(results1)
+              else:
+                  results2.append(results1.to_datastruct())
+        return results2
+
+    def get_distros_since(self,mtime,collapse=False):
+        """
+        Returns distros modified since a certain time (in seconds since Epoch)
+        collapse=True specifies returning a hash instead of objects.
+        """
+        return self.__since(mtime,self.distros,collapse=collapse)
+
+    def get_profiles_since(self,mtime,collapse=False):
+        return self.__since(mtime,self.profiles,collapse=collapse)
+
+    def get_systems_since(self,mtime,collapse=False):
+        return self.__since(mtime,self.systems,collapse=collapse)
+
+    def get_repos_since(self,mtime,collapse=False):
+        return self.__since(mtime,self.repos,collapse=collapse)
+
+    def get_images_since(self,mtime,collapse=False):
+        return self.__since(mtime,self.images,collapse=collapse)
+
+    
+
+
     def dump_vars(self, obj, format=False):
         return obj.dump_vars(format)
 
@@ -335,6 +463,20 @@ class BootAPI:
     
     def get_repo_config_for_system(self,obj):
         return self.yumgen.get_yum_config(obj,False)
+
+    def get_template_file_for_profile(self,obj,path):
+        template_results = self.pxegen.write_templates(obj,False,path)
+        if template_results.has_key(path):
+            return template_results[path]
+        else:
+            return "# template path not found for specified profile"
+
+    def get_template_file_for_system(self,obj,path):
+        template_results = self.pxegen.write_templates(obj,False,path)
+        if template_results.has_key(path):
+            return template_results[path]
+        else:
+            return "# template path not found for specified system"
 
     def generate_kickstart(self,profile,system):
         self.log("generate_kickstart")
@@ -393,13 +535,13 @@ class BootAPI:
         ).get_manager(self._config)
         return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns)
 
-    def reposync(self, name=None):
+    def reposync(self, name=None, tries=1, nofail=False):
         """
         Take the contents of /var/lib/cobbler/repos and update them --
         or create the initial copy if no contents exist yet.
         """
         self.log("reposync",[name])
-        reposync = action_reposync.RepoSync(self._config)
+        reposync = action_reposync.RepoSync(self._config, tries=tries, nofail=nofail)
         return reposync.run(name)
 
     def status(self,mode=None):
@@ -407,7 +549,7 @@ class BootAPI:
         statusifier = action_status.BootStatusReport(self._config,mode)
         return statusifier.run()
 
-    def import_tree(self,mirror_url,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None):
+    def import_tree(self,mirror_url,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None,breed=None):
         """
         Automatically import a directory tree full of distribution files.
         mirror_url can be a string that represents a path, a user@host 
@@ -417,7 +559,7 @@ class BootAPI:
         """
         self.log("import_tree",[mirror_url, mirror_name, network_root, kickstart_file, rsync_flags])
         importer = action_import.Importer(
-            self, self._config, mirror_url, mirror_name, network_root, kickstart_file, rsync_flags, arch
+            self, self._config, mirror_url, mirror_name, network_root, kickstart_file, rsync_flags, arch, breed
         )
         return importer.run()
 
@@ -444,12 +586,14 @@ class BootAPI:
     def deserialize(self):
         """
         Load the current configuration from config file(s)
+        Cobbler internal use only.
         """
         return self._config.deserialize()
 
     def deserialize_raw(self,collection_name):
         """
         Get the collection back just as raw data.
+        Cobbler internal use only.
         """
         return self._config.deserialize_raw(collection_name)
 
@@ -457,12 +601,14 @@ class BootAPI:
         """
         Get an object back as raw data.
         Can be very fast for shelve or catalog serializers
+        Cobbler internal use only.
         """
         return self._config.deserialize_item_raw(collection_name,obj_name)
 
     def get_module_by_name(self,module_name):
         """
         Returns a loaded cobbler module named 'name', if one exists, else None.
+        Cobbler internal use only.
         """
         return module_loader.get_module_by_name(module_name)
 
@@ -471,18 +617,21 @@ class BootAPI:
         Looks in /etc/cobbler/modules.conf for a section called 'section'
         and a key called 'name', and then returns the module that corresponds
         to the value of that key.
+        Cobbler internal use only.
         """
         return module_loader.get_module_from_file(section,name,fallback)
 
     def get_modules_in_category(self,category):
         """
         Returns all modules in a given category, for instance "serializer", or "cli".
+        Cobbler internal use only.
         """
         return module_loader.get_modules_in_category(category)
 
     def authenticate(self,user,password):
         """
         (Remote) access control.
+        Cobbler internal use only.
         """
         rc = self.authn.authenticate(self,user,password)
         self.log("authenticate",[user,rc])
@@ -491,8 +640,9 @@ class BootAPI:
     def authorize(self,user,resource,arg1=None,arg2=None):
         """
         (Remote) access control.
+        Cobbler internal use only.
         """
-        rc = self.authz.authorize(self,user,resource,arg1,arg2)
+        rc = self.authz.authorize(self,user,resource,arg1,arg2,acl_engine=self.acl_engine)
         self.log("authorize",[user,resource,arg1,arg2,rc],debug=True)
         return rc
 
@@ -518,6 +668,39 @@ class BootAPI:
               include_systems = systems
         )
 
+    def report(self, report_what = None, report_name = None, report_type = None, report_fields = None, report_noheaders = None):
+        """
+        Report functionality for cobbler
+        """
+        reporter = action_report.Report(self._config)
+        return reporter.run(report_what = report_what, report_name = report_name,\
+                            report_type = report_type, report_fields = report_fields,\
+                            report_noheaders = report_noheaders)
+
     def get_kickstart_templates(self):
         return utils.get_kickstar_templates(self)
+
+    def power_on(self, system, user=None, password=None):
+        """
+        Powers up a system that has power management configured.
+        """
+        return action_power.PowerTool(self._config,system,self,user,password).power("on")
+
+    def power_off(self, system, user=None, password=None):
+        """
+        Powers down a system that has power management configured.
+        """
+        return action_power.PowerTool(self._config,system,self,user,password).power("off")
+
+    def reboot(self,system, user=None, password=None):
+        """
+        Cycles power on a system that has power management configured.
+        """
+        self.power_off(system, user, password)
+        time.sleep(1)
+        return self.power_on(system, user, password)
+        
+    def get_os_details(self):
+        return (self.dist, self.os_version)
+
 

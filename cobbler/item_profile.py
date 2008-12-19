@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import utils
 import item
+import time
 from cexceptions import *
 
 from utils import _
@@ -42,12 +43,15 @@ class Profile(item.Item):
         Reset this object.
         """
         self.name                   = None
+        self.uid                    = ""
         self.owners                 = self.settings.default_ownership
         self.distro                 = (None,                                    '<<inherit>>')[is_subobject]
+        self.enable_menu            = (self.settings.enable_menu,               '<<inherit>>')[is_subobject]
         self.kickstart              = (self.settings.default_kickstart ,        '<<inherit>>')[is_subobject]    
         self.kernel_options         = ({},                                      '<<inherit>>')[is_subobject]
         self.kernel_options_post    = ({},                                      '<<inherit>>')[is_subobject]
         self.ks_meta                = ({},                                      '<<inherit>>')[is_subobject]
+        self.template_files         = ({},                                      '<<inherit>>')[is_subobject]
         self.virt_cpus              = (1,                                       '<<inherit>>')[is_subobject]
         self.virt_file_size         = (self.settings.default_virt_file_size,    '<<inherit>>')[is_subobject]
         self.virt_ram               = (self.settings.default_virt_ram,          '<<inherit>>')[is_subobject]
@@ -57,8 +61,14 @@ class Profile(item.Item):
         self.virt_path              = ("",                                      '<<inherit>>')[is_subobject]
         self.virt_bridge            = (self.settings.default_virt_bridge,       '<<inherit>>')[is_subobject]
         self.dhcp_tag               = ("default",                               '<<inherit>>')[is_subobject]
+        self.mgmt_classes           = ([],                                      '<<inherit>>')[is_subobject]
         self.parent                 = ''
         self.server                 = "<<inherit>>"
+        self.comment                = ""
+        self.ctime                  = 0
+        self.mtime                  = 0
+        self.name_servers           = (self.settings.default_name_servers,      '<<inherit>>')[is_subobject]
+        self.redhat_management_key  = "<<inherit>>"
 
     def from_datastruct(self,seed_data):
         """
@@ -69,14 +79,22 @@ class Profile(item.Item):
         self.name                   = self.load_item(seed_data,'name')
         self.owners                 = self.load_item(seed_data,'owners',self.settings.default_ownership)
         self.distro                 = self.load_item(seed_data,'distro')
+        self.enable_menu            = self.load_item(seed_data,'enable_menu', self.settings.enable_menu)
         self.kickstart              = self.load_item(seed_data,'kickstart')
         self.kernel_options         = self.load_item(seed_data,'kernel_options')
         self.kernel_options_post    = self.load_item(seed_data,'kernel_options_post')
         self.ks_meta                = self.load_item(seed_data,'ks_meta')
+        self.template_files         = self.load_item(seed_data,'template_files', {})
         self.repos                  = self.load_item(seed_data,'repos', [])
         self.depth                  = self.load_item(seed_data,'depth', 1)     
         self.dhcp_tag               = self.load_item(seed_data,'dhcp_tag', 'default')
         self.server                 = self.load_item(seed_data,'server', '<<inherit>>')
+        self.mgmt_classes           = self.load_item(seed_data,'mgmt_classes', [])
+        self.comment                = self.load_item(seed_data,'comment','')
+        self.ctime                  = self.load_item(seed_data,'ctime',0)
+        self.mtime                  = self.load_item(seed_data,'mtime',0)
+        self.name_servers           = self.load_item(seed_data,'name_servers',[])
+        self.redhat_management_key  = self.load_item(seed_data,'redhat_management_key', '<<inherit>>')
 
         # backwards compatibility
         if type(self.repos) != list:
@@ -105,7 +123,14 @@ class Profile(item.Item):
         if self.repos != "<<inherit>>" and type(self.ks_meta) != list:
             self.set_repos(self.repos,bypass_check=True)
 
+        self.set_enable_menu(self.enable_menu)
         self.set_owners(self.owners)
+        self.set_mgmt_classes(self.mgmt_classes)
+        self.set_template_files(self.template_files)
+
+        self.uid         = self.load_item(seed_data,'uid','')
+        if self.uid == '':
+           self.uid = self.config.generate_uid()
 
         return self
 
@@ -146,11 +171,31 @@ class Profile(item.Item):
             return True
         raise CX(_("distribution not found"))
 
+    def set_redhat_management_key(self,key):
+        return utils.set_redhat_management_key(self,key)
+
+    def set_name_servers(self,data):
+        data = utils.input_string_or_list(data)
+        self.name_servers = data
+        return True
+
+    def set_enable_menu(self,enable_menu):
+        """
+        Sets whether or not the profile will be listed in the default
+        PXE boot menu.  This is pretty forgiving for YAML's sake.
+        """
+        self.enable_menu = utils.input_boolean(enable_menu)
+        return True
+
     def set_dhcp_tag(self,dhcp_tag):
+        if dhcp_tag is None:
+           dhcp_tag = ""
         self.dhcp_tag = dhcp_tag
         return True
 
     def set_server(self,server):
+        if server is None or server == "":
+           server = "<inherit>"
         self.server = server
         return True
 
@@ -160,13 +205,16 @@ class Profile(item.Item):
 	Sets the kickstart.  This must be a NFS, HTTP, or FTP URL.
 	Or filesystem path.  Minor checking of the URL is performed here.
 	"""
+        if kickstart == "" or kickstart is None:
+            self.kickstart = ""
+            return True
         if kickstart == "<<inherit>>":
             self.kickstart = kickstart
             return True
         if utils.find_kickstart(kickstart):
             self.kickstart = kickstart
             return True
-        raise CX(_("kickstart not found"))
+        raise CX(_("kickstart not found: %s") % kickstart)
 
     def set_virt_cpus(self,num):
         return utils.set_virt_cpus(self,num)
@@ -181,8 +229,7 @@ class Profile(item.Item):
         return utils.set_virt_type(self,vtype)
 
     def set_virt_bridge(self,vbridge):
-        self.virt_bridge = vbridge
-        return True
+        return utils.set_virt_bridge(self,vbridge)
 
     def set_virt_path(self,path):
         return utils.set_virt_path(self,path)
@@ -230,6 +277,7 @@ class Profile(item.Item):
             'name'                  : self.name,
             'owners'                : self.owners,
             'distro'                : self.distro,
+            'enable_menu'           : self.enable_menu,
             'kickstart'             : self.kickstart,
             'kernel_options'        : self.kernel_options,
             'kernel_options_post'   : self.kernel_options_post,
@@ -238,6 +286,7 @@ class Profile(item.Item):
             'virt_bridge'           : self.virt_bridge,
             'virt_cpus'             : self.virt_cpus,
             'ks_meta'               : self.ks_meta,
+            'template_files'        : self.template_files,
             'repos'                 : self.repos,
             'parent'                : self.parent,
             'depth'                 : self.depth,
@@ -245,8 +294,14 @@ class Profile(item.Item):
             'virt_path'             : self.virt_path,
             'dhcp_tag'              : self.dhcp_tag,
             'server'                : self.server,
-
-        }
+            'mgmt_classes'          : self.mgmt_classes,
+            'comment'               : self.comment,
+            'ctime'                 : self.ctime,
+            'mtime'                 : self.mtime,
+            'name_servers'          : self.name_servers,
+            'uid'                   : self.uid,
+            'redhat_management_key' : self.redhat_management_key
+         }
 
     def printable(self):
         """
@@ -257,14 +312,22 @@ class Profile(item.Item):
             buf = buf + _("parent               : %s\n") % self.parent
         else:
             buf = buf + _("distro               : %s\n") % self.distro
+        buf = buf + _("comment              : %s\n") % self.comment
+        buf = buf + _("created              : %s\n") % time.ctime(self.ctime)
         buf = buf + _("dhcp tag             : %s\n") % self.dhcp_tag
+        buf = buf + _("enable menu          : %s\n") % self.enable_menu
         buf = buf + _("kernel options       : %s\n") % self.kernel_options
-        buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
         buf = buf + _("kickstart            : %s\n") % self.kickstart
         buf = buf + _("ks metadata          : %s\n") % self.ks_meta
+        buf = buf + _("mgmt classes         : %s\n") % self.mgmt_classes
+        buf = buf + _("modified             : %s\n") % time.ctime(self.mtime)
+        buf = buf + _("name servers         : %s\n") % self.name_servers
         buf = buf + _("owners               : %s\n") % self.owners
+        buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
+        buf = buf + _("redhat mgmt key      : %s\n") % self.redhat_management_key
         buf = buf + _("repos                : %s\n") % self.repos
         buf = buf + _("server               : %s\n") % self.server
+        buf = buf + _("template_files       : %s\n") % self.template_files
         buf = buf + _("virt bridge          : %s\n") % self.virt_bridge
         buf = buf + _("virt cpus            : %s\n") % self.virt_cpus
         buf = buf + _("virt file size       : %s\n") % self.virt_file_size
@@ -280,19 +343,36 @@ class Profile(item.Item):
             'parent'          :  self.set_parent,
             'profile'         :  self.set_name,
             'distro'          :  self.set_distro,
+            'enable-menu'     :  self.set_enable_menu,
+            'enable_menu'     :  self.set_enable_menu,            
             'kickstart'       :  self.set_kickstart,
             'kopts'           :  self.set_kernel_options,
             'kopts-post'      :  self.set_kernel_options_post,
+            'kopts_post'      :  self.set_kernel_options_post,            
             'virt-file-size'  :  self.set_virt_file_size,
+            'virt_file_size'  :  self.set_virt_file_size,            
             'virt-ram'        :  self.set_virt_ram,
+            'virt_ram'        :  self.set_virt_ram,            
             'ksmeta'          :  self.set_ksmeta,
+            'template-files'  :  self.set_template_files,
+            'template_files'  :  self.set_template_files,            
             'repos'           :  self.set_repos,
             'virt-path'       :  self.set_virt_path,
+            'virt_path'       :  self.set_virt_path,            
             'virt-type'       :  self.set_virt_type,
+            'virt_type'       :  self.set_virt_type,            
             'virt-bridge'     :  self.set_virt_bridge,
+            'virt_bridge'     :  self.set_virt_bridge,            
             'virt-cpus'       :  self.set_virt_cpus,
+            'virt_cpus'       :  self.set_virt_cpus,            
             'dhcp-tag'        :  self.set_dhcp_tag,
+            'dhcp_tag'        :  self.set_dhcp_tag,            
             'server'          :  self.set_server,
-            'owners'          :  self.set_owners
+            'owners'          :  self.set_owners,
+            'mgmt-classes'    :  self.set_mgmt_classes,
+            'mgmt_classes'    :  self.set_mgmt_classes,            
+            'comment'         :  self.set_comment,
+            'name_servers'    :  self.set_name_servers,
+            'redhat_management_key' : self.set_redhat_management_key
         }
 

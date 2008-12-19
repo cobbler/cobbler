@@ -32,7 +32,7 @@ module Cobbler
     cobbler_field :virt_bridge
     cobbler_field :ip_address
     
-    def initialize(args)
+    def initialize(args = nil)
       @definitions = args
     end
    

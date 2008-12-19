@@ -3,10 +3,10 @@
 ### RPM's are not transferred.  Some users may want to
 ### re-enable debug RPM's.
 **/debug/**
-**/ppc/**
 **/alpha/**
-**/ia64/**
 **/source/**
 **/SRPMS/**
 **/*.iso
 **/kde-i18n**
+pool/**/*.dsc
+pool/**/*.gz

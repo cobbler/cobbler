@@ -16,6 +16,7 @@ from Cheetah.Template import Template
 import os
 import traceback
 import string
+import math
 from cobbler.utils import *
 import sys
 
@@ -35,9 +36,10 @@ class CobblerWeb(object):
     it all run either under cgi-bin or CherryPy.  Supporting other Python
     frameworks should be trivial.
     """
-    def __init__(self, server=None, base_url='/', username=None, password=None, token=None, apache=None):
+    def __init__(self, server=None, base_url='/', mode=None, username=None, password=None, token=None, apache=None):
         self.server = server
         self.base_url = base_url
+        self.mode = mode
         self.remote = None
         self.token = token
         self.username = username
@@ -94,6 +96,7 @@ class CobblerWeb(object):
         of files while we're at it.
         """
         data['base_url'] = self.base_url
+        data['mode'] = self.mode
         filepath = os.path.join("/usr/share/cobbler/webui_templates/",template)
         tmpl = Template( file=filepath, searchList=[data] )
         return str(tmpl)
@@ -116,7 +119,13 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
 
     def index(self,**args):
-        return self.__render( 'index.tmpl', { } )
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+
+        vdata =self.remote.extended_version()
+        return self.__render( 'index.tmpl', {
+            'version': vdata["version"],
+        })
 
     def menu(self,**args):
         return self.__render( 'blank.tmpl', { } )
@@ -185,9 +194,10 @@ class CobblerWeb(object):
             'distro': input_distro,
         } )
 
-    def distro_save(self,name=None,oldname=None,new_or_edit=None,editmode='edit',kernel=None,
-                    initrd=None,kopts=None,koptspost=None,ksmeta=None,owners=None,arch=None,breed=None,
-                    osversion=None,delete1=None,delete2=None,recursive=False,**args):
+
+    def distro_save(self,name=None,comment=None,oldname=None,new_or_edit=None,editmode='edit',kernel=None,
+                    initrd=None,kopts=None,koptspost=None,ksmeta=None,owners=None,arch=None,breed=None,redhatmanagementkey=None,
+                    osversion=None,delete1=False,delete2=False,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -200,10 +210,10 @@ class CobblerWeb(object):
         # handle deletes as a special case
         if new_or_edit == 'edit' and delete1 and delete2:
             try:    
-                if recursive is None: 
-                    self.remote.remove_distro(name,self.token,False)
-                else:
+                if recursive: 
                     self.remote.remove_distro(name,self.token,True)
+                else:
+                    self.remote.remove_distro(name,self.token,False)
                        
             except Exception, e:
                 return self.error_page("could not delete %s, %s" % (name,str(e)))
@@ -237,20 +247,18 @@ class CobblerWeb(object):
                 self.remote.modify_distro(distro, 'name', name, self.token)
             self.remote.modify_distro(distro, 'kernel', kernel, self.token)
             self.remote.modify_distro(distro, 'initrd', initrd, self.token)
-            if kopts:
+            if kopts is not None:
                 self.remote.modify_distro(distro, 'kopts', kopts, self.token)
-            if koptspost:
+            if koptspost is not None:
                 self.remote.modify_distro(distro, 'kopts-post', koptspost, self.token)
-            if ksmeta:
-                self.remote.modify_distro(distro, 'ksmeta', ksmeta, self.token)
-            if owners:
-                self.remote.modify_distro(distro, 'owners', owners, self.token)
-            if arch:
-                self.remote.modify_distro(distro, 'arch', arch, self.token)
-            if breed:
-                self.remote.modify_distro(distro, 'breed', breed, self.token)
-            if osversion:
-                self.remote.modify_distro(distro, 'os-version', osversion, self.token)
+            self.remote.modify_distro(distro, 'ksmeta', ksmeta, self.token)
+            self.remote.modify_distro(distro, 'owners', owners, self.token)
+            self.remote.modify_distro(distro, 'arch', arch, self.token)
+            self.remote.modify_distro(distro, 'breed', breed, self.token)
+            self.remote.modify_distro(distro, 'os-version', osversion, self.token)
+            self.remote.modify_distro(distro, 'comment', comment, self.token)
+            self.remote.modify_distro(distro, 'redhat_management_key', redhatmanagementkey, self.token)
+
             # now time to save, do we want to run duplication checks?
             self.remote.save_distro(distro, self.token, editmode)
         except Exception, e:
@@ -307,6 +315,7 @@ class CobblerWeb(object):
         if len(systems) > 0:
             return self.__render( 'system_list.tmpl', {
                 'systems'          : systems,
+                'profiles'         : self.remote.get_profiles(),
                 'pages'            : pages,
                 'page'             : page,
                 'results_per_page' : results_per_page
@@ -314,10 +323,13 @@ class CobblerWeb(object):
         else:
             return self.__render('empty.tmpl',{})
 
-    def system_save(self,name=None,oldname=None,editmode="edit",profile=None,
+    def system_save(self,name=None,oldname=None,comment=None,editmode="edit",profile=None,
                     new_or_edit=None,  
                     kopts=None, koptspost=None, ksmeta=None, owners=None, server_override=None, netboot='n', 
-                    virtpath=None,virtram=None,virttype=None,virtcpus=None,virtfilesize=None,delete1=None, delete2=None, **args):
+                    virtpath=None,virtram=None,virttype=None,virtcpus=None,virtfilesize=None,
+                    name_servers=None,
+                    power_type=None, power_user=None, power_pass=None, power_id=None, power_address=None,
+                    gateway=None,hostname=None,redhatmanagementkey=None,delete1=None, delete2=None, **args):
 
 
         if not self.__xmlrpc_setup():
@@ -357,57 +369,68 @@ class CobblerWeb(object):
             if editmode != "rename" and name:
                 self.remote.modify_system(system, 'name', name, self.token )
             self.remote.modify_system(system, 'profile', profile, self.token)
-            if kopts:
-               self.remote.modify_system(system, 'kopts', kopts, self.token)
-            if koptspost:
-               self.remote.modify_system(system, 'kopts-post', koptspost, self.token)
-            if ksmeta:
-               self.remote.modify_system(system, 'ksmeta', ksmeta, self.token)
-            if owners:
-               self.remote.modify_system(system, 'owners', owners, self.token)
-            if netboot:
-               self.remote.modify_system(system, 'netboot-enabled', netboot, self.token)
-            if server_override:
-               self.remote.modify_system(system, 'server', server_override, self.token)
+            self.remote.modify_system(system, 'kopts', kopts, self.token)
+            self.remote.modify_system(system, 'kopts-post', koptspost, self.token)
+            self.remote.modify_system(system, 'ksmeta', ksmeta, self.token)
+            self.remote.modify_system(system, 'owners', owners, self.token)
+            self.remote.modify_system(system, 'netboot-enabled', netboot, self.token)
+            self.remote.modify_system(system, 'server', server_override, self.token)
 
-            if virtfilesize:
-               self.remote.modify_system(system, 'virt-file-size', virtfilesize, self.token)
-            if virtcpus:
-               self.remote.modify_system(system, 'virt-cpus', virtcpus, self.token)
-            if virtram:
-               self.remote.modify_system(system, 'virt-ram', virtram, self.token)
-            if virttype:
-               self.remote.modify_system(system, 'virt-type', virttype, self.token)
+            self.remote.modify_system(system, 'virt-file-size', virtfilesize, self.token)
+            self.remote.modify_system(system, 'virt-cpus', virtcpus, self.token)
+            self.remote.modify_system(system, 'virt-ram', virtram, self.token)
+            self.remote.modify_system(system, 'virt-type', virttype, self.token)
+            self.remote.modify_system(system, 'virt-path', virtpath, self.token)
 
-            if virtpath:
-               self.remote.modify_system(system, 'virt-path', virtpath, self.token)
+            self.remote.modify_system(system, 'comment', comment, self.token)
 
+            self.remote.modify_system(system, 'power_type', power_type, self.token)
+            self.remote.modify_system(system, 'power_user', power_user, self.token)
+            self.remote.modify_system(system, 'power_pass', power_pass, self.token)
+            self.remote.modify_system(system, 'power_id', power_id, self.token)
+            self.remote.modify_system(system, 'power_address', power_address, self.token)
+            self.remote.modify_system(system, 'name_servers', name_servers, self.token)
+            self.remote.modify_system(system, 'gateway', gateway, self.token)
+            self.remote.modify_system(system, 'hostname', hostname, self.token)
+            self.remote.modify_system(system, 'redhat_management_key', redhatmanagementkey, self.token)
 
-            for x in range(0,7):
-                interface = "intf%s" % x
-                macaddress = args.get("macaddress-%s" % interface, "")
-                ipaddress  = args.get("ipaddress-%s" % interface, "")
-                hostname   = args.get("hostname-%s" % interface, "")
-                virtbridge = args.get("virtbridge-%s" % interface, "")
-                dhcptag    = args.get("dhcptag-%s" % interface, "")
-                subnet     = args.get("subnet-%s" % interface, "")
-                gateway    = args.get("gateway-%s" % interface, "")
-                if not (macaddress != "" or ipaddress != "" or hostname != "" or virtbridge != "" or dhcptag != "" or subnet != "" or gateway != ""):
-                    # if we have nothing to modify, request that we remove the interface unless it's the
-                    # the first interface, in which case it is NOT removeable
-                    if not interface == "intf0":
-                        self.remote.modify_system(system,'delete-interface', interface, self.token) 
-                else:
-                    # it looks like we have at least one value to submit, just send the ones over that are
-                    # /not/ None (just to be paranoid about XMLRPC and allow-none)
+            interfaces = args.get("interface_list","")
+            interfaces = interfaces.split(",")
+
+            for interface in interfaces:
+                macaddress     = args.get("macaddress-%s" % interface, "")
+                ipaddress      = args.get("ipaddress-%s" % interface, "")
+                dnsname        = args.get("dns_name-%s" % interface, "")
+                staticroutes   = args.get("static_routes-%s" % interface, "")
+                static         = args.get("static-%s" % interface, "")
+                virtbridge     = args.get("virtbridge-%s" % interface, "")
+                dhcptag        = args.get("dhcptag-%s" % interface, "")
+                subnet         = args.get("subnet-%s" % interface, "")
+                bonding        = args.get("bonding-%s" % interface, "")
+                bondingopts    = args.get("bondingopts-%s" % interface, "")
+                bondingmaster  = args.get("bondingmaster-%s" % interface, "")
+                present        = args.get("present-%s" % interface, "")
+                original       = args.get("original-%s" % interface, "")
+
+                if (present == "0") and (original == "1"):
+                    # interfaces already stored and flagged for deletion must be destroyed
+                    self.remote.modify_system(system,'delete-interface', interface, self.token) 
+                elif (present == "1"):
+                    # interfaces new or existing must be edited
                     mods = {}
                     mods["macaddress-%s" % interface] = macaddress
                     mods["ipaddress-%s" % interface] = ipaddress
-                    mods["hostname-%s" % interface]  = hostname
+                    mods["dnsname-%s" % interface]  = dnsname
+                    mods["static_routes-%s" % interface] = staticroutes
+                    mods["static-%s" % interface]  = static
                     mods["virtbridge-%s" % interface] = virtbridge
                     mods["dhcptag-%s" % interface] = dhcptag
                     mods["subnet-%s" % interface] = subnet
-                    mods["gateway-%s" % interface] = gateway
+                    mods["present-%s" % interface] = present
+                    mods["original-%s" % interface] = original
+                    mods["bonding-%s" % interface] = bonding
+                    mods["bondingopts-%s" % interface] = bondingopts
+                    mods["bondingmaster-%s" % interface] = bondingmaster
                     self.remote.modify_system(system,'modify-interface', mods, self.token)
 
             self.remote.save_system(system, self.token, editmode)
@@ -509,11 +532,12 @@ class CobblerWeb(object):
             'subprofile': subprofile
         } )
 
-    def profile_save(self,new_or_edit=None,editmode='edit',name=None,oldname=None,
+    def profile_save(self,new_or_edit=None,editmode='edit',name=None,comment=None,oldname=None,
                      distro=None,kickstart=None,kopts=None,koptspost=None,
-                     ksmeta=None,owners=None,virtfilesize=None,virtram=None,virttype=None,
-                     virtpath=None,repos=None,dhcptag=None,delete1=None,delete2=None,
-                     parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,recursive=False,**args):
+                     ksmeta=None,owners=None,enablemenu=None,virtfilesize=None,virtram=None,virttype=None,
+                     virtpath=None,repos=None,dhcptag=None,delete1=False,delete2=False,
+                     parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,
+                     name_servers=None,redhatmanagementkey=None,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -565,30 +589,22 @@ class CobblerWeb(object):
                 self.remote.modify_profile(profile,  'distro', distro, self.token)
             if str(subprofile) == "1" and parent:
                 self.remote.modify_profile(profile,  'parent', parent, self.token)
-            if kickstart:
-                self.remote.modify_profile(profile, 'kickstart', kickstart, self.token)
-            if kopts:
-                self.remote.modify_profile(profile, 'kopts', kopts, self.token)
-            if koptspost:
-                self.remote.modify_profile(profile, 'kopts-post', koptspost, self.token)
-            if owners:
-                self.remote.modify_profile(profile, 'owners', owners, self.token)
-            if ksmeta:
-                self.remote.modify_profile(profile, 'ksmeta', ksmeta, self.token)
-            if virtfilesize:
-                self.remote.modify_profile(profile, 'virt-file-size', virtfilesize, self.token)
-            if virtram:
-                self.remote.modify_profile(profile, 'virt-ram', virtram, self.token)
-            if virttype:
-                self.remote.modify_profile(profile, 'virt-type', virttype, self.token)
-            if virtpath:
-                self.remote.modify_profile(profile, 'virt-path', virtpath, self.token)
-            if virtbridge:
-                self.remote.modify_profile(profile, 'virt-bridge', virtbridge, self.token)
-            if virtcpus:
-                self.remote.modify_profile(profile, 'virt-cpus', virtcpus, self.token)
-            if server_override:
-                self.remote.modify_profile(profile, 'server', server_override, self.token)
+            self.remote.modify_profile(profile, 'kickstart', kickstart, self.token)
+            self.remote.modify_profile(profile, 'kopts', kopts, self.token)
+            self.remote.modify_profile(profile, 'kopts-post', koptspost, self.token)
+            self.remote.modify_profile(profile, 'owners', owners, self.token)
+            self.remote.modify_profile(profile, 'enable-menu', enablemenu, self.token)
+            self.remote.modify_profile(profile, 'ksmeta', ksmeta, self.token)
+            self.remote.modify_profile(profile, 'virt-file-size', virtfilesize, self.token)
+            self.remote.modify_profile(profile, 'virt-ram', virtram, self.token)
+            self.remote.modify_profile(profile, 'virt-type', virttype, self.token)
+            self.remote.modify_profile(profile, 'virt-path', virtpath, self.token)
+            self.remote.modify_profile(profile, 'virt-bridge', virtbridge, self.token)
+            self.remote.modify_profile(profile, 'virt-cpus', virtcpus, self.token)
+            self.remote.modify_profile(profile, 'server', server_override, self.token)
+            self.remote.modify_profile(profile, 'comment', comment, self.token)
+            self.remote.modify_profile(profile, 'name_servers', name_servers, self.token)
+            self.remote.modify_profile(profile, 'redhat_management_key', redhatmanagementkey, self.token)
 
             if repos is None:
                 repos = []
@@ -599,8 +615,7 @@ class CobblerWeb(object):
                     repos.remove( '--none--' )
                 self.remote.modify_profile(profile, 'repos', repos, self.token)
 
-            if dhcptag:
-                self.remote.modify_profile(profile, 'dhcp-tag', dhcptag, self.token)
+            self.remote.modify_profile(profile, 'dhcp-tag', dhcptag, self.token)
             self.remote.save_profile(profile,self.token, editmode)
         except Exception, e:
             log_exc(self.apache)
@@ -659,9 +674,9 @@ class CobblerWeb(object):
             'editable' : can_edit
         } )
 
-    def repo_save(self,name=None,oldname=None,new_or_edit=None,editmode="edit",
+    def repo_save(self,name=None,comment=None,oldname=None,new_or_edit=None,editmode="edit",
                   mirror=None,owners=None,keep_updated=None,mirror_locally=0,priority=99,
-                  rpm_list=None,createrepo_flags=None,arch=None,yumopts=None,
+                  rpm_list=None,createrepo_flags=None,arch=None,environment=None,yumopts=None,
                   delete1=None,delete2=None,**args):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -706,16 +721,14 @@ class CobblerWeb(object):
             self.remote.modify_repo(repo, 'priority', priority, self.token)
             self.remote.modify_repo(repo, 'mirror-locally', mirror_locally, self.token)
 
-            if rpm_list:
-                self.remote.modify_repo(repo, 'rpm-list', rpm_list, self.token)
-            if createrepo_flags:
-                self.remote.modify_repo(repo, 'createrepo-flags', createrepo_flags, self.token)
-            if arch:
-                self.remote.modify_repo(repo, 'arch', arch, self.token)
-            if yumopts:
-                self.remote.modify_repo(repo, 'yumopts', yumopts, self.token)
-            if owners:
-                self.remote.modify_repo(repo, 'owners', owners, self.token)
+            self.remote.modify_repo(repo, 'rpm-list', rpm_list, self.token)
+            self.remote.modify_repo(repo, 'createrepo-flags', createrepo_flags, self.token)
+            self.remote.modify_repo(repo, 'arch', arch, self.token)
+            self.remote.modify_repo(repo, 'yumopts', yumopts, self.token)
+            self.remote.modify_repo(repo, 'environment', environment, self.token)
+            self.remote.modify_repo(repo, 'owners', owners, self.token)
+            self.remote.modify_repo(repo, 'comment', comment, self.token)
+
 
             self.remote.save_repo(repo, self.token, editmode)
 
@@ -730,6 +743,129 @@ class CobblerWeb(object):
                 return self.error_page("Rename unsuccessful.")
 
         return self.repo_list()
+
+    # ------------------------------------------------------------------------ #
+    # Images
+    # ------------------------------------------------------------------------ #
+
+    def image_list(self,page=None,limit=None,**spam):
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+
+        (page, results_per_page, pages) = self.__compute_pagination(page,limit,"image")
+        images = self.remote.get_images(page,results_per_page)
+
+        if len(images) > 0:
+            return self.__render( 'image_list.tmpl', {
+                'images'           : images,
+                'pages'            : pages,
+                'page'             : page,
+                'results_per_page' : results_per_page
+            })
+        else:
+            return self.__render('empty.tmpl', {})  
+  
+    def image_edit(self, name=None,**spam):
+
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+        
+        input_image = None
+        if name is not None:
+            input_image = self.remote.get_image(name, True)
+            can_edit = self.remote.check_access_no_fail(self.token,"modify_image",name)
+        else:
+            can_edit = self.remote.check_access_no_fail(self.token,"new_image",None)
+        
+            if not can_edit:
+                return self.__render('message.tmpl', {
+                    'message1' : "Access denied.",
+                    'message2' : "You do not have permission to create new objects."
+                })
+
+ 
+        return self.__render( 'image_edit.tmpl', {
+            'user' : self.username,
+            'edit' : True,
+            'editable' : can_edit,
+            'image': input_image,
+        } )
+
+
+    def image_save(self,name=None,comment=None,oldname=None,new_or_edit=None,editmode='edit',field1=None,
+                   file=None,arch=None,breed=None,virtram=None,virtfilesize=None,virtpath=None,
+                   virttype=None,virtcpus=None,virtbridge=None,imagetype=None,owners=None,
+                   osversion=None,delete1=False,delete2=False,recursive=False,networkcount=None,**args):
+
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+        
+        # pre-command paramter checking
+        # HTML forms do not transmit disabled fields
+        if name is None and oldname is not None:
+            name = oldname
+
+        # handle deletes as a special case
+        if new_or_edit == 'edit' and delete1 and delete2:
+            try:    
+                if recursive: 
+                    self.remote.remove_image(name,self.token,True)
+                else:
+                    self.remote.remove_image(name,self.token,False)
+                       
+            except Exception, e:
+                return self.error_page("could not delete %s, %s" % (name,str(e)))
+            return self.image_list()
+
+        if name is None:
+            return self.error_page("name is required")
+ 
+        # grab a reference to the object
+        if new_or_edit == "edit" and editmode in [ "edit", "rename" ]:
+            try:
+                if editmode == "edit":
+                    image = self.remote.get_image_handle( name, self.token)
+                else:
+                    image = self.remote.get_image_handle( oldname, self.token)
+
+            except:
+                log_exc(self.apache)
+                return self.error_page("Failed to lookup image: %s" % name)
+        else:
+            image = self.remote.new_image(self.token)
+
+        try:
+            if editmode != "rename" and name:
+                self.remote.modify_image(image, 'name', name, self.token)
+            self.remote.modify_image(image, 'image-type', imagetype, self.token)
+            self.remote.modify_image(image, 'breed',      breed,     self.token)
+            self.remote.modify_image(image, 'os-version', osversion, self.token)
+            self.remote.modify_image(image, 'arch',       arch,      self.token)
+            self.remote.modify_image(image, 'file',       file,      self.token)
+            self.remote.modify_image(image, 'owners',     owners,    self.token)
+            self.remote.modify_image(image, 'virt-cpus',  virtcpus,  self.token)
+            self.remote.modify_image(image, 'network-count',  networkcount,  self.token)                
+            self.remote.modify_image(image, 'virt-file-size', virtfilesize, self.token)
+            self.remote.modify_image(image, 'virt-path',   virtpath,   self.token)
+            self.remote.modify_image(image, 'virt-bridge', virtbridge, self.token)
+            self.remote.modify_image(image, 'virt-ram',    virtram,    self.token)
+            self.remote.modify_image(image, 'virt-type',   virttype,   self.token)
+            self.remote.modify_image(image, 'comment', comment, self.token)
+
+            self.remote.save_image(image, self.token, editmode)
+        except Exception, e:
+            log_exc(self.apache)
+            return self.error_page("Error while saving image: %s" % str(e))
+
+        if editmode == "rename" and name != oldname:
+            try:
+                self.remote.rename_image(image, name, self.token)
+            except Exception, e:
+                return self.error_page("Rename unsuccessful.")
+
+
+        return self.image_list()
+
 
     # ------------------------------------------------------------------------ #
     # Kickstart files
@@ -849,7 +985,7 @@ class CobblerWeb(object):
     distro_edit.exposed = True
     distro_list.exposed = True
     distro_save.exposed = True
-
+    
     subprofile_edit.exposed = True
     profile_edit.exposed = True
     profile_list.exposed = True
@@ -862,6 +998,10 @@ class CobblerWeb(object):
     repo_edit.exposed = True
     repo_list.exposed = True
     repo_save.exposed = True
+    
+    image_edit.exposed = True
+    image_list.exposed = True
+    image_save.exposed = True
 
     settings_view.exposed = True
     ksfile_edit.exposed = True

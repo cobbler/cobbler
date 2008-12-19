@@ -1,6 +1,8 @@
 #extends cobbler.webui.master
 #block body
 
+#import time
+
 #if $distro
 <script language="javascript">
 function disablename(value)
@@ -70,6 +72,40 @@ function disablename(value)
     <input type="hidden" name="editmode" value="new"/>
     #end if
 
+    #if $distro
+    <tr>
+    <td>
+    <label>Created</label>
+    </td>
+    <td>
+    $time.ctime($distro.ctime)
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label>Last Modified</label>
+    </td>
+    <td>
+    $time.ctime($distro.mtime)
+    </td>
+    </tr>
+    #end if
+
+    <tr>
+    <td>
+    <label for="comment">Comment</label>
+    </td>
+    <td>
+    #if $distro
+       #set $comm = $distro.comment
+    #else
+       #set $comm = ""
+    #end if
+    <textarea rows="5" cols="30" 400px;" name="comment" id="comment">$comm</textarea>
+    <p class="context-tip">This is a free-form description field</p>
+    </td>
+    </tr>
 
     <tr>
     <td>
@@ -113,6 +149,18 @@ function disablename(value)
         <input type="radio" name="arch" id="arch" value="x86_64" checked>x86_64
     #else
         <input type="radio" name="arch" id="arch" value="x86_64">x86_64
+    #end if
+
+    #if $distro and $distro.arch == "ppc"
+        <input type="radio" name="arch" id="arch" value="ppc" checked>ppc
+    #else
+        <input type="radio" name="arch" id="arch" value="ppc">ppc
+    #end if
+
+    #if $distro and $distro.arch == "ppc64"
+        <input type="radio" name="arch" id="arch" value="ppc64" checked>ppc64
+    #else
+        <input type="radio" name="arch" id="arch" value="ppc64">ppc64
     #end if
 
     #if $distro and $distro.arch == "s390x"
@@ -196,6 +244,13 @@ function disablename(value)
     #else
         <input type="radio" name="breed" id="breed" value="suse">SuSE
     #end if
+    #if $distro and $distro.breed == "ubuntu"
+        <input type="radio"  name="breed" id="breed" value="ubuntu" 
+checked>Ubuntu
+    #else
+        <input type="radio" name="breed" id="breed" value="ubuntu">Ubuntu
+    #end if
+
     <p class="context-tip">This option determines how kernel options are prepared</p>
     </td>
     </tr>
@@ -211,6 +266,20 @@ function disablename(value)
         #end if
     />
     <p class="context-tip">Example: rhel2.1, rhel4, fedora8</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="redhatmanagementkey">Management Key</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="redhatmanagementkey" id="redhatmanagementkey"
+        #if $distro
+            value="$distro.redhat_management_key"
+        #end if
+    />
+    <p class="context-tip">Registration key for RHN, Satellite, or Spacewalk</p>
     </td>
     </tr>
 
@@ -240,9 +309,9 @@ function disablename(value)
     <label for="delete">Delete</label>
     </td>
     <td>
-       <input type="checkbox" name="delete1" value="delete1">Yes
-       <input type="checkbox" name="delete2" value="delete2">Really
-       <input type="checkbox" name="recursive" value="recursive">Delete child objects?
+       <input type="checkbox" name="delete1" value="True">Yes
+       <input type="checkbox" name="delete2" value="True">Really
+       <input type="checkbox" name="recursive" value="True">Delete child objects?
        <p class="context-tip">Check both buttons and click save to delete this object</p>
     </td>
     </tr>

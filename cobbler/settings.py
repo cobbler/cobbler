@@ -30,20 +30,27 @@ TESTMODE = False
 # we need.
 
 DEFAULTS = {
+    "allow_duplicate_hostnames"   : 0,
     "allow_duplicate_macs"        : 0,
     "allow_duplicate_ips"         : 0,
     "bind_bin"                    : "/usr/sbin/named",
+    "cheetah_import_whitelist"    : [ "re", "random", "time" ],
     "cobbler_master"              : '',
-    "default_kickstart"           : "/etc/cobbler/default.ks",
+    "default_kickstart"           : "/var/lib/cobbler/kickstarts/default.ks",
+    "default_name_servers"        : '',
+    "default_password_crypted"    : "\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.",
     "default_virt_bridge"         : "xenbr0",
     "default_virt_type"           : "auto",
     "default_virt_file_size"      : "5",
     "default_virt_ram"            : "512",
-    "default_ownership"           : "admin",
+    "default_ownership"           : [ "admin" ],
     "dhcpd_conf"                  : "/etc/dhcpd.conf",
     "dhcpd_bin"                   : "/usr/sbin/dhcpd",
     "dnsmasq_bin"                 : "/usr/sbin/dnsmasq",
     "dnsmasq_conf"                : "/etc/dnsmasq.conf",
+    "enable_menu"                 : 1,
+    "func_master"                 : "overlord.example.org",
+    "func_auto_setup"             : 0,
     "httpd_bin"                   : "/usr/sbin/httpd",
     "http_port"                   : "80",
     "isc_set_host_name"           : 0,
@@ -65,19 +72,26 @@ DEFAULTS = {
     "manage_dns"                  : 0,
     "manage_forward_zones"        : [],
     "manage_reverse_zones"        : [],
+    "mgmt_classes"                : [],
+    "mgmt_parameters"             : {},
     "named_conf"                  : "/etc/named.conf",
     "next_server"                 : "127.0.0.1",
     "omapi_enabled"		  : 0,
     "omapi_port"		  : 647,
     "omshell_bin"                 : "/usr/bin/omshell",
+    "power_management_default_type" : "ipmitool",
+    "power_template_dir"          : "/etc/cobbler/power",
     "pxe_just_once"               : 0,
+    "pxe_template_dir"            : "/etc/cobbler/pxe",
+    "redhat_management_type"      : "off",
+    "redhat_management_key"       : "",
+    "redhat_management_server"    : "xmlrpc.rhn.redhat.com",
     "register_new_installs"       : 0,
     "restart_dns"                 : 1,
     "restart_dhcp"                : 1,
     "run_install_triggers"        : 1,
     "server"                      : "127.0.0.1",
     "snippetsdir"                 : "/var/lib/cobbler/snippets",
-    "spacewalk_url"               : "http://satellite.example.com/rpc/api",
     "syslog_port"                 : 25150,
     "tftpd_bin"                   : "/usr/sbin/in.tftpd",
     "tftpd_conf"                  : "/etc/xinetd.d/tftp",
@@ -128,8 +142,9 @@ class Settings(serializable.Serializable):
        if datastruct is None:
           print _("warning: not loading empty structure for %s") % self.filename()
           return
-
-       self._attributes = datastruct
+  
+       self._attributes = DEFAULTS
+       self._attributes.update(datastruct)
 
        return self
 

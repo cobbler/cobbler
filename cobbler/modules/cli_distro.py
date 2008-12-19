@@ -35,7 +35,7 @@ import cexceptions
 class DistroFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler distro", "<add|copy|edit|find|list|rename|remove|report> [ARGS|--help]")
+        return commands.HELP_FORMAT % ("cobbler distro", "<add|copy|edit|find|list|rename|remove|report> [ARGS]")
 
     def command_name(self):
         return "distro"
@@ -46,18 +46,22 @@ class DistroFunction(commands.CobblerFunction):
     def add_options(self, p, args):
 
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            p.add_option("--arch",   dest="arch",   help="ex: x86, x86_64, ia64")
-            p.add_option("--breed",  dest="breed",  help="ex: redhat, debian, suse")
+            p.add_option("--arch",     dest="arch",     help="ex: x86, x86_64, ia64")
+            p.add_option("--breed",    dest="breed",    help="ex: redhat, debian, suse")
         if self.matches_args(args,["add"]):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
+            p.add_option("--comment",  dest="comment",  help="user field")
             p.add_option("--initrd",      dest="initrd",      help="absolute path to initrd.img (REQUIRED)")
             if not self.matches_args(args,["find"]): 
                 p.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts or ksmeta without clearing the other items")
-            p.add_option("--kernel",      dest="kernel",      help="absolute path to vmlinuz (REQUIRED)")
-            p.add_option("--kopts",       dest="kopts",       help="ex: 'noipv6'")
-            p.add_option("--kopts-post",  dest="kopts_post",  help="ex: 'clocksource=pit'")
-            p.add_option("--ksmeta",      dest="ksmeta",      help="ex: 'blippy=7'")
+            p.add_option("--kernel",       dest="kernel",      help="absolute path to vmlinuz (REQUIRED)")
+            p.add_option("--kopts",        dest="kopts",       help="ex: 'noipv6'")
+            p.add_option("--kopts-post",   dest="kopts_post",  help="ex: 'clocksource=pit'")
+            p.add_option("--ksmeta",       dest="ksmeta",      help="ex: 'blippy=7'")
+            p.add_option("--mgmt-classes", dest="mgmt_classes",  help="list of config management classes (for Puppet, etc)")
+            p.add_option("--redhat-management-key", dest="redhat_management_key", help="authentication token for RHN/Spacewalk/Satellite")
+            p.add_option("--template-files", dest="template_files", help="specify files to be generated from templates during a sync")
 
         p.add_option("--name",   dest="name", help="ex: 'RHEL-5-i386' (REQUIRED)")
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
@@ -88,24 +92,32 @@ class DistroFunction(commands.CobblerFunction):
             return True
 
         if not "dumpvars" in self.args:
-            if self.options.arch:
+            if self.options.comment is not None:
+                obj.set_comment(self.options.comment)
+            if self.options.arch is not None:
                 obj.set_arch(self.options.arch)
-            if self.options.kernel:
+            if self.options.kernel is not None:
                 obj.set_kernel(self.options.kernel)
-            if self.options.initrd:
+            if self.options.initrd is not None:
                 obj.set_initrd(self.options.initrd)
-            if self.options.kopts:
+            if self.options.kopts is not None:
                 obj.set_kernel_options(self.options.kopts,self.options.inplace)
-            if self.options.kopts_post:
+            if self.options.kopts_post is not None:
                 obj.set_kernel_options_post(self.options.kopts_post,self.options.inplace)
-            if self.options.ksmeta:
+            if self.options.ksmeta is not None:
                 obj.set_ksmeta(self.options.ksmeta,self.options.inplace)
-            if self.options.breed:
+            if self.options.breed is not None:
                 obj.set_breed(self.options.breed)
-            if self.options.os_version:
+            if self.options.os_version is not None:
                 obj.set_os_version(self.options.os_version)
-            if self.options.owners:
+            if self.options.owners is not None:
                 obj.set_owners(self.options.owners)
+            if self.options.mgmt_classes is not None:
+                obj.set_mgmt_classes(self.options.mgmt_classes)
+            if self.options.template_files is not None:
+                obj.set_template_files(self.options.template_files,self.options.inplace)
+            if self.options.redhat_management_key is not None:
+                obj.set_redhat_management_key(self.options.redhat_management_key)
 
         return self.object_manipulator_finish(obj, self.api.distros, self.options)
 

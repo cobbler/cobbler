@@ -1,6 +1,8 @@
 #extends cobbler.webui.master
 #block body
 
+#import time
+
 #if $profile
 <script language="javascript">
 function disablename(value)
@@ -83,6 +85,42 @@ function disablename(value)
     #else
     <input type="hidden" name="editmode" value="new"/>
     #end if
+
+    #if $profile
+    <tr>
+    <td>
+    <label>Created</label>
+    </td>
+    <td>
+    $time.ctime($profile.ctime)
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label>Last Modified</label>
+    </td>
+    <td>
+    $time.ctime($profile.mtime)
+    </td>
+    </tr>
+    #end if
+
+    <tr>
+    <td>
+    <label for="comment">Comment</label>
+    </td>
+    <td>
+    #if $profile
+       #set $comm = $profile.comment
+    #else
+       #set $comm = ""
+    #end if
+    <textarea rows="5" cols="30" 400px;" name="comment" id="comment">$comm</textarea>
+    <p class="context-tip">This is a free-form description field</p>
+    </td>
+    </tr>
+
 
     #if $subprofile
        <tr>
@@ -185,9 +223,42 @@ function disablename(value)
 
     <tr>
     <td>
-    <label for="virtfilesize">Virt Disk (GB)</label>
+    <label for="enablemenu">Enable menu</label>
     </td>
     <td>
+    #if $profile
+       #if str($profile.enable_menu) != "False"
+           <input type="checkbox" name="enablemenu" id="enablemenu" checked=True>
+       #else
+           <input type="checkbox" name="enablemenu" id="enablemenu">
+       #end if
+    #else
+       <input type="checkbox" name="enablemenu" id="enablemenu" checked="True">
+    #end if
+    <p class="context-tip">Show this profile in the PXE boot menu?</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="name_servers">Name Servers</label>
+    </td>
+    <td>
+    #if $profile
+       #set joined = " ".join($profile.name_servers)
+       <input type="text" name="name_servers" id="name_servers" value="$joined">
+    #else
+       <input type="text" name="name_servers" id="name_servers" value="">
+    #end if
+    <p class="context-tip">Name servers, space delimited, if not provided by DHCP</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td class="virtedit">
+    <label for="virtfilesize">Virt Disk (GB)</label>
+    </td>
+    <td class="virtedit">
     <input type="text" size="5" style="width: 150px;" name="virtfilesize" id="virtfilesize"
         #if $profile
            value="$profile.virt_file_size"
@@ -198,10 +269,10 @@ function disablename(value)
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtram">Virt RAM (MB)</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="5" style="width: 150px;" name="virtram" id="virtram"
         #if $profile
            value="$profile.virt_ram"
@@ -212,10 +283,10 @@ function disablename(value)
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virttype">Virt Type</label>
     </td>
-    <td>
+    <td class="virtedit">
     #if $profile and $profile.virt_type == "auto"
         <input type="radio" name="virttype" id="virttype" value="auto" checked>Any
     #else
@@ -255,10 +326,10 @@ function disablename(value)
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtpath">Virt Path</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="255" style="width: 400px;" name="virtpath" id="virtpath"
         #if $profile
            value="$profile.virt_path"
@@ -269,10 +340,10 @@ function disablename(value)
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtpath">Virt Bridge</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="255" style="width: 150px;" name="virtbridge" id="virtbridge"
         #if $profile
            value="$profile.virt_bridge"
@@ -283,10 +354,10 @@ function disablename(value)
     </tr>
 
     <tr>
-    <td>
+    <td class="virtedit">
     <label for="virtpath">Virt CPUs</label>
     </td>
-    <td>
+    <td class="virtedit">
     <input type="text" size="255" style="width: 150px;" name="virtcpus" id="virtcpus"
         #if $profile
            value="$profile.virt_cpus"
@@ -346,6 +417,22 @@ function disablename(value)
 
     <tr>
     <td>
+    <label for="redhatmanagementkey">Management Key</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="redhatmanagementkey" id="
+redhatmanagementkey"
+        #if $profile
+            value="$profile.redhat_management_key"
+        #end if
+    />
+    <p class="context-tip">Registration key for RHN, Satellite, or Spacewalk</p>
+    </td>
+    </tr>
+
+
+    <tr>
+    <td>
     <label for="owners">Access Allowed For</label>
     </td>
     <td>
@@ -371,9 +458,9 @@ function disablename(value)
     <label for="delete">Delete</label>
     </td>
     <td>
-       <input type="checkbox" name="delete1" value="delete1">Yes
-       <input type="checkbox" name="delete2" value="delete2">Really
-       <input type="checkbox" name="recursive" value="recursive">Delete child objects?
+       <input type="checkbox" name="delete1" value="True">Yes
+       <input type="checkbox" name="delete2" value="True">Really
+       <input type="checkbox" name="recursive" value="True">Delete child objects?
     <p class="context-tip">Check both buttons and click save to delete this object</p>
     </td>
     </tr>

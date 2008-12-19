@@ -67,10 +67,14 @@ class BootLiteSync:
             raise CX(_("error in distro lookup: %s") % name)
         # copy image files to images/$name in webdir & tftpboot:
         self.sync.pxegen.copy_single_distro_files(distro)
+        # generate any templates listed in the distro
+        self.sync.pxegen.write_templates(distro)
         # cascade sync
         kids = distro.get_children()
         for k in kids:
-            self.add_single_profile(k.name)    
+            self.add_single_profile(k.name, rebuild_menu=False)    
+        self.sync.pxegen.make_pxe_menu()
+
 
     def add_single_image(self, name):
         image = self.images.find(name=name)
@@ -99,6 +103,8 @@ class BootLiteSync:
         if profile is None:
             raise CX(_("error in profile lookup"))
         # rebuild the yum configuration files for any attached repos
+        # generate any templates listed in the distro
+        self.sync.pxegen.write_templates(profile)
         # cascade sync
         kids = profile.get_children()
         for k in kids:
@@ -121,6 +127,8 @@ class BootLiteSync:
         if system is None:
             raise CX(_("error in system lookup for %s") % name)
         self.sync.pxegen.write_all_system_files(system)
+        # generate any templates listed in the system
+        self.sync.pxegen.write_templates(system)
  
     def add_single_system(self, name):
         # get the system object:
@@ -134,13 +142,15 @@ class BootLiteSync:
             self.sync.dns.regen_hosts()  
         # write the PXE files for the system
         self.sync.pxegen.write_all_system_files(system)
+        # generate any templates listed in the distro
+        self.sync.pxegen.write_templates(system)
         # per system kickstarts
         if self.settings.manage_dhcp:
             if self.settings.omapi_enabled: 
                 for (name,interface) in system.interfaces.iteritems():
                     self.sync.dhcp.write_dhcp_lease(
                         self.settings.omapi_port,
-                        interface["hostname"],
+                        interface["dns_name"],
                         interface["mac_address"],
                         interface["ip_address"]
                     )
@@ -160,7 +170,7 @@ class BootLiteSync:
                 for (name,interface) in system_record.interfaces.iteritems():
                     self.sync.dhcp.remove_dhcp_lease(
                         self.settings.omapi_port,
-                        interface["hostname"]
+                        interface["dns_name"]
                     )
 
         itanic = False

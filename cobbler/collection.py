@@ -25,7 +25,9 @@ from cexceptions import *
 import serializable
 import utils
 import glob
+import time
 import sub_process
+import random
 
 import action_litesync
 import item_system
@@ -33,7 +35,6 @@ import item_profile
 import item_distro
 import item_repo
 import item_image
-
 from utils import _
 
 class Collection(serializable.Serializable):
@@ -144,6 +145,17 @@ class Collection(serializable.Serializable):
             item = self.factory_produce(self.config,seed_data)
             self.add(item)
 
+    def copy(self,ref,newname):
+        ref.name = newname
+        ref.uid = self.config.generate_uid()
+        if ref.COLLECTION_TYPE == "system":
+            # this should only happen for systems
+            for iname in ref.interfaces.keys():
+                # clear all these out to avoid DHCP/DNS conflicts
+                ref.set_dns_name("",iname)
+                ref.set_mac_address("",iname)
+                ref.set_ip_address("",iname)
+        return self.add(ref,save=True,with_copy=True,with_triggers=True,with_sync=True,check_for_duplicate_names=True,check_for_duplicate_netinfo=False)
 
     def rename(self,ref,newname,with_sync=True,with_triggers=True):
         """
@@ -155,6 +167,7 @@ class Collection(serializable.Serializable):
         oldname = ref.name
         newref = ref.make_clone()
         newref.set_name(newname)
+
         self.add(newref, with_triggers=with_triggers,save=True)
 
         # now descend to any direct ancestors and point them at the new object allowing
@@ -201,6 +214,16 @@ class Collection(serializable.Serializable):
         So, in that case, don't run any triggers and don't deal with any actual files.
 
         """
+    
+        if ref.uid == '':
+           ref.uid = self.config.generate_uid()
+        
+        if save is True:
+            now = time.time()
+            if ref.ctime == 0:
+                ref.ctime = now
+            ref.mtime = now
+
         if self.lite_sync is None:
             self.lite_sync = action_litesync.BootLiteSync(self.config)
 
@@ -301,15 +324,20 @@ class Collection(serializable.Serializable):
        
         if isinstance(ref, item_system.System):
            for (name, intf) in ref.interfaces.iteritems():
-               match_ip = []
-               match_mac = []
-               input_mac = intf["mac_address"] 
-               input_ip  = intf["ip_address"]
+               match_ip    = []
+               match_mac   = []
+               match_hosts = []
+               input_mac   = intf["mac_address"] 
+               input_ip    = intf["ip_address"]
+               input_dns   = intf["dns_name"]
                if not self.api.settings().allow_duplicate_macs and input_mac is not None and input_mac != "":
                    match_mac = self.api.find_system(mac_address=input_mac,return_list=True)   
                if not self.api.settings().allow_duplicate_ips and input_ip is not None and input_ip != "":
                    match_ip  = self.api.find_system(ip_address=input_ip,return_list=True) 
                # it's ok to conflict with your own net info.
+
+               if not self.api.settings().allow_duplicate_hostnames and input_dns is not None and input_dns != "":
+                   match_hosts = self.api.find_system(dns_name=input_dns,return_list=True)
 
                for x in match_mac:
                    if x.name != ref.name:
@@ -317,7 +345,10 @@ class Collection(serializable.Serializable):
                for x in match_ip:
                    if x.name != ref.name:
                        raise CX(_("Can't save system %s. The IP address (%s) is already used by system %s (%s)") % (ref.name, intf["ip_address"], x.name, name))
-
+               for x in match_hosts:
+                   if x.name != ref.name:
+                       raise CX(_("Can't save system %s.  The dns name (%s) is already used by system %s (%s)") % (ref.name, intf["dns_name"], x.name, name))
+ 
     def printable(self):
         """
         Creates a printable representation of the collection suitable

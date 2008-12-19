@@ -21,6 +21,7 @@ import cgi
 import os
 from cobbler.webui import CobblerWeb
 import cobbler.utils as utils
+import cobbler.yaml as yaml
 
 XMLRPC_SERVER = "http://127.0.0.1:25152" # was http://127.0.0.1/cobbler_api_rw"
 
@@ -105,19 +106,25 @@ def handler(req):
     for x in fs.keys():
         form[x] = str(fs.get(x,'default'))
 
-    http_port = utils.parse_settings_lame("http_port",default="80")
+    fd = open("/etc/cobbler/settings")
+    data = fd.read()
+    fd.close()
+    ydata = yaml.load(data).next()
+    remote_port = ydata.get("xmlrpc_rw_port", 25152)
+
+    mode = form.get('mode','index')
 
     # instantiate a CobblerWeb object
     cw = CobblerWeb.CobblerWeb(
          apache   = apache,
          token    = token, 
          base_url = "/cobbler/web/",
-         server   = "http://127.0.0.1:%s/cobbler_api_rw" % http_port
+         mode     = mode,
+         server   = "http://127.0.0.1:%s" % remote_port
     )
 
     # check for a valid path/mode
     # handle invalid paths gracefully
-    mode = form.get('mode','index')
     if mode in cw.modes():
         func = getattr( cw, mode )
         content = func( **form )
@@ -129,8 +136,12 @@ def handler(req):
     req.content_type = "text/html;charset=utf-8"
     req.write(unicode(content).encode('utf-8'))
     
-    return apache.OK
-
+    if not content.startswith("# ERROR") and content.find("<!-- ERROR -->") == -1:
+       return apache.OK
+    else:
+       # catch Cheetah errors and web errors
+       return apache.HTTP_ERROR
+ 
 #======================================================
 
 def authenhandler(req):

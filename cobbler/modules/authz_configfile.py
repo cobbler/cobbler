@@ -47,17 +47,18 @@ def __parse_config():
            alldata[g][o] = 1
     return alldata 
 
-
-def authorize(api_handle,user,resource,arg1=None,arg2=None):
+def authorize(api_handle,user,resource,arg1=None,arg2=None,acl_engine=None):
     """
     Validate a user against a resource.
     All users in the file are permitted by this module.
     """
 
+    # FIXME: this must be modified to use the new ACL engine
+
     data = __parse_config()
     for g in data:
         if user in data[g]:
-           return 1
+           return acl_engine.can_access(g,user,resource,arg1,arg2)
     return 0
 
 if __name__ == "__main__":

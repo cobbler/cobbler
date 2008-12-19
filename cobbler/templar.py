@@ -50,10 +50,9 @@ class Templar:
         for line in lines:
             if line.find("#import") != -1:
                rest=line.replace("#import","").replace(" ","").strip()
-               if rest not in [ "time", "random" ]:
+               if rest not in self.settings.cheetah_import_whitelist:
                    print "warning"
                    raise CX("potentially insecure import in template: %s" % rest)
-
 
     def render(self, data_input, search_table, out_path, subject=None):
         """
@@ -98,21 +97,41 @@ class Templar:
         # tell Cheetah not to blow up if it can't find a symbol for something
         raw_data = "#errorCatcher Echo\n" + raw_data
 
+        table_copy = search_table.copy()
+ 
+        # for various reasons we may want to call a module inside a template and pass
+        # it all of the template variables.  The variable "template_universe" serves
+        # this purpose to make it easier to iterate through all of the variables without
+        # using internal Cheetah variables
+
+        search_table.update({
+           "template_universe" : table_copy
+        })
+
         # now do full templating scan, where we will also templatify the snippet insertions
         t = Template(source=raw_data, errorCatcher="Echo", searchList=[search_table])
         try:
             data_out = str(t)
         except Exception, e:
-            return utils.cheetah_exc(e)
+            if out_path is None:
+               return utils.cheetah_exc(e)
+            else:
+               # FIXME: log this
+               print utils.cheetah_exc(e)
+               raise CX("Error templating file: %s" % out_path)
 
         # now apply some magic post-filtering that is used by cobbler import and some
         # other places, but doesn't use Cheetah.  Forcing folks to double escape
         # things would be very unwelcome.
 
-        for x in search_table:
-           if type(search_table[x]) == str:
-               data_out = data_out.replace("@@%s@@" % x, search_table[x])
-        
+        hp = search_table.get("http_port","80")
+        server = search_table.get("server","server.example.org")
+        repstr = "%s:%s" % (server, hp)
+        search_table["http_server"] = repstr
+
+        for x in search_table.keys():
+           data_out = data_out.replace("@@%s@@" % str(x), str(search_table[str(x)]))
+ 
         # remove leading newlines which apparently breaks AutoYAST ?
         if data_out.startswith("\n"):
             data_out = data_out.strip() 

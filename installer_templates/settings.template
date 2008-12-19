@@ -1,29 +1,65 @@
 ---
+#import time
 # cobbler settings file
-# restart cobblerd and consider running "cobbler sync" after making changes
-# (it's a good idea to make backups too)
+# restart cobblerd and run "cobbler sync" after making changes
 #
 # This config file is in YAML 1.0 format
 # see http://yaml.org
+# ==========================================================
 #
 # if 1, cobbler will allow insertions of system records that duplicate
-# the mac address information of other system records.  In general,
+# the hostname information of other system records.  In general,
 # this is undesirable.
-allow_duplicate_macs: 0
+allow_duplicate_hostnames: 0
 
 # if 1, cobbler will allow insertions of system records that duplicate
 # the ip address information of other system records.  In general,
 # this is undesirable.
 allow_duplicate_ips: 0
 
+# if 1, cobbler will allow insertions of system records that duplicate
+# the mac address information of other system records.  In general,
+# this is undesirable.
+allow_duplicate_macs: 0
+
 # the path to BIND's executable for this distribution.
 bind_bin: /usr/sbin/named
+
+# Cheetah-language kickstart templates can import Python modules.
+# while this is a useful feature, it is not safe to allow them to 
+# import anything they want. This whitelists which modules can be 
+# imported through Cheetah.  Users can expand this as needed but
+# should never allow modules such as subprocess or those that
+# allow access to the filesystem as Cheetah templates are evaluated
+# by cobblerd as code.
+cheetah_import_whitelist:
+   - "random"
+   - "re"
+   - "time"
 
 # if no kickstart is specified, use this template (FIXME)
 default_kickstart: /etc/cobbler/default.ks
 
+# cobbler has various sample kickstart templates stored
+# in /var/lib/cobbler/kickstarts/.  This controls
+# what install (root) password is set up for those
+# systems that reference this variable.  The factory
+# default is "cobbler" and cobbler check will warn if
+# this is not changed.
+
+default_password_crypted: "\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac."
+
+# configure all installed systems to use these nameservers by default
+# unless defined differently in the profile.  For DHCP configurations
+# you probably do /not/ want to supply this.
+default_name_servers: []
+
 # for libvirt based installs in koan, if no virt bridge
-# is specified, which bridge do we try?
+# is specified, which bridge do we try?  For EL 4/5 hosts
+# this should be xenbr0, for all versions of Fedora, try
+# "virbr0".  This can be overriden on a per-profile
+# basis or at the koan command line though this saves
+# typing to just set it here to the most common option.
 default_virt_bridge: xenbr0
 
 # if koan is invoked without --virt-type and no virt-type
@@ -41,7 +77,17 @@ default_virt_ram: 512
 # if using the authz_ownership module (see the Wiki), objects
 # created without specifying an owner are assigned to this
 # owner and/or group.  Can be a comma seperated list.
-default_ownership: "admin"
+default_ownership:
+    - "admin"
+
+# controls whether cobbler will add each new profile entry to the default
+# PXE boot menu.  This can be over-ridden on a per-profile
+# basis when adding/editing profiles with --enable-menu=0/1.  Users
+# should ordinarily leave this setting enabled unless they are concerned
+# with accidental reinstalls from users who select an entry at the PXE
+# boot menu.  Adding a password to the boot menus templates 
+# may also be a good solution to prevent unwanted reinstallations
+enable_menu: 1
 
 # location for some important binaries and config files 
 # that can vary based on the distribution.
@@ -49,6 +95,22 @@ dhcpd_bin: /usr/sbin/dhcpd
 dhcpd_conf: /etc/dhcpd.conf
 dnsmasq_bin: /usr/sbin/dnsmasq
 dnsmasq_conf: /etc/dnsmasq.conf
+
+# enable Func-integration?  This makes sure each installed machine is set up
+# to use func out of the box, which is a powerful way to script and control
+# remote machines.  
+#
+# Func lives at http://fedorahosted.org/func
+# read more at https://fedorahosted.org/cobbler/wiki/FuncIntegration
+# 
+# you will need to mirror Fedora/EPEL packages for this feature, so see
+# https://fedorahosted.org/cobbler/wiki/ManageYumRepos if you want cobbler
+# to help you with this
+
+func_auto_setup: 0
+func_master: overlord.example.org
+
+# more important file locations...
 httpd_bin: /usr/sbin/httpd
 
 # change this port if Apache is not running plaintext on port
@@ -77,17 +139,25 @@ ldap_search_prefix: 'uid='
 
 # set to 1 to enable Cobbler's DHCP management features.
 # the choice of DHCP management engine is in /etc/cobbler/modules.conf
-manage_dhcp: 0
+manage_dhcp: $enable_dhcp
 
 # set to 1 to enable Cobbler's DNS management features.
 # the choice of DNS mangement engine is in /etc/cobbler/modules.conf
-manage_dns: 0
+manage_dns: $enable_dns
 
 # if using BIND (named) for DNS management in /etc/cobbler/modules.conf
 # and manage_dns is enabled (above), this lists which zones are managed
 # See the Wiki (https://fedorahosted.org/cobbler/wiki/ManageDns) for more info
 manage_forward_zones: []
 manage_reverse_zones: []
+
+# cobbler has a feature that allows for integration with config management
+# systems such as Puppet.  The following parameters work in conjunction with 
+# --mgmt-classes  and are described in furhter detail at:
+# https://fedorahosted.org/cobbler/wiki/UsingCobblerWithConfigManagementSystem
+mgmt_classes: []
+mgmt_parameters:
+   from_cobbler: 1
 
 # location where cobbler will write its named.conf when BIND dns management is
 # enabled
@@ -96,13 +166,39 @@ named_conf: /etc/named.conf
 # if using cobbler with manage_dhcp, put the IP address
 # of the cobbler server here so that PXE booting guests can find it
 # if you do not set this correctly, this will be manifested in TFTP open timeouts.
-next_server: '127.0.0.1'
+next_server: $next_server
 
 # if using cobbler with manage_dhcp and ISC, omapi allows realtime DHCP
-# updates without restarting ISC dhcpd.
-omapi_enabled: 1
+# updates without restarting ISC dhcpd.  However, it may cause
+# problems with removing leases and make things less reliable. OMAPI
+# usage is experimental and not recommended at this time.
+
+omapi_enabled: 0
 omapi_port: 647
 omshell_bin: /usr/bin/omshell
+
+# settings for power management features.  optional.
+# see https://fedorahosted.org/cobbler/wiki/PowerManagement to learn more
+#
+# choices:
+#    bullpap
+#    wti
+#    apc_snmp
+#    ether-wake
+#    ipmilan
+#    drac
+#    ipmitool
+#    ilo
+#    rsa
+#    lpar
+#    bladecenter
+#    virsh
+
+power_management_default_type: 'ipmitool'
+
+# the commands used by the power management module are sourced
+# from what directory?
+power_template_dir: "/etc/cobbler/power"
 
 # if this setting is set to 1, cobbler systems that pxe boot
 # will request at the end of their installation to toggle the 
@@ -111,11 +207,38 @@ omshell_bin: /usr/bin/omshell
 # first in it's BIOS order.  Enable this if PXE is first in your BIOS
 # boot order, otherwise leave this disabled.   See the manpage
 # for --netboot-enabled.
-pxe_just_once: 0
+pxe_just_once: $pxe_once
+
+# the templates used for PXE config generation are sourced
+# from what directory?
+pxe_template_dir: "/etc/cobbler/pxe"
+
+# Are you using a Red Hat management platform in addition to Cobbler?
+# Cobbler can help you register to it.  Choose one of the following:
+#
+#   "off"    : I'm not using Red Hat Network, Satellite, or Spacewalk
+#   "hosted" : I'm using Red Hat Network
+#   "site"   : I'm using Red Hat Satellite Server or Spacewalk
+#   
+# You will also want to read: https://fedorahosted.org/cobbler/wiki/TipsForRhn
+redhat_management_type: "$redhat_management_type"
+
+# if redhat_management_type is enabled, choose your server
+#   "management.example.org" : For Satellite or Spacewalk
+#   "xmlrpc.rhn.redhat.com"  : For Red Hat Network
+redhat_management_server: "$redhat_management_server"
+
+# specify the default Red Hat authorization key to use to register
+# system.  If left blank, no registration will be attempted.  Similarly
+# you can set the --redhat-management-key to blank on any system to 
+# keep it from trying to register.
+redhat_management_key: ""
 
 # when DHCP and DNS management are enabled, cobbler sync can automatically
 # restart those services to apply changes.  The exception for this is
 # if using ISC for DHCP, then omapi eliminates the need for a restart.
+# omapi, however, is experimental and not recommended for most configurations.
+#
 # If DHCP and DNS are going to be managed, but hosted on a box that
 # is not on this server, disable restarts here and write some other
 # script to ensure that the config files get copied/rsynced to the destination
@@ -149,18 +272,12 @@ run_install_triggers: 1
 # if you have a server that appears differently to different subnets
 # (dual homed, etc), you need to read the --server-override section
 # of the manpage for how that works.
-server: '127.0.0.1'
+server: $server
 
 # this is a directory of files that cobbler uses to make
 # templating easier.  See the Wiki for more information.  Changing
 # this directory should not be required.
 snippetsdir: /var/lib/cobbler/snippets
-
-# if modules.conf specifies authn_spacewalk, this is the XMLRPC
-# endpoint to authenticate against.  If Satellite/Spacewalk is
-# not in use, ignore this setting entirely.  
-# See fedorahosted.org/spacewalk for details on that project.
-spacewalk_url: "http://satellite.example.com/rpc/api"
 
 # by default, installs are set to send syslog traffic on this port
 # and cobblerd will listen on this port.  syslog data (for installs
@@ -204,7 +321,7 @@ xmlrpc_rw_port: 25152
 # this as 0.  In that case, the cobbler mirrored yum repos are still
 # accessable at http://cobbler.example.org/cblr/repo_mirror and yum
 # configuration can still be done manually.  This is just a shortcut.
-yum_post_install_mirror: 0
+yum_post_install_mirror: $yum_post_install_mirror
 
 # additional flags to yum commands
 yumreposync_flags: "-l"

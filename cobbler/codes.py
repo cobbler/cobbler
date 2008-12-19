@@ -37,16 +37,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # the rest are undefined (for now), this will evolve.
 
 VALID_OS_BREEDS = [
-    "redhat", "debian", "suse", "generic", "windows", "unix", "other"
+    "redhat", "debian", "ubuntu", "suse", "generic", "windows", "unix", "other"
 ]
 
 VALID_OS_VERSIONS = {
-    "redhat"  : [ "rhel2.1", "rhel3", "rhel4", "rhel5", "fedora5", "fedora6", "fedora7", "fedora8", "fedora9", "generic24", "generic26", "other" ],
+    "redhat"  : [ "rhel2.1", "rhel3", "rhel4", "rhel5", "fedora5", "fedora6", "fedora7", "fedora8", "fedora9", "fedora10", "generic24", "generic26", "other" ],
     "suse"    : [ "sles10", "generic24", "generic26", "other" ],
-    "debian"  : [ "debianEtch", "debianLenny", "generic24", "generic26", "other" ],
+    "debian"  : [ "etch", "lenny", "generic24", "generic26", "other" ],
+    "ubuntu"  : [ "WartyWarthog", "HoaryHedgehog", "BreezyBadger", "DapperDrake", "EdgyEft", "FeistyFawn", "GutsyGibbon", "HardyHeron", "IntrepidIbex", "JauntyJackalope" ],
     "generic" : [ "generic24", "generic26", "other" ],
     "windows" : [ "winxp", "win2k", "win2k3", "vista", "other" ],
     "unix"    : [ "solaris9", "solaris10", "freebsd6", "openbsd4", "other" ],
     "other"   : [ "msdos", "netware4", "netware5", "netware6", "generic", "other" ]
 }
+
+VALID_REPO_BREEDS = [
+    "rsync", "rhn", "yum", "apt"
+]
 

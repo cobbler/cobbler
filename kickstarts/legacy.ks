@@ -18,12 +18,12 @@ lang en_US
 # Use network installation
 url --url=$tree
 # Network information
-network --bootproto=dhcp --device=eth0 --onboot=on
+$SNIPPET('network_config')
 # Reboot after installation
 reboot
 
 #Root password
-rootpw --iscrypted \$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.
+rootpw --iscrypted $default_password_crypted
 # SELinux configuration
 selinux --disabled
 # Do not configure the X Window System
@@ -34,18 +34,25 @@ timezone  America/New_York
 install
 # Clear the Master Boot Record
 zerombr
-
-# Magically figure out how to partition this thing
-SNIPPET::main_partition_select
+# Allow anaconda to partition the system as needed
+autopart
 
 %pre
 $kickstart_start
-SNIPPET::pre_partition_select
+$SNIPPET('pre_install_network_config')
 
 %packages
 
 %post
+# Begin yum configuration
 $yum_config_stanza
-SNIPPET::post_install_kernel_options
+# End yum configuration
+$SNIPPET('post_install_kernel_options')
+$SNIPPET('post_install_network_config')
+$SNIPPET('download_config_files')
+$SNIPPET('koan_environment')
+$SNIPPET('redhat_register')
+# Begin final steps
 $kickstart_done
+# End final steps
 

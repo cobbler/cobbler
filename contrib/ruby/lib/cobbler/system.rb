@@ -33,6 +33,7 @@ module Cobbler
     cobbler_field      :name
     cobbler_field      :parent
     cobbler_field      :profile
+    cobbler_field      :image
     cobbler_field      :depth
     cobbler_collection :kernel_options, :packing => :hash
     cobbler_field      :kickstart
@@ -48,7 +49,7 @@ module Cobbler
     cobbler_field      :virt_type
     cobbler_field      :virt_bridge     
 
-    def initialize(definitions)
+    def initialize(definitions = nil)
       super(definitions)
     end
     
@@ -63,8 +64,9 @@ module Cobbler
       
       sysid = Base.make_call('new_system',token)
       
-      Base.make_call('modify_system',sysid,'name',self.name,token)
-      Base.make_call('modify_system',sysid,'profile',profile,token)
+      Base.make_call('modify_system',sysid,'name',   name,   token)
+      Base.make_call('modify_system',sysid,'profile',profile,token) if profile
+      Base.make_call('modify_system',sysid,'image',  image,  token) if image
       
       if @interfaces
         count = 0

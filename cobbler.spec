@@ -2,23 +2,44 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
+<<<<<<< HEAD:cobbler.spec
 Version: 1.2.9
+=======
+Version: 1.4.0
+>>>>>>> devel:cobbler.spec
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
 Requires: python >= 2.3
+%if 0%{?suse_version} >= 1000
+Requires: apache2
+Requires: apache2-mod_python
+Requires: tftp
+%else
 Requires: httpd
 Requires: tftp-server
+Requires: mod_python
+%endif
 Requires: python-devel
 Requires: createrepo
-Requires: mod_python
 Requires: python-cheetah
 Requires: rsync
+%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
+Requires: genisoimage
+%else
+Requires: mkisofs
+%endif
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
+%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
+%{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
+Requires: python(abi)=%{pyver}
+%endif
+%if 0%{?suse_version} < 0
 BuildRequires: redhat-rpm-config
+%endif
 BuildRequires: python-devel
 BuildRequires: python-cheetah
 %if 0%{?fedora} >= 8
@@ -29,20 +50,21 @@ BuildRequires: python-setuptools
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 ExcludeArch: ppc
+ExcludeArch: ppc64
 Url: http://cobbler.et.redhat.com
 
 %description
 
-Cobbler is a network boot and update server.  Cobbler 
-supports PXE, provisioning virtualized images, and 
+Cobbler is a network install server.  Cobbler 
+supports PXE, virtualized installs, and 
 reinstalling existing Linux machines.  The last two 
-modes require a helper tool called 'koan' that 
+modes use a helper tool, 'koan', that 
 integrates with cobbler.  Cobbler's advanced features 
 include importing distributions from DVDs and rsync 
 mirrors, kickstart templating, integrated yum 
 mirroring, and built-in DHCP/DNS Management.  Cobbler has 
 a Python and XMLRPC API for integration with other  
-applications.
+applications.  There is also a web interface.
 
 %prep
 %setup -q
@@ -52,9 +74,24 @@ applications.
 
 %install
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
-%{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
+%if 0%{?suse_version} >= 1000
+PREFIX="--prefix=/usr"
+%endif
+%{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
 
 %post
+# add selinux rules
+if [ -x /usr/sbin/semanage ]; then
+   /usr/sbin/selinuxenabled
+   if [ "$?" -eq "0" ]; then
+       echo "selinux is enabled"
+       /usr/sbin/semanage fcontext -a -t public_content_t "/var/www/cobbler/images/.*" >/dev/null &2>1 || /bin/true
+       /usr/sbin/semanage fcontext -a -t public_content_t "/var/lib/tftpboot/images/.*" >/dev/null &2>1 || /bin/true
+       /usr/sbin/semanage fcontext -a -t public_content_t "/tftpboot/images/.*" >/dev/null &2>1 || /bin/true
+   fi
+fi
+
+# backup config
 if [ -e /var/lib/cobbler/distros ]; then
     cp /var/lib/cobbler/distros*  /var/lib/cobbler/backup 2>/dev/null
     cp /var/lib/cobbler/profiles* /var/lib/cobbler/backup 2>/dev/null
@@ -64,6 +101,25 @@ fi
 if [ -e /var/lib/cobbler/config ]; then
     cp -a /var/lib/cobbler/config    /var/lib/cobbler/backup 2>/dev/null
 fi
+# upgrade older installs
+# move power and pxe-templates from /etc/cobbler, backup new templates to *.rpmnew
+for n in power pxe; do
+  rm -f /etc/cobbler/$n*.rpmnew
+  find /etc/cobbler -maxdepth 1 -name "$n*" -type f | while read f; do
+    newf=/etc/cobbler/$n/`basename $f`
+    [ -e $newf ] &&  mv $newf $newf.rpmnew
+    mv $f $newf
+  done
+done
+# upgrade older installs
+# copy kickstarts from /etc/cobbler to /var/lib/cobbler/kickstarts
+rm -f /etc/cobbler/*.ks.rpmnew
+find /etc/cobbler -maxdepth 1 -name "*.ks" -type f | while read f; do
+  newf=/var/lib/cobbler/kickstarts/`basename $f`
+  [ -e $newf ] &&  mv $newf $newf.rpmnew
+  cp $f $newf
+done
+# reserialize and restart
 /usr/bin/cobbler reserialize
 /sbin/chkconfig --add cobblerd
 /sbin/service cobblerd condrestart
@@ -79,6 +135,16 @@ if [ "$1" -ge "1" ]; then
     /sbin/service cobblerd condrestart >/dev/null 2>&1 || :
     /sbin/service httpd condrestart >/dev/null 2>&1 || :
 fi
+# remove selinux rules
+if [ -x /usr/sbin/semanage ]; then
+   /usr/sbin/selinuxenabled
+   if [ "$?" -eq "0" ]; then
+       /usr/sbin/semanage fcontext -d "/var/www/cobbler/images/.*" 1>/dev/null 2>&1 || /bin/true
+       /usr/sbin/semanage fcontext -d "/var/lib/tftpboot/images/.*" 1>/dev/null 2>&1 || /bin/true
+        /usr/sbin/semanage fcontext -d "/tftpboot/images/.*" 1>/dev/null 2>&1 || /bin/true
+   fi
+fi
+
 
 %clean
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
@@ -91,6 +157,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cobbler/svc/
 /var/www/cobbler/svc/*.py*
 
+%defattr(755,root,root)
+%dir /usr/share/cobbler/installer_templates
+%defattr(744,root,root)
+/usr/share/cobbler/installer_templates/*.template
+%defattr(744,root,root)
+/usr/share/cobbler/installer_templates/defaults
 %defattr(755,apache,apache)
 %dir /usr/share/cobbler/webui_templates
 %defattr(444,apache,apache)
@@ -109,27 +181,26 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(755,apache,apache)
 %dir /var/www/cobbler/webui
 %defattr(444,apache,apache)
-/var/www/cobbler/webui/*.css
-/var/www/cobbler/webui/*.js
-/var/www/cobbler/webui/*.png
-/var/www/cobbler/webui/*.html
+/var/www/cobbler/webui/*
 
 %defattr(755,root,root)
 %{_bindir}/cobbler
+%{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd
-%{_bindir}/cobbler-completion
-
-# %defattr(644,root,root)
-# %config(noreplace) /etc/bash_completion.d/cobbler_bash
 
 %defattr(-,root,root)
 %dir /etc/cobbler
-%config(noreplace) /etc/cobbler/*.ks
+%config(noreplace) /var/lib/cobbler/kickstarts/*.ks
+%config(noreplace) /var/lib/cobbler/kickstarts/*.seed
 %config(noreplace) /etc/cobbler/*.template
+%config(noreplace) /etc/cobbler/pxe/*.template
+%config(noreplace) /etc/cobbler/power/*.template
 %config(noreplace) /etc/cobbler/rsync.exclude
 %config(noreplace) /etc/logrotate.d/cobblerd_rotate
 %config(noreplace) /etc/cobbler/modules.conf
 %config(noreplace) /etc/cobbler/users.conf
+%config(noreplace) /etc/cobbler/acls.conf
+%config(noreplace) /etc/cobbler/cheetah_macros
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/yaml
 %dir %{python_sitelib}/cobbler/modules
@@ -141,8 +212,13 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/cobbler/webui/*.py*
 %{_mandir}/man1/cobbler.1.gz
 /etc/init.d/cobblerd
+%if 0%{?suse_version} >= 1000
+%config(noreplace) /etc/apache2/conf.d/cobbler.conf
+%config(noreplace) /etc/apache2/conf.d/cobbler_svc.conf
+%else
 %config(noreplace) /etc/httpd/conf.d/cobbler.conf
 %config(noreplace) /etc/httpd/conf.d/cobbler_svc.conf
+%endif
 %dir /var/log/cobbler/syslog
 
 %defattr(755,root,root)
@@ -155,6 +231,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/config/images.d/
 %dir /var/lib/cobbler/kickstarts/
 %dir /var/lib/cobbler/backup/
+%dir /var/lib/cobbler/triggers
+%dir /var/lib/cobbler/triggers/add
 %dir /var/lib/cobbler/triggers/add/distro
 %dir /var/lib/cobbler/triggers/add/distro/pre
 %dir /var/lib/cobbler/triggers/add/distro/post
@@ -187,7 +265,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/triggers/install/pre
 %dir /var/lib/cobbler/triggers/install/post
 %dir /var/lib/cobbler/snippets/
-/var/lib/cobbler/completions
 
 %defattr(744,root,root)
 %config(noreplace) /var/lib/cobbler/triggers/sync/post/restart-services.trigger
@@ -196,12 +273,22 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(664,root,root)
 %config(noreplace) /etc/cobbler/settings
+/var/lib/cobbler/version
 %config(noreplace) /var/lib/cobbler/snippets/partition_select
 %config(noreplace) /var/lib/cobbler/snippets/pre_partition_select
 %config(noreplace) /var/lib/cobbler/snippets/main_partition_select
 %config(noreplace) /var/lib/cobbler/snippets/post_install_kernel_options
-/var/lib/cobbler/elilo-3.6-ia64.efi
+%config(noreplace) /var/lib/cobbler/snippets/network_config
+%config(noreplace) /var/lib/cobbler/snippets/pre_install_network_config
+%config(noreplace) /var/lib/cobbler/snippets/post_install_network_config
+%config(noreplace) /var/lib/cobbler/snippets/func_install_if_enabled
+%config(noreplace) /var/lib/cobbler/snippets/func_register_if_enabled
+%config(noreplace) /var/lib/cobbler/snippets/download_config_files
+%config(noreplace) /var/lib/cobbler/snippets/koan_environment
+%config(noreplace) /var/lib/cobbler/snippets/redhat_register
+/var/lib/cobbler/elilo-3.8-ia64.efi
 /var/lib/cobbler/menu.c32
+/var/lib/cobbler/yaboot-1.3.14
 %defattr(660,root,root)
 %config(noreplace) /etc/cobbler/users.digest 
 
@@ -217,48 +304,28 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Fri Nov 14 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.0-1
+* Fri Dec 19 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.0-1
+- Upstream changes (see CHANGELOG)
+- Updated selinux setup
+
+* Wed Dec 10 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.4-1
+- Updated test release (see CHANGELOG)
+
+- Upstream changes (see CHANGELOG)
+- Added specfile changes for python 2.6
+* Mon Dec 08 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.3-1
+- Upstream changes (see CHANGELOG)
+- Added specfile changes for python 2.6
+
+* Tue Nov 18 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.2-1
+- Upstream changes (see CHANGELOG)
+- placeholder for future test release
+- packaged /var/lib/cobbler/version
+
+* Fri Nov 14 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.1-1
 - Upstream changes (see CHANGELOG)
 
-* Wed Oct 15 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.8-1
+* Fri Sep 26 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.0-1
 - Upstream changes (see CHANGELOG)
-
-* Tue Oct 14 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.7-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Oct 07 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.6-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Sep 26 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.5-1
-- Upstream changes (see CHANGELOG)
-
-* Mon Sep 08 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.4-1
-- Rebuild
-
-* Sun Sep 07 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.3-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Sep 05 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.2-1
-- Upstream changes (see CHANGELOG)
-
-* Tue Sep 02 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.1-1
-- Upstream changes (see CHANGELOG)
-- Package unowned directories
-
-* Fri Aug 29 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.0-1
-- Upstream changes (see CHANGELOG)
-
-* Tue Jun 10 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.3-1
-- Upstream changes (see CHANGELOG)
-
-* Mon Jun 09 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.2-1
-- Upstream changes (see CHANGELOG)
-
-* Tue Jun 03 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.1-1
-- Upstream changes (see CHANGELOG)
-- stop owning files in tftpboot
-- condrestart for Apache
-
-* Wed May 27 2008 Michael DeHaan <mdehaan@redhat.com> - 1.0.0-2
-- Upstream changes (see CHANGELOG)
-
+- added sample.seed file
+- added /usr/bin/cobbler-ext-nodes

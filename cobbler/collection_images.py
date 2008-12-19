@@ -30,7 +30,7 @@ class Images(collection.Collection):
     def factory_produce(self,config,seed_data):
         return image.Image(config).from_datastruct(seed_data)
 
-    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True):
+    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=True):
         """
         Remove element named 'name' from the collection
         """
@@ -56,5 +56,5 @@ class Images(collection.Collection):
                 if with_triggers:
                     self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/image/post/*")
             return True
-        raise CX(_("cannot delete an object that does not exist: %s") % name)
 
+        raise CX(_("cannot delete an object that does not exist: %s") % name)

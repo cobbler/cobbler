@@ -7,13 +7,16 @@ Cobbler is written & maintained by:
 
 Patches and other contributions from:
 
+    Partha Aji <paji@redhat.com>
+    Anton Arapov <aarapov@redhat.com>
     Joseph Boyer Jr. <jboyer@liquidnet.com>
+    Andrew Brown <ambrown@ncsu.edu>
     David Brown <dmlb2000@gmail.com>
     James Bowes <jbowes@redhat.com>
     James Cammarata <jimi@sgnx.net>
-    Carsten Clasohm <cclasohm@redhat.com>
+    Jasper Capel <capel@stone-it.com>
     C. Daniel Chase <dan@cdchase.com>
-    Carsten Clasohm <clasohm@redhat.com>
+    Carsten Clasohm <cclasohm@redhat.com>
     Charles Duffy <charles_duffy@messageone.com>
     Máirín Duffy <duffy@redhat.com>
     John Eckersberg <jeckersb@redhat.com>
@@ -23,29 +26,40 @@ Patches and other contributions from:
     Scott Henson <shenson@redhat.com>
     Tru Huynh <tru@pasteur.fr>
     Matt Hyclak <hyclak@math.ohiou.edu>
-    Pablo Iranzo Gómez <pablo.iranzo@redhat.com>
     Mihai Ibanescu <mihai.ibanescu@gmail.com>
+    Shuichi Ihara <ihara@sun.com>
+    Pablo Iranzo Gómez <pablo.iranzo@redhat.com>
+    Brian Kearney <bkearney@redhat.com>
+    Henry Kemp <henrykemp@gmail.com>
+    Ruben Kerkhof <ruben@rubenkerkhof.com>
     Vito Laurenza <vitolaurenza@gmail.com>
     Adrian Likins <alikins@redhat.com>
     David Lutterkort <dlutter@redhat.com>
-    Bryan Mason' <bjmason@redhat.com>
     Lester M. <needwork@gmail.com>
-    Bryan Mason' <bjmason@redhat.com>
-    Sean Millichamp <sean@bruenor.org>
+    Bryan Mason <bjmason@redhat.com>
+    Mike McCune <mmccune@redhat.com>
     Jim Meyering <jim@meyering.net>
+    Jeroen van Meeuwen <kanarip@kanarip.com>
+    Sean Millichamp <sean@bruenor.org>
     Perry Myers <pmyers@redhat.com>
     Jack Neely <jjneely@ncsu.edu>
+    Javier Palacious <javiplx@gmail.com>
+    Bill Peck <bpeck@redhat.com>
     Lassi Pölönen <lassi.polonen@helsinki.fi>
+    Christophe Sahut <csahut@nogoa.org>
     Ben Riggs <rigg0022@umn.edu>
     Jeremy Rosengren <jeremy@rosengren.org>
     Adam Rosenwald <thestrider@gmail.com>
-    Christophe Sahut <csahut@nogoa.org>
     Scott Seago <sseago@redhat.com>
+    Justin Sherill <jsherril@redhat.com>
+    Anderson Silva <ansilva@redhat.com>
     Al Tobey <tobert@gmail.com>
-    Ronald van den Blink <ronald@a61.nl>
     Thomas Uhde <thomas.uhde@KabelDeutschland.de>
-    John L. Villalovos <john@sodarock.com>
+    Ronald van den Blink <ronald@a61.nl>
     Tim Verhoeven <tim.verhoeven.be@gmail.com>
+    John L. Villalovos <john@sodarock.com>
+    Peter Vreman <peter.vreman@acision.com>
+
 
     [...send patches to get your name here...]
 

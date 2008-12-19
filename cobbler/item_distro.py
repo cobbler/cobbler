@@ -27,6 +27,7 @@ import item
 import weakref
 import os
 import codes
+import time
 from cexceptions import *
 
 from utils import _
@@ -41,17 +42,23 @@ class Distro(item.Item):
         Reset this object.
         """
         self.name                   = None
+        self.uid                    = ""
         self.owners                 = self.settings.default_ownership
-        self.kernel                 = (None,     '<<inherit>>')[is_subobject]
-        self.initrd                 = (None,     '<<inherit>>')[is_subobject]
-        self.kernel_options         = ({},       '<<inherit>>')[is_subobject]
-        self.kernel_options_post    = ({},       '<<inherit>>')[is_subobject]
-        self.ks_meta                = ({},       '<<inherit>>')[is_subobject]
-        self.arch                   = ('i386',   '<<inherit>>')[is_subobject]
-        self.breed                  = ('redhat', '<<inherit>>')[is_subobject]
-        self.os_version             = ('',       '<<inherit>>')[is_subobject]
-        self.source_repos           = ([],       '<<inherit>>')[is_subobject]
+        self.kernel                 = None
+        self.initrd                 = None
+        self.kernel_options         = {}
+        self.kernel_options_post    = {}
+        self.ks_meta                = {}
+        self.arch                   = 'i386'
+        self.breed                  = 'redhat'
+        self.os_version             = ''
+        self.source_repos           = []
+        self.mgmt_classes           = []
         self.depth                  = 0
+        self.template_files         = {}
+	self.comment                = ""
+        self.tree_build_time        = 0
+        self.redhat_management_key  = "<<inherit>>"
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -83,6 +90,10 @@ class Distro(item.Item):
         self.os_version             = self.load_item(seed_data,'os_version','')
         self.source_repos           = self.load_item(seed_data,'source_repos',[])
         self.depth                  = self.load_item(seed_data,'depth',0)
+        self.mgmt_classes           = self.load_item(seed_data,'mgmt_classes',[])
+        self.template_files         = self.load_item(seed_data,'template_files',{})
+	self.comment                = self.load_item(seed_data,'comment')
+        self.redhat_management_key  = self.load_item(seed_data,'redhat_management_key',"<<inherit>>")
 
         # backwards compatibility enforcement
         self.set_arch(self.arch)
@@ -92,8 +103,20 @@ class Distro(item.Item):
             self.set_kernel_options_post(self.kernel_options_post)
         if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
             self.set_ksmeta(self.ks_meta)
-
+        
+        self.set_mgmt_classes(self.mgmt_classes)
+        self.set_template_files(self.template_files)
         self.set_owners(self.owners)
+
+        self.tree_build_time = self.load_item(seed_data, 'tree_build_time', -1)
+        self.ctime = self.load_item(seed_data, 'ctime', 0)
+        self.mtime = self.load_item(seed_data, 'mtime', 0)
+
+        self.set_tree_build_time(self.tree_build_time)
+
+        self.uid = self.load_item(seed_data,'uid','')
+        if self.uid == '':
+           self.uid = self.config.generate_uid()
 
         return self
 
@@ -109,6 +132,14 @@ class Distro(item.Item):
             self.kernel = kernel
             return True
         raise CX(_("kernel not found"))
+
+    def set_tree_build_time(self, datestamp):
+        """
+        Sets the import time of the distro, for use by action_import.py.
+        If not imported, this field is not meaningful.
+        """
+        self.tree_build_time = float(datestamp)
+        return True
 
     def set_breed(self, breed):
         return utils.set_breed(self,breed)
@@ -126,6 +157,9 @@ class Distro(item.Item):
             return True
         raise CX(_("initrd not found"))
 
+    def set_redhat_management_key(self,key):
+        return utils.set_redhat_management_key(self,key)
+ 
     def set_source_repos(self, repos):
         """
         A list of http:// URLs on the cobbler server that point to
@@ -181,13 +215,21 @@ class Distro(item.Item):
             'kernel_options'         : self.kernel_options,
             'kernel_options_post'    : self.kernel_options_post,
             'ks_meta'                : self.ks_meta,
+            'mgmt_classes'           : self.mgmt_classes,
+            'template_files'         : self.template_files,
             'arch'                   : self.arch,
             'breed'                  : self.breed,
             'os_version'             : self.os_version,
             'source_repos'           : self.source_repos,
             'parent'                 : self.parent,
             'depth'                  : self.depth,
-            'owners'                 : self.owners
+            'owners'                 : self.owners,
+            'comment'                : self.comment,
+            'tree_build_time'        : self.tree_build_time,
+            'ctime'                  : self.ctime,
+            'mtime'                  : self.mtime,
+            'uid'                    : self.uid,
+            'redhat_management_key'  : self.redhat_management_key
         }
 
     def printable(self):
@@ -197,15 +239,25 @@ class Distro(item.Item):
         kstr = utils.find_kernel(self.kernel)
         istr = utils.find_initrd(self.initrd)
         buf =       _("distro               : %s\n") % self.name
-        buf = buf + _("breed                : %s\n") % self.breed
-        buf = buf + _("os version           : %s\n") % self.os_version
         buf = buf + _("architecture         : %s\n") % self.arch
+        buf = buf + _("breed                : %s\n") % self.breed
+        buf = buf + _("created              : %s\n") % time.ctime(self.ctime)
+        buf = buf + _("comment              : %s\n") % self.comment
         buf = buf + _("initrd               : %s\n") % istr
         buf = buf + _("kernel               : %s\n") % kstr
         buf = buf + _("kernel options       : %s\n") % self.kernel_options
-        buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
         buf = buf + _("ks metadata          : %s\n") % self.ks_meta
+        if self.tree_build_time != -1:
+            buf = buf + _("tree build time      : %s\n") % time.ctime(self.tree_build_time)
+        else:
+            buf = buf + _("tree build time      : %s\n") % "N/A"
+        buf = buf + _("modified             : %s\n") % time.ctime(self.mtime)
+        buf = buf + _("mgmt classes         : %s\n") % self.mgmt_classes 
+        buf = buf + _("os version           : %s\n") % self.os_version
         buf = buf + _("owners               : %s\n") % self.owners
+        buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
+        buf = buf + _("redhat mgmt key      : %s\n") % self.redhat_management_key
+        buf = buf + _("template files       : %s\n") % self.template_files
         return buf
 
     def remote_methods(self):
@@ -215,10 +267,18 @@ class Distro(item.Item):
             'initrd'        : self.set_initrd,
             'kopts'         : self.set_kernel_options,
             'kopts-post'    : self.set_kernel_options_post,
+            'kopts_post'    : self.set_kernel_options_post,            
             'arch'          : self.set_arch,
             'ksmeta'        : self.set_ksmeta,
             'breed'         : self.set_breed,
             'os-version'    : self.set_os_version,
-            'owners'        : self.set_owners
+            'os_version'    : self.set_os_version,            
+            'owners'        : self.set_owners,
+            'mgmt-classes'  : self.set_mgmt_classes,
+            'mgmt_classes'  : self.set_mgmt_classes,            
+            'template-files': self.set_template_files,
+            'template_files': self.set_template_files,            
+            'comment'               : self.set_comment,
+            'redhat_management_key' : self.set_redhat_management_key
         }
 

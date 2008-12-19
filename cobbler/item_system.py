@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import utils
 import item
+import time
 from cexceptions import *
 from utils import _
 
@@ -38,6 +39,7 @@ class System(item.Item):
 
     def clear(self,is_subobject=False):
         self.name                 = None
+        self.uid                  = ""
         self.owners               = self.settings.default_ownership
         self.profile              = None
         self.image                = None
@@ -47,6 +49,8 @@ class System(item.Item):
         self.interfaces           = {}
         self.netboot_enabled      = True
         self.depth                = 2
+        self.mgmt_classes         = []              
+        self.template_files       = {}
         self.kickstart            = "<<inherit>>"   # use value in profile
         self.server               = "<<inherit>>"   # "" (or settings)
         self.virt_path            = "<<inherit>>"   # ""
@@ -57,39 +61,94 @@ class System(item.Item):
         self.virt_type            = "<<inherit>>"   # ""
         self.virt_path            = "<<inherit>>"   # ""
         self.virt_bridge          = "<<inherit>>"   # ""
+        self.comment              = ""
+        self.ctime                = 0
+        self.mtime                = 0
+        self.uid                  = ""
+        self.power_type           = self.settings.power_management_default_type
+        self.power_address        = ""
+        self.power_user           = ""
+        self.power_pass           = ""
+        self.power_id             = ""
+        self.hostname             = ""
+        self.gateway              = ""
+        self.name_servers         = ""
+        self.bonding              = ""
+        self.bonding_master       = ""
+        self.bonding_opts         = ""
+        self.redhat_management_key = "<<inherit>>"
 
     def delete_interface(self,name):
         """
-        Used to remove an interface.  Not valid for intf0.
+        Used to remove an interface.  Not valid for the default 
+interface.
         """
-        if name == "intf0":
-            raise CX(_("the first interface cannot be deleted"))
-        if self.interfaces.has_key(name):
+        if self.interfaces.has_key(name) and name != "eth0":
             del self.interfaces[name]
         else:
-            # NOTE: raising an exception here would break the WebUI as currently implemented
-            return False
+            if name == "eth0":
+                raise CX(_("Interface %s can never be deleted") % name)
+            else:
+                raise CX(_("Cannot delete interface that is not present: %s") % name)
         return True
         
 
     def __get_interface(self,name):
-
-        if name not in [ "intf0", "intf1", "intf2", "intf3", "intf4", "intf5", "intf6", "intf7" ]:
-            raise CX(_("internal error: invalid key for interface lookup or storage, must be 'intfX' where x is 0..7"))
+        if name is None:
+            return self.__get_default_interface()
 
         if not self.interfaces.has_key(name):
             self.interfaces[name] = {
-                "mac_address" : "",
-                "ip_address"  : "",
-                "dhcp_tag"    : "",
-                "subnet"      : "",
-                "gateway"     : "",
-                "hostname"    : "",
-                "virt_bridge" : ""
+                "mac_address"    : "",
+                "ip_address"     : "",
+                "dhcp_tag"       : "",
+                "subnet"         : "",
+                "virt_bridge"    : "",
+                "static"         : False,
+                "bonding"        : "",
+                "bonding_master" : "",
+                "bonding_opts"   : "",
+                "dns_name"       : "",
+                "static_routes"  : [],
             }
+
         return self.interfaces[name]
 
+    def __get_default_interface(self):
+        return self.__get_interface("eth0")
+
     def from_datastruct(self,seed_data):
+
+        # this is to upgrade older cobbler installs.
+        # previously we had interfaces in a hash from intf0 ... intf8
+        # now we support arbitrary names but want to make sure any interfaces named intfN
+        # are named after the actual interface name -- before we couldn't assure order so
+        # we didn't want apply intf0 == eth0, now we can.
+
+        intf = self.load_item(seed_data, "interfaces", {})
+        for x in range(0,8):
+           key1 = "intf%d" % x
+           key2 = "eth%d" % x
+           if intf.has_key(key1) and not intf.has_key(key2):
+               # copy intfN to ethN
+               seed_data["interfaces"][key2] = seed_data["interfaces"][key1].copy()
+               del seed_data["interfaces"][key1]
+
+        # certain per-interface settings are now global settings and not-per interface
+        # these are "gateway" and "hostname", so we migrate the first one we can find.
+        # I don't expect new users of cobbler to understand this but it's important
+        # for backwards-compatibility upgrade reasons.
+
+        __gateway  = ""
+        __hostname = ""
+        keyz = intf.keys()
+        keyz.sort()
+        for x in keyz:
+            y = intf[x]
+            if y.get("gateway","") != "":
+                __gateway = y["gateway"]
+            if y.get("hostname","") != "":
+                __hostname = y["hostname"]
 
         # load datastructures from previous and current versions of cobbler
         # and store (in-memory) in the new format.
@@ -108,8 +167,21 @@ class System(item.Item):
         self.kickstart            = self.load_item(seed_data, 'kickstart', '<<inherit>>')
         self.netboot_enabled      = self.load_item(seed_data, 'netboot_enabled', True)
         self.server               = self.load_item(seed_data, 'server', '<<inherit>>')
+        self.mgmt_classes         = self.load_item(seed_data, 'mgmt_classes', [])
+        self.template_files       = self.load_item(seed_data, 'template_files', {})
+        self.comment              = self.load_item(seed_data, 'comment', '')
+
+        # here are some global settings that have weird defaults, since they might
+        # have been moved over from a cobbler upgrade
+
+        self.gateway      = self.load_item(seed_data, 'gateway', __gateway)
+        self.hostname     = self.load_item(seed_data, 'hostname', __hostname)
+        
+        self.name_servers = self.load_item(seed_data, 'name_servers', '<<inherit>>')
+        self.redhat_management_key = self.load_item(seed_data, 'redhat_management_key', '<<inherit>>')
 
         # virt specific 
+
         self.virt_path   = self.load_item(seed_data, 'virt_path', '<<inherit>>') 
         self.virt_type   = self.load_item(seed_data, 'virt_type', '<<inherit>>')
         self.virt_ram    = self.load_item(seed_data,'virt_ram','<<inherit>>')
@@ -118,6 +190,23 @@ class System(item.Item):
         self.virt_type   = self.load_item(seed_data,'virt_type','<<inherit>>')
         self.virt_bridge = self.load_item(seed_data,'virt_bridge','<<inherit>>')
         self.virt_cpus   = self.load_item(seed_data,'virt_cpus','<<inherit>>')
+
+        self.ctime       = self.load_item(seed_data,'ctime',0)
+        self.mtime       = self.load_item(seed_data,'mtime',0)
+
+        self.uid         = self.load_item(seed_data,'uid','')
+        if self.uid == '':
+           self.uid = self.config.generate_uid()
+
+        # power management integration features
+
+        self.power_type     = self.load_item(seed_data, 'power_type', self.settings.power_management_default_type)
+
+        self.power_address  = self.load_item(seed_data, 'power_address', '')
+        self.power_user     = self.load_item(seed_data, 'power_user', '')
+        self.power_pass     = self.load_item(seed_data, 'power_pass', '')
+        self.power_id       = self.load_item(seed_data, 'power_id', '')
+
 
         # backwards compat, these settings are now part of the interfaces data structure
         # and will contain data only in upgrade scenarios.
@@ -134,15 +223,42 @@ class System(item.Item):
         # now backfill the interface structure with any old values from
         # before the upgrade
 
-        if not self.interfaces.has_key("intf0"):
-            if __hostname != "":
-                self.set_hostname(__hostname, "intf0")
+        if not self.interfaces.has_key("eth0"):
             if __mac_address != "":
-                self.set_mac_address(__mac_address, "intf0")
+                self.set_mac_address(__mac_address, "eth0")
             if __ip_address != "":
-                self.set_ip_address(__ip_address, "intf0")
+                self.set_ip_address(__ip_address, "eth0")
             if __dhcp_tag != "":
-                self.set_dhcp_tag(__dhcp_tag, "intf0")
+                self.set_dhcp_tag(__dhcp_tag, "eth0")
+
+        # backwards compatibility:
+        # for interfaces that do not have all the fields filled in, populate the new fields
+        # that have been added (applies to any new interface fields Cobbler 1.3 and later)
+        # other fields have been created because of upgrade usage        
+        # and remove fields that are no longer part of the interface in this version
+
+        for k in self.interfaces.keys():
+            if not self.interfaces[k].has_key("static"):
+               self.interfaces[k]["static"] = False
+            if not self.interfaces[k].has_key("bonding"):
+               self.interfaces[k]["bonding"] = ""
+            if not self.interfaces[k].has_key("bonding_master"):
+               self.interfaces[k]["bonding_master"] = ""
+            if not self.interfaces[k].has_key("bonding_opts"):
+               self.interfaces[k]["bonding_opts"] = ""
+            if not self.interfaces[k].has_key("dns_name"):
+               # hostname is global for the system, dns_name is per interface
+               # this handles the backwards compatibility update details for
+               # older versions of cobbler which had hostname per interface
+               # which is wrong.
+               possible = self.interfaces[k].get("hostname","")
+               self.interfaces[k]["dns_name"] = possible
+               if self.interfaces[k].has_key("hostname"):
+                  del self.interfaces[k]["hostname"]
+            if self.interfaces[k].has_key("gateway"):
+               del self.interfaces[k]["gateway"]
+            if not self.interfaces[k].has_key("static_routes"):
+               self.interfaces[k]["static_routes"] = []
 
         # backwards compatibility -- convert string entries to dicts for storage
         # this allows for better usage from the API.
@@ -160,6 +276,14 @@ class System(item.Item):
         # coerce types from input file
         self.set_netboot_enabled(self.netboot_enabled)
         self.set_owners(self.owners) 
+        self.set_mgmt_classes(self.mgmt_classes)
+        self.set_template_files(self.template_files)
+
+
+        # enforce that the system extends from a profile or system but not both
+        # profile wins as it's the more common usage
+        self.set_image(self.image)
+        self.set_profile(self.profile)
 
 
         # enforce that the system extends from a profile or system but not both
@@ -185,7 +309,7 @@ class System(item.Item):
         Set the name.  If the name is a MAC or IP, and the first MAC and/or IP is not defined, go ahead
         and fill that value in.  
         """
-        intf = self.__get_interface("intf0")
+        intf = self.__get_default_interface()
 
 
         if self.name not in ["",None] and self.parent not in ["",None] and self.name == self.parent:
@@ -206,37 +330,40 @@ class System(item.Item):
 
         return True
 
+    def set_redhat_management_key(self,key):
+        return utils.set_redhat_management_key(self,key)
+
     def set_server(self,server):
         """
         If a system can't reach the boot server at the value configured in settings
         because it doesn't have the same name on it's subnet this is there for an override.
         """
+        if server is None or server == "":
+            server = "<<inherit>>"
         self.server = server
         return True
 
-    def get_mac_address(self,interface="intf0"):
+    def get_mac_address(self,interface):
         """
         Get the mac address, which may be implicit in the object name or explicit with --mac-address.
         Use the explicit location first.
         """
 
-
         intf = self.__get_interface(interface)
+
         if intf["mac_address"] != "":
             return intf["mac_address"]
-        # obsolete, because we should have updated the mac field already with set_name (?)
-        # elif utils.is_mac(self.name) and interface == "intf0":
-        #    return self.name
         else:
             return None
 
-    def get_ip_address(self,interface="intf0"):
+    def get_ip_address(self,interface):
         """
         Get the IP address, which may be implicit in the object name or explict with --ip-address.
         Use the explicit location first.
         """
 
         intf = self.__get_interface(interface)
+
         if intf["ip_address"] != "": 
             return intf["ip_address"]
         else:
@@ -261,17 +388,40 @@ class System(item.Item):
                 return True
         return False
 
-    def set_dhcp_tag(self,dhcp_tag,interface="intf0"):
+    def set_default_interface(self,interface):
+        if self.interfaces.has_key(interface):
+            self.default_interface = interface
+        else:
+            raise CX(_("invalid interface (%s)") % interface)
+
+    def set_dhcp_tag(self,dhcp_tag,interface):
         intf = self.__get_interface(interface)
         intf["dhcp_tag"] = dhcp_tag
         return True
 
-    def set_hostname(self,hostname,interface="intf0"):
+    def set_dns_name(self,dns_name,interface):
         intf = self.__get_interface(interface)
-        intf["hostname"] = hostname
+        intf["dns_name"] = dns_name
+        return True
+ 
+    def set_static_routes(self,routes,interface):
+        intf = self.__get_interface(interface)
+        data = utils.input_string_or_list(routes,delim=" ")
+        intf["static_routes"] = data
         return True
 
-    def set_ip_address(self,address,interface="intf0"):
+    def set_hostname(self,hostname):
+        if hostname is None:
+           hostname = ""
+        self.hostname = hostname
+        return True
+
+    def set_static(self,truthiness,interface):
+        intf = self.__get_interface(interface)
+        intf["static"] = utils.input_boolean(truthiness)
+        return True
+
+    def set_ip_address(self,address,interface):
         """
         Assign a IP or hostname in DHCP when this MAC boots.
         Only works if manage_dhcp is set in /etc/cobbler/settings
@@ -282,26 +432,51 @@ class System(item.Item):
            return True
         raise CX(_("invalid format for IP address (%s)") % address)
 
-    def set_mac_address(self,address,interface="intf0"):
+    def set_mac_address(self,address,interface):
         intf = self.__get_interface(interface)
         if address == "" or utils.is_mac(address):
-           intf["mac_address"] = address
+           intf["mac_address"] = address.strip()
            return True
         raise CX(_("invalid format for MAC address (%s)" % address))
 
-    def set_gateway(self,gateway,interface="intf0"):
-        intf = self.__get_interface(interface)
-        intf["gateway"] = gateway
+    def set_gateway(self,gateway):
+        if gateway is None:
+           gateway = ""
+        self.gateway = gateway
+        return True
+ 
+    def set_name_servers(self,data):
+        data = utils.input_string_or_list(data)
+        self.name_servers = data
         return True
 
-    def set_subnet(self,subnet,interface="intf0"):
+    def set_subnet(self,subnet,interface):
         intf = self.__get_interface(interface)
         intf["subnet"] = subnet
         return True
     
-    def set_virt_bridge(self,bridge,interface="intf0"):
+    def set_virt_bridge(self,bridge,interface):
         intf = self.__get_interface(interface)
         intf["virt_bridge"] = bridge
+        return True
+
+    def set_bonding(self,bonding,interface):
+        if bonding not in ["master","slave","na",""] : 
+            raise CX(_("bonding value must be one of: master, slave, na"))
+        if bonding == "na":
+            bonding = ""
+        intf = self.__get_interface(interface)
+        intf["bonding"] = bonding
+        return True
+
+    def set_bonding_master(self,bonding_master,interface):
+        intf = self.__get_interface(interface)
+        intf["bonding_master"] = bonding_master
+        return True
+
+    def set_bonding_opts(self,bonding_opts,interface):
+        intf = self.__get_interface(interface)
+        intf["bonding_opts"] = bonding_opts
         return True
 
     def set_profile(self,profile_name):
@@ -354,7 +529,7 @@ class System(item.Item):
         return utils.set_virt_type(self,vtype)
 
     def set_virt_path(self,path):
-        return utils.set_virt_path(self,path)
+        return utils.set_virt_path(self,path,for_system=True)
 
     def set_netboot_enabled(self,netboot_enabled):
         """
@@ -370,11 +545,7 @@ class System(item.Item):
         Use of this option does not affect the ability to use PXE menus.  If an admin has machines 
         set up to PXE only after local boot fails, this option isn't even relevant.
         """
-        if str(netboot_enabled).lower() in [ "true", "1", "on", "yes", "y" ]:
-            # this is a bit lame, though we don't know what the user will enter YAML wise...
-            self.netboot_enabled = True 
-        else:
-            self.netboot_enabled = False
+        self.netboot_enabled = utils.input_boolean(netboot_enabled)
         return True
 
     def is_valid(self):
@@ -411,9 +582,56 @@ class System(item.Item):
         raise CX(_("kickstart not found"))
 
 
+        #self.power_type           = self.settings.power_management_default_type
+        #self.power_address        = ""
+        #self.power_user           = ""
+        #self.power_pass           = ""
+        #self.power_id             = ""
+
+    def set_power_type(self, power_type):
+        if power_type is None:
+            power_type = ""
+        power_type = power_type.lower()
+        valid = "bullpap wti apc_snmp ether-wake ipmilan drac ipmitool ilo rsai lpar bladecenter virsh none"
+        choices = valid.split(" ")
+        choices.sort()
+        if power_type not in choices:
+            raise CX("power type must be one of: %s" % ",".join(choices))
+        self.power_type = power_type
+        return True
+
+    def set_power_user(self, power_user):
+        if power_user is None:
+           power_user = ""
+        utils.safe_filter(power_user)
+        self.power_user = power_user
+        return True 
+
+    def set_power_pass(self, power_pass):
+        if power_pass is None:
+           power_pass = ""
+        utils.safe_filter(power_pass)
+        self.power_pass = power_pass
+        return True    
+
+    def set_power_address(self, power_address):
+        if power_address is None:
+           power_address = ""
+        utils.safe_filter(power_address)
+        self.power_address = power_address
+        return True
+
+    def set_power_id(self, power_id):
+        if power_id is None:
+           power_id = ""
+        utils.safe_filter(power_id)
+        self.power_id = power_id
+        return True
+
     def to_datastruct(self):
         return {
            'name'                  : self.name,
+           'uid'                   : self.uid,
            'kernel_options'        : self.kernel_options,
            'kernel_options_post'   : self.kernel_options_post,
            'depth'                 : self.depth,
@@ -431,22 +649,43 @@ class System(item.Item):
            'virt_file_size'        : self.virt_file_size,
            'virt_path'             : self.virt_path,
            'virt_ram'              : self.virt_ram,
-           'virt_type'             : self.virt_type
-
+           'virt_type'             : self.virt_type,
+           'mgmt_classes'          : self.mgmt_classes,
+           'template_files'        : self.template_files,
+           'comment'               : self.comment,
+           'ctime'                 : self.ctime,
+           'mtime'                 : self.mtime,
+           'power_type'            : self.power_type,
+           'power_address'         : self.power_address,
+           'power_user'            : self.power_user,
+           'power_pass'            : self.power_pass,
+           'power_id'              : self.power_id, 
+           'hostname'              : self.hostname,
+           'gateway'               : self.gateway,
+           'name_servers'          : self.name_servers,
+           'redhat_management_key' : self.redhat_management_key
         }
 
     def printable(self):
         buf =       _("system                : %s\n") % self.name
         buf = buf + _("profile               : %s\n") % self.profile
+        buf = buf + _("comment               : %s\n") % self.comment
+        buf = buf + _("created               : %s\n") % time.ctime(self.ctime)
+        buf = buf + _("gateway               : %s\n") % self.gateway
+        buf = buf + _("hostname              : %s\n") % self.hostname
         buf = buf + _("image                 : %s\n") % self.image
         buf = buf + _("kernel options        : %s\n") % self.kernel_options
         buf = buf + _("kernel options post   : %s\n") % self.kernel_options_post
         buf = buf + _("kickstart             : %s\n") % self.kickstart
         buf = buf + _("ks metadata           : %s\n") % self.ks_meta
+        buf = buf + _("mgmt classes          : %s\n") % self.mgmt_classes
+        buf = buf + _("modified              : %s\n") % time.ctime(self.mtime)
 
+        buf = buf + _("name servers          : %s\n") % self.name_servers
         buf = buf + _("netboot enabled?      : %s\n") % self.netboot_enabled 
         buf = buf + _("owners                : %s\n") % self.owners
         buf = buf + _("server                : %s\n") % self.server
+        buf = buf + _("template files        : %s\n") % self.template_files
 
         buf = buf + _("virt cpus             : %s\n") % self.virt_cpus
         buf = buf + _("virt file size        : %s\n") % self.virt_file_size
@@ -454,19 +693,28 @@ class System(item.Item):
         buf = buf + _("virt ram              : %s\n") % self.virt_ram
         buf = buf + _("virt type             : %s\n") % self.virt_type
 
+        buf = buf + _("power type            : %s\n") % self.power_type
+        buf = buf + _("power address         : %s\n") % self.power_address
+        buf = buf + _("power user            : %s\n") % self.power_user
+        buf = buf + _("power password        : %s\n") % self.power_pass
+        buf = buf + _("power id              : %s\n") % self.power_id
 
-        counter = 0
-        for (name,x) in self.interfaces.iteritems():
+        ikeys = self.interfaces.keys()
+        ikeys.sort()
+        for name in ikeys:
+            x = self.__get_interface(name)
             buf = buf + _("interface        : %s\n") % (name)
             buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
+            buf = buf + _("  bonding        : %s\n") % x.get("bonding","")
+            buf = buf + _("  bonding_master : %s\n") % x.get("bonding_master","")
+            buf = buf + _("  bonding_opts   : %s\n") % x.get("bonding_opts","")
+            buf = buf + _("  is static?     : %s\n") % x.get("static",False)
             buf = buf + _("  ip address     : %s\n") % x.get("ip_address","")
-            buf = buf + _("  hostname       : %s\n") % x.get("hostname","")
-            buf = buf + _("  gateway        : %s\n") % x.get("gateway","")
             buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
-            buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
+            buf = buf + _("  static routes  : %s\n") % x.get("static_routes",[])
+            buf = buf + _("  dns name       : %s\n") % x.get("dns_name","")
             buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
-            counter = counter + 1
-         
+            buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
 
         return buf
 
@@ -476,37 +724,71 @@ class System(item.Item):
         """
         for (key,value) in hash.iteritems():
             (field,interface) = key.split("-")
-            if field == "macaddress" : self.set_mac_address(value, interface)
-            if field == "ipaddress"  : self.set_ip_address(value, interface)
-            if field == "hostname"   : self.set_hostname(value, interface)
-            if field == "dhcptag"    : self.set_dhcp_tag(value, interface)
-            if field == "subnet"     : self.set_subnet(value, interface)
-            if field == "gateway"    : self.set_gateway(value, interface)
-            if field == "virtbridge" : self.set_virt_bridge(value, interface)
+            field = field.replace("_","").replace("-","")
+            if field == "macaddress"    : self.set_mac_address(value, interface)
+            if field == "ipaddress"     : self.set_ip_address(value, interface)
+            if field == "dnsname"       : self.set_dns_name(value, interface)
+            if field == "static"        : self.set_static(value, interface)
+            if field == "dhcptag"       : self.set_dhcp_tag(value, interface)
+            if field == "subnet"        : self.set_subnet(value, interface)
+            if field == "virtbridge"    : self.set_virt_bridge(value, interface)
+            if field == "bonding"       : self.set_bonding(value, interface)
+            if field == "bondingmaster" : self.set_bonding_master(value, interface)
+            if field == "bondingopts"   : self.set_bonding_opts(value, interface)
+            if field == "staticroutes"  : self.set_static_routes(value, interface)
         return True
          
 
     def remote_methods(self):
+
+        # WARNING: versions with hyphens are old and are in for backwards
+        # compatibility.  At some point they may be removed.
+
         return {
            'name'             : self.set_name,
            'profile'          : self.set_profile,
            'image'            : self.set_image,
            'kopts'            : self.set_kernel_options,
            'kopts-post'       : self.set_kernel_options_post,
+           'kopts_post'       : self.set_kernel_options_post,           
            'ksmeta'           : self.set_ksmeta,
-           'hostname'         : self.set_hostname,
            'kickstart'        : self.set_kickstart,
            'netboot-enabled'  : self.set_netboot_enabled,
+           'netboot_enabled'  : self.set_netboot_enabled,           
            'virt-path'        : self.set_virt_path,
+           'virt_path'        : self.set_virt_path,           
            'virt-type'        : self.set_virt_type,
+           'virt_type'        : self.set_virt_type,           
            'modify-interface' : self.modify_interface,
+           'modify_interface' : self.modify_interface,           
            'delete-interface' : self.delete_interface,
+           'delete_interface' : self.delete_interface,           
            'virt-path'        : self.set_virt_path,
+           'virt_path'        : self.set_virt_path,           
            'virt-ram'         : self.set_virt_ram,
+           'virt_ram'         : self.set_virt_ram,           
            'virt-type'        : self.set_virt_type,
+           'virt_type'        : self.set_virt_type,           
            'virt-cpus'        : self.set_virt_cpus,
+           'virt_cpus'        : self.set_virt_cpus,           
            'virt-file-size'   : self.set_virt_file_size,
+           'virt_file_size'   : self.set_virt_file_size,           
            'server'           : self.set_server,
-           'owners'           : self.set_owners
+           'owners'           : self.set_owners,
+           'mgmt-classes'     : self.set_mgmt_classes,
+           'mgmt_classes'     : self.set_mgmt_classes,           
+           'template-files'   : self.set_template_files,
+           'template_files'   : self.set_template_files,           
+           'comment'          : self.set_comment,
+           'power_type'       : self.set_power_type,
+           'power_address'    : self.set_power_address,
+           'power_user'       : self.set_power_user,
+           'power_pass'       : self.set_power_pass,
+           'power_id'         : self.set_power_id,
+           'hostname'         : self.set_hostname,
+           'gateway'          : self.set_gateway,
+           'name_servers'     : self.set_name_servers,
+           'redhat_management_key' : self.set_redhat_management_key
         }
+
 

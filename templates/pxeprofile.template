@@ -2,3 +2,4 @@ LABEL $profile_name
         kernel $kernel_path
         $menu_label
         $append_line
+        ipappend 2

@@ -25,7 +25,6 @@ import os
 import os.path
 import shutil
 import time
-import sub_process
 import sys
 import glob
 import traceback
@@ -74,24 +73,27 @@ class PXEGen:
 
         # copy syslinux from one of two locations
         try:
-            utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',   dst)
+            utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',   dst, api=self.api)
         except:
-            utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0', dst)
-   
+            utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0', dst, api=self.api)
+ 
         # copy memtest only if we find it
-        utils.copyfile_pattern('/boot/memtest*', dst, require_match=False)
+        utils.copyfile_pattern('/boot/memtest*', dst, require_match=False, api=self.api)
   
         # copy elilo which we include for IA64 targets
-        utils.copyfile_pattern('/var/lib/cobbler/elilo-3.6-ia64.efi', dst)
+        utils.copyfile_pattern('/var/lib/cobbler/elilo-3.8-ia64.efi', dst, api=self.api)
  
         # copy menu.c32 as the older one has some bugs on certain RHEL
-        utils.copyfile_pattern('/var/lib/cobbler/menu.c32', dst)
+        utils.copyfile_pattern('/var/lib/cobbler/menu.c32', dst, api=self.api)
+
+        # copy yaboot which we include for PowerPC targets
+        utils.copyfile_pattern('/var/lib/cobbler/yaboot-1.3.14', dst, api=self.api)
 
         # copy memdisk as we need it to boot ISOs
         try:
-            utils.copyfile_pattern('/usr/lib/syslinux/memdisk',   dst)
+            utils.copyfile_pattern('/usr/lib/syslinux/memdisk',   dst, api=self.api)
         except:
-            utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst)
+            utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst, api=self.api)
 
 
     def copy_distros(self):
@@ -104,16 +106,33 @@ class PXEGen:
 
         NOTE:  this has to be done for both tftp and http methods
         """
-        # copy is a 4-letter word but tftpboot runs chroot, thus it's required.
+        errors = list()
         for d in self.distros:
-            self.copy_single_distro_files(d)
+            try:
+                self.copy_single_distro_files(d)
+            except CX, e:
+                errors.append(e)
+                print e.value
+
+        # FIXME: using logging module so this ends up in cobbler.log?
+        if len(errors) > 0:
+            raise CX(_("Error(s) encountered while copying distro files"))
 
     def copy_images(self):
         """
         Like copy_distros except for images.
         """
+        errors = list()
         for i in self.images:
-            self.copy_single_image_files(i)
+            try:
+                self.copy_single_image_files(i)
+            except CX, e:
+                errors.append(e)
+                print e.value
+
+        # FIXME: using logging module so this ends up in cobbler.log?
+        if len(errors) > 0:
+            raise CX(_("Error(s) encountered while copying image files"))
 
     def copy_single_distro_files(self, d):
         for dirtree in [self.bootloc, self.settings.webdir]: 
@@ -131,8 +150,11 @@ class PXEGen:
             allow_symlink=False
             if dirtree == self.settings.webdir:
                 allow_symlink=True
-            utils.linkfile(kernel, os.path.join(distro_dir, b_kernel), symlink_ok=allow_symlink)
-            utils.linkfile(initrd, os.path.join(distro_dir, b_initrd), symlink_ok=allow_symlink)
+            dst1 = os.path.join(distro_dir, b_kernel)
+            dst2 = os.path.join(distro_dir, b_initrd)
+            utils.linkfile(kernel, dst1, symlink_ok=allow_symlink, api=self.api)
+
+            utils.linkfile(initrd, dst2, symlink_ok=allow_symlink, api=self.api)
 
     def copy_single_image_files(self, img):
         images_dir = os.path.join(self.bootloc, "images2")
@@ -144,7 +166,7 @@ class PXEGen:
             os.makedirs(images_dir)
         basename = os.path.basename(img.file)
         newfile = os.path.join(images_dir, img.name)
-        utils.linkfile(filename, newfile)
+        utils.linkfile(filename, newfile, api=self.api)
         return True
 
     def write_all_system_files(self,system):
@@ -191,6 +213,17 @@ class PXEGen:
 
                 filename = "%s.conf" % utils.get_config_filename(system,interface=name)
                 f2 = os.path.join(self.bootloc, filename)
+            elif working_arch.startswith("ppc"):
+                # Determine filename for system-specific yaboot.conf
+                filename = "%s" % utils.get_config_filename(system, interface=name).lower()
+                f2 = os.path.join(self.bootloc, "etc", filename)
+
+                # Link to the yaboot binary
+                f3 = os.path.join(self.bootloc, "ppc", filename)
+                if os.path.lexists(f3):
+                    utils.rmfile(f3)
+                os.symlink("../yaboot-1.3.14", f3)
+
             elif working_arch == "s390x":
                 filename = "%s" % utils.get_config_filename(system,interface=name)
                 f2 = os.path.join(self.bootloc, "s390x", filename)
@@ -199,9 +232,9 @@ class PXEGen:
 
             if system.is_management_supported():
                 if not image_based:
-                    self.write_pxe_file(f2,system,profile,distro,distro.arch)
+                    self.write_pxe_file(f2,system,profile,distro,working_arch)
                 else:
-                    self.write_pxe_file(f2,system,None,None,None,image=profile)
+                    self.write_pxe_file(f2,system,None,None,working_arch,image=profile)
             else:
                 # ensure the file doesn't exist
                 utils.rmfile(f2)
@@ -223,6 +256,8 @@ class PXEGen:
         listfile = open(os.path.join(s390path, "profile_list"),"w+")
         for profile in profile_list:
             distro = profile.get_conceptual_parent()
+            if distro is None:
+                raise CX(_("profile is missing distribution: %s, %s") % (profile.name, profile.distro))
             if distro.arch == "s390x":
                 listfile.write("%s\n" % profile.name)
             f2 = os.path.join(self.bootloc, "s390x", profile.name)
@@ -232,7 +267,7 @@ class PXEGen:
             if os.path.exists(image.file):
                 listfile2.write("%s\n" % image.name)
             f2 = os.path.join(self.bootloc, "s390x", image.name)
-            self.write_pxe_file(f2,None,None,None,None,image=image)
+            self.write_pxe_file(f2,None,None,None,image.arch,image=image)
         listfile.close()
         listfile2.close()
 
@@ -245,7 +280,7 @@ class PXEGen:
         fname = os.path.join(self.bootloc, "pxelinux.cfg", "default")
 
         # read the default template file
-        template_src = open("/etc/cobbler/pxedefault.template")
+        template_src = open(os.path.join(self.settings.pxe_template_dir,"pxedefault.template"))
         template_data = template_src.read()
 
         # sort the profiles
@@ -261,6 +296,9 @@ class PXEGen:
         # build out the menu entries
         pxe_menu_items = ""
         for profile in profile_list:
+            if not profile.enable_menu:
+               # This profile has been excluded from the menu
+               continue
             distro = profile.get_conceptual_parent()
             # xen distros can be ruled out as they won't boot
             if distro.name.find("-xen") != -1:
@@ -273,7 +311,7 @@ class PXEGen:
         # image names towards the bottom
         for image in image_list:
             if os.path.exists(image.file):
-                contents = self.write_pxe_file(None,None,None,None,None,image=image)
+                contents = self.write_pxe_file(None,None,None,None,image.arch,image=image)
                 if contents is not None:
                     pxe_menu_items = pxe_menu_items + contents + "\n"
 
@@ -306,7 +344,7 @@ class PXEGen:
         metadata = {}
         buffer = ""
 
-        template = "/etc/cobbler/pxeprofile.template"
+        template = os.path.join(self.settings.pxe_template_dir,"pxeprofile.template")
 
         # store variables for templating
         metadata["menu_label"] = "MENU LABEL %s" % os.path.basename(filename)
@@ -375,15 +413,39 @@ class PXEGen:
         # choose a template
         if system:
             if system.netboot_enabled:
-                template = "/etc/cobbler/pxesystem.template"
+                template = os.path.join(self.settings.pxe_template_dir,"pxesystem.template")
                 if arch == "s390x":
-                    template = "/etc/cobbler/pxesystem_s390x.template"
+                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_s390x.template")
                 elif arch == "ia64":
-                    template = "/etc/cobbler/pxesystem_ia64.template"
+                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ia64.template")
+                elif arch.startswith("ppc"):
+                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ppc.template")
             else:
-                template = "/etc/cobbler/pxelocal.template"
+                # local booting on ppc requires removing the system-specific dhcpd.conf filename
+                if arch is not None and arch.startswith("ppc"):
+                    # Disable yaboot network booting for all interfaces on the system
+                    for (name,interface) in system.interfaces.iteritems():
+
+                        # Determine filename for system-specific yaboot.conf
+                        filename = "%s" % utils.get_config_filename(system, interface=name).lower()
+
+                        # Remove symlink to the yaboot binary
+                        f3 = os.path.join(self.bootloc, "ppc", filename)
+                        if os.path.lexists(f3):
+                            utils.rmfile(f3)
+
+                        # Remove the interface-specific config file
+                        f3 = os.path.join(self.bootloc, "etc", filename)
+                        if os.path.lexists(f3):
+                            utils.rmfile(f3)
+
+                    # Yaboot/OF doesn't support booting locally once you've
+                    # booted off the network, so nothing left to do
+                    return None
+                else:
+                    template = os.path.join(self.settings.pxe_template_dir,"pxelocal.template")
         else:
-            template = "/etc/cobbler/pxeprofile.template"
+            template = os.path.join(self.settings.pxe_template_dir,"pxeprofile.template")
 
 
         # now build the kernel command line
@@ -397,7 +459,7 @@ class PXEGen:
 
         # generate the append line
         hkopts = utils.hash_to_string(kopts)
-        if (not arch or arch != "ia64") and initrd_path:
+        if initrd_path and (not arch or arch not in ["ia64", "ppc", "ppc64"]):
             append_line = "append initrd=%s %s" % (initrd_path, hkopts)
         else:
             append_line = "append %s" % hkopts
@@ -419,17 +481,19 @@ class PXEGen:
                 append_line = "%s autoyast=%s" % (append_line, kickstart_path)
             elif distro.breed == "debian":
                 append_line = "%s auto=true url=%s" % (append_line, kickstart_path)
-                append_line = append_line.replace("ksdevice","interface")
+            # interface=bootif causes a failure
+            #    append_line = append_line.replace("ksdevice","interface")
 
-        if arch == "s390x":
+        if arch in ["s390x", "ppc", "ppc64"]:
             # remove the prefix "append"
             append_line = append_line[7:]
 
         # store variables for templating
         metadata["menu_label"] = ""
-        if profile and not arch == "ia64" and system is None:
-            metadata["menu_label"] = "MENU LABEL %s" % profile.name
-            metadata["profile_name"] = profile.name
+        if profile:
+            if not arch in [ "ia64", "ppc", "ppc64", "s390x" ]:
+                metadata["menu_label"] = "MENU LABEL %s" % profile.name
+                metadata["profile_name"] = profile.name
         elif image:
             metadata["menu_label"] = "MENU LABEL %s" % image.name
             metadata["profile_name"] = image.name
@@ -458,6 +522,98 @@ class PXEGen:
             fd.close()
         return buffer
 
+    def write_templates(self,obj,write_file=False,path=None):
+        """
+        A semi-generic function that will take an object
+        with a template_files hash {source:destiation}, and 
+        generate a rendered file.  The write_file option 
+        allows for generating of the rendered output without
+        actually creating any files.
+
+        The return value is a hash of the destination file
+        names (after variable substitution is done) and the
+        data in the file.
+        """
+
+        results = {}
+
+        try:
+           templates = obj.template_files
+        except:
+           return results
+
+        blended = utils.blender(self.api, False, obj)
+        ksmeta = blended.get("ks_meta",{})
+        del blended["ks_meta"]
+        blended.update(ksmeta) # make available at top level
+
+        (success, templates) = utils.input_string_or_hash(templates)
+
+        if not success:
+            return results
+
+
+        for template in templates.keys():
+            dest = templates[template]
+            
+            # Run the source and destination files through 
+            # templar first to allow for variables in the path 
+            template = self.templar.render(template, blended, None).strip()
+            dest     = self.templar.render(dest, blended, None).strip()
+            # Get the path for the destination output
+            dest_dir = os.path.dirname(dest)
+
+            # If we're looking for a single template, skip if this ones
+            # destination is not it.
+            if not path is None and path != dest:
+               continue
+
+            # If we are writing output to a file, force all templated 
+            # configs into the rendered directory to ensure that a user 
+            # granted cobbler privileges via sudo can't overwrite 
+            # arbitrary system files (This also makes cleanup easier).
+            if os.path.isabs(dest_dir):
+               if write_file:
+                   raise CX(_(" warning: template destination (%s) is an absolute path, skipping.") % dest_dir)
+                   continue
+            else:
+                dest_dir = os.path.join(self.settings.webdir, "rendered", dest_dir)
+                dest = os.path.join(dest_dir, os.path.basename(dest))
+                if not os.path.exists(dest_dir):
+                    utils.mkdir(dest_dir)
+
+            # Check for problems
+            if not os.path.exists(template):
+               raise CX(_("template source %s does not exist") % template)
+               continue
+            elif write_file and not os.path.isdir(dest_dir):
+               raise CX(_("template destination (%s) is invalid") % dest_dir)
+               continue
+            elif write_file and os.path.exists(dest): 
+               raise CX(_("template destination (%s) already exists") % dest)
+               continue
+            elif write_file and os.path.isdir(dest):
+               raise CX(_("template destination (%s) is a directory") % dest)
+               continue
+            elif template == "" or dest == "": 
+               raise CX(_("either the template source or destination was blank (unknown variable used?)") % dest)
+               continue
+            
+            template_fh = open(template)
+            template_data = template_fh.read()
+            template_fh.close()
+
+            buffer = self.templar.render(template_data, blended, None)
+            results[dest] = buffer
+
+            if write_file:
+                fd = open(dest, "w")
+                fd.write(buffer)
+                fd.close()
+
+            # print _(" template %s created ok") % dest
+
+        return results
 
 
 

@@ -13,15 +13,13 @@
 </head>
 
 
-<body onload="global_onload();">
+<body onload="if (window.page_onload) { page_onload(); }">
 
 <div id="wrap">
-    <h1 id="masthead">
         <a href="$base_url/index">
             <img alt="Cobbler Logo"
                  src="/cobbler/webui/logo-cobbler.png"/>
         </a>
-    </h1>
 </div>
 
 <div id="main">
@@ -31,20 +29,43 @@
         <li><a href="/cobbler/webui/wui.html" class="menu">Docs</a></li>
         <li><a href="$base_url?mode=settings_view" class="menu">Settings</a></li>
         <li><hr/></li>
-        <li>LIST</li>
         <li><a href="$base_url?mode=distro_list" class="menu">Distros</a></li>
+	    #if $mode == "distro_list"
+    	    <ul id="navaction">
+        	<li><a href="$base_url?mode=distro_edit" class="menu">Add</a></li>
+	    </ul>
+	    #end if
         <li><a href="$base_url?mode=profile_list" class="menu">Profiles</a></li>
+	    #if $mode == "profile_list"
+    	    <ul id="navaction">
+        	<li><a href="$base_url?mode=profile_edit" class="menu">Add</a></li>
+    		<li><a href="$base_url?mode=subprofile_edit" class="menu">Add child</a></li>
+	    </ul>
+	    #end if	    
         <li><a href="$base_url?mode=system_list" class="menu">Systems</a></li>
+	    #if $mode == "system_list"       
+    	    <ul id="navaction">
+    		<li><a href="$base_url?mode=system_edit" class="menu">Add</a></li>
+	    </ul>
+	    #end if	    
         <li><a href="$base_url?mode=ksfile_list" class="menu">Kickstarts</a></li>
+	    #if $mode == "ksfile_list"
+    	    <ul id="navaction">
+	        <li><a href="$base_url?mode=ksfile_new" class="menu">Add</a></li>
+	    </ul>
+	    #end if	    
         <li><a href="$base_url?mode=repo_list" class="menu">Repos</a></li>
-        <li><hr/></li>
-        <li>ADD</li>
-        <li><a href="$base_url?mode=distro_edit" class="menu">Distro</a></li>
-        <li><a href="$base_url?mode=profile_edit" class="menu">Profile</a></li>
-        <li><a href="$base_url?mode=subprofile_edit" class="menu">Subprofile</a></li>
-        <li><a href="$base_url?mode=system_edit" class="menu">System</a></li>
-        <li><a href="$base_url?mode=ksfile_new" class="menu">Kickstart</a></li>
-        <li><a href="$base_url?mode=repo_edit" class="menu">Repo</a></li>
+	    #if $mode == "repo_list"
+    	    <ul id="navaction">
+	        <li><a href="$base_url?mode=repo_edit" class="menu">Add</a></li>
+	    </ul>
+	    #end if	    
+        <li><a href="$base_url?mode=image_list" class="menu">Images</a></li>
+	    #if $mode == "image_list"
+    	    <ul id="navaction">
+	        <li><a href="$base_url?mode=image_edit" class="menu">Add</a></li>
+	    </ul>
+	    #end if	    
         <li><hr/><br/></li>
         <li><a class="button sync" href="$base_url?mode=sync">Sync</a></li>
     </ul>
