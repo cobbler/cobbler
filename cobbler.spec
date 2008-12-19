@@ -2,7 +2,7 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 1.3.4
+Version: 1.4.0
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
@@ -51,16 +51,16 @@ Url: http://cobbler.et.redhat.com
 
 %description
 
-Cobbler is a network boot and update server.  Cobbler 
-supports PXE, provisioning virtualized images, and 
+Cobbler is a network install server.  Cobbler 
+supports PXE, virtualized installs, and 
 reinstalling existing Linux machines.  The last two 
-modes require a helper tool called 'koan' that 
+modes use a helper tool, 'koan', that 
 integrates with cobbler.  Cobbler's advanced features 
 include importing distributions from DVDs and rsync 
 mirrors, kickstart templating, integrated yum 
 mirroring, and built-in DHCP/DNS Management.  Cobbler has 
 a Python and XMLRPC API for integration with other  
-applications.
+applications.  There is also a web interface.
 
 %prep
 %setup -q
@@ -304,8 +304,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
+* Fri Dec 19 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.0-1
+- Upstream changes (see CHANGELOG)
+- Updated selinux setup
+
 * Wed Dec 10 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.4-1
-- Updated test release
+- Updated test release (see CHANGELOG)
 
 - Upstream changes (see CHANGELOG)
 - Added specfile changes for python 2.6

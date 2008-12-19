@@ -243,10 +243,14 @@ def __test_setup():
     api = cobbler_api.BootAPI()
     api.deserialize() # FIXME: redundant
 
+    fake = open("/tmp/cobbler.fake","w+")
+    fake.write("")
+    fake.close()
+
     distro = api.new_distro()
     distro.set_name("distro0")
-    distro.set_kernel("/etc/hosts")
-    distro.set_initrd("/etc/hosts")
+    distro.set_kernel("/tmp/cobbler.fake")
+    distro.set_initrd("/tmp/cobbler.fake")
     api.add_distro(distro)
 
     repo = api.new_repo()
@@ -291,7 +295,7 @@ def __test_setup():
 
     image = api.new_image()
     image.set_name("image0")
-    image.set_file("/etc/hosts")
+    image.set_file("/tmp/cobbler.fake")
     api.add_image(image)
 
     # perhaps an artifact of the test process?

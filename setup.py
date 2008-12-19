@@ -9,10 +9,10 @@ import cobbler.sub_process as subprocess
 import Cheetah.Template as Template
 import time
 
-VERSION = "1.3.4"
+VERSION = "1.4.0"
 SHORT_DESC = "Network Boot and Update Server"
 LONG_DESC = """
-Cobbler is a network boot and update server.  Cobbler supports PXE, provisioning virtualized images, and reinstalling existing Linux machines.  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler also has a Python and XMLRPC API for integration with other applications.
+Cobbler is a network install server.  Cobbler supports PXE, virtualized installs, and reinstalling existing Linux machines.  The last two modes use a helper tool, 'koan', that integrates with cobbler.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler has a Python and XMLRPC API for integration with other applications.  There is also a web interface.
 """
 TEMPLATES_DIR = "installer_templates"
 DEFAULTS = os.path.join(TEMPLATES_DIR, "defaults")
