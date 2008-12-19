@@ -109,7 +109,7 @@ class BootTest(unittest.TestCase):
 
         image = self.api.new_image()
         self.assertTrue(image.set_name("testimage0"))
-        self.assertTrue(image.set_file("/etc/hosts")) # meaningless path
+        self.assertTrue(image.set_file(self.fk_initrd)) # meaningless path
         self.assertTrue(self.api.add_image(image))
 
 
@@ -763,20 +763,17 @@ class SyncContents(BootTest):
 
     def test_blender_cache_works(self):
 
-        # this is just a file that exists that we don't have to create
-        fake_file = "/etc/hosts"
-
         distro = self.api.new_distro()
         self.assertTrue(distro.set_name("D1"))
-        self.assertTrue(distro.set_kernel(fake_file))
-        self.assertTrue(distro.set_initrd(fake_file))
+        self.assertTrue(distro.set_kernel(self.fk_kernel))
+        self.assertTrue(distro.set_initrd(self.fk_initrd))
         self.assertTrue(self.api.add_distro(distro))
         self.assertTrue(self.api.find_distro(name="D1"))
 
         profile = self.api.new_profile()
         self.assertTrue(profile.set_name("P1"))
         self.assertTrue(profile.set_distro("D1"))
-        self.assertTrue(profile.set_kickstart(fake_file))
+        self.assertTrue(profile.set_kickstart("/var/lib/cobbler/kickstarts/sample.ks"))
         self.assertTrue(self.api.add_profile(profile))
         assert self.api.find_profile(name="P1") != None
 

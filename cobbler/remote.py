@@ -1453,10 +1453,14 @@ def test_xmlrpc_ro():
    before_repos    = len(api.repos())
    before_images   = len(api.images())
 
+   fake = open("/tmp/cobbler.fake","w+")
+   fake.write("")
+   fake.close()
+
    distro = api.new_distro()
    distro.set_name("distro0")
-   distro.set_kernel("/etc/hosts")
-   distro.set_initrd("/etc/hosts")
+   distro.set_kernel("/tmp/cobbler.fake")
+   distro.set_initrd("/tmp/cobbler.fake")
    api.add_distro(distro)
    
    repo = api.new_repo()
@@ -1488,7 +1492,7 @@ def test_xmlrpc_ro():
 
    image = api.new_image()
    image.set_name("image0")
-   image.set_file("/etc/hosts")
+   image.set_file("/tmp/cobbler.fake")
    api.add_image(image)
 
    # reposync is required in order to create the repo config files
@@ -1687,15 +1691,15 @@ def test_xmlrpc_rw():
    # create distro
    did = server.new_distro(token)
    server.modify_distro(did, "name", "distro1", token)
-   server.modify_distro(did, "kernel", "/etc/hosts", token) 
-   server.modify_distro(did, "initrd", "/etc/hosts", token) 
+   server.modify_distro(did, "kernel", "/tmp/cobbler.fake", token) 
+   server.modify_distro(did, "initrd", "/tmp/cobbler.fake", token) 
    server.modify_distro(did, "kopts", { "dog" : "fido", "cat" : "fluffy" }, token) # hash or string
    server.modify_distro(did, "ksmeta", "good=sg1 evil=gould", token) # hash or string
    server.modify_distro(did, "breed", "redhat", token)
    server.modify_distro(did, "os-version", "rhel5", token)
    server.modify_distro(did, "owners", "sam dave", token) # array or string
    server.modify_distro(did, "mgmt-classes", "blip", token) # list or string
-   server.modify_distro(did, "template-files", "/etc/hosts=/tmp/a /etc/fstab=/tmp/b",token) # hash or string
+   server.modify_distro(did, "template-files", "/tmp/cobbler.fake=/tmp/a /etc/fstab=/tmp/b",token) # hash or string
    server.modify_distro(did, "comment", "...", token)
    server.modify_distro(did, "redhat_management_key", "ALPHA", token)
    server.save_distro(did, token)
