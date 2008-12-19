@@ -4,7 +4,7 @@ koan
 
 =head1 SYNOPSIS
 
-koan --server=hostname [--list=type] [--virt|--replace-self|--display] [--profile=name] [--system=name] [--image=name] [--add-reinstall-entry] [--virt-name=name] [--virt-path=path] [--virt-type=type] [--nogfx]
+koan --server=hostname [--list=type] [--virt|--replace-self|--display] [--profile=name] [--system=name] [--image=name] [--add-reinstall-entry] [--virt-name=name] [--virt-path=path] [--virt-type=type] [--nogfx] [--static-interface=name] [--kexec]
 
 =head1 DESCRIPTION
  
@@ -44,6 +44,9 @@ koan --server=cobbler.example.org --replace-self --system=name
 Additionally, adding the flag --add-reinstall-entry will make it add the entry to grub for reinstallation
 but will not make it automatically pick that option on the next boot.
 
+Also the flag --kexec can be appended, which will launch the installer without needing to reboot.  Not
+all kernels support this option.
+
 =head1 INSTALLING VIRTUALIZED SYSTEMS
 
 Using --virt will install virtual machines as defined by Cobbler.  There are various
@@ -57,25 +60,27 @@ koan --server=cobbler.example.org --virt --image=name
 
 Some of the overrides that can be used with --virt are:
 
-Flag           Explanation                             Example
+Flag                Explanation                             Example
 
---virt-ram     name of virtual machine to create       testmachine
+--virt-name         name of virtual machine to create       testmachine
 
---virt-type    forces usage of qemu/xen/vmware         qemu
+--virt-type         forces usage of qemu/xen/vmware         qemu
 
---virt-ram     size in megabytes                       1024
+--virt-ram          size in megabytes                       1024
 
---virt-bridge  name of bridge device                   virbr0
+--virt-bridge       name of bridge device                   virbr0
 
---virt-path    overwrite this disk partition           /dev/sda4
+--virt-path         overwrite this disk partition           /dev/sda4
 
---virt-path    use this directory                      /opt/myimages
+--virt-path         use this directory                      /opt/myimages
 
---virt-path    use this existing LVM volume            VolGroup00
+--virt-path         use this existing LVM volume            VolGroup00
 
---no-gfx       do not use VNC graphics (Xen only)      (does not take options)
+--no-gfx            do not use VNC graphics (Xen only)      (does not take options)
 
 Nearly all of these variables can also be defined and centrally managed by the Cobbler server.
+
+If installing virtual machines in environments without DHCP, use of --system instead of --profile is required.  Additionally use --static-interface=eth0 to supply which interface to use to supply network information.  The installer will boot from this virtual interface.  Leaving off --static-interface will result in an unsuccessful network installation.
 
 =head1 ADDITIONAL
 

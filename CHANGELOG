@@ -1,10 +1,27 @@
 Koan CHANGELOG
 
+- Mon Dec 08 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.3-1
+- update files feature for built in config management
+- static-interface feature for non-DHCP virt installs re-added
+- support for --kexec with --replace-self
+- changed some internals of --replace-self to support busybox
+- tolerate volume group names (for LVM) that contain hyphens
+- virtualized image cloning support
+- ppc and s390 provisioning
+- COBBLER_SERVER environment variable can be used in place of --server
+- replace bootif with link for ksdevice for non-PXE installs
+- allow for communication with ssl-ified ports (anonymous only)
+- ensure requests for profiles/systems get most updated copy from cobbler
+- lvcreate, vgs, etc, paths from shell, not /usr/sbin
+- set selinux context on new LVM partitions
+- --vm-poll option to restart (libvirt) VMs after they are done installing
+
 - Thu Oct 2 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.6-1
 - (BUGF) for xenpv installations using --system, pay attention to --virt-bridge overrides
 
 - Thu Sep 18 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.5-1
 - (BUGF) use file:/ks.cfg for --replace-self to make non-DHCP easier
+- (BUGF) for xenpv installations using --system, pay attention to --virt-bridge overrides
 
 - Wed Aug 29 2008 Michael DeHaan <mdehaan@redhat.com> - 1.2.0-1 
 - merge devel into stable

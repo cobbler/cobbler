@@ -4,18 +4,18 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-VERSION = "1.2.6"
+VERSION = "1.4.0"
 SHORT_DESC = "Network install tool for use with Cobbler"
 LONG_DESC = """
-koan stands for "kickstart-over-a-network" and allows for both
-network installation of new virtualized guests and reinstallation of
-existing systems.  For use with a boot-server configured with
-'cobbler'.
+Koan stands for kickstart-over-a-network and allows for both
+network installation of new virtualized guests and reinstallation              
+of an existing system.  For use with a boot-server configured with Cobbler
 """
 
 if __name__ == "__main__":
         docspath="share/doc/koan-%s/" % VERSION
         manpath="share/man/man1/"
+        logpath="/var/log/koan"
 	setup(
                 name="koan",
                 version = VERSION,
@@ -28,6 +28,7 @@ if __name__ == "__main__":
                 data_files = [
 				("/var/spool/koan", []),
 				(manpath, ['koan.1.gz']),
+                                (logpath, [])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC
