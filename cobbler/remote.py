@@ -325,11 +325,14 @@ class CobblerXMLRPCInterface:
         return True
 
     def upload_log_data(self, sys_name, file, size, md5sum, offset, data, token=None,**rest):
+
         """
-        This is a feature used by the pxe_just_once support, see manpage.
-        Sets system named "name" to no-longer PXE.  Disabled by default as
-        this requires public API access and is technically a read-write operation.
+        This is a logger function used by the "anamon" logging system to
+        upload all sorts of auxilliary data from Anaconda.
+        As it's a bit of a potential log-flooder, it's off by default
+        and needs to be enabled in /etc/cobbler/settings.
         """
+
         self._log("upload_log_data (file: '%s', size: %s, offset: %s)" % (file, size, offset), token=token, name=sys_name)
 
         # Check if enabled in self.api.settings()
