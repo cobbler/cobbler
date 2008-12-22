@@ -3,7 +3,7 @@ Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
 Version: 1.4.0
-Release: 2%{?dist}
+Release: 4%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -30,8 +30,8 @@ Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
-%{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
-Requires: python(abi)=%{pyver}
+%{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]" || echo 0)}
+Requires: python(abi) = %{pyver}
 %endif
 %if 0%{?suse_version} < 0
 BuildRequires: redhat-rpm-config
@@ -280,6 +280,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+
+* Fri Dec 19 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.0-4
+- Fix for rawhide python requirement.
 
 * Fri Dec 19 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.0-2
 - Upstream changes (see CHANGELOG)
