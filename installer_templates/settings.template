@@ -290,7 +290,9 @@ syslog_port: 25150
 # server.  With 'anamon_enabled', kickstart templates may use the pre_anamon
 # snippet to allow remote live monitoring of their installations from the
 # cobbler server.  Installation logs will be stored under
-# /var/log/cobbler/anamon.
+# /var/log/cobbler/anamon/.  NOTE: This does allow an xmlrpc call to send logs
+# to this directory, without authentication, so enable only if you are
+# ok with this limitation.
 anamon_enabled: 0
 
 # locations of the TFTP binary and config file
