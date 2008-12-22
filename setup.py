@@ -299,6 +299,11 @@ if __name__ == "__main__":
                                 (wwwtmpl,           ['webui_templates/profile_list.tmpl']),
                                 (wwwtmpl,           ['webui_templates/profile_edit.tmpl']),
                                 (wwwtmpl,           ['webui_templates/system_list.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_netboot.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_rename.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_delete.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_profile.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_power.tmpl']),
                                 (wwwtmpl,           ['webui_templates/system_edit.tmpl']),
                                 (wwwtmpl,           ['webui_templates/repo_list.tmpl']),
                                 (wwwtmpl,           ['webui_templates/repo_edit.tmpl']),
@@ -306,6 +311,7 @@ if __name__ == "__main__":
                                 (wwwtmpl,           ['webui_templates/image_edit.tmpl']),
 
                                 # Web UI common templates 
+                                (wwwtmpl,           ['webui_templates/checkboxes.tmpl']),
                                 (wwwtmpl,           ['webui_templates/paginate.tmpl']),
                                 (wwwtmpl,           ['webui_templates/message.tmpl']),
                                 (wwwtmpl,           ['webui_templates/error_page.tmpl']),

@@ -323,8 +323,193 @@ class CobblerWeb(object):
         else:
             return self.__render('empty.tmpl',{})
 
-    def system_save(self,name=None,oldname=None,comment=None,editmode="edit",profile=None,
-                    new_or_edit=None,  
+
+    def system_list_action(self,actionname=None,targetlist=None,**args):
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+
+        if actionname is None:
+            return self.error_page("Actionname parameter is REQUIRED.")
+
+        if actionname == 'add':
+            return self.system_edit_new()
+
+        if targetlist is None:
+            return self.error_page("Targetlist parameter is REQUIRED.")
+
+        # Single item actions
+        if actionname == 'copy':
+            return self.system_edit_copy(targetlist)
+        if actionname == 'edit':
+            return self.system_edit(targetlist)
+
+        # Multiple items actions
+        systems=[]
+        for targetname in targetlist.split():
+            systems.append(self.remote.get_system(targetname,self.token))
+
+        return self.__render( 'system_'+actionname+'.tmpl', {
+                'systems'    : systems,
+                'profiles'   : self.remote.get_profiles(),
+                'targetlist' : targetlist,
+            } )
+
+
+    def system_netboot(self,targetlist=None,netboot=None,**args):
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+        if targetlist is None:
+            return self.error_page("Targetlist parameter is REQUIRED.")
+        if netboot is None:
+            return self.error_page("Netboot parameter is REQUIRED.")
+        try:
+            systems=[]
+            for targetname in targetlist.split():
+                systems.append(self.remote.get_system_handle(targetname,self.token))
+            for system in systems:
+                self.remote.modify_system(system, 'netboot-enabled', netboot, self.token)
+                self.remote.save_system(system, self.token)
+            return self.system_list()
+        except Exception, e:
+            log_exc(self.apache)
+            return self.error_page("Error while saving system: %s" % str(e))
+
+
+    def system_profile(self,targetlist=None,profile=None,**args):
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+        if targetlist is None:
+            return self.error_page("Targetlist parameter is REQUIRED.")
+        if profile is None:
+            return self.error_page("Profile parameter is REQUIRED.")
+        try:
+            systems=[]
+            for targetname in targetlist.split():
+                systems.append(self.remote.get_system_handle(targetname,self.token))
+            for system in systems:
+                self.remote.modify_system(system, 'profile', profile, self.token)
+                self.remote.save_system(system, self.token)
+            return self.system_list()
+        except Exception, e:
+            log_exc(self.apache)
+            return self.error_page("Error while saving system: %s" % str(e))
+
+
+    def system_power(self,targetlist=None,power=None,**args):
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+        if targetlist is None:
+            return self.error_page("Targetlist parameter is REQUIRED.")
+        if power is None:
+            return self.error_page("Power parameter is REQUIRED.")
+        try:
+            systems=[]
+            for targetname in targetlist.split():
+                systems.append(self.remote.get_system_handle(targetname,self.token))
+            for system in systems:
+                self.remote.power_system(system, power, self.token)
+            return self.system_list()
+        except Exception, e:
+            log_exc(self.apache)
+            return self.error_page("Error while controlling power of system: %s" % str(e))
+
+
+    def system_rename(self,targetlist=None,name=None,**args):
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+        if targetlist is None:
+            return self.error_page("Targetlist parameter is REQUIRED.")
+        try:
+            systems=[]
+            for targetname in targetlist.split():
+                systems.append(self.remote.get_system_handle(targetname,self.token))
+            for system in systems:
+                self.remote.rename_system(system, name, self.token)
+            return self.system_list()
+        except Exception, e:
+            log_exc(self.apache)
+            return self.error_page("Error while renaming system: %s" % str(e))
+
+
+    def system_delete(self,targetlist=None,**args):
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+        if targetlist is None:
+            return self.error_page("Targetlist parameter is REQUIRED.")
+        try:
+            for targetname in targetlist.split():
+                self.remote.remove_system(targetname, self.token)
+            return self.system_list()
+        except Exception, e:
+            log_exc(self.apache)
+            return self.error_page("Error while deleting system: %s" % str(e))
+
+
+
+    def system_edit(self, name=None,**spam):
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+
+        if name is None:
+            return self.error_page("Name parameter is REQUIRED")
+        input_system = self.remote.get_system(name,True)
+        can_edit = self.remote.check_access_no_fail(self.token,"modify_system",name)
+
+        return self.__render( 'system_edit.tmpl', {
+            'user' : self.username,
+            'editmode' : 'edit',
+            'editable' : can_edit,
+            'system': input_system,
+            'profiles': self.remote.get_profiles()
+        } )
+
+
+    def system_edit_new(self,**spam):
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+
+        can_edit = self.remote.check_access_no_fail(self.token,"new_system",None)
+        if not can_edit:
+            return self.__render('message.tmpl', {
+                'message1' : "Access denied.",
+                'message2' : "You do not have permission to create new objects."        
+            })
+
+        return self.__render( 'system_edit.tmpl', {
+            'user' : self.username,
+            'editmode' : 'new',
+            'editable' : True,
+            'system': None,
+            'profiles': self.remote.get_profiles()
+        } )
+
+
+    def system_edit_copy(self, name=None,**spam):
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+
+        if name is None:
+            return self.error_page("Name parameter is REQUIRED")
+            
+        can_edit = self.remote.check_access_no_fail(self.token,"new_system",None)
+        if not can_edit:
+            return self.__render('message.tmpl', {
+                'message1' : "Access denied.",
+                'message2' : "You do not have permission to create new objects."        
+            })
+            
+        input_system = self.remote.get_system(name,True)
+
+        return self.__render( 'system_edit.tmpl', {
+            'user' : self.username,
+            'editmode' : 'copy',
+            'editable' : True,
+            'system': input_system,
+            'profiles': self.remote.get_profiles()
+        } )
+
+
+    def system_save(self,name=None,comment=None,editmode="edit",profile=None,
                     kopts=None, koptspost=None, ksmeta=None, owners=None, server_override=None, netboot='n', 
                     virtpath=None,virtram=None,virttype=None,virtcpus=None,virtfilesize=None,
                     name_servers=None,
@@ -336,37 +521,27 @@ class CobblerWeb(object):
             return self.xmlrpc_auth_failure()
 
         # parameter checking
-        if name is None and oldname is not None:
-            name = oldname
         if name is None:
             return self.error_page("System name parameter is REQUIRED.")
-        if (editmode == 'rename' or editmode == 'copy') and name == oldname:
-            return self.error_page("The name has not been changed.")
-
-        # handle deletes as a special case
-        if new_or_edit == 'edit' and delete1 and delete2:
-            try:
-                self.remote.remove_system(name,self.token)
-            except Exception, e:
-                return self.error_page("could not delete %s, %s" % (name,str(e)))
-            return self.system_list()
 
         # grab a reference to the object
-        if new_or_edit == "edit" and editmode in [ "edit", "rename" ] :
+        if editmode == "edit":
             try:
-                if editmode == "edit":
-                    system = self.remote.get_system_handle( name, self.token )
-                else:
-                    system = self.remote.get_system_handle( oldname, self.token )
-                   
+                system = self.remote.get_system_handle( name, self.token )
             except:
                 return self.error_page("Failed to lookup system: %s" % name)
         else:
+            try:
+                system = self.remote.get_system_handle( name, self.token )
+            except:
+                system = None
+            if system is not None:
+                return self.error_page("Failed to create new system: %s already exists." % name)
             system = self.remote.new_system( self.token )
 
         # go!
         try:
-            if editmode != "rename" and name:
+            if editmode != "edit":
                 self.remote.modify_system(system, 'name', name, self.token )
             self.remote.modify_system(system, 'profile', profile, self.token)
             self.remote.modify_system(system, 'kopts', kopts, self.token)
@@ -439,42 +614,8 @@ class CobblerWeb(object):
             log_exc(self.apache)
             return self.error_page("Error while saving system: %s" % str(e))
 
-       
-
-        if editmode == "rename" and name != oldname:
-            try:
-                self.remote.rename_system(system, name, self.token)
-            except Exception, e:
-                return self.error_page("Rename unsuccessful")
-        
         return self.system_list()
 
-
-    def system_edit(self, name=None,**spam):
-
-        if not self.__xmlrpc_setup():
-            return self.xmlrpc_auth_failure()
-
-        input_system = None
-        if name is not None:
-            input_system = self.remote.get_system(name,True)
-            can_edit = self.remote.check_access_no_fail(self.token,"modify_system",name)
-        else:
-            can_edit = self.remote.check_access_no_fail(self.token,"new_system",None)
-            if not can_edit:
-                return self.__render('message.tmpl', {
-                    'message1' : "Access denied.",
-                    'message2' : "You do not have permission to create new objects."        
-                })
-
-
-        return self.__render( 'system_edit.tmpl', {
-            'user' : self.username,
-            'edit' : True,
-            'editable' : can_edit,
-            'system': input_system,
-            'profiles': self.remote.get_profiles()
-        } )
 
     # ------------------------------------------------------------------------ #
     # Profiles
@@ -992,7 +1133,15 @@ class CobblerWeb(object):
     profile_save.exposed = True
 
     system_edit.exposed = True
+    system_edit_new.exposed = True
+    system_edit_copy.exposed = True
     system_list.exposed = True
+    system_list_action.exposed = True
+    system_netboot.exposed = True
+    system_profile.exposed = True
+    system_power.exposed = True
+    system_rename.exposed = True
+    system_delete.exposed = True
     system_save.exposed = True
 
     repo_edit.exposed = True
