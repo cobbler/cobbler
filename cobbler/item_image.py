@@ -113,11 +113,32 @@ class Image(item.Item):
     def set_file(self,filename):
         """
         Stores the image location.  This should be accessible on all nodes
-        that need to access it.  Format: either /mnt/commonpath/foo.iso or 
-        nfs://host/path/foo.iso
+        that need to access it.  Format: can be one of the following:
+        * username:password@hostname:/path/to/the/filename.ext
+        * username@hostname:/path/to/the/filename.ext
+        * hostname:/path/to/the/filename.ext
+        * /path/to/the/filename.ext
         """
-        # FIXME: this should accept NFS paths or filesystem paths
-        self.file = filename
+        uri = ""
+        auth = hostname = path = ""
+        # we'll discard the protocol if it's supplied, for legacy support
+        if filename.find("://") != -1:
+            ignored, uri = filename.split("://")
+            filename = uri
+        else:
+            uri = filename
+
+        if filename.find("@") != -1: auth, filename = filename.split("@")
+        if filename.find(":") != -1: hostname, filename = filename.split(":")
+        # raise an exception if we don't have a valid path
+        if filename[0] != '/': raise CX(_("file contains an invalid path"))
+        if filename.find("/") != -1: path, filename = filename.rsplit("/", 1)
+
+        if len(filename) == 0:  raise CX(_("missing filename"))
+        if len(auth) > 0 and len(hostname) == 0:
+            raise CX(_("a hostname must be specified with authentication details"))
+
+        self.file = uri
         return True
 
     def set_os_version(self,os_version):
