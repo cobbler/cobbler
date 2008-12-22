@@ -5,6 +5,7 @@ Cobbler CHANGELOG
 
 - Fri Dec 19 2008 - 1.4
 - (----) Stable release of 1.3 development branch
+- (BUGF) Cobbler check looks for right httpd on SUSE
 
 - Fri Dec 19 2008 - 1.3
 - (FEAT) ACLs to extend authz (see Wiki)

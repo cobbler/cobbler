@@ -44,6 +44,7 @@ class BootCheck:
        (The CLI usage is "cobbler check" before "cobbler sync")
        """
        status = []
+       self.checked_dist = utils.check_dist()
        self.check_name(status)
        self.check_selinux(status)
        if self.settings.manage_dhcp:
@@ -95,13 +96,13 @@ class BootCheck:
        if notes != "":
            notes = " (NOTE: %s)" % notes
        rc = 0
-       if utils.check_dist() == "redhat":
+       if self.checked_dist == "redhat":
            if os.path.exists("/etc/rc.d/init.d/%s" % which):
-               rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True, close_fds=True)
+               rc = sub_process.call("/sbin/service %s status > /dev/null 2>/dev/null" % which, shell=True, close_fds=True)
            if rc != 0:
                status.append(_("service %s is not running%s") % (which,notes))
                return False
-       elif utils.check_dist() == "debian":
+       elif self.checked_dist == "debian":
            if os.path.exists("/etc/init.d/%s" % which):
 	       rc = sub_process.call("/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True, close_fds=True)
 	   if rc != 0:
@@ -185,8 +186,10 @@ class BootCheck:
        """
        Check if Apache is installed.
        """
-       self.check_service(status,"httpd")
-
+       if self.checked_dist == "suse":
+           self.check_service(status,"apache2")
+       else:
+           self.check_service(status,"httpd")
 
    def check_dhcpd_bin(self,status):
        """
