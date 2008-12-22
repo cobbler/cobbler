@@ -288,6 +288,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 * Mon Dec 22 2008 Michael DeHaan <mdehaan@redhat.com> - 1.5.0-1
 - Development release start.
 
+* Mon Dec 22 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.1-1
+- Upstream changes (see CHANGELOG)
+
 * Fri Dec 19 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.0-4
 - Fix for rawhide python requirement.
 
