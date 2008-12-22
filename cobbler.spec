@@ -2,8 +2,8 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 1.4.0
-Release: 4%{?dist}
+Version: 1.5.0
+Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -284,6 +284,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+
+* Mon Dec 22 2008 Michael DeHaan <mdehaan@redhat.com> - 1.5.0-1
+- Development release start.
 
 * Fri Dec 19 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.0-4
 - Fix for rawhide python requirement.
