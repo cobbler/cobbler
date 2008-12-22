@@ -31,5 +31,6 @@ include snippets/*
 recursive-include po *.pot
 recursive-include po *.po
 recursive-include webui_content *
+recursive-include aux *
 recursive-include webui_templates *
 recursive-include triggers *
