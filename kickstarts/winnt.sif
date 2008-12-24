@@ -1,0 +1,55 @@
+[data]
+floppyless = "1"
+msdosinitiated = "1"
+; Needed for second stage
+OriSrc = "\\192.168.1.109\REMINST\winxp-i386\i386"
+OriTyp = "4"
+LocalSourceOnCD = 1
+;DisableAdminAccountOnDomainJoin = 1
+;AutoPartition = 1
+UnattendedInstall="Yes"
+
+[SetupData]
+OsLoadOptions = "/noguiboot /fastdetect"
+; Needed for first stage
+SetupSourceDevice = "\Device\LanmanRedirector\192.168.1.109\REMINST\winxp-i386"
+
+[Unattended]
+OemPreinstall = yes
+OemPnPDriversPath = Drivers\NIC;
+TargetPath = \WINDOWS
+UnattendMode=FullUnattended
+UnattendSwitch = yes
+OemSkipEula = yes
+InstallFilesPath = "\\%SERVERNAME%\RemInst\%INSTALLPATH%\%MACHINETYPE%"
+LegacyNIC = 1
+;new
+OverwriteOemFilesOnupgrade=No
+DriverSigningPolicy=Ignore
+ConfirmHardware=No
+
+[UserData]
+ComputerName = winxp-i386
+; if needed
+;ProductID=
+
+[RemoteInstall]
+Repartition = Yes
+UseWholeDisk = Yes
+
+[GuiUnattended]
+OemSkipWelcome = 1
+OemSkipRegional = 1
+TimeZone = 110
+AdminPassword = "password"
+EncryptedAdminPassword=NO
+AutoLogon=Yes
+AutoLogonCount=1
+
+[Display]
+ConfigureAtLogon = 0
+BitsPerPel = 16
+XResolution = 1024
+YResolution = 768
+VRefresh = 72
+AutoConfirm = 1
