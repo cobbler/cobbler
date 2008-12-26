@@ -44,6 +44,7 @@ class Profile(item.Item):
         """
         self.name                   = None
         self.uid                    = ""
+        self.random_id              = ""
         self.owners                 = self.settings.default_ownership
         self.distro                 = (None,                                    '<<inherit>>')[is_subobject]
         self.enable_menu            = (self.settings.enable_menu,               '<<inherit>>')[is_subobject]
@@ -131,6 +132,10 @@ class Profile(item.Item):
         self.uid         = self.load_item(seed_data,'uid','')
         if self.uid == '':
            self.uid = self.config.generate_uid()
+
+        self.random_id   = self.load_item(seed_data,'random_id','')
+        if self.random_id == '' or len(self.random_id) != 4:
+           self.random_id = self.config.generate_random_id(4)
 
         return self
 
@@ -300,6 +305,7 @@ class Profile(item.Item):
             'mtime'                 : self.mtime,
             'name_servers'          : self.name_servers,
             'uid'                   : self.uid,
+            'random_id'             : self.random_id,
             'redhat_management_key' : self.redhat_management_key
          }
 

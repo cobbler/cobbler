@@ -1,3 +1,6 @@
+; More options can be found here
+; http://unattended.msfn.org/unattended.xp/view/web/19/
+
 [data]
 floppyless = "1"
 msdosinitiated = "1"
@@ -20,6 +23,7 @@ OemPnPDriversPath = Drivers\NIC;
 TargetPath = \WINDOWS
 UnattendMode=FullUnattended
 UnattendSwitch = yes
+WaitForReboot = no
 OemSkipEula = yes
 InstallFilesPath = "\\%SERVERNAME%\RemInst\%INSTALLPATH%\%MACHINETYPE%"
 LegacyNIC = 1
@@ -31,7 +35,9 @@ ConfirmHardware=No
 [UserData]
 ComputerName = winxp-i386
 ; if needed
-;ProductID=
+ProductID = $product_key
+FullName = "Your Name"
+OrgName = "Your Organization"
 
 [RemoteInstall]
 Repartition = Yes
@@ -53,3 +59,15 @@ XResolution = 1024
 YResolution = 768
 VRefresh = 72
 AutoConfirm = 1
+
+[Identification]
+JoinWorkgroup=WORKGROUP
+
+[Networking]
+InstallDefaultComponents=Yes
+
+[Components]
+msmsgs=off
+
+[Shell]
+DefaultStartPanelOff = No

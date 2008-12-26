@@ -95,6 +95,7 @@ class BootSync:
         self.pxegen.copy_bootloaders()
         self.pxegen.copy_distros()
         self.pxegen.copy_images()
+        self.pxegen.generate_windows_files()
         for x in self.systems:
             self.pxegen.write_all_system_files(x)
         if self.settings.manage_dhcp:
@@ -104,6 +105,7 @@ class BootSync:
            self.dns.regen_hosts()
            self.dns.write_dns_files()
         self.pxegen.make_pxe_menu()
+        self.pxegen.write_tftpd_rules(True)
 
         # run post-triggers
         utils.run_triggers(None, "/var/lib/cobbler/triggers/sync/post/*")

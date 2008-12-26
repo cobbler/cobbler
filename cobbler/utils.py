@@ -893,6 +893,29 @@ def copyfile(src,dst,api=None):
             # traceback.print_exc()
             # raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
+def cabextract(src,dst,api=None):
+    """
+    Extract a cab file, used for importing off of Windows based cds
+    """
+    ###try:
+    if 1:
+        if not os.path.isdir(dst):
+            raise CX(_("Error in cabextract: the destination (%s) must be a directory") % dst)
+        cmd = [ "/usr/bin/cabextract", "-d", dst, src ]
+        rc = sub_process.call(cmd, shell=False, close_fds=True)
+        return rc
+    """
+    except:
+        if not os.access(src,os.R_OK):
+            raise CX(_("Cannot read: %s") % src)
+        if not os.path.samefile(src,dst):
+            # accomodate for the possibility that we already copied
+            # the file as a symlink/hardlink
+            raise
+            # traceback.print_exc()
+            # raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+    """
+
 def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None):
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:

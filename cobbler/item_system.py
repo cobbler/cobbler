@@ -65,6 +65,7 @@ class System(item.Item):
         self.ctime                = 0
         self.mtime                = 0
         self.uid                  = ""
+        self.random_id            = ""
         self.power_type           = self.settings.power_management_default_type
         self.power_address        = ""
         self.power_user           = ""
@@ -197,6 +198,10 @@ interface.
         self.uid         = self.load_item(seed_data,'uid','')
         if self.uid == '':
            self.uid = self.config.generate_uid()
+        
+        self.random_id   = self.load_item(seed_data,'random_id','')
+        if self.random_id == '' or len(self.random_id) != 4:
+           self.random_id = self.config.generate_random_id(4)
 
         # power management integration features
 
@@ -626,6 +631,7 @@ interface.
         return {
            'name'                  : self.name,
            'uid'                   : self.uid,
+           'random_id'             : self.random_id,
            'kernel_options'        : self.kernel_options,
            'kernel_options_post'   : self.kernel_options_post,
            'depth'                 : self.depth,
