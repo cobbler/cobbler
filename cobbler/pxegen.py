@@ -225,8 +225,13 @@ class PXEGen:
         template_data = fd.read()
         fd.close()
 
-        blended = utils.blender(self.api, True, profile)
+        blended = utils.blender(self.api, False, profile)
         blended['next_server'] = self.settings.next_server
+
+        ksmeta = blended.get("ks_meta",{})
+        del blended["ks_meta"]
+        blended.update(ksmeta) # make available at top level
+
         # this is a workaround for a dumb bug in cheetah...
         # a backslash before a variable is always treated as 
         # escaping the $, so things are not rendered correctly.
@@ -286,8 +291,13 @@ class PXEGen:
         template_data = fd.read()
         fd.close()
 
-        blended = utils.blender(self.api, True, system)
+        blended = utils.blender(self.api, False, system)
         blended['next_server'] = self.settings.next_server
+
+        ksmeta = blended.get("ks_meta",{})
+        del blended["ks_meta"]
+        blended.update(ksmeta) # make available at top level
+
         # this is a workaround for a dumb bug in cheetah...
         # a backslash before a variable is always treated as
         # escaping the $, so things are not rendered correctly.

@@ -1,3 +1,5 @@
+#set $product_key = $getVar('product_key','')
+
 ; More options can be found here
 ; http://unattended.msfn.org/unattended.xp/view/web/19/
 
@@ -5,7 +7,7 @@
 floppyless = "1"
 msdosinitiated = "1"
 ; Needed for second stage
-OriSrc = "\\192.168.1.109\REMINST\winxp-i386\i386"
+OriSrc = "${bsp}${bsp}$next_server\REMINST${bsp}$name\i386"
 OriTyp = "4"
 LocalSourceOnCD = 1
 ;DisableAdminAccountOnDomainJoin = 1
@@ -15,7 +17,7 @@ UnattendedInstall="Yes"
 [SetupData]
 OsLoadOptions = "/noguiboot /fastdetect"
 ; Needed for first stage
-SetupSourceDevice = "\Device\LanmanRedirector\192.168.1.109\REMINST\winxp-i386"
+SetupSourceDevice = "\Device\LanmanRedirector${bsp}$next_server\REMINST${bsp}$name"
 
 [Unattended]
 OemPreinstall = yes
@@ -25,7 +27,7 @@ UnattendMode=FullUnattended
 UnattendSwitch = yes
 WaitForReboot = no
 OemSkipEula = yes
-InstallFilesPath = "\\%SERVERNAME%\RemInst\%INSTALLPATH%\%MACHINETYPE%"
+InstallFilesPath = "\\%SERVERNAME%\REMINST\%INSTALLPATH%\%MACHINETYPE%"
 LegacyNIC = 1
 ;new
 OverwriteOemFilesOnupgrade=No
@@ -33,9 +35,13 @@ DriverSigningPolicy=Ignore
 ConfirmHardware=No
 
 [UserData]
-ComputerName = winxp-i386
+ComputerName = $name
 ; if needed
+#if $product_key
 ProductID = $product_key
+#else
+# ProductID =
+#end if
 FullName = "Your Name"
 OrgName = "Your Organization"
 
@@ -48,7 +54,7 @@ OemSkipWelcome = 1
 OemSkipRegional = 1
 TimeZone = 110
 AdminPassword = "password"
-EncryptedAdminPassword=NO
+EncryptedAdminPassword=no
 AutoLogon=Yes
 AutoLogonCount=1
 
