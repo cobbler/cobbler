@@ -897,14 +897,12 @@ def cabextract(src,dst,api=None):
     """
     Extract a cab file, used for importing off of Windows based cds
     """
-    ###try:
-    if 1:
+    try:
         if not os.path.isdir(dst):
             raise CX(_("Error in cabextract: the destination (%s) must be a directory") % dst)
         cmd = [ "/usr/bin/cabextract", "-d", dst, src ]
         rc = sub_process.call(cmd, shell=False, close_fds=True)
         return rc
-    """
     except:
         if not os.access(src,os.R_OK):
             raise CX(_("Cannot read: %s") % src)
@@ -914,7 +912,30 @@ def cabextract(src,dst,api=None):
             raise
             # traceback.print_exc()
             # raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+
+def bindmount(src,dst):
     """
+    Use mount --bind as an alternative to linking.  This is required
+    for things in the tftp root since in.tftpd will not follow symlinks
+    and you cannot hard link directories (or across partitions).
+    """
+    try:
+        if not os.path.isdir(src):
+            raise CX(_("Error in bindmount: the source (%s) must be a directory") % src)
+        if not os.path.isdir(dst):
+            raise CX(_("Error in bindmount: the destination (%s) must be a directory") % dst)
+        cmd = [ "/bin/mount", "--bind", dst, src ]
+        rc = sub_process.call(cmd, shell=False, close_fds=True)
+        return rc
+    except:
+        if not os.access(src,os.R_OK):
+            raise CX(_("Cannot read: %s") % src)
+        if not os.path.samefile(src,dst):
+            # accomodate for the possibility that we already copied
+            # the file as a symlink/hardlink
+            raise
+            # traceback.print_exc()
+            # raise CX(_("Error bind-mounting %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
 def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None):
     files = glob.glob(pattern)
