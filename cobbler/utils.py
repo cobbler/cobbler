@@ -634,7 +634,7 @@ def hash_removals(results,subkey):
         return
     scan = results[subkey].keys()
     for k in scan:
-        if k.startswith("!") and k != "!":
+        if str(k).startswith("!") and k != "!":
            remove_me = k[1:]
            if results[subkey].has_key(remove_me):
                del results[subkey][remove_me]
