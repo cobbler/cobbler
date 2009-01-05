@@ -822,7 +822,7 @@ def is_safe_to_hardlink(src,dst,api):
     # we're dealing with SELinux and files that are not safe to chcon
     return False
 
-def linkfile(src, dst, symlink_ok=False, api=None):
+def linkfile(src, dst, symlink_ok=False, api=None, verbose=False):
     """
     Attempt to create a link dst that points to src.  Because file
     systems suck we attempt several different methods or bail to
@@ -843,25 +843,30 @@ def linkfile(src, dst, symlink_ok=False, api=None):
             if not is_safe_to_hardlink(src,dst,api):
                 # may have to remove old hardlinks for SELinux reasons
                 # as previous implementations were not complete
-                os.remove(dst)
+                if verbose:
+                   print "- removing: %s" % dst
+                   os.remove(dst)
             else:
-                restorecon(dst,api=api)
+                # restorecon(dst,api=api,verbose=verbose)
                 return True
         elif os.path.islink(dst):
             # existing path exists and is a symlink, update the symlink
+            if verbose:
+               print "- removing: %s" % dst
             os.remove(dst)
 
     if is_safe_to_hardlink(src,dst,api):
         # we can try a hardlink if the destination isn't to NFS or Samba
         # this will help save space and sync time.
         try:
+            if verbose:
+                print "- trying hardlink %s -> %s" % (src,dst)
             rc = os.link(src, dst)
-            restorecon(dst,api=api)
+            # restorecon(dst,api=api,verbose=verbose)
             return rc
         except (IOError, OSError):
             # hardlink across devices, or link already exists
-            # can result in extra call to restorecon but no
-            # major harm, we'll just symlink it if we can
+            # we'll just symlink it if we can
             # or otherwise copy it
             pass
 
@@ -869,20 +874,24 @@ def linkfile(src, dst, symlink_ok=False, api=None):
         # we can symlink anywhere except for /tftpboot because
         # that is run chroot, so if we can symlink now, try it.
         try:
+            if verbose:
+               print "- trying symlink %s -> %s" % (src,dst)
             rc = os.symlink(src, dst)
-            restorecon(dst,api=api)
+            # restorecon(dst,api=api,verbose=verbose)
             return rc
         except (IOError, OSError):
             pass
 
     # we couldn't hardlink and we couldn't symlink so we must copy
 
-    return copyfile(src, dst, api=api)
+    return copyfile(src, dst, api=api, verbose=verbose)
 
-def copyfile(src,dst,api=None):
+def copyfile(src,dst,api=None,verbose=False):
     try:
+        if verbose:
+           print "- copying: %s -> %s" % (src,dst)
         rc = shutil.copyfile(src,dst)
-        restorecon(dst,api)
+        # restorecon(dst,api,verbose=verbose)
         return rc
     except:
         if not os.access(src,os.R_OK):
@@ -894,40 +903,44 @@ def copyfile(src,dst,api=None):
             # traceback.print_exc()
             # raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
-def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None):
+def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None, verbose=False):
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
         raise CX(_("Could not find files matching %s") % pattern)
     for file in files:
         base = os.path.basename(file)
         dst1 = os.path.join(dst,os.path.basename(file))
-        linkfile(file,dst1,symlink_ok=symlink_ok,api=api)
-        restorecon(dst1,api=api)
+        linkfile(file,dst1,symlink_ok=symlink_ok,api=api,verbose=verbose)
+        # restorecon(dst1,api=api,verbose=verbose)
 
-def restorecon(dest, api):
+#def restorecon(dest, api, verbose=False):
+#
+#    """
+#    Wrapper around functions to manage SELinux contexts.
+#    Use chcon public_content_t where we can to allow
+#    hardlinking between /var/www and tftpboot but use
+#    restorecon everywhere else.
+#    """
+# 
+#    if not api.is_selinux_enabled():
+#        return True
+#
+#    tdest = os.path.realpath(dest)
+#    # remoted = is_remote_file(tdest)
+#
+#    cmd = [ "/sbin/restorecon",dest ]
+#    if verbose:
+#        print "- %s" % " ".join(cmd)
+#    rc = sub_process.call(cmd,shell=False,close_fds=True)
+#    if rc != 0:
+#        raise CX("restorecon operation failed: %s" % cmd)
+#
+#    return 0
 
-    """
-    Wrapper around functions to manage SELinux contexts.
-    Use chcon public_content_t where we can to allow
-    hardlinking between /var/www and tftpboot but use
-    restorecon everywhere else.
-    """
- 
-    if not api.is_selinux_enabled():
-        return True
-
-    tdest = os.path.realpath(dest)
-    # remoted = is_remote_file(tdest)
-
-    cmd = [ "/sbin/restorecon",dest ]
-    rc = sub_process.call(cmd,shell=False,close_fds=True)
-    if rc != 0:
-        raise CX("restorecon operation failed: %s" % cmd)
-
-    return 0
-
-def rmfile(path):
+def rmfile(path,verbose=False):
     try:
+        if verbose:
+           print "- removing: %s" % path
         os.unlink(path)
         return True
     except OSError, ioe:
@@ -936,16 +949,18 @@ def rmfile(path):
             raise CX(_("Error deleting %s") % path)
         return True
 
-def rmtree_contents(path):
+def rmtree_contents(path,verbose=False):
    what_to_delete = glob.glob("%s/*" % path)
    for x in what_to_delete:
-       rmtree(x)
+       rmtree(x,verbose=verbose)
 
-def rmtree(path):
+def rmtree(path,verbose=False):
    try:
        if os.path.isfile(path):
-           return rmfile(path)
+           return rmfile(path,verbose=verbose)
        else:
+           if verbose:
+               print "- removing: %s" % path
            return shutil.rmtree(path,ignore_errors=True)
    except OSError, ioe:
        traceback.print_exc()
@@ -953,8 +968,10 @@ def rmtree(path):
            raise CX(_("Error deleting %s") % path)
        return True
 
-def mkdir(path,mode=0777):
+def mkdir(path,mode=0777,verbose=False):
    try:
+       if verbose:
+          "- mkdir: %s" % path
        return os.makedirs(path,mode)
    except OSError, oe:
        if not oe.errno == 17: # already exists (no constant for 17?)

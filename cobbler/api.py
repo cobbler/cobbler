@@ -511,7 +511,7 @@ class BootAPI:
         validator = action_validate.Validate(self._config)
         return validator.run()
 
-    def sync(self):
+    def sync(self,verbose=False):
         """
         Take the values currently written to the configuration files in
         /etc, and /var, and build out the information tree found in
@@ -519,10 +519,10 @@ class BootAPI:
         saved with serialize() will NOT be synchronized with this command.
         """
         self.log("sync")
-        sync = self.get_sync()
+        sync = self.get_sync(verbose=verbose)
         return sync.run()
 
-    def get_sync(self):
+    def get_sync(self,verbose=False):
         self.dhcp = self.get_module_from_file(
            "dhcp",
            "module",
@@ -533,7 +533,7 @@ class BootAPI:
            "module",
            "manage_bind"
         ).get_manager(self._config)
-        return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns)
+        return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns,verbose=verbose)
 
     def reposync(self, name=None, tries=1, nofail=False):
         """
