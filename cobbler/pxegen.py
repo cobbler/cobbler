@@ -404,7 +404,11 @@ class PXEGen:
             initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
         
             # Find the kickstart if we inherit from another profile
-            kickstart_path = utils.blender(self.api, True, profile)["kickstart"]
+            if system:
+	        kickstart_path = utils.blender(self.api, True, system)["kickstart"]
+            else:
+                kickstart_path = utils.blender(self.api, True, profile)["kickstart"]
+            
         else:
             if image.image_type == "direct":
                 kernel_path = os.path.join("/images2",image.name)
@@ -478,7 +482,7 @@ class PXEGen:
 
             if system is not None and kickstart_path.startswith("/"):
                 kickstart_path = "http://%s/cblr/svc/op/ks/system/%s" % (blended["http_server"], system.name)
-            elif kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
+            elif kickstart_path.startswith("/"):
                 kickstart_path = "http://%s/cblr/svc/op/ks/profile/%s" % (blended["http_server"], profile.name)
 
             if distro.breed is None or distro.breed == "redhat":
