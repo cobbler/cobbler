@@ -62,6 +62,7 @@ class PXEGen:
         self.images      = config.images()
         self.templar     = templar.Templar(config)
         self.bootloc     = utils.tftpboot_location()
+        self.verbose     = False
 
     def copy_bootloaders(self):
         """
@@ -73,27 +74,27 @@ class PXEGen:
 
         # copy syslinux from one of two locations
         try:
-            utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',   dst, api=self.api)
+            utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',   dst, api=self.api, verbose=self.verbose)
         except:
-            utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0', dst, api=self.api)
+            utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0', dst, api=self.api, verbose=self.verbose)
  
         # copy memtest only if we find it
-        utils.copyfile_pattern('/boot/memtest*', dst, require_match=False, api=self.api)
+        utils.copyfile_pattern('/boot/memtest*', dst, require_match=False, api=self.api, verbose=self.verbose)
   
         # copy elilo which we include for IA64 targets
-        utils.copyfile_pattern('/var/lib/cobbler/elilo-3.8-ia64.efi', dst, api=self.api)
+        utils.copyfile_pattern('/var/lib/cobbler/elilo-3.8-ia64.efi', dst, api=self.api, verbose=self.verbose)
  
         # copy menu.c32 as the older one has some bugs on certain RHEL
-        utils.copyfile_pattern('/var/lib/cobbler/menu.c32', dst, api=self.api)
+        utils.copyfile_pattern('/var/lib/cobbler/menu.c32', dst, api=self.api, verbose=self.verbose)
 
         # copy yaboot which we include for PowerPC targets
-        utils.copyfile_pattern('/var/lib/cobbler/yaboot-1.3.14', dst, api=self.api)
+        utils.copyfile_pattern('/var/lib/cobbler/yaboot-1.3.14', dst, api=self.api, verbose=self.verbose)
 
         # copy memdisk as we need it to boot ISOs
         try:
-            utils.copyfile_pattern('/usr/lib/syslinux/memdisk',   dst, api=self.api)
+            utils.copyfile_pattern('/usr/lib/syslinux/memdisk',   dst, api=self.api, verbose=self.verbose)
         except:
-            utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst, api=self.api)
+            utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst, api=self.api, verbose=self.verbose)
 
 
     def copy_distros(self):
@@ -109,6 +110,8 @@ class PXEGen:
         errors = list()
         for d in self.distros:
             try:
+                if self.verbose:
+                   print "- copying files for distro: %s" % d.name
                 self.copy_single_distro_files(d)
             except CX, e:
                 errors.append(e)
@@ -125,6 +128,8 @@ class PXEGen:
         errors = list()
         for i in self.images:
             try:
+                if self.verbose:
+                   print "- copying files for image: %s" % i.name
                 self.copy_single_image_files(i)
             except CX, e:
                 errors.append(e)
@@ -152,9 +157,9 @@ class PXEGen:
                 allow_symlink=True
             dst1 = os.path.join(distro_dir, b_kernel)
             dst2 = os.path.join(distro_dir, b_initrd)
-            utils.linkfile(kernel, dst1, symlink_ok=allow_symlink, api=self.api)
+            utils.linkfile(kernel, dst1, symlink_ok=allow_symlink, api=self.api, verbose=self.verbose)
 
-            utils.linkfile(initrd, dst2, symlink_ok=allow_symlink, api=self.api)
+            utils.linkfile(initrd, dst2, symlink_ok=allow_symlink, api=self.api, verbose=self.verbose)
 
     def copy_single_image_files(self, img):
         images_dir = os.path.join(self.bootloc, "images2")
@@ -166,7 +171,7 @@ class PXEGen:
             os.makedirs(images_dir)
         basename = os.path.basename(img.file)
         newfile = os.path.join(images_dir, img.name)
-        utils.linkfile(filename, newfile, api=self.api)
+        utils.linkfile(filename, newfile, api=self.api, verbose=self.verbose)
         return True
 
     def write_all_system_files(self,system):
@@ -240,7 +245,8 @@ class PXEGen:
                 utils.rmfile(f2)
 
     def make_pxe_menu(self):
-        self.make_s390_pseudo_pxe_menu()
+        # FIXME: not used for now, future feature?
+        # self.make_s390_pseudo_pxe_menu()
         self.make_actual_pxe_menu() 
 
     def make_s390_pseudo_pxe_menu(self):
