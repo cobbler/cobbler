@@ -167,7 +167,7 @@ class CobblerXMLRPCInterface:
         total_items = len(data)
 
         if collection_name == "settings":
-            return self._fix_none(data)
+            return self.xmlrpc_hacks(data)
 
         data.sort(self.__sorter)
 
@@ -184,9 +184,9 @@ class CobblerXMLRPCInterface:
                 start_point = total_items - 1 # correct ???
             if end_point > total_items:
                 end_point = total_items
-            data = self._fix_none(data[start_point:end_point])
+            data = self.xmlrpc_hacks(data[start_point:end_point])
 
-        return self._fix_none(data)
+        return self.xmlrpc_hacks(data)
 
     def get_kickstart_templates(self,token=None,**rest):
         """
@@ -372,35 +372,35 @@ class CobblerXMLRPCInterface:
         after mtime.
         """
         data = self.api.get_distros_since(mtime, collapse=True)
-        return self._fix_none(data)
+        return self.xmlrpc_hacks(data)
 
     def get_profiles_since(self,mtime):
         """
         See documentation for get_distros_since
         """
         data = self.api.get_profiles_since(mtime, collapse=True)
-        return self._fix_none(data)
+        return self.xmlrpc_hacks(data)
 
     def get_systems_since(self,mtime):
         """
         See documentation for get_distros_since
         """
         data = self.api.get_systems_since(mtime, collapse=True)
-        return self._fix_none(data)
+        return self.xmlrpc_hacks(data)
 
     def get_repos_since(self,mtime):
         """
         See documentation for get_distros_since
         """
         data = self.api.get_repos_since(mtime, collapse=True)
-        return self._fix_none(data)
+        return self.xmlrpc_hacks(data)
 
     def get_images_since(self,mtime):
         """
         See documentation for get_distros_since
         """
         data = self.api.get_images_since(mtime, collapse=True)
-        return self._fix_none(data)
+        return self.xmlrpc_hacks(data)
 
     def get_profiles(self,page=None,results_per_page=None,token=None,**rest):
         """
@@ -476,7 +476,7 @@ class CobblerXMLRPCInterface:
             return {}
         if flatten:
             result = utils.flatten(result)
-        return self._fix_none(result)
+        return self.xmlrpc_hacks(result)
 
     def get_distro(self,name,flatten=False,token=None,**rest):
         """
@@ -541,8 +541,8 @@ class CobblerXMLRPCInterface:
         self._log("get_distro_as_rendered",name=name,token=token)
         obj = self.api.find_distro(name=name)
         if obj is not None:
-            return self._fix_none(utils.blender(self.api, True, obj))
-        return self._fix_none({})
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+        return self.xmlrpc_hacks({})
 
     def get_profile_as_rendered(self,name,token=None,**rest):
         """
@@ -559,8 +559,8 @@ class CobblerXMLRPCInterface:
         self._log("get_profile_as_rendered", name=name, token=token)
         obj = self.api.find_profile(name=name)
         if obj is not None:
-            return self._fix_none(utils.blender(self.api, True, obj))
-        return self._fix_none({})
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+        return self.xmlrpc_hacks({})
 
     def get_system_as_rendered(self,name,token=None,**rest):
         """
@@ -577,8 +577,8 @@ class CobblerXMLRPCInterface:
         self._log("get_system_as_rendered",name=name,token=token)
         obj = self.api.find_system(name=name)
         if obj is not None:
-           return self._fix_none(utils.blender(self.api, True, obj))
-        return self._fix_none({})
+           return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+        return self.xmlrpc_hacks({})
 
     def get_repo_as_rendered(self,name,token=None,**rest):
         """
@@ -595,8 +595,8 @@ class CobblerXMLRPCInterface:
         self._log("get_repo_as_rendered",name=name,token=token)
         obj = self.api.find_repo(name=name)
         if obj is not None:
-            return self._fix_none(utils.blender(self.api, True, obj))
-        return self._fix_none({})
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+        return self.xmlrpc_hacks({})
     
     def get_image_as_rendered(self,name,token=None,**rest):
         """
@@ -613,8 +613,8 @@ class CobblerXMLRPCInterface:
         self._log("get_image_as_rendered",name=name,token=token)
         obj = self.api.find_image(name=name)
         if obj is not None:
-            return self._fix_none(utils.blender(self.api, True, obj))
-        return self._fix_none({})
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+        return self.xmlrpc_hacks({})
 
     def get_random_mac(self,token=None,**rest):
         """
@@ -625,21 +625,25 @@ class CobblerXMLRPCInterface:
         self._log("get_random_mac",token=None)
         return utils.get_random_mac(self.api)
 
-    def _fix_none(self,data):
+    def xmlrpc_hacks(self,data):
         """
-        Convert None in XMLRPC to just '~'.  The above
-        XMLRPC module hack should do this, but let's make extra sure.
+        Convert None in XMLRPC to just '~' to make extra sure a client
+        that can't allow_none can deal with this.  ALSO: a weird hack ensuring
+        that when dicts with integer keys (or other types) are transmitted
+        with string keys.
         """
 
         if data is None:
             data = '~'
 
         elif type(data) == list:
-            data = [ self._fix_none(x) for x in data ]
+            data = [ self.xmlrpc_hacks(x) for x in data ]
 
         elif type(data) == dict:
+            data2 = {}
             for key in data.keys():
-               data[key] = self._fix_none(data[key])
+               data2[str(key)] = self.xmlrpc_hacks(data[key])
+            return data2
 
         return data
 
