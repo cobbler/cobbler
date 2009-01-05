@@ -130,7 +130,8 @@ class Templar:
         search_table["http_server"] = repstr
 
         for x in search_table.keys():
-           data_out = data_out.replace("@@%s@@" % str(x), str(search_table[str(x)]))
+           if type(x) == str:
+               data_out = data_out.replace("@@%s@@" % str(x), str(search_table[str(x)]))
  
         # remove leading newlines which apparently breaks AutoYAST ?
         if data_out.startswith("\n"):
