@@ -1,0 +1,6 @@
+*.pyc
+*.swp
+*.tmp
+dist
+rpm-build
+MANIFEST
