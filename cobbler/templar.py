@@ -134,7 +134,7 @@ class Templar:
  
         # remove leading newlines which apparently breaks AutoYAST ?
         if data_out.startswith("\n"):
-            data_out = data_out.strip() 
+            data_out = data_out.lstrip()
 
         if out_path is not None:
             utils.mkdir(os.path.dirname(out_path))
