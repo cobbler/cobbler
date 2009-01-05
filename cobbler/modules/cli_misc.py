@@ -172,7 +172,10 @@ class StatusFunction(commands.CobblerFunction):
 ########################################################
 
 class SyncFunction(commands.CobblerFunction):
-
+    
+    def add_options(self, p, args):
+        p.add_option("--verbose", dest="verbose", action="store_true", help="run sync with more output")
+     
     def help_me(self):
         return HELP_FORMAT % ("cobbler sync","")
 
@@ -180,7 +183,7 @@ class SyncFunction(commands.CobblerFunction):
         return "sync"
 
     def run(self):
-        return self.api.sync()
+        return self.api.sync(verbose=self.options.verbose)
 
 ########################################################
 

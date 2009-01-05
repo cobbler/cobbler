@@ -14,7 +14,7 @@ omapi_enabled = settings.omapi_enabled
 omapi_port = settings.omapi_port
 
 # load up our DHCP and DNS modules
-bootapi.get_sync()
+bootapi.get_sync(verbose=False)
 # bootapi.dhcp and bootapi.dns are now module references
 
 # special handling as we don't want to restart it twice

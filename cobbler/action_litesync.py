@@ -46,11 +46,11 @@ class BootLiteSync:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,config):
+    def __init__(self,config,verbose=True):
         """
         Constructor
         """
-        self.verbose     = True
+        self.verbose     = verbose
         self.config      = config
         self.distros     = config.distros()
         self.profiles    = config.profiles()
@@ -58,7 +58,7 @@ class BootLiteSync:
         self.images      = config.images()
         self.settings    = config.settings()
         self.repos       = config.repos()
-        self.sync        = config.api.get_sync()
+        self.sync        = config.api.get_sync(verbose)
 
     def add_single_distro(self, name):
         # get the distro record

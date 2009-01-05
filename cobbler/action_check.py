@@ -147,7 +147,31 @@ class BootCheck:
               if line.find("httpd_can_network_connect ") != -1:
                   if line.find("off") != -1:
                       status.append(_("Must enable selinux boolean to enable Apache and web services components, run: setsebool -P httpd_can_network_connect true"))
+           data3 = sub_process.Popen("/usr/sbin/semanage fcontext -l | grep public_content_t",shell=True,stdout=sub_process.PIPE).communicate()[0]
+           #print "DEBUG: data3=\n%s\n" % data3
 
+           rule1 = False
+           rule2 = False
+           rule3 = False
+           selinux_msg = "/usr/sbin/semanage fcontext -a -t public_content_t \"%s\""
+           for line in data3.split("\n"):
+               if line.startswith("/tftpboot/.*") and line.find("public_content_t") != -1:
+                   rule1 = True
+               if line.startswith("/var/lib/tftpboot/.*") and line.find("public_content_t") != -1:
+                   rule2 = True
+               if line.startswith("/var/www/cobbler/images/.*") and line.find("public_content_t") != -1:
+                   rule3 = True
+
+           rules = []
+           if not os.path.exists("/tftpboot") and not rule1:
+               rules.append(selinux_msg % "/tftpboot/.*")
+           else:
+               if not rule2:
+                   rules.append(selinux_msg % "/var/lib/tftpboot/.*")
+           if not rule3:
+               rules.append(selinux_msg % "/var/www/cobbler/images/.*")
+           if len(rules) > 0:
+               status.append("you need to set some SELinux content rules to ensure cobbler works correctly in your SELinux environment, run the following: %s" % " && ".join(rules))
 
    def check_for_default_password(self,status):
        default_pass = self.settings.default_password_crypted
