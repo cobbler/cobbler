@@ -736,6 +736,7 @@ def guess_breed(kerneldir,path):
        [ 'Packages'    , "redhat" ],
        [ 'Fedora'      , "redhat" ],
        [ 'Server'      , "redhat" ],
+       [ 'Client'      , "redhat" ],
     ]
     guess = None
 
