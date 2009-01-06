@@ -1,0 +1,17 @@
+*.pyc
+*.swp
+*.tmp
+dist
+rpm-build
+build
+MANIFEST
+
+# docs - ignore pod output
+docs/*.gz
+docs/*.html
+
+# Build output
+cobbler/webui/master.py
+config/modules.conf
+config/settings
+config/version

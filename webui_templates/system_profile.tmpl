@@ -1,0 +1,63 @@
+#extends cobbler.webui.master
+
+#block body
+
+<script language="Javascript">
+function submit_netboot(value)
+{
+    document.getElementById("netboot").value=value;
+    document.myform.submit();
+}
+</script>
+
+<form name="myform" method="post" action="$base_url?mode=system_profile">
+    <input type="hidden" name="targetlist" id="targetlist" value="$targetlist"/>
+
+    <table class="sortable">
+    <thead>
+        <caption>Change profile of the following systems</caption>
+        <tr>
+            <th class="text">Name</th>
+            <th class="text">Current Profile</th>
+        </tr>
+    </thead>
+    <tbody>
+        #set $evenodd = 1
+        #for $system in $systems
+        #if $evenodd % 2 == 0
+            #set $tr_class = "roweven"
+        #else
+            #set $tr_class = "rowodd"
+        #end if
+        #set $evenodd += 1
+
+        <tr class="$tr_class">
+            <td>
+                ${system.name}
+            </td>
+
+            <td>
+                ${system.profile}
+            </td>
+
+        </tr>
+        #end for
+    </tbody>
+    </table>
+
+    <p>
+    <select name="profile" id="profile">
+        #for $profile in $profiles:
+        <option name="$profile.name"
+            #if $systems[0].profile == $profile.name
+                selected="1"
+            #end if
+        >$profile.name</option>
+        #end for
+    </select>
+    </p>
+
+    <input type="submit" name="change" value="Change profile"/>
+    <input type="button" name="cancel" onclick="javascript:history.go(-1)" value="Cancel"/>
+</form>
+#end block body

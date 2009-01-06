@@ -343,16 +343,14 @@ function page_onload() {
 <fieldset id="cform">
 
     <input name="interface_list" type="hidden" value="" id="interface_list"/>
-   
-    #if $system
-        <input type="hidden" name="new_or_edit" value="edit"/>
-        <input type="hidden" name="oldname" value="$system.name"/>
+    <input type="hidden" name="editmode" value="$editmode"/>
+    
+    #if $editmode == "new"   
+        <legend>Add a System</legend>
     #else
-        <input type="hidden" name="new_or_edit" value="new"/>
+        <legend>Edit a System</legend>
     #end if
-
-    <legend>Edit a System</legend>
-
+    
     <table border=0>
 
     <tr>
@@ -360,34 +358,14 @@ function page_onload() {
     <label for="name">System Name</label>
     </td>
     <td>
-    #if $system
-    <input type="text" size="128" style="width: 150px;" name="name" id="name" disabled="true"
-    #else
     <input type="text" size="128" style="width: 150px;" name="name" id="name"
+    #if $editmode == "edit"
+        value="$system.name" disabled="true"
     #end if
-        #if $system
-            value="$system.name"
-        #end if
     />
     <p class="context-tip">Example: vanhalen</p>
     </td>
     </tr>
-
-    #if $system
-    <tr>
-    <td>
-    <label for="mode">Edit Mode</label>
-    </td>
-    <td>
-    <input type="radio" name="editmode" value="edit" checked onclick="javascript:disablename(true)">Edit
-    <input type="radio" name="editmode" value="rename" onclick="javascript:disablename(false)">Rename + Edit
-    <input type="radio" name="editmode" value="copy" onclick="javascript:disablename(false)">Copy + Edit
-    <p class="context-tip">How do you want to modify this object?</p>
-    </td>
-    </tr>
-    #else
-    <input type="hidden" name="editmode" value="new"/>
-    #end if
 
     #if $system
     <tr>
@@ -968,19 +946,6 @@ redhatmanagementkey"
     <hr width="95%"/>
     </td>
     </tr>
-
-    #if $system and $editable == True
-    <tr>
-    <td>
-    <label for="delete">Delete</label>
-    </td>
-    <td>
-       <input type="checkbox" name="delete1" value="delete1">Yes
-       <input type="checkbox" name="delete2" value="delete2">Really
-    <p class="context-tip">Check both buttons and click save to delete this object</p>
-    </td>
-    </tr>
-    #end if
 
     #if $editable == True
     <tr>

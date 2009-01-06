@@ -9,7 +9,7 @@ import cobbler.sub_process as subprocess
 import Cheetah.Template as Template
 import time
 
-VERSION = "1.4.1"
+VERSION = "1.5.0"
 SHORT_DESC = "Network Boot and Update Server"
 LONG_DESC = """
 Cobbler is a network install server.  Cobbler supports PXE, virtualized installs, and reinstalling existing Linux machines.  The last two modes use a helper tool, 'koan', that integrates with cobbler.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler has a Python and XMLRPC API for integration with other applications.  There is also a web interface.
@@ -105,6 +105,7 @@ if __name__ == "__main__":
         vw_systems    = wwwpath + "/systems"
         vw_profiles   = wwwpath + "/profiles"
         vw_links      = wwwpath + "/links"
+        vw_aux        = wwwpath + "/aux"
         # cgipath       = "/var/www/cgi-bin/cobbler"
         modpython     = wwwpath + "/web"
         modpythonsvc  = wwwpath + "/svc"
@@ -114,6 +115,7 @@ if __name__ == "__main__":
         logpath2 = logpath + "/kicklog"
         logpath3 = logpath + "/syslog"
         logpath4 = "/var/log/httpd/cobbler"
+        logpath5 = logpath + "/anamon"
 
         # tftp paths        
         tftp_cfg      = "/tftpboot/pxelinux.cfg"
@@ -256,6 +258,7 @@ if __name__ == "__main__":
                                 (snippetpath, ['snippets/func_register_if_enabled']),
                                 (snippetpath, ['snippets/download_config_files']),
                                 (snippetpath, ['snippets/koan_environment']),
+                                (snippetpath, ['snippets/pre_anamon']),
                                 (snippetpath, ['snippets/redhat_register']),
 
                                 # documentation
@@ -266,6 +269,7 @@ if __name__ == "__main__":
                                 (logpath2, []),
                                 (logpath3, []),
 				(logpath4, []),
+                                (logpath5, []),
 
                                 # web page directories that we own
                                 (vw_localmirror,    []),
@@ -279,6 +283,7 @@ if __name__ == "__main__":
                                 (vw_systems,        []),
                                 (vw_profiles,       []),
                                 (vw_links,          []),
+                                (vw_aux,            []),
 
                                 # zone-specific templates directory
                                 (zonepath,    []),
@@ -299,6 +304,11 @@ if __name__ == "__main__":
                                 (wwwtmpl,           ['webui_templates/profile_list.tmpl']),
                                 (wwwtmpl,           ['webui_templates/profile_edit.tmpl']),
                                 (wwwtmpl,           ['webui_templates/system_list.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_netboot.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_rename.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_delete.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_profile.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_power.tmpl']),
                                 (wwwtmpl,           ['webui_templates/system_edit.tmpl']),
                                 (wwwtmpl,           ['webui_templates/repo_list.tmpl']),
                                 (wwwtmpl,           ['webui_templates/repo_edit.tmpl']),
@@ -306,6 +316,7 @@ if __name__ == "__main__":
                                 (wwwtmpl,           ['webui_templates/image_edit.tmpl']),
 
                                 # Web UI common templates 
+                                (wwwtmpl,           ['webui_templates/checkboxes.tmpl']),
                                 (wwwtmpl,           ['webui_templates/paginate.tmpl']),
                                 (wwwtmpl,           ['webui_templates/message.tmpl']),
                                 (wwwtmpl,           ['webui_templates/error_page.tmpl']),
@@ -331,6 +342,9 @@ if __name__ == "__main__":
                                 (wwwcon,            ['webui_content/style.css']),
                                 (wwwcon,            ['webui_content/logo-cobbler.png']),
                                 (wwwcon,            ['webui_content/cobblerweb.css']),
+
+                                # Anamon script
+                                (vw_aux,            ['aux/anamon.py']),
 
                                 # Directories to hold cobbler triggers
                                 ("%s/add/distro/pre" % trigpath,      []),

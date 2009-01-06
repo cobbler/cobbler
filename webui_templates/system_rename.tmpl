@@ -1,0 +1,41 @@
+#extends cobbler.webui.master
+
+#block body
+
+<form name="myform" method="post" action="$base_url?mode=system_rename">
+    <input type="hidden" name="targetlist" id="targetlist" value="$targetlist"/>
+    
+    <table class="sortable">
+    <thead>
+        <caption>Rename the following system</caption>
+        <tr>
+            <th class="text">Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        #set $evenodd = 1
+        #for $system in $systems
+        #if $evenodd % 2 == 0
+            #set $tr_class = "roweven"
+        #else
+            #set $tr_class = "rowodd"
+        #end if
+        #set $evenodd += 1
+
+        <tr class="$tr_class">
+            <td>
+                ${system.name}
+            </td>
+        </tr>
+        #end for
+    </tbody>
+    </table>
+
+    <p>
+    New name: <input type="text" size="128" style="width: 150px;" name="name" id="name" value=$systems[0].name>
+    </p>
+    
+    <input type="submit" name="rename" value="Rename System"/>
+    <input type="button" name="cancel" onclick="javascript:history.go(-1)" value="Cancel"/>
+</form>
+#end block body
