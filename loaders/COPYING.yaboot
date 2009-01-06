@@ -1,0 +1,15 @@
+Cobbler deploys a yaboot binary over TFTP to enable network booting of PowerPC
+machines.
+
+Yaboot is GPL and is being distributed in binary form persuant to this section
+of the GPL license:
+
+    c) Accompany it with the information you received as to the offer
+    to distribute corresponding source code.  (This alternative is
+    allowed only for noncommercial distribution and only if you
+    received the program in object code or executable form with such
+    an offer, in accord with Subsection b above.)
+
+Source code to yaboot is available on http://yaboot.ozlabs.org.
+
+A full copy of the GPL is available in "COPYING".
