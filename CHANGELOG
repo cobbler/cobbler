@@ -1,5 +1,11 @@
 Koan CHANGELOG
 
+- Thu Jan 08 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.1
+- --embed-kickstart is no longer the default behavior
+
+- 1.4.0
+- Stable release of 1.3.3
+
 - Mon Dec 08 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.3-1
 - update files feature for built in config management
 - static-interface feature for non-DHCP virt installs re-added
