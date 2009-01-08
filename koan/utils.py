@@ -255,4 +255,66 @@ def get_vm_state(conn, vmid):
     state = find_vm(conn, vmid).info()[0]
     return VIRT_STATE_NAME_MAP.get(state,"unknown")
 
+def check_dist():
+    """
+    Determines what distro we're running under.  
+    """
+    if os.path.exists("/etc/debian_version"):
+       return "debian"
+    elif os.path.exists("/etc/SuSE-release"):
+       return "suse"
+    else:
+       # valid for Fedora and all Red Hat / Fedora derivatives
+       return "redhat"
+
+def os_release():
+
+   """
+   This code is borrowed from Cobbler and really shouldn't be repeated.
+   """
+
+   if check_dist() == "redhat":
+
+      if not os.path.exists("/bin/rpm"):
+         return ("unknown", 0)
+      args = ["/bin/rpm", "-q", "--whatprovides", "redhat-release"]
+      cmd = sub_process.Popen(args,shell=False,stdout=sub_process.PIPE,close_fds=True)
+      data = cmd.communicate()[0]
+      data = data.rstrip().lower()
+      make = "other"
+      if data.find("redhat") != -1:
+          make = "redhat"
+      elif data.find("centos") != -1:
+          make = "centos"
+      elif data.find("fedora") != -1:
+          make = "fedora"
+      version = data.split("release-")[-1]
+      rest = 0
+      if version.find("-"):
+         parts = version.split("-")
+         version = parts[0]
+         rest = parts[1]
+      try:
+         version = float(version)
+      except:
+         version = float(version[0])
+      return (make, float(version), rest)
+   elif check_dist() == "debian":
+      fd = open("/etc/debian_version")
+      parts = fd.read().split(".")
+      version = parts[0]
+      rest = parts[1]
+      make = "debian"
+      return (make, float(version), rest)
+   elif check_dist() == "suse":
+      fd = open("/etc/SuSE-release")
+      for line in fd.read().split("\n"):
+         if line.find("VERSION") != -1:
+            version = line.replace("VERSION = ","")
+         if line.find("PATCHLEVEL") != -1:
+            rest = line.replace("PATCHLEVEL = ","")
+      make = "suse"
+      return (make, float(version), rest)
+   else:
+      return ("unknown",0)
 
