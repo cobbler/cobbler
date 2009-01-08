@@ -149,7 +149,11 @@ def main():
     p.add_option("", "--kexec",
                  dest="use_kexec",
                  action="store_true",
-                 help="Instead of writing a new bootloader when doing replace_self, just kexec the new kernel and initrd")
+                 help="Instead of writing a new bootloader config when using --replace_self, just kexec the new kernel and initrd")
+    p.add_option("", "--embed",
+                 dest="embed_kickstart",
+                 action="store_true",
+                 help="When used with  --replace-self, embed the kickstart in the initrd to overcome potential DHCP timeout issues. (seldom needed)")
 
     (options, args) = p.parse_args()
 
@@ -178,6 +182,7 @@ def main():
         k.static_interface    = options.static_interface
         k.use_kexec           = options.use_kexec
         k.should_poll         = options.should_poll
+        k.embed_kickstart     = options.embed_kickstart
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -743,11 +748,20 @@ class Koan:
             k_args = self.calc_kernel_args(profile_data)
             kickstart = self.safe_load(profile_data,'kickstart')
 
-            self.build_initrd(
-                self.safe_load(profile_data,'initrd_local'),
-                kickstart,
-                profile_data
-            )
+            (make, version, rest) = utils.os_release()
+
+            if (make == "centos" and version < 6) or (make == "redhat" and version < 6) or (make == "fedora" and version < 10):
+
+                # embed the initrd in the kickstart file because of libdhcp and/or pump
+                # needing the help due to some DHCP timeout potential in some certain
+                # network configs.
+
+                if self.embed_kickstart:
+                    self.build_initrd(
+                        self.safe_load(profile_data,'initrd_local'),
+                        kickstart,
+                        profile_data
+                    )
 
             if len(k_args) > 255:
                 raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
@@ -788,11 +802,20 @@ class Koan:
 
             kickstart = self.safe_load(profile_data,'kickstart')
 
-            self.build_initrd(
-                self.safe_load(profile_data,'initrd_local'),
-                kickstart,
-                profile_data
-            )
+            (make, version, rest) = utils.os_release()
+
+            if (make == "centos" and version < 6) or (make == "redhat" and version < 6) or (make == "fedora" and version < 10):
+
+                # embed the initrd in the kickstart file because of libdhcp and/or pump
+                # needing the help due to some DHCP timeout potential in some certain
+                # network configs.
+
+                if self.embed_kickstart:
+                    self.build_initrd(
+                        self.safe_load(profile_data,'initrd_local'),
+                        kickstart,
+                        profile_data
+                    )
 
             if len(k_args) > 255:
                 raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
@@ -1027,7 +1050,7 @@ class Koan:
             if gateway is not None:
                 hashv["gateway"] = gateway
 
-        if replace_self:
+        if replace_self and self.embed_kickstart:
            hashv["ks"] = "file:ks.cfg"
 
         if self.kopts_override is not None:
