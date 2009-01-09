@@ -1450,15 +1450,14 @@ class Koan:
                     args = "/usr/bin/chcon -t %s %s" % (context_type, partition_location)
                     print "%s" % args
                     change_context = sub_process.call(args, close_fds=True, shell=True)
+                    if change_context != 0:
+                        raise InfoException, "SELinux security context setting to LVM partition failed"
 
                     # modify SELinux policy in order to preserve security context
                     # between reboots
                     args = "/usr/sbin/semanage fcontext -a -t %s %s" % (context_type, partition_location)
                     print "%s" % args
-                    change_context |= sub_process.call(args, close_fds=True, shell=True)
-                    
-                    if change_context != 0:
-                        raise InfoException, "SELinux security context setting to LVM partition failed"
+                    sub_process.call(args, close_fds=True, shell=True)
 
                 # return partition location
                 return partition_location
