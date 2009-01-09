@@ -1,6 +1,6 @@
 Koan CHANGELOG
 
-- Thu Jan 08 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.1
+- Fri Jan 09 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.1
 - --embed-kickstart is no longer the default behavior
 - fix missing import in qcreate.py when using images over NFS
 - change to SELinux LVM behavior (it's ok if context is already set)

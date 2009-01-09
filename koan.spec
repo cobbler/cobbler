@@ -2,8 +2,8 @@
 
 Summary: Network provisioning tool for Xen and Bare Metal Machines 
 Name: koan
-Version: 1.4.0
-Release: 4444%{?dist}
+Version: 1.4.1
+Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -58,6 +58,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+
+* Fri Jan 09 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.1-1
+- Upstream changes (see CHANGELOG)
 
 * Mon Dec 22 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.0-4
 - Fix python(abi) requirement some more
