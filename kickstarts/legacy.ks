@@ -40,7 +40,6 @@ autopart
 %pre
 $kickstart_start
 $SNIPPET('pre_install_network_config')
-$SNIPPET('pre_anamon')
 
 %packages
 
