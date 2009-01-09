@@ -8,6 +8,7 @@ Cobbler CHANGELOG
 - (BUGF) fix an obscure xmlrpclib corner case where a string that looks like an int can't be served because xmlrpclib thinks it's an int.  Applies to XMLRPC consumers only, not CobblerWeb or the cobbler CLI.
 - (BUGF) fix external kickstart URLs (not templated) and per-system overrides.
 - (BUGF) fix 'cobbler check' code for SuSE services
+- (FEAT) batch editing on the system page.
 
 - Fri Dec 19 2008 - 1.4
 - (----) Stable release of 1.3 development branch
