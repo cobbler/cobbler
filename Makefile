@@ -3,22 +3,15 @@
 prefix=devinstall
 statepath=/tmp/cobbler_settings/$(prefix)
 
-all: clean rpms
+all: clean build
 
 clean:
-	-rm -f pod2htm*.tmp
 	-rm -f cobbler*.gz cobbler*.rpm MANIFEST
-	-rm -rf cobbler-* dist build
-	-rm -rf *~
-	-rm -rf rpm-build/
-	#-rm -f docs/cobbler.1.gz
-	#-rm -f docs/cobbler.html
-	#-rm -f po/messages.pot*
-	-rm -f cobbler/*.pyc
-	-rm -f cobbler/yaml/*.pyc
-	-rm -f cobbler/webui/master.py
-	-rm -f config/modules.conf config/settings config/version
-	-rm -f docs/cobbler.1.gz docs/cobbler.html
+	-rm -rf cobbler-* dist build rpm-build
+	-rm -f *~
+	-rm -f cobbler/*.pyc cobbler/yaml/*.pyc
+	-rm -f cobbler/webui/master.py config/modules.conf config/settings config/version
+	-rm -f docs/cobbler.1.gz docs/cobbler.html pod2htm*.tmp
 
 manpage:
 	pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz
