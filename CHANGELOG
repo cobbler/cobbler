@@ -1,8 +1,5 @@
 Cobbler CHANGELOG
 
-- Mon Dec 22 2008 - 1.5.X
-- (FEAT) Batch editing of system objects -- power, profile, netboot, etc
-
 - Mon Dec 19 2008 - 1.4.1
 - (BUGF) Cobbler check looks for right httpd on SUSE
 - (BUGF) post_install_network_config snippet had bash errors
@@ -10,6 +7,7 @@ Cobbler CHANGELOG
 - (FEAT) have cobbler check mention when semanage rules should be applied
 - (BUGF) fix an obscure xmlrpclib corner case where a string that looks like an int can't be served because xmlrpclib thinks it's an int.  Applies to XMLRPC consumers only, not CobblerWeb or the cobbler CLI.
 - (BUGF) fix external kickstart URLs (not templated) and per-system overrides.
+- (BUGF) fix 'cobbler check' code for SuSE services
 
 - Fri Dec 19 2008 - 1.4
 - (----) Stable release of 1.3 development branch
