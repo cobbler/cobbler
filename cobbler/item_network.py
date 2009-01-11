@@ -50,14 +50,14 @@ class Network(item.Item):
 
     def from_datastruct(self,seed_data):
         self.name             = self.load_item(seed_data, 'name')
-        self.cidr             = self.load_item(seed_data, 'cidr')
-        self.address          = self.load_item(seed_data, 'address', self.cidr[0])
-        self.gateway          = self.load_item(seed_data, 'gateway', self.cidr[-2])
-        self.broadcast        = self.load_item(seed_data, 'broadcast', self.cidr[-1])
-        self.nameservers      = self.load_item(seed_data, 'nameservers', [])
-        self.reserved         = self.load_item(seed_data, 'reserved', [])
-        self.used_addresses   = self.load_item(seed_data, 'used_addresses', [])
-        self.free_addresses   = self.load_item(seed_data, 'free_addresses', [])
+        self.cidr             = _CIDR(self.load_item(seed_data, 'cidr'))
+        self.address          = _IP(self.load_item(seed_data, 'address', self.cidr[0]))
+        self.gateway          = _IP(self.load_item(seed_data, 'gateway', self.cidr[-2]))
+        self.broadcast        = _IP(self.load_item(seed_data, 'broadcast', self.cidr[-1]))
+        self.nameservers      = [_IP(i) for i in self.load_item(seed_data, 'nameservers', [])]
+        self.reserved         = [_CIDR(c) for c in self.load_item(seed_data, 'reserved', [])]
+        self.used_addresses   = [_IP(i) for i in self.load_item(seed_data, 'used_addresses', [])]
+        self.free_addresses   = [_CIDR(c) for c in self.load_item(seed_data, 'free_addresses', [])]
         self.comment          = self.load_item(seed_data, 'comment', '')
 
         return self
@@ -88,6 +88,43 @@ class Network(item.Item):
 #    def set_free_addresses(self, free_addresses):
 #        pass
 
+    def take_new_address(self, address):
+        pass
+
+    def free_address(self, address):
+        pass
+
+    def subtract_and_flatten(self, cidr_list, remove_list):
+        for item in remove_list:
+            for i in range(len(cidr_list)):
+                if item in cidr_list[i]:
+                    cidr_list += cidr_list[i] - item
+                    del(cidr_list[i])
+                    break
+        return cidr_list
+
+    def update_free(self):
+        free = [self.cidr]
+
+        #remove all the taken addresses
+        self.free_addresses = self.subtract_and_flatten(free,
+                                   self.reserved +
+                                   self.used_addresses +
+                                   [self.address] +
+                                   [self.gateway] +
+                                   [self.broadcast])
+
+    def used_address_count(self):
+        return len(self.used_addresses)
+
+    def free_address_count(self):
+        for a in self.free_addresses:
+            print type(a)
+        total = 0
+        for item in self.free_addresses:
+            total += len(item)
+        return total
+
     def is_valid(self):
         """
 	A network is valid if it has a name and a CIDR
@@ -115,12 +152,13 @@ class Network(item.Item):
     def printable(self):
         buf =       _("network          : %s\n") % self.name
         buf = buf + _("CIDR             : %s\n") % self.cidr
+        buf = buf + _("gateway          : %s\n") % self.gateway
         buf = buf + _("network address  : %s\n") % self.address
         buf = buf + _("broadcast        : %s\n") % self.broadcast
-        buf = buf + _("nameservers      : %s\n") % self.nameservers
-        buf = buf + _("reserved         : %s\n") % self.reserved
-        buf = buf + _("free addresses   : %s\n") % len(self.free_addresses)
-        buf = buf + _("used addresses   : %s\n") % len(self.used_addresses)
+        buf = buf + _("nameservers      : %s\n") % [str(i) for i in self.nameservers]
+        buf = buf + _("reserved         : %s\n") % [str(i) for i in self.reserved]
+        buf = buf + _("free addresses   : %s\n") % self.free_address_count()
+        buf = buf + _("used addresses   : %s\n") % self.used_address_count()
         buf = buf + _("comment          : %s\n") % self.comment
         return buf
 

@@ -107,6 +107,8 @@ class NetworkFunction(commands.CobblerFunction):
         if self.options.comment is not None:
             obj.set_comment(self.options.comment)
 
+        obj.update_free()
+
         return self.object_manipulator_finish(obj, self.api.networks, self.options)
 
 
