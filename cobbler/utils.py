@@ -38,6 +38,7 @@ import signal
 from cexceptions import *
 import codes
 import time
+import netaddr
 
 CHEETAH_ERROR_DISCLAIMER="""
 # *** ERROR ***
@@ -134,39 +135,33 @@ def trace_me():
    bar = string.join(traceback.format_list(x))
    return bar
 
+def pretty_hex(ip, length=8):
+    """
+    Pads an IP object with leading zeroes so that the result is
+    _length_ hex digits.  Also do an upper().
+    """
+    hexval = "%x" % ip.value
+    if len(hexval) < length:
+        hexval = '0' * (length - len(hexval)) + hexval
+    return hexval.upper()
 
 def get_host_ip(ip, shorten=True):
     """
     Return the IP encoding needed for the TFTP boot tree.
     """
+    ip = netaddr.IP(ip)
+    cidr = ip.cidr()
 
-    slash = None
-    if ip.find("/") != -1:
-       # CIDR notation
-       (ip, slash) = ip.split("/")
-
-    handle = sub_process.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=sub_process.PIPE, close_fds=True)
-    out = handle.stdout
-    results = out.read()
-    converted = results.split(" ")[-1][0:8]
-
-    if slash is None:
-        return converted
+    if len(cidr) == 1: # Just an IP, e.g. a /32
+        return pretty_hex(ip)
     else:
-        slash = int(slash)
-        num = int(converted, 16)
-        delta = 32 - slash
-        mask = (0xFFFFFFFF << delta)
-        num = num & mask
-        num = "%0x" % num
-        if len(num) != 8:
-            num = '0' * (8 - len(num)) + num
-        num = num.upper()
-        if shorten:
-            nibbles = delta / 4
-            for x in range(0,nibbles):
-                num = num[0:-1]
-        return num
+        pretty = pretty_hex(cidr[0])
+        if not shorten or len(cidr) <= 8:
+            # not enough to make the last nibble insignificant
+            return pretty
+        else:
+            cutoff = (32 - cidr.prefixlen) / 4
+            return pretty[0:-cutoff]
 
 def get_config_filename(sys,interface):
     """

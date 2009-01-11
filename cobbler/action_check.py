@@ -96,7 +96,7 @@ class BootCheck:
        if notes != "":
            notes = " (NOTE: %s)" % notes
        rc = 0
-       if self.checked_dist == "redhat":
+       if self.checked_dist == "redhat" or self.checked_dist == "suse":
            if os.path.exists("/etc/rc.d/init.d/%s" % which):
                rc = sub_process.call("/sbin/service %s status > /dev/null 2>/dev/null" % which, shell=True, close_fds=True)
            if rc != 0:
