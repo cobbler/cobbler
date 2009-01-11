@@ -23,8 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import utils
 import item
 from cexceptions import *
-from utils import _
-import netaddr
+from utils import _, _IP, _CIDR
 
 class Network(item.Item):
 
@@ -64,28 +63,30 @@ class Network(item.Item):
         return self
 
     def set_cidr(self, cidr):
-        pass
+        self.cidr = _CIDR(cidr)
 
     def set_address(self, address):
-        pass
+        self.address = _IP(address)
 
     def set_gateway(self, gateway):
-        pass
+        self.gateway = _IP(gateway)
 
     def set_broadcast(self, broadcast):
-        pass
+        self.broadcast = _IP(broadcast)
 
     def set_nameservers(self, nameservers):
-        pass
+        nameservers = [s.strip() for s in nameservers.split(',')]
+        self.nameservers = [_IP(i) for i in nameservers]
 
     def set_reserved(self, reserved):
-        pass
+        reserved = [s.strip() for s in reserved.split(',')]
+        self.reserved = [_CIDR(c) for c in reserved]
 
-    def set_used_addresses(self, used_addresses):
-        pass
+#    def set_used_addresses(self, used_addresses):
+#        pass
 
-    def set_free_addresses(self, free_addresses):
-        pass
+#    def set_free_addresses(self, free_addresses):
+#        pass
 
     def is_valid(self):
         """

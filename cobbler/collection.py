@@ -35,6 +35,7 @@ import item_profile
 import item_distro
 import item_repo
 import item_image
+import item_network
 from utils import _
 
 class Collection(serializable.Serializable):
@@ -275,6 +276,8 @@ class Collection(serializable.Serializable):
                     self.lite_sync.add_single_distro(ref.name)
                 elif isinstance(ref, item_image.Image):
                     self.lite_sync.add_single_image(ref.name)
+                elif isinstance(ref, item_network.Network):
+                    self.lite_sync.add_single_network(ref.name)
                 elif isinstance(ref, item_repo.Repo):
                     pass
                 else:

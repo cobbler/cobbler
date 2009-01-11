@@ -260,6 +260,12 @@ class BootAPI:
         """
         return self._config.images()
 
+    def networks(self):
+        """
+        Return the current list of networks
+        """
+        return self._config.networks()
+
     def settings(self):
         """
         Return the application configuration
@@ -372,6 +378,10 @@ class BootAPI:
     def new_image(self,is_subobject=False):
         self.log("new_image",[is_subobject])
         return self._config.new_image(is_subobject=is_subobject)
+
+    def new_network(self,is_subobject=False):
+        self.log("new_network",[is_subobject])
+        return self._config.new_network(is_subobject=is_subobject)
 
     def add_distro(self, ref, check_for_duplicate_names=False, save=True):
         self.log("add_distro",[ref.name])
