@@ -867,6 +867,15 @@ class TestListings(BootTest):
        self.assertTrue(len(self.api.profiles().printable()) > 0)
        self.assertTrue(len(self.api.distros().printable()) > 0)
 
+class TestImage(BootTest):
+
+    def test_image_file(self):
+        # ensure that only valid names are accepted and invalid ones are rejected
+        image = self.api.new_image()
+        self.assertTrue(image.set_file("nfs://hostname/path/to/filename.iso"))
+        self.assertTrue(image.set_file("/mcpierce@hostname:/path/to/filename.iso"))
+        self.assertTrue(image.set_file("path/to/filename.iso"))
+
 #class TestCLIBasic(BootTest):
 #
 #   def test_cli(self):
