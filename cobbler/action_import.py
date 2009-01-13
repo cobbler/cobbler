@@ -104,7 +104,7 @@ class Importer:
        if self.kickstart_file and not self.breed:
            raise CX(_("Kickstart file can only be specified when a specific breed is selected"))
 
-       if self.breed and self.breed.lower() not in [ "redhat", "debian", "ubuntu" ]:
+       if self.breed and self.breed.lower() not in [ "redhat", "debian", "ubuntu", "windows" ]:
            raise CX(_("Supplied import breed is not supported"))
  
        # if --arch is supplied, make sure the user is not importing a path with a different
@@ -376,10 +376,10 @@ class Importer:
 
        """
        This is an os.path.walk routine that looks for potential yum repositories
-       to be added to the configuration for post-install usage. 
+       to be added to the configuration for post-install usage.
        """
        
-       matches = {} 
+       matches = {}
        for x in fnames:
           if x == "base" or x == "repodata":
                print "- processing repo at : %s" % dirname
@@ -398,7 +398,7 @@ class Importer:
 
    # =======================================================================================
 
-               
+
 
    def process_comps_file(self, comps_path, distro):
        """
@@ -448,9 +448,9 @@ class Importer:
            fname = os.path.join(self.settings.webdir, "ks_mirror", "config", "%s-%s.repo" % (distro.name, counter))
 
            repo_url = "http://@@http_server@@/cobbler/ks_mirror/config/%s-%s.repo" % (distro.name, counter)
-         
-           repo_url2 = "http://@@http_server@@/cobbler/ks_mirror/%s" % (urlseg) 
-
+           
+           repo_url2 = "http://@@http_server@@/cobbler/ks_mirror/%s" % (urlseg)
+           
            distro.source_repos.append([repo_url,repo_url2])
 
            # NOTE: the following file is now a Cheetah template, so it can be remapped
@@ -487,29 +487,33 @@ class Importer:
        except:
            print _("- error launching createrepo, ignoring...")
            traceback.print_exc()
-        
+
 
    # ========================================================================
 
    def distro_adder(self,foo,dirname,fnames):
-       
+
        """
        This is an os.path.walk routine that finds distributions in the directory
        to be scanned and then creates them.
        """
 
-       # FIXME: If there are more than one kernel or initrd image on the same directory, 
+       # FIXME: If there are more than one kernel or initrd image on the same directory,
        # results are unpredictable
 
        initrd = None
        kernel = None
-       
+
+       # Windows Variables
+       startrom = None
+       setupldr = None
+
        for x in fnames:
 
            fullname = os.path.join(dirname,x)
            if os.path.islink(fullname) and os.path.isdir(fullname):
               if fullname.startswith(self.path):
-                  # Prevent infinite loop with Sci Linux 5 
+                  # Prevent infinite loop with Sci Linux 5
                   print "- warning: avoiding symlink loop"
                   continue
               print "- following symlink: %s" % fullname
@@ -519,6 +523,10 @@ class Importer:
                initrd = os.path.join(dirname,x)
            if ( x.startswith("vmlinuz") or x.startswith("kernel.img") ) and x.find("initrd") == -1:
                kernel = os.path.join(dirname,x)
+           if x.lower().startswith("startrom.n1_"):
+               startrom = os.path.join(dirname,x)
+           if x.lower().startswith("setupldr.ex_"):
+               setupldr = os.path.join(dirname,x)
            if initrd is not None and kernel is not None and dirname.find("isolinux") == -1:
                adtl = self.add_entry(dirname,kernel,initrd)
                if adtl != None:
@@ -526,6 +534,10 @@ class Importer:
                    # Not resetting these values causes problems importing debian media because there are remaining items in fnames
                    initrd = None
                    kernel = None
+           elif startrom is not None and setupldr is not None:
+               self.add_win_entry(dirname,startrom,setupldr)
+               startrom = None
+               setupldr = None
    
    # ========================================================================
 
@@ -649,6 +661,86 @@ class Importer:
 
    # ========================================================================
 
+   def add_win_entry(self, dirname, startrom, setupldr):
+
+       proposed_name = self.get_proposed_name(dirname)
+       proposed_arch = self.get_proposed_arch(dirname)
+       if self.arch and proposed_arch and self.arch != proposed_arch:
+           raise CX(_("Arch from pathname (%s) does not match with supplied one %s")%(proposed_arch,self.arch))
+
+       importer = import_factory(dirname,self.path)
+       if self.breed and self.breed != importer.breed:
+           raise CX( _("Requested breed (%s); breed found is %s") % ( self.breed , breed ) )
+
+       #archs = importer.learn_arch_from_tree()
+       #if self.arch and self.arch not in archs:
+       #    raise CX(_("Given arch (%s) not found on imported tree %s")%(self.arch,importer.get_pkgdir()))
+       #if proposed_arch:
+       #    if proposed_arch not in archs:
+       #        print _("Warning: arch from pathname (%s) not found on imported tree %s") % (proposed_arch,importer.get_pkgdir())
+       #        return
+       #
+       #    archs = [ proposed_arch ]
+
+       archs = [ proposed_arch ]
+
+       if len(archs)>1:
+           print _("- Warning : Multiple archs found : %s") % (archs)
+
+       distros_added = []
+
+       for pxe_arch in archs:
+
+           name = proposed_name + "-" + pxe_arch
+           existing_distro = self.distros.find(name=name)
+
+           if existing_distro is not None:
+               print _("- warning: skipping import, as distro name already exists: %s") % name
+               continue
+
+           else:
+               print _("- creating new distro: %s") % name
+               distro = self.config.new_distro()
+
+           distro.set_name(name)
+           distro.set_kernel(startrom)
+           distro.set_initrd(setupldr)
+           distro.set_arch(pxe_arch)
+           distro.set_breed(importer.breed)
+           distro.source_repos = []
+
+           self.distros.add(distro,save=True)
+           distros_added.append(distro)
+
+           existing_profile = self.profiles.find(name=name)
+
+           # see if the profile name is already used, if so, skip it and
+           # do not modify the existing profile
+
+           if existing_profile is None:
+               print _("- creating new profile: %s") % name
+               profile = self.config.new_profile()
+           else:
+               print _("- skipping existing profile, name already exists: %s") % name
+               continue
+
+           # save our minimal profile which just points to the distribution and a good
+           # default answer file
+
+           profile.set_name(name)
+           profile.set_distro(name)
+           if self.kickstart_file:
+               profile.set_kickstart(self.kickstart_file)
+
+           # save our new profile to the collection
+
+           self.profiles.add(profile,save=True)
+
+       self.api.serialize()
+       return distros_added
+
+   # ========================================================================
+
    def get_proposed_name(self,dirname):
 
        """
@@ -737,6 +829,7 @@ def guess_breed(kerneldir,path):
        [ 'Fedora'      , "redhat" ],
        [ 'Server'      , "redhat" ],
        [ 'Client'      , "redhat" ],
+       [ 'setup.exe'   , "windows" ],
     ]
     guess = None
 
@@ -789,6 +882,8 @@ def import_factory(kerneldir,path):
         return DebianImporter(rootdir)
     elif breed == "ubuntu":
         return UbuntuImporter(rootdir)
+    elif breed == "windows":
+        return WindowsImporter(rootdir)
     elif breed:
         raise CX(_("Unknown breed %s")%breed)
     else:
@@ -1160,3 +1255,19 @@ class UbuntuImporter ( DebianImporter ) :
 
        return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
 
+
+class WindowsImporter( BaseImporter ):
+   def __init__(self,(rootdir,pkgdir)):
+       self.breed = "windows"
+       self.rootdir = rootdir
+       self.pkgdir = "i386"
+ 
+   def set_variance(self, flavor, major, minor, arch):
+       # TODO: figure out how to determine if this media is SP1/SP2/etc.
+       # Assuming no service pack for now (SP zero?)
+
+       if flavor == "XP":
+          return "SP0", "/var/lib/cobbler/kickstarts/winxp-default.sif"
+
+   def match_kernelarch_file(self, filename):
+       return True

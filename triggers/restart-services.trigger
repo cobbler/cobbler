@@ -8,8 +8,10 @@ bootapi = capi.BootAPI()
 settings = bootapi.settings()
 manage_dhcp = str(settings.manage_dhcp).lower()
 manage_dns = str(settings.manage_dns).lower()
+manage_xinetd = str(settings.manage_xinetd).lower()
 restart_dhcp = str(settings.restart_dhcp).lower()
 restart_dns = str(settings.restart_dns).lower()
+restart_xinetd = str(settings.restart_xinetd).lower()
 omapi_enabled = settings.omapi_enabled
 omapi_port = settings.omapi_port
 
@@ -42,6 +44,9 @@ if manage_dns != "0" and restart_dns != "0":
         rc = os.system("/sbin/service named restart")
     elif bootapi.dns.what() == "dnsmasq" and not has_restarted_dnsmasq:
         rc = os.ssytem("/sbin/service dnsmasq restart")
+
+if manage_xinetd != "0" and restart_xinetd != "0":
+    rc = os.system("/sbin/service xinetd restart")
 
 sys.exit(rc)
 

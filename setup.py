@@ -229,6 +229,7 @@ if __name__ == "__main__":
 
                                 # templates for power management
                                 (powerpath, ['templates/power_apc_snmp.template']), 
+                                (powerpath, ['templates/power_integrity.template']), 
                                 (powerpath, ['templates/power_ipmilan.template']),
                                 (powerpath, ['templates/power_bullpap.template']),     
                                 (powerpath, ['templates/power_ipmitool.template']),

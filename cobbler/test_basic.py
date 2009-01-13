@@ -873,8 +873,15 @@ class TestImage(BootTest):
         # ensure that only valid names are accepted and invalid ones are rejected
         image = self.api.new_image()
         self.assertTrue(image.set_file("nfs://hostname/path/to/filename.iso"))
-        self.assertTrue(image.set_file("/mcpierce@hostname:/path/to/filename.iso"))
-        self.assertTrue(image.set_file("path/to/filename.iso"))
+        self.assertTrue(image.set_file("nfs://mcpierce@hostname:/path/to/filename.iso"))
+        self.assertTrue(image.set_file("nfs://hostname:/path/to/filename.iso"))
+        self.assertTrue(image.set_file("nfs://hostname/filename.iso"))
+        self.assertTrue(image.set_file("hostname:/path/to/the/filename.iso"))
+        self.failUnlessRaises(CX, image.set_file, "hostname:filename.iso")
+        self.failUnlessRaises(CX, image.set_file, "path/to/filename.iso")
+        self.failUnlessRaises(CX, image.set_file, "hostname:")
+        # port is not allowed
+        self.failUnlessRaises(CX, image.set_file, "nfs://hostname:1234/path/to/the/filename.iso")
 
 #class TestCLIBasic(BootTest):
 #

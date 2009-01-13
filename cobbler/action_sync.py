@@ -116,7 +116,7 @@ class BootSync:
         if self.verbose:
            print "- copying images"
         self.pxegen.copy_images()
-
+        self.pxegen.generate_windows_files()
         for x in self.systems:
             if self.verbose:
                 print "- copying files for system: %s" % x.name
@@ -136,6 +136,7 @@ class BootSync:
         if self.verbose:
            print "- generating PXE menu structure"
         self.pxegen.make_pxe_menu()
+        self.pxegen.write_tftpd_rules(True)
 
         # run post-triggers
         if self.verbose:
