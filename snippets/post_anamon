@@ -1,0 +1,16 @@
+#if $str($getVar('anamon_enabled','')) == "1"
+cat << __EOT__ > /etc/rc.anamon
+cd /tmp || exit 1
+wget "http://$server/cobbler/aux/anamon.py"
+./anamon.py --watchfile /var/log/boot.log --name "$name" --server "$server" --port "$http_port" --exit --fg
+chmod a-x /etc/rc.anamon
+__EOT__
+
+chmod 755 /etc/rc.anamon
+
+cat << __EOT__ >> /etc/rc.local
+if [ -x "/etc/rc.anamon" ]; then
+    /etc/rc.anamon
+fi
+__EOT__
+#end if
