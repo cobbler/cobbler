@@ -210,8 +210,8 @@ echo "BOOTPROTO=dhcp" >> $devfile
 	#end if
         #set $nct = 0
         #for $nameserver in $name_servers
-            #set $ct = $nct + 1
-echo "DNS$ct=$nameserver" >> $devfile
+            #set $nct = $nct + 1
+echo "DNS$nct=$nameserver" >> $devfile
         #end for
 	#for $route in $static_routes
 	    #set routepattern = $re.compile("[0-9/.]+:[0-9.]+")
