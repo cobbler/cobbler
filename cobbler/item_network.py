@@ -118,8 +118,6 @@ class Network(item.Item):
         return len(self.used_addresses)
 
     def free_address_count(self):
-        for a in self.free_addresses:
-            print type(a)
         total = 0
         for item in self.free_addresses:
             total += len(item)
