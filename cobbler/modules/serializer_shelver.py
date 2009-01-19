@@ -54,7 +54,7 @@ class DbInstance:
            if not os.path.exists(filename):
                db_pre = dumbdbm.open(filename, 'c')
                db_pre.close()
-           self.db = shelve.open(filename, 'c')
+           self.db = shelve.open(filename, 'c', writeback=True)
       
 def __open():
     dbi = DbInstance()
