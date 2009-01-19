@@ -36,18 +36,29 @@ import yaml   # Howell-Clark version
 import cexceptions
 import os
 import shelve
-import gdbm
+#import gdbm
+import dumbdbm
 
-FILENAME = "/var/lib/cobbler/config/shelver3"
+#d = gdbm.open(FILENAME, 'c')
+#d.reorganize()
+#d.close() 
 
-d = gdbm.open(FILENAME, 'c')
-d.reorganize()
-d.close() 
+class DbInstance:
+    __shared_state = {}
+    __has_loaded = False
 
-db = shelve.open(FILENAME)
-
+    def __init__(self):
+       self.__dict__ = DbInstance.__shared_state
+       if not DbInstance.__has_loaded:
+           filename = "/var/lib/cobbler/config/shelf_db"
+           if not os.path.exists(filename):
+               db_pre = dumbdbm.open(filename, 'c')
+               db_pre.close()
+           self.db = shelve.open(filename, 'c')
+      
 def __open():
-    return db
+    dbi = DbInstance()
+    return dbi.db
 
 def __close(db):
     pass
