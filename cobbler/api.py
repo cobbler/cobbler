@@ -285,45 +285,45 @@ class BootAPI:
         self.log("copy_image",[ref.name, newname])
         return self._config.images().copy(ref,newname)
 
-    def remove_distro(self, ref, recursive=False):
+    def remove_distro(self, ref, recursive=False, delete=True):
         if type(ref) != str:
            self.log("remove_distro",[ref.name])
-           return self._config.distros().remove(ref.name, recursive=recursive)
+           return self._config.distros().remove(ref.name, recursive=recursive, delete=delete)
         else:
            self.log("remove_distro",ref)
-           return self._config.distros().remove(ref, recursive=recursive)
+           return self._config.distros().remove(ref, recursive=recursive, delete=delete)
 
-    def remove_profile(self,ref, recursive=False):
+    def remove_profile(self,ref, recursive=False, delete=True):
         if type(ref) != str:
            self.log("remove_profile",[ref.name])
-           return self._config.profiles().remove(ref.name, recursive=recursive)
+           return self._config.profiles().remove(ref.name, recursive=recursive, delete=delete)
         else:
            self.log("remove_profile",ref)
-           return self._config.profiles().remove(ref, recursive=recursive)
+           return self._config.profiles().remove(ref, recursive=recursive, delete=delete)
 
-    def remove_system(self, ref, recursive=False):
+    def remove_system(self, ref, recursive=False, delete=True):
         if type(ref) != str:
            self.log("remove_system",[ref.name])
-           return self._config.systems().remove(ref.name)
+           return self._config.systems().remove(ref.name, delete=delete)
         else:
            self.log("remove_system",ref)
-           return self._config.systems().remove(ref)
+           return self._config.systems().remove(ref, delete=delete)
 
-    def remove_repo(self, ref, recursive=False):
+    def remove_repo(self, ref, recursive=False, delete=True):
         if type(ref) != str:
            self.log("remove_repo",[ref.name])
-           return self._config.repos().remove(ref.name)
+           return self._config.repos().remove(ref.name, delete=delete)
         else:    
            self.log("remove_repo",ref)
-           return self._config.repos().remove(ref)
+           return self._config.repos().remove(ref, delete=delete)
 
-    def remove_image(self, ref, recursive=False):
+    def remove_image(self, ref, recursive=False, delete=True):
         if type(ref) != str:
            self.log("remove_image",[ref.name])
-           return self._config.images().remove(ref.name, recursive=recursive)
+           return self._config.images().remove(ref.name, recursive=recursive, delete=delete)
         else:
            self.log("remove_image",ref)
-           return self._config.images().remove(ref, recursive=recursive)
+           return self._config.images().remove(ref, recursive=recursive, delete=delete)
 
     def rename_distro(self, ref, newname):
         self.log("rename_distro",[ref.name,newname])
@@ -365,29 +365,29 @@ class BootAPI:
         self.log("new_image",[is_subobject])
         return self._config.new_image(is_subobject=is_subobject)
 
-    def add_distro(self, ref, check_for_duplicate_names=False):
+    def add_distro(self, ref, check_for_duplicate_names=False, save=True):
         self.log("add_distro",[ref.name])
-        rc = self._config.distros().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
+        rc = self._config.distros().add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
         return rc
 
-    def add_profile(self, ref, check_for_duplicate_names=False):
+    def add_profile(self, ref, check_for_duplicate_names=False,save=True):
         self.log("add_profile",[ref.name])
-        rc = self._config.profiles().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
+        rc = self._config.profiles().add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
         return rc
 
-    def add_system(self, ref, check_for_duplicate_names=False, check_for_duplicate_netinfo=False):
+    def add_system(self, ref, check_for_duplicate_names=False, check_for_duplicate_netinfo=False, save=True):
         self.log("add_system",[ref.name])
-        rc = self._config.systems().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names,check_for_duplicate_netinfo=check_for_duplicate_netinfo)
+        rc = self._config.systems().add(ref,check_for_duplicate_names=check_for_duplicate_names,check_for_duplicate_netinfo=check_for_duplicate_netinfo,save=save)
         return rc
 
-    def add_repo(self, ref, check_for_duplicate_names=False):
+    def add_repo(self, ref, check_for_duplicate_names=False,save=True):
         self.log("add_repo",[ref.name])
-        rc = self._config.repos().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
+        rc = self._config.repos().add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
         return rc
 
-    def add_image(self, ref, check_for_duplicate_names=False):
+    def add_image(self, ref, check_for_duplicate_names=False,save=True):
         self.log("add_image",[ref.name])
-        rc = self._config.images().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
+        rc = self._config.images().add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
         return rc
 
     def find_distro(self, name=None, return_list=False, no_errors=False, **kargs):

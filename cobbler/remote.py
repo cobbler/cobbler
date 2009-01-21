@@ -59,74 +59,52 @@ OBJECT_CACHE = {}
 
 class DataCache:
 
-    __shared_state = {}
-    __has_loaded = False
-
     def __init__(self, api):
         """
         Constructor
         """
-
-        self.__dict__ = DataCache.__shared_state
-        if not DataCache.__has_loaded:
-            self.api = api
-            self.storage = {
-                "distro"  : {},
-                "profile" : {},
-                "system"  : {},
-                "repo"    : {},
-                "image"   : {}
-            }
-            self.__seed()
-            DataCache.__has_loaded = True
+        self.api = api
 
     def update(self,collection_type, name):
-         # FIXME: deal with invalid names that don't exist and don't add those to
-         # the cash.
          data = self.api.deserialize_item_raw(collection_type, name)
-         name = data["name"]
-         mtime = data["mtime"]
-         bucket = self.storage[collection_type]
-         if not bucket.has_key(name):
-            self.storage[collection_type][name] = data
-         else:
-            oldtime = self.storage[collection_type][name]["mtime"]
-            if mtime >= oldtime:
-               self.storage[collection_type][name] = data
-            else:
-               raise "it's old: %s" % mtime
+
+         if data is None:
+             return False
+
+         if collection_type == "distro":
+             obj = item_distro.Distro(self.api._config)
+             obj.from_datastruct(data)
+             self.api.add_distro(obj, False, False)
+
+         if collection_type == "profile":
+             subprofile = False
+             if data.has_key("parent") and data["parent"] != "":
+                subprofile = True
+             obj = item_profile.Profile(self.api._config, is_subobject = subprofile)
+             obj.from_datastruct(data)
+             self.api.add_profile(obj, False, False)
+
+         if collection_type == "system":
+             obj = item_system.System(self.api._config)
+             obj.from_datastruct(data)
+             self.api.add_system(obj, False, False, False)
+
+         if collection_type == "repo":
+             obj = item_repo.Repo(self.api._config)
+             obj.from_datastruct(data)
+             self.api.add_repo(obj, False, save=False)
+
+         if collection_type == "image":
+             obj = item_image.Image(self.api._config)
+             obj.from_datastruct(data)
+             self.api.add_image(obj, False, False)
+
 
     def remove(self,collection_type, name):
-         name = name.upper()
          # for security reasons, only remove if actually gone
          data = self.api.deserialize_item_raw(collection_type, name)
-         if data is not None:
-             raise CX("object is still present; cache update failed")
-         del self.storage[collection_type][name]
-
-    def contents(self, collection_type):
-         return self.storage[collection_type].values()
-
-    def retrieve(self, collection_type, name):
-         name = name.upper()
-         return self.storage[collection_type][name]
-
-    def __seed(self):
-         bucket = self.storage["distro"]
-         for x in self.api.distros():
-             bucket[x.name.upper()] = x.to_datastruct()
-         bucket = self.storage["profile"]
-         for x in self.api.profiles():
-             bucket[x.name.upper()] = x.to_datastruct()
-         bucket = self.storage["system"]
-         for x in self.api.systems():
-             bucket[x.name.upper()] = x.to_datastruct()
-         bucket = self.storage["image"]
-         for x in self.api.images():
-             bucket[x.name.upper()] = x.to_datastruct()
-         bucket = self.storage["repo"]
-         for x in self.api.repos():
-             bucket[x.name.upper()] = x.to_datastruct()
+         if data is None:
+             self.api.remove(name, with_delete=False)
 
 # *********************************************************************
 # *********************************************************************
@@ -248,7 +226,18 @@ class CobblerXMLRPCInterface:
             data = self.api.deserialize_raw("settings")
             return self.xmlrpc_hacks(data)
         else:
-            data = self.cache.contents(collection_name)
+            if collection_name == "distro":
+               contents = self.api.distros()
+            if collection_name == "profile":
+               contents = self.api.profiles()
+            if collection_name == "system":
+               contents = self.api.systems()
+            if collection_name == "repo":
+               contents = self.api.repos()
+            if collection_name == "image":
+               contents = self.api.images()
+            # FIXME: speed this up
+            data = contents.to_datastruct()
             total_items = len(data)
 
         data.sort(self.__sorter)
@@ -1117,6 +1106,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         do reposync this way.  Would be nice to send output over AJAX/other
         later.
         """
+        # FIXME: performance
         self._log("sync",token=token)
         self.check_access(token,"sync")
         return self.api.sync()
@@ -1346,7 +1336,6 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         object.  
         """
         self._log("rename_distro",object_id=object_id,token=token)
-        self.api.deserialize() # FIXME: make this unneeded
         obj = self.__get_object(object_id)
         return self.api.rename_distro(obj,newname)
 
@@ -1371,7 +1360,6 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
     def rename_image(self,object_id,newname,token=None):
         self._log("rename_image",object_id=object_id,token=token)
         self.check_access(token,"rename_image")
-        self.api.deserialize() # FIXME: make this unneeded
         obj = self.__get_object(object_id)
         return self.api.rename_image(obj,newname)
 
