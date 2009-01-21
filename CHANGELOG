@@ -2,6 +2,9 @@ Cobbler CHANGELOG
 
 - *** - 1.5.0
 - (FEAT) Improved anaconda monitoring code
+- (FEAT) added integrity power type
+- (FEAT) preliminary linux-ris support for windows installs (WIP)
+- (FEAT) download comps.xml always
 
 - Mon Dec 19 2008 - 1.4.1
 - (BUGF) Cobbler check looks for right httpd on SUSE

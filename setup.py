@@ -212,11 +212,13 @@ if __name__ == "__main__":
                                 # seed files for debian
                                 (kickpath,  ['kickstarts/sample.seed']),
  
-                                # templates for DHCP, DNS
+                                # templates for DHCP, DNS, TFTP
 				(etcpath,  ['templates/dhcp.template']),
 				(etcpath,  ['templates/dnsmasq.template']),
                                 (etcpath,  ['templates/named.template']),
                                 (etcpath,  ['templates/zone.template']),
+                                (etcpath,  ['templates/tftpd.template']),
+                                (etcpath,  ['templates/tftpd-rules.template']),
                                 
                                 # templates for syslinux PXE configs
 				(pxepath,  ['templates/pxedefault.template']),
@@ -229,6 +231,7 @@ if __name__ == "__main__":
 
                                 # templates for power management
                                 (powerpath, ['templates/power_apc_snmp.template']), 
+                                (powerpath, ['templates/power_integrity.template']), 
                                 (powerpath, ['templates/power_ipmilan.template']),
                                 (powerpath, ['templates/power_bullpap.template']),     
                                 (powerpath, ['templates/power_ipmitool.template']),

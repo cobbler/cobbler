@@ -119,26 +119,33 @@ class Image(item.Item):
         * hostname:/path/to/the/filename.ext
         * /path/to/the/filename.ext
         """
-        print "STARTING WITH FILENAME: %s" % filename
         uri = ""
-        auth = hostname = path = ""
+        scheme = auth = hostname = path = ""
         # we'll discard the protocol if it's supplied, for legacy support
         if filename.find("://") != -1:
-            ignored, uri = filename.split("://")
+            scheme, uri = filename.split("://")
             filename = uri
         else:
             uri = filename
 
         if filename.find("@") != -1:
             auth, filename = filename.split("@")
+        # extract the hostname
+        # 1. if we have a colon, then everything before it is a hostname
+        # 2. if we don't have a colon, then check if we had a scheme; if
+        #    we did, then grab all before the first forward slash as the
+        #    hostname; otherwise, we've got a bad file
         if filename.find(":") != -1:
             hostname, filename = filename.split(":")
         elif filename[0] != '/':
-            index = filename.find("/")
-            hostname = filename[:index]
-            filename = filename[index:]
+            if len(scheme) > 0:
+                index = filename.find("/")
+                hostname = filename[:index]
+                filename = filename[index:]
+            else:
+                raise CX(_("invalid file: %s" % filename))
         # raise an exception if we don't have a valid path
-        if filename[0] != '/':
+        if len(filename) > 0 and filename[0] != '/':
             raise CX(_("file contains an invalid path: %s" % filename))
         if filename.find("/") != -1:
             path, filename = filename.rsplit("/", 1)

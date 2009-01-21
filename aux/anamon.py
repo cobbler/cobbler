@@ -175,17 +175,28 @@ def anamon_loop():
     watchlist = [alog, slog, dump, scrlog, mod, llog, kcfg]
     waitlist = [ilog, ilog2, ulog, ulog2]
 
+    if watchfiles:
+        watchlist = []
+        for watchfile in watchfiles:
+            if os.path.exists(watchfile):
+                watchfilebase = os.path.basename(watchfile)
+                watchlog = WatchedFile(watchfile, watchfilebase)
+                watchlist.append(watchlog)
+
     while 1:
         time.sleep(5)
 
-        for watch in waitlist:
-            if alog.seen("step installpackages$") or (sysimage.stable() and watch.exists()):
-                print "Adding %s to watch list" % watch.alias
-                watchlist.append(watch)
-                waitlist.remove(watch)
-
+        if not watchfiles:
+            for watch in waitlist:
+                if alog.seen("step installpackages$") or (sysimage.stable() and watch.exists()):
+                    print "Adding %s to watch list" % watch.alias
+                    watchlist.append(watch)
+                    waitlist.remove(watch)
+    
         for wf in watchlist:
             wf.update()
+        if exit:
+            break
 
 # process args
 name = ""
@@ -193,6 +204,8 @@ server = ""
 port = "80"
 daemon = 1
 debug = lambda x,**y: None
+watchfiles = []
+exit = False
 
 n = 0
 while n < len(sys.argv):
@@ -200,6 +213,11 @@ while n < len(sys.argv):
     if arg == '--name':
         n = n+1
         name = sys.argv[n]
+    elif arg == '--watchfile':
+        n = n+1
+        watchfiles.append(sys.argv[n])
+    elif arg == '--exit':
+        exit = True
     elif arg == '--server':
         n = n+1
         server = sys.argv[n]
