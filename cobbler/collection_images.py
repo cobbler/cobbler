@@ -57,4 +57,9 @@ class Images(collection.Collection):
                     self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/image/post/*")
             return True
 
+            if with_delete:
+                self.api._internal_cache_update("image", name, remove=True)
+
+
+
         raise CX(_("cannot delete an object that does not exist: %s") % name)

@@ -285,11 +285,16 @@ class Collection(serializable.Serializable):
             # save the tree, so if neccessary, scripts can examine it.
             if with_triggers:
                 self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type())
-        
+    
+    
         # update children cache in parent object
         parent = ref.get_parent()
         if parent != None:
             parent.children[ref.name] = ref
+
+        # signal remote cobblerd to update it's cache of this item.
+        if save:
+           self.api._internal_cache_update(ref.COLLECTION_TYPE,ref.name)
 
         return True
 

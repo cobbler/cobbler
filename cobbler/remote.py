@@ -57,6 +57,77 @@ OBJECT_TIMEOUT = 60*60 # 60 minutes
 TOKEN_CACHE = {}
 OBJECT_CACHE = {}
 
+class DataCache:
+
+    __shared_state = {}
+    __has_loaded = False
+
+    def __init__(self, api):
+        """
+        Constructor
+        """
+
+        self.__dict__ = DataCache.__shared_state
+        if not DataCache.__has_loaded:
+            self.api = api
+            self.storage = {
+                "distro"  : {},
+                "profile" : {},
+                "system"  : {},
+                "repo"    : {},
+                "image"   : {}
+            }
+            self.__seed()
+            DataCache.__has_loaded = True
+
+    def update(self,collection_type, name):
+         # FIXME: deal with invalid names that don't exist and don't add those to
+         # the cash.
+         data = self.api.deserialize_item_raw(collection_type, name)
+         name = data["name"]
+         mtime = data["mtime"]
+         bucket = self.storage[collection_type]
+         if not bucket.has_key(name):
+            self.storage[collection_type][name] = data
+         else:
+            oldtime = self.storage[collection_type][name]["mtime"]
+            if mtime >= oldtime:
+               self.storage[collection_type][name] = data
+            else:
+               raise "it's old: %s" % mtime
+
+    def remove(self,collection_type, name):
+         name = name.upper()
+         # for security reasons, only remove if actually gone
+         data = self.api.deserialize_item_raw(collection_type, name)
+         if data is not None:
+             raise CX("object is still present; cache update failed")
+         del self.storage[collection_type][name]
+
+    def contents(self, collection_type):
+         return self.storage[collection_type].values()
+
+    def retrieve(self, collection_type, name):
+         name = name.upper()
+         return self.storage[collection_type][name]
+
+    def __seed(self):
+         bucket = self.storage["distro"]
+         for x in self.api.distros():
+             bucket[x.name.upper()] = x.to_datastruct()
+         bucket = self.storage["profile"]
+         for x in self.api.profiles():
+             bucket[x.name.upper()] = x.to_datastruct()
+         bucket = self.storage["system"]
+         for x in self.api.systems():
+             bucket[x.name.upper()] = x.to_datastruct()
+         bucket = self.storage["image"]
+         for x in self.api.images():
+             bucket[x.name.upper()] = x.to_datastruct()
+         bucket = self.storage["repo"]
+         for x in self.api.repos():
+             bucket[x.name.upper()] = x.to_datastruct()
+
 # *********************************************************************
 # *********************************************************************
 
@@ -76,6 +147,7 @@ class CobblerXMLRPCInterface:
         self.logger = logger
         self.auth_enabled = enable_auth_if_relevant
         self.timestamp = self.api.last_modified_time()
+        self.cache = DataCache(self.api)
 
     def __sorter(self,a,b):
         return cmp(a["name"],b["name"])
@@ -89,10 +161,15 @@ class CobblerXMLRPCInterface:
         return self.api.last_modified_time()
 
     def update(self, token=None):
-        now = self.api.last_modified_time()
-        if (now > self.timestamp):
-           self.timestamp = now
-           self.api.update()
+        # no longer neccessary
+        return True
+
+    def internal_cache_update(self, collection_type, data):
+        self.cache.update(collection_type, data)
+        return True
+
+    def internal_cache_remove(self, collection_type, data):
+        self.cache.remove(collection_type, data)
         return True
 
     def ping(self):
@@ -167,11 +244,12 @@ class CobblerXMLRPCInterface:
         # FIXME: a global lock or module around data access loading
         # would be useful for non-db backed storage
 
-        data = self.api.deserialize_raw(collection_name)
-        total_items = len(data)
-
         if collection_name == "settings":
+            data = self.api.deserialize_raw("settings")
             return self.xmlrpc_hacks(data)
+        else:
+            data = self.cache.contents(collection_name)
+            total_items = len(data)
 
         data.sort(self.__sorter)
 
@@ -598,7 +676,7 @@ class CobblerXMLRPCInterface:
         Internal function to return a hash representation of a given object if it exists,
         otherwise an empty hash will be returned.
         """
-        result = self.api.deserialize_item_raw(collection_type, name)
+        result = self.cache.retrieve(collection_type, name)
         if result is None:
             return {}
         if flatten:
@@ -819,6 +897,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
     def __init__(self,api,logger,enable_auth_if_relevant):
         self.api = api
         self.auth_enabled = enable_auth_if_relevant
+        self.cache = DataCache(self.api)
         self.logger = logger
         self.token_cache = TOKEN_CACHE
         self.object_cache = OBJECT_CACHE
