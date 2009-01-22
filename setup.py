@@ -262,6 +262,7 @@ if __name__ == "__main__":
                                 (snippetpath, ['snippets/download_config_files']),
                                 (snippetpath, ['snippets/koan_environment']),
                                 (snippetpath, ['snippets/pre_anamon']),
+                                (snippetpath, ['snippets/post_anamon']),
                                 (snippetpath, ['snippets/redhat_register']),
 
                                 # documentation
@@ -347,7 +348,7 @@ if __name__ == "__main__":
                                 (wwwcon,            ['webui_content/cobblerweb.css']),
 
                                 # Anamon script
-                                (vw_aux,            ['aux/anamon.py']),
+                                (vw_aux,            ['aux/anamon.py', 'aux/anamon.init']),
 
                                 # Directories to hold cobbler triggers
                                 ("%s/add/distro/pre" % trigpath,      []),
@@ -367,7 +368,7 @@ if __name__ == "__main__":
                                 ("%s/delete/repo/pre" % trigpath,     []),
                                 ("%s/delete/repo/post" % trigpath,    []),
                                 ("%s/delete/repo/post" % trigpath,    []),
-                                ("%s/install/pre" % trigpath,         [ "triggers/status_pre.trigger"]),
+                                ("%s/install/pre" % trigpath,         [ "triggers/status_pre.trigger", "triggers/clear_anamon_logs.trigger"]),
                                 ("%s/install/post" % trigpath,        [ "triggers/status_post.trigger"]),
                                 ("%s/sync/pre" % trigpath,            []),
                                 ("%s/sync/post" % trigpath,           [ "triggers/restart-services.trigger" ])
