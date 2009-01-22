@@ -43,6 +43,7 @@ autopart
 %pre
 $kickstart_start
 $SNIPPET('pre_install_network_config')
+# Enable installation monitoring
 $SNIPPET('pre_anamon')
 
 %packages
@@ -59,6 +60,8 @@ $SNIPPET('func_register_if_enabled')
 $SNIPPET('download_config_files')
 $SNIPPET('koan_environment')
 $SNIPPET('redhat_register')
+# Enable post-install boot notification
+$SNIPPET('post_anamon')
 # Start final steps
 $kickstart_done
 # End final steps
