@@ -62,4 +62,5 @@ class Images(collection.Collection):
 
 
 
-        raise CX(_("cannot delete an object that does not exist: %s") % name)
+        if not recursive:
+            raise CX(_("cannot delete an object that does not exist: %s") % name)

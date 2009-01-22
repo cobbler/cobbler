@@ -58,9 +58,9 @@ class Profiles(collection.Collection):
                 kids = obj.get_children()
                 for k in kids:
                     if k.COLLECTION_TYPE == "profile":
-                        self.config.api.remove_profile(k, recursive=True)
+                        self.config.api.remove_profile(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers)
                     else:
-                        self.config.api.remove_system(k)
+                        self.config.api.remove_system(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers)
  
             if with_delete:
                 if with_triggers: 
@@ -80,4 +80,5 @@ class Profiles(collection.Collection):
 
             return True
 
-        raise CX(_("cannot delete an object that does not exist: %s") % name)
+        if not recursive:
+            raise CX(_("cannot delete an object that does not exist: %s") % name)

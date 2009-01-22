@@ -104,7 +104,16 @@ class DataCache:
          # for security reasons, only remove if actually gone
          data = self.api.deserialize_item_raw(collection_type, name)
          if data is None:
-             self.api.remove(name, with_delete=False)
+             if collection_type == "distro":
+                 self.api.remove_distro(name, delete=False, recursive=True, with_triggers=False)
+             if collection_type == "profile":
+                 self.api.remove_profile(name, delete=False, recursive=True, with_triggers=False)
+             if collection_type == "system":
+                 self.api.remove_system(name, delete=False, recursive=True, with_triggers=False)
+             if collection_type == "repo":
+                 self.api.remove_repo(name, delete=False, recursive=True, with_triggers=False)
+             if collection_type == "image":
+                 self.api.remove_image(name, delete=False, recursive=True, with_triggers=False)
 
 # *********************************************************************
 # *********************************************************************
@@ -226,16 +235,19 @@ class CobblerXMLRPCInterface:
             data = self.api.deserialize_raw("settings")
             return self.xmlrpc_hacks(data)
         else:
-            if collection_name == "distro":
+            contents = []
+            if collection_name.startswith("distro"):
                contents = self.api.distros()
-            if collection_name == "profile":
+            elif collection_name.startswith("profile"):
                contents = self.api.profiles()
-            if collection_name == "system":
+            elif collection_name.startswith("system"):
                contents = self.api.systems()
-            if collection_name == "repo":
+            elif collection_name.startswith("repo"):
                contents = self.api.repos()
-            if collection_name == "image":
+            elif collection_name.startswith("image"):
                contents = self.api.images()
+            else:
+               raise CX("internal error, collection name is %s" % collection_name)
             # FIXME: speed this up
             data = contents.to_datastruct()
             total_items = len(data)
@@ -665,7 +677,7 @@ class CobblerXMLRPCInterface:
         Internal function to return a hash representation of a given object if it exists,
         otherwise an empty hash will be returned.
         """
-        result = self.cache.retrieve(collection_type, name)
+        result = self.api.deserialize_item_raw(collection_type, name)
         if result is None:
             return {}
         if flatten:
@@ -900,7 +912,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         if retry > 10:
             # I have no idea why this would happen but I want to be through :)
-            raise CX(_("internal error"))
+            raise CX(_("internal error, retry exceeded"))
         next_id = self.__get_random(25)
         if self.object_cache.has_key(next_id):
             return self.__next_id(retry=retry+1) 

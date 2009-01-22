@@ -285,45 +285,45 @@ class BootAPI:
         self.log("copy_image",[ref.name, newname])
         return self._config.images().copy(ref,newname)
 
-    def remove_distro(self, ref, recursive=False, delete=True):
+    def remove_distro(self, ref, recursive=False, delete=True, with_triggers=True):
         if type(ref) != str:
            self.log("remove_distro",[ref.name])
-           return self._config.distros().remove(ref.name, recursive=recursive, delete=delete)
+           return self._config.distros().remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
         else:
            self.log("remove_distro",ref)
-           return self._config.distros().remove(ref, recursive=recursive, delete=delete)
+           return self._config.distros().remove(ref, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
 
-    def remove_profile(self,ref, recursive=False, delete=True):
+    def remove_profile(self,ref, recursive=False, delete=True, with_triggers=True):
         if type(ref) != str:
            self.log("remove_profile",[ref.name])
-           return self._config.profiles().remove(ref.name, recursive=recursive, delete=delete)
+           return self._config.profiles().remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
         else:
            self.log("remove_profile",ref)
-           return self._config.profiles().remove(ref, recursive=recursive, delete=delete)
+           return self._config.profiles().remove(ref, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
 
-    def remove_system(self, ref, recursive=False, delete=True):
+    def remove_system(self, ref, recursive=False, delete=True, with_triggers=True):
         if type(ref) != str:
            self.log("remove_system",[ref.name])
-           return self._config.systems().remove(ref.name, delete=delete)
+           return self._config.systems().remove(ref.name, with_delete=delete, with_triggers=with_triggers)
         else:
            self.log("remove_system",ref)
-           return self._config.systems().remove(ref, delete=delete)
+           return self._config.systems().remove(ref, with_delete=delete, with_triggers=with_triggers)
 
-    def remove_repo(self, ref, recursive=False, delete=True):
+    def remove_repo(self, ref, recursive=False, delete=True, with_triggers=True):
         if type(ref) != str:
            self.log("remove_repo",[ref.name])
-           return self._config.repos().remove(ref.name, delete=delete)
+           return self._config.repos().remove(ref.name, with_delete=delete, with_triggers=with_triggers)
         else:    
            self.log("remove_repo",ref)
-           return self._config.repos().remove(ref, delete=delete)
+           return self._config.repos().remove(ref, with_delete=delete, with_triggers=with_triggers)
 
-    def remove_image(self, ref, recursive=False, delete=True):
+    def remove_image(self, ref, recursive=False, delete=True, with_triggers=True):
         if type(ref) != str:
            self.log("remove_image",[ref.name])
-           return self._config.images().remove(ref.name, recursive=recursive, delete=delete)
+           return self._config.images().remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
         else:
            self.log("remove_image",ref)
-           return self._config.images().remove(ref, recursive=recursive, delete=delete)
+           return self._config.images().remove(ref, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
 
     def rename_distro(self, ref, newname):
         self.log("rename_distro",[ref.name,newname])

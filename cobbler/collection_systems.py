@@ -67,6 +67,7 @@ class Systems(collection.Collection):
                 self.api._internal_cache_update("system", name, remove=True)
 
             return True
-        
-        raise CX(_("cannot delete an object that does not exist: %s") % name)
+       
+        if not recursive: 
+            raise CX(_("cannot delete an object that does not exist: %s") % name)
      
