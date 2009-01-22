@@ -163,7 +163,7 @@ class BootSync:
                 if not x.endswith(".py"):
                     utils.rmfile(path,verbose=self.verbose)
             if os.path.isdir(path):
-                if not x in ["web", "webui", "localmirror","repo_mirror","ks_mirror","images","links","repo_profile","repo_system","svc","rendered"] :
+                if not x in ["aux", "web", "webui", "localmirror","repo_mirror","ks_mirror","images","links","repo_profile","repo_system","svc","rendered"] :
                     # delete directories that shouldn't exist
                     utils.rmtree(path,verbose=self.verbose)
                 if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system","rendered"]:
