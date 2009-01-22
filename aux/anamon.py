@@ -30,17 +30,22 @@ import time
 import re
 import md5
 import base64
+import shlex
 
 # on older installers (EL 2) we might not have xmlrpclib
 # and can't do logging, however this is more widely
 # supported than remote syslog and also provides more
 # detail.
-
 try:
     import xmlrpclib
 except ImportError, e:
     print "xmlrpclib not available, exiting"
     sys.exit(0)
+
+# shlex.split support arrived in python-2.3, the following will provide some
+# accomodation for older distros (e.g. RHEL3)
+if not hasattr(shlex, "split"):
+    shlex.split = lambda s: s.split(" ")
 
 class WatchedFile:
     def __init__(self, fn, alias):
@@ -172,33 +177,45 @@ def anamon_loop():
     ulog = WatchedFile("/mnt/sysimage/root/upgrade.log", "upgrade.log")
     ulog2 = WatchedFile("/mnt/sysimage/tmp/upgrade.log", "tmp+upgrade.log")
     sysimage = MountWatcher("/mnt/sysimage")
-    watchlist = [alog, slog, dump, scrlog, mod, llog, kcfg]
-    waitlist = [ilog, ilog2, ulog, ulog2]
 
+    # Were we asked to watch specific files?
     if watchfiles:
         watchlist = []
+        waitlist = []
+
+        # Create WatchedFile objects for each requested file
         for watchfile in watchfiles:
             if os.path.exists(watchfile):
                 watchfilebase = os.path.basename(watchfile)
                 watchlog = WatchedFile(watchfile, watchfilebase)
                 watchlist.append(watchlog)
 
+    # Use the default watchlist and waitlist
+    else:
+        watchlist = [alog, slog, dump, scrlog, mod, llog, kcfg]
+        waitlist = [ilog, ilog2, ulog, ulog2]
+
+    # Monitor loop
     while 1:
         time.sleep(5)
 
-        if not watchfiles:
-            for watch in waitlist:
-                if alog.seen("step installpackages$") or (sysimage.stable() and watch.exists()):
-                    print "Adding %s to watch list" % watch.alias
-                    watchlist.append(watch)
-                    waitlist.remove(watch)
-    
+        # Not all log files are available at the start, we'll loop through the
+        # waitlist to determine when each file can be added to the watchlist
+        for watch in waitlist:
+            if alog.seen("step installpackages$") or (sysimage.stable() and watch.exists()):
+                debug("Adding %s to watch list\n" % watch.alias)
+                watchlist.append(watch)
+                waitlist.remove(watch)
+
+        # Send any updates
         for wf in watchlist:
             wf.update()
+
+        # If asked to run_once, exit now
         if exit:
             break
 
-# process args
+# Establish some defaults
 name = ""
 server = ""
 port = "80"
@@ -207,6 +224,7 @@ debug = lambda x,**y: None
 watchfiles = []
 exit = False
 
+# Process command-line args
 n = 0
 while n < len(sys.argv):
     arg = sys.argv[n]
@@ -215,7 +233,7 @@ while n < len(sys.argv):
         name = sys.argv[n]
     elif arg == '--watchfile':
         n = n+1
-        watchfiles.append(sys.argv[n])
+        watchfiles.extend(shlex.split(sys.argv[n]))
     elif arg == '--exit':
         exit = True
     elif arg == '--server':
@@ -230,12 +248,20 @@ while n < len(sys.argv):
         daemon = 0
     n = n+1
 
+# Create an xmlrpc session handle
 session = xmlrpclib.Server("http://%s:%s/cobbler_api" % (server, port))
 
+# Fork and loop
 if daemon:
     if not os.fork():
+        # Redirect the standard I/O file descriptors to the specified file.
+        DEVNULL = getattr(os, "devnull", "/dev/null")
+        os.open(DEVNULL, os.O_RDWR) # standard input (0)
+        os.dup2(0, 1)               # Duplicate standard input to standard output (1)
+        os.dup2(0, 2)               # Duplicate standard input to standard error (2)
+
         anamon_loop()
-        sys._exit(1)
+        sys.exit(1)
     sys.exit(0)
 else:
     anamon_loop()

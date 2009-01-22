@@ -1,16 +1,24 @@
 #if $str($getVar('anamon_enabled','')) == "1"
-cat << __EOT__ > /etc/rc.anamon
-cd /tmp || exit 1
-wget "http://$server/cobbler/aux/anamon.py"
-./anamon.py --watchfile /var/log/boot.log --name "$name" --server "$server" --port "$http_port" --exit --fg
-chmod a-x /etc/rc.anamon
+
+## install anamon script
+wget -O /usr/local/sbin/anamon.py "http://$server/cobbler/aux/anamon.py"
+chmod +x /usr/local/sbin/anamon.py
+
+wget -O /etc/rc.d/init.d/anamon "http://$server/cobbler/aux/anamon.init"
+chmod +x /usr/local/sbin/anamon.py
+
+## establish permissions
+chmod 755 /etc/rc.d/init.d/anamon
+
+## enable the script
+chkconfig --add anamon
+
+## configure anamon server
+cat << __EOT__ > /etc/sysconfig/anamon
+COBBLER_SERVER="$server"
+COBBLER_PORT="$http_port"
+COBBLER_NAME="$name"
+LOGFILES="/var/log/boot.log /var/log/messages /var/log/dmesg"
 __EOT__
 
-chmod 755 /etc/rc.anamon
-
-cat << __EOT__ >> /etc/rc.local
-if [ -x "/etc/rc.anamon" ]; then
-    /etc/rc.anamon
-fi
-__EOT__
 #end if
