@@ -49,6 +49,7 @@ import time
 import random
 import os
 import yaml
+import xmlrpclib
 
 ERROR = 100
 INFO  = 10
@@ -90,14 +91,17 @@ class BootAPI:
                 # perms_ok is False
                 return
 
+            # FIMXE: conslidate into 1 server instance
+
             self.logger_remote = self.__setup_logger("remote")
             self.selinux_enabled = utils.is_selinux_enabled()
             self.dist = utils.check_dist()
             self.os_version = utils.os_release()
 
             self.acl_engine = acls.AclEngine()
-
+            
             BootAPI.__has_loaded   = True
+
             module_loader.load_modules()
 
             self._config         = config.Config(self)
@@ -118,7 +122,8 @@ class BootAPI:
             self.pxegen  = pxegen.PXEGen(self._config)
             self.logger.debug("API handle initialized")
             self.perms_ok = True
- 
+
+
     def __setup_logger(self,name):
         return utils.setup_logger(name, **self.log_settings)
     
@@ -141,6 +146,20 @@ class BootAPI:
            # doesn't support public_content_t
            return False 
         return True
+
+    def _internal_cache_update(self, collection_type, name, remove=False):
+        """
+        Update cobblerd so it won't have to ever reload the config, once started.
+        """
+        # FIXME: take value from settings, use raw port
+        self.server_normal = xmlrpclib.Server("http://127.0.0.1/cobbler_api")
+        self.server_rw     = xmlrpclib.Server("http://127.0.0.1/cobbler_api_rw")
+        if not remove:
+            self.server_normal.internal_cache_update(collection_type, name)
+            self.server_rw.internal_cache_update(collection_type, name)
+        else:
+            self.server_normal.internal_cache_remove(collection_type, name)
+            self.server_rw.internal_cache_remove(collection_type, name)
 
     def last_modified_time(self):
         """
@@ -266,46 +285,45 @@ class BootAPI:
         self.log("copy_image",[ref.name, newname])
         return self._config.images().copy(ref,newname)
 
-    def remove_distro(self, ref, recursive=False):
+    def remove_distro(self, ref, recursive=False, delete=True):
         if type(ref) != str:
            self.log("remove_distro",[ref.name])
-           return self._config.distros().remove(ref.name, recursive=recursive)
+           return self._config.distros().remove(ref.name, recursive=recursive, delete=delete)
         else:
            self.log("remove_distro",ref)
-           return self._config.distros().remove(ref, recursive=recursive)
-           
+           return self._config.distros().remove(ref, recursive=recursive, delete=delete)
 
-    def remove_profile(self,ref, recursive=False):
+    def remove_profile(self,ref, recursive=False, delete=True):
         if type(ref) != str:
            self.log("remove_profile",[ref.name])
-           return self._config.profiles().remove(ref.name, recursive=recursive)
+           return self._config.profiles().remove(ref.name, recursive=recursive, delete=delete)
         else:
            self.log("remove_profile",ref)
-           return self._config.profiles().remove(ref, recursive=recursive)
+           return self._config.profiles().remove(ref, recursive=recursive, delete=delete)
 
-    def remove_system(self, ref, recursive=False):
+    def remove_system(self, ref, recursive=False, delete=True):
         if type(ref) != str:
            self.log("remove_system",[ref.name])
-           return self._config.systems().remove(ref.name)
+           return self._config.systems().remove(ref.name, delete=delete)
         else:
            self.log("remove_system",ref)
-           return self._config.systems().remove(ref)
+           return self._config.systems().remove(ref, delete=delete)
 
-    def remove_repo(self, ref, recursive=False):
+    def remove_repo(self, ref, recursive=False, delete=True):
         if type(ref) != str:
            self.log("remove_repo",[ref.name])
-           return self._config.repos().remove(ref.name)
+           return self._config.repos().remove(ref.name, delete=delete)
         else:    
            self.log("remove_repo",ref)
-           return self._config.repos().remove(ref)
+           return self._config.repos().remove(ref, delete=delete)
 
-    def remove_image(self, ref, recursive=False):
+    def remove_image(self, ref, recursive=False, delete=True):
         if type(ref) != str:
            self.log("remove_image",[ref.name])
-           return self._config.images().remove(ref.name, recursive=recursive)
+           return self._config.images().remove(ref.name, recursive=recursive, delete=delete)
         else:
            self.log("remove_image",ref)
-           return self._config.images().remove(ref, recursive=recursive)
+           return self._config.images().remove(ref, recursive=recursive, delete=delete)
 
     def rename_distro(self, ref, newname):
         self.log("rename_distro",[ref.name,newname])
@@ -347,29 +365,34 @@ class BootAPI:
         self.log("new_image",[is_subobject])
         return self._config.new_image(is_subobject=is_subobject)
 
-    def add_distro(self, ref, check_for_duplicate_names=False):
+    def add_distro(self, ref, check_for_duplicate_names=False, save=True):
         self.log("add_distro",[ref.name])
-        return self._config.distros().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
+        rc = self._config.distros().add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
+        return rc
 
-    def add_profile(self, ref, check_for_duplicate_names=False):
+    def add_profile(self, ref, check_for_duplicate_names=False,save=True):
         self.log("add_profile",[ref.name])
-        return self._config.profiles().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
+        rc = self._config.profiles().add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
+        return rc
 
-    def add_system(self, ref, check_for_duplicate_names=False, check_for_duplicate_netinfo=False):
+    def add_system(self, ref, check_for_duplicate_names=False, check_for_duplicate_netinfo=False, save=True):
         self.log("add_system",[ref.name])
-        return self._config.systems().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names,check_for_duplicate_netinfo=check_for_duplicate_netinfo)
+        rc = self._config.systems().add(ref,check_for_duplicate_names=check_for_duplicate_names,check_for_duplicate_netinfo=check_for_duplicate_netinfo,save=save)
+        return rc
 
-    def add_repo(self, ref, check_for_duplicate_names=False):
+    def add_repo(self, ref, check_for_duplicate_names=False,save=True):
         self.log("add_repo",[ref.name])
-        return self._config.repos().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
-    
-    def add_image(self, ref, check_for_duplicate_names=False):
+        rc = self._config.repos().add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
+        return rc
+
+    def add_image(self, ref, check_for_duplicate_names=False,save=True):
         self.log("add_image",[ref.name])
-        return self._config.images().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
+        rc = self._config.images().add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
+        return rc
 
     def find_distro(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.distros().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
-
+        
     def find_profile(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.profiles().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 

@@ -70,6 +70,9 @@ class Repos(collection.Collection):
                 if os.path.exists(path):
                     utils.rmtree(path)
 
+            if with_delete:
+                self.api._internal_cache_update("repo", name, remove=True)
+
             return True
         raise CX(_("cannot delete an object that does not exist: %s") % name)
 

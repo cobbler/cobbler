@@ -57,6 +57,55 @@ OBJECT_TIMEOUT = 60*60 # 60 minutes
 TOKEN_CACHE = {}
 OBJECT_CACHE = {}
 
+class DataCache:
+
+    def __init__(self, api):
+        """
+        Constructor
+        """
+        self.api = api
+
+    def update(self,collection_type, name):
+         data = self.api.deserialize_item_raw(collection_type, name)
+
+         if data is None:
+             return False
+
+         if collection_type == "distro":
+             obj = item_distro.Distro(self.api._config)
+             obj.from_datastruct(data)
+             self.api.add_distro(obj, False, False)
+
+         if collection_type == "profile":
+             subprofile = False
+             if data.has_key("parent") and data["parent"] != "":
+                subprofile = True
+             obj = item_profile.Profile(self.api._config, is_subobject = subprofile)
+             obj.from_datastruct(data)
+             self.api.add_profile(obj, False, False)
+
+         if collection_type == "system":
+             obj = item_system.System(self.api._config)
+             obj.from_datastruct(data)
+             self.api.add_system(obj, False, False, False)
+
+         if collection_type == "repo":
+             obj = item_repo.Repo(self.api._config)
+             obj.from_datastruct(data)
+             self.api.add_repo(obj, False, save=False)
+
+         if collection_type == "image":
+             obj = item_image.Image(self.api._config)
+             obj.from_datastruct(data)
+             self.api.add_image(obj, False, False)
+
+
+    def remove(self,collection_type, name):
+         # for security reasons, only remove if actually gone
+         data = self.api.deserialize_item_raw(collection_type, name)
+         if data is None:
+             self.api.remove(name, with_delete=False)
+
 # *********************************************************************
 # *********************************************************************
 
@@ -76,6 +125,7 @@ class CobblerXMLRPCInterface:
         self.logger = logger
         self.auth_enabled = enable_auth_if_relevant
         self.timestamp = self.api.last_modified_time()
+        self.cache = DataCache(self.api)
 
     def __sorter(self,a,b):
         return cmp(a["name"],b["name"])
@@ -89,10 +139,15 @@ class CobblerXMLRPCInterface:
         return self.api.last_modified_time()
 
     def update(self, token=None):
-        now = self.api.last_modified_time()
-        if (now > self.timestamp):
-           self.timestamp = now
-           self.api.update()
+        # no longer neccessary
+        return True
+
+    def internal_cache_update(self, collection_type, data):
+        self.cache.update(collection_type, data)
+        return True
+
+    def internal_cache_remove(self, collection_type, data):
+        self.cache.remove(collection_type, data)
         return True
 
     def ping(self):
@@ -167,11 +222,23 @@ class CobblerXMLRPCInterface:
         # FIXME: a global lock or module around data access loading
         # would be useful for non-db backed storage
 
-        data = self.api.deserialize_raw(collection_name)
-        total_items = len(data)
-
         if collection_name == "settings":
+            data = self.api.deserialize_raw("settings")
             return self.xmlrpc_hacks(data)
+        else:
+            if collection_name == "distro":
+               contents = self.api.distros()
+            if collection_name == "profile":
+               contents = self.api.profiles()
+            if collection_name == "system":
+               contents = self.api.systems()
+            if collection_name == "repo":
+               contents = self.api.repos()
+            if collection_name == "image":
+               contents = self.api.images()
+            # FIXME: speed this up
+            data = contents.to_datastruct()
+            total_items = len(data)
 
         data.sort(self.__sorter)
 
@@ -598,7 +665,7 @@ class CobblerXMLRPCInterface:
         Internal function to return a hash representation of a given object if it exists,
         otherwise an empty hash will be returned.
         """
-        result = self.api.deserialize_item_raw(collection_type, name)
+        result = self.cache.retrieve(collection_type, name)
         if result is None:
             return {}
         if flatten:
@@ -819,6 +886,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
     def __init__(self,api,logger,enable_auth_if_relevant):
         self.api = api
         self.auth_enabled = enable_auth_if_relevant
+        self.cache = DataCache(self.api)
         self.logger = logger
         self.token_cache = TOKEN_CACHE
         self.object_cache = OBJECT_CACHE
@@ -1038,6 +1106,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         do reposync this way.  Would be nice to send output over AJAX/other
         later.
         """
+        # FIXME: performance
         self._log("sync",token=token)
         self.check_access(token,"sync")
         return self.api.sync()
@@ -1267,7 +1336,6 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         object.  
         """
         self._log("rename_distro",object_id=object_id,token=token)
-        self.api.deserialize() # FIXME: make this unneeded
         obj = self.__get_object(object_id)
         return self.api.rename_distro(obj,newname)
 
@@ -1292,7 +1360,6 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
     def rename_image(self,object_id,newname,token=None):
         self._log("rename_image",object_id=object_id,token=token)
         self.check_access(token,"rename_image")
-        self.api.deserialize() # FIXME: make this unneeded
         obj = self.__get_object(object_id)
         return self.api.rename_image(obj,newname)
 

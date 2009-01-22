@@ -63,6 +63,9 @@ class Systems(collection.Collection):
                 if with_triggers: 
                     self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/system/post/*")
 
+            if with_delete:
+                self.api._internal_cache_update("system", name, remove=True)
+
             return True
         
         raise CX(_("cannot delete an object that does not exist: %s") % name)
