@@ -31,7 +31,7 @@ if __name__ == "__main__":
     # NOTE: if you've changed your xmlrpc_rw port or 
     # disabled xmlrpc_rw this test probably won't work
 
-    sp = ServerProxy("http://127.0.0.1:25152")
+    sp = ServerProxy("http://127.0.0.1:25151")
     (options, args) = p.parse_args()
     print "- trying to login with user=%s" % options.user
     token = sp.login(options.user,options.password)

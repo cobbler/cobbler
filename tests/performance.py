@@ -8,7 +8,7 @@ import time
 import sys
 import random
 
-N = 50000
+N = 10000
 print "sample size is %s" % N
 
 api = capi.BootAPI()

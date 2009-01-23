@@ -154,9 +154,7 @@ class BootAPI:
         # FIXME: take value from settings, use raw port
         if self.is_cobblerd:
            # don't signal yourself, that's asking for trouble.
-           self.logger.info("I'm coming from cobblerd, abort ping!")
            return True
-        self.logger.info("I'm not coming from cobblerd, here we go")
         self.server = xmlrpclib.Server("http://127.0.0.1:25151")
         if not remove:
             self.server.internal_cache_update(collection_type, name)

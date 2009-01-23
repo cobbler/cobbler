@@ -34,7 +34,6 @@ def daemonize_self():
             sys.exit(0) 
     except OSError, e: 
         print >>sys.stderr, "fork #1 failed: %d (%s)" % (e.errno, e.strerror) 
-        #utils.log_exc(logger)
         sys.exit(1)
 
     # decouple from parent environment
@@ -87,6 +86,7 @@ def main():
     try:
         app.core()
     except:
+        # FIXME: logging also?
         traceback.print_exc()
 
 if __name__ == "__main__":
