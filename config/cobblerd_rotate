@@ -10,7 +10,7 @@
    endscript
 }
 
-/var/log/cobbler/webui.log {
+/var/log/cobbler/cobblerd.log {
    missingok
    notifempty
    rotate 4
