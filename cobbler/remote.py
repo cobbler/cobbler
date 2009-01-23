@@ -1526,6 +1526,7 @@ class ProxiedXMLRPCInterface:
 
     def __init__(self,api,proxy_class,enable_auth_if_relevant=True):
         self.proxied = proxy_class(api,enable_auth_if_relevant)
+        self.logger = self.proxied.api.logger
 
     def _dispatch(self, method, params, **rest):
 

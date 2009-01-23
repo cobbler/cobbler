@@ -47,10 +47,7 @@ def core(log_settings={}):
     settings     = bootapi.settings()
     xmlrpc_port  = settings.xmlrpc_port
 
-    pid = os.fork()
-
     regen_ss_file()
-
     do_xmlrpc_tasks(bootapi, settings, xmlrpc_port)
 
 def regen_ss_file():

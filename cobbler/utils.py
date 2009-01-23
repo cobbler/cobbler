@@ -69,7 +69,9 @@ MODULE_CACHE = {}
 _re_kernel = re.compile(r'vmlinuz(.*)')
 _re_initrd = re.compile(r'initrd(.*).img')
 
-def setup_logger(name, log_level=logging.INFO, log_file="/var/log/cobbler/cobbler.log"):
+def setup_logger(name, is_cobblerd=False, log_level=logging.INFO, log_file="/var/log/cobbler/cobbler.log"):
+    if is_cobblerd:
+        log_file = "/var/log/cobbler/cobblerd.log"
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
     try:

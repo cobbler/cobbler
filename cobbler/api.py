@@ -74,7 +74,6 @@ class BootAPI:
         self.__dict__ = BootAPI.__shared_state
         self.log_settings = log_settings
         self.perms_ok = False
-        self.is_cobblerd = is_cobblerd
         if not BootAPI.__has_loaded:
 
             # NOTE: we do not log all API actions, because
@@ -84,6 +83,7 @@ class BootAPI:
             # level (and remote.py web service level) instead.
 
             random.seed()
+            self.is_cobblerd = is_cobblerd
 
             try:
                 self.logger = self.__setup_logger("api")
@@ -94,7 +94,6 @@ class BootAPI:
 
             # FIMXE: conslidate into 1 server instance
 
-            self.logger_remote = self.__setup_logger("remote")
             self.selinux_enabled = utils.is_selinux_enabled()
             self.dist = utils.check_dist()
             self.os_version = utils.os_release()
@@ -126,7 +125,7 @@ class BootAPI:
 
 
     def __setup_logger(self,name):
-        return utils.setup_logger(name, **self.log_settings)
+        return utils.setup_logger(name, is_cobblerd=self.is_cobblerd, **self.log_settings)
     
     def is_selinux_enabled(self):
         """
@@ -155,9 +154,9 @@ class BootAPI:
         # FIXME: take value from settings, use raw port
         if self.is_cobblerd:
            # don't signal yourself, that's asking for trouble.
-           self.logger.debug("I'm coming from cobblerd")
+           self.logger.info("I'm coming from cobblerd, abort ping!")
            return True
-        self.logger.debug("I'm not coming from cobblerd, here we go")
+        self.logger.info("I'm not coming from cobblerd, here we go")
         self.server = xmlrpclib.Server("http://127.0.0.1:25151")
         if not remove:
             self.server.internal_cache_update(collection_type, name)
