@@ -453,13 +453,6 @@ def blender(api_handle,remove_hashes, root_obj):
     for node in tree:
         __consolidate(node,results)
 
-    # add in syslog to results (magic)    
-    if settings.syslog_port != 0:
-        if not results.has_key("kernel_options"):
-            results["kernel_options"] = {}
-        syslog = "%s:%s" % (results["server"], settings.syslog_port)
-        results["kernel_options"]["syslog"] = syslog
-
     # determine if we have room to add kssendmac to the kernel options line
     kernel_txt = hash_to_string(results["kernel_options"])
     if len(kernel_txt) < 244:

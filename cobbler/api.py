@@ -155,15 +155,14 @@ class BootAPI:
         # FIXME: take value from settings, use raw port
         if self.is_cobblerd:
            # don't signal yourself, that's asking for trouble.
+           self.logger.debug("I'm coming from cobblerd")
            return True
-        self.server_normal = xmlrpclib.Server("http://127.0.0.1:25151")
-        self.server_rw     = xmlrpclib.Server("http://127.0.0.1:25152")
+        self.logger.debug("I'm not coming from cobblerd, here we go")
+        self.server = xmlrpclib.Server("http://127.0.0.1:25151")
         if not remove:
-            self.server_normal.internal_cache_update(collection_type, name)
-            self.server_rw.internal_cache_update(collection_type, name)
+            self.server.internal_cache_update(collection_type, name)
         else:
-            self.server_normal.internal_cache_remove(collection_type, name)
-            self.server_rw.internal_cache_remove(collection_type, name)
+            self.server.internal_cache_remove(collection_type, name)
         return False
 
     def last_modified_time(self):

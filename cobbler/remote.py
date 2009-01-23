@@ -120,21 +120,23 @@ class DataCache:
 
 class CobblerXMLRPCInterface:
     """
-    This is the interface used for all public XMLRPC methods, for instance,
-    as used by koan.  The read-write interface which inherits from this adds
-    more methods, though that interface can be disabled.
+    This is the interface used for all XMLRPC methods, for instance,
+    as used by koan or CobblerWeb
  
     note:  public methods take an optional parameter token that is just
-    here for consistancy with the ReadWrite API.  The tokens for the read only
-    interface are intentionally /not/ validated.  It's a public API.
+    here for consistancy with the ReadWrite API.  Read write operations do
+    require the token.
     """
 
-    def __init__(self,api,logger,enable_auth_if_relevant):
+    def __init__(self,api,enable_auth_if_relevant):
         self.api = api
-        self.logger = logger
         self.auth_enabled = enable_auth_if_relevant
-        self.timestamp = self.api.last_modified_time()
         self.cache = DataCache(self.api)
+        self.logger = self.api.logger
+        self.token_cache = TOKEN_CACHE
+        self.object_cache = OBJECT_CACHE
+        self.timestamp = self.api.last_modified_time()
+        random.seed(time.time())
 
     def __sorter(self,a,b):
         return cmp(a["name"],b["name"])
@@ -859,51 +861,11 @@ class CobblerXMLRPCInterface:
         """
         return self.api.status()
 
-# *********************************************************************************
-# *********************************************************************************
+   ######
+   # READ WRITE METHODS BELOW REQUIRE A TOKEN, use login()
+   # TO OBTAIN ONE
+   ######
 
-class CobblerXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
-    def __init__(self, args):
-        self.allow_reuse_address = True
-        SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self,args)
-
-# *********************************************************************************
-# *********************************************************************************
-
-
-class ProxiedXMLRPCInterface:
-
-    def __init__(self,api,logger,proxy_class,enable_auth_if_relevant=True):
-        self.logger  = logger
-        self.proxied = proxy_class(api,logger,enable_auth_if_relevant)
-
-    def _dispatch(self, method, params, **rest):
-
-        if not hasattr(self.proxied, method):
-            self.logger.error("remote:unknown method %s" % method)
-            raise CX(_("Unknown remote method"))
-
-        method_handle = getattr(self.proxied, method)
-
-        try:
-            return method_handle(*params)
-        except Exception, e:
-            utils.log_exc(self.logger)
-            raise e
-
-# **********************************************************************
-
-class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
-
-    def __init__(self,api,logger,enable_auth_if_relevant):
-        self.api = api
-        self.auth_enabled = enable_auth_if_relevant
-        self.cache = DataCache(self.api)
-        self.logger = logger
-        self.token_cache = TOKEN_CACHE
-        self.object_cache = OBJECT_CACHE
-        self.timestamp = self.api.last_modified_time()
-        random.seed(time.time())
 
     def __next_id(self,retry=0):
         """
@@ -1545,17 +1507,39 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         return rc
 
 
-# *********************************************************************
-# *********************************************************************
 
-class CobblerReadWriteXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
-    """
-    This is just a wrapper used for launching the Read/Write XMLRPC Server.
-    """
 
+
+# *********************************************************************************
+# *********************************************************************************
+
+class CobblerXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
     def __init__(self, args):
         self.allow_reuse_address = True
         SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self,args)
+
+# *********************************************************************************
+# *********************************************************************************
+
+
+class ProxiedXMLRPCInterface:
+
+    def __init__(self,api,proxy_class,enable_auth_if_relevant=True):
+        self.proxied = proxy_class(api,enable_auth_if_relevant)
+
+    def _dispatch(self, method, params, **rest):
+
+        if not hasattr(self.proxied, method):
+            self.logger.error("remote:unknown method %s" % method)
+            raise CX(_("Unknown remote method"))
+
+        method_handle = getattr(self.proxied, method)
+
+        try:
+            return method_handle(*params)
+        except Exception, e:
+            utils.log_exc(self.logger)
+            raise e
 
 # *********************************************************************
 # *********************************************************************
@@ -1609,7 +1593,7 @@ def _test_bootstrap_restart():
 
 def _test_remove_objects():
 
-   api = cobbler_api.BootAPI()
+   api = cobbler_api.BootAPI() # local handle
 
    # from ro tests
    d0 = api.find_distro("distro0")
@@ -1654,8 +1638,7 @@ def test_xmlrpc_ro():
    # now populate with something more useful
    # using the non-remote API
 
-   api = cobbler_api.BootAPI()
-   api.deserialize() # FIXME: redundant
+   api = cobbler_api.BootAPI() # local handle
 
    before_distros  = len(api.distros())
    before_profiles = len(api.profiles())
@@ -1890,7 +1873,7 @@ def test_xmlrpc_rw():
    _test_setup_modules(authn="authn_testing",authz="authz_allowall")
    _test_bootstrap_restart()
 
-   server = xmlrpclib.Server("http://127.0.0.1/cobbler_api_rw") # remote 
+   server = xmlrpclib.Server("http://127.0.0.1/cobbler_api") # remote 
    api = cobbler_api.BootAPI() # local instance, /DO/ ping cobblerd
 
    # note if authn_testing is not engaged this will not work
