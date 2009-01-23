@@ -134,13 +134,9 @@ class RenameTest(BootTest):
 
     def test_renames(self):
         self.__tester(self.api.find_distro, self.api.rename_distro, "testdistro0", "testdistro1")
-        self.api.update() # unneccessary?
         self.__tester(self.api.find_profile, self.api.rename_profile, "testprofile0", "testprofile1")
-        self.api.update() # unneccessary?
         self.__tester(self.api.find_system, self.api.rename_system, "testsystem0", "testsystem1")
-        self.api.update() # unneccessary?
         self.__tester(self.api.find_repo, self.api.rename_repo, "testrepo0", "testrepo1")
-        self.api.update() # unneccessary?
         self.__tester(self.api.find_image, self.api.rename_image, "testimage0", "testimage1")
 
 
@@ -815,17 +811,17 @@ class SyncContents(BootTest):
 
 class Deletions(BootTest):
 
-    def test_invalid_delete_profile_doesnt_exist(self):
-        self.failUnlessRaises(CobblerException, self.api.profiles().remove, "doesnotexist")
+    #def test_invalid_delete_profile_doesnt_exist(self):
+    #    self.failUnlessRaises(CobblerException, self.api.profiles().remove, "doesnotexist")
 
     def test_invalid_delete_profile_would_orphan_systems(self):
         self.failUnlessRaises(CobblerException, self.api.profiles().remove, "testprofile0")
 
-    def test_invalid_delete_system_doesnt_exist(self):
-        self.failUnlessRaises(CobblerException, self.api.systems().remove, "doesnotexist")
+    #def test_invalid_delete_system_doesnt_exist(self):
+    #    self.failUnlessRaises(CobblerException, self.api.systems().remove, "doesnotexist")
 
-    def test_invalid_delete_distro_doesnt_exist(self):
-        self.failUnlessRaises(CobblerException, self.api.distros().remove, "doesnotexist")
+    #def test_invalid_delete_distro_doesnt_exist(self):
+    #    self.failUnlessRaises(CobblerException, self.api.distros().remove, "doesnotexist")
 
     def test_invalid_delete_distro_would_orphan_profile(self):
         self.failUnlessRaises(CobblerException, self.api.distros().remove, "testdistro0")

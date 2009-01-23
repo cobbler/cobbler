@@ -66,7 +66,7 @@ class BootAPI:
     __shared_state = {}
     __has_loaded = False
 
-    def __init__(self, log_settings={}):
+    def __init__(self, log_settings={}, is_cobblerd=False):
         """
         Constructor
         """
@@ -74,6 +74,7 @@ class BootAPI:
         self.__dict__ = BootAPI.__shared_state
         self.log_settings = log_settings
         self.perms_ok = False
+        self.is_cobblerd = is_cobblerd
         if not BootAPI.__has_loaded:
 
             # NOTE: we do not log all API actions, because
@@ -152,14 +153,18 @@ class BootAPI:
         Update cobblerd so it won't have to ever reload the config, once started.
         """
         # FIXME: take value from settings, use raw port
-        self.server_normal = xmlrpclib.Server("http://127.0.0.1/cobbler_api")
-        self.server_rw     = xmlrpclib.Server("http://127.0.0.1/cobbler_api_rw")
+        if self.is_cobblerd:
+           # don't signal yourself, that's asking for trouble.
+           return True
+        self.server_normal = xmlrpclib.Server("http://127.0.0.1:25151")
+        self.server_rw     = xmlrpclib.Server("http://127.0.0.1:25152")
         if not remove:
             self.server_normal.internal_cache_update(collection_type, name)
             self.server_rw.internal_cache_update(collection_type, name)
         else:
             self.server_normal.internal_cache_remove(collection_type, name)
             self.server_rw.internal_cache_remove(collection_type, name)
+        return False
 
     def last_modified_time(self):
         """
@@ -285,7 +290,7 @@ class BootAPI:
         self.log("copy_image",[ref.name, newname])
         return self._config.images().copy(ref,newname)
 
-    def remove_distro(self, ref, recursive=False, delete=True, with_triggers=True):
+    def remove_distro(self, ref, recursive=False, delete=True, with_triggers=True, ):
         if type(ref) != str:
            self.log("remove_distro",[ref.name])
            return self._config.distros().remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
@@ -296,7 +301,7 @@ class BootAPI:
     def remove_profile(self,ref, recursive=False, delete=True, with_triggers=True):
         if type(ref) != str:
            self.log("remove_profile",[ref.name])
-           return self._config.profiles().remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
+           return self._config.profiles().remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers) 
         else:
            self.log("remove_profile",ref)
            return self._config.profiles().remove(ref, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
@@ -412,12 +417,11 @@ class BootAPI:
         results1 = collector()
         results2 = []
         for x in results1:
-           print "INPUT: %s ACTUAL: %s" % (mtime, x.mtime)
            if x.mtime == 0 or x.mtime >= mtime:
               if not collapse:
-                  results2.append(results1)
+                  results2.append(x)
               else:
-                  results2.append(results1.to_datastruct())
+                  results2.append(x.to_datastruct())
         return results2
 
     def get_distros_since(self,mtime,collapse=False):

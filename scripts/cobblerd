@@ -80,7 +80,7 @@ def main():
         if not isinstance(log_level, int):
             op.error('Unrecognized log level %r given')
         log_settings['log_level'] = log_level
-    api = bootapi.BootAPI(log_settings=log_settings)
+    api = bootapi.BootAPI(log_settings=log_settings, is_cobblerd=True)
     logger = api.logger
 
     if options.daemonize:

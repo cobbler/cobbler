@@ -241,7 +241,6 @@ def __test_setup():
     # module later.
 
     api = cobbler_api.BootAPI()
-    api.deserialize() # FIXME: redundant
 
     fake = open("/tmp/cobbler.fake","w+")
     fake.write("")
@@ -377,11 +376,11 @@ def test_services_access():
     api.add_system(sys) # save the system to ensure it's set True
 
     url = "http://127.0.0.1/cblr/svc/op/nopxe/system/system0"
+    print "DEBUG: reading: %s" % url
     data = urlgrabber.urlread(url)
     print "NOPXE DATA: %s" % data
-    time.sleep(10)
+    time.sleep(2)
 
-    api.deserialize() # ensure we have the latest data in the API handle
     sys = api.find_system("system0")
     print "NE STATUS: %s" % sys.netboot_enabled
     assert str(sys.netboot_enabled).lower() not in [ "1", "true", "yes" ]
@@ -389,18 +388,23 @@ def test_services_access():
     # now let's test the listing URLs since we document
     # them even know I don't know of anything relying on them.
 
+    print "A"
     url = "http://127.0.0.1/cblr/svc/op/list/what/distros"
     assert urlgrabber.urlread(url).find("distro0") != -1
 
+    print "B"
     url = "http://127.0.0.1/cblr/svc/op/list/what/profiles"
     assert urlgrabber.urlread(url).find("profile0") != -1
 
+    print "C"
     url = "http://127.0.0.1/cblr/svc/op/list/what/systems"
     assert urlgrabber.urlread(url).find("system0") != -1
 
+    print "D"
     url = "http://127.0.0.1/cblr/svc/op/list/what/repos"
     assert urlgrabber.urlread(url).find("repo0") != -1
 
+    print "E"
     url = "http://127.0.0.1/cblr/svc/op/list/what/images"
     assert urlgrabber.urlread(url).find("image0") != -1
 

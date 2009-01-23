@@ -92,7 +92,7 @@ class DataCache:
          if collection_type == "repo":
              obj = item_repo.Repo(self.api._config)
              obj.from_datastruct(data)
-             self.api.add_repo(obj, False, save=False)
+             self.api.add_repo(obj, False, False)
 
          if collection_type == "image":
              obj = item_image.Image(self.api._config)
@@ -1603,7 +1603,7 @@ def _test_bootstrap_restart():
    assert rc1 == 0
    rc2 = subprocess.call(["/sbin/service","httpd","restart"],shell=False,close_fds=True)
    assert rc2 == 0
-   time.sleep(2)
+   time.sleep(5)
    
    _test_remove_objects()
 
@@ -1891,7 +1891,7 @@ def test_xmlrpc_rw():
    _test_bootstrap_restart()
 
    server = xmlrpclib.Server("http://127.0.0.1/cobbler_api_rw") # remote 
-   api = cobbler_api.BootAPI() # local
+   api = cobbler_api.BootAPI() # local instance, /DO/ ping cobblerd
 
    # note if authn_testing is not engaged this will not work
    # test getting token, will raise remote exception on fail 

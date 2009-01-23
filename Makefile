@@ -22,6 +22,7 @@ test:
 	make rpms
 	make install
 	make eraseconfig
+	/sbin/service cobblerd restart
 	-(make nosetests)
 	make restorestate prefix=test
 
