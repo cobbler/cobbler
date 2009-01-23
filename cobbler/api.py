@@ -299,6 +299,10 @@ class BootAPI:
         self.log("copy_image",[ref.name, newname])
         return self._config.images().copy(ref,newname)
 
+    def copy_network(self, ref, newname):
+        self.log("copy_network",[ref.name, newname])
+        return self._config.networks().copy(ref,newname)
+
     def remove_distro(self, ref, recursive=False, delete=True, with_triggers=True, ):
         if type(ref) != str:
            self.log("remove_distro",[ref.name])
@@ -339,6 +343,14 @@ class BootAPI:
            self.log("remove_image",ref)
            return self._config.images().remove(ref, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
 
+    def remove_network(self, ref, recursive=False, delete=True, with_triggers=True):
+        if type(ref) != str:
+           self.log("remove_network",[ref.name])
+           return self._config.networks().remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
+        else:
+           self.log("remove_image",ref)
+           return self._config.networks().remove(ref, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
+
     def rename_distro(self, ref, newname):
         self.log("rename_distro",[ref.name,newname])
         return self._config.distros().rename(ref,newname)
@@ -358,6 +370,10 @@ class BootAPI:
     def rename_image(self, ref, newname):
         self.log("rename_image",[ref.name,newname])
         return self._config.images().rename(ref,newname)
+
+    def rename_network(self, ref, newname):
+        self.log("rename_network",[ref.name,newname])
+        return self._config.networks().rename(ref,newname)
 
     def new_distro(self,is_subobject=False):
         self.log("new_distro",[is_subobject])
@@ -408,6 +424,11 @@ class BootAPI:
         rc = self._config.images().add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
         return rc
 
+    def add_network(self, ref, check_for_duplicate_names=False,save=True):
+        self.log("add_network",[ref.name])
+        rc = self._config.networks().add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
+        return rc
+
     def find_distro(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.distros().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
         
@@ -422,6 +443,9 @@ class BootAPI:
 
     def find_image(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.images().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
+
+    def find_network(self, name=None, return_list=False, no_errors=False, **kargs):
+        return self._config.networks().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     def __since(self,mtime,collector,collapse=False):
         """
@@ -456,7 +480,8 @@ class BootAPI:
     def get_images_since(self,mtime,collapse=False):
         return self.__since(mtime,self.images,collapse=collapse)
 
-    
+    def get_networks_since(self,mtime,collapse=False):
+        return self.__since(mtime,self.networks,collapse=collapse)
 
 
     def dump_vars(self, obj, format=False):
