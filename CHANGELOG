@@ -1,5 +1,8 @@
 Koan CHANGELOG
 
+- XXX 1.4.2
+- make LVM storage work regardless of localization
+
 - Fri Jan 09 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.1
 - --embed-kickstart is no longer the default behavior
 - fix missing import in qcreate.py when using images over NFS
