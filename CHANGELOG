@@ -7,6 +7,7 @@ Cobbler CHANGELOG
 - (BUGF) fix typo in network template (DNS enumeration)
 - (BUGF) make buildiso work for systems that are using bonding
 - (BUGF) blending fix for --template-files
+- (BUGF) fix image type field editing in the webapp
 
 - Fri Jan 09 2009 - 1.4.1
 - (BUGF) Cobbler check looks for right httpd on SUSE
