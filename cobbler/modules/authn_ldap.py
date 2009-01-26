@@ -23,7 +23,6 @@ import distutils.sysconfig
 import sys
 import os
 from utils import _
-import md5
 import traceback
 
 # we'll import this just a bit later

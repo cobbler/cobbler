@@ -30,7 +30,6 @@ import sys
 import glob
 import traceback
 import errno
-import popen2
 import re
 from shlex import shlex
 

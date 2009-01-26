@@ -27,7 +27,6 @@ import sys
 import socket
 import time
 import os
-import md5
 import base64
 import SimpleXMLRPCServer
 import xmlrpclib
@@ -368,7 +367,7 @@ class CobblerXMLRPCInterface:
             if size is not None:
                 if size != len(contents): return False
             if md5sum is not None:
-                if md5sum != md5.new(contents).hexdigest():
+                if md5sum != md5(contents).hexdigest():
                     return False
 
         #XXX - have an incoming dir and move after upload complete
@@ -428,7 +427,7 @@ class CobblerXMLRPCInterface:
                         fcntl.lockf(fd, fcntl.LOCK_UN)
                 if md5sum is not None:
                     #check final md5sum
-                    sum = md5.new()
+                    sum = md5()
                     fcntl.lockf(fd, fcntl.LOCK_SH|fcntl.LOCK_NB)
                     try:
                         # log_error("checking md5sum")
