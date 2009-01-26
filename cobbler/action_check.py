@@ -304,7 +304,7 @@ class BootCheck:
           f = open(self.settings.tftpd_conf)
           re_disable = re.compile(r'disable.*=.*yes')
           for line in f.readlines():
-             if re_disable.search(line):
+             if re_disable.search(line) and not line.strip().startswith("#"):
                  status.append(_("change 'disable' to 'no' in %(file)s") % { "file" : self.settings.tftpd_conf })
        else:
           status.append(_("file %(file)s does not exist") % { "file" : self.settings.tftpd_conf })
