@@ -21,7 +21,7 @@ import logging
 import cobbler.utils as utils
 import cobbler.sub_process as sub_process
 import traceback
-
+import cobbler.api as cobbler_api
 import optparse
 
 def daemonize_self():
@@ -79,6 +79,10 @@ def main():
         if not isinstance(log_level, int):
             op.error('Unrecognized log level %r given')
         log_settings['log_level'] = log_level
+
+    # load the API now rather than later, to ensure cobblerd
+    # startup time is done before the service returns
+    api = cobbler_api.BootAPI()
 
     if options.daemonize:
         daemonize_self()
