@@ -1,6 +1,9 @@
 Koan CHANGELOG
 
-- Thu Jan 08 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.1
+- XXX 1.4.2
+- make LVM storage work regardless of localization
+
+- 1.4.1
 - --embed-kickstart is no longer the default behavior
 
 - 1.4.0
