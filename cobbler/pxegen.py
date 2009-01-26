@@ -860,9 +860,14 @@ class PXEGen:
            return results
 
         blended = utils.blender(self.api, False, obj)
+
         ksmeta = blended.get("ks_meta",{})
         del blended["ks_meta"]
         blended.update(ksmeta) # make available at top level
+
+        templates = blended.get("template_files",{})
+        del blended["template_files"]
+        blended.update(templates) # make available at top level
 
         (success, templates) = utils.input_string_or_hash(templates)
 
