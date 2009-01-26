@@ -236,12 +236,19 @@ class BuildIso:
 
                    # add network info to avoid DHCP only if it is available
 
-                   if data.has_key("ip_address_eth0") and data["ip_address_eth0"] != "":
-                       append_line = append_line + " ip=%s" % data["ip_address_eth0"]
-                   if data.has_key("subnet_eth0") and data["subnet_eth0"] != "":
-                       append_line = append_line + " netmask=%s" % data["subnet_eth0"]
-                   if data.has_key("gateway_eth0") and data["gateway_eth0"] != "":
-                       append_line = append_line + " gateway=%s\n" % data["gateway_eth0"]
+                   if data.has_key("bonding_master_eth0") and data["bonding_master_eth0"] != "":
+                      primary_interface = data["bonding_master_eth0"]
+                   else:
+                      primary_interface = "eth0"
+
+                   if data.has_key("ip_address_" + primary_interface) and data["ip_address_" + primary_interface] != "":
+                       append_line = append_line + " ip=%s" % data["ip_address_" + primary_interface]
+
+                   if data.has_key("subnet_" + primary_interface) and data["subnet_" + primary_interface] != "":
+                       append_line = append_line + " netmask=%s" % data["subnet_" + primary_interface]
+
+                   if data.has_key("gateway") and data["gateway"] != "":
+                       append_line = append_line + " gateway=%s\n" % data["gateway"]
 
                    length=len(append_line)
                    if length > 254:
