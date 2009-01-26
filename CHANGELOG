@@ -2,11 +2,20 @@ Cobbler CHANGELOG
 
 - *** - 1.5.0
 - (FEAT) Improved anaconda monitoring code
-- (FEAT) added integrity power type
 - (FEAT) preliminary linux-ris support for windows installs (WIP)
 - (FEAT) download comps.xml always
+- (FEAT) performance upgrades for cobblerd service to avoid reloads
 
-- Mon Dec 19 2008 - 1.4.1
+- XXX - 1.4.2
+- (BUGF) fix WTI power templates
+- (FEAT) add WTI power type
+- (BUGF) remove Python 2.6/3000 warnings
+- (BUGF) fix typo in network template (DNS enumeration)
+- (BUGF) make buildiso work for systems that are using bonding
+- (BUGF) blending fix for --template-files
+- (BUGF) cobbler check ignores comments in TFTP config
+
+- Fri Jan 09 2009 - 1.4.1
 - (BUGF) Cobbler check looks for right httpd on SUSE
 - (BUGF) post_install_network_config snippet had bash errors
 - (BUGF) don't run restorecon programatically
