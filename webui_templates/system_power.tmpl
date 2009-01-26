@@ -39,7 +39,7 @@ function submit_power(value)
             </td>
 
             <td>
-                #set valid_power = [ "none", "bullpap", "wti", "apc_snmp", "ether-wake", "ipmilan", "drac", "ipmitool", "ilo", "rsa", "lpar", "bladecenter" ]
+                #set valid_power = [ "none", "bullpap", "wti", "apc_snmp", "ether-wake", "ipmilan", "drac", "ipmitool", "ilo", "rsa", "lpar", "bladecenter", "integrity" ]
                 #set nothing = valid_power.sort()
                 #for $value in $valid_power:
                     #if $system and (($system.power_type == $value) or ($system.power_type == "" and $value == "none"))
