@@ -8,6 +8,7 @@ Cobbler CHANGELOG
 - (BUGF) make buildiso work for systems that are using bonding
 - (BUGF) blending fix for --template-files
 - (BUGF) fix image type field editing in the webapp
+- (BUGF) allow deletion of eth0 if other interfaces are present
 
 - Fri Jan 09 2009 - 1.4.1
 - (BUGF) Cobbler check looks for right httpd on SUSE
