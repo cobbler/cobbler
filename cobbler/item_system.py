@@ -80,22 +80,20 @@ class System(item.Item):
 
     def delete_interface(self,name):
         """
-        Used to remove an interface.  Not valid for the default 
-interface.
+        Used to remove an interface.
         """
-        if self.interfaces.has_key(name) and name != "eth0":
+        if self.interfaces.has_key(name) and len(self.interfaces) > 1:
             del self.interfaces[name]
         else:
-            if name == "eth0":
-                raise CX(_("Interface %s can never be deleted") % name)
-            else:
+            if not self.interfaces.has_key(name):
                 raise CX(_("Cannot delete interface that is not present: %s") % name)
+            else:
+                raise CX(_("At least one interface needs to be defined."))
+
         return True
         
 
     def __get_interface(self,name):
-        if name is None:
-            return self.__get_default_interface()
 
         if not self.interfaces.has_key(name):
             self.interfaces[name] = {
@@ -114,8 +112,6 @@ interface.
 
         return self.interfaces[name]
 
-    def __get_default_interface(self):
-        return self.__get_interface("eth0")
 
     def from_datastruct(self,seed_data):
 
@@ -309,8 +305,6 @@ interface.
         Set the name.  If the name is a MAC or IP, and the first MAC and/or IP is not defined, go ahead
         and fill that value in.  
         """
-        intf = self.__get_default_interface()
-
 
         if self.name not in ["",None] and self.parent not in ["",None] and self.name == self.parent:
             raise CX(_("self parentage is weird"))
@@ -320,10 +314,15 @@ interface.
             if not x.isalnum() and not x in [ "_", "-", ".", ":", "+" ] :
                 raise CX(_("invalid characters in name: %s") % x)
 
+        # Stuff here defaults to eth0. Yes, it's ugly and hardcoded, but so was
+        # the default interface behaviour that's now removed. ;)
+        # --Jasper Capel
         if utils.is_mac(name):
+           intf = self.__get_interface("eth0")
            if intf["mac_address"] == "":
                intf["mac_address"] = name
         elif utils.is_ip(name):
+           intf = self.__get_interface("eth0")
            if intf["ip_address"] == "":
                intf["ip_address"] = name
         self.name = name 
@@ -387,12 +386,6 @@ interface.
                 # has ip and/or mac
                 return True
         return False
-
-    def set_default_interface(self,interface):
-        if self.interfaces.has_key(interface):
-            self.default_interface = interface
-        else:
-            raise CX(_("invalid interface (%s)") % interface)
 
     def set_dhcp_tag(self,dhcp_tag,interface):
         intf = self.__get_interface(interface)
