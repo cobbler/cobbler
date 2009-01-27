@@ -160,10 +160,6 @@ class BootLiteSync:
         system_record = self.systems.find(name=name)
         # delete contents of kickstarts_sys/$name in webdir
         system_record = self.systems.find(name=name)
-        # delete any kickstart files related to this system
-        for (name,interface) in system_record.interfaces.iteritems():
-           filename = utils.get_config_filename(system_record,interface=name)
-           utils.rmtree(os.path.join(self.settings.webdir, "kickstarts_sys", filename))
 
         if self.settings.manage_dhcp:
             if self.settings.omapi_enabled: 
@@ -179,8 +175,12 @@ class BootLiteSync:
             distro = self.distros.find(name=profile.distro)
             if distro is not None and distro in [ "ia64", "IA64"]:
                 itanic = True
-        if not itanic:
-            utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
-        else:
-            utils.rmfile(os.path.join(bootloc, filename))
+
+        for (name,interface) in system_record.interfaces.iteritems():
+            filename = utils.get_config_filename(system_record,interface=name)
+
+            if not itanic:
+                utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
+            else:
+                utils.rmfile(os.path.join(bootloc, filename))
 

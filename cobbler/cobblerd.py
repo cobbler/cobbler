@@ -41,9 +41,9 @@ import remote
 def main():
    core(logger=None)
 
-def core(log_settings={}):
+def core(api):
 
-    bootapi      = cobbler_api.BootAPI(log_settings=log_settings,is_cobblerd=True)
+    bootapi      = api
     settings     = bootapi.settings()
     xmlrpc_port  = settings.xmlrpc_port
 

@@ -82,13 +82,13 @@ def main():
 
     # load the API now rather than later, to ensure cobblerd
     # startup time is done before the service returns
-    api = cobbler_api.BootAPI()
+    api = cobbler_api.BootAPI(log_settings=log_settings, is_cobblerd=True)
 
     if options.daemonize:
         daemonize_self()
 
     try:
-        app.core()
+        app.core(api)
     except:
         # FIXME: logging also?
         traceback.print_exc()

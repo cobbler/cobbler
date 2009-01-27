@@ -68,7 +68,6 @@ class CobblerSvc(object):
         """
         if self.remote is None:
             self.remote = xmlrpclib.Server(self.server, allow_none=True)
-        self.remote.update()
 
     def index(self,**args):
         return "no mode specified"
