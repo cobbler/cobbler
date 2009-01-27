@@ -120,12 +120,6 @@ function on_interface_delete()
    selected = get_selected_interface()
    interfaces = document.getElementById("interfaces")
 
-
-   if (interfaces.value == no_delete) {
-      alert("the default interface cannot be deleted")
-      return
-   }
-   
    if (interfaces.length == 1) {
       alert("systems must always have at least one interface")
       return
@@ -329,7 +323,6 @@ function page_onload() {
     interface_table = build_interface_table()
     last_interface = get_selected_interface()
     load_intf()
-    no_delete = "eth0"
 }
 </script>
 
