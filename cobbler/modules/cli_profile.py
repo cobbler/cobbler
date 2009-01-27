@@ -148,7 +148,7 @@ class ProfileFunction(commands.CobblerFunction):
             if self.options.dhcp_tag is not None:        
                 obj.set_dhcp_tag(self.options.dhcp_tag)
             if self.options.server_override is not None: 
-                obj.set_server(self.options.server)
+                obj.set_server(self.options.server_overide)
 
             if self.options.owners is not None:          
                 obj.set_owners(self.options.owners)
