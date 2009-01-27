@@ -569,7 +569,7 @@ redhatmanagementkey"
     </td>
     <td class="netedit">
     #if $system
-       #set joined = " ".join($profile.name_servers)
+       #set joined = " ".join($system.name_servers)
        <input type="text" name="name_servers" id="name_servers" value="$joined">
     #else
        <input type="text" name="name_servers" id="name_servers" value="<<inherit>>">
