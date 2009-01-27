@@ -28,7 +28,6 @@ import sys
 import string
 import time
 import re
-import md5
 import base64
 import shlex
 
@@ -89,26 +88,22 @@ class WatchedFile:
         fo = file(self.fn, "r")
         totalsize = os.path.getsize(self.fn)
         ofs = 0
-        md5sum = md5.new()
         while True:
             lap = time.time()
             contents = fo.read(blocksize)
-            md5sum.update(contents)
             size = len(contents)
             data = base64.encodestring(contents)
             if size == 0:
                 offset = -1
-                digest = md5sum.hexdigest()
                 sz = ofs
             else:
                 offset = ofs
-                digest = md5.new(contents).hexdigest()
                 sz = size
             del contents
             tries = 0
             while tries <= retries:
-                debug("upload_log_data('%s', '%s', %s, %s, %s, ...)\n" % (name, self.alias, sz, digest, offset))
-                if session.upload_log_data(name, self.alias, sz, digest, offset, data):
+                debug("upload_log_data('%s', '%s', %s, %s, ...)\n" % (name, self.alias, sz, offset))
+                if session.upload_log_data(name, self.alias, sz, offset, data):
                     break
                 else:
                     tries = tries + 1

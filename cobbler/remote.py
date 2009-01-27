@@ -404,7 +404,7 @@ class CobblerXMLRPCInterface:
         systems.add(obj,save=True,with_triggers=False,with_sync=False,quick_pxe_update=True)
         return True
 
-    def upload_log_data(self, sys_name, file, size, md5sum, offset, data, token=None,**rest):
+    def upload_log_data(self, sys_name, file, size, offset, data, token=None,**rest):
 
         """
         This is a logger function used by the "anamon" logging system to
@@ -428,17 +428,16 @@ class CobblerXMLRPCInterface:
             self._log("upload_log_data - system '%s' not found" % sys_name, token=token, name=sys_name)
             return False
 
-        return self.__upload_file(sys_name, file, size, md5sum, offset, data)
+        return self.__upload_file(sys_name, file, size, offset, data)
 
-    def __upload_file(self, sys_name, file, size, md5sum, offset, data):
+    def __upload_file(self, sys_name, file, size, offset, data):
         '''
         system: the name of the system
         name: the name of the file
         size: size of contents (bytes)
-        md5: md5sum (hex digest) of contents
         data: base64 encoded file contents
         offset: the offset of the chunk
-         files can be uploaded in chunks, if so the md5 and size describe
+         files can be uploaded in chunks, if so the size describes
          the chunk rather than the whole file. the offset indicates where
          the chunk belongs
          the special offset -1 is used to indicate the final chunk'''
@@ -446,9 +445,7 @@ class CobblerXMLRPCInterface:
         del data
         if offset != -1:
             if size is not None:
-                if size != len(contents): return False
-            if md5sum is not None:
-                if md5sum != md5(contents).hexdigest():
+                if size != len(contents): 
                     return False
 
         #XXX - have an incoming dir and move after upload complete
@@ -504,23 +501,6 @@ class CobblerXMLRPCInterface:
                     try:
                         os.ftruncate(fd, size)
                         # log_error("truncating fd %r to size %r" % (fd,size))
-                    finally:
-                        fcntl.lockf(fd, fcntl.LOCK_UN)
-                if md5sum is not None:
-                    #check final md5sum
-                    sum = md5()
-                    fcntl.lockf(fd, fcntl.LOCK_SH|fcntl.LOCK_NB)
-                    try:
-                        # log_error("checking md5sum")
-                        os.lseek(fd,0,0)
-                        while True:
-                            block = os.read(fd, 819200)
-                            if not block: break
-                            sum.update(block)
-                        if md5sum != sum.hexdigest():
-                            # log_error("md5sum did not match")
-                            #os.close(fd)
-                            return False
                     finally:
                         fcntl.lockf(fd, fcntl.LOCK_UN)
         finally:
