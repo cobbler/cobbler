@@ -40,14 +40,14 @@ import codes
 import time
 
 try:
-    import hashlib
+    import hashlib as fiver
     def md5(key):
-        return hashlib.md5(key)
-except ImportError:         
-    # compatibility with python < 2.5
-    import md5
+        return fiver.md5(key)
+except ImportError: 
+    # for Python < 2.5
+    import md5 as fiver
     def md5(key):
-        return md5.md5(key)
+        return fiver.md5(key)
 
 
 CHEETAH_ERROR_DISCLAIMER="""
