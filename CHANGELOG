@@ -9,6 +9,7 @@ Cobbler CHANGELOG
 - (BUGF) blending fix for --template-files
 - (BUGF) fix image type field editing in the webapp
 - (BUGF) allow deletion of eth0 if other interfaces are present
+- (BUGF) fix server-override setting in CLI for profile objects
 
 - Fri Jan 09 2009 - 1.4.1
 - (BUGF) Cobbler check looks for right httpd on SUSE
