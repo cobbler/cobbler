@@ -356,7 +356,7 @@ class System(item.Item):
         intf = self.__get_interface(interface)
 
         if intf["mac_address"] != "":
-            return intf["mac_address"]
+            return intf["mac_address"].strip()
         else:
             return None
 
@@ -369,7 +369,7 @@ class System(item.Item):
         intf = self.__get_interface(interface)
 
         if intf["ip_address"] != "": 
-            return intf["ip_address"]
+            return intf["ip_address"].strip()
         else:
             return None
 
@@ -426,7 +426,7 @@ class System(item.Item):
         """
         intf = self.__get_interface(interface)
         if address == "" or utils.is_ip(address):
-           intf["ip_address"] = address
+           intf["ip_address"] = address.strip()
            return True
         raise CX(_("invalid format for IP address (%s)") % address)
 
