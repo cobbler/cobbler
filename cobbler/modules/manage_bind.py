@@ -222,14 +222,14 @@ zone "%(arpa)s." {
         octets = map(lambda x: [str(i) for i in x], octets)
         return ['.'.join(i) for i in octets]
 
-    def __pretty_print_host_records(self, hosts, type='A', rclass='IN'):
+    def __pretty_print_host_records(self, hosts, rectype='A', rclass='IN'):
         """
         Format host records by order and with consistent indentation
         """
         names = [k for k,v in hosts.iteritems()]
         if not names: return '' # zones with no hosts
 
-        if type == 'PTR':
+        if rectype == 'PTR':
            names = self.__ip_sort(names)
         else:
            names.sort()
@@ -238,10 +238,10 @@ zone "%(arpa)s." {
 
         s = ""
         for name in names:
-           s += "%s  %s  %s  %s\n" % (name + (" " * (max_name - len(name))),
-                                      rclass,
-                                      type,
-                                      hosts[name])
+           spacing = " " * (max_name - len(name))
+           my_name = "%s%s" % (name, spacing)
+           my_host = hosts[name]
+           s += "%s  %s  %s  %s\n" % (my_name, rclass, rectype, my_host)
         return s
 
     def __write_zone_files(self):
@@ -296,7 +296,7 @@ zone "%(arpa)s." {
             except:
                template_data = default_template_data
 
-            metadata['host_record'] = self.__pretty_print_host_records(hosts, type='PTR')
+            metadata['host_record'] = self.__pretty_print_host_records(hosts, rectype='PTR')
 
             self.templar.render(template_data, metadata, '/var/named/' + zone, None)
 
