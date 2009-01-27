@@ -39,6 +39,17 @@ from cexceptions import *
 import codes
 import time
 
+try:
+    import hashlib
+    def md5(key):
+        return hashlib.md5(key)
+except ImportError:         
+    # compatibility with python < 2.5
+    import md5
+    def md5(key):
+        return md5.md5(key)
+
+
 CHEETAH_ERROR_DISCLAIMER="""
 # *** ERROR ***
 #
@@ -1326,17 +1337,6 @@ def popen2(args, **kwargs):
     """
     p = sub_process.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, **kwargs)
     return (p.stdout, p.stdin)
-
-try:
-    import hashlib
-    def md5(key):
-        return hashlib.md5(key)
-
-except ImportError:         # keep compatible with older python (< 2.5) 
-    import md5
-    def md5(key):
-        return md5.md5(key)
-
 
 if __name__ == "__main__":
     # print redhat_release()

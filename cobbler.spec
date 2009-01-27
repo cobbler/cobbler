@@ -157,10 +157,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cobbler/links
 %defattr(755,apache,apache)
 %dir /var/www/cobbler/webui
-%dir /var/www/cobbler/aux
 %defattr(444,apache,apache)
 /var/www/cobbler/webui/*
-/var/www/cobbler/aux/*
 
 %defattr(755,root,root)
 %{_bindir}/cobbler
@@ -199,7 +197,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/httpd/conf.d/cobbler_svc.conf
 %endif
 %dir /var/log/cobbler/syslog
-%dir /var/log/cobbler/anamon
 
 %defattr(755,root,root)
 %dir /var/lib/cobbler
@@ -265,7 +262,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/snippets/func_register_if_enabled
 %config(noreplace) /var/lib/cobbler/snippets/download_config_files
 %config(noreplace) /var/lib/cobbler/snippets/koan_environment
-%config(noreplace) /var/lib/cobbler/snippets/pre_anamon
 %config(noreplace) /var/lib/cobbler/snippets/redhat_register
 /var/lib/cobbler/elilo-3.8-ia64.efi
 /var/lib/cobbler/menu.c32

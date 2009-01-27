@@ -349,7 +349,7 @@ class CobblerXMLRPCInterface:
 
         return self.__upload_file(sys_name, file, size, md5sum, offset, data)
 
-    def __upload_file(self, sys_name, file, size, md5sum, offset, data):
+    def __upload_file(self, sys_name, file, size, offset, data):
         '''
         system: the name of the system
         name: the name of the file
@@ -423,23 +423,6 @@ class CobblerXMLRPCInterface:
                     try:
                         os.ftruncate(fd, size)
                         # log_error("truncating fd %r to size %r" % (fd,size))
-                    finally:
-                        fcntl.lockf(fd, fcntl.LOCK_UN)
-                if md5sum is not None:
-                    #check final md5sum
-                    sum = md5()
-                    fcntl.lockf(fd, fcntl.LOCK_SH|fcntl.LOCK_NB)
-                    try:
-                        # log_error("checking md5sum")
-                        os.lseek(fd,0,0)
-                        while True:
-                            block = os.read(fd, 819200)
-                            if not block: break
-                            sum.update(block)
-                        if md5sum != sum.hexdigest():
-                            # log_error("md5sum did not match")
-                            #os.close(fd)
-                            return False
                     finally:
                         fcntl.lockf(fd, fcntl.LOCK_UN)
         finally:
