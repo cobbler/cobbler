@@ -52,6 +52,15 @@ rm -f /etc/sysconfig/network
 mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
     #end if
     ## =============================================================================
+    ## Configure the system's primary hostname. This is also passed to anaconda, but
+    ## anaconda doesn't seem to honour it in DHCP-setups.
+    #if $hostname != ""
+grep -v HOSTNAME /etc/sysconfig/network > /etc/sysconfig/network.cobbler
+echo "HOSTNAME=$hostname" >> /etc/sysconfig/network.cobbler
+rm -f /etc/sysconfig/network
+mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
+    #end if
+    ## =============================================================================
     ## now create the config file for each interface
     #for $iname in $ikeys
 # Start configuration for $iname
@@ -201,8 +210,8 @@ echo "BOOTPROTO=dhcp" >> $devfile
 	#end if
         #set $nct = 0
         #for $nameserver in $name_servers
-            #set $nct = $nct + 1
-echo "DNS$nct=$nameserver" >> $devfile
+            #set $ct = $nct + 1
+echo "DNS$ct=$nameserver" >> $devfile
         #end for
 	#for $route in $static_routes
 	    #set routepattern = $re.compile("[0-9/.]+:[0-9.]+")
