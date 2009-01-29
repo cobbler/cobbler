@@ -43,7 +43,7 @@ def main():
 
 def core(logger=None):
 
-    bootapi      = cobbler_api.BootAPI()
+    bootapi = cobbler_api.BootAPI()
     settings     = bootapi.settings()
     syslog_port  = settings.syslog_port
     xmlrpc_port  = settings.xmlrpc_port

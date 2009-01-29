@@ -80,7 +80,17 @@ def main():
         if not isinstance(log_level, int):
             op.error('Unrecognized log level %r given')
         log_settings['log_level'] = log_level
-    api = bootapi.BootAPI(log_settings=log_settings)
+
+    api = None
+    try:
+        api = bootapi.BootAPI(log_settings=log_settings)
+    except Exception, exc:
+        if sys.exc_type==SystemExit:
+            return exc.code
+        else:
+            utils.print_exc(exc,full=True)
+            return 1
+
     logger = api.logger
 
     if options.daemonize:
