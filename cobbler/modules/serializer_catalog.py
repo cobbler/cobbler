@@ -33,7 +33,7 @@ sys.path.insert(0, mod_path)
 from utils import _
 import utils
 import yaml   # Howell-Clark version
-import cexceptions
+from cexceptions import *
 import os
 
 def register():
@@ -46,7 +46,10 @@ def serialize_item(obj, item):
     filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
     datastruct = item.to_datastruct()
     fd = open(filename,"w+")
-    fd.write(yaml.dump(datastruct))
+    ydata = yaml.dump(datastruct)
+    if ydata is None or ydata == "":
+       raise CX("internal yaml error, tried to write empty file to %s, data was %s" % (filename, datastruct))
+    fd.write(ydata)
     fd.close()
     return True
 
@@ -99,7 +102,15 @@ def deserialize_raw(collection_type):
          files = glob.glob("/var/lib/cobbler/config/%ss.d/*" % collection_type)
          for f in files:
              fd = open(f)
-             results.append(yaml.load(fd.read()).next())
+             ydata = fd.read()
+             if ydata is None or ydata == "":
+                 raise CX("error, empty file %s" % f)
+             try:
+                 records = yaml.load(ydata)
+                 datastruct = records.next()
+             except:
+                 raise CX("error parsing yaml file: %s" % f)
+             results.append(datastruct)
              fd.close()
          return results    
 

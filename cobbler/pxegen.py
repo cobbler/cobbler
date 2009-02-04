@@ -323,6 +323,7 @@ class PXEGen:
         return True
 
     def generate_windows_files(self):
+        # FIXME: hard coding of /tftpboot here is wrong
         utils.mkdir("/tftpboot/profiles")
         for p in self.profiles:
             distro = p.get_conceptual_parent()
@@ -480,8 +481,17 @@ class PXEGen:
                image_based = True
                image = profile
 
-        # this used to just generate a single PXE config file, but now must
-        # generate one record for each described NIC ...
+        # hack: s390 generates files per system not per interface
+        if not image_based and distro.arch == "s390x":
+            f2 = os.path.join(self.bootloc, "s390x", "s_%s" % system.name)
+            if system.netboot_enabled:
+                self.write_pxe_file(f2,system,profile,distro,distro.arch)
+            else:
+                # ensure the file doesn't exist
+                utils.rmfile(f2)
+            return
+
+        # generate one record for each described NIC ..
  
         for (name,interface) in system.interfaces.iteritems():
 
@@ -494,8 +504,8 @@ class PXEGen:
             else:
                 working_arch = distro.arch
 
-            if working_arch is None or working_arch == "":
-                working_arch = "x86"
+            if working_arch is None:
+                raise "internal error, invalid arch supplied"
 
             # for tftp only ...
             if working_arch in [ "i386", "x86", "x86_64", "standard"]:
@@ -519,10 +529,6 @@ class PXEGen:
                 if os.path.lexists(f3):
                     utils.rmfile(f3)
                 os.symlink("../yaboot-1.3.14", f3)
-
-            elif working_arch == "s390x":
-                filename = "%s" % utils.get_config_filename(system,interface=name)
-                f2 = os.path.join(self.bootloc, "s390x", filename)
             else:
                 continue 
 
@@ -536,8 +542,7 @@ class PXEGen:
                 utils.rmfile(f2)
 
     def make_pxe_menu(self):
-        # FIXME: not used for now, future feature?
-        # self.make_s390_pseudo_pxe_menu()
+        self.make_s390_pseudo_pxe_menu()
         self.make_actual_pxe_menu() 
 
     def make_s390_pseudo_pxe_menu(self):
@@ -557,16 +562,9 @@ class PXEGen:
                 raise CX(_("profile is missing distribution: %s, %s") % (profile.name, profile.distro))
             if distro.arch == "s390x":
                 listfile.write("%s\n" % profile.name)
-            f2 = os.path.join(self.bootloc, "s390x", profile.name)
-            self.write_pxe_file(f2,None,profile,distro,distro.arch)
-        listfile2 = open(os.path.join(s390path, "image_list"),"w+")
-        for image in image_list:
-            if os.path.exists(image.file):
-                listfile2.write("%s\n" % image.name)
-            f2 = os.path.join(self.bootloc, "s390x", image.name)
-            self.write_pxe_file(f2,None,None,None,image.arch,image=image)
+                f2 = os.path.join(self.bootloc, "s390x", "p_%s" % profile.name)
+                self.write_pxe_file(f2,None,profile,distro,distro.arch)
         listfile.close()
-        listfile2.close()
 
     def make_actual_pxe_menu(self):
         # only do this if there is NOT a system named default.
@@ -674,6 +672,9 @@ class PXEGen:
         more details
         """
 
+        if arch is None:
+            raise "missing arch"
+
         if image and not os.path.exists(image.file):
             return None  # nfs:// URLs or something, can't use for TFTP
 
@@ -689,9 +690,10 @@ class PXEGen:
         initrd_path = None
 
         if image is None: 
-            # profile or system+profile based, not image based, or system+image based
+            # not image based, it's something normalish
 
             if distro is not None and distro.breed == "windows":
+                # this is to support linux-ris
                 if system:
                     kernel_path = "systems/%s/winpxe.0" % system.name
                 elif profile:
@@ -707,6 +709,7 @@ class PXEGen:
                 kickstart_path = utils.blender(self.api, True, profile)["kickstart"]
             
         else:
+            # this is an image we are making available, not kernel+initrd
             if image.image_type == "direct":
                 kernel_path = os.path.join("/images2",image.name)
             elif image.image_type == "memdisk":
@@ -725,19 +728,18 @@ class PXEGen:
                 else:
                     template = os.path.join(self.settings.pxe_template_dir,"pxesystem.template")
     
-                if arch == "s390x":
-                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_s390x.template")
-                elif arch == "ia64":
-                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ia64.template")
-                elif arch.startswith("ppc"):
-                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ppc.template")
+                    if arch == "s390x":
+                        template = os.path.join(self.settings.pxe_template_dir,"pxesystem_s390x.template")
+                    elif arch == "ia64":
+                        template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ia64.template")
+                    elif arch.startswith("ppc"):
+                        template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ppc.template")
             else:
                 # local booting on ppc requires removing the system-specific dhcpd.conf filename
                 if arch is not None and arch.startswith("ppc"):
                     # Disable yaboot network booting for all interfaces on the system
                     for (name,interface) in system.interfaces.iteritems():
 
-                        # Determine filename for system-specific yaboot.conf
                         filename = "%s" % utils.get_config_filename(system, interface=name).lower()
 
                         # Remove symlink to the yaboot binary
@@ -756,11 +758,14 @@ class PXEGen:
                 else:
                     template = os.path.join(self.settings.pxe_template_dir,"pxelocal.template")
         else:
-            if distro is not None and distro.breed == "windows":
+            # not a system record, so this is a profile record
+
+            if distro.breed == "windows":
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_win.template")
+            elif arch == "s390x":
+                template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_s390x.template")
             else:
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile.template")
-
 
         # now build the kernel command line
         if system is not None:
@@ -783,6 +788,8 @@ class PXEGen:
 
         # kickstart path rewriting (get URLs for local files)
         if kickstart_path is not None and kickstart_path != "":
+
+            # FIXME: need to make shorter rewrite rules for these URLs
 
             if system is not None and kickstart_path.startswith("/"):
                 kickstart_path = "http://%s/cblr/svc/op/ks/system/%s" % (blended["http_server"], system.name)

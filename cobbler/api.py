@@ -50,6 +50,7 @@ import random
 import os
 import yaml
 import xmlrpclib
+import traceback
 
 ERROR = 100
 INFO  = 10
@@ -155,11 +156,18 @@ class BootAPI:
         if self.is_cobblerd:
            # don't signal yourself, that's asking for trouble.
            return True
-        self.server = xmlrpclib.Server("http://127.0.0.1:25151")
-        if not remove:
-            self.server.internal_cache_update(collection_type, name)
-        else:
-            self.server.internal_cache_remove(collection_type, name)
+        self.server = xmlrpclib.Server("http://127.0.0.1:%s" % self.settings().xmlrpc_port)
+        try:
+            if not remove:
+                self.server.internal_cache_update(collection_type, name)
+            else:
+                self.server.internal_cache_remove(collection_type, name)
+        except Exception, e:
+            if len(e.args) == 2 and e[0] == 111:
+                # if cobblerd is not running, no harm done, nothing to signal
+                pass
+            else: 
+                raise CX("error contacting cobblerd")
         return False
 
     def last_modified_time(self):

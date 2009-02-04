@@ -82,7 +82,17 @@ def main():
 
     # load the API now rather than later, to ensure cobblerd
     # startup time is done before the service returns
-    api = cobbler_api.BootAPI(log_settings=log_settings, is_cobblerd=True)
+    api = None
+    try:
+        api = cobbler_api.BootAPI(log_settings=log_settings, is_cobblerd=True)
+    except Exception, exc:
+        if sys.exc_type==SystemExit:
+            return exc.code
+        else:
+            utils.print_exc(exc,full=True)
+            return 1
+
+    logger = api.logger
 
     if options.daemonize:
         daemonize_self()

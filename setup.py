@@ -117,36 +117,6 @@ if __name__ == "__main__":
         logpath4 = "/var/log/httpd/cobbler"
         logpath5 = logpath + "/anamon"
 
-        # tftp paths        
-        tftp_cfg      = "/tftpboot/pxelinux.cfg"
-        tftp_images   = "/tftpboot/images"
-        
-
-        # hack to bundle jquery until we have packaging guidelines to avoid JS bundling
-        # bundling is evil, but temporary.
-
-        def file_slurper(arg, dirname, fnames):
-           # FIXME: shell glob would be simpler
-           for fn in fnames:
-               fn2 = os.path.join(dirname,fn)
-               if os.path.isfile(fn2):
-                   if not fn2 in arg:
-                       arg.append(fn2)
-               else:
-                   # don't recurse
-                   fnames.remove(fn)
- 
-        jui_files = []
-        jui_files2 = []
-        jui_files3 = []
-        jui_files4 = []
-        jui_files5 = []
-        os.path.walk("./webui_content/jquery.ui/ui", file_slurper, jui_files)
-        os.path.walk("./webui_content/jquery.ui/ui/i18n", file_slurper, jui_files2)
-        os.path.walk("./webui_content/jquery.ui/themes", file_slurper, jui_files3)
-        os.path.walk("./webui_content/jquery.ui/themes/flora", file_slurper, jui_files4)
-        os.path.walk("./webui_content/jquery.ui/themes/flora/i", file_slurper, jui_files5)
-        
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -220,10 +190,11 @@ if __name__ == "__main__":
                                 (etcpath,  ['templates/tftpd.template']),
                                 (etcpath,  ['templates/tftpd-rules.template']),
                                 
-                                # templates for syslinux PXE configs
+                                # templates for netboot configs
 				(pxepath,  ['templates/pxedefault.template']),
 				(pxepath,  ['templates/pxesystem.template']),
 				(pxepath,  ['templates/pxesystem_s390x.template']),
+				(pxepath,  ['templates/pxeprofile_s390x.template']),
 				(pxepath,  ['templates/pxesystem_ia64.template']),
 				(pxepath,  ['templates/pxesystem_ppc.template']),
 				(pxepath,  ['templates/pxeprofile.template']),
@@ -292,9 +263,6 @@ if __name__ == "__main__":
                                 # zone-specific templates directory
                                 (zonepath,    []),
 
-                                # tftp directories that we own
-                                (tftp_cfg,          []),
-                                (tftp_images,       []),
 
                                 # Web UI templates for object viewing & modification
                                 # FIXME: other templates to add as they are created.
