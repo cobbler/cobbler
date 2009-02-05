@@ -195,6 +195,8 @@ if __name__ == "__main__":
 				(pxepath,  ['templates/pxesystem.template']),
 				(pxepath,  ['templates/pxesystem_s390x.template']),
 				(pxepath,  ['templates/pxeprofile_s390x.template']),
+				(pxepath,  ['templates/s390x_conf.template']),
+				(pxepath,  ['templates/s390x_parm.template']),
 				(pxepath,  ['templates/pxesystem_ia64.template']),
 				(pxepath,  ['templates/pxesystem_ppc.template']),
 				(pxepath,  ['templates/pxeprofile.template']),

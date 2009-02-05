@@ -125,6 +125,17 @@ kernel_options:
     lang: ' '
     text: ~
 
+# s390 systems require additional kernel options in addition to the
+# above defaults
+
+kernel_options_s390x:
+    ramdisk_size: 40000
+    root: /dev/ram0
+    ro: ~
+    ip: off
+    CMSDASD: 191
+    RUNKS: 1
+
 # configuration options if using the authn_ldap module. See the
 # the Wiki for details.  This can be ignored if you are not using
 # LDAP for WebUI/XMLRPC authentication.

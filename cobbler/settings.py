@@ -68,6 +68,7 @@ DEFAULTS = {
         "text"                    : None,
         "ksdevice"                : "eth0"
     },
+    "kernel_options_s390x"        : {},
     "manage_dhcp"                 : 0,
     "manage_dns"                  : 0,
     "manage_xinetd"               : 0,

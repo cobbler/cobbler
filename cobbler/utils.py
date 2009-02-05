@@ -454,6 +454,14 @@ def blender(api_handle,remove_hashes, root_obj):
     for node in tree:
         __consolidate(node,results)
 
+    # hack -- s390 nodes get additional default kernel options
+    arch = results.get("arch","?")
+    if arch == "s390x":
+        keyz = settings.kernel_options_s390x.keys()
+        for k in keyz:
+           if not results.has_key(k):
+               results[k] = settings.kernel_options_s390x[k]
+
     # determine if we have room to add kssendmac to the kernel options line
     kernel_txt = hash_to_string(results["kernel_options"])
     if len(kernel_txt) < 244:

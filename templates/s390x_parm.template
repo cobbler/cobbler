@@ -1,0 +1,3 @@
+$kickstart_expanded
+CMSCONFFILE=$confname
+$kernel_options

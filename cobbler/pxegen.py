@@ -485,7 +485,22 @@ class PXEGen:
         if not image_based and distro.arch == "s390x":
             f2 = os.path.join(self.bootloc, "s390x", "s_%s" % system.name)
             if system.netboot_enabled:
+                cf = "%s_conf" % f2
+                pf = "%s_parm" % f2
+                template_cf = open("/etc/cobbler/pxe/s390x_conf.template")
+                template_pf = open("/etc/cobbler/pxe/s390x_parm.template")
                 self.write_pxe_file(f2,system,profile,distro,distro.arch)
+                blended = utils.blender(self.api, True, system)
+                self.templar.render(template_cf, blended, cf)
+                # FIXME: profiles also need this data!
+                kickstart_path = "http://%s/cblr/svc/op/ks/system/%s" % (blended["http_server"], system.name)
+                meta2 = {}
+                meta2["kickstart_expanded"] = "ks=%s" % kickstart_path
+                ## FIXME: this may not work right for kernel options with
+                ## a space in them though there are not many of those.
+                meta2["kernel_options"] = "\n".join(blended["kernel_options"].split(" "))
+                meta2["confname"] = "s_%s_conf" % system.name
+                self.templar.render(template_pf, meta2, pf)
             else:
                 # ensure the file doesn't exist
                 utils.rmfile(f2)
@@ -704,9 +719,10 @@ class PXEGen:
         
             # Find the kickstart if we inherit from another profile
             if system:
-	        kickstart_path = utils.blender(self.api, True, system)["kickstart"]
+	        blended = utils.blender(self.api, True, system)
             else:
-                kickstart_path = utils.blender(self.api, True, profile)["kickstart"]
+                blended = utils.blender(self.api, True, profile)
+            kickstart_path = blended["kickstart"]
             
         else:
             # this is an image we are making available, not kernel+initrd
@@ -760,7 +776,7 @@ class PXEGen:
         else:
             # not a system record, so this is a profile record
 
-            if distro.breed == "windows":
+            if distro is not None and distro.breed == "windows":
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_win.template")
             elif arch == "s390x":
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_s390x.template")

@@ -1,0 +1,54 @@
+DASD=100-101,200
+SUBCHANNELS=0.0.0600,0.0.0601,0.0.0602
+NETTYPE=qeth
+#if $interfaces.has_key("eth0")
+   $set $hostname=$interfaces['eth0'].get('hostname','')
+   #set $ip=$interfaces['eth0'].get('ip_address','')
+   #set $netmask=$interfaces['eth0'].get('subnet','')
+   #set $gateway=$interfaces['eth0'].get('gateway','')
+   #set $nameservers=':'.join($interfaces['eth0'].get('nameservers',''))
+   #set $dnssearch=':'.join($interfaces['eth0'].get('dnssearch','')) 
+   #if $ip != ''
+       #set $tokens = $ip.split('.')
+       #set $tokens = $tokens[0:-1]
+       #set $broadcast = " ".join($tokens) + ".255"
+   #else
+       #set $broadcast = ""
+   #end if
+#else
+   #set $hostname=""
+   #set $ip=""
+   #set $netmask=""
+   #set $gateway=""
+   #set $nameservers=""
+   #set $dnssearch=""
+   #set $broadcast = ""
+#end if
+#if $hostname != ''
+HOSTNAME=$hostname
+#end if
+#if $ip != ''
+IPADDR=$ip
+#end if
+## FIXME: don't know what to do with this?
+## NETWORK=192.168.5.0
+#if $netmask != ''
+NETMASK=$netmask
+#end if
+#if $dnssearch != ''
+SEARCHDNS=$dnssearch
+#end if
+#if $gateway != ''
+GATEWAY=$gateway
+#end if
+#if $nameservers != ''
+DNS=$name_servers
+#end if
+## FIXME: the hack that generates this assumes ip with 255 as last octet
+## FIXME: if this is wrong, don't change here, change at the top where it's set
+#if $broadcast != ''
+BROADCAST=$broadcast
+#end if
+MTU=1500
+PORTNAME=UNASSIGNED
+LAYER2=0
