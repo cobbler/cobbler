@@ -289,7 +289,7 @@ checked>Ubuntu
     </td>
     <td>
     #if $distro
-       #set ownerslist = ','.join($distro.owners)
+       #set ownerslist = ' '.join($distro.owners)
     #end if
     <input type="text" size="255" style="width: 400px;" name="owners" id="owners"
         #if $distro
@@ -298,7 +298,7 @@ checked>Ubuntu
             value="$user"
         #end if
     />
-    <p class="context-tip">Applies only if using authz_ownership module, comma-delimited</p>
+    <p class="context-tip">Applies only if using authz_ownership module, space delimited</p>
     </td>
     </tr>
 

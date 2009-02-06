@@ -182,12 +182,13 @@ class Profile(item.Item):
         return utils.set_redhat_management_key(self,key)
 
     def set_name_servers(self,data):
-        data = utils.input_string_or_list(data)
+        # FIXME: move to utils since shared with system
+        data = utils.input_string_or_list(data, delim=" ")
         self.name_servers = data
         return True
 
     def set_name_servers_search(self,data):
-        data = utils.input_string_or_list(data)
+        data = utils.input_string_or_list(data, delim=" ")
         self.name_servers_search = data
         return True
 

@@ -446,12 +446,12 @@ class System(item.Item):
         return True
  
     def set_name_servers(self,data):
-        data = utils.input_string_or_list(data)
+        data = utils.input_string_or_list(data, delim=" ")
         self.name_servers = data
         return True
 
     def set_name_servers_search(self,data):
-        data = utils.input_string_or_list(data)
+        data = utils.input_string_or_list(data, delim=" ")
         self.name_servers_search = data
         return True
 

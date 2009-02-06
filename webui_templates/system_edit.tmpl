@@ -523,7 +523,7 @@ redhatmanagementkey"
             value="$user"
         #end if
     />
-    <p class="context-tip">Applies only if using authz_ownership module, comma-delimited</p>
+    <p class="context-tip">Applies only if using authz_ownership module, space delimited</p>
     </td>
     </tr>
 
@@ -562,12 +562,12 @@ redhatmanagementkey"
     </td>
     <td class="netedit">
     #if $system
-       #set joined = ", ".join($system.name_servers)
+       #set joined = " ".join($system.name_servers)
        <input type="text" size="255" style="width: 400px;" name="name_servers" id="name_servers" value="$joined" />
     #else
        <input type="text" size="255" style="width: 400px;" name="name_servers" id="name_servers" value="<<inherit>>" />
     #end if
-    <p class="context-tip">Name servers, comma delimited, if not provided by DHCP</p>
+    <p class="context-tip">Name servers, space delimited, if not provided by DHCP</p>
     </td>
     </tr>
 
@@ -577,12 +577,12 @@ redhatmanagementkey"
     </td>
     <td class="netedit">
     #if $system
-       #set joined = ", ".join($system.name_servers_search)
+       #set joined = " ".join($system.name_servers_search)
        <input type="text" size="255" style="width: 400px;" name="name_servers_search" id="name_servers_search" value="$joined" />
     #else
        <input type="text" size="255" style="width: 400px;" name="name_servers_search" id="name_servers_search" value="<<inherit>>" />
     #end if
-    <p class="context-tip">Name servers search path, comma delimited, if not provided by DHCP</p>
+    <p class="context-tip">Name servers search path, space delimited, if not provided by DHCP</p>
     </td>
     </tr>
 
