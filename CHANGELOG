@@ -5,6 +5,9 @@ Cobbler CHANGELOG
 - (FEAT) preliminary linux-ris support for windows installs (WIP)
 - (FEAT) download comps.xml always
 - (FEAT) performance upgrades for cobblerd service to avoid reloads
+- (FEAT) more code for s390 imports (WIP)
+- (BUGF) import works better with rawhide
+- (FEAT) snippet to preserve SSH host keys across reinstalls
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates
