@@ -13,6 +13,7 @@ Cobbler CHANGELOG
 - (BUGF) systems and profiles are now sorted for "cobbler buildiso"
 - (BUGF) ensure that directories exist when installing a template file
 - (BUGF) fix for typo in network config snippet
+- (BUGF) fix for func integration script (should overwrite config, not append)
 
 - Fri Jan 09 2009 - 1.4.1
 - (BUGF) Cobbler check looks for right httpd on SUSE
