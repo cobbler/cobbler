@@ -11,8 +11,6 @@
 # send out a pretty email report that
 # contains target information.
 
-# FIXME: convert email source to a Cheetah template.
-
 import smtplib
 import xmlrpclib
 import cobbler.yaml as yaml
@@ -72,14 +70,13 @@ metadata = {
 }
 metadata.update(target)
 
-
-# make Templar.render call here
 input_template = open("/etc/cobbler/reporting/build_report_email.template")
 input_data = input_template.read()
 input_template.close()
 
 message = templar.Templar().render(input_data, metadata, None)
-print message
+# for debug, call
+# print message
 
 # Send the mail
 # FIXME: on error, return non-zero
