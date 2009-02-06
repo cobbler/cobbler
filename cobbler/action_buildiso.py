@@ -164,7 +164,13 @@ class BuildIso:
         cfg.write(HEADER) # fixme, use template
         
         print _("- generating profile list...")
-        for profile in self.api.profiles():
+       #sort the profiles
+        profile_list = [profile for profile in self.profiles]
+        def sort_name(a,b):
+            return cmp(a.name,b.name)
+        profile_list.sort(sort_name)
+
+        for profile in profile_list:
             use_this = True
             if profiles is not None:
                 which_profiles = profiles.split(",")
@@ -204,7 +210,13 @@ class BuildIso:
 
            cfg.write("\nMENU SEPARATOR\n")
 
-           for system in self.api.systems():
+          #sort the systems
+           system_list = [system for system in self.systems]
+           def sort_name(a,b):
+               return cmp(a.name,b.name)
+           system_list.sort(sort_name)
+
+           for system in system_list:
                use_this = False
                if systems is not None:
                    which_systems = systems.split(",")
