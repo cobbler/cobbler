@@ -11,6 +11,7 @@
     #end if
     #set $turl = "http://"+$http_server+"/cblr/svc/op/template/"+$ttype+"/"+$tname+"/path/"+$tpath
 #if $orig.startswith("/")
+mkdir -p `dirname $orig`
 wget "$turl" --output-document="$orig"
 #end if
 #end for
