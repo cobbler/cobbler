@@ -260,7 +260,10 @@ class BuildIso:
                        append_line = append_line + " netmask=%s" % data["subnet_" + primary_interface]
 
                    if data.has_key("gateway") and data["gateway"] != "":
-                       append_line = append_line + " gateway=%s\n" % data["gateway"]
+                       append_line = append_line + " gateway=%s" % data["gateway"]
+
+                   if data.has_key("name_servers") and data["name_servers"]:
+                       append_line = append_line + " dns=%s\n" % ",".join(data["name_servers"])
 
                    length=len(append_line)
                    if length > 254:
