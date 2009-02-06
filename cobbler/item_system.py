@@ -74,6 +74,7 @@ class System(item.Item):
         self.hostname             = ""
         self.gateway              = ""
         self.name_servers         = ""
+        self.name_servers_search  = ""
         self.bonding              = ""
         self.bonding_master       = ""
         self.bonding_opts         = ""
@@ -175,6 +176,7 @@ class System(item.Item):
         self.hostname     = self.load_item(seed_data, 'hostname', __hostname)
         
         self.name_servers = self.load_item(seed_data, 'name_servers', '<<inherit>>')
+        self.name_servers_search = self.load_item(seed_data, 'name_servers_search', '<<inherit>>')
         self.redhat_management_key = self.load_item(seed_data, 'redhat_management_key', '<<inherit>>')
 
         # virt specific 
@@ -448,6 +450,11 @@ class System(item.Item):
         self.name_servers = data
         return True
 
+    def set_name_servers_search(self,data):
+        data = utils.input_string_or_list(data)
+        self.name_servers_search = data
+        return True
+
     def set_subnet(self,subnet,interface):
         intf = self.__get_interface(interface)
         intf["subnet"] = subnet
@@ -662,6 +669,7 @@ class System(item.Item):
            'hostname'              : self.hostname,
            'gateway'               : self.gateway,
            'name_servers'          : self.name_servers,
+           'name_servers_search'   : self.name_servers_search,
            'redhat_management_key' : self.redhat_management_key
         }
 
@@ -681,6 +689,7 @@ class System(item.Item):
         buf = buf + _("modified              : %s\n") % time.ctime(self.mtime)
 
         buf = buf + _("name servers          : %s\n") % self.name_servers
+        buf = buf + _("name servers search   : %s\n") % self.name_servers_search
         buf = buf + _("netboot enabled?      : %s\n") % self.netboot_enabled 
         buf = buf + _("owners                : %s\n") % self.owners
         buf = buf + _("server                : %s\n") % self.server
@@ -787,6 +796,7 @@ class System(item.Item):
            'hostname'         : self.set_hostname,
            'gateway'          : self.set_gateway,
            'name_servers'     : self.set_name_servers,
+           'name_servers_search'   : self.set_name_servers_search,
            'redhat_management_key' : self.set_redhat_management_key
         }
 

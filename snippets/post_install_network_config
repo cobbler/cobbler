@@ -204,6 +204,14 @@ echo "BOOTPROTO=dhcp" >> $devfile
             #set $nct = $nct + 1
 echo "DNS$nct=$nameserver" >> $devfile
         #end for
+        #if $name_servers_search != ""
+sed -i -e "/^search /d" /etc/resolv.conf
+echo -n "search " >>/etc/resolv.conf
+           #for $nameserversearch in $name_servers_search
+echo -n "$nameserversearch " >>/etc/resolv.conf
+           #end for
+echo "" >>/etc/resolv.conf
+        #end if
 	#for $route in $static_routes
 	    #set routepattern = $re.compile("[0-9/.]+:[0-9.]+")
 	    #if $routepattern.match($route)

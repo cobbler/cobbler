@@ -72,6 +72,7 @@ class ProfileFunction(commands.CobblerFunction):
         if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
 
             p.add_option("--name-servers", dest="name_servers",  help="name servers for static setups")
+            p.add_option("--name-servers-search", dest="name_servers_search",  help="name servers search path for static setups")
 
         if "copy" in args or "rename" in args:
             p.add_option("--newname", dest="newname")
@@ -158,6 +159,8 @@ class ProfileFunction(commands.CobblerFunction):
                 obj.set_template_files(self.options.template_files,self.options.inplace)
             if self.options.name_servers is not None:    
                 obj.set_name_servers(self.options.name_servers)
+            if self.options.name_servers_search is not None:
+                obj.set_name_servers_search(self.options.name_servers_search)
             if self.options.redhat_management_key is not None:
                 obj.set_redhat_management_key(self.options.redhat_management_key)
 
