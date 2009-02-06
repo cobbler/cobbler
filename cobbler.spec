@@ -3,7 +3,7 @@ Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
 Version: 1.5.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -170,10 +170,14 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(-,root,root)
 %dir /etc/cobbler
+%dir /etc/cobbler/pxe
+%dir /etc/cobbler/reporting
+%dir /etc/cobbler/power
 %config(noreplace) /var/lib/cobbler/kickstarts/*.ks
 %config(noreplace) /var/lib/cobbler/kickstarts/*.seed
 %config(noreplace) /etc/cobbler/*.template
 %config(noreplace) /etc/cobbler/pxe/*.template
+%config(noreplace) /etc/cobbler/reporting/*.template
 %config(noreplace) /etc/cobbler/power/*.template
 %config(noreplace) /etc/cobbler/rsync.exclude
 %config(noreplace) /etc/logrotate.d/cobblerd_rotate
@@ -252,6 +256,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/triggers/install/pre/status_pre.trigger
 %config(noreplace) /var/lib/cobbler/triggers/install/pre/clear_anamon_logs.trigger
 %config(noreplace) /var/lib/cobbler/triggers/install/post/status_post.trigger
+%config(noreplace) /var/lib/cobbler/triggers/install/post/build_report.trigger
 
 %defattr(664,root,root)
 %config(noreplace) /etc/cobbler/settings
@@ -287,6 +292,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+
+* Fri Feb 6 2009 Jeff Schroeder <jeffschroeder@computer.org> - 1.5.0-2
+- Adding build_report.trigger
 
 * Mon Dec 22 2008 Michael DeHaan <mdehaan@redhat.com> - 1.5.0-1
 - Development release start.
