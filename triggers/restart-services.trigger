@@ -1,49 +1,53 @@
 #!/usr/bin/python
 
-import cobbler.api as capi
 import os
 import sys
+import xmlrpclib
+import cobbler.module_loader as module_loader
 
-bootapi = capi.BootAPI()
-settings = bootapi.settings()
-manage_dhcp = str(settings.manage_dhcp).lower()
-manage_dns = str(settings.manage_dns).lower()
-manage_xinetd = str(settings.manage_xinetd).lower()
-restart_dhcp = str(settings.restart_dhcp).lower()
-restart_dns = str(settings.restart_dns).lower()
-restart_xinetd = str(settings.restart_xinetd).lower()
-omapi_enabled = settings.omapi_enabled
-omapi_port = settings.omapi_port
+server = xmlrpclib.Server("http://127.0.0.1/cobbler_api")
+settings = server.get_settings()
 
-# load up our DHCP and DNS modules
-bootapi.get_sync(verbose=False)
-# bootapi.dhcp and bootapi.dns are now module references
+manage_dhcp    = str(settings.get("manage_dhcp",0)).lower()
+manage_dns     = str(settings.get("manage_dns",0)).lower()
+manage_xinetd  = str(settings.get("manage_xinetd",0)).lower()
+restart_dhcp   = str(settings.get("restart_dhcp",0)).lower()
+restart_dns    = str(settings.get("restart_dns",0)).lower()
+restart_xinetd = str(settings.get("restart_xinetd",0)).lower()
+omapi_enabled  = str(settings.get("omapi_enabled",0)).lower()
+omapi_port     = str(settings.get("omapi_port",0)).lower()
+
+which_dhcp_module = module_loader.get_module_from_file("dhcp","module",just_name=True).strip()
+which_dns_module  = module_loader.get_module_from_file("dns","module",just_name=True).strip()
 
 # special handling as we don't want to restart it twice
 has_restarted_dnsmasq = False
 
 rc = 0
 if manage_dhcp != "0":
-    if bootapi.dhcp.what() == "isc":
-        if not omapi_enabled and restart_dhcp:
+    if which_dhcp_module == "manage_isc":
+        if not omapi_enabled in [ "1", "true", "yes", "y" ] and restart_dhcp:
             rc = os.system("/usr/sbin/dhcpd -t")
             if rc != 0:
                print "/usr/sbin/dhcpd -t failed"
                sys.exit(rc)
             rc = os.system("/sbin/service dhcpd restart")
-    elif bootapi.dhcp.what() == "dnsmasq":
+    elif which_dhcp_module == "manage_dnsmasq":
         if restart_dhcp:
             rc = os.system("/sbin/service dnsmasq restart")
             has_restarted_dnsmasq = True
     else:
-        print "- error: unknown DHCP engine: %s" % bootapi.dhcp.what()
+        print "- error: unknown DHCP engine: %s" % which_dhcp_module
         rc = 411
 
 if manage_dns != "0" and restart_dns != "0":
-    if bootapi.dns.what() == "bind":
+    if which_dns_module == "manage_bind":
         rc = os.system("/sbin/service named restart")
-    elif bootapi.dns.what() == "dnsmasq" and not has_restarted_dnsmasq:
+    elif which_dns_module == "manage_dnsmasq" and not has_restarted_dnsmasq:
         rc = os.ssytem("/sbin/service dnsmasq restart")
+    else:
+        print "- error: unknown DNS engine: %s" % which_dns_module
+        rc = 412
 
 if manage_xinetd != "0" and restart_xinetd != "0":
     rc = os.system("/sbin/service xinetd restart")

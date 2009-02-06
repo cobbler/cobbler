@@ -9,6 +9,7 @@ Cobbler CHANGELOG
 - (BUGF) import works better with rawhide
 - (FEAT) snippet to preserve SSH host keys across reinstalls
 - (FEAT) email trigger to notify when builds finish
+- (FEAT) restart-services trigger now uses XMLRPC (faster)
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates
