@@ -61,7 +61,7 @@
             #end if
     ## network details are populated from the cobbler system object
             #if $is_vlan == "false"
-network $network_str --device=eth$i --onboot=on
+network $network_str --device=$iname --onboot=on
             #end if
         #end for
     #end if
