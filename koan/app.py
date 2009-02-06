@@ -729,6 +729,8 @@ class Koan:
                 url = pattern % (profile_data["http_server"],"system",profile_data["name"],dest)
             else:
                 url = pattern % (profile_data["http_server"],"profile",profile_data["name"],dest)
+            if not os.path.exists(os.path.dirname(save_as)):
+                os.makedirs(os.path.dirname(save_as))
             cmd = [ "/usr/bin/wget", url, "--output-document", save_as ]
             utils.subprocess_call(cmd)
        

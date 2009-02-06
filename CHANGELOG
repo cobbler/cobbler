@@ -1,7 +1,8 @@
 Koan CHANGELOG
 
 - XXX 1.4.2
-- make LVM storage work regardless of localization
+- (BUGF) make LVM storage work regardless of localization
+- (BUGF) patch to make --update-files create directories if they don't exist
 
 - 1.4.1
 - --embed-kickstart is no longer the default behavior
