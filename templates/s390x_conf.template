@@ -1,7 +1,7 @@
 DASD=100-101,200
 SUBCHANNELS=0.0.0600,0.0.0601,0.0.0602
 NETTYPE=qeth
-#if $interfaces.has_key("eth0")
+#if $getVar("interfaces","") != "" and $interfaces.has_key("eth0")
    $set $hostname=$interfaces['eth0'].get('hostname','')
    #set $ip=$interfaces['eth0'].get('ip_address','')
    #set $netmask=$interfaces['eth0'].get('subnet','')
