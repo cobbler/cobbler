@@ -930,12 +930,57 @@ def bindmount(src,dst):
     except:
         if not os.access(src,os.R_OK):
             raise CX(_("Cannot read: %s") % src)
+        if not os.access(dst,os.R_OK):
+            raise CX(_("Cannot read: %s") % dst)
         if not os.path.samefile(src,dst):
             # accomodate for the possibility that we already copied
             # the file as a symlink/hardlink
             raise
             # traceback.print_exc()
             # raise CX(_("Error bind-mounting %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+
+def check_openfiles(src):
+    """
+    Used to check for open files on a mounted partition.
+    """
+    try:
+        if not os.path.isdir(src):
+            raise CX(_("Error in check_openfiles: the source (%s) must be a directory") % src)
+        cmd = [ "/usr/sbin/lsof", "+D", src, "-Fn", "|", "wc", "-l" ]
+        handle = sub_process.Popen(cmd, shell=True, stdout=sub_process.PIPE, close_fds=True)
+        out = handle.stdout
+        results = out.read()
+        return int(results)
+    except:
+        if not os.access(src,os.R_OK):
+            raise CX(_("Cannot read: %s") % src)
+        if not os.path.samefile(src,dst):
+            # accomodate for the possibility that we already copied
+            # the file as a symlink/hardlink
+            raise
+            # traceback.print_exc()
+            # raise CX(_("Error bind-mounting %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+
+def umount(src):
+    """
+    Used for unmounting things created by bindmount
+    """
+    try:
+        if not os.path.isdir(src):
+            raise CX(_("Error in umount: the source (%s) must be a directory") % src)
+        cmd = [ "/bin/umount", "--force", src ]
+        rc = sub_process.call(cmd, shell=False, close_fds=True)
+        return rc
+    except:
+        if not os.access(src,os.R_OK):
+            raise CX(_("Cannot read: %s") % src)
+        if not os.path.samefile(src,dst):
+            # accomodate for the possibility that we already copied
+            # the file as a symlink/hardlink
+            raise
+            # traceback.print_exc()
+            # raise CX(_("Error bind-mounting %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+
 
 def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None):
     files = glob.glob(pattern)
