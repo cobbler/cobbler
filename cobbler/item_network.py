@@ -88,12 +88,6 @@ class Network(item.Item):
 #    def set_free_addresses(self, free_addresses):
 #        pass
 
-    def take_new_address(self, address):
-        pass
-
-    def free_address(self, address):
-        pass
-
     def subtract_and_flatten(self, cidr_list, remove_list):
         for item in remove_list:
             for i in range(len(cidr_list)):
@@ -102,6 +96,51 @@ class Network(item.Item):
                     del(cidr_list[i])
                     break
         return cidr_list
+
+    def add_existing_interfaces(self):
+        for s in self.config.systems():
+            for i in s.interfaces:
+                pass
+
+    def remove_existing_interfaces(self):
+        for s in self.config.systems():
+            for i in s.interfaces:
+                pass
+
+    def add_interface(self, system, interface):
+        ip = interface['ip_address']
+        if ip == 'auto' or ip == '' or ip == None:
+            return self.add_auto_interface(system, interface)
+
+        ip = _IP(ip)
+        if ip not in self.cidr:
+            raise CX(_("Address (%s) not in %s (%s)" % (ip,
+                                                        self.name,
+                                                        self.cidr)))
+        available = False
+        for block in self.free_addresses:
+            if ip in block:
+                available = True
+                break
+        if not available:
+            raise CX(_("Address %s is not free in network %s" % (ip, self.name)))
+
+        self.used_addresses.append(ip)
+        print self.used_addresses
+        self.update_free()
+        print self.used_addresses
+
+    def sync(self, action):
+        if action == 'add':
+            self.add_existing_interfaces()
+        elif action == 'edit':
+            # horribly inefficient
+            self.remove_existing_interfaces()
+            self.add_existing_interfaces()
+        elif action == 'remove':
+            self.remove_existing_interfaces()
+
+        self.update_free()
 
     def update_free(self):
         free = [self.cidr]
@@ -125,12 +164,19 @@ class Network(item.Item):
 
     def is_valid(self):
         """
-	A network is valid if it has a name and a CIDR
+	A network is valid if:
+          * it has a name and a CIDR
+          * it does not overlap another network
 	"""
         if self.name is None:
             raise CX(_("name is required"))
         if self.cidr is None:
             raise CX(_("cidr is required"))
+        for other in self.config.networks():
+            if other.name == self.name:
+                continue
+            if self.cidr in other.cidr or other.cidr in self.cidr:
+                raise CX(_("cidr %s overlaps with network %s (%s)" % (self.cidr, other.name, other.cidr)))
         return True
 
     def to_datastruct(self):

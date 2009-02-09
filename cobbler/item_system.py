@@ -111,6 +111,7 @@ class System(item.Item):
                 "bonding_opts"   : "",
                 "dns_name"       : "",
                 "static_routes"  : [],
+                "parent"         : "",
             }
 
         return self.interfaces[name]
@@ -425,6 +426,16 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         intf["static"] = utils.input_boolean(truthiness)
         return True
+
+    def set_network(self,network,interface):
+        """
+        Add an interface to a network object
+        """
+        intf = self.__get_interface(interface)
+        net  = self.config.networks().find(name=network)
+        if net == None:
+            raise CX(_("Network %s does not exist" % network))
+        net.add_interface(self, intf)
 
     def set_ip_address(self,address,interface):
         """

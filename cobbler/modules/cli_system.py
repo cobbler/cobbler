@@ -87,6 +87,9 @@ class SystemFunction(commands.CobblerFunction):
         if not self.matches_args(args,["dumpvars","poweron","poweroff","reboot","remove","report","getks","list"]):
             p.add_option("--netboot-enabled", dest="netboot_enabled", help="PXE on (1) or off (0)")
 
+        if self.matches_args(args,["add","edit"]):
+            p.add_option("--network", dest="network",                 help="network object")
+
         if self.matches_args(args,["copy","rename"]):
             p.add_option("--newname", dest="newname",                 help="for use with copy/edit")
 
@@ -229,6 +232,8 @@ class SystemFunction(commands.CobblerFunction):
             obj.set_bonding_opts(self.options.bonding_opts, my_interface)
         if self.options.static_routes is not None:  
             obj.set_static_routes(self.options.static_routes, my_interface)
+        if self.options.network is not None:
+            obj.set_network(self.options.network, my_interface)
 
         if self.options.delete_interface is not None:
             success = obj.delete_interface(self.options.delete_interface)
