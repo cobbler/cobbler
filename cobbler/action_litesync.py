@@ -101,7 +101,7 @@ class BootLiteSync:
         # get the profile object:
         profile = self.profiles.find(name=name)
         if profile is None:
-            raise CX(_("error in profile lookup"))
+            raise CX(_("error in profile lookup for %s" % name))
         # rebuild the yum configuration files for any attached repos
         # generate any templates listed in the distro
         self.sync.pxegen.write_templates(profile)

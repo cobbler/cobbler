@@ -56,7 +56,7 @@ class Repos(collection.Collection):
         if obj is not None:
             if with_delete:
                 if with_triggers: 
-                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/repo/pre/*")
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/repo/pre/*")
 
             del self.listing[name]
             self.config.serialize_delete(self, obj)
@@ -64,7 +64,7 @@ class Repos(collection.Collection):
             if with_delete:
                 self.log_func("deleted repo %s" % name)
                 if with_triggers: 
-                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/repo/post/*")
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*")
             
                 path = "/var/www/cobbler/repo_mirror/%s" % obj.name
                 if os.path.exists(path):

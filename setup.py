@@ -342,10 +342,10 @@ if __name__ == "__main__":
                                 ("%s/delete/repo/pre" % trigpath,     []),
                                 ("%s/delete/repo/post" % trigpath,    []),
                                 ("%s/delete/repo/post" % trigpath,    []),
-                                ("%s/install/pre" % trigpath,         [ "triggers/status_pre.trigger", "triggers/clear_anamon_logs.trigger"]),
-                                ("%s/install/post" % trigpath,        [ "triggers/status_post.trigger", "triggers/build_report.trigger"]),
+                                ("%s/install/pre" % trigpath,         []),
+                                ("%s/install/post" % trigpath,        []),
                                 ("%s/sync/pre" % trigpath,            []),
-                                ("%s/sync/post" % trigpath,           [ "triggers/restart-services.trigger" ])
+                                ("%s/sync/post" % trigpath,           [])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC

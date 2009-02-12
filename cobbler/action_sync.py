@@ -85,7 +85,7 @@ class BootSync:
             print "- running pre-sync triggers"
 
         # run pre-triggers...
-        utils.run_triggers(None, "/var/lib/cobbler/triggers/sync/pre/*")
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/pre/*")
 
         # (paranoid) in case the pre-trigger modified any objects...
 
@@ -141,7 +141,7 @@ class BootSync:
         # run post-triggers
         if self.verbose:
             print "- running post-sync triggers"
-        utils.run_triggers(None, "/var/lib/cobbler/triggers/sync/post/*")
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*")
         return True
 
     def clean_trees(self):

@@ -43,7 +43,7 @@ class Images(collection.Collection):
         if obj is not None:
             if with_delete:
                 if with_triggers:
-                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/image/pre/*")
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/image/pre/*")
                 if with_sync:
                     lite_sync = action_litesync.BootLiteSync(self.config)
                     lite_sync.remove_single_image(name)
@@ -54,7 +54,7 @@ class Images(collection.Collection):
             if with_delete:
                 self.log_func("deleted repo %s" % name)
                 if with_triggers:
-                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/image/post/*")
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/image/post/*")
             return True
 
             if with_delete and not self.api.is_cobblerd:
