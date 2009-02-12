@@ -2,7 +2,7 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 1.4.1
+Version: 1.4.2
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
@@ -58,7 +58,7 @@ modes use a helper tool, 'koan', that
 integrates with cobbler.  Cobbler's advanced features 
 include importing distributions from DVDs and rsync 
 mirrors, kickstart templating, integrated yum 
-mirroring, and built-in DHCP/DNS Management.  Cobbler has 
+mirroring, and built-in DHCP/DNS/power Management.  Cobbler has 
 a Python and XMLRPC API for integration with other  
 applications.  There is also a web interface.
 
@@ -280,6 +280,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+
+* Thu Feb 12 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.2-1
+- Upstream changes (see CHANGELOG)
 
 * Mon Jan 09 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.1-1
 - Upstream changes (see CHANGELOG)
