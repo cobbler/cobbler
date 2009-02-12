@@ -530,7 +530,7 @@ class CobblerXMLRPCInterface:
         # time if reinstalling all of a cluster all at once.
         # we can do that at "cobbler check" time.
 
-        utils.run_triggers(self.config.api, None, "/var/lib/cobbler/triggers/install/%s/*" % mode, additional=[objtype,name,ip])
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/install/%s/*" % mode, additional=[objtype,name,ip])
 
 
         return True

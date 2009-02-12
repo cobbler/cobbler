@@ -18,9 +18,9 @@ def register():
     return "/var/lib/cobbler/triggers/install/pre/*"
 
 def run(api, args):
-    objtype = args[1] # "system" or "profile"
-    name    = args[2] # name of system or profile
-    ip      = args[3] # ip or "?"
+    objtype = args[0] # "system" or "profile"
+    name    = args[1] # name of system or profile
+    ip      = args[2] # ip or "?"
 
     fd = open("/var/log/cobbler/install.log","a+")
     fd.write("%s\t%s\t%s\tstart\t%s\n" % (objtype,name,ip,time.time()))

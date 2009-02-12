@@ -22,6 +22,7 @@ import smtplib
 import sys
 import cobbler.templar as templar
 from cobbler.cexceptions import CX
+import utils
 
 def register():
    # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.
@@ -35,16 +36,16 @@ def run(api, args):
     # go no further if this feature is turned off
     if not str(settings.build_reporting_enabled).lower() in [ "1", "yes", "y", "true"]:
         print "not enabled"
-        sys.exit(0)
+        return 0
 
-    objtype = args[1] # "target" or "profile"
-    name    = args[2] # name of target or profile
-    boot_ip = args[3] # ip or "?"
+    objtype = args[0] # "target" or "profile"
+    name    = args[1] # name of target or profile
+    boot_ip = args[2] # ip or "?"
 
     if objtype == "system":
-        target = api.get_system(name)
+        target = api.find_system(name)
     else:
-        target = api.get_profile(name)
+        target = api.find_profile(name)
 
     # collapse the object down to a rendered datastructure
     target = utils.blender(api, False, target)

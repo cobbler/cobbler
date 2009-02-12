@@ -44,7 +44,7 @@ def run(api,args):
                 rc = os.system("/usr/sbin/dhcpd -t")
                 if rc != 0:
                    print "/usr/sbin/dhcpd -t failed"
-                   sys.exit(rc)
+                   return 1
                 rc = os.system("/sbin/service dhcpd restart")
         elif which_dhcp_module == "manage_dnsmasq":
             if restart_dhcp:

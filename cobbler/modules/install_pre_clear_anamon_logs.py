@@ -24,9 +24,9 @@ def run(api, args):
     if len(args) < 3:
         raise CX("invalid invocation")
 
-    objtype = args[1] # "system" or "profile"
-    name    = args[2] # name of system or profile
-    ip      = args[3] # ip or "?"
+    objtype = args[0] # "system" or "profile"
+    name    = args[1] # name of system or profile
+    ip      = args[2] # ip or "?"
 
     settings = api.settings()
     anamon_enabled = str(settings.anamon_enabled)
