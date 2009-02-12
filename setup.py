@@ -4,12 +4,12 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-VERSION = "1.4.1"
+VERSION = "1.4.2"
 SHORT_DESC = "Network install tool for use with Cobbler"
 LONG_DESC = """
-Koan stands for kickstart-over-a-network and allows for both
-network installation of new virtualized guests and reinstallation              
-of an existing system.  For use with a boot-server configured with Cobbler
+Koan is a helper tool for use with 'cobbler'.  It allows for
+network installation of new virtualized guests and reinstallation
+of an existing system.
 """
 
 if __name__ == "__main__":
