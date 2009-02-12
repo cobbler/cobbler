@@ -112,6 +112,7 @@ def do_xmlrpc_rw(bootapi,settings,port):
 
     while True:
         try:
+            print "SERVING!"
             server.serve_forever()
         except IOError:
             # interrupted? try to serve again

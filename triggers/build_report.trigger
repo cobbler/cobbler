@@ -17,7 +17,10 @@ import cobbler.yaml as yaml
 import sys
 import cobbler.templar as templar
 
-server = xmlrpclib.Server("http://127.0.0.1/cobbler_api")
+server = xmlrpclib.Server("http://127.0.0.1:25151")
+print "ping"
+print server.ping()
+print "pong"
 settings = server.get_settings()
 
 # go no further if this feature is turned off

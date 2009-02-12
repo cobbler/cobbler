@@ -303,7 +303,10 @@ class CobblerXMLRPCInterface:
         Return the contents of /etc/cobbler/settings, which is a hash.
         """
         self._log("get_settings",token=token)
-        results = self.api.settings().to_datastruct()
+        results = self.api.settings()
+        self._log("got settings")
+        data = results.to_datastruct()
+        self._log("my settings are: %s" % data)
         return self.xmlrpc_hacks(results)
 
     def get_repo_config_for_profile(self,profile_name,**rest):
