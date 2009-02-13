@@ -225,6 +225,9 @@ class BuildIsoFunction(commands.CobblerFunction):
         p.add_option("--profiles", dest="profiles", help="(OPTIONAL) use these profiles only")
         p.add_option("--systems",  dest="systems",  help="(OPTIONAL) use these systems only")
         p.add_option("--tempdir",  dest="tempdir",  help="(OPTIONAL) working directory")
+        p.add_option("--distro",   dest="distro",   help="(OPTIONAL) used with --standalone to create a distro-based ISO including all associated profiles/systems")
+        p.add_option("--standalone", dest="standalone", action="store_true", help="(OPTIONAL) creates a standalone ISO with all required distro files on it")
+        p.add_option("--source",   dest="source",   help="(OPTIONAL) used with --standalone to specify a source for the distribution files")
 
     def help_me(self):
        return HELP_FORMAT % ("cobbler buildiso","[ARGS]")
@@ -237,7 +240,10 @@ class BuildIsoFunction(commands.CobblerFunction):
            iso=self.options.isoname,
            profiles=self.options.profiles,
            systems=self.options.systems,
-           tempdir=self.options.tempdir
+           tempdir=self.options.tempdir,
+           distro=self.options.distro,
+           standalone=self.options.standalone,
+           source=self.options.source
        )
 
 ########################################################

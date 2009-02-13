@@ -677,10 +677,10 @@ class BootAPI:
         self.log("authorize",[user,resource,arg1,arg2,rc],debug=True)
         return rc
 
-    def build_iso(self,iso=None,profiles=None,systems=None,tempdir=None):
+    def build_iso(self,iso=None,profiles=None,systems=None,tempdir=None,distro=None,standalone=None,source=None):
         builder = action_buildiso.BuildIso(self._config)
         return builder.run(
-           iso=iso, profiles=profiles, systems=systems, tempdir=tempdir
+           iso=iso, profiles=profiles, systems=systems, tempdir=tempdir, distro=distro, standalone=standalone, source=source
         )
 
     def replicate(self, cobbler_master = None, sync_all=False, sync_kickstarts=False, sync_trees=False, sync_repos=False, sync_triggers=False, systems=False):
