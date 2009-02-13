@@ -336,6 +336,14 @@ class BuildIso:
 
         if tempdir is None:
             tempdir = os.path.join(os.getcwd(), "buildiso")
+        else:
+            if not os.path.isdir(tempdir):
+                raise CX(_("The --tempdir specified is not a directory"))
+
+            (tempdir_head,tempdir_tail) = os.path.split(os.path.normpath(tempdir))
+            if tempdir_tail != "buildiso":
+                tempdir = os.path.join(tempdir, "buildiso")
+
         print _("- using/creating tempdir: %s") % tempdir
         if not os.path.exists(tempdir):
             os.makedirs(tempdir)
