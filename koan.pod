@@ -82,6 +82,10 @@ Nearly all of these variables can also be defined and centrally managed by the C
 
 If installing virtual machines in environments without DHCP, use of --system instead of --profile is required.  Additionally use --static-interface=eth0 to supply which interface to use to supply network information.  The installer will boot from this virtual interface.  Leaving off --static-interface will result in an unsuccessful network installation.
 
+=head1 ENVIRONMENT VARIABLES
+
+Koan respects the COBBLER_SERVER variable to specify the cobbler server to use.  This is a convenient way to avoid using the --server option for each command.  This variable is set automatically on systems installed via cobbler, assuming standard kickstart templates are used.  If you need to change this on an installed system, edit /etc/profile.d/cobbler.{csh,sh}.
+
 =head1 ADDITIONAL
 
 Reading the cobbler manpage and fedorahosted.org/cobbler is highly recommended.
