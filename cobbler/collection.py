@@ -258,7 +258,7 @@ class Collection(serializable.Serializable):
             self.log_func("saving %s %s" % (self.collection_type(), ref.name))
             # failure of a pre trigger will prevent the object from being added
             if with_triggers:
-                self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
+                self._run_triggers(self.api, ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
             self.listing[ref.name.lower()] = ref
 
             # save just this item if possible, if not, save
@@ -284,7 +284,7 @@ class Collection(serializable.Serializable):
 
             # save the tree, so if neccessary, scripts can examine it.
             if with_triggers:
-                self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type())
+                self._run_triggers(self.api, ref,"/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type())
     
     
         # update children cache in parent object
@@ -298,8 +298,8 @@ class Collection(serializable.Serializable):
 
         return True
 
-    def _run_triggers(self,ref,globber):
-        return utils.run_triggers(ref,globber)
+    def _run_triggers(self,api_handle,ref,globber):
+        return utils.run_triggers(api_handle,ref,globber)
 
     def __duplication_checks(self,ref,check_for_duplicate_names,check_for_duplicate_netinfo):
         """

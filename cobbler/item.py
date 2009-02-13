@@ -138,7 +138,7 @@ class Item(serializable.Serializable):
         like authz_ownership, which ships with Cobbler but is off by default.  Consult the Wiki
         docs for more info on CustomizableAuthorization.
         """
-        owners = utils.input_string_or_list(data)
+        owners = utils.input_string_or_list(data, delim=" ")
         self.owners = owners
         return True
 

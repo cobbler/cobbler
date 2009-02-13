@@ -246,11 +246,26 @@ function disablename(value)
     <td>
     #if $profile
        #set joined = " ".join($profile.name_servers)
-       <input type="text" name="name_servers" id="name_servers" value="$joined">
+       <input type="text" size="255" style="width: 400px;" name="name_servers" id="name_servers" value="$joined" />
     #else
-       <input type="text" name="name_servers" id="name_servers" value="">
+       <input type="text" size="255" style="width: 400px;" name="name_servers" id="name_servers" value="" />
     #end if
     <p class="context-tip">Name servers, space delimited, if not provided by DHCP</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="name_servers_search">Name Servers Search Path</label>
+    </td>
+    <td>
+    #if $profile
+       #set joined = " ".join($profile.name_servers_search)
+       <input type="text" size="255" style="width: 400px;" name="name_servers_search" id="name_servers_search" value="$joined" />
+    #else
+       <input type="text" size="255" style="width: 400px;" name="name_servers_search" id="name_servers_search" value="" />
+    #end if
+    <p class="context-tip">Name servers search path, space delimited, if not provided by DHCP</p>
     </td>
     </tr>
 

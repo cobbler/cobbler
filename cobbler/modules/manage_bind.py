@@ -81,7 +81,13 @@ class BindManager:
         in them
         """
         zones = {}
-        for zone in self.settings.manage_forward_zones:
+        forward_zones = self.settings.manage_forward_zones
+        if type(forward_zones) != type([]):
+           # gracefully handle when user inputs only a single zone
+           # as a string instead of a list with only a single item
+           forward_zones = [forward_zones]
+
+        for zone in forward_zones:
            zones[zone] = {}
 
         for system in self.systems:
@@ -125,7 +131,13 @@ class BindManager:
         in them
         """
         zones = {}
-        for zone in self.settings.manage_reverse_zones:
+        reverse_zones = self.settings.manage_reverse_zones
+        if type(reverse_zones) != type([]):
+           # gracefully handle when user inputs only a single zone
+           # as a string instead of a list with only a single item
+           reverse_zones = [reverse_zones]
+
+        for zone in reverse_zones:
            zones[zone] = {}
 
         for sys in self.systems:

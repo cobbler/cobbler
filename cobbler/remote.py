@@ -303,7 +303,11 @@ class CobblerXMLRPCInterface:
         Return the contents of /etc/cobbler/settings, which is a hash.
         """
         self._log("get_settings",token=token)
-        return self.__get_all("settings")
+        results = self.api.settings()
+        self._log("got settings")
+        data = results.to_datastruct()
+        self._log("my settings are: %s" % data)
+        return self.xmlrpc_hacks(results)
 
     def get_repo_config_for_profile(self,profile_name,**rest):
         """
@@ -526,7 +530,7 @@ class CobblerXMLRPCInterface:
         # time if reinstalling all of a cluster all at once.
         # we can do that at "cobbler check" time.
 
-        utils.run_triggers(None, "/var/lib/cobbler/triggers/install/%s/*" % mode, additional=[objtype,name,ip])
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/install/%s/*" % mode, additional=[objtype,name,ip])
 
 
         return True
@@ -1900,6 +1904,7 @@ def test_xmlrpc_rw():
    server.modify_profile(pid, "mgmt-classes", "one two three", token)
    server.modify_profile(pid, "comment", "...", token)
    server.modify_profile(pid, "name_servers", ["one","two"], token)
+   server.modify_profile(pid, "name_servers_search", ["one","two"], token)
    server.modify_profile(pid, "redhat_management_key", "BETA", token)
    server.save_profile(pid, token)
 
@@ -1918,6 +1923,7 @@ def test_xmlrpc_rw():
    server.modify_system(sid, 'virt-path', "/opt/images", token)
    server.modify_system(sid, 'virt-type', 'qemu', token)
    server.modify_system(sid, 'name_servers', 'one two three four', token)
+   server.modify_system(sid, 'name_servers_search', 'one two three four', token)
    server.modify_system(sid, 'modify-interface', { 
        "macaddress-eth0"   : "AA:BB:CC:EE:EE:EE",
        "ipaddress-eth0"    : "192.168.10.50",

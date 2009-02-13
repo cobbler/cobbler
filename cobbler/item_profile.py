@@ -69,6 +69,7 @@ class Profile(item.Item):
         self.ctime                  = 0
         self.mtime                  = 0
         self.name_servers           = (self.settings.default_name_servers,      '<<inherit>>')[is_subobject]
+        self.name_servers_search    = (self.settings.default_name_servers_search, '<<inherit>>')[is_subobject]
         self.redhat_management_key  = "<<inherit>>"
 
     def from_datastruct(self,seed_data):
@@ -95,6 +96,7 @@ class Profile(item.Item):
         self.ctime                  = self.load_item(seed_data,'ctime',0)
         self.mtime                  = self.load_item(seed_data,'mtime',0)
         self.name_servers           = self.load_item(seed_data,'name_servers',[])
+        self.name_servers_search    = self.load_item(seed_data,'name_servers_search',[])
         self.redhat_management_key  = self.load_item(seed_data,'redhat_management_key', '<<inherit>>')
 
         # backwards compatibility
@@ -180,8 +182,14 @@ class Profile(item.Item):
         return utils.set_redhat_management_key(self,key)
 
     def set_name_servers(self,data):
-        data = utils.input_string_or_list(data)
+        # FIXME: move to utils since shared with system
+        data = utils.input_string_or_list(data, delim=" ")
         self.name_servers = data
+        return True
+
+    def set_name_servers_search(self,data):
+        data = utils.input_string_or_list(data, delim=" ")
+        self.name_servers_search = data
         return True
 
     def set_enable_menu(self,enable_menu):
@@ -304,6 +312,7 @@ class Profile(item.Item):
             'ctime'                 : self.ctime,
             'mtime'                 : self.mtime,
             'name_servers'          : self.name_servers,
+            'name_servers_search'   : self.name_servers_search,
             'uid'                   : self.uid,
             'random_id'             : self.random_id,
             'redhat_management_key' : self.redhat_management_key
@@ -328,6 +337,7 @@ class Profile(item.Item):
         buf = buf + _("mgmt classes         : %s\n") % self.mgmt_classes
         buf = buf + _("modified             : %s\n") % time.ctime(self.mtime)
         buf = buf + _("name servers         : %s\n") % self.name_servers
+        buf = buf + _("name servers search  : %s\n") % self.name_servers_search
         buf = buf + _("owners               : %s\n") % self.owners
         buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
         buf = buf + _("redhat mgmt key      : %s\n") % self.redhat_management_key
@@ -379,6 +389,7 @@ class Profile(item.Item):
             'mgmt_classes'    :  self.set_mgmt_classes,            
             'comment'         :  self.set_comment,
             'name_servers'    :  self.set_name_servers,
+            'name_servers_search'   :  self.set_name_servers_search,
             'redhat_management_key' : self.set_redhat_management_key
         }
 

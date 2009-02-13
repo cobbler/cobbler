@@ -30,14 +30,21 @@ TESTMODE = False
 # we need.
 
 DEFAULTS = {
+    "anamon_enabled"              : 0,
     "allow_duplicate_hostnames"   : 0,
     "allow_duplicate_macs"        : 0,
     "allow_duplicate_ips"         : 0,
     "bind_bin"                    : "/usr/sbin/named",
+    "build_reporting_enabled"     : 0,
+    "build_reporting_to_address"  : "",
+    "build_reporting_sender"      : "",
+    "build_reporting_subject"     : "",
+    "build_reporting_smtp_server" : "localhost",
     "cheetah_import_whitelist"    : [ "re", "random", "time" ],
     "cobbler_master"              : '',
     "default_kickstart"           : "/var/lib/cobbler/kickstarts/default.ks",
     "default_name_servers"        : '',
+    "default_name_servers_search" : '',
     "default_password_crypted"    : "\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.",
     "default_virt_bridge"         : "xenbr0",
     "default_virt_type"           : "auto",
@@ -103,8 +110,7 @@ DEFAULTS = {
     "xmlrpc_port"                 : 25151,
     "yum_post_install_mirror"     : 1,
     "yumdownloader_flags"         : "--resolve",
-    "yumreposync_flags"           : "-l",
-    "anamon_enabled"              : 0,
+    "yumreposync_flags"           : "-l"
 }
 
 

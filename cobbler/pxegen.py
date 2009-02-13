@@ -579,6 +579,23 @@ class PXEGen:
                 listfile.write("%s\n" % profile.name)
                 f2 = os.path.join(self.bootloc, "s390x", "p_%s" % profile.name)
                 self.write_pxe_file(f2,None,profile,distro,distro.arch)
+                cf = "%s_conf" % f2
+                pf = "%s_parm" % f2
+                template_cf = open("/etc/cobbler/pxe/s390x_conf.template")
+                template_pf = open("/etc/cobbler/pxe/s390x_parm.template")
+                blended = utils.blender(self.api, True, profile)
+                self.templar.render(template_cf, blended, cf)
+                # FIXME: profiles also need this data!
+                kickstart_path = "http://%s/cblr/svc/op/ks/profile/%s" % (blended["http_server"], profile.name)
+                meta2 = {}
+                meta2["kickstart_expanded"] = "ks=%s" % kickstart_path
+                ## FIXME: this may not work right for kernel options with
+                ## a space in them though there are not many of those.
+                meta2["kernel_options"] = "\n".join(blended["kernel_options"].split(" "))
+                meta2["confname"] = "p_%s_conf" % profile.name
+                self.templar.render(template_pf, meta2, pf)
+
+
         listfile.close()
 
     def make_actual_pxe_menu(self):

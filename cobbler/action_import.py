@@ -987,8 +987,11 @@ class RedHatImporter ( BaseImporter ) :
        data = glob.glob(os.path.join(self.get_pkgdir(), "*release-*"))
        data2 = []
        for x in data:
-          if x.find("generic") == -1:
-             data2.append(x)
+          b = os.path.basename(x)
+          if b.find("fedora") != -1 or \
+             b.find("redhat") != -1 or \
+             b.find("centos") != -1:
+                 data2.append(x)
        return data2
 
    # ================================================================
@@ -1100,13 +1103,14 @@ class RedHatImporter ( BaseImporter ) :
        #          OS_VERSION next
        #          OS_VERSION.MINOR next
        #          ARCH/default.ks next
-       #          default.ks finally.
+       #          FLAVOR.ks next
        kickstarts = [
            "%s/%s/%s.%i.ks" % (kickbase,arch,os_version,int(minor)), 
            "%s/%s/%s.ks" % (kickbase,arch,os_version), 
            "%s/%s.%i.ks" % (kickbase,os_version,int(minor)),
            "%s/%s.ks" % (kickbase,os_version),
            "%s/%s/default.ks" % (kickbase,arch),
+           "%s/%s.ks" % (kickbase,flavor),
        ]
        for kickstart in kickstarts:
            if os.path.exists(kickstart):

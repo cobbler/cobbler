@@ -64,7 +64,7 @@ class Profiles(collection.Collection):
  
             if with_delete:
                 if with_triggers: 
-                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/profile/pre/*")
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/profile/pre/*")
                 if with_sync:
                     lite_sync = action_litesync.BootLiteSync(self.config)
                     lite_sync.remove_single_profile(name)
@@ -73,7 +73,7 @@ class Profiles(collection.Collection):
             if with_delete:
                 self.log_func("deleted profile %s" % name)
                 if with_triggers: 
-                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/profile/post/*")
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/profile/post/*")
 
             if with_delete and not self.api.is_cobblerd:
                 self.api._internal_cache_update("profile", name, remove=True)

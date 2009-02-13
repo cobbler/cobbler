@@ -75,8 +75,6 @@ def _(foo):
 
 MODULE_CACHE = {}
 
-# import api # factor out
-
 _re_kernel = re.compile(r'vmlinuz(.*)')
 _re_initrd = re.compile(r'initrd(.*).img')
 
@@ -660,14 +658,33 @@ def hash_to_string(hash):
           buffer = buffer + str(key) + "=" + str(value) + " "
     return buffer
 
-def run_triggers(ref,globber,additional=[]):
+def run_triggers(api,ref,globber,additional=[]):
     """
     Runs all the trigger scripts in a given directory.
     ref can be a cobbler object, if not None, the name will be passed
     to the script.  If ref is None, the script will be called with
     no argumenets.  Globber is a wildcard expression indicating which
     triggers to run.  Example:  "/var/lib/cobbler/triggers/blah/*"
+
+    As of Cobbler 1.5.X, this also runs cobbler modules that match the globbing paths.
     """
+
+    # Python triggers first, before shell
+
+    modules = api.get_modules_in_category(globber)
+    print "DEBUG: trigger modules matching %s are %s" % (globber, [m.__name__ for m in modules])
+    for m in modules:
+       arglist = []
+       if ref:
+           arglist.append(ref.name)
+       for x in additional:
+           arglist.append(x)
+       rc = m.run(api, arglist)
+       if rc != 0:
+           raise CX("cobbler trigger failed: %s" % m.__name__)
+
+    # now do the old shell triggers, which are usually going to be slower, but are easier to write  
+    # and support any language
 
     triggers = glob.glob(globber)
     triggers.sort()

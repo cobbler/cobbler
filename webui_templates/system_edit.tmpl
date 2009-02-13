@@ -523,7 +523,7 @@ redhatmanagementkey"
             value="$user"
         #end if
     />
-    <p class="context-tip">Applies only if using authz_ownership module, comma-delimited</p>
+    <p class="context-tip">Applies only if using authz_ownership module, space delimited</p>
     </td>
     </tr>
 
@@ -533,9 +533,9 @@ redhatmanagementkey"
         </td>
         <td class="netedit">
         #if $system
-            <input type="text" size="64" style="width: 150px;" name="hostname" id="hostname" value="$system.hostname" />
+            <input type="text" size="64" style="width: 200px;" name="hostname" id="hostname" value="$system.hostname" />
         #else
-            <input type="text" size="64" style="width: 150px;" name="hostname" id="hostname" />
+            <input type="text" size="64" style="width: 200px;" name="hostname" id="hostname" />
         #end if
         <p class="context-tip">Ex: "vanhalen.example.org".  Used for /etc/sysconfig/network.</p>
         </td>
@@ -563,11 +563,26 @@ redhatmanagementkey"
     <td class="netedit">
     #if $system
        #set joined = " ".join($system.name_servers)
-       <input type="text" name="name_servers" id="name_servers" value="$joined">
+       <input type="text" size="255" style="width: 400px;" name="name_servers" id="name_servers" value="$joined" />
     #else
-       <input type="text" name="name_servers" id="name_servers" value="<<inherit>>">
+       <input type="text" size="255" style="width: 400px;" name="name_servers" id="name_servers" value="<<inherit>>" />
     #end if
     <p class="context-tip">Name servers, space delimited, if not provided by DHCP</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td class="netedit">
+    <label for="name_servers_search">Name Servers Search Path</label>
+    </td>
+    <td class="netedit">
+    #if $system
+       #set joined = " ".join($system.name_servers_search)
+       <input type="text" size="255" style="width: 400px;" name="name_servers_search" id="name_servers_search" value="$joined" />
+    #else
+       <input type="text" size="255" style="width: 400px;" name="name_servers_search" id="name_servers_search" value="<<inherit>>" />
+    #end if
+    <p class="context-tip">Name servers search path, space delimited, if not provided by DHCP</p>
     </td>
     </tr>
 

@@ -71,6 +71,7 @@ if __name__ == "__main__":
         rotpath       = "/etc/logrotate.d"
         powerpath   = etcpath + "/power"
         pxepath     = etcpath + "/pxe"
+        reppath     = etcpath + "/reporting"
         zonepath    = etcpath + "/zone_templates"
         
         # lib paths
@@ -214,10 +215,13 @@ if __name__ == "__main__":
                                 (powerpath, ['templates/power_wti.template']),
                                 (powerpath, ['templates/power_ilo.template']),
                                 (powerpath, ['templates/power_lpar.template']),        
-                                (powerpath, ['templates/power_bladecenter.template']),        
+                                (powerpath, ['templates/power_bladecenter.template']),
                                 (powerpath, ['templates/power_virsh.template']),        
 
-                                # templates for /usr/bin/cobbler-setup
+                                # templates for reporting
+                                (reppath,   ['templates/build_report_email.template']), 
+
+                                # templates for setup
                                 (itemplates, ['installer_templates/modules.conf.template']),
                                 (itemplates, ['installer_templates/settings.template']),
                                 (itemplates, ['installer_templates/defaults']),
@@ -338,10 +342,10 @@ if __name__ == "__main__":
                                 ("%s/delete/repo/pre" % trigpath,     []),
                                 ("%s/delete/repo/post" % trigpath,    []),
                                 ("%s/delete/repo/post" % trigpath,    []),
-                                ("%s/install/pre" % trigpath,         [ "triggers/status_pre.trigger", "triggers/clear_anamon_logs.trigger"]),
-                                ("%s/install/post" % trigpath,        [ "triggers/status_post.trigger"]),
+                                ("%s/install/pre" % trigpath,         []),
+                                ("%s/install/post" % trigpath,        []),
                                 ("%s/sync/pre" % trigpath,            []),
-                                ("%s/sync/post" % trigpath,           [ "triggers/restart-services.trigger" ])
+                                ("%s/sync/post" % trigpath,           [])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC

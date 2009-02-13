@@ -32,13 +32,14 @@ import utils
 
 class Templar:
 
-    def __init__(self,config):
+    def __init__(self,config=None):
         """
         Constructor
         """
-        self.config      = config
-        self.api         = config.api
-        self.settings    = config.settings()
+        if config is not None:
+            self.config      = config
+            self.api         = config.api
+            self.settings    = config.settings()
 
     def check_for_invalid_imports(self,data):
         """

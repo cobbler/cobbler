@@ -21,7 +21,7 @@ mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
 from utils import _
-import commands
+import cobbler.commands as commands
 from cexceptions import *
 HELP_FORMAT = commands.HELP_FORMAT
 

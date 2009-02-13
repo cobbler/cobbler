@@ -82,7 +82,7 @@ def load_modules(module_path=mod_path, blacklist=None):
 def get_module_by_name(name):
     return MODULE_CACHE.get(name, None)
 
-def get_module_from_file(category,field,fallback_module_name=None):
+def get_module_from_file(category,field,fallback_module_name=None,just_name=False):
 
     try:
         value = cp.get(category,field)
@@ -91,6 +91,8 @@ def get_module_from_file(category,field,fallback_module_name=None):
             value = fallback_module_name
         else:
             raise CX(_("Cannot find config file setting for: %s") % field) 
+    if just_name:
+        return value
     rc = MODULE_CACHE.get(value, None)
     if rc is None:
         raise CX(_("Failed to load module for %s/%s") % (category,field))

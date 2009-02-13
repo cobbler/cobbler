@@ -265,14 +265,10 @@ class BootAPI:
 
     def update(self):
         """
-        This can be called when you expect a cobbler object
-        to have changed outside of your API call.  It does not
-        have to be called before read operations but should be
-        called before write operations depending on the last
-        modification time.  For the local API it is not needed.
+        This can be called is no longer used by cobbler.
+        And is here to just avoid breaking older scripts.
         """
-        self.clear()
-        self.deserialize()
+        return True
 
     def copy_distro(self, ref, newname):
         self.log("copy_distro",[ref.name, newname])

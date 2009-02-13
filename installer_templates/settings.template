@@ -25,6 +25,19 @@ allow_duplicate_macs: 0
 # the path to BIND's executable for this distribution.
 bind_bin: /usr/sbin/named
 
+# Email out a report when cobbler finishes installing a system.
+# enabled: set to 1 to turn this feature on
+# sender: optional
+# email: which addresses to email
+# smtp_server: used to specify another server for an MTA
+# subject: use the default subject unless overridden
+
+build_reporting_enabled: 0
+build_reporting_sender: ""
+build_reporting_email: [ 'root@localhost' ]
+build_reporting_smtp_server: "localhost"
+build_reporting_subject: ""
+
 # Cheetah-language kickstart templates can import Python modules.
 # while this is a useful feature, it is not safe to allow them to 
 # import anything they want. This whitelists which modules can be 

@@ -5,6 +5,11 @@ Cobbler CHANGELOG
 - (FEAT) preliminary linux-ris support for windows installs (WIP)
 - (FEAT) download comps.xml always
 - (FEAT) performance upgrades for cobblerd service to avoid reloads
+- (FEAT) more code for s390 imports (WIP)
+- (BUGF) import works better with rawhide
+- (FEAT) snippet to preserve SSH host keys across reinstalls
+- (FEAT) email trigger to notify when builds finish
+- (FEAT) triggers now are written in Python, old system still exists.
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates
@@ -17,6 +22,11 @@ Cobbler CHANGELOG
 - (BUGF) fix image type field editing in the webapp
 - (BUGF) allow deletion of eth0 if other interfaces are present
 - (BUGF) fix server-override setting in CLI for profile objects
+- (BUGF) systems and profiles are now sorted for "cobbler buildiso"
+- (BUGF) ensure that directories exist when installing a template file
+- (BUGF) fix for typo in network config snippet
+- (BUGF) fix for func integration script (should overwrite config, not append)
+- (BUGF) append nameservers and gateway, if set, for buildiso 
 
 - Fri Jan 09 2009 - 1.4.1
 - (BUGF) Cobbler check looks for right httpd on SUSE

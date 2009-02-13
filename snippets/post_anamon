@@ -2,18 +2,17 @@
 
 ## install anamon script
 wget -O /usr/local/sbin/anamon.py "http://$server/cobbler/aux/anamon.py"
-chmod +x /usr/local/sbin/anamon.py
-
+## install anamon system service
 wget -O /etc/rc.d/init.d/anamon "http://$server/cobbler/aux/anamon.init"
-chmod +x /usr/local/sbin/anamon.py
 
-## establish permissions
-chmod 755 /etc/rc.d/init.d/anamon
+## adjust permissions
+chmod 755 /etc/rc.d/init.d/anamon /usr/local/sbin/anamon.py
+test -d /selinux && restorecon /etc/rc.d/init.d/anamon /usr/local/sbin/anamon.py
 
 ## enable the script
 chkconfig --add anamon
 
-## configure anamon server
+## configure anamon service
 cat << __EOT__ > /etc/sysconfig/anamon
 COBBLER_SERVER="$server"
 COBBLER_PORT="$http_port"
