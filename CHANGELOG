@@ -1,5 +1,8 @@
 Cobbler CHANGELOG
 
+- XXX - 1.4.3
+- (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
+
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates
 - (FEAT) add WTI power type
