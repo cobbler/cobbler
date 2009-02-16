@@ -1382,7 +1382,7 @@ def popen2(args, **kwargs):
     Leftovers from borrowing some bits from Snake, replace this 
     function with just the subprocess call.
     """
-    p = sub_process.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, **kwargs)
+    p = sub_process.Popen(args, stdout=sub_process.PIPE, stdin=sub_process.PIPE, **kwargs)
     return (p.stdout, p.stdin)
 
 if __name__ == "__main__":
