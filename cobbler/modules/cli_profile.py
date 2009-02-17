@@ -175,9 +175,9 @@ def register():
     """
     return "cli"
 
-def cli_functions(api, remote, token):
+def cli_functions(api):
     return [
-       ProfileFunction(api, remote, token)
+       ProfileFunction(api)
     ]
 
 

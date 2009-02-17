@@ -633,15 +633,6 @@ class BootAPI:
         (Remote) access control.
         Cobbler internal use only.
         """
-        if user == "*LOCAL*":
-            self.log("CLI/local login attempt")
-            fd = open("/var/lib/cobbler/web.ss")
-            data = fd.read()
-            if password == data:
-               return True
-            else:
-               return False
-
         rc = self.authn.authenticate(self,user,password)
         self.log("authenticate",[user,rc])
         return rc 

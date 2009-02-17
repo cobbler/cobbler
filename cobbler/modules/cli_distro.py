@@ -87,12 +87,10 @@ class DistroFunction(commands.CobblerFunction):
                 print x.name
             return True
 
-        obj = self.object_manipulator_start("distro")
-
+        obj = self.object_manipulator_start(self.api.new_distro,self.api.distros)
         if obj is None:
             return True
-        
-        # FIXME: remotify
+
         if not "dumpvars" in self.args:
             if self.options.comment is not None:
                 obj.set_comment(self.options.comment)
@@ -121,7 +119,7 @@ class DistroFunction(commands.CobblerFunction):
             if self.options.redhat_management_key is not None:
                 obj.set_redhat_management_key(self.options.redhat_management_key)
 
-        return self.object_manipulator_finish(obj, "distro", self.options)
+        return self.object_manipulator_finish(obj, self.api.distros, self.options)
 
 
 
@@ -134,9 +132,9 @@ def register():
     """
     return "cli"
 
-def cli_functions(api, remote, token):
+def cli_functions(api):
     return [
-       DistroFunction(api, remote, token)
+       DistroFunction(api)
     ]
 
 

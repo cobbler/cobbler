@@ -2,7 +2,6 @@ Cobbler CHANGELOG
 
 - XXX - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
-- (BUGF) when running an invalid command like "cobbler distro --name=foo" don't traceback
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates

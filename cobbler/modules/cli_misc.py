@@ -346,20 +346,14 @@ def register():
     """
     return "cli"
 
-def cli_functions(api, remote, token):
+def cli_functions(api):
     return [
-       BuildIsoFunction(api, remote, token), 
-       CheckFunction(api, remote, token), 
-       ImportFunction(api, remote, token), 
-       ReserializeFunction(api, remote, token),
-       ListFunction(api, remote, token), 
-       StatusFunction(api, remote, token),
-       SyncFunction(api, remote, token), 
-       RepoSyncFunction(api, remote, token), 
-       ValidateKsFunction(api, remote, token),
-       ReplicateFunction(api, remote, token), 
-       AclFunction(api, remote, token),
-       VersionFunction(api, remote, token)
+       BuildIsoFunction(api), 
+       CheckFunction(api), ImportFunction(api), ReserializeFunction(api),
+       ListFunction(api), StatusFunction(api),
+       SyncFunction(api), RepoSyncFunction(api), ValidateKsFunction(api),
+       ReplicateFunction(api), AclFunction(api),
+       VersionFunction(api)
     ]
     return []
 

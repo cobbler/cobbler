@@ -61,9 +61,9 @@ def register():
     """
     return "cli"
 
-def cli_functions(api, remote, token):
+def cli_functions(api):
     return [
-       ReportFunction(api, remote, token)
+       ReportFunction(api)
     ]
 
 
