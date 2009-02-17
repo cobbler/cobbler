@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import sys
-import api
+import api # once remotified, this will no longer be here
 import os
 import os.path
 import traceback
@@ -32,6 +32,7 @@ import string
 import commands
 import cexceptions
 import utils
+import xmlrpclib
 from cexceptions import *
 
 from utils import _
@@ -46,7 +47,7 @@ class BootCLI:
         self.loader = commands.FunctionLoader(self.api)
         climods = self.api.get_modules_in_category("cli")
         for mod in climods:
-            for fn in mod.cli_functions(self.api):
+            for fn in mod.cli_functions(self.api, self.remote, token):
                 self.loader.add_func(fn)
  
     def run(self,args):

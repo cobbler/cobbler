@@ -1340,7 +1340,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self._log("remove_distro (%s)" % recursive,name=name,token=token)
         self.check_access(token, "remove_distro", name)
-        rc = self.api.remove_distro(name,recursive=True)
+        rc = self.api.remove_distro(name,recursive=recursive)
         return rc
 
     def remove_profile(self,name,token,recursive=1):
@@ -1349,7 +1349,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self._log("remove_profile (%s)" % recursive,name=name,token=token)
         self.check_access(token, "remove_profile", name)
-        rc = self.api.remove_profile(name,recursive=True)
+        rc = self.api.remove_profile(name,recursive=recursive)
         return rc
 
     def remove_system(self,name,token,recursive=1):
@@ -1359,7 +1359,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self._log("remove_system (%s)" % recursive,name=name,token=token)
         self.check_access(token, "remove_system", name)
-        rc = self.api.remove_system(name)
+        rc = self.api.remove_system(name, recursive=recursive)
         return rc
 
     def remove_repo(self,name,token,recursive=1):
@@ -1369,7 +1369,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self._log("remove_repo (%s)" % recursive,name=name,token=token)
         self.check_access(token, "remove_repo", name)
-        rc = self.api.remove_repo(name, recursive=True)
+        rc = self.api.remove_repo(name, recursive=recursive)
         return rc
 
     def remove_image(self,name,token,recursive=1):
@@ -1379,7 +1379,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         self._log("remove_image (%s)" % recursive,name=name,token=token)
         self.check_access(token, "remove_image", name)
-        rc = self.api.remove_image(name, recursive=True)
+        rc = self.api.remove_image(name, recursive=recursive)
         return rc
 
     def read_or_write_kickstart_template(self,kickstart_file,is_read,new_data,token):

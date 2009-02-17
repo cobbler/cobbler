@@ -137,10 +137,9 @@ def register():
     """
     return "cli"
 
-def cli_functions(api):
+def cli_functions(api, remote, token):
     return [
-       ImageFunction(api)
+       ImageFunction(api, remote, token)
     ]
-    return []
 
 

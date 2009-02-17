@@ -36,12 +36,14 @@ class FunctionLoader:
     The F'n Loader controls processing of cobbler commands.
     """
 
-    def __init__(self, api):
+    def __init__(self, api, remote, token):
         """
         When constructed the loader has no functions.
         """
         self.api = api
         self.functions = {}
+        self.remote = remote
+        self.token = token
 
     def add_func(self, obj):
         """
@@ -178,25 +180,27 @@ class FunctionLoader:
             if help != "":
                 print help
 
-    def show_options_bashcompletion(self):
-        """
-        Prints out all loaded functions in an easily parseable form for
-        bash-completion
-        """
-        names = self.functions.keys()
-        names.sort()
-        print ' '.join(names)
+    #def show_options_bashcompletion(self):
+    #    """
+    #    Prints out all loaded functions in an easily parseable form for
+    #    bash-completion
+    #    """
+    #    names = self.functions.keys()
+    #    names.sort()
+    #    print ' '.join(names)
 
 #=============================================================
 
 class CobblerFunction:
 
-    def __init__(self,api):
+    def __init__(self,api,remote,token):
         """
         Constructor requires a Cobbler API handle.
         """
         self.api = api
         self.args = []
+        self.remote = remote
+        self.token = token
 
     def command_name(self):
         """
@@ -222,20 +226,20 @@ class CobblerFunction:
         """
         pass
 
-    def helpbash(self, parser, args, print_options = True, print_subs = False):
-        """
-        Print out the arguments in an easily parseable format
-        """
-        # We only want to print either the subcommands available or the
-        # options, but not both
-        option_list = []
-        if print_subs:
-            for sub in self.subcommands():
-                option_list.append(sub.__str__())
-        elif print_options:
-            for opt in parser.option_list:
-                option_list.extend(opt.__str__().split('/'))
-        print ' '.join(option_list)
+    #def helpbash(self, parser, args, print_options = True, print_subs = False):
+    #    """
+    #    Print out the arguments in an easily parseable format
+    #    """
+    #    # We only want to print either the subcommands available or the
+    #    # options, but not both
+    #    option_list = []
+    #    if print_subs:
+    #        for sub in self.subcommands():
+    #            option_list.append(sub.__str__())
+    #    elif print_options:
+    #        for opt in parser.option_list:
+    #            option_list.extend(opt.__str__().split('/'))
+    #    print ' '.join(option_list)
 
     def parse_args(self,args):
         """
@@ -265,7 +269,10 @@ class CobblerFunction:
         (self.options, self.args) = p.parse_args(args)
         return True
 
-    def object_manipulator_start(self,new_fn,collect_fn,subobject=False):
+    def get_handle(self, objtype, name):
+        return getattr(self.remote, "get_%_handle" % objtype)(name)
+
+    def object_manipulator_start(self,object_type,subobject=False):
         """
         Boilerplate for objects that offer add/edit/delete/remove/copy functionality.
         """
@@ -273,30 +280,33 @@ class CobblerFunction:
         if "dumpvars" in self.args:
             if not self.options.name:
                 raise CX(_("name is required"))
-            obj = collect_fn().find(self.options.name)
+            obj = get_handle(object_type, self.options.name)
             if obj is None:
                 raise CX(_("object not found")) 
             return obj
 
         if "poweron" in self.args:
-            obj = collect_fn().find(self.options.name)
+            obj = get_object_handle(object_type, self.options.name)
             if obj is None:
                 raise CX(_("object not found"))
-            self.api.power_on(obj,self.options.power_user,self.options.power_pass)
+            # FIMXE: allow passing self.options.power_user, self.options.power_pass here
+            self.remote.power_system(obj,"on",self.token)
             return None
 
         if "poweroff" in self.args:
-            obj = collect_fn().find(self.options.name)
+            obj = get_object_handle(object_type, self.options.name)
             if obj is None:
                 raise CX(_("object not found"))
-            self.api.power_off(obj,self.options.power_user,self.options.power_pass)
+            # FIMXE: allow passing self.options.power_user, self.options.power_pass here
+            self.remote.power_system(obj,"off",self.token)
             return None
 
         if "reboot" in self.args:
-            obj = collect_fn().find(self.options.name)
+            obj = get_object_handle(object_type, self.options.name)
             if obj is None:
                 raise CX(_("object not found"))
-            self.api.reboot(obj,self.options.power_user,self.options.power_pass)
+            # FIMXE: allow passing self.options.power_user, self.options.power_pass here
+            self.remote.power_system(obj,"reboot",self.token)
             return None
 
         if "remove" in self.args:
@@ -306,25 +316,24 @@ class CobblerFunction:
                 recursive = self.options.recursive
             if not self.options.name:
                 raise CX(_("name is required"))
-            if not recursive:
-                collect_fn().remove(self.options.name,with_delete=True)
-            else:
-                collect_fn().remove(self.options.name,with_delete=True,recursive=True)
+            function = getattr(self.remote, "remove_%s" % object_type)
+            function.remove(self.options.name,self.token,recursive)
             return None # signal that we want no further processing on the object
 
         if "list" in self.args:
-            self.list_list(collect_fn())
+            # FIXME: remotify this
+            self.list_list(object_type)
             return None
 
         if "report" in self.args:
+            # FIXME: remotify this
             if self.options.name is None:
-                return self.api.report(report_what = self.args[1], report_name = None, \
-                               report_type = 'text', report_fields = 'all')
+                return self.api.report(report_what = self.args[1], report_name = None, report_type = 'text', report_fields = 'all')
             else:
-                return self.api.report(report_what = self.args[1], report_name = self.options.name, \
-                                report_type = 'text', report_fields = 'all')
+                return self.api.report(report_what = self.args[1], report_name = self.options.name, report_type = 'text', report_fields = 'all')
 
         if "getks" in self.args:
+            # FIXME: remotify this
             if not self.options.name:
                 raise CX(_("name is required"))
             obj = collect_fn().find(self.options.name)
@@ -332,10 +341,18 @@ class CobblerFunction:
                 raise CX(_("object not found")) 
             return obj
 
+        try:
+            # user didn't pick a subcommand
+            getattr(self, "options")
+        except:
+            # help will have already been printed
+            sys.exit(0)
+
         if not self.options.name:
             raise CX(_("name is required"))
 
         if "add" in self.args:
+            # FIXME: remotify this
             obj = new_fn(is_subobject=subobject)
         else:
             if "delete" in self.args:
@@ -356,10 +373,12 @@ class CobblerFunction:
         """
 
         if "dumpvars" in self.args:
+            # FIXME: remotify this
             print obj.dump_vars(True)
             return True
 
         if "getks" in self.args:
+            # FIXME: remotify this
             ba=api.BootAPI()
             if "system" in self.args:
                 rc = ba.generate_kickstart(None, self.options.name)
@@ -376,6 +395,7 @@ class CobblerFunction:
             clobber = options.clobber
 
         if "copy" in self.args:
+            # FIXME: remotify this
             if self.options.newname:
                 # FIXME: this should just use the copy function!
                 if obj.COLLECTION_TYPE == "distro":
@@ -408,6 +428,7 @@ class CobblerFunction:
         # errors under legit circumstances.
 
         if not ("rename" in self.args):
+            # FIXME: remotify this
             if "add" in self.args:
                if obj.COLLECTION_TYPE == "system":
                    # duplicate names and netinfo are both bad.
@@ -428,6 +449,7 @@ class CobblerFunction:
                rc = collect_fn().add(obj, save=True, with_sync=opt_sync, with_triggers=opt_triggers, check_for_duplicate_netinfo=check_dup)
 
         else:
+            # FIXME: remotify this
             # we are renaming here, so duplicate netinfo checks also
             # need to be made.(FIXME)
             rc = collect_fn().rename(obj, self.options.newname, with_triggers=opt_triggers)
@@ -457,12 +479,29 @@ class CobblerFunction:
             if kids is not None and len(kids) > 0:
                 self.list_tree(kids,level+1)
 
-    def list_list(self, collection):
+    def __get_names(self, collection_type):
+        # FIXME: use get_x_names over XMLRPC instead, faster
+        if collection_type == "distro":
+           data = self.remote.get_distros()
+        elif collection_type == "profile":
+           data = self.remote.get_profiles()
+        elif collection_type == "system":
+           data = self.remote.get_systems()
+        elif collection_type == "repo":
+           data = self.remote.get_repos()
+        elif collection_type == "image":
+           data = self.remote.get_image()
+        else:
+           raise CX("internal error; bad data type (%s)" % collection_type)
+        names = [ x["name"] for x in data]
+        names.sort()
+        return names
+
+    def list_list(self, collection_type):
         """
         List all objects of a certain type.
         """
-        names = [ x.name for x in collection]
-        names.sort() # sorted() is 2.4 only
+        names = self.__get_names(collection_type)
         for name in names:
            str = _("%(name)s") % { "name" : name }
            print str
