@@ -3,7 +3,10 @@ Koan CHANGELOG
 - XXX 1.5.0
 - (DOCS) fix manpage, option is --nogfx, not --no-gfx
 
-- XXX 1.4.2
+- XXX 1.4.3
+- (SPEC) reduce python version requirements for EL2 (--replace-self only)
+
+- Thu Feb 12 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.2
 - (BUGF) make LVM storage work regardless of localization
 - (BUGF) patch to make --update-files create directories if they don't exist
 
