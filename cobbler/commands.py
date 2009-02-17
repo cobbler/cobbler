@@ -332,6 +332,12 @@ class CobblerFunction:
                 raise CX(_("object not found")) 
             return obj
 
+        try:
+            # catch some invalid executions of the CLI
+            getattr(self, "options")
+        except:
+            sys.exit(1)
+
         if not self.options.name:
             raise CX(_("name is required"))
 
