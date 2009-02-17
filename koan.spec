@@ -2,13 +2,13 @@
 
 Summary: Network provisioning tool for Xen and Bare Metal Machines 
 Name: koan
-Version: 1.4.2
+Version: 1.4.3
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
 Requires: mkinitrd
-Requires: python >= 2.2
+Requires: python >= 1.5
 BuildRequires: python-devel
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]" || echo 0)}
@@ -58,6 +58,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+
+* Tue Feb 17 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.333-1
+- Upstream changes (see CHANGELOG)
+- Reduce python version requirements
 
 * Fri Feb 12 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.2-1
 - Upstream changes (see CHANGELOG)

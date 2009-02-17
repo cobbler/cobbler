@@ -1,5 +1,8 @@
 Koan CHANGELOG
 
+- XXX 1.4.3
+- (SPEC) reduce python version requirements for EL2 (--replace-self only)
+
 - Thu Feb 12 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.2
 - (BUGF) make LVM storage work regardless of localization
 - (BUGF) patch to make --update-files create directories if they don't exist
