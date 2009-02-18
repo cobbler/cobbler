@@ -221,11 +221,18 @@ pxe_template_dir: "/etc/cobbler/pxe"
 #   "site"   : I'm using Red Hat Satellite Server or Spacewalk
 #   
 # You will also want to read: https://fedorahosted.org/cobbler/wiki/TipsForRhn
+
 redhat_management_type: "$redhat_management_type"
 
 # if redhat_management_type is enabled, choose your server
 #   "management.example.org" : For Satellite or Spacewalk
 #   "xmlrpc.rhn.redhat.com"  : For Red Hat Network
+#
+# This setting is also used by the code that supports using Spacewalk/Satellite users/passwords
+# within Cobbler Web and Cobbler XMLRPC.  Using RHN Hosted for this is not supported.
+# This feature can be used even if redhat_management_type is off, you just have
+# to have authn_spacewalk selected in modules.conf
+
 redhat_management_server: "$redhat_management_server"
 
 # specify the default Red Hat authorization key to use to register

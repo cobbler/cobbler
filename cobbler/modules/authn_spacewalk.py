@@ -24,11 +24,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import distutils.sysconfig
 import sys
 import xmlrpclib
+import binascii
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
-
 
 def register():
     """
@@ -36,28 +36,96 @@ def register():
     """
     return "authn"
 
+def __is_spacewalk_new_enough(handle):
+    # spacewalk >= 0.3 uses a linear API version independent of Satellite
+    # or Spacewalk package/release versions.  Version 10 has Cobbler support.
+    version  = handle.api.getVersion()
+    version2 = float(version)
+    return (version2 >= 10)
+
+def __looks_like_a_token(password):
+
+    # what spacewalk sends us could be an internal token or it could be a password
+    # if it's lowercase hex, it's /likely/ a token, and we should try to treat
+    # it as a token first, if not, we should treat it as a password.  All of this
+    # code is there to avoid extra XMLRPC calls, which are slow.
+
+    if password.lower() != password:
+        # tokens are always lowercase, this isn't a token
+        return False
+
+    try:
+        data = binascii.unhexlify(password)
+        return True # looks like a token, but we can't be sure
+    except:
+        return False # definitely not a token
+       
+
 def authenticate(api_handle,username,password):
     """
     Validate a username/password combo, returning True/False
     
     This will pass the username and password back to Spacewalk
     to see if this authentication request is valid.
+
+    See also: http://www.redhat.com/spacewalk/documentation/api/0.4/
+
     """
 
-    #spacewalk_url = api_handle.settings().spacewalk_url  
     server = api_handle.settings().redhat_management_server
     if server == "xmlrpc.rhn.redhat.com":
-        return False # don't bother RHN!
+        return False # emergency fail, don't bother RHN!
+
     spacewalk_url = "https://%s/rpc/api" % server
 
     client = xmlrpclib.Server(spacewalk_url, verbose=0)
 
-    valid = client.auth.checkAuthToken(username,password)
+    if __is_spacewalk_new_enough(client) and __looks_like_a_token(password):
+
+        # Spacewalk >= 0.3 integrates cobbler support and has an additional
+        # auth mechanism where the service can authenticate without using
+        # a user account.  Older Satellites can not do this.  The tokens
+        # are lowercase hex, but a password can also be lowercase hex,
+        # so we have to try it as both a token and then a password if
+        # we are unsure.  We do it this way to be faster but also to avoid
+        # any login failed stuff in the logs that we don't need to send.
+
+        try:
+            valid = client.auth.checkAuthToken(username,password)
+        except:
+            # if the token is not a token this will raise an exception
+            # rather than return an integer.   
+            valid = 0
+
+        # problem at this point, 0xdeadbeef is valid as a token but if that
+        # fails, it's also a valid password, so we must try auth system #2
+
+        if valid != 1:
+            # first API code returns 1 on success
+            # the second uses exceptions for login failed.
+            #
+            # so... token check failed, but maybe the username/password
+            # is just a simple username/pass!
+            try:
+                client.auth.login(username,password)
+            except:
+                # FIXME: should log exceptions that are not excepted
+                # as we could detect spacewalk java errors here that
+                # are not login related.
+                return False
+                       
+        return True
     
-    if valid is None:
-        return False
-    
-    return (valid == 1)
-        
+    else:
+
+        # it's an older version of spacewalk, so just try the username/pass
+        # OR: we know for sure it's not a token because it's not lowercase hex.
+
+        try:
+            client.auth.login(username,password)
+        except:
+            return False
+
+        return True
 
 
