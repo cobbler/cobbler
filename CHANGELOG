@@ -7,6 +7,7 @@ Cobbler CHANGELOG
 - (BUGF) fix removal of images with child system objects
 - (BUGF) make --rpmlist on repo use same parsing routes as the rest of cobbler
 - (BUGF) default value for server override should be <<inherit>> not <inherit>
+- (BUGF) ensure if virt bridge is set to "" it will apply the value from settings
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates

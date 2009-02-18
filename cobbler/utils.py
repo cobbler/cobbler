@@ -1206,8 +1206,8 @@ def set_virt_bridge(self,vbridge):
      """
      The default bridge for all virtual interfaces under this profile.
      """
-     if vbridge is None:
-        vbridge = ""
+     if vbridge is None or vbridge == "":
+        vbridge = self.settings.default_virt_bridge
      self.virt_bridge = vbridge
      return True
 
