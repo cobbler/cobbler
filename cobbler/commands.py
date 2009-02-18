@@ -307,7 +307,7 @@ class CobblerFunction:
             if not self.options.name:
                 raise CX(_("name is required"))
             if not recursive:
-                collect_fn().remove(self.options.name,with_delete=True)
+                collect_fn().remove(self.options.name,with_delete=True,recursive=False)
             else:
                 collect_fn().remove(self.options.name,with_delete=True,recursive=True)
             return None # signal that we want no further processing on the object

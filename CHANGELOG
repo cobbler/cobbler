@@ -3,6 +3,8 @@ Cobbler CHANGELOG
 - XXX - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
 - (BUGF) don't traceback on invalid cmd ("cobbler distro list --name=foo")
+- (BUGF) fix import usage with --kickstart option (no more traceback)
+- (BUGF) fix removal of images with child system objects
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates
