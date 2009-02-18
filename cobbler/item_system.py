@@ -449,6 +449,8 @@ class System(item.Item):
         return True
     
     def set_virt_bridge(self,bridge,interface):
+        if bridge == "":
+            bridge = self.settings.default_virt_bridge
         intf = self.__get_interface(interface)
         intf["virt_bridge"] = bridge
         return True
