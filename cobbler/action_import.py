@@ -265,9 +265,9 @@ class Importer:
                # print _("- skipping distro %s since it wasn't imported this time") % profile.distro
                continue
 
+           kdir = os.path.dirname(distro.kernel)   
+           importer = import_factory(kdir,self.path)
            if self.kickstart_file == None:
-               kdir = os.path.dirname(distro.kernel)   
-               importer = import_factory(kdir,self.path)
                for rpm in importer.get_release_files():
                      # FIXME : This redhat specific check should go into the importer.find_release_files method
                      if rpm.find("notes") != -1:
