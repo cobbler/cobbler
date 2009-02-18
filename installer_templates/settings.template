@@ -241,6 +241,22 @@ redhat_management_server: "$redhat_management_server"
 # keep it from trying to register.
 redhat_management_key: ""
 
+# if using authn_spacewalk in modules.conf to let cobbler authenticate 
+# against Satellite/Spacewalk's auth system, by default it will not allow per user 
+# access into Cobbler Web and Cobbler XMLRPC.
+#
+# in order to permit this, the following setting must be enabled HOWEVER
+# doing so will permit all Spacewalk/Satellite users of certain types to edit all
+# of cobbler's configuration.
+# 
+# these roles are:  config_admin and org_admin
+#
+# users should turn this on only if they want this behavior and
+# do not have a cross-multi-org seperation concern.  If you have
+# a single org in your satellite, it's probably safe to turn this
+# on and then you can use CobblerWeb alongside a Satellite install.
+redhat_management_permissive: 0
+
 # when DHCP and DNS management are enabled, cobbler sync can automatically
 # restart those services to apply changes.  The exception for this is
 # if using ISC for DHCP, then omapi eliminates the need for a restart.

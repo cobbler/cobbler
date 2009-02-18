@@ -83,6 +83,7 @@ DEFAULTS = {
     "power_template_dir"          : "/etc/cobbler/power",
     "pxe_just_once"               : 0,
     "pxe_template_dir"            : "/etc/cobbler/pxe",
+    "redhat_management_permissive" : 0,
     "redhat_management_type"      : "off",
     "redhat_management_key"       : "",
     "redhat_management_server"    : "xmlrpc.rhn.redhat.com",
