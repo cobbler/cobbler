@@ -375,35 +375,27 @@ def test_services_access():
     api.add_system(sys) # save the system to ensure it's set True
 
     url = "http://127.0.0.1/cblr/svc/op/nopxe/system/system0"
-    print "DEBUG: reading: %s" % url
     data = urlgrabber.urlread(url)
-    print "NOPXE DATA: %s" % data
     time.sleep(2)
 
     sys = api.find_system("system0")
-    print "NE STATUS: %s" % sys.netboot_enabled
     assert str(sys.netboot_enabled).lower() not in [ "1", "true", "yes" ]
     
     # now let's test the listing URLs since we document
     # them even know I don't know of anything relying on them.
 
-    print "A"
     url = "http://127.0.0.1/cblr/svc/op/list/what/distros"
     assert urlgrabber.urlread(url).find("distro0") != -1
 
-    print "B"
     url = "http://127.0.0.1/cblr/svc/op/list/what/profiles"
     assert urlgrabber.urlread(url).find("profile0") != -1
 
-    print "C"
     url = "http://127.0.0.1/cblr/svc/op/list/what/systems"
     assert urlgrabber.urlread(url).find("system0") != -1
 
-    print "D"
     url = "http://127.0.0.1/cblr/svc/op/list/what/repos"
     assert urlgrabber.urlread(url).find("repo0") != -1
 
-    print "E"
     url = "http://127.0.0.1/cblr/svc/op/list/what/images"
     assert urlgrabber.urlread(url).find("image0") != -1
 
@@ -422,7 +414,6 @@ def test_services_access():
 
     url = "http://127.0.0.1/cblr/svc/op/puppet/hostname/hostname0"
     data = urlgrabber.urlread(url)
-    print "puppet DATA: %s" % data
     assert data.find("alpha") != -1
     assert data.find("beta") != -1
     assert data.find("gamma") != -1
@@ -438,13 +429,11 @@ def test_services_access():
 
     url = "http://127.0.0.1/cblr/svc/op/template/profile/profile0/path/_tmp_t1-rendered"
     data = urlgrabber.urlread(url)
-    print "T1: %s" % data
     assert data.find("profile0") != -1
     assert data.find("$profile_name") == -1    
 
     url = "http://127.0.0.1/cblr/svc/op/template/system/system0/path/_tmp_t2-rendered"
     data = urlgrabber.urlread(url)
-    print "T2: %s" % data
     assert data.find("system0") != -1
     assert data.find("$system_name") == -1
 

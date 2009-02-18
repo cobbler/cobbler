@@ -672,7 +672,6 @@ def run_triggers(api,ref,globber,additional=[]):
     # Python triggers first, before shell
 
     modules = api.get_modules_in_category(globber)
-    print "DEBUG: trigger modules matching %s are %s" % (globber, [m.__name__ for m in modules])
     for m in modules:
        arglist = []
        if ref:

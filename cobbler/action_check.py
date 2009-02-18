@@ -148,7 +148,6 @@ class BootCheck:
                   if line.find("off") != -1:
                       status.append(_("Must enable selinux boolean to enable Apache and web services components, run: setsebool -P httpd_can_network_connect true"))
            data3 = sub_process.Popen("/usr/sbin/semanage fcontext -l | grep public_content_t",shell=True,stdout=sub_process.PIPE).communicate()[0]
-           #print "DEBUG: data3=\n%s\n" % data3
 
            rule1 = False
            rule2 = False
