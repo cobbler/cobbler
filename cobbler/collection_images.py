@@ -39,8 +39,22 @@ class Images(collection.Collection):
         # but is left in for consistancy in the API.  Unused.
 
         name = name.lower()
+
+        # first see if any Groups use this distro
+        if not recursive:
+            for v in self.config.systems():
+                if v.image is not None and v.image.lower() == name:
+                    raise CX(_("removal would orphan system: %s") % v.name)
+
         obj = self.find(name=name)
+
         if obj is not None:
+
+            if recursive:
+                kids = obj.get_children()
+                for k in kids:
+                    self.config.api.remove_system(k, recursive=True)
+
             if with_delete:
                 if with_triggers:
                     self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/image/pre/*")
@@ -57,4 +71,5 @@ class Images(collection.Collection):
                     self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/image/post/*")
             return True
 
-        raise CX(_("cannot delete an object that does not exist: %s") % name)
+        else:
+            raise CX(_("cannot delete an object that does not exist: %s") % name)

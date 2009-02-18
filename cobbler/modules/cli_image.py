@@ -54,6 +54,8 @@ class ImageFunction(commands.CobblerFunction):
 
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--os-version",       dest="os_version", help="ex: rhel4, fedora 9") 
+        if self.matches_args(args,["remove"]):
+            p.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
 
         if self.matches_args(args,["copy","rename"]):
 

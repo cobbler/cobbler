@@ -314,6 +314,10 @@ class Collection(serializable.Serializable):
                 match = self.api.find_distro(ref.name)
             elif isinstance(ref, item_repo.Repo):
                 match = self.api.find_repo(ref.name)
+            elif isinstance(ref, item_image.Image):
+                match = self.api.find_image(ref.name)
+            else:
+                raise CX("internal error, unknown object type")
 
             if match:
                 raise CX(_("An object already exists with that name.  Try 'edit'?"))
