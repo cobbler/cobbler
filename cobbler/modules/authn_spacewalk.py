@@ -69,8 +69,10 @@ def authenticate(api_handle,username,password):
 
     if api_handle is not None:
         server = api_handle.settings().redhat_management_server
+        user_enabled = api_handle.settings().redhat_management_permissive
     else:
         server = "columbia.devel.redhat.com"
+        user_enabled = True
 
     if server == "xmlrpc.rhn.redhat.com":
         return False # emergency fail, don't bother RHN!
@@ -103,14 +105,26 @@ def authenticate(api_handle,username,password):
             #
             # so... token check failed, but maybe the username/password
             # is just a simple username/pass!
+
+            if user_enabled == 0:
+               # this feature must be explicitly enabled.
+               return False
+
+
+            session = ""
             try:
-                client.auth.login(username,password)
+                session = client.auth.login(username,password)
             except:
                 # FIXME: should log exceptions that are not excepted
                 # as we could detect spacewalk java errors here that
                 # are not login related.
                 return False
-                       
+   
+            # login success by username, role must also match
+            roles = client.user.listRoles(session, username)
+            if not ("config_admin" in roles or "org_admin" in roles):
+               return False
+                    
         return True
     
     else:
@@ -118,12 +132,23 @@ def authenticate(api_handle,username,password):
         # it's an older version of spacewalk, so just try the username/pass
         # OR: we know for sure it's not a token because it's not lowercase hex.
 
+        if user_enabled == 0:
+           # this feature must be explicitly enabled.
+           return False
+
+
+        session = ""
         try:
-            client.auth.login(username,password)
+            session = client.auth.login(username,password)
         except:
+            return False
+
+        # login success by username, role must also match
+        roles = client.user.listRoles(session, username)
+        if not ("config_admin" in roles or "org_admin" in roles):
             return False
 
         return True
 
 if __name__ == "__main__":
-    print authenticate(None,"admin","72abe98bc5d44e2cad6114535b4e85dax12abfde4eda3d280cba3baeb09d0ade9")
+    print authenticate(None,"admin","redhat")
