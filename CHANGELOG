@@ -5,6 +5,7 @@ Cobbler CHANGELOG
 - (BUGF) don't traceback on invalid cmd ("cobbler distro list --name=foo")
 - (BUGF) fix import usage with --kickstart option (no more traceback)
 - (BUGF) fix removal of images with child system objects
+- (BUGF) make --rpmlist on repo use same parsing routes as the rest of cobbler
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates

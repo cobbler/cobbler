@@ -177,17 +177,7 @@ class Repo(item.Item):
         contains games, and we probably don't want those), make it possible to list the packages
         one wants out of those repos, so only those packages + deps can be mirrored.
         """
-        if rpms is None:
-            rpms = ""
-        if type(rpms) != list:
-            rpmlist = rpms.split(None)
-        else:
-            rpmlist = rpms
-        try:
-            rpmlist.remove('')
-        except:
-            pass
-        self.rpm_list = rpmlist 
+        self.rpm_list = utils.input_string_or_list(rpms,delim=" ")
         return True
 
     def set_createrepo_flags(self,createrepo_flags):
