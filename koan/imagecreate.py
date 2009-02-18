@@ -29,7 +29,12 @@ import random
 import exceptions
 import errno
 import virtinst
-from virtinst import ImageParser, Guest, CapabilitiesParser, VirtualNetworkInterface
+try:
+   from virtinst import ImageParser, Guest, CapabilitiesParser, VirtualNetworkInterface
+except:
+   # if this fails, this is ok, the user just won't be able to use image objects...
+   # keeping this dynamic allows this to work on older EL.
+   pass
 import libvirt
 
 import app as koan
