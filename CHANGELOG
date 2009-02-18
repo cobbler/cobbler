@@ -8,6 +8,7 @@ Cobbler CHANGELOG
 - (BUGF) make --rpmlist on repo use same parsing routes as the rest of cobbler
 - (BUGF) default value for server override should be <<inherit>> not <inherit>
 - (BUGF) ensure if virt bridge is set to "" it will apply the value from settings
+- (BUGF) cobbler check should say path to config file is /etc/cobbler, not /var/lib
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates

@@ -63,7 +63,7 @@ class CheckFunction(commands.CobblerFunction):
         if len(status) == 0:
             self.logprint(fd,"No setup problems found")
              
-            self.logprint(fd,"Manual review and editing of /var/lib/cobbler/settings is recommended to tailor cobbler to your particular configuration.")
+            self.logprint(fd,"Manual review and editing of /etc/cobbler/settings is recommended to tailor cobbler to your particular configuration.")
             self.logprint(fd,"Good luck.")
             return True
         else:
