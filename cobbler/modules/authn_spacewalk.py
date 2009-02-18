@@ -24,7 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import distutils.sysconfig
 import sys
 import xmlrpclib
-import binascii
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
@@ -36,30 +35,26 @@ def register():
     """
     return "authn"
 
-def __is_spacewalk_new_enough(handle):
-    # spacewalk >= 0.3 uses a linear API version independent of Satellite
-    # or Spacewalk package/release versions.  Version 10 has Cobbler support.
-    version  = handle.api.getVersion()
-    version2 = float(version)
-    return (version2 >= 10)
-
 def __looks_like_a_token(password):
 
     # what spacewalk sends us could be an internal token or it could be a password
-    # if it's lowercase hex, it's /likely/ a token, and we should try to treat
+    # if it's long and lowercase hex, it's /likely/ a token, and we should try to treat
     # it as a token first, if not, we should treat it as a password.  All of this
     # code is there to avoid extra XMLRPC calls, which are slow.
+
+    # we can't use binascii.unhexlify here as it's an "odd length string"
 
     if password.lower() != password:
         # tokens are always lowercase, this isn't a token
         return False
 
-    try:
-        data = binascii.unhexlify(password)
-        return True # looks like a token, but we can't be sure
-    except:
-        return False # definitely not a token
-       
+    #try:
+    #    #data = binascii.unhexlify(password)
+    #    return True # looks like a token, but we can't be sure
+    #except:
+    #    return False # definitely not a token
+     
+    return (len(password) > 45)  
 
 def authenticate(api_handle,username,password):
     """
@@ -72,7 +67,11 @@ def authenticate(api_handle,username,password):
 
     """
 
-    server = api_handle.settings().redhat_management_server
+    if api_handle is not None:
+        server = api_handle.settings().redhat_management_server
+    else:
+        server = "columbia.devel.redhat.com"
+
     if server == "xmlrpc.rhn.redhat.com":
         return False # emergency fail, don't bother RHN!
 
@@ -80,11 +79,9 @@ def authenticate(api_handle,username,password):
 
     client = xmlrpclib.Server(spacewalk_url, verbose=0)
 
-    if __is_spacewalk_new_enough(client) and __looks_like_a_token(password):
+    if __looks_like_a_token(password):
 
-        # Spacewalk >= 0.3 integrates cobbler support and has an additional
-        # auth mechanism where the service can authenticate without using
-        # a user account.  Older Satellites can not do this.  The tokens
+        # The tokens
         # are lowercase hex, but a password can also be lowercase hex,
         # so we have to try it as both a token and then a password if
         # we are unsure.  We do it this way to be faster but also to avoid
@@ -128,4 +125,5 @@ def authenticate(api_handle,username,password):
 
         return True
 
-
+if __name__ == "__main__":
+    print authenticate(None,"admin","72abe98bc5d44e2cad6114535b4e85dax12abfde4eda3d280cba3baeb09d0ade9")
