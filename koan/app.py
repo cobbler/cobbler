@@ -1462,8 +1462,7 @@ class Koan:
                     sub_process.call(args, close_fds=True, shell=True)
 
                 # return partition location
-                return partition_location
-
+                return "/dev/mapper/%s-%s" % (location.replace('-','--'), name.replace('-','--'))
             else:
                 raise InfoException, "volume group needs %s GB free space." % virt_size
 
