@@ -1,5 +1,18 @@
 Cobbler CHANGELOG
 
+- XXX - 1.5.0
+- (FEAT) Improved anaconda monitoring code
+- (FEAT) preliminary linux-ris support for windows installs (WIP)
+- (FEAT) download comps.xml always
+- (FEAT) performance upgrades for cobblerd service to avoid reloads
+- (FEAT) more code for s390 imports (WIP)
+- (BUGF) import works better with rawhide
+- (FEAT) snippet to preserve SSH host keys across reinstalls
+- (FEAT) email trigger to notify when builds finish
+- (FEAT) triggers now are written in Python, old system still exists.
+- (FEAT) s390x zpxe support
+- (BUGF) retry power 5 times before giving up
+
 - XXX - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
 - (BUGF) don't traceback on invalid cmd ("cobbler distro list --name=foo")
@@ -10,6 +23,10 @@ Cobbler CHANGELOG
 - (BUGF) ensure if virt bridge is set to "" it will apply the value from settings
 - (BUGF) cobbler check should say path to config file is /etc/cobbler, not /var/lib
 - (FEAT) enable cobblerweb username/pass logins when authing with spacewalk
+- (BUGF) allow --kopts to take parameters that are shell quoted.
+- (BUGF) allow kernel options to start with '-'
+- (BUGF) Use shlex for parsing --kopts to allow a wider variety of kernel options
+- (BUGF) prevent potential traceback when --template-file data isn't a hash
 
 - XXX - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess

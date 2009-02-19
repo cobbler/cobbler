@@ -917,7 +917,9 @@ class PXEGen:
 
         for template in templates.keys():
             dest = templates[template]
-            
+            if dest is None:
+               continue
+ 
             # Run the source and destination files through 
             # templar first to allow for variables in the path 
             template = self.templar.render(template, blended, None).strip()
