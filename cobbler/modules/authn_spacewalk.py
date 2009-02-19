@@ -81,7 +81,7 @@ def authenticate(api_handle,username,password):
 
     client = xmlrpclib.Server(spacewalk_url, verbose=0)
 
-    if __looks_like_a_token(password):
+    if __looks_like_a_token(password) or username == 'taskomatic_user':
 
         # The tokens
         # are lowercase hex, but a password can also be lowercase hex,
