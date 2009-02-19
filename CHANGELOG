@@ -1,5 +1,13 @@
 Cobbler CHANGELOG
 
+- XXX - 1.5.0
+- (FEAT) performance upgrades when using cobblerd/XMLRPC
+- (FEAT) faster native python triggers
+- (FEAT) anaconda monitoring features (anamon)
+- (FEAT) build reporting trigger
+- (FEAT) s390x zpxe support
+- (BUGF) retry power 5 times before giving up
+
 - XXX - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
 - (BUGF) don't traceback on invalid cmd ("cobbler distro list --name=foo")

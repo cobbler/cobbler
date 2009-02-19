@@ -31,6 +31,7 @@ import os.path
 import sub_process
 import sys
 import traceback
+import time
 
 import utils
 from cexceptions import *
@@ -106,7 +107,15 @@ class PowerTool:
         #if not os.path.exists(tool_needed):
         #   print "warning: %s does not seem to be installed" % tool_needed
 
-        rc = sub_process.call(cmd, shell=False, close_fds=True)
+        # Try the power command 5 times before giving up.
+        # Some power switches are flakey
+        for x in range(0,5):
+            rc = sub_process.call(cmd, shell=False, close_fds=True)
+            if rc == 0:
+                break
+            else:
+                time.sleep(2)
+
         if not rc == 0:
            raise CX("command failed (rc=%s), please validate the physical setup and cobbler config" % rc)
 
@@ -138,6 +147,7 @@ class PowerTool:
             "bladecenter": os.path.join(powerdir,"power_bladecenter.template"),
             "virsh"      : os.path.join(powerdir,"power_virsh.template"),
             "integrity"  : os.path.join(powerdir,"power_integrity.template"),
+            "wti"        : os.path.join(powerdir,"power_wti.template"),
         }
 
         result = map.get(self.system.power_type, "")
