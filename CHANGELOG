@@ -1,15 +1,15 @@
 Cobbler CHANGELOG
 
-- *** - 1.5.0
-- (FEAT) Improved anaconda monitoring code
-- (FEAT) preliminary linux-ris support for windows installs (WIP)
-- (FEAT) download comps.xml always
-- (FEAT) performance upgrades for cobblerd service to avoid reloads
-- (FEAT) more code for s390 imports (WIP)
-- (BUGF) import works better with rawhide
-- (FEAT) snippet to preserve SSH host keys across reinstalls
-- (FEAT) email trigger to notify when builds finish
-- (FEAT) triggers now are written in Python, old system still exists.
+- XXX - 1.4.3
+- (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
+- (BUGF) don't traceback on invalid cmd ("cobbler distro list --name=foo")
+- (BUGF) fix import usage with --kickstart option (no more traceback)
+- (BUGF) fix removal of images with child system objects
+- (BUGF) make --rpmlist on repo use same parsing routes as the rest of cobbler
+- (BUGF) default value for server override should be <<inherit>> not <inherit>
+- (BUGF) ensure if virt bridge is set to "" it will apply the value from settings
+- (BUGF) cobbler check should say path to config file is /etc/cobbler, not /var/lib
+- (FEAT) enable cobblerweb username/pass logins when authing with spacewalk
 
 - XXX - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess

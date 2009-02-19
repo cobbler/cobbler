@@ -672,7 +672,6 @@ def run_triggers(api,ref,globber,additional=[]):
     # Python triggers first, before shell
 
     modules = api.get_modules_in_category(globber)
-    print "DEBUG: trigger modules matching %s are %s" % (globber, [m.__name__ for m in modules])
     for m in modules:
        arglist = []
        if ref:
@@ -1207,8 +1206,8 @@ def set_virt_bridge(self,vbridge):
      """
      The default bridge for all virtual interfaces under this profile.
      """
-     if vbridge is None:
-        vbridge = ""
+     if vbridge is None or vbridge == "":
+        vbridge = self.settings.default_virt_bridge
      self.virt_bridge = vbridge
      return True
 
