@@ -26,6 +26,7 @@ Cobbler CHANGELOG
 - (BUGF) allow --kopts to take parameters that are shell quoted.
 - (BUGF) allow kernel options to start with '-'
 - (BUGF) Use shlex for parsing --kopts to allow a wider variety of kernel options
+- (BUGF) prevent potential traceback when --template-file data isn't a hash
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates
