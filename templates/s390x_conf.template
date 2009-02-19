@@ -1,48 +1,51 @@
 DASD=100-101,200
 SUBCHANNELS=0.0.0600,0.0.0601,0.0.0602
 NETTYPE=qeth
+#if $getVar('hostname', '') != ''
+HOSTNAME=$hostname
+#end if
+#if $getVar('name_servers_search', '') != ''
+#echo "SEARCHDNS=%s\n" % ':'.join($name_servers_search)
+#end if
+#if $getVar('gateway', '') != ''
+GATEWAY=$gateway
+#end if
+#if $getVar('name_servers', '') != ''
+#echo "DNS=%s\n" % ':'.join($name_servers)
+#end if
 #if $getVar("interfaces","") != "" and $interfaces.has_key("eth0")
-   $set $hostname=$interfaces['eth0'].get('hostname','')
    #set $ip=$interfaces['eth0'].get('ip_address','')
    #set $netmask=$interfaces['eth0'].get('subnet','')
-   #set $gateway=$interfaces['eth0'].get('gateway','')
-   #set $nameservers=':'.join($interfaces['eth0'].get('nameservers',''))
-   #set $dnssearch=':'.join($interfaces['eth0'].get('dnssearch','')) 
    #if $ip != ''
        #set $tokens = $ip.split('.')
        #set $tokens = $tokens[0:-1]
-       #set $broadcast = " ".join($tokens) + ".255"
+       #set $broadcast = ".".join($tokens) + ".255"
    #else
        #set $broadcast = ""
    #end if
 #else
-   #set $hostname=""
    #set $ip=""
    #set $netmask=""
-   #set $gateway=""
-   #set $nameservers=""
-   #set $dnssearch=""
    #set $broadcast = ""
-#end if
-#if $hostname != ''
-HOSTNAME=$hostname
 #end if
 #if $ip != ''
 IPADDR=$ip
 #end if
-## FIXME: don't know what to do with this?
-## NETWORK=192.168.5.0
+## Unless provided, calculate the network using netmask and broadcast
+#if $getVar('network', '') != ''
+NETWORK=$network
+#elif $netmask != '' and $ip != ''
+#set $ip_split = $ip.split('.')
+#set $nm_split = $netmask.split('.')
+#set $nw_split = []
+#for $oct in $range($len($ip_split))
+#silent $nw_split.append("%s" % ($int($nm_split[$oct]) & $int($ip_split[$oct])))
+#end for
+#set $network=".".join($nw_split)
+NETWORK=$network
+#end if
 #if $netmask != ''
 NETMASK=$netmask
-#end if
-#if $dnssearch != ''
-SEARCHDNS=$dnssearch
-#end if
-#if $gateway != ''
-GATEWAY=$gateway
-#end if
-#if $nameservers != ''
-DNS=$name_servers
 #end if
 ## FIXME: the hack that generates this assumes ip with 255 as last octet
 ## FIXME: if this is wrong, don't change here, change at the top where it's set
@@ -51,4 +54,5 @@ BROADCAST=$broadcast
 #end if
 MTU=1500
 PORTNAME=UNASSIGNED
+PORTNO=0
 LAYER2=0
