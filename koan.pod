@@ -66,8 +66,6 @@ Flag                Explanation                             Example
 
 --virt-type         forces usage of qemu/xen/vmware         qemu
 
---virt-ram          size in megabytes                       1024
-
 --virt-bridge       name of bridge device                   virbr0
 
 --virt-path         overwrite this disk partition           /dev/sda4
