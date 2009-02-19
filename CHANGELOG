@@ -4,6 +4,8 @@ Koan CHANGELOG
 - (SPEC) reduce python version requirements for EL2 (--replace-self only)
 - (BUGF) fix traceback in import when using --kickstart option
 - (BUGF) don't require ImageParser, allowing --virt to still work on older EL
+- (BUGF) manpage fixes (remove missing --virt-ram option from manpage)
+- (BUGF) fixes for LVM partitions using hypens, and LVM selinux fixes
 
 - Thu Feb 12 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.2
 - (BUGF) make LVM storage work regardless of localization
