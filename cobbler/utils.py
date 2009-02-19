@@ -38,11 +38,8 @@ import signal
 from cexceptions import *
 import codes
 import time
-<<<<<<< HEAD:cobbler/utils.py
 import netaddr
-=======
 import shlex
->>>>>>> 7ef4578... Use shlex for parsing --kopts to allow a wider variety of kernel options input.:cobbler/utils.py
 
 try:
     import hashlib as fiver
