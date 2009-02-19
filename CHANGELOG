@@ -23,6 +23,8 @@ Cobbler CHANGELOG
 - (BUGF) ensure if virt bridge is set to "" it will apply the value from settings
 - (BUGF) cobbler check should say path to config file is /etc/cobbler, not /var/lib
 - (FEAT) enable cobblerweb username/pass logins when authing with spacewalk
+- (BUGF) allow --kopts to take parameters that are shell quoted.
+- (BUGF) allow kernel options to start with '-'
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates

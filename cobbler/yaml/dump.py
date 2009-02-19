@@ -254,17 +254,17 @@ def quote(data):
         return str(data)
     single = "'"
     double = '"'
-    quote = ''
+    mquote = ''
     if len(data) == 0:
         return "''"
     if hasSpecialChar(data) or data[0] == single:
         data = `data`[1:-1]
         data = string.replace(data, r"\x08", r"\b")
-        quote = double 
+        mquote = double 
     elif needsSingleQuote(data):
-        quote = single
+        mquote = single
         data = doubleUpQuotes(data)
-    return "%s%s%s" % (quote, data, quote)
+    return "%s%s%s" % (mquote, data, mquote)
 
 def needsSingleQuote(data):
     if re.match(r"^-?\d", data):
@@ -273,7 +273,7 @@ def needsSingleQuote(data):
         return 1
     if data[0] in ['&', ' ']:
         return 1
-    if data[0] == '"':
+    if data[0] == '"' or data[0] == "'":
         return 1
     if data[-1] == ' ':
         return 1
@@ -281,7 +281,7 @@ def needsSingleQuote(data):
 
 def hasSpecialChar(data):
     # need test to drive out '#' from this
-    return re.search(r'[\t\b\r\f#]', data)
+    return re.search(r'[-\t\b\r\f#]', data)
 
 def isMulti(data):
     if not isStr(data):
