@@ -25,6 +25,7 @@ Cobbler CHANGELOG
 - (FEAT) enable cobblerweb username/pass logins when authing with spacewalk
 - (BUGF) allow --kopts to take parameters that are shell quoted.
 - (BUGF) allow kernel options to start with '-'
+- (BUGF) Use shlex for parsing --kopts to allow a wider variety of kernel options
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates

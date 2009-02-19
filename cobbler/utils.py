@@ -38,7 +38,11 @@ import signal
 from cexceptions import *
 import codes
 import time
+<<<<<<< HEAD:cobbler/utils.py
 import netaddr
+=======
+import shlex
+>>>>>>> 7ef4578... Use shlex for parsing --kopts to allow a wider variety of kernel options input.:cobbler/utils.py
 
 try:
     import hashlib as fiver
@@ -388,28 +392,32 @@ def input_string_or_hash(options,delim=",",allow_multiples=True):
         raise CX(_("No idea what to do with list: %s") % options)
     elif type(options) == str:
         new_dict = {}
-        tokens = options.split(delim)
+        tokens = shlex.split(options)
         for t in tokens:
-            tokens2 = t.split("=")
-            if len(tokens2) == 1 and tokens2[0] != '':
+            tokens2 = t.split("=",1)
+            if len(tokens2) == 1:
                 # this is a singleton option, no value
-                tokens2.append(None)
-            elif tokens2[0] == '':
-                return (False, {})
+                key = tokens2[0]
+                value = None
+            else:
+                key = tokens2[0]
+                value = tokens2[1] 
 
             # if we're allowing multiple values for the same key,
             # check to see if this token has already been
             # inserted into the dictionary of values already
-            if tokens2[0] in new_dict.keys() and allow_multiples:
+
+            if key in new_dict.keys() and allow_multiples:
                 # if so, check to see if there is already a list of values
                 # otherwise convert the dictionary value to an array, and add
                 # the new value to the end of the list
-                if type(new_dict[tokens2[0]]) == list:
-                    new_dict[tokens2[0]].append(tokens2[1])
+                if type(new_dict[key]) == list:
+                    new_dict[key].append(value)
                 else:
-                    new_dict[tokens2[0]] = [new_dict[tokens2[0]], tokens2[1]]
+                    new_dict[key] = [new_dict[key], value]
             else:
-                new_dict[tokens2[0]] = tokens2[1]
+                new_dict[key] = value
+        # make sure we have no empty entries
         new_dict.pop('', None)
         return (True, new_dict)
     elif type(options) == dict:
