@@ -760,7 +760,7 @@ class PXEGen:
                 else:
                     template = os.path.join(self.settings.pxe_template_dir,"pxesystem.template")
     
-                    if arch == "s390x":
+                    if arch.startswith("s390"):
                         template = os.path.join(self.settings.pxe_template_dir,"pxesystem_s390x.template")
                     elif arch == "ia64":
                         template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ia64.template")
@@ -794,7 +794,7 @@ class PXEGen:
 
             if distro is not None and distro.breed == "windows":
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_win.template")
-            elif arch == "s390x":
+            elif arch.startswith("s390"):
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_s390x.template")
             else:
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile.template")
@@ -837,14 +837,14 @@ class PXEGen:
             # interface=bootif causes a failure
             #    append_line = append_line.replace("ksdevice","interface")
 
-        if arch in ["s390x", "ppc", "ppc64"]:
+        if arch in ["s390", "s390x", "ppc", "ppc64"]:
             # remove the prefix "append"
             append_line = append_line[7:]
 
         # store variables for templating
         metadata["menu_label"] = ""
         if profile:
-            if not arch in [ "ia64", "ppc", "ppc64", "s390x" ]:
+            if not arch in [ "ia64", "ppc", "ppc64", "s390", "s390x" ]:
                 metadata["menu_label"] = "MENU LABEL %s" % profile.name
                 metadata["profile_name"] = profile.name
         elif image:
