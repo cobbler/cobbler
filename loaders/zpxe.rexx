@@ -35,7 +35,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  
 /* Defaults */
  
-server = ''                          /* server defined in ZPXE CONF */
+server = ''                           /* define server in ZPXE CONF */
 iplDisk = 100                   /* overridden by value in ZPXE CONF */
 profilelist = PROFILE LIST T    /* VDISK will be defined as T later */
 profiledetail = PROFILE DETAIL T
@@ -47,6 +47,11 @@ config = ZPXE CONF
 upper = xrange('A', 'Z')
 lower = xrange('a', 'z')
  
+/* Useful settings normally found in PROFILE EXEC */
+'cp set run on'
+'cp set pf11 retrieve forward'
+'cp set pf12 retrieve'
+ 
 /* Check for config file */
 if lines(config) > 0 then do
   inputline = linein(config)    /* first line is server hostname/IP */
@@ -56,15 +61,15 @@ if lines(config) > 0 then do
 end
  
 /* Define temporary disk (VDISK) to store files */
-'det ffff'                                /* detach ffff if present */
-'def vfb-512 as ffff blk 100000'    /* 512 byte block size =~ 50 MB */
+'detach ffff'                             /* detach ffff if present */
+'define vfb-512 as ffff blk 100000' /* 512 byte block size =~ 50 MB */
 queue '1'
 queue 'tmpdsk'
 'format ffff t'                     /* format VDISK as file mode t */
  
 /* Link TCPMAINT disk for access to TFTP */
 'link tcpmaint 592 592 rr'
-'acc 592 e'
+'access 592 e'
  
 /* Query user ID.  This is used later to determine:
      1. Whether a user-specific PXE profile exists.
@@ -86,6 +91,7 @@ call GetTFTP '/s390x/s_'userid'_conf' 'zpxe.conf.t'     /* get conf */
  
 if lines(profiledetail) > 0 then do
   vmfclear                                          /* clear screen */
+  call CheckServer                             /* print server name */
   say 'Profile 'userid' found'
   say ''
   call DownloadBinaries               /* download kernel and initrd */
@@ -100,11 +106,7 @@ end /* if user-specific profile found */
 call GetTFTP '/s390x/profile_list' 'profile.list.t'
  
 vmfclear                                            /* clear screen */
- 
-if server = '' then do
-  say '** Error: No host defined in ZPXE.CONF **'
-  say ''
-end
+call CheckServer                               /* print server name */
  
 say 'zPXE MENU'                                        /* show menu */
 say '---------'
@@ -121,7 +123,7 @@ if (count = 0) then
   say '** Error connecting to server: no profiles found **'
  
 count = count + 1
-say count'. IPL Linux from DASD 'iplDisk' (Default)'
+say count'. Exit to CMS shell [IPL CMS]'
 say ''
 say ''
 say 'Enter Choice -->'
@@ -131,12 +133,19 @@ say 'or press <Enter> to boot from disk [DASD 'iplDisk']'
    logon by XAUTOLOG.  In this case, IPL the
    default disk.
 */
-if (dsc = 'DSC') THEN                       /* user is disconnected */
+if (dsc = 'DSC') then do                    /* user is disconnected */
+  say 'User disconnected.  Booting from DASD 'iplDisk'...'
   'cp ipl' iplDisk
+  end
 else do                            /* user is interactive -> prompt */
   parse upper pull answer .
   select
-    when (answer = count) | (answer = '')         /* IPL by default */
+    when (answer = count)
+    then do
+      say 'Exiting to CMS shell...'
+      exit
+      end
+    when (answer = '')                            /* IPL by default */
     then do
       say 'Booting from DASD 'iplDisk'...'
       'cp ipl' iplDisk
@@ -175,6 +184,20 @@ end
 exit
  
  
+/* Procedure CheckServer
+   Print error message if server is not defined.  Otherwise
+   show server name
+*/
+CheckServer:
+ 
+  if server = '' then
+    say '** Error: No host defined in ZPXE.CONF **'
+  else say 'Connected to server 'server
+  say ''
+ 
+return 0 /* CheckServer */
+ 
+ 
 /* Procedure GetTFTP
    Use CMS TFTP client to download files
      path: remote file location
@@ -195,6 +218,7 @@ GetTFTP:
   'set cmstype rt'
  
 return 0 /* GetTFTP */
+ 
  
 /* Procedure DownloadBinaries
    Download kernel and initial RAMdisk.  Convert both
