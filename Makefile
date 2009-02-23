@@ -1,10 +1,10 @@
 all: rpms
 
 clean:
-	-rm -f koan*.gz koan*.rpm MANIFEST
+	-rm -f koan*.gz koan*.html koan*.rpm MANIFEST
 	-rm -rf koan-* dist build
 	-rm -rf rpm-build
-	-rm -rf *~ *.pyc *.pyo
+	-rm -rf *~ *.pyc *.pyo *.tmp
 
 manpage:
 	pod2man --center="koan" --release= koan.pod | gzip -c > koan.1.gz
