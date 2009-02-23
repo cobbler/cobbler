@@ -1001,7 +1001,7 @@ class Koan:
         """
         Return a list of MAC address strings found in argument.
         """
-        return re.findall(r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}', strdata, re.I)
+        return re.findall(r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}', strdata.upper())
 
     #---------------------------------------------------
 
