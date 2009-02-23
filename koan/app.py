@@ -425,17 +425,28 @@ class Koan:
         matching as secondary lookup eventually to be more PXE-like
         """
 
-        fd = os.popen("/sbin/ifconfig")
-        mac = [line.strip() for line in fd.readlines()][0].split()[-1] #this needs to be replaced
-        fd.close()
-        if self.is_mac(mac) == False:
-            raise InfoException, "Mac address not accurately detected"
-        systems = self.get_data("systems")
+        local_macs = []
+        local_ips = []
+        cmd = sub_process.Popen("/sbin/ip addr list", stdout=sub_process.PIPE, shell=True)
+        for line in cmd.communicate()[0].split('\n'):
+            if self.is_mac(line):
+                mac = self.get_macs(line)[0] # just get the first
+                if mac not in ["ff:ff:ff:ff:ff:ff", "00:00:00:00:00:00"]:
+                    local_macs.append(mac.upper())
+            if self.is_ip(line):
+                ip = self.get_ips(line)[0] # just get the first
+                if ip not in ["127.0.0.1", "0.0.0.0"]:
+                    local_ips.append(ip)
+
+        if len(local_macs) + len(local_ips) <= 0:
+            raise InfoException, "System mac address and IP address not accurately detected"
 
         detected_systems = []
+        systems = self.get_data("systems")
         for system in systems:
             for (iname, interface) in system['interfaces'].iteritems():
-                if interface['mac_address'].upper() == mac.upper():
+                if interface['mac_address'].upper() in local_macs or \
+                   interface['ip_address'].upper() in local_ips:
                     detected_systems.append(system['name'])
                     break
 
@@ -765,7 +776,20 @@ class Koan:
                         profile_data
                     )
 
-            if len(k_args) > 255:
+            # Validate kernel argument length (limit depends on architecture --
+            # see asm-*/setup.h).  For example:
+            #   asm-i386/setup.h:#define COMMAND_LINE_SIZE 256
+            #   asm-ia64/setup.h:#define COMMAND_LINE_SIZE  512
+            #   asm-powerpc/setup.h:#define COMMAND_LINE_SIZE   512
+            #   asm-s390/setup.h:#define COMMAND_LINE_SIZE  896
+            #   asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
+            if arch.startswith("ppc") or arch.startswith("ia64"):
+                if len(k_args) > 511:
+                    raise InfoException, "Kernel options are too long, 512 chars exceeded: %s" % k_args
+            elif arch.startswith("s390"):
+                if len(k_args) > 895:
+                    raise InfoException, "Kernel options are too long, 896 chars exceeded: %s" % k_args
+            elif len(k_args) > 255:
                 raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
 
             utils.subprocess_call([
@@ -819,7 +843,23 @@ class Koan:
                         profile_data
                     )
 
-            if len(k_args) > 255:
+            arch_cmd = sub_process.Popen("/bin/uname -m", stdout=sub_process.PIPE, shell=True)
+            arch = arch_cmd.communicate()[0]
+
+            # Validate kernel argument length (limit depends on architecture --
+            # see asm-*/setup.h).  For example:
+            #   asm-i386/setup.h:#define COMMAND_LINE_SIZE 256
+            #   asm-ia64/setup.h:#define COMMAND_LINE_SIZE  512
+            #   asm-powerpc/setup.h:#define COMMAND_LINE_SIZE   512
+            #   asm-s390/setup.h:#define COMMAND_LINE_SIZE  896
+            #   asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
+            if arch.startswith("ppc") or arch.startswith("ia64"):
+                if len(k_args) > 511:
+                    raise InfoException, "Kernel options are too long, 512 chars exceeded: %s" % k_args
+            elif arch.startswith("s390"):
+                if len(k_args) > 895:
+                    raise InfoException, "Kernel options are too long, 896 chars exceeded: %s" % k_args
+            elif len(k_args) > 255:
                 raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
 
             cmd = [ "/sbin/grubby",
@@ -841,22 +881,20 @@ class Koan:
                # utils.subprocess_call(["/sbin/grubby","--remove-kernel","/boot/vmlinuz"])
 
             # Are we running on ppc?
-            arch_cmd = sub_process.Popen("/bin/uname -m", stdout=sub_process.PIPE, shell=True)
-            uname_str = arch_cmd.communicate()[0]
-            if uname_str.startswith("ppc"):
+            if arch.startswith("ppc"):
                cmd.append("--yaboot")
-            elif uname_str.startswith("s390"):
+            elif arch.startswith("s390"):
                cmd.append("--zipl")
 
             utils.subprocess_call(cmd)
 
             # Any post-grubby processing required (e.g. ybin, zipl, lilo)?
-            if uname_str.startswith("ppc"):
+            if arch.startswith("ppc"):
                 # FIXME - CHRP hardware uses a 'PPC PReP Boot' partition and doesn't require running ybin
                 print "- applying ybin changes"
                 cmd = [ "/sbin/ybin" ]
                 sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
-            elif uname_str.startswith("s390"):
+            elif arch.startswith("s390"):
                 print "- applying zipl changes"
                 cmd = [ "/sbin/zipl" ]
                 sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
@@ -950,14 +988,29 @@ class Koan:
     
     #---------------------------------------------------
 
+    def get_ips(self,strdata):
+        """
+        Return a list of IP address strings found in argument.
+        warning: not IPv6 friendly
+        """
+        return re.findall(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',strdata)
+
+    #---------------------------------------------------
+
+    def get_macs(self,strdata):
+        """
+        Return a list of MAC address strings found in argument.
+        """
+        return re.findall(r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}', strdata, re.I)
+
+    #---------------------------------------------------
+
     def is_ip(self,strdata):
         """
         Is strdata an IP?
         warning: not IPv6 friendly
         """
-        if re.search(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',strdata):
-            return True
-        return False
+        return self.get_ips(strdata) and True or False
 
     #---------------------------------------------------
 
@@ -965,12 +1018,7 @@ class Koan:
         """
         Return whether the argument is a mac address.
         """
-        if strdata is None:
-            return False
-        strdata = strdata.upper()
-        if re.search(r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}',strdata):
-            return True
-        return False
+        return self.get_macs(strdata) and True or False
 
     #---------------------------------------------------
 
