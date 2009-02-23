@@ -256,8 +256,8 @@ class BuildIso:
         print _("- copying kernels and initrds - for standalone distro")
         # tempdir/isolinux/$distro/vmlinuz, initrd.img
         # FIXME: this will likely crash on non-Linux breeds
-        f1 = os.path.join(isolinuxdir, "%s.krn" % distname)
-        f2 = os.path.join(isolinuxdir, "%s.img" % distname)
+        f1 = os.path.join(isolinuxdir, "vmlinuz")
+        f2 = os.path.join(isolinuxdir, "initrd.img")
         if not os.path.exists(distro.kernel):
             raise CX("path does not exist: %s" % distro.kernel)
         if not os.path.exists(distro.initrd):
@@ -265,7 +265,7 @@ class BuildIso:
         shutil.copyfile(distro.kernel, f1)
         shutil.copyfile(distro.initrd, f2)
 
-        cmd = "rsync -rlptgu  --exclude=boot.cat --exclude=TRANS.TBL %s/ %s/../" % (filesource, isolinuxdir)
+        cmd = "rsync -rlptgu --exclude=boot.cat --exclude=TRANS.TBL --exclude=isolinux/ %s/ %s/../" % (filesource, isolinuxdir)
         print _("- copying distro %s files (%s)" % (distname,cmd))
         rc = sub_process.call(cmd, shell=True, close_fds=True)
         if rc:
@@ -282,11 +282,11 @@ class BuildIso:
             cfg.write("\n")
             cfg.write("LABEL %s\n" % descendant.name)
             cfg.write("  MENU LABEL %s\n" % descendant.name)
-            cfg.write("  kernel %s.krn\n" % distname)
+            cfg.write("  kernel vmlinuz\n")
 
             data["kickstart"] = "cdrom:/isolinux/ks-%s.cfg" % descendant.name
 
-            append_line = "  append initrd=%s.img" % distname
+            append_line = "  append initrd=initrd.img"
             append_line = append_line + " ks=%s " % data["kickstart"]
             append_line = append_line + " %s\n" % data["kernel_options"]
 
@@ -379,7 +379,7 @@ class BuildIso:
         else:
             self.generate_netboot_iso(imagesdir,isolinuxdir,profiles,systems)
 
-        cmd = "mkisofs -o %s -r -b isolinux/isolinux.bin -c isolinux/boot.cat" % iso
+        cmd = "mkisofs -quiet -o %s -r -b isolinux/isolinux.bin -c isolinux/boot.cat" % iso
         cmd = cmd + " -no-emul-boot -boot-load-size 4"
         cmd = cmd + " -boot-info-table -V Cobbler\ Install -R -J -T %s" % tempdir
 
