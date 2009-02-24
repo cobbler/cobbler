@@ -1,0 +1,6 @@
+cobbler (1.4.1-1) unstable; urgency=low
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Jasper Capel <jasper@newnewyork.nl>  Wed, 11 Feb 2009 22:50:37 +0100
+
