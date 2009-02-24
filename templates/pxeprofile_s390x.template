@@ -1,3 +1,2 @@
 $kernel_path
 $initrd_path
-$append_line

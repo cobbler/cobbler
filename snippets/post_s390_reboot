@@ -1,0 +1,10 @@
+## HACK to allow RHEL4 and previous s390 installs to reboot
+#if $arch.startswith("s390"):
+%post --nochroot
+pid=\$(cat /var/run/init.pid)
+[ -z "\$pid" ] && pid=\$(pidof init)
+kill -12 \$pid
+pid=\$(cat /var/run/loader.run)
+[ -z "\$pid" ] && pid=\$(pidof loader)
+kill \$pid
+#end if

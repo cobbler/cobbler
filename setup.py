@@ -165,6 +165,7 @@ if __name__ == "__main__":
                                 (libpath,  ['loaders/elilo-3.8-ia64.efi']),
                                 (libpath,  ['loaders/menu.c32']),
                                 (libpath,  ['loaders/yaboot-1.3.14']),
+                                (libpath,  ['loaders/zpxe.rexx']),
                                 
                                 # database/serializer
                                 (dbpath + "/distros.d",  []),
@@ -240,6 +241,7 @@ if __name__ == "__main__":
                                 (snippetpath, ['snippets/koan_environment']),
                                 (snippetpath, ['snippets/pre_anamon']),
                                 (snippetpath, ['snippets/post_anamon']),
+                                (snippetpath, ['snippets/post_s390_reboot']),
                                 (snippetpath, ['snippets/redhat_register']),
 
                                 # documentation
