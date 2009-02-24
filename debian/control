@@ -3,13 +3,13 @@ Section: unknown
 Priority: extra
 Maintainer: Jasper Capel <jasper@newnewyork.nl>
 Depends: python, apache2, libapache2-mod-python
-Build-Depends: debhelper (>= 7), python-cheetah
+Build-Depends: debhelper (>= 7), python-cheetah, git-core
 Standards-Version: 3.8.0
 Homepage: https://fedoraproject.org/cobbler
 
 Package: cobbler
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, python, apache2, libapache2-mod-python
 Description: Install server
  Cobbler is a network install server.  Cobbler
  supports PXE, virtualized installs, and
