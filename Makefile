@@ -34,7 +34,13 @@ build: manpage updatewui
 	python setup.py build -f
 
 install: manpage updatewui
-	python setup.py install -f
+	if [ $(DESTDIR) != "" ]
+	then
+		APPENDROOT = "--root $(DESTDIR)"
+	else
+		APPENDROOT = ""
+	fi
+	python setup.py install -f $APPENDROOT
 
 devinstall: 
 	make savestate 
