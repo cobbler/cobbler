@@ -2,6 +2,7 @@ include loaders/COPYING_ELILO
 include loaders/elilo-3.8-ia64.efi
 include loaders/menu.c32
 include loaders/yaboot-1.3.14
+include loaders/zpxe.rexx
 include config/acls.conf
 include config/cobbler.conf
 include config/cobbler_svc.conf

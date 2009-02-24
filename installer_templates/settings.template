@@ -142,12 +142,12 @@ kernel_options:
 # above defaults
 
 kernel_options_s390x:
+    RUNKS: 1
     ramdisk_size: 40000
     root: /dev/ram0
     ro: ~
     ip: off
-    CMSDASD: 191
-    RUNKS: 1
+    vnc: ~
 
 # configuration options if using the authn_ldap module. See the
 # the Wiki for details.  This can be ignored if you are not using

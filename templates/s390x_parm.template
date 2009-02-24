@@ -1,3 +1,22 @@
-$kickstart_expanded
-CMSCONFFILE=$confname
-$kernel_options
+## Stuff content into a list so we can display a condensed format later
+#if $isinstance($kernel_options, $list)
+#set $argList = $kernel_options
+#else
+#set $argList = $kernel_options.split(" ")
+#end if
+#silent $argList.insert(0, $kickstart_expanded)
+## =====================================
+## Now write out data.  Content cannot be longer than 80 characters in length,
+## and must not exceed 11 lines
+## =====================================
+#set $output_str=""
+#for $item in $argList
+#if $len($output_str) + $len($item) >= 80
+#echo "%s\n" % $output_str.strip()
+#set $output_str = ""
+#end if
+#set $output_str = "%s %s" % ($output_str, $item)
+#end for
+#if $len($output_str) > 0
+#echo "%s\n" % $output_str.strip()
+#end if

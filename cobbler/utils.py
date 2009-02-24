@@ -459,11 +459,11 @@ def blender(api_handle,remove_hashes, root_obj):
 
     # hack -- s390 nodes get additional default kernel options
     arch = results.get("arch","?")
-    if arch == "s390x":
+    if arch.startswith("s390"):
         keyz = settings.kernel_options_s390x.keys()
         for k in keyz:
            if not results.has_key(k):
-               results[k] = settings.kernel_options_s390x[k]
+               results["kernel_options"][k] = settings.kernel_options_s390x[k]
 
     # determine if we have room to add kssendmac to the kernel options line
     kernel_txt = hash_to_string(results["kernel_options"])
@@ -1048,13 +1048,13 @@ def set_redhat_management_key(self,key):
 def set_arch(self,arch):
    if arch is None or arch == "":
        arch = "x86"
-   if arch in [ "standard", "ia64", "x86", "i386", "ppc", "ppc64", "x86_64", "s390x" ]:
+   if arch in [ "standard", "ia64", "x86", "i386", "ppc", "ppc64", "x86_64", "s390", "s390x" ]:
        if arch == "x86" or arch == "standard":
            # be consistent 
            arch = "i386"
        self.arch = arch
        return True
-   raise CX(_("arch choices include: x86, x86_64, ppc, ppc64, s390x and ia64"))
+   raise CX(_("arch choices include: x86, x86_64, ppc, ppc64, s390, s390x and ia64"))
 
 def set_os_version(self,os_version):
    if os_version == "" or os_version is None:
@@ -1386,7 +1386,7 @@ def popen2(args, **kwargs):
     Leftovers from borrowing some bits from Snake, replace this 
     function with just the subprocess call.
     """
-    p = sub_process.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, **kwargs)
+    p = sub_process.Popen(args, stdout=sub_process.PIPE, stdin=sub_process.PIPE, **kwargs)
     return (p.stdout, p.stdin)
 
 if __name__ == "__main__":

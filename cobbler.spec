@@ -267,10 +267,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/snippets/koan_environment
 %config(noreplace) /var/lib/cobbler/snippets/pre_anamon
 %config(noreplace) /var/lib/cobbler/snippets/post_anamon
+%config(noreplace) /var/lib/cobbler/snippets/post_s390_reboot
 %config(noreplace) /var/lib/cobbler/snippets/redhat_register
 /var/lib/cobbler/elilo-3.8-ia64.efi
 /var/lib/cobbler/menu.c32
 /var/lib/cobbler/yaboot-1.3.14
+/var/lib/cobbler/zpxe.rexx
 %defattr(660,root,root)
 %config(noreplace) /etc/cobbler/users.digest 
 
