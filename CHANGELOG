@@ -13,6 +13,7 @@ Cobbler CHANGELOG
 - (BUGF) allow --kopts to take parameters that are shell quoted.
 - (BUGF) allow kernel options to start with '-'
 - (BUGF) prevent potential traceback when --template-file data isn't a hash
+- (BUGF) set primary hostname manually in case Anaconda doesn't honor it
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates
