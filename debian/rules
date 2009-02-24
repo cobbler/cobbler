@@ -49,7 +49,7 @@ install: build
 	dh_installdirs
 
 	# Add here commands to install the package into debian/cobbler.
-	$(MAKE) DESTDIR=$(CURDIR)/debian/cobbler install
+	$(MAKE) debinstall DESTDIR=$(CURDIR)/debian/cobbler 
 
 
 # Build architecture-independent files here.
