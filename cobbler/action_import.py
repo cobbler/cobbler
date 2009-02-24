@@ -774,7 +774,7 @@ class Importer:
        name = name.replace("chrp","ppc64")
 
        for separator in [ '-' , '_'  , '.' ] :
-         for arch in [ "i386" , "x86_64" , "ia64" , "ppc64", "ppc32", "ppc", "x86" , "s390", "s390x" , "386" , "amd" ]:
+         for arch in [ "i386" , "x86_64" , "ia64" , "ppc64", "ppc32", "ppc", "x86" , "s390x", "s390" , "386" , "amd" ]:
            name = name.replace("%s%s" % ( separator , arch ),"")
 
        return name
@@ -792,10 +792,10 @@ class Importer:
           return "ia64"
        if dirname.find("i386") != -1 or dirname.find("386") != -1 or dirname.find("x86") != -1:
           return "i386"
-       if dirname.find("s390") != -1:
-          return "s390"
        if dirname.find("s390x") != -1:
           return "s390x"
+       if dirname.find("s390") != -1:
+          return "s390"
        if dirname.find("ppc64") != -1 or dirname.find("chrp") != -1:
           return "ppc64"
        if dirname.find("ppc32") != -1:

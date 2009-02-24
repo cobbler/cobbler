@@ -30,6 +30,7 @@ Cobbler CHANGELOG
 - (BUGF) allow kernel options to start with '-'
 - (BUGF) Use shlex for parsing --kopts to allow a wider variety of kernel options
 - (BUGF) prevent potential traceback when --template-file data isn't a hash
+- (BUGF) anaconda doesn't honor nameserver always, set manually
 
 - XXX - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
