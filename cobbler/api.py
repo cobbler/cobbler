@@ -724,7 +724,7 @@ class BootAPI:
         Cycles power on a system that has power management configured.
         """
         self.power_off(system, user, password)
-        time.sleep(1)
+        time.sleep(5)
         return self.power_on(system, user, password)
         
     def get_os_details(self):

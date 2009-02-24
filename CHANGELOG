@@ -14,6 +14,7 @@ Cobbler CHANGELOG
 - (BUGF) retry power 5 times before giving up
 - (BUGF) fix for RHEL3 ppc imports
 - (FEAT) use nameserver variable in network config in Anaconda when set
+- (BUGF) sleep 5 seconds between power cycling systems
 
 - XXX - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
