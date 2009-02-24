@@ -12,6 +12,7 @@ Cobbler CHANGELOG
 - (FEAT) triggers now are written in Python, old system still exists.
 - (FEAT) s390x zpxe support
 - (BUGF) retry power 5 times before giving up
+- (BUGF) fix for RHEL3 ppc imports
 
 - XXX - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess

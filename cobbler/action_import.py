@@ -521,7 +521,7 @@ class Importer:
 
            if x.startswith("initrd") or x.startswith("ramdisk.image.gz"):
                initrd = os.path.join(dirname,x)
-           if ( x.startswith("vmlinuz") or x.startswith("kernel.img") ) and x.find("initrd") == -1:
+           if ( x.startswith("vmlinu") or x.startswith("kernel.img") ) and x.find("initrd") == -1:
                kernel = os.path.join(dirname,x)
            if x.lower().startswith("startrom.n1_"):
                startrom = os.path.join(dirname,x)
