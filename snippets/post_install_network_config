@@ -208,19 +208,14 @@ echo "BOOTPROTO=dhcp" >> $devfile
             # If you end up here, please mail the list... This shouldn't
             # happen. ;-) -- jcapel
 	#end if
-        #set $nct = 0
-        #for $nameserver in $name_servers
-            #set $nct = $nct + 1
+        ## If the interface is anything but a slave then add DNSn entry
+        #if $bonding.lower() != "slave"
+            #set $nct = 0
+            #for $nameserver in $name_servers
+                #set $nct = $nct + 1
 echo "DNS$nct=$nameserver" >> $devfile
-        #end for
-        #if $name_servers_search != ""
-sed -i -e "/^search /d" /etc/resolv.conf
-echo -n "search " >>/etc/resolv.conf
-           #for $nameserversearch in $name_servers_search
-echo -n "$nameserversearch " >>/etc/resolv.conf
-           #end for
-echo "" >>/etc/resolv.conf
-        #end if
+            #end for
+	#end if
 	#for $route in $static_routes
 	    #set routepattern = $re.compile("[0-9/.]+:[0-9.]+")
 	    #if $routepattern.match($route)
@@ -232,8 +227,26 @@ echo "$network via $router" >> $routesfile
             #end if
 	#end for
 	#set $i = $i + 1
-#  End configuration for $iname
-#end for	
+# End configuration for $iname
+    #end for	
+    ## =============================================================================
+    ## Configure name server search path in /etc/resolv.conf
+    #if $name_servers_search != ""
+sed -i -e "/^search /d" /etc/resolv.conf
+echo -n "search " >>/etc/resolv.conf
+        #for $nameserversearch in $name_servers_search
+echo -n "$nameserversearch " >>/etc/resolv.conf
+        #end for
+echo "" >>/etc/resolv.conf
+    #end if
+    ## =============================================================================
+    ## Configure name server search path in /etc/resolv.conf
+    #if $name_servers_search != ""
+sed -i -e "/^nameserver /d" /etc/resolv.conf
+        #for $nameserver in $name_servers
+echo "nameserver $nameserver" >>/etc/resolv.conf
+        #end for
+    #end if
 ## Move all staged files to their final location
 rm -f /etc/sysconfig/network-scripts/ifcfg-*
 mv /etc/sysconfig/network-scripts/cobbler/* /etc/sysconfig/network-scripts/
