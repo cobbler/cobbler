@@ -253,6 +253,22 @@ class BuildIso:
             raise CX("distro %s was not found, aborting" % distname)
         descendants = distro.get_descendants()
 
+        if filesource is None:
+            # Try to determine the source from the distro kernel path
+            print _("- trying to locate source for distro")
+            found_source = False
+            (source_head, source_tail) = os.path.split(distro.kernel)
+            while source_tail != '':
+                if source_head == os.path.join(self.api.settings().webdir, "ks_mirror"):
+                    filesource = os.path.join(source_head, source_tail)
+                    found_source = True
+                    print _("  found source in %s" % filesource)
+                    break
+                (source_head, source_tail) = os.path.split(source_head)
+            # Can't find the source, raise an error
+            if not found_source:
+                raise CX(_(" Error, no installation source found. When building a standalone ISO, you must specify a --source if the distro install tree is not hosted locally"))
+
         print _("- copying kernels and initrds - for standalone distro")
         # tempdir/isolinux/$distro/vmlinuz, initrd.img
         # FIXME: this will likely crash on non-Linux breeds
@@ -325,9 +341,7 @@ class BuildIso:
                 raise CX(_("When building a standalone ISO, use --distro only instead of --profiles/--systems"))
             elif distro is None:
                 raise CX(_("When building a standalone ISO, you must specify a --distro"))
-            elif source is None:
-                raise CX(_("When building a standalone ISO, you must specify a --source"))
-            elif not os.path.exists(source):
+            if source != None and not os.path.exists(source):
                 raise CX(_("The source specified (%s) does not exist" % source))
 
         # if iso is none, create it in . as "kickstart.iso"
