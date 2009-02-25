@@ -14,6 +14,9 @@ Cobbler CHANGELOG
 - (BUGF) allow kernel options to start with '-'
 - (BUGF) prevent potential traceback when --template-file data isn't a hash
 - (BUGF) set primary hostname manually in case Anaconda doesn't honor it
+- (BUGF) anaconda doesn't honor nameserver always, set manually
+- (BUGF) various post install network snippet fixes
+- (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates
