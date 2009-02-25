@@ -1,2 +1,11 @@
 $kernel_path
 $initrd_path
+## Only include kickstart URL -- all other parms in _parm and _conf files
+#set $start = $append_line.find("ks=")
+#set $end = $append_line.find(" ", $start)
+#if $start != -1
+#if $end == -1
+#set $end = $len($append_line)
+#end if
+$append_line[$start:$end]
+#end if

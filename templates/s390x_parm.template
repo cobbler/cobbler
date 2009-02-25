@@ -4,7 +4,6 @@
 #else
 #set $argList = $kernel_options.split(" ")
 #end if
-#silent $argList.insert(0, $kickstart_expanded)
 ## =====================================
 ## Now write out data.  Content cannot be longer than 80 characters in length,
 ## and must not exceed 11 lines
