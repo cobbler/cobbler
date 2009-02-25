@@ -747,7 +747,7 @@ def os_release():
 
       if not os.path.exists("/bin/rpm"):
          return ("unknown", 0)
-      args = ["/bin/rpm", "-q", "--whatprovides", "redhat-release"]
+      args = ["/bin/rpm", "-q", "--whatprovides", "redhat-release", "--queryformat", "%"+"{name}"+"-%" + "{version}" + "-%" + "{release}"]
       cmd = sub_process.Popen(args,shell=False,stdout=sub_process.PIPE,close_fds=True)
       data = cmd.communicate()[0]
       data = data.rstrip().lower()
