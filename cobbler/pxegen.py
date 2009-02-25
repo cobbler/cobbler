@@ -815,6 +815,7 @@ class PXEGen:
         else:
             append_line = "append %s" % hkopts
 
+        # FIXME - the append_line length limit is architecture specific
         if len(append_line) >= 255 + len("append "):
             print _("warning: kernel option length exceeds 255")
 
@@ -837,7 +838,7 @@ class PXEGen:
             # interface=bootif causes a failure
             #    append_line = append_line.replace("ksdevice","interface")
 
-        if arch in ["s390", "s390x", "ppc", "ppc64"]:
+        if arch.startswith("ppc") or arch.startswith("s390"):
             # remove the prefix "append"
             append_line = append_line[7:]
 
