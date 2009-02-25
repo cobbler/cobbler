@@ -208,11 +208,14 @@ echo "BOOTPROTO=dhcp" >> $devfile
             # If you end up here, please mail the list... This shouldn't
             # happen. ;-) -- jcapel
 	#end if
-        #set $nct = 0
-        #for $nameserver in $name_servers
-            #set $nct = $nct + 1
+        ## If the interface is anything but a slave then add DNSn entry
+        #if $bonding.lower() != "slave"
+            #set $nct = 0
+            #for $nameserver in $name_servers
+                #set $nct = $nct + 1
 echo "DNS$nct=$nameserver" >> $devfile
-        #end for
+            #end for
+	#end if
 	#for $route in $static_routes
 	    #set routepattern = $re.compile("[0-9/.]+:[0-9.]+")
 	    #if $routepattern.match($route)
