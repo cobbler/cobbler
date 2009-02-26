@@ -17,6 +17,7 @@ Cobbler CHANGELOG
 - (BUGF) anaconda doesn't honor nameserver always, set manually
 - (BUGF) various post install network snippet fixes
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
+- (SPEC) fix build for rawhide now that yaboot is included
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates
