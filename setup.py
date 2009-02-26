@@ -4,7 +4,7 @@ import sys
 import os.path
 from distutils.core import setup, Extension
 import string
-import cobbler.yaml as yaml
+import yaml # PyYAML
 import cobbler.sub_process as subprocess
 import Cheetah.Template as Template
 import time
@@ -23,7 +23,11 @@ OUTPUT_DIR = "config"
 # =========================================================        
 def templatify(template, answers, output):
     t = Template.Template(file=template, searchList=answers)
-    open(output,"w").write(t.respond())
+    data = t.respond()
+    print "response=%s" % data
+    outf = open(output,"w")
+    outf.write(data)
+    outf.close()
 
 def gen_build_version():
     fd = open(os.path.join(OUTPUT_DIR, "version"),"w+")
@@ -54,9 +58,10 @@ def gen_build_version():
     
 
 def gen_config():
-    defaults = {}
-    data = yaml.loadFile(DEFAULTS).next()
-    defaults.update(data)
+    defaults_file = open(DEFAULTS)
+    defaults_data = defaults_file.read()
+    defaults_file.close() 
+    defaults = yaml.load(defaults_data)
     templatify(MODULES_TEMPLATE, defaults, os.path.join(OUTPUT_DIR, "modules.conf"))
     templatify(SETTINGS_TEMPLATE, defaults, os.path.join(OUTPUT_DIR, "settings"))
 
@@ -155,7 +160,6 @@ if __name__ == "__main__":
                 license = "GPL",
                 packages = [
                     "cobbler",
-                    "cobbler/yaml",
                     "cobbler/modules", 
                     "cobbler/server", 
                     "cobbler/webui",

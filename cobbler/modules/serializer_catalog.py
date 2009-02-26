@@ -25,6 +25,7 @@ import os
 import sys
 import glob
 import traceback
+import yaml # PyYAML
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
@@ -32,7 +33,6 @@ sys.path.insert(0, mod_path)
 
 from utils import _
 import utils
-import yaml   # Howell-Clark version
 from cexceptions import *
 import os
 
@@ -66,7 +66,7 @@ def deserialize_item_raw(collection_type, item_name):
     if not os.path.exists(filename):
         return None
     fd = open(filename)
-    datastruct = yaml.load(fd.read()).next()
+    datastruct = yaml.load(fd.read())
     fd.close() 
     return datastruct
 
@@ -87,14 +87,14 @@ def deserialize_raw(collection_type):
     old_filename = "/var/lib/cobbler/%ss" % collection_type
     if collection_type == "settings":
          fd = open("/etc/cobbler/settings")
-         datastruct = yaml.load(fd.read()).next()
+         datastruct = yaml.load(fd.read())
          fd.close()
          return datastruct
     elif os.path.exists(old_filename):
          # for use in migration
          sys.stderr.write("reading from old config format: %s\n" % old_filename)
          fd = open(old_filename)
-         datastruct = yaml.load(fd.read()).next()
+         datastruct = yaml.load(fd.read())
          fd.close()
          return datastruct
     else:
@@ -106,8 +106,7 @@ def deserialize_raw(collection_type):
              if ydata is None or ydata == "":
                  raise CX("error, empty file %s" % f)
              try:
-                 records = yaml.load(ydata)
-                 datastruct = records.next()
+                 datastruct = yaml.load(ydata)
              except:
                  raise CX("error parsing yaml file: %s" % f)
              results.append(datastruct)

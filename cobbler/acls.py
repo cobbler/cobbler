@@ -40,7 +40,7 @@ class AclEngine:
         yfh = open("/etc/cobbler/acls.conf")
         data = yfh.read()
         yfh.close()
-        self.data = yaml.load(data).next()
+        self.data = yaml.load(data)
         self.verbose = verbose
  
     def __match(self, needle, haystack):
