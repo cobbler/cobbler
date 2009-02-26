@@ -231,10 +231,14 @@ DownloadBinaries:
   say 'Downloading kernel ['kernelpath']...'
   call GetTFTP kernelpath 'kernel.img.t' octet
  
-  inputline = linein(profiledetail)          /* next line is initrd */
+  inputline = linein(profiledetail)        /* second line is initrd */
   parse var inputline initrdpath
   say 'Downloading initrd ['initrdpath']...'
   call GetTFTP initrdpath 'initrd.img.t' octet
+ 
+  inputline = linein(profiledetail)  /* third line is ks kernel arg */
+  parse var inputline ksline
+  call lineout zpxeparm, ksline       /* add ks line to end of parm */
  
   /* convert to fixed record length */
   'pipe < KERNEL IMG T | fblock 80 00 | > KERNEL IMG T'
