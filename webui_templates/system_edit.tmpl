@@ -514,7 +514,7 @@ redhatmanagementkey"
     </td>
     <td>
     #if $system
-       #set ownerslist = ','.join($system.owners)
+       #set ownerslist = ' '.join($system.owners)
     #end if
     <input type="text" size="255" style="width: 400px;" name="owners" id="owners"
         #if $system
