@@ -239,6 +239,7 @@ DownloadBinaries:
   inputline = linein(profiledetail)  /* third line is ks kernel arg */
   parse var inputline ksline
   call lineout zpxeparm, ksline       /* add ks line to end of parm */
+  call lineout zpxeparm                               /* close file */
  
   /* convert to fixed record length */
   'pipe < KERNEL IMG T | fblock 80 00 | > KERNEL IMG T'
