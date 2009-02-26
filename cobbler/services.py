@@ -29,7 +29,7 @@ import string
 import sys
 import time
 import urlgrabber
-import yaml # cobbler packaged version
+import yaml # PyYAML
 
 # the following imports are largely for the test code
 import urlgrabber
@@ -419,7 +419,7 @@ def test_services_access():
     assert data.find("gamma") != -1
     assert data.find("3") != -1
     
-    data = yaml.load(data).next()
+    data = yaml.load(data)
     assert data.has_key("classes")
     assert data.has_key("parameters")
     

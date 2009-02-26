@@ -25,6 +25,7 @@ import os
 import sys
 import glob
 import traceback
+import yaml   # PyYAML
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
@@ -32,7 +33,6 @@ sys.path.insert(0, mod_path)
 
 from utils import _
 import utils
-import yaml   # Howell-Clark version
 import cexceptions
 import os
 
@@ -87,7 +87,7 @@ def deserialize_raw(collection_type):
     except IOError, ioe:
         return [{}]
     data = fd.read()
-    datastruct = yaml.load(data).next()  # first record
+    datastruct = yaml.load(data)  # first record
     fd.close()
     return datastruct 
 
@@ -120,7 +120,7 @@ def deserialize(obj,topological=False):
             raise cexceptions.CX(_("Need permissions to read %s") % obj.filename())
     data = fd.read()
     try:
-        datastruct = yaml.load(data).next()  # first record
+        datastruct = yaml.load(data)  # first record
     except:
         # load failure, make empty list
         datastruct = [] 

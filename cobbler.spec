@@ -23,6 +23,7 @@ Requires: createrepo
 Requires: python-cheetah
 Requires: rsync
 Requires: python-netaddr
+Requires: PyYAML
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 Requires: genisoimage
 %else
@@ -187,11 +188,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/cobbler/acls.conf
 %config(noreplace) /etc/cobbler/cheetah_macros
 %dir %{python_sitelib}/cobbler
-%dir %{python_sitelib}/cobbler/yaml
 %dir %{python_sitelib}/cobbler/modules
 %dir %{python_sitelib}/cobbler/webui
 %{python_sitelib}/cobbler/*.py*
-%{python_sitelib}/cobbler/yaml/*.py*
 %{python_sitelib}/cobbler/server/*.py*
 %{python_sitelib}/cobbler/modules/*.py*
 %{python_sitelib}/cobbler/webui/*.py*
