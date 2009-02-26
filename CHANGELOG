@@ -18,6 +18,8 @@ Cobbler CHANGELOG
 - (BUGF) various post install network snippet fixes
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
 - (SPEC) fix build for rawhide now that yaboot is included
+- (BUGF) fixed web-interface editing of ownership
+- (BUGF) fixed web-interface editing of management classes
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates
