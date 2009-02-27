@@ -73,8 +73,8 @@ class System(item.Item):
         self.power_id             = ""
         self.hostname             = ""
         self.gateway              = ""
-        self.name_servers         = ""
-        self.name_servers_search  = ""
+        self.name_servers         = []
+        self.name_servers_search  = []
         self.bonding              = ""
         self.bonding_master       = ""
         self.bonding_opts         = ""

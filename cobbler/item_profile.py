@@ -68,8 +68,8 @@ class Profile(item.Item):
         self.comment                = ""
         self.ctime                  = 0
         self.mtime                  = 0
-        self.name_servers           = (self.settings.default_name_servers,      '<<inherit>>')[is_subobject]
-        self.name_servers_search    = (self.settings.default_name_servers_search, '<<inherit>>')[is_subobject]
+        self.name_servers           = (self.settings.default_name_servers,[])[is_subobject]
+        self.name_servers_search    = (self.settings.default_name_servers_search,[])[is_subobject]
         self.redhat_management_key  = "<<inherit>>"
 
     def from_datastruct(self,seed_data):
