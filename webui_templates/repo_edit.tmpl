@@ -238,6 +238,19 @@ function disablename(value)
     #else
         <input type="radio" name="arch" id="arch" value="ia64">ia64
     #end if
+    #if $repo and $repo.arch == "noarch"
+        <input type="radio" name="arch" id="arch" value="noarch" checked>noarch
+    #else
+        <input type="radio" name="arch" id="arch" value="noarch">noarch
+    #end if
+    #if $repo and $repo.arch == "src"
+        <input type="radio" name="arch" id="arch" value="src" checked>src
+    #else
+        <input type="radio" name="arch" id="arch" value="src">src
+    #end if
+
+
+
     <p class="context-tip">What architecture is the repo?</p>                      
     </td>
     </tr>
