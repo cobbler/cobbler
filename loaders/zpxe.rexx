@@ -85,20 +85,28 @@ userid = translate(id, lower, upper)
 */
 call GetTFTP '/s390x/s_'userid 'profile.detail.t'
  
-/* Get user PARM and CONF.  If available, will be used later */
-call GetTFTP '/s390x/s_'userid'_parm' 'zpxe.parm.t'     /* get parm */
-call GetTFTP '/s390x/s_'userid'_conf' 'zpxe.conf.t'     /* get conf */
- 
 if lines(profiledetail) > 0 then do
+ 
+  /* Get user PARM and CONF containing network info */
+  call GetTFTP '/s390x/s_'userid'_parm' 'zpxe.parm.t'
+  call GetTFTP '/s390x/s_'userid'_conf' 'zpxe.conf.t'
+ 
   vmfclear                                          /* clear screen */
   call CheckServer                             /* print server name */
   say 'Profile 'userid' found'
   say ''
-  call DownloadBinaries               /* download kernel and initrd */
-  say 'Starting install...'
-  say ''
-  call PunchFiles                   /* punch files to begin install */
-  exit
+ 
+  bootRc = ParseSystemRecord()        /* parse file for boot action */
+  if bootRc = 0 then
+    'cp ipl' iplDisk                           /* boot default DASD */
+  else do
+    call DownloadBinaries             /* download kernel and initrd */
+    say 'Starting install...'
+    say ''
+    call PunchFiles                 /* punch files to begin install */
+    exit
+    end /* if bootRc = 0 */
+ 
 end /* if user-specific profile found */
  
  
@@ -159,11 +167,9 @@ else do                            /* user is interactive -> prompt */
     then do
       call GetTFTP '/s390x/p_'profile.answer 'profile.detail.t'
  
-      /* Don't overwrite user-specific PARM and CONF if available */
-      if lines(zpxeparm) = 0 then
-        call GetTFTP '/s390x/p_'profile.answer'_parm' 'zpxe.parm.t'
-      if lines(zpxeconf) = 0 then
-        call GetTFTP '/s390x/p_'profile.answer'_conf' 'zpxe.conf.t'
+      /* get profile-based PARM and CONF files */
+      call GetTFTP '/s390x/p_'profile.answer'_parm' 'zpxe.parm.t'
+      call GetTFTP '/s390x/p_'profile.answer'_conf' 'zpxe.conf.t'
  
       vmfclear                                      /* clear screen */
       say 'Using profile 'answer' ['profile.answer']'
@@ -264,3 +270,22 @@ PunchFiles:
   'ipl 00c clear'                                 /* IPL the reader */
  
 return 0 /* PunchFiles */
+ 
+ 
+/* Procedure ParseSystemRecord
+   Open system record file to look for local boot flag.
+   Return 0 if local flag found (guest will IPL default DASD).
+   Return 1 otherwise (guest will download kernel/initrd and install).
+*/
+ParseSystemRecord:
+ 
+  inputline = linein(profiledetail)               /* get first line */
+  parse var inputline systemaction .
+  call lineout profiledetail                          /* close file */
+ 
+  if systemaction = 'local' then
+    return 0
+  else
+    return 1
+ 
+/* End ParseSystemRecord */
