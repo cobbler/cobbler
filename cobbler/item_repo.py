@@ -83,6 +83,7 @@ class Repo(item.Item):
         self.set_mirror_locally(self.mirror_locally)
         self.set_owners(self.owners)
         self.set_environment(self.environment)
+        self.set_arch(self.arch)
         self._guess_breed()
 
         self.uid = self.load_item(seed_data,'uid','')
@@ -198,7 +199,7 @@ class Repo(item.Item):
         """
         Override the arch used for reposync
         """
-        return utils.set_arch(self,arch)
+        return utils.set_arch(self,arch,repo=True)
 
     def is_valid(self):
         """

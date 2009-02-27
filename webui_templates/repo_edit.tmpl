@@ -228,6 +228,11 @@ function disablename(value)
     #else
         <input type="radio" name="arch" id="arch" value="ppc64">ppc64
     #end if
+    #if $repo and $repo.arch == "s390"
+        <input type="radio" name="arch" id="arch" value="s390" checked>s390
+    #else
+        <input type="radio" name="arch" id="arch" value="s390">s390
+    #end if
     #if $repo and $repo.arch == "s390x"
         <input type="radio" name="arch" id="arch" value="s390x" checked>s390x
     #else
@@ -238,6 +243,19 @@ function disablename(value)
     #else
         <input type="radio" name="arch" id="arch" value="ia64">ia64
     #end if
+    #if $repo and $repo.arch == "noarch"
+        <input type="radio" name="arch" id="arch" value="noarch" checked>noarch
+    #else
+        <input type="radio" name="arch" id="arch" value="noarch">noarch
+    #end if
+    #if $repo and $repo.arch == "src"
+        <input type="radio" name="arch" id="arch" value="src" checked>src
+    #else
+        <input type="radio" name="arch" id="arch" value="src">src
+    #end if
+
+
+
     <p class="context-tip">What architecture is the repo?</p>                      
     </td>
     </tr>

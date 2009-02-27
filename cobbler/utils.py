@@ -1045,16 +1045,20 @@ def set_redhat_management_key(self,key):
    self.redhat_management_key = key
    return True
 
-def set_arch(self,arch):
-   if arch is None or arch == "":
-       arch = "x86"
-   if arch in [ "standard", "ia64", "x86", "i386", "ppc", "ppc64", "x86_64", "s390", "s390x" ]:
-       if arch == "x86" or arch == "standard":
-           # be consistent 
-           arch = "i386"
+def set_arch(self,arch,repo=False):
+   if arch is None or arch == "" or arch == "standard" or arch == "x86":
+       arch = "i386"
+
+   if repo:
+       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x", "noarch", "src" ]
+   else:
+       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x" ]
+
+   if arch in valids:
        self.arch = arch
        return True
-   raise CX(_("arch choices include: x86, x86_64, ppc, ppc64, s390, s390x and ia64"))
+
+   raise CX("arch choices include: %s" % ", ".join(valids))
 
 def set_os_version(self,os_version):
    if os_version == "" or os_version is None:
