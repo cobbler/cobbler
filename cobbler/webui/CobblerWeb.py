@@ -679,7 +679,7 @@ class CobblerWeb(object):
                      ksmeta=None,owners=None,enablemenu=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,delete1=False,delete2=False,
                      parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,
-                     name_servers=None,redhatmanagementkey=None,recursive=False,**args):
+                     name_servers=None,redhatmanagementkey=None,mgmt_classes=None,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -747,6 +747,7 @@ class CobblerWeb(object):
             self.remote.modify_profile(profile, 'comment', comment, self.token)
             self.remote.modify_profile(profile, 'name_servers', name_servers, self.token)
             self.remote.modify_profile(profile, 'redhat_management_key', redhatmanagementkey, self.token)
+            self.remote.modify_profile(profile, 'mgmt_classes', mgmt_classes, self.token)
 
             if repos is None:
                 repos = []
