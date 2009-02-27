@@ -498,8 +498,8 @@ class PXEGen:
             blended["kernel_options"] = hkopts
             self.templar.render(template_pf, blended, pf)
 
-            # Write system specific zPXE file if netboot_enabled?
-            if system.netboot_enabled:
+            # Write system specific zPXE file
+            if system.is_management_supported():
                 self.write_pxe_file(f2,system,profile,distro,distro.arch)
             else:
                 # ensure the file doesn't exist
@@ -787,6 +787,8 @@ class PXEGen:
                     # Yaboot/OF doesn't support booting locally once you've
                     # booted off the network, so nothing left to do
                     return None
+                elif arch is not None and arch.startswith("s390"):
+                    template = os.path.join(self.settings.pxe_template_dir,"pxelocal_s390x.template")
                 else:
                     template = os.path.join(self.settings.pxe_template_dir,"pxelocal.template")
         else:

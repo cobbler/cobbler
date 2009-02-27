@@ -207,6 +207,7 @@ if __name__ == "__main__":
 				(pxepath,  ['templates/pxesystem_ppc.template']),
 				(pxepath,  ['templates/pxeprofile.template']),
 				(pxepath,  ['templates/pxelocal.template']),
+				(pxepath,  ['templates/pxelocal_s390x.template']),
 
                                 # templates for power management
                                 (powerpath, ['templates/power_apc_snmp.template']), 
