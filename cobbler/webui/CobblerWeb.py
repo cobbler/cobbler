@@ -514,7 +514,7 @@ class CobblerWeb(object):
                     virtpath=None,virtram=None,virttype=None,virtcpus=None,virtfilesize=None,
                     name_servers=None,
                     power_type=None, power_user=None, power_pass=None, power_id=None, power_address=None,
-                    gateway=None,hostname=None,redhatmanagementkey=None,delete1=None, delete2=None, **args):
+                    gateway=None,hostname=None,redhatmanagementkey=None,mgmt_classes=None,delete1=None, delete2=None, **args):
 
 
         if not self.__xmlrpc_setup():
@@ -568,6 +568,7 @@ class CobblerWeb(object):
             self.remote.modify_system(system, 'gateway', gateway, self.token)
             self.remote.modify_system(system, 'hostname', hostname, self.token)
             self.remote.modify_system(system, 'redhat_management_key', redhatmanagementkey, self.token)
+            self.remote.modify_system(system, 'mgmt_classes', mgmt_classes, self.token)
 
             interfaces = args.get("interface_list","")
             interfaces = interfaces.split(",")
