@@ -36,6 +36,7 @@ Cobbler CHANGELOG
 - XXX - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
 - (SPEC) fix build for rawhide now that yaboot is included
+- (BUGF) allow src and noarch arches for repo objects
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates
