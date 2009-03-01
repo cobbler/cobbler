@@ -5,6 +5,7 @@ dist
 rpm-build
 build
 MANIFEST
+TAGS
 
 # docs - ignore pod output
 docs/*.gz
