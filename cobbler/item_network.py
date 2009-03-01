@@ -63,39 +63,95 @@ class Network(item.Item):
         return self
 
     def set_cidr(self, cidr):
+        if self.cidr == None:
+            self.free_addresses = [_CIDR(cidr)]
         self.cidr = _CIDR(cidr)
 
     def set_address(self, address):
+        if self.address != None:
+            self._add_to_free(address)
         self.address = _IP(address)
+        self._remove_from_free(self.address)
 
     def set_gateway(self, gateway):
+        if self.gateway != None:
+            self._add_to_free(gateway)
         self.gateway = _IP(gateway)
+        self._remove_from_free(self.gateway)
 
     def set_broadcast(self, broadcast):
+        if self.broadcast != None:
+            self._add_to_free(broadcast)
         self.broadcast = _IP(broadcast)
+        self._remove_from_free(self.broadcast)
 
     def set_nameservers(self, nameservers):
-        nameservers = [s.strip() for s in nameservers.split(',')]
-        self.nameservers = [_IP(i) for i in nameservers]
+        old = self.nameservers
+        nameservers = [_IP(s.strip()) for s in nameservers.split(',')]
+        if old != None:
+            for ns in old:
+                if ns not in nameservers:
+                    self._add_to_free(ns)
+        for ns in nameservers:
+            if ns not in old:
+                self._remove_from_free(ns)
+        self.nameservers = nameservers
 
     def set_reserved(self, reserved):
-        reserved = [s.strip() for s in reserved.split(',')]
-        self.reserved = [_CIDR(c) for c in reserved]
+        pass
 
-#    def set_used_addresses(self, used_addresses):
-#        pass
+    def _remove_from_free(self, addr):
+        self.free_addresses = self._subtract_and_flatten(self.free_addresses, [addr])
 
-#    def set_free_addresses(self, free_addresses):
-#        pass
-
-    def subtract_and_flatten(self, cidr_list, remove_list):
+    def _subtract_and_flatten(self, cidr_list, remove_list):
+        print "cidr_list ", cidr_list, "remove_list", remove_list
         for item in remove_list:
             for i in range(len(cidr_list)):
+                print 'i=%d, cidr_list[i]=%s' % (i, cidr_list[i])
                 if item in cidr_list[i]:
                     cidr_list += cidr_list[i] - item
                     del(cidr_list[i])
                     break
         return cidr_list
+
+    def _compact(self, cidr_list):
+            """
+            Compacts a list of CIDR objects down to a minimal-length list L
+            such that the set of IP addresses contained in L is the same as
+            the original.
+
+            For example:
+            [10.0.0.0/32, 10.0.0.1/32, 10.0.0.2/32, 10.0.0.3/32]
+            becomes
+            [10.0.0.0/30]
+            """
+            if len(cidr_list) <= 1:
+                return cidr_list
+
+            did_compact = False
+            skip_next = False
+            compacted = []
+            for i in range(1, len(cidr_list)):
+                cur = cidr_list[i]
+                prev = cidr_list[i-1]
+
+                if skip_next:
+                    skip_next = False
+                    continue
+
+                last = prev[-1]
+                last += 1
+                last = last.cidr()
+                if last == cur[0].cidr() and prev.size() == cur.size():
+                    compacted.append(CIDR('%s/%d' % (str(prev[0]), prev.prefixlen - 1)))
+                    did_compact = True
+                    skip_next = True
+
+                if did_compact:
+                    return compact(compacted)
+                else:
+                    return cidr_list
+
 
     def add_existing_interfaces(self):
         for s in self.config.systems():
@@ -106,52 +162,6 @@ class Network(item.Item):
         for s in self.config.systems():
             for i in s.interfaces:
                 pass
-
-    def add_interface(self, system, interface):
-        ip = interface['ip_address']
-        if ip == 'auto' or ip == '' or ip == None:
-            return self.add_auto_interface(system, interface)
-
-        ip = _IP(ip)
-        if ip not in self.cidr:
-            raise CX(_("Address (%s) not in %s (%s)" % (ip,
-                                                        self.name,
-                                                        self.cidr)))
-        available = False
-        for block in self.free_addresses:
-            if ip in block:
-                available = True
-                break
-        if not available:
-            raise CX(_("Address %s is not free in network %s" % (ip, self.name)))
-
-        self.used_addresses.append({'ip': ip, 'uid': system.uid})
-        print self.used_addresses
-        self.update_free()
-        print self.used_addresses
-
-    def sync(self, action):
-        if action == 'add':
-            self.add_existing_interfaces()
-        elif action == 'edit':
-            # horribly inefficient
-            self.remove_existing_interfaces()
-            self.add_existing_interfaces()
-        elif action == 'remove':
-            self.remove_existing_interfaces()
-
-        self.update_free()
-
-    def update_free(self):
-        free = [self.cidr]
-
-        #remove all the taken addresses
-        self.free_addresses = self.subtract_and_flatten(free,
-                                   self.reserved +
-                                   self.used_addresses +
-                                   [self.address] +
-                                   [self.gateway] +
-                                   [self.broadcast])
 
     def used_address_count(self):
         return len(self.used_addresses)

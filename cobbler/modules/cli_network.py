@@ -82,13 +82,13 @@ class NetworkFunction(commands.CobblerFunction):
 
         if self.options.cidr is not None:
             obj.set_cidr(self.options.cidr)
-        else:
+        elif self.matches_args(self.args, ['add']):
             raise CX(_("cidr is required"))
 
         if self.options.address is not None:
             obj.set_address(self.options.address)
         elif self.matches_args(self.args, ["add"]):
-            obj.set_address(_CIDR(self.options.cidr)[0])
+            obj.set_address(obj.cidr[0])
 
         if self.options.broadcast is not None:
             obj.set_broadcast(self.options.broadcast)
@@ -108,15 +108,6 @@ class NetworkFunction(commands.CobblerFunction):
             obj.set_owners(self.options.owners)
         if self.options.comment is not None:
             obj.set_comment(self.options.comment)
-
-        obj.update_free()
-
-#         if 'add' in self.args:
-#             obj.sync('add')
-#         elif 'edit' in self.args:
-#             obj.sync('edit')
-#         elif 'remove' in self.args:
-#             obj.sync('remove')
 
         return self.object_manipulator_finish(obj, self.api.networks, self.options)
 
