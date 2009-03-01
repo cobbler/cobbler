@@ -435,7 +435,7 @@ class System(item.Item):
         net  = self.config.networks().find(name=network)
         if net == None:
             raise CX(_("Network %s does not exist" % network))
-        net.add_interface(self, intf)
+        net.subscribe_system(self.uid, interface, intf['ip_address'])
         self.config.serialize() # explicitly save the modified net
 
     def set_ip_address(self,address,interface):

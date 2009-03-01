@@ -56,7 +56,7 @@ class Network(item.Item):
         self.broadcast        = _IP(self.load_item(seed_data, 'broadcast', self.cidr[-1]))
         self.nameservers      = [_IP(i) for i in self.load_item(seed_data, 'nameservers', [])]
         self.reserved         = [_CIDR(c) for c in self.load_item(seed_data, 'reserved', [])]
-        self.used_addresses   = [_IP(i) for i in self.load_item(seed_data, 'used_addresses', [])]
+        self.used_addresses   = self.load_item(seed_data, 'used_addresses', [])
         self.free_addresses   = [_CIDR(c) for c in self.load_item(seed_data, 'free_addresses', [])]
         self.comment          = self.load_item(seed_data, 'comment', '')
 
@@ -100,14 +100,49 @@ class Network(item.Item):
     def set_reserved(self, reserved):
         pass
 
+    def subscribe_system(self, uid, intf, ip=None):
+        if not ip:
+            if self.free_address_count() == 0:
+                raise CX(_("Network %s has no free addresses" % self.cidr))
+            ip = self.free_addresses[0][0]
+
+        self._allocate_address(uid, intf, ip)
+
+    def _addr_available(self, addr):
+        for cidr in self.free_addresses:
+            if addr in cidr:
+                return True
+        return False
+
     def _remove_from_free(self, addr):
         self.free_addresses = self._subtract_and_flatten(self.free_addresses, [addr])
 
+    def _add_to_used(self, used_dict):
+        if self.used_addresses != []:
+            # should really throw an error if it's already there
+            # probably a sign something has gone wrong elsewhere
+            for i in [foo['ip'] for foo in self.used_addresses]:
+                if used_dict['ip'] == i:
+                    raise CX(_("Trying to add %s to used_addresses but is already there!" % i))
+        self.used_addresses.append(used_dict)
+
+    def _remove_from_used(self, addr):
+        for d in self.used_addresses:
+            if d['ip'] == addr:
+                index = self.used_addresses.index(d)
+                del(self.used_addresses[index])
+
+    def _allocate_address(self, uid, intf, addr):
+        if not self._addr_available(addr):
+            raise CX(_("Address %s is not available for allocation" % addr))
+        self._remove_from_free(addr)
+        self._add_to_used({'ip': addr, 'uid': uid, 'intf': intf})
+
     def _subtract_and_flatten(self, cidr_list, remove_list):
-        print "cidr_list ", cidr_list, "remove_list", remove_list
+#        print "cidr_list ", cidr_list, "remove_list", remove_list
         for item in remove_list:
             for i in range(len(cidr_list)):
-                print 'i=%d, cidr_list[i]=%s' % (i, cidr_list[i])
+#                print 'i=%d, cidr_list[i]=%s' % (i, cidr_list[i])
                 if item in cidr_list[i]:
                     cidr_list += cidr_list[i] - item
                     del(cidr_list[i])
@@ -152,16 +187,6 @@ class Network(item.Item):
                 else:
                     return cidr_list
 
-
-    def add_existing_interfaces(self):
-        for s in self.config.systems():
-            for i in s.interfaces:
-                pass
-
-    def remove_existing_interfaces(self):
-        for s in self.config.systems():
-            for i in s.interfaces:
-                pass
 
     def used_address_count(self):
         return len(self.used_addresses)
