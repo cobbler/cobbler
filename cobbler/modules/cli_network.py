@@ -29,7 +29,7 @@ sys.path.insert(0, mod_path)
 
 from utils import _, _IP, _CIDR
 import cobbler.commands as commands
-import cexceptions
+from cexceptions import *
 
 
 class NetworkFunction(commands.CobblerFunction):
@@ -82,6 +82,8 @@ class NetworkFunction(commands.CobblerFunction):
 
         if self.options.cidr is not None:
             obj.set_cidr(self.options.cidr)
+        else:
+            raise CX(_("cidr is required"))
 
         if self.options.address is not None:
             obj.set_address(self.options.address)
@@ -107,12 +109,14 @@ class NetworkFunction(commands.CobblerFunction):
         if self.options.comment is not None:
             obj.set_comment(self.options.comment)
 
-        if 'add' in self.args:
-            obj.sync('add')
-        elif 'edit' in self.args:
-            obj.sync('edit')
-        elif 'remove' in self.args:
-            obj.sync('remove')
+        obj.update_free()
+
+#         if 'add' in self.args:
+#             obj.sync('add')
+#         elif 'edit' in self.args:
+#             obj.sync('edit')
+#         elif 'remove' in self.args:
+#             obj.sync('remove')
 
         return self.object_manipulator_finish(obj, self.api.networks, self.options)
 
@@ -132,5 +136,3 @@ def cli_functions(api):
        NetworkFunction(api)
     ]
     return []
-
-

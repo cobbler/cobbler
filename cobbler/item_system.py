@@ -436,6 +436,7 @@ class System(item.Item):
         if net == None:
             raise CX(_("Network %s does not exist" % network))
         net.add_interface(self, intf)
+        self.config.serialize() # explicitly save the modified net
 
     def set_ip_address(self,address,interface):
         """
@@ -731,6 +732,7 @@ class System(item.Item):
         for name in ikeys:
             x = self.__get_interface(name)
             buf = buf + _("interface        : %s\n") % (name)
+            buf = buf + _("  parent network : %s\n") % x.get("parent","")
             buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
             buf = buf + _("  bonding        : %s\n") % x.get("bonding","")
             buf = buf + _("  bonding_master : %s\n") % x.get("bonding_master","")

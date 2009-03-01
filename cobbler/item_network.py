@@ -125,7 +125,7 @@ class Network(item.Item):
         if not available:
             raise CX(_("Address %s is not free in network %s" % (ip, self.name)))
 
-        self.used_addresses.append(ip)
+        self.used_addresses.append({'ip': ip, 'uid': system.uid})
         print self.used_addresses
         self.update_free()
         print self.used_addresses

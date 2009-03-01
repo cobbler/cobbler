@@ -326,6 +326,8 @@ class Collection(serializable.Serializable):
                 match = self.api.find_repo(ref.name)
             elif isinstance(ref, item_image.Image):
                 match = self.api.find_image(ref.name)
+            elif isinstance(ref, item_network.Network):
+                match = self.api.find_network(ref.name)
             else:
                 raise CX("internal error, unknown object type")
 
