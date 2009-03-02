@@ -21,7 +21,7 @@ import cgi
 import os
 from cobbler.webui import CobblerWeb
 import cobbler.utils as utils
-import cobbler.yaml as yaml
+import yaml # PyYAML
 
 XMLRPC_SERVER = "http://127.0.0.1:25151" # FIXME: pull port from settings
 
@@ -109,7 +109,7 @@ def handler(req):
     fd = open("/etc/cobbler/settings")
     data = fd.read()
     fd.close()
-    ydata = yaml.load(data).next()
+    ydata = yaml.load(data)
     remote_port = ydata.get("xmlrpc_port", 25151)
 
     mode = form.get('mode','index')
