@@ -36,6 +36,8 @@ Cobbler CHANGELOG
 - (SPEC) fix build for rawhide now that yaboot is included
 - (BUGF) allow src and noarch arches for repo objects
 - (BUGF) move to PyYAML for YAML implementation since it is better maintained
+- (BUGF) fixed web-interface editing of ownership
+- (BUGF) fixed web-interface editing of management classes
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates

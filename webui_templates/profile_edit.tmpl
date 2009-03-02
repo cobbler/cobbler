@@ -445,6 +445,21 @@ redhatmanagementkey"
     </td>
     </tr>
 
+    <tr>
+    <td>
+    <label for="mgmt_classes">Management Classes</label>
+    </td>
+    <td>
+    #if $profile
+        #set joined = " ".join($profile.mgmt_classes)
+        <input type="text" size="255" style="width: 400px;" name="mgmt_classes" id="mgmt_classes" value="$joined" />
+    #else
+        <input type="text" size="255" style="width: 400px;" name="mgmt_classes" id="mgmt_classes" value="" />
+    #end if
+    <p class="context-tip">Management classes (space delimited) for use with external configuration management system.</p>
+    </td>
+    </tr>
+
 
     <tr>
     <td>
@@ -452,7 +467,7 @@ redhatmanagementkey"
     </td>
     <td>
     #if $profile
-       #set ownerslist = ','.join($profile.owners)
+       #set ownerslist = ' '.join($profile.owners)
     #end if
     <input type="text" size="255" style="width: 400px;" name="owners" id="owners"
         #if $profile
@@ -462,7 +477,7 @@ redhatmanagementkey"
         #end if
 
     />
-    <p class="context-tip">Applies only if using authz_ownership module, comma-delimited</p>
+    <p class="context-tip">Applies only if using authz_ownership module, space-delimited</p>
     </td>
     </tr>
 
