@@ -116,6 +116,7 @@ class Network(item.Item):
 
     def _remove_from_free(self, addr):
         self.free_addresses = self._subtract_and_flatten(self.free_addresses, [addr])
+        self.free_addresses.sort()
 
     def _add_to_used(self, used_dict):
         if self.used_addresses != []:
@@ -215,16 +216,26 @@ class Network(item.Item):
         return True
 
     def to_datastruct(self):
+        def convert_used_addresses(l):
+            """
+            used_addresses is a bit more involved...
+            """
+            stringified = []
+            for item in l:
+                item['ip'] = str(item['ip'])
+                stringified.append(item)
+            return stringified
+
         return {
             'name'           : self.name,
-            'cidr'           : self.cidr,
-            'address'        : self.address,
-            'gateway'        : self.gateway,
-            'broadcast'      : self.broadcast,
-            'nameservers'    : self.nameservers,
-            'reserved'       : self.reserved,
-            'used_addresses' : self.used_addresses,
-            'free_addresses' : self.free_addresses,
+            'cidr'           : str(self.cidr),
+            'address'        : str(self.address),
+            'gateway'        : str(self.gateway),
+            'broadcast'      : str(self.broadcast),
+            'nameservers'    : [str(i) for i in self.nameservers],
+            'reserved'       : [str(i) for i in self.reserved],
+            'used_addresses' : convert_used_addresses(self.used_addresses),
+            'free_addresses' : [str(i) for i in self.free_addresses],
             'comment'        : self.comment
         }
 
