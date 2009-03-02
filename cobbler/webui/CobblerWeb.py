@@ -197,7 +197,7 @@ class CobblerWeb(object):
 
     def distro_save(self,name=None,comment=None,oldname=None,new_or_edit=None,editmode='edit',kernel=None,
                     initrd=None,kopts=None,koptspost=None,ksmeta=None,owners=None,arch=None,breed=None,redhatmanagementkey=None,
-                    osversion=None,delete1=False,delete2=False,recursive=False,**args):
+                    mgmt_classes=None,osversion=None,delete1=False,delete2=False,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -258,6 +258,7 @@ class CobblerWeb(object):
             self.remote.modify_distro(distro, 'os-version', osversion, self.token)
             self.remote.modify_distro(distro, 'comment', comment, self.token)
             self.remote.modify_distro(distro, 'redhat_management_key', redhatmanagementkey, self.token)
+            self.remote.modify_distro(distro, 'mgmt_classes', mgmt_classes, self.token)
 
             # now time to save, do we want to run duplication checks?
             self.remote.save_distro(distro, self.token, editmode)
@@ -514,7 +515,7 @@ class CobblerWeb(object):
                     virtpath=None,virtram=None,virttype=None,virtcpus=None,virtfilesize=None,
                     name_servers=None,
                     power_type=None, power_user=None, power_pass=None, power_id=None, power_address=None,
-                    gateway=None,hostname=None,redhatmanagementkey=None,delete1=None, delete2=None, **args):
+                    gateway=None,hostname=None,redhatmanagementkey=None,mgmt_classes=None,delete1=None, delete2=None, **args):
 
 
         if not self.__xmlrpc_setup():
@@ -568,6 +569,7 @@ class CobblerWeb(object):
             self.remote.modify_system(system, 'gateway', gateway, self.token)
             self.remote.modify_system(system, 'hostname', hostname, self.token)
             self.remote.modify_system(system, 'redhat_management_key', redhatmanagementkey, self.token)
+            self.remote.modify_system(system, 'mgmt_classes', mgmt_classes, self.token)
 
             interfaces = args.get("interface_list","")
             interfaces = interfaces.split(",")
@@ -678,7 +680,7 @@ class CobblerWeb(object):
                      ksmeta=None,owners=None,enablemenu=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,delete1=False,delete2=False,
                      parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,
-                     name_servers=None,redhatmanagementkey=None,recursive=False,**args):
+                     name_servers=None,redhatmanagementkey=None,mgmt_classes=None,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -746,6 +748,7 @@ class CobblerWeb(object):
             self.remote.modify_profile(profile, 'comment', comment, self.token)
             self.remote.modify_profile(profile, 'name_servers', name_servers, self.token)
             self.remote.modify_profile(profile, 'redhat_management_key', redhatmanagementkey, self.token)
+            self.remote.modify_profile(profile, 'mgmt_classes', mgmt_classes, self.token)
 
             if repos is None:
                 repos = []

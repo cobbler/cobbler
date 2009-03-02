@@ -285,6 +285,21 @@ checked>Ubuntu
 
     <tr>
     <td>
+    <label for="mgmt_classes">Management Classes</label>
+    </td>
+    <td>
+    #if $distro
+        #set joined = " ".join($distro.mgmt_classes)
+        <input type="text" size="255" style="width: 400px;" name="mgmt_classes" id="mgmt_classes" value="$joined" />
+    #else
+        <input type="text" size="255" style="width: 400px;" name="mgmt_classes" id="mgmt_classes" value="" />
+    #end if 
+    <p class="context-tip">Management classes (space delimited) for use with external configuration management system.</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
     <label for="owners">Access Allowed For</label>
     </td>
     <td>

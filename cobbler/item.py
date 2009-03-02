@@ -196,7 +196,8 @@ class Item(serializable.Serializable):
         Assigns a list of configuration management classes that can be assigned
         to any object, such as those used by Puppet's external_nodes feature.
         """
-        self.mgmt_classes = utils.input_string_or_list(mgmt_classes)
+        mgmt_classes_split = utils.input_string_or_list(mgmt_classes, delim=" ")
+        self.mgmt_classes = utils.input_string_or_list(mgmt_classes_split)
         return True
 
     def set_template_files(self,template_files,inplace=False):
