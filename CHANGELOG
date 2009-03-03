@@ -1,6 +1,6 @@
 Cobbler CHANGELOG
 
-- XXX - 1.5.0
+- Tue Mar 3 2009 - 1.5.0
 - (FEAT) Improved anaconda monitoring code
 - (FEAT) preliminary linux-ris support for windows installs (WIP)
 - (FEAT) download comps.xml always
@@ -16,7 +16,7 @@ Cobbler CHANGELOG
 - (FEAT) use nameserver variable in network config in Anaconda when set
 - (BUGF) sleep 5 seconds between power cycling systems
 
-- XXX - 1.4.3
+- Tue Mar 3 2009 - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
 - (BUGF) don't traceback on invalid cmd ("cobbler distro list --name=foo")
 - (BUGF) fix import usage with --kickstart option (no more traceback)
@@ -38,6 +38,7 @@ Cobbler CHANGELOG
 - (BUGF) move to PyYAML for YAML implementation since it is better maintained
 - (BUGF) fixed web-interface editing of ownership
 - (BUGF) fixed web-interface editing of management classes
+- (BUGF) don't run full sync in import, sync makes the install system unavailable for very short periods of time
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates
