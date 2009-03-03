@@ -32,11 +32,12 @@ Cobbler CHANGELOG
 - (BUGF) prevent potential traceback when --template-file data isn't a hash
 - (BUGF) anaconda doesn't honor nameserver always, set manually
 - (BUGF) various post install network snippet fixes
-
-- XXX - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
 - (SPEC) fix build for rawhide now that yaboot is included
 - (BUGF) allow src and noarch arches for repo objects
+- (BUGF) move to PyYAML for YAML implementation since it is better maintained
+- (BUGF) fixed web-interface editing of ownership
+- (BUGF) fixed web-interface editing of management classes
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates

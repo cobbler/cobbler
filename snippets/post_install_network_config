@@ -59,6 +59,9 @@ grep -v HOSTNAME /etc/sysconfig/network > /etc/sysconfig/network.cobbler
 echo "HOSTNAME=$hostname" >> /etc/sysconfig/network.cobbler
 rm -f /etc/sysconfig/network
 mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
+    # Also set the hostname now, some applications require it (e.g.: if we're
+    # connecting to Puppet before a reboot).
+/bin/hostname $hostname
     #end if
     ## =============================================================================
     ## now create the config file for each interface
