@@ -318,3 +318,38 @@ def os_release():
    else:
       return ("unknown",0)
 
+def uniqify(lst):
+   temp = {}
+   for x in lst:
+      temp[x] = 1
+   return temp.keys()
+
+def get_network_info(verbose=True):
+   if verbose:
+       print "probing network info..."
+   try:
+      import rhpl.ethtool as ethtool
+   except:
+      raise CX("the rhpl module is required to use this feature (is your OS>=EL3?)")
+
+   interfaces = {}
+   # get names
+   inames  = ethtool.get_active_devices() 
+   for iname in inames:
+      mac = ethtool.get_hwaddr(iname)
+      ip  = ethtool.get_ipaddr(iname)
+      nm  = ethtool.get_netmask(iname)
+      try:
+         module = ethtool.get_module(iname)
+         if module == "bridge":
+            continue
+      except:
+         continue
+      interfaces[iname] = {
+         "ip_address"  : ip,
+         "mac_address" : mac,
+         "netmask"     : nm
+      }
+
+   return interfaces
+
