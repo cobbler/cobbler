@@ -209,11 +209,8 @@ class Importer:
        print _("---------------- (associating kickstarts)")
        self.kickstart_finder(distros_added) 
 
-       # ensure everything is nicely written out to the filesystem
-       # (which is not so neccessary in newer Cobbler but we're paranoid)
-
-       print _("---------------- (syncing)")
-       self.api.sync()
+       # ensure bootloaders are present
+       self.api.pxegen.copy_bootloaders()
 
        return True
 
