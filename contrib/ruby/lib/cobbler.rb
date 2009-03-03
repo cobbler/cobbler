@@ -1,7 +1,7 @@
 #
 # cobbler.rb - Cobbler module declaration.
-# 
-# Copyright (C) 2008 Red Hat, Inc.
+#
+# Copyright (C) 2008,2009 Red Hat, Inc.
 # Written by Darryl L. Pierce <dpierce@redhat.com>
 #
 # This file is part of rubygem-cobbler.
@@ -19,23 +19,23 @@
 # You should have received a copy of the GNU General Public License
 # along with rubygem-cobbler.  If not, see <http://www.gnu.org/licenses/>.
 #
- 
+
 require 'cobbler/base'
 require 'cobbler/distro'
 require 'cobbler/image'
 require 'cobbler/network_interface'
 require 'cobbler/profile'
 require 'cobbler/system'
- 
-module Cobbler      
+
+module Cobbler
   config = (ENV['COBBLER_YML'] || File.expand_path("config/cobbler.yml"))
-      
+
   yml = YAML::load(File.open(config)) if File.exist?(config)
-      
+
   if yml
     Base.hostname = yml['hostname']
     Base.username = yml['username']
     Base.password = yml['password']
   end
-    
+
 end

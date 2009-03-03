@@ -117,6 +117,7 @@ module Cobbler
     #
     def test_save_and_update_fails
       @connection.should_receive(:call).with('login',@username,@password).once.returns(@auth_token)
+      @connection.should_receive(:call).with('version').once.returns("1.5")
       @connection.should_receive(:call).with('update').once.returns{ false }
 
       system = System.new('name' => @system_name, 'profile' => @profile_name)
@@ -128,6 +129,7 @@ module Cobbler
     #
     def test_save_with_profile
       @connection.should_receive(:call).with('login',@username,@password).once.returns(@auth_token)
+      @connection.should_receive(:call).with('version').once.returns("1.5")
       @connection.should_receive(:call).with('update').once.returns { true }
       @connection.should_receive(:call).with('new_system',@auth_token).once.returns(@system_id)
       @connection.should_receive(:call).with('modify_system',@system_id,'name',@system_name,@auth_token).once.returns(true)
@@ -159,6 +161,7 @@ module Cobbler
     #
     def test_save_with_new_nics
       @connection.should_receive(:call).with('login',@username,@password).once.returns(@auth_token)
+      @connection.should_receive(:call).with('version').once.returns("1.5")
       @connection.should_receive(:call).with('update').once.returns { true }
       @connection.should_receive(:call).with('new_system',@auth_token).once.returns(@system_id)
       @connection.should_receive(:call).with('modify_system',@system_id,'name',@system_name,@auth_token).once.returns(true)
@@ -177,6 +180,7 @@ module Cobbler
     #
     def test_remove_system
       @connection.should_receive(:call).with('login',@username,@password).once.returns(@auth_token)
+      @connection.should_receive(:call).with('version').once.returns("1.5")
       @connection.should_receive(:call).with('remove_system',@system_name,@auth_token).once.returns(true)
 
       system = System.new('name' => @system_name, 'profile' => @profile_name)
