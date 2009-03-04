@@ -442,7 +442,7 @@ class Koan:
         detected_systems = utils.uniqify(detected_systems)
 
         if len(detected_systems) > 1:
-            raise InfoException, "Error: Multiple systems with matching mac addresses"
+            raise InfoException, "Error: Multiple systems matched"
         elif len(detected_systems) == 0:
             raise InfoException, "Error: Could not find a matching system with MACs: %s or IPs: %s" % (",".join(mac_criteria), ",".join(ip_criteria))
         elif len(detected_systems) == 1:
