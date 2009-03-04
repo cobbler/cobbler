@@ -61,6 +61,10 @@ def main():
                  dest="profile",
                  default="",
                  help="assign this profile to this system")
+    p.add_option("-b", "--batch",
+                 dest="batch",
+                 action="store_true",
+                 help="indicates this is being run from a script")
 
     (options, args) = p.parse_args()
     #if not os.getuid() == 0:
@@ -73,6 +77,7 @@ def main():
         k.port                = options.port
         k.profile             = options.profile
         k.hostname            = options.hostname
+        k.batch               = options.batch
         k.run()
     except Exception, e:
         (xa, xb, tb) = sys.exc_info()
@@ -111,6 +116,7 @@ class Register:
         self.port              = ""
         self.profile           = ""
         self.hostname          = ""
+        self.batch           = ""
 
     #---------------------------------------------------
 
@@ -166,8 +172,16 @@ class Register:
         if not matched_profile:
             raise InfoException("no such remote profile, see 'koan --list-profiles'") 
 
-        self.conn.register_new_system(reg_info)
-        print "- registration successful, new system name: %s" % sysname
+        if not self.batch:
+            self.conn.register_new_system(reg_info)
+            print "- registration successful, new system name: %s" % sysname
+        else:
+            try:
+                self.conn.register_new_system(reg_info)
+                print "- registration successful, new system name: %s" % sysname
+            except:
+                traceback.print_exc()
+                print "- registration failed, ignoring because of --batch"
 
         return
    
