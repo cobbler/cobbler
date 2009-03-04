@@ -353,3 +353,42 @@ def get_network_info(verbose=True):
 
    return interfaces
 
+def connect_to_server(server=None,port=None):
+
+    if server is None:
+        server = os.environ.get("COBBLER_SERVER","")
+    if server == "":
+        raise InfoException("--server must be specified")
+
+    if port is None: 
+        port = 25151 
+        
+    connect_ok = False
+
+    try_urls = [
+        "http://%s/cobbler_api" % (server),
+        "https://%s/cobbler_api" % (server),
+        "http://%s:%s" % (server,port),
+        "https://%s:%s" % (server,port),
+        "http://127.0.0.1/cobbler_api"
+    ]
+    for url in try_urls:
+        print "- looking for Cobbler at %s" % url
+        server = __try_connect(url)
+        if server is not None:
+           return server
+    raise InfoException ("Could not find Cobbler.")
+
+
+def __try_connect(url):
+    try:
+        xmlrpc_server = xmlrpclib.ServerProxy(url)
+        xmlrpc_server.ping()
+        return xmlrpc_server
+    except:
+        traceback.print_exc()
+        return None
+
+
+
+

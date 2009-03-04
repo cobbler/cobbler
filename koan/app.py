@@ -274,113 +274,20 @@ class Koan:
             if self.list_items or self.profile or self.system or self.port:
                 raise InfoException, "--server is required"
 
+        self.xmlrpc_server = utils.connect_to_server(server=self.server, port=self.port)
 
-        # set up XMLRPC connection
-        if self.server:
-
-            if not self.port: 
-                self.port = 25151 
-        
-            potential_servers = [ self.server ]
-
-            # zeroconf could have returned more than one server.
-            # either way, let's see that we can connect to the servers
-            # we might have gotten back -- occasionally zeroconf
-            # does stupid things and publishes internal or 
-            # multiple addresses
-
-            connect_ok = False
-            for server in potential_servers:
-
-                # assume for now we are connected to the server
-                # that we should be connected to
-
-                self.server = server
-                url = "http://%s:80/cobbler_api" % (server)
- 
-                # make a sample call to check for connectivity
-                # we use this as opposed to version as version was not
-                # in the original API
-
-                try:
-                    try:
-                        try:
-                            # then try port 80 (non-SSL)
-                            print "- trying non-SSL"
-                            url = "http://%s:80/cobbler_api" % (server)
-                            self.xmlrpc_server = ServerProxy(url)
-                            self.xmlrpc_server.ping()
-                        except:
-                            print "- trying SSL"
-                            # first try port 443 (SSL)
-                            url = "https://%s:443/cobbler_api" % (server)
-                            self.xmlrpc_server = ServerProxy(url)
-                            self.xmlrpc_server.ping()
-                    except:
-                        # now try specified port in case Apache proxying
-                        # is not configured
-                        try:
-                            print "- trying non-SSL at port"
-                            # assume the port is not encrypted
-                            url = "http://%s:%s" % (server, self.port)
-                            self.xmlrpc_server = ServerProxy(url)
-                            self.xmlrpc_server.ping()
-                        except:
-                            print "- trying SSL at port"
-                            # this should not happen as cobbler
-                            # uses apache proxying to provide SSL
-                            # though try it anyway
-                            url = "https://%s:%s" % (server, self.port)
-                            self.xmlrpc_server = ServerProxy(url)
-                            self.xmlrpc_server.ping()
-                    connect_ok = True
-                    break
-                except:
-                    pass
-                
-            # if connect_ok is still off, that means we never found
-            # a match in the server list.  This is bad.
-
-            if not connect_ok:
-                self.connect_fail()
-                 
-            # now check for the cobbler version.  Ideally this should be done
-            # for each server, but if there is more than one cobblerd on the
-            # network someone should REALLY be explicit anyhow.  So we won't
-            # handle that and leave it to the network admins for now.
-
-            #version = None
-            #try:
-            #    print "- checking remote API version"
-            #    version = self.xmlrpc_server.version()
-            #except:
-            #    raise InfoException("cobbler server is downlevel and needs to be updated")
-
-            # this API call calls RPM and is slow, fix remotely
-            # then re-enable here
-             
-            #if version == "?": 
-            #    print "warning: cobbler server did not report a version"
-            #    print "         will attempt to proceed."
- 
-            #elif COBBLER_REQUIRED > version:
-            #    raise InfoException("cobbler server is downlevel, need version >= %s, have %s" % (COBBLER_REQUIRED, version))
-
-            # if command line input was just for listing commands,
-            # run them now and quit, no need for further work
-
-            if self.list_items:
-                self.list(self.list_items)
-                return
+        if self.list_items:
+            self.list(self.list_items)
+            return
             
         
-            # if both --profile and --system were ommitted, autodiscover
-            if self.is_virt:
-                if (self.profile is None and self.system is None and self.image is None):
-                    raise InfoException, "must specify --profile, --system, or --image"
-            else:
-                if (self.profile is None and self.system is None and self.image is None):
-                    self.system = self.autodetect_system()
+        # if both --profile and --system were ommitted, autodiscover
+        if self.is_virt:
+            if (self.profile is None and self.system is None and self.image is None):
+                raise InfoException, "must specify --profile, --system, or --image"
+        else:
+            if (self.profile is None and self.system is None and self.image is None):
+                self.system = self.autodetect_system()
 
 
 
@@ -965,7 +872,6 @@ class Koan:
 
     def get_data(self,what,name=None):
         try:
-            self.xmlrpc_server.update()
             if what[-1] == "s":
                 data = getattr(self.xmlrpc_server, "get_%s" % what)()
             else:
