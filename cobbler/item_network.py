@@ -100,13 +100,19 @@ class Network(item.Item):
     def set_reserved(self, reserved):
         pass
 
-    def subscribe_system(self, uid, intf, ip=None):
+    def get_assigned_address(self, system, intf):
+        for item in self.used_addresses:
+            if item['system'] == system and item['intf'] == intf:
+                return str(item['ip'])
+        return None
+
+    def subscribe_system(self, name, intf, ip=None):
         if not ip:
             if self.free_address_count() == 0:
                 raise CX(_("Network %s has no free addresses" % self.cidr))
             ip = self.free_addresses[0][0]
 
-        self._allocate_address(uid, intf, ip)
+        self._allocate_address(name, intf, ip)
 
     def _addr_available(self, addr):
         for cidr in self.free_addresses:
@@ -133,11 +139,11 @@ class Network(item.Item):
                 index = self.used_addresses.index(d)
                 del(self.used_addresses[index])
 
-    def _allocate_address(self, uid, intf, addr):
+    def _allocate_address(self, system, intf, addr):
         if not self._addr_available(addr):
             raise CX(_("Address %s is not available for allocation" % addr))
         self._remove_from_free(addr)
-        self._add_to_used({'ip': addr, 'uid': uid, 'intf': intf})
+        self._add_to_used({'ip': addr, 'system': system, 'intf': intf})
 
     def _subtract_and_flatten(self, cidr_list, remove_list):
 #        print "cidr_list ", cidr_list, "remove_list", remove_list
