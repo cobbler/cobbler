@@ -101,12 +101,20 @@ class Network(item.Item):
         pass
 
     def get_assigned_address(self, system, intf):
+        """
+        Get the address in the network assigned to an interface of a system.
+        """
         for item in self.used_addresses:
             if item['system'] == system and item['intf'] == intf:
                 return str(item['ip'])
         return None
 
     def subscribe_system(self, name, intf, ip=None):
+        """
+        Join a system to the network.  If ip is passed in, try to
+        claim that specific address, otherwise just grab the first
+        free address.
+        """
         if not ip:
             if self.free_address_count() == 0:
                 raise CX(_("Network %s has no free addresses" % self.cidr))
@@ -115,16 +123,26 @@ class Network(item.Item):
         self._allocate_address(name, intf, ip)
 
     def _addr_available(self, addr):
+        """
+        Is addr free in the network?
+        """
         for cidr in self.free_addresses:
             if addr in cidr:
                 return True
         return False
 
     def _remove_from_free(self, addr):
+        """
+        Take addr off of the list of free addresses
+        """
         self.free_addresses = self._subtract_and_flatten(self.free_addresses, [addr])
         self.free_addresses.sort()
 
     def _add_to_used(self, used_dict):
+        """
+        Take used_dict and append it onto used_addresses.  Make sure
+        no duplicates make it in.
+        """
         if self.used_addresses != []:
             # should really throw an error if it's already there
             # probably a sign something has gone wrong elsewhere
@@ -134,22 +152,33 @@ class Network(item.Item):
         self.used_addresses.append(used_dict)
 
     def _remove_from_used(self, addr):
+        """
+        Take addr off of the list of used addresses
+        """
         for d in self.used_addresses:
             if d['ip'] == addr:
                 index = self.used_addresses.index(d)
                 del(self.used_addresses[index])
 
     def _allocate_address(self, system, intf, addr):
+        """
+        Try to allocate addr to system on interface intf.
+        """
         if not self._addr_available(addr):
             raise CX(_("Address %s is not available for allocation" % addr))
         self._remove_from_free(addr)
         self._add_to_used({'ip': addr, 'system': system, 'intf': intf})
 
     def _subtract_and_flatten(self, cidr_list, remove_list):
-#        print "cidr_list ", cidr_list, "remove_list", remove_list
+        """
+        For each item I in remove_list, find the cidr C in cidr_list
+        that contains I.  Perform the subtraction C - I which returns
+        a new minimal cidr list not containing I.  Replace C with this
+        result, flattened out so we don't get multiple levels of
+        lists.
+        """
         for item in remove_list:
             for i in range(len(cidr_list)):
-#                print 'i=%d, cidr_list[i]=%s' % (i, cidr_list[i])
                 if item in cidr_list[i]:
                     cidr_list += cidr_list[i] - item
                     del(cidr_list[i])
