@@ -157,9 +157,6 @@ def main():
 
     (options, args) = p.parse_args()
 
-    if not os.getuid() == 0:
-        print "koan requires root access"
-        return 3
 
     try:
         k = Koan()
@@ -217,17 +214,6 @@ class InfoException(exceptions.Exception):
 
 #=======================================================
 
-class ServerProxy(xmlrpclib.ServerProxy):
-
-    def __init__(self, url=None):
-        try:
-            xmlrpclib.ServerProxy.__init__(self, url, allow_none=True)
-        except:
-            # for RHEL3's xmlrpclib -- cobblerd should strip Nones anyway
-            xmlrpclib.ServerProxy.__init__(self, url)
-
-#=======================================================
-
 class Koan:
 
     def __init__(self):
@@ -279,7 +265,10 @@ class Koan:
         if self.list_items:
             self.list(self.list_items)
             return
-            
+    
+        if not os.getuid() == 0:
+            print "this operation requires root access"
+            return 3
         
         # if both --profile and --system were ommitted, autodiscover
         if self.is_virt:

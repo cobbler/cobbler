@@ -24,10 +24,11 @@ if __name__ == "__main__":
                 url = "http://cobbler.et.redhat.com/",
                 license = "GPL",
                 packages = ["koan"],
-                scripts = ["koan/koan"],
+                scripts = ["koan/koan", "koan/cobbler-register"],
                 data_files = [
 				("/var/spool/koan", []),
 				(manpath, ['koan.1.gz']),
+				(manpath, ['cobbler-register.1.gz']),
                                 (logpath, [])
                              ],
                 description = SHORT_DESC,

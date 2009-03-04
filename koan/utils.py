@@ -324,9 +324,7 @@ def uniqify(lst):
       temp[x] = 1
    return temp.keys()
 
-def get_network_info(verbose=True):
-   if verbose:
-       print "probing network info..."
+def get_network_info():
    try:
       import rhpl.ethtool as ethtool
    except:
@@ -380,9 +378,18 @@ def connect_to_server(server=None,port=None):
     raise InfoException ("Could not find Cobbler.")
 
 
+class ServerProxy(xmlrpclib.ServerProxy):
+
+    def __init__(self, url=None):
+        try:
+            xmlrpclib.ServerProxy.__init__(self, url, allow_none=True)
+        except:
+            # for RHEL3's xmlrpclib -- cobblerd should strip Nones anyway
+            xmlrpclib.ServerProxy.__init__(self, url)
+
 def __try_connect(url):
     try:
-        xmlrpc_server = xmlrpclib.ServerProxy(url)
+        xmlrpc_server = ServerProxy(url)
         xmlrpc_server.ping()
         return xmlrpc_server
     except:
