@@ -2,7 +2,7 @@
 #if $getVar('system_name','') == ''
 #if $str($getVar('register_new_installs','')) in [ "1", "true", "yes", "y" ]
 if [ -f "/usr/bin/cobbler-register" ]; then
-    cobbler-register --server=$server --fqdn '*AUTO*' --profile=$profile_name
+    cobbler-register --server=$server --fqdn '*AUTO*' --profile=$profile_name --batch
 fi
 #else
 # cobbler registration is disabled in /etc/cobbler/settings

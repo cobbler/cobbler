@@ -292,10 +292,6 @@ class CobblerXMLRPCInterface:
 
     def generate_kickstart(self,profile=None,system=None,REMOTE_ADDR=None,REMOTE_MAC=None,**rest):
         self._log("generate_kickstart")
-
-        if profile and not system:
-            regrc = self.register_mac(REMOTE_MAC,profile)
-
         return self.api.generate_kickstart(profile,system)
 
     def get_settings(self,token=None,**rest):
@@ -347,43 +343,78 @@ class CobblerXMLRPCInterface:
            return "# object not found: %s" % system_name
         return self.api.get_template_file_for_system(obj,path)
 
-    def register_mac(self,mac,profile,token=None,**rest):
+    def register_new_system(self,info,token=None,**rest):
         """
         If register_new_installs is enabled in settings, this allows
-        kickstarts to add new system records for per-profile-provisioned
-        systems automatically via a wget in %post.  This has security
-        implications.
-        READ: https://fedorahosted.org/cobbler/wiki/AutoRegistration
+        /usr/bin/cobbler-register (part of the koan package) to add 
+        new system records remotely if they don't already exist.
+        There is a cobbler_register snippet that helps with doing
+        this automatically for new installs but it can also be used
+        for existing installs.  See "AutoRegistration" on the Wiki.
         """
+   
+        enabled = self.api.settings().register_new_installs
+        if not str(enabled) in [ "1", "y", "yes", "true" ]:
+            raise CX("registration is disabled in cobbler settings")
+  
+        # validate input
+        name     = info.get("name","")
+        profile  = info.get("profile","")
+        hostname = info.get("hostname","")
+        interfaces = info.get("interfaces",{})
+        ilen       = len(interfaces.keys())
 
-        if mac is None:
-            # don't go further if not being called by anaconda
-            return 1
+        if name == "":
+            raise CX("no system name submitted")
+        if profile == "":
+            raise CX("profile not submitted")
+        if ilen == 0:
+            raise CX("no interfaces submitted")
+        if ilen >= 64:
+            raise CX("too many interfaces submitted")
 
-        if not self.api.settings().register_new_installs:
-            # must be enabled in settings
-            return 2
+        # validate things first
+        name = info.get("name","")
+        inames = interfaces.keys()
+        if self.api.find_system(name=name):
+            raise CX("system name conflicts")
+        if hostname != "" and self.api.find_system(hostname=hostname):
+            raise CX("hostname conflicts")
 
-        system = self.api.find_system(mac_address=mac)
-        if system is not None: 
-            # do not allow overwrites
-            return 3
+        for iname in inames:
+            mac      = info["interfaces"][iname].get("mac_address","")
+            ip       = info["interfaces"][iname].get("ip_address","")
+            if ip.find("/") != -1:
+                raise CX("no CIDR ips are allowed")
+            if mac == "":
+                raise CX("missing MAC address for interface %s" % iname) 
+            if mac != "":
+                system = self.api.find_system(mac_address=mac)
+                if system is not None: 
+                   raise CX("mac conflict: %s" % mac)
+            if ip != "":
+                system = self.api.find_system(ip_address=ip)
+                if system is not None:
+                   raise CX("ip conflict: %s"%  ip)
 
-        # the MAC probably looks like "eth0 AA:BB:CC:DD:EE:FF" now, fix it
-        if mac.find(" ") != -1:
-            mac = mac.split()[-1]
-
-        dup = self.api.find_system(mac_address=mac)
-        if dup is not None:
-            return 4
-
-        self._log("register mac for profile %s" % profile,token=token,name=mac)
+        # looks like we can go ahead and create a system now
         obj = self.api.new_system()
         obj.set_profile(profile)
-        name = mac.replace(":","_")
         obj.set_name(name)
-        obj.set_mac_address(mac, "eth0")
+        if hostname != "":
+           obj.set_hostname(hostname)
         obj.set_netboot_enabled(False)
+        for iname in inames:
+            mac      = info["interfaces"][iname].get("mac_address","")
+            ip       = info["interfaces"][iname].get("ip_address","")
+            netmask  = info["interfaces"][iname].get("netmask","")
+            obj.set_mac_address(mac, iname)
+            if hostname != "":
+                obj.set_dns_name(hostname, iname)
+            if ip != "":
+                obj.set_ip_address(ip, iname)
+            if netmask != "":
+                obj.set_subnet(netmask, iname)
         self.api.add_system(obj)
         return 0
  
