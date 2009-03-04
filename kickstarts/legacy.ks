@@ -53,6 +53,7 @@ $SNIPPET('post_install_network_config')
 $SNIPPET('download_config_files')
 $SNIPPET('koan_environment')
 $SNIPPET('redhat_register')
+$SNIPPET('cobbler_register')
 # Begin final steps
 $kickstart_done
 # End final steps

@@ -248,6 +248,7 @@ if __name__ == "__main__":
                                 (snippetpath, ['snippets/post_anamon']),
                                 (snippetpath, ['snippets/post_s390_reboot']),
                                 (snippetpath, ['snippets/redhat_register']),
+                                (snippetpath, ['snippets/cobbler_register']),
 
                                 # documentation
                                 (manpath,  ['docs/cobbler.1.gz']),
