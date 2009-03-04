@@ -50,17 +50,20 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %endif
 %dir /var/spool/koan
 %{_bindir}/koan
+%{_bindir}/cobbler-register
 %dir %{python_sitelib}/koan
 %{python_sitelib}/koan/*.py*
 %{_mandir}/man1/koan.1.gz
+%{_mandir}/man1/cobbler-register.1.gz
 %dir /var/log/koan
 
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
 
-* Tue Feb 17 2009 Michael DeHaan <mdehaan@redhat.com> - 1.5.0-1
+* Wed Mar 4 2009 Michael DeHaan <mdehaan@redhat.com> - 1.5.0-1
 - Upstream changes (see CHANGELOG)
+- added cobbler-register script and manpage
 
 * Tue Feb 17 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.3-1
 - Upstream changes (see CHANGELOG)

@@ -9,6 +9,8 @@ clean:
 manpage:
 	pod2man --center="koan" --release= koan.pod | gzip -c > koan.1.gz
 	pod2html koan.pod > koan.html
+	pod2man --center="cobbler-register" --release= cobbler-register.pod | gzip -c > cobbler-register.1.gz
+	pod2html cobbler-register.pod > cobbler-register.html
 
 test:
 	python tests/tests.py
