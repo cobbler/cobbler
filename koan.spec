@@ -2,11 +2,7 @@
 
 Summary: Network provisioning tool for Xen and Bare Metal Machines 
 Name: koan
-<<<<<<< HEAD:koan.spec
 Version: 1.5.0
-=======
-Version: 1.4.3
->>>>>>> 2854e27... Reduce python version requirements for el 2 compilation.  (--replace-self only):koan.spec
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
