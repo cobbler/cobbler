@@ -116,7 +116,7 @@ echo "MASTER=$bonding_master" >> $devfile
                 ## see Red Hat bugzilla 442339
 echo "HOTPLUG=no" >> $devfile
             #end if
-            #if $static.lower() == "true" or $bonding.lower() == "slave"
+            #if $static or $bonding.lower() == "slave"
                 ## for static or slave interfaces
                 #if $ip != "" and $bonding.lower() != "slave"
                     ## Only configure static networking if an IP-address is
@@ -152,7 +152,7 @@ BONDING_OPTS="$bonding_opts"
 EOF
             #end if
 echo "ONPARENT=yes" >> $devfile
-            #if $static.lower() == "true"
+            #if $static
                 ## for static non-physical interfaces...
                 #if $ip != ""
                     ## Only configure static networking if an IP-address is
@@ -186,7 +186,7 @@ echo "MASTER=$bonding_master" >> $devfile
                 ## see Red Hat bugzilla 442339
 echo "HOTPLUG=no" >> $devfile
             #end if
-            #if $static.lower() == "true" or $bonding.lower() == "slave"
+            #if $static or $bonding.lower() == "slave"
                 ## for static or slave interfaces
                 #if $ip != "" and $bonding.lower() != "slave"
                     ## Only configure static networking if an IP-address is
@@ -227,26 +227,8 @@ echo "$network via $router" >> $routesfile
             #end if
 	#end for
 	#set $i = $i + 1
-# End configuration for $iname
-    #end for	
-    ## =============================================================================
-    ## Configure name server search path in /etc/resolv.conf
-    #if $name_servers_search != ""
-sed -i -e "/^search /d" /etc/resolv.conf
-echo -n "search " >>/etc/resolv.conf
-        #for $nameserversearch in $name_servers_search
-echo -n "$nameserversearch " >>/etc/resolv.conf
-        #end for
-echo "" >>/etc/resolv.conf
-    #end if
-    ## =============================================================================
-    ## Configure name server search path in /etc/resolv.conf
-    #if $name_servers_search != ""
-sed -i -e "/^nameserver /d" /etc/resolv.conf
-        #for $nameserver in $name_servers
-echo "nameserver $nameserver" >>/etc/resolv.conf
-        #end for
-    #end if
+#  End configuration for $iname
+#end for	
 ## Move all staged files to their final location
 rm -f /etc/sysconfig/network-scripts/ifcfg-*
 mv /etc/sysconfig/network-scripts/cobbler/* /etc/sysconfig/network-scripts/
