@@ -239,14 +239,6 @@ echo -n "$nameserversearch " >>/etc/resolv.conf
         #end for
 echo "" >>/etc/resolv.conf
     #end if
-    ## =============================================================================
-    ## Configure name server search path in /etc/resolv.conf
-    #if $name_servers_search != ""
-sed -i -e "/^nameserver /d" /etc/resolv.conf
-        #for $nameserver in $name_servers
-echo "nameserver $nameserver" >>/etc/resolv.conf
-        #end for
-    #end if
 ## Move all staged files to their final location
 rm -f /etc/sysconfig/network-scripts/ifcfg-*
 mv /etc/sysconfig/network-scripts/cobbler/* /etc/sysconfig/network-scripts/
