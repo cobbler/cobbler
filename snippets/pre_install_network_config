@@ -51,7 +51,7 @@
                     #end if
                 #end for
             #end if
-            #if $static.lower() == "true" and $ip != ""
+            #if $static and $ip != ""
                 #if $netmask == ""
                     ## Netmask not provided, default to /24.
                     #set $netmask = "255.255.255.0"
@@ -60,7 +60,7 @@
                 #if $gateway != ""
 	            #set $netinfo = "%s --gateway=%s" % ($netinfo, $gateway)
     	        #end if
-            #else if $static.lower() == "false"
+            #else if not $static
                 #set $netinfo = "--bootproto=dhcp"
             #else
                 ## Skip this interface, it's set as static, but without
