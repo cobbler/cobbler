@@ -1,8 +1,8 @@
-#!/usr/bin/ruby
+#!/usr/bin/ruby -w
 #
-# list_systems.rb - example of using rubygem-cobbler to list system.
+# create_system.rb - example of using rubygem-cobbler to create a system.
 #
-# Copyright (C) 2008, 2009, Red Hat, Inc.
+# Copyright (C) 2008 Red Hat, Inc.
 # Written by Darryl L. Pierce <dpierce@redhat.com>
 #
 # This file is part of rubygem-cobbler.
@@ -31,39 +31,32 @@ require 'cobbler'
 
 include Cobbler
 
-opts = GetoptLong.new(['--hostname', '-s', GetoptLong::REQUIRED_ARGUMENT ],
-                      ['--details',  '-v', GetoptLong::NO_ARGUMENT ],
-                      ['--help',     '-h', GetoptLong::NO_ARGUMENT ],
-                      ['--debug',    '-d', GetoptLong::NO_ARGUMENT ])
+opts = GetoptLong.new(
+                      ['--hostname', '-s', GetoptLong::REQUIRED_ARGUMENT ],
+                      ['--help',     '-h', GetoptLong::NO_ARGUMENT])
 
 hostname = nil
-details  = false
-debug    = false
 
 def usage
-  puts "Usage: #{$0} [--hostname hostname] [--details]\n"
+  puts "Usage: #{$0} --hostname hostname\n"
   exit
 end
 
 opts.each do |opt, arg|
   case opt
   when '--hostname' then hostname = arg
-  when '--details'  then details  = true
   when '--help'     then usage
-  when '--debug'    then debug    = true
   end
 end
 
-Base.hostname = hostname if hostname
-Base.debug    = debug    if debug
-
-puts "Results:"
-System.find do |system|
-  puts "\"#{system.name}\" is based on the \"#{system.profile}\" profile." unless system.profile.empty?
-  puts "\"#{system.name}\" is based on the \"#{system.image}\" image."     unless system.image.empty?
-
-  if details
-    puts "\tOwner: #{system.owners}"
-    system.interfaces.each_pair { |id,nic| puts "\tNIC[#{id}]: #{nic.mac_address}"}
+if hostname
+  Base.hostname = hostname
+  version = Base.remote_version
+  if version
+    puts "Remote version: #{version}"
+  else
+    puts "Unable to determine version."
   end
+else
+  usage
 end

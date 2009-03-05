@@ -1,7 +1,6 @@
-
 # base.rb
 #
-# Copyright (C) 2008 Red Hat, Inc.
+# Copyright (C) 2008,2009 Red Hat, Inc.
 # Written by Darryl L. Pierce <dpierce@redhat.com>
 #
 # This file is part of rubygem-cobbler.
@@ -67,6 +66,7 @@ module Cobbler
     @@hostname   = nil
     @@connection = nil
     @@auth_token = nil
+    @@debug      = false
 
     attr_accessor :definitions
 
@@ -95,16 +95,43 @@ module Cobbler
       @@password = password
     end
 
+    # Enables debugging of communications.
+    #
+    def self.debug=(debug)
+      @@debug = debug
+    end
+
     # Sets the connection. This method is only needed during unit testing.
     #
     def self.connection=(connection)
       @@connection = connection
     end
 
+    # Returns the version for the remote cobbler instance.
+    #
+    def self.remote_version
+      connect(false) unless @@connection
+      @@version ||= make_call("version")
+    end
+
     # Returns a connection to the Cobbler server.
     #
     def self.connect(writable)
-      @@connection || XMLRPC::Client.new2("http://#{@@hostname}/cobbler_api#{writable ? '_rw' : ''}")
+      puts "Connection: writable=#{writable}" if @@debug
+      @@connection ||= XMLRPC::Client.new2("http://#{@@hostname}/cobbler_api")
+
+      # in pre-1.5 versions, a separate path was used for writable calls
+      # TODO: remove this code in 1.6 (dlp)
+      version = remote_version
+      puts "Remote version: #{version}" if @@debug
+      if writable &&
+          version < 1.5 &&
+          !(@@connection.instance_variable_get('@path') =~ /rw$/)
+        puts "Older version detected: connecting to R/W endpoint" if @@debug
+        @@connection = XMLRPC::Client.new2("http://#{@@hostname}/cobbler_api_rw")
+      end
+
+      return @@connection
     end
 
     # Establishes a connection with the Cobbler system.
@@ -124,7 +151,10 @@ module Cobbler
     def self.make_call(*args)
       raise Exception.new('No connection established.') unless @@connection
 
-      @@connection.call(*args)
+      puts "Remote call: #{args.first}" if @@debug
+      result = @@connection.call(*args)
+      puts "Result: #{result}\n" if @@debug
+      return result
     end
 
     # Ends a transaction and disconnects.
@@ -132,6 +162,7 @@ module Cobbler
     def self.end_transaction
       @@connection = nil
       @@auth_token = nil
+      @@version    = nil
     end
 
     class << self
