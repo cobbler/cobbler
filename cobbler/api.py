@@ -209,7 +209,7 @@ class BootAPI:
             version_tuple -- something like [ 1, 3, 2 ]
         """
         fd = open("/var/lib/cobbler/version")
-        data = yaml.load(fd.read()).next()
+        data = yaml.load(fd.read())
         fd.close()
         if not extended:
             # for backwards compatibility and use with koan's comparisons
