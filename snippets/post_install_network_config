@@ -116,7 +116,7 @@ echo "MASTER=$bonding_master" >> $devfile
                 ## see Red Hat bugzilla 442339
 echo "HOTPLUG=no" >> $devfile
             #end if
-            #if $static.lower() == "true" or $bonding.lower() == "slave"
+            #if $static or $bonding.lower() == "slave"
                 ## for static or slave interfaces
                 #if $ip != "" and $bonding.lower() != "slave"
                     ## Only configure static networking if an IP-address is
@@ -152,7 +152,7 @@ BONDING_OPTS="$bonding_opts"
 EOF
             #end if
 echo "ONPARENT=yes" >> $devfile
-            #if $static.lower() == "true"
+            #if $static
                 ## for static non-physical interfaces...
                 #if $ip != ""
                     ## Only configure static networking if an IP-address is
@@ -186,7 +186,7 @@ echo "MASTER=$bonding_master" >> $devfile
                 ## see Red Hat bugzilla 442339
 echo "HOTPLUG=no" >> $devfile
             #end if
-            #if $static.lower() == "true" or $bonding.lower() == "slave"
+            #if $static or $bonding.lower() == "slave"
                 ## for static or slave interfaces
                 #if $ip != "" and $bonding.lower() != "slave"
                     ## Only configure static networking if an IP-address is
