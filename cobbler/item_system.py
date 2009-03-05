@@ -433,15 +433,24 @@ class System(item.Item):
 
     def set_network(self,network,interface):
         """
-        Add an interface to a network object
+        Add an interface to a network object.  If network is empty,
+        clear the network.
         """
         intf = self.__get_interface(interface)
-        net  = self.config.networks().find(name=network)
-        if net == None:
-            raise CX(_("Network %s does not exist" % network))
-        net.subscribe_system(self.name, interface, intf['ip_address'])
-        intf['network'] = network
-        self.config.serialize() # explicitly save the modified net
+
+        if network != '': # Join
+            net  = self.config.networks().find(name=network)
+            if net == None:
+                raise CX(_("Network %s does not exist" % network))
+            net.subscribe_system(self.name, interface, intf['ip_address'])
+            intf['network'] = network
+        else: # leave
+            net = self.config.networks().find(name=intf['network'])
+            net.unsubscribe_system(self.name, interface)
+
+        # FIXME figure out why the network collection doesn't
+        # serialize itself out to disk without this
+        self.config.serialize()
 
     def set_ip_address(self,address,interface):
         """

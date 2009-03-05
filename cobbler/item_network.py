@@ -109,7 +109,7 @@ class Network(item.Item):
                 return str(item['ip'])
         return None
 
-    def subscribe_system(self, name, intf, ip=None):
+    def subscribe_system(self, system, intf, ip=None):
         """
         Join a system to the network.  If ip is passed in, try to
         claim that specific address, otherwise just grab the first
@@ -120,7 +120,19 @@ class Network(item.Item):
                 raise CX(_("Network %s has no free addresses" % self.cidr))
             ip = self.free_addresses[0][0]
 
-        self._allocate_address(name, intf, ip)
+        self._allocate_address(system, intf, ip)
+
+    def unsubscribe_system(self, system, intf):
+        """
+        Remove a system from the network.  Allocate it's address back
+        into the free pool.
+        """
+        addr = self.get_assigned_address(system, intf)
+        if not addr:
+            raise CX(_("Attempting to unsubscribe %s:%s from %s, but not subscribed" % (system, intf, self.name)))
+
+        self._remove_from_used(addr)
+        self._add_to_free(addr)
 
     def _addr_available(self, addr):
         """
@@ -130,6 +142,16 @@ class Network(item.Item):
             if addr in cidr:
                 return True
         return False
+
+    def _add_to_free(self, addr, compact=True):
+        """
+        Add addr to the list of free addresses.  If compact is True,
+        then take the list of CIDRs in free_addresses and compact it.
+        """
+        addr = _IP(addr).cidr()
+        self.free_addresses.append(addr)
+        if compact:
+            self.free_addreses = self._compact(self.free_addresses)
 
     def _remove_from_free(self, addr):
         """
