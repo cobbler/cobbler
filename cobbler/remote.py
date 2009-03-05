@@ -475,6 +475,42 @@ class CobblerXMLRPCInterface:
         self._log("get_distros",token=token)
         return self.__get_all("distro",page,results_per_page)
 
+
+    def __find(self,find_function,criteria={},expand=False,token=None):
+        name = criteria.get("name",None)
+        if name is not None:
+            del criteria["name"]
+        if not expand:     
+            data = [x.name for x in find_function(name, True, True, **criteria)]
+        else:
+            data = [x.to_datastruct() for x in find_function(name, True, True, **criteria)]
+        return self.xmlrpc_hacks(data)
+
+    def find_distro(self,criteria={},expand=False,token=None,**rest):
+        self._log("find_distro", token=token)
+        data = self.__find(self.api.find_distro,criteria,expand=expand,token=token)
+        return data
+
+    def find_profile(self,criteria={},expand=False,token=None,**rest):
+        self._log("find_profile", token=token)
+        data = self.__find(self.api.find_profile,criteria,expand=expand,token=token)
+        return data
+
+    def find_system(self,criteria={},expand=False,token=None,**rest):
+        self._log("find_system", token=token)
+        data = self.__find(self.api.find_system,criteria,expand=expand,token=token)
+        return data
+
+    def find_repo(self,criteria={},expand=False,token=None,**rest):
+        self._log("find_repo", token=token)
+        data = self.__find(self.api.find_repo,criteria,expand=expand,token=token)
+        return data
+
+    def find_image(self,criteria={},expand=False,token=None,**rest):
+        self._log("find_image", token=token)
+        data = self.__find(self.api.find_image,criteria,expand=expand,token=token)
+        return data
+
     def get_distros_since(self,mtime):
         """
         Return all of the distro objects that have been modified

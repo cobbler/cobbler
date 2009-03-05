@@ -23,6 +23,7 @@ Cobbler CHANGELOG
 - (BUGF) fixed web-interface editing of ownership
 - (BUGF) fixed web-interface editing of management classes
 - (BUGF) don't run full sync in import, sync makes the install system unavailable for very short periods of time
+- (FEAT) XMLRPC functions for searching objects, just like the Python API has
 
 - XXX - 1.4.2
 - (BUGF) fix WTI power templates
