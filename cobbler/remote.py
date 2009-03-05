@@ -601,7 +601,11 @@ class CobblerXMLRPCInterface:
 
     def find_distro(self,criteria={},expand=False,token=None,**rest):
         self._log("find_distro", token=token)
+        # FIXME DEBUG
+        self._log(criteria)
         data = self.__find(self.api.find_distro,criteria,expand=expand,token=token)
+        # FIXME DEBUG
+        self._log(data)
         return data
 
     def find_profile(self,criteria={},expand=False,token=None,**rest):
@@ -1566,7 +1570,7 @@ class CobblerXMLRPCInterface:
 class CobblerXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
     def __init__(self, args):
         self.allow_reuse_address = True
-        SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self,args)
+        SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self,args,allow_none=True)
 
 # *********************************************************************************
 # *********************************************************************************

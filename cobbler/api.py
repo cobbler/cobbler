@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import yaml
 import config
 import utils
 import action_sync
@@ -48,7 +49,6 @@ import logging
 import time
 import random
 import os
-import yaml
 import xmlrpclib
 import traceback
 
@@ -209,14 +209,16 @@ class BootAPI:
             version_tuple -- something like [ 1, 3, 2 ]
         """
         fd = open("/var/lib/cobbler/version")
-        data = yaml.load(fd.read())
+        ydata = fd.read()
         fd.close()
+        data = yaml.load(ydata)
         if not extended:
             # for backwards compatibility and use with koan's comparisons
             elems = data["version_tuple"] 
+            print elems
             return int(elems[0]) + 0.1*int(elems[1]) + 0.001*int(elems[2])
         else:
-            return data    
+            return data
 
     def clear(self):
         """
