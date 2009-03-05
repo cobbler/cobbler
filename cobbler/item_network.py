@@ -179,6 +179,7 @@ class Network(item.Item):
         for k,v in self.used_addresses.iteritems():
             if v == addr:
                 del(self.used_addresses[k])
+                return
 
     def _allocate_address(self, system, intf, addr):
         """
@@ -205,7 +206,7 @@ class Network(item.Item):
                     break
         return cidr_list
 
-    def _compact(self, cidr_list):
+    def _compact(self, cidr_list, sort_first=True):
             """
             Compacts a list of CIDR objects down to a minimal-length list L
             such that the set of IP addresses contained in L is the same as
@@ -218,6 +219,9 @@ class Network(item.Item):
             """
             if len(cidr_list) <= 1:
                 return cidr_list
+
+            if sort_first:
+                cidr_list.sort()
 
             did_compact = False
             skip_next = False
@@ -239,7 +243,7 @@ class Network(item.Item):
                     skip_next = True
 
                 if did_compact:
-                    return compact(compacted)
+                    return compact(compacted, sort_first=False)
                 else:
                     return cidr_list
 
