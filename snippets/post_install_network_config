@@ -227,18 +227,8 @@ echo "$network via $router" >> $routesfile
             #end if
 	#end for
 	#set $i = $i + 1
-# End configuration for $iname
-    #end for	
-    ## =============================================================================
-    ## Configure name server search path in /etc/resolv.conf
-    #if $name_servers_search != ""
-sed -i -e "/^search /d" /etc/resolv.conf
-echo -n "search " >>/etc/resolv.conf
-        #for $nameserversearch in $name_servers_search
-echo -n "$nameserversearch " >>/etc/resolv.conf
-        #end for
-echo "" >>/etc/resolv.conf
-    #end if
+#  End configuration for $iname
+#end for	
 ## Move all staged files to their final location
 rm -f /etc/sysconfig/network-scripts/ifcfg-*
 mv /etc/sysconfig/network-scripts/cobbler/* /etc/sysconfig/network-scripts/
