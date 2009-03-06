@@ -4,7 +4,7 @@ Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
 Version: 1.4.3
-Release: 1%{?dist}
+Release: 4%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -22,6 +22,7 @@ Requires: python-devel
 Requires: createrepo
 Requires: python-cheetah
 Requires: rsync
+BuildRequires: PyYAML
 Requires: PyYAML
 Requires: libyaml
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
@@ -282,7 +283,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Fri Mar 06 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.3-1
+* Fri Mar 06 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.3-4
 - Upstream changes (see CHANGELOG)
 - Now requires PyYAML
 
