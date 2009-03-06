@@ -58,7 +58,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Tue Feb 17 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.333-1
+* Tue Feb 17 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.3-1
 - Upstream changes (see CHANGELOG)
 - Reduce python version requirements
 

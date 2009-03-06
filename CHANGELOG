@@ -1,6 +1,6 @@
 Koan CHANGELOG
 
-- XXX 1.4.3
+- Fri Mar 06 2009 -- 1.4.3
 - (SPEC) reduce python version requirements for EL2 (--replace-self only)
 - (BUGF) fix traceback in import when using --kickstart option
 - (BUGF) don't require ImageParser, allowing --virt to still work on older EL
