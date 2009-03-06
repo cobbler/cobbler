@@ -604,7 +604,7 @@ class System(item.Item):
         if power_type is None:
             power_type = ""
         power_type = power_type.lower()
-        valid = "bullpap wti apc_snmp ether-wake ipmilan drac ipmitool ilo rsai lpar bladecenter virsh integrity none"
+        valid = "bullpap wti apc_snmp ether-wake ipmilan drac ipmitool ilo rsa lpar bladecenter virsh integrity none"
         choices = valid.split(" ")
         choices.sort()
         if power_type not in choices:
