@@ -22,14 +22,9 @@ Requires: python-devel
 Requires: createrepo
 Requires: python-cheetah
 Requires: rsync
-<<<<<<< HEAD:cobbler.spec
-BuildRequires: PyYAML
-Requires: PyYAML
-=======
 Requires: python-netaddr
 Requires: PyYAML
 BuildRequires: PyYAML
->>>>>>> devel:cobbler.spec
 Requires: libyaml
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 Requires: genisoimage
@@ -269,12 +264,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/snippets/func_register_if_enabled
 %config(noreplace) /var/lib/cobbler/snippets/download_config_files
 %config(noreplace) /var/lib/cobbler/snippets/koan_environment
-<<<<<<< HEAD:cobbler.spec
-=======
 %config(noreplace) /var/lib/cobbler/snippets/pre_anamon
 %config(noreplace) /var/lib/cobbler/snippets/post_anamon
 %config(noreplace) /var/lib/cobbler/snippets/post_s390_reboot
->>>>>>> devel:cobbler.spec
 %config(noreplace) /var/lib/cobbler/snippets/redhat_register
 %config(noreplace) /var/lib/cobbler/snippets/cobbler_register
 /var/lib/cobbler/elilo-3.8-ia64.efi

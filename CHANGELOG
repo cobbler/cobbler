@@ -1,8 +1,5 @@
 Cobbler CHANGELOG
 
-<<<<<<< HEAD:CHANGELOG
-- Fri Mar 06 2009 - 1.4.3
-=======
 - Tue Mar 3 2009 - 1.5.0
 - (FEAT) Improved anaconda monitoring code
 - (FEAT) preliminary linux-ris support for windows installs (WIP)
@@ -21,7 +18,6 @@ Cobbler CHANGELOG
 - (FEAT) support for /usr/bin/cobbler-register
 
 - Tue Mar 3 2009 - 1.4.3
->>>>>>> devel:CHANGELOG
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
 - (BUGF) don't traceback on invalid cmd ("cobbler distro list --name=foo")
 - (BUGF) fix import usage with --kickstart option (no more traceback)
@@ -33,13 +29,10 @@ Cobbler CHANGELOG
 - (FEAT) enable cobblerweb username/pass logins when authing with spacewalk
 - (BUGF) allow --kopts to take parameters that are shell quoted.
 - (BUGF) allow kernel options to start with '-'
-<<<<<<< HEAD:CHANGELOG
 - (BUGF) prevent potential traceback when --template-file data isn't a hash
 - (BUGF) set primary hostname manually in case Anaconda doesn't honor it
-=======
 - (BUGF) Use shlex for parsing --kopts to allow a wider variety of kernel options
 - (BUGF) prevent potential traceback when --template-file data isn't a hash
->>>>>>> devel:CHANGELOG
 - (BUGF) anaconda doesn't honor nameserver always, set manually
 - (BUGF) various post install network snippet fixes
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
@@ -52,21 +45,14 @@ Cobbler CHANGELOG
 - (FEAT) XMLRPC functions for searching objects, just like the Python API has
 - (BUGF) make "find repo" CLI command search repos, not systems
 
-<<<<<<< HEAD:CHANGELOG
 - Thu Feb 12 2009 - 1.4.2
-=======
-- XXX - 1.4.2
->>>>>>> devel:CHANGELOG
 - (BUGF) fix WTI power templates
 - (FEAT) add WTI power type
 - (BUGF) remove Python 2.6/3000 warnings
 - (BUGF) fix typo in network template (DNS enumeration)
 - (BUGF) make buildiso work for systems that are using bonding
 - (BUGF) blending fix for --template-files
-<<<<<<< HEAD:CHANGELOG
-=======
 - (BUGF) cobbler check ignores comments in TFTP config
->>>>>>> devel:CHANGELOG
 - (BUGF) fix image type field editing in the webapp
 - (BUGF) allow deletion of eth0 if other interfaces are present
 - (BUGF) fix server-override setting in CLI for profile objects

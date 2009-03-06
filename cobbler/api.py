@@ -209,11 +209,7 @@ class BootAPI:
             version_tuple -- something like [ 1, 3, 2 ]
         """
         fd = open("/var/lib/cobbler/version")
-<<<<<<< HEAD:cobbler/api.py
-        data = yaml.load(fd.read())
-=======
         ydata = fd.read()
->>>>>>> devel:cobbler/api.py
         fd.close()
         data = yaml.load(ydata)
         if not extended:

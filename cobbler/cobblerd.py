@@ -43,11 +43,7 @@ def main():
 
 def core(api):
 
-<<<<<<< HEAD:cobbler/cobblerd.py
-    bootapi = cobbler_api.BootAPI()
-=======
     bootapi      = api
->>>>>>> devel:cobbler/cobblerd.py
     settings     = bootapi.settings()
     xmlrpc_port  = settings.xmlrpc_port
 
