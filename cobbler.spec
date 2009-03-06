@@ -23,6 +23,7 @@ Requires: createrepo
 Requires: python-cheetah
 Requires: rsync
 Requires: PyYAML
+Requires: libyaml
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 Requires: genisoimage
 %else
