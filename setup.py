@@ -328,12 +328,9 @@ if __name__ == "__main__":
                                 (wwwcon,            ['webui_content/logo-cobbler.png']),
                                 (wwwcon,            ['webui_content/cobblerweb.css']),
 
-<<<<<<< HEAD:setup.py
-=======
                                 # Anamon script
                                 (vw_aux,            ['aux/anamon.py', 'aux/anamon.init']),
 
->>>>>>> devel:setup.py
                                 # Directories to hold cobbler triggers
                                 ("%s/add/distro/pre" % trigpath,      []),
                                 ("%s/add/distro/post" % trigpath,     []),
