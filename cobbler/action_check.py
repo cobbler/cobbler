@@ -126,6 +126,11 @@ class BootCheck:
            status.append(_("reposync is not installed, need for cobbler reposync, install/upgrade yum-utils?"))
        if not os.path.exists("/usr/bin/yumdownloader"):
            status.append(_("yumdownloader is not installed, needed for cobbler repo add with --rpm-list parameter, install/upgrade yum-utils?"))
+       if self.settings.yumreposync_flags.find("\-l"):
+           if self.checked_dist == "redhat" or self.checked_dist == "suse":
+               yum_utils_ver = sub_process.call("/usr/bin/rpmquery --queryformat=%{VERSION} yum-utils", shell=True, close_fds=True)
+               if yum_utils_ver < "1.1.17":
+                   status.append(_("yum-utils need to be at least version 1.1.17 for reposync -l"))
 
    def check_name(self,status):
        """
