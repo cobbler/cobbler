@@ -21,7 +21,6 @@ BuildRequires: python-setuptools
 %endif
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
-ExcludeArch: ppc64
 Url: http://fedorahosted.org/cobbler/
 
 %description
