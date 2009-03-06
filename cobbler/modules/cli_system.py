@@ -75,6 +75,7 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--name-servers",    dest="name_servers",  help="name servers for static setups")
             p.add_option("--name-servers-search", dest="name_servers_search",  help="name servers search path for static setups")
             p.add_option("--redhat-management-key", dest="redhat_management_key", help="authentication token for RHN/Spacewalk/Satellite")
+            p.add_option("--redhat-management-server", dest="redhat_management_server", help="RHN/Spacewalk/Satellite server")
             p.add_option("--static-routes",   dest="static_routes", help="sets static routes (see manpage)")
             p.add_option("--template-files",  dest="template_files",help="specify files to be generated from templates during a sync")
 
@@ -250,6 +251,8 @@ class SystemFunction(commands.CobblerFunction):
             obj.set_name_servers_search(self.options.name_servers_search)
         if self.options.redhat_management_key is not None:
             obj.set_redhat_management_key(self.options.redhat_management_key)
+        if self.options.redhat_management_server is not None:
+            obj.set_redhat_management_server(self.options.redhat_management_server)
 
 
         rc = self.object_manipulator_finish(obj, self.api.systems, self.options)

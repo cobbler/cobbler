@@ -89,6 +89,7 @@ class ProfileFunction(commands.CobblerFunction):
 
         if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
             p.add_option("--redhat-management-key", dest="redhat_management_key", help="authentication token for RHN/Spacewalk/Satellite")
+            p.add_option("--redhat-management-server", dest="redhat_management_server", help="RHN/Spacewalk/Satellite server")
             p.add_option("--repos",            dest="repos", help="names of cobbler repos")
             p.add_option("--server",           dest="server_override", help="overrides value in settings file")
             p.add_option("--template-files",   dest="template_files", help="specify files to be generated from templates during a sync")
@@ -163,6 +164,8 @@ class ProfileFunction(commands.CobblerFunction):
                 obj.set_name_servers_search(self.options.name_servers_search)
             if self.options.redhat_management_key is not None:
                 obj.set_redhat_management_key(self.options.redhat_management_key)
+            if self.options.redhat_management_server is not None:
+                obj.set_redhat_management_server(self.options.redhat_management_server)
 
 
         return self.object_manipulator_finish(obj, self.api.profiles, self.options)

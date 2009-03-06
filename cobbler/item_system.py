@@ -38,47 +38,48 @@ class System(item.Item):
         return cloned
 
     def clear(self,is_subobject=False):
-        self.name                 = None
-        self.uid                  = ""
-        self.owners               = self.settings.default_ownership
-        self.profile              = None
-        self.image                = None
-        self.kernel_options       = {}
-        self.kernel_options_post  = {}
-        self.ks_meta              = {}    
-        self.interfaces           = {}
-        self.netboot_enabled      = True
-        self.depth                = 2
-        self.mgmt_classes         = []              
-        self.template_files       = {}
-        self.kickstart            = "<<inherit>>"   # use value in profile
-        self.server               = "<<inherit>>"   # "" (or settings)
-        self.virt_path            = "<<inherit>>"   # ""
-        self.virt_type            = "<<inherit>>"   # "" 
-        self.virt_cpus            = "<<inherit>>"   # ""
-        self.virt_file_size       = "<<inherit>>"   # ""
-        self.virt_ram             = "<<inherit>>"   # ""
-        self.virt_type            = "<<inherit>>"   # ""
-        self.virt_path            = "<<inherit>>"   # ""
-        self.virt_bridge          = "<<inherit>>"   # ""
-        self.comment              = ""
-        self.ctime                = 0
-        self.mtime                = 0
-        self.uid                  = ""
-        self.random_id            = ""
-        self.power_type           = self.settings.power_management_default_type
-        self.power_address        = ""
-        self.power_user           = ""
-        self.power_pass           = ""
-        self.power_id             = ""
-        self.hostname             = ""
-        self.gateway              = ""
-        self.name_servers         = []
-        self.name_servers_search  = []
-        self.bonding              = ""
-        self.bonding_master       = ""
-        self.bonding_opts         = ""
-        self.redhat_management_key = "<<inherit>>"
+        self.name                      = None
+        self.uid                       = ""
+        self.owners                    = self.settings.default_ownership
+        self.profile                   = None
+        self.image                     = None
+        self.kernel_options            = {}
+        self.kernel_options_post       = {}
+        self.ks_meta                   = {}    
+        self.interfaces                = {}
+        self.netboot_enabled           = True
+        self.depth                     = 2
+        self.mgmt_classes              = []              
+        self.template_files            = {}
+        self.kickstart                 = "<<inherit>>"   # use value in profile
+        self.server                    = "<<inherit>>"   # "" (or settings)
+        self.virt_path                 = "<<inherit>>"   # ""
+        self.virt_type                 = "<<inherit>>"   # "" 
+        self.virt_cpus                 = "<<inherit>>"   # ""
+        self.virt_file_size            = "<<inherit>>"   # ""
+        self.virt_ram                  = "<<inherit>>"   # ""
+        self.virt_type                 = "<<inherit>>"   # ""
+        self.virt_path                 = "<<inherit>>"   # ""
+        self.virt_bridge               = "<<inherit>>"   # ""
+        self.comment                   = ""
+        self.ctime                     = 0
+        self.mtime                     = 0
+        self.uid                       = ""
+        self.random_id                 = ""
+        self.power_type                = self.settings.power_management_default_type
+        self.power_address             = ""
+        self.power_user                = ""
+        self.power_pass                = ""
+        self.power_id                  = ""
+        self.hostname                  = ""
+        self.gateway                   = ""
+        self.name_servers              = []
+        self.name_servers_search       = []
+        self.bonding                   = ""
+        self.bonding_master            = ""
+        self.bonding_opts              = ""
+        self.redhat_management_key     = "<<inherit>>"
+        self.redhat_management_server  = "<<inherit>>"
 
     def delete_interface(self,name):
         """
@@ -178,6 +179,7 @@ class System(item.Item):
         self.name_servers = self.load_item(seed_data, 'name_servers', '<<inherit>>')
         self.name_servers_search = self.load_item(seed_data, 'name_servers_search', '<<inherit>>')
         self.redhat_management_key = self.load_item(seed_data, 'redhat_management_key', '<<inherit>>')
+        self.redhat_management_server = self.load_item(seed_data, 'redhat_management_server', '<<inherit>>')
 
         # virt specific 
 
@@ -338,6 +340,9 @@ class System(item.Item):
 
     def set_redhat_management_key(self,key):
         return utils.set_redhat_management_key(self,key)
+
+    def set_redhat_management_server(self,server):
+        return utils.set_redhat_management_server(self,server)
 
     def set_server(self,server):
         """
@@ -637,42 +642,43 @@ class System(item.Item):
 
     def to_datastruct(self):
         return {
-           'name'                  : self.name,
-           'uid'                   : self.uid,
-           'random_id'             : self.random_id,
-           'kernel_options'        : self.kernel_options,
-           'kernel_options_post'   : self.kernel_options_post,
-           'depth'                 : self.depth,
-           'interfaces'            : self.interfaces,
-           'ks_meta'               : self.ks_meta,
-           'kickstart'             : self.kickstart,
-           'netboot_enabled'       : self.netboot_enabled,
-           'owners'                : self.owners,
-           'parent'                : self.parent,
-           'profile'               : self.profile,
-           'image'                 : self.image,
-           'server'                : self.server,
-           'virt_cpus'             : self.virt_cpus,
-           'virt_bridge'           : self.virt_bridge,
-           'virt_file_size'        : self.virt_file_size,
-           'virt_path'             : self.virt_path,
-           'virt_ram'              : self.virt_ram,
-           'virt_type'             : self.virt_type,
-           'mgmt_classes'          : self.mgmt_classes,
-           'template_files'        : self.template_files,
-           'comment'               : self.comment,
-           'ctime'                 : self.ctime,
-           'mtime'                 : self.mtime,
-           'power_type'            : self.power_type,
-           'power_address'         : self.power_address,
-           'power_user'            : self.power_user,
-           'power_pass'            : self.power_pass,
-           'power_id'              : self.power_id, 
-           'hostname'              : self.hostname,
-           'gateway'               : self.gateway,
-           'name_servers'          : self.name_servers,
-           'name_servers_search'   : self.name_servers_search,
-           'redhat_management_key' : self.redhat_management_key
+           'name'                     : self.name,
+           'uid'                      : self.uid,
+           'random_id'                : self.random_id,
+           'kernel_options'           : self.kernel_options,
+           'kernel_options_post'      : self.kernel_options_post,
+           'depth'                    : self.depth,
+           'interfaces'               : self.interfaces,
+           'ks_meta'                  : self.ks_meta,
+           'kickstart'                : self.kickstart,
+           'netboot_enabled'          : self.netboot_enabled,
+           'owners'                   : self.owners,
+           'parent'                   : self.parent,
+           'profile'                  : self.profile,
+           'image'                    : self.image,
+           'server'                   : self.server,
+           'virt_cpus'                : self.virt_cpus,
+           'virt_bridge'              : self.virt_bridge,
+           'virt_file_size'           : self.virt_file_size,
+           'virt_path'                : self.virt_path,
+           'virt_ram'                 : self.virt_ram,
+           'virt_type'                : self.virt_type,
+           'mgmt_classes'             : self.mgmt_classes,
+           'template_files'           : self.template_files,
+           'comment'                  : self.comment,
+           'ctime'                    : self.ctime,
+           'mtime'                    : self.mtime,
+           'power_type'               : self.power_type,
+           'power_address'            : self.power_address,
+           'power_user'               : self.power_user,
+           'power_pass'               : self.power_pass,
+           'power_id'                 : self.power_id, 
+           'hostname'                 : self.hostname,
+           'gateway'                  : self.gateway,
+           'name_servers'             : self.name_servers,
+           'name_servers_search'      : self.name_servers_search,
+           'redhat_management_key'    : self.redhat_management_key,
+           'redhat_management_server' : self.redhat_management_server
         }
 
     def printable(self):
@@ -755,51 +761,52 @@ class System(item.Item):
         # compatibility.  At some point they may be removed.
 
         return {
-           'name'             : self.set_name,
-           'profile'          : self.set_profile,
-           'image'            : self.set_image,
-           'kopts'            : self.set_kernel_options,
-           'kopts-post'       : self.set_kernel_options_post,
-           'kopts_post'       : self.set_kernel_options_post,           
-           'ksmeta'           : self.set_ksmeta,
-           'kickstart'        : self.set_kickstart,
-           'netboot-enabled'  : self.set_netboot_enabled,
-           'netboot_enabled'  : self.set_netboot_enabled,           
-           'virt-path'        : self.set_virt_path,
-           'virt_path'        : self.set_virt_path,           
-           'virt-type'        : self.set_virt_type,
-           'virt_type'        : self.set_virt_type,           
-           'modify-interface' : self.modify_interface,
-           'modify_interface' : self.modify_interface,           
-           'delete-interface' : self.delete_interface,
-           'delete_interface' : self.delete_interface,           
-           'virt-path'        : self.set_virt_path,
-           'virt_path'        : self.set_virt_path,           
-           'virt-ram'         : self.set_virt_ram,
-           'virt_ram'         : self.set_virt_ram,           
-           'virt-type'        : self.set_virt_type,
-           'virt_type'        : self.set_virt_type,           
-           'virt-cpus'        : self.set_virt_cpus,
-           'virt_cpus'        : self.set_virt_cpus,           
-           'virt-file-size'   : self.set_virt_file_size,
-           'virt_file_size'   : self.set_virt_file_size,           
-           'server'           : self.set_server,
-           'owners'           : self.set_owners,
-           'mgmt-classes'     : self.set_mgmt_classes,
-           'mgmt_classes'     : self.set_mgmt_classes,           
-           'template-files'   : self.set_template_files,
-           'template_files'   : self.set_template_files,           
-           'comment'          : self.set_comment,
-           'power_type'       : self.set_power_type,
-           'power_address'    : self.set_power_address,
-           'power_user'       : self.set_power_user,
-           'power_pass'       : self.set_power_pass,
-           'power_id'         : self.set_power_id,
-           'hostname'         : self.set_hostname,
-           'gateway'          : self.set_gateway,
-           'name_servers'     : self.set_name_servers,
-           'name_servers_search'   : self.set_name_servers_search,
-           'redhat_management_key' : self.set_redhat_management_key
+           'name'                     : self.set_name,
+           'profile'                  : self.set_profile,
+           'image'                    : self.set_image,
+           'kopts'                    : self.set_kernel_options,
+           'kopts-post'               : self.set_kernel_options_post,
+           'kopts_post'               : self.set_kernel_options_post,           
+           'ksmeta'                   : self.set_ksmeta,
+           'kickstart'                : self.set_kickstart,
+           'netboot-enabled'          : self.set_netboot_enabled,
+           'netboot_enabled'          : self.set_netboot_enabled,           
+           'virt-path'                : self.set_virt_path,
+           'virt_path'                : self.set_virt_path,           
+           'virt-type'                : self.set_virt_type,
+           'virt_type'                : self.set_virt_type,           
+           'modify-interface'         : self.modify_interface,
+           'modify_interface'         : self.modify_interface,           
+           'delete-interface'         : self.delete_interface,
+           'delete_interface'         : self.delete_interface,           
+           'virt-path'                : self.set_virt_path,
+           'virt_path'                : self.set_virt_path,           
+           'virt-ram'                 : self.set_virt_ram,
+           'virt_ram'                 : self.set_virt_ram,           
+           'virt-type'                : self.set_virt_type,
+           'virt_type'                : self.set_virt_type,           
+           'virt-cpus'                : self.set_virt_cpus,
+           'virt_cpus'                : self.set_virt_cpus,           
+           'virt-file-size'           : self.set_virt_file_size,
+           'virt_file_size'           : self.set_virt_file_size,           
+           'server'                   : self.set_server,
+           'owners'                   : self.set_owners,
+           'mgmt-classes'             : self.set_mgmt_classes,
+           'mgmt_classes'             : self.set_mgmt_classes,           
+           'template-files'           : self.set_template_files,
+           'template_files'           : self.set_template_files,           
+           'comment'                  : self.set_comment,
+           'power_type'               : self.set_power_type,
+           'power_address'            : self.set_power_address,
+           'power_user'               : self.set_power_user,
+           'power_pass'               : self.set_power_pass,
+           'power_id'                 : self.set_power_id,
+           'hostname'                 : self.set_hostname,
+           'gateway'                  : self.set_gateway,
+           'name_servers'             : self.set_name_servers,
+           'name_servers_search'      : self.set_name_servers_search,
+           'redhat_management_key'    : self.set_redhat_management_key,
+           'redhat_management_server' : self.set_redhat_management_server
         }
 
 

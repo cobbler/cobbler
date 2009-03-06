@@ -41,24 +41,25 @@ class Distro(item.Item):
         """
         Reset this object.
         """
-        self.name                   = None
-        self.uid                    = ""
-        self.owners                 = self.settings.default_ownership
-        self.kernel                 = None
-        self.initrd                 = None
-        self.kernel_options         = {}
-        self.kernel_options_post    = {}
-        self.ks_meta                = {}
-        self.arch                   = 'i386'
-        self.breed                  = 'redhat'
-        self.os_version             = ''
-        self.source_repos           = []
-        self.mgmt_classes           = []
-        self.depth                  = 0
-        self.template_files         = {}
-	self.comment                = ""
-        self.tree_build_time        = 0
-        self.redhat_management_key  = "<<inherit>>"
+        self.name                      = None
+        self.uid                       = ""
+        self.owners                    = self.settings.default_ownership
+        self.kernel                    = None
+        self.initrd                    = None
+        self.kernel_options            = {}
+        self.kernel_options_post       = {}
+        self.ks_meta                   = {}
+        self.arch                      = 'i386'
+        self.breed                     = 'redhat'
+        self.os_version                = ''
+        self.source_repos              = []
+        self.mgmt_classes              = []
+        self.depth                     = 0
+        self.template_files            = {}
+	self.comment                   = ""
+        self.tree_build_time           = 0
+        self.redhat_management_key     = "<<inherit>>"
+        self.redhat_management_server  = "<<inherit>>"
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -77,23 +78,24 @@ class Distro(item.Item):
         """
         Modify this object to take on values in seed_data
         """
-        self.parent                 = self.load_item(seed_data,'parent')
-        self.name                   = self.load_item(seed_data,'name')
-        self.owners                 = self.load_item(seed_data,'owners',self.settings.default_ownership)
-        self.kernel                 = self.load_item(seed_data,'kernel')
-        self.initrd                 = self.load_item(seed_data,'initrd')
-        self.kernel_options         = self.load_item(seed_data,'kernel_options')
-        self.kernel_options_post    = self.load_item(seed_data,'kernel_options_post')
-        self.ks_meta                = self.load_item(seed_data,'ks_meta')
-        self.arch                   = self.load_item(seed_data,'arch','i386')
-        self.breed                  = self.load_item(seed_data,'breed','redhat')
-        self.os_version             = self.load_item(seed_data,'os_version','')
-        self.source_repos           = self.load_item(seed_data,'source_repos',[])
-        self.depth                  = self.load_item(seed_data,'depth',0)
-        self.mgmt_classes           = self.load_item(seed_data,'mgmt_classes',[])
-        self.template_files         = self.load_item(seed_data,'template_files',{})
-	self.comment                = self.load_item(seed_data,'comment')
-        self.redhat_management_key  = self.load_item(seed_data,'redhat_management_key',"<<inherit>>")
+        self.parent                    = self.load_item(seed_data,'parent')
+        self.name                      = self.load_item(seed_data,'name')
+        self.owners                    = self.load_item(seed_data,'owners',self.settings.default_ownership)
+        self.kernel                    = self.load_item(seed_data,'kernel')
+        self.initrd                    = self.load_item(seed_data,'initrd')
+        self.kernel_options            = self.load_item(seed_data,'kernel_options')
+        self.kernel_options_post       = self.load_item(seed_data,'kernel_options_post')
+        self.ks_meta                   = self.load_item(seed_data,'ks_meta')
+        self.arch                      = self.load_item(seed_data,'arch','i386')
+        self.breed                     = self.load_item(seed_data,'breed','redhat')
+        self.os_version                = self.load_item(seed_data,'os_version','')
+        self.source_repos              = self.load_item(seed_data,'source_repos',[])
+        self.depth                     = self.load_item(seed_data,'depth',0)
+        self.mgmt_classes              = self.load_item(seed_data,'mgmt_classes',[])
+        self.template_files            = self.load_item(seed_data,'template_files',{})
+	self.comment                   = self.load_item(seed_data,'comment')
+        self.redhat_management_key     = self.load_item(seed_data,'redhat_management_key',"<<inherit>>")
+        self.redhat_management_server  = self.load_item(seed_data,'redhat_management_server',"<<inherit>>")
 
         # backwards compatibility enforcement
         self.set_arch(self.arch)
@@ -159,6 +161,9 @@ class Distro(item.Item):
 
     def set_redhat_management_key(self,key):
         return utils.set_redhat_management_key(self,key)
+
+    def set_redhat_management_server(self,server):
+        return utils.set_redhat_management_server(self,server)
  
     def set_source_repos(self, repos):
         """
@@ -209,27 +214,28 @@ class Distro(item.Item):
         Return a serializable datastructure representation of this object.
         """
         return {
-            'name'                   : self.name,
-            'kernel'                 : self.kernel,
-            'initrd'                 : self.initrd,
-            'kernel_options'         : self.kernel_options,
-            'kernel_options_post'    : self.kernel_options_post,
-            'ks_meta'                : self.ks_meta,
-            'mgmt_classes'           : self.mgmt_classes,
-            'template_files'         : self.template_files,
-            'arch'                   : self.arch,
-            'breed'                  : self.breed,
-            'os_version'             : self.os_version,
-            'source_repos'           : self.source_repos,
-            'parent'                 : self.parent,
-            'depth'                  : self.depth,
-            'owners'                 : self.owners,
-            'comment'                : self.comment,
-            'tree_build_time'        : self.tree_build_time,
-            'ctime'                  : self.ctime,
-            'mtime'                  : self.mtime,
-            'uid'                    : self.uid,
-            'redhat_management_key'  : self.redhat_management_key
+            'name'                      : self.name,
+            'kernel'                    : self.kernel,
+            'initrd'                    : self.initrd,
+            'kernel_options'            : self.kernel_options,
+            'kernel_options_post'       : self.kernel_options_post,
+            'ks_meta'                   : self.ks_meta,
+            'mgmt_classes'              : self.mgmt_classes,
+            'template_files'            : self.template_files,
+            'arch'                      : self.arch,
+            'breed'                     : self.breed,
+            'os_version'                : self.os_version,
+            'source_repos'              : self.source_repos,
+            'parent'                    : self.parent,
+            'depth'                     : self.depth,
+            'owners'                    : self.owners,
+            'comment'                   : self.comment,
+            'tree_build_time'           : self.tree_build_time,
+            'ctime'                     : self.ctime,
+            'mtime'                     : self.mtime,
+            'uid'                       : self.uid,
+            'redhat_management_key'     : self.redhat_management_key,
+            'redhat_management_server'  : self.redhat_management_server
         }
 
     def printable(self):
@@ -257,28 +263,30 @@ class Distro(item.Item):
         buf = buf + _("owners               : %s\n") % self.owners
         buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
         buf = buf + _("redhat mgmt key      : %s\n") % self.redhat_management_key
+        buf = buf + _("redhat mgmt server   : %s\n") % self.redhat_management_server
         buf = buf + _("template files       : %s\n") % self.template_files
         return buf
 
     def remote_methods(self):
         return {
-            'name'          : self.set_name,
-            'kernel'        : self.set_kernel,
-            'initrd'        : self.set_initrd,
-            'kopts'         : self.set_kernel_options,
-            'kopts-post'    : self.set_kernel_options_post,
-            'kopts_post'    : self.set_kernel_options_post,            
-            'arch'          : self.set_arch,
-            'ksmeta'        : self.set_ksmeta,
-            'breed'         : self.set_breed,
-            'os-version'    : self.set_os_version,
-            'os_version'    : self.set_os_version,            
-            'owners'        : self.set_owners,
-            'mgmt-classes'  : self.set_mgmt_classes,
-            'mgmt_classes'  : self.set_mgmt_classes,            
-            'template-files': self.set_template_files,
-            'template_files': self.set_template_files,            
-            'comment'               : self.set_comment,
-            'redhat_management_key' : self.set_redhat_management_key
+            'name'                     : self.set_name,
+            'kernel'                   : self.set_kernel,
+            'initrd'                   : self.set_initrd,
+            'kopts'                    : self.set_kernel_options,
+            'kopts-post'               : self.set_kernel_options_post,
+            'kopts_post'               : self.set_kernel_options_post,            
+            'arch'                     : self.set_arch,
+            'ksmeta'                   : self.set_ksmeta,
+            'breed'                    : self.set_breed,
+            'os-version'               : self.set_os_version,
+            'os_version'               : self.set_os_version,            
+            'owners'                   : self.set_owners,
+            'mgmt-classes'             : self.set_mgmt_classes,
+            'mgmt_classes'             : self.set_mgmt_classes,            
+            'template-files'           : self.set_template_files,
+            'template_files'           : self.set_template_files,            
+            'comment'                  : self.set_comment,
+            'redhat_management_key'    : self.set_redhat_management_key,
+            'redhat_management_server' : self.set_redhat_management_server
         }
 
