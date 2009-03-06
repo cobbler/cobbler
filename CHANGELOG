@@ -1,6 +1,6 @@
 Cobbler CHANGELOG
 
-- Tue Mar 3 2009 - 1.4.3
+- Fri Mar 06 2009 - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
 - (BUGF) don't traceback on invalid cmd ("cobbler distro list --name=foo")
 - (BUGF) fix import usage with --kickstart option (no more traceback)
@@ -26,7 +26,7 @@ Cobbler CHANGELOG
 - (FEAT) XMLRPC functions for searching objects, just like the Python API has
 - (BUGF) make "find repo" CLI command search repos, not systems
 
-- XXX - 1.4.2
+- Thu Feb 12 2009 - 1.4.2
 - (BUGF) fix WTI power templates
 - (FEAT) add WTI power type
 - (BUGF) remove Python 2.6/3000 warnings

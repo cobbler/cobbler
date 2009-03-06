@@ -3,7 +3,7 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 1.4.2
+Version: 1.4.3
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
@@ -281,6 +281,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+
+* Fri Mar 06 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.3-1
+- Upstream changes (see CHANGELOG)
+- Now requires PyYAML
 
 * Thu Feb 12 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.2-1
 - Upstream changes (see CHANGELOG)
