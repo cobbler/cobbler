@@ -627,7 +627,7 @@ class PXEGen:
                continue
             distro = profile.get_conceptual_parent()
             # xen distros can be ruled out as they won't boot
-            if distro.name.find("-xen") != -1:
+            if distro.name.find("-xen") != -1 or distro.arch not in ["i386", "x86_64"]:
                 # can't PXE Xen
                 continue
             contents = self.write_pxe_file(None,None,profile,distro,distro.arch,include_header=False)
