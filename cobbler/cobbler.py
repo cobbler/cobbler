@@ -42,7 +42,7 @@ I18N_DOMAIN = "cobbler"
 class BootCLI:
 
     def __init__(self):
-        self.api = api.BootAPI()
+        self.api = api.BootAPI(is_cobblerd=False)
         self.loader = commands.FunctionLoader(self.api)
         climods = self.api.get_modules_in_category("cli")
         for mod in climods:

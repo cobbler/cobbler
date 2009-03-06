@@ -1,0 +1,46 @@
+From: $from_addr
+To: $to_addr
+#if $getVar("interfaces","") != ""
+Subject: $subject (system: $name, ip: $boot_ip)
+#else
+Subject: $subject (profile: $name, ip: $boot_ip)
+#end if
+
+Cobbler build report.
+=======================================================
+http://fedorahosted.org/cobbler
+
+#if $getVar("interfaces","") != "":
+
+system name : $name
+profile     : $profile
+distro      : $distro
+
+#for $intf in $interfaces.keys():
+    #set $mac = $interfaces[$intf].get("mac_address","")
+    #set $ip  = $interfaces[$intf].get("ip_address","")
+    #set $static = $interfaces[$intf].get("static","")
+interface: $intf
+mac:       $mac
+ip:        $ip
+static:    $static
+
+#end for
+#else
+profile : $name
+distro  : $distro
+
+#end if
+
+kernel_options: $getVar("kernel_options","")
+
+#if $kickstart.startswith("/") or $kickstart == "":
+#if $getVar("interfaces","") != ""
+kickstart=http://$server/cblr/svc/op/ks/system/$name
+#else
+kickstart=http://$server/cblr/svc/op/ks/profile/$name
+#end if
+#else
+kickstart=$kickstart
+#end if
+

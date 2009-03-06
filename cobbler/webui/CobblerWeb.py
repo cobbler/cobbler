@@ -128,7 +128,7 @@ class CobblerWeb(object):
         })
 
     def menu(self,**args):
-        return self.__render( 'blank.tmpl', { } )
+        return self.__render( 'blank.tmpl', {} )
    
     # ------------------------------------------------------------------------ #
     # Settings
@@ -151,6 +151,85 @@ class CobblerWeb(object):
     # Distributions
     # ------------------------------------------------------------------------ #
 
+    def distro_menu(self,**spam):
+        return self.__render('blank.tmpl',{ 'more_blank' : 1})
+
+    def __search_execute(self,what,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None):
+        if not self.__xmlrpc_setup():
+            return self.xmlrpc_auth_failure()
+
+        criteria={}
+        if key1 is not None and key1 != "":
+            criteria[key1] = value1.replace('"','')
+        if key2 is not None and key2 != "":
+            criteria[key2] = value2.replace('"','')
+        if key3 is not None and key3 != "":
+            criteria[key3] = value3.replace('"','')
+
+        params = {}
+        params['page'] = -1
+
+        results = []
+        if what == "distro":
+            results = params['distros'] = self.remote.find_distro(criteria,True)
+        elif what == "profile":
+            results = params['profiles'] = self.remote.find_profile(criteria,True)
+        elif what == "system":
+            results = params['systems'] = self.remote.find_system(criteria,True)
+        elif what == "image":
+            results = params['images'] = self.remote.find_image(criteria,True)
+        elif what == "repo":
+            results = params['repos'] = self.remote.find_repo(criteria,True)
+        else:
+            raise "internal error, unknown search type"
+
+
+        if len(results) > 0:
+            return self.__render( "%s_list.tmpl" % what, params)
+        else:
+            return self.__render('empty.tmpl', { 'search' : 1 })  
+   
+    def distro_search_execute(self,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None,**rest):
+        return self.__search_execute("distro",key1,value1,key2,value2,key3,value3)
+    def profile_search_execute(self,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None,**rest):
+        return self.__search_execute("profile",key1,value1,key2,value2,key3,value3)
+    def system_search_execute(self,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None,**rest):
+        return self.__search_execute("system",key1,value1,key2,value2,key3,value3)
+    def image_search_execute(self,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None,**rest):
+        return self.__search_execute("image",key1,value1,key2,value2,key3,value3)
+    def repo_search_execute(self,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None,**rest):
+        return self.__search_execute("repo",key1,value1,key2,value2,key3,value3)
+ 
+    def __search(self, what):
+        caption = ""
+        dest = ""
+        if what   == "distro":
+           caption = "Search distros"
+           dest    = "distro_search_execute"
+        elif what == "profile":
+           caption = "Search profiles"
+           dest    = "profile_search_execute"
+        elif what == "system":
+           caption = "Search systems"
+           dest    = "system_search_execute"
+        elif what == "repo":
+           caption = "Search repos"
+           dest    = "repo_search_execute"
+        elif what == "image":
+           caption = "Search image"
+           dest    = "image_search_execute"
+        else:
+           raise "internal error, unknown object type in search"
+
+        return self.__render('search.tmpl', {
+                'what'             : what,
+                'caption'          : caption,
+                'submit_dest'      : dest
+        })
+
+    def distro_search(self,**spam):
+        return self.__search('distro')
+ 
     def distro_list(self,page=None,limit=None,**spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -258,6 +337,7 @@ class CobblerWeb(object):
             self.remote.modify_distro(distro, 'os-version', osversion, self.token)
             self.remote.modify_distro(distro, 'comment', comment, self.token)
             self.remote.modify_distro(distro, 'redhat_management_key', redhatmanagementkey, self.token)
+            self.remote.modify_distro(distro, 'redhat_management_server', redhatmanagementserver, self.token)
             self.remote.modify_distro(distro, 'mgmt_classes', mgmt_classes, self.token)
 
             # now time to save, do we want to run duplication checks?
@@ -303,6 +383,9 @@ class CobblerWeb(object):
 
         pages = total_size / results_per_page
         return (page, results_per_page, pages)
+    
+    def system_menu(self,**spam):
+        return self.__render('blank.tmpl',{ 'more_blank' : 1})
         
 
     def system_list(self,page=None,limit=None,**spam):
@@ -513,7 +596,7 @@ class CobblerWeb(object):
     def system_save(self,name=None,comment=None,editmode="edit",profile=None,
                     kopts=None, koptspost=None, ksmeta=None, owners=None, server_override=None, netboot='n', 
                     virtpath=None,virtram=None,virttype=None,virtcpus=None,virtfilesize=None,
-                    name_servers=None,
+                    name_servers=None,name_servers_search=None,
                     power_type=None, power_user=None, power_pass=None, power_id=None, power_address=None,
                     gateway=None,hostname=None,redhatmanagementkey=None,mgmt_classes=None,delete1=None, delete2=None, **args):
 
@@ -566,9 +649,11 @@ class CobblerWeb(object):
             self.remote.modify_system(system, 'power_id', power_id, self.token)
             self.remote.modify_system(system, 'power_address', power_address, self.token)
             self.remote.modify_system(system, 'name_servers', name_servers, self.token)
+            self.remote.modify_system(system, 'name_servers_search', name_servers_search, self.token)
             self.remote.modify_system(system, 'gateway', gateway, self.token)
             self.remote.modify_system(system, 'hostname', hostname, self.token)
             self.remote.modify_system(system, 'redhat_management_key', redhatmanagementkey, self.token)
+            self.remote.modify_system(system, 'redhat_management_server', redhatmanagementserver, self.token)
             self.remote.modify_system(system, 'mgmt_classes', mgmt_classes, self.token)
 
             interfaces = args.get("interface_list","")
@@ -618,10 +703,19 @@ class CobblerWeb(object):
 
         return self.system_list()
 
+    def system_search(self,**spam):
+        return self.__search('system')
 
     # ------------------------------------------------------------------------ #
     # Profiles
     # ------------------------------------------------------------------------ #
+    
+    def profile_search(self,**spam):
+        return self.__search('profile')
+
+    def profile_menu(self,**spam):
+        return self.__render('blank.tmpl', { 'more_blank' : 1})
+
     def profile_list(self,page=None,limit=None,**spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -680,7 +774,7 @@ class CobblerWeb(object):
                      ksmeta=None,owners=None,enablemenu=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,delete1=False,delete2=False,
                      parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,
-                     name_servers=None,redhatmanagementkey=None,mgmt_classes=None,recursive=False,**args):
+                     name_servers=None,name_servers_search=None,redhatmanagementkey=None,mgmt_classes=None,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -747,7 +841,9 @@ class CobblerWeb(object):
             self.remote.modify_profile(profile, 'server', server_override, self.token)
             self.remote.modify_profile(profile, 'comment', comment, self.token)
             self.remote.modify_profile(profile, 'name_servers', name_servers, self.token)
+            self.remote.modify_profile(profile, 'name_servers_search', name_servers_search, self.token)
             self.remote.modify_profile(profile, 'redhat_management_key', redhatmanagementkey, self.token)
+            self.remote.modify_profile(profile, 'redhat_management_server', redhatmanagementserver, self.token)
             self.remote.modify_profile(profile, 'mgmt_classes', mgmt_classes, self.token)
 
             if repos is None:
@@ -777,6 +873,12 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
     # Repos
     # ------------------------------------------------------------------------ #
+
+    def repo_search(self,**spam):
+        return self.__search('repo')
+
+    def repo_menu(self,**spam):
+        return self.__render('blank.tmpl', { 'more_blank' : 1})
 
     def repo_list(self,page=None,limit=None,**spam):
         if not self.__xmlrpc_setup():
@@ -891,6 +993,12 @@ class CobblerWeb(object):
     # ------------------------------------------------------------------------ #
     # Images
     # ------------------------------------------------------------------------ #
+
+    def image_search(self,**spam):
+        return self.__search('image')
+
+    def image_menu(self,**spam):
+        return self.__render('blank.tmpl', { 'more_blank' : 1})
 
     def image_list(self,page=None,limit=None,**spam):
         if not self.__xmlrpc_setup():
@@ -1015,6 +1123,9 @@ class CobblerWeb(object):
     # Kickstart files
     # ------------------------------------------------------------------------ #
 
+    def ksfile_menu(self,**spam):
+        return self.__render('blank.tmpl', { 'more_blank' : 1})
+
     def ksfile_list(self,**spam):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -1126,15 +1237,22 @@ class CobblerWeb(object):
     index.exposed = True
     menu.exposed = True
 
+    distro_menu.exposed = True
     distro_edit.exposed = True
     distro_list.exposed = True
     distro_save.exposed = True
-    
+    distro_search.exposed = True
+    distro_search_execute.exposed = True
+ 
+    profile_menu.exposed = True
     subprofile_edit.exposed = True
     profile_edit.exposed = True
     profile_list.exposed = True
+    profile_search.exposed = True
     profile_save.exposed = True
+    profile_search_execute.exposed = True
 
+    system_menu.exposed = True
     system_edit.exposed = True
     system_edit_new.exposed = True
     system_edit_copy.exposed = True
@@ -1146,14 +1264,22 @@ class CobblerWeb(object):
     system_rename.exposed = True
     system_delete.exposed = True
     system_save.exposed = True
+    system_search.exposed = True
+    system_search_execute.exposed = True
 
+    repo_menu.exposed = True
     repo_edit.exposed = True
     repo_list.exposed = True
     repo_save.exposed = True
+    repo_search.exposed = True
+    repo_search_execute.exposed = True
     
+    image_menu.exposed = True
     image_edit.exposed = True
     image_list.exposed = True
     image_save.exposed = True
+    image_search.exposed = True
+    image_search_execute.exposed = True
 
     settings_view.exposed = True
     ksfile_edit.exposed = True

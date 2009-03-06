@@ -76,6 +76,7 @@ if __name__ == "__main__":
         rotpath       = "/etc/logrotate.d"
         powerpath   = etcpath + "/power"
         pxepath     = etcpath + "/pxe"
+        reppath     = etcpath + "/reporting"
         zonepath    = etcpath + "/zone_templates"
         
         # lib paths
@@ -121,36 +122,6 @@ if __name__ == "__main__":
         logpath3 = logpath + "/syslog"
         logpath4 = "/var/log/httpd/cobbler"
 
-        # tftp paths        
-        tftp_cfg      = "/tftpboot/pxelinux.cfg"
-        tftp_images   = "/tftpboot/images"
-        
-
-        # hack to bundle jquery until we have packaging guidelines to avoid JS bundling
-        # bundling is evil, but temporary.
-
-        def file_slurper(arg, dirname, fnames):
-           # FIXME: shell glob would be simpler
-           for fn in fnames:
-               fn2 = os.path.join(dirname,fn)
-               if os.path.isfile(fn2):
-                   if not fn2 in arg:
-                       arg.append(fn2)
-               else:
-                   # don't recurse
-                   fnames.remove(fn)
- 
-        jui_files = []
-        jui_files2 = []
-        jui_files3 = []
-        jui_files4 = []
-        jui_files5 = []
-        os.path.walk("./webui_content/jquery.ui/ui", file_slurper, jui_files)
-        os.path.walk("./webui_content/jquery.ui/ui/i18n", file_slurper, jui_files2)
-        os.path.walk("./webui_content/jquery.ui/themes", file_slurper, jui_files3)
-        os.path.walk("./webui_content/jquery.ui/themes/flora", file_slurper, jui_files4)
-        os.path.walk("./webui_content/jquery.ui/themes/flora/i", file_slurper, jui_files5)
-        
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -197,6 +168,7 @@ if __name__ == "__main__":
                                 (libpath,  ['loaders/elilo-3.8-ia64.efi']),
                                 (libpath,  ['loaders/menu.c32']),
                                 (libpath,  ['loaders/yaboot-1.3.14']),
+                                (libpath,  ['loaders/zpxe.rexx']),
                                 
                                 # database/serializer
                                 (dbpath + "/distros.d",  []),
@@ -215,20 +187,26 @@ if __name__ == "__main__":
                                 # seed files for debian
                                 (kickpath,  ['kickstarts/sample.seed']),
  
-                                # templates for DHCP, DNS
+                                # templates for DHCP, DNS, TFTP
 				(etcpath,  ['templates/dhcp.template']),
 				(etcpath,  ['templates/dnsmasq.template']),
                                 (etcpath,  ['templates/named.template']),
                                 (etcpath,  ['templates/zone.template']),
+                                (etcpath,  ['templates/tftpd.template']),
+                                (etcpath,  ['templates/tftpd-rules.template']),
                                 
-                                # templates for syslinux PXE configs
+                                # templates for netboot configs
 				(pxepath,  ['templates/pxedefault.template']),
 				(pxepath,  ['templates/pxesystem.template']),
 				(pxepath,  ['templates/pxesystem_s390x.template']),
+				(pxepath,  ['templates/pxeprofile_s390x.template']),
+				(pxepath,  ['templates/s390x_conf.template']),
+				(pxepath,  ['templates/s390x_parm.template']),
 				(pxepath,  ['templates/pxesystem_ia64.template']),
 				(pxepath,  ['templates/pxesystem_ppc.template']),
 				(pxepath,  ['templates/pxeprofile.template']),
 				(pxepath,  ['templates/pxelocal.template']),
+				(pxepath,  ['templates/pxelocal_s390x.template']),
 
                                 # templates for power management
                                 (powerpath, ['templates/power_apc_snmp.template']), 
@@ -242,10 +220,13 @@ if __name__ == "__main__":
                                 (powerpath, ['templates/power_wti.template']),
                                 (powerpath, ['templates/power_ilo.template']),
                                 (powerpath, ['templates/power_lpar.template']),        
-                                (powerpath, ['templates/power_bladecenter.template']),        
+                                (powerpath, ['templates/power_bladecenter.template']),
                                 (powerpath, ['templates/power_virsh.template']),        
 
-                                # templates for /usr/bin/cobbler-setup
+                                # templates for reporting
+                                (reppath,   ['templates/build_report_email.template']), 
+
+                                # templates for setup
                                 (itemplates, ['installer_templates/modules.conf.template']),
                                 (itemplates, ['installer_templates/settings.template']),
                                 (itemplates, ['installer_templates/defaults']),
@@ -262,7 +243,11 @@ if __name__ == "__main__":
                                 (snippetpath, ['snippets/func_register_if_enabled']),
                                 (snippetpath, ['snippets/download_config_files']),
                                 (snippetpath, ['snippets/koan_environment']),
+                                (snippetpath, ['snippets/pre_anamon']),
+                                (snippetpath, ['snippets/post_anamon']),
+                                (snippetpath, ['snippets/post_s390_reboot']),
                                 (snippetpath, ['snippets/redhat_register']),
+                                (snippetpath, ['snippets/cobbler_register']),
 
                                 # documentation
                                 (manpath,  ['docs/cobbler.1.gz']),
@@ -290,9 +275,6 @@ if __name__ == "__main__":
                                 # zone-specific templates directory
                                 (zonepath,    []),
 
-                                # tftp directories that we own
-                                (tftp_cfg,          []),
-                                (tftp_images,       []),
 
                                 # Web UI templates for object viewing & modification
                                 # FIXME: other templates to add as they are created.
@@ -300,6 +282,7 @@ if __name__ == "__main__":
 
                                 (wwwtmpl,           ['webui_templates/empty.tmpl']),
                                 (wwwtmpl,           ['webui_templates/blank.tmpl']),
+                                (wwwtmpl,           ['webui_templates/search.tmpl']),
                                 (wwwtmpl,           ['webui_templates/enoaccess.tmpl']),
                                 (wwwtmpl,           ['webui_templates/distro_list.tmpl']),
                                 (wwwtmpl,           ['webui_templates/distro_edit.tmpl']),
@@ -345,6 +328,12 @@ if __name__ == "__main__":
                                 (wwwcon,            ['webui_content/logo-cobbler.png']),
                                 (wwwcon,            ['webui_content/cobblerweb.css']),
 
+<<<<<<< HEAD:setup.py
+=======
+                                # Anamon script
+                                (vw_aux,            ['aux/anamon.py', 'aux/anamon.init']),
+
+>>>>>>> devel:setup.py
                                 # Directories to hold cobbler triggers
                                 ("%s/add/distro/pre" % trigpath,      []),
                                 ("%s/add/distro/post" % trigpath,     []),
@@ -363,10 +352,10 @@ if __name__ == "__main__":
                                 ("%s/delete/repo/pre" % trigpath,     []),
                                 ("%s/delete/repo/post" % trigpath,    []),
                                 ("%s/delete/repo/post" % trigpath,    []),
-                                ("%s/install/pre" % trigpath,         [ "triggers/status_pre.trigger"]),
-                                ("%s/install/post" % trigpath,        [ "triggers/status_post.trigger"]),
+                                ("%s/install/pre" % trigpath,         []),
+                                ("%s/install/post" % trigpath,        []),
                                 ("%s/sync/pre" % trigpath,            []),
-                                ("%s/sync/post" % trigpath,           [ "triggers/restart-services.trigger" ])
+                                ("%s/sync/post" % trigpath,           [])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC

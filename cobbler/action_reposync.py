@@ -345,6 +345,24 @@ class RepoSync:
             if rc !=0:
                 raise CX(_("cobbler reposync failed"))
 
+        repodata_path = os.path.join(dest_path, "repodata")
+
+        if not os.path.exists("/usr/bin/wget"):
+            raise CX(_("no /usr/bin/wget found, please install wget"))
+
+        cmd2 = "/usr/bin/wget -q %s/repodata/comps.xml -O /dev/null" % (repo_mirror)
+        rc = sub_process.call(cmd2, shell=True, close_fds=True)
+        if rc == 0:
+            if not os.path.isdir(repodata_path):
+                os.makedirs(repodata_path)
+
+            cmd2 = "/usr/bin/wget -q %s/repodata/comps.xml -O %s/comps.xml" % (repo_mirror, repodata_path)
+            print _("- %s") % cmd2
+
+            rc = sub_process.call(cmd2, shell=True, close_fds=True)
+            if rc !=0:
+                raise CX(_("wget failed"))
+
         # now run createrepo to rebuild the index
 
         if repo.mirror_locally:

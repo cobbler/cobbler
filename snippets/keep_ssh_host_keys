@@ -1,0 +1,44 @@
+#raw
+# Nifty trick to restore ssh keys without using a nochroot %post
+
+echo "Saving ssh host keys..." > /dev/ttyS0
+
+keys_found=no
+
+insmod /lib/jbd.o
+insmod /lib/ext3.o
+
+drives=$(list-harddrives | awk '{print $1}')
+for disk in $drives; do
+    DISKS="$DISKS $(fdisk -l /dev/$disk | awk '/^\/dev/{print $1}')"
+done
+
+for disk in $DISKS; do
+    name=$(basename $disk)
+    mkdir -p /tmp/$name /tmp/ssh
+    mount $disk /tmp/$name
+    [ $? -eq 0 ] || continue # Skip to the next partition if the mount fails
+
+    # Copy current ssh host keys out to be reused
+    if [ -d /tmp/${name}/etc/ssh ]; then
+        cp -a /tmp/${name}/etc/ssh/ssh_host* /tmp/ssh
+        keys_found="yes"
+        umount /tmp/$name
+        break
+    fi
+    umount /tmp/$name
+    rm -r /tmp/$name
+done
+
+# Loop until the ssh rpm is installed
+if [ "$keys_found" = "yes" ]; then
+    while : ; do
+        sleep 10
+        if [ -d /mnt/sysimage/etc/ssh ] ; then
+            cp -f /tmp/ssh/ssh_host* /mnt/sysimage/etc/ssh/
+            logger "SSH-HOST-KEY copied to newly installed system"
+            break
+        fi
+    done &
+fi
+#end

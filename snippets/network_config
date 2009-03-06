@@ -47,6 +47,10 @@
                         #if $gateway != "":
                             #set $network_str = $network_str + " --gateway=" + $gateway
                         #end if
+                        #if $name_servers and $name_servers[0] != "":
+                            ## Anaconda only allows one nameserver
+                            #set $network_str = $network_str + " --nameserver=" + $name_servers[0]
+                        #end if
                     #else
                         #set $network_str = "--bootproto=none"
                     #end if

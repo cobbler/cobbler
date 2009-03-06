@@ -101,7 +101,7 @@ class BootLiteSync:
         # get the profile object:
         profile = self.profiles.find(name=name)
         if profile is None:
-            raise CX(_("error in profile lookup"))
+            raise CX(_("error in profile lookup for %s" % name))
         # rebuild the yum configuration files for any attached repos
         # generate any templates listed in the distro
         self.sync.pxegen.write_templates(profile)
@@ -176,8 +176,9 @@ class BootLiteSync:
             if distro is not None and distro in [ "ia64", "IA64"]:
                 itanic = True
 
-        for (iname,interface) in system_record.interfaces.iteritems():
-            filename = utils.get_config_filename(system_record, iname)
+        for (name,interface) in system_record.interfaces.iteritems():
+            filename = utils.get_config_filename(system_record,interface=name)
+
             if not itanic:
                 utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
             else:

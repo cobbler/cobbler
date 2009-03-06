@@ -16,12 +16,13 @@ clean:
 manpage:
 	pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz
 	pod2html ./docs/cobbler.pod > ./docs/cobbler.html
- 
-test: 
+
+test:
 	make savestate prefix=test
 	make rpms
 	make install
 	make eraseconfig
+	/sbin/service cobblerd restart
 	-(make nosetests)
 	make restorestate prefix=test
 
@@ -35,9 +36,12 @@ build: manpage updatewui
 install: manpage updatewui
 	python setup.py install -f
 
-devinstall: 
-	make savestate 
-	make install 
+debinstall: manpage updatewui
+	python setup.py install -f --root $(DESTDIR)
+
+devinstall:
+	make savestate
+	make install
 	make restorestate
 
 savestate:
@@ -60,7 +64,7 @@ restorestate:
 	cp $(statepath)/users.digest /etc/cobbler/users.digest
 	cp $(statepath)/http.conf /etc/httpd/conf.d/cobbler.conf
 	find /var/lib/cobbler/triggers | xargs chmod +x
-	chown -R apache /var/www/cobbler 
+	chown -R apache /var/www/cobbler
 	chmod -R +x /var/www/cobbler/web
 	chmod -R +x /var/www/cobbler/svc
 	rm -rf $(statepath)
@@ -69,9 +73,9 @@ completion:
 	python mkbash.py
 
 webtest: updatewui devinstall
-	make clean 
-	make updatewui 
-	make devinstall 
+	make clean
+	make updatewui
+	make devinstall
 	make restartservices
 
 restartservices:
@@ -118,3 +122,5 @@ eraseconfig:
 graphviz:
 	dot -Tpdf docs/cobbler.dot -o cobbler.pdf
 
+tags:
+	find . -type f -name '*.py' | xargs etags -c TAGS

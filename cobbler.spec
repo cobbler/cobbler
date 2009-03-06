@@ -3,8 +3,8 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 1.4.3
-Release: 4%{?dist}
+Version: 1.6.0
+Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -22,8 +22,14 @@ Requires: python-devel
 Requires: createrepo
 Requires: python-cheetah
 Requires: rsync
+<<<<<<< HEAD:cobbler.spec
 BuildRequires: PyYAML
 Requires: PyYAML
+=======
+Requires: python-netaddr
+Requires: PyYAML
+BuildRequires: PyYAML
+>>>>>>> devel:cobbler.spec
 Requires: libyaml
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 Requires: genisoimage
@@ -171,10 +177,14 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(-,root,root)
 %dir /etc/cobbler
+%dir /etc/cobbler/pxe
+%dir /etc/cobbler/reporting
+%dir /etc/cobbler/power
 %config(noreplace) /var/lib/cobbler/kickstarts/*.ks
 %config(noreplace) /var/lib/cobbler/kickstarts/*.seed
 %config(noreplace) /etc/cobbler/*.template
 %config(noreplace) /etc/cobbler/pxe/*.template
+%config(noreplace) /etc/cobbler/reporting/*.template
 %config(noreplace) /etc/cobbler/power/*.template
 %config(noreplace) /etc/cobbler/rsync.exclude
 %config(noreplace) /etc/logrotate.d/cobblerd_rotate
@@ -245,11 +255,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/triggers/install/post
 %dir /var/lib/cobbler/snippets/
 
-%defattr(744,root,root)
-%config(noreplace) /var/lib/cobbler/triggers/sync/post/restart-services.trigger
-%config(noreplace) /var/lib/cobbler/triggers/install/pre/status_pre.trigger
-%config(noreplace) /var/lib/cobbler/triggers/install/post/status_post.trigger
-
 %defattr(664,root,root)
 %config(noreplace) /etc/cobbler/settings
 /var/lib/cobbler/version
@@ -264,10 +269,18 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/snippets/func_register_if_enabled
 %config(noreplace) /var/lib/cobbler/snippets/download_config_files
 %config(noreplace) /var/lib/cobbler/snippets/koan_environment
+<<<<<<< HEAD:cobbler.spec
+=======
+%config(noreplace) /var/lib/cobbler/snippets/pre_anamon
+%config(noreplace) /var/lib/cobbler/snippets/post_anamon
+%config(noreplace) /var/lib/cobbler/snippets/post_s390_reboot
+>>>>>>> devel:cobbler.spec
 %config(noreplace) /var/lib/cobbler/snippets/redhat_register
+%config(noreplace) /var/lib/cobbler/snippets/cobbler_register
 /var/lib/cobbler/elilo-3.8-ia64.efi
 /var/lib/cobbler/menu.c32
 /var/lib/cobbler/yaboot-1.3.14
+/var/lib/cobbler/zpxe.rexx
 %defattr(660,root,root)
 %config(noreplace) /etc/cobbler/users.digest 
 
@@ -283,12 +296,19 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
+* Tue Mar 06 2008 Michael DeHaan <mdehaan@redhat.com> - 1.6.0-1
+- Upstream changes (see CHANGELOG)
+
+* Mon Dec 22 2008 Michael DeHaan <mdehaan@redhat.com> - 1.5.0-1
+- Development release start.
+
 * Fri Mar 06 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.3-4
 - Upstream changes (see CHANGELOG)
 - Now requires PyYAML
 
 * Thu Feb 12 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.2-1
 - Upstream changes (see CHANGELOG)
+- Adding build_report.trigger
 
 * Mon Jan 09 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.1-1
 - Upstream changes (see CHANGELOG)

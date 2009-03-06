@@ -85,7 +85,7 @@ class BootSync:
             print "- running pre-sync triggers"
 
         # run pre-triggers...
-        utils.run_triggers(None, "/var/lib/cobbler/triggers/sync/pre/*")
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/pre/*")
 
         # (paranoid) in case the pre-trigger modified any objects...
 
@@ -116,7 +116,7 @@ class BootSync:
         if self.verbose:
            print "- copying images"
         self.pxegen.copy_images()
-
+        self.pxegen.generate_windows_files()
         for x in self.systems:
             if self.verbose:
                 print "- copying files for system: %s" % x.name
@@ -136,11 +136,12 @@ class BootSync:
         if self.verbose:
            print "- generating PXE menu structure"
         self.pxegen.make_pxe_menu()
+        self.pxegen.write_tftpd_rules(True)
 
         # run post-triggers
         if self.verbose:
             print "- running post-sync triggers"
-        utils.run_triggers(None, "/var/lib/cobbler/triggers/sync/post/*")
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*")
         return True
 
     def clean_trees(self):
@@ -162,7 +163,7 @@ class BootSync:
                 if not x.endswith(".py"):
                     utils.rmfile(path,verbose=self.verbose)
             if os.path.isdir(path):
-                if not x in ["web", "webui", "localmirror","repo_mirror","ks_mirror","images","links","repo_profile","repo_system","svc","rendered"] :
+                if not x in ["aux", "web", "webui", "localmirror","repo_mirror","ks_mirror","images","links","repo_profile","repo_system","svc","rendered"] :
                     # delete directories that shouldn't exist
                     utils.rmtree(path,verbose=self.verbose)
                 if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system","rendered"]:

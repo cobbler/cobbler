@@ -24,6 +24,7 @@ import os
 import weakref
 import time
 import random
+import string
 import binascii
 
 import item_distro as distro
@@ -43,7 +44,7 @@ import settings
 import serializer
 
 from utils import _
-
+from cexceptions import *
 
 class Config:
 
@@ -87,6 +88,12 @@ class Config:
        data = "%s%s" % (time.time(), random.uniform(1,9999999))
        return binascii.b2a_base64(data).replace("=","").strip()
        
+   def generate_random_id(self,length=8):
+       """
+       Return a random string using ASCII 0..9 and A..z
+       """
+       return string.join(random.Random().sample(string.letters+string.digits, length),'')
+
    def __cmp(self,a,b):
        return cmp(a.name,b.name)
 
@@ -197,7 +204,10 @@ class Config:
        """
        Load the object hierachy from disk, using the filenames referenced in each object.
        """
-       serializer.deserialize(self._settings)
+       try:
+           serializer.deserialize(self._settings)
+       except:
+           raise CX("/etc/cobbler/settings is not a valid YAML file")
        serializer.deserialize(self._distros)
        serializer.deserialize(self._repos)
        serializer.deserialize(self._profiles)

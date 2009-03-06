@@ -42,59 +42,64 @@ class Profile(item.Item):
         """
         Reset this object.
         """
-        self.name                   = None
-        self.uid                    = ""
-        self.owners                 = self.settings.default_ownership
-        self.distro                 = (None,                                    '<<inherit>>')[is_subobject]
-        self.enable_menu            = (self.settings.enable_menu,               '<<inherit>>')[is_subobject]
-        self.kickstart              = (self.settings.default_kickstart ,        '<<inherit>>')[is_subobject]    
-        self.kernel_options         = ({},                                      '<<inherit>>')[is_subobject]
-        self.kernel_options_post    = ({},                                      '<<inherit>>')[is_subobject]
-        self.ks_meta                = ({},                                      '<<inherit>>')[is_subobject]
-        self.template_files         = ({},                                      '<<inherit>>')[is_subobject]
-        self.virt_cpus              = (1,                                       '<<inherit>>')[is_subobject]
-        self.virt_file_size         = (self.settings.default_virt_file_size,    '<<inherit>>')[is_subobject]
-        self.virt_ram               = (self.settings.default_virt_ram,          '<<inherit>>')[is_subobject]
-        self.repos                  = ([],                                      '<<inherit>>')[is_subobject]
-        self.depth                  = 1
-        self.virt_type              = (self.settings.default_virt_type,         '<<inherit>>')[is_subobject]
-        self.virt_path              = ("",                                      '<<inherit>>')[is_subobject]
-        self.virt_bridge            = (self.settings.default_virt_bridge,       '<<inherit>>')[is_subobject]
-        self.dhcp_tag               = ("default",                               '<<inherit>>')[is_subobject]
-        self.mgmt_classes           = ([],                                      '<<inherit>>')[is_subobject]
-        self.parent                 = ''
-        self.server                 = "<<inherit>>"
-        self.comment                = ""
-        self.ctime                  = 0
-        self.mtime                  = 0
-        self.name_servers           = (self.settings.default_name_servers,      '<<inherit>>')[is_subobject]
-        self.redhat_management_key  = "<<inherit>>"
+        self.name                      = None
+        self.uid                       = ""
+        self.random_id                 = ""
+        self.owners                    = self.settings.default_ownership
+        self.distro                    = (None,                                    '<<inherit>>')[is_subobject]
+        self.enable_menu               = (self.settings.enable_menu,               '<<inherit>>')[is_subobject]
+        self.kickstart                 = (self.settings.default_kickstart ,        '<<inherit>>')[is_subobject]    
+        self.kernel_options            = ({},                                      '<<inherit>>')[is_subobject]
+        self.kernel_options_post       = ({},                                      '<<inherit>>')[is_subobject]
+        self.ks_meta                   = ({},                                      '<<inherit>>')[is_subobject]
+        self.template_files            = ({},                                      '<<inherit>>')[is_subobject]
+        self.virt_cpus                 = (1,                                       '<<inherit>>')[is_subobject]
+        self.virt_file_size            = (self.settings.default_virt_file_size,    '<<inherit>>')[is_subobject]
+        self.virt_ram                  = (self.settings.default_virt_ram,          '<<inherit>>')[is_subobject]
+        self.repos                     = ([],                                      '<<inherit>>')[is_subobject]
+        self.depth                     = 1
+        self.virt_type                 = (self.settings.default_virt_type,         '<<inherit>>')[is_subobject]
+        self.virt_path                 = ("",                                      '<<inherit>>')[is_subobject]
+        self.virt_bridge               = (self.settings.default_virt_bridge,       '<<inherit>>')[is_subobject]
+        self.dhcp_tag                  = ("default",                               '<<inherit>>')[is_subobject]
+        self.mgmt_classes              = ([],                                      '<<inherit>>')[is_subobject]
+        self.parent                    = ''
+        self.server                    = "<<inherit>>"
+        self.comment                   = ""
+        self.ctime                     = 0
+        self.mtime                     = 0
+        self.name_servers              = (self.settings.default_name_servers,[])[is_subobject]
+        self.name_servers_search       = (self.settings.default_name_servers_search,[])[is_subobject]
+        self.redhat_management_key     = "<<inherit>>"
+        self.redhat_management_server  = "<<inherit>>"
 
     def from_datastruct(self,seed_data):
         """
         Load this object's properties based on seed_data
         """
 
-        self.parent                 = self.load_item(seed_data,'parent','')
-        self.name                   = self.load_item(seed_data,'name')
-        self.owners                 = self.load_item(seed_data,'owners',self.settings.default_ownership)
-        self.distro                 = self.load_item(seed_data,'distro')
-        self.enable_menu            = self.load_item(seed_data,'enable_menu', self.settings.enable_menu)
-        self.kickstart              = self.load_item(seed_data,'kickstart')
-        self.kernel_options         = self.load_item(seed_data,'kernel_options')
-        self.kernel_options_post    = self.load_item(seed_data,'kernel_options_post')
-        self.ks_meta                = self.load_item(seed_data,'ks_meta')
-        self.template_files         = self.load_item(seed_data,'template_files', {})
-        self.repos                  = self.load_item(seed_data,'repos', [])
-        self.depth                  = self.load_item(seed_data,'depth', 1)     
-        self.dhcp_tag               = self.load_item(seed_data,'dhcp_tag', 'default')
-        self.server                 = self.load_item(seed_data,'server', '<<inherit>>')
-        self.mgmt_classes           = self.load_item(seed_data,'mgmt_classes', [])
-        self.comment                = self.load_item(seed_data,'comment','')
-        self.ctime                  = self.load_item(seed_data,'ctime',0)
-        self.mtime                  = self.load_item(seed_data,'mtime',0)
-        self.name_servers           = self.load_item(seed_data,'name_servers',[])
-        self.redhat_management_key  = self.load_item(seed_data,'redhat_management_key', '<<inherit>>')
+        self.parent                    = self.load_item(seed_data,'parent','')
+        self.name                      = self.load_item(seed_data,'name')
+        self.owners                    = self.load_item(seed_data,'owners',self.settings.default_ownership)
+        self.distro                    = self.load_item(seed_data,'distro')
+        self.enable_menu               = self.load_item(seed_data,'enable_menu', self.settings.enable_menu)
+        self.kickstart                 = self.load_item(seed_data,'kickstart')
+        self.kernel_options            = self.load_item(seed_data,'kernel_options')
+        self.kernel_options_post       = self.load_item(seed_data,'kernel_options_post')
+        self.ks_meta                   = self.load_item(seed_data,'ks_meta')
+        self.template_files            = self.load_item(seed_data,'template_files', {})
+        self.repos                     = self.load_item(seed_data,'repos', [])
+        self.depth                     = self.load_item(seed_data,'depth', 1)     
+        self.dhcp_tag                  = self.load_item(seed_data,'dhcp_tag', 'default')
+        self.server                    = self.load_item(seed_data,'server', '<<inherit>>')
+        self.mgmt_classes              = self.load_item(seed_data,'mgmt_classes', [])
+        self.comment                   = self.load_item(seed_data,'comment','')
+        self.ctime                     = self.load_item(seed_data,'ctime',0)
+        self.mtime                     = self.load_item(seed_data,'mtime',0)
+        self.name_servers              = self.load_item(seed_data,'name_servers',[])
+        self.name_servers_search       = self.load_item(seed_data,'name_servers_search',[])
+        self.redhat_management_key     = self.load_item(seed_data,'redhat_management_key', '<<inherit>>')
+        self.redhat_management_server  = self.load_item(seed_data,'redhat_management_server', '<<inherit>>')
 
         # backwards compatibility
         if type(self.repos) != list:
@@ -131,6 +136,10 @@ class Profile(item.Item):
         self.uid         = self.load_item(seed_data,'uid','')
         if self.uid == '':
            self.uid = self.config.generate_uid()
+
+        self.random_id   = self.load_item(seed_data,'random_id','')
+        if self.random_id == '' or len(self.random_id) != 4:
+           self.random_id = self.config.generate_random_id(4)
 
         return self
 
@@ -174,9 +183,18 @@ class Profile(item.Item):
     def set_redhat_management_key(self,key):
         return utils.set_redhat_management_key(self,key)
 
+    def set_redhat_management_server(self,server):
+        return utils.set_redhat_management_server(self,server)
+
     def set_name_servers(self,data):
-        data = utils.input_string_or_list(data)
+        # FIXME: move to utils since shared with system
+        data = utils.input_string_or_list(data, delim=" ")
         self.name_servers = data
+        return True
+
+    def set_name_servers_search(self,data):
+        data = utils.input_string_or_list(data, delim=" ")
+        self.name_servers_search = data
         return True
 
     def set_enable_menu(self,enable_menu):
@@ -274,33 +292,36 @@ class Profile(item.Item):
         Return hash representation for the serializer
         """
         return {
-            'name'                  : self.name,
-            'owners'                : self.owners,
-            'distro'                : self.distro,
-            'enable_menu'           : self.enable_menu,
-            'kickstart'             : self.kickstart,
-            'kernel_options'        : self.kernel_options,
-            'kernel_options_post'   : self.kernel_options_post,
-            'virt_file_size'        : self.virt_file_size,
-            'virt_ram'              : self.virt_ram,
-            'virt_bridge'           : self.virt_bridge,
-            'virt_cpus'             : self.virt_cpus,
-            'ks_meta'               : self.ks_meta,
-            'template_files'        : self.template_files,
-            'repos'                 : self.repos,
-            'parent'                : self.parent,
-            'depth'                 : self.depth,
-            'virt_type'             : self.virt_type,
-            'virt_path'             : self.virt_path,
-            'dhcp_tag'              : self.dhcp_tag,
-            'server'                : self.server,
-            'mgmt_classes'          : self.mgmt_classes,
-            'comment'               : self.comment,
-            'ctime'                 : self.ctime,
-            'mtime'                 : self.mtime,
-            'name_servers'          : self.name_servers,
-            'uid'                   : self.uid,
-            'redhat_management_key' : self.redhat_management_key
+            'name'                     : self.name,
+            'owners'                   : self.owners,
+            'distro'                   : self.distro,
+            'enable_menu'              : self.enable_menu,
+            'kickstart'                : self.kickstart,
+            'kernel_options'           : self.kernel_options,
+            'kernel_options_post'      : self.kernel_options_post,
+            'virt_file_size'           : self.virt_file_size,
+            'virt_ram'                 : self.virt_ram,
+            'virt_bridge'              : self.virt_bridge,
+            'virt_cpus'                : self.virt_cpus,
+            'ks_meta'                  : self.ks_meta,
+            'template_files'           : self.template_files,
+            'repos'                    : self.repos,
+            'parent'                   : self.parent,
+            'depth'                    : self.depth,
+            'virt_type'                : self.virt_type,
+            'virt_path'                : self.virt_path,
+            'dhcp_tag'                 : self.dhcp_tag,
+            'server'                   : self.server,
+            'mgmt_classes'             : self.mgmt_classes,
+            'comment'                  : self.comment,
+            'ctime'                    : self.ctime,
+            'mtime'                    : self.mtime,
+            'name_servers'             : self.name_servers,
+            'name_servers_search'      : self.name_servers_search,
+            'uid'                      : self.uid,
+            'random_id'                : self.random_id,
+            'redhat_management_key'    : self.redhat_management_key,
+            'redhat_management_server' : self.redhat_management_server
          }
 
     def printable(self):
@@ -322,9 +343,11 @@ class Profile(item.Item):
         buf = buf + _("mgmt classes         : %s\n") % self.mgmt_classes
         buf = buf + _("modified             : %s\n") % time.ctime(self.mtime)
         buf = buf + _("name servers         : %s\n") % self.name_servers
+        buf = buf + _("name servers search  : %s\n") % self.name_servers_search
         buf = buf + _("owners               : %s\n") % self.owners
         buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
         buf = buf + _("redhat mgmt key      : %s\n") % self.redhat_management_key
+        buf = buf + _("redhat mgmt server   : %s\n") % self.redhat_management_server
         buf = buf + _("repos                : %s\n") % self.repos
         buf = buf + _("server               : %s\n") % self.server
         buf = buf + _("template_files       : %s\n") % self.template_files
@@ -339,40 +362,42 @@ class Profile(item.Item):
   
     def remote_methods(self):
         return {           
-            'name'            :  self.set_name,
-            'parent'          :  self.set_parent,
-            'profile'         :  self.set_name,
-            'distro'          :  self.set_distro,
-            'enable-menu'     :  self.set_enable_menu,
-            'enable_menu'     :  self.set_enable_menu,            
-            'kickstart'       :  self.set_kickstart,
-            'kopts'           :  self.set_kernel_options,
-            'kopts-post'      :  self.set_kernel_options_post,
-            'kopts_post'      :  self.set_kernel_options_post,            
-            'virt-file-size'  :  self.set_virt_file_size,
-            'virt_file_size'  :  self.set_virt_file_size,            
-            'virt-ram'        :  self.set_virt_ram,
-            'virt_ram'        :  self.set_virt_ram,            
-            'ksmeta'          :  self.set_ksmeta,
-            'template-files'  :  self.set_template_files,
-            'template_files'  :  self.set_template_files,            
-            'repos'           :  self.set_repos,
-            'virt-path'       :  self.set_virt_path,
-            'virt_path'       :  self.set_virt_path,            
-            'virt-type'       :  self.set_virt_type,
-            'virt_type'       :  self.set_virt_type,            
-            'virt-bridge'     :  self.set_virt_bridge,
-            'virt_bridge'     :  self.set_virt_bridge,            
-            'virt-cpus'       :  self.set_virt_cpus,
-            'virt_cpus'       :  self.set_virt_cpus,            
-            'dhcp-tag'        :  self.set_dhcp_tag,
-            'dhcp_tag'        :  self.set_dhcp_tag,            
-            'server'          :  self.set_server,
-            'owners'          :  self.set_owners,
-            'mgmt-classes'    :  self.set_mgmt_classes,
-            'mgmt_classes'    :  self.set_mgmt_classes,            
-            'comment'         :  self.set_comment,
-            'name_servers'    :  self.set_name_servers,
-            'redhat_management_key' : self.set_redhat_management_key
+            'name'                     :  self.set_name,
+            'parent'                   :  self.set_parent,
+            'profile'                  :  self.set_name,
+            'distro'                   :  self.set_distro,
+            'enable-menu'              :  self.set_enable_menu,
+            'enable_menu'              :  self.set_enable_menu,            
+            'kickstart'                :  self.set_kickstart,
+            'kopts'                    :  self.set_kernel_options,
+            'kopts-post'               :  self.set_kernel_options_post,
+            'kopts_post'               :  self.set_kernel_options_post,            
+            'virt-file-size'           :  self.set_virt_file_size,
+            'virt_file_size'           :  self.set_virt_file_size,            
+            'virt-ram'                 :  self.set_virt_ram,
+            'virt_ram'                 :  self.set_virt_ram,            
+            'ksmeta'                   :  self.set_ksmeta,
+            'template-files'           :  self.set_template_files,
+            'template_files'           :  self.set_template_files,            
+            'repos'                    :  self.set_repos,
+            'virt-path'                :  self.set_virt_path,
+            'virt_path'                :  self.set_virt_path,            
+            'virt-type'                :  self.set_virt_type,
+            'virt_type'                :  self.set_virt_type,            
+            'virt-bridge'              :  self.set_virt_bridge,
+            'virt_bridge'              :  self.set_virt_bridge,            
+            'virt-cpus'                :  self.set_virt_cpus,
+            'virt_cpus'                :  self.set_virt_cpus,            
+            'dhcp-tag'                 :  self.set_dhcp_tag,
+            'dhcp_tag'                 :  self.set_dhcp_tag,            
+            'server'                   :  self.set_server,
+            'owners'                   :  self.set_owners,
+            'mgmt-classes'             :  self.set_mgmt_classes,
+            'mgmt_classes'             :  self.set_mgmt_classes,            
+            'comment'                  :  self.set_comment,
+            'name_servers'             :  self.set_name_servers,
+            'name_servers_search'      :  self.set_name_servers_search,
+            'redhat_management_key'    :  self.set_redhat_management_key,
+            'redhat_management_server' :  self.set_redhat_management_server
         }
 

@@ -117,7 +117,7 @@ class BootCheck:
        if os.path.exists("/etc/rc.d/init.d/iptables"):
            rc = sub_process.call("/sbin/service iptables status >/dev/null 2>/dev/null", shell=True, close_fds=True)
            if rc == 0:
-              status.append(_("since iptables may be running, ensure 69, 80, %(syslog)s, and %(xmlrpc)s are unblocked") % { "syslog" : self.settings.syslog_port, "xmlrpc" : self.settings.xmlrpc_port })
+              status.append(_("since iptables may be running, ensure 69, 80, and %(xmlrpc)s are unblocked") % { "xmlrpc" : self.settings.xmlrpc_port })
 
    def check_yum(self,status):
        if not os.path.exists("/usr/bin/createrepo"):
@@ -126,6 +126,11 @@ class BootCheck:
            status.append(_("reposync is not installed, need for cobbler reposync, install/upgrade yum-utils?"))
        if not os.path.exists("/usr/bin/yumdownloader"):
            status.append(_("yumdownloader is not installed, needed for cobbler repo add with --rpm-list parameter, install/upgrade yum-utils?"))
+       if self.settings.yumreposync_flags.find("\-l"):
+           if self.checked_dist == "redhat" or self.checked_dist == "suse":
+               yum_utils_ver = sub_process.call("/usr/bin/rpmquery --queryformat=%{VERSION} yum-utils", shell=True, close_fds=True)
+               if yum_utils_ver < "1.1.17":
+                   status.append(_("yum-utils need to be at least version 1.1.17 for reposync -l"))
 
    def check_name(self,status):
        """
@@ -148,7 +153,6 @@ class BootCheck:
                   if line.find("off") != -1:
                       status.append(_("Must enable selinux boolean to enable Apache and web services components, run: setsebool -P httpd_can_network_connect true"))
            data3 = sub_process.Popen("/usr/sbin/semanage fcontext -l | grep public_content_t",shell=True,stdout=sub_process.PIPE).communicate()[0]
-           #print "DEBUG: data3=\n%s\n" % data3
 
            rule1 = False
            rule2 = False

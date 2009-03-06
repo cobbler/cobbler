@@ -162,6 +162,12 @@ function disablename(value)
     #else
         <input type="radio" name="arch" id="arch" value="ppc64">ppc64
     #end if
+    
+    #if $distro and $distro.arch == "s390"
+        <input type="radio" name="arch" id="arch" value="s390" checked>s390
+    #else
+        <input type="radio" name="arch" id="arch" value="s390">s390
+    #end if
 
     #if $distro and $distro.arch == "s390x"
         <input type="radio" name="arch" id="arch" value="s390x" checked>s390x
@@ -285,6 +291,20 @@ checked>Ubuntu
 
     <tr>
     <td>
+    <label for="redhatmanagementserver">Management Server</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="redhatmanagementserver" id="redhatmanagementserver"
+        #if $distro
+            value="$distro.redhat_management_server"
+        #end if
+    />
+    <p class="context-tip">RHN, Satellite, or Spacewalk server</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
     <label for="mgmt_classes">Management Classes</label>
     </td>
     <td>
@@ -304,7 +324,7 @@ checked>Ubuntu
     </td>
     <td>
     #if $distro
-       #set ownerslist = ','.join($distro.owners)
+       #set ownerslist = ' '.join($distro.owners)
     #end if
     <input type="text" size="255" style="width: 400px;" name="owners" id="owners"
         #if $distro
@@ -313,7 +333,7 @@ checked>Ubuntu
             value="$user"
         #end if
     />
-    <p class="context-tip">Applies only if using authz_ownership module, comma-delimited</p>
+    <p class="context-tip">Applies only if using authz_ownership module, space delimited</p>
     </td>
     </tr>
 

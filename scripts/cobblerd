@@ -16,17 +16,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import sys
 import os
-import cobbler.api as bootapi
 import cobbler.cobblerd as app
 import logging
 import cobbler.utils as utils
 import cobbler.sub_process as sub_process
-
+import traceback
+import cobbler.api as cobbler_api
 import optparse
 
-def daemonize_self(logger):
+def daemonize_self():
     # daemonizing code:  http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66012
-    logger.info("cobblerd started")
+    # logger.info("cobblerd started")
     try: 
         pid = os.fork() 
         if pid > 0:
@@ -34,7 +34,6 @@ def daemonize_self(logger):
             sys.exit(0) 
     except OSError, e: 
         print >>sys.stderr, "fork #1 failed: %d (%s)" % (e.errno, e.strerror) 
-        utils.log_exc(logger)
         sys.exit(1)
 
     # decouple from parent environment
@@ -50,7 +49,7 @@ def daemonize_self(logger):
             sys.exit(0) 
     except OSError, e: 
         print >>sys.stderr, "fork #2 failed: %d (%s)" % (e.errno, e.strerror) 
-        utils.log_exc(logger)
+        #utils.log_exc(logger)
         sys.exit(1) 
 
     dev_null = file('/dev/null','rw') 
@@ -81,9 +80,11 @@ def main():
             op.error('Unrecognized log level %r given')
         log_settings['log_level'] = log_level
 
+    # load the API now rather than later, to ensure cobblerd
+    # startup time is done before the service returns
     api = None
     try:
-        api = bootapi.BootAPI(log_settings=log_settings)
+        api = cobbler_api.BootAPI(log_settings=log_settings, is_cobblerd=True)
     except Exception, exc:
         if sys.exc_type==SystemExit:
             return exc.code
@@ -94,12 +95,13 @@ def main():
     logger = api.logger
 
     if options.daemonize:
-        daemonize_self(logger)
+        daemonize_self()
 
     try:
-        app.core(logger=logger)
+        app.core(api)
     except:
-        utils.log_exc(logger)
+        # FIXME: logging also?
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()

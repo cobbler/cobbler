@@ -1,14 +1,14 @@
-#!/usr/bin/ruby 
+#!/usr/bin/ruby
 #
 # list_systems.rb - example of using rubygem-cobbler to list system.
-# 
-# Copyright (C) 2008 Red Hat, Inc.
+#
+# Copyright (C) 2008, 2009, Red Hat, Inc.
 # Written by Darryl L. Pierce <dpierce@redhat.com>
 #
 # This file is part of rubygem-cobbler.
 #
 # rubygem-cobbleris free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published 
+# it under the terms of the GNU Lesser General Public License as published
 # by the Free Software Foundation, either version 2.1 of the License, or
 # (at your option) any later version.
 #
@@ -20,7 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with rubygem-cobbler.  If not, see <http://www.gnu.org/licenses/>.
 #
- 
+
 base = File.expand_path(File.join(File.dirname(__FILE__), ".."))
 $LOAD_PATH << File.join(base, "lib")
 $LOAD_PATH << File.join(base, "examples")
@@ -31,14 +31,14 @@ require 'cobbler'
 
 include Cobbler
 
-opts = GetoptLong.new(
-  ['--hostname', '-s', GetoptLong::REQUIRED_ARGUMENT ],
-  ['--details',  '-d', GetoptLong::NO_ARGUMENT ],
-  ['--help',     '-h', GetoptLong::NO_ARGUMENT ]
-)
+opts = GetoptLong.new(['--hostname', '-s', GetoptLong::REQUIRED_ARGUMENT ],
+                      ['--details',  '-v', GetoptLong::NO_ARGUMENT ],
+                      ['--help',     '-h', GetoptLong::NO_ARGUMENT ],
+                      ['--debug',    '-d', GetoptLong::NO_ARGUMENT ])
 
 hostname = nil
 details  = false
+debug    = false
 
 def usage
   puts "Usage: #{$0} [--hostname hostname] [--details]\n"
@@ -50,18 +50,20 @@ opts.each do |opt, arg|
   when '--hostname' then hostname = arg
   when '--details'  then details  = true
   when '--help'     then usage
+  when '--debug'    then debug    = true
   end
 end
 
 Base.hostname = hostname if hostname
-  
+Base.debug    = debug    if debug
+
 puts "Results:"
-System.find do |system| 
-  puts "\"#{system.name}\" is based on \"#{system.profile}\"."
-  
+System.find do |system|
+  puts "\"#{system.name}\" is based on the \"#{system.profile}\" profile." unless system.profile.empty?
+  puts "\"#{system.name}\" is based on the \"#{system.image}\" image."     unless system.image.empty?
+
   if details
     puts "\tOwner: #{system.owners}"
-    system.interfaces.each_pair { |id,nic| puts "\tNIC[#{id}]: #{nic.mac_address}"} 
-  end  
+    system.interfaces.each_pair { |id,nic| puts "\tNIC[#{id}]: #{nic.mac_address}"}
+  end
 end
-

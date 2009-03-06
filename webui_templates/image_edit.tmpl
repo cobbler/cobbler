@@ -353,7 +353,7 @@ function disablename(value)
     </td>
     <td>
     #if $image
-       #set ownerslist = ','.join($image.owners)
+       #set ownerslist = ' '.join($image.owners)
     #end if
     <input type="text" size="255" style="width: 400px;" name="owners" id="owners"
         #if $image
@@ -362,7 +362,7 @@ function disablename(value)
             value="$user"
         #end if
     />
-    <p class="context-tip">Applies only if using authz_ownership module, comma-delimited</p>
+    <p class="context-tip">Applies only if using authz_ownership module, space delimited</p>
     </td>
     </tr>
 

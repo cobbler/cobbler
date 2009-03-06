@@ -56,25 +56,86 @@ OBJECT_TIMEOUT = 60*60 # 60 minutes
 TOKEN_CACHE = {}
 OBJECT_CACHE = {}
 
+class DataCache:
+
+    def __init__(self, api):
+        """
+        Constructor
+        """
+        self.api = api
+
+    def update(self,collection_type, name):
+         data = self.api.deserialize_item_raw(collection_type, name)
+
+         if data is None:
+             return False
+
+         if collection_type == "distro":
+             obj = item_distro.Distro(self.api._config)
+             obj.from_datastruct(data)
+             self.api.add_distro(obj, False, False)
+
+         if collection_type == "profile":
+             subprofile = False
+             if data.has_key("parent") and data["parent"] != "":
+                subprofile = True
+             obj = item_profile.Profile(self.api._config, is_subobject = subprofile)
+             obj.from_datastruct(data)
+             self.api.add_profile(obj, False, False)
+
+         if collection_type == "system":
+             obj = item_system.System(self.api._config)
+             obj.from_datastruct(data)
+             self.api.add_system(obj, False, False, False)
+
+         if collection_type == "repo":
+             obj = item_repo.Repo(self.api._config)
+             obj.from_datastruct(data)
+             self.api.add_repo(obj, False, False)
+
+         if collection_type == "image":
+             obj = item_image.Image(self.api._config)
+             obj.from_datastruct(data)
+             self.api.add_image(obj, False, False)
+
+
+    def remove(self,collection_type, name):
+         # for security reasons, only remove if actually gone
+         data = self.api.deserialize_item_raw(collection_type, name)
+         if data is None:
+             if collection_type == "distro":
+                 self.api.remove_distro(name, delete=False, recursive=True, with_triggers=False)
+             if collection_type == "profile":
+                 self.api.remove_profile(name, delete=False, recursive=True, with_triggers=False)
+             if collection_type == "system":
+                 self.api.remove_system(name, delete=False, recursive=True, with_triggers=False)
+             if collection_type == "repo":
+                 self.api.remove_repo(name, delete=False, recursive=True, with_triggers=False)
+             if collection_type == "image":
+                 self.api.remove_image(name, delete=False, recursive=True, with_triggers=False)
+
 # *********************************************************************
 # *********************************************************************
 
 class CobblerXMLRPCInterface:
     """
-    This is the interface used for all public XMLRPC methods, for instance,
-    as used by koan.  The read-write interface which inherits from this adds
-    more methods, though that interface can be disabled.
+    This is the interface used for all XMLRPC methods, for instance,
+    as used by koan or CobblerWeb
  
     note:  public methods take an optional parameter token that is just
-    here for consistancy with the ReadWrite API.  The tokens for the read only
-    interface are intentionally /not/ validated.  It's a public API.
+    here for consistancy with the ReadWrite API.  Read write operations do
+    require the token.
     """
 
-    def __init__(self,api,logger,enable_auth_if_relevant):
+    def __init__(self,api,enable_auth_if_relevant):
         self.api = api
-        self.logger = logger
         self.auth_enabled = enable_auth_if_relevant
+        self.cache = DataCache(self.api)
+        self.logger = self.api.logger
+        self.token_cache = TOKEN_CACHE
+        self.object_cache = OBJECT_CACHE
         self.timestamp = self.api.last_modified_time()
+        random.seed(time.time())
 
     def __sorter(self,a,b):
         return cmp(a["name"],b["name"])
@@ -88,10 +149,15 @@ class CobblerXMLRPCInterface:
         return self.api.last_modified_time()
 
     def update(self, token=None):
-        now = self.api.last_modified_time()
-        if (now > self.timestamp):
-           self.timestamp = now
-           self.api.update()
+        # no longer neccessary
+        return True
+
+    def internal_cache_update(self, collection_type, data):
+        self.cache.update(collection_type, data)
+        return True
+
+    def internal_cache_remove(self, collection_type, data):
+        self.cache.remove(collection_type, data)
         return True
 
     def ping(self):
@@ -166,11 +232,26 @@ class CobblerXMLRPCInterface:
         # FIXME: a global lock or module around data access loading
         # would be useful for non-db backed storage
 
-        data = self.api.deserialize_raw(collection_name)
-        total_items = len(data)
-
         if collection_name == "settings":
+            data = self.api.deserialize_raw("settings")
             return self.xmlrpc_hacks(data)
+        else:
+            contents = []
+            if collection_name.startswith("distro"):
+               contents = self.api.distros()
+            elif collection_name.startswith("profile"):
+               contents = self.api.profiles()
+            elif collection_name.startswith("system"):
+               contents = self.api.systems()
+            elif collection_name.startswith("repo"):
+               contents = self.api.repos()
+            elif collection_name.startswith("image"):
+               contents = self.api.images()
+            else:
+               raise CX("internal error, collection name is %s" % collection_name)
+            # FIXME: speed this up
+            data = contents.to_datastruct()
+            total_items = len(data)
 
         data.sort(self.__sorter)
 
@@ -211,10 +292,6 @@ class CobblerXMLRPCInterface:
 
     def generate_kickstart(self,profile=None,system=None,REMOTE_ADDR=None,REMOTE_MAC=None,**rest):
         self._log("generate_kickstart")
-
-        if profile and not system:
-            regrc = self.register_mac(REMOTE_MAC,profile)
-
         return self.api.generate_kickstart(profile,system)
 
     def get_settings(self,token=None,**rest):
@@ -222,7 +299,9 @@ class CobblerXMLRPCInterface:
         Return the contents of /etc/cobbler/settings, which is a hash.
         """
         self._log("get_settings",token=token)
-        return self.__get_all("settings")
+        results = self.api.settings().to_datastruct()
+        self._log("my settings are: %s" % results)
+        return self.xmlrpc_hacks(results)
 
     def get_repo_config_for_profile(self,profile_name,**rest):
         """
@@ -262,43 +341,78 @@ class CobblerXMLRPCInterface:
            return "# object not found: %s" % system_name
         return self.api.get_template_file_for_system(obj,path)
 
-    def register_mac(self,mac,profile,token=None,**rest):
+    def register_new_system(self,info,token=None,**rest):
         """
         If register_new_installs is enabled in settings, this allows
-        kickstarts to add new system records for per-profile-provisioned
-        systems automatically via a wget in %post.  This has security
-        implications.
-        READ: https://fedorahosted.org/cobbler/wiki/AutoRegistration
+        /usr/bin/cobbler-register (part of the koan package) to add 
+        new system records remotely if they don't already exist.
+        There is a cobbler_register snippet that helps with doing
+        this automatically for new installs but it can also be used
+        for existing installs.  See "AutoRegistration" on the Wiki.
         """
+   
+        enabled = self.api.settings().register_new_installs
+        if not str(enabled) in [ "1", "y", "yes", "true" ]:
+            raise CX("registration is disabled in cobbler settings")
+  
+        # validate input
+        name     = info.get("name","")
+        profile  = info.get("profile","")
+        hostname = info.get("hostname","")
+        interfaces = info.get("interfaces",{})
+        ilen       = len(interfaces.keys())
 
-        if mac is None:
-            # don't go further if not being called by anaconda
-            return 1
+        if name == "":
+            raise CX("no system name submitted")
+        if profile == "":
+            raise CX("profile not submitted")
+        if ilen == 0:
+            raise CX("no interfaces submitted")
+        if ilen >= 64:
+            raise CX("too many interfaces submitted")
 
-        if not self.api.settings().register_new_installs:
-            # must be enabled in settings
-            return 2
+        # validate things first
+        name = info.get("name","")
+        inames = interfaces.keys()
+        if self.api.find_system(name=name):
+            raise CX("system name conflicts")
+        if hostname != "" and self.api.find_system(hostname=hostname):
+            raise CX("hostname conflicts")
 
-        system = self.api.find_system(mac_address=mac)
-        if system is not None: 
-            # do not allow overwrites
-            return 3
+        for iname in inames:
+            mac      = info["interfaces"][iname].get("mac_address","")
+            ip       = info["interfaces"][iname].get("ip_address","")
+            if ip.find("/") != -1:
+                raise CX("no CIDR ips are allowed")
+            if mac == "":
+                raise CX("missing MAC address for interface %s" % iname) 
+            if mac != "":
+                system = self.api.find_system(mac_address=mac)
+                if system is not None: 
+                   raise CX("mac conflict: %s" % mac)
+            if ip != "":
+                system = self.api.find_system(ip_address=ip)
+                if system is not None:
+                   raise CX("ip conflict: %s"%  ip)
 
-        # the MAC probably looks like "eth0 AA:BB:CC:DD:EE:FF" now, fix it
-        if mac.find(" ") != -1:
-            mac = mac.split()[-1]
-
-        dup = self.api.find_system(mac_address=mac)
-        if dup is not None:
-            return 4
-
-        self._log("register mac for profile %s" % profile,token=token,name=mac)
+        # looks like we can go ahead and create a system now
         obj = self.api.new_system()
         obj.set_profile(profile)
-        name = mac.replace(":","_")
         obj.set_name(name)
-        obj.set_mac_address(mac, "eth0")
+        if hostname != "":
+           obj.set_hostname(hostname)
         obj.set_netboot_enabled(False)
+        for iname in inames:
+            mac      = info["interfaces"][iname].get("mac_address","")
+            ip       = info["interfaces"][iname].get("ip_address","")
+            netmask  = info["interfaces"][iname].get("netmask","")
+            obj.set_mac_address(mac, iname)
+            if hostname != "":
+                obj.set_dns_name(hostname, iname)
+            if ip != "":
+                obj.set_ip_address(ip, iname)
+            if netmask != "":
+                obj.set_subnet(netmask, iname)
         self.api.add_system(obj)
         return 0
  
@@ -323,7 +437,7 @@ class CobblerXMLRPCInterface:
         systems.add(obj,save=True,with_triggers=False,with_sync=False,quick_pxe_update=True)
         return True
 
-    def upload_log_data(self, sys_name, file, size, md5sum, offset, data, token=None,**rest):
+    def upload_log_data(self, sys_name, file, size, offset, data, token=None,**rest):
 
         """
         This is a logger function used by the "anamon" logging system to
@@ -347,17 +461,16 @@ class CobblerXMLRPCInterface:
             self._log("upload_log_data - system '%s' not found" % sys_name, token=token, name=sys_name)
             return False
 
-        return self.__upload_file(sys_name, file, size, md5sum, offset, data)
+        return self.__upload_file(sys_name, file, size, offset, data)
 
     def __upload_file(self, sys_name, file, size, offset, data):
         '''
         system: the name of the system
         name: the name of the file
         size: size of contents (bytes)
-        md5: md5sum (hex digest) of contents
         data: base64 encoded file contents
         offset: the offset of the chunk
-         files can be uploaded in chunks, if so the md5 and size describe
+         files can be uploaded in chunks, if so the size describes
          the chunk rather than the whole file. the offset indicates where
          the chunk belongs
          the special offset -1 is used to indicate the final chunk'''
@@ -365,9 +478,7 @@ class CobblerXMLRPCInterface:
         del data
         if offset != -1:
             if size is not None:
-                if size != len(contents): return False
-            if md5sum is not None:
-                if md5sum != md5(contents).hexdigest():
+                if size != len(contents): 
                     return False
 
         #XXX - have an incoming dir and move after upload complete
@@ -448,7 +559,7 @@ class CobblerXMLRPCInterface:
         # time if reinstalling all of a cluster all at once.
         # we can do that at "cobbler check" time.
 
-        utils.run_triggers(None, "/var/lib/cobbler/triggers/install/%s/*" % mode, additional=[objtype,name,ip])
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/install/%s/*" % mode, additional=[objtype,name,ip])
 
 
         return True
@@ -488,7 +599,11 @@ class CobblerXMLRPCInterface:
 
     def find_distro(self,criteria={},expand=False,token=None,**rest):
         self._log("find_distro", token=token)
+        # FIXME DEBUG
+        self._log(criteria)
         data = self.__find(self.api.find_distro,criteria,expand=expand,token=token)
+        # FIXME DEBUG
+        self._log(data)
         return data
 
     def find_profile(self,criteria={},expand=False,token=None,**rest):
@@ -787,8 +902,12 @@ class CobblerXMLRPCInterface:
         elif type(data) == dict:
             data2 = {}
             for key in data.keys():
+               keydata = data[key]
                data2[str(key)] = self.xmlrpc_hacks(data[key])
             return data2
+
+        else:
+            data = '~'
 
         return data
 
@@ -798,50 +917,11 @@ class CobblerXMLRPCInterface:
         """
         return self.api.status()
 
-# *********************************************************************************
-# *********************************************************************************
+   ######
+   # READ WRITE METHODS BELOW REQUIRE A TOKEN, use login()
+   # TO OBTAIN ONE
+   ######
 
-class CobblerXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
-    def __init__(self, args):
-        self.allow_reuse_address = True
-        SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self,args)
-
-# *********************************************************************************
-# *********************************************************************************
-
-
-class ProxiedXMLRPCInterface:
-
-    def __init__(self,api,logger,proxy_class,enable_auth_if_relevant=True):
-        self.logger  = logger
-        self.proxied = proxy_class(api,logger,enable_auth_if_relevant)
-
-    def _dispatch(self, method, params, **rest):
-
-        if not hasattr(self.proxied, method):
-            self.logger.error("remote:unknown method %s" % method)
-            raise CX(_("Unknown remote method"))
-
-        method_handle = getattr(self.proxied, method)
-
-        try:
-            return method_handle(*params)
-        except Exception, e:
-            utils.log_exc(self.logger)
-            raise e
-
-# **********************************************************************
-
-class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
-
-    def __init__(self,api,logger,enable_auth_if_relevant):
-        self.api = api
-        self.auth_enabled = enable_auth_if_relevant
-        self.logger = logger
-        self.token_cache = TOKEN_CACHE
-        self.object_cache = OBJECT_CACHE
-        self.timestamp = self.api.last_modified_time()
-        random.seed(time.time())
 
     def __next_id(self,retry=0):
         """
@@ -850,7 +930,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         """
         if retry > 10:
             # I have no idea why this would happen but I want to be through :)
-            raise CX(_("internal error"))
+            raise CX(_("internal error, retry exceeded"))
         next_id = self.__get_random(25)
         if self.object_cache.has_key(next_id):
             return self.__next_id(retry=retry+1) 
@@ -1056,6 +1136,7 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         do reposync this way.  Would be nice to send output over AJAX/other
         later.
         """
+        # FIXME: performance
         self._log("sync",token=token)
         self.check_access(token,"sync")
         return self.api.sync()
@@ -1285,7 +1366,6 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         object.  
         """
         self._log("rename_distro",object_id=object_id,token=token)
-        self.api.deserialize() # FIXME: make this unneeded
         obj = self.__get_object(object_id)
         return self.api.rename_distro(obj,newname)
 
@@ -1310,7 +1390,6 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
     def rename_image(self,object_id,newname,token=None):
         self._log("rename_image",object_id=object_id,token=token)
         self.check_access(token,"rename_image")
-        self.api.deserialize() # FIXME: make this unneeded
         obj = self.__get_object(object_id)
         return self.api.rename_image(obj,newname)
 
@@ -1484,17 +1563,40 @@ class CobblerReadWriteXMLRPCInterface(CobblerXMLRPCInterface):
         return rc
 
 
-# *********************************************************************
-# *********************************************************************
 
-class CobblerReadWriteXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
-    """
-    This is just a wrapper used for launching the Read/Write XMLRPC Server.
-    """
 
+
+# *********************************************************************************
+# *********************************************************************************
+
+class CobblerXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
     def __init__(self, args):
         self.allow_reuse_address = True
         SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self,args)
+
+# *********************************************************************************
+# *********************************************************************************
+
+
+class ProxiedXMLRPCInterface:
+
+    def __init__(self,api,proxy_class,enable_auth_if_relevant=True):
+        self.proxied = proxy_class(api,enable_auth_if_relevant)
+        self.logger = self.proxied.api.logger
+
+    def _dispatch(self, method, params, **rest):
+
+        if not hasattr(self.proxied, method):
+            self.logger.error("remote:unknown method %s" % method)
+            raise CX(_("Unknown remote method"))
+
+        method_handle = getattr(self.proxied, method)
+
+        try:
+            return method_handle(*params)
+        except Exception, e:
+            utils.log_exc(self.logger)
+            raise e
 
 # *********************************************************************
 # *********************************************************************
@@ -1546,13 +1648,13 @@ def _test_bootstrap_restart():
    assert rc1 == 0
    rc2 = subprocess.call(["/sbin/service","httpd","restart"],shell=False,close_fds=True)
    assert rc2 == 0
-   time.sleep(2)
+   time.sleep(5)
    
    _test_remove_objects()
 
 def _test_remove_objects():
 
-   api = cobbler_api.BootAPI()
+   api = cobbler_api.BootAPI() # local handle
 
    # from ro tests
    d0 = api.find_distro("distro0")
@@ -1597,8 +1699,7 @@ def test_xmlrpc_ro():
    # now populate with something more useful
    # using the non-remote API
 
-   api = cobbler_api.BootAPI()
-   api.deserialize() # FIXME: redundant
+   api = cobbler_api.BootAPI() # local handle
 
    before_distros  = len(api.distros())
    before_profiles = len(api.profiles())
@@ -1833,8 +1934,8 @@ def test_xmlrpc_rw():
    _test_setup_modules(authn="authn_testing",authz="authz_allowall")
    _test_bootstrap_restart()
 
-   server = xmlrpclib.Server("http://127.0.0.1/cobbler_api_rw") # remote 
-   api = cobbler_api.BootAPI() # local
+   server = xmlrpclib.Server("http://127.0.0.1/cobbler_api") # remote 
+   api = cobbler_api.BootAPI() # local instance, /DO/ ping cobblerd
 
    # note if authn_testing is not engaged this will not work
    # test getting token, will raise remote exception on fail 
@@ -1855,6 +1956,7 @@ def test_xmlrpc_rw():
    server.modify_distro(did, "template-files", "/tmp/cobbler.fake=/tmp/a /etc/fstab=/tmp/b",token) # hash or string
    server.modify_distro(did, "comment", "...", token)
    server.modify_distro(did, "redhat_management_key", "ALPHA", token)
+   server.modify_distro(did, "redhat_management_server", "rhn.example.com", token)
    server.save_distro(did, token)
 
    # use the non-XMLRPC API to check that it's added seeing we tested XMLRPC RW APIs above
@@ -1880,7 +1982,9 @@ def test_xmlrpc_rw():
    server.modify_profile(pid, "mgmt-classes", "one two three", token)
    server.modify_profile(pid, "comment", "...", token)
    server.modify_profile(pid, "name_servers", ["one","two"], token)
+   server.modify_profile(pid, "name_servers_search", ["one","two"], token)
    server.modify_profile(pid, "redhat_management_key", "BETA", token)
+   server.modify_distro(did, "redhat_management_server", "sat.example.com", token)
    server.save_profile(pid, token)
 
    api.deserialize() 
@@ -1898,6 +2002,7 @@ def test_xmlrpc_rw():
    server.modify_system(sid, 'virt-path', "/opt/images", token)
    server.modify_system(sid, 'virt-type', 'qemu', token)
    server.modify_system(sid, 'name_servers', 'one two three four', token)
+   server.modify_system(sid, 'name_servers_search', 'one two three four', token)
    server.modify_system(sid, 'modify-interface', { 
        "macaddress-eth0"   : "AA:BB:CC:EE:EE:EE",
        "ipaddress-eth0"    : "192.168.10.50",
@@ -1921,6 +2026,7 @@ def test_xmlrpc_rw():
    server.modify_system(sid, "power_pass", "magic", token)
    server.modify_system(sid, "power_id", "7", token)
    server.modify_system(sid, "redhat_management_key", "GAMMA", token)
+   server.modify_distro(did, "redhat_management_server", "spacewalk.example.com", token)
 
    server.save_system(sid,token)
    

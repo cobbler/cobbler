@@ -22,7 +22,7 @@ require 'rake/testtask'
 require 'rake/gempackagetask'
 
 PKG_NAME='rubygem-cobbler'
-PKG_VERSION='0.1.3'
+PKG_VERSION='0.1.9'
 PKG_FILES=FileList[
   'Rakefile', 'README', 'ChangeLog', 'COPYING', 'NEWS', 'TODO',
   'lib/**/*.rb',

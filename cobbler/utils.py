@@ -38,6 +38,7 @@ import signal
 from cexceptions import *
 import codes
 import time
+import netaddr
 import shlex
 
 try:
@@ -75,12 +76,12 @@ def _(foo):
 
 MODULE_CACHE = {}
 
-# import api # factor out
-
 _re_kernel = re.compile(r'vmlinuz(.*)')
 _re_initrd = re.compile(r'initrd(.*).img')
 
-def setup_logger(name, log_level=logging.INFO, log_file="/var/log/cobbler/cobbler.log"):
+def setup_logger(name, is_cobblerd=False, log_level=logging.INFO, log_file="/var/log/cobbler/cobbler.log"):
+    if is_cobblerd:
+        log_file = "/var/log/cobbler/cobblerd.log"
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
     try:
@@ -102,18 +103,6 @@ def log_exc(logger):
    logger.info("Exception value: %s" % v)
    logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
    
-
-def print_exc(exc,full=False):
-   (t, v, tb) = sys.exc_info()
-   try:
-      getattr(exc, "from_cobbler")
-      print >> sys.stderr, str(exc)[1:-1]
-   except:
-      print >> sys.stderr, t
-      print >> sys.stderr, v
-      if full:
-          print >> sys.stderr, string.join(traceback.format_list(traceback.extract_tb(tb)))
-   return 1
 
 def get_exc(exc,full=True):
    (t, v, tb) = sys.exc_info()
@@ -146,39 +135,33 @@ def trace_me():
    bar = string.join(traceback.format_list(x))
    return bar
 
+def pretty_hex(ip, length=8):
+    """
+    Pads an IP object with leading zeroes so that the result is
+    _length_ hex digits.  Also do an upper().
+    """
+    hexval = "%x" % ip.value
+    if len(hexval) < length:
+        hexval = '0' * (length - len(hexval)) + hexval
+    return hexval.upper()
 
 def get_host_ip(ip, shorten=True):
     """
     Return the IP encoding needed for the TFTP boot tree.
     """
+    ip = netaddr.IP(ip)
+    cidr = ip.cidr()
 
-    slash = None
-    if ip.find("/") != -1:
-       # CIDR notation
-       (ip, slash) = ip.split("/")
-
-    handle = sub_process.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=sub_process.PIPE, close_fds=True)
-    out = handle.stdout
-    results = out.read()
-    converted = results.split(" ")[-1][0:8]
-
-    if slash is None:
-        return converted
+    if len(cidr) == 1: # Just an IP, e.g. a /32
+        return pretty_hex(ip)
     else:
-        slash = int(slash)
-        num = int(converted, 16)
-        delta = 32 - slash
-        mask = (0xFFFFFFFF << delta)
-        num = num & mask
-        num = "%0x" % num
-        if len(num) != 8:
-            num = '0' * (8 - len(num)) + num
-        num = num.upper()
-        if shorten:
-            nibbles = delta / 4
-            for x in range(0,nibbles):
-                num = num[0:-1]
-        return num
+        pretty = pretty_hex(cidr[0])
+        if not shorten or len(cidr) <= 8:
+            # not enough to make the last nibble insignificant
+            return pretty
+        else:
+            cutoff = (32 - cidr.prefixlen) / 4
+            return pretty[0:-cutoff]
 
 def get_config_filename(sys,interface):
     """
@@ -474,12 +457,13 @@ def blender(api_handle,remove_hashes, root_obj):
     for node in tree:
         __consolidate(node,results)
 
-    # add in syslog to results (magic)    
-    if settings.syslog_port != 0:
-        if not results.has_key("kernel_options"):
-            results["kernel_options"] = {}
-        syslog = "%s:%s" % (results["server"], settings.syslog_port)
-        results["kernel_options"]["syslog"] = syslog
+    # hack -- s390 nodes get additional default kernel options
+    arch = results.get("arch","?")
+    if arch.startswith("s390"):
+        keyz = settings.kernel_options_s390x.keys()
+        for k in keyz:
+           if not results.has_key(k):
+               results["kernel_options"][k] = settings.kernel_options_s390x[k]
 
     # determine if we have room to add kssendmac to the kernel options line
     kernel_txt = hash_to_string(results["kernel_options"])
@@ -679,14 +663,32 @@ def hash_to_string(hash):
           buffer = buffer + str(key) + "=" + str(value) + " "
     return buffer
 
-def run_triggers(ref,globber,additional=[]):
+def run_triggers(api,ref,globber,additional=[]):
     """
     Runs all the trigger scripts in a given directory.
     ref can be a cobbler object, if not None, the name will be passed
     to the script.  If ref is None, the script will be called with
     no argumenets.  Globber is a wildcard expression indicating which
     triggers to run.  Example:  "/var/lib/cobbler/triggers/blah/*"
+
+    As of Cobbler 1.5.X, this also runs cobbler modules that match the globbing paths.
     """
+
+    # Python triggers first, before shell
+
+    modules = api.get_modules_in_category(globber)
+    for m in modules:
+       arglist = []
+       if ref:
+           arglist.append(ref.name)
+       for x in additional:
+           arglist.append(x)
+       rc = m.run(api, arglist)
+       if rc != 0:
+           raise CX("cobbler trigger failed: %s" % m.__name__)
+
+    # now do the old shell triggers, which are usually going to be slower, but are easier to write  
+    # and support any language
 
     triggers = glob.glob(globber)
     triggers.sort()
@@ -919,6 +921,50 @@ def copyfile(src,dst,api=None,verbose=False):
             # traceback.print_exc()
             # raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
+def cabextract(src,dst,api=None):
+    """
+    Extract a cab file, used for importing off of Windows based cds
+    """
+    try:
+        if not os.path.isdir(dst):
+            raise CX(_("Error in cabextract: the destination (%s) must be a directory") % dst)
+        cmd = [ "/usr/bin/cabextract", "-d", dst, src ]
+        rc = sub_process.call(cmd, shell=False, close_fds=True)
+        return rc
+    except:
+        if not os.access(src,os.R_OK):
+            raise CX(_("Cannot read: %s") % src)
+        if not os.path.samefile(src,dst):
+            # accomodate for the possibility that we already copied
+            # the file as a symlink/hardlink
+            raise
+            # traceback.print_exc()
+            # raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+
+def bindmount(src,dst):
+    """
+    Use mount --bind as an alternative to linking.  This is required
+    for things in the tftp root since in.tftpd will not follow symlinks
+    and you cannot hard link directories (or across partitions).
+    """
+    try:
+        if not os.path.isdir(src):
+            raise CX(_("Error in bindmount: the source (%s) must be a directory") % src)
+        if not os.path.isdir(dst):
+            raise CX(_("Error in bindmount: the destination (%s) must be a directory") % dst)
+        cmd = [ "/bin/mount", "--bind", dst, src ]
+        rc = sub_process.call(cmd, shell=False, close_fds=True)
+        return rc
+    except:
+        if not os.access(src,os.R_OK):
+            raise CX(_("Cannot read: %s") % src)
+        if not os.path.samefile(src,dst):
+            # accomodate for the possibility that we already copied
+            # the file as a symlink/hardlink
+            raise
+            # traceback.print_exc()
+            # raise CX(_("Error bind-mounting %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+
 def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None, verbose=False):
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
@@ -999,14 +1045,18 @@ def set_redhat_management_key(self,key):
    self.redhat_management_key = key
    return True
 
+def set_redhat_management_server(self,server):
+   self.redhat_management_server = server
+   return True
+
 def set_arch(self,arch,repo=False):
    if arch is None or arch == "" or arch == "standard" or arch == "x86":
        arch = "i386"
 
    if repo:
-       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390x", "noarch", "src" ]
+       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x", "noarch", "src" ]
    else:
-       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390x" ]
+       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x" ]
 
    if arch in valids:
        self.arch = arch
