@@ -162,8 +162,13 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cobbler/links
 %defattr(755,apache,apache)
 %dir /var/www/cobbler/webui
+%dir /var/www/cobbler/aux
 %defattr(444,apache,apache)
 /var/www/cobbler/webui/*
+%ghost /var/www/cobbler/aux/anamon.pyc
+%ghost /var/www/cobbler/aux/anamon.pyo
+/var/www/cobbler/aux/*.py
+/var/www/cobbler/aux/*.init
 
 %defattr(755,root,root)
 %{_bindir}/cobbler
