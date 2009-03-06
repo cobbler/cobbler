@@ -50,18 +50,6 @@ import item_image
 from utils import *
 from utils import _
 
-#    Replace the dumps() function in xmlrpclib with one that by default
-#    handles None, so SimpleXMLRPCServer can return None.
-#    in a way that's compatible with ancient Pythons that can't
-#    simply do allow_none=True
-class _xmldumps(object):
-    def  __init__(self, dumps):
-        self.__dumps = (dumps,)
-    def __call__(self, *args, **kwargs):
-        kwargs.setdefault('allow_none', 1)
-        return self.__dumps[0](*args, **kwargs)
-xmlrpclib.dumps = _xmldumps(xmlrpclib.dumps)
-
 # FIXME: make configurable?
 TOKEN_TIMEOUT = 60*60 # 60 minutes
 OBJECT_TIMEOUT = 60*60 # 60 minutes
@@ -916,8 +904,12 @@ class CobblerXMLRPCInterface:
         elif type(data) == dict:
             data2 = {}
             for key in data.keys():
+               keydata = data[key]
                data2[str(key)] = self.xmlrpc_hacks(data[key])
             return data2
+
+        else:
+            data = '~'
 
         return data
 
