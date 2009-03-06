@@ -50,6 +50,18 @@ import item_image
 from utils import *
 from utils import _
 
+#    Replace the dumps() function in xmlrpclib with one that by default
+#    handles None, so SimpleXMLRPCServer can return None.
+#    in a way that's compatible with ancient Pythons that can't
+#    simply do allow_none=True
+class _xmldumps(object):
+    def  __init__(self, dumps):
+        self.__dumps = (dumps,)
+    def __call__(self, *args, **kwargs):
+        kwargs.setdefault('allow_none', 1)
+        return self.__dumps[0](*args, **kwargs)
+xmlrpclib.dumps = _xmldumps(xmlrpclib.dumps)
+
 # FIXME: make configurable?
 TOKEN_TIMEOUT = 60*60 # 60 minutes
 OBJECT_TIMEOUT = 60*60 # 60 minutes
@@ -1570,7 +1582,7 @@ class CobblerXMLRPCInterface:
 class CobblerXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
     def __init__(self, args):
         self.allow_reuse_address = True
-        SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self,args,allow_none=True)
+        SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self,args)
 
 # *********************************************************************************
 # *********************************************************************************
