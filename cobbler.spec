@@ -24,6 +24,7 @@ Requires: python-cheetah
 Requires: rsync
 Requires: python-netaddr
 Requires: PyYAML
+BuildRequires: PyYAML
 Requires: libyaml
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 Requires: genisoimage
