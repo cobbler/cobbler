@@ -337,6 +337,7 @@ class CobblerWeb(object):
             self.remote.modify_distro(distro, 'os-version', osversion, self.token)
             self.remote.modify_distro(distro, 'comment', comment, self.token)
             self.remote.modify_distro(distro, 'redhat_management_key', redhatmanagementkey, self.token)
+            self.remote.modify_distro(distro, 'redhat_management_server', redhatmanagementserver, self.token)
             self.remote.modify_distro(distro, 'mgmt_classes', mgmt_classes, self.token)
 
             # now time to save, do we want to run duplication checks?
@@ -652,6 +653,7 @@ class CobblerWeb(object):
             self.remote.modify_system(system, 'gateway', gateway, self.token)
             self.remote.modify_system(system, 'hostname', hostname, self.token)
             self.remote.modify_system(system, 'redhat_management_key', redhatmanagementkey, self.token)
+            self.remote.modify_system(system, 'redhat_management_server', redhatmanagementserver, self.token)
             self.remote.modify_system(system, 'mgmt_classes', mgmt_classes, self.token)
 
             interfaces = args.get("interface_list","")
@@ -841,6 +843,7 @@ class CobblerWeb(object):
             self.remote.modify_profile(profile, 'name_servers', name_servers, self.token)
             self.remote.modify_profile(profile, 'name_servers_search', name_servers_search, self.token)
             self.remote.modify_profile(profile, 'redhat_management_key', redhatmanagementkey, self.token)
+            self.remote.modify_profile(profile, 'redhat_management_server', redhatmanagementserver, self.token)
             self.remote.modify_profile(profile, 'mgmt_classes', mgmt_classes, self.token)
 
             if repos is None:

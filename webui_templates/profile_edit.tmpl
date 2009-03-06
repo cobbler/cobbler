@@ -447,6 +447,21 @@ redhatmanagementkey"
 
     <tr>
     <td>
+    <label for="redhatmanagementserver">Management Server</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="redhatmanagementserver" id="
+redhatmanagementserver"
+        #if $profile
+            value="$profile.redhat_management_server"
+        #end if
+    />
+    <p class="context-tip">RHN, Satellite, or Spacewalk server</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
     <label for="mgmt_classes">Management Classes</label>
     </td>
     <td>
