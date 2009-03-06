@@ -3,8 +3,8 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 1.5.0
-Release: 2%{?dist}
+Version: 1.7.0
+Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
@@ -294,39 +294,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Fri Feb 6 2009 Jeff Schroeder <jeffschroeder@computer.org> - 1.5.0-2
-- Adding build_report.trigger
+* Fri Mar 06 2009 Michael DeHaan <mdehaan@redhat.com> - 1.7.0-1
+- Development release 1.7 start
 
-* Mon Dec 22 2008 Michael DeHaan <mdehaan@redhat.com> - 1.5.0-1
-- Development release start.
-
-* Mon Dec 22 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.1-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Dec 19 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.0-4
-- Fix for rawhide python requirement.
-
-* Fri Dec 19 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.0-2
-- Upstream changes (see CHANGELOG)
-
-* Wed Dec 10 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.4-1
-- Updated test release (see CHANGELOG)
-
-- Upstream changes (see CHANGELOG)
-- Added specfile changes for python 2.6
-* Mon Dec 08 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.3-1
-- Upstream changes (see CHANGELOG)
-- Added specfile changes for python 2.6
-
-* Tue Nov 18 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.2-1
-- Upstream changes (see CHANGELOG)
-- placeholder for future test release
-- packaged /var/lib/cobbler/version
-
-* Fri Nov 14 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.1-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Sep 26 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.0-1
-- Upstream changes (see CHANGELOG)
-- added sample.seed file
-- added /usr/bin/cobbler-ext-nodes
