@@ -84,6 +84,13 @@ class BootCheck:
 
        self.check_for_cman(status)
 
+       if self.check_for_rislinux(status):
+           self.check_for_cabextract(status)
+           self.check_service(status,"smb")
+           self.check_smb_shares(status)
+           self.check_service(status,"ris-linuxd")
+           self.check_tftpd_rules(status)
+
        return status
 
    def check_for_cman(self, status):
@@ -305,11 +312,17 @@ class BootCheck:
        Check that tftpd is enabled to autostart
        """
        if os.path.exists(self.settings.tftpd_conf):
+          using_rules = False
           f = open(self.settings.tftpd_conf)
           re_disable = re.compile(r'disable.*=.*yes')
+          re_rules = re.compile(r'.*-m /etc/tftpd.rules.*')
           for line in f.readlines():
              if re_disable.search(line) and not line.strip().startswith("#"):
                  status.append(_("change 'disable' to 'no' in %(file)s") % { "file" : self.settings.tftpd_conf })
+             if re_rules.search(line):
+                 using_rules = True
+          if not using_rules:
+             status.append(_("tftpd not configured to use rules. Add '-m /etc/tftpd.rules' to the server_args line"))
        else:
           status.append(_("file %(file)s does not exist") % { "file" : self.settings.tftpd_conf })
        
@@ -317,6 +330,10 @@ class BootCheck:
        if not os.path.exists(bootloc):
           status.append(_("directory needs to be created: %s" % bootloc))
 
+
+   def check_tftpd_rules(self,status):
+       if not os.path.exists("/etc/tftpd.rules"):
+          status.append(_("tftpd rules are missing.  Microsoft Windows remote installations will not work correctly"))
 
    def check_dhcpd_conf(self,status):
        """
@@ -347,3 +364,27 @@ class BootCheck:
        else:
            status.append(_("missing file: %(file)s") % { "file" : self.settings.dhcpd_conf })
 
+
+   def check_for_rislinux(self,status):
+       if os.path.exists("/etc/init.d/ris-linuxd"):
+           return True
+       else:
+           status.append(_("ris-linux is not installed, Microsoft Windows remote installations will not function correctly"))
+           return False
+
+
+   def check_for_cabextract(self,status):
+       if not os.path.exists("/usr/bin/cabextract"):
+           status.append(_("cabextract was not found, Microsoft Windows imports will not work correctly"))
+
+
+   def check_smb_shares(self,status):
+       share_found = False
+       f = open("/etc/samba/smb.conf", "rt")
+       for line in f.readlines():
+           if line.find("[REMINST]") != -1 and not line.strip().startswith("#"):
+               share_found = True
+               break
+
+       if not share_found:
+           status.append(_("no REMINST share found in the Samba configuration.  Microsoft Windows remote installations will not function correctly"))
