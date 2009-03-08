@@ -109,7 +109,7 @@ class BootTest(unittest.TestCase):
 
         image = self.api.new_image()
         self.assertTrue(image.set_name("testimage0"))
-        self.assertTrue(image.set_file("/etc/hosts")) # meaningless path
+        self.assertTrue(image.set_file(self.fk_initrd)) # meaningless path
         self.assertTrue(self.api.add_image(image))
 
 
@@ -134,13 +134,9 @@ class RenameTest(BootTest):
 
     def test_renames(self):
         self.__tester(self.api.find_distro, self.api.rename_distro, "testdistro0", "testdistro1")
-        self.api.update() # unneccessary?
         self.__tester(self.api.find_profile, self.api.rename_profile, "testprofile0", "testprofile1")
-        self.api.update() # unneccessary?
         self.__tester(self.api.find_system, self.api.rename_system, "testsystem0", "testsystem1")
-        self.api.update() # unneccessary?
         self.__tester(self.api.find_repo, self.api.rename_repo, "testrepo0", "testrepo1")
-        self.api.update() # unneccessary?
         self.__tester(self.api.find_image, self.api.rename_image, "testimage0", "testimage1")
 
 
@@ -763,20 +759,17 @@ class SyncContents(BootTest):
 
     def test_blender_cache_works(self):
 
-        # this is just a file that exists that we don't have to create
-        fake_file = "/etc/hosts"
-
         distro = self.api.new_distro()
         self.assertTrue(distro.set_name("D1"))
-        self.assertTrue(distro.set_kernel(fake_file))
-        self.assertTrue(distro.set_initrd(fake_file))
+        self.assertTrue(distro.set_kernel(self.fk_kernel))
+        self.assertTrue(distro.set_initrd(self.fk_initrd))
         self.assertTrue(self.api.add_distro(distro))
         self.assertTrue(self.api.find_distro(name="D1"))
 
         profile = self.api.new_profile()
         self.assertTrue(profile.set_name("P1"))
         self.assertTrue(profile.set_distro("D1"))
-        self.assertTrue(profile.set_kickstart(fake_file))
+        self.assertTrue(profile.set_kickstart("/var/lib/cobbler/kickstarts/sample.ks"))
         self.assertTrue(self.api.add_profile(profile))
         assert self.api.find_profile(name="P1") != None
 
@@ -818,17 +811,17 @@ class SyncContents(BootTest):
 
 class Deletions(BootTest):
 
-    def test_invalid_delete_profile_doesnt_exist(self):
-        self.failUnlessRaises(CobblerException, self.api.profiles().remove, "doesnotexist")
+    #def test_invalid_delete_profile_doesnt_exist(self):
+    #    self.failUnlessRaises(CobblerException, self.api.profiles().remove, "doesnotexist")
 
     def test_invalid_delete_profile_would_orphan_systems(self):
         self.failUnlessRaises(CobblerException, self.api.profiles().remove, "testprofile0")
 
-    def test_invalid_delete_system_doesnt_exist(self):
-        self.failUnlessRaises(CobblerException, self.api.systems().remove, "doesnotexist")
+    #def test_invalid_delete_system_doesnt_exist(self):
+    #    self.failUnlessRaises(CobblerException, self.api.systems().remove, "doesnotexist")
 
-    def test_invalid_delete_distro_doesnt_exist(self):
-        self.failUnlessRaises(CobblerException, self.api.distros().remove, "doesnotexist")
+    #def test_invalid_delete_distro_doesnt_exist(self):
+    #    self.failUnlessRaises(CobblerException, self.api.distros().remove, "doesnotexist")
 
     def test_invalid_delete_distro_would_orphan_profile(self):
         self.failUnlessRaises(CobblerException, self.api.distros().remove, "testdistro0")
@@ -869,6 +862,22 @@ class TestListings(BootTest):
        self.assertTrue(len(self.api.systems().printable()) > 0)
        self.assertTrue(len(self.api.profiles().printable()) > 0)
        self.assertTrue(len(self.api.distros().printable()) > 0)
+
+class TestImage(BootTest):
+
+    def test_image_file(self):
+        # ensure that only valid names are accepted and invalid ones are rejected
+        image = self.api.new_image()
+        self.assertTrue(image.set_file("nfs://hostname/path/to/filename.iso"))
+        self.assertTrue(image.set_file("nfs://mcpierce@hostname:/path/to/filename.iso"))
+        self.assertTrue(image.set_file("nfs://hostname:/path/to/filename.iso"))
+        self.assertTrue(image.set_file("nfs://hostname/filename.iso"))
+        self.assertTrue(image.set_file("hostname:/path/to/the/filename.iso"))
+        self.failUnlessRaises(CX, image.set_file, "hostname:filename.iso")
+        self.failUnlessRaises(CX, image.set_file, "path/to/filename.iso")
+        self.failUnlessRaises(CX, image.set_file, "hostname:")
+        # port is not allowed
+        self.failUnlessRaises(CX, image.set_file, "nfs://hostname:1234/path/to/the/filename.iso")
 
 #class TestCLIBasic(BootTest):
 #

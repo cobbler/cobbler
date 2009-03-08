@@ -29,7 +29,7 @@ import string
 import sys
 import time
 import urlgrabber
-import yaml # cobbler packaged version
+import yaml # PyYAML
 
 # the following imports are largely for the test code
 import urlgrabber
@@ -68,7 +68,6 @@ class CobblerSvc(object):
         """
         if self.remote is None:
             self.remote = xmlrpclib.Server(self.server, allow_none=True)
-        self.remote.update()
 
     def index(self,**args):
         return "no mode specified"
@@ -241,12 +240,15 @@ def __test_setup():
     # module later.
 
     api = cobbler_api.BootAPI()
-    api.deserialize() # FIXME: redundant
+
+    fake = open("/tmp/cobbler.fake","w+")
+    fake.write("")
+    fake.close()
 
     distro = api.new_distro()
     distro.set_name("distro0")
-    distro.set_kernel("/etc/hosts")
-    distro.set_initrd("/etc/hosts")
+    distro.set_kernel("/tmp/cobbler.fake")
+    distro.set_initrd("/tmp/cobbler.fake")
     api.add_distro(distro)
 
     repo = api.new_repo()
@@ -291,7 +293,7 @@ def __test_setup():
 
     image = api.new_image()
     image.set_name("image0")
-    image.set_file("/etc/hosts")
+    image.set_file("/tmp/cobbler.fake")
     api.add_image(image)
 
     # perhaps an artifact of the test process?
@@ -374,12 +376,9 @@ def test_services_access():
 
     url = "http://127.0.0.1/cblr/svc/op/nopxe/system/system0"
     data = urlgrabber.urlread(url)
-    print "NOPXE DATA: %s" % data
-    time.sleep(10)
+    time.sleep(2)
 
-    api.deserialize() # ensure we have the latest data in the API handle
     sys = api.find_system("system0")
-    print "NE STATUS: %s" % sys.netboot_enabled
     assert str(sys.netboot_enabled).lower() not in [ "1", "true", "yes" ]
     
     # now let's test the listing URLs since we document
@@ -415,13 +414,12 @@ def test_services_access():
 
     url = "http://127.0.0.1/cblr/svc/op/puppet/hostname/hostname0"
     data = urlgrabber.urlread(url)
-    print "puppet DATA: %s" % data
     assert data.find("alpha") != -1
     assert data.find("beta") != -1
     assert data.find("gamma") != -1
     assert data.find("3") != -1
     
-    data = yaml.load(data).next()
+    data = yaml.load(data)
     assert data.has_key("classes")
     assert data.has_key("parameters")
     
@@ -431,13 +429,11 @@ def test_services_access():
 
     url = "http://127.0.0.1/cblr/svc/op/template/profile/profile0/path/_tmp_t1-rendered"
     data = urlgrabber.urlread(url)
-    print "T1: %s" % data
     assert data.find("profile0") != -1
     assert data.find("$profile_name") == -1    
 
     url = "http://127.0.0.1/cblr/svc/op/template/system/system0/path/_tmp_t2-rendered"
     data = urlgrabber.urlread(url)
-    print "T2: %s" % data
     assert data.find("system0") != -1
     assert data.find("$system_name") == -1
 

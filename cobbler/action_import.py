@@ -88,8 +88,8 @@ class Importer:
            if self.arch == "x86":
                # be consistent
                self.arch = "i386"
-           if self.arch not in [ "i386", "ia64", "ppc", "ppc64", "s390x", "x86_64", ]:
-               raise CX(_("arch must be i386, ia64, ppc, ppc64, s390x or x86_64"))
+           if self.arch not in [ "i386", "ia64", "ppc", "ppc64", "s390", "s390x", "x86_64", ]:
+               raise CX(_("arch must be i386, ia64, ppc, ppc64, s390, s390x or x86_64"))
 
        # if we're going to do any copying, set where to put things
        # and then make sure nothing is already there.
@@ -113,7 +113,7 @@ class Importer:
        if self.arch:
            # append the arch path to the name if the arch is not already
            # found in the name.
-           for x in [ "i386", "ia64", "ppc", "ppc64", "s390x", "x86_64", "x86", ]:
+           for x in [ "i386", "ia64", "ppc", "ppc64", "s390", "s390x", "x86_64", "x86", ]:
                if self.mirror_name.lower().find(x) != -1:
                    if self.arch != x :
                        raise CX(_("Architecture found on pathname (%s) does not fit the one given in command line (%s)")%(x,self.arch))
@@ -209,11 +209,8 @@ class Importer:
        print _("---------------- (associating kickstarts)")
        self.kickstart_finder(distros_added) 
 
-       # ensure everything is nicely written out to the filesystem
-       # (which is not so neccessary in newer Cobbler but we're paranoid)
-
-       print _("---------------- (syncing)")
-       self.api.sync()
+       # ensure bootloaders are present
+       self.api.pxegen.copy_bootloaders()
 
        return True
 
@@ -265,9 +262,9 @@ class Importer:
                # print _("- skipping distro %s since it wasn't imported this time") % profile.distro
                continue
 
+           kdir = os.path.dirname(distro.kernel)   
+           importer = import_factory(kdir,self.path)
            if self.kickstart_file == None:
-               kdir = os.path.dirname(distro.kernel)   
-               importer = import_factory(kdir,self.path)
                for rpm in importer.get_release_files():
                      # FIXME : This redhat specific check should go into the importer.find_release_files method
                      if rpm.find("notes") != -1:
@@ -519,9 +516,9 @@ class Importer:
               print "- following symlink: %s" % fullname
               os.path.walk(fullname, self.distro_adder, foo)
 
-           if x.startswith("initrd") or x.startswith("ramdisk.image.gz"):
+           if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") ) and x != "initrd.size":
                initrd = os.path.join(dirname,x)
-           if ( x.startswith("vmlinuz") or x.startswith("kernel.img") ) and x.find("initrd") == -1:
+           if ( x.startswith("vmlinu") or x.startswith("kernel.img") ) and x.find("initrd") == -1:
                kernel = os.path.join(dirname,x)
            if x.lower().startswith("startrom.n1_"):
                startrom = os.path.join(dirname,x)
@@ -774,7 +771,7 @@ class Importer:
        name = name.replace("chrp","ppc64")
 
        for separator in [ '-' , '_'  , '.' ] :
-         for arch in [ "i386" , "x86_64" , "ia64" , "ppc64", "ppc32", "ppc", "x86" , "s390x" , "386" , "amd" ]:
+         for arch in [ "i386" , "x86_64" , "ia64" , "ppc64", "ppc32", "ppc", "x86" , "s390x", "s390" , "386" , "amd" ]:
            name = name.replace("%s%s" % ( separator , arch ),"")
 
        return name
@@ -792,8 +789,10 @@ class Importer:
           return "ia64"
        if dirname.find("i386") != -1 or dirname.find("386") != -1 or dirname.find("x86") != -1:
           return "i386"
-       if dirname.find("s390") != -1:
+       if dirname.find("s390x") != -1:
           return "s390x"
+       if dirname.find("s390") != -1:
+          return "s390"
        if dirname.find("ppc64") != -1 or dirname.find("chrp") != -1:
           return "ppc64"
        if dirname.find("ppc32") != -1:
@@ -828,6 +827,7 @@ def guess_breed(kerneldir,path):
        [ 'Packages'    , "redhat" ],
        [ 'Fedora'      , "redhat" ],
        [ 'Server'      , "redhat" ],
+       [ 'Client'      , "redhat" ],
        [ 'setup.exe'   , "windows" ],
     ]
     guess = None
@@ -914,7 +914,7 @@ class BaseImporter:
        for x in fnames:
            if self.match_kernelarch_file(x):
                # print _("- kernel header found: %s") % x
-               for arch in [ "i386" , "x86_64" , "ia64" , "ppc64", "ppc", "s390x" ]:
+               for arch in [ "i386" , "x86_64" , "ia64" , "ppc64", "ppc", "s390", "s390x" ]:
                    if x.find(arch) != -1:
                        foo[arch] = 1
                for arch in [ "i686" , "amd64" ]:
@@ -986,8 +986,11 @@ class RedHatImporter ( BaseImporter ) :
        data = glob.glob(os.path.join(self.get_pkgdir(), "*release-*"))
        data2 = []
        for x in data:
-          if x.find("generic") == -1:
-             data2.append(x)
+          b = os.path.basename(x)
+          if b.find("fedora") != -1 or \
+             b.find("redhat") != -1 or \
+             b.find("centos") != -1:
+                 data2.append(x)
        return data2
 
    # ================================================================
@@ -1099,13 +1102,14 @@ class RedHatImporter ( BaseImporter ) :
        #          OS_VERSION next
        #          OS_VERSION.MINOR next
        #          ARCH/default.ks next
-       #          default.ks finally.
+       #          FLAVOR.ks next
        kickstarts = [
            "%s/%s/%s.%i.ks" % (kickbase,arch,os_version,int(minor)), 
            "%s/%s/%s.ks" % (kickbase,arch,os_version), 
            "%s/%s.%i.ks" % (kickbase,os_version,int(minor)),
            "%s/%s.ks" % (kickbase,os_version),
            "%s/%s/default.ks" % (kickbase,arch),
+           "%s/%s.ks" % (kickbase,flavor),
        ]
        for kickstart in kickstarts:
            if os.path.exists(kickstart):

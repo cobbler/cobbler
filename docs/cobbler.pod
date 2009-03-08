@@ -127,7 +127,7 @@ provisioning guests with koan.  The valid options for --os-version vary dependin
 
 =item owners
 
-Users with small sites and a limited number of admins can probably ignore this option.  All cobbler objects (distros, profiles, systems, and repos) can take a --owners parameter to specify what cobbler users can edit particular objects.  This only applies to the Cobbler WebUI and XMLRPC interface, not the "cobbler" command line tool run from the shell.  Furthermore, this is only respected by the "authz_ownership" module which must be enabled in /etc/cobbler/modules.conf.  The value for --owners is a comma seperated list of users and groups as specified in /etc/cobbler/users.conf.  For more information see the users.conf file as well as the Cobbler Wiki.  In the default Cobbler configuration, this value is completely ignored, as is users.conf. 
+Users with small sites and a limited number of admins can probably ignore this option.  All cobbler objects (distros, profiles, systems, and repos) can take a --owners parameter to specify what cobbler users can edit particular objects.  This only applies to the Cobbler WebUI and XMLRPC interface, not the "cobbler" command line tool run from the shell.  Furthermore, this is only respected by the "authz_ownership" module which must be enabled in /etc/cobbler/modules.conf.  The value for --owners is a space seperated list of users and groups as specified in /etc/cobbler/users.conf.  For more information see the users.conf file as well as the Cobbler Wiki.  In the default Cobbler configuration, this value is completely ignored, as is users.conf. 
 
 =item template-files
 
@@ -167,12 +167,12 @@ When using kickstart files, they can be placed anywhere on the filesystem, but t
 
 =item nameservers
 
-If your nameservers are not provided by DHCP, you can specify a comma-seperated list of addresses here to configure each of the installed nodes to use them (provided the kickstarts used are installed on a per-system basis).   Users with DHCP setups should not need to use this option.  This is available to set in profiles to avoid having to set it repeatedly for each system record.
+If your nameservers are not provided by DHCP, you can specify a space seperated list of addresses here to configure each of the installed nodes to use them (provided the kickstarts used are installed on a per-system basis).   Users with DHCP setups should not need to use this option.  This is available to set in profiles to avoid having to set it repeatedly for each system record.
 
 =item virt-file-size
 
 (Virt-only) How large the disk image should be in Gigabytes.  The default is "5".
-This can be a comma seperated list (ex: "5,6,7") to allow for multiple disks of different sizes
+This can be a space seperated list (ex: "5,6,7") to allow for multiple disks of different sizes
 depending on what is given to --virt-path.  This should be input as a integer or decimal value without units.
 
 =item virt-ram
@@ -368,7 +368,7 @@ Example:
 
 cobbler system report --name=foo
 
-=end
+=back
 
 =head2 REPOSITORIES
 
@@ -708,7 +708,7 @@ If the avahi-tools package is installed, cobblerd will broadcast it's presence o
 =head2 IMPORTING TREES
 
 Cobbler can auto-add distributions and profiles from remote sources, whether this is a filesystem path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.  Import is a feature that many users will want to take advantage of, and is very simple to use.
-  
+
 After an import is run, cobbler will try to detect the distribution type and automatically assign kickstarts.  By default, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default password of "cobbler".  If this is undesirable, edit the kickstart files in /etc/cobbler to do something else or change the kickstart setting after cobbler creates the profile.
 
 Mirrored content is saved automatically in /var/www/cobbler/ks_mirror.

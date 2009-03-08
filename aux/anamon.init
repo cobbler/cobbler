@@ -1,0 +1,101 @@
+#!/bin/bash
+## BEGIN INIT INFO
+# Provides: anamon
+# Default-Start: 3 5
+# Default-Stop: 0 1 2 4 6
+# Required-Start:
+# Should-Start: $network
+# Short-Description: Starts the cobbler anamon boot notification program
+# Description: anamon runs the first time a machine is booted after
+#              installation.
+## END INIT INFO
+
+#
+# anamon: Starts the cobbler post-install boot notification program
+#
+# chkconfig: 35 99 95
+#
+# description: anamon runs the first time a machine is booted after
+#              installation.
+#
+
+LOCKFILE="/var/lock/subsys/anamon"
+CFGFILE="/etc/sysconfig/anamon"
+
+# Source function library.
+. /etc/init.d/functions
+
+# Source anamon config
+. $CFGFILE
+
+LOGFILES=${LOGFILES:-/var/log/boot.log}
+
+# FIXME - can we rely on the koan snippet to update /etc/profile.d/cobbler.sh?
+if [ -z "$COBBLER_SERVER" ]; then
+    echo "No COBBLER_SERVER defined in $CFGFILE"
+    exit 1
+fi
+
+if [ -z "$COBBLER_NAME" ]; then
+    echo "No COBBLER_NAME defined in $CFGFILE"
+    exit 1
+fi
+
+if [ -z "$LOGFILES" ]; then
+    echo "No LOGFILES defined in $CFGFILE"
+    exit 1
+fi
+
+start() {
+    echo -n $"Starting anamon: "
+    daemon /usr/local/sbin/anamon.py --watchfile \"$LOGFILES\" --name $COBBLER_NAME --server $COBBLER_SERVER --port ${COBBLER_PORT:-80} --exit
+    RETVAL=$?
+    [ $RETVAL -eq 0 ] && touch $LOCKFILE
+    echo
+
+    # Disable service start
+    chkconfig anamon off
+
+    return $RETVAL
+}
+
+stop () {
+    echo -n $"Shutting down anamon: "
+    killproc /usr/local/sbin/anamon.py
+    RETVAL=$?
+    [ $RETVAL -eq 0 ] && rm -f $LOCKFILE
+    echo
+    return $RETVAL
+}
+
+restart() {
+    stop
+    start
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        restart
+        ;;
+    condrestart)
+        if [ -f $LOCKFILE ]; then
+            restart
+        fi
+        ;;
+    status)
+        status anamon.py
+        RETVAL=$?
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|condrestart}"
+        RETVAL=2
+        ;;
+esac
+
+exit $RETVAL

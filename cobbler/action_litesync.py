@@ -46,11 +46,11 @@ class BootLiteSync:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,config):
+    def __init__(self,config,verbose=False):
         """
         Constructor
         """
-        self.verbose     = True
+        self.verbose     = verbose
         self.config      = config
         self.distros     = config.distros()
         self.profiles    = config.profiles()
@@ -58,7 +58,7 @@ class BootLiteSync:
         self.images      = config.images()
         self.settings    = config.settings()
         self.repos       = config.repos()
-        self.sync        = config.api.get_sync()
+        self.sync        = config.api.get_sync(verbose)
 
     def add_single_distro(self, name):
         # get the distro record
@@ -101,7 +101,7 @@ class BootLiteSync:
         # get the profile object:
         profile = self.profiles.find(name=name)
         if profile is None:
-            raise CX(_("error in profile lookup"))
+            raise CX(_("error in profile lookup for %s" % name))
         # rebuild the yum configuration files for any attached repos
         # generate any templates listed in the distro
         self.sync.pxegen.write_templates(profile)
@@ -160,10 +160,6 @@ class BootLiteSync:
         system_record = self.systems.find(name=name)
         # delete contents of kickstarts_sys/$name in webdir
         system_record = self.systems.find(name=name)
-        # delete any kickstart files related to this system
-        for (name,interface) in system_record.interfaces.iteritems():
-           filename = utils.get_config_filename(system_record,interface=name)
-           utils.rmtree(os.path.join(self.settings.webdir, "kickstarts_sys", filename))
 
         if self.settings.manage_dhcp:
             if self.settings.omapi_enabled: 
@@ -179,8 +175,12 @@ class BootLiteSync:
             distro = self.distros.find(name=profile.distro)
             if distro is not None and distro in [ "ia64", "IA64"]:
                 itanic = True
-        if not itanic:
-            utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
-        else:
-            utils.rmfile(os.path.join(bootloc, filename))
+
+        for (name,interface) in system_record.interfaces.iteritems():
+            filename = utils.get_config_filename(system_record,interface=name)
+
+            if not itanic:
+                utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
+            else:
+                utils.rmfile(os.path.join(bootloc, filename))
 

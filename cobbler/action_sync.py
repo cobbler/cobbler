@@ -56,19 +56,22 @@ class BootSync:
         """
         Constructor
         """
-        self.verbose     = verbose
-        self.config      = config
-        self.api         = config.api
-        self.distros     = config.distros()
-        self.profiles    = config.profiles()
-        self.systems     = config.systems()
-        self.settings    = config.settings()
-        self.repos       = config.repos()
-        self.templar     = templar.Templar(config)
-        self.pxegen      = pxegen.PXEGen(config)
-        self.dns         = dns
-        self.dhcp        = dhcp
-        self.bootloc     = utils.tftpboot_location()
+        self.verbose      = verbose
+        self.config       = config
+        self.api          = config.api
+        self.distros      = config.distros()
+        self.profiles     = config.profiles()
+        self.systems      = config.systems()
+        self.settings     = config.settings()
+        self.repos        = config.repos()
+        self.templar      = templar.Templar(config)
+        self.pxegen       = pxegen.PXEGen(config)
+        self.dns          = dns
+        self.dhcp         = dhcp
+        self.bootloc      = utils.tftpboot_location()
+        self.pxegen.verbose = verbose
+        self.dns.verbose    = verbose
+        self.dhcp.verbose   = verbose
 
     def run(self):
         """
@@ -78,37 +81,67 @@ class BootSync:
         if not os.path.exists(self.bootloc):
             raise CX(_("cannot find directory: %s") % self.bootloc)
 
+        if self.verbose:
+            print "- running pre-sync triggers"
+
         # run pre-triggers...
-        utils.run_triggers(None, "/var/lib/cobbler/triggers/sync/pre/*")
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/pre/*")
 
         # (paranoid) in case the pre-trigger modified any objects...
+
+        if self.verbose:
+            print "- loading configuration"
         self.api.deserialize()
+
         self.distros  = self.config.distros()
         self.profiles = self.config.profiles()
         self.systems  = self.config.systems()
         self.settings = self.config.settings()
         self.repos    = self.config.repos()
-        self.pxegen   = pxegen.PXEGen(self.config)
 
         # execute the core of the sync operation
+
+        if self.verbose:
+           print "- cleaning trees"
         self.clean_trees()
+
+        if self.verbose:
+           print "- copying bootloaders"
         self.pxegen.copy_bootloaders()
+
+        if self.verbose:
+           print "- copying distros" 
         self.pxegen.copy_distros()
+
+        if self.verbose:
+           print "- copying images"
         self.pxegen.copy_images()
         self.pxegen.generate_windows_files()
         for x in self.systems:
+            if self.verbose:
+                print "- copying files for system: %s" % x.name
             self.pxegen.write_all_system_files(x)
+
         if self.settings.manage_dhcp:
+           if self.verbose:
+                print "- rendering DHCP files"
            self.dhcp.write_dhcp_file()
            self.dhcp.regen_ethers()
         if self.settings.manage_dns:
+           if self.verbose:
+                print "- rendering DNS files"
            self.dns.regen_hosts()
            self.dns.write_dns_files()
+
+        if self.verbose:
+           print "- generating PXE menu structure"
         self.pxegen.make_pxe_menu()
         self.pxegen.write_tftpd_rules(True)
 
         # run post-triggers
-        utils.run_triggers(None, "/var/lib/cobbler/triggers/sync/post/*")
+        if self.verbose:
+            print "- running post-sync triggers"
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*")
         return True
 
     def clean_trees(self):
@@ -128,14 +161,14 @@ class BootSync:
             path = os.path.join(self.settings.webdir,x)
             if os.path.isfile(path):
                 if not x.endswith(".py"):
-                    utils.rmfile(path)
+                    utils.rmfile(path,verbose=self.verbose)
             if os.path.isdir(path):
-                if not x in ["web", "webui", "localmirror","repo_mirror","ks_mirror","images","links","repo_profile","repo_system","svc","rendered"] :
+                if not x in ["aux", "web", "webui", "localmirror","repo_mirror","ks_mirror","images","links","repo_profile","repo_system","svc","rendered"] :
                     # delete directories that shouldn't exist
-                    utils.rmtree(path)
+                    utils.rmtree(path,verbose=self.verbose)
                 if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system","rendered"]:
                     # clean out directory contents
-                    utils.rmtree_contents(path)
+                    utils.rmtree_contents(path,verbose=self.verbose)
         pxelinux_dir = os.path.join(self.bootloc, "pxelinux.cfg")
         images_dir = os.path.join(self.bootloc, "images")
         yaboot_bin_dir = os.path.join(self.bootloc, "ppc")
@@ -143,21 +176,21 @@ class BootSync:
         s390_dir = os.path.join(self.bootloc, "s390x")
         rendered_dir = os.path.join(self.settings.webdir, "rendered")
         if not os.path.exists(pxelinux_dir):
-            utils.mkdir(pxelinux_dir)
+            utils.mkdir(pxelinux_dir,verbose=self.verbose)
         if not os.path.exists(images_dir):
-            utils.mkdir(images_dir)
+            utils.mkdir(images_dir,verbose=self.verbose)
         if not os.path.exists(rendered_dir):
-            utils.mkdir(rendered_dir)
+            utils.mkdir(rendered_dir,verbose=self.verbose)
         if not os.path.exists(yaboot_bin_dir):
-            utils.mkdir(yaboot_bin_dir)
+            utils.mkdir(yaboot_bin_dir,verbose=self.verbose)
         if not os.path.exists(yaboot_cfg_dir):
-            utils.mkdir(yaboot_cfg_dir)
-        utils.rmtree_contents(os.path.join(self.bootloc, "pxelinux.cfg"))
-        utils.rmtree_contents(os.path.join(self.bootloc, "images"))
-        utils.rmtree_contents(os.path.join(self.bootloc, "s390x"))
-        utils.rmtree_contents(os.path.join(self.bootloc, "ppc"))
-        utils.rmtree_contents(os.path.join(self.bootloc, "etc"))
-        utils.rmtree_contents(rendered_dir)
+            utils.mkdir(yaboot_cfg_dir,verbose=self.verbose)
+        utils.rmtree_contents(os.path.join(self.bootloc, "pxelinux.cfg"),verbose=self.verbose)
+        utils.rmtree_contents(os.path.join(self.bootloc, "images"),verbose=self.verbose)
+        utils.rmtree_contents(os.path.join(self.bootloc, "s390x"),verbose=self.verbose)
+        utils.rmtree_contents(os.path.join(self.bootloc, "ppc"),verbose=self.verbose)
+        utils.rmtree_contents(os.path.join(self.bootloc, "etc"),verbose=self.verbose)
+        utils.rmtree_contents(rendered_dir,verbose=self.verbose)
         
 
 

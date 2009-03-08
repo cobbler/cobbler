@@ -113,11 +113,49 @@ class Image(item.Item):
     def set_file(self,filename):
         """
         Stores the image location.  This should be accessible on all nodes
-        that need to access it.  Format: either /mnt/commonpath/foo.iso or 
-        nfs://host/path/foo.iso
+        that need to access it.  Format: can be one of the following:
+        * username:password@hostname:/path/to/the/filename.ext
+        * username@hostname:/path/to/the/filename.ext
+        * hostname:/path/to/the/filename.ext
+        * /path/to/the/filename.ext
         """
-        # FIXME: this should accept NFS paths or filesystem paths
-        self.file = filename
+        uri = ""
+        scheme = auth = hostname = path = ""
+        # we'll discard the protocol if it's supplied, for legacy support
+        if filename.find("://") != -1:
+            scheme, uri = filename.split("://")
+            filename = uri
+        else:
+            uri = filename
+
+        if filename.find("@") != -1:
+            auth, filename = filename.split("@")
+        # extract the hostname
+        # 1. if we have a colon, then everything before it is a hostname
+        # 2. if we don't have a colon, then check if we had a scheme; if
+        #    we did, then grab all before the first forward slash as the
+        #    hostname; otherwise, we've got a bad file
+        if filename.find(":") != -1:
+            hostname, filename = filename.split(":")
+        elif filename[0] != '/':
+            if len(scheme) > 0:
+                index = filename.find("/")
+                hostname = filename[:index]
+                filename = filename[index:]
+            else:
+                raise CX(_("invalid file: %s" % filename))
+        # raise an exception if we don't have a valid path
+        if len(filename) > 0 and filename[0] != '/':
+            raise CX(_("file contains an invalid path: %s" % filename))
+        if filename.find("/") != -1:
+            path, filename = filename.rsplit("/", 1)
+
+        if len(filename) == 0:
+            raise CX(_("missing filename"))
+        if len(auth) > 0 and len(hostname) == 0:
+            raise CX(_("a hostname must be specified with authentication details"))
+
+        self.file = uri
         return True
 
     def set_os_version(self,os_version):

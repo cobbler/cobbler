@@ -37,6 +37,20 @@ import tempfile
 import signal
 from cexceptions import *
 import codes
+import time
+import netaddr
+import shlex
+
+try:
+    import hashlib as fiver
+    def md5(key):
+        return fiver.md5(key)
+except ImportError: 
+    # for Python < 2.5
+    import md5 as fiver
+    def md5(key):
+        return fiver.md5(key)
+
 
 CHEETAH_ERROR_DISCLAIMER="""
 # *** ERROR ***
@@ -62,12 +76,12 @@ def _(foo):
 
 MODULE_CACHE = {}
 
-# import api # factor out
-
 _re_kernel = re.compile(r'vmlinuz(.*)')
 _re_initrd = re.compile(r'initrd(.*).img')
 
-def setup_logger(name, log_level=logging.INFO, log_file="/var/log/cobbler/cobbler.log"):
+def setup_logger(name, is_cobblerd=False, log_level=logging.INFO, log_file="/var/log/cobbler/cobbler.log"):
+    if is_cobblerd:
+        log_file = "/var/log/cobbler/cobblerd.log"
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
     try:
@@ -89,18 +103,6 @@ def log_exc(logger):
    logger.info("Exception value: %s" % v)
    logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
    
-
-def print_exc(exc,full=False):
-   (t, v, tb) = sys.exc_info()
-   try:
-      getattr(exc, "from_cobbler")
-      print >> sys.stderr, str(exc)[1:-1]
-   except:
-      print >> sys.stderr, t
-      print >> sys.stderr, v
-      if full:
-          print >> sys.stderr, string.join(traceback.format_list(traceback.extract_tb(tb)))
-   return 1
 
 def get_exc(exc,full=True):
    (t, v, tb) = sys.exc_info()
@@ -133,39 +135,33 @@ def trace_me():
    bar = string.join(traceback.format_list(x))
    return bar
 
+def pretty_hex(ip, length=8):
+    """
+    Pads an IP object with leading zeroes so that the result is
+    _length_ hex digits.  Also do an upper().
+    """
+    hexval = "%x" % ip.value
+    if len(hexval) < length:
+        hexval = '0' * (length - len(hexval)) + hexval
+    return hexval.upper()
 
 def get_host_ip(ip, shorten=True):
     """
     Return the IP encoding needed for the TFTP boot tree.
     """
+    ip = netaddr.IP(ip)
+    cidr = ip.cidr()
 
-    slash = None
-    if ip.find("/") != -1:
-       # CIDR notation
-       (ip, slash) = ip.split("/")
-
-    handle = sub_process.Popen("/usr/bin/gethostip %s" % ip, shell=True, stdout=sub_process.PIPE, close_fds=True)
-    out = handle.stdout
-    results = out.read()
-    converted = results.split(" ")[-1][0:8]
-
-    if slash is None:
-        return converted
+    if len(cidr) == 1: # Just an IP, e.g. a /32
+        return pretty_hex(ip)
     else:
-        slash = int(slash)
-        num = int(converted, 16)
-        delta = 32 - slash
-        mask = (0xFFFFFFFF << delta)
-        num = num & mask
-        num = "%0x" % num
-        if len(num) != 8:
-            num = '0' * (8 - len(num)) + num
-        num = num.upper()
-        if shorten:
-            nibbles = delta / 4
-            for x in range(0,nibbles):
-                num = num[0:-1]
-        return num
+        pretty = pretty_hex(cidr[0])
+        if not shorten or len(cidr) <= 8:
+            # not enough to make the last nibble insignificant
+            return pretty
+        else:
+            cutoff = (32 - cidr.prefixlen) / 4
+            return pretty[0:-cutoff]
 
 def get_config_filename(sys,interface):
     """
@@ -393,28 +389,32 @@ def input_string_or_hash(options,delim=",",allow_multiples=True):
         raise CX(_("No idea what to do with list: %s") % options)
     elif type(options) == str:
         new_dict = {}
-        tokens = options.split(delim)
+        tokens = shlex.split(options)
         for t in tokens:
-            tokens2 = t.split("=")
-            if len(tokens2) == 1 and tokens2[0] != '':
+            tokens2 = t.split("=",1)
+            if len(tokens2) == 1:
                 # this is a singleton option, no value
-                tokens2.append(None)
-            elif tokens2[0] == '':
-                return (False, {})
+                key = tokens2[0]
+                value = None
+            else:
+                key = tokens2[0]
+                value = tokens2[1] 
 
             # if we're allowing multiple values for the same key,
             # check to see if this token has already been
             # inserted into the dictionary of values already
-            if tokens2[0] in new_dict.keys() and allow_multiples:
+
+            if key in new_dict.keys() and allow_multiples:
                 # if so, check to see if there is already a list of values
                 # otherwise convert the dictionary value to an array, and add
                 # the new value to the end of the list
-                if type(new_dict[tokens2[0]]) == list:
-                    new_dict[tokens2[0]].append(tokens2[1])
+                if type(new_dict[key]) == list:
+                    new_dict[key].append(value)
                 else:
-                    new_dict[tokens2[0]] = [new_dict[tokens2[0]], tokens2[1]]
+                    new_dict[key] = [new_dict[key], value]
             else:
-                new_dict[tokens2[0]] = tokens2[1]
+                new_dict[key] = value
+        # make sure we have no empty entries
         new_dict.pop('', None)
         return (True, new_dict)
     elif type(options) == dict:
@@ -457,12 +457,13 @@ def blender(api_handle,remove_hashes, root_obj):
     for node in tree:
         __consolidate(node,results)
 
-    # add in syslog to results (magic)    
-    if settings.syslog_port != 0:
-        if not results.has_key("kernel_options"):
-            results["kernel_options"] = {}
-        syslog = "%s:%s" % (results["server"], settings.syslog_port)
-        results["kernel_options"]["syslog"] = syslog
+    # hack -- s390 nodes get additional default kernel options
+    arch = results.get("arch","?")
+    if arch.startswith("s390"):
+        keyz = settings.kernel_options_s390x.keys()
+        for k in keyz:
+           if not results.has_key(k):
+               results["kernel_options"][k] = settings.kernel_options_s390x[k]
 
     # determine if we have room to add kssendmac to the kernel options line
     kernel_txt = hash_to_string(results["kernel_options"])
@@ -633,7 +634,7 @@ def hash_removals(results,subkey):
         return
     scan = results[subkey].keys()
     for k in scan:
-        if k.startswith("!") and k != "!":
+        if str(k).startswith("!") and k != "!":
            remove_me = k[1:]
            if results[subkey].has_key(remove_me):
                del results[subkey][remove_me]
@@ -662,14 +663,32 @@ def hash_to_string(hash):
           buffer = buffer + str(key) + "=" + str(value) + " "
     return buffer
 
-def run_triggers(ref,globber,additional=[]):
+def run_triggers(api,ref,globber,additional=[]):
     """
     Runs all the trigger scripts in a given directory.
     ref can be a cobbler object, if not None, the name will be passed
     to the script.  If ref is None, the script will be called with
     no argumenets.  Globber is a wildcard expression indicating which
     triggers to run.  Example:  "/var/lib/cobbler/triggers/blah/*"
+
+    As of Cobbler 1.5.X, this also runs cobbler modules that match the globbing paths.
     """
+
+    # Python triggers first, before shell
+
+    modules = api.get_modules_in_category(globber)
+    for m in modules:
+       arglist = []
+       if ref:
+           arglist.append(ref.name)
+       for x in additional:
+           arglist.append(x)
+       rc = m.run(api, arglist)
+       if rc != 0:
+           raise CX("cobbler trigger failed: %s" % m.__name__)
+
+    # now do the old shell triggers, which are usually going to be slower, but are easier to write  
+    # and support any language
 
     triggers = glob.glob(globber)
     triggers.sort()
@@ -730,7 +749,7 @@ def os_release():
 
       if not os.path.exists("/bin/rpm"):
          return ("unknown", 0)
-      args = ["/bin/rpm", "-q", "--whatprovides", "redhat-release"]
+      args = ["/bin/rpm", "-q", "--whatprovides", "redhat-release", "--queryformat", "%"+"{name}"+"-%" + "{version}" + "-%" + "{release}"]
       cmd = sub_process.Popen(args,shell=False,stdout=sub_process.PIPE,close_fds=True)
       data = cmd.communicate()[0]
       data = data.rstrip().lower()
@@ -821,7 +840,7 @@ def is_safe_to_hardlink(src,dst,api):
     # we're dealing with SELinux and files that are not safe to chcon
     return False
 
-def linkfile(src, dst, symlink_ok=False, api=None):
+def linkfile(src, dst, symlink_ok=False, api=None, verbose=False):
     """
     Attempt to create a link dst that points to src.  Because file
     systems suck we attempt several different methods or bail to
@@ -842,25 +861,30 @@ def linkfile(src, dst, symlink_ok=False, api=None):
             if not is_safe_to_hardlink(src,dst,api):
                 # may have to remove old hardlinks for SELinux reasons
                 # as previous implementations were not complete
-                os.remove(dst)
+                if verbose:
+                   print "- removing: %s" % dst
+                   os.remove(dst)
             else:
-                restorecon(dst,api=api)
+                # restorecon(dst,api=api,verbose=verbose)
                 return True
         elif os.path.islink(dst):
             # existing path exists and is a symlink, update the symlink
+            if verbose:
+               print "- removing: %s" % dst
             os.remove(dst)
 
     if is_safe_to_hardlink(src,dst,api):
         # we can try a hardlink if the destination isn't to NFS or Samba
         # this will help save space and sync time.
         try:
+            if verbose:
+                print "- trying hardlink %s -> %s" % (src,dst)
             rc = os.link(src, dst)
-            restorecon(dst,api=api)
+            # restorecon(dst,api=api,verbose=verbose)
             return rc
         except (IOError, OSError):
             # hardlink across devices, or link already exists
-            # can result in extra call to restorecon but no
-            # major harm, we'll just symlink it if we can
+            # we'll just symlink it if we can
             # or otherwise copy it
             pass
 
@@ -868,20 +892,24 @@ def linkfile(src, dst, symlink_ok=False, api=None):
         # we can symlink anywhere except for /tftpboot because
         # that is run chroot, so if we can symlink now, try it.
         try:
+            if verbose:
+               print "- trying symlink %s -> %s" % (src,dst)
             rc = os.symlink(src, dst)
-            restorecon(dst,api=api)
+            # restorecon(dst,api=api,verbose=verbose)
             return rc
         except (IOError, OSError):
             pass
 
     # we couldn't hardlink and we couldn't symlink so we must copy
 
-    return copyfile(src, dst, api=api)
+    return copyfile(src, dst, api=api, verbose=verbose)
 
-def copyfile(src,dst,api=None):
+def copyfile(src,dst,api=None,verbose=False):
     try:
+        if verbose:
+           print "- copying: %s -> %s" % (src,dst)
         rc = shutil.copyfile(src,dst)
-        restorecon(dst,api)
+        # restorecon(dst,api,verbose=verbose)
         return rc
     except:
         if not os.access(src,os.R_OK):
@@ -982,58 +1010,44 @@ def umount(src):
             # raise CX(_("Error bind-mounting %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
 
-def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None):
+def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None, verbose=False):
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
         raise CX(_("Could not find files matching %s") % pattern)
     for file in files:
         base = os.path.basename(file)
         dst1 = os.path.join(dst,os.path.basename(file))
-        linkfile(file,dst1,symlink_ok=symlink_ok,api=api)
-        restorecon(dst1,api=api)
+        linkfile(file,dst1,symlink_ok=symlink_ok,api=api,verbose=verbose)
+        # restorecon(dst1,api=api,verbose=verbose)
 
-def restorecon(dest, api):
+#def restorecon(dest, api, verbose=False):
+#
+#    """
+#    Wrapper around functions to manage SELinux contexts.
+#    Use chcon public_content_t where we can to allow
+#    hardlinking between /var/www and tftpboot but use
+#    restorecon everywhere else.
+#    """
+# 
+#    if not api.is_selinux_enabled():
+#        return True
+#
+#    tdest = os.path.realpath(dest)
+#    # remoted = is_remote_file(tdest)
+#
+#    cmd = [ "/sbin/restorecon",dest ]
+#    if verbose:
+#        print "- %s" % " ".join(cmd)
+#    rc = sub_process.call(cmd,shell=False,close_fds=True)
+#    if rc != 0:
+#        raise CX("restorecon operation failed: %s" % cmd)
+#
+#    return 0
 
-    """
-    Wrapper around functions to manage SELinux contexts.
-    Use chcon public_content_t where we can to allow
-    hardlinking between /var/www and tftpboot but use
-    restorecon everywhere else.
-    """
-    
-    if not api.is_selinux_enabled():
-        return True
-
-    tdest = os.path.realpath(dest)
-    
-    matched_path = False
-    if dest.startswith("/var/www"):
-       matched_path = True
-    elif dest.find("/tftpboot/"):
-       matched_path = True
-    remoted = is_remote_file(tdest)
-
-
-    if matched_path and not is_remote_file(tdest):
-        # ensure the file is flagged as public_content_t
-        # because it's something we've likely hardlinked
-        # three ways between tftpboot, /var/www and the source
-        cmd = ["/usr/bin/chcon","-t","public_content_t", tdest]
-        rc = sub_process.call(cmd,shell=False,close_fds=True)
-        if rc != 0:
-            raise CX("chcon operation failed: %s" % cmd)
-
-    if (not matched_path) or (matched_path and remoted):
-        # the basic restorecon stuff...
-        cmd = [ "/sbin/restorecon",dest ]
-        rc = sub_process.call(cmd,shell=False,close_fds=True)
-        if rc != 0:
-            raise CX("restorecon operation failed: %s" % cmd)
-
-    return 0
-
-def rmfile(path):
+def rmfile(path,verbose=False):
     try:
+        if verbose:
+           print "- removing: %s" % path
         os.unlink(path)
         return True
     except OSError, ioe:
@@ -1042,16 +1056,18 @@ def rmfile(path):
             raise CX(_("Error deleting %s") % path)
         return True
 
-def rmtree_contents(path):
+def rmtree_contents(path,verbose=False):
    what_to_delete = glob.glob("%s/*" % path)
    for x in what_to_delete:
-       rmtree(x)
+       rmtree(x,verbose=verbose)
 
-def rmtree(path):
+def rmtree(path,verbose=False):
    try:
        if os.path.isfile(path):
-           return rmfile(path)
+           return rmfile(path,verbose=verbose)
        else:
+           if verbose:
+               print "- removing: %s" % path
            return shutil.rmtree(path,ignore_errors=True)
    except OSError, ioe:
        traceback.print_exc()
@@ -1059,8 +1075,10 @@ def rmtree(path):
            raise CX(_("Error deleting %s") % path)
        return True
 
-def mkdir(path,mode=0777):
+def mkdir(path,mode=0777,verbose=False):
    try:
+       if verbose:
+          "- mkdir: %s" % path
        return os.makedirs(path,mode)
    except OSError, oe:
        if not oe.errno == 17: # already exists (no constant for 17?)
@@ -1072,16 +1090,24 @@ def set_redhat_management_key(self,key):
    self.redhat_management_key = key
    return True
 
-def set_arch(self,arch):
-   if arch is None or arch == "":
-       arch = "x86"
-   if arch in [ "standard", "ia64", "x86", "i386", "ppc", "ppc64", "x86_64", "s390x" ]:
-       if arch == "x86" or arch == "standard":
-           # be consistent 
-           arch = "i386"
+def set_redhat_management_server(self,server):
+   self.redhat_management_server = server
+   return True
+
+def set_arch(self,arch,repo=False):
+   if arch is None or arch == "" or arch == "standard" or arch == "x86":
+       arch = "i386"
+
+   if repo:
+       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x", "noarch", "src" ]
+   else:
+       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x" ]
+
+   if arch in valids:
        self.arch = arch
        return True
-   raise CX(_("arch choices include: x86, x86_64, ppc, ppc64, s390x and ia64"))
+
+   raise CX("arch choices include: %s" % ", ".join(valids))
 
 def set_os_version(self,os_version):
    if os_version == "" or os_version is None:
@@ -1238,8 +1264,8 @@ def set_virt_bridge(self,vbridge):
      """
      The default bridge for all virtual interfaces under this profile.
      """
-     if vbridge is None:
-        vbridge = ""
+     if vbridge is None or vbridge == "":
+        vbridge = self.settings.default_virt_bridge
      self.virt_bridge = vbridge
      return True
 
@@ -1304,6 +1330,8 @@ def safe_filter(var):
        raise CX("Invalid characters found in input")
 
 def is_selinux_enabled():
+    if not os.path.exists("/usr/sbin/selinuxenabled"):
+       return False
     args = "/usr/sbin/selinuxenabled"
     selinuxenabled = sub_process.call(args,close_fds=True)
     if selinuxenabled == 0:
@@ -1411,7 +1439,7 @@ def popen2(args, **kwargs):
     Leftovers from borrowing some bits from Snake, replace this 
     function with just the subprocess call.
     """
-    p = sub_process.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, **kwargs)
+    p = sub_process.Popen(args, stdout=sub_process.PIPE, stdin=sub_process.PIPE, **kwargs)
     return (p.stdout, p.stdin)
 
 if __name__ == "__main__":

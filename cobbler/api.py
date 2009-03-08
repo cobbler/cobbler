@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import yaml
 import config
 import utils
 import action_sync
@@ -48,7 +49,8 @@ import logging
 import time
 import random
 import os
-import yaml
+import xmlrpclib
+import traceback
 
 ERROR = 100
 INFO  = 10
@@ -65,7 +67,7 @@ class BootAPI:
     __shared_state = {}
     __has_loaded = False
 
-    def __init__(self, log_settings={}):
+    def __init__(self, log_settings={}, is_cobblerd=False):
         """
         Constructor
         """
@@ -82,6 +84,7 @@ class BootAPI:
             # level (and remote.py web service level) instead.
 
             random.seed()
+            self.is_cobblerd = is_cobblerd
 
             try:
                 self.logger = self.__setup_logger("api")
@@ -90,14 +93,16 @@ class BootAPI:
                 # perms_ok is False
                 return
 
-            self.logger_remote = self.__setup_logger("remote")
+            # FIMXE: conslidate into 1 server instance
+
             self.selinux_enabled = utils.is_selinux_enabled()
             self.dist = utils.check_dist()
             self.os_version = utils.os_release()
 
             self.acl_engine = acls.AclEngine()
-
+            
             BootAPI.__has_loaded   = True
+
             module_loader.load_modules()
 
             self._config         = config.Config(self)
@@ -118,9 +123,10 @@ class BootAPI:
             self.pxegen  = pxegen.PXEGen(self._config)
             self.logger.debug("API handle initialized")
             self.perms_ok = True
- 
+
+
     def __setup_logger(self,name):
-        return utils.setup_logger(name, **self.log_settings)
+        return utils.setup_logger(name, is_cobblerd=self.is_cobblerd, **self.log_settings)
     
     def is_selinux_enabled(self):
         """
@@ -141,6 +147,28 @@ class BootAPI:
            # doesn't support public_content_t
            return False 
         return True
+
+    def _internal_cache_update(self, collection_type, name, remove=False):
+        """
+        Update cobblerd so it won't have to ever reload the config, once started.
+        """
+        # FIXME: take value from settings, use raw port
+        if self.is_cobblerd:
+           # don't signal yourself, that's asking for trouble.
+           return True
+        self.server = xmlrpclib.Server("http://127.0.0.1:%s" % self.settings().xmlrpc_port)
+        try:
+            if not remove:
+                self.server.internal_cache_update(collection_type, name)
+            else:
+                self.server.internal_cache_remove(collection_type, name)
+        except Exception, e:
+            if len(e.args) == 2 and e[0] == 111:
+                # if cobblerd is not running, no harm done, nothing to signal
+                pass
+            else: 
+                raise CX("error contacting cobblerd")
+        return False
 
     def last_modified_time(self):
         """
@@ -181,14 +209,16 @@ class BootAPI:
             version_tuple -- something like [ 1, 3, 2 ]
         """
         fd = open("/var/lib/cobbler/version")
-        data = yaml.load(fd.read()).next()
+        ydata = fd.read()
         fd.close()
+        data = yaml.load(ydata)
         if not extended:
             # for backwards compatibility and use with koan's comparisons
             elems = data["version_tuple"] 
+            print elems
             return int(elems[0]) + 0.1*int(elems[1]) + 0.001*int(elems[2])
         else:
-            return data    
+            return data
 
     def clear(self):
         """
@@ -237,14 +267,10 @@ class BootAPI:
 
     def update(self):
         """
-        This can be called when you expect a cobbler object
-        to have changed outside of your API call.  It does not
-        have to be called before read operations but should be
-        called before write operations depending on the last
-        modification time.  For the local API it is not needed.
+        This can be called is no longer used by cobbler.
+        And is here to just avoid breaking older scripts.
         """
-        self.clear()
-        self.deserialize()
+        return True
 
     def copy_distro(self, ref, newname):
         self.log("copy_distro",[ref.name, newname])
@@ -266,46 +292,45 @@ class BootAPI:
         self.log("copy_image",[ref.name, newname])
         return self._config.images().copy(ref,newname)
 
-    def remove_distro(self, ref, recursive=False):
+    def remove_distro(self, ref, recursive=False, delete=True, with_triggers=True, ):
         if type(ref) != str:
            self.log("remove_distro",[ref.name])
-           return self._config.distros().remove(ref.name, recursive=recursive)
+           return self._config.distros().remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
         else:
            self.log("remove_distro",ref)
-           return self._config.distros().remove(ref, recursive=recursive)
-           
+           return self._config.distros().remove(ref, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
 
-    def remove_profile(self,ref, recursive=False):
+    def remove_profile(self,ref, recursive=False, delete=True, with_triggers=True):
         if type(ref) != str:
            self.log("remove_profile",[ref.name])
-           return self._config.profiles().remove(ref.name, recursive=recursive)
+           return self._config.profiles().remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers) 
         else:
            self.log("remove_profile",ref)
-           return self._config.profiles().remove(ref, recursive=recursive)
+           return self._config.profiles().remove(ref, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
 
-    def remove_system(self, ref, recursive=False):
+    def remove_system(self, ref, recursive=False, delete=True, with_triggers=True):
         if type(ref) != str:
            self.log("remove_system",[ref.name])
-           return self._config.systems().remove(ref.name)
+           return self._config.systems().remove(ref.name, with_delete=delete, with_triggers=with_triggers)
         else:
            self.log("remove_system",ref)
-           return self._config.systems().remove(ref)
+           return self._config.systems().remove(ref, with_delete=delete, with_triggers=with_triggers)
 
-    def remove_repo(self, ref, recursive=False):
+    def remove_repo(self, ref, recursive=False, delete=True, with_triggers=True):
         if type(ref) != str:
            self.log("remove_repo",[ref.name])
-           return self._config.repos().remove(ref.name)
+           return self._config.repos().remove(ref.name, with_delete=delete, with_triggers=with_triggers)
         else:    
            self.log("remove_repo",ref)
-           return self._config.repos().remove(ref)
+           return self._config.repos().remove(ref, with_delete=delete, with_triggers=with_triggers)
 
-    def remove_image(self, ref, recursive=False):
+    def remove_image(self, ref, recursive=False, delete=True, with_triggers=True):
         if type(ref) != str:
            self.log("remove_image",[ref.name])
-           return self._config.images().remove(ref.name, recursive=recursive)
+           return self._config.images().remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
         else:
            self.log("remove_image",ref)
-           return self._config.images().remove(ref, recursive=recursive)
+           return self._config.images().remove(ref, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
 
     def rename_distro(self, ref, newname):
         self.log("rename_distro",[ref.name,newname])
@@ -347,29 +372,34 @@ class BootAPI:
         self.log("new_image",[is_subobject])
         return self._config.new_image(is_subobject=is_subobject)
 
-    def add_distro(self, ref, check_for_duplicate_names=False):
+    def add_distro(self, ref, check_for_duplicate_names=False, save=True):
         self.log("add_distro",[ref.name])
-        return self._config.distros().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
+        rc = self._config.distros().add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
+        return rc
 
-    def add_profile(self, ref, check_for_duplicate_names=False):
+    def add_profile(self, ref, check_for_duplicate_names=False,save=True):
         self.log("add_profile",[ref.name])
-        return self._config.profiles().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
+        rc = self._config.profiles().add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
+        return rc
 
-    def add_system(self, ref, check_for_duplicate_names=False, check_for_duplicate_netinfo=False):
+    def add_system(self, ref, check_for_duplicate_names=False, check_for_duplicate_netinfo=False, save=True):
         self.log("add_system",[ref.name])
-        return self._config.systems().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names,check_for_duplicate_netinfo=check_for_duplicate_netinfo)
+        rc = self._config.systems().add(ref,check_for_duplicate_names=check_for_duplicate_names,check_for_duplicate_netinfo=check_for_duplicate_netinfo,save=save)
+        return rc
 
-    def add_repo(self, ref, check_for_duplicate_names=False):
+    def add_repo(self, ref, check_for_duplicate_names=False,save=True):
         self.log("add_repo",[ref.name])
-        return self._config.repos().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
-    
-    def add_image(self, ref, check_for_duplicate_names=False):
+        rc = self._config.repos().add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
+        return rc
+
+    def add_image(self, ref, check_for_duplicate_names=False,save=True):
         self.log("add_image",[ref.name])
-        return self._config.images().add(ref,save=True,check_for_duplicate_names=check_for_duplicate_names)
+        rc = self._config.images().add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
+        return rc
 
     def find_distro(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.distros().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
-
+        
     def find_profile(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.profiles().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
@@ -389,12 +419,11 @@ class BootAPI:
         results1 = collector()
         results2 = []
         for x in results1:
-           print "INPUT: %s ACTUAL: %s" % (mtime, x.mtime)
            if x.mtime == 0 or x.mtime >= mtime:
               if not collapse:
-                  results2.append(results1)
+                  results2.append(x)
               else:
-                  results2.append(results1.to_datastruct())
+                  results2.append(x.to_datastruct())
         return results2
 
     def get_distros_since(self,mtime,collapse=False):
@@ -511,7 +540,7 @@ class BootAPI:
         validator = action_validate.Validate(self._config)
         return validator.run()
 
-    def sync(self):
+    def sync(self,verbose=False):
         """
         Take the values currently written to the configuration files in
         /etc, and /var, and build out the information tree found in
@@ -519,10 +548,10 @@ class BootAPI:
         saved with serialize() will NOT be synchronized with this command.
         """
         self.log("sync")
-        sync = self.get_sync()
+        sync = self.get_sync(verbose=verbose)
         return sync.run()
 
-    def get_sync(self):
+    def get_sync(self,verbose=False):
         self.dhcp = self.get_module_from_file(
            "dhcp",
            "module",
@@ -533,7 +562,7 @@ class BootAPI:
            "module",
            "manage_bind"
         ).get_manager(self._config)
-        return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns)
+        return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns,verbose=verbose)
 
     def reposync(self, name=None, tries=1, nofail=False):
         """
@@ -646,10 +675,10 @@ class BootAPI:
         self.log("authorize",[user,resource,arg1,arg2,rc],debug=True)
         return rc
 
-    def build_iso(self,iso=None,profiles=None,systems=None,tempdir=None):
+    def build_iso(self,iso=None,profiles=None,systems=None,tempdir=None,distro=None,standalone=None,source=None):
         builder = action_buildiso.BuildIso(self._config)
         return builder.run(
-           iso=iso, profiles=profiles, systems=systems, tempdir=tempdir
+           iso=iso, profiles=profiles, systems=systems, tempdir=tempdir, distro=distro, standalone=standalone, source=source
         )
 
     def replicate(self, cobbler_master = None, sync_all=False, sync_kickstarts=False, sync_trees=False, sync_repos=False, sync_triggers=False, systems=False):
@@ -697,7 +726,7 @@ class BootAPI:
         Cycles power on a system that has power management configured.
         """
         self.power_off(system, user, password)
-        time.sleep(1)
+        time.sleep(5)
         return self.power_on(system, user, password)
         
     def get_os_details(self):

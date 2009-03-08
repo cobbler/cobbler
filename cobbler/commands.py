@@ -307,7 +307,7 @@ class CobblerFunction:
             if not self.options.name:
                 raise CX(_("name is required"))
             if not recursive:
-                collect_fn().remove(self.options.name,with_delete=True)
+                collect_fn().remove(self.options.name,with_delete=True,recursive=False)
             else:
                 collect_fn().remove(self.options.name,with_delete=True,recursive=True)
             return None # signal that we want no further processing on the object
@@ -331,6 +331,12 @@ class CobblerFunction:
             if obj is None:
                 raise CX(_("object not found")) 
             return obj
+
+        try:
+            # catch some invalid executions of the CLI
+            getattr(self, "options")
+        except:
+            sys.exit(1)
 
         if not self.options.name:
             raise CX(_("name is required"))
@@ -377,8 +383,18 @@ class CobblerFunction:
 
         if "copy" in self.args:
             if self.options.newname:
-                obj = obj.make_clone()
-                obj.set_name(self.options.newname)
+                # FIXME: this should just use the copy function!
+                if obj.COLLECTION_TYPE == "distro":
+                   return self.api.copy_distro(obj, self.options.newname)
+                if obj.COLLECTION_TYPE == "profile":
+                   return self.api.copy_profile(obj, self.options.newname)
+                if obj.COLLECTION_TYPE == "system":
+                   return self.api.copy_system(obj, self.options.newname)
+                if obj.COLLECTION_TYPE == "repo":
+                   return self.api.copy_repo(obj, self.options.newname)
+                if obj.COLLECTION_TYPE == "image":
+                   return self.api.copy_image(obj, self.options.newname)
+                raise CX(_("internal error, don't know how to copy"))
             else:
                 raise CX(_("--newname is required"))
 

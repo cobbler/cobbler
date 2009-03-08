@@ -8,6 +8,7 @@ Cobbler is written & maintained by:
 Patches and other contributions from:
 
     Partha Aji <paji@redhat.com>
+    Anton Arapov <aarapov@redhat.com>
     Joseph Boyer Jr. <jboyer@liquidnet.com>
     Andrew Brown <ambrown@ncsu.edu>
     David Brown <dmlb2000@gmail.com>
@@ -20,7 +21,6 @@ Patches and other contributions from:
     Máirín Duffy <duffy@redhat.com>
     John Eckersberg <jeckersb@redhat.com>
     Dan Guernsey <danpg102@gmail.com>
-    Henry Kemp <henrykemp@gmail.com>
     Marcel Haerry <haerry+et@puzzle.ch>
     Dave Hatton <dave@davehatton.it>
     Scott Henson <shenson@redhat.com>
@@ -30,7 +30,9 @@ Patches and other contributions from:
     Shuichi Ihara <ihara@sun.com>
     Pablo Iranzo Gómez <pablo.iranzo@redhat.com>
     Brian Kearney <bkearney@redhat.com>
+    Henry Kemp <henrykemp@gmail.com>
     Ruben Kerkhof <ruben@rubenkerkhof.com>
+    Don Khan <khan_don@emc.com>
     Vito Laurenza <vitolaurenza@gmail.com>
     Adrian Likins <alikins@redhat.com>
     David Lutterkort <dlutter@redhat.com>
@@ -49,16 +51,19 @@ Patches and other contributions from:
     Ben Riggs <rigg0022@umn.edu>
     Jeremy Rosengren <jeremy@rosengren.org>
     Adam Rosenwald <thestrider@gmail.com>
+    Satoru Satoh <ssato@redhat.com>
+    Jeff Schroeder <jeffschroeder@computer.org>
     Scott Seago <sseago@redhat.com>
     Justin Sherill <jsherril@redhat.com>
     Anderson Silva <ansilva@redhat.com>
+    Dylan Swift <dylan.swift@gmail.com>
     Al Tobey <tobert@gmail.com>
     Thomas Uhde <thomas.uhde@KabelDeutschland.de>
     Ronald van den Blink <ronald@a61.nl>
     Tim Verhoeven <tim.verhoeven.be@gmail.com>
     John L. Villalovos <john@sodarock.com>
     Peter Vreman <peter.vreman@acision.com>
-
+    Simon Woolsgrove <simon@woolsgrove.com>
 
     [...send patches to get your name here...]
 

@@ -30,14 +30,21 @@ TESTMODE = False
 # we need.
 
 DEFAULTS = {
+    "anamon_enabled"              : 0,
     "allow_duplicate_hostnames"   : 0,
     "allow_duplicate_macs"        : 0,
     "allow_duplicate_ips"         : 0,
     "bind_bin"                    : "/usr/sbin/named",
+    "build_reporting_enabled"     : 0,
+    "build_reporting_to_address"  : "",
+    "build_reporting_sender"      : "",
+    "build_reporting_subject"     : "",
+    "build_reporting_smtp_server" : "localhost",
     "cheetah_import_whitelist"    : [ "re", "random", "time" ],
     "cobbler_master"              : '',
     "default_kickstart"           : "/var/lib/cobbler/kickstarts/default.ks",
     "default_name_servers"        : '',
+    "default_name_servers_search" : '',
     "default_password_crypted"    : "\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.",
     "default_virt_bridge"         : "xenbr0",
     "default_virt_type"           : "auto",
@@ -68,6 +75,7 @@ DEFAULTS = {
         "text"                    : None,
         "ksdevice"                : "eth0"
     },
+    "kernel_options_s390x"        : {},
     "manage_dhcp"                 : 0,
     "manage_dns"                  : 0,
     "manage_xinetd"               : 0,
@@ -84,6 +92,7 @@ DEFAULTS = {
     "power_template_dir"          : "/etc/cobbler/power",
     "pxe_just_once"               : 0,
     "pxe_template_dir"            : "/etc/cobbler/pxe",
+    "redhat_management_permissive" : 0,
     "redhat_management_type"      : "off",
     "redhat_management_key"       : "",
     "redhat_management_server"    : "xmlrpc.rhn.redhat.com",
@@ -94,15 +103,12 @@ DEFAULTS = {
     "run_install_triggers"        : 1,
     "server"                      : "127.0.0.1",
     "snippetsdir"                 : "/var/lib/cobbler/snippets",
-    "syslog_port"                 : 25150,
     "tftpd_bin"                   : "/usr/sbin/in.tftpd",
     "tftpd_conf"                  : "/etc/xinetd.d/tftp",
     "tftpd_rules"                 : "/etc/tftpd.rules",
     "vsftpd_bin"                  : "/usr/sbin/vsftpd",
     "webdir"                      : "/var/www/cobbler",
     "xmlrpc_port"                 : 25151,
-    "xmlrpc_rw_enabled"           : 1,
-    "xmlrpc_rw_port"              : 25152,
     "yum_post_install_mirror"     : 1,
     "yumdownloader_flags"         : "--resolve",
     "yumreposync_flags"           : "-l"
@@ -145,8 +151,9 @@ class Settings(serializable.Serializable):
        if datastruct is None:
           print _("warning: not loading empty structure for %s") % self.filename()
           return
-
-       self._attributes = datastruct
+  
+       self._attributes = DEFAULTS
+       self._attributes.update(datastruct)
 
        return self
 

@@ -25,6 +25,7 @@ import os
 import sys
 import glob
 import traceback
+import yaml # PyYAML
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
@@ -32,8 +33,7 @@ sys.path.insert(0, mod_path)
 
 from utils import _
 import utils
-import yaml   # Howell-Clark version
-import cexceptions
+from cexceptions import *
 import os
 
 def register():
@@ -46,7 +46,10 @@ def serialize_item(obj, item):
     filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
     datastruct = item.to_datastruct()
     fd = open(filename,"w+")
-    fd.write(yaml.dump(datastruct))
+    ydata = yaml.dump(datastruct)
+    if ydata is None or ydata == "":
+       raise CX("internal yaml error, tried to write empty file to %s, data was %s" % (filename, datastruct))
+    fd.write(ydata)
     fd.close()
     return True
 
@@ -63,7 +66,7 @@ def deserialize_item_raw(collection_type, item_name):
     if not os.path.exists(filename):
         return None
     fd = open(filename)
-    datastruct = yaml.load(fd.read()).next()
+    datastruct = yaml.load(fd.read())
     fd.close() 
     return datastruct
 
@@ -84,14 +87,14 @@ def deserialize_raw(collection_type):
     old_filename = "/var/lib/cobbler/%ss" % collection_type
     if collection_type == "settings":
          fd = open("/etc/cobbler/settings")
-         datastruct = yaml.load(fd.read()).next()
+         datastruct = yaml.load(fd.read())
          fd.close()
          return datastruct
     elif os.path.exists(old_filename):
          # for use in migration
          sys.stderr.write("reading from old config format: %s\n" % old_filename)
          fd = open(old_filename)
-         datastruct = yaml.load(fd.read()).next()
+         datastruct = yaml.load(fd.read())
          fd.close()
          return datastruct
     else:
@@ -99,7 +102,14 @@ def deserialize_raw(collection_type):
          files = glob.glob("/var/lib/cobbler/config/%ss.d/*" % collection_type)
          for f in files:
              fd = open(f)
-             results.append(yaml.load(fd.read()).next())
+             ydata = fd.read()
+             if ydata is None or ydata == "":
+                 raise CX("error, empty file %s" % f)
+             try:
+                 datastruct = yaml.load(ydata)
+             except:
+                 raise CX("error parsing yaml file: %s" % f)
+             results.append(datastruct)
              fd.close()
          return results    
 

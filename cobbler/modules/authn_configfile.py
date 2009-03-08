@@ -26,7 +26,7 @@ import ConfigParser
 import sys
 import os
 from utils import _
-import md5
+from utils import md5
 import traceback
 
 plib = distutils.sysconfig.get_python_lib()
@@ -75,7 +75,7 @@ def authenticate(api_handle,username,password):
     for (user,realm,actual_blob) in userlist:
         if user == username and realm == "Cobbler":
             input = ":".join([user,realm,password])
-            input_blob = md5.md5(input).hexdigest()
+            input_blob = md5(input).hexdigest()
             if input_blob.lower() == actual_blob.lower():
                 return True
 

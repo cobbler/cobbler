@@ -28,7 +28,7 @@ mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
 from utils import _
-import commands
+import cobbler.commands as commands
 import cexceptions
 
 
@@ -83,7 +83,7 @@ class RepoFunction(commands.CobblerFunction):
     def run(self):
 
         if self.args and "find" in self.args:
-            items = self.api.find_system(return_list=True, no_errors=True, **self.options.__dict__)
+            items = self.api.find_repo(return_list=True, no_errors=True, **self.options.__dict__)
             for x in items:
                 print x.name
             return True

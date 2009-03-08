@@ -60,11 +60,11 @@ class Distros(collection.Collection):
             if recursive:
                 kids = obj.get_children()
                 for k in kids:
-                    self.config.api.remove_profile(k, recursive=True)
+                    self.config.api.remove_profile(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers)
 
             if with_delete:
                 if with_triggers: 
-                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/distro/pre/*")
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/distro/pre/*")
                 if with_sync:
                     lite_sync = action_litesync.BootLiteSync(self.config)
                     lite_sync.remove_single_profile(name)
@@ -75,7 +75,7 @@ class Distros(collection.Collection):
             if with_delete:
                 self.log_func("deleted distro %s" % name)
                 if with_triggers: 
-                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/distro/post/*")
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/distro/post/*")
 
             # look through all mirrored directories and find if any directory is holding
             # this particular distribution's kernel and initrd
@@ -99,7 +99,11 @@ class Distros(collection.Collection):
                if not found:
                    utils.rmtree(path)
 
+            if with_delete and not self.api.is_cobblerd:
+                self.api._internal_cache_update("distro", name, remove=True)
+
             return True
 
-        raise CX(_("cannot delete object that does not exist: %s") % name)
+        #if not recursive:
+        #    raise CX(_("cannot delete object that does not exist: %s") % name)
 

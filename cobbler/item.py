@@ -138,7 +138,7 @@ class Item(serializable.Serializable):
         like authz_ownership, which ships with Cobbler but is off by default.  Consult the Wiki
         docs for more info on CustomizableAuthorization.
         """
-        owners = utils.input_string_or_list(data)
+        owners = utils.input_string_or_list(data, delim=" ")
         self.owners = owners
         return True
 
@@ -196,7 +196,8 @@ class Item(serializable.Serializable):
         Assigns a list of configuration management classes that can be assigned
         to any object, such as those used by Puppet's external_nodes feature.
         """
-        self.mgmt_classes = utils.input_string_or_list(mgmt_classes)
+        mgmt_classes_split = utils.input_string_or_list(mgmt_classes, delim=" ")
+        self.mgmt_classes = utils.input_string_or_list(mgmt_classes_split)
         return True
 
     def set_template_files(self,template_files,inplace=False):

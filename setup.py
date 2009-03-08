@@ -4,15 +4,15 @@ import sys
 import os.path
 from distutils.core import setup, Extension
 import string
-import cobbler.yaml as yaml
+import yaml # PyYAML
 import cobbler.sub_process as subprocess
 import Cheetah.Template as Template
 import time
 
-VERSION = "1.3.4"
+VERSION = "1.7.0"
 SHORT_DESC = "Network Boot and Update Server"
 LONG_DESC = """
-Cobbler is a network boot and update server.  Cobbler supports PXE, provisioning virtualized images, and reinstalling existing Linux machines.  The last two modes require a helper tool called 'koan' that integrates with cobbler.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler also has a Python and XMLRPC API for integration with other applications.
+Cobbler is a network install server.  Cobbler supports PXE, virtualized installs, and reinstalling existing Linux machines.  The last two modes use a helper tool, 'koan', that integrates with cobbler.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler has a Python and XMLRPC API for integration with other applications.  There is also a web interface.
 """
 TEMPLATES_DIR = "installer_templates"
 DEFAULTS = os.path.join(TEMPLATES_DIR, "defaults")
@@ -23,7 +23,11 @@ OUTPUT_DIR = "config"
 # =========================================================        
 def templatify(template, answers, output):
     t = Template.Template(file=template, searchList=answers)
-    open(output,"w").write(t.respond())
+    data = t.respond()
+    print "response=%s" % data
+    outf = open(output,"w")
+    outf.write(data)
+    outf.close()
 
 def gen_build_version():
     fd = open(os.path.join(OUTPUT_DIR, "version"),"w+")
@@ -54,9 +58,10 @@ def gen_build_version():
     
 
 def gen_config():
-    defaults = {}
-    data = yaml.loadFile(DEFAULTS).next()
-    defaults.update(data)
+    defaults_file = open(DEFAULTS)
+    defaults_data = defaults_file.read()
+    defaults_file.close() 
+    defaults = yaml.load(defaults_data)
     templatify(MODULES_TEMPLATE, defaults, os.path.join(OUTPUT_DIR, "modules.conf"))
     templatify(SETTINGS_TEMPLATE, defaults, os.path.join(OUTPUT_DIR, "settings"))
 
@@ -71,6 +76,7 @@ if __name__ == "__main__":
         rotpath       = "/etc/logrotate.d"
         powerpath   = etcpath + "/power"
         pxepath     = etcpath + "/pxe"
+        reppath     = etcpath + "/reporting"
         zonepath    = etcpath + "/zone_templates"
         
         # lib paths
@@ -105,6 +111,7 @@ if __name__ == "__main__":
         vw_systems    = wwwpath + "/systems"
         vw_profiles   = wwwpath + "/profiles"
         vw_links      = wwwpath + "/links"
+        vw_aux        = wwwpath + "/aux"
         # cgipath       = "/var/www/cgi-bin/cobbler"
         modpython     = wwwpath + "/web"
         modpythonsvc  = wwwpath + "/svc"
@@ -114,37 +121,8 @@ if __name__ == "__main__":
         logpath2 = logpath + "/kicklog"
         logpath3 = logpath + "/syslog"
         logpath4 = "/var/log/httpd/cobbler"
+        logpath5 = logpath + "/anamon"
 
-        # tftp paths        
-        tftp_cfg      = "/tftpboot/pxelinux.cfg"
-        tftp_images   = "/tftpboot/images"
-        
-
-        # hack to bundle jquery until we have packaging guidelines to avoid JS bundling
-        # bundling is evil, but temporary.
-
-        def file_slurper(arg, dirname, fnames):
-           # FIXME: shell glob would be simpler
-           for fn in fnames:
-               fn2 = os.path.join(dirname,fn)
-               if os.path.isfile(fn2):
-                   if not fn2 in arg:
-                       arg.append(fn2)
-               else:
-                   # don't recurse
-                   fnames.remove(fn)
- 
-        jui_files = []
-        jui_files2 = []
-        jui_files3 = []
-        jui_files4 = []
-        jui_files5 = []
-        os.path.walk("./webui_content/jquery.ui/ui", file_slurper, jui_files)
-        os.path.walk("./webui_content/jquery.ui/ui/i18n", file_slurper, jui_files2)
-        os.path.walk("./webui_content/jquery.ui/themes", file_slurper, jui_files3)
-        os.path.walk("./webui_content/jquery.ui/themes/flora", file_slurper, jui_files4)
-        os.path.walk("./webui_content/jquery.ui/themes/flora/i", file_slurper, jui_files5)
-        
         setup(
                 name="cobbler",
                 version = VERSION,
@@ -154,7 +132,6 @@ if __name__ == "__main__":
                 license = "GPL",
                 packages = [
                     "cobbler",
-                    "cobbler/yaml",
                     "cobbler/modules", 
                     "cobbler/server", 
                     "cobbler/webui",
@@ -192,6 +169,7 @@ if __name__ == "__main__":
                                 (libpath,  ['loaders/elilo-3.8-ia64.efi']),
                                 (libpath,  ['loaders/menu.c32']),
                                 (libpath,  ['loaders/yaboot-1.3.14']),
+                                (libpath,  ['loaders/zpxe.rexx']),
                                 
                                 # database/serializer
                                 (dbpath + "/distros.d",  []),
@@ -210,23 +188,30 @@ if __name__ == "__main__":
                                 # seed files for debian
                                 (kickpath,  ['kickstarts/sample.seed']),
  
-                                # templates for DHCP, DNS
+                                # templates for DHCP, DNS, TFTP
 				(etcpath,  ['templates/dhcp.template']),
 				(etcpath,  ['templates/dnsmasq.template']),
                                 (etcpath,  ['templates/named.template']),
                                 (etcpath,  ['templates/zone.template']),
+                                (etcpath,  ['templates/tftpd.template']),
+                                (etcpath,  ['templates/tftpd-rules.template']),
                                 
-                                # templates for syslinux PXE configs
+                                # templates for netboot configs
 				(pxepath,  ['templates/pxedefault.template']),
 				(pxepath,  ['templates/pxesystem.template']),
 				(pxepath,  ['templates/pxesystem_s390x.template']),
+				(pxepath,  ['templates/pxeprofile_s390x.template']),
+				(pxepath,  ['templates/s390x_conf.template']),
+				(pxepath,  ['templates/s390x_parm.template']),
 				(pxepath,  ['templates/pxesystem_ia64.template']),
 				(pxepath,  ['templates/pxesystem_ppc.template']),
 				(pxepath,  ['templates/pxeprofile.template']),
 				(pxepath,  ['templates/pxelocal.template']),
+				(pxepath,  ['templates/pxelocal_s390x.template']),
 
                                 # templates for power management
                                 (powerpath, ['templates/power_apc_snmp.template']), 
+                                (powerpath, ['templates/power_integrity.template']), 
                                 (powerpath, ['templates/power_ipmilan.template']),
                                 (powerpath, ['templates/power_bullpap.template']),     
                                 (powerpath, ['templates/power_ipmitool.template']),
@@ -236,10 +221,13 @@ if __name__ == "__main__":
                                 (powerpath, ['templates/power_wti.template']),
                                 (powerpath, ['templates/power_ilo.template']),
                                 (powerpath, ['templates/power_lpar.template']),        
-                                (powerpath, ['templates/power_bladecenter.template']),        
+                                (powerpath, ['templates/power_bladecenter.template']),
                                 (powerpath, ['templates/power_virsh.template']),        
 
-                                # templates for /usr/bin/cobbler-setup
+                                # templates for reporting
+                                (reppath,   ['templates/build_report_email.template']), 
+
+                                # templates for setup
                                 (itemplates, ['installer_templates/modules.conf.template']),
                                 (itemplates, ['installer_templates/settings.template']),
                                 (itemplates, ['installer_templates/defaults']),
@@ -256,7 +244,11 @@ if __name__ == "__main__":
                                 (snippetpath, ['snippets/func_register_if_enabled']),
                                 (snippetpath, ['snippets/download_config_files']),
                                 (snippetpath, ['snippets/koan_environment']),
+                                (snippetpath, ['snippets/pre_anamon']),
+                                (snippetpath, ['snippets/post_anamon']),
+                                (snippetpath, ['snippets/post_s390_reboot']),
                                 (snippetpath, ['snippets/redhat_register']),
+                                (snippetpath, ['snippets/cobbler_register']),
 
                                 # documentation
                                 (manpath,  ['docs/cobbler.1.gz']),
@@ -266,6 +258,7 @@ if __name__ == "__main__":
                                 (logpath2, []),
                                 (logpath3, []),
 				(logpath4, []),
+                                (logpath5, []),
 
                                 # web page directories that we own
                                 (vw_localmirror,    []),
@@ -279,13 +272,11 @@ if __name__ == "__main__":
                                 (vw_systems,        []),
                                 (vw_profiles,       []),
                                 (vw_links,          []),
+                                (vw_aux,            []),
 
                                 # zone-specific templates directory
                                 (zonepath,    []),
 
-                                # tftp directories that we own
-                                (tftp_cfg,          []),
-                                (tftp_images,       []),
 
                                 # Web UI templates for object viewing & modification
                                 # FIXME: other templates to add as they are created.
@@ -293,12 +284,18 @@ if __name__ == "__main__":
 
                                 (wwwtmpl,           ['webui_templates/empty.tmpl']),
                                 (wwwtmpl,           ['webui_templates/blank.tmpl']),
+                                (wwwtmpl,           ['webui_templates/search.tmpl']),
                                 (wwwtmpl,           ['webui_templates/enoaccess.tmpl']),
                                 (wwwtmpl,           ['webui_templates/distro_list.tmpl']),
                                 (wwwtmpl,           ['webui_templates/distro_edit.tmpl']),
                                 (wwwtmpl,           ['webui_templates/profile_list.tmpl']),
                                 (wwwtmpl,           ['webui_templates/profile_edit.tmpl']),
                                 (wwwtmpl,           ['webui_templates/system_list.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_netboot.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_rename.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_delete.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_profile.tmpl']),
+                                (wwwtmpl,           ['webui_templates/system_power.tmpl']),
                                 (wwwtmpl,           ['webui_templates/system_edit.tmpl']),
                                 (wwwtmpl,           ['webui_templates/repo_list.tmpl']),
                                 (wwwtmpl,           ['webui_templates/repo_edit.tmpl']),
@@ -306,6 +303,7 @@ if __name__ == "__main__":
                                 (wwwtmpl,           ['webui_templates/image_edit.tmpl']),
 
                                 # Web UI common templates 
+                                (wwwtmpl,           ['webui_templates/checkboxes.tmpl']),
                                 (wwwtmpl,           ['webui_templates/paginate.tmpl']),
                                 (wwwtmpl,           ['webui_templates/message.tmpl']),
                                 (wwwtmpl,           ['webui_templates/error_page.tmpl']),
@@ -332,6 +330,9 @@ if __name__ == "__main__":
                                 (wwwcon,            ['webui_content/logo-cobbler.png']),
                                 (wwwcon,            ['webui_content/cobblerweb.css']),
 
+                                # Anamon script
+                                (vw_aux,            ['aux/anamon.py', 'aux/anamon.init']),
+
                                 # Directories to hold cobbler triggers
                                 ("%s/add/distro/pre" % trigpath,      []),
                                 ("%s/add/distro/post" % trigpath,     []),
@@ -350,10 +351,10 @@ if __name__ == "__main__":
                                 ("%s/delete/repo/pre" % trigpath,     []),
                                 ("%s/delete/repo/post" % trigpath,    []),
                                 ("%s/delete/repo/post" % trigpath,    []),
-                                ("%s/install/pre" % trigpath,         [ "triggers/status_pre.trigger"]),
-                                ("%s/install/post" % trigpath,        [ "triggers/status_post.trigger"]),
+                                ("%s/install/pre" % trigpath,         []),
+                                ("%s/install/post" % trigpath,        []),
                                 ("%s/sync/pre" % trigpath,            []),
-                                ("%s/sync/post" % trigpath,           [ "triggers/restart-services.trigger" ])
+                                ("%s/sync/post" % trigpath,           [])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC

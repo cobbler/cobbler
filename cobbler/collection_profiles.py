@@ -58,13 +58,13 @@ class Profiles(collection.Collection):
                 kids = obj.get_children()
                 for k in kids:
                     if k.COLLECTION_TYPE == "profile":
-                        self.config.api.remove_profile(k, recursive=True)
+                        self.config.api.remove_profile(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers)
                     else:
-                        self.config.api.remove_system(k)
+                        self.config.api.remove_system(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers)
  
             if with_delete:
                 if with_triggers: 
-                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/profile/pre/*")
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/profile/pre/*")
                 if with_sync:
                     lite_sync = action_litesync.BootLiteSync(self.config)
                     lite_sync.remove_single_profile(name)
@@ -73,7 +73,12 @@ class Profiles(collection.Collection):
             if with_delete:
                 self.log_func("deleted profile %s" % name)
                 if with_triggers: 
-                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/profile/post/*")
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/profile/post/*")
+
+            if with_delete and not self.api.is_cobblerd:
+                self.api._internal_cache_update("profile", name, remove=True)
+
             return True
 
-        raise CX(_("cannot delete an object that does not exist: %s") % name)
+        #if not recursive:
+        #    raise CX(_("cannot delete an object that does not exist: %s") % name)

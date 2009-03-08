@@ -20,7 +20,7 @@ import xmlrpclib
 import cgi
 import os
 from cobbler.services import CobblerSvc
-import cobbler.yaml as yaml
+import yaml # PyYAML version
 import cobbler.utils as utils
 
 #=======================================
@@ -58,10 +58,8 @@ def handler(req):
        for t in tokens:
           if label:
              field = t
-             apache.log_error("field %s" % field)
           else:
              form[field] = t
-             apache.log_error("adding %s to %s" % (field,t))
           label = not label
 
     # TESTING..
@@ -74,7 +72,7 @@ def handler(req):
     fd = open("/etc/cobbler/settings")
     data = fd.read()
     fd.close()
-    ydata = yaml.load(data).next()
+    ydata = yaml.load(data)
     remote_port = ydata.get("xmlrpc_port",25151)
 
     # instantiate a CobblerWeb object

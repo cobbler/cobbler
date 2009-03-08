@@ -148,6 +148,13 @@ class Collection(serializable.Serializable):
     def copy(self,ref,newname):
         ref.name = newname
         ref.uid = self.config.generate_uid()
+        if ref.COLLECTION_TYPE == "system":
+            # this should only happen for systems
+            for iname in ref.interfaces.keys():
+                # clear all these out to avoid DHCP/DNS conflicts
+                ref.set_dns_name("",iname)
+                ref.set_mac_address("",iname)
+                ref.set_ip_address("",iname)
         return self.add(ref,save=True,with_copy=True,with_triggers=True,with_sync=True,check_for_duplicate_names=True,check_for_duplicate_netinfo=False)
 
     def rename(self,ref,newname,with_sync=True,with_triggers=True):
@@ -251,7 +258,7 @@ class Collection(serializable.Serializable):
             self.log_func("saving %s %s" % (self.collection_type(), ref.name))
             # failure of a pre trigger will prevent the object from being added
             if with_triggers:
-                self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
+                self._run_triggers(self.api, ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
             self.listing[ref.name.lower()] = ref
 
             # save just this item if possible, if not, save
@@ -277,17 +284,22 @@ class Collection(serializable.Serializable):
 
             # save the tree, so if neccessary, scripts can examine it.
             if with_triggers:
-                self._run_triggers(ref,"/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type())
-        
+                self._run_triggers(self.api, ref,"/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type())
+    
+    
         # update children cache in parent object
         parent = ref.get_parent()
         if parent != None:
             parent.children[ref.name] = ref
 
+        # signal remote cobblerd to update it's cache of this item.
+        if save and not self.api.is_cobblerd:
+           self.api._internal_cache_update(ref.COLLECTION_TYPE,ref.name)
+
         return True
 
-    def _run_triggers(self,ref,globber):
-        return utils.run_triggers(ref,globber)
+    def _run_triggers(self,api_handle,ref,globber):
+        return utils.run_triggers(api_handle,ref,globber)
 
     def __duplication_checks(self,ref,check_for_duplicate_names,check_for_duplicate_netinfo):
         """
@@ -307,6 +319,10 @@ class Collection(serializable.Serializable):
                 match = self.api.find_distro(ref.name)
             elif isinstance(ref, item_repo.Repo):
                 match = self.api.find_repo(ref.name)
+            elif isinstance(ref, item_image.Image):
+                match = self.api.find_image(ref.name)
+            else:
+                raise CX("internal error, unknown object type")
 
             if match:
                 raise CX(_("An object already exists with that name.  Try 'edit'?"))

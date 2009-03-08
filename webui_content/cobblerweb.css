@@ -40,11 +40,13 @@ tr.roweven { background-color: #3f3d3d; }
 table.sortable th {
     background-color: #363a4e;
     margin: 0;
+    white-space: nowrap;
 }
 
 table.sortable caption {
     background-color: #202331;
     margin: 0;
+    white-space: nowrap;
 }
 
 td.nicedit { background-color: #444444; }

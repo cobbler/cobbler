@@ -29,43 +29,54 @@
         <li><a href="/cobbler/webui/wui.html" class="menu">Docs</a></li>
         <li><a href="$base_url?mode=settings_view" class="menu">Settings</a></li>
         <li><hr/></li>
-        <li><a href="$base_url?mode=distro_list" class="menu">Distros</a></li>
-	    #if $mode == "distro_list"
+        <li><a class="menu">Distros</span></li>
+	    ##if $mode.find("distro") != -1
     	    <ul id="navaction">
+                <li><a href="$base_url?mode=distro_list" class="menu">View</a></li>
+        	<li><a href="$base_url?mode=distro_search" class="menu">Search</a></li>
         	<li><a href="$base_url?mode=distro_edit" class="menu">Add</a></li>
 	    </ul>
-	    #end if
-        <li><a href="$base_url?mode=profile_list" class="menu">Profiles</a></li>
-	    #if $mode == "profile_list"
+	    ##end if
+        <li><a class="menu">Profiles</span></li>
+	    ##if $mode.find("profile") != -1
     	    <ul id="navaction">
+                <li><a href="$base_url?mode=profile_list" class="menu">View</a></li>
+        	<li><a href="$base_url?mode=profile_search" class="menu">Search</a></li>
         	<li><a href="$base_url?mode=profile_edit" class="menu">Add</a></li>
     		<li><a href="$base_url?mode=subprofile_edit" class="menu">Add child</a></li>
 	    </ul>
-	    #end if	    
-        <li><a href="$base_url?mode=system_list" class="menu">Systems</a></li>
-	    #if $mode == "system_list"       
+	    ##end if	    
+        <li><a class="menu">Systems</span></li>
+	    ##if $mode.find("system") != -1
     	    <ul id="navaction">
-    		<li><a href="$base_url?mode=system_edit" class="menu">Add</a></li>
+                <li><a href="$base_url?mode=system_list" class="menu">View</a></li>
+        	<li><a href="$base_url?mode=system_search" class="menu">Search</a></li>
+    		<li><a href="$base_url?mode=system_edit_new" class="menu">Add</a></li>
 	    </ul>
-	    #end if	    
-        <li><a href="$base_url?mode=ksfile_list" class="menu">Kickstarts</a></li>
-	    #if $mode == "ksfile_list"
+	    ##end if	    
+        <li><a class="menu">Kickstarts</span></li>
+	    ##if $mode.find("ksfile") != -1
     	    <ul id="navaction">
+                <li><a href="$base_url?mode=ksfile_list" class="menu">View</a></li>
 	        <li><a href="$base_url?mode=ksfile_new" class="menu">Add</a></li>
 	    </ul>
-	    #end if	    
-        <li><a href="$base_url?mode=repo_list" class="menu">Repos</a></li>
-	    #if $mode == "repo_list"
+	    ##end if	    
+        <li><a class="menu">Repos</span></li>
+	    ##if $mode.find("repo") != -1
     	    <ul id="navaction">
+                <li><a href="$base_url?mode=repo_list" class="menu">View</a></li>
+        	<li><a href="$base_url?mode=repo_search" class="menu">Search</a></li>
 	        <li><a href="$base_url?mode=repo_edit" class="menu">Add</a></li>
 	    </ul>
-	    #end if	    
-        <li><a href="$base_url?mode=image_list" class="menu">Images</a></li>
-	    #if $mode == "image_list"
+	    ##end if	    
+        <li><a class="menu">Images</span></li>
+	    ##if $mode.find("image") != -1
     	    <ul id="navaction">
+                <li><a href="$base_url?mode=image_list" class="menu">View</a></li>
+        	<li><a href="$base_url?mode=image_search" class="menu">Search</a></li>
 	        <li><a href="$base_url?mode=image_edit" class="menu">Add</a></li>
 	    </ul>
-	    #end if	    
+	    ##end if	    
         <li><hr/><br/></li>
         <li><a class="button sync" href="$base_url?mode=sync">Sync</a></li>
     </ul>

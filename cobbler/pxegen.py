@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import os.path
 import shutil
+import shlex
 import time
 import sys
 import glob
@@ -64,6 +65,7 @@ class PXEGen:
         self.images      = config.images()
         self.templar     = templar.Templar(config)
         self.bootloc     = utils.tftpboot_location()
+        self.verbose     = False
 
     def copy_bootloaders(self):
         """
@@ -75,27 +77,27 @@ class PXEGen:
 
         # copy syslinux from one of two locations
         try:
-            utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',   dst, api=self.api)
+            utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',   dst, api=self.api, verbose=self.verbose)
         except:
-            utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0', dst, api=self.api)
+            utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0', dst, api=self.api, verbose=self.verbose)
  
         # copy memtest only if we find it
-        utils.copyfile_pattern('/boot/memtest*', dst, require_match=False, api=self.api)
+        utils.copyfile_pattern('/boot/memtest*', dst, require_match=False, api=self.api, verbose=self.verbose)
   
         # copy elilo which we include for IA64 targets
-        utils.copyfile_pattern('/var/lib/cobbler/elilo-3.8-ia64.efi', dst, api=self.api)
+        utils.copyfile_pattern('/var/lib/cobbler/elilo-3.8-ia64.efi', dst, api=self.api, verbose=self.verbose)
  
         # copy menu.c32 as the older one has some bugs on certain RHEL
-        utils.copyfile_pattern('/var/lib/cobbler/menu.c32', dst, api=self.api)
+        utils.copyfile_pattern('/var/lib/cobbler/menu.c32', dst, api=self.api, verbose=self.verbose)
 
         # copy yaboot which we include for PowerPC targets
-        utils.copyfile_pattern('/var/lib/cobbler/yaboot-1.3.14', dst, api=self.api)
+        utils.copyfile_pattern('/var/lib/cobbler/yaboot-1.3.14', dst, api=self.api, verbose=self.verbose)
 
         # copy memdisk as we need it to boot ISOs
         try:
-            utils.copyfile_pattern('/usr/lib/syslinux/memdisk',   dst, api=self.api)
+            utils.copyfile_pattern('/usr/lib/syslinux/memdisk',   dst, api=self.api, verbose=self.verbose)
         except:
-            utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst, api=self.api)
+            utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst, api=self.api, verbose=self.verbose)
 
 
     def copy_distros(self):
@@ -114,14 +116,14 @@ class PXEGen:
             if d.breed == "windows":
                continue
             try:
+                if self.verbose:
+                   print "- copying files for distro: %s" % d.name
                 self.copy_single_distro_files(d)
             except CX, e:
                 errors.append(e)
                 print e.value
 
         # FIXME: using logging module so this ends up in cobbler.log?
-        if len(errors) > 0:
-            raise CX(_("Error(s) encountered while copying distro files"))
 
     def copy_images(self):
         """
@@ -130,14 +132,14 @@ class PXEGen:
         errors = list()
         for i in self.images:
             try:
+                if self.verbose:
+                   print "- copying files for image: %s" % i.name
                 self.copy_single_image_files(i)
             except CX, e:
                 errors.append(e)
                 print e.value
 
         # FIXME: using logging module so this ends up in cobbler.log?
-        if len(errors) > 0:
-            raise CX(_("Error(s) encountered while copying image files"))
 
     def copy_single_distro_files(self, d):
         for dirtree in [self.bootloc, self.settings.webdir]: 
@@ -157,8 +159,9 @@ class PXEGen:
                 allow_symlink=True
             dst1 = os.path.join(distro_dir, b_kernel)
             dst2 = os.path.join(distro_dir, b_initrd)
-            utils.linkfile(kernel, dst1, symlink_ok=allow_symlink, api=self.api)
-            utils.linkfile(initrd, dst2, symlink_ok=allow_symlink, api=self.api)
+            utils.linkfile(kernel, dst1, symlink_ok=allow_symlink, api=self.api, verbose=self.verbose)
+
+            utils.linkfile(initrd, dst2, symlink_ok=allow_symlink, api=self.api, verbose=self.verbose)
 
     def copy_single_image_files(self, img):
         images_dir = os.path.join(self.bootloc, "images2")
@@ -170,10 +173,154 @@ class PXEGen:
             os.makedirs(images_dir)
         basename = os.path.basename(img.file)
         newfile = os.path.join(images_dir, img.name)
-        utils.linkfile(filename, newfile, api=self.api)
+        utils.linkfile(filename, newfile, api=self.api, verbose=self.verbose)
         return True
 
     def generate_windows_files(self):
+        utils.mkdir("/tftpboot/profiles")
+        for p in self.profiles:
+            distro = p.get_conceptual_parent()
+            if distro and distro.breed != "windows":
+                continue
+            else:
+                self.generate_windows_profile_pxe(p)
+        utils.mkdir("/tftpboot/systems")
+        for s in self.systems:
+            profile = s.get_conceptual_parent()
+            if profile:
+                distro = profile.get_conceptual_parent()
+                if distro and distro.breed != "windows":
+                    continue
+                else:
+                    self.generate_windows_system_pxe(s)
+
+    def generate_windows_profile_pxe(self, profile):
+        distro = profile.get_conceptual_parent()
+
+        dest_dir = os.path.join("/tftpboot/profiles", profile.name)
+        utils.mkdir(dest_dir)
+
+        utils.cabextract(distro.kernel, dest_dir, self.api)
+
+        src_file = os.path.join(dest_dir, "startrom.n12")
+        dest_file = os.path.join(dest_dir, "winpxe.0")
+        cmd = [ "/bin/sed", "-i", "-e", "s/ntldr/L%s/gi" % profile.random_id, src_file ]
+        sub_process.call(cmd, shell=False, close_fds=False)
+        os.rename(src_file, dest_file)
+
+        utils.cabextract(distro.initrd, dest_dir, self.api)
+       
+        src_file = os.path.join(dest_dir, "setupldr.exe")
+        dest_file = os.path.join(dest_dir, "NTLDR")
+        cmd = [ "/bin/sed", "-i", "-e", "s/winnt\\.sif/w%s.sif/gi" % profile.random_id, src_file ]
+        sub_process.call(cmd, shell=False, close_fds=False)
+        cmd = [ "/bin/sed", "-i", "-e", "s/ntdetect\\.com/ntd_%s.com/gi" % profile.random_id, src_file ]
+        sub_process.call(cmd, shell=False, close_fds=False)
+        os.rename(src_file, dest_file)
+
+        src_dir = os.path.dirname(distro.kernel)
+        src_file = os.path.join(src_dir, "ntdetect.com")
+        file_name = os.path.join(dest_dir, "ntdetect.com")
+        utils.copyfile(src_file, file_name, self.api)
+ 
+        template = profile.kickstart
+        fd = open(template, "r")
+        template_data = fd.read()
+        fd.close()
+
+        blended = utils.blender(self.api, False, profile)
+        blended['next_server'] = self.settings.next_server
+
+        ksmeta = blended.get("ks_meta",{})
+        del blended["ks_meta"]
+        blended.update(ksmeta) # make available at top level
+
+        # this is a workaround for a dumb bug in cheetah...
+        # a backslash before a variable is always treated as 
+        # escaping the $, so things are not rendered correctly.
+        # The only option is to use another variable for
+        # backslashes when leading another variable. i.e.:
+        # \\$variable
+        blended['bsp'] = '\\'
+
+        data = self.templar.render(template_data, blended, None)
+
+        # write .sif to /tftpboot/profiles/$name/winnt.sif
+        file_name = os.path.join(dest_dir, "winnt.sif")
+        fd = open(file_name, "w")
+        fd.write(data)
+        fd.close()
+
+        return True
+
+    def generate_windows_system_pxe(self, system):
+        profile = system.get_conceptual_parent()
+        if not profile:
+            return False
+
+        distro = profile.get_conceptual_parent()
+
+        dest_dir = os.path.join("/tftpboot/systems", system.name)
+        utils.mkdir(dest_dir)
+
+        utils.cabextract(distro.kernel, dest_dir, self.api)
+
+        src_file = os.path.join(dest_dir, "startrom.n12")
+        dest_file = os.path.join(dest_dir, "winpxe.0")
+        cmd = [ "/bin/sed", "-i", "-e", "s/ntldr/L%s/gi" % system.random_id, src_file ]
+        sub_process.call(cmd, shell=False, close_fds=False)
+        os.rename(src_file, dest_file)
+
+        utils.cabextract(distro.initrd, dest_dir, self.api)
+
+        src_file = os.path.join(dest_dir, "setupldr.exe")
+        dest_file = os.path.join(dest_dir, "NTLDR")
+        cmd = [ "/bin/sed", "-i", "-e", "s/winnt\\.sif/w%s.sif/gi" % system.random_id, src_file ]
+        sub_process.call(cmd, shell=False, close_fds=False)
+        cmd = [ "/bin/sed", "-i", "-e", "s/ntdetect\\.com/ntd_%s.com/gi" % system.random_id, src_file ]
+        sub_process.call(cmd, shell=False, close_fds=False)
+        os.rename(src_file, dest_file)
+
+        src_dir = os.path.dirname(distro.kernel)
+        src_file = os.path.join(src_dir, "ntdetect.com")
+        file_name = os.path.join(dest_dir, "ntdetect.com")
+        utils.copyfile(src_file, file_name, self.api)
+
+        template = system.kickstart
+        if template == "<<inherit>>":
+            template = profile.kickstart
+
+        fd = open(template, "r")
+        template_data = fd.read()
+        fd.close()
+
+        blended = utils.blender(self.api, False, system)
+        blended['next_server'] = self.settings.next_server
+
+        ksmeta = blended.get("ks_meta",{})
+        del blended["ks_meta"]
+        blended.update(ksmeta) # make available at top level
+
+        # this is a workaround for a dumb bug in cheetah...
+        # a backslash before a variable is always treated as
+        # escaping the $, so things are not rendered correctly.
+        # The only option is to use another variable for
+        # backslashes when leading another variable. i.e.:
+        # \\$variable
+        blended['bsp'] = '\\'
+
+        data = self.templar.render(template_data, blended, None)
+
+        # write .sif to /tftpboot/systems/$name/winnt.sif
+        file_name = os.path.join(dest_dir, "winnt.sif")
+        fd = open(file_name, "w")
+        fd.write(data)
+        fd.close()
+
+        return True
+
+    def generate_windows_files(self):
+        # FIXME: hard coding of /tftpboot here is wrong
         utils.mkdir("/tftpboot/profiles")
         for p in self.profiles:
             distro = p.get_conceptual_parent()
@@ -331,8 +478,35 @@ class PXEGen:
                image_based = True
                image = profile
 
-        # this used to just generate a single PXE config file, but now must
-        # generate one record for each described NIC ...
+        # hack: s390 generates files per system not per interface
+        if not image_based and distro.arch.startswith("s390"):
+            # Always write a system specific _conf and _parm file
+            f2 = os.path.join(self.bootloc, "s390x", "s_%s" % system.name)
+            cf = "%s_conf" % f2
+            pf = "%s_parm" % f2
+            template_cf = open("/etc/cobbler/pxe/s390x_conf.template")
+            template_pf = open("/etc/cobbler/pxe/s390x_parm.template")
+            blended = utils.blender(self.api, True, system)
+            self.templar.render(template_cf, blended, cf)
+            # FIXME: profiles also need this data!
+            # FIXME: the _conf and _parm files are limited to 80 characters in length 
+            kickstart_path = "http://%s/cblr/svc/op/ks/system/%s" % (blended["http_server"], system.name)
+            # gather default kernel_options and default kernel_options_s390x
+            kopts = blended.get("kernel_options","")
+            hkopts = shlex.split(utils.hash_to_string(kopts))
+            blended["kickstart_expanded"] = "ks=%s" % kickstart_path
+            blended["kernel_options"] = hkopts
+            self.templar.render(template_pf, blended, pf)
+
+            # Write system specific zPXE file
+            if system.is_management_supported():
+                self.write_pxe_file(f2,system,profile,distro,distro.arch)
+            else:
+                # ensure the file doesn't exist
+                utils.rmfile(f2)
+            return
+
+        # generate one record for each described NIC ..
  
         for (name,interface) in system.interfaces.iteritems():
 
@@ -345,8 +519,8 @@ class PXEGen:
             else:
                 working_arch = distro.arch
 
-            if working_arch is None or working_arch == "":
-                working_arch = "x86"
+            if working_arch is None:
+                raise "internal error, invalid arch supplied"
 
             # for tftp only ...
             if working_arch in [ "i386", "x86", "x86_64", "standard"]:
@@ -370,10 +544,6 @@ class PXEGen:
                 if os.path.lexists(f3):
                     utils.rmfile(f3)
                 os.symlink("../yaboot-1.3.14", f3)
-
-            elif working_arch == "s390x":
-                filename = "%s" % utils.get_config_filename(system,interface=name)
-                f2 = os.path.join(self.bootloc, "s390x", filename)
             else:
                 continue 
 
@@ -405,18 +575,27 @@ class PXEGen:
             distro = profile.get_conceptual_parent()
             if distro is None:
                 raise CX(_("profile is missing distribution: %s, %s") % (profile.name, profile.distro))
-            if distro.arch == "s390x":
+            if distro.arch.startswith("s390"):
                 listfile.write("%s\n" % profile.name)
-            f2 = os.path.join(self.bootloc, "s390x", profile.name)
-            self.write_pxe_file(f2,None,profile,distro,distro.arch)
-        listfile2 = open(os.path.join(s390path, "image_list"),"w+")
-        for image in image_list:
-            if os.path.exists(image.file):
-                listfile2.write("%s\n" % image.name)
-            f2 = os.path.join(self.bootloc, "s390x", image.name)
-            self.write_pxe_file(f2,None,None,None,image.arch,image=image)
+                f2 = os.path.join(self.bootloc, "s390x", "p_%s" % profile.name)
+                self.write_pxe_file(f2,None,profile,distro,distro.arch)
+                cf = "%s_conf" % f2
+                pf = "%s_parm" % f2
+                template_cf = open("/etc/cobbler/pxe/s390x_conf.template")
+                template_pf = open("/etc/cobbler/pxe/s390x_parm.template")
+                blended = utils.blender(self.api, True, profile)
+                self.templar.render(template_cf, blended, cf)
+                # FIXME: profiles also need this data!
+                # FIXME: the _conf and _parm files are limited to 80 characters in length 
+                kickstart_path = "http://%s/cblr/svc/op/ks/profile/%s" % (blended["http_server"], profile.name)
+                # gather default kernel_options and default kernel_options_s390x
+                kopts = blended.get("kernel_options","")
+                hkopts = shlex.split(utils.hash_to_string(kopts))
+                blended["kickstart_expanded"] = "ks=%s" % kickstart_path
+                blended["kernel_options"] = hkopts
+                self.templar.render(template_pf, blended, pf)
+
         listfile.close()
-        listfile2.close()
 
     def make_actual_pxe_menu(self):
         # only do this if there is NOT a system named default.
@@ -448,7 +627,7 @@ class PXEGen:
                continue
             distro = profile.get_conceptual_parent()
             # xen distros can be ruled out as they won't boot
-            if distro.name.find("-xen") != -1:
+            if distro.name.find("-xen") != -1 or distro.arch not in ["i386", "x86_64"]:
                 # can't PXE Xen
                 continue
             contents = self.write_pxe_file(None,None,profile,distro,distro.arch,include_header=False)
@@ -524,6 +703,9 @@ class PXEGen:
         more details
         """
 
+        if arch is None:
+            raise "missing arch"
+
         if image and not os.path.exists(image.file):
             return None  # nfs:// URLs or something, can't use for TFTP
 
@@ -539,9 +721,10 @@ class PXEGen:
         initrd_path = None
 
         if image is None: 
-            # profile or system+profile based, not image based, or system+image based
+            # not image based, it's something normalish
 
             if distro is not None and distro.breed == "windows":
+                # this is to support linux-ris
                 if system:
                     kernel_path = "systems/%s/winpxe.0" % system.name
                 elif profile:
@@ -551,8 +734,14 @@ class PXEGen:
                 initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
         
             # Find the kickstart if we inherit from another profile
-            kickstart_path = utils.blender(self.api, True, profile)["kickstart"]
+            if system:
+	        blended = utils.blender(self.api, True, system)
+            else:
+                blended = utils.blender(self.api, True, profile)
+            kickstart_path = blended["kickstart"]
+            
         else:
+            # this is an image we are making available, not kernel+initrd
             if image.image_type == "direct":
                 kernel_path = os.path.join("/images2",image.name)
             elif image.image_type == "memdisk":
@@ -571,19 +760,18 @@ class PXEGen:
                 else:
                     template = os.path.join(self.settings.pxe_template_dir,"pxesystem.template")
     
-                if arch == "s390x":
-                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_s390x.template")
-                elif arch == "ia64":
-                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ia64.template")
-                elif arch.startswith("ppc"):
-                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ppc.template")
+                    if arch.startswith("s390"):
+                        template = os.path.join(self.settings.pxe_template_dir,"pxesystem_s390x.template")
+                    elif arch == "ia64":
+                        template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ia64.template")
+                    elif arch.startswith("ppc"):
+                        template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ppc.template")
             else:
                 # local booting on ppc requires removing the system-specific dhcpd.conf filename
                 if arch is not None and arch.startswith("ppc"):
                     # Disable yaboot network booting for all interfaces on the system
                     for (name,interface) in system.interfaces.iteritems():
 
-                        # Determine filename for system-specific yaboot.conf
                         filename = "%s" % utils.get_config_filename(system, interface=name).lower()
 
                         # Remove symlink to the yaboot binary
@@ -599,14 +787,19 @@ class PXEGen:
                     # Yaboot/OF doesn't support booting locally once you've
                     # booted off the network, so nothing left to do
                     return None
+                elif arch is not None and arch.startswith("s390"):
+                    template = os.path.join(self.settings.pxe_template_dir,"pxelocal_s390x.template")
                 else:
                     template = os.path.join(self.settings.pxe_template_dir,"pxelocal.template")
         else:
+            # not a system record, so this is a profile record
+
             if distro is not None and distro.breed == "windows":
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_win.template")
+            elif arch.startswith("s390"):
+                template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_s390x.template")
             else:
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile.template")
-
 
         # now build the kernel command line
         if system is not None:
@@ -624,15 +817,18 @@ class PXEGen:
         else:
             append_line = "append %s" % hkopts
 
+        # FIXME - the append_line length limit is architecture specific
         if len(append_line) >= 255 + len("append "):
             print _("warning: kernel option length exceeds 255")
 
         # kickstart path rewriting (get URLs for local files)
         if kickstart_path is not None and kickstart_path != "":
 
+            # FIXME: need to make shorter rewrite rules for these URLs
+
             if system is not None and kickstart_path.startswith("/"):
                 kickstart_path = "http://%s/cblr/svc/op/ks/system/%s" % (blended["http_server"], system.name)
-            elif kickstart_path.startswith("/") or kickstart_path.find("/cobbler/kickstarts/") != -1:
+            elif kickstart_path.startswith("/"):
                 kickstart_path = "http://%s/cblr/svc/op/ks/profile/%s" % (blended["http_server"], profile.name)
 
             if distro.breed is None or distro.breed == "redhat":
@@ -644,14 +840,14 @@ class PXEGen:
             # interface=bootif causes a failure
             #    append_line = append_line.replace("ksdevice","interface")
 
-        if arch in ["s390x", "ppc", "ppc64"]:
+        if arch.startswith("ppc") or arch.startswith("s390"):
             # remove the prefix "append"
             append_line = append_line[7:]
 
         # store variables for templating
         metadata["menu_label"] = ""
         if profile:
-            if not arch in [ "ia64", "ppc", "ppc64", "s390x" ]:
+            if not arch in [ "ia64", "ppc", "ppc64", "s390", "s390x" ]:
                 metadata["menu_label"] = "MENU LABEL %s" % profile.name
                 metadata["profile_name"] = profile.name
         elif image:
@@ -706,9 +902,14 @@ class PXEGen:
            return results
 
         blended = utils.blender(self.api, False, obj)
+
         ksmeta = blended.get("ks_meta",{})
         del blended["ks_meta"]
         blended.update(ksmeta) # make available at top level
+
+        templates = blended.get("template_files",{})
+        del blended["template_files"]
+        blended.update(templates) # make available at top level
 
         (success, templates) = utils.input_string_or_hash(templates)
 
@@ -718,7 +919,9 @@ class PXEGen:
 
         for template in templates.keys():
             dest = templates[template]
-            
+            if dest is None:
+               continue
+ 
             # Run the source and destination files through 
             # templar first to allow for variables in the path 
             template = self.templar.render(template, blended, None).strip()

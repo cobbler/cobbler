@@ -32,13 +32,14 @@ import utils
 
 class Templar:
 
-    def __init__(self,config):
+    def __init__(self,config=None):
         """
         Constructor
         """
-        self.config      = config
-        self.api         = config.api
-        self.settings    = config.settings()
+        if config is not None:
+            self.config      = config
+            self.api         = config.api
+            self.settings    = config.settings()
 
     def check_for_invalid_imports(self,data):
         """
@@ -130,11 +131,12 @@ class Templar:
         search_table["http_server"] = repstr
 
         for x in search_table.keys():
-           data_out = data_out.replace("@@%s@@" % str(x), str(search_table[str(x)]))
+           if type(x) == str:
+               data_out = data_out.replace("@@%s@@" % str(x), str(search_table[str(x)]))
  
         # remove leading newlines which apparently breaks AutoYAST ?
         if data_out.startswith("\n"):
-            data_out = data_out.strip() 
+            data_out = data_out.lstrip()
 
         if out_path is not None:
             utils.mkdir(os.path.dirname(out_path))

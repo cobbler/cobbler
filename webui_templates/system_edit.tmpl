@@ -120,12 +120,6 @@ function on_interface_delete()
    selected = get_selected_interface()
    interfaces = document.getElementById("interfaces")
 
-
-   if (interfaces.value == no_delete) {
-      alert("the default interface cannot be deleted")
-      return
-   }
-   
    if (interfaces.length == 1) {
       alert("systems must always have at least one interface")
       return
@@ -320,6 +314,7 @@ function on_form_submit()
         }
     }
     document.getElementById("interface_list").value = listing
+    document.getElementById("name").disabled= false
     document.myform.submit()
 }
 #end raw
@@ -328,7 +323,6 @@ function page_onload() {
     interface_table = build_interface_table()
     last_interface = get_selected_interface()
     load_intf()
-    no_delete = "eth0"
 }
 </script>
 
@@ -343,16 +337,14 @@ function page_onload() {
 <fieldset id="cform">
 
     <input name="interface_list" type="hidden" value="" id="interface_list"/>
-   
-    #if $system
-        <input type="hidden" name="new_or_edit" value="edit"/>
-        <input type="hidden" name="oldname" value="$system.name"/>
+    <input type="hidden" name="editmode" value="$editmode"/>
+    
+    #if $editmode == "new"   
+        <legend>Add a System</legend>
     #else
-        <input type="hidden" name="new_or_edit" value="new"/>
+        <legend>Edit a System</legend>
     #end if
-
-    <legend>Edit a System</legend>
-
+    
     <table border=0>
 
     <tr>
@@ -360,34 +352,14 @@ function page_onload() {
     <label for="name">System Name</label>
     </td>
     <td>
-    #if $system
-    <input type="text" size="128" style="width: 150px;" name="name" id="name" disabled="true"
-    #else
     <input type="text" size="128" style="width: 150px;" name="name" id="name"
+    #if $editmode == "edit"
+        value="$system.name" disabled="true"
     #end if
-        #if $system
-            value="$system.name"
-        #end if
     />
     <p class="context-tip">Example: vanhalen</p>
     </td>
     </tr>
-
-    #if $system
-    <tr>
-    <td>
-    <label for="mode">Edit Mode</label>
-    </td>
-    <td>
-    <input type="radio" name="editmode" value="edit" checked onclick="javascript:disablename(true)">Edit
-    <input type="radio" name="editmode" value="rename" onclick="javascript:disablename(false)">Rename + Edit
-    <input type="radio" name="editmode" value="copy" onclick="javascript:disablename(false)">Copy + Edit
-    <p class="context-tip">How do you want to modify this object?</p>
-    </td>
-    </tr>
-    #else
-    <input type="hidden" name="editmode" value="new"/>
-    #end if
 
     #if $system
     <tr>
@@ -538,11 +510,26 @@ redhatmanagementkey"
 
     <tr>
     <td>
+    <label for="redhatmanagementserver">Management Server</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="redhatmanagementserver" id="
+redhatmanagementserver"
+        #if $system
+            value="$system.redhat_management_server"
+        #end if
+    />
+    <p class="context-tip">RHN, Satellite, or Spacewalk server</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
     <label for="owners">Access Allowed For</label>
     </td>
     <td>
     #if $system
-       #set ownerslist = ','.join($system.owners)
+       #set ownerslist = ' '.join($system.owners)
     #end if
     <input type="text" size="255" style="width: 400px;" name="owners" id="owners"
         #if $system
@@ -551,7 +538,7 @@ redhatmanagementkey"
             value="$user"
         #end if
     />
-    <p class="context-tip">Applies only if using authz_ownership module, comma-delimited</p>
+    <p class="context-tip">Applies only if using authz_ownership module, space delimited</p>
     </td>
     </tr>
 
@@ -561,9 +548,9 @@ redhatmanagementkey"
         </td>
         <td class="netedit">
         #if $system
-            <input type="text" size="64" style="width: 150px;" name="hostname" id="hostname" value="$system.hostname" />
+            <input type="text" size="64" style="width: 200px;" name="hostname" id="hostname" value="$system.hostname" />
         #else
-            <input type="text" size="64" style="width: 150px;" name="hostname" id="hostname" />
+            <input type="text" size="64" style="width: 200px;" name="hostname" id="hostname" />
         #end if
         <p class="context-tip">Ex: "vanhalen.example.org".  Used for /etc/sysconfig/network.</p>
         </td>
@@ -590,12 +577,42 @@ redhatmanagementkey"
     </td>
     <td class="netedit">
     #if $system
-       #set joined = " ".join($profile.name_servers)
-       <input type="text" name="name_servers" id="name_servers" value="$joined">
+       #set joined = " ".join($system.name_servers)
+       <input type="text" size="255" style="width: 400px;" name="name_servers" id="name_servers" value="$joined" />
     #else
-       <input type="text" name="name_servers" id="name_servers" value="<<inherit>>">
+       <input type="text" size="255" style="width: 400px;" name="name_servers" id="name_servers" value="<<inherit>>" />
     #end if
     <p class="context-tip">Name servers, space delimited, if not provided by DHCP</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td class="netedit">
+    <label for="name_servers_search">Name Servers Search Path</label>
+    </td>
+    <td class="netedit">
+    #if $system
+       #set joined = " ".join($system.name_servers_search)
+       <input type="text" size="255" style="width: 400px;" name="name_servers_search" id="name_servers_search" value="$joined" />
+    #else
+       <input type="text" size="255" style="width: 400px;" name="name_servers_search" id="name_servers_search" value="<<inherit>>" />
+    #end if
+    <p class="context-tip">Name servers search path, space delimited, if not provided by DHCP</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td class="netedit">
+    <label for="mgmt_classes">Management Classes</label>
+    </td>
+    <td class="netedit">
+    #if $system
+       #set joined = " ".join($system.mgmt_classes)
+       <input type="text" size="255" style="width: 400px;" name="mgmt_classes" id="mgmt_classes" value="$joined" />
+    #else
+       <input type="text" size="255" style="width: 400px;" name="mgmt_classes" id="mgmt_classes" value="" />
+    #end if
+    <p class="context-tip">Management classes (space delimited) for use with external configuration management system.</p>
     </td>
     </tr>
 
@@ -705,7 +722,7 @@ redhatmanagementkey"
     </td>
     <td class="poweredit">
     <select name="power_type" id="power_type">
-        #set valid_power = [ "bullpap", "wti", "apc_snmp", "ether-wake", "ipmilan", "drac", "ipmitool", "ilo", "rsa", "lpar", "bladecenter", "virsh" ]
+        #set valid_power = [ "bullpap", "wti", "apc_snmp", "ether-wake", "ipmilan", "drac", "ipmitool", "ilo", "rsa", "lpar", "bladecenter", "virsh" ,"integrity"]
         #set nothing = valid_power.sort()
 
         #for $value in $valid_power:
@@ -968,19 +985,6 @@ redhatmanagementkey"
     <hr width="95%"/>
     </td>
     </tr>
-
-    #if $system and $editable == True
-    <tr>
-    <td>
-    <label for="delete">Delete</label>
-    </td>
-    <td>
-       <input type="checkbox" name="delete1" value="delete1">Yes
-       <input type="checkbox" name="delete2" value="delete2">Really
-    <p class="context-tip">Check both buttons and click save to delete this object</p>
-    </td>
-    </tr>
-    #end if
 
     #if $editable == True
     <tr>

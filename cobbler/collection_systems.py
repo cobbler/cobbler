@@ -52,7 +52,7 @@ class Systems(collection.Collection):
 
             if with_delete:
                 if with_triggers: 
-                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/system/pre/*")
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/system/pre/*")
                 if with_sync:
                     lite_sync = action_litesync.BootLiteSync(self.config)
                     lite_sync.remove_single_system(name)
@@ -61,9 +61,13 @@ class Systems(collection.Collection):
             if with_delete:
                 self.log_func("deleted system %s" % name)
                 if with_triggers: 
-                    self._run_triggers(obj, "/var/lib/cobbler/triggers/delete/system/post/*")
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/system/post/*")
+
+            if with_delete and not self.api.is_cobblerd:
+                self.api._internal_cache_update("system", name, remove=True)
 
             return True
-        
-        raise CX(_("cannot delete an object that does not exist: %s") % name)
+       
+        #if not recursive: 
+        #    raise CX(_("cannot delete an object that does not exist: %s") % name)
      

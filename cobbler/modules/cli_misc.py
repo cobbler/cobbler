@@ -21,7 +21,7 @@ mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
 from utils import _
-import commands
+import cobbler.commands as commands
 from cexceptions import *
 HELP_FORMAT = commands.HELP_FORMAT
 
@@ -63,7 +63,7 @@ class CheckFunction(commands.CobblerFunction):
         if len(status) == 0:
             self.logprint(fd,"No setup problems found")
              
-            self.logprint(fd,"Manual review and editing of /var/lib/cobbler/settings is recommended to tailor cobbler to your particular configuration.")
+            self.logprint(fd,"Manual review and editing of /etc/cobbler/settings is recommended to tailor cobbler to your particular configuration.")
             self.logprint(fd,"Good luck.")
             return True
         else:
@@ -172,7 +172,10 @@ class StatusFunction(commands.CobblerFunction):
 ########################################################
 
 class SyncFunction(commands.CobblerFunction):
-
+    
+    def add_options(self, p, args):
+        p.add_option("--verbose", dest="verbose", action="store_true", help="run sync with more output")
+     
     def help_me(self):
         return HELP_FORMAT % ("cobbler sync","")
 
@@ -180,7 +183,7 @@ class SyncFunction(commands.CobblerFunction):
         return "sync"
 
     def run(self):
-        return self.api.sync()
+        return self.api.sync(verbose=self.options.verbose)
 
 ########################################################
 
@@ -222,6 +225,9 @@ class BuildIsoFunction(commands.CobblerFunction):
         p.add_option("--profiles", dest="profiles", help="(OPTIONAL) use these profiles only")
         p.add_option("--systems",  dest="systems",  help="(OPTIONAL) use these systems only")
         p.add_option("--tempdir",  dest="tempdir",  help="(OPTIONAL) working directory")
+        p.add_option("--distro",   dest="distro",   help="(OPTIONAL) used with --standalone to create a distro-based ISO including all associated profiles/systems")
+        p.add_option("--standalone", dest="standalone", action="store_true", help="(OPTIONAL) creates a standalone ISO with all required distro files on it")
+        p.add_option("--source",   dest="source",   help="(OPTIONAL) used with --standalone to specify a source for the distribution files")
 
     def help_me(self):
        return HELP_FORMAT % ("cobbler buildiso","[ARGS]")
@@ -234,7 +240,10 @@ class BuildIsoFunction(commands.CobblerFunction):
            iso=self.options.isoname,
            profiles=self.options.profiles,
            systems=self.options.systems,
-           tempdir=self.options.tempdir
+           tempdir=self.options.tempdir,
+           distro=self.options.distro,
+           standalone=self.options.standalone,
+           source=self.options.source
        )
 
 ########################################################

@@ -3,32 +3,26 @@
 prefix=devinstall
 statepath=/tmp/cobbler_settings/$(prefix)
 
-all: clean rpms
+all: clean build
 
 clean:
-	-rm -f pod2htm*.tmp
 	-rm -f cobbler*.gz cobbler*.rpm MANIFEST
-	-rm -rf cobbler-* dist build
-	-rm -rf *~
-	-rm -rf rpm-build/
-	#-rm -f docs/cobbler.1.gz
-	#-rm -f docs/cobbler.html
-	#-rm -f po/messages.pot*
-	-rm -f cobbler/*.pyc
-	-rm -f cobbler/yaml/*.pyc
-	-rm -f cobbler/webui/master.py
-	-rm -f config/modules.conf config/settings config/version
-	-rm -f docs/cobbler.1.gz docs/cobbler.html
+	-rm -rf cobbler-* dist build rpm-build
+	-rm -f *~
+	-rm -f cobbler/*.pyc cobbler/yaml/*.pyc
+	-rm -f cobbler/webui/master.py config/modules.conf config/settings config/version
+	-rm -f docs/cobbler.1.gz docs/cobbler.html pod2htm*.tmp
 
 manpage:
 	pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz
 	pod2html ./docs/cobbler.pod > ./docs/cobbler.html
- 
-test: 
+
+test:
 	make savestate prefix=test
 	make rpms
 	make install
 	make eraseconfig
+	/sbin/service cobblerd restart
 	-(make nosetests)
 	make restorestate prefix=test
 
@@ -42,9 +36,12 @@ build: manpage updatewui
 install: manpage updatewui
 	python setup.py install -f
 
-devinstall: 
-	make savestate 
-	make install 
+debinstall: manpage updatewui
+	python setup.py install -f --root $(DESTDIR)
+
+devinstall:
+	make savestate
+	make install
 	make restorestate
 
 savestate:
@@ -67,7 +64,7 @@ restorestate:
 	cp $(statepath)/users.digest /etc/cobbler/users.digest
 	cp $(statepath)/http.conf /etc/httpd/conf.d/cobbler.conf
 	find /var/lib/cobbler/triggers | xargs chmod +x
-	chown -R apache /var/www/cobbler 
+	chown -R apache /var/www/cobbler
 	chmod -R +x /var/www/cobbler/web
 	chmod -R +x /var/www/cobbler/svc
 	rm -rf $(statepath)
@@ -75,10 +72,10 @@ restorestate:
 completion:
 	python mkbash.py
 
-webtest: 
-	make clean 
-	make updatewui 
-	make devinstall 
+webtest: updatewui devinstall
+	make clean
+	make updatewui
+	make devinstall
 	make restartservices
 
 restartservices:
@@ -125,3 +122,5 @@ eraseconfig:
 graphviz:
 	dot -Tpdf docs/cobbler.dot -o cobbler.pdf
 
+tags:
+	find . -type f -name '*.py' | xargs etags -c TAGS

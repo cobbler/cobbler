@@ -44,7 +44,7 @@ import settings
 import serializer
 
 from utils import _
-
+from cexceptions import *
 
 class Config:
 
@@ -204,7 +204,10 @@ class Config:
        """
        Load the object hierachy from disk, using the filenames referenced in each object.
        """
-       serializer.deserialize(self._settings)
+       try:
+           serializer.deserialize(self._settings)
+       except:
+           raise CX("/etc/cobbler/settings is not a valid YAML file")
        serializer.deserialize(self._distros)
        serializer.deserialize(self._repos)
        serializer.deserialize(self._profiles)

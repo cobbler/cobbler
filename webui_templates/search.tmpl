@@ -1,0 +1,45 @@
+#extends cobbler.webui.master
+#block body
+
+<script language="javascript">
+</script>
+
+#set $form_dest=$base_url+"?mode="+$what+"_search_execute"
+
+<form method="POST" action="$form_dest">
+<fieldset id="cform">
+
+    <legend>$caption</legend>
+    <table border=0>
+
+    <tr>
+
+    <td>
+    <select id="key1" name="key1">
+       <option value="name">name</option>
+       #if $what == "distro":
+           <option value="kernel">kernel</option>
+           <option value="initrd">initrd</option>
+       #elif $what == "profile"
+           <option value="distro">distro</option>
+       #elif $what == "system"
+           <option value="profile">profile</option>
+           <option value="image">image</option>
+       ## FIMXE: more values for more fields, add images, add repos
+       #end if
+    </select>
+    </td>
+
+    ## FIXME copy and paste key2,value2 and key3,value3 in a loop
+    <td>
+    <input type="text" id="value1" name="value1"/>
+    </td>
+  
+    </table>
+
+    <input type="submit" value="search"/>
+
+</fieldset>
+
+</form>
+#end block body

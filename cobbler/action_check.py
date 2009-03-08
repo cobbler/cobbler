@@ -44,6 +44,7 @@ class BootCheck:
        (The CLI usage is "cobbler check" before "cobbler sync")
        """
        status = []
+       self.checked_dist = utils.check_dist()
        self.check_name(status)
        self.check_selinux(status)
        if self.settings.manage_dhcp:
@@ -95,13 +96,13 @@ class BootCheck:
        if notes != "":
            notes = " (NOTE: %s)" % notes
        rc = 0
-       if utils.check_dist() == "redhat":
+       if self.checked_dist == "redhat" or self.checked_dist == "suse":
            if os.path.exists("/etc/rc.d/init.d/%s" % which):
-               rc = sub_process.call("/sbin/service %s status >/dev/null 2>/dev/null" % which, shell=True, close_fds=True)
+               rc = sub_process.call("/sbin/service %s status > /dev/null 2>/dev/null" % which, shell=True, close_fds=True)
            if rc != 0:
                status.append(_("service %s is not running%s") % (which,notes))
                return False
-       elif utils.check_dist() == "debian":
+       elif self.checked_dist == "debian":
            if os.path.exists("/etc/init.d/%s" % which):
 	       rc = sub_process.call("/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True, close_fds=True)
 	   if rc != 0:
@@ -116,7 +117,7 @@ class BootCheck:
        if os.path.exists("/etc/rc.d/init.d/iptables"):
            rc = sub_process.call("/sbin/service iptables status >/dev/null 2>/dev/null", shell=True, close_fds=True)
            if rc == 0:
-              status.append(_("since iptables may be running, ensure 69, 80, %(syslog)s, and %(xmlrpc)s are unblocked") % { "syslog" : self.settings.syslog_port, "xmlrpc" : self.settings.xmlrpc_port })
+              status.append(_("since iptables may be running, ensure 69, 80, and %(xmlrpc)s are unblocked") % { "xmlrpc" : self.settings.xmlrpc_port })
 
    def check_yum(self,status):
        if not os.path.exists("/usr/bin/createrepo"):
@@ -125,6 +126,11 @@ class BootCheck:
            status.append(_("reposync is not installed, need for cobbler reposync, install/upgrade yum-utils?"))
        if not os.path.exists("/usr/bin/yumdownloader"):
            status.append(_("yumdownloader is not installed, needed for cobbler repo add with --rpm-list parameter, install/upgrade yum-utils?"))
+       if self.settings.yumreposync_flags.find("\-l"):
+           if self.checked_dist == "redhat" or self.checked_dist == "suse":
+               yum_utils_ver = sub_process.call("/usr/bin/rpmquery --queryformat=%{VERSION} yum-utils", shell=True, close_fds=True)
+               if yum_utils_ver < "1.1.17":
+                   status.append(_("yum-utils need to be at least version 1.1.17 for reposync -l"))
 
    def check_name(self,status):
        """
@@ -146,7 +152,30 @@ class BootCheck:
               if line.find("httpd_can_network_connect ") != -1:
                   if line.find("off") != -1:
                       status.append(_("Must enable selinux boolean to enable Apache and web services components, run: setsebool -P httpd_can_network_connect true"))
+           data3 = sub_process.Popen("/usr/sbin/semanage fcontext -l | grep public_content_t",shell=True,stdout=sub_process.PIPE).communicate()[0]
 
+           rule1 = False
+           rule2 = False
+           rule3 = False
+           selinux_msg = "/usr/sbin/semanage fcontext -a -t public_content_t \"%s\""
+           for line in data3.split("\n"):
+               if line.startswith("/tftpboot/.*") and line.find("public_content_t") != -1:
+                   rule1 = True
+               if line.startswith("/var/lib/tftpboot/.*") and line.find("public_content_t") != -1:
+                   rule2 = True
+               if line.startswith("/var/www/cobbler/images/.*") and line.find("public_content_t") != -1:
+                   rule3 = True
+
+           rules = []
+           if not os.path.exists("/tftpboot") and not rule1:
+               rules.append(selinux_msg % "/tftpboot/.*")
+           else:
+               if not rule2:
+                   rules.append(selinux_msg % "/var/lib/tftpboot/.*")
+           if not rule3:
+               rules.append(selinux_msg % "/var/www/cobbler/images/.*")
+           if len(rules) > 0:
+               status.append("you need to set some SELinux content rules to ensure cobbler works correctly in your SELinux environment, run the following: %s" % " && ".join(rules))
 
    def check_for_default_password(self,status):
        default_pass = self.settings.default_password_crypted
@@ -185,8 +214,10 @@ class BootCheck:
        """
        Check if Apache is installed.
        """
-       self.check_service(status,"httpd")
-
+       if self.checked_dist == "suse":
+           self.check_service(status,"apache2")
+       else:
+           self.check_service(status,"httpd")
 
    def check_dhcpd_bin(self,status):
        """
@@ -277,7 +308,7 @@ class BootCheck:
           f = open(self.settings.tftpd_conf)
           re_disable = re.compile(r'disable.*=.*yes')
           for line in f.readlines():
-             if re_disable.search(line):
+             if re_disable.search(line) and not line.strip().startswith("#"):
                  status.append(_("change 'disable' to 'no' in %(file)s") % { "file" : self.settings.tftpd_conf })
        else:
           status.append(_("file %(file)s does not exist") % { "file" : self.settings.tftpd_conf })
