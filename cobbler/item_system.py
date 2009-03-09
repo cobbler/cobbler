@@ -62,6 +62,8 @@ class System(item.Item):
         self.virt_type                 = "<<inherit>>"   # ""
         self.virt_path                 = "<<inherit>>"   # ""
         self.virt_bridge               = "<<inherit>>"   # ""
+        self.virt_host                 = ""              # ""
+        self.virt_group                = ""              # ""
         self.comment                   = ""
         self.ctime                     = 0
         self.mtime                     = 0
@@ -195,6 +197,8 @@ class System(item.Item):
         self.virt_type   = self.load_item(seed_data,'virt_type','<<inherit>>')
         self.virt_bridge = self.load_item(seed_data,'virt_bridge','<<inherit>>')
         self.virt_cpus   = self.load_item(seed_data,'virt_cpus','<<inherit>>')
+        self.virt_host   = self.load_item(seed_data,'virt_host','')
+        self.virt_group  = self.load_item(seed_data,'virt_group','')
 
         self.ctime       = self.load_item(seed_data,'ctime',0)
         self.mtime       = self.load_item(seed_data,'mtime',0)
@@ -581,6 +585,12 @@ class System(item.Item):
     def set_virt_cpus(self,num):
         return utils.set_virt_cpus(self,num)
 
+    def set_virt_host(self,host):
+        return utils.set_virt_host(self,host)
+
+    def set_virt_group(self,group):
+        return utils.set_virt_group(self,group)
+
     def set_virt_file_size(self,num):
         return utils.set_virt_file_size(self,num)
  
@@ -711,6 +721,8 @@ class System(item.Item):
            'image'                    : self.image,
            'server'                   : self.server,
            'virt_cpus'                : self.virt_cpus,
+           'virt_host'                : self.virt_host,
+           'virt_group'               : self.virt_group,
            'virt_bridge'              : self.virt_bridge,
            'virt_file_size'           : self.virt_file_size,
            'virt_path'                : self.virt_path,
@@ -763,6 +775,8 @@ class System(item.Item):
         buf = buf + _("virt auto boot        : %s\n") % self.virt_auto_boot
 
         buf = buf + _("virt cpus             : %s\n") % self.virt_cpus
+        buf = buf + _("virt host             : %s\n") % self.virt_host
+        buf = buf + _("virt group            : %s\n") % self.virt_group
         buf = buf + _("virt file size        : %s\n") % self.virt_file_size
         buf = buf + _("virt path             : %s\n") % self.virt_path
         buf = buf + _("virt ram              : %s\n") % self.virt_ram
@@ -838,6 +852,11 @@ class System(item.Item):
            'virt_ram'                 : self.set_virt_ram,           
            'virt_type'                : self.set_virt_type,           
            'virt_cpus'                : self.set_virt_cpus,           
+           'virt-host'                : self.set_virt_host,
+           'virt_host'                : self.set_virt_host,           
+           'virt-group'               : self.set_virt_group,
+           'virt_group'               : self.set_virt_group,           
+           'virt-file-size'           : self.set_virt_file_size,
            'virt_file_size'           : self.set_virt_file_size,           
            'server'                   : self.set_server,
            'owners'                   : self.set_owners,

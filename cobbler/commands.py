@@ -299,6 +299,21 @@ class CobblerFunction:
             self.api.reboot(obj,self.options.power_user,self.options.power_pass)
             return None
 
+        if "deploy" in self.args:
+            obj = collect_fn().find(self.options.name)
+            if obj is None:
+                raise CX(_("object not found"))
+            if self.options.virt_host == '':
+                virt_host = None
+            else:
+                virt_host = self.options.virt_host
+
+            if self.options.virt_group == '':
+                virt_group = None
+            else:
+                virt_group = self.options.virt_group
+            self.api.deploy(obj,virt_host=virt_host,virt_group=virt_group)
+
         if "remove" in self.args:
             recursive = False
             # only applies to distros/profiles and is not supported elsewhere
@@ -330,6 +345,16 @@ class CobblerFunction:
             obj = collect_fn().find(self.options.name)
             if obj is None:
                 raise CX(_("object not found")) 
+            return obj
+
+        if "deploy" in self.args:
+            if not self.options.name:
+                raise CX(_("name is required"))
+            obj = collect_fn().find(self.options.name)
+            if obj is None:
+                raise CX(_("object not found"))
+            if obj.virt_host == '' or not self.options.virt_host or not self.options.virt_group:
+                raise CX(_("No virtual host to deploy to"))
             return obj
 
         try:

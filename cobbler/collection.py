@@ -113,6 +113,8 @@ class Collection(serializable.Serializable):
            'virt-type'       : 'virt_type',
            'virt-bridge'     : 'virt_bridge',
            'virt-cpus'       : 'virt_cpus',
+           'virt-host'       : 'virt_host',
+           'virt-group'      : 'virt_group',
            'dhcp-tag'        : 'dhcp_tag',
            'netboot-enabled' : 'netboot_enabled'
     }

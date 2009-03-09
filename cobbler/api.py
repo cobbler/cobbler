@@ -27,6 +27,7 @@ import config
 import utils
 import action_sync
 import action_check
+import action_deploy
 import action_import
 import action_reposync
 import action_status
@@ -767,7 +768,13 @@ class BootAPI:
         self.power_off(system, user, password)
         time.sleep(5)
         return self.power_on(system, user, password)
-        
+
+    def deploy(self, system, virt_host=None, virt_group=None):
+        """
+        Deploys a system to the virtual host or virtual group
+        """
+        return action_deploy.Deployer(self._config).deploy(system,virt_host=virt_host,virt_group=virt_group)
+
     def get_os_details(self):
         return (self.dist, self.os_version)
 

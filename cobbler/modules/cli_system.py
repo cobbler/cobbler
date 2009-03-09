@@ -35,13 +35,13 @@ from cexceptions import *
 class SystemFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler system","<add|copy|edit|find|list|power[off|on]|reboot|rename|remove|report|getks> [ARGS]")
+        return commands.HELP_FORMAT % ("cobbler system","<add|copy|deploy|edit|find|list|power[off|on]|reboot|rename|remove|report|getks> [ARGS]")
 
     def command_name(self):
         return "system"
 
     def subcommands(self):
-        return ["add","copy","dumpvars","edit","find","getks","poweroff","poweron","list","reboot","remove","rename","report"]
+        return ["add","copy","deploy","dumpvars","edit","find","getks","poweroff","poweron","list","reboot","remove","rename","report"]
 
     def add_options(self, p, args):
 
@@ -121,6 +121,8 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--virt-auto-boot",   dest="virt_auto_boot", help="auto boot this VM with host?")
             p.add_option("--virt-bridge",      dest="virt_bridge", help="ex: 'virbr0'")
             p.add_option("--virt-cpus",        dest="virt_cpus", help="integer (default: 1)")
+            p.add_option("--virt-host",        dest="virt_host", help="virtual host")
+            p.add_option("--virt-group",       dest="virt_group", help="virtual group")
             p.add_option("--virt-file-size",   dest="virt_file_size", help="size in GB")
             p.add_option("--virt-path",        dest="virt_path", help="path, partition, or volume")
             p.add_option("--virt-ram",         dest="virt_ram", help="size in MB")
@@ -187,6 +189,10 @@ class SystemFunction(commands.CobblerFunction):
             obj.set_virt_type(self.options.virt_type)
         if self.options.virt_cpus is not None:       
             obj.set_virt_cpus(self.options.virt_cpus)
+        if self.options.virt_host is not None:       
+            obj.set_virt_host(self.options.virt_host)
+        if self.options.virt_group is not None and not self.matches_args(self.args, ["deploy"]):
+            obj.set_virt_group(self.options.virt_group)
         if self.options.virt_path is not None:       
             obj.set_virt_path(self.options.virt_path)
 
