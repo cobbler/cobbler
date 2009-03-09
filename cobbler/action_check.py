@@ -333,7 +333,7 @@ class BootCheck:
 
    def check_tftpd_rules(self,status):
        if not os.path.exists("/etc/tftpd.rules"):
-          status.append(_("tftpd rules are missing.  Microsoft Windows remote installations will not work correctly"))
+          status.append(_("tftpd rules are missing.  Microsoft Windows remote (physical) installations will not work correctly"))
 
    def check_dhcpd_conf(self,status):
        """
@@ -369,13 +369,13 @@ class BootCheck:
        if os.path.exists("/etc/init.d/ris-linuxd"):
            return True
        else:
-           status.append(_("ris-linux is not installed, Microsoft Windows remote installations will not function correctly"))
+           status.append(_("ris-linux was not found, Microsoft Windows remote (physical) installations will not function correctly unless installed"))
            return False
 
 
    def check_for_cabextract(self,status):
        if not os.path.exists("/usr/bin/cabextract"):
-           status.append(_("cabextract was not found, Microsoft Windows imports will not work correctly"))
+           status.append(_("cabextract was not found, Microsoft Windows imports (for physical installations) will not work correctly unless installed"))
 
 
    def check_smb_shares(self,status):
