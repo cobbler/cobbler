@@ -19,7 +19,7 @@ include config/users.conf
 include config/completions
 include config/cobbler_bash
 include config/cheetah_macros
-include aux/anamon.py
+include aux/anamon
 include aux/anamon.init
 recursive-include templates *.template
 recursive-include installer_templates *.template defaults
