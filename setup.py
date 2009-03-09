@@ -4,7 +4,7 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-VERSION = "1.4.3"
+VERSION = "1.6.0"
 SHORT_DESC = "Network install tool for use with Cobbler"
 LONG_DESC = """
 Koan is a helper tool for use with 'cobbler'.  It allows for
@@ -24,10 +24,11 @@ if __name__ == "__main__":
                 url = "http://cobbler.et.redhat.com/",
                 license = "GPL",
                 packages = ["koan"],
-                scripts = ["koan/koan"],
+                scripts = ["koan/koan", "koan/cobbler-register"],
                 data_files = [
 				("/var/spool/koan", []),
 				(manpath, ['koan.1.gz']),
+				(manpath, ['cobbler-register.1.gz']),
                                 (logpath, [])
                              ],
                 description = SHORT_DESC,

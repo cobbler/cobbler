@@ -157,9 +157,6 @@ def main():
 
     (options, args) = p.parse_args()
 
-    if not os.getuid() == 0:
-        print "koan requires root access"
-        return 3
 
     try:
         k = Koan()
@@ -217,17 +214,6 @@ class InfoException(exceptions.Exception):
 
 #=======================================================
 
-class ServerProxy(xmlrpclib.ServerProxy):
-
-    def __init__(self, url=None):
-        try:
-            xmlrpclib.ServerProxy.__init__(self, url, allow_none=True)
-        except:
-            # for RHEL3's xmlrpclib -- cobblerd should strip Nones anyway
-            xmlrpclib.ServerProxy.__init__(self, url)
-
-#=======================================================
-
 class Koan:
 
     def __init__(self):
@@ -274,124 +260,23 @@ class Koan:
             if self.list_items or self.profile or self.system or self.port:
                 raise InfoException, "--server is required"
 
+        self.xmlrpc_server = utils.connect_to_server(server=self.server, port=self.port)
 
-        # set up XMLRPC connection
-        if self.server:
-
-            if not self.port: 
-                self.port = 25151 
+        if self.list_items:
+            self.list(self.list_items)
+            return
+    
+        if not os.getuid() == 0:
+            print "this operation requires root access"
+            return 3
         
-            # server name can either be explicit or DISCOVER, which
-            # means "check zeroconf" instead.
-
-            uses_avahi = False
-            if self.server == "DISCOVER": 
-                uses_avahi = True
-                if not os.path.exists("/usr/bin/avahi-browse"):
-                    raise InfoException, "avahi-tools is not installed"
-                potential_servers = self.avahi_search()
-            else:
-                potential_servers = [ self.server ]
-
-            # zeroconf could have returned more than one server.
-            # either way, let's see that we can connect to the servers
-            # we might have gotten back -- occasionally zeroconf
-            # does stupid things and publishes internal or 
-            # multiple addresses
-
-            connect_ok = False
-            for server in potential_servers:
-
-                # assume for now we are connected to the server
-                # that we should be connected to
-
-                self.server = server
-                url = "http://%s:80/cobbler_api" % (server)
- 
-                # make a sample call to check for connectivity
-                # we use this as opposed to version as version was not
-                # in the original API
-
-                try:
-                    if uses_avahi:
-                        print "- connecting to: %s" % server
-                    try:
-                        try:
-                            # first try port 443 (SSL)
-                            url = "https://%s:443/cobbler_api" % (server)
-                            self.xmlrpc_server = ServerProxy(url)
-                            self.xmlrpc_server.get_profiles()
-                        except:
-                            # then try port 80 (non-SSL)
-                            url = "http://%s:80/cobbler_api" % (server)
-                            self.xmlrpc_server = ServerProxy(url)
-                            self.xmlrpc_server.get_profiles()
-                    except:
-                        # now try specified port in case Apache proxying
-                        # is not configured
-                        try:
-                            # assume the port is not encrypted
-                            url = "http://%s:%s" % (server, self.port)
-                            self.xmlrpc_server = ServerProxy(url)
-                            self.xmlrpc_server.get_profiles()
-                        except:
-                            # this should not happen as cobbler
-                            # uses apache proxying to provide SSL
-                            # though try it anyway
-                            url = "https://%s:%s" % (server, self.port)
-                            self.xmlrpc_server = ServerProxy(url)
-                            self.xmlrpc_server.get_profiles()
-                    connect_ok = True
-                    break
-                except:
-                    pass
-                
-            # if connect_ok is still off, that means we never found
-            # a match in the server list.  This is bad.
-
-            if not connect_ok:
-                self.connect_fail()
-                 
-            # ok, we have a valid connection.
-            # if we discovered through zeroconf, show the user what they've 
-            # connected to ...
-
-            if uses_avahi:
-                print "- connected to: %s" % self.server        
-
-            # now check for the cobbler version.  Ideally this should be done
-            # for each server, but if there is more than one cobblerd on the
-            # network someone should REALLY be explicit anyhow.  So we won't
-            # handle that and leave it to the network admins for now.
-
-            version = None
-            try:
-                version = self.xmlrpc_server.version()
-            except:
-                raise InfoException("cobbler server is downlevel and needs to be updated")
-             
-            if version == "?": 
-                print "warning: cobbler server did not report a version"
-                print "         will attempt to proceed."
-
-            elif COBBLER_REQUIRED > version:
-                raise InfoException("cobbler server is downlevel, need version >= %s, have %s" % (COBBLER_REQUIRED, version))
-
-            # if command line input was just for listing commands,
-            # run them now and quit, no need for further work
-
-            if self.list_items:
-                self.list(self.list_items)
-                return
-            
-        
-            # if both --profile and --system were ommitted, autodiscover
-            if self.is_virt:
-                if (self.profile is None and self.system is None and self.image is None):
-                    raise InfoException, "must specify --profile, --system, or --image"
-            else:
-                if (self.profile is None and self.system is None and self.image is None):
-                    self.system = self.autodetect_system()
+        # if both --profile and --system were ommitted, autodiscover
+        if self.is_virt:
+            if (self.profile is None and self.system is None and self.image is None):
+                raise InfoException, "must specify --profile, --system, or --image"
+        else:
+            if (self.profile is None and self.system is None and self.image is None):
+                self.system = self.autodetect_system()
 
 
 
@@ -421,28 +306,41 @@ class Koan:
     def autodetect_system(self):
         """
         Determine the name of the cobbler system record that
-        matches this MAC address.  FIXME: should use IP 
-        matching as secondary lookup eventually to be more PXE-like
+        matches this MAC address. 
         """
-
-        fd = os.popen("/sbin/ifconfig")
-        mac = [line.strip() for line in fd.readlines()][0].split()[-1] #this needs to be replaced
-        fd.close()
-        if self.is_mac(mac) == False:
-            raise InfoException, "Mac address not accurately detected"
+        try:
+            import rhpl
+        except:
+            raise CX("the rhpl module is required to autodetect a system.  Your OS does not have this, please manually specify --profile or --system")
         systems = self.get_data("systems")
+        my_netinfo = utils.get_network_info()
+        my_interfaces = my_netinfo.keys()
+        mac_criteria = []
+        ip_criteria = []
+        for my_interface in my_interfaces:
+            mac_criteria.append(my_netinfo[my_interface]["mac_address"].upper())
+            ip_criteria.append(my_netinfo[my_interface]["ip_address"])
 
         detected_systems = []
+        systems = self.get_data("systems")
         for system in systems:
-            for (iname, interface) in system['interfaces'].iteritems():
-                if interface['mac_address'].upper() == mac.upper():
-                    detected_systems.append(system['name'])
-                    break
+            obj_name = system["name"]
+            for (obj_iname, obj_interface) in system['interfaces'].iteritems():
+                mac = obj_interface["mac_address"].upper()
+                ip  = obj_interface["ip_address"].upper()
+                for my_mac in mac_criteria:
+                    if mac == my_mac:
+                        detected_systems.append(obj_name)
+                for my_ip in ip_criteria:
+                    if ip == my_ip:
+                        detected_systems.append(obj_name)
+
+        detected_systems = utils.uniqify(detected_systems)
 
         if len(detected_systems) > 1:
-            raise InfoException, "Multiple systems with matching mac addresses"
+            raise InfoException, "Error: Multiple systems matched"
         elif len(detected_systems) == 0:
-            raise InfoException, "No system matching MAC address %s found" % mac
+            raise InfoException, "Error: Could not find a matching system with MACs: %s or IPs: %s" % (",".join(mac_criteria), ",".join(ip_criteria))
         elif len(detected_systems) == 1:
             print "- Auto detected: %s" % detected_systems[0]
             return detected_systems[0]
@@ -765,7 +663,20 @@ class Koan:
                         profile_data
                     )
 
-            if len(k_args) > 255:
+            # Validate kernel argument length (limit depends on architecture --
+            # see asm-*/setup.h).  For example:
+            #   asm-i386/setup.h:#define COMMAND_LINE_SIZE 256
+            #   asm-ia64/setup.h:#define COMMAND_LINE_SIZE  512
+            #   asm-powerpc/setup.h:#define COMMAND_LINE_SIZE   512
+            #   asm-s390/setup.h:#define COMMAND_LINE_SIZE  896
+            #   asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
+            if arch.startswith("ppc") or arch.startswith("ia64"):
+                if len(k_args) > 511:
+                    raise InfoException, "Kernel options are too long, 512 chars exceeded: %s" % k_args
+            elif arch.startswith("s390"):
+                if len(k_args) > 895:
+                    raise InfoException, "Kernel options are too long, 896 chars exceeded: %s" % k_args
+            elif len(k_args) > 255:
                 raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
 
             utils.subprocess_call([
@@ -819,7 +730,23 @@ class Koan:
                         profile_data
                     )
 
-            if len(k_args) > 255:
+            arch_cmd = sub_process.Popen("/bin/uname -m", stdout=sub_process.PIPE, shell=True)
+            arch = arch_cmd.communicate()[0]
+
+            # Validate kernel argument length (limit depends on architecture --
+            # see asm-*/setup.h).  For example:
+            #   asm-i386/setup.h:#define COMMAND_LINE_SIZE 256
+            #   asm-ia64/setup.h:#define COMMAND_LINE_SIZE  512
+            #   asm-powerpc/setup.h:#define COMMAND_LINE_SIZE   512
+            #   asm-s390/setup.h:#define COMMAND_LINE_SIZE  896
+            #   asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
+            if arch.startswith("ppc") or arch.startswith("ia64"):
+                if len(k_args) > 511:
+                    raise InfoException, "Kernel options are too long, 512 chars exceeded: %s" % k_args
+            elif arch.startswith("s390"):
+                if len(k_args) > 895:
+                    raise InfoException, "Kernel options are too long, 896 chars exceeded: %s" % k_args
+            elif len(k_args) > 255:
                 raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
 
             cmd = [ "/sbin/grubby",
@@ -841,22 +768,20 @@ class Koan:
                # utils.subprocess_call(["/sbin/grubby","--remove-kernel","/boot/vmlinuz"])
 
             # Are we running on ppc?
-            arch_cmd = sub_process.Popen("/bin/uname -m", stdout=sub_process.PIPE, shell=True)
-            uname_str = arch_cmd.communicate()[0]
-            if uname_str.startswith("ppc"):
+            if arch.startswith("ppc"):
                cmd.append("--yaboot")
-            elif uname_str.startswith("s390"):
+            elif arch.startswith("s390"):
                cmd.append("--zipl")
 
             utils.subprocess_call(cmd)
 
             # Any post-grubby processing required (e.g. ybin, zipl, lilo)?
-            if uname_str.startswith("ppc"):
+            if arch.startswith("ppc"):
                 # FIXME - CHRP hardware uses a 'PPC PReP Boot' partition and doesn't require running ybin
                 print "- applying ybin changes"
                 cmd = [ "/sbin/ybin" ]
                 sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
-            elif uname_str.startswith("s390"):
+            elif arch.startswith("s390"):
                 print "- applying zipl changes"
                 cmd = [ "/sbin/zipl" ]
                 sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
@@ -936,7 +861,6 @@ class Koan:
 
     def get_data(self,what,name=None):
         try:
-            self.xmlrpc_server.update()
             if what[-1] == "s":
                 data = getattr(self.xmlrpc_server, "get_%s" % what)()
             else:
@@ -950,14 +874,29 @@ class Koan:
     
     #---------------------------------------------------
 
+    def get_ips(self,strdata):
+        """
+        Return a list of IP address strings found in argument.
+        warning: not IPv6 friendly
+        """
+        return re.findall(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',strdata)
+
+    #---------------------------------------------------
+
+    def get_macs(self,strdata):
+        """
+        Return a list of MAC address strings found in argument.
+        """
+        return re.findall(r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}', strdata.upper())
+
+    #---------------------------------------------------
+
     def is_ip(self,strdata):
         """
         Is strdata an IP?
         warning: not IPv6 friendly
         """
-        if re.search(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',strdata):
-            return True
-        return False
+        return self.get_ips(strdata) and True or False
 
     #---------------------------------------------------
 
@@ -965,12 +904,7 @@ class Koan:
         """
         Return whether the argument is a mac address.
         """
-        if strdata is None:
-            return False
-        strdata = strdata.upper()
-        if re.search(r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}',strdata):
-            return True
-        return False
+        return self.get_macs(strdata) and True or False
 
     #---------------------------------------------------
 
@@ -1487,38 +1421,6 @@ class Koan:
         if uuid:
             return uuid
         return self.uuidToString(self.randomUUID())
-
-    def avahi_search(self):
-        """
-        If no --server is specified, attempt to scan avahi (mDNS) to find one
-        """
-
-        matches = []
-
-        cmd = [ "/usr/bin/avahi-browse", "--all", "--terminate", "--resolve" ]
-        print "- running: %s" % " ".join(cmd)
-        cmdp = sub_process.Popen(cmd, shell=False, stdout=sub_process.PIPE)
-        print "- analyzing zeroconf scan results"
-        data = cmdp.communicate()[0]
-        lines = data.split("\n")
-        
-        # FIXME: should switch to Python bindings at some point.
-        match_mode = False
-        for line in lines:
-            if line.startswith("="):
-                if line.find("cobblerd") != -1:
-                   match_mode = True
-                else:
-                   match_mode = False
-            if match_mode and line.find("address") != -1 and line.find("[") != -1:
-                (first, last) = line.split("[",1)
-                (addr, junk) = last.split("]",1)
-                if addr.find(":") == -1:
-                    # exclude IPv6 and MAC addrs that sometimes show up in results
-                    # FIXME: shouldn't exclude IPv6?
-                    matches.append(addr.strip())
-
-        return matches
 
 if __name__ == "__main__":
     main()

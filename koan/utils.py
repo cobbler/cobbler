@@ -318,3 +318,84 @@ def os_release():
    else:
       return ("unknown",0)
 
+def uniqify(lst):
+   temp = {}
+   for x in lst:
+      temp[x] = 1
+   return temp.keys()
+
+def get_network_info():
+   try:
+      import rhpl.ethtool as ethtool
+   except:
+      raise CX("the rhpl module is required to use this feature (is your OS>=EL3?)")
+
+   interfaces = {}
+   # get names
+   inames  = ethtool.get_active_devices() 
+   for iname in inames:
+      mac = ethtool.get_hwaddr(iname)
+      ip  = ethtool.get_ipaddr(iname)
+      nm  = ethtool.get_netmask(iname)
+      try:
+         module = ethtool.get_module(iname)
+         if module == "bridge":
+            continue
+      except:
+         continue
+      interfaces[iname] = {
+         "ip_address"  : ip,
+         "mac_address" : mac,
+         "netmask"     : nm
+      }
+
+   return interfaces
+
+def connect_to_server(server=None,port=None):
+
+    if server is None:
+        server = os.environ.get("COBBLER_SERVER","")
+    if server == "":
+        raise InfoException("--server must be specified")
+
+    if port is None: 
+        port = 25151 
+        
+    connect_ok = False
+
+    try_urls = [
+        "http://%s/cobbler_api" % (server),
+        "https://%s/cobbler_api" % (server),
+        "http://%s:%s" % (server,port),
+        "https://%s:%s" % (server,port),
+        "http://127.0.0.1/cobbler_api"
+    ]
+    for url in try_urls:
+        print "- looking for Cobbler at %s" % url
+        server = __try_connect(url)
+        if server is not None:
+           return server
+    raise InfoException ("Could not find Cobbler.")
+
+
+class ServerProxy(xmlrpclib.ServerProxy):
+
+    def __init__(self, url=None):
+        try:
+            xmlrpclib.ServerProxy.__init__(self, url, allow_none=True)
+        except:
+            # for RHEL3's xmlrpclib -- cobblerd should strip Nones anyway
+            xmlrpclib.ServerProxy.__init__(self, url)
+
+def __try_connect(url):
+    try:
+        xmlrpc_server = ServerProxy(url)
+        xmlrpc_server.ping()
+        return xmlrpc_server
+    except:
+        traceback.print_exc()
+        return None
+
+
+
+
