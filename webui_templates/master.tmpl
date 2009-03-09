@@ -32,7 +32,7 @@
         <li><a class="menu">Distros</span></li>
 	    ##if $mode.find("distro") != -1
     	    <ul id="navaction">
-                <li><a href="$base_url?mode=distro_list" class="menu">View</a></li>
+                <li><a href="$base_url?mode=distro_list" class="menu">List</a></li>
         	<li><a href="$base_url?mode=distro_search" class="menu">Search</a></li>
         	<li><a href="$base_url?mode=distro_edit" class="menu">Add</a></li>
 	    </ul>
@@ -40,7 +40,7 @@
         <li><a class="menu">Profiles</span></li>
 	    ##if $mode.find("profile") != -1
     	    <ul id="navaction">
-                <li><a href="$base_url?mode=profile_list" class="menu">View</a></li>
+                <li><a href="$base_url?mode=profile_list" class="menu">List</a></li>
         	<li><a href="$base_url?mode=profile_search" class="menu">Search</a></li>
         	<li><a href="$base_url?mode=profile_edit" class="menu">Add</a></li>
     		<li><a href="$base_url?mode=subprofile_edit" class="menu">Add child</a></li>
@@ -49,22 +49,15 @@
         <li><a class="menu">Systems</span></li>
 	    ##if $mode.find("system") != -1
     	    <ul id="navaction">
-                <li><a href="$base_url?mode=system_list" class="menu">View</a></li>
+                <li><a href="$base_url?mode=system_list" class="menu">List</a></li>
         	<li><a href="$base_url?mode=system_search" class="menu">Search</a></li>
     		<li><a href="$base_url?mode=system_edit_new" class="menu">Add</a></li>
-	    </ul>
-	    ##end if	    
-        <li><a class="menu">Kickstarts</span></li>
-	    ##if $mode.find("ksfile") != -1
-    	    <ul id="navaction">
-                <li><a href="$base_url?mode=ksfile_list" class="menu">View</a></li>
-	        <li><a href="$base_url?mode=ksfile_new" class="menu">Add</a></li>
 	    </ul>
 	    ##end if	    
         <li><a class="menu">Repos</span></li>
 	    ##if $mode.find("repo") != -1
     	    <ul id="navaction">
-                <li><a href="$base_url?mode=repo_list" class="menu">View</a></li>
+                <li><a href="$base_url?mode=repo_list" class="menu">List</a></li>
         	<li><a href="$base_url?mode=repo_search" class="menu">Search</a></li>
 	        <li><a href="$base_url?mode=repo_edit" class="menu">Add</a></li>
 	    </ul>
@@ -72,9 +65,16 @@
         <li><a class="menu">Images</span></li>
 	    ##if $mode.find("image") != -1
     	    <ul id="navaction">
-                <li><a href="$base_url?mode=image_list" class="menu">View</a></li>
+                <li><a href="$base_url?mode=image_list" class="menu">List</a></li>
         	<li><a href="$base_url?mode=image_search" class="menu">Search</a></li>
 	        <li><a href="$base_url?mode=image_edit" class="menu">Add</a></li>
+	    </ul>
+	    ##end if	    
+        <li><a class="menu">Kickstarts</span></li>
+	    ##if $mode.find("ksfile") != -1
+    	    <ul id="navaction">
+                <li><a href="$base_url?mode=ksfile_list" class="menu">List</a></li>
+	        <li><a href="$base_url?mode=ksfile_new" class="menu">Add</a></li>
 	    </ul>
 	    ##end if	    
         <li><hr/><br/></li>

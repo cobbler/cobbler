@@ -154,17 +154,21 @@ class CobblerWeb(object):
     def distro_menu(self,**spam):
         return self.__render('blank.tmpl',{ 'more_blank' : 1})
 
-    def __search_execute(self,what,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None):
+    def __search_execute(self,what,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None,key4=None,value4=None,key5=None,value5=None):
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
 
         criteria={}
-        if key1 is not None and key1 != "":
+        if value1 is not None and value1 != "":
             criteria[key1] = value1.replace('"','')
-        if key2 is not None and key2 != "":
+        if value2 is not None and value2 != "":
             criteria[key2] = value2.replace('"','')
-        if key3 is not None and key3 != "":
+        if value3 is not None and value3 != "":
             criteria[key3] = value3.replace('"','')
+        if value4 is not None and value4 != "":
+            criteria[key4] = value4.replace('"','')
+        if value5 is not None and value5 != "":
+            criteria[key5] = value5.replace('"','')
 
         params = {}
         params['page'] = -1
@@ -189,16 +193,20 @@ class CobblerWeb(object):
         else:
             return self.__render('empty.tmpl', { 'search' : 1 })  
    
-    def distro_search_execute(self,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None,**rest):
-        return self.__search_execute("distro",key1,value1,key2,value2,key3,value3)
-    def profile_search_execute(self,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None,**rest):
-        return self.__search_execute("profile",key1,value1,key2,value2,key3,value3)
-    def system_search_execute(self,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None,**rest):
-        return self.__search_execute("system",key1,value1,key2,value2,key3,value3)
-    def image_search_execute(self,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None,**rest):
-        return self.__search_execute("image",key1,value1,key2,value2,key3,value3)
-    def repo_search_execute(self,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None,**rest):
-        return self.__search_execute("repo",key1,value1,key2,value2,key3,value3)
+    def distro_search_execute(self,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None,key4=None,value4=None,key5=None,value5=None,**rest):
+        return self.__search_execute("distro",key1,value1,key2,value2,key3,value3,key4,value4,key5,value5)
+
+    def profile_search_execute(self,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None,key4=None,value4=None,key5=None,value5=None,**rest):
+        return self.__search_execute("profile",key1,value1,key2,value2,key3,value3,key4,value4,key5,value5)
+
+    def system_search_execute(self,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None,key4=None,value4=None,key5=None,value5=None,**rest):
+        return self.__search_execute("system",key1,value1,key2,value2,key3,value3,key4,value4,key5,value5)
+
+    def image_search_execute(self,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None,key4=None,value4=None,key5=None,value5=None,**rest):
+        return self.__search_execute("image",key1,value1,key2,value2,key3,value3,key4,value4,key5,value5)
+
+    def repo_search_execute(self,key1=None,value1=None,key2=None,value2=None,key3=None,value3=None,key4=None,value4=None,key5=None,value5=None,**rest):
+        return self.__search_execute("repo",key1,value1,key2,value2,key3,value3,key4,value4,key5,value5)
  
     def __search(self, what):
         caption = ""
