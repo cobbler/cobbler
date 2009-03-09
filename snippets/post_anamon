@@ -1,13 +1,13 @@
 #if $str($getVar('anamon_enabled','')) == "1"
 
 ## install anamon script
-wget -O /usr/local/sbin/anamon.py "http://$server/cobbler/aux/anamon.py"
+wget -O /usr/local/sbin/anamon "http://$server/cobbler/aux/anamon"
 ## install anamon system service
 wget -O /etc/rc.d/init.d/anamon "http://$server/cobbler/aux/anamon.init"
 
 ## adjust permissions
-chmod 755 /etc/rc.d/init.d/anamon /usr/local/sbin/anamon.py
-test -d /selinux && restorecon /etc/rc.d/init.d/anamon /usr/local/sbin/anamon.py
+chmod 755 /etc/rc.d/init.d/anamon /usr/local/sbin/anamon
+test -d /selinux && restorecon /etc/rc.d/init.d/anamon /usr/local/sbin/anamon
 
 ## enable the script
 chkconfig --add anamon
