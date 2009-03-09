@@ -1532,7 +1532,14 @@ class CobblerXMLRPCInterface:
             raise CX(_("invalid power mode '%s', expected on/off/reboot" % power))
         return rc
 
-
+    def deploy(self, object_id, virt_host=None, virt_group=None, token=None):
+        """
+        Deploy a system
+        """
+        obj = self.__get_object(object_id)
+        self.check_access(token, "deploy", obj)
+        rc = self.api.deploy(obj, virt_host=virt_host, virt_group=virt_group)
+        return rc
 
 
 
