@@ -1,5 +1,8 @@
 Cobbler CHANGELOG
 
+- Mon Mar 7 2009 - 1.7.0
+- Development release start
+
 - Mon Mar 7 2009 - 1.6.0
 - (FEAT) Improved anaconda monitoring code
 - (FEAT) preliminary linux-ris support for windows installs (WIP)
