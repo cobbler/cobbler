@@ -48,7 +48,7 @@ fi
 
 start() {
     echo -n $"Starting anamon: "
-    daemon /usr/local/sbin/anamon.py --watchfile \"$LOGFILES\" --name $COBBLER_NAME --server $COBBLER_SERVER --port ${COBBLER_PORT:-80} --exit
+    daemon /usr/local/sbin/anamon --watchfile \"$LOGFILES\" --name $COBBLER_NAME --server $COBBLER_SERVER --port ${COBBLER_PORT:-80} --exit
     RETVAL=$?
     [ $RETVAL -eq 0 ] && touch $LOCKFILE
     echo
@@ -61,7 +61,7 @@ start() {
 
 stop () {
     echo -n $"Shutting down anamon: "
-    killproc /usr/local/sbin/anamon.py
+    killproc /usr/local/sbin/anamon
     RETVAL=$?
     [ $RETVAL -eq 0 ] && rm -f $LOCKFILE
     echo
@@ -89,7 +89,7 @@ case "$1" in
         fi
         ;;
     status)
-        status anamon.py
+        status anamon
         RETVAL=$?
         ;;
     *)
