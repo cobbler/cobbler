@@ -276,7 +276,7 @@ class CobblerWeb(object):
 
     def distro_save(self,name=None,comment=None,oldname=None,new_or_edit=None,editmode='edit',kernel=None,
                     initrd=None,kopts=None,koptspost=None,ksmeta=None,owners=None,arch=None,breed=None,redhatmanagementkey=None,
-                    mgmt_classes=None,osversion=None,delete1=False,delete2=False,recursive=False,**args):
+                    redhatmanagementserver=None,mgmt_classes=None,osversion=None,delete1=False,delete2=False,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
@@ -598,7 +598,7 @@ class CobblerWeb(object):
                     virtpath=None,virtram=None,virttype=None,virtcpus=None,virtfilesize=None,
                     name_servers=None,name_servers_search=None,
                     power_type=None, power_user=None, power_pass=None, power_id=None, power_address=None,
-                    gateway=None,hostname=None,redhatmanagementkey=None,mgmt_classes=None,delete1=None, delete2=None, **args):
+                    gateway=None,hostname=None,redhatmanagementkey=None,redhatmanagementserver=None,mgmt_classes=None,delete1=None, delete2=None, **args):
 
 
         if not self.__xmlrpc_setup():
@@ -774,7 +774,7 @@ class CobblerWeb(object):
                      ksmeta=None,owners=None,enablemenu=None,virtfilesize=None,virtram=None,virttype=None,
                      virtpath=None,repos=None,dhcptag=None,delete1=False,delete2=False,
                      parent=None,virtcpus=None,virtbridge=None,subprofile=None,server_override=None,
-                     name_servers=None,name_servers_search=None,redhatmanagementkey=None,mgmt_classes=None,recursive=False,**args):
+                     name_servers=None,name_servers_search=None,redhatmanagementserver=None,redhatmanagementkey=None,mgmt_classes=None,recursive=False,**args):
 
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
