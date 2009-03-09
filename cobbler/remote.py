@@ -906,9 +906,6 @@ class CobblerXMLRPCInterface:
                data2[str(key)] = self.xmlrpc_hacks(data[key])
             return data2
 
-        else:
-            data = '~'
-
         return data
 
     def get_status(self,**rest):
