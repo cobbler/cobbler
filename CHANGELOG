@@ -1,6 +1,9 @@
 Cobbler CHANGELOG
 
-- Tue Mar 3 2009 - 1.5.0
+- Mon Mar 7 2009 - 1.7.0
+- Development release start
+
+- Mon Mar 7 2009 - 1.6.0
 - (FEAT) Improved anaconda monitoring code
 - (FEAT) preliminary linux-ris support for windows installs (WIP)
 - (FEAT) download comps.xml always
@@ -16,6 +19,7 @@ Cobbler CHANGELOG
 - (FEAT) use nameserver variable in network config in Anaconda when set
 - (BUGF) sleep 5 seconds between power cycling systems
 - (FEAT) support for /usr/bin/cobbler-register
+- (FEAT) web UI search feature
 
 - Tue Mar 3 2009 - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from cobbler import yaml as yaml
+import yaml # PyYAML version
 import urlgrabber
 import sys
 
@@ -15,7 +15,7 @@ if __name__ == "__main__":
        conf = open("/etc/cobbler/settings")
        data = conf.read()
        conf.close()
-       server = yaml.load(data).next()["server"]
+       server = yaml.load(data)["server"]
        url = "http://%s/cblr/svc/op/puppet/hostname/%s" % (server, hostname)
        print urlgrabber.urlread(url)
 

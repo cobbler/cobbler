@@ -333,7 +333,7 @@ if __name__ == "__main__":
                                 (wwwcon,            ['webui_content/cobblerweb.css']),
 
                                 # Anamon script
-                                (vw_aux,            ['aux/anamon.py', 'aux/anamon.init']),
+                                (vw_aux,            ['aux/anamon', 'aux/anamon.init']),
 
                                 # Directories to hold cobbler triggers
                                 ("%s/add/distro/pre" % trigpath,      []),
