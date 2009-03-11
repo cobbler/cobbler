@@ -164,9 +164,6 @@ if __name__ == "__main__":
                                 # for --version support across distros
                                 (libpath,  ['config/version']),
      
-                                # for version control tracking feature
-                                (libpath,  ['config/gitignore']),
-
                                 # bootloaders and syslinux support files
                                 (libpath,  ['loaders/elilo-3.8-ia64.efi']),
                                 (libpath,  ['loaders/menu.c32']),
