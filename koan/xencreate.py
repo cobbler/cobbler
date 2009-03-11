@@ -128,6 +128,9 @@ def start_install(name=None, ram=None, disks=None,
             counter = counter + 1
             intf = profile_data["interfaces"][iname]
 
+            if intf["bonding"] == "master": 
+                continue
+
             mac = intf["mac_address"]
             if mac == "":
                 mac = random_mac()

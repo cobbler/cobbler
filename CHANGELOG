@@ -8,6 +8,7 @@ Koan CHANGELOG
 - (FEAT) autodetect now works with IP as well as MAC, uses rhpl
 - (FEAT) some conection speedup improvements (WIP)
 - (FEAT) /usr/bin/cobbler-register for registration to cobbler server!
+- (BUGF) don't create virtual interface for bonded NICs
 
 - XXX 1.4.3
 - (SPEC) reduce python version requirements for EL2 (--replace-self only)
