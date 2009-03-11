@@ -17,6 +17,7 @@ Cobbler CHANGELOG
 - (BUGF) sleep 5 seconds between power cycling systems
 - (FEAT) support for /usr/bin/cobbler-register
 - (FEAT) web UI search feature
+- (FEAT) very simple "cobbler hardlink" command to optimize space in /var/www/cobbler
 
 - Tue Mar 3 2009 - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess

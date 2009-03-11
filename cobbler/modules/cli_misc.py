@@ -39,6 +39,21 @@ HELP_FORMAT = commands.HELP_FORMAT
 
 ########################################################
 
+class HardLinkFunction(commands.CobblerFunction):
+    def help_me(self):
+        return HELP_FORMAT % ("cobbler hardlink","")
+
+    def command_name(self):
+        return "hardlink"
+
+    def add_options(self, p, args):
+        pass
+
+    def run(self):
+        self.api.hardlink()
+
+########################################################
+
 class CheckFunction(commands.CobblerFunction):
 
     def help_me(self):
@@ -359,7 +374,7 @@ def cli_functions(api):
        ListFunction(api), StatusFunction(api),
        SyncFunction(api), RepoSyncFunction(api), ValidateKsFunction(api),
        ReplicateFunction(api), AclFunction(api),
-       VersionFunction(api)
+       VersionFunction(api), HardLinkFunction(api)
     ]
     return []
 
