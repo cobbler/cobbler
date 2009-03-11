@@ -18,6 +18,7 @@ Cobbler CHANGELOG
 - (FEAT) support for /usr/bin/cobbler-register
 - (FEAT) web UI search feature
 - (FEAT) very simple "cobbler hardlink" command to optimize space in /var/www/cobbler
+- (FEAT) new "change" trigger that runs on all adds/edits/removes/syncs
 
 - Tue Mar 3 2009 - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
