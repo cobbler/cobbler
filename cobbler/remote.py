@@ -1138,6 +1138,17 @@ class CobblerXMLRPCInterface:
         self.check_access(token,"sync")
         return self.api.sync()
 
+    def hardlink(self,token):
+        """
+        Hardlink trees and repos to save disk space.  Caution: long
+        running op.  Until we have a task engine, this may lock other
+        folks out of the web app, so use wisely.  It may also be timeout
+        prone.
+        """
+        self._log("hardlink",token=token)
+        self.check_access(token,"hardlink")
+        return self.api.hardlink()
+
     def new_distro(self,token):
         """
         Creates a new (unconfigured) distro object.  It works something like
