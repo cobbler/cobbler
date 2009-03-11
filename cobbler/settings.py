@@ -101,6 +101,8 @@ DEFAULTS = {
     "restart_dhcp"                : 1,
     "restart_xinetd"              : 1,
     "run_install_triggers"        : 1,
+    "scm_track_enabled"           : 0,
+    "scm_track_mode"              : "git",
     "server"                      : "127.0.0.1",
     "snippetsdir"                 : "/var/lib/cobbler/snippets",
     "tftpd_bin"                   : "/usr/sbin/in.tftpd",

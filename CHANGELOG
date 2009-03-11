@@ -22,6 +22,7 @@ Cobbler CHANGELOG
 - (FEAT) web UI search feature
 - (FEAT) very simple "cobbler hardlink" command to optimize space in /var/www/cobbler
 - (FEAT) new "change" trigger that runs on all adds/edits/removes/syncs
+- (FEAT) an SCM trigger that knows about /var/lib/cobbler kickstarts, snippets, and config directories, and audits them for changes
 
 - Tue Mar 3 2009 - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
