@@ -352,7 +352,8 @@ if __name__ == "__main__":
                                 ("%s/install/pre" % trigpath,         []),
                                 ("%s/install/post" % trigpath,        []),
                                 ("%s/sync/pre" % trigpath,            []),
-                                ("%s/sync/post" % trigpath,           [])
+                                ("%s/sync/post" % trigpath,           []),
+                                ("%s/change" % trigpath,              [])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC

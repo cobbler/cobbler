@@ -69,6 +69,8 @@ class Images(collection.Collection):
                 self.log_func("deleted repo %s" % name)
                 if with_triggers:
                     self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/image/post/*")
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*")
+
             return True
 
             if with_delete and not self.api.is_cobblerd:
