@@ -36,6 +36,7 @@ import action_replicate
 import action_acl
 import action_report
 import action_power
+import action_hardlink
 from cexceptions import *
 import sub_process
 import module_loader
@@ -680,6 +681,10 @@ class BootAPI:
         return builder.run(
            iso=iso, profiles=profiles, systems=systems, tempdir=tempdir, distro=distro, standalone=standalone, source=source
         )
+
+    def hardlink(self):
+        linker = action_hardlink.HardLinker(self._config)
+        return linker.run()
 
     def replicate(self, cobbler_master = None, sync_all=False, sync_kickstarts=False, sync_trees=False, sync_repos=False, sync_triggers=False, systems=False):
         """
