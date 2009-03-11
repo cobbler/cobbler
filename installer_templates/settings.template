@@ -311,6 +311,15 @@ register_new_installs: 0
 # uses a logging trigger to audit install progress.
 run_install_triggers: 1
 
+# enables a trigger which version controls all changes to /var/lib/cobbler
+# when add, edit, or sync events are performed.  This can be used
+# to revert to previous database versions, generate RSS feeds, or for
+# other auditing or backup purposes.  git is the recommend SCM
+# for use with this feature.  
+
+scm_track_enabled: 0
+scm_track_mode: "git"
+
 # this is the address of the cobbler server -- as it is used
 # by systems during the install process, it must be the address
 # or hostname of the system as those systems can see the server.
