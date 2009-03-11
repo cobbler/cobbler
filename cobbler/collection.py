@@ -284,6 +284,7 @@ class Collection(serializable.Serializable):
 
             # save the tree, so if neccessary, scripts can examine it.
             if with_triggers:
+                self._run_triggers(self.api, ref, "/var/lib/cobbler/triggers/change/*")
                 self._run_triggers(self.api, ref,"/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type())
     
     

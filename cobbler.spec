@@ -220,6 +220,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/kickstarts/
 %dir /var/lib/cobbler/backup/
 %dir /var/lib/cobbler/triggers
+%dir /var/lib/cobbler/triggers/change
 %dir /var/lib/cobbler/triggers/add
 %dir /var/lib/cobbler/triggers/add/distro
 %dir /var/lib/cobbler/triggers/add/distro/pre

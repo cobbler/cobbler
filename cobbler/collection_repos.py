@@ -65,7 +65,9 @@ class Repos(collection.Collection):
                 self.log_func("deleted repo %s" % name)
                 if with_triggers: 
                     self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*")
-            
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*")
+           
+ 
                 path = "/var/www/cobbler/repo_mirror/%s" % obj.name
                 if os.path.exists(path):
                     utils.rmtree(path)

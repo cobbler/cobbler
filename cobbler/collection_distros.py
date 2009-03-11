@@ -76,6 +76,8 @@ class Distros(collection.Collection):
                 self.log_func("deleted distro %s" % name)
                 if with_triggers: 
                     self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/distro/post/*")
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*")
+
 
             # look through all mirrored directories and find if any directory is holding
             # this particular distribution's kernel and initrd
