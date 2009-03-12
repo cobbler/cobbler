@@ -116,7 +116,7 @@ class BootSync:
         if self.verbose:
            print "- copying images"
         self.pxegen.copy_images()
-        self.pxegen.generate_windows_files()
+        # self.pxegen.generate_windows_files()
         for x in self.systems:
             if self.verbose:
                 print "- copying files for system: %s" % x.name
