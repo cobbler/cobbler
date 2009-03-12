@@ -248,6 +248,9 @@ if __name__ == "__main__":
                                 (snippetpath, ['snippets/post_s390_reboot']),
                                 (snippetpath, ['snippets/redhat_register']),
                                 (snippetpath, ['snippets/cobbler_register']),
+                                (snippetpath, ['snippets/keep_ssh_host_keys']),
+                                (snippetpath, ['snippets/log_ks_pre']),
+                                (snippetpath, ['snippets/log_ks_post']),
 
                                 # documentation
                                 (manpath,  ['docs/cobbler.1.gz']),
