@@ -89,7 +89,6 @@ class BootCheck:
            self.check_service(status,"smb")
            self.check_smb_shares(status)
            self.check_service(status,"ris-linuxd")
-           self.check_tftpd_rules(status)
 
        return status
 
@@ -315,14 +314,14 @@ class BootCheck:
           using_rules = False
           f = open(self.settings.tftpd_conf)
           re_disable = re.compile(r'disable.*=.*yes')
-          re_rules = re.compile(r'.*-m /etc/tftpd.rules.*')
+          re_rules = re.compile(r'.*-m %s.*' % self.settings.tftpd_rules)
           for line in f.readlines():
              if re_disable.search(line) and not line.strip().startswith("#"):
                  status.append(_("change 'disable' to 'no' in %(file)s") % { "file" : self.settings.tftpd_conf })
              if re_rules.search(line):
                  using_rules = True
           if not using_rules:
-             status.append(_("tftpd not configured to use rules. Add '-m /etc/tftpd.rules' to the server_args line"))
+             status.append(_("tftpd not configured to use rules. Add '-m %s' to the server_args line") % self.settings.tftpd_rules)
        else:
           status.append(_("file %(file)s does not exist") % { "file" : self.settings.tftpd_conf })
        
@@ -330,10 +329,6 @@ class BootCheck:
        if not os.path.exists(bootloc):
           status.append(_("directory needs to be created: %s" % bootloc))
 
-
-   def check_tftpd_rules(self,status):
-       if not os.path.exists("/etc/tftpd.rules"):
-          status.append(_("tftpd rules are missing.  Microsoft Windows remote (physical) installations will not work correctly"))
 
    def check_dhcpd_conf(self,status):
        """

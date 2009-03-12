@@ -1,6 +1,6 @@
 # TFTP rules to:
 # - Convert backslashes to forward slashes
-# - Convert everything under /winos/*/* to upper-case
+# - Convert everything to upper-case
 rg \\ / # Convert backslashes to slashes
 r   (.*/i386/)(.*)          \1\L\2
 
