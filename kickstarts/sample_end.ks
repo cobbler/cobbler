@@ -44,6 +44,7 @@ zerombr
 autopart
 
 %pre
+$SNIPPET('log_ks_pre')
 $kickstart_start
 $SNIPPET('pre_install_network_config')
 # Enable installation monitoring
@@ -55,6 +56,7 @@ $SNIPPET('func_install_if_enabled')
 %end
 
 %post
+$SNIPPET('log_ks_post')
 # Start yum configuration
 $yum_config_stanza
 # End yum configuration
