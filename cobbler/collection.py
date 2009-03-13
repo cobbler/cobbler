@@ -148,6 +148,7 @@ class Collection(serializable.Serializable):
     def copy(self,ref,newname):
         ref.name = newname
         ref.uid = self.config.generate_uid()
+        ref.ctime = 0
         if ref.COLLECTION_TYPE == "system":
             # this should only happen for systems
             for iname in ref.interfaces.keys():
