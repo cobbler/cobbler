@@ -213,19 +213,23 @@ def is_mac(strdata):
         return True
     return False
 
-def get_random_mac(api_handle):
+def get_random_mac(api_handle,virt_type="xenpv"):
     """
     Generate a random MAC address.
     from xend/server/netif.py
-    Generate a random MAC address.
-    Uses OUI 00-16-3E, allocated to
-    Xensource, Inc.  Last 3 fields are random.
     return: MAC address string
     """
-    mac = [ 0x00, 0x16, 0x3e,
-        random.randint(0x00, 0x7f),
-        random.randint(0x00, 0xff),
-        random.randint(0x00, 0xff) ]
+    if virt_type.startswith("xen"):
+        mac = [ 0x00, 0x16, 0x3e,
+            random.randint(0x00, 0x7f),
+            random.randint(0x00, 0xff),
+            random.randint(0x00, 0xff) 
+        ]
+    else:
+        # FIXME: fill in for qemu/KVM and VMware
+        raise CX("virt mac assignment not yet supported")
+
+        
     mac = ':'.join(map(lambda x: "%02x" % x, mac))
     systems = api_handle.systems()
     while ( systems.find(mac_address=mac) ):
