@@ -163,6 +163,29 @@ def get_host_ip(ip, shorten=True):
             cutoff = (32 - cidr.prefixlen) / 4
             return pretty[0:-cutoff]
 
+def _IP(ip):
+   """
+   Returns a netaddr.IP object representing ip.
+   If ip is already an netaddr.IP instance just return it.
+   Else return a new instance
+   """
+   if isinstance(ip, netaddr.IP):
+      return ip
+   else:
+      return netaddr.IP(ip)
+
+def _CIDR(cidr):
+   """
+   Returns a netaddr.CIDR object representing cidr.
+   If cidr is already an netaddr.CIDR instance just return it.
+   Else return a new instance
+   """
+   if isinstance(cidr, netaddr.CIDR):
+      return cidr
+   else:
+      return netaddr.CIDR(cidr)
+
+
 def get_config_filename(sys,interface):
     """
     The configuration file for each system pxe uses is either
