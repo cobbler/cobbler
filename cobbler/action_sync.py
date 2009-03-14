@@ -141,7 +141,10 @@ class BootSync:
         # run post-triggers
         if self.verbose:
             print "- running post-sync triggers"
+
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*")
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/change/*")
+
         return True
 
     def clean_trees(self):

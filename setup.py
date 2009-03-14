@@ -164,7 +164,7 @@ if __name__ == "__main__":
 
                                 # for --version support across distros
                                 (libpath,  ['config/version']),
-
+     
                                 # bootloaders and syslinux support files
                                 (libpath,  ['loaders/elilo-3.8-ia64.efi']),
                                 (libpath,  ['loaders/menu.c32']),
@@ -177,6 +177,7 @@ if __name__ == "__main__":
                                 (dbpath + "/systems.d",  []),
                                 (dbpath + "/repos.d",    []),
                                 (dbpath + "/images.d",   []),
+                                (dbpath + "/networks.d", []),
 
                                 # sample kickstart files
                                 (kickpath,  ['kickstarts/legacy.ks']),
@@ -252,6 +253,9 @@ if __name__ == "__main__":
                                 (snippetpath, ['snippets/post_s390_reboot']),
                                 (snippetpath, ['snippets/redhat_register']),
                                 (snippetpath, ['snippets/cobbler_register']),
+                                (snippetpath, ['snippets/keep_ssh_host_keys']),
+                                (snippetpath, ['snippets/log_ks_pre']),
+                                (snippetpath, ['snippets/log_ks_post']),
 
                                 # documentation
                                 (manpath,  ['docs/cobbler.1.gz']),
@@ -357,7 +361,8 @@ if __name__ == "__main__":
                                 ("%s/install/pre" % trigpath,         []),
                                 ("%s/install/post" % trigpath,        []),
                                 ("%s/sync/pre" % trigpath,            []),
-                                ("%s/sync/post" % trigpath,           [])
+                                ("%s/sync/post" % trigpath,           []),
+                                ("%s/change" % trigpath,              [])
                              ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC

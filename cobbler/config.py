@@ -32,12 +32,14 @@ import item_profile as profile
 import item_system as system
 import item_repo as repo
 import item_image as image
+import item_network as network
 
 import collection_distros as distros
 import collection_profiles as profiles
 import collection_systems as systems
 import collection_repos as repos
 import collection_images as images
+import collection_networks as networks
 import modules.serializer_yaml as serializer_yaml
 
 import settings
@@ -76,6 +78,7 @@ class Config:
        self._profiles     = profiles.Profiles(weakref.proxy(self))
        self._systems      = systems.Systems(weakref.proxy(self))
        self._images       = images.Images(weakref.proxy(self))
+       self._networks     = networks.Networks(weakref.proxy(self))
        self._settings     = settings.Settings() # not a true collection
 
    def generate_uid(self):
@@ -133,6 +136,12 @@ class Config:
        """
        return self._images
 
+   def networks(self):
+       """
+       Return the definitive copy of the Networks collection
+       """
+       return self._networks
+
    def new_distro(self,is_subobject=False):
        """
        Create a new distro object with a backreference to this object
@@ -163,6 +172,12 @@ class Config:
        """
        return image.Image(weakref.proxy(self),is_subobject=is_subobject)
 
+   def new_network(self,is_subobject=False):
+       """
+       Create a new network object...
+       """
+       return network.Network(weakref.proxy(self),is_subobject=is_subobject)
+
    def clear(self):
        """
        Forget about all loaded configuration data
@@ -173,6 +188,7 @@ class Config:
        self._profiles.clear(),
        self._images.clear()
        self._systems.clear(),
+       self._networks.clear(),
        return True
 
    def serialize(self):
@@ -184,6 +200,7 @@ class Config:
        serializer.serialize(self._profiles)
        serializer.serialize(self._images)
        serializer.serialize(self._systems)
+       serializer.serialize(self._networks)
        return True
 
    def serialize_item(self,collection,item):
@@ -213,6 +230,7 @@ class Config:
        serializer.deserialize(self._profiles)
        serializer.deserialize(self._images)
        serializer.deserialize(self._systems)
+       serializer.deserialize(self._networks)
        return True
 
    def deserialize_raw(self,collection_type):

@@ -25,6 +25,7 @@ profile = serializer_catalog
 system = serializer_catalog
 repo = serializer_catalog
 image = serializer_catalog
+network = serializer_catalog
 
 # authentication: 
 # what users can log into the WebUI and Read-Write XMLRPC?

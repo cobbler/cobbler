@@ -105,6 +105,8 @@ DEFAULTS = {
     "ris_linuxd_dir"              : "/tftpboot/drivers",
     "ris_linuxd_flags"            : "",
     "run_install_triggers"        : 1,
+    "scm_track_enabled"           : 0,
+    "scm_track_mode"              : "git",
     "server"                      : "127.0.0.1",
     "snippetsdir"                 : "/var/lib/cobbler/snippets",
     "tftpd_bin"                   : "/usr/sbin/in.tftpd",

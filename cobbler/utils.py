@@ -163,6 +163,29 @@ def get_host_ip(ip, shorten=True):
             cutoff = (32 - cidr.prefixlen) / 4
             return pretty[0:-cutoff]
 
+def _IP(ip):
+   """
+   Returns a netaddr.IP object representing ip.
+   If ip is already an netaddr.IP instance just return it.
+   Else return a new instance
+   """
+   if isinstance(ip, netaddr.IP):
+      return ip
+   else:
+      return netaddr.IP(ip)
+
+def _CIDR(cidr):
+   """
+   Returns a netaddr.CIDR object representing cidr.
+   If cidr is already an netaddr.CIDR instance just return it.
+   Else return a new instance
+   """
+   if isinstance(cidr, netaddr.CIDR):
+      return cidr
+   else:
+      return netaddr.CIDR(cidr)
+
+
 def get_config_filename(sys,interface):
     """
     The configuration file for each system pxe uses is either
@@ -213,19 +236,23 @@ def is_mac(strdata):
         return True
     return False
 
-def get_random_mac(api_handle):
+def get_random_mac(api_handle,virt_type="xenpv"):
     """
     Generate a random MAC address.
     from xend/server/netif.py
-    Generate a random MAC address.
-    Uses OUI 00-16-3E, allocated to
-    Xensource, Inc.  Last 3 fields are random.
     return: MAC address string
     """
-    mac = [ 0x00, 0x16, 0x3e,
-        random.randint(0x00, 0x7f),
-        random.randint(0x00, 0xff),
-        random.randint(0x00, 0xff) ]
+    if virt_type.startswith("xen"):
+        mac = [ 0x00, 0x16, 0x3e,
+            random.randint(0x00, 0x7f),
+            random.randint(0x00, 0xff),
+            random.randint(0x00, 0xff) 
+        ]
+    else:
+        # FIXME: fill in for qemu/KVM and VMware
+        raise CX("virt mac assignment not yet supported")
+
+        
     mac = ':'.join(map(lambda x: "%02x" % x, mac))
     systems = api_handle.systems()
     while ( systems.find(mac_address=mac) ):

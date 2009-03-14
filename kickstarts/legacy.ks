@@ -38,6 +38,7 @@ zerombr
 autopart
 
 %pre
+$SNIPPET('log_ks_pre')
 $kickstart_start
 $SNIPPET('pre_install_network_config')
 $SNIPPET('pre_anamon')
@@ -45,6 +46,7 @@ $SNIPPET('pre_anamon')
 %packages
 
 %post
+$SNIPPET('log_ks_post')
 # Begin yum configuration
 $yum_config_stanza
 # End yum configuration

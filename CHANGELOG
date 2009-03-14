@@ -2,6 +2,7 @@ Cobbler CHANGELOG
 
 - Mon Mar 7 2009 - 1.7.0
 - Development release start
+- (FEAT) network objects
 
 - Mon Mar 7 2009 - 1.6.0
 - (FEAT) Improved anaconda monitoring code
@@ -20,6 +21,11 @@ Cobbler CHANGELOG
 - (BUGF) sleep 5 seconds between power cycling systems
 - (FEAT) support for /usr/bin/cobbler-register
 - (FEAT) web UI search feature
+- (FEAT) very simple "cobbler hardlink" command to optimize space in /var/www/cobbler
+- (FEAT) new "change" trigger that runs on all adds/edits/removes/syncs
+- (FEAT) an SCM trigger that knows about /var/lib/cobbler kickstarts, snippets, and config directories, and audits them for changes
+- (BUGF) update ctime on object copies
+- (BUGF) fix cobbler check code that makes sure default password is not in use
 
 - Tue Mar 3 2009 - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess

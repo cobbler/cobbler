@@ -88,6 +88,7 @@ if [ -e /var/lib/cobbler/distros ]; then
     cp /var/lib/cobbler/profiles* /var/lib/cobbler/backup 2>/dev/null
     cp /var/lib/cobbler/systems*  /var/lib/cobbler/backup 2>/dev/null
     cp /var/lib/cobbler/repos*    /var/lib/cobbler/backup 2>/dev/null
+    cp /var/lib/cobbler/networks* /var/lib/cobbler/backup 2>/dev/null
 fi
 if [ -e /var/lib/cobbler/config ]; then
     cp -a /var/lib/cobbler/config    /var/lib/cobbler/backup 2>/dev/null
@@ -217,9 +218,11 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/config/systems.d/
 %dir /var/lib/cobbler/config/repos.d/
 %dir /var/lib/cobbler/config/images.d/
+%dir /var/lib/cobbler/config/networks.d/
 %dir /var/lib/cobbler/kickstarts/
 %dir /var/lib/cobbler/backup/
 %dir /var/lib/cobbler/triggers
+%dir /var/lib/cobbler/triggers/change
 %dir /var/lib/cobbler/triggers/add
 %dir /var/lib/cobbler/triggers/add/distro
 %dir /var/lib/cobbler/triggers/add/distro/pre
@@ -273,6 +276,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/snippets/post_s390_reboot
 %config(noreplace) /var/lib/cobbler/snippets/redhat_register
 %config(noreplace) /var/lib/cobbler/snippets/cobbler_register
+%config(noreplace) /var/lib/cobbler/snippets/keep_ssh_host_keys
+%config(noreplace) /var/lib/cobbler/snippets/log_ks_pre
+%config(noreplace) /var/lib/cobbler/snippets/log_ks_post
 /var/lib/cobbler/elilo-3.8-ia64.efi
 /var/lib/cobbler/menu.c32
 /var/lib/cobbler/yaboot-1.3.14

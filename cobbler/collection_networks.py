@@ -1,9 +1,10 @@
 """
-Systems are hostnames/MACs/IP names and the associated profile
-they belong to.
+Networks in cobbler allow network-level attributes to be defined and
+to be inherited by systems/interfaces which belong to the network.
+Also allows for intelligent allocation of addresses within networks.
 
-Copyright 2008, Red Hat, Inc
-Michael DeHaan <mdehaan@redhat.com>
+Copyright 2009, Red Hat, Inc
+John Eckersberg <jeckersb@redhat.com>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,55 +22,50 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import item_system as system
+import item_network as network
 import utils
 import collection
 from cexceptions import *
-import action_litesync
 from utils import _
+import os.path
+
+TESTMODE = False
 
 #--------------------------------------------
 
-class Systems(collection.Collection):
+class Networks(collection.Collection):
 
     def collection_type(self):
-        return "system"
+        return "network"
 
     def factory_produce(self,config,seed_data):
         """
-        Return a system forged from seed_data
+        Return a repo forged from seed_data
         """
-        return system.System(config).from_datastruct(seed_data)
+        return network.Network(config).from_datastruct(seed_data)
 
     def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False):
         """
         Remove element named 'name' from the collection
         """
+
+        # NOTE: with_delete isn't currently meaningful for networks
+        # but is left in for consistancy in the API.  Unused.
         name = name.lower()
         obj = self.find(name=name)
-        
         if obj is not None:
-
             if with_delete:
-                if with_triggers: 
-                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/system/pre/*")
-                if with_sync:
-                    lite_sync = action_litesync.BootLiteSync(self.config)
-                    lite_sync.remove_single_system(name)
+                if with_triggers:
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/network/pre/*")
+
             del self.listing[name]
             self.config.serialize_delete(self, obj)
-            if with_delete:
-                self.log_func("deleted system %s" % name)
-                if with_triggers: 
-                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/system/post/*")
-                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*")
 
-                     
-            if with_delete and not self.api.is_cobblerd:
-                self.api._internal_cache_update("system", name, remove=True)
+            if with_delete:
+                self.log_func("deleted network %s" % name)
+                if with_triggers:
+                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/network/post/*")
 
             return True
-       
-        #if not recursive: 
-        #    raise CX(_("cannot delete an object that does not exist: %s") % name)
-     
+        raise CX(_("cannot delete an object that does not exist: %s") % name)
+
