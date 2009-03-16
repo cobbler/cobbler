@@ -58,6 +58,7 @@ class BootLiteSync:
         self.images      = config.images()
         self.settings    = config.settings()
         self.repos       = config.repos()
+        self.networks    = config.networks()
         self.sync        = config.api.get_sync(verbose)
 
     def add_single_distro(self, name):
@@ -184,3 +185,8 @@ class BootLiteSync:
             else:
                 utils.rmfile(os.path.join(bootloc, filename))
 
+    # not sure sure I actually need anything special to litesync networks
+    def add_single_network(self, name):
+        pass
+    def remote_single_network(self, name):
+        pass

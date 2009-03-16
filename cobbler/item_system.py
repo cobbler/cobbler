@@ -81,6 +81,7 @@ class System(item.Item):
         self.redhat_management_key     = "<<inherit>>"
         self.redhat_management_server  = "<<inherit>>"
 
+
     def delete_interface(self,name):
         """
         Used to remove an interface.
@@ -111,6 +112,7 @@ class System(item.Item):
                 "bonding_opts"   : "",
                 "dns_name"       : "",
                 "static_routes"  : [],
+                "network"        : "",
             }
 
         return self.interfaces[name]
@@ -198,7 +200,7 @@ class System(item.Item):
         self.uid         = self.load_item(seed_data,'uid','')
         if self.uid == '':
            self.uid = self.config.generate_uid()
-        
+
         self.random_id   = self.load_item(seed_data,'random_id','')
         if self.random_id == '' or len(self.random_id) != 4:
            self.random_id = self.config.generate_random_id(4)
@@ -377,8 +379,11 @@ class System(item.Item):
 
         if intf["ip_address"] != "": 
             return intf["ip_address"].strip()
+        elif intf["network"] != "":
+            net = self.config.networks().find(name=intf["network"])
+            return net.get_assigned_address(self.name, interface)
         else:
-            return None
+            return ""
 
     def is_management_supported(self,cidr_ok=True):
         """
@@ -425,6 +430,27 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         intf["static"] = utils.input_boolean(truthiness)
         return True
+
+    def set_network(self,network,interface):
+        """
+        Add an interface to a network object.  If network is empty,
+        clear the network.
+        """
+        intf = self.__get_interface(interface)
+
+        if network != '': # Join
+            net  = self.config.networks().find(name=network)
+            if net == None:
+                raise CX(_("Network %s does not exist" % network))
+            net.subscribe_system(self.name, interface, intf['ip_address'])
+            intf['network'] = network
+        else: # leave
+            net = self.config.networks().find(name=intf['network'])
+            net.unsubscribe_system(self.name, interface)
+
+        # FIXME figure out why the network collection doesn't
+        # serialize itself out to disk without this
+        self.config.serialize()
 
     def set_ip_address(self,address,interface):
         """
@@ -720,12 +746,13 @@ class System(item.Item):
         for name in ikeys:
             x = self.__get_interface(name)
             buf = buf + _("interface        : %s\n") % (name)
+            buf = buf + _("  network        : %s\n") % x.get("network","")
             buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
             buf = buf + _("  bonding        : %s\n") % x.get("bonding","")
             buf = buf + _("  bonding_master : %s\n") % x.get("bonding_master","")
             buf = buf + _("  bonding_opts   : %s\n") % x.get("bonding_opts","")
             buf = buf + _("  is static?     : %s\n") % x.get("static",False)
-            buf = buf + _("  ip address     : %s\n") % x.get("ip_address","")
+            buf = buf + _("  ip address     : %s\n") % self.get_ip_address(name)
             buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
             buf = buf + _("  static routes  : %s\n") % x.get("static_routes",[])
             buf = buf + _("  dns name       : %s\n") % x.get("dns_name","")

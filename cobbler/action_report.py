@@ -321,6 +321,12 @@ class Report:
                 else:
                     self.reporting_print_sorted(self.api.repos())
 
+            if report_what in [ "all", "networks", "network" ]:
+                if report_name is not None:
+                    self.reporting_list_names2(self.api.networks(), report_name)
+                else:
+                    self.reporting_print_sorted(self.api.networks())
+
             if report_what in [ "all", "images", "image" ]:
                 if report_name is not None:
                     self.reporting_list_names2(self.api.images(), report_name)
@@ -344,6 +350,9 @@ class Report:
             if report_what in [ "all", "repos", "repo" ]:
                 self.reporting_print_all_fields(self.api.repos(), report_type, report_noheaders) 
 
+            if report_what in [ "all", "networks", "network" ]:
+                self.reporting_print_all_fields(self.api.networks(), report_type, report_noheaders)
+
             if report_what in [ "all", "images", "image" ]:
                 self.reporting_print_all_fields(self.api.images(), report_type, report_noheaders) 
         
@@ -360,6 +369,10 @@ class Report:
 
             if report_what in [ "all", "repos", "repo" ]:
                 self.reporting_print_x_fields(self.api.repos(), report_type, report_fields, report_noheaders)
+
+            if report_what in [ "all", "networks", "network" ]:
+                self.reporting_print_x_fields(self.api.networks(), report_type, report_fields, report_noheaders)
+
             if report_what in [ "all", "images", "image" ]:
                 self.reporting_print_x_fields(self.api.images(), report_type, report_fields, report_noheaders)
 

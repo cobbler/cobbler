@@ -35,6 +35,7 @@ import item_profile
 import item_distro
 import item_repo
 import item_image
+import item_network
 from utils import _
 
 class Collection(serializable.Serializable):
@@ -148,6 +149,7 @@ class Collection(serializable.Serializable):
     def copy(self,ref,newname):
         ref.name = newname
         ref.uid = self.config.generate_uid()
+        ref.ctime = 0
         if ref.COLLECTION_TYPE == "system":
             # this should only happen for systems
             for iname in ref.interfaces.keys():
@@ -274,6 +276,8 @@ class Collection(serializable.Serializable):
                     self.lite_sync.add_single_distro(ref.name)
                 elif isinstance(ref, item_image.Image):
                     self.lite_sync.add_single_image(ref.name)
+                elif isinstance(ref, item_network.Network):
+                    self.lite_sync.add_single_network(ref.name)
                 elif isinstance(ref, item_repo.Repo):
                     pass
                 else:
@@ -322,6 +326,8 @@ class Collection(serializable.Serializable):
                 match = self.api.find_repo(ref.name)
             elif isinstance(ref, item_image.Image):
                 match = self.api.find_image(ref.name)
+            elif isinstance(ref, item_network.Network):
+                match = self.api.find_network(ref.name)
             else:
                 raise CX("internal error, unknown object type")
 

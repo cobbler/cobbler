@@ -88,6 +88,7 @@ if [ -e /var/lib/cobbler/distros ]; then
     cp /var/lib/cobbler/profiles* /var/lib/cobbler/backup 2>/dev/null
     cp /var/lib/cobbler/systems*  /var/lib/cobbler/backup 2>/dev/null
     cp /var/lib/cobbler/repos*    /var/lib/cobbler/backup 2>/dev/null
+    cp /var/lib/cobbler/networks* /var/lib/cobbler/backup 2>/dev/null
 fi
 if [ -e /var/lib/cobbler/config ]; then
     cp -a /var/lib/cobbler/config    /var/lib/cobbler/backup 2>/dev/null
@@ -217,6 +218,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/config/systems.d/
 %dir /var/lib/cobbler/config/repos.d/
 %dir /var/lib/cobbler/config/images.d/
+%dir /var/lib/cobbler/config/networks.d/
 %dir /var/lib/cobbler/kickstarts/
 %dir /var/lib/cobbler/backup/
 %dir /var/lib/cobbler/triggers
