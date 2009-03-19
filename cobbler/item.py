@@ -48,6 +48,7 @@ class Item(serializable.Serializable):
         use False for is_subobject and the parent object will (therefore) have a different type.
 
         """
+
         self.config = config
         self.settings = self.config._settings
         self.clear(is_subobject)      # reset behavior differs for inheritance cases
@@ -57,6 +58,9 @@ class Item(serializable.Serializable):
         self.ctime = 0 # to be filled in by collection class
         self.mtime = 0 # to be filled in by collection class
         self.uid = ""  # to be filled in by collection class
+
+        self.last_cached_mtime = 0
+        self.cached_datastruct = ""
 
     def clear(self):
         raise exceptions.NotImplementedError
@@ -225,6 +229,21 @@ class Item(serializable.Serializable):
         if datastruct.has_key(key):
             return datastruct[key]
         return default
+
+    def to_datastruct_with_cache(self):
+        """
+        Try to not create or run to_datastruct
+        when we the object has not changed so we create
+        less Python objects.
+        """
+        if not (self.mtime == 0) and (self.last_cached_mtime == self.mtime):
+            # print "FROM CACHE = %s" % self.last_cached_mtime
+            return self.cached_datastruct
+        else:
+            # print "CACHE STORE = %s" % self.mtime
+            self.last_cached_mtime = self.mtime
+            self.cached_datastruct = self.to_datastruct()
+            return self.cached_datastruct
 
     def to_datastruct(self):
         """

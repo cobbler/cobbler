@@ -135,7 +135,7 @@ class Collection(serializable.Serializable):
         """
         Serialize the collection
         """
-        datastruct = [x.to_datastruct() for x in self.listing.values()]
+        datastruct = [x.to_datastruct_with_cache() for x in self.listing.values()]
         return datastruct
 
     def from_datastruct(self,datastruct):
