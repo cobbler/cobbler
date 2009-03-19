@@ -16,5 +16,21 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import cobbler.cobbler as app
 import sys
-sys.exit(app.main())
+
+PROFILING = False
+
+if PROFILING:
+    print "** PROFILING **"
+    import hotshot, hotshot.stats
+    prof = hotshot.Profile("cobbler.prof")
+    prof.runcall(app.main)
+    prof.close()
+    stats = hotshot.stats.load("cobbler.prof")
+    stats.strip_dirs()
+    stats.sort_stats('time')
+    print "** REPORT **"
+    stats.print_stats(100)
+    sys.exit(0)
+else:
+    sys.exit(app.main())
 
