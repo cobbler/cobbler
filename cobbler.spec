@@ -118,7 +118,7 @@ done
 %preun
 if [ $1 = 0 ]; then
     /sbin/service cobblerd stop >/dev/null 2>&1 || :
-    chkconfig --del cobblerd
+    chkconfig --del cobblerd || :
 fi
 
 %postun
