@@ -38,7 +38,7 @@ LOCK_HANDLE = None
 BLOCK_SIGNAL = True
 
 def handler(num,frame): 
-   print sys.stderr, "Ctrl-C not allowed during writes.  Please wait."
+   print >> sys.stderr, "Ctrl-C not allowed during writes.  Please wait."
    return True
     
 def no_ctrl_c():
