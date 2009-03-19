@@ -250,7 +250,7 @@ class CobblerXMLRPCInterface:
             else:
                raise CX("internal error, collection name is %s" % collection_name)
             # FIXME: speed this up
-            data = contents.to_datastruct()
+            data = contents.to_datastruct_with_cache()
             total_items = len(data)
 
         data.sort(self.__sorter)
@@ -594,7 +594,7 @@ class CobblerXMLRPCInterface:
         if not expand:     
             data = [x.name for x in find_function(name, True, True, **criteria)]
         else:
-            data = [x.to_datastruct() for x in find_function(name, True, True, **criteria)]
+            data = [x.to_datastruct_with_cache() for x in find_function(name, True, True, **criteria)]
         return self.xmlrpc_hacks(data)
 
     def find_distro(self,criteria={},expand=False,token=None,**rest):

@@ -144,6 +144,12 @@ class Settings(serializable.Serializable):
        buf = buf + _("kernel options  : %s\n") % self._attributes['kernel_options']
        return buf
 
+   def to_datastruct_with_cache(self):
+       """
+       Really just something items do...
+       """
+       return self._attributes
+
    def to_datastruct(self):
        """
        Return an easily serializable representation of the config.
