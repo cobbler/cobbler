@@ -494,7 +494,10 @@ def blender(api_handle,remove_hashes, root_obj):
 
     # Get topmost object to determine which breed we're dealing with
     parent = root_obj.get_parent()
-    while parent.COLLECTION_TYPE is not "distro":
+    if parent is None:
+        parent = root_obj
+
+    while parent.COLLECTION_TYPE is "profile" or parent.COLLECTION_TYPE is "system":
         parent = parent.get_parent()
 
     breed = parent.breed
