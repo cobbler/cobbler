@@ -26,6 +26,7 @@ Cobbler CHANGELOG
 - (FEAT) an SCM trigger that knows about /var/lib/cobbler kickstarts, snippets, and config directories, and audits them for changes
 - (BUGF) update ctime on object copies
 - (BUGF) fix cobbler check code that makes sure default password is not in use
+- (BUGF) remove duplicate text box for management classes from server edit page
 
 - Tue Mar 3 2009 - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess

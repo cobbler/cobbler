@@ -44,7 +44,7 @@ def register():
 
 def serialize_item(obj, item):
     filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
-    datastruct = item.to_datastruct()
+    datastruct = item.to_datastruct_with_cache()
     fd = open(filename,"w+")
     ydata = yaml.dump(datastruct)
     if ydata is None or ydata == "":

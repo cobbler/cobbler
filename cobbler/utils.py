@@ -608,7 +608,7 @@ def __consolidate(node,results):
     data from past scanned nodes.  Hashes and arrays are treated
     specially.
     """
-    node_data =  node.to_datastruct()
+    node_data =  node.to_datastruct_with_cache()
 
     # if the node has any data items labelled <<inherit>> we need to expunge them.
     # so that they do not override the supernodes.
