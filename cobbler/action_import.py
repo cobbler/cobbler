@@ -518,7 +518,8 @@ class Importer:
 
            if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") ) and x != "initrd.size":
                initrd = os.path.join(dirname,x)
-           if ( x.startswith("vmlinu") or x.startswith("kernel.img") ) and x.find("initrd") == -1:
+
+           if ( x.startswith("vmlinu") or x.startswith("kernel.img") or x.startswith("linux") ) and x.find("initrd") == -1:
                kernel = os.path.join(dirname,x)
            if x.lower().startswith("startrom.n1_"):
                startrom = os.path.join(dirname,x)
@@ -564,6 +565,11 @@ class Importer:
                return
 
            archs = [ proposed_arch ]
+
+       if importer.breed == "ubuntu" and dirname.find("ubuntu-installer") == -1:
+           print _("- skipping entry, there aren't netboot images")
+           return
+
 
        if len(archs)>1:
            if importer.breed in [ "redhat" ]:
@@ -766,6 +772,13 @@ class Importer:
        else:
           # remove the part that says /var/www/cobbler/ks_mirror/name
           name = "-".join(dirname.split("/")[5:])
+
+       # These are all Ubuntu's doing, the netboot images are buried pretty
+       # deep. ;-) -JC
+       name = name.replace("-netboot","")
+       name = name.replace("-ubuntu-installer","")
+       name = name.replace("-amd64","")
+       name = name.replace("-i386","")
 
        # we know that some kernel paths should not be in the name
 
