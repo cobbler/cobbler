@@ -53,6 +53,7 @@ class ImageFunction(commands.CobblerFunction):
             p.add_option("--image-type",       dest="image_type", help="what kind of image is this?")
 
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
+            p.add_option("--kickstart",        dest="kickstart", help="answer file if --image-type=iso") 
             p.add_option("--os-version",       dest="os_version", help="ex: rhel4, fedora 9") 
         if self.matches_args(args,["remove"]):
             p.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
@@ -125,6 +126,8 @@ class ImageFunction(commands.CobblerFunction):
             obj.set_arch(self.options.arch)
         if self.options.os_version is not None:       
             obj.set_os_version(self.options.os_version)
+        if self.options.kickstart is not None:
+            obj.set_kickstart(self.options.kickstart)
  
         return self.object_manipulator_finish(obj, self.api.images, self.options)
 

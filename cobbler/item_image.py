@@ -63,6 +63,7 @@ class Image(item.Item):
         self.comment         = ''
         self.ctime           = 0
         self.mtime           = 0
+        self.kickstart       = ''
 
     def from_datastruct(self,seed_data):
         """
@@ -90,14 +91,16 @@ class Image(item.Item):
         self.os_version      = self.load_item(seed_data, 'os_version', '')
 
         self.comment         = self.load_item(seed_data, 'comment', '')
+        self.kickstart       = self.load_item(seed_data, 'kickstart', '')
 
         self.set_owners(self.owners)
         self.set_arch(self.arch)
-
+         
         self.ctime           = self.load_item(seed_data, 'ctime', 0)
         self.mtime           = self.load_item(seed_data, 'mtime', 0)
 
         self.uid = self.load_item(seed_data,'uid','')
+
         if self.uid == '':
            self.uid = self.config.generate_uid()
 
@@ -109,6 +112,22 @@ class Image(item.Item):
         see comments for set_arch in item_distro.py, this works the same.
         """
         return utils.set_arch(self,arch)
+
+    def set_kickstart(self,kickstart):
+        """
+        It may not make sense for images to have kickstarts.  It really doesn't.
+        However if the image type is 'iso' koan can create a virtual floppy
+        and shove an answer file on it, to script an installation.  This may
+        not be a kickstart per se, it might be a windows answer file (SIF) etc.
+        """
+        if kickstart is None or kickstart == "" or kickstart == "delete":
+            self.kickstart = ""
+            return True
+        if utils.find_kickstart(kickstart):
+            self.kickstart = kickstart
+            return True
+        raise CX(_("kickstart not found"))
+
 
     def set_file(self,filename):
         """
@@ -243,7 +262,8 @@ class Image(item.Item):
             'comment'          : self.comment,
             'ctime'            : self.ctime,
             'mtime'            : self.mtime,
-            'uid'              : self.uid
+            'uid'              : self.uid,
+            'kickstart'        : self.kickstart
         }
 
     def printable(self):
@@ -257,6 +277,7 @@ class Image(item.Item):
         buf = buf + _("created         : %s\n") % time.ctime(self.ctime)
         buf = buf + _("file            : %s\n") % self.file
         buf = buf + _("image type      : %s\n") % self.image_type
+        buf = buf + _("kickstart       : %s\n") % self.kickstart
         buf = buf + _("modified        : %s\n") % time.ctime(self.mtime)
         buf = buf + _("os version      : %s\n") % self.os_version
         buf = buf + _("owners          : %s\n") % self.owners
@@ -280,6 +301,7 @@ class Image(item.Item):
             'os_version'      :  self.set_os_version,            
             'arch'            :  self.set_arch,
             'file'            :  self.set_file,
+            'kickstart'       :  self.set_kickstart,
             'owners'          :  self.set_owners,
             'virt-cpus'       :  self.set_virt_cpus,
             'virt_cpus'       :  self.set_virt_cpus,            
