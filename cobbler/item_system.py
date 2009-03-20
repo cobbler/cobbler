@@ -266,6 +266,8 @@ class System(item.Item):
                del self.interfaces[k]["gateway"]
             if not self.interfaces[k].has_key("static_routes"):
                self.interfaces[k]["static_routes"] = []
+            if not self.interfaces[k].has_key("network"):
+                self.interfaces[k]["network"] = ""
 
         # backwards compatibility -- convert string entries to dicts for storage
         # this allows for better usage from the API.
@@ -379,8 +381,10 @@ class System(item.Item):
 
         if intf["ip_address"] != "": 
             return intf["ip_address"].strip()
-        elif intf["subnet"] != "":
-            net = self.config.networks().find(name=intf["subnet"])
+        elif intf["network"] != "":
+            net = self.config.networks().find(name=intf["network"])
+            if net == None:
+                raise CX(_("Network %s does not exist" % network))
             return net.get_assigned_address(self.name, interface)
         else:
             return ""
@@ -438,15 +442,25 @@ class System(item.Item):
         """
         intf = self.__get_interface(interface)
 
+        if network == intf['network']:
+            # setting the existing network is no-op
+            return
+
+        if intf['network'] != '':
+            # we are currently subscribed to a network, so to join
+            # a different one we need to leave this one first.
+            net = self.config.networks().find(name=intf['network'])
+            if net == None:
+                raise CX(_("Network %s does not exist" % network))
+            net.unsubscribe_system(self.name, interface)
+            intf['network'] = ''
+
         if network != '': # Join
             net  = self.config.networks().find(name=network)
             if net == None:
                 raise CX(_("Network %s does not exist" % network))
             net.subscribe_system(self.name, interface, intf['ip_address'])
             intf['network'] = network
-        else: # leave
-            net = self.config.networks().find(name=intf['network'])
-            net.unsubscribe_system(self.name, interface)
 
         # FIXME figure out why the network collection doesn't
         # serialize itself out to disk without this
