@@ -492,7 +492,14 @@ def blender(api_handle,remove_hashes, root_obj):
            if not results.has_key(k):
                results["kernel_options"][k] = settings.kernel_options_s390x[k]
 
-    if root_obj.breed == "redhat":
+    # Get topmost object to determine which breed we're dealing with
+    parent = root_obj.get_parent()
+    while parent.COLLECTION_TYPE is not "distro":
+        parent = parent.get_parent()
+
+    breed = parent.breed
+
+    if breed == "redhat":
         # determine if we have room to add kssendmac to the kernel options line
         kernel_txt = hash_to_string(results["kernel_options"])
         if len(kernel_txt) < 244:
