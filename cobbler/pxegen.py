@@ -691,7 +691,7 @@ class PXEGen:
                 append_line = "%s ks=%s" % (append_line, kickstart_path)
             elif distro.breed == "suse":
                 append_line = "%s autoyast=%s" % (append_line, kickstart_path)
-            elif distro.breed == "debian":
+            elif distro.breed == "debian" or distro.breed == "ubuntu":
                 append_line = "%s auto=true url=%s" % (append_line, kickstart_path)
             # interface=bootif causes a failure
             #    append_line = append_line.replace("ksdevice","interface")
