@@ -379,8 +379,8 @@ class System(item.Item):
 
         if intf["ip_address"] != "": 
             return intf["ip_address"].strip()
-        elif intf["network"] != "":
-            net = self.config.networks().find(name=intf["network"])
+        elif intf["subnet"] != "":
+            net = self.config.networks().find(name=intf["subnet"])
             return net.get_assigned_address(self.name, interface)
         else:
             return ""
