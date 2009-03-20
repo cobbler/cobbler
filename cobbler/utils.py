@@ -979,7 +979,7 @@ def bindmount(src,dst):
             raise CX(_("Error in bindmount: the source (%s) must be a directory") % src)
         if not os.path.isdir(dst):
             raise CX(_("Error in bindmount: the destination (%s) must be a directory") % dst)
-        cmd = [ "/bin/mount", "--bind", dst, src ]
+        cmd = [ "/bin/mount", "--bind", src, dst ]
         rc = sub_process.call(cmd, shell=False, close_fds=True)
         return rc
     except:

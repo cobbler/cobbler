@@ -706,6 +706,22 @@ class Importer:
            distro.set_breed(importer.breed)
            distro.source_repos = []
 
+           # Create the directory in bootloc to bind-mount to
+           # and excute the bind-mount there
+           tld = os.path.normpath(os.path.join(dirname,'..'))
+           utils.mkdir(os.path.join(utils.tftpboot_location(),name))
+           utils.bindmount(tld, os.path.join(utils.tftpboot_location(),name))
+
+           # Create the directories for extra OEM drivers
+           # $oem$/$1/Drivers/NIC
+           #                 /Video
+           #                 /Sound
+           #                 /Other
+           utils.mkdir(os.path.join(tld,'$oem$','$1','Drivers','NIC'))
+           utils.mkdir(os.path.join(tld,'$oem$','$1','Drivers','Video'))
+           utils.mkdir(os.path.join(tld,'$oem$','$1','Drivers','Sound'))
+           utils.mkdir(os.path.join(tld,'$oem$','$1','Drivers','Other'))
+
            self.distros.add(distro,save=True)
            distros_added.append(distro)
 
