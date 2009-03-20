@@ -3,6 +3,7 @@ Cobbler CHANGELOG
 - Mon Mar 7 2009 - 1.7.0
 - Development release start
 - (FEAT) network objects
+- (FEAT) better Ubuntu import support
 
 - Mon Mar 7 2009 - 1.6.0
 - (FEAT) Improved anaconda monitoring code
