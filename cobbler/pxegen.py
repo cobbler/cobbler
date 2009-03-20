@@ -842,9 +842,15 @@ class PXEGen:
         buffer = ""
         template = "/etc/cobbler/tftpd-rules.template"
         rules_dst = self.settings.tftpd_rules
-        ldr_rule_line = "re\t^L$random_id\t\t%s/$name/NTLDR\n"
-        sif_rule_line = "re\t/.*w$random_id\\.sif\t%s/$name/winnt.sif\n"
-        ntd_rule_line = "re\t/.*ntd_$random_id\.com\t%s/$name/ntdetect.com\n"
+
+        # These rules are used to remap requests for NTLDR, winnt.sif (response file)
+        # and the ntdetect.com files so that we can support multiple custom systems
+        # and profiles.  Earlier versions of Windows (2000, XPsp0?) have a bug that
+        # causes /pxelinux.0 to be prepended to the requested file name, thus the 
+        # reason for the strange regex below.
+        ldr_rule_line = "re\t^(/pxelinux\.0)?L$random_id\t\t%s/$name/NTLDR\n"
+        sif_rule_line = "re\t^(/pxelinux\.0)?w$random_id\\.sif\t%s/$name/winnt.sif\n"
+        ntd_rule_line = "re\t^(/pxelinux\.0)?ntd_$random_id\.com\t%s/$name/ntdetect.com\n"
 
         fd = open(template, "r")
         buffer = fd.read()

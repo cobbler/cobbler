@@ -1,0 +1,15 @@
+# This is the service configuration file for the
+# ris-linuxd service.
+
+# The location of the inf/ directory where all the drivers
+# are
+BINLSRV_INFPATH=$ris_linuxd_dir
+
+# Extra options for the daemon, like -a (address binding)
+BINLSRV_OPTS=$ris_linuxd_flags
+
+# The log file to write to
+BINLSRV_LOGFILE=/var/log/ris-linuxd.log
+
+# The location of the PID file
+BINLSRV_PIDFILE=/var/run/ris-linuxd.pid

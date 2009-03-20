@@ -196,6 +196,7 @@ if __name__ == "__main__":
                                 (etcpath,  ['templates/zone.template']),
                                 (etcpath,  ['templates/tftpd.template']),
                                 (etcpath,  ['templates/tftpd-rules.template']),
+                                (etcpath,  ['templates/ris-linuxd.template']),
                                 
                                 # templates for netboot configs
 				(pxepath,  ['templates/pxedefault.template']),
