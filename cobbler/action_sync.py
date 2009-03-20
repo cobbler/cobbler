@@ -87,12 +87,6 @@ class BootSync:
         # run pre-triggers...
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/pre/*")
 
-        # (paranoid) in case the pre-trigger modified any objects...
-
-        if self.verbose:
-            print "- loading configuration"
-        self.api.deserialize()
-
         self.distros  = self.config.distros()
         self.profiles = self.config.profiles()
         self.systems  = self.config.systems()
