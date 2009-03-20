@@ -696,6 +696,24 @@ class PXEGen:
             # interface=bootif causes a failure
             #    append_line = append_line.replace("ksdevice","interface")
 
+        if distro.breed == "debian" or distro.breed == "ubuntu":
+            # Hostname is required as a parameter, the one in the preseed is
+            # not respected, so calculate if we have one here.
+            # We're trying: first part of FQDN in hostname field, then system
+            # name, then profile name.
+            # In Ubuntu, this is at least used for the volume group name when
+            # using LVM.
+            if system is not None:
+                if system.hostname is not None:
+                    # If this is a FQDN, grab the first bit
+                    hostname = system.hostname.split(".")[0]
+                else:
+                    hostname = system.name
+            else:
+                hostname = profile.name
+
+            append_line = "%s hostname=%s" % (append_line, hostname)
+
         if arch.startswith("ppc") or arch.startswith("s390"):
             # remove the prefix "append"
             append_line = append_line[7:]
