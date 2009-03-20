@@ -131,6 +131,9 @@ class Collection(serializable.Serializable):
               newhash[x] = hash[x]   
         return newhash
 
+    def to_datastruct_with_cache(self):
+        return self.to_datastruct()
+
     def to_datastruct(self):
         """
         Serialize the collection
