@@ -696,7 +696,7 @@ class PXEGen:
             # interface=bootif causes a failure
             #    append_line = append_line.replace("ksdevice","interface")
 
-        if distro.breed == "debian" or distro.breed == "ubuntu":
+        if distro is not None and (distro.breed == "debian" or distro.breed == "ubuntu"):
             # Hostname is required as a parameter, the one in the preseed is
             # not respected, so calculate if we have one here.
             # We're trying: first part of FQDN in hostname field, then system
