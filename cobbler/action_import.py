@@ -556,10 +556,14 @@ class Importer:
        importer = import_factory(dirname,self.path,self.breed)
 
        archs = importer.learn_arch_from_tree()
-       if self.arch and self.arch not in archs:
-           raise CX(_("Given arch (%s) not found on imported tree %s")%(self.arch,importer.get_pkgdir()))
+       if not archs:
+           if self.arch:
+               archs.append( self.arch )
+       else:
+            if self.arch and self.arch not in archs:
+               raise CX(_("Given arch (%s) not found on imported tree %s")%(self.arch,importer.get_pkgdir()))
        if proposed_arch:
-           if proposed_arch not in archs:
+           if archs and proposed_arch not in archs:
                print _("Warning: arch from pathname (%s) not found on imported tree %s") % (proposed_arch,importer.get_pkgdir())
                return
 
