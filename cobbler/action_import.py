@@ -281,6 +281,7 @@ class Importer:
                      if ds is not None:
                          distro.set_tree_build_time(ds)
                      profile.set_kickstart(ks)
+                     self.profiles.add(profile,save=True)
 
            self.configure_tree_location(distro,importer)
            self.distros.add(distro,save=True) # re-save
@@ -611,6 +612,7 @@ class Importer:
 
            if existing_profile is None:
                print _("- creating new profile: %s") % name 
+               #FIXME: The created profile holds a default kickstart, and should be breed specific
                profile = self.config.new_profile()
            else:
                print _("- skipping existing profile, name already exists: %s") % name
