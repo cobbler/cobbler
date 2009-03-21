@@ -639,6 +639,8 @@ class Importer:
            profile.set_distro(name)
            if self.kickstart_file:
                profile.set_kickstart(self.kickstart_file)
+           else:
+               profile.set_kickstart(importer.ks)
 
            # depending on the name of the profile we can define a good virt-type
            # for usage with koan
@@ -1033,6 +1035,7 @@ class RedHatImporter ( BaseImporter ) :
 
    def __init__(self,(rootdir,pkgdir)):
        self.breed = "redhat"
+       self.ks = "/etc/cobbler/default.ks"
        self.rootdir = rootdir
        self.pkgdir = pkgdir
 
@@ -1192,6 +1195,7 @@ class DebianImporter ( BaseImporter ) :
 
    def __init__(self,(rootdir,pkgdir)):
        self.breed = "debian"
+       self.ks = "/var/lib/cobbler/kickstarts/sample.seed"
        self.rootdir = rootdir
        self.pkgdir = pkgdir
 
@@ -1322,6 +1326,8 @@ class UbuntuImporter ( DebianImporter ) :
 class WindowsImporter( BaseImporter ):
    def __init__(self,(rootdir,pkgdir)):
        self.breed = "windows"
+       # Is there any file similar to kickstart for windows ?
+       self.ks = None
        self.rootdir = rootdir
        self.pkgdir = "i386"
  
