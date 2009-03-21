@@ -614,7 +614,7 @@ class BootAPI:
         statusifier = action_status.BootStatusReport(self._config,mode)
         return statusifier.run()
 
-    def import_tree(self,mirror_url,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None,breed=None):
+    def import_tree(self,mirror_url,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None,breed=None,os_version=None):
         """
         Automatically import a directory tree full of distribution files.
         mirror_url can be a string that represents a path, a user@host 
@@ -624,7 +624,7 @@ class BootAPI:
         """
         self.log("import_tree",[mirror_url, mirror_name, network_root, kickstart_file, rsync_flags])
         importer = action_import.Importer(
-            self, self._config, mirror_url, mirror_name, network_root, kickstart_file, rsync_flags, arch, breed
+            self, self._config, mirror_url, mirror_name, network_root, kickstart_file, rsync_flags, arch, breed, os_version
         )
         return importer.run()
 
