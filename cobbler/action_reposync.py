@@ -422,7 +422,12 @@ class RepoSync:
 
             # FIXME : flags should come from repo instead of being hardcoded
 
-            rflags = "--passive --nocleanup --ignore-release-gpg --verbose"
+            rflags = "--passive --nocleanup"
+            for x in repo.yumopts:
+                if repo.yumopts[x]:
+                    rflags += " %s %s" % ( x , repo.yumopts[x] ) 
+                else:
+                    rflags += " %s" % x 
             cmd = "%s %s %s %s" % (mirror_program, rflags, mirror_data, dest_path)
             if repo.arch == "src":
                 cmd = "%s --source" % cmd

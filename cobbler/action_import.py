@@ -1260,6 +1260,8 @@ class DebianImporter ( BaseImporter ) :
        repo.set_breed( "apt" )
        repo.set_arch( distro.arch )
        repo.set_keep_updated( False )
+       repo.yumopts["--ignore-release-gpg"] = None
+       repo.yumopts["--verbose"] = None
        repo.set_name( distro.name )
        repo.set_os_version( distro.os_version )
        # NOTE : The location of the mirror should come from timezone
@@ -1269,6 +1271,8 @@ class DebianImporter ( BaseImporter ) :
        security_repo.set_breed( "apt" )
        security_repo.set_arch( distro.arch )
        security_repo.set_keep_updated( False )
+       security_repo.yumopts["--ignore-release-gpg"] = None
+       security_repo.yumopts["--verbose"] = None
        security_repo.set_name( distro.name + "-security" )
        security_repo.set_os_version( distro.os_version )
        # There are no official mirrors for security updates
