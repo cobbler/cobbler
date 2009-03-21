@@ -404,7 +404,7 @@ class RepoSync:
         dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
          
         if repo.mirror_locally:
-            mirror = repo.mirror
+            mirror = repo.mirror.replace("@@suite@@",repo.os_version)
 
             idx = mirror.find("://")
             method = mirror[:idx]
