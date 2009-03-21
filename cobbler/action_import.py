@@ -263,7 +263,7 @@ class Importer:
                continue
 
            kdir = os.path.dirname(distro.kernel)   
-           importer = import_factory(kdir,self.path)
+           importer = import_factory(kdir,self.path,self.breed)
            if self.kickstart_file == None:
                for rpm in importer.get_release_files():
                      # FIXME : This redhat specific check should go into the importer.find_release_files method
@@ -355,7 +355,7 @@ class Importer:
            # FIXME : Shouldn't decide this the value of self.network_root ?
            if distro.kernel.find("ks_mirror") != -1:
                basepath = os.path.dirname(distro.kernel)
-               importer = import_factory(basepath,self.path)
+               importer = import_factory(basepath,self.path,self.breed)
                top = importer.get_rootdir()
                print _("- descent into %s") % top
                if distro.breed in [ "debian" , "ubuntu" ]:
@@ -552,9 +552,7 @@ class Importer:
        if self.arch and proposed_arch and self.arch != proposed_arch:
            raise CX(_("Arch from pathname (%s) does not match with supplied one %s")%(proposed_arch,self.arch))
 
-       importer = import_factory(dirname,self.path)
-       if self.breed and self.breed != importer.breed:
-           raise CX( _("Requested breed (%s); breed found is %s") % ( self.breed , breed ) )
+       importer = import_factory(dirname,self.path,self.breed)
 
        archs = importer.learn_arch_from_tree()
        if self.arch and self.arch not in archs:
@@ -671,9 +669,7 @@ class Importer:
        if self.arch and proposed_arch and self.arch != proposed_arch:
            raise CX(_("Arch from pathname (%s) does not match with supplied one %s")%(proposed_arch,self.arch))
 
-       importer = import_factory(dirname,self.path)
-       if self.breed and self.breed != importer.breed:
-           raise CX( _("Requested breed (%s); breed found is %s") % ( self.breed , breed ) )
+       importer = import_factory(dirname,self.path,self.breed)
 
        #archs = importer.learn_arch_from_tree()
        #if self.arch and self.arch not in archs:
@@ -891,7 +887,7 @@ def guess_breed(kerneldir,path):
 # ============================================================
 
 
-def import_factory(kerneldir,path):
+def import_factory(kerneldir,path,cli_breed):
     """
     Given a directory containing a kernel, return an instance of an Importer
     that can be used to complete the import.
@@ -902,7 +898,11 @@ def import_factory(kerneldir,path):
     # the real root directory available, so allowing kernels at different levels within 
     # the same tree (removing the isolinux rejection from distro_adder) -- JP
 
-    print _("- found content (breed=%s) at %s") % (breed,kerneldir)
+    print _("- found content (breed=%s) at %s") % (breed,os.path.join( rootdir[0] , rootdir[1] ) )
+    if cli_breed:
+        if cli_breed != breed:
+            raise CX( _("Requested breed (%s); breed found is %s") % ( cli_breed , breed ) )
+        breed = cli_breed
 
     if breed == "redhat":
         return RedHatImporter(rootdir)
@@ -1173,7 +1173,7 @@ class DebianImporter ( BaseImporter ) :
        return glob.glob(os.path.join(self.get_pkgdir(), "main/b/base-files" , "base-files_*"))
 
    def match_kernelarch_file(self, filename):
-       if not filename.endswith("rpm") and not filename.endswith("deb"):
+       if not filename.endswith("deb"):
            return False
        if filename.startswith("linux-headers-"):
            return True
