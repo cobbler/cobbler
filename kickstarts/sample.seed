@@ -4,6 +4,23 @@
 # System bootloader configuration
 
 # Partition clearing information
+### Partitioning available methods are: "regular", "lvm" and "crypto"
+d-i partman-auto/disk string /dev/sda
+d-i partman-auto/method string lvm
+d-i partman-auto/purge_lvm_from_device boolean true
+d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-lvm/confirm boolean true
+
+#d-i partman-auto/init_automatically_partition \\
+#       select Guided - use entire disk and set up LVM
+
+#d-i partman-auto/expert_recipe_file string /recipe
+d-i partman-auto/choose_recipe select atomic
+
+d-i partman/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+
 
 # Use text mode install
 
@@ -52,6 +69,9 @@ tzsetup-udeb	time/zone	select	America/New_York
 # Select individual packages and groups for install
 d-i	pkgsel/include	string	openssh-server
 tasksel	tasksel/first	multiselect	standard, desktop
+
+# Disable automatic updates
+d-i pkgsel/update-policy select none
 
 # Debian specific configuration
 # See http://www.debian.org/releases/stable/i386/apbs04.html.en & preseed documentation
