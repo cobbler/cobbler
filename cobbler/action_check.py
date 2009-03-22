@@ -94,7 +94,7 @@ class BootCheck:
 
    def check_for_cman(self, status):
        # not doing rpm -q here to be cross-distro friendly
-       if not os.path.exists("/sbin/fence_ilo"):
+       if not os.path.exists("/sbin/fence_ilo") and not os.path.exists("/usr/sbin/fence_ilo"):
            status.append("fencing tools were not found, and are required to use the (optional) power management features. install cman to use them")
        return True
 
