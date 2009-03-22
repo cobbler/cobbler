@@ -58,7 +58,7 @@ def run(api,args):
         if which_dns_module == "manage_bind":
             rc = os.system("/sbin/service named restart")
         elif which_dns_module == "manage_dnsmasq" and not has_restarted_dnsmasq:
-            rc = os.ssytem("/sbin/service dnsmasq restart")
+            rc = os.system("/sbin/service dnsmasq restart")
         else:
             print "- error: unknown DNS engine: %s" % which_dns_module
             rc = 412
