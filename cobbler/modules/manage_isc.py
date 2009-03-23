@@ -140,6 +140,7 @@ class IscManager:
         
         settings_file = self.settings.dhcpd_conf
         template_file = "/etc/cobbler/dhcp.template"
+        blender_cache = {}
 
         try:
             f2 = open(template_file,"r")
@@ -195,10 +196,6 @@ class IscManager:
                 ip   = interface["ip_address"]
                 host = interface["dns_name"]
 
-                # add references to the system, profile, and distro
-                # for use in the template
-                interface["system"]  = utils.blender( self.api, False, system )
-                interface["profile"] = utils.blender( self.api, False, profile )
 
                 if distro is not None:
                     interface["distro"]  = distro.to_datastruct()
@@ -215,6 +212,16 @@ class IscManager:
                 else:
                     interface["name"] = "generic%d" % counter
 
+                # add references to the system, profile, and distro
+                # for use in the template
+                if blender_cache.has_key(interface["name"]):
+                    blended_system = blender_cache[interface["name"]]
+                else:
+                    blended_system  = utils.blender( self.api, False, system )
+                    
+                interface["next_server"] = blended_system["server"]
+                interface["netboot_enabled"] = blended_system["netboot_enabled"]
+                    
                 interface["filename"] = "/pxelinux.0"
                 # can't use pxelinux.0 anymore
                 if distro is not None:
