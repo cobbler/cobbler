@@ -26,10 +26,13 @@ def run(api,args):
     manage_dns         = str(settings.manage_dns).lower()
     manage_ris_linuxd  = str(settings.manage_ris_linuxd).lower()
     manage_xinetd      = str(settings.manage_xinetd).lower()
+    restart_bin        = str(settings.restart_bin).lower()
     restart_dhcp       = str(settings.restart_dhcp).lower()
     restart_dns        = str(settings.restart_dns).lower()
     restart_ris_linuxd = str(settings.manage_ris_linuxd).lower()
     restart_xinetd     = str(settings.restart_xinetd).lower()
+    dhcpd_bin          = str(settings.dhcpd_bin).lower()
+    dhcpd_init         = str(settings.dhcpd_init).lower()
     omapi_enabled      = str(settings.omapi_enabled).lower()
     omapi_port         = str(settings.omapi_port).lower()
 
@@ -43,11 +46,11 @@ def run(api,args):
     if manage_dhcp != "0":
         if which_dhcp_module == "manage_isc":
             if not omapi_enabled in [ "1", "true", "yes", "y" ] and restart_dhcp:
-                rc = os.system("/usr/sbin/dhcpd -t")
+                rc = os.system("%s -t" % dhcpd_bin)
                 if rc != 0:
-                   print "/usr/sbin/dhcpd -t failed"
+                   print "%s -t failed" % dhcpd_bin
                    return 1
-                rc = os.system("/sbin/service dhcpd restart")
+                rc = os.system("%s %s restart" % (restart_bin,dhcpd_init))
         elif which_dhcp_module == "manage_dnsmasq":
             if restart_dhcp:
                 rc = os.system("/sbin/service dnsmasq restart")
