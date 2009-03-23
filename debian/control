@@ -1,7 +1,7 @@
 Source: cobbler
 Section: unknown
 Priority: optional
-Maintainer: Jasper Capel <jasper@newnewyork.nl>
+Maintainer: Jasper Poppe <jpoppe@ebay.com>
 Build-Depends: debhelper (>= 7), python-cheetah, git-core, python
 Standards-Version: 3.8.0
 Homepage: https://fedoraproject.org/cobbler
