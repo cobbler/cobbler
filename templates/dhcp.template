@@ -50,12 +50,12 @@ group {
         #if $iface.gateway:
             option routers $iface.gateway;
         #end if
-        #if $iface.system.netboot_enabled:
+        #if $iface.netboot_enabled:
             filename "$iface.filename";
             ## Cobbler defaults to $next_server, but some users
             ## like to use $iface.system.server for proxied setups
             next-server $next_server;
-            ## next-server $iface.system.server;
+            ## next-server $iface.next_server;
         #end if
     }
         #end for
