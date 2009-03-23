@@ -501,10 +501,6 @@ class Importer:
        initrd = None
        kernel = None
 
-       # Windows Variables
-       startrom = None
-       setupldr = None
-
        for x in fnames:
 
            fullname = os.path.join(dirname,x)
@@ -857,7 +853,6 @@ def guess_breed(kerneldir,path):
        [ 'Fedora'      , "redhat" ],
        [ 'Server'      , "redhat" ],
        [ 'Client'      , "redhat" ],
-       [ 'setup.exe'   , "windows" ],
     ]
     guess = None
 
@@ -910,8 +905,6 @@ def import_factory(kerneldir,path):
         return DebianImporter(rootdir)
     elif breed == "ubuntu":
         return UbuntuImporter(rootdir)
-    elif breed == "windows":
-        return WindowsImporter(rootdir)
     elif breed:
         raise CX(_("Unknown breed %s")%breed)
     else:
@@ -1287,19 +1280,3 @@ class UbuntuImporter ( DebianImporter ) :
 
        return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
 
-
-class WindowsImporter( BaseImporter ):
-   def __init__(self,(rootdir,pkgdir)):
-       self.breed = "windows"
-       self.rootdir = rootdir
-       self.pkgdir = "i386"
- 
-   def set_variance(self, flavor, major, minor, arch):
-       # TODO: figure out how to determine if this media is SP1/SP2/etc.
-       # Assuming no service pack for now (SP zero?)
-
-       if flavor == "XP":
-          return "SP0", "/var/lib/cobbler/kickstarts/winxp-default.sif"
-
-   def match_kernelarch_file(self, filename):
-       return True
