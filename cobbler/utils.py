@@ -76,8 +76,8 @@ def _(foo):
 
 MODULE_CACHE = {}
 
-_re_kernel = re.compile(r'vmlinuz(.*)')
-_re_initrd = re.compile(r'initrd(.*).img')
+_re_kernel = re.compile(r'(vmlinu[xz]|kernel.img)')
+_re_initrd = re.compile(r'(initrd(.*).img|ramdisk.image.gz)')
 
 def setup_logger(name, is_cobblerd=False, log_level=logging.INFO, log_file="/var/log/cobbler/cobbler.log"):
     if is_cobblerd:
@@ -871,9 +871,9 @@ def is_safe_to_hardlink(src,dst,api):
     # note: this is very cobbler implementation specific!
     if not api.is_selinux_enabled():
        return True
-    if src.find("initrd") != -1:
+    if _re_initrd.match(os.path.basename(path1)):
        return True
-    if src.find("vmlinuz") != -1:
+    if _re_kernel.match(os.path.basename(path1)):
        return True
     # we're dealing with SELinux and files that are not safe to chcon
     return False
