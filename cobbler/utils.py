@@ -863,7 +863,7 @@ def linkfile(src, dst, symlink_ok=False, api=None, verbose=False):
                 # as previous implementations were not complete
                 if verbose:
                    print "- removing: %s" % dst
-                   os.remove(dst)
+                os.remove(dst)
             else:
                 # restorecon(dst,api=api,verbose=verbose)
                 return True
