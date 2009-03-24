@@ -119,7 +119,7 @@ DEFAULTS = {
     "xmlrpc_port"                 : 25151,
     "yum_post_install_mirror"     : 1,
     "yumdownloader_flags"         : "--resolve",
-    "yumreposync_flags"           : "-l"
+    "yumreposync_flags"           : "-l -m -d"
 }
 
 
