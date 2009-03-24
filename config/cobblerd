@@ -29,21 +29,20 @@ DEBIAN_VERSION=/etc/debian_version
 SUSE_RELEASE=/etc/SuSE-release
 # Source function library.
 if [ -e $DEBIAN_VERSION ]; then
-
-	. /etc/init.d/functions
+   break   
 elif [ -f $SUSE_RELEASE -a -r /etc/rc.status ]; then
-	. /etc/rc.status
+    . /etc/rc.status
 else
-	. /etc/rc.d/init.d/functions
+    . /etc/rc.d/init.d/functions
 fi
 
 SERVICE=cobblerd
 PROCESS=cobblerd
 CONFIG_ARGS=" "
 if [ -e $DEBIAN_VERSION ]; then
-	LOCKFILE=/var/lock/$SERVICE
+    LOCKFILE=/var/lock/$SERVICE
 else
-	LOCKFILE=/var/lock/subsys/$SERVICE
+    LOCKFILE=/var/lock/subsys/$SERVICE
 fi
 
 RETVAL=0
@@ -53,6 +52,14 @@ start() {
     if [ -e $SUSE_RELEASE ]; then
         startproc -f -p /var/run/$SERVICE.pid /usr/bin/cobblerd $CONFIG_ARGS
         rc_status -v
+    elif [ -e $DEBIAN_VERSION ]; then
+   if [ -f $LOCKFILE ]; then
+            echo -n "already started, lock file found" 
+            RETVAL=1
+   elif /usr/bin/python /usr/bin/cobblerd; then
+            echo -n "OK"
+            RETVAL=0
+        fi
     else
         daemon --check $SERVICE $PROCESS --daemonize $CONFIG_ARGS
     fi
@@ -67,13 +74,23 @@ stop() {
     if [ -e $SUSE_RELEASE ]; then
         killproc -TERM /usr/bin/cobblerd
         rc_status -v
+    elif [ -e $DEBIAN_VERSION ]; then
+        # Added this since Debian's start-stop-daemon doesn't support spawned processes, will remove
+        # when cobblerd supports stopping or PID files.
+        if ps -ef | grep "/usr/bin/python /usr/bin/cobblerd" | grep -v grep | awk '{print $2}' | xargs kill &> /dev/null; then
+            echo -n "OK"
+            RETVAL=0
+        else
+            echo -n "Daemon is not started"
+            RETVAL=1
+        fi
     else
         killproc $PROCESS
     fi
     RETVAL=$?
     echo
     if [ $RETVAL -eq 0 ]; then
-	rm -f $LOCKFILE
+    rm -f $LOCKFILE
         rm -f /var/run/$SERVICE.pid
     fi
 }
@@ -93,6 +110,14 @@ case "$1" in
             echo -n "Checking for service cobblerd "
             checkproc /usr/bin/cobblerd
             rc_status -v
+        elif [ -e $DEBIAN_VERSION ]; then
+            if [ -f $LOCKFILE ]; then
+                RETVAL=0
+                echo "cobblerd is running."
+            else
+                RETVAL=1
+                echo "cobblerd is stopped."
+            fi
         else
             status $PROCESS
             RETVAL=$?
