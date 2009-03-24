@@ -8,15 +8,20 @@
 # serializers:
 # what file/data formats to use for metadata
 #
-# choices:
-#    serializer_catalog (fast, uses .d directories in /var/lib/cobbler/config)
-#    serializer_yaml (original serializer, uses a few text files)
+# WARNING: LOW LEVEL FEATURE
+# Most users should not change these options and should
+# stick with what options they had when upgrading between
+# versions.
 #
-# for 99% or more of all installations, use serializer_catalog.
+# choices:
+#    serializer_json (very fast, uses .d directories in /var/lib/cobbler/config)
+#    serializer_catalog (current YAML serializer, uses .d directories in /var/lib/cobbler/config)
+#    serializer_yaml (legacy YAML serializer)
 #
 # NOTE:  serializer changes may remove your ability to access old data.
-# serializer_yaml users can change to serializer_catalog w/o manual 
-# migration steps.  Other changes are for new installs only.
+# To change your serializers you must be doing a new install or doing
+# a cobbler replicate from a newly installed server.  There is no local
+# migration process.
 
 [serializers]
 settings = serializer_catalog
