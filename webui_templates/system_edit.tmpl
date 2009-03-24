@@ -818,14 +818,14 @@ redhatmanagementserver"
             #set inames = $system.interfaces.keys()
             #set nothing = $inames.sort()
             #for $iname in  $inames
-                <option name="$iname"
+                <option name="$iname" value="$iname"
                     #if $iname == "eth0"
                         selected="1"
                     #end if
                 >$iname</option>
             #end for
         #else
-            <option name="eth0" selected="1">eth0</option>
+            <option name="eth0" value="eth0" selected="1">eth0</option>
         #end if
     </select>
     <p class="context-tip">Select what interface to edit below</p>
