@@ -28,7 +28,7 @@
 DEBIAN_VERSION=/etc/debian_version
 SUSE_RELEASE=/etc/SuSE-release
 # Source function library.
-if [ -e $DEBIAN_VERSION ]; then
+if [ -f $DEBIAN_VERSION ]; then
    break   
 elif [ -f $SUSE_RELEASE -a -r /etc/rc.status ]; then
     . /etc/rc.status
@@ -39,7 +39,7 @@ fi
 SERVICE=cobblerd
 PROCESS=cobblerd
 CONFIG_ARGS=" "
-if [ -e $DEBIAN_VERSION ]; then
+if [ -f $DEBIAN_VERSION ]; then
     LOCKFILE=/var/lock/$SERVICE
 else
     LOCKFILE=/var/lock/subsys/$SERVICE
@@ -49,7 +49,7 @@ RETVAL=0
 
 start() {
     echo -n $"Starting cobbler daemon: "
-    if [ -e $SUSE_RELEASE ]; then
+    if [ -f $SUSE_RELEASE ]; then
         startproc -f -p /var/run/$SERVICE.pid /usr/bin/cobblerd $CONFIG_ARGS
         rc_status -v
     elif [ -e $DEBIAN_VERSION ]; then
@@ -71,10 +71,10 @@ start() {
 
 stop() {
     echo -n $"Stopping cobbler daemon: "
-    if [ -e $SUSE_RELEASE ]; then
+    if [ -f $SUSE_RELEASE ]; then
         killproc -TERM /usr/bin/cobblerd
         rc_status -v
-    elif [ -e $DEBIAN_VERSION ]; then
+    elif [ -f $DEBIAN_VERSION ]; then
         # Added this since Debian's start-stop-daemon doesn't support spawned processes, will remove
         # when cobblerd supports stopping or PID files.
         if ps -ef | grep "/usr/bin/python /usr/bin/cobblerd" | grep -v grep | awk '{print $2}' | xargs kill &> /dev/null; then
@@ -106,11 +106,11 @@ case "$1" in
         $1
         ;;
     status)
-        if [ -e $SUSE_RELEASE ]; then
+        if [ -f $SUSE_RELEASE ]; then
             echo -n "Checking for service cobblerd "
             checkproc /usr/bin/cobblerd
             rc_status -v
-        elif [ -e $DEBIAN_VERSION ]; then
+        elif [ -f $DEBIAN_VERSION ]; then
             if [ -f $LOCKFILE ]; then
                 RETVAL=0
                 echo "cobblerd is running."
