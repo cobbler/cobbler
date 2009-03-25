@@ -1272,6 +1272,28 @@ def set_virt_file_size(self,num):
         raise CX(_("invalid virt file size"))
     return True
 
+def set_virt_auto_boot(self,num):
+     """
+     For Virt only.
+     Specifies whether the VM should automatically boot upon host reboot
+     0 tells Koan not to auto_boot virtuals
+     """
+
+     if num == "<<inherit>>":
+         self.virt_auto_boot = "<<inherit>>"
+         return True
+
+     # num is a non-negative integer (0 means default)
+     try:
+         inum = int(num)
+         if (inum == 0) or (inum == 1):
+             self.virt_auto_boot = inum
+             return True
+         return CX(_("invalid virt_auto_boot value: value must be either '0' (disabled) or '1' (enabled)"))
+     except:
+         return CX(_("invalid virt_auto_boot value: value must be either '0' (disabled) or '1' (enabled)"))
+     return True
+
 def set_virt_ram(self,num):
      """
      For Virt only.

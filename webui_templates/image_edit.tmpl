@@ -196,6 +196,21 @@ function disablename(value)
     </td>
     </tr>
 
+    ## self.virt_auto_boot        = self.settings.virt_auto_boot
+    
+    <tr>
+    <td>
+    <label for="virtautoboot">Virt AutoBoot</label>
+    </td>
+    <td>
+    <input type="text" size="5" style="width: 150px;" name="virtautoboot" id="virtautoboot"
+        #if $image
+           value="$image.virt_auto_boot"
+        #end if
+    />
+    <p class="context-tip">For virtual installs only, enable/disable VM autoboot.</p>
+    </td>
+    </tr>
     ## self.virt_file_size  = self.settings.default_virt_file_size
     
     <tr>

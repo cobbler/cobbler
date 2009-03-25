@@ -58,6 +58,7 @@ class System(item.Item):
         self.virt_cpus                 = "<<inherit>>"   # ""
         self.virt_file_size            = "<<inherit>>"   # ""
         self.virt_ram                  = "<<inherit>>"   # ""
+        self.virt_auto_boot            = "<<inherit>>"   # ""
         self.virt_type                 = "<<inherit>>"   # ""
         self.virt_path                 = "<<inherit>>"   # ""
         self.virt_bridge               = "<<inherit>>"   # ""
@@ -188,6 +189,7 @@ class System(item.Item):
         self.virt_path   = self.load_item(seed_data, 'virt_path', '<<inherit>>') 
         self.virt_type   = self.load_item(seed_data, 'virt_type', '<<inherit>>')
         self.virt_ram    = self.load_item(seed_data,'virt_ram','<<inherit>>')
+        self.virt_auto_boot    = self.load_item(seed_data,'virt_auto_boot','<<inherit>>')
         self.virt_file_size  = self.load_item(seed_data,'virt_file_size','<<inherit>>')
         self.virt_path   = self.load_item(seed_data,'virt_path','<<inherit>>')
         self.virt_type   = self.load_item(seed_data,'virt_type','<<inherit>>')
@@ -574,6 +576,9 @@ class System(item.Item):
     def set_virt_file_size(self,num):
         return utils.set_virt_file_size(self,num)
  
+    def set_virt_auto_boot(self,num):
+        return utils.set_virt_auto_boot(self,num)
+
     def set_virt_ram(self,num):
         return utils.set_virt_ram(self,num)
 
@@ -702,6 +707,7 @@ class System(item.Item):
            'virt_file_size'           : self.virt_file_size,
            'virt_path'                : self.virt_path,
            'virt_ram'                 : self.virt_ram,
+           'virt_auto_boot'           : self.virt_auto_boot,
            'virt_type'                : self.virt_type,
            'mgmt_classes'             : self.mgmt_classes,
            'template_files'           : self.template_files,
@@ -747,6 +753,7 @@ class System(item.Item):
         buf = buf + _("virt file size        : %s\n") % self.virt_file_size
         buf = buf + _("virt path             : %s\n") % self.virt_path
         buf = buf + _("virt ram              : %s\n") % self.virt_ram
+        buf = buf + _("virt auto boot        : %s\n") % self.virt_auto_boot
         buf = buf + _("virt type             : %s\n") % self.virt_type
 
         buf = buf + _("power type            : %s\n") % self.power_type
@@ -822,6 +829,8 @@ class System(item.Item):
            'delete_interface'         : self.delete_interface,           
            'virt-path'                : self.set_virt_path,
            'virt_path'                : self.set_virt_path,           
+           'virt-auto-boot'           : self.set_virt_auto_boot,
+           'virt_auto_boot'           : self.set_virt_auto_boot,           
            'virt-ram'                 : self.set_virt_ram,
            'virt_ram'                 : self.set_virt_ram,           
            'virt-type'                : self.set_virt_type,

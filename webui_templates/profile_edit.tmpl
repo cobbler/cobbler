@@ -299,6 +299,19 @@ function disablename(value)
 
     <tr>
     <td class="virtedit">
+    <label for="virtautoboot">Virt AutoBoot</label>
+    </td>
+    <td class="virtedit">
+    <input type="text" size="5" style="width: 150px;" name="virtautoboot" id="virtautoboot"
+        #if $profile
+           value="$profile.virt_auto_boot"
+        #end if
+    />
+    <p class="context-tip">For virtual installs only, enable/disable VM autoboot.</p>
+    </td>
+    </tr>
+    <tr>
+    <td class="virtedit">
     <label for="virttype">Virt Type</label>
     </td>
     <td class="virtedit">

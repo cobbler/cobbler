@@ -106,6 +106,7 @@ class Collection(serializable.Serializable):
            'inherit'         : 'parent',
            'ip'              : 'ip_address',
            'mac'             : 'mac_address',
+           'virt-auto-boot'  : 'virt_auto_boot',
            'virt-file-size'  : 'virt_file_size',
            'virt-ram'        : 'virt_ram',
            'virt-path'       : 'virt_path',
