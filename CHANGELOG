@@ -33,7 +33,9 @@ Cobbler CHANGELOG
 - (BUGF) fix stderr output on Ctrl+C
 - (BUGF) potential performance savings WRT duplicate python objects
 - (BUGF) don't deserialize during sync, it makes it take twice as long
-- (FEAT) Ubuntu support
+- (FEAT) Ubuntu support for import (added/improved)
+- (BUGF) make DHCP managemnet work with bonding
+- (BUGF) new serializer (serializer_json)
 
 - Tue Mar 3 2009 - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
