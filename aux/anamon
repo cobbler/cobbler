@@ -163,6 +163,9 @@ def anamon_loop():
 
     slog = WatchedFile("/tmp/syslog", "sys.log")
     llog = WatchedFile("/tmp/lvmout", "lvmout.log")
+    storage_log = WatchedFile("/tmp/storage.log", "storage.log")
+    prgm_log = WatchedFile("/tmp/program.log", "program.log")
+    vnc_log = WatchedFile("/tmp/vncserver.log", "vncserver.log")
     kcfg = WatchedFile("/tmp/ks.cfg", "ks.cfg")
     scrlog = WatchedFile("/tmp/ks-script.log", "ks-script.log")
     dump = WatchedFile("/tmp/anacdump.txt", "anacdump.txt")
@@ -187,7 +190,7 @@ def anamon_loop():
 
     # Use the default watchlist and waitlist
     else:
-        watchlist = [alog, slog, dump, scrlog, mod, llog, kcfg]
+        watchlist = [alog, slog, dump, scrlog, mod, llog, kcfg, storage_log, prgm_log, vnc_log]
         waitlist = [ilog, ilog2, ulog, ulog2]
 
     # Monitor loop

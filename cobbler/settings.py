@@ -53,6 +53,7 @@ DEFAULTS = {
     "default_ownership"           : [ "admin" ],
     "dhcpd_conf"                  : "/etc/dhcpd.conf",
     "dhcpd_bin"                   : "/usr/sbin/dhcpd",
+    "dhcpd_init"                  : "dhcpd",
     "dnsmasq_bin"                 : "/usr/sbin/dnsmasq",
     "dnsmasq_conf"                : "/etc/dnsmasq.conf",
     "enable_menu"                 : 1,
@@ -98,12 +99,9 @@ DEFAULTS = {
     "redhat_management_key"       : "",
     "redhat_management_server"    : "xmlrpc.rhn.redhat.com",
     "register_new_installs"       : 0,
+    "restart_bin"                 : "/sbin/service",  
     "restart_dns"                 : 1,
     "restart_dhcp"                : 1,
-    "restart_ris_linuxd"          : 1,
-    "restart_xinetd"              : 1,
-    "ris_linuxd_dir"              : "/tftpboot/drivers",
-    "ris_linuxd_flags"            : "",
     "run_install_triggers"        : 1,
     "scm_track_enabled"           : 0,
     "scm_track_mode"              : "git",
@@ -112,12 +110,13 @@ DEFAULTS = {
     "tftpd_bin"                   : "/usr/sbin/in.tftpd",
     "tftpd_conf"                  : "/etc/xinetd.d/tftp",
     "tftpd_rules"                 : "/var/lib/cobbler/cobbler-tftpd.rules",
+    "virt_auto_boot"              : 0,
     "vsftpd_bin"                  : "/usr/sbin/vsftpd",
     "webdir"                      : "/var/www/cobbler",
     "xmlrpc_port"                 : 25151,
     "yum_post_install_mirror"     : 1,
     "yumdownloader_flags"         : "--resolve",
-    "yumreposync_flags"           : "-l"
+    "yumreposync_flags"           : "-l -m -d"
 }
 
 

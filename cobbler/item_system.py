@@ -58,6 +58,7 @@ class System(item.Item):
         self.virt_cpus                 = "<<inherit>>"   # ""
         self.virt_file_size            = "<<inherit>>"   # ""
         self.virt_ram                  = "<<inherit>>"   # ""
+        self.virt_auto_boot            = "<<inherit>>"   # ""
         self.virt_type                 = "<<inherit>>"   # ""
         self.virt_path                 = "<<inherit>>"   # ""
         self.virt_bridge               = "<<inherit>>"   # ""
@@ -188,6 +189,7 @@ class System(item.Item):
         self.virt_path   = self.load_item(seed_data, 'virt_path', '<<inherit>>') 
         self.virt_type   = self.load_item(seed_data, 'virt_type', '<<inherit>>')
         self.virt_ram    = self.load_item(seed_data,'virt_ram','<<inherit>>')
+        self.virt_auto_boot    = self.load_item(seed_data,'virt_auto_boot','<<inherit>>')
         self.virt_file_size  = self.load_item(seed_data,'virt_file_size','<<inherit>>')
         self.virt_path   = self.load_item(seed_data,'virt_path','<<inherit>>')
         self.virt_type   = self.load_item(seed_data,'virt_type','<<inherit>>')
@@ -574,6 +576,9 @@ class System(item.Item):
     def set_virt_file_size(self,num):
         return utils.set_virt_file_size(self,num)
  
+    def set_virt_auto_boot(self,num):
+        return utils.set_virt_auto_boot(self,num)
+
     def set_virt_ram(self,num):
         return utils.set_virt_ram(self,num)
 
@@ -702,6 +707,7 @@ class System(item.Item):
            'virt_file_size'           : self.virt_file_size,
            'virt_path'                : self.virt_path,
            'virt_ram'                 : self.virt_ram,
+           'virt_auto_boot'           : self.virt_auto_boot,
            'virt_type'                : self.virt_type,
            'mgmt_classes'             : self.mgmt_classes,
            'template_files'           : self.template_files,
@@ -742,6 +748,7 @@ class System(item.Item):
         buf = buf + _("owners                : %s\n") % self.owners
         buf = buf + _("server                : %s\n") % self.server
         buf = buf + _("template files        : %s\n") % self.template_files
+        buf = buf + _("virt auto boot        : %s\n") % self.virt_auto_boot
 
         buf = buf + _("virt cpus             : %s\n") % self.virt_cpus
         buf = buf + _("virt file size        : %s\n") % self.virt_file_size
@@ -806,35 +813,23 @@ class System(item.Item):
            'profile'                  : self.set_profile,
            'image'                    : self.set_image,
            'kopts'                    : self.set_kernel_options,
-           'kopts-post'               : self.set_kernel_options_post,
            'kopts_post'               : self.set_kernel_options_post,           
            'ksmeta'                   : self.set_ksmeta,
            'kickstart'                : self.set_kickstart,
-           'netboot-enabled'          : self.set_netboot_enabled,
            'netboot_enabled'          : self.set_netboot_enabled,           
-           'virt-path'                : self.set_virt_path,
            'virt_path'                : self.set_virt_path,           
-           'virt-type'                : self.set_virt_type,
            'virt_type'                : self.set_virt_type,           
-           'modify-interface'         : self.modify_interface,
            'modify_interface'         : self.modify_interface,           
-           'delete-interface'         : self.delete_interface,
            'delete_interface'         : self.delete_interface,           
-           'virt-path'                : self.set_virt_path,
            'virt_path'                : self.set_virt_path,           
-           'virt-ram'                 : self.set_virt_ram,
+           'virt_auto_boot'           : self.set_virt_auto_boot,           
            'virt_ram'                 : self.set_virt_ram,           
-           'virt-type'                : self.set_virt_type,
            'virt_type'                : self.set_virt_type,           
-           'virt-cpus'                : self.set_virt_cpus,
            'virt_cpus'                : self.set_virt_cpus,           
-           'virt-file-size'           : self.set_virt_file_size,
            'virt_file_size'           : self.set_virt_file_size,           
            'server'                   : self.set_server,
            'owners'                   : self.set_owners,
-           'mgmt-classes'             : self.set_mgmt_classes,
            'mgmt_classes'             : self.set_mgmt_classes,           
-           'template-files'           : self.set_template_files,
            'template_files'           : self.set_template_files,           
            'comment'                  : self.set_comment,
            'power_type'               : self.set_power_type,

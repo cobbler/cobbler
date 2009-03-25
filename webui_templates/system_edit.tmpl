@@ -646,6 +646,18 @@ redhatmanagementserver"
 
     <tr>
     <td class="virtedit">
+    <label for="virtautoboot">Virt AutoBoot</label>
+    </td>
+    <td class="virtedit">
+    <input type="text" size="5" style="width: 150px;" name="virtautoboot" id="virtautoboot"
+        #if $system
+           value="$system.virt_auto_boot"
+        #end if
+    />
+    <p class="context-tip">For virtual installs only, enable/disable VM autoboot.</p>
+    </td>
+    <tr>
+    <td class="virtedit">
     <label for="virttype">Virt Type</label>
     </td>
     <td class="virtedit">
@@ -818,14 +830,14 @@ redhatmanagementserver"
             #set inames = $system.interfaces.keys()
             #set nothing = $inames.sort()
             #for $iname in  $inames
-                <option name="$iname"
+                <option name="$iname" value="$iname"
                     #if $iname == "eth0"
                         selected="1"
                     #end if
                 >$iname</option>
             #end for
         #else
-            <option name="eth0" selected="1">eth0</option>
+            <option name="eth0" value="eth0" selected="1">eth0</option>
         #end if
     </select>
     <p class="context-tip">Select what interface to edit below</p>

@@ -76,8 +76,8 @@ def _(foo):
 
 MODULE_CACHE = {}
 
-_re_kernel = re.compile(r'vmlinuz(.*)')
-_re_initrd = re.compile(r'initrd(.*).img')
+_re_kernel = re.compile(r'(vmlinu[xz]|kernel.img)')
+_re_initrd = re.compile(r'(initrd(.*).img|ramdisk.image.gz)')
 
 def setup_logger(name, is_cobblerd=False, log_level=logging.INFO, log_file="/var/log/cobbler/cobbler.log"):
     if is_cobblerd:
@@ -871,9 +871,9 @@ def is_safe_to_hardlink(src,dst,api):
     # note: this is very cobbler implementation specific!
     if not api.is_selinux_enabled():
        return True
-    if src.find("initrd") != -1:
+    if _re_initrd.match(os.path.basename(path1)):
        return True
-    if src.find("vmlinuz") != -1:
+    if _re_kernel.match(os.path.basename(path1)):
        return True
     # we're dealing with SELinux and files that are not safe to chcon
     return False
@@ -901,7 +901,7 @@ def linkfile(src, dst, symlink_ok=False, api=None, verbose=False):
                 # as previous implementations were not complete
                 if verbose:
                    print "- removing: %s" % dst
-                   os.remove(dst)
+                os.remove(dst)
             else:
                 # restorecon(dst,api=api,verbose=verbose)
                 return True
@@ -979,31 +979,31 @@ def cabextract(src,dst,api=None):
             # traceback.print_exc()
             # raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
-def bindmount(src,dst):
-    """
-    Use mount --bind as an alternative to linking.  This is required
-    for things in the tftp root since in.tftpd will not follow symlinks
-    and you cannot hard link directories (or across partitions).
-    """
-    try:
-        if not os.path.isdir(src):
-            raise CX(_("Error in bindmount: the source (%s) must be a directory") % src)
-        if not os.path.isdir(dst):
-            raise CX(_("Error in bindmount: the destination (%s) must be a directory") % dst)
-        cmd = [ "/bin/mount", "--bind", src, dst ]
-        rc = sub_process.call(cmd, shell=False, close_fds=True)
-        return rc
-    except:
-        if not os.access(src,os.R_OK):
-            raise CX(_("Cannot read: %s") % src)
-        if not os.access(dst,os.R_OK):
-            raise CX(_("Cannot read: %s") % dst)
-        if not os.path.samefile(src,dst):
-            # accomodate for the possibility that we already copied
-            # the file as a symlink/hardlink
-            raise
-            # traceback.print_exc()
-            # raise CX(_("Error bind-mounting %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+#def bindmount(src,dst):
+#    """
+#    Use mount --bind as an alternative to linking.  This is required
+#    for things in the tftp root since in.tftpd will not follow symlinks
+#    and you cannot hard link directories (or across partitions).
+#    """
+#    try:
+#        if not os.path.isdir(src):
+#            raise CX(_("Error in bindmount: the source (%s) must be a directory") % src)
+#        if not os.path.isdir(dst):
+#            raise CX(_("Error in bindmount: the destination (%s) must be a directory") % dst)
+#        cmd = [ "/bin/mount", "--bind", src, dst ]
+#        rc = sub_process.call(cmd, shell=False, close_fds=True)
+#        return rc
+#    except:
+#        if not os.access(src,os.R_OK):
+#            raise CX(_("Cannot read: %s") % src)
+#        if not os.access(dst,os.R_OK):
+#            raise CX(_("Cannot read: %s") % dst)
+#        if not os.path.samefile(src,dst):
+#            # accomodate for the possibility that we already copied
+#            # the file as a symlink/hardlink
+#            raise
+#            # traceback.print_exc()
+#            # raise CX(_("Error bind-mounting %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
 def check_openfiles(src):
     """
@@ -1027,25 +1027,25 @@ def check_openfiles(src):
             # traceback.print_exc()
             # raise CX(_("Error bind-mounting %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
-def umount(src):
-    """
-    Used for unmounting things created by bindmount
-    """
-    try:
-        if not os.path.isdir(src):
-            raise CX(_("Error in umount: the source (%s) must be a directory") % src)
-        cmd = [ "/bin/umount", "--force", src ]
-        rc = sub_process.call(cmd, shell=False, close_fds=True)
-        return rc
-    except:
-        if not os.access(src,os.R_OK):
-            raise CX(_("Cannot read: %s") % src)
-        if not os.path.samefile(src,dst):
-            # accomodate for the possibility that we already copied
-            # the file as a symlink/hardlink
-            raise
-            # traceback.print_exc()
-            # raise CX(_("Error bind-mounting %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+#def umount(src):
+#    """
+#    Used for unmounting things created by bindmount
+#    """
+#    try:
+#        if not os.path.isdir(src):
+#            raise CX(_("Error in umount: the source (%s) must be a directory") % src)
+#        cmd = [ "/bin/umount", "--force", src ]
+#        rc = sub_process.call(cmd, shell=False, close_fds=True)
+#        return rc
+#    except:
+#        if not os.access(src,os.R_OK):
+#            raise CX(_("Cannot read: %s") % src)
+#        if not os.path.samefile(src,dst):
+#            # accomodate for the possibility that we already copied
+#            # the file as a symlink/hardlink
+#            raise
+#            # traceback.print_exc()
+#            # raise CX(_("Error bind-mounting %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
 
 def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None, verbose=False):
@@ -1171,6 +1171,18 @@ def set_breed(self,breed):
    nicer = ", ".join(valid_breeds)
    raise CX(_("invalid value for --breed, must be one of %s, different breeds have different levels of support") % nicer)
 
+def set_repo_os_version(self,os_version):
+   if os_version == "" or os_version is None:
+      self.os_version = ""
+      return True
+   self.os_version = os_version.lower()
+   if self.breed is None or self.breed == "":
+      raise CX(_("cannot set --os-version without setting --breed first"))
+   if not self.breed in codes.VALID_REPO_BREEDS:
+      raise CX(_("fix --breed first before applying this setting"))
+   self.os_version = os_version
+   return True
+
 def set_repo_breed(self,breed):
    valid_breeds = codes.VALID_REPO_BREEDS
    if breed is not None and breed.lower() in valid_breeds:
@@ -1259,6 +1271,28 @@ def set_virt_file_size(self,num):
     except:
         raise CX(_("invalid virt file size"))
     return True
+
+def set_virt_auto_boot(self,num):
+     """
+     For Virt only.
+     Specifies whether the VM should automatically boot upon host reboot
+     0 tells Koan not to auto_boot virtuals
+     """
+
+     if num == "<<inherit>>":
+         self.virt_auto_boot = "<<inherit>>"
+         return True
+
+     # num is a non-negative integer (0 means default)
+     try:
+         inum = int(num)
+         if (inum == 0) or (inum == 1):
+             self.virt_auto_boot = inum
+             return True
+         return CX(_("invalid virt_auto_boot value: value must be either '0' (disabled) or '1' (enabled)"))
+     except:
+         return CX(_("invalid virt_auto_boot value: value must be either '0' (disabled) or '1' (enabled)"))
+     return True
 
 def set_virt_ram(self,num):
      """

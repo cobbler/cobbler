@@ -130,7 +130,6 @@ class BootSync:
         if self.verbose:
            print "- generating PXE menu structure"
         self.pxegen.make_pxe_menu()
-        self.pxegen.write_tftpd_rules(True)
 
         # run post-triggers
         if self.verbose:

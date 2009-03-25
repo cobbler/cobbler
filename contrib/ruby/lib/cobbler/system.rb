@@ -46,6 +46,7 @@ module Cobbler
     cobbler_field      :virt_file_size
     cobbler_field      :virt_path
     cobbler_field      :virt_ram
+    cobbler_field      :virt_auto_boot
     cobbler_field      :virt_type
     cobbler_field      :virt_bridge
 

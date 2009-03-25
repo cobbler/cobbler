@@ -32,7 +32,7 @@ module Cobbler
 
     ATTRIBUTES = [:name, :owners, :depth, :virt_file_size,
       :virt_path, :xml_file, :virt_bridge, :file, :parent,
-      :image_type, :virt_ram, :virt_cpus, :virt_type, :network_count]
+      :image_type, :virt_ram, :virt_auto_boot, :virt_cpus, :virt_type, :network_count]
 
     ATTRIBUTES.each do |attr|
       cobbler_field attr

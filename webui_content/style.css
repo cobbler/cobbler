@@ -99,6 +99,7 @@ div#feed ul {
 }
 
 div#main {
+  height: 95%;
   background-color: #212121;
   border-top: 1px solid #C88800;
   border-bottom: 1px solid #C88800;

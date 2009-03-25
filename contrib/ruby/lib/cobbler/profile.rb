@@ -44,6 +44,7 @@ module Cobbler
     cobbler_field :server
     cobbler_field :virt_bridge
     cobbler_field :virt_ram
+    cobbler_field :virt_auto_boot
     cobbler_field :kernel_options
     cobbler_field :virt_cpus
     cobbler_field :ks_meta
