@@ -9,14 +9,10 @@
 # what file/data formats to use for metadata
 #
 # choices:
-#    serializer_catalog (fast, uses .d directories in /var/lib/cobbler/config)
-#    serializer_yaml (original serializer, uses a few text files)
+#    serializer_catalog (VERY fast, uses .d directories in /var/lib/cobbler/config)
+#    serializer_yaml (original serializer, uses a few text files, DEPRECATED)
 #
 # for 99% or more of all installations, use serializer_catalog.
-#
-# NOTE:  serializer changes may remove your ability to access old data.
-# serializer_yaml users can change to serializer_catalog w/o manual 
-# migration steps.  Other changes are for new installs only.
 
 [serializers]
 settings = serializer_catalog

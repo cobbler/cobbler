@@ -26,7 +26,7 @@ Cobbler CHANGELOG
 - (BUGF) potential performance savings WRT duplicate python objects
 - (BUGF) don't deserialize during sync, it makes it take twice as long
 - (BUGF) make DHCP managemnet work with bonding
-- (BUGF) new serializer (serializer_json)
+- (BUGF) teach serializer_catalog to fly with JSON
 
 - Tue Mar 3 2009 - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
