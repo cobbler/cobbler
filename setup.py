@@ -97,6 +97,8 @@ if __name__ == "__main__":
         wwwpath  = "/var/www/cobbler"
         if os.path.exists("/etc/SuSE-release"):
             wwwconf  = "/etc/apache2/conf.d"
+        elif os.path.exists("/etc/debian_version"):
+            wwwconf  = "/etc/apache2/conf.d"
         else:
             wwwconf  = "/etc/httpd/conf.d"
         wwwcon   = wwwpath + "/webui"

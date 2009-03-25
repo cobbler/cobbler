@@ -53,6 +53,7 @@ DEFAULTS = {
     "default_ownership"           : [ "admin" ],
     "dhcpd_conf"                  : "/etc/dhcpd.conf",
     "dhcpd_bin"                   : "/usr/sbin/dhcpd",
+    "dhcpd_init"                  : "dhcpd",
     "dnsmasq_bin"                 : "/usr/sbin/dnsmasq",
     "dnsmasq_conf"                : "/etc/dnsmasq.conf",
     "enable_menu"                 : 1,
@@ -98,6 +99,7 @@ DEFAULTS = {
     "redhat_management_key"       : "",
     "redhat_management_server"    : "xmlrpc.rhn.redhat.com",
     "register_new_installs"       : 0,
+    "restart_bin"                 : "/sbin/service",  
     "restart_dns"                 : 1,
     "restart_dhcp"                : 1,
     "restart_ris_linuxd"          : 1,
@@ -117,7 +119,7 @@ DEFAULTS = {
     "xmlrpc_port"                 : 25151,
     "yum_post_install_mirror"     : 1,
     "yumdownloader_flags"         : "--resolve",
-    "yumreposync_flags"           : "-l"
+    "yumreposync_flags"           : "-l -m -d"
 }
 
 

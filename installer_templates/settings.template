@@ -370,5 +370,5 @@ xmlrpc_port: 25151
 yum_post_install_mirror: $yum_post_install_mirror
 
 # additional flags to yum commands
-yumreposync_flags: "-l"
+yumreposync_flags: "-l -m -d"
 yumdownloader_flags: "--resolve"
