@@ -26,6 +26,7 @@ import sys
 import glob
 import traceback
 import yaml # PyYAML
+import simplejson
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
@@ -45,16 +46,18 @@ def register():
 def serialize_item(obj, item):
     filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
     datastruct = item.to_datastruct_with_cache()
+    if os.path.exists(filename):
+        print "upgrading yaml file to json: %s" % filename
+        os.remove(filename)
+    filename = filename + ".json"
+    datastruct = item.to_datastruct_with_cache()
     fd = open(filename,"w+")
-    ydata = yaml.dump(datastruct)
-    if ydata is None or ydata == "":
-       raise CX("internal yaml error, tried to write empty file to %s, data was %s" % (filename, datastruct))
-    fd.write(ydata)
+    fd.write(simplejson.dumps(datastruct))
     fd.close()
     return True
 
 def serialize_delete(obj, item):
-    filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
+    filename = "/var/lib/cobbler/config/%ss.d/%s.json" % (obj.collection_type(),item.name)
     if os.path.exists(filename):
         os.remove(filename)
     return True
@@ -62,11 +65,11 @@ def serialize_delete(obj, item):
 def deserialize_item_raw(collection_type, item_name):
     # this new fn is not really implemented performantly in this module.
     # yet.
-    filename = "/var/lib/cobbler/config/%ss.d/%s" % (collection_type,item_name)
+    filename = "/var/lib/cobbler/config/%ss.d/%s.json" % (collection_type,item_name)
     if not os.path.exists(filename):
         return None
     fd = open(filename)
-    datastruct = yaml.load(fd.read())
+    datastruct = simplejson.loads(fd.read())
     fd.close() 
     return datastruct
 
@@ -99,19 +102,35 @@ def deserialize_raw(collection_type):
          return datastruct
     else:
          results = []
-         files = glob.glob("/var/lib/cobbler/config/%ss.d/*" % collection_type)
-         for f in files:
+         all_files = glob.glob("/var/lib/cobbler/config/%ss.d/*" % collection_type)
+         all_files = filter_upgrade_duplicates(all_files)
+         for f in all_files:
              fd = open(f)
              ydata = fd.read()
-             if ydata is None or ydata == "":
-                 raise CX("error, empty file %s" % f)
-             try:
+             if f.endswith(".json"):
+                 datastruct = simplejson.loads(ydata)
+             else:
                  datastruct = yaml.load(ydata)
-             except:
-                 raise CX("error parsing yaml file: %s" % f)
              results.append(datastruct)
              fd.close()
          return results    
+
+def filter_upgrade_duplicates(file_list):
+    """
+    In a set of files, some ending with .json, some not, return
+    the list of files with the .json ones taking priority over
+    the ones that are not.
+    """
+    bases = {}
+    for f in file_list:
+       basekey = f.replace(".json","")
+       if f.endswith(".json"):
+           bases[basekey] = f
+       else:
+           lookup = bases.get(basekey,"")
+           if not lookup.endswith(".json"):
+              bases[basekey] = f
+    return bases.values()
 
 def deserialize(obj,topological=True):
     """
@@ -137,5 +156,4 @@ def __depth_cmp(item1, item2):
 
 if __name__ == "__main__":
     print deserialize_item_raw("distro","D1")
-
 
