@@ -91,6 +91,16 @@ def start_install(name=None, ram=None, disks=None, mac=None,
         else:
             (tempdir, filename) = utils.nfsmount(input_path)
             guest.cdrom = os.path.join(tempdir, filename)     
+
+        kickstart = profile_data.get("kickstart","")
+        if kickstart != "":
+            # we have a (windows?) answer file we have to provide
+            # to the ISO.
+            print "I want to make a floppy for %s" % kickstart
+            #floppy_path = utils.make_floppy(kickstart)
+            #guest.disks.append(virtinst.VirtualDisk(device=virtinst.VirtualDisk.DEVICE_FLOPPY, floppy_path))
+        
+
     else:
         guest.location = profile_data["install_tree"]
    
@@ -130,6 +140,7 @@ def start_install(name=None, ram=None, disks=None, mac=None,
         print "- adding disk: %s of size %s" % (d[0], d[1])
         if d[1] == 0:
             raise koan.InfoException("this virtualization type does not work without a disk image, set virt-size in Cobbler to non-zero")
+        print "this is a disk: %s, %s" % (d[0], d[1])
         guest.disks.append(virtinst.VirtualDisk(d[0], size=d[1]))
 
     if profile_data.has_key("interfaces"):
