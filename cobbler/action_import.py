@@ -40,7 +40,7 @@ RSYNC_CMD =  "rsync -a %s '%s' %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync
 
 class Importer:
 
-   def __init__(self,api,config,mirror,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None,breed=None):
+   def __init__(self,api,config,mirror,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None,breed=None,os_version=None):
        """
        Performs an import of a install tree (or trees) from the given
        mirror address.  The prefix of the distro is to be specified
@@ -64,6 +64,7 @@ class Importer:
        self.rsync_flags = rsync_flags
        self.arch = arch
        self.breed = breed
+       self.os_version = os_version
 
    # ========================================================================
 
@@ -103,6 +104,9 @@ class Importer:
  
        if self.kickstart_file and not self.breed:
            raise CX(_("Kickstart file can only be specified when a specific breed is selected"))
+
+       if self.os_version and not self.breed:
+           raise CX(_("OS version can only be specified when a specific breed is selected"))
 
        if self.breed and self.breed.lower() not in [ "redhat", "debian", "ubuntu", "windows" ]:
            raise CX(_("Supplied import breed is not supported"))
@@ -263,7 +267,7 @@ class Importer:
                continue
 
            kdir = os.path.dirname(distro.kernel)   
-           importer = import_factory(kdir,self.path)
+           importer = import_factory(kdir,self.path,self.breed)
            if self.kickstart_file == None:
                for rpm in importer.get_release_files():
                      # FIXME : This redhat specific check should go into the importer.find_release_files method
@@ -275,12 +279,16 @@ class Importer:
                      (flavor, major, minor) = results
                      # print _("- finding default kickstart template for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
                      version , ks = importer.set_variance(flavor, major, minor, distro.arch)
+                     if self.os_version:
+                         if self.os_version != version:
+                             raise CX(_("CLI version differs from tree : %s vs. %s") % (self.os_version,version))
                      ds = importer.get_datestamp()
                      distro.set_comment("%s.%s" % (version, int(minor)))
                      distro.set_os_version(version)
                      if ds is not None:
                          distro.set_tree_build_time(ds)
                      profile.set_kickstart(ks)
+                     self.profiles.add(profile,save=True)
 
            self.configure_tree_location(distro,importer)
            self.distros.add(distro,save=True) # re-save
@@ -355,7 +363,7 @@ class Importer:
            # FIXME : Shouldn't decide this the value of self.network_root ?
            if distro.kernel.find("ks_mirror") != -1:
                basepath = os.path.dirname(distro.kernel)
-               importer = import_factory(basepath,self.path)
+               importer = import_factory(basepath,self.path,self.breed)
                top = importer.get_rootdir()
                print _("- descent into %s") % top
                if distro.breed in [ "debian" , "ubuntu" ]:
@@ -548,15 +556,17 @@ class Importer:
        if self.arch and proposed_arch and self.arch != proposed_arch:
            raise CX(_("Arch from pathname (%s) does not match with supplied one %s")%(proposed_arch,self.arch))
 
-       importer = import_factory(dirname,self.path)
-       if self.breed and self.breed != importer.breed:
-           raise CX( _("Requested breed (%s); breed found is %s") % ( self.breed , breed ) )
+       importer = import_factory(dirname,self.path,self.breed)
 
        archs = importer.learn_arch_from_tree()
-       if self.arch and self.arch not in archs:
-           raise CX(_("Given arch (%s) not found on imported tree %s")%(self.arch,importer.get_pkgdir()))
+       if not archs:
+           if self.arch:
+               archs.append( self.arch )
+       else:
+            if self.arch and self.arch not in archs:
+               raise CX(_("Given arch (%s) not found on imported tree %s")%(self.arch,importer.get_pkgdir()))
        if proposed_arch:
-           if proposed_arch not in archs:
+           if archs and proposed_arch not in archs:
                print _("Warning: arch from pathname (%s) not found on imported tree %s") % (proposed_arch,importer.get_pkgdir())
                return
 
@@ -597,6 +607,9 @@ class Importer:
            distro.set_initrd(initrd)
            distro.set_arch(pxe_arch)
            distro.set_breed(importer.breed)
+           # If a version was supplied on command line, we set it now
+           if self.os_version:
+               distro.set_os_version(self.os_version)
            distro.source_repos = []
 
            self.distros.add(distro,save=True)
@@ -609,6 +622,7 @@ class Importer:
 
            if existing_profile is None:
                print _("- creating new profile: %s") % name 
+               #FIXME: The created profile holds a default kickstart, and should be breed specific
                profile = self.config.new_profile()
            else:
                print _("- skipping existing profile, name already exists: %s") % name
@@ -621,6 +635,8 @@ class Importer:
            profile.set_distro(name)
            if self.kickstart_file:
                profile.set_kickstart(self.kickstart_file)
+           else:
+               profile.set_kickstart(importer.ks)
 
            # depending on the name of the profile we can define a good virt-type
            # for usage with koan
@@ -667,9 +683,7 @@ class Importer:
        if self.arch and proposed_arch and self.arch != proposed_arch:
            raise CX(_("Arch from pathname (%s) does not match with supplied one %s")%(proposed_arch,self.arch))
 
-       importer = import_factory(dirname,self.path)
-       if self.breed and self.breed != importer.breed:
-           raise CX( _("Requested breed (%s); breed found is %s") % ( self.breed , breed ) )
+       importer = import_factory(dirname,self.path,self.breed)
 
        #archs = importer.learn_arch_from_tree()
        #if self.arch and self.arch not in archs:
@@ -829,7 +843,7 @@ class Importer:
 # ==============================================
 
 
-def guess_breed(kerneldir,path):
+def guess_breed(kerneldir,path,cli_breed):
 
     """
     This tries to guess the distro. Traverses from kernel dir to imported root checking 
@@ -853,6 +867,7 @@ def guess_breed(kerneldir,path):
        [ 'Fedora'      , "redhat" ],
        [ 'Server'      , "redhat" ],
        [ 'Client'      , "redhat" ],
+       [ 'isolinux.bin', None ],
     ]
     guess = None
 
@@ -868,6 +883,9 @@ def guess_breed(kerneldir,path):
 
         kerneldir = os.path.dirname(kerneldir)
     else:
+        if cli_breed:
+            print _("Warning: No distro signature for kernel at %s, using value from command line") % kerneldir
+            return cli_breed , ( kerneldir , None )
         raise CX( _("No distro signature for kernel at %s") % kerneldir )
 
     if guess == "debian" :
@@ -886,18 +904,25 @@ def guess_breed(kerneldir,path):
 # ============================================================
 
 
-def import_factory(kerneldir,path):
+def import_factory(kerneldir,path,cli_breed):
     """
     Given a directory containing a kernel, return an instance of an Importer
     that can be used to complete the import.
     """
 
-    breed , rootdir = guess_breed(kerneldir,path)
+    breed , rootdir = guess_breed(kerneldir,path,cli_breed)
     # NOTE : The guess_breed code should be included in the factory, in order to make 
     # the real root directory available, so allowing kernels at different levels within 
     # the same tree (removing the isolinux rejection from distro_adder) -- JP
 
-    print _("- found content (breed=%s) at %s") % (breed,kerneldir)
+    if rootdir[1]:
+        print _("- found content (breed=%s) at %s") % (breed,os.path.join( rootdir[0] , rootdir[1] ) )
+    else:
+        print _("- found content (breed=%s) at %s") % (breed,rootdir[0] )
+    if cli_breed:
+        if cli_breed != breed:
+            raise CX( _("Requested breed (%s); breed found is %s") % ( cli_breed , breed ) )
+        breed = cli_breed
 
     if breed == "redhat":
         return RedHatImporter(rootdir)
@@ -951,7 +976,9 @@ class BaseImporter:
    # ===================================================================
 
    def get_pkgdir(self):
-       return os.path.join(self.rootdir,self.pkgdir)
+       if not self.pkgdir:
+           return None
+       return os.path.join(self.get_rootdir(),self.pkgdir)
    
    # ===================================================================
 
@@ -969,8 +996,9 @@ class BaseImporter:
        """
        result = {}
        # FIXME : this is called only once, should not be a walk      
-       os.path.walk(self.get_pkgdir(), self.arch_walker, result)      
-       # print _("- architectures found at %s: %s") % ( self.get_pkgdir(), result.keys() )
+       if self.get_pkgdir():
+           os.path.walk(self.get_pkgdir(), self.arch_walker, result)      
+           # print _("- architectures found at %s: %s") % ( self.get_pkgdir(), result.keys() )
        if result.pop("amd64",False):
            result["x86_64"] = 1
        if result.pop("i686",False):
@@ -999,6 +1027,7 @@ class RedHatImporter ( BaseImporter ) :
 
    def __init__(self,(rootdir,pkgdir)):
        self.breed = "redhat"
+       self.ks = "/var/lib/cobbler/default.ks"
        self.rootdir = rootdir
        self.pkgdir = pkgdir
 
@@ -1158,15 +1187,18 @@ class DebianImporter ( BaseImporter ) :
 
    def __init__(self,(rootdir,pkgdir)):
        self.breed = "debian"
+       self.ks = "/var/lib/cobbler/kickstarts/sample.seed"
        self.rootdir = rootdir
        self.pkgdir = pkgdir
 
    def get_release_files(self):
+       if not self.get_pkgdir():
+           return []
        # search for base-files or base-installer ?
        return glob.glob(os.path.join(self.get_pkgdir(), "main/b/base-files" , "base-files_*"))
 
    def match_kernelarch_file(self, filename):
-       if not filename.endswith("rpm") and not filename.endswith("deb"):
+       if not filename.endswith("deb"):
            return False
        if filename.startswith("linux-headers-"):
            return True
@@ -1220,7 +1252,10 @@ class DebianImporter ( BaseImporter ) :
        repo.set_breed( "apt" )
        repo.set_arch( distro.arch )
        repo.set_keep_updated( False )
+       repo.yumopts["--ignore-release-gpg"] = None
+       repo.yumopts["--verbose"] = None
        repo.set_name( distro.name )
+       repo.set_os_version( distro.os_version )
        # NOTE : The location of the mirror should come from timezone
        repo.set_mirror( "http://ftp.%s.debian.org/debian/dists/%s" % ( 'us' , '@@suite@@' ) )
 
@@ -1228,7 +1263,10 @@ class DebianImporter ( BaseImporter ) :
        security_repo.set_breed( "apt" )
        security_repo.set_arch( distro.arch )
        security_repo.set_keep_updated( False )
+       security_repo.yumopts["--ignore-release-gpg"] = None
+       security_repo.yumopts["--verbose"] = None
        security_repo.set_name( distro.name + "-security" )
+       security_repo.set_os_version( distro.os_version )
        # There are no official mirrors for security updates
        security_repo.set_mirror( "http://security.debian.org/debian-security/dists/%s/updates" % '@@suite@@' )
 
@@ -1279,4 +1317,3 @@ class UbuntuImporter ( DebianImporter ) :
        os_version = dist_names[dist_vers]
 
        return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
-

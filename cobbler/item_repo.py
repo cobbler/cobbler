@@ -49,6 +49,7 @@ class Repo(item.Item):
         self.createrepo_flags = ("-c cache", '<<inherit>>')[is_subobject]
         self.depth            = 2  # arbitrary, as not really apart of the graph
         self.breed            = ""
+        self.os_version       = ""
         self.arch             = "" # use default arch
         self.yumopts          = {}
         self.owners           = self.settings.default_ownership
@@ -67,6 +68,7 @@ class Repo(item.Item):
         self.rpm_list         = self.load_item(seed_data, 'rpm_list')
         self.createrepo_flags = self.load_item(seed_data, 'createrepo_flags', '-c cache')
         self.breed            = self.load_item(seed_data, 'breed')
+        self.os_version       = self.load_item(seed_data, 'os_version')
         self.arch             = self.load_item(seed_data, 'arch')
         self.depth            = self.load_item(seed_data, 'depth', 2)
         self.yumopts          = self.load_item(seed_data, 'yumopts', {})
@@ -195,6 +197,10 @@ class Repo(item.Item):
         if breed:
             return utils.set_repo_breed(self,breed)
 
+    def set_os_version(self,os_version):
+        if os_version:
+            return utils.set_repo_os_version(self,os_version)
+
     def set_arch(self,arch):
         """
         Override the arch used for reposync
@@ -229,6 +235,7 @@ class Repo(item.Item):
            'rpm_list'         : self.rpm_list,
            'createrepo_flags' : self.createrepo_flags,
            'breed'            : self.breed,
+           'os_version'       : self.os_version,
            'arch'             : self.arch,
            'parent'           : self.parent,
            'depth'            : self.depth,
@@ -248,6 +255,7 @@ class Repo(item.Item):
         buf =       _("repo             : %s\n") % self.name
         buf = buf + _("arch             : %s\n") % self.arch
         buf = buf + _("breed            : %s\n") % self.breed
+        buf = buf + _("os_version       : %s\n") % self.os_version
         buf = buf + _("comment          : %s\n") % self.comment
         buf = buf + _("created          : %s\n") % time.ctime(self.ctime)
         buf = buf + _("createrepo_flags : %s\n") % self.createrepo_flags
@@ -273,6 +281,7 @@ class Repo(item.Item):
         return {
             'name'             :  self.set_name,
             'breed'            :  self.set_breed,
+            'os_version'       :  self.set_os_version,
             'arch'             :  self.set_arch,
             'mirror-name'      :  self.set_name,
             'mirror_name'      :  self.set_name,            
