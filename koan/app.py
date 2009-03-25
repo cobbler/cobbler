@@ -59,7 +59,7 @@ DISPLAY_PARAMS = [
    "install_tree","kernel","initrd",
    "kernel_options",
    "repos",
-   "virt_ram","virt_disk","virt_type", "virt_path"
+   "virt_ram","virt_disk","virt_type", "virt_path", "virt_auto_boot"
 ]
 
 
@@ -138,6 +138,10 @@ def main():
                  action="store_true", 
                  dest="no_gfx",
                  help="disable Xen graphics (xenpv,xenfv)")
+    p.add_option("", "--auto-boot",
+                 action="store_true", 
+                 dest="virt_auto_boot",
+                 help="set VM for autoboot")
     p.add_option("", "--add-reinstall-entry",
                  dest="add_reinstall_entry",
                  action="store_true",
@@ -180,6 +184,7 @@ def main():
         k.use_kexec           = options.use_kexec
         k.should_poll         = options.should_poll
         k.embed_kickstart     = options.embed_kickstart
+        k.virt_auto_boot      = options.virt_auto_boot
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -1025,20 +1030,22 @@ class Koan:
         path_list           = self.calc_virt_path(pd, virtname)
         size_list           = self.calc_virt_filesize(pd)
         disks               = self.merge_disk_data(path_list,size_list)
+        virt_auto_boot      = self.virt_auto_boot
 
         results = create_func(
-                name          =  virtname,
-                ram           =  ram,
-                disks         =  disks,
-                uuid          =  uuid, 
-                extra         =  kextra,
-                vcpus         =  vcpus,
-                profile_data  =  profile_data,       
-                arch          =  arch,
-                no_gfx        =  self.no_gfx,   
-                fullvirt      =  fullvirt,    
-                bridge        =  self.virt_bridge,
-                virt_type     =  self.virt_type
+                name           =  virtname,
+                ram            =  ram,
+                disks          =  disks,
+                uuid           =  uuid, 
+                extra          =  kextra,
+                vcpus          =  vcpus,
+                profile_data   =  profile_data,       
+                arch           =  arch,
+                no_gfx         =  self.no_gfx,   
+                fullvirt       =  fullvirt,    
+                bridge         =  self.virt_bridge,
+                virt_type      =  self.virt_type,
+                virt_auto_boot =  self.virt_auto_boot
         )
 
         print results
@@ -1071,6 +1078,11 @@ class Koan:
                else:
                    raise InfoException("internal error, bad virt state")
 
+        if self.virt_auto_boot:
+            if self.virt_type in [ "xenpv", "xenfv" ]:
+              utils.create_xendomains_symlink(virtname)
+            # else qemu
+            # else...
         return results
 
     #---------------------------------------------------

@@ -377,6 +377,19 @@ def connect_to_server(server=None,port=None):
            return server
     raise InfoException ("Could not find Cobbler.")
 
+def create_xendomains_symlink(name):
+    """
+    Create an /etc/xen/auto/<name> symlink for use with "xendomains"-style
+    VM boot upon dom0 reboot.
+    """
+    src = "/etc/xen/%s" % name
+    dst = "/etc/xen/auto/%s" % name
+
+    # check that xen config file exists and create symlink
+    if os.path.exists(src) and os.access(os.path.dirname(dst), os.W_OK):
+        os.symlink(src, dst)
+    else:
+        raise InfoException("Could not create /etc/xen/auto/%s symlink.  Please check write permissions and ownership" % name)
 
 class ServerProxy(xmlrpclib.ServerProxy):
 
