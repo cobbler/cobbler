@@ -58,11 +58,19 @@ def random_mac():
     return ':'.join(map(lambda x: "%02x" % x, mac))
 
 
-def start_install(name=None, ram=None, disks=None,
-                           uuid=None,  
-                           extra=None, 
-                           vcpus=None,  
-                           profile_data=None, arch=None, no_gfx=False, fullvirt=False, bridge=None, virt_type=None):
+def start_install(name=None, 
+                  ram=None, 
+                  disks=None,
+                  uuid=None,  
+                  extra=None, 
+                  vcpus=None,  
+                  profile_data=None, 
+                  arch=None, 
+                  no_gfx=False, 
+                  fullvirt=False, 
+                  bridge=None, 
+                  virt_type=None,
+                  virt_auto_boot=False):
 
     if profile_data.has_key("file"):
         raise koan.InfoException("Xen does not work with --image yet")

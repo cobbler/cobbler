@@ -138,7 +138,7 @@ def main():
                  action="store_true", 
                  dest="no_gfx",
                  help="disable Xen graphics (xenpv,xenfv)")
-    p.add_option("", "--auto-boot",
+    p.add_option("", "--virt-auto-boot",
                  action="store_true", 
                  dest="virt_auto_boot",
                  help="set VM for autoboot")
@@ -1030,7 +1030,7 @@ class Koan:
         path_list           = self.calc_virt_path(pd, virtname)
         size_list           = self.calc_virt_filesize(pd)
         disks               = self.merge_disk_data(path_list,size_list)
-        virt_auto_boot      = self.virt_auto_boot
+        virt_auto_boot      = self.calc_virt_autoboot(pd, self.virt_auto_boot)
 
         results = create_func(
                 name           =  virtname,
@@ -1045,7 +1045,7 @@ class Koan:
                 fullvirt       =  fullvirt,    
                 bridge         =  self.virt_bridge,
                 virt_type      =  self.virt_type,
-                virt_auto_boot =  self.virt_auto_boot
+                virt_auto_boot =  virt_auto_boot
         )
 
         print results
@@ -1078,9 +1078,11 @@ class Koan:
                else:
                    raise InfoException("internal error, bad virt state")
 
-        if self.virt_auto_boot:
+        if virt_auto_boot:
             if self.virt_type in [ "xenpv", "xenfv" ]:
-              utils.create_xendomains_symlink(virtname)
+                utils.create_xendomains_symlink(virtname)
+            else:
+                print "- warning: don't know how to autoboot this virt type yet"
             # else qemu
             # else...
         return results
@@ -1167,6 +1169,20 @@ class Koan:
         # keep libvirt happy with the names
         return name.replace(":","_").replace(" ","_")
 
+
+    #--------------------------------------------------
+
+    def calc_virt_autoboot(self,data,override_autoboot=False):
+        if override_autoboot:
+           return True
+
+        autoboot = self.safe_load(data,'virt_auto_boot',0)
+        autoboot = str(autoboot).lower()
+
+        if autoboot in [ "1", "true", "y", "yes" ]:
+           return True
+
+        return False
 
     #--------------------------------------------------
 

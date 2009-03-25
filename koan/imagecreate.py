@@ -115,11 +115,19 @@ def process_networks(domain, guest, profile_data, bridge):
             nic = VirtualNetworkInterface(random_mac(), type=default_network[0], network=default_network[1])
         guest.nics.append(nic)
 
-def start_install(name=None, ram=None, disks=None,
-                           uuid=None,  
-                           extra=None, 
-                           vcpus=None,  
-                           profile_data=None, arch=None, no_gfx=False, fullvirt=False, bridge=None, virt_type=None):                 
+def start_install(name=None, 
+                  ram=None, 
+                  disks=None,
+                  uuid=None,  
+                  extra=None, 
+                  vcpus=None,  
+                  profile_data=None, 
+                  arch=None, 
+                  no_gfx=False, 
+                  fullvirt=False, 
+                  bridge=None, 
+                  virt_type=None,
+                  virt_auto_boot=None):                 
                            
     #FIXME how to do a non-default connection
     #Can we drive off of virt-type?
