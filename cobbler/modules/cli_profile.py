@@ -93,6 +93,7 @@ class ProfileFunction(commands.CobblerFunction):
             p.add_option("--repos",            dest="repos", help="names of cobbler repos")
             p.add_option("--server",           dest="server_override", help="overrides value in settings file")
             p.add_option("--template-files",   dest="template_files", help="specify files to be generated from templates during a sync")
+            p.add_option("--virt-auto-boot",   dest="virt_auto_boot", help="auto boot this VM with host?")
             p.add_option("--virt-bridge",      dest="virt_bridge", help="ex: 'virbr0'")
             p.add_option("--virt-cpus",        dest="virt_cpus", help="integer (default: 1)")
             p.add_option("--virt-file-size",   dest="virt_file_size", help="size in GB")
@@ -133,6 +134,8 @@ class ProfileFunction(commands.CobblerFunction):
                 obj.set_kernel_options_post(self.options.kopts_post,self.options.inplace)
             if self.options.ksmeta is not None:          
                 obj.set_ksmeta(self.options.ksmeta,self.options.inplace)
+            if self.options.virt_auto_boot is not None:
+                obj.set_virt_auto_boot(self.options.virt_auto_boot)
             if self.options.virt_file_size is not None:  
                 obj.set_virt_file_size(self.options.virt_file_size)
             if self.options.virt_ram is not None:        

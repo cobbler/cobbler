@@ -351,10 +351,9 @@ anamon_enabled: 0
 tftpd_bin: /usr/sbin/in.tftpd
 tftpd_conf: /etc/xinetd.d/tftp
 
-# by default, profiles/systems will not be set to 'auto-boot' virtual systems;
-# i.e. if a physical system reboots, the virtual systems hosted on that
-# physical system will NOT be booted automatically.
-virt_auto_boot: 0
+# should new profiles for virtual machines default to auto booting with the physical host when the physical host reboots?
+# this can be overridden on each profile or system object.
+virt_auto_boot: 1
 
 # cobbler's web directory.  Don't change this setting -- see the
 # Wiki on "relocating your cobbler install" if your /var partition

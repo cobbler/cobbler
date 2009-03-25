@@ -748,12 +748,12 @@ class System(item.Item):
         buf = buf + _("owners                : %s\n") % self.owners
         buf = buf + _("server                : %s\n") % self.server
         buf = buf + _("template files        : %s\n") % self.template_files
+        buf = buf + _("virt auto boot        : %s\n") % self.virt_auto_boot
 
         buf = buf + _("virt cpus             : %s\n") % self.virt_cpus
         buf = buf + _("virt file size        : %s\n") % self.virt_file_size
         buf = buf + _("virt path             : %s\n") % self.virt_path
         buf = buf + _("virt ram              : %s\n") % self.virt_ram
-        buf = buf + _("virt auto boot        : %s\n") % self.virt_auto_boot
         buf = buf + _("virt type             : %s\n") % self.virt_type
 
         buf = buf + _("power type            : %s\n") % self.power_type
