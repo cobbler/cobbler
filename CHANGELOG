@@ -26,11 +26,13 @@ Cobbler CHANGELOG
 - (BUGF) potential performance savings WRT duplicate python objects
 - (BUGF) don't deserialize during sync, it makes it take twice as long
 - (BUGF) fix for MSIE rendering in web app
+<<<<<<< HEAD:CHANGELOG
 - (BUGF) make DHCP managemnet work with bonding
 - (BUGF) teach serializer_catalog to fly with JSON
 - (BUGF) don't use yumdownloader when rpm_list is []
 - (BUGF) fix default kickstart location
 - (BUGF) properly "flatten" environment values for webapp
+- (BUGF) stop yumdownloader including system yum repos
 
 - Tue Mar 3 2009 - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess

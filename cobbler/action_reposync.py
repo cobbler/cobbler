@@ -333,7 +333,7 @@ class RepoSync:
             # older yumdownloader sometimes explodes on --resolvedeps
             # if this happens to you, upgrade yum & yum-utils
             extra_flags = self.settings.yumdownloader_flags
-            cmd = "/usr/bin/yumdownloader %s %s -c %s --destdir=%s %s" % (extra_flags, use_source, temp_file, dest_path, " ".join(repo.rpm_list))
+            cmd = "/usr/bin/yumdownloader %s %s --disablerepo=* --enablerepo=%s -c %s --destdir=%s %s" % (extra_flags, use_source, repo.name, temp_file, dest_path, " ".join(repo.rpm_list))
             print _("- %s") % cmd
 
         # now regardless of whether we're doing yumdownloader or reposync
