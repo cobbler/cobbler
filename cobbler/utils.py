@@ -242,14 +242,19 @@ def get_random_mac(api_handle,virt_type="xenpv"):
     from xend/server/netif.py
     return: MAC address string
     """
-    if virt_type.startswith("xen"):
+    if virt_type.startswith("vmware"):
+        mac = [ 0x00, 0x50, 0x56,
+            random.randint(0x00, 0x3f),
+            random.randint(0x00, 0xff),
+            random.randint(0x00, 0xff)
+        ]
+    elif virt_type.startswith("xen") or virt_type.startswith("qemu"):
         mac = [ 0x00, 0x16, 0x3e,
             random.randint(0x00, 0x7f),
             random.randint(0x00, 0xff),
             random.randint(0x00, 0xff) 
         ]
     else:
-        # FIXME: fill in for qemu/KVM and VMware
         raise CX("virt mac assignment not yet supported")
 
         
