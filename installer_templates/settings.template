@@ -51,7 +51,7 @@ cheetah_import_whitelist:
    - "time"
 
 # if no kickstart is specified, use this template (FIXME)
-default_kickstart: /etc/cobbler/default.ks
+default_kickstart: /var/lib/cobbler/kickstarts/default.ks
 
 # cobbler has various sample kickstart templates stored
 # in /var/lib/cobbler/kickstarts/.  This controls
