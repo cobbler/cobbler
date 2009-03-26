@@ -290,7 +290,7 @@ class RepoSync:
 
         # detect cases that require special handling
 
-        if repo.rpm_list != "":
+        if repo.rpm_list != "" and repo.rpm_list != []:
             has_rpm_list = True
 
         # create yum config file for use by reposync
