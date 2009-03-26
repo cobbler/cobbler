@@ -214,14 +214,14 @@ def get_config_filename(sys,interface):
 
 def is_ip(strdata):
     """
-    Return whether the argument is an IP address.  ipv6 needs
-    to be added...
+    Return whether the argument is an IP address.
     """
     # needs testcase
-    if strdata is None:
-        return False
-    if re.search(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',strdata):
+    try:
+        _IP(strdata)
         return True
+    except:
+        pass
     return False
 
 
