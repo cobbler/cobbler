@@ -83,7 +83,7 @@ class BuildIso:
             return str(self.distctr)
 
   
-    def generate_netboot_iso(self,imagesdir,isolinuxdir,profiles=None,systems=None):
+    def generate_netboot_iso(self,imagesdir,isolinuxdir,profiles=None,systems=None,exclude_dns=None):
         print _("- copying kernels and initrds - for profiles")
         # copy all images in included profiles to images dir
         for profile in self.api.profiles():
@@ -229,7 +229,7 @@ class BuildIso:
                    if data.has_key("gateway") and data["gateway"] != "":
                        append_line = append_line + " gateway=%s" % data["gateway"]
 
-                   if data.has_key("name_servers") and data["name_servers"]:
+                   if not exclude_dns and data.has_key("name_servers") and data["name_servers"]:
                        append_line = append_line + " dns=%s\n" % ",".join(data["name_servers"])
 
                    length=len(append_line)
@@ -329,7 +329,7 @@ class BuildIso:
         return
 
 
-    def run(self,iso=None,tempdir=None,profiles=None,systems=None,distro=None,standalone=None,source=None):
+    def run(self,iso=None,tempdir=None,profiles=None,systems=None,distro=None,standalone=None,source=None,exclude_dns=None):
 
         # the distro option is for stand-alone builds only
         if not standalone and distro is not None:
@@ -391,7 +391,7 @@ class BuildIso:
         if standalone:
             self.generate_standalone_iso(imagesdir,isolinuxdir,distro,source)
         else:
-            self.generate_netboot_iso(imagesdir,isolinuxdir,profiles,systems)
+            self.generate_netboot_iso(imagesdir,isolinuxdir,profiles,systems,exclude_dns)
 
         cmd = "mkisofs -quiet -o %s -r -b isolinux/isolinux.bin -c isolinux/boot.cat" % iso
         cmd = cmd + " -no-emul-boot -boot-load-size 4"
