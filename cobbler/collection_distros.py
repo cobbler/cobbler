@@ -67,7 +67,7 @@ class Distros(collection.Collection):
                     self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/distro/pre/*")
                 if with_sync:
                     lite_sync = action_litesync.BootLiteSync(self.config)
-                    lite_sync.remove_single_profile(name)
+                    lite_sync.remove_single_distro(name)
             del self.listing[name]
 
             self.config.serialize_delete(self, obj)
