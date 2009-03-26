@@ -366,9 +366,6 @@ def connect_to_server(server=None,port=None):
     try_urls = [
         "http://%s/cobbler_api" % (server),
         "https://%s/cobbler_api" % (server),
-        "http://%s:%s" % (server,port),
-        "https://%s:%s" % (server,port),
-        "http://127.0.0.1/cobbler_api"
     ]
     for url in try_urls:
         print "- looking for Cobbler at %s" % url
