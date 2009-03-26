@@ -539,6 +539,8 @@ def flatten(data):
     # convert certain nested hashes to strings.
     # this is only really done for the ones koan needs as strings
     # this should not be done for everything
+    if data.has_key("environment"):
+        data["environment"] = hash_to_string(data["environment"])
     if data.has_key("kernel_options"):
         data["kernel_options"] = hash_to_string(data["kernel_options"])
     if data.has_key("kernel_options_post"):
