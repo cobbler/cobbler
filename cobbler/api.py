@@ -216,7 +216,6 @@ class BootAPI:
         if not extended:
             # for backwards compatibility and use with koan's comparisons
             elems = data["version_tuple"] 
-            print elems
             return int(elems[0]) + 0.1*int(elems[1]) + 0.001*int(elems[2])
         else:
             return data
