@@ -214,15 +214,13 @@ def get_config_filename(sys,interface):
 
 def is_ip(strdata):
     """
-    Return whether the argument is an IP address.  ipv6 needs
-    to be added...
+    Return whether the argument is an IP address.
     """
-    # needs testcase
-    if strdata is None:
+    try:
+        _IP(strdata)
+    except:
         return False
-    if re.search(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',strdata):
-        return True
-    return False
+    return True
 
 
 def is_mac(strdata):
@@ -242,14 +240,19 @@ def get_random_mac(api_handle,virt_type="xenpv"):
     from xend/server/netif.py
     return: MAC address string
     """
-    if virt_type.startswith("xen"):
+    if virt_type.startswith("vmware"):
+        mac = [ 0x00, 0x50, 0x56,
+            random.randint(0x00, 0x3f),
+            random.randint(0x00, 0xff),
+            random.randint(0x00, 0xff)
+        ]
+    elif virt_type.startswith("xen") or virt_type.startswith("qemu"):
         mac = [ 0x00, 0x16, 0x3e,
             random.randint(0x00, 0x7f),
             random.randint(0x00, 0xff),
             random.randint(0x00, 0xff) 
         ]
     else:
-        # FIXME: fill in for qemu/KVM and VMware
         raise CX("virt mac assignment not yet supported")
 
         

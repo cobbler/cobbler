@@ -489,7 +489,10 @@ class System(item.Item):
     def set_gateway(self,gateway):
         if gateway is None:
            gateway = ""
-        self.gateway = gateway
+        if utils.is_ip(gateway) or gateway == "":
+           self.gateway = gateway
+        else:
+           raise CX(_("invalid format for gateway IP address (%s)") % gateway)
         return True
  
     def set_name_servers(self,data):
