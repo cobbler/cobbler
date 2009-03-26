@@ -216,13 +216,11 @@ def is_ip(strdata):
     """
     Return whether the argument is an IP address.
     """
-    # needs testcase
     try:
         _IP(strdata)
-        return True
     except:
-        pass
-    return False
+        return False
+    return True
 
 
 def is_mac(strdata):
