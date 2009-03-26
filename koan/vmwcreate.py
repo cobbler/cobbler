@@ -71,14 +71,12 @@ def random_mac():
     """
     from xend/server/netif.py
     Generate a random MAC address.
-    Uses OUI 00-16-3E, allocated to
-    Xensource, Inc.  Last 3 fields are random.
+    Uses OUI 00-50-56, allocated to
+    VMWare. Last 3 fields are random.
     return: MAC address string
- 
-    FIXME: if VMware has their own range, adapt to that range
     """
-    mac = [ 0x00, 0x16, 0x3e,
-        random.randint(0x00, 0x7f),
+    mac = [ 0x00, 0x50, 0x56,
+        random.randint(0x00, 0x3f),
         random.randint(0x00, 0xff),
         random.randint(0x00, 0xff) ]
     return ':'.join(map(lambda x: "%02x" % x, mac))
