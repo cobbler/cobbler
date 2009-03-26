@@ -196,7 +196,6 @@ if __name__ == "__main__":
 				(etcpath,  ['templates/dnsmasq.template']),
                                 (etcpath,  ['templates/named.template']),
                                 (etcpath,  ['templates/zone.template']),
-                                (etcpath,  ['templates/tftpd.template']),
                                 
                                 # templates for netboot configs
 				(pxepath,  ['templates/pxedefault.template']),
@@ -210,8 +209,6 @@ if __name__ == "__main__":
 				(pxepath,  ['templates/pxeprofile.template']),
 				(pxepath,  ['templates/pxelocal.template']),
 				(pxepath,  ['templates/pxelocal_s390x.template']),
-                                (pxepath,  ['templates/pxeprofile_win.template']),
-                                (pxepath,  ['templates/pxesystem_win.template']),
 
                                 # templates for power management
                                 (powerpath, ['templates/power_apc_snmp.template']), 

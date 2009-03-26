@@ -1,4 +1,0 @@
-prompt 0
-timeout 1
-label $system_name
-        kernel $kernel_path

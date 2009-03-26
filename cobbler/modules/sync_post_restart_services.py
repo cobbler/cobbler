@@ -24,13 +24,9 @@ def run(api,args):
 
     manage_dhcp        = str(settings.manage_dhcp).lower()
     manage_dns         = str(settings.manage_dns).lower()
-    manage_ris_linuxd  = str(settings.manage_ris_linuxd).lower()
-    manage_xinetd      = str(settings.manage_xinetd).lower()
     restart_bin        = str(settings.restart_bin).lower()
     restart_dhcp       = str(settings.restart_dhcp).lower()
     restart_dns        = str(settings.restart_dns).lower()
-    restart_ris_linuxd = str(settings.manage_ris_linuxd).lower()
-    restart_xinetd     = str(settings.restart_xinetd).lower()
     dhcpd_bin          = str(settings.dhcpd_bin).lower()
     dhcpd_init         = str(settings.dhcpd_init).lower()
     omapi_enabled      = str(settings.omapi_enabled).lower()
@@ -67,16 +63,6 @@ def run(api,args):
         else:
             print "- error: unknown DNS engine: %s" % which_dns_module
             rc = 412
-
-    if manage_xinetd != "0" and restart_xinetd != "0":
-        rc = os.system("/sbin/service xinetd restart")
-        if rc != 0:
-            print "- error: service xinetd restart failed"
-
-    if manage_ris_linuxd != "0" and restart_ris_linuxd != "0":
-        rc = os.system("/sbin/service ris-linuxd restart")
-        if rc != 0:
-            print "- error: service ris-linuxd restart failed"
 
     return rc
 
