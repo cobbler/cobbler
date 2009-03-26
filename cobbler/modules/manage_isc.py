@@ -36,7 +36,7 @@ from shlex import shlex
 
 import utils
 from cexceptions import *
-import templar 
+import templar
 
 import item_distro
 import item_profile
@@ -74,14 +74,14 @@ class IscManager:
 
     def write_dhcp_lease(self,port,host,ip,mac):
         """
-        Use DHCP's API to create a DHCP entry in the 
+        Use DHCP's API to create a DHCP entry in the
         /var/lib/dhcpd/dhcpd.leases file
         #Code from http://svn.osgdc.org/browse/kusu/kusu
         # /trunk/src/kits/base/packages/kusu-base-installer/lib/kusu/nodefun.py?r=3025
         # FIXME: should use subprocess
         """
         if ip.find("/") != -1:
-            return 
+            return
         try:
             fromchild, tochild = popen2([self.settings.omshell_bin])
             tochild.write("port %s\n" % port)
@@ -108,13 +108,13 @@ class IscManager:
 
     def remove_dhcp_lease(self,port,host):
         """
-        Use DHCP's API to delete a DHCP entry in 
-        the /var/lib/dhcpd/dhcpd.leases file 
+        Use DHCP's API to delete a DHCP entry in
+        the /var/lib/dhcpd/dhcpd.leases file
         """
- 	fromchild, tochild = popen2([self.settings.omshell_bin])
-     	try:
+        fromchild, tochild = popen2([self.settings.omshell_bin])
+        try:
             tochild.write("port %s\n" % port)
- 	    tochild.flush()
+            tochild.flush()
             tochild.write("connect\n")
             tochild.flush()
             tochild.write("new host\n")
@@ -131,13 +131,13 @@ class IscManager:
             # FIXME: convert this to subprocess.
             # FIXME: catch specific errors only (32/broken pipe)
             pass
-            
+
     def write_dhcp_file(self):
         """
         DHCP files are written when manage_dhcp is set in
         /var/lib/cobbler/settings.
         """
-        
+
         settings_file = self.settings.dhcpd_conf
         template_file = "/etc/cobbler/dhcp.template"
         blender_cache = {}
@@ -153,7 +153,7 @@ class IscManager:
         # use a simple counter for generating generic names where a hostname
         # is not available
         counter = 0
-        
+
         # Clean system definitions in /var/lib/dhcpd/dhcpd.leases just in
         # case to avoid conflicts with the hosts we're defining and to clean
         # possible removed hosts (only if using OMAPI)
@@ -183,7 +183,7 @@ class IscManager:
             distro  = profile.get_conceptual_parent()
 
             # if distro is None then the profile is really an image
-            # record!         
+            # record!
 
             for (name, interface) in system.interfaces.iteritems():
 
@@ -193,22 +193,26 @@ class IscManager:
                 interface["gateway"] = system.gateway
 
                 mac  = interface["mac_address"]
-                ip   = interface["ip_address"]
-                host = interface["dns_name"]
-
+                if interface["bonding"] == "slave":
+                    ip = system.interfaces[interface["bonding_master"]]["ip_address"]
+                    interface["ip_address"] = ip
+                    host = system.interfaces[interface["bonding_master"]]["dns_name"]
+                else:
+                    ip   = interface["ip_address"]
+                    host = interface["dns_name"]
 
                 if distro is not None:
                     interface["distro"]  = distro.to_datastruct()
 
                 if mac is None or mac == "":
                     # can't write a DHCP entry for this system
-                    continue 
- 
+                    continue
+
                 counter = counter + 1
 
                 # the label the entry after the hostname if possible
                 if host is not None and host != "":
-                    interface["name"] = host
+                    interface["name"] = "%s_%s"%(host,name)
                 else:
                     interface["name"] = "generic%d" % counter
 
@@ -218,10 +222,10 @@ class IscManager:
                     blended_system = blender_cache[interface["name"]]
                 else:
                     blended_system  = utils.blender( self.api, False, system )
-                    
+
                 interface["next_server"] = blended_system["server"]
                 interface["netboot_enabled"] = blended_system["netboot_enabled"]
-                    
+
                 interface["filename"] = "/pxelinux.0"
                 # can't use pxelinux.0 anymore
                 if distro is not None:
@@ -229,7 +233,7 @@ class IscManager:
                         interface["filename"] = elilo
                     elif distro.arch.startswith("ppc"):
                         interface["filename"] = yaboot
-                    
+
                 # If we have all values defined and we're using omapi,
                 # we will just create entries dinamically into DHCPD
                 # without requiring a restart (but file will be written
@@ -241,7 +245,7 @@ class IscManager:
                       if self.settings.omapi_enabled and self.settings.omapi_port:
                         self.remove_dhcp_lease(self.settings.omapi_port,host)
                         self.write_dhcp_lease(self.settings.omapi_port,host,ip,mac)
-                        
+
                 dhcp_tag = interface["dhcp_tag"]
                 if dhcp_tag == "":
                    dhcp_tag = "default"
@@ -274,4 +278,3 @@ class IscManager:
 
 def get_manager(config):
     return IscManager(config)
-

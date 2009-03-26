@@ -49,6 +49,7 @@ class Image(item.Item):
         self.file            = ''
         self.parent          = ''
         self.depth           = 0
+        self.virt_auto_boot  = self.settings.virt_auto_boot
         self.virt_ram        = self.settings.default_virt_ram
         self.virt_file_size  = self.settings.default_virt_file_size
         self.virt_path       = ''
@@ -76,6 +77,7 @@ class Image(item.Item):
         self.depth           = self.load_item(seed_data,'depth',0)
         self.owners          = self.load_item(seed_data,'owners',self.settings.default_ownership)
 
+        self.virt_auto_boot  = self.load_item(seed_data, 'virt_auto_boot', self.settings.virt_auto_boot)
         self.virt_ram        = self.load_item(seed_data, 'virt_ram', self.settings.default_virt_ram)
         self.virt_file_size  = self.load_item(seed_data, 'virt_file_size', self.settings.default_virt_file_size)
         self.virt_path       = self.load_item(seed_data, 'virt_path')
@@ -208,6 +210,9 @@ class Image(item.Item):
             raise CX("invalid network count")
         return True
 
+    def set_virt_auto_boot(self,num):
+        return utils.set_virt_auto_boot(self,num)
+
     def set_virt_file_size(self,num):
         return utils.set_virt_file_size(self,num)
 
@@ -250,6 +255,7 @@ class Image(item.Item):
             'depth'            : 0,
             'parent'           : '',
             'owners'           : self.owners,
+            'virt_auto_boot'   : self.virt_auto_boot,
             'virt_ram'         : self.virt_ram,
             'virt_path'        : self.virt_path,
             'virt_type'        : self.virt_type,
@@ -284,6 +290,7 @@ class Image(item.Item):
         buf = buf + _("virt bridge     : %s\n") % self.virt_bridge
         buf = buf + _("virt cpus       : %s\n") % self.virt_cpus
         buf = buf + _("network count   : %s\n") % self.network_count
+        buf = buf + _("virt auto boot  : %s\n") % self.virt_auto_boot
         buf = buf + _("virt file size  : %s\n") % self.virt_file_size
         buf = buf + _("virt path       : %s\n") % self.virt_path
         buf = buf + _("virt ram        : %s\n") % self.virt_ram
@@ -307,6 +314,8 @@ class Image(item.Item):
             'virt_cpus'       :  self.set_virt_cpus,            
             'network-count'   :  self.set_network_count,
             'network_count'   :  self.set_network_count,            
+            'virt-auto-boot'  :  self.set_virt_auto_boot,
+            'virt_auto_boot'  :  self.set_virt_auto_boot,            
             'virt-file-size'  :  self.set_virt_file_size,
             'virt_file_size'  :  self.set_virt_file_size,            
             'virt-bridge'     :  self.set_virt_bridge,

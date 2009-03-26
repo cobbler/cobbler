@@ -49,6 +49,7 @@ class RepoFunction(commands.CobblerFunction):
         if not self.matches_args(args,["dumpvars","remove","report","list"]):
             p.add_option("--arch",             dest="arch",             help="overrides repo arch if required")
             p.add_option("--breed",            dest="breed",            help="sets the breed of the repo")
+            p.add_option("--os-version",       dest="os_version",       help="sets the version of the repo")
             p.add_option("--comment",          dest="comment",          help="user field")
         if self.matches_args(args,["add"]):
             p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
@@ -96,6 +97,8 @@ class RepoFunction(commands.CobblerFunction):
 
         if self.options.breed is not None:            
             obj.set_breed(self.options.breed)
+        if self.options.os_version is not None:            
+            obj.set_os_version(self.options.os_version)
         if self.options.arch is not None:             
             obj.set_arch(self.options.arch)
         if self.options.createrepo_flags is not None: 

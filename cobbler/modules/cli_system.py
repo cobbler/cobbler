@@ -118,6 +118,7 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--subnet",          dest="subnet",          help="for static IP usage only")
             p.add_option("--netmask",         dest="subnet",          help="alias for --subnet")
 
+            p.add_option("--virt-auto-boot",   dest="virt_auto_boot", help="auto boot this VM with host?")
             p.add_option("--virt-bridge",      dest="virt_bridge", help="ex: 'virbr0'")
             p.add_option("--virt-cpus",        dest="virt_cpus", help="integer (default: 1)")
             p.add_option("--virt-file-size",   dest="virt_file_size", help="size in GB")
@@ -180,6 +181,8 @@ class SystemFunction(commands.CobblerFunction):
         if self.options.power_user is not None:      
             obj.set_power_user(self.options.power_user)
 
+        if self.options.virt_auto_boot is not None:
+            obj.set_virt_auto_boot(self.options.virt_auto_boot)
         if self.options.virt_type is not None:       
             obj.set_virt_type(self.options.virt_type)
         if self.options.virt_cpus is not None:       

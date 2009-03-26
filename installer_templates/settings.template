@@ -102,10 +102,15 @@ default_ownership:
 # may also be a good solution to prevent unwanted reinstallations
 enable_menu: 1
 
-# location for some important binaries and config files 
-# that can vary based on the distribution.
+# location of the tool which is used to restart services 
+# for Debian use: /usr/sbin/invoke-rc.d
+restart_bin: /sbin/service
+
+# location for some important binaries and config files and the names
+# of the init scripts that can vary based on the distribution.
 dhcpd_bin: /usr/sbin/dhcpd
 dhcpd_conf: /etc/dhcpd.conf
+dhcpd_init: dhcpd
 dnsmasq_bin: /usr/sbin/dnsmasq
 dnsmasq_conf: /etc/dnsmasq.conf
 
@@ -345,6 +350,10 @@ anamon_enabled: 0
 # locations of the TFTP binary and config file
 tftpd_bin: /usr/sbin/in.tftpd
 tftpd_conf: /etc/xinetd.d/tftp
+
+# should new profiles for virtual machines default to auto booting with the physical host when the physical host reboots?
+# this can be overridden on each profile or system object.
+virt_auto_boot: 1
 
 # cobbler's web directory.  Don't change this setting -- see the
 # Wiki on "relocating your cobbler install" if your /var partition

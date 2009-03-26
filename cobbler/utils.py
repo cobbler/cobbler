@@ -1171,6 +1171,18 @@ def set_breed(self,breed):
    nicer = ", ".join(valid_breeds)
    raise CX(_("invalid value for --breed, must be one of %s, different breeds have different levels of support") % nicer)
 
+def set_repo_os_version(self,os_version):
+   if os_version == "" or os_version is None:
+      self.os_version = ""
+      return True
+   self.os_version = os_version.lower()
+   if self.breed is None or self.breed == "":
+      raise CX(_("cannot set --os-version without setting --breed first"))
+   if not self.breed in codes.VALID_REPO_BREEDS:
+      raise CX(_("fix --breed first before applying this setting"))
+   self.os_version = os_version
+   return True
+
 def set_repo_breed(self,breed):
    valid_breeds = codes.VALID_REPO_BREEDS
    if breed is not None and breed.lower() in valid_breeds:
@@ -1259,6 +1271,28 @@ def set_virt_file_size(self,num):
     except:
         raise CX(_("invalid virt file size"))
     return True
+
+def set_virt_auto_boot(self,num):
+     """
+     For Virt only.
+     Specifies whether the VM should automatically boot upon host reboot
+     0 tells Koan not to auto_boot virtuals
+     """
+
+     if num == "<<inherit>>":
+         self.virt_auto_boot = "<<inherit>>"
+         return True
+
+     # num is a non-negative integer (0 means default)
+     try:
+         inum = int(num)
+         if (inum == 0) or (inum == 1):
+             self.virt_auto_boot = inum
+             return True
+         return CX(_("invalid virt_auto_boot value: value must be either '0' (disabled) or '1' (enabled)"))
+     except:
+         return CX(_("invalid virt_auto_boot value: value must be either '0' (disabled) or '1' (enabled)"))
+     return True
 
 def set_virt_ram(self,num):
      """
