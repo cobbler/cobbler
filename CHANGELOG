@@ -3,6 +3,7 @@ Koan CHANGELOG
 - XXX 1.7.0
 - Development release start
 - Support for virt-autoboot feature
+- (BUGF) use private address range for random MACs
 
 - XXX 1.5.0
 - (DOCS) fix manpage, option is --nogfx, not --no-gfx
