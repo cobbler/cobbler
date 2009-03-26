@@ -122,8 +122,10 @@ def start_install(name=None,
         guest.set_uuid(uuid)
 
     for d in disks:
-        if d[1] != 0:
+        if d[1] != 0 or d[0].startswith("/dev"):
             guest.disks.append(virtinst.XenDisk(d[0], size=d[1]))
+        else:
+            raise koan.InfoException("this virtualization type does not work without a disk image, set virt-size in Cobbler to non-zero")
 
     counter = 0
 

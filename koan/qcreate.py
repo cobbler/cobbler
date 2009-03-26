@@ -147,10 +147,15 @@ def start_install(name=None,
 
     for d in disks:
         print "- adding disk: %s of size %s" % (d[0], d[1])
-        if d[1] == 0:
+        if d[1] != 0 or d[0].startswith("/dev"):
+            guest.disks.append(virtinst.VirtualDisk(d[0], size=d[1]))
+        else:
             raise koan.InfoException("this virtualization type does not work without a disk image, set virt-size in Cobbler to non-zero")
+<<<<<<< HEAD:koan/qcreate.py
         print "this is a disk: %s, %s" % (d[0], d[1])
         guest.disks.append(virtinst.VirtualDisk(d[0], size=d[1]))
+=======
+>>>>>>> jamesc/my-devel:koan/qcreate.py
 
     if profile_data.has_key("interfaces"):
 
