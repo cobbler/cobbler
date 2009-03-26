@@ -29,6 +29,7 @@ Cobbler CHANGELOG
 - (BUGF) make DHCP managemnet work with bonding
 - (BUGF) teach serializer_catalog to fly with JSON
 - (BUGF) don't use yumdownloader when rpm_list is []
+- (BUGF) fix default kickstart location
 
 - Tue Mar 3 2009 - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
