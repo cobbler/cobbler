@@ -46,7 +46,8 @@ def serialize_item(obj, item):
     filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
     datastruct = item.to_datastruct_with_cache()
     fd = open(filename,"w+")
-    ydata = simplejson.dumps(datastruct, sort_keys=True, indent=4)
+    #ydata = simplejson.dumps(datastruct, sort_keys=True, indent=4)
+    ydata = simplejson.dumps(datastruct)
     if ydata is None or ydata == "":
        raise CX("internal json error, tried to write empty file to %s, data was %s" % (filename, datastruct))
     fd.write(ydata)
