@@ -157,7 +157,10 @@ class Item(serializable.Serializable):
         else:
             if inplace:
                 for key in value.keys():
-                    self.kernel_options[key] = value[key]
+                    if key.startswith("~"):
+                        del self.kernel_options[key[1:]]
+                    else:
+                        self.kernel_options[key] = value[key]
             else:
                 self.kernel_options = value
             return True
@@ -173,7 +176,10 @@ class Item(serializable.Serializable):
         else:
             if inplace:
                 for key in value.keys():
-                    self.kernel_options_post[key] = value[key]
+                    if key.startswith("~"):
+                        del self.self.kernel_options_post[key[1:]]
+                    else:
+                        self.kernel_options_post[key] = value[key]
             else:
                 self.kernel_options_post = value
             return True
@@ -190,7 +196,10 @@ class Item(serializable.Serializable):
         else:
             if inplace:
                 for key in value.keys():
-                    self.ks_meta[key] = value[key]
+                    if key.startswith("~"):
+                        del self.ks_meta[key[1:]]
+                    else:
+                        self.ks_meta[key] = value[key]
             else:
                 self.ks_meta = value
             return True
@@ -215,7 +224,10 @@ class Item(serializable.Serializable):
         else:
             if inplace:
                 for key in value.keys():
-                    self.template_files[key] = value[key]
+                    if key.startswith("~"):
+                        del self.template_files[key[1:]]
+                    else:
+                        self.template_files[key] = value[key]
             else:
                 self.template_files = value
             return True
