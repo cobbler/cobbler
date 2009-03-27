@@ -694,6 +694,7 @@ class Koan:
             print "Kernel loaded; run 'kexec -e' to execute"
         return self.net_install(after_download)
 
+
     #---------------------------------------------------
 
     def replace(self):
@@ -712,6 +713,12 @@ class Koan:
         except OSError, (err, msg):
             if err != errno.EEXIST:
                 raise
+    
+        def get_boot_loader_info():
+            cmd = [ "/sbin/grubby", "--bootloader-probe" ]
+            probe_process = sub_process.Popen(cmd, stdout=sub_process.PIPE)
+            which_loader = probe_process.communicate()[0]
+            return probe_process.returncode, which_loader
 
         def after_download(self, profile_data):
             if not os.path.exists("/sbin/grubby"):
@@ -760,6 +767,11 @@ class Koan:
                     "--args", k_args,
                     "--copy-default"
             ]
+            boot_probe_ret_code, probe_output = get_boot_loader_info()
+            if boot_probe_ret_code == 0 \
+                    and probe_output.find("lilo") > -1:
+                cmd.append("--lilo")
+
             if self.add_reinstall_entry:
                cmd.append("--title=Reinstall")
             else:
@@ -793,11 +805,8 @@ class Koan:
             else:
                 # if grubby --bootloader-probe returns lilo,
                 #    apply lilo changes
-                cmd = [ "/sbin/grubby", "--bootloader-probe" ]
-                probe_process = sub_process.Popen(cmd, stdout=sub_process.PIPE)
-                which_loader = probe_process.communicate()[0]
-                if probe_process.returncode == 0 and \
-                       which_loader.find("lilo") != -1:
+                if boot_probe_ret_code == 0 and \
+                       probe_output.find("lilo") != -1:
                     print "- applying lilo changes"
                     cmd = [ "/sbin/lilo" ]
                     sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
