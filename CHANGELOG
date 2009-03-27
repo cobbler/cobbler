@@ -9,7 +9,7 @@ Cobbler CHANGELOG
 - (FEAT) ability to toggle virt auto-boot on/off
 - (BUGF) validate gateway input against python-netaddr
 
-- Mon Mar 7 2009 - 1.6.0
+- Fri Mar 27 2009 - 1.6.1
 - (FEAT) Improved anaconda monitoring code
 - (FEAT) download comps.xml always (even if yum does not have the option)
 - (FEAT) performance upgrades for cobblerd service to avoid reloads
