@@ -4,7 +4,7 @@ Koan CHANGELOG
 - Development release start
 - Support for virt-autoboot feature
 
-- XXX 1.5.0
+- Fri Mar 27 2009 1.6.1
 - (DOCS) fix manpage, option is --nogfx, not --no-gfx
 - (FEAT) autodetect now works with IP as well as MAC, uses rhpl
 - (FEAT) some conection speedup improvements (WIP)
