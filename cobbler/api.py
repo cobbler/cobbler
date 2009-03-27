@@ -168,7 +168,7 @@ class BootAPI:
                 # if cobblerd is not running, no harm done, nothing to signal
                 pass
             else: 
-                raise CX("error contacting cobblerd")
+                raise
         return False
 
     def last_modified_time(self):
