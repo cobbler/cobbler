@@ -56,64 +56,6 @@ OBJECT_TIMEOUT = 60*60 # 60 minutes
 TOKEN_CACHE = {}
 OBJECT_CACHE = {}
 
-class DataCache:
-
-    def __init__(self, api):
-        """
-        Constructor
-        """
-        self.api = api
-
-    def update(self,collection_type, name):
-         data = self.api.deserialize_item_raw(collection_type, name)
-
-         if data is None:
-             return False
-
-         if collection_type == "distro":
-             obj = item_distro.Distro(self.api._config)
-             obj.from_datastruct(data)
-             self.api.add_distro(obj, False, False)
-
-         if collection_type == "profile":
-             subprofile = False
-             if data.has_key("parent") and data["parent"] != "":
-                subprofile = True
-             obj = item_profile.Profile(self.api._config, is_subobject = subprofile)
-             obj.from_datastruct(data)
-             self.api.add_profile(obj, False, False)
-
-         if collection_type == "system":
-             obj = item_system.System(self.api._config)
-             obj.from_datastruct(data)
-             self.api.add_system(obj, False, False, False)
-
-         if collection_type == "repo":
-             obj = item_repo.Repo(self.api._config)
-             obj.from_datastruct(data)
-             self.api.add_repo(obj, False, False)
-
-         if collection_type == "image":
-             obj = item_image.Image(self.api._config)
-             obj.from_datastruct(data)
-             self.api.add_image(obj, False, False)
-
-
-    def remove(self,collection_type, name):
-         # for security reasons, only remove if actually gone
-         data = self.api.deserialize_item_raw(collection_type, name)
-         if data is None:
-             if collection_type == "distro":
-                 self.api.remove_distro(name, delete=False, recursive=True, with_triggers=False)
-             if collection_type == "profile":
-                 self.api.remove_profile(name, delete=False, recursive=True, with_triggers=False)
-             if collection_type == "system":
-                 self.api.remove_system(name, delete=False, recursive=True, with_triggers=False)
-             if collection_type == "repo":
-                 self.api.remove_repo(name, delete=False, recursive=True, with_triggers=False)
-             if collection_type == "image":
-                 self.api.remove_image(name, delete=False, recursive=True, with_triggers=False)
-
 # *********************************************************************
 # *********************************************************************
 
@@ -130,10 +72,8 @@ class CobblerXMLRPCInterface:
     def __init__(self,api,enable_auth_if_relevant):
         self.api = api
         self.auth_enabled = enable_auth_if_relevant
-        self.cache = DataCache(self.api)
         self.logger = self.api.logger
         self.token_cache = TOKEN_CACHE
-        self.object_cache = OBJECT_CACHE
         self.timestamp = self.api.last_modified_time()
         random.seed(time.time())
 
@@ -152,12 +92,59 @@ class CobblerXMLRPCInterface:
         # no longer neccessary
         return True
 
-    def internal_cache_update(self, collection_type, data):
-        self.cache.update(collection_type, data)
+    def internal_cache_update(self, collection_type, name):
+        self._log("DEBUG: adding to %s, %s" % (collection_type, name))
+
+        if name is None:
+            return False
+        data = self.api.deserialize_item_raw(collection_type, name)
+
+        if collection_type == "distro":
+            obj = item_distro.Distro(self.api._config)
+            obj.from_datastruct(data)
+            self.api.add_distro(obj, False, False)
+
+        if collection_type == "profile":
+            subprofile = False
+            if data.has_key("parent") and data["parent"] != "":
+               subprofile = True
+            obj = item_profile.Profile(self.api._config, is_subobject = subprofile)
+            obj.from_datastruct(data)
+            self.api.add_profile(obj, False, False)
+
+        if collection_type == "system":
+            obj = item_system.System(self.api._config)
+            obj.from_datastruct(data)
+            self.api.add_system(obj, False, False, False)
+
+        if collection_type == "repo":
+            obj = item_repo.Repo(self.api._config)
+            obj.from_datastruct(data)
+            self.api.add_repo(obj, False, False)
+
+        if collection_type == "image":
+            obj = item_image.Image(self.api._config)
+            obj.from_datastruct(data)
+            self.api.add_image(obj, False, False)
+
         return True
 
-    def internal_cache_remove(self, collection_type, data):
-        self.cache.remove(collection_type, data)
+    def internal_cache_remove(self, collection_type, name):
+        self._log("DEBUG: removing from %s, %s" % (collection_type, name))
+
+        data = self.api.deserialize_item_raw(collection_type, name)
+        if data is None:
+            if collection_type == "distro":
+                self.api.remove_distro(name, delete=False, recursive=True, with_triggers=False)
+            if collection_type == "profile":
+                self.api.remove_profile(name, delete=False, recursive=True, with_triggers=False)
+            if collection_type == "system":
+                self.api.remove_system(name, delete=False, recursive=True, with_triggers=False)
+            if collection_type == "repo":
+                self.api.remove_repo(name, delete=False, recursive=True, with_triggers=False)
+            if collection_type == "image":
+                self.api.remove_image(name, delete=False, recursive=True, with_triggers=False)
+
         return True
 
     def ping(self):
@@ -182,22 +169,9 @@ class CobblerXMLRPCInterface:
                # invalid or expired token?
                m_user = "???"
         msg = "%s; user(%s)" % (msg, m_user)
-
-        # add the object name being modified, if any
-        oname = ""
-        if name:        
-           oname = name
-        elif object_id:
-           try:
-               (objref, time) = self.object_cache[object_id]
-               oname = objref.name
-               if oname == "" or oname is None:
-                   oname = "???"
-           except:
-               oname = "*EXPIRED*"
-        if oname != "":
-           msg = "%s; object(%s)" % (msg, oname)
-                
+ 
+        if object_id is not None:
+            msg = "%s; object_id(%s)" % (msg, object_id)
 
         # add any attributes being modified, if any
         if attribute:
@@ -920,19 +894,6 @@ class CobblerXMLRPCInterface:
    ######
 
 
-    def __next_id(self,retry=0):
-        """
-        Used for keeping track of temporary objects.  The return value
-        is a semi-unique key and has no bearing on reality.
-        """
-        if retry > 10:
-            # I have no idea why this would happen but I want to be through :)
-            raise CX(_("internal error, retry exceeded"))
-        next_id = self.__get_random(25)
-        if self.object_cache.has_key(next_id):
-            return self.__next_id(retry=retry+1) 
-        return next_id
-
     def __get_random(self,length):
         urandom = open("/dev/urandom")
         b64 = base64.encodestring(urandom.read(25))
@@ -946,18 +907,6 @@ class CobblerXMLRPCInterface:
         b64 = self.__get_random(25)
         self.token_cache[b64] = (time.time(), user)
         return b64
-
-    def __invalidate_expired_objects(self):
-        """
-        Deletes any objects that are floating around in
-        the cache after a reasonable interval.
-        """ 
-        timenow = time.time()
-        for object_id in self.object_cache.keys():
-            (reference, object_time) = self.object_cache[object_id]
-            if (timenow > object_time + OBJECT_TIMEOUT):
-                self._log("expiring object reference: %s" % id,debug=True)
-                del self.object_cache[object_id]
 
     def __invalidate_expired_tokens(self):
         """
@@ -993,7 +942,6 @@ class CobblerXMLRPCInterface:
         else.
         """
         self.__invalidate_expired_tokens()
-        self.__invalidate_expired_objects()
 
         #if not self.auth_enabled:
         #    user = self.get_user_from_token(token)
@@ -1106,27 +1054,6 @@ class CobblerXMLRPCInterface:
         self.__validate_token(token)
         return True
 
-    def __store_object(self,reference):
-        """
-        Helper function to create a new object and store it in the
-        object cache.
-        """
-        if reference is None:
-           # this is undoubtedly from a get_*_handle call
-           raise CX(_("no object found"))
-        object_id = self.__next_id()
-        self.object_cache[object_id] = (reference, time.time())
-        return object_id
-
-    def __get_object(self,object_id):
-        """
-        Helper function to load an object from the object cache.  Raises
-        an exception if there is no object as specified.
-        """
-        if self.object_cache.has_key(object_id):
-            return self.object_cache[object_id][0]
-        raise CX(_("No such object for ID: %s") % object_id)
-
     def sync(self,token):
         """
         Run sync code, which should complete before XMLRPC timeout.  We can't
@@ -1162,7 +1089,9 @@ class CobblerXMLRPCInterface:
         """      
         self._log("new_distro",token=token)
         self.check_access(token,"new_distro")
-        return self.__store_object(item_distro.Distro(self.api._config))
+        d = item_distro.Distro(self.api._config)
+        self.api.add_distro(d)
+        return "distro::%s" % d.name
 
     def new_profile(self,token):    
         """
@@ -1171,7 +1100,9 @@ class CobblerXMLRPCInterface:
         """
         self._log("new_profile",token=token)
         self.check_access(token,"new_profile")
-        return self.__store_object(item_profile.Profile(self.api._config))
+        p = item_profile.Profile(self.api._config)
+        self.api.add_profile(p)
+        return "profile::%s" % p.name
 
     def new_subprofile(self,token):
         """
@@ -1184,7 +1115,9 @@ class CobblerXMLRPCInterface:
         """
         self._log("new_subprofile",token=token)
         self.check_access(token,"new_subprofile")
-        return self.__store_object(item_profile.Profile(self.api._config,is_subobject=True))
+        s = item_profile.Profile(self.api._config,is_subobject=True)
+        self.api.add_profile(s)
+        return "profile::%s" % p.name
 
     def new_system(self,token):
         """
@@ -1193,8 +1126,10 @@ class CobblerXMLRPCInterface:
         """
         self._log("new_system",token=token)
         self.check_access(token,"new_system")
-        return self.__store_object(item_system.System(self.api._config))
-        
+        s = item_system.System(self.api._config)
+        self.api.add_system(s)
+        return "system::%s" % s.name
+ 
     def new_repo(self,token):
         """
         Creates a new (unconfigured) repo object.  See the documentation 
@@ -1202,7 +1137,9 @@ class CobblerXMLRPCInterface:
         """
         self._log("new_repo",token=token)
         self.check_access(token,"new_repo")
-        return self.__store_object(item_repo.Repo(self.api._config))
+        r = item_repo.Repo(self.api._config)
+        self.api.add_repo(r)
+        return "repo::%s" % r.name
 
     def new_image(self,token):
         """
@@ -1211,62 +1148,59 @@ class CobblerXMLRPCInterface:
         """
         self._log("new_image",token=token)
         self.check_access(token,"new_image")
-        return self.__store_object(item_image.Image(self.api._config))
-       
-    def get_distro_handle(self,name,token):
+        i = item_image.Image(self.api._config)
+        self.api.add_image(i)
+        return "image::%s" % i.name
+ 
+    def get_distro_handle(self,name,token=None):
         """
         Given the name of an distro (or other search parameters), return an
         object id that can be passed in to modify_distro() or save_distro()
         commands.  Raises an exception if no object can be matched.
         """
         self._log("get_distro_handle",token=token,name=name)
-        self.check_access(token,"get_distro_handle")
         found = self.api.find_distro(name)
-        return self.__store_object(found)   
+        return "distro::%s" % found.name
 
-    def get_profile_handle(self,name,token):
+    def get_profile_handle(self,name,token=None):
         """
         Given the name of a profile  (or other search parameters), return an
         object id that can be passed in to modify_profile() or save_profile()
         commands.  Raises an exception if no object can be matched.
         """
         self._log("get_profile_handle",token=token,name=name)
-        self.check_access(token,"get_profile_handle")
         found = self.api.find_profile(name)
-        return self.__store_object(found)   
+        return "profile::%s" % found.name
 
-    def get_system_handle(self,name,token):
+    def get_system_handle(self,name,token=None):
         """
         Given the name of an system (or other search parameters), return an
         object id that can be passed in to modify_system() or save_system()
         commands. Raises an exception if no object can be matched.
         """
         self._log("get_system_handle",name=name,token=token)
-        self.check_access(token,"get_system_handle")
         found = self.api.find_system(name)
-        return self.__store_object(found)   
+        return "system::%s" % found.name
 
-    def get_repo_handle(self,name,token):
+    def get_repo_handle(self,name,token=None):
         """
         Given the name of an repo (or other search parameters), return an
         object id that can be passed in to modify_repo() or save_repo()
         commands.  Raises an exception if no object can be matched.
         """
         self._log("get_repo_handle",name=name,token=token)
-        self.check_access(token,"get_repo_handle")
         found = self.api.find_repo(name)
-        return self.__store_object(found)   
+        return "repo::%s" % found.name
 
-    def get_image_handle(self,name,token):
+    def get_image_handle(self,name,token=None):
         """
         Given the name of an image (or other search parameters), return an
         object id that can be passed in to modify_image() or save_image()
         commands.  Raises an exception if no object can be matched.
         """
         self._log("get_image_handle",name=name,token=token)
-        self.check_access(token,"get_image_handle")
         found = self.api.find_image(name)
-        return self.__store_object(found)
+        return "image::%s" % found.name
 
     def save_distro(self,object_id,token,editmode="bypass"):
         """
@@ -1400,6 +1334,21 @@ class CobblerXMLRPCInterface:
         self.check_access(token,"rename_image")
         obj = self.__get_object(object_id)
         return self.api.rename_image(obj,newname)
+
+    def __get_object(self, object_id):
+        (otype, oname) = object_id.split("::",1)
+        if otype == "distro":
+           return self.api.find_distro(oname)
+        elif otype == "profile":
+           return self.api.find_profile(oname)
+        elif otype == "system":
+           return self.api.find_system(oname)
+        elif otype == "repo":
+           return self.api.find_repo(oname)
+        elif otype == "image":
+           return self.api.find_image(oname)
+        else:
+           return "invalid"
 
     def __call_method(self, obj, attribute, arg):
         """
