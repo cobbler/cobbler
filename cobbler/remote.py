@@ -52,9 +52,8 @@ from utils import _
 
 # FIXME: make configurable?
 TOKEN_TIMEOUT = 60*60 # 60 minutes
-OBJECT_TIMEOUT = 60*60 # 60 minutes
+CACHE_TIMEOUT = 10*60 # 10 minutes
 TOKEN_CACHE = {}
-OBJECT_CACHE = {}
 
 # *********************************************************************
 # *********************************************************************
@@ -74,6 +73,7 @@ class CobblerXMLRPCInterface:
         self.auth_enabled = enable_auth_if_relevant
         self.logger = self.api.logger
         self.token_cache = TOKEN_CACHE
+        self.object_cache = {}
         self.timestamp = self.api.last_modified_time()
         random.seed(time.time())
 
@@ -918,6 +918,11 @@ class CobblerXMLRPCInterface:
             if (timenow > tokentime + TOKEN_TIMEOUT):
                 self._log("expiring token",token=token,debug=True)
                 del self.token_cache[token]
+        # and also expired objects
+        for oid in self.object_cache.keys():
+            (tokentime, entry) = self.object_cache[oid]
+            if (timenow > tokentime + CACHE_TIMEOUT):
+                del self.object_cache[token]
 
     def __validate_user(self,input_user,input_password):
         """
@@ -1090,8 +1095,9 @@ class CobblerXMLRPCInterface:
         self._log("new_distro",token=token)
         self.check_access(token,"new_distro")
         d = item_distro.Distro(self.api._config)
-        self.api.add_distro(d)
-        return "distro::%s" % d.name
+        key = "___NEW___distro::%s" % self.__get_random(25)
+        self.object_cache[key] = (time.time(), d) 
+        return key
 
     def new_profile(self,token):    
         """
@@ -1101,8 +1107,9 @@ class CobblerXMLRPCInterface:
         self._log("new_profile",token=token)
         self.check_access(token,"new_profile")
         p = item_profile.Profile(self.api._config)
-        self.api.add_profile(p)
-        return "profile::%s" % p.name
+        key = "___NEW___profile::%s" % self.__get_random(25)
+        self.object_cache[key] = (time.time(), p)
+        return key
 
     def new_subprofile(self,token):
         """
@@ -1115,9 +1122,10 @@ class CobblerXMLRPCInterface:
         """
         self._log("new_subprofile",token=token)
         self.check_access(token,"new_subprofile")
-        s = item_profile.Profile(self.api._config,is_subobject=True)
-        self.api.add_profile(s)
-        return "profile::%s" % p.name
+        p = item_profile.Profile(self.api._config,is_subobject=True)
+        key = "___NEW___profile::%s" % self.__get_random(25)
+        self.object_cache[key] = (time.time(), p)
+        return key
 
     def new_system(self,token):
         """
@@ -1127,8 +1135,9 @@ class CobblerXMLRPCInterface:
         self._log("new_system",token=token)
         self.check_access(token,"new_system")
         s = item_system.System(self.api._config)
-        self.api.add_system(s)
-        return "system::%s" % s.name
+        key = "___NEW___system::%s" % self.__get_random(25)
+        self.object_cache[key] = (time.time(), s)
+        return key
  
     def new_repo(self,token):
         """
@@ -1138,8 +1147,9 @@ class CobblerXMLRPCInterface:
         self._log("new_repo",token=token)
         self.check_access(token,"new_repo")
         r = item_repo.Repo(self.api._config)
-        self.api.add_repo(r)
-        return "repo::%s" % r.name
+        key = "___NEW___repo::%s" % self.__get_random(25)
+        self.object_cache[key] = (time.time(), r)
+        return key
 
     def new_image(self,token):
         """
@@ -1149,9 +1159,10 @@ class CobblerXMLRPCInterface:
         self._log("new_image",token=token)
         self.check_access(token,"new_image")
         i = item_image.Image(self.api._config)
-        self.api.add_image(i)
-        return "image::%s" % i.name
- 
+        key = "___NEW___image::%s" % self.__get_random(25)
+        self.object_cache[key] = (time.time(), i)
+        return key         
+
     def get_distro_handle(self,name,token=None):
         """
         Given the name of an distro (or other search parameters), return an
@@ -1336,6 +1347,8 @@ class CobblerXMLRPCInterface:
         return self.api.rename_image(obj,newname)
 
     def __get_object(self, object_id):
+        if object_id.startswith("___NEW___"):
+           return self.object_cache[object_id][1]
         (otype, oname) = object_id.split("::",1)
         if otype == "distro":
            return self.api.find_distro(oname)
