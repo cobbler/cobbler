@@ -122,7 +122,7 @@ class Item(serializable.Serializable):
         """
         if self.name not in ["",None] and self.parent not in ["",None] and self.name == self.parent:
             raise CX(_("self parentage is weird"))
-        if type(name) != type(""):
+        if isinstance(name, basestring):
             raise CX(_("name must be a string"))
         for x in name:
             if not x.isalnum() and not x in [ "_", "-", ".", ":", "+" ] :
@@ -297,7 +297,7 @@ class Item(serializable.Serializable):
 
     def __find_compare(self, from_search, from_obj):
 
-        if type(from_obj) == type(""):
+        if isinstance(from_obj, basestring):
             # FIXME: fnmatch is only used for string to string comparisions
             # which should cover most major usage, if not, this deserves fixing
             if fnmatch.fnmatch(from_obj.lower(), from_search.lower()):
