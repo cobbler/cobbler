@@ -705,6 +705,10 @@ class System(item.Item):
         buf = buf + _("name servers search   : %s\n") % self.name_servers_search
         buf = buf + _("netboot enabled?      : %s\n") % self.netboot_enabled 
         buf = buf + _("owners                : %s\n") % self.owners
+        
+        buf = buf + _("redhat mgmt key       : %s\n") % self.redhat_management_key
+        buf = buf + _("redhat mgmt server    : %s\n") % self.redhat_management_server
+
         buf = buf + _("server                : %s\n") % self.server
         buf = buf + _("template files        : %s\n") % self.template_files
 
