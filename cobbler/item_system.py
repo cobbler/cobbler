@@ -176,8 +176,8 @@ class System(item.Item):
         self.gateway      = self.load_item(seed_data, 'gateway', __gateway)
         self.hostname     = self.load_item(seed_data, 'hostname', __hostname)
         
-        self.name_servers = self.load_item(seed_data, 'name_servers', '<<inherit>>')
-        self.name_servers_search = self.load_item(seed_data, 'name_servers_search', '<<inherit>>')
+        self.name_servers = self.load_item(seed_data, 'name_servers', [])
+        self.name_servers_search = self.load_item(seed_data, 'name_servers_search', [])
         self.redhat_management_key = self.load_item(seed_data, 'redhat_management_key', '<<inherit>>')
         self.redhat_management_server = self.load_item(seed_data, 'redhat_management_server', '<<inherit>>')
 
@@ -283,7 +283,8 @@ class System(item.Item):
         self.set_owners(self.owners) 
         self.set_mgmt_classes(self.mgmt_classes)
         self.set_template_files(self.template_files)
-
+        self.set_name_servers(self.name_servers)
+        self.set_name_servers_search(self.name_servers_search)
 
         # enforce that the system extends from a profile or system but not both
         # profile wins as it's the more common usage
@@ -451,11 +452,15 @@ class System(item.Item):
         return True
  
     def set_name_servers(self,data):
+        if data == "<<inherit>>":
+           data = []
         data = utils.input_string_or_list(data, delim=" ")
         self.name_servers = data
         return True
 
     def set_name_servers_search(self,data):
+        if data == "<<inherit>>":
+           data = []
         data = utils.input_string_or_list(data, delim=" ")
         self.name_servers_search = data
         return True

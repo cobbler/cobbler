@@ -36,6 +36,7 @@ Cobbler CHANGELOG
 - (BUGF) remove caching logic from remote.py
 - (FEAT) added --exclude-dns option to buildiso
 - (BUGF) fix string comparisons to tolerate unicode
+- (BUGF) fix dealing with name servers and name servers search, esp in web app
 
 - Tue Mar 3 2009 - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
