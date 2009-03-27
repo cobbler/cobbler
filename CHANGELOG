@@ -35,6 +35,7 @@ Cobbler CHANGELOG
 - (BUGF) stop yumdownloader including system yum repos
 - (DOCS) update webui project page link
 - (BUGF) remove caching logic from remote.py
+- (FEAT) added --exclude-dns option to buildiso
 
 - Tue Mar 3 2009 - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
