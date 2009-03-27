@@ -1,6 +1,6 @@
 Cobbler CHANGELOG
 
-- Mon Mar 7 2009 - 1.6.0
+- Fri Mar 27 2009 - 1.6.1
 - (FEAT) Improved anaconda monitoring code
 - (FEAT) download comps.xml always
 - (FEAT) performance upgrades for cobblerd service to avoid reloads
@@ -26,7 +26,6 @@ Cobbler CHANGELOG
 - (BUGF) potential performance savings WRT duplicate python objects
 - (BUGF) don't deserialize during sync, it makes it take twice as long
 - (BUGF) fix for MSIE rendering in web app
-<<<<<<< HEAD:CHANGELOG
 - (BUGF) make DHCP managemnet work with bonding
 - (BUGF) teach serializer_catalog to fly with JSON
 - (BUGF) don't use yumdownloader when rpm_list is []
