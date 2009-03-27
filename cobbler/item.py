@@ -306,7 +306,7 @@ class Item(serializable.Serializable):
                 return False    
         
         else:
-            if type(from_search) == type(""):
+            if isinstance(from_search, basestring):
                 if type(from_obj) == type([]):
                     from_search = utils.input_string_or_list(from_search,delim=',')
                     for x in from_search:
