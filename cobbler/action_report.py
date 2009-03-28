@@ -16,6 +16,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import os
 import os.path
 import xmlrpclib
+import re
 import api as cobbler_api
 from cexceptions import *
 from utils import _
@@ -35,6 +36,33 @@ class Report:
         self.report_name = None
         self.report_fields = None
         self.report_noheaders = None
+        self.array_re = re.compile('([^[]+)\[([^]]+)\]')
+
+    def fielder(self, structure, fields_list):
+        """
+        Return data from a subset of fields of some item
+        """
+        item = {}
+
+        for field in fields_list:
+
+            if field in structure.keys():
+                item[field] = structure[field]
+
+            # exception for fields within fields (depth=1 for now)
+            elif self.array_re.search(field):
+                internal = self.array_re.search(field)
+                item[internal.group(2)] = structure[internal.group(1)][internal.group(2)]
+            # exception for systems which could have > 1 interface
+            elif "interfaces" in structure.keys():
+                for device in structure['interfaces'].keys():
+                    if field in structure['interfaces'][device]:
+                        item[field] = device + ': ' + structure['interfaces'][device][field]                    
+                    else: 
+                        raise CX(_("The field \"%s\" does not exist, see cobbler dumpvars for available fields.") % field)
+            else: 
+                raise CX(_("The field \"%s\" does not exist, see cobbler dumpvars for available fields.") % field)
+        return item
 
     def reporting_csv(self, info, order, noheaders):
         """
@@ -147,7 +175,7 @@ class Report:
 
         info_count = 0
         for item in info:
-            
+
             item_count = 0
             for key in order:
 
@@ -213,10 +241,18 @@ class Report:
             print obj.printable()
         return True
     
-    def reporting_print_all_fields(self, collection, report_type, report_noheaders):
+    def reporting_print_all_fields(self, collection, report_name, report_type, report_noheaders):
         """
         Prints all fields in a collection as a table given the report type
         """
+        # per-item hack
+        if report_name:
+            collection = collection.find(name=report_name)
+            if collection:
+                collection = [collection]
+            else:
+                return
+
         collection = [x for x in collection]
         collection.sort(self.reporting_sorter)
         data = []
@@ -250,10 +286,18 @@ class Report:
         
         return True
     
-    def reporting_print_x_fields(self, collection, report_type, report_fields, report_noheaders):
+    def reporting_print_x_fields(self, collection, report_name, report_type, report_fields, report_noheaders):
         """
         Prints specific fields in a collection as a table given the report type
         """
+        # per-item hack
+        if report_name:
+            collection = collection.find(name=report_name)
+            if collection:
+                collection = [collection]
+            else:
+                return
+
         collection = [x for x in collection]
         collection.sort(self.reporting_sorter)
         data = []
@@ -261,23 +305,10 @@ class Report:
         
         for x in collection:
             structure = x.to_datastruct()
-            item = {}
-            for field in fields_list:
-
-                if field in structure.keys():
-                    item[field] = structure[field]
- 
-                # exception for systems which could have > 1 interface
-                elif "interfaces" in structure.keys():
-                    for device in structure['interfaces'].keys():
-                        if field in structure['interfaces'][device]:
-                            item[field] = device + ': ' + structure['interfaces'][device][field]                    
-                else: 
-                    raise CX(_("The field %s does not exist, see cobbler dumpvars for available fields.") % field)
-
+            item = self.fielder(structure, fields_list)
             data.append(item)
          
-        self.print_formatted_data(data = data, order = fields_list, report_type = report_type, noheaders = report_noheaders)
+        self.print_formatted_data(data = data, order = item.keys(), report_type = report_type, noheaders = report_noheaders)
                         
         return True
         
@@ -333,33 +364,33 @@ class Report:
         elif report_type != 'text' and report_fields == 'all':
             
             if report_what in [ "all", "distros", "distro" ]:
-                self.reporting_print_all_fields(self.api.distros(), report_type, report_noheaders)
+                self.reporting_print_all_fields(self.api.distros(), report_name, report_type, report_noheaders)
 
             if report_what in [ "all", "profiles", "profile" ]:
-                self.reporting_print_all_fields(self.api.profiles(), report_type, report_noheaders)
+                self.reporting_print_all_fields(self.api.profiles(), report_name, report_type, report_noheaders)
 
             if report_what in [ "all", "systems", "system" ]:
-                self.reporting_print_all_fields(self.api.systems(), report_type, report_noheaders)
+                self.reporting_print_all_fields(self.api.systems(), report_name, report_type, report_noheaders)
 
             if report_what in [ "all", "repos", "repo" ]:
-                self.reporting_print_all_fields(self.api.repos(), report_type, report_noheaders) 
+                self.reporting_print_all_fields(self.api.repos(), report_name, report_type, report_noheaders) 
 
             if report_what in [ "all", "images", "image" ]:
-                self.reporting_print_all_fields(self.api.images(), report_type, report_noheaders) 
+                self.reporting_print_all_fields(self.api.images(), report_name, report_type, report_noheaders) 
         
         else:
             
             if report_what in [ "all", "distros", "distro" ]:
-                self.reporting_print_x_fields(self.api.distros(), report_type, report_fields, report_noheaders)
+                self.reporting_print_x_fields(self.api.distros(), report_name, report_type, report_fields, report_noheaders)
 
             if report_what in [ "all", "profiles", "profile" ]:
-                self.reporting_print_x_fields(self.api.profiles(), report_type, report_fields, report_noheaders)
+                self.reporting_print_x_fields(self.api.profiles(), report_name, report_type, report_fields, report_noheaders)
 
             if report_what in [ "all", "systems", "system" ]:
-                self.reporting_print_x_fields(self.api.systems(), report_type, report_fields, report_noheaders)
+                self.reporting_print_x_fields(self.api.systems(), report_name, report_type, report_fields, report_noheaders)
 
             if report_what in [ "all", "repos", "repo" ]:
-                self.reporting_print_x_fields(self.api.repos(), report_type, report_fields, report_noheaders)
+                self.reporting_print_x_fields(self.api.repos(), report_name, report_type, report_fields, report_noheaders)
             if report_what in [ "all", "images", "image" ]:
-                self.reporting_print_x_fields(self.api.images(), report_type, report_fields, report_noheaders)
+                self.reporting_print_x_fields(self.api.images(), report_name, report_type, report_fields, report_noheaders)
 
