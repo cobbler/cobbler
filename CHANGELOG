@@ -8,6 +8,7 @@ Cobbler CHANGELOG
 - (FEAT) ongoing work contributed to improve Debian and Ubuntu support 
 - (FEAT) ability to toggle virt auto-boot on/off
 - (BUGF) validate gateway input against python-netaddr
+- (FEAT) --kopts="~foo" --in-place can be used to delete a hash entry without affecting the others, not to be confused with "!foo" to supress it.
 
 - Mon Mar 30 2009 - 1.6.2
 - (BUGF) Fix for cache cleanup problem in cobblerd 
