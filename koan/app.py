@@ -768,8 +768,7 @@ class Koan:
                     "--copy-default"
             ]
             boot_probe_ret_code, probe_output = get_boot_loader_info()
-            if boot_probe_ret_code == 0 \
-                    and probe_output.find("lilo") > -1:
+            if boot_probe_ret_code == 0 and probe_output.find("lilo") > -1:
                 cmd.append("--lilo")
 
             if self.add_reinstall_entry:
@@ -805,8 +804,7 @@ class Koan:
             else:
                 # if grubby --bootloader-probe returns lilo,
                 #    apply lilo changes
-                if boot_probe_ret_code == 0 and \
-                       probe_output.find("lilo") != -1:
+                if boot_probe_ret_code == 0 and probe_output.find("lilo") != -1:
                     print "- applying lilo changes"
                     cmd = [ "/sbin/lilo" ]
                     sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
