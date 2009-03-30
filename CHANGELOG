@@ -1,5 +1,8 @@
 Cobbler CHANGELOG
 
+- XXX - 1.6.3
+- placeholder
+
 - Mon Mar 30 2009 - 1.6.2
 - (BUGF) Fix for cache cleanup problem in cobblerd 
 - (BUGF) various fixes to "cobbler report" when using non-standard formats

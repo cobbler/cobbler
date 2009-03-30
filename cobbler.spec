@@ -3,7 +3,7 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 1.6.2
+Version: 1.6.3
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
@@ -295,6 +295,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+
+* Mon Mar 30 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.3-1
+- Upstream changes (see CHANGELOG)
 
 * Mon Mar 30 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.2-1
 - Upstream changes (see CHANGELOG)
