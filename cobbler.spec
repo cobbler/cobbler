@@ -299,6 +299,14 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
+<<<<<<< HEAD:cobbler.spec
 * Fri Mar 06 2009 Michael DeHaan <mdehaan@redhat.com> - 1.7.0-1
 - Development release 1.7 start
+=======
+* Mon Mar 30 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.2-1
+- Upstream changes (see CHANGELOG)
+
+* Fri Mar 27 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.1-1
+- Upstream changes (see CHANGELOG)
+>>>>>>> 9f122d9... Fix for cache cleanup problem in Cobblerd (typo), release bump to 1.6.2:cobbler.spec
 
