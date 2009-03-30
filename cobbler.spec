@@ -299,10 +299,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-<<<<<<< HEAD:cobbler.spec
-* Fri Mar 06 2009 Michael DeHaan <mdehaan@redhat.com> - 1.7.0-1
-- Development release 1.7 start
-=======
+* Mon Mar 30 2009 Michael DeHaan <mdehaan@redhat.com> - 1.7.0-1
+- Upstream changes (see CHANGELOG)
+
 * Mon Mar 30 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.2-1
 - Upstream changes (see CHANGELOG)
 
