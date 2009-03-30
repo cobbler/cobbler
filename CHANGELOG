@@ -1,5 +1,8 @@
 Cobbler CHANGELOG
 
+- Mon Mar 30 2009 - 1.6.2
+- (BUGF) Fix for cache cleanup problem in cobblerd 
+
 - Fri Mar 27 2009 - 1.6.1
 - (FEAT) Improved anaconda monitoring code
 - (FEAT) download comps.xml always

@@ -922,7 +922,7 @@ class CobblerXMLRPCInterface:
         for oid in self.object_cache.keys():
             (tokentime, entry) = self.object_cache[oid]
             if (timenow > tokentime + CACHE_TIMEOUT):
-                del self.object_cache[token]
+                del self.object_cache[oid]
 
     def __validate_user(self,input_user,input_password):
         """
