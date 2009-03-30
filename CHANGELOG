@@ -1,5 +1,8 @@
 Koan CHANGELOG
 
+- Mon Mar 30 2009 1.6.2
+- Release bump for later
+
 - Fri Mar 27 2009 1.6.1
 - (DOCS) fix manpage, option is --nogfx, not --no-gfx
 - (FEAT) autodetect now works with IP as well as MAC, uses rhpl
