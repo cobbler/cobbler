@@ -35,6 +35,7 @@ import shutil
 import virtinst
 import app as koan
 import sub_process as subprocess
+import utils
 
 def random_mac():
     """
@@ -106,8 +107,8 @@ def start_install(name=None,
             # we have a (windows?) answer file we have to provide
             # to the ISO.
             print "I want to make a floppy for %s" % kickstart
-            #floppy_path = utils.make_floppy(kickstart)
-            #guest.disks.append(virtinst.VirtualDisk(device=virtinst.VirtualDisk.DEVICE_FLOPPY, floppy_path))
+            floppy_path = utils.make_floppy(kickstart)
+            guest.disks.append(virtinst.VirtualDisk(device=virtinst.VirtualDisk.DEVICE_FLOPPY, path=floppy_path))
         
 
     else:

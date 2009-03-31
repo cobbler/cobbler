@@ -41,6 +41,7 @@ import glob
 import socket
 import shutil
 import tempfile
+import urlgrabber
 
 VIRT_STATE_NAME_MAP = {
    0 : "running",
@@ -387,6 +388,49 @@ def create_xendomains_symlink(name):
         os.symlink(src, dst)
     else:
         raise InfoException("Could not create /etc/xen/auto/%s symlink.  Please check write permissions and ownership" % name)
+
+def make_floppy(kickstart):
+
+    (fd, floppy_path) = tempfile.mkstemp(suffix='.floppy', prefix='tmp', dir="/tmp")
+    print "- creating floppy image at %s" % floppy_path
+
+    # create the floppy image file
+    cmd = "dd if=/dev/zero of=%s bs=1440 count=1024" % floppy_path
+    print "- %s" % cmd
+    rc = os.system(cmd)
+    if not rc == 0:
+        raise InfoException("dd failed")
+
+    # vfatify
+    cmd = "mkdosfs %s" % floppy_path
+    print "- %s" % cmd
+    rc = os.system(cmd)
+    if not rc == 0:
+        raise InfoException("mkdosfs failed")
+
+    # mount the floppy
+    mount_path = tempfile.mkdtemp(suffix=".mnt", prefix='tmp', dir="/tmp")
+    cmd = "mount -o loop -t vfat %s %s" % (floppy_path, mount_path)
+    print "- %s" % cmd
+    rc = os.system(cmd)
+    if not rc == 0:
+        raise InfoException("mount failed")
+
+    # download the kickstart file onto the mounted floppy
+    print "- downloading %s" % kickstart
+    save_file = os.path.join(mount_path, "unattended.txt")
+    urlgrabber.urlgrab(kickstart,filename=save_file)
+
+    # umount    
+    cmd = "umount %s" % mount_path
+    print "- %s" % cmd
+    rc = os.system(cmd)
+    if not rc == 0:
+        raise InfoException("umount failed")
+
+    # return the path to the completed disk image to pass to virtinst
+    return floppy_path
+
 
 class ServerProxy(xmlrpclib.ServerProxy):
 
