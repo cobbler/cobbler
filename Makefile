@@ -53,6 +53,7 @@ savestate:
 	cp /etc/cobbler/acls.conf $(statepath)/acls.conf
 	cp /etc/cobbler/users.conf $(statepath)/users.conf
 	cp /etc/cobbler/users.digest $(statepath)/users.digest
+	cp /etc/cobbler/dhcp.template $(statepath)/dhcp.template
 
 
 restorestate:
@@ -63,6 +64,7 @@ restorestate:
 	cp $(statepath)/acls.conf /etc/cobbler/acls.conf
 	cp $(statepath)/users.digest /etc/cobbler/users.digest
 	cp $(statepath)/http.conf /etc/httpd/conf.d/cobbler.conf
+	cp $(statepath)/dhcp.template /etc/cobbler/dhcp.template
 	find /var/lib/cobbler/triggers | xargs chmod +x
 	chown -R apache /var/www/cobbler
 	chmod -R +x /var/www/cobbler/web
