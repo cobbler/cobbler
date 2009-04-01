@@ -168,8 +168,11 @@ class CobblerXMLRPCInterface:
            except:
                # invalid or expired token?
                m_user = "???"
-        msg = "%s; user(%s)" % (msg, m_user)
+        msg = "REMOTE %s; user(%s)" % (msg, m_user)
  
+        if name is not None:
+            msg = "%s; name(%s)" % (msg, name)
+
         if object_id is not None:
             msg = "%s; object_id(%s)" % (msg, object_id)
 

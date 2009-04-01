@@ -126,7 +126,7 @@ class Item(serializable.Serializable):
             raise CX(_("name must be a string"))
         for x in name:
             if not x.isalnum() and not x in [ "_", "-", ".", ":", "+" ] :
-                raise CX(_("invalid characters in name")) 
+                raise CX(_("invalid characters in name: '%s'" % name)) 
         self.name = name
         return True
 
