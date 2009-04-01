@@ -337,12 +337,12 @@ class CobblerWeb(object):
             if kopts is not None:
                 self.remote.modify_distro(distro, 'kopts', kopts, self.token)
             if koptspost is not None:
-                self.remote.modify_distro(distro, 'kopts-post', koptspost, self.token)
+                self.remote.modify_distro(distro, 'kopts_post', koptspost, self.token)
             self.remote.modify_distro(distro, 'ksmeta', ksmeta, self.token)
             self.remote.modify_distro(distro, 'owners', owners, self.token)
             self.remote.modify_distro(distro, 'arch', arch, self.token)
             self.remote.modify_distro(distro, 'breed', breed, self.token)
-            self.remote.modify_distro(distro, 'os-version', osversion, self.token)
+            self.remote.modify_distro(distro, 'os_version', osversion, self.token)
             self.remote.modify_distro(distro, 'comment', comment, self.token)
             self.remote.modify_distro(distro, 'redhat_management_key', redhatmanagementkey, self.token)
             self.remote.modify_distro(distro, 'redhat_management_server', redhatmanagementserver, self.token)
@@ -459,7 +459,7 @@ class CobblerWeb(object):
             for targetname in targetlist.split():
                 systems.append(self.remote.get_system_handle(targetname,self.token))
             for system in systems:
-                self.remote.modify_system(system, 'netboot-enabled', netboot, self.token)
+                self.remote.modify_system(system, 'netboot_enabled', netboot, self.token)
                 self.remote.save_system(system, self.token)
             return self.system_list()
         except Exception, e:
@@ -637,17 +637,17 @@ class CobblerWeb(object):
                 self.remote.modify_system(system, 'name', name, self.token )
             self.remote.modify_system(system, 'profile', profile, self.token)
             self.remote.modify_system(system, 'kopts', kopts, self.token)
-            self.remote.modify_system(system, 'kopts-post', koptspost, self.token)
+            self.remote.modify_system(system, 'kopts_post', koptspost, self.token)
             self.remote.modify_system(system, 'ksmeta', ksmeta, self.token)
             self.remote.modify_system(system, 'owners', owners, self.token)
-            self.remote.modify_system(system, 'netboot-enabled', netboot, self.token)
+            self.remote.modify_system(system, 'netboot_enabled', netboot, self.token)
             self.remote.modify_system(system, 'server', server_override, self.token)
 
-            self.remote.modify_system(system, 'virt-file-size', virtfilesize, self.token)
-            self.remote.modify_system(system, 'virt-cpus', virtcpus, self.token)
-            self.remote.modify_system(system, 'virt-ram', virtram, self.token)
-            self.remote.modify_system(system, 'virt-type', virttype, self.token)
-            self.remote.modify_system(system, 'virt-path', virtpath, self.token)
+            self.remote.modify_system(system, 'virt_file_size', virtfilesize, self.token)
+            self.remote.modify_system(system, 'virt_cpus', virtcpus, self.token)
+            self.remote.modify_system(system, 'virt_ram', virtram, self.token)
+            self.remote.modify_system(system, 'virt_type', virttype, self.token)
+            self.remote.modify_system(system, 'virt_path', virtpath, self.token)
 
             self.remote.modify_system(system, 'comment', comment, self.token)
 
@@ -668,40 +668,40 @@ class CobblerWeb(object):
             interfaces = interfaces.split(",")
 
             for interface in interfaces:
-                macaddress     = args.get("macaddress-%s" % interface, "")
-                ipaddress      = args.get("ipaddress-%s" % interface, "")
-                dnsname        = args.get("dns_name-%s" % interface, "")
-                staticroutes   = args.get("static_routes-%s" % interface, "")
-                static         = args.get("static-%s" % interface, "")
-                virtbridge     = args.get("virtbridge-%s" % interface, "")
-                dhcptag        = args.get("dhcptag-%s" % interface, "")
-                subnet         = args.get("subnet-%s" % interface, "")
-                bonding        = args.get("bonding-%s" % interface, "")
-                bondingopts    = args.get("bondingopts-%s" % interface, "")
-                bondingmaster  = args.get("bondingmaster-%s" % interface, "")
-                present        = args.get("present-%s" % interface, "")
-                original       = args.get("original-%s" % interface, "")
+                macaddress     = args.get("macaddress_%s" % interface, "")
+                ipaddress      = args.get("ipaddress_%s" % interface, "")
+                dnsname        = args.get("dns_name_%s" % interface, "")
+                staticroutes   = args.get("static_routes_%s" % interface, "")
+                static         = args.get("static_%s" % interface, "")
+                virtbridge     = args.get("virtbridge_%s" % interface, "")
+                dhcptag        = args.get("dhcptag_%s" % interface, "")
+                subnet         = args.get("subnet_%s" % interface, "")
+                bonding        = args.get("bonding_%s" % interface, "")
+                bondingopts    = args.get("bondingopts_%s" % interface, "")
+                bondingmaster  = args.get("bondingmaster_%s" % interface, "")
+                present        = args.get("present_%s" % interface, "")
+                original       = args.get("original_%s" % interface, "")
 
                 if (present == "0") and (original == "1"):
                     # interfaces already stored and flagged for deletion must be destroyed
-                    self.remote.modify_system(system,'delete-interface', interface, self.token) 
+                    self.remote.modify_system(system,'delete_interface', interface, self.token) 
                 elif (present == "1"):
                     # interfaces new or existing must be edited
                     mods = {}
-                    mods["macaddress-%s" % interface] = macaddress
-                    mods["ipaddress-%s" % interface] = ipaddress
-                    mods["dnsname-%s" % interface]  = dnsname
-                    mods["static_routes-%s" % interface] = staticroutes
-                    mods["static-%s" % interface]  = static
-                    mods["virtbridge-%s" % interface] = virtbridge
-                    mods["dhcptag-%s" % interface] = dhcptag
-                    mods["subnet-%s" % interface] = subnet
-                    mods["present-%s" % interface] = present
-                    mods["original-%s" % interface] = original
-                    mods["bonding-%s" % interface] = bonding
-                    mods["bondingopts-%s" % interface] = bondingopts
-                    mods["bondingmaster-%s" % interface] = bondingmaster
-                    self.remote.modify_system(system,'modify-interface', mods, self.token)
+                    mods["macaddress_%s" % interface] = macaddress
+                    mods["ipaddress_%s" % interface] = ipaddress
+                    mods["dnsname_%s" % interface]  = dnsname
+                    mods["static_routes_%s" % interface] = staticroutes
+                    mods["static_%s" % interface]  = static
+                    mods["virtbridge_%s" % interface] = virtbridge
+                    mods["dhcptag_%s" % interface] = dhcptag
+                    mods["subnet_%s" % interface] = subnet
+                    mods["present_%s" % interface] = present
+                    mods["original_%s" % interface] = original
+                    mods["bonding_%s" % interface] = bonding
+                    mods["bondingopts_%s" % interface] = bondingopts
+                    mods["bondingmaster_%s" % interface] = bondingmaster
+                    self.remote.modify_system(system,'modify_interface', mods, self.token)
 
             self.remote.save_system(system, self.token, editmode)
 
@@ -836,16 +836,16 @@ class CobblerWeb(object):
                 self.remote.modify_profile(profile,  'parent', parent, self.token)
             self.remote.modify_profile(profile, 'kickstart', kickstart, self.token)
             self.remote.modify_profile(profile, 'kopts', kopts, self.token)
-            self.remote.modify_profile(profile, 'kopts-post', koptspost, self.token)
+            self.remote.modify_profile(profile, 'kopts_post', koptspost, self.token)
             self.remote.modify_profile(profile, 'owners', owners, self.token)
-            self.remote.modify_profile(profile, 'enable-menu', enablemenu, self.token)
+            self.remote.modify_profile(profile, 'enable_menu', enablemenu, self.token)
             self.remote.modify_profile(profile, 'ksmeta', ksmeta, self.token)
-            self.remote.modify_profile(profile, 'virt-file-size', virtfilesize, self.token)
-            self.remote.modify_profile(profile, 'virt-ram', virtram, self.token)
-            self.remote.modify_profile(profile, 'virt-type', virttype, self.token)
-            self.remote.modify_profile(profile, 'virt-path', virtpath, self.token)
-            self.remote.modify_profile(profile, 'virt-bridge', virtbridge, self.token)
-            self.remote.modify_profile(profile, 'virt-cpus', virtcpus, self.token)
+            self.remote.modify_profile(profile, 'virt_file_size', virtfilesize, self.token)
+            self.remote.modify_profile(profile, 'virt_ram', virtram, self.token)
+            self.remote.modify_profile(profile, 'virt_type', virttype, self.token)
+            self.remote.modify_profile(profile, 'virt_path', virtpath, self.token)
+            self.remote.modify_profile(profile, 'virt_bridge', virtbridge, self.token)
+            self.remote.modify_profile(profile, 'virt_cpus', virtcpus, self.token)
             self.remote.modify_profile(profile, 'server', server_override, self.token)
             self.remote.modify_profile(profile, 'comment', comment, self.token)
             self.remote.modify_profile(profile, 'name_servers', name_servers, self.token)
@@ -863,7 +863,7 @@ class CobblerWeb(object):
                     repos.remove( '--none--' )
                 self.remote.modify_profile(profile, 'repos', repos, self.token)
 
-            self.remote.modify_profile(profile, 'dhcp-tag', dhcptag, self.token)
+            self.remote.modify_profile(profile, 'dhcp_tag', dhcptag, self.token)
             self.remote.save_profile(profile,self.token, editmode)
         except Exception, e:
             log_exc(self.apache)
@@ -971,12 +971,12 @@ class CobblerWeb(object):
             if editmode != "rename" and name:
                 self.remote.modify_repo(repo, 'name', name, self.token)
             self.remote.modify_repo(repo, 'mirror', mirror, self.token)
-            self.remote.modify_repo(repo, 'keep-updated', keep_updated, self.token)
+            self.remote.modify_repo(repo, 'keep_updated', keep_updated, self.token)
             self.remote.modify_repo(repo, 'priority', priority, self.token)
-            self.remote.modify_repo(repo, 'mirror-locally', mirror_locally, self.token)
+            self.remote.modify_repo(repo, 'mirror_locally', mirror_locally, self.token)
 
-            self.remote.modify_repo(repo, 'rpm-list', rpm_list, self.token)
-            self.remote.modify_repo(repo, 'createrepo-flags', createrepo_flags, self.token)
+            self.remote.modify_repo(repo, 'rpm_list', rpm_list, self.token)
+            self.remote.modify_repo(repo, 'createrepo_flags', createrepo_flags, self.token)
             self.remote.modify_repo(repo, 'arch', arch, self.token)
             self.remote.modify_repo(repo, 'yumopts', yumopts, self.token)
             self.remote.modify_repo(repo, 'environment', environment, self.token)
@@ -1097,19 +1097,19 @@ class CobblerWeb(object):
         try:
             if editmode != "rename" and name:
                 self.remote.modify_image(image, 'name', name, self.token)
-            self.remote.modify_image(image, 'image-type', imagetype, self.token)
+            self.remote.modify_image(image, 'image_type', imagetype, self.token)
             self.remote.modify_image(image, 'breed',      breed,     self.token)
-            self.remote.modify_image(image, 'os-version', osversion, self.token)
+            self.remote.modify_image(image, 'os_version', osversion, self.token)
             self.remote.modify_image(image, 'arch',       arch,      self.token)
             self.remote.modify_image(image, 'file',       file,      self.token)
             self.remote.modify_image(image, 'owners',     owners,    self.token)
-            self.remote.modify_image(image, 'virt-cpus',  virtcpus,  self.token)
-            self.remote.modify_image(image, 'network-count',  networkcount,  self.token)                
-            self.remote.modify_image(image, 'virt-file-size', virtfilesize, self.token)
-            self.remote.modify_image(image, 'virt-path',   virtpath,   self.token)
-            self.remote.modify_image(image, 'virt-bridge', virtbridge, self.token)
-            self.remote.modify_image(image, 'virt-ram',    virtram,    self.token)
-            self.remote.modify_image(image, 'virt-type',   virttype,   self.token)
+            self.remote.modify_image(image, 'virt_cpus',  virtcpus,  self.token)
+            self.remote.modify_image(image, 'network_count',  networkcount,  self.token)                
+            self.remote.modify_image(image, 'virt_file_size', virtfilesize, self.token)
+            self.remote.modify_image(image, 'virt_path',   virtpath,   self.token)
+            self.remote.modify_image(image, 'virt_bridge', virtbridge, self.token)
+            self.remote.modify_image(image, 'virt_ram',    virtram,    self.token)
+            self.remote.modify_image(image, 'virt_type',   virttype,   self.token)
             self.remote.modify_image(image, 'comment', comment, self.token)
 
             self.remote.save_image(image, self.token, editmode)
