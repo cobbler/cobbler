@@ -1,7 +1,7 @@
 Cobbler CHANGELOG
 
 - XXX - 1.6.3
-- placeholder
+- import with datestamp 0 when .discinfo is not found, do not crash
 
 - Mon Mar 30 2009 - 1.6.2
 - (BUGF) Fix for cache cleanup problem in cobblerd 
