@@ -132,9 +132,12 @@ def handler(req):
         func = getattr( cw, 'error_page' )
         content = func( "Invalid Mode: \"%s\"" % mode )
 
-    # apache.log_error("%s:%s ... %s" % (my_user, my_uri, str(form)))
-    req.content_type = "text/html;charset=utf-8"
-    req.write(unicode(content).encode('utf-8'))
+    if content.startswith("# REDIRECT "):
+        util.redirect(req, location=content[11:], permanent=False)
+    else:
+        # apache.log_error("%s:%s ... %s" % (my_user, my_uri, str(form)))
+        req.content_type = "text/html;charset=utf-8"
+        req.write(unicode(content).encode('utf-8'))
     
     if not content.startswith("# ERROR") and content.find("<!-- ERROR -->") == -1:
        return apache.OK

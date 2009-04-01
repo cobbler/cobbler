@@ -101,6 +101,17 @@ class CobblerWeb(object):
         tmpl = Template( file=filepath, searchList=[data] )
         return str(tmpl)
 
+    def __redirect(self, mode=None, args=None):
+        """
+        Redirect to URL using the redirect helper in index.py
+        """
+        url=self.base_url
+        if mode is not None:
+            url="%s?mode=%s" % (url,mode)
+        if args is not None:
+            url="%s%s" % (url,args)
+        return "# REDIRECT "+url
+
     def modes(self):
         """
         Returns a list of methods in this object that can be run as web
@@ -461,7 +472,7 @@ class CobblerWeb(object):
             for system in systems:
                 self.remote.modify_system(system, 'netboot_enabled', netboot, self.token)
                 self.remote.save_system(system, self.token)
-            return self.system_list()
+            return self.__redirect("system_list")
         except Exception, e:
             log_exc(self.apache)
             return self.error_page("Error while saving system: %s" % str(e))
@@ -500,7 +511,7 @@ class CobblerWeb(object):
                 systems.append(self.remote.get_system_handle(targetname,self.token))
             for system in systems:
                 self.remote.power_system(system, power, self.token)
-            return self.system_list()
+            return self.__redirect("system_list")
         except Exception, e:
             log_exc(self.apache)
             return self.error_page("Error while controlling power of system: %s" % str(e))
@@ -517,7 +528,7 @@ class CobblerWeb(object):
                 systems.append(self.remote.get_system_handle(targetname,self.token))
             for system in systems:
                 self.remote.rename_system(system, name, self.token)
-            return self.system_list()
+            return self.__redirect("system_list")
         except Exception, e:
             log_exc(self.apache)
             return self.error_page("Error while renaming system: %s" % str(e))
@@ -531,7 +542,7 @@ class CobblerWeb(object):
         try:
             for targetname in targetlist.split():
                 self.remote.remove_system(targetname, self.token)
-            return self.system_list()
+            return self.__redirect("system_list")
         except Exception, e:
             log_exc(self.apache)
             return self.error_page("Error while deleting system: %s" % str(e))
@@ -709,7 +720,7 @@ class CobblerWeb(object):
             log_exc(self.apache)
             return self.error_page("Error while saving system: %s" % str(e))
 
-        return self.system_list()
+        return self.__redirect("system_list")
 
     def system_search(self,**spam):
         return self.__search('system')
