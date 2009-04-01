@@ -3,6 +3,7 @@ Cobbler CHANGELOG
 - XXX - 1.6.3
 - (BUGF) import with datestamp 0 when .discinfo is not found, do not crash
 - (BUGF) various fixes to "cobbler report" when using non-standard formats
+- (BUGF) rename with same name does not delete
 
 - Mon Mar 30 2009 - 1.6.2
 - (BUGF) Fix for cache cleanup problem in cobblerd 
