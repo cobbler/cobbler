@@ -278,7 +278,7 @@ class Item(serializable.Serializable):
         data = self.to_datastruct()
         for (key, value) in kwargs.iteritems():
             # Allow ~ to negate the compare
-            if value.startswith("~"):
+            if value is not None and value.startswith("~"):
                 if self.find_match_single_key(data,key,value[1:],no_errors):
                     return False
             else:
