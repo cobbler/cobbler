@@ -110,7 +110,6 @@ class BootSync:
         if self.verbose:
            print "- copying images"
         self.pxegen.copy_images()
-        self.pxegen.generate_windows_files()
         for x in self.systems:
             if self.verbose:
                 print "- copying files for system: %s" % x.name
@@ -170,8 +169,6 @@ class BootSync:
         yaboot_bin_dir = os.path.join(self.bootloc, "ppc")
         yaboot_cfg_dir = os.path.join(self.bootloc, "etc")
         s390_dir = os.path.join(self.bootloc, "s390x")
-        profiles_dir = os.path.join(self.bootloc, "profiles")
-        systems_dir = os.path.join(self.bootloc, "systems")
         rendered_dir = os.path.join(self.settings.webdir, "rendered")
         if not os.path.exists(pxelinux_dir):
             utils.mkdir(pxelinux_dir,verbose=self.verbose)
@@ -183,17 +180,11 @@ class BootSync:
             utils.mkdir(yaboot_bin_dir,verbose=self.verbose)
         if not os.path.exists(yaboot_cfg_dir):
             utils.mkdir(yaboot_cfg_dir,verbose=self.verbose)
-        if not os.path.exists(profiles_dir):
-            utils.mkdir(profiles_dir,verbose=self.verbose)
-        if not os.path.exists(systems_dir):
-            utils.mkdir(systems_dir,verbose=self.verbose)
         utils.rmtree_contents(os.path.join(self.bootloc, "pxelinux.cfg"),verbose=self.verbose)
         utils.rmtree_contents(os.path.join(self.bootloc, "images"),verbose=self.verbose)
         utils.rmtree_contents(os.path.join(self.bootloc, "s390x"),verbose=self.verbose)
         utils.rmtree_contents(os.path.join(self.bootloc, "ppc"),verbose=self.verbose)
         utils.rmtree_contents(os.path.join(self.bootloc, "etc"),verbose=self.verbose)
-        utils.rmtree_contents(profiles_dir,verbose=self.verbose)
-        utils.rmtree_contents(systems_dir,verbose=self.verbose)
         utils.rmtree_contents(rendered_dir,verbose=self.verbose)
         
 

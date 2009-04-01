@@ -122,7 +122,7 @@ class Item(serializable.Serializable):
         """
         if self.name not in ["",None] and self.parent not in ["",None] and self.name == self.parent:
             raise CX(_("self parentage is weird"))
-        if type(name) != type(""):
+        if not isinstance(name, basestring):
             raise CX(_("name must be a string"))
         for x in name:
             if not x.isalnum() and not x in [ "_", "-", ".", ":", "+" ] :
@@ -157,7 +157,10 @@ class Item(serializable.Serializable):
         else:
             if inplace:
                 for key in value.keys():
-                    self.kernel_options[key] = value[key]
+                    if key.startswith("~"):
+                        del self.kernel_options[key[1:]]
+                    else:
+                        self.kernel_options[key] = value[key]
             else:
                 self.kernel_options = value
             return True
@@ -173,7 +176,10 @@ class Item(serializable.Serializable):
         else:
             if inplace:
                 for key in value.keys():
-                    self.kernel_options_post[key] = value[key]
+                    if key.startswith("~"):
+                        del self.self.kernel_options_post[key[1:]]
+                    else:
+                        self.kernel_options_post[key] = value[key]
             else:
                 self.kernel_options_post = value
             return True
@@ -190,7 +196,10 @@ class Item(serializable.Serializable):
         else:
             if inplace:
                 for key in value.keys():
-                    self.ks_meta[key] = value[key]
+                    if key.startswith("~"):
+                        del self.ks_meta[key[1:]]
+                    else:
+                        self.ks_meta[key] = value[key]
             else:
                 self.ks_meta = value
             return True
@@ -215,7 +224,10 @@ class Item(serializable.Serializable):
         else:
             if inplace:
                 for key in value.keys():
-                    self.template_files[key] = value[key]
+                    if key.startswith("~"):
+                        del self.template_files[key[1:]]
+                    else:
+                        self.template_files[key] = value[key]
             else:
                 self.template_files = value
             return True
@@ -297,7 +309,7 @@ class Item(serializable.Serializable):
 
     def __find_compare(self, from_search, from_obj):
 
-        if type(from_obj) == type(""):
+        if isinstance(from_obj, basestring):
             # FIXME: fnmatch is only used for string to string comparisions
             # which should cover most major usage, if not, this deserves fixing
             if fnmatch.fnmatch(from_obj.lower(), from_search.lower()):
@@ -306,7 +318,7 @@ class Item(serializable.Serializable):
                 return False    
         
         else:
-            if type(from_search) == type(""):
+            if isinstance(from_search, basestring):
                 if type(from_obj) == type([]):
                     from_search = utils.input_string_or_list(from_search,delim=',')
                     for x in from_search:

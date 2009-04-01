@@ -179,8 +179,8 @@ class System(item.Item):
         self.gateway      = self.load_item(seed_data, 'gateway', __gateway)
         self.hostname     = self.load_item(seed_data, 'hostname', __hostname)
         
-        self.name_servers = self.load_item(seed_data, 'name_servers', '<<inherit>>')
-        self.name_servers_search = self.load_item(seed_data, 'name_servers_search', '<<inherit>>')
+        self.name_servers = self.load_item(seed_data, 'name_servers', [])
+        self.name_servers_search = self.load_item(seed_data, 'name_servers_search', [])
         self.redhat_management_key = self.load_item(seed_data, 'redhat_management_key', '<<inherit>>')
         self.redhat_management_server = self.load_item(seed_data, 'redhat_management_server', '<<inherit>>')
 
@@ -289,7 +289,8 @@ class System(item.Item):
         self.set_owners(self.owners) 
         self.set_mgmt_classes(self.mgmt_classes)
         self.set_template_files(self.template_files)
-
+        self.set_name_servers(self.name_servers)
+        self.set_name_servers_search(self.name_servers_search)
 
         # enforce that the system extends from a profile or system but not both
         # profile wins as it's the more common usage
@@ -323,7 +324,7 @@ class System(item.Item):
 
         if self.name not in ["",None] and self.parent not in ["",None] and self.name == self.parent:
             raise CX(_("self parentage is weird"))
-        if type(name) != type(""):
+        if not isinstance(name, basestring):
             raise CX(_("name must be a string"))
         for x in name:
             if not x.isalnum() and not x in [ "_", "-", ".", ":", "+" ] :
@@ -496,11 +497,15 @@ class System(item.Item):
         return True
  
     def set_name_servers(self,data):
+        if data == "<<inherit>>":
+           data = []
         data = utils.input_string_or_list(data, delim=" ")
         self.name_servers = data
         return True
 
     def set_name_servers_search(self,data):
+        if data == "<<inherit>>":
+           data = []
         data = utils.input_string_or_list(data, delim=" ")
         self.name_servers_search = data
         return True
@@ -749,6 +754,10 @@ class System(item.Item):
         buf = buf + _("name servers search   : %s\n") % self.name_servers_search
         buf = buf + _("netboot enabled?      : %s\n") % self.netboot_enabled 
         buf = buf + _("owners                : %s\n") % self.owners
+        
+        buf = buf + _("redhat mgmt key       : %s\n") % self.redhat_management_key
+        buf = buf + _("redhat mgmt server    : %s\n") % self.redhat_management_server
+
         buf = buf + _("server                : %s\n") % self.server
         buf = buf + _("template files        : %s\n") % self.template_files
         buf = buf + _("virt auto boot        : %s\n") % self.virt_auto_boot

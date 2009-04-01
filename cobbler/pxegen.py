@@ -112,9 +112,6 @@ class PXEGen:
         """
         errors = list()
         for d in self.distros:
-            # we don't copy the files for windows distros
-            if d.breed == "windows":
-               continue
             try:
                 if self.verbose:
                    print "- copying files for distro: %s" % d.name
@@ -174,83 +171,6 @@ class PXEGen:
         basename = os.path.basename(img.file)
         newfile = os.path.join(images_dir, img.name)
         utils.linkfile(filename, newfile, api=self.api, verbose=self.verbose)
-        return True
-
-    def generate_windows_files(self):
-        utils.mkdir(os.path.join(self.bootloc, "profiles"))
-        for p in self.profiles:
-            distro = p.get_conceptual_parent()
-            if distro and distro.breed != "windows":
-                continue
-            else:
-                self.generate_windows_profile_pxe(p)
-        utils.mkdir(os.path.join(self.bootloc, "systems"))
-        for s in self.systems:
-            profile = s.get_conceptual_parent()
-            if profile:
-                distro = profile.get_conceptual_parent()
-                if distro and distro.breed != "windows":
-                    continue
-                else:
-                    self.generate_windows_system_pxe(s)
-
-    def generate_windows_profile_pxe(self, profile):
-        distro = profile.get_conceptual_parent()
-
-        dest_dir = os.path.join(self.bootloc, "profiles", profile.name)
-        utils.mkdir(dest_dir)
-
-        utils.cabextract(distro.kernel, dest_dir, self.api)
-
-        src_file = os.path.join(dest_dir, "startrom.n12")
-        dest_file = os.path.join(dest_dir, "winpxe.0")
-        cmd = [ "/bin/sed", "-i", "-e", "s/ntldr/L%s/gi" % profile.random_id, src_file ]
-        sub_process.call(cmd, shell=False, close_fds=False)
-        os.rename(src_file, dest_file)
-
-        utils.cabextract(distro.initrd, dest_dir, self.api)
-       
-        src_file = os.path.join(dest_dir, "setupldr.exe")
-        dest_file = os.path.join(dest_dir, "NTLDR")
-        cmd = [ "/bin/sed", "-i", "-e", "s/winnt\\.sif/w%s.sif/gi" % profile.random_id, src_file ]
-        sub_process.call(cmd, shell=False, close_fds=False)
-        cmd = [ "/bin/sed", "-i", "-e", "s/ntdetect\\.com/ntd_%s.com/gi" % profile.random_id, src_file ]
-        sub_process.call(cmd, shell=False, close_fds=False)
-        os.rename(src_file, dest_file)
-
-        src_dir = os.path.dirname(distro.kernel)
-        src_file = os.path.join(src_dir, "ntdetect.com")
-        file_name = os.path.join(dest_dir, "ntdetect.com")
-        utils.copyfile(src_file, file_name, self.api)
- 
-        template = profile.kickstart
-        fd = open(template, "r")
-        template_data = fd.read()
-        fd.close()
-
-        blended = utils.blender(self.api, False, profile)
-        blended['next_server'] = self.settings.next_server
-
-        ksmeta = blended.get("ks_meta",{})
-        del blended["ks_meta"]
-        blended.update(ksmeta) # make available at top level
-
-        # this is a workaround for a dumb bug in cheetah...
-        # a backslash before a variable is always treated as 
-        # escaping the $, so things are not rendered correctly.
-        # The only option is to use another variable for
-        # backslashes when leading another variable. i.e.:
-        # \\$variable
-        blended['bsp'] = '\\'
-
-        data = self.templar.render(template_data, blended, None)
-
-        # write .sif to self.bootloc/profiles/$name/winnt.sif
-        file_name = os.path.join(dest_dir, "winnt.sif")
-        fd = open(file_name, "w")
-        fd.write(data)
-        fd.close()
-
         return True
 
     def write_all_system_files(self,system):

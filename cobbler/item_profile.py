@@ -134,6 +134,8 @@ class Profile(item.Item):
         self.set_owners(self.owners)
         self.set_mgmt_classes(self.mgmt_classes)
         self.set_template_files(self.template_files)
+        self.set_name_servers(self.name_servers)
+        self.set_name_servers_search(self.name_servers_search)
 
         self.uid         = self.load_item(seed_data,'uid','')
         if self.uid == '':
@@ -190,11 +192,15 @@ class Profile(item.Item):
 
     def set_name_servers(self,data):
         # FIXME: move to utils since shared with system
+        if data == "<<inherit>>":
+           data = []
         data = utils.input_string_or_list(data, delim=" ")
         self.name_servers = data
         return True
 
     def set_name_servers_search(self,data):
+        if data == "<<inherit>>":
+           data = []
         data = utils.input_string_or_list(data, delim=" ")
         self.name_servers_search = data
         return True

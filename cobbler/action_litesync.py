@@ -87,7 +87,6 @@ class BootLiteSync:
 
     def remove_single_distro(self, name):
         bootloc = utils.tftpboot_location()
-        print _("DEBUG: unmounting %s" % os.path.join(bootloc, name))
         # delete contents of images/$name directory in webdir
         utils.rmtree(os.path.join(self.settings.webdir, "images", name))
         # delete contents of images/$name in tftpboot

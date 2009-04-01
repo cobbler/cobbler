@@ -8,13 +8,11 @@ Cobbler CHANGELOG
 - (FEAT) ongoing work contributed to improve Debian and Ubuntu support 
 - (FEAT) ability to toggle virt auto-boot on/off
 - (BUGF) validate gateway input against python-netaddr
-
-- XXX - 1.6.3
-- (BUGF) import with datestamp 0 when .discinfo is not found, do not crash
-- (BUGF) various fixes to "cobbler report" when using non-standard formats
+- (FEAT) --kopts="~foo" --in-place can be used to delete a hash entry without affecting the others, not to be confused with "!foo" to supress it.
 
 - Mon Mar 30 2009 - 1.6.2
 - (BUGF) Fix for cache cleanup problem in cobblerd 
+- (BUGF) various fixes to "cobbler report" when using non-standard formats
 
 - Fri Mar 27 2009 - 1.6.1
 - (FEAT) Improved anaconda monitoring code
@@ -50,6 +48,10 @@ Cobbler CHANGELOG
 - (BUGF) fix for MSIE rendering in web app
 - (BUGF) stop yumdownloader including system yum repos
 - (DOCS) update webui project page link
+- (BUGF) remove caching logic from remote.py
+- (FEAT) added --exclude-dns option to buildiso
+- (BUGF) fix string comparisons to tolerate unicode
+- (BUGF) fix dealing with name servers and name servers search, esp in web app
 
 - Tue Mar 3 2009 - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
