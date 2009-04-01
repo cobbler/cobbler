@@ -1059,6 +1059,8 @@ class RedHatImporter ( BaseImporter ) :
            discinfo = open("%s/.discinfo" % base, "r")
            datestamp = discinfo.read().split("\n")[0]
            discinfo.close()
+       else:
+           return 0
        return float(datestamp)
 
    def set_variance(self, flavor, major, minor, arch):
