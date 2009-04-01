@@ -243,6 +243,7 @@ class BuildIsoFunction(commands.CobblerFunction):
         p.add_option("--distro",   dest="distro",   help="(OPTIONAL) used with --standalone to create a distro-based ISO including all associated profiles/systems")
         p.add_option("--standalone", dest="standalone", action="store_true", help="(OPTIONAL) creates a standalone ISO with all required distro files on it")
         p.add_option("--source",   dest="source",   help="(OPTIONAL) used with --standalone to specify a source for the distribution files")
+        p.add_option("--exclude-dns", dest="exclude_dns", action="store_true", help="(OPTIONAL) prevents addition of name server addresses to the kernel boot options")
 
     def help_me(self):
        return HELP_FORMAT % ("cobbler buildiso","[ARGS]")
@@ -258,7 +259,8 @@ class BuildIsoFunction(commands.CobblerFunction):
            tempdir=self.options.tempdir,
            distro=self.options.distro,
            standalone=self.options.standalone,
-           source=self.options.source
+           source=self.options.source,
+           exclude_dns=self.options.exclude_dns
        )
 
 ########################################################

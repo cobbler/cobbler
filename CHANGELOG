@@ -1,6 +1,13 @@
 Cobbler CHANGELOG
 
-- Mon Mar 7 2009 - 1.6.0
+- XXX - 1.6.3
+- placeholder
+
+- Mon Mar 30 2009 - 1.6.2
+- (BUGF) Fix for cache cleanup problem in cobblerd 
+- (BUGF) various fixes to "cobbler report" when using non-standard formats
+
+- Fri Mar 27 2009 - 1.6.1
 - (FEAT) Improved anaconda monitoring code
 - (FEAT) download comps.xml always
 - (FEAT) performance upgrades for cobblerd service to avoid reloads
@@ -26,7 +33,6 @@ Cobbler CHANGELOG
 - (BUGF) potential performance savings WRT duplicate python objects
 - (BUGF) don't deserialize during sync, it makes it take twice as long
 - (BUGF) fix for MSIE rendering in web app
-<<<<<<< HEAD:CHANGELOG
 - (BUGF) make DHCP managemnet work with bonding
 - (BUGF) teach serializer_catalog to fly with JSON
 - (BUGF) don't use yumdownloader when rpm_list is []
@@ -34,6 +40,10 @@ Cobbler CHANGELOG
 - (BUGF) properly "flatten" environment values for webapp
 - (BUGF) stop yumdownloader including system yum repos
 - (DOCS) update webui project page link
+- (BUGF) remove caching logic from remote.py
+- (FEAT) added --exclude-dns option to buildiso
+- (BUGF) fix string comparisons to tolerate unicode
+- (BUGF) fix dealing with name servers and name servers search, esp in web app
 
 - Tue Mar 3 2009 - 1.4.3
 - (BUGF) fix OMAPI support's (note: deprecated) usage of subprocess
