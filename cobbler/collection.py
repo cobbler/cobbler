@@ -167,6 +167,10 @@ class Collection(serializable.Serializable):
         of the object tree. 
         """
 
+        # Nothing to do when it is the same name
+        if newname == ref.name:
+            return True
+            
         # make a copy of the object, but give it a new name.
         oldname = ref.name
         newref = ref.make_clone()
