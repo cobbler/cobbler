@@ -194,6 +194,10 @@ class IscManager:
 
                 mac  = interface["mac_address"]
                 if interface["bonding"] == "slave":
+                    if interface["bonding_master"] not in system.interfaces:
+                        # Can't write DHCP entry; master interface does not
+                        # exist
+                        continue
                     ip = system.interfaces[interface["bonding_master"]]["ip_address"]
                     interface["ip_address"] = ip
                     host = system.interfaces[interface["bonding_master"]]["dns_name"]
