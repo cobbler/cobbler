@@ -4,11 +4,10 @@ Cobbler CHANGELOG
 - (BUGF) import with datestamp 0 when .discinfo is not found, do not crash
 - (BUGF) various fixes to "cobbler report" when using non-standard formats
 - (BUGF) rename with same name does not delete
+- (BUGF) Fix for traceback when generating DHCP config and the bonding_master interface does not exist.
 
 - Mon Mar 30 2009 - 1.6.2
 - (BUGF) Fix for cache cleanup problem in cobblerd 
-- (BUGF) various fixes to "cobbler report" when using non-standard formats
-- (BUGF) Fix for traceback when generating DHCP config and the bonding_master interface does not exist.
 
 - Fri Mar 27 2009 - 1.6.1
 - (FEAT) Improved anaconda monitoring code
