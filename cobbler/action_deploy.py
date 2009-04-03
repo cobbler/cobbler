@@ -20,10 +20,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import func_utils
-from utils import _
+import module_loader
 from cexceptions import *
-import random
 
 class Deployer:
     def __init__(self,config):
@@ -35,47 +33,15 @@ class Deployer:
         self.api       = config.api
         self.virt_host = None
 
-    # -------------------------------------------------------
-
-    def find_host(self, virt_group):
-        """
-        Find a system in the virtual group specified
-        """
-
-        systems = self.api.find_system(virt_group=virt_group, return_list = True)
-        if len(systems) == 0:
-            raise CX("No systems were found in virtual group %s"%virt_group)
-        return random.choice(systems)
-
-    # -------------------------------------------------------
-
     def deploy(self, system, virt_host = None, virt_group=None):
         """
         Deploy the current system to the virtual host or virtual group
         """
-        if virt_host is None and virt_group is not None:
-            virt_host = self.find_host(virt_group)
+        deployer = module_loader.get_module_from_file(
+            "deploy",
+            "module",
+            "deploy_func").get_manager(self.config)
+        return deployer.deploy(system,
+                               virt_host = virt_host,
+                               virt_group = virt_group)
 
-        if virt_host is None and system.virt_group == '':
-            virt_host = self.find_host(system.virt_group)
-
-        if system.virt_host != '':
-            virt_host = system.virt_host
-
-        if virt_host is None:
-            raise CX("No host specified for deployment.")
-
-        if not func_utils.HAZFUNC:
-            raise CX("Func is not available.")
-
-        try:
-            client = func_utils.func.Client(virt_host)
-            rc = client.virt.install(self.settings.server, system.hostname, True)[virt_host]
-            if rc != 0:
-                raise CX("Func Error: %s"%rc[2])
-            system.virt_host = virt_host
-            self.api.add_system(system)
-            return rc
-
-        except func_utils.Func_Client_Exception, ex:
-            raise CX("A Func Exception has occured: %s"%ex)
