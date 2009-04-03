@@ -26,78 +26,60 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #import random
 
 def register():
-   """
-   The mandatory cobbler module registration hook.
-   """
-   return "deploy"
+    """
+    The mandatory cobbler module registration hook.
+    """
+    return "deploy"
 
-class SshDeployer:
+def  __find_host(api, virt_group):
+    """
+    Find a system in the virtual group specified
+    """
 
-    def what(self):
-        return "ssh"
+    systems = api.find_system(virt_group=virt_group, return_list = True)
+    if len(systems) == 0:
+        raise CX("No systems were found in virtual group %s" % virt_group)
 
-    def __init__(self,config,verbose=False):
-        """
-        Constructor
-        """
-        self.verbose     = verbose
-        self.config      = config
-        self.api         = config.api
-        self.settings    = config.settings()
+    # FIXME: temporary hack, should find number of systems in the 
+    # virtual group with the least number of virtual systems pointing
+    # to it
 
-    # -------------------------------------------------------
+    return random.choice(systems)
 
-    def __find_host(self, virt_group):
-        """
-        Find a system in the virtual group specified
-        """
+# -------------------------------------------------------
 
-        systems = self.api.find_system(virt_group=virt_group, return_list = True)
-        if len(systems) == 0:
-            raise CX("No systems were found in virtual group %s" % virt_group)
+def deploy(api, system, virt_host = None, virt_group=None):
+    """
+    Deploy the current system to the virtual host or virtual group
+    """
+    if virt_host is None and virt_group is not None:
+        virt_host = __find_host(api, virt_group)
 
-        # FIXME: temporary hack, should find number of systems in the 
-        # virtual group with the least number of virtual systems pointing
-        # to it
+    if virt_host is None and system.virt_group == '':
+        virt_host = __find_host(api, system.virt_group)
 
-        return random.choice(systems)
+    if system.virt_host != '':
+        virt_host = system.virt_host
 
-    # -------------------------------------------------------
+    if virt_host is None:
+        raise CX("No host specified for deployment.")
 
-    def deploy(self, system, virt_host = None, virt_group=None):
-        """
-        Deploy the current system to the virtual host or virtual group
-        """
-        if virt_host is None and virt_group is not None:
-            virt_host = self.__find_host(virt_group)
+    if virt_host.host_name == "":
+        raise CX("System hostname for (%s) not set" % virt_host.name)
 
-        if virt_host is None and system.virt_group == '':
-            virt_host = self.__find_host(system.virt_group)
-
-        if system.virt_host != '':
-            virt_host = system.virt_host
-
-        if virt_host is None:
-            raise CX("No host specified for deployment.")
-
-        if virt_host.hostname == "":
-            raise CX("System hostname for (%s) not set" % virt_host.name)
-
-        cmd = "ssh %s koan --virt --system=%s" % (virt_host.host_name, system.name)
-        print "- %s" % cmd
-        rc = sub_process.call(cmd)
-        if rc != 0:
-            raise CX("remote deployment failed")
+    cmd = "ssh %s koan --virt --system=%s" % (virt_host.host_name, system.name)
+    print "- %s" % cmd
+    rc = sub_process.call(cmd)
+    if rc != 0:
+        raise CX("remote deployment failed")
 
 
-    # -------------------------------------------------------
+# -------------------------------------------------------
 
-    def delete(self, system):
-        """
-        Delete the virt system
-        """
-        raise CX("Removing a virtual instance is not implemented yet.")
+def delete(system):
+    """
+    Delete the virt system
+    """
+    raise CX("Removing a virtual instance is not implemented yet.")
 
-def get_manager(config):
-    return SshDeployer(config)
 
