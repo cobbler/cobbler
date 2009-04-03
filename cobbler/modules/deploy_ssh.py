@@ -22,17 +22,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import utils
-import func_utils
-from cexceptions import *
-from utils import _
+#from cexceptions import *
+#import random
 
 def register():
    """
    The mandatory cobbler module registration hook.
    """
    return "deploy"
-
 
 class SshDeployer:
 
@@ -50,37 +47,48 @@ class SshDeployer:
 
     # -------------------------------------------------------
 
+    def __find_host(self, virt_group):
+        """
+        Find a system in the virtual group specified
+        """
+
+        systems = self.api.find_system(virt_group=virt_group, return_list = True)
+        if len(systems) == 0:
+            raise CX("No systems were found in virtual group %s" % virt_group)
+
+        # FIXME: temporary hack, should find number of systems in the 
+        # virtual group with the least number of virtual systems pointing
+        # to it
+
+        return random.choice(systems)
+
+    # -------------------------------------------------------
+
     def deploy(self, system, virt_host = None, virt_group=None):
         """
         Deploy the current system to the virtual host or virtual group
         """
-        if virt_group is not None:
-            host_list = self.api.find_system(virt_group=virt_group, no_errors=True)
-            
+        if virt_host is None and virt_group is not None:
+            virt_host = self.__find_host(virt_group)
 
-    # -------------------------------------------------------
+        if virt_host is None and system.virt_group == '':
+            virt_host = self.__find_host(system.virt_group)
 
-    def start(self, system):
-        """
-        Start the virt system
-        """
-        pass
+        if system.virt_host != '':
+            virt_host = system.virt_host
 
-    # -------------------------------------------------------
+        if virt_host is None:
+            raise CX("No host specified for deployment.")
 
-    def stop(self, system):
-        """
-        Stop the virt system
-        """
-        pass
+        if virt_host.hostname == "":
+            raise CX("System hostname for (%s) not set" % virt_host.name)
 
-    # -------------------------------------------------------
+        cmd = "ssh %s koan --virt --system=%s" % (virt_host.host_name, system.name)
+        print "- %s" % cmd
+        rc = sub_process.call(cmd)
+        if rc != 0:
+            raise CX("remote deployment failed")
 
-    def restart(self, system):
-        """
-        Restart the virt system
-        """
-        pass
 
     # -------------------------------------------------------
 
@@ -88,8 +96,8 @@ class SshDeployer:
         """
         Delete the virt system
         """
-        pass
-
+        raise CX("Removing a virtual instance is not implemented yet.")
 
 def get_manager(config):
-    return FuncDeployer(config)
+    return SshDeployer(config)
+

@@ -23,10 +23,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import utils
-import func_utils
 from cexceptions import *
 from utils import _
+import random
 
+try:
+   import func.overlord.client as func
+   from func.CommonErrors import Func_Client_Exception
+   FUNC=True
+except ImportError:
+   FUNC=False
 
 def register():
    """
@@ -51,35 +57,48 @@ class FuncDeployer:
 
     # -------------------------------------------------------
 
+    def __find_host(self, virt_group):
+        """
+        Find a system in the virtual group specified
+        """
+
+        systems = self.api.find_system(virt_group=virt_group, return_list = True)
+        if len(systems) == 0:
+            raise CX("No systems were found in virtual group %s"%virt_group)
+        return random.choice(systems)
+
+    # -------------------------------------------------------
+
     def deploy(self, system, virt_host = None, virt_group=None):
         """
         Deploy the current system to the virtual host or virtual group
         """
-        pass
+        if virt_host is None and virt_group is not None:
+            virt_host = self.__find_host(virt_group)
 
-    # -------------------------------------------------------
+        if virt_host is None and system.virt_group == '':
+            virt_host = self.__find_host(system.virt_group)
 
-    def start(self, system):
-        """
-        Start the virt system
-        """
-        pass
+        if system.virt_host != '':
+            virt_host = system.virt_host
 
-    # -------------------------------------------------------
+        if virt_host is None:
+            raise CX("No host specified for deployment.")
 
-    def stop(self, system):
-        """
-        Stop the virt system
-        """
-        pass
+        if not FUNC:
+            raise CX("Func is not available.")
 
-    # -------------------------------------------------------
+        try:
+            client = func.Client(virt_host)
+            rc = client.virt.install(self.settings.server, system.hostname, True)[virt_host]
+            if rc != 0:
+                raise CX("Func Error: %s"%rc[2])
+            system.virt_host = virt_host
+            self.api.add_system(system)
+            return rc
 
-    def restart(self, system):
-        """
-        Restart the virt system
-        """
-        pass
+        except Func_Client_Exception, ex:
+            raise CX("A Func Exception has occured: %s"%ex)
 
     # -------------------------------------------------------
 
@@ -87,8 +106,7 @@ class FuncDeployer:
         """
         Delete the virt system
         """
-        pass
-
+        raise CX("Removing a virtual instance is not implemented yet.")
 
 def get_manager(config):
     return FuncDeployer(config)

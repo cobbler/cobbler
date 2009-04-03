@@ -297,6 +297,31 @@ class ReplicateFunction(commands.CobblerFunction):
 
 ########################################################
 
+class DeployFunction(commands.CobblerFunction):
+
+    def help_me(self):
+        return HELP_FORMAT % ("cobbler deploy","[ARGS]")
+
+    def command_name(self):
+        return "deploy"
+
+    def add_options(self, p, args):
+        p.add_option("--system", dest="system", help="name of cobbler system object to deploy")
+        p.add_option("--virt-group", dest="virt_group", help="group name of cobbler systems that will host the deployed instance")
+        p.add_option("--virt-host", dest="virt_host", help="specific cobbler system that will host the deployed instance")
+        p.add_option("--method", dest="method", help="how to kick off the deployment: ssh or func.virt")
+
+    def run(self):
+        return self.api.deploy(
+            self.options.system,
+            virt_host=self.options.virt_host,
+            virt_group=self.options.virt_group,
+            method=self.options.method
+        )
+
+########################################################
+
+
 class AclFunction(commands.CobblerFunction):
 
     def help_me(self):
@@ -378,7 +403,7 @@ def cli_functions(api):
        ListFunction(api), StatusFunction(api),
        SyncFunction(api), RepoSyncFunction(api), ValidateKsFunction(api),
        ReplicateFunction(api), AclFunction(api),
-       VersionFunction(api), HardLinkFunction(api)
+       VersionFunction(api), HardLinkFunction(api), DeployFunction(api)
     ]
     return []
 

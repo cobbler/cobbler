@@ -35,13 +35,13 @@ from cexceptions import *
 class SystemFunction(commands.CobblerFunction):
 
     def help_me(self):
-        return commands.HELP_FORMAT % ("cobbler system","<add|copy|deploy|edit|find|list|power[off|on]|reboot|rename|remove|report|getks> [ARGS]")
+        return commands.HELP_FORMAT % ("cobbler system","<add|copy|edit|find|list|power[off|on]|reboot|rename|remove|report|getks> [ARGS]")
 
     def command_name(self):
         return "system"
 
     def subcommands(self):
-        return ["add","copy","deploy","dumpvars","edit","find","getks","poweroff","poweron","list","reboot","remove","rename","report"]
+        return ["add","copy","dumpvars","edit","find","getks","poweroff","poweron","list","reboot","remove","rename","report"]
 
     def add_options(self, p, args):
 
@@ -191,7 +191,7 @@ class SystemFunction(commands.CobblerFunction):
             obj.set_virt_cpus(self.options.virt_cpus)
         if self.options.virt_host is not None:       
             obj.set_virt_host(self.options.virt_host)
-        if self.options.virt_group is not None and not self.matches_args(self.args, ["deploy"]):
+        if self.options.virt_group is not None:
             obj.set_virt_group(self.options.virt_group)
         if self.options.virt_path is not None:       
             obj.set_virt_path(self.options.virt_path)

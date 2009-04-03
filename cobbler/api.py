@@ -769,11 +769,12 @@ class BootAPI:
         time.sleep(5)
         return self.power_on(system, user, password)
 
-    def deploy(self, system, virt_host=None, virt_group=None):
+    def deploy(self, system, virt_host=None, virt_group=None, method="ssh"):
         """
         Deploys a system to the virtual host or virtual group
         """
-        return action_deploy.Deployer(self._config).deploy(system,virt_host=virt_host,virt_group=virt_group)
+        mod = self.get_module_by_name(method)
+        return mod.deploy(system,virt_host=virt_host,virt_group=virt_group)
 
     def get_os_details(self):
         return (self.dist, self.os_version)
