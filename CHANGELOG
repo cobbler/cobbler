@@ -5,6 +5,7 @@ Cobbler CHANGELOG
 - (BUGF) various fixes to "cobbler report" when using non-standard formats
 - (BUGF) rename with same name does not delete
 - (BUGF) Fix for traceback when generating DHCP config and the bonding_master interface does not exist.
+- (BUGF) remove trailing newline from tokens
 
 - Mon Mar 30 2009 - 1.6.2
 - (BUGF) Fix for cache cleanup problem in cobblerd 
