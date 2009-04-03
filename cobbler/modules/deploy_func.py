@@ -59,30 +59,6 @@ class FuncDeployer:
 
     # -------------------------------------------------------
 
-    def start(self, system):
-        """
-        Start the virt system
-        """
-        pass
-
-    # -------------------------------------------------------
-
-    def stop(self, system):
-        """
-        Stop the virt system
-        """
-        pass
-
-    # -------------------------------------------------------
-
-    def restart(self, system):
-        """
-        Restart the virt system
-        """
-        pass
-
-    # -------------------------------------------------------
-
     def delete(self, system):
         """
         Delete the virt system
