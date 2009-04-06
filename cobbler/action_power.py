@@ -137,7 +137,6 @@ class PowerTool:
             "bullpap"    : os.path.join(powerdir,"power_bullpap.template"),
             "apc_snmp"   : os.path.join(powerdir,"power_apc_snmp.template"),
             "ether-wake" : os.path.join(powerdir,"power_ether_wake.template"),
-            "ipmilan"    : os.path.join(powerdir,"power_ipmilan.template"),
             "drac"       : os.path.join(powerdir,"power_drac.template"),
             "ipmitool"   : os.path.join(powerdir,"power_ipmitool.template"),
             "ipmilan"    : os.path.join(powerdir,"power_ipmilan.template"),
