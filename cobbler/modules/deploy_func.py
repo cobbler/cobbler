@@ -85,9 +85,30 @@ def deploy(api, system, virt_host = None, virt_group=None):
 
     try:
         client = func.Client(host_hostname)
-        rc = client.virt.install(api.settings().server, system.hostname, True)[host_hostname]
+
+        # Func has a virt.install API but the return code information from it is 
+        # not super meaningful at this point, so we'll just use the raw command
+        # API so we have more to show for it.
+
+        #rc = client.virt.install(api.settings().server, system.hostname, True)[host_hostname]
+
+        me = api.settings().server
+        cmd = [ "/usr/bin/koan", "--server", me, "--virt", "--system", system.name]
+        cmd = " ".join(cmd)
+        (rc, out, err) = client.command.run(cmd)[host_hostname]
+
+        # API really shouldn't "print" but this is tolerable 
+        # for now until we make the api.py signature work better
+        # ideally koan needs defined error codes and we can say "consult the remote
+        # log" or similar.
+
+        print out
+        print err
+
         if rc != 0:
-            raise CX("Func Error: %s"%rc[2])
+            raise CX("deployment failed: %s" % rc)
+            # for virt.install method, result[2] is what we want
+            # should we modify things to use that method of deployment
         return virt_host.name
 
     except Func_Client_Exception, ex:
