@@ -64,6 +64,7 @@ class System(item.Item):
         self.virt_bridge               = "<<inherit>>"   # ""
         self.virt_host                 = ""              # ""
         self.virt_group                = ""              # ""
+        self.virt_guests               = []
         self.comment                   = ""
         self.ctime                     = 0
         self.mtime                     = 0
@@ -199,6 +200,7 @@ class System(item.Item):
         self.virt_cpus   = self.load_item(seed_data,'virt_cpus','<<inherit>>')
         self.virt_host   = self.load_item(seed_data,'virt_host','')
         self.virt_group  = self.load_item(seed_data,'virt_group','')
+        self.virt_guests = self.load_item(seed_data,'virt_guests',[])
 
         self.ctime       = self.load_item(seed_data,'ctime',0)
         self.mtime       = self.load_item(seed_data,'mtime',0)
@@ -591,6 +593,9 @@ class System(item.Item):
     def set_virt_group(self,group):
         return utils.set_virt_group(self,group)
 
+    def set_virt_guests(self,guests):
+        return utils.set_virt_guests(self,guests)
+
     def set_virt_file_size(self,num):
         return utils.set_virt_file_size(self,num)
  
@@ -723,6 +728,7 @@ class System(item.Item):
            'virt_cpus'                : self.virt_cpus,
            'virt_host'                : self.virt_host,
            'virt_group'               : self.virt_group,
+           'virt_guests'              : self.virt_guests,
            'virt_bridge'              : self.virt_bridge,
            'virt_file_size'           : self.virt_file_size,
            'virt_path'                : self.virt_path,
@@ -777,6 +783,7 @@ class System(item.Item):
         buf = buf + _("virt cpus             : %s\n") % self.virt_cpus
         buf = buf + _("virt host             : %s\n") % self.virt_host
         buf = buf + _("virt group            : %s\n") % self.virt_group
+        buf = buf + _("virt guests           : %s\n") % self.virt_guests
         buf = buf + _("virt file size        : %s\n") % self.virt_file_size
         buf = buf + _("virt path             : %s\n") % self.virt_path
         buf = buf + _("virt ram              : %s\n") % self.virt_ram
@@ -854,9 +861,8 @@ class System(item.Item):
            'virt_cpus'                : self.set_virt_cpus,           
            'virt-host'                : self.set_virt_host,
            'virt_host'                : self.set_virt_host,           
-           'virt-group'               : self.set_virt_group,
-           'virt_group'               : self.set_virt_group,           
-           'virt-file-size'           : self.set_virt_file_size,
+           'virt_group'               : self.set_virt_group,
+           'virt_guests'              : self.set_virt_guests,           
            'virt_file_size'           : self.set_virt_file_size,           
            'server'                   : self.set_server,
            'owners'                   : self.set_owners,

@@ -1280,138 +1280,145 @@ def set_virt_file_size(self,num):
     return True
 
 def set_virt_auto_boot(self,num):
-     """
-     For Virt only.
-     Specifies whether the VM should automatically boot upon host reboot
-     0 tells Koan not to auto_boot virtuals
-     """
+    """
+    For Virt only.
+    Specifies whether the VM should automatically boot upon host reboot
+    0 tells Koan not to auto_boot virtuals
+    """
 
-     if num == "<<inherit>>":
-         self.virt_auto_boot = "<<inherit>>"
-         return True
+    if num == "<<inherit>>":
+        self.virt_auto_boot = "<<inherit>>"
+        return True
 
-     # num is a non-negative integer (0 means default)
-     try:
-         inum = int(num)
-         if (inum == 0) or (inum == 1):
-             self.virt_auto_boot = inum
-             return True
-         return CX(_("invalid virt_auto_boot value: value must be either '0' (disabled) or '1' (enabled)"))
-     except:
-         return CX(_("invalid virt_auto_boot value: value must be either '0' (disabled) or '1' (enabled)"))
-     return True
+    # num is a non-negative integer (0 means default)
+    try:
+        inum = int(num)
+        if (inum == 0) or (inum == 1):
+            self.virt_auto_boot = inum
+            return True
+        return CX(_("invalid virt_auto_boot value: value must be either '0' (disabled) or '1' (enabled)"))
+    except:
+        return CX(_("invalid virt_auto_boot value: value must be either '0' (disabled) or '1' (enabled)"))
+    return True
 
 def set_virt_ram(self,num):
-     """
-     For Virt only.
-     Specifies the size of the Virt RAM in MB.
-     0 tells Koan to just choose a reasonable default.
-     """
+    """
+    For Virt only.
+    Specifies the size of the Virt RAM in MB.
+    0 tells Koan to just choose a reasonable default.
+    """
 
-     if num == "<<inherit>>":
-         self.virt_ram = "<<inherit>>"
-         return True
+    if num == "<<inherit>>":
+        self.virt_ram = "<<inherit>>"
+        return True
 
-     # num is a non-negative integer (0 means default)
-     try:
-         inum = int(num)
-         if inum != float(num):
-             return CX(_("invalid virt ram size"))
-         if inum >= 0:
-             self.virt_ram = inum
-             return True
-         return CX(_("invalid virt ram size"))
-     except:
-         return CX(_("invalid virt ram size"))
-     return True
+    # num is a non-negative integer (0 means default)
+    try:
+        inum = int(num)
+        if inum != float(num):
+            return CX(_("invalid virt ram size"))
+        if inum >= 0:
+            self.virt_ram = inum
+            return True
+        return CX(_("invalid virt ram size"))
+    except:
+        return CX(_("invalid virt ram size"))
+    return True
 
 def set_virt_type(self,vtype):
-     """
-     Virtualization preference, can be overridden by koan.
-     """
+    """
+    Virtualization preference, can be overridden by koan.
+    """
 
-     if vtype == "<<inherit>>":
-         self.virt_type == "<<inherit>>"
-         return True
+    if vtype == "<<inherit>>":
+        self.virt_type == "<<inherit>>"
+        return True
 
-     if vtype.lower() not in [ "qemu", "xenpv", "xenfv", "vmware", "vmwarew", "auto" ]:
-         raise CX(_("invalid virt type"))
-     self.virt_type = vtype
-     return True
+    if vtype.lower() not in [ "qemu", "xenpv", "xenfv", "vmware", "vmwarew", "auto" ]:
+        raise CX(_("invalid virt type"))
+    self.virt_type = vtype
+    return True
 
 def set_virt_bridge(self,vbridge):
-     """
-     The default bridge for all virtual interfaces under this profile.
-     """
-     if vbridge is None or vbridge == "":
-        vbridge = self.settings.default_virt_bridge
-     self.virt_bridge = vbridge
-     return True
+    """
+    The default bridge for all virtual interfaces under this profile.
+    """
+    if vbridge is None or vbridge == "":
+       vbridge = self.settings.default_virt_bridge
+    self.virt_bridge = vbridge
+    return True
 
 def set_virt_path(self,path,for_system=False):
-     """
-     Virtual storage location suggestion, can be overriden by koan.
-     """
-     if path is None:
-        path = ""
-     if for_system:
-        if path == "":
-           path = "<<inherit>>"
-     self.virt_path = path
-     return True
+    """
+    Virtual storage location suggestion, can be overriden by koan.
+    """
+    if path is None:
+       path = ""
+    if for_system:
+       if path == "":
+          path = "<<inherit>>"
+    self.virt_path = path
+    return True
 
 def set_virt_cpus(self,num):
-     """
-     For Virt only.  Set the number of virtual CPUs to give to the
-     virtual machine.  This is fed to virtinst RAW, so cobbler
-     will not yelp if you try to feed it 9999 CPUs.  No formatting
-     like 9,999 please :)
-     """
-     if num == "" or num is None:
-         self.virt_cpus = 1
-         return True
- 
-     if num == "<<inherit>>":
-         self.virt_cpus = "<<inherit>>"
-         return True
+    """
+    For Virt only.  Set the number of virtual CPUs to give to the
+    virtual machine.  This is fed to virtinst RAW, so cobbler
+    will not yelp if you try to feed it 9999 CPUs.  No formatting
+    like 9,999 please :)
+    """
+    if num == "" or num is None:
+        self.virt_cpus = 1
+        return True
 
-     try:
-         num = int(str(num))
-     except:
-         raise CX(_("invalid number of virtual CPUs"))
+    if num == "<<inherit>>":
+        self.virt_cpus = "<<inherit>>"
+        return True
 
-     self.virt_cpus = num
-     return True
+    try:
+        num = int(str(num))
+    except:
+        raise CX(_("invalid number of virtual CPUs"))
+
+    self.virt_cpus = num
+    return True
 
 def set_virt_host(self,host):
-     """
-     For setting the virtual host that the virt system resides on.
-     """
-     if host is None:
-         self.virt_host = ''
-         return True
+    """
+    For setting the virtual host that the virt system resides on.
+    """
+    if host is None:
+        self.virt_host = ''
+        return True
  
-     if host == "<<inherit>>":
-         self.virt_host = "<<inherit>>"
-         return True
+    if host == "<<inherit>>":
+        self.virt_host = "<<inherit>>"
+        return True
 
-     self.virt_host = host
-     return True
+    self.virt_host = host
+    return True
 
 def set_virt_group(self,group):
-     """
-     For setting the virtual group that the virt system resides in.
-     """
-     if group is None:
-         self.virt_group = ''
-         return True
- 
-     if group == "<<inherit>>":
-         self.virt_group = "<<inherit>>"
-         return True
+    """
+    For setting the virtual group that the virt system resides in.
+    """
+    if group is None:
+        self.virt_group = ''
+        return True
+    if group == "<<inherit>>":
+        self.virt_group = "<<inherit>>"
+        return True
+    self.virt_group = group
+    return True
 
-     self.virt_group = group
-     return True
+def set_virt_guests(self,guests)
+    """
+    For setting the list of cobbler system records that a given host
+    has running on it.
+    """
+    data = utils.input_string_or_list(guests,delim=" ")
+    self.virt_guests = data
+    return True
 
 def get_kickstart_templates(api):
     files = {}

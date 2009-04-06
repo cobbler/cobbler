@@ -38,6 +38,9 @@ def  __find_host(api, virt_group):
     Find a system in the virtual group specified
     """
 
+    if virt_group is None or virt_group == "":
+       raise CX("No virt group specified or set on the guest object")
+
     systems = api.find_system(virt_group=virt_group, return_list = True)
     if len(systems) == 0:
         raise CX("No systems were found in virtual group %s" % virt_group)

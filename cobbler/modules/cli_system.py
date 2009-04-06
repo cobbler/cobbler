@@ -121,9 +121,10 @@ class SystemFunction(commands.CobblerFunction):
             p.add_option("--virt-auto-boot",   dest="virt_auto_boot", help="auto boot this VM with host?")
             p.add_option("--virt-bridge",      dest="virt_bridge", help="ex: 'virbr0'")
             p.add_option("--virt-cpus",        dest="virt_cpus", help="integer (default: 1)")
-            p.add_option("--virt-host",        dest="virt_host", help="virtual host")
-            p.add_option("--virt-group",       dest="virt_group", help="virtual group")
             p.add_option("--virt-file-size",   dest="virt_file_size", help="size in GB")
+            p.add_option("--virt-group",       dest="virt_group",  help="virtual group")
+            p.add_option("--virt-guests",      dest="virt_guests", help="list of guest systems installed on this machine")
+            p.add_option("--virt-host",        dest="virt_host",  help="if a guest, name of cobbler system that hosts it")
             p.add_option("--virt-path",        dest="virt_path", help="path, partition, or volume")
             p.add_option("--virt-ram",         dest="virt_ram", help="size in MB")
             p.add_option("--virt-type",        dest="virt_type", help="ex: 'xenpv', 'qemu'")
@@ -193,6 +194,8 @@ class SystemFunction(commands.CobblerFunction):
             obj.set_virt_host(self.options.virt_host)
         if self.options.virt_group is not None:
             obj.set_virt_group(self.options.virt_group)
+        if self.options.virt_guests is not None:
+            obj.set_virt_guests(self.options.virt_guests)
         if self.options.virt_path is not None:       
             obj.set_virt_path(self.options.virt_path)
 
