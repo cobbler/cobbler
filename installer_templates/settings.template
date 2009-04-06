@@ -50,6 +50,15 @@ cheetah_import_whitelist:
    - "re"
    - "time"
 
+# The command "cobbler deploy" can be used to deploy guests
+# that are defined by cobbler system objects onto hosts that
+# are defined by cobbler system objects.  This setting 
+# specifies the default deployment vector to use when it
+# is not specified on the command line to "cobbler deploy"
+# 
+# options: ssh, func
+default_deploy_method: "ssh"
+
 # if no kickstart is specified, use this template (FIXME)
 default_kickstart: /var/lib/cobbler/kickstarts/default.ks
 

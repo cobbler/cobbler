@@ -769,7 +769,7 @@ class BootAPI:
         time.sleep(5)
         return self.power_on(system, user, password)
 
-    def deploy(self, system, virt_host=None, virt_group=None, method="ssh"):
+    def deploy(self, system, virt_host=None, virt_group=None, method=None):
         """
         Deploys a system to the virtual host or virtual group
         """
@@ -777,7 +777,7 @@ class BootAPI:
         if isinstance(system, basestring):
             system = self.find_system(system)
         if method is None:
-            method = "ssh"
+            method = self.settings().default_deployment_method
         method = "deploy_%s" % method
         mod = self.get_module_by_name(method)
         if mod is None or mod.register() != "deploy":

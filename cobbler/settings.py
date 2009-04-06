@@ -42,6 +42,7 @@ DEFAULTS = {
     "build_reporting_smtp_server" : "localhost",
     "cheetah_import_whitelist"    : [ "re", "random", "time" ],
     "cobbler_master"              : '',
+    "default_deployment_method"   : "ssh",
     "default_kickstart"           : "/var/lib/cobbler/kickstarts/default.ks",
     "default_name_servers"        : [],
     "default_name_servers_search" : [],

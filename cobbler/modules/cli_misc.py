@@ -309,7 +309,7 @@ class DeployFunction(commands.CobblerFunction):
         p.add_option("--system", dest="system", help="name of cobbler system object to deploy")
         p.add_option("--virt-group", dest="virt_group", help="group name of cobbler systems that will host the deployed instance")
         p.add_option("--virt-host", dest="virt_host", help="specific cobbler system that will host the deployed instance")
-        p.add_option("--method", dest="method", help="how to kick off the deployment: ssh or func.virt")
+        p.add_option("--method", dest="method", help="how to kick off the deployment: ssh or func")
 
     def run(self):
         return self.api.deploy(
