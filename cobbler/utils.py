@@ -1411,12 +1411,13 @@ def set_virt_group(self,group):
     self.virt_group = group
     return True
 
-def set_virt_guests(self,guests)
+def set_virt_guests(self,guests):
     """
     For setting the list of cobbler system records that a given host
     has running on it.
     """
-    data = utils.input_string_or_list(guests,delim=" ")
+    data = input_string_or_list(guests,delim=" ")
+    data = uniquify(data) # don't double enter any guest names if reinstalled
     self.virt_guests = data
     return True
 

@@ -85,6 +85,32 @@ def deploy(api, system, virt_host = None, virt_group=None):
 
     return virt_host.name
 
+# -------------------------------------------------------
+
+def general_operation(api, hostname, guestname, operation):
+
+    # map English phrases into virsh commands 
+    if operation == "uninstall":
+       vops = [ "destroy", "undefine" ]
+    elif operation == "start":
+       vops = [ "create" ]
+    elif operation in [ "shutdown", "reboot" ]:
+       vops = [ operation ]
+    elif operation == "unplug":
+       vops = [ "destroy" ]
+    else:
+       raise CX("unknown operation: %s" % operation)
+
+    # run over SSH
+    for v in vops:
+        cmd = [ "/usr/bin/ssh", hostname, "virsh", v, guestname ]
+        print "- %s" % " ".join(cmd)
+        rc = sub_process.call(cmd, shell=False)
+
+    if rc != 0:
+        raise CX("remote command failed failed")
+
+
 
 # -------------------------------------------------------
 
