@@ -117,11 +117,29 @@ def deploy(api, system, virt_host = None, virt_group=None):
     except Func_Client_Exception, ex:
         raise CX("A Func Exception has occured: %s"%ex)
 
-# -------------------------------------------------------
+# ---------------------------------------------------------------
 
-def delete(system):
-    """
-    Delete the virt system
-    """
-    raise CX("Removing a virtual instance is not implemented yet.")
+def general_operation(api, hostname, guestname, operation):
+
+    # map English phrases into virsh commands 
+    if operation == "uninstall":
+       vops = [ "destroy", "undefine" ]
+    elif operation in [ "start", "shutdown", "reboot" ]:
+       vops = [ operation ]
+    elif operation == "unplug":
+       vops = [ "destroy" ]
+    else:
+       raise CX("unknown operation: %s" % operation)
+
+    # run over SSH
+    for v in vops:
+        client = func.Client(hostname)
+        cmd = "virsh %s %s" % (v, guestname)
+        print "- %s" % cmd
+        (rc, out, err) = client.command.run(cmd)[hostname]
+        print out
+        print err
+
+    if rc != 0:
+        raise CX("remote command failed failed")
 
