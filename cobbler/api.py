@@ -785,9 +785,11 @@ class BootAPI:
         # this should raise a CX if anything bad happens and return
         # the name of the host successfully deployed to
         actual_host = mod.deploy(self,system,virt_host=virt_host,virt_group=virt_group)
-        sys.set_virt_host(actual_host)
-        self.add_system(sys)
-        return rc
+        # update the system record so we have a record of where the guest is
+        # installed
+        system.set_virt_host(actual_host)
+        self.add_system(system)
+        return True
 
     def get_os_details(self):
         return (self.dist, self.os_version)

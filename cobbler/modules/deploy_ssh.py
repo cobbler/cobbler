@@ -80,7 +80,7 @@ def deploy(api, system, virt_host = None, virt_group=None):
     if rc != 0:
         raise CX("remote deployment failed")
 
-    return virt_host
+    return virt_host.name
 
 
 # -------------------------------------------------------

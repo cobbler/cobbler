@@ -87,7 +87,7 @@ class SystemFunction(commands.CobblerFunction):
         if not self.matches_args(args,["dumpvars","poweron","poweroff","reboot","remove","report","getks","list"]):
             p.add_option("--netboot-enabled", dest="netboot_enabled", help="PXE on (1) or off (0)")
 
-        if self.matches_args(args,["add","edit"]):
+        if not self.matches_args(args,["dumpvars","poweron","poweroff","reboot","remove","report","getks","list"]):
             p.add_option("--network", dest="network",                 help="network object")
 
         if self.matches_args(args,["copy","rename"]):
