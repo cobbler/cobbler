@@ -26,4 +26,9 @@ try:
     HAZFUNC=True
 except ImportError:
     HAZFUNC=False
+except IOError:
+    # cant import Func because we're not root, for instance, we're likely
+    # running from Apache and we've pulled this in from importing utils
+    HAZFUNC=False
+
 

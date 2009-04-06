@@ -44,7 +44,7 @@ def  __find_host(api, virt_group):
 
     # FIXME: temporary hack, should find number of systems in the 
     # virtual group with the least number of virtual systems pointing
-    # to it
+    # to it, this should be done in utils.py
 
     return random.choice(systems)
 
@@ -73,7 +73,7 @@ def deploy(api, system, virt_host = None, virt_group=None):
     if virt_host.hostname == "":
         raise CX("Hostname for cobbler system (%s) not set" % virt_host.name)
 
-    me = socket.gethostname()
+    me = api.settings().server
     cmd = [ "/usr/bin/ssh", virt_host.hostname, "koan", "--server", me, "--virt", "--system", system.name]
     print "- %s" % " ".join(cmd)
     rc = sub_process.call(cmd, shell=False)

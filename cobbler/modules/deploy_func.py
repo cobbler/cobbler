@@ -48,7 +48,10 @@ def __find_host(api, virt_group):
     systems = api.find_system(virt_group=virt_group, return_list = True)
     if len(systems) == 0:
         raise CX("No systems were found in virtual group %s" % virt_group)
+
+    # FIXME: this logic is temporary, use something better from utils.py
     return random.choice(systems)
+
 
 # -------------------------------------------------------
 
@@ -70,12 +73,19 @@ def deploy(api, system, virt_host = None, virt_group=None):
     if virt_host is None:
         raise CX("No host specified for deployment.")
 
+    virt_host = api.find_system(virt_host)
+    if virt_host is None:
+        raise CX("Unable to find cobbler system record for host (%s)" % virt_host)
+    host_hostname = virt_host.hostname
+    if host_hostname is None or host_hostname == "":
+        raise CX("Hostname for host (%s) is not set" % virt_host)
+
     if not FUNC:
-        raise CX("Func is not available.")
+        raise CX("Func is not installed.  Cannot use this deployment method.")
 
     try:
-        client = func.Client(virt_host)
-        rc = client.virt.install(api.settings().server, system.hostname, True)[virt_host]
+        client = func.Client(host_hostname)
+        rc = client.virt.install(api.settings().server, system.hostname, True)[host_hostname]
         if rc != 0:
             raise CX("Func Error: %s"%rc[2])
         return virt_host
