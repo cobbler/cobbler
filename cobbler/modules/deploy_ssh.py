@@ -92,9 +92,7 @@ def general_operation(api, hostname, guestname, operation):
     # map English phrases into virsh commands 
     if operation == "uninstall":
        vops = [ "destroy", "undefine" ]
-    elif operation == "start":
-       vops = [ "create" ]
-    elif operation in [ "shutdown", "reboot" ]:
+    elif operation in [ "start", "shutdown", "reboot" ]:
        vops = [ operation ]
     elif operation == "unplug":
        vops = [ "destroy" ]
