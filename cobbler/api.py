@@ -773,17 +773,21 @@ class BootAPI:
         """
         Deploys a system to the virtual host or virtual group
         """
+        # FIXME: move into action_deploy once complete.
         if isinstance(system, basestring):
             system = self.find_system(system)
         if method is None:
             method = "ssh"
         method = "deploy_%s" % method
         mod = self.get_module_by_name(method)
-        if mod is None:
-            raise CX("no module found named: %s" % method)
-        if mod.register() != "deploy":
-            raise CX("--method does not point to a deployment module")
-        return mod.deploy(self,system,virt_host=virt_host,virt_group=virt_group)
+        if mod is None or mod.register() != "deploy":
+            raise CX("no deployment module found named: %s" % method)
+        # this should raise a CX if anything bad happens and return
+        # the name of the host successfully deployed to
+        actual_host = mod.deploy(self,system,virt_host=virt_host,virt_group=virt_group)
+        sys.set_virt_host(actual_host)
+        self.add_system(sys)
+        return rc
 
     def get_os_details(self):
         return (self.dist, self.os_version)

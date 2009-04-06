@@ -78,9 +78,7 @@ def deploy(api, system, virt_host = None, virt_group=None):
         rc = client.virt.install(api.settings().server, system.hostname, True)[virt_host]
         if rc != 0:
             raise CX("Func Error: %s"%rc[2])
-        system.virt_host = virt_host
-        api.add_system(system)
-        return rc
+        return virt_host
 
     except Func_Client_Exception, ex:
         raise CX("A Func Exception has occured: %s"%ex)

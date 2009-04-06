@@ -22,8 +22,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-#from cexceptions import *
-#import random
+from cexceptions import *
+import random
+import sub_process
+import socket
 
 def register():
     """
@@ -64,14 +66,21 @@ def deploy(api, system, virt_host = None, virt_group=None):
     if virt_host is None:
         raise CX("No host specified for deployment.")
 
-    if virt_host.host_name == "":
-        raise CX("System hostname for (%s) not set" % virt_host.name)
+    virt_host = api.find_system(virt_host)
+    if virt_host is None:
+        raise CX("Unable to find cobbler system record for virt-host (%s)" % virt_host)
 
-    cmd = "ssh %s koan --virt --system=%s" % (virt_host.host_name, system.name)
-    print "- %s" % cmd
-    rc = sub_process.call(cmd)
+    if virt_host.hostname == "":
+        raise CX("Hostname for cobbler system (%s) not set" % virt_host.name)
+
+    me = socket.gethostname()
+    cmd = [ "/usr/bin/ssh", virt_host.hostname, "koan", "--server", me, "--virt", "--system", system.name]
+    print "- %s" % " ".join(cmd)
+    rc = sub_process.call(cmd, shell=False)
     if rc != 0:
         raise CX("remote deployment failed")
+
+    return virt_host
 
 
 # -------------------------------------------------------
