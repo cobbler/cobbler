@@ -308,17 +308,20 @@ class Importer:
        base = importer.get_rootdir()
 
        if self.network_root is None:
-           dest_link = os.path.join(self.settings.webdir, "links", distro.name)
-           # create the links directory only if we are mirroring because with
-           # SELinux Apache can't symlink to NFS (without some doing)
-           if not os.path.exists(dest_link):
-               try:
-                   os.symlink(base, dest_link)
-               except:
-                   # this shouldn't happen but I've seen it ... debug ...
-                   print _("- symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
-           # how we set the tree depends on whether an explicit network_root was specified
-           tree = "http://@@http_server@@/cblr/links/%s" % (distro.name)
+           if distro.breed == "debian" or distro.breed == "ubuntu":
+               tree = "http://@@http_server@@/cblr/repo_mirror/%s" % (distro.name)
+           else:
+               dest_link = os.path.join(self.settings.webdir, "links", distro.name)
+               # create the links directory only if we are mirroring because with
+               # SELinux Apache can't symlink to NFS (without some doing)
+               if not os.path.exists(dest_link):
+                   try:
+                       os.symlink(base, dest_link)
+                   except:
+                       # this shouldn't happen but I've seen it ... debug ...
+                       print _("- symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
+               # how we set the tree depends on whether an explicit network_root was specified
+               tree = "http://@@http_server@@/cblr/links/%s" % (distro.name)
            importer.set_install_tree( distro, tree)
        else:
            # where we assign the kickstart source is relative to our current directory
