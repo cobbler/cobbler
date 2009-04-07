@@ -45,23 +45,21 @@ class Report:
         item = {}
 
         for field in fields_list:
-
+            
+            internal = self.array_re.search(field)
+            # check if field is primary field
             if field in structure.keys():
                 item[field] = structure[field]
-
-            # exception for fields within fields (depth=1 for now)
-            elif self.array_re.search(field):
-                internal = self.array_re.search(field)
-                item[internal.group(2)] = structure[internal.group(1)][internal.group(2)]
-            # exception for systems which could have > 1 interface
+            # check if subfield in 'interfaces' field
+            elif internal and internal.group(1) in structure.keys():
+                outer = internal.group(1)
+                inner = internal.group(2)
+                if type(structure[outer]) is type({}) and inner in structure[outer]:
+                    item[field] = structure[outer][inner]
             elif "interfaces" in structure.keys():
                 for device in structure['interfaces'].keys():
                     if field in structure['interfaces'][device]:
                         item[field] = device + ': ' + structure['interfaces'][device][field]                    
-                    else: 
-                        raise CX(_("The field \"%s\" does not exist, see cobbler dumpvars for available fields.") % field)
-            else: 
-                raise CX(_("The field \"%s\" does not exist, see cobbler dumpvars for available fields.") % field)
         return item
 
     def reporting_csv(self, info, order, noheaders):
@@ -81,7 +79,10 @@ class Report:
                 if info_count == 0:
                     outputheaders += str(key) + sep
 
-                outputbody += str(item[key]) + sep
+                if key in item.keys():
+                    outputbody += str(item[key]) + sep
+                else:
+                    outputbody += '-' + sep
 
                 item_count = item_count + 1
 
@@ -113,7 +114,10 @@ class Report:
                 if info_count == 0:
                     outputheaders += sep + str(key)
 
-                outputbody += sep + str(item[key])
+                if key in item.keys():
+                    outputbody += sep + str(item[key])
+                else:
+                    outputbody += sep + '-'
 
                 item_count = item_count + 1
 
@@ -146,7 +150,10 @@ class Report:
                 if info_count == 0:
                     outputheaders += sep1 + key
 
-                outputbody += sep2 + item[key]
+                if key in item.keys():
+                    outputbody += sep2 + item[key]
+                else:
+                    outputbody += sep2 + '-'
 
                 item_count = item_count + 1
 
@@ -185,9 +192,15 @@ class Report:
                     outputheaders += sep1 + key
 
                 if item_count == 0:
-                    outputbody += sep2 + str(item[key])
+                    if key in item.keys():
+                        outputbody += sep2 + str(item[key])
+                    else:
+                        outputbody += sep2 + '-'
                 else:
-                    outputbody += sep1 + str(item[key])
+                    if key in item.keys():
+                        outputbody += sep1 + str(item[key])
+                    else:
+                        outputbody += sep1 + '-'
 
                 item_count = item_count + 1
 
@@ -308,7 +321,7 @@ class Report:
             item = self.fielder(structure, fields_list)
             data.append(item)
          
-        self.print_formatted_data(data = data, order = item.keys(), report_type = report_type, noheaders = report_noheaders)
+        self.print_formatted_data(data = data, order = fields_list, report_type = report_type, noheaders = report_noheaders)
                         
         return True
         
