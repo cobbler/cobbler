@@ -343,7 +343,10 @@ def get_network_info():
          if module == "bridge":
             continue
       except:
-         continue
+         # workaround:
+         # this is "Operation Not Supported"
+         # on x86_64 only for real interfaces
+         pass
       interfaces[iname] = {
          "ip_address"  : ip,
          "mac_address" : mac,
