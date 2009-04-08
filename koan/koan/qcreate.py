@@ -152,7 +152,6 @@ def start_install(name=None,
             guest.disks.append(virtinst.VirtualDisk(d[0], size=d[1]))
         else:
             raise koan.InfoException("this virtualization type does not work without a disk image, set virt-size in Cobbler to non-zero")
-        guest.disks.append(virtinst.VirtualDisk(d[0], size=d[1]))
 
     if profile_data.has_key("interfaces"):
 
