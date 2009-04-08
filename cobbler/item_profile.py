@@ -103,11 +103,7 @@ class Profile(item.Item):
         self.redhat_management_server  = self.load_item(seed_data,'redhat_management_server', '<<inherit>>')
 
         # backwards compatibility
-        if type(self.repos) != list:
-            # ensure we are formatted correctly though if some repo
-            # defs don't exist on this side, don't fail as we need
-            # to convert everything -- cobbler check can report it
-            self.set_repos(self.repos,bypass_check=True)
+        self.set_repos(self.repos,bypass_check=True)
         
         self.set_parent(self.parent)
 
@@ -121,14 +117,9 @@ class Profile(item.Item):
         self.virt_auto_boot    = self.load_item(seed_data,'virt_auto_boot',self.settings.virt_auto_boot)
 
         # backwards compatibility -- convert string entries to dicts for storage
-        if self.kernel_options != "<<inherit>>" and type(self.kernel_options) != dict:
-            self.set_kernel_options(self.kernel_options)
-        if self.kernel_options_post != "<<inherit>>" and type(self.kernel_options_post) != dict:
-            self.set_kernel_options_post(self.kernel_options_post)
-        if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
-            self.set_ksmeta(self.ks_meta)
-        if self.repos != "<<inherit>>" and type(self.ks_meta) != list:
-            self.set_repos(self.repos,bypass_check=True)
+        self.set_kernel_options(self.kernel_options)
+        self.set_kernel_options_post(self.kernel_options_post)
+        self.set_ksmeta(self.ks_meta)
 
         self.set_enable_menu(self.enable_menu)
         self.set_owners(self.owners)
@@ -265,7 +256,6 @@ class Profile(item.Item):
 
     def set_repos(self,repos,bypass_check=False):
         return utils.set_repos(self,repos,bypass_check)
-
 
     def get_parent(self):
         """

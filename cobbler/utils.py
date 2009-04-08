@@ -397,7 +397,7 @@ def input_string_or_list(options,delim=","):
        return []
     elif type(options) == list:
        return options
-    elif type(options) == str:
+    elif isinstance(options,basestring):
        tokens = options.split(delim)
        if delim == ",":
            tokens = [t.lstrip().rstrip() for t in tokens]
@@ -1200,43 +1200,25 @@ def set_repo_breed(self,breed):
 
 def set_repos(self,repos,bypass_check=False):
    # WARNING: hack
-   repos = fix_mod_python_select_submission(repos)
+   # repos = fix_mod_python_select_submission(repos)
 
    # allow the magic inherit string to persist
    if repos == "<<inherit>>":
-        # FIXME: this is not inheritable in the WebUI presently ?
         self.repos = "<<inherit>>"
-        return
+        return True
 
    # store as an array regardless of input type
    if repos is None:
-        repolist = []
-   elif type(repos) != list:
-        # allow backwards compatibility support of string input
-        repolist = repos.split(None)
+        self.repos = []
    else:
-        repolist = repos
+        self.repos = input_string_or_list(repos, delim=" ")
 
-   # make sure there are no empty strings
-   try:
-       repolist.remove('')
-   except:
-       pass
+   if bypass_check:
+       return True
 
-   self.repos = []
-
-   # if any repos don't exist, fail the set operation
-   # unless called from the deserializer stage in which
-   # case we have a soft error that check can report
-   ok = True
-   for r in repolist:
-       if bypass_check:
-           self.repos.append(r)
-       else:
-           if self.config.repos().find(name=r) is not None:
-               self.repos.append(r)
-           else:
-               raise CX(_("repo %s is not defined") % r)
+   for r in self.repos:
+       if self.config.repos().find(name=r) is None:
+          raise CX(_("repo %s is not defined") % r)
 
    return True
 
