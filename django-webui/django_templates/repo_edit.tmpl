@@ -1,0 +1,348 @@
+#extends cobbler.webui.master
+#block body
+
+#import time
+
+#if $repo
+<script language="javascript">
+function disablename(value)
+{
+   document.getElementById("name").disabled=value;
+   if (value) {
+       document.getElementById("name").value = "$repo.name";
+   }
+}
+</script>
+#end if
+
+#if $editable != True
+#set global $owners = $repo.owners
+#include "/usr/share/cobbler/webui_templates/enoaccess.tmpl"
+#end if
+
+<form method="post" action="$base_url?mode=repo_save">
+<fieldset id="cform">
+
+    #if $repo
+        <legend>Editing Repo</legend>
+        <input type="hidden" name="new_or_edit" value="edit"/>
+        <input type="hidden" name="oldname" value="$repo.name"/>
+    #else
+        <legend>Adding a Repo</legend>
+        <input type="hidden" name="new_or_edit" value="new"/>
+    #end if
+ 
+    <table border=0>
+    
+    <tr>
+    <td>
+    <label for="name">Name</label>
+    </td>
+    <td>
+    #if $repo
+    <input type="text" size="128" style="width: 150px;" name="name" id="name" disabled="true"
+    #else
+    <input type="text" size="128" style="width: 150px;" name="name" id="name"
+    #end if
+        #if $repo
+            value="$repo.name"
+        #end if
+    />
+    <p class="context-tip">Example: EL-5-i386-EPEL-testing</p>
+    </td>
+    </tr>
+
+    #if $repo
+    <tr>
+    <td>
+    <label for="mode">Edit Mode</label>
+    </td>
+    <td>
+    <input type="radio" name="editmode" value="edit" checked onclick="javascript:disablename(true)">Edit
+    <input type="radio" name="editmode" value="rename" onclick="javascript:disablename(false)">Rename + Edit
+    <input type="radio" name="editmode" value="copy" onclick="javascript:disablename(false)">Copy + Edit
+    <p class="context-tip">How do you want to modify this object?</p>
+    </td>
+    </tr>
+    #else
+    <input type="hidden" name="editmode" value="new"/>
+    #end if
+
+    #if $repo
+    <tr>
+    <td>
+    <label>Created</label>
+    </td>
+    <td>
+    $time.ctime($repo.ctime)
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label>Last Modified</label>
+    </td>
+    <td>
+    $time.ctime($repo.mtime)
+    </td>
+    </tr>
+    #end if
+
+    <tr>
+    <td>
+    <label for="comment">Comment</label>
+    </td>
+    <td>
+    #if $repo
+       #set $comm = $repo.comment
+    #else
+       #set $comm = ""
+    #end if
+    <textarea rows="5" cols="30" 400px;" name="comment" id="comment">$comm</textarea>
+    <p class="context-tip">This is a free-form description field</p>
+    </td>
+    </tr>
+
+
+    <tr>
+    <td>
+    <label for="mirror">Mirror Location (http/ftp/rsync)</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="mirror" id="mirror"
+        #if $repo
+            value="$repo.mirror"
+        #end if
+    />
+    <p class="context-tip">Full and EXACT url path (see docs).  Can be http://, ftp://, local, or rsync://</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="keep_updated">Keep Updated</label>
+    </td>
+    <td>
+    <input type="checkbox" name="keep_updated" id="keep_updated" 
+        #if $repo 
+            #if str($repo.keep_updated) != "False"
+                checked="true"  
+            #end if
+        #else
+            checked="true"
+        #end if
+    />
+    <p class="context-tip">Uncheck to prevent the mirror from being updated again.</p>    
+    </td>
+    </tr>
+    <br/>
+
+    <tr>
+    <td>
+    <label for="keep_updated">Mirror Locally</label>
+    </td>
+    <td>
+    <input type="checkbox" name="mirror_locally" id="mirror_locally" 
+        #if $repo 
+            #if str($repo.mirror_locally) != "False"
+                checked="true"
+            #end if
+        #else
+                checked="true"
+        #end if
+    />
+    <p class="context-tip">Uncheck to reference the repository directly instead of mirroring.</p>
+    </td>
+    </tr>
+    <br/>
+
+    <tr>
+    <td>
+    <label for="priority">Priority</label>
+    </td>
+    <td>
+    <input type="text" size="512" style="width: 150px;" name="priority" id="priority"
+        #if $repo
+            value="$repo.priority"
+        #end if
+    />
+    <p class="context-tip">Repo priority, if using yum priorities plugin of target (99=default) </p>
+    </td>
+    </tr>
+    <br/>
+
+    ## FIXME: input field sizes should be larger (universally)
+    ## FIXME: make this a text area?
+
+    <tr>
+    <td>
+    <label for="rpm_list">RPM List</label>
+    </td>
+    <td>
+    <input type="text" size="512" style="width: 400px;" name="rpm_list" id="rpm_list"
+        #if $repo
+            value="$repo.rpm_list"
+        #end if
+    />
+    <p class="context-tip">Blank, or a list of specific RPMs (and only those RPMs) to mirror, space delimited.</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="createrepo_flags">Createrepo flags</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="creatrepoflags" id="createrepoflags"
+        #if $repo
+            value="$repo.createrepo_flags"
+        #end if
+    />
+    <p class="context-tip">Additional flags to pass to yum's createrepo if http or ftp.</p>
+    </td>
+    </tr>
+
+
+    <tr>
+    <td>
+    <label for="arch">Architecture</label>
+    </td>
+    <td>
+    #if $repo and $repo.arch == "i386"
+        <input type="radio"  name="arch" id="arch" value="i386" checked>x86
+    #else
+        <input type="radio" name="arch" id="arch" value="i386">i386
+    #end if
+    #if $repo and $repo.arch == "x86_64"
+        <input type="radio" name="arch" id="arch" value="x86_64" checked>x86_64
+    #else
+        <input type="radio" name="arch" id="arch" value="x86_64">x86_64
+    #end if
+    #if $repo and $repo.arch == "ppc"
+        <input type="radio" name="arch" id="arch" value="ppc" checked>ppc
+    #else
+        <input type="radio" name="arch" id="arch" value="ppc">ppc
+    #end if
+    #if $repo and $repo.arch == "ppc64"
+        <input type="radio" name="arch" id="arch" value="ppc64" checked>ppc64
+    #else
+        <input type="radio" name="arch" id="arch" value="ppc64">ppc64
+    #end if
+    #if $repo and $repo.arch == "s390"
+        <input type="radio" name="arch" id="arch" value="s390" checked>s390
+    #else
+        <input type="radio" name="arch" id="arch" value="s390">s390
+    #end if
+    #if $repo and $repo.arch == "s390x"
+        <input type="radio" name="arch" id="arch" value="s390x" checked>s390x
+    #else
+        <input type="radio" name="arch" id="arch" value="s390x">s390x
+    #end if
+    #if $repo and $repo.arch == "ia64"
+        <input type="radio" name="arch" id="arch" value="ia64" checked>ia64
+    #else
+        <input type="radio" name="arch" id="arch" value="ia64">ia64
+    #end if
+    #if $repo and $repo.arch == "noarch"
+        <input type="radio" name="arch" id="arch" value="noarch" checked>noarch
+    #else
+        <input type="radio" name="arch" id="arch" value="noarch">noarch
+    #end if
+    #if $repo and $repo.arch == "src"
+        <input type="radio" name="arch" id="arch" value="src" checked>src
+    #else
+        <input type="radio" name="arch" id="arch" value="src">src
+    #end if
+
+
+
+    <p class="context-tip">What architecture is the repo?</p>                      
+    </td>
+    </tr>
+
+
+    <tr>
+    <td>
+    <label for="yumopts">Yum options</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="yumopts" id="yumopts" 
+        #if $repo
+            value="$repo.yumopts" 
+        #end if
+    />
+    <p class="context-tip">Sets specific yum plugin parameters on the installed system.</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="environment">Environment</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="environment" id="environment" 
+        #if $repo
+            value="$repo.environment" 
+        #end if
+    />
+    <p class="context-tip">Sets environment variables for each rsync/reposync operation.</p>
+    </td>
+    </tr>
+
+
+    <tr>
+    <td>
+    <label for="owners">Access Allowed For</label>
+    </td>
+    <td>
+    #if $repo
+       #set ownerslist = ' '.join($repo.owners)
+    #end if
+    <input type="text" size="255" style="width: 400px;" name="owners" id="owners"
+        #if $repo
+            value="$ownerslist"
+        #else
+            value="$user"
+        #end if
+    />
+    <p class="context-tip">Applies only if using authz_ownership module, space delimited</p>
+    </td>
+    </tr>
+
+
+    #if $repo and $editable == True
+    <tr>
+    <td>
+    <label for="delete">Delete</label>
+    </td>
+    <td>
+       <input type="checkbox" name="delete1" value="delete1">Yes
+       <input type="checkbox" name="delete2" value="delete2">Really
+    <p class="context-tip">Check both buttons and click save to delete this object.</p>
+    </td>
+    </tr>
+    #end if
+
+    #if $editable == True
+    <tr>
+    <td>
+    </td>
+    <td>
+    <input type="submit" name="submit" value="Save"/>
+    <input type="reset" name="reset" value="Reset"/>
+    </tr>
+    #end if
+ 
+</table>
+</fieldset>
+</form>
+<br/>    
+
+<blockquote>
+Note:  Newly added repo definitions will not be usable until
+"cobbler reposync" is run from the command line on this system.
+Placing "cobbler reposync" on a crontab is recommended procedure.
+</blockquote>
+
+<br/>
+#end block body

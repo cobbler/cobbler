@@ -1,0 +1,34 @@
+{% extends "master.tmpl" %}
+
+{% block content %}
+
+    {% comment %}
+    ## ==== BEGIN PAGE NAVIGATION ====
+    #set global what="distro"
+    #include "/usr/share/cobbler/webui_templates/paginate.tmpl"
+    ## ==== END PAGE NAVIGATION ====
+    {% endcomment %}
+
+<table class="sortable">
+    <thead>
+        <caption>Cobbler Distributions</caption>
+        <tr>
+            <th class="text">Name</th>
+            <th class="text">Breed</th>
+            <th class="text">Arch</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for distro in distros %}
+        <tr class="{% cycle 'rowodd' 'roweven' %}">
+            <td>
+                <a href="/django/distro/edit/{{ distro.name }}">{{ distro.name }}</a>
+            </td>
+            <td>{{ distro.breed }}</td>
+            <td>{{ distro.arch }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
