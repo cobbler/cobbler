@@ -1,6 +1,6 @@
 Koan CHANGELOG
 
-- Mon Mar 30 2009 1.6.2
+- Wed Apr 08 2009 1.6.2
 - Workaround for autodiscovery code using rhpl on x86_64
 
 - Fri Mar 27 2009 1.6.1
