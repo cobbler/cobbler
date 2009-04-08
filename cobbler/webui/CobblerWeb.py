@@ -187,7 +187,8 @@ class CobblerWeb(object):
         else:
             raise "internal error, unknown search type"
 
-
+        params["pages"] = -1
+        
         if len(results) > 0:
             return self.__render( "%s_list.tmpl" % what, params)
         else:
