@@ -2,13 +2,13 @@ Source: cobbler
 Section: unknown
 Priority: optional
 Maintainer: Jasper Poppe <jpoppe@ebay.com>
-Build-Depends: debhelper (>= 7), python-cheetah, git-core, python
+Build-Depends: debhelper (>= 7), python-cheetah, python-yaml, git-core, python
 Standards-Version: 3.8.0
 Homepage: https://fedoraproject.org/cobbler
 
 Package: cobbler
 Architecture: all
-Depends: ${python:Depends}, python, apache2, libapache2-mod-python, python-support, python-yaml, python-netaddr, syslinux-common
+Depends: ${python:Depends}, python, apache2, libapache2-mod-python, python-support, python-yaml, python-netaddr, python-cheetah, syslinux | syslinux-common
 Suggests: rsync, tftpd-hpa, mkisofs, tftpd-hpa, dhcp3-server, createrepo
 Description: Install server
  Cobbler is a network install server.  Cobbler
