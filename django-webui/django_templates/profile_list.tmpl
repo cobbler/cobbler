@@ -22,13 +22,13 @@
         {% for profile in profiles %}
         <tr class="{% cycle 'rowodd' 'roweven' %}">
             <td>
-                <a href="/django/profile/edit/{{ profile.name }}">{{ profile.name }}</a>
+                <a href="/cobbler_web/profile/edit/{{ profile.name }}">{{ profile.name }}</a>
             </td>
             <td>
             {% ifnotequal profile.distro "<<inherit>>" %}
-            <a href="/django/distro/edit/{{ profile.distro }}">{{ profile.distro }}</a>
+            <a href="/cobbler_web/distro/edit/{{ profile.distro }}">{{ profile.distro }}</a>
             {% else %}
-            <a href="/django/profile/edit/{{ profile.parent }}">{{ profile.parent }}</a>
+            <a href="/cobbler_web/profile/edit/{{ profile.parent }}">{{ profile.parent }}</a>
             {% endifnotequal %}
             </td>
             <td>
@@ -41,7 +41,7 @@
                 {% else %}
                    <a href="/cblr/svc/op/ks/profile/{{ profile.name }}">(view rendered)</a>&nbsp;
                    {% ifnotequal profile.kickstart "<<inherit>>" %}
-                   <a href="/django/ksfile/edit/{{ profile.kickstart }}">(edit template)</a>
+                   <a href="/cobbler_web/ksfile/edit/{{ profile.kickstart }}">(edit template)</a>
                    {% endifnotequal %}
                 {% endif %}
             </td>

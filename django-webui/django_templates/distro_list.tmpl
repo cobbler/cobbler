@@ -22,7 +22,7 @@
         {% for distro in distros %}
         <tr class="{% cycle 'rowodd' 'roweven' %}">
             <td>
-                <a href="/django/distro/edit/{{ distro.name }}">{{ distro.name }}</a>
+                <a href="/cobbler_web/distro/edit/{{ distro.name }}">{{ distro.name }}</a>
             </td>
             <td>{{ distro.breed }}</td>
             <td>{{ distro.arch }}</td>

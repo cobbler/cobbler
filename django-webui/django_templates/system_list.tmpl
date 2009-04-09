@@ -59,7 +59,7 @@ function action_single(actionname,target)
 }
 </script>
 
-<form name="myform" method="post" action="/django/system/action">
+<form name="myform" method="post" action="/cobbler_web/system/action">
     <input type="hidden" name="actionname" id="actionname" value=""/>
     <input type="hidden" name="targetlist" id="targetlist" value=""/>
 
@@ -81,9 +81,9 @@ function action_single(actionname,target)
         {% for system in systems %}
         <tr class="{% cycle 'rowodd' 'roweven' %}">
             <td><input type="checkbox" name="items" value="{{ system.name }}"/></td>
-            <td><a href="/django/system/edit/{{ system.name }}">{{ system.name }}</a></td>
+            <td><a href="/cobbler_web/system/edit/{{ system.name }}">{{ system.name }}</a></td>
             <td>{% if system.netboot_enabled %}Yes{% else %}No{% endif %}</td>
-            <td><a href="/django/profile/edit/{{ system.profile }}">{{ system.profile }}</a></td>
+            <td><a href="/cobbler_web/profile/edit/{{ system.profile }}">{{ system.profile }}</a></td>
             <td>
                 {% if system.web_kickstart or system.nfs_kickstart %}
                    {% if system.web_kickstart %}
@@ -94,7 +94,7 @@ function action_single(actionname,target)
                 {% else %}
                    <a href="/cblr/svc/op/ks/system/{{ system.name }}">(view rendered)</a>&nbsp;
                    {% ifnotequal system.kickstart "<<inherit>>" %}
-                   <a href="/django/ksfile/edit/{{ system.kickstart }}">(edit template)</a>
+                   <a href="/cobbler_web/ksfile/edit/{{ system.kickstart }}">(edit template)</a>
                    {% endifnotequal %}
                 {% endif %}
             </td>
