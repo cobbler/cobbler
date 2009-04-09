@@ -271,30 +271,22 @@ function build_interface_table()
     var last = ""
     {% if system %}
        var ifound = 0
-       {% for iname in system.interfaces.keys %}
-           {% comment %}
-           interface_table['{{ iname }}'] = new Array()
-           interface_table['{{ iname }}']["macaddress"] = "{{ system.interfaces.iname.mac_address }}"
-           //alert("{{ iname }} has a mac:" + interface_table["{{ iname }}"]["macaddress"])
-           interface_table['{{ iname }}']["bonding"]    = "{{ system.interfaces.iname.bonding }}"
-           interface_table['{{ iname }}']["bondingmaster"] = "{{ system.interfaces.iname.bonding_master }}"
-           interface_table['{{ iname }}']["bondingopts"] = "{{ system.interfaces.iname.bonding_opts }}"
-           if ("$system.interfaces[{{ iname }}]['static']" != "False") {
-               interface_table['{{ iname }}']["static"]     = true
-           } else {
-               interface_table['{{ iname }}']["static"]     = false
-           }
-           interface_table['{{ iname }}']["ipaddress"]  = "$system.interfaces[{{ iname }}]['ip_address']"
-           interface_table['{{ iname }}']["subnet"]     = "$system.interfaces[{{ iname }}]['subnet']"
-           interface_table['{{ iname }}']["dns_name"]   = "$system.interfaces[{{ iname }}]['dns_name']"
-           #set joined = " ".join($system.interfaces[{{ iname }}]['static_routes'])
-           interface_table['{{ iname }}']["static_routes"] = "$joined"
-           interface_table['{{ iname }}']["dhcptag"]    = "$system.interfaces[{{ iname }}]['dhcp_tag']"
-           interface_table['{{ iname }}']["virtbridge"] = "$system.interfaces[{{ iname }}]['virt_bridge']"
-           interface_table['{{ iname }}']["present"]    = "1"
-           interface_table['{{ iname }}']["original"]   = "1"
-           last = "{{ iname }}"
-           {% endcomment %}
+       {% for key,value in system.interfaces.items %}
+           interface_table['{{ key }}'] = new Array()
+           interface_table['{{ key }}']["macaddress"] = "{{ value.mac_address }}"
+           interface_table['{{ key }}']["bonding"] = "{{ value.bonding }}"
+           interface_table['{{ key }}']["bondingmaster"] = "{{ value.bonding_master }}"
+           interface_table['{{ key }}']["bondingopts"] = "{{ value.bonding_opts }}"
+           {% if value.static %}interface_table['{{ key }}']["static"] = true{% else %}interface_table['{{ key }}']["static"] = false{% endif %}
+           interface_table['{{ key }}']["ipaddress"] = "{{ value.ip_address }}"
+           interface_table['{{ key }}']["subnet"] = "{{ value.subnet }}"
+           interface_table['{{ key }}']["dns_name"] = "{{ value.dns_name }}"
+           interface_table['{{ key }}']["static_routes"] = "{{ value.static_routes|join:" " }}"
+           interface_table['{{ key }}']["dhcptag"] = "{{ value.dhcp_tag }}"
+           interface_table['{{ key }}']["virtbridge"] = "{{ value.virt_bridge }}"
+           interface_table['{{ key }}']["present"] = "1"
+           interface_table['{{ key }}']["original"] = "1"
+           last = "{{ key }}"
        {% endfor %}
     {% else %}
        interface_table["eth0"] = new Array()
@@ -684,21 +676,13 @@ function page_onload() {
     </td>
     <td>
     <select name="interfaces" id="interfaces" onchange="on_interface_change();">
-        {% comment %}
-        {% if system %}
-            #set inames = $system.interfaces.keys()
-            #set nothing = $inames.sort()
-            #for $iname in  $inames
-                <option name="$iname" value="$iname"
-                    {% ifequal iname "eth0" %}
-                        selected="1"
-                    {% endifequal %}
-                >$iname</option>
-            #end for
-        {% else %}
-            <option name="eth0" value="eth0" selected="1">eth0</option>
-        {% endif %}
-        {% endcomment %}
+    {% if system %}
+        {% for key,value in system.interfaces.items %}
+        <option name="{{ key }}" value="{{ key }}"{% ifequal key "eth0" %} selected="1"{% endifequal %}>{{ key }}</option>
+        {% endfor %}
+    {% else %}
+        <option name="eth0" value="eth0" selected="1">eth0</option>
+    {% endif %}
     </select>
     <p class="context-tip">Select what interface to edit below</p>
     </td>
