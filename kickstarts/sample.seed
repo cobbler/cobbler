@@ -2,6 +2,9 @@
 # System authorization information
 
 # System bootloader configuration
+d-i	grub-installer/only_debian	boolean	true
+#grub-installer	grub-installer/bootdev	string	hd0
+d-i	grub-installer/bootdev	string	hd0
 
 # Partition clearing information
 ### Partitioning available methods are: "regular", "lvm" and "crypto"
@@ -41,9 +44,13 @@ d-i	mirror/http/hostname	string	$hostname
 d-i	mirror/http/directory	string	$directory
 d-i	mirror/http/proxy	string	
 # If any cobbler repo definitions were referenced in the kickstart profile, include them here.
+#apt-setup-udeb	apt-setup/services-select multiselect	security
+d-i	apt-setup/services-select multiselect	security
+d-i	apt-setup/security_host	string	$hostname$directory-security
+d-i	apt-setup/volatile_host string	$hostname$directory-volatile
 
 # Network information
-# NOTE : this questions are asked befor downloading preseed
+# NOTE : this questions are asked before downloading preseed
 #d-i	netcfg/get_hostname	string unassigned-hostname
 #d-i	netcfg/get_domain	string unassigned-hostname
 

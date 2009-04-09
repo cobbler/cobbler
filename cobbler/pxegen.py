@@ -535,6 +535,12 @@ class PXEGen:
                 append_line = "%s autoyast=%s" % (append_line, kickstart_path)
             elif distro.breed == "debian" or distro.breed == "ubuntu":
                 append_line = "%s auto=true url=%s" % (append_line, kickstart_path)
+
+                # rework kernel options for debian distros
+                translations = { 'ksdevice':"interface" , 'lang':"locale" }
+                for k,v in translations.iteritems():
+                    append_line = append_line.replace("%s="%k,"%s="%v)
+
             # interface=bootif causes a failure
             #    append_line = append_line.replace("ksdevice","interface")
 
@@ -545,16 +551,27 @@ class PXEGen:
             # name, then profile name.
             # In Ubuntu, this is at least used for the volume group name when
             # using LVM.
+            domain = "local.lan"
             if system is not None:
                 if system.hostname is not None:
                     # If this is a FQDN, grab the first bit
                     hostname = system.hostname.split(".")[0]
+                    _domain = system.hostname.split(".")[1:]
+                    if _domain:
+                        domain = ".".join( _domain )
                 else:
                     hostname = system.name
             else:
                 hostname = profile.name
 
+            # At least for debian deployments configured for DHCP networking
+            # this values are not used, but specifying here avoids questions
             append_line = "%s hostname=%s" % (append_line, hostname)
+            append_line = "%s domain=%s" % (append_line, domain)
+
+            # A similar issue exists with suite name, as installer requires
+            # the existence of "stable" in the dists directory
+            append_line = "%s suite=%s" % (append_line, distro.os_version)
 
         if arch.startswith("ppc") or arch.startswith("s390"):
             # remove the prefix "append"
