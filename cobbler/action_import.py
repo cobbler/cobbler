@@ -518,7 +518,8 @@ class Importer:
 
            if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") ) and x != "initrd.size":
                initrd = os.path.join(dirname,x)
-           if ( x.startswith("vmlinu") or x.startswith("kernel.img") ) and x.find("initrd") == -1:
+
+           if ( x.startswith("vmlinu") or x.startswith("kernel.img") or x.startswith("linux") ) and x.find("initrd") == -1:
                kernel = os.path.join(dirname,x)
            if x.lower().startswith("startrom.n1_"):
                startrom = os.path.join(dirname,x)
