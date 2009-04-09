@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import utils
 from cexceptions import *
-from utils import _
+import utils
 import random
 
 try:
@@ -52,8 +52,7 @@ def __find_host(api, virt_group):
     if len(systems) == 0:
         raise CX("No systems were found in virtual group %s" % virt_group)
 
-    # FIXME: this logic is temporary, use something better from utils.py
-    return random.choice(systems)
+    return utils.choose_virt_host(systems, api)
 
 
 # -------------------------------------------------------

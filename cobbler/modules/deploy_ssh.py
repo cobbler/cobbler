@@ -26,6 +26,7 @@ from cexceptions import *
 import random
 import sub_process
 import socket
+import utils
 
 def register():
     """
@@ -45,11 +46,7 @@ def  __find_host(api, virt_group):
     if len(systems) == 0:
         raise CX("No systems were found in virtual group %s" % virt_group)
 
-    # FIXME: temporary hack, should find number of systems in the 
-    # virtual group with the least number of virtual systems pointing
-    # to it, this should be done in utils.py
-
-    return random.choice(systems)
+    return utils.choose_virt_host(systems, api)
 
 # -------------------------------------------------------
 

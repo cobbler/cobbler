@@ -1541,6 +1541,54 @@ def popen2(args, **kwargs):
     p = sub_process.Popen(args, stdout=sub_process.PIPE, stdin=sub_process.PIPE, **kwargs)
     return (p.stdout, p.stdin)
 
+def ram_consumption_of_guests(host, api):
+    guest_names = host.virt_guests
+    ttl_ram = 0
+    if len(guest_names) == 0:
+       # a system with no virt hosts already is our best
+       # candidate
+       return 0
+
+    for g in guest_names:
+       host_obj = api.find_system(g)
+       if host_obj is None:
+          # guest object was deleted but host was not updated
+          continue
+       host_data = blender(api,False,host_obj)
+       ram = host_data.get("virt_ram", 512)
+       print "extending virt ram for %s by %s" % (host.name, ram)
+       ttl_ram = ttl_ram + host_data["virt_ram"]
+    return ttl_ram
+
+
+
+def choose_virt_host(systems, api):
+    """
+    From a list of systems, choose a system that can best host a virtual
+    machine.  This initial engine is not as optimal as it could be, but
+    works by determining the system with the least amount of VM RAM deployed
+    as defined by the amount of virtual ram on each guest for each guest
+    that the hosts hosts.  Hop on pop.  
+
+    This does assume hosts are reasonably homogenous.  In the future
+    this heuristic should be pluggable and be able to tap into other
+    external data sources and maybe basic usage stats.
+    """
+     
+    if len(systems) == 0:
+       raise CX("empty candidate systems list")
+    by_name = {}
+    least_host = systems[0] 
+    least_host_ct = -1
+    for s in systems:
+       ct = ram_consumption_of_guests(s, api)
+       if (ct < least_host_ct) or (least_host_ct == -1):
+          least_host = s
+          least_host_ct = ct
+    return least_host.name
+
+    
+
 if __name__ == "__main__":
     # print redhat_release()
     # print tftpboot_location()
