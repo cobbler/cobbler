@@ -9,6 +9,7 @@ Cobbler CHANGELOG
 - (FEAT) ability to toggle virt auto-boot on/off
 - (BUGF) validate gateway input against python-netaddr
 - (FEAT) --kopts="~foo" --in-place can be used to delete a hash entry without affecting the others, not to be confused with "!foo" to supress it.
+- (BUGF) fixes to "cobbler report" (not cobbler ___ report)
 
 - Wed Apr 8 2009 - 1.6.3
 - (BUGF) import with datestamp 0 when .discinfo is not found, do not crash
