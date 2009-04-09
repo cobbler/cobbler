@@ -222,8 +222,8 @@ class CobblerSvc(object):
          
         results = self.remote.find_system_by_dns_name(hostname)
 
-        classes = results.get("mgmt_classes", {})
-        params = results.get("mgmt_parameters",[])
+        classes = results.get("mgmt_classes", [])
+        params = results.get("mgmt_parameters",{})
 
         newdata = {
            "classes"    : classes,
