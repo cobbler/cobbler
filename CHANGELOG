@@ -17,6 +17,8 @@ Cobbler CHANGELOG
 - (BUGF) Fix for traceback when generating DHCP config and the bonding_master interface does not exist.
 - (BUGF) remove trailing newline from tokens
 - (BUGF) fix unicode handling of some fields under EL4
+- (BUGF) fix webui search error (fixed better on devel)
+- (BUGF) fix duplicate power reference
 
 - Mon Mar 30 2009 - 1.6.2
 - (BUGF) Fix for cache cleanup problem in cobblerd 
