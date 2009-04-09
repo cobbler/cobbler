@@ -1,0 +1,52 @@
+{% extends "master.tmpl" %}
+
+{% block content %}
+    {% comment %}
+    ## ==== BEGIN PAGE NAVIGATION ====
+    #set global what="profile"
+    #include "/usr/share/cobbler/webui_templates/paginate.tmpl"
+    ## ==== END PAGE NAVIGATION ====
+    {% endcomment %}
+
+
+<table class="sortable">
+    <thead>
+        <caption>Cobbler Profiles</caption>
+        <tr>
+            <th class="text">Name</th>
+            <th class="text">Parent</th>
+            <th class="text">Kickstart</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for profile in profiles %}
+        <tr class="{% cycle 'rowodd' 'roweven' %}">
+            <td>
+                <a href="/django/profile/edit/{{ profile.name }}">{{ profile.name }}</a>
+            </td>
+            <td>
+            {% ifnotequal profile.distro "<<inherit>>" %}
+            <a href="/django/distro/edit/{{ profile.distro }}">{{ profile.distro }}</a>
+            {% else %}
+            <a href="/django/profile/edit/{{ profile.parent }}">{{ profile.parent }}</a>
+            {% endifnotequal %}
+            </td>
+            <td>
+                {% if profile.web_kickstart or profile.nfs_kickstart %}
+                   {% if profile.web_kickstart %}
+                   <a href="{{ profile.web_kickstart }}">{{ profile.web_kickstart }}</a>
+                   {% else %} 
+                   {{ profile.nfs_kickstart }}
+                   {% endif %}
+                {% else %}
+                   <a href="/cblr/svc/op/ks/profile/{{ profile.name }}">(view rendered)</a>&nbsp;
+                   {% ifnotequal profile.kickstart "<<inherit>>" %}
+                   <a href="/django/ksfile/edit/{{ profile.kickstart }}">(edit template)</a>
+                   {% endifnotequal %}
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock content %}

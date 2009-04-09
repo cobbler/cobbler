@@ -1,0 +1,65 @@
+#extends cobbler.webui.master
+##attr $title = "Cobbler: Edit Kickstart File $ksfile"
+
+#block body
+
+#if $editable != True
+<blockquote>
+NOTE: You do not have permission to make changes to this
+kickstart template and can only read it.  It is possible that
+other Cobbler users has secured permissions on Cobbler
+profiles/systems that depend on this template -- changing this
+template would ultimately affect those profile/system records which
+you do not have access to.  Alternatively, you may not have access
+to edit *any* kickstart templates.  Contact your Cobbler server administrator
+if you need to resolve this.
+</blockquote>
+</br>
+#end if
+
+<form method="post" action="$base_url?mode=ksfile_save">
+    <input type="hidden" name="name" value="$name"/>
+    <fieldset id="cform">
+    <legend>Edit Kickstart Template</legend>
+
+    <table>
+    <tr><td colspan="2">
+    <label for="ksdata">Editing: $name</label>
+    <td></tr> 
+    
+    <tr><td colspan="2">
+
+        <pre><textarea rows="40" cols="120" name="ksdata" id="ksdata">$ksdata</textarea></pre>
+        <br/>
+
+    </td></tr>
+       
+
+    #if $deleteable
+    <tr><td>
+    <label>Delete</label>
+    </td>
+    <td>
+    <input type="checkbox" name="delete1" value="delete1">Yes
+    <input type="checkbox" name="delete2" value="delete2">Really
+    <p class="context-tip">Check both buttons and click save to delete this object</p>
+    </td></tr>
+    #else
+    <tr><td colspan="2">
+    NOTE: This kickstart template is currently in-use.
+    </td></tr>
+    #end if
+
+    <tr><td colspan="2">
+        #if $editable == True
+            <input type="submit" name="submit" value="Save"/>
+            <input type="reset" name="reset" value="Reset"/>
+
+        #end if
+    </td></tr>
+
+    </table>
+    </fieldset>
+</form>
+
+#end block body

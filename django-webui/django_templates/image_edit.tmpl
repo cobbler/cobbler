@@ -1,0 +1,413 @@
+#extends cobbler.webui.master
+#block body
+
+#import time
+
+#if $image
+<script language="javascript">
+function disablename(value)
+{
+    document.getElementById("name").disabled=value;
+    if (value) {
+        document.getElementById("name").value = "$image.name";
+    }
+}
+
+
+</script>
+#end if 
+
+#if $editable != True
+#set global $owners = $image.owners
+#include "/usr/share/cobbler/webui_templates/enoaccess.tmpl"
+#end if
+
+<form method="POST" action="$base_url">
+<fieldset id="cform">
+
+     
+    #if $image
+        <legend>Editing Image</legend>
+        <input type="hidden" name="new_or_edit" value="edit"/>
+        <input type="hidden" name="oldname" value="$image.name"/>
+    #else
+        <legend>Adding a Image</legend>
+        <input type="hidden" name="new_or_edit" value="new"/>
+    #end if
+    <input type="hidden" name="mode" value="image_save">
+
+    <table border=0>
+
+    <tr>
+    <td>
+    <label for="name">Name</label>
+    </td>
+    <td>
+    #if $image
+    <input type="text" size="128" style="width: 150px;" name="name" id="name" disabled="true"
+    #else
+    <input type="text" size="128" style="width: 150px;" name="name" id="name"
+    #end if
+        #if $image
+            value="$image.name"
+        #end if
+    />
+    <p class="context-tip">Example: RHEL-5-i386</p>
+    </td>
+    </tr>
+
+    #if $image
+    <tr>
+    <td>
+    <label for="mode">Edit Mode</label>
+    </td>
+    <td>
+    <input type="radio" name="editmode" value="edit" checked onclick="javascript:disablename(true)">Edit
+    <input type="radio" name="editmode" value="rename" onclick="javascript:disablename(false)">Rename + Edit
+    <input type="radio" name="editmode" value="copy" onclick="javascript:disablename(false)">Copy + Edit
+    <p class="context-tip">How do you want to modify this object?</p>
+    </td>
+    </tr>
+    #else
+    <input type="hidden" name="editmode" value="new"/>
+    #end if
+
+    #if $image
+    <tr>
+    <td>
+    <label>Created</label>
+    </td>
+    <td>
+    $time.ctime($image.ctime)
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label>Last Modified</label>
+    </td>
+    <td>
+    $time.ctime($image.mtime)
+    </td>
+    </tr>
+    #end if
+
+    <tr>
+    <td>
+    <label for="comment">Comment</label>
+    </td>
+    <td>
+    #if $image
+       #set $comm = $image.comment
+    #else
+       #set $comm = ""
+    #end if
+    <textarea rows="5" cols="30" 400px;" name="comment" id="comment">$comm</textarea>
+    <p class="context-tip">This is a free-form description field</p>
+    </td>
+    </tr>
+
+
+
+    <tr>
+    <td>
+    <label for="file">File</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="file" id="file"
+        #if $image
+            value="$image.file"
+        #end if
+    />
+    <p class="context-tip">Ex: nfs://server/path/os-installer.iso</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="arch">Architecture</label>
+    </td>
+    <td>
+    #if ($image and $image.arch == "i386") or not $image
+        <input type="radio"  name="arch" id="arch" value="i386" checked>x86
+    #else
+        <input type="radio" name="arch" id="arch" value="i386">i386
+    #end if
+    #if $image and $image.arch == "x86_64"
+        <input type="radio" name="arch" id="arch" value="x86_64" checked>x86_64
+    #else
+        <input type="radio" name="arch" id="arch" value="x86_64">x86_64
+    #end if
+
+    <!-- these are not supported for image objects:
+
+    #if $image and $image.arch == "s390x"
+        <input type="radio" name="arch" id="arch" value="s390x" checked>s390x
+    #else
+        <input type="radio" name="arch" id="arch" value="s390x">s390x
+    #end if
+
+    #if $image and $image.arch == "ia64"
+        <input type="radio" name="arch" id="arch" value="ia64" checked>ia64
+    #else
+        <input type="radio" name="arch" id="arch" value="ia64">ia64
+    #end if
+    -->
+    
+    <p class="context-tip">What architecture is the image?</p> 
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="breed">Breed</label>
+    </td>
+    <td>
+
+    <select name="breed" id="breed">
+    #for $br in [ "redhat", "debian", "generic", "suse", "ubuntu", "unix", "windows" ]:
+
+          <option value="$br"
+               #if $image and $image.breed == $br
+                    selected="1"  
+               #end if
+          >$br</option>
+    #end for
+    </select>
+
+    <p class="context-tip">What type of OS?</p>
+    </td>
+    </tr>
+
+
+    ## self.virt_ram        = self.settings.default_virt_ram
+    
+    <tr>
+    <td>
+    <label for="virtram">Virt RAM (MB)</label>
+    </td>
+    <td>
+    <input type="text" size="5" style="width: 150px;" name="virtram" id="virtram"
+        #if $image
+           value="$image.virt_ram"
+        #end if
+    />
+    <p class="context-tip">For virtual installs only, allocate this amount of RAM, in MB.</p>
+    </td>
+    </tr>
+
+    ## self.virt_auto_boot        = self.settings.virt_auto_boot
+    
+    <tr>
+    <td>
+    <label for="virtautoboot">Virt AutoBoot</label>
+    </td>
+    <td>
+    <input type="text" size="5" style="width: 150px;" name="virtautoboot" id="virtautoboot"
+        #if $image
+           value="$image.virt_auto_boot"
+        #end if
+    />
+    <p class="context-tip">For virtual installs only, enable/disable VM autoboot.</p>
+    </td>
+    </tr>
+    ## self.virt_file_size  = self.settings.default_virt_file_size
+    
+    <tr>
+    <td>
+    <label for="virtfilesize">Virt Disk (GB)</label>
+    </td>
+    <td>
+    <input type="text" size="5" style="width: 150px;" name="virtfilesize" id="virtfilesize"
+        #if $image
+           value="$image.virt_file_size"
+        #end if
+    />
+    <p class="context-tip">For virtual installs only, require this disk size in GB.</p>
+    </td>
+    </tr>
+
+
+    ## self.virt_path       = ''
+    
+    <tr>
+    <td>
+    <label for="virtpath">Virt Path</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="virtpath" id="virtpath"
+        #if $image
+           value="$image.virt_path"
+        #end if
+    />
+    <p class="context-tip">Sets koan's storage preferences, read manpage or leave blank.</p>
+    </td>
+    </tr>
+
+    ## self.virt_type       = self.settings.default_virt_type
+
+    <tr>
+    <td>
+    <label for="virttype">Virt Type</label>
+    </td>
+    <td>
+    #if $image and $image.virt_type == "auto"
+        <input type="radio" name="virttype" id="virttype" value="auto" checked>Any
+    #else
+        #if $image
+            <input type="radio" name="virttype" id="virttype" value="auto">Any
+        #else
+            <input type="radio" name="virttype" id="virttype" value="auto" checked>Any
+        #end if 
+    #end if
+    #if $image and $image.virt_type == "xenpv"
+        <input type="radio" name="virttype" id="virttype" value="xenpv" checked>Xen (pv)
+    #else
+        <input type="radio" name="virttype" id="virttype" value="xenpv">Xen (pv)
+    #end if
+    #if $image and $image.virt_type == "xenfv"
+        <input type="radio" name="virttype" id="virttype" value="xenfv" checked>Xen (fv)
+    #else
+        <input type="radio" name="virttype" id="virttype" value="xenfv">Xen (fv)
+    #end if
+    #if $image and $image.virt_type == "qemu"
+        <input type="radio" name="virttype" id="virttype" value="qemu" checked>qemu/KVM
+    #else
+        <input type="radio" name="virttype" id="virttype" value="qemu">qemu/KVM
+    #end if
+    #if $image and $image.virt_type == "vmware"
+        <input type="radio" name="virttype" id="virttype" value="vmware" checked>VMW Server
+    #else
+        <input type="radio" name="virttype" id="virttype" value="vmware">VMW Server
+    #end if
+    #if $image and $image.virt_type == "vmwarew"
+        <input type="radio" name="virttype" id="virttype" value="vmwarew" checked>VMW WkStn
+    #else
+        <input type="radio" name="virttype" id="virttype" value="vmwarew">VMW WkStn
+    #end if
+    <p class="context-tip">What virtualization technology should koan use?</p>
+    </td>
+    </tr>
+
+
+    ## self.virt_cpus       = 1
+
+    <tr>
+    <td>
+    <label for="virtpath">Virt CPUs</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="virtcpus" id="virtcpus"
+        #if $image
+           value="$image.virt_cpus"
+        #end if
+    />
+    <p class="context-tip">How many virtual CPUs?  This is an integer.</p>
+    </td>
+    </tr>
+    
+    ## self.network_count       = 1
+
+    <tr>
+    <td>
+    <label for="virtpath">NICs</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="networkcount" id="networkcount"
+        #if $image
+           value="$image.network_count"
+        #end if
+    />
+    <p class="context-tip">How many nics should be created  This is an integer.</p>
+    </td>
+    </tr>    
+
+
+    ## self.virt_bridge     = self.settings.default_virt_bridge
+
+    <tr>
+    <td>
+    <label for="virtpath">Virt Bridge</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 150px;" name="virtbridge" id="virtbridge"
+        #if $image
+           value="$image.virt_bridge"
+        #end if
+    />
+    <p class="context-tip">Overrides the virtual networking bridge choice in settings.</p>
+    </td>
+    </tr>
+
+
+    <tr>
+    <td>
+    <label for="imagetype">Image Type</label>
+    </td>
+    <td>
+
+    <select name="imagetype" id="imagetype">
+    #for $it in [ "direct", "iso", "memdisk", "virt-clone" ]:
+          <option value="$it"
+               #if $image and $image.image_type == $it
+                    selected="1"  
+               #end if
+          >$it</option>
+    #end for
+    </select>
+
+    <p class="context-tip">What type of OS?</p>
+    </td>
+    </tr>
+
+
+
+    <tr>
+    <td>
+    <label for="owners">Access Allowed For</label>
+    </td>
+    <td>
+    #if $image
+       #set ownerslist = ' '.join($image.owners)
+    #end if
+    <input type="text" size="255" style="width: 400px;" name="owners" id="owners"
+        #if $image
+            value="$ownerslist"
+        #else 
+            value="$user"
+        #end if
+    />
+    <p class="context-tip">Applies only if using authz_ownership module, space delimited</p>
+    </td>
+    </tr>
+
+
+    #if $image and $editable == True
+    <tr>
+    <td>
+    <label for="delete">Delete</label>
+    </td>
+    <td>
+       <input type="checkbox" name="delete1" value="True">Yes
+       <input type="checkbox" name="delete2" value="True">Really
+       <input type="checkbox" name="recursive" value="True">Delete child objects?
+       <p class="context-tip">Check both buttons and click save to delete this object</p>
+    </td>
+    </tr>
+    #end if
+
+    #if $editable == True
+    <tr>
+    <td>
+    </td>
+    <td>
+    <input type="submit" name="submit" value="Save"/>
+    <input type="reset" name="reset" value="Reset"/>
+    </td>
+    </tr>
+    #end if
+
+</table>
+</fieldset>
+</form>
+#end block body

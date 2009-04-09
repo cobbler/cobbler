@@ -1,0 +1,38 @@
+#extends cobbler.webui.master
+
+#block body
+<table class="sortable">
+    <thead>
+        <caption>Cobbler Kickstart Templates</caption>
+        <tr>
+            <th class="text">File</th>
+            <th class="text">Edit/View</th>
+        </tr>
+    </thead>
+    <tbody>
+        #set $evenodd = 1
+        #for $ksfile in $ksfiles
+        <!-- $ksfile -->
+        #if $evenodd % 2 == 0
+            #set $tr_class = "roweven"
+        #else
+            #set $tr_class = "rowodd"
+        #end if
+        #set $evenodd += 1
+
+        <tr class="$tr_class">
+            <td>$ksfile</td>
+            #if $ksfile.startswith("/var/lib/cobbler/kickstarts")
+                <td><a href="$base_url?mode=ksfile_edit&name=$ksfile">edit</a></td>
+            #else if $ksfile.startswith("/etc/cobbler")
+                <td><a href="$base_url?mode=ksfile_edit&name=$ksfile">edit</a></td>
+            #else if $ksfile.startswith("http://")
+                <td><a href="$ksfile">view</A></td>
+            #else
+                <td>N/A</td>
+            #end if 
+        </tr>
+        #end for
+    </tbody>
+</table>
+#end block body

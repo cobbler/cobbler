@@ -1,0 +1,255 @@
+{% extends "master.tmpl" %}
+
+{% block content %}
+
+{% if distro %}
+<script language="javascript">
+function disablename(value)
+{
+    document.getElementById("name").disabled=value;
+    if (value) {
+        document.getElementById("name").value = "{{ distro.name }}";
+    }
+}
+</script>
+{% endif %}
+
+{% comment %}
+#if $editable != True
+#set global $owners = $distro.owners
+#include "/usr/share/cobbler/webui_templates/enoaccess.tmpl"
+#end if
+{% endcomment %}
+
+<form method="POST" action="$base_url">
+<fieldset id="cform">
+
+     
+    {% if distro %}
+        <legend>Editing Distro</legend>
+        <input type="hidden" name="new_or_edit" value="edit"/>
+        <input type="hidden" name="oldname" value="{{ distro.name }}"/>
+    {% else %}
+        <legend>Adding a Distro</legend>
+        <input type="hidden" name="new_or_edit" value="new"/>
+    {% endif %}
+    <input type="hidden" name="mode" value="distro_save">
+
+    <table border=0>
+
+    <tr>
+    <td>
+    <label for="name">Name</label>
+    </td>
+    <td>
+    {% if distro %}
+    <input type="text" size="128" style="width: 150px;" name="name" id="name" disabled="true" value="{{ distro.name }}" />
+    {% else %}
+    <input type="text" size="128" style="width: 150px;" name="name" id="name" />
+    {% endif %}
+    <p class="context-tip">Example: RHEL-5-i386</p>
+    </td>
+    </tr>
+
+    {% if distro %}
+    <tr>
+    <td>
+    <label for="mode">Edit Mode</label>
+    </td>
+    <td>
+    <input type="radio" name="editmode" value="edit" checked onclick="javascript:disablename(true)">Edit</input>
+    <input type="radio" name="editmode" value="rename" onclick="javascript:disablename(false)">Rename + Edit</input>
+    <input type="radio" name="editmode" value="copy" onclick="javascript:disablename(false)">Copy + Edit</input>
+    <p class="context-tip">How do you want to modify this object?</p>
+    </td>
+    </tr>
+    {% else %}
+    <input type="hidden" name="editmode" value="new"/>
+    {% endif %}
+
+    {% if distro %}
+    <tr>
+    <td>
+    <label>Created</label>
+    </td>
+    <td>
+    {# $time.ctime($distro.ctime) #}
+    {{ distro.ctime }}
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label>Last Modified</label>
+    </td>
+    <td>
+    {# $time.ctime($distro.mtime) #}
+    {{ distro.mtime }}
+    </td>
+    </tr>
+    {% endif %}
+
+    <tr>
+    <td>
+    <label for="comment">Comment</label>
+    </td>
+    <td>
+    <textarea rows="5" cols="30" 400px;" name="comment" id="comment">{% if distro %}{{ distro.comment }}{% endif %}</textarea>
+    <p class="context-tip">This is a free-form description field</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="kernel">Kernel</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="kernel" id="kernel" {% if distro %}value="{{ distro.kernel }}"{% endif %} />
+    <p class="context-tip">Absolute filesystem path to a kernel file</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="initrd">Initrd</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="initrd" id="initrd" {% if distro %}value="{{ distro.initrd }}"{% endif %} />
+    <p class="context-tip">Absolute filesystem path to an initrd file</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="arch">Architecture</label>
+    </td>
+    <td>
+    {% for arch in available_arches %}
+    <input type="radio"  name="arch" id="arch" value="{{ arch }}"{%if distro %}{% ifequal distro.arch arch %} checked{% endifequal %}{% endif %}>{{ arch }}</input>
+    {% endfor %}
+    <p class="context-tip">What architecture is the distro?</p> 
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="kopts">Kernel Options</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="kopts" id="kopts" {% if distro %}value="{{ distro.kernel_options }}"{% endif %}/>
+    <p class="context-tip">Example: noipv6 magic=foo</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="koptspost">Post Kernel Options</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="koptspost" id="koptspost" {% if distro %}value="{{ distro.kernel_options_post }}"{% endif %}/>
+    <p class="context-tip">Example: clocksource=pit nosmp noapic nolapic</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="ksmeta">Kickstart Metadata</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="ksmeta" id="ksmeta" {% if distro %}value="{{ distro.ks_meta }}"{% endif %}/>
+    <p class="context-tip">Example: dog=fido gnome=yes</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="breed">Breed</label>
+    </td>
+    <td>
+    {% for breed_name, breed_desc in available_breeds %}
+    <input type="radio" name="breed" id="breed" value="{{ breed_name }}"{%if distro %}{% ifequal distro.breed breed_name %} checked{% endifequal %}{% endif %}>{{ breed_desc }}</input>
+    {% endfor %}
+    <p class="context-tip">This option determines how kernel options are prepared</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="osversion">OS Version</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="osversion" id="osversion" {% if distro %}value="{{ distro.os_version }}"{% endif %}/>
+    <p class="context-tip">Example: rhel2.1, rhel4, fedora8</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="redhatmanagementkey">Management Key</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="redhatmanagementkey" id="redhatmanagementkey" {% if distro %}value="{{ distro.redhat_management_key }}"{% endif %}/>
+    <p class="context-tip">Registration key for RHN, Satellite, or Spacewalk</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="redhatmanagementserver">Management Server</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="redhatmanagementserver" id="redhatmanagementserver" {% if distro %}value="{{ distro.redhat_management_server }}"{% endif %}/>
+    <p class="context-tip">RHN, Satellite, or Spacewalk server</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="mgmt_classes">Management Classes</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="mgmt_classes" id="mgmt_classes" {% if distro %}value="{{ distro.mgmt_classes|join:" " }}"{% endif %} />
+    <p class="context-tip">Management classes (space delimited) for use with external configuration management system.</p>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <label for="owners">Access Allowed For</label>
+    </td>
+    <td>
+    <input type="text" size="255" style="width: 400px;" name="owners" id="owners" {% if distro %}value="{{ distro.owners|join:" " }}"{% endif %} />
+    <p class="context-tip">Applies only if using authz_ownership module, space delimited</p>
+    </td>
+    </tr>
+
+
+    {% if distro and editable %}
+    <tr>
+    <td>
+    <label for="delete">Delete</label>
+    </td>
+    <td>
+       <input type="checkbox" name="delete1" value="True">Yes
+       <input type="checkbox" name="delete2" value="True">Really
+       <input type="checkbox" name="recursive" value="True">Delete child objects?
+       <p class="context-tip">Check both buttons and click save to delete this object</p>
+    </td>
+    </tr>
+    {% endif %}
+
+    {% if editable %}
+    <tr>
+    <td>
+    </td>
+    <td>
+    <input type="submit" name="submit" value="Save"/>
+    <input type="reset" name="reset" value="Reset"/>
+    </td>
+    </tr>
+    {% endif %}
+
+</table>
+</fieldset>
+</form>
+{% endblock content %}

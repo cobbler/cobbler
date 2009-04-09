@@ -1,0 +1,40 @@
+#extends cobbler.webui.master
+#attr $title = "Cobbler: List of Repositories"
+
+#block body
+
+    ## ==== BEGIN PAGE NAVIGATION ====
+    #set global what="repo"
+    #include "/usr/share/cobbler/webui_templates/paginate.tmpl"
+    ## ==== END PAGE NAVIGATION ====
+
+
+<table class="sortable">
+    <thead>
+        <caption>Cobbler Repos</caption>
+        <tr>
+            <th class="text">Name</th>
+            <th class="text">Mirror</th>
+        </tr>
+    </thead>
+    <tbody>
+        #set $evenodd = 1
+        #for $repo in $repos
+        #if $evenodd % 2 == 0
+            #set $tr_class = "roweven"
+        #else
+            #set $tr_class = "rowodd"
+        #end if
+        #set $evenodd += 1
+
+        <tr class="$tr_class">
+            <td>
+                <a href="$base_url/?mode=repo_edit&name=$repo.name">$repo.name</a>
+            </td>
+            <td>$repo.mirror</td>
+        </tr>
+        #end for
+    </tbody>
+</table>
+#end block body
+
