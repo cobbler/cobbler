@@ -114,8 +114,10 @@ def profile_edit(request, profile_name=None, subprofile=0):
    profile = None
    if not profile_name is None:
       profile = remote.get_profile(profile_name, True, token)
-      profile['ctime'] = time.ctime(profile['ctime'])
-      profile['mtime'] = time.ctime(profile['mtime'])
+      if profile.has_key('ctime'):
+         profile['ctime'] = time.ctime(profile['ctime'])
+      if profile.has_key('mtime'):
+         profile['mtime'] = time.ctime(profile['mtime'])
    distros = remote.get_distros(token)
    profiles = remote.get_profiles(token)
    repos = remote.get_repos(token)
@@ -124,7 +126,33 @@ def profile_edit(request, profile_name=None, subprofile=0):
    return HttpResponse(html)
 
 def profile_save(request):
-   return HttpResponse("")
+   # FIXME: error checking
+   field_list = ('name','parent','profile','distro','enable_menu','kickstart','kopts','kopts_post','virt_auto_boot','virt_file_size','virt_ram','ksmeta','template_files','repos','virt_path','virt_type','virt_bridge','virt_cpus','dhcp_tag','server','owners','mgmt_classes','comment','name_servers','name_servers_search','redhat_management_key','redhat_management_server')
+
+   profile_name = request.POST.get('oldname', request.POST.get('name',None))
+   if profile_name == None:
+      return HttpResponse("NO PROFILE NAME SPECIFIED")
+
+   if request.POST.get('new_or_edit','new') == 'new':
+      profile_id = remote.new_profile(token)
+   else:
+      profile_id = remote.get_profile_handle(profile_name, token)
+
+   delete1   = request.POST.get('delete1', None)
+   delete2   = request.POST.get('delete2', None)
+   recursive = request.POST.get('recursive', False)
+
+   if delete1 and delete2:
+      remote.remove_profile(profile_name, token, recursive)
+      return HttpResponseRedirect('/cobbler_web/profile/list')
+   else:
+      for field in field_list:
+         value = request.POST.get(field, None)
+         if value != None:
+            remote.modify_profile(profile_id, field, value, token)
+
+      remote.save_profile(profile_id, token, request.POST.get('new_or_edit','new'))
+      return HttpResponseRedirect('/cobbler_web/profile/edit/%s' % profile_name)
 
 def system_list(request, systems=None):
    if systems is None:

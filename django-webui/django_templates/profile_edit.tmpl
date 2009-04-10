@@ -171,7 +171,7 @@ function disablename(value)
     <label for="koptspost">Post Kernel Options</label>
     </td>
     <td>
-    <input type="text" size="255" style="width: 400px;" name="koptspost" id="koptspost" {% if profile %}value="{{ profile.kernel_options_post }}"{% endif %}/>
+    <input type="text" size="255" style="width: 400px;" name="kopts_post" id="kopts_post" {% if profile %}value="{{ profile.kernel_options_post }}"{% endif %}/>
     <p class="context-tip">Example: clocksource=pit nosmp noapic nolapic</p>
     </td>
     </tr>
@@ -191,7 +191,7 @@ function disablename(value)
     <label for="enablemenu">Enable menu</label>
     </td>
     <td>
-    <input type="checkbox" name="enablemenu" id="enablemenu" {% if profile.enable_menu %}checked=True{% endif %}/>
+    <input type="checkbox" name="enable_menu" id="enable_menu" {% if profile.enable_menu %}checked=True{% endif %}/>
     <p class="context-tip">Show this profile in the PXE boot menu?</p>
     </td>
     </tr>
@@ -221,7 +221,7 @@ function disablename(value)
     <label for="virtfilesize">Virt Disk (GB)</label>
     </td>
     <td class="virtedit">
-    <input type="text" size="5" style="width: 150px;" name="virtfilesize" id="virtfilesize" {% if profile %}value="{{ profile.virt_file_size }}"{% endif %}/>
+    <input type="text" size="5" style="width: 150px;" name="virt_file_size" id="virt_file_size" {% if profile %}value="{{ profile.virt_file_size }}"{% endif %}/>
     <p class="context-tip">For virtual installs only, require this disk size in GB.</p>
     </td>
     </tr>
@@ -231,7 +231,7 @@ function disablename(value)
     <label for="virtram">Virt RAM (MB)</label>
     </td>
     <td class="virtedit">
-    <input type="text" size="5" style="width: 150px;" name="virtram" id="virtram" {% if profile %}value="{{ profile.virt_ram }}"{% endif %}/>
+    <input type="text" size="5" style="width: 150px;" name="virt_ram" id="virt_ram" {% if profile %}value="{{ profile.virt_ram }}"{% endif %}/>
     <p class="context-tip">For virtual installs only, allocate this amount of RAM, in MB.</p>
     </td>
     </tr>
@@ -241,7 +241,7 @@ function disablename(value)
     <label for="virtautoboot">Virt AutoBoot</label>
     </td>
     <td class="virtedit">
-    <input type="text" size="5" style="width: 150px;" name="virtautoboot" id="virtautoboot" {% if profile %}value="{{ profile.virt_auto_boot }}"{% endif %}/>
+    <input type="text" size="5" style="width: 150px;" name="virt_auto_boot" id="virt_auto_boot" {% if profile %}value="{{ profile.virt_auto_boot }}"{% endif %}/>
     <p class="context-tip">For virtual installs only, enable/disable VM autoboot.</p>
     </td>
     </tr>
@@ -251,7 +251,7 @@ function disablename(value)
     </td>
     <td class="virtedit">
     {% for virt_type,virt_desc in available_virttypes %}
-    <input type="radio" name="virttype" id="virttype" value="{{ virt_type }}"{%if profile %}{% ifequal profile.virt_type virt_type %} checked{% endifequal %}{% endif %}>{{ virt_desc }}</input>
+    <input type="radio" name="virt_type" id="virt_type" value="{{ virt_type }}"{%if profile %}{% ifequal profile.virt_type virt_type %} checked{% endifequal %}{% endif %}>{{ virt_desc }}</input>
     {% endfor %}
     <p class="context-tip">What virtualization technology should koan use?</p>
     </td>
@@ -262,7 +262,7 @@ function disablename(value)
     <label for="virtpath">Virt Path</label>
     </td>
     <td class="virtedit">
-    <input type="text" size="255" style="width: 400px;" name="virtpath" id="virtpath" {% if profile %}value="{{ profile.virt_path }}"{% endif %}/>
+    <input type="text" size="255" style="width: 400px;" name="virt_path" id="virt_path" {% if profile %}value="{{ profile.virt_path }}"{% endif %}/>
     <p class="context-tip">Sets koan's storage preferences, read manpage or leave blank.</p>
     </td>
     </tr>
@@ -272,7 +272,7 @@ function disablename(value)
     <label for="virtpath">Virt Bridge</label>
     </td>
     <td class="virtedit">
-    <input type="text" size="255" style="width: 150px;" name="virtbridge" id="virtbridge" {% if profile %}value="{{ profile.virt_bridge }}"{% endif %}/>
+    <input type="text" size="255" style="width: 150px;" name="virt_bridge" id="virt_bridge" {% if profile %}value="{{ profile.virt_bridge }}"{% endif %}/>
     <p class="context-tip">Overrides the virtual networking bridge choice in settings.</p>
     </td>
     </tr>
@@ -282,7 +282,7 @@ function disablename(value)
     <label for="virtpath">Virt CPUs</label>
     </td>
     <td class="virtedit">
-    <input type="text" size="255" style="width: 150px;" name="virtcpus" id="virtcpus" {% if profile %}value="{{ profile.virt_cpus }}"{% endif %}/>
+    <input type="text" size="255" style="width: 150px;" name="virt_cpus" id="virt_cpus" {% if profile %}value="{{ profile.virt_cpus }}"{% endif %}/>
     <p class="context-tip">How many virtual CPUs?  This is an integer.</p>
     </td>
     </tr>
@@ -308,7 +308,7 @@ function disablename(value)
     <label for="dhcptag">DHCP Tag</label>
     </td>
     <td>
-    <input type="text" size="128" style="width: 150px;" name="dhcptag" id="dhcptag" {% if profile %}value="{{ profile.dhcp_tag }}"{% endif %}/>
+    <input type="text" size="128" style="width: 150px;" name="dhcp_tag" id="dhcp_tag" {% if profile %}value="{{ profile.dhcp_tag }}"{% endif %}/>
     <p class="context-tip">Specifies alternative DHCP configuration, see manpage or leave blank</p>
     </td>
     </tr>
@@ -318,7 +318,7 @@ function disablename(value)
     <label for="server_override">Server Override</label>
     </td>
     <td>
-    <input type="text" size="128" style="width: 150px;" name="server_override" id="server_override" {% if profile %}value="{{ profile.server }}"{% endif %}/>
+    <input type="text" size="128" style="width: 150px;" name="server" id="server" {% if profile %}value="{{ profile.server }}"{% endif %}/>
     <p class="context-tip">Use this server for kickstarts, not the value in settings.  Usually this should be left alone.</p>
     </td>
     </tr>
@@ -328,7 +328,7 @@ function disablename(value)
     <label for="redhatmanagementkey">Management Key</label>
     </td>
     <td>
-    <input type="text" size="255" style="width: 400px;" name="redhatmanagementkey" id="redhatmanagementkey" {% if profile %}value="{{ profile.redhat_management_key }}"{% endif %}/>
+    <input type="text" size="255" style="width: 400px;" name="redhat_management_key" id="redhat_management_key" {% if profile %}value="{{ profile.redhat_management_key }}"{% endif %}/>
     <p class="context-tip">Registration key for RHN, Satellite, or Spacewalk</p>
     </td>
     </tr>
@@ -338,7 +338,7 @@ function disablename(value)
     <label for="redhatmanagementserver">Management Server</label>
     </td>
     <td>
-    <input type="text" size="255" style="width: 400px;" name="redhatmanagementserver" id="redhatmanagementserver" {% if profile %}value="{{ profile.redhat_management_server }}"{% endif %}/>
+    <input type="text" size="255" style="width: 400px;" name="redhat_management_server" id="redhat_management_server" {% if profile %}value="{{ profile.redhat_management_server }}"{% endif %}/>
     <p class="context-tip">RHN, Satellite, or Spacewalk server</p>
     </td>
     </tr>
