@@ -133,8 +133,12 @@ def profile_save(request):
    if profile_name == None:
       return HttpResponse("NO PROFILE NAME SPECIFIED")
 
+   subprofile = int(request.POST.get('subprofile','0'))
    if request.POST.get('new_or_edit','new') == 'new':
-      profile_id = remote.new_profile(token)
+      if subprofile:
+         profile_id = remote.new_subprofile(token)
+      else:
+         profile_id = remote.new_profile(token)
    else:
       profile_id = remote.get_profile_handle(profile_name, token)
 
@@ -147,6 +151,9 @@ def profile_save(request):
       return HttpResponseRedirect('/cobbler_web/profile/list')
    else:
       for field in field_list:
+         if field == "distro" and subprofile: continue
+         elif field == "parent" and not subprofile: continue
+
          value = request.POST.get(field, None)
          if value != None:
             remote.modify_profile(profile_id, field, value, token)
