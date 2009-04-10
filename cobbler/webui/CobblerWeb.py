@@ -1224,10 +1224,12 @@ class CobblerWeb(object):
             'message2' : "Cobbler config has been applied to filesystem."
         }) 
 
-    def random_mac(self, **spam):
+    def random_mac(self, virt_type=None, **spam):
+        if virt_type is None:
+            virt_type = "xenpv"
         if not self.__xmlrpc_setup():
             return self.xmlrpc_auth_failure()
-        mac = self.remote.get_random_mac()
+        mac = self.remote.get_random_mac(virt_type)
         return mac
 
     def error_page(self, message, **spam):

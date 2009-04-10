@@ -853,14 +853,14 @@ class CobblerXMLRPCInterface:
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
-    def get_random_mac(self,token=None,**rest):
+    def get_random_mac(self,virt_type="xenpv",token=None,**rest):
         """
         Wrapper for utils.get_random_mac
 
         Used in the webui
         """
         self._log("get_random_mac",token=None)
-        return utils.get_random_mac(self.api)
+        return utils.get_random_mac(self.api,virt_type)
 
     def xmlrpc_hacks(self,data):
         """

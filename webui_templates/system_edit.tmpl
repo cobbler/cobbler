@@ -16,10 +16,38 @@ function disablename(value)
 }
 #end if
 
+function get_selected_virttype()
+{
+    var virttype_field = document.getElementById("virttype");
+    if (virttype_field) {
+        if (virttype_field.length == undefined) {
+            if (virttype_field.checked) {
+                return virttype_field.value;
+            }
+        }
+        else {
+            for (var i=0; i < virttype_field.length; i++) {
+                if (virttype_field[i].checked) {
+                    return virttype_field[i].value;
+                }
+            }
+        }
+    }
+
+    return "";
+}
+
 function get_random_mac()
 {
     xmlHttp = new XMLHttpRequest();
-    xmlHttp.open("GET", "$base_url?mode=random_mac", true);
+
+    var request_str = "$base_url?mode=random_mac";
+    var virttype = get_selected_virttype();
+    if (virttype != "" && virttype != "<<inherit>>") {
+        request_str += "&virt_type=" + virttype;
+    }
+
+    xmlHttp.open("GET", request_str, true);
     xmlHttp.onreadystatechange = function () {
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
             var mac_field = document.getElementById("macaddress")
