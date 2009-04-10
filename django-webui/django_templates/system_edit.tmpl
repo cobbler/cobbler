@@ -31,7 +31,7 @@ function get_random_mac()
 
     var request_str = "/cobbler_web/random_mac";
     var virttype = get_selected_virttype();
-    if (virttype != "" && virttype != "<<inherit>>") {
+    if (virttype != "" && virttype != "<<inherit>>" && virttype != "auto") {
         request_str += "/virttype/" + virttype;
     }
 
