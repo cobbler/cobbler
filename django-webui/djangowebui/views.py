@@ -71,29 +71,42 @@ def distro_save(request):
    # FIXME: error checking
    field_list = ('name','comment','kernel','initrd','kopts','kopts','kopts_post','ksmeta','arch','breed','os_version','mgmt_classes','template_files','redhat_management_key','redhat_management_server')
 
-   distro_name = request.POST.get('oldname', request.POST.get('name',None))
+   new_or_edit = request.POST.get('new_or_edit','new')
+   editmode = request.POST.get('editmode', 'edit')
+   distro_name = request.POST.get('name', request.POST.get('oldname', None))
+   distro_oldname = request.POST.get('oldname', None)
    if distro_name == None:
       return HttpResponse("NO DISTRO NAME SPECIFIED")
 
-   if request.POST.get('new_or_edit','new') == 'new':
+   if new_or_edit == 'new' or editmode == 'copy':
       distro_id = remote.new_distro(token)
    else:
-      distro_id = remote.get_distro_handle(distro_name, token)
+      if editmode == 'edit':
+         distro_id = remote.get_distro_handle(distro_name, token)
+      else:
+         if distro_name == distro_oldname:
+            return HttpResponse("The name was not changed, cannot %s" % editmode)
+         distro_id = remote.get_distro_handle(distro_oldname, token)
 
    delete1   = request.POST.get('delete1', None)
    delete2   = request.POST.get('delete2', None)
    recursive = request.POST.get('recursive', False)
 
-   if delete1 and delete2:
+   if new_or_edit == 'edit' and delete1 and delete2:
       remote.remove_distro(distro_name, token, recursive)
       return HttpResponseRedirect('/cobbler_web/distro/list')
    else:
       for field in field_list:
          value = request.POST.get(field, None)
-         if value != None:
+         if field == 'name' and editmode not in ('copy','rename'): continue
+         elif value != None:
             remote.modify_distro(distro_id, field, value, token)
 
       remote.save_distro(distro_id, token, request.POST.get('new_or_edit','new'))
+
+      if editmode == 'rename' and distro_name != distro_oldname:
+         remote.rename_distro(distro_id, distro_name, token)
+
       return HttpResponseRedirect('/cobbler_web/distro/edit/%s' % distro_name)
 
 def profile_list(request, profiles=None):
