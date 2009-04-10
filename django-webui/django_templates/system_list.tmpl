@@ -72,37 +72,39 @@ function action_single(actionname,target)
             <th class="text">Netboot</th>
             <th class="text">Profile</th>
             <th class="text">Kickstart</th>
-            <th class="text"></th>
-            <th class="text"></th>
-            <th class="text"></th>
+            <th class="text" colspan="3"></th>
         </tr>
     </thead>
     <tbody>
-        {% for system in systems %}
-        <tr class="{% cycle 'rowodd' 'roweven' %}">
-            <td><input type="checkbox" name="items" value="{{ system.name }}"/></td>
-            <td><a href="/cobbler_web/system/edit/{{ system.name }}">{{ system.name }}</a></td>
-            <td>{% if system.netboot_enabled %}Yes{% else %}No{% endif %}</td>
-            <td><a href="/cobbler_web/profile/edit/{{ system.profile }}">{{ system.profile }}</a></td>
-            <td>
-                {% if system.web_kickstart or system.nfs_kickstart %}
-                   {% if system.web_kickstart %}
-                   <a href="{{ system.web_kickstart }}">{{ system.web_kickstart }}</a>
+        {% if systems %}
+           {% for system in systems %}
+           <tr class="{% cycle 'rowodd' 'roweven' %}">
+               <td><input type="checkbox" name="items" value="{{ system.name }}"/></td>
+               <td><a href="/cobbler_web/system/edit/{{ system.name }}">{{ system.name }}</a></td>
+               <td>{% if system.netboot_enabled %}Yes{% else %}No{% endif %}</td>
+               <td><a href="/cobbler_web/profile/edit/{{ system.profile }}">{{ system.profile }}</a></td>
+               <td>
+                   {% if system.web_kickstart or system.nfs_kickstart %}
+                      {% if system.web_kickstart %}
+                      <a href="{{ system.web_kickstart }}">{{ system.web_kickstart }}</a>
+                      {% else %}
+                      {{ system.nfs_kickstart }}
+                      {% endif %}
                    {% else %}
-                   {{ system.nfs_kickstart }}
+                      <a href="/cblr/svc/op/ks/system/{{ system.name }}">(view rendered)</a>&nbsp;
+                      {% ifnotequal system.kickstart "<<inherit>>" %}
+                      <a href="/cobbler_web/ksfile/edit/{{ system.kickstart }}">(edit template)</a>
+                      {% endifnotequal %}
                    {% endif %}
-                {% else %}
-                   <a href="/cblr/svc/op/ks/system/{{ system.name }}">(view rendered)</a>&nbsp;
-                   {% ifnotequal system.kickstart "<<inherit>>" %}
-                   <a href="/cobbler_web/ksfile/edit/{{ system.kickstart }}">(edit template)</a>
-                   {% endifnotequal %}
-                {% endif %}
-            </td>
-            <td><input type="button" name="edit" onClick="javascript:action_single('edit','{{ system.name }}')" value="Edit"/></td>
-            <td><input type="button" name="rename" onClick="javascript:action_single('rename','{{ system.name }}')" value="Rename"/></td>
-            <td><input type="button" name="copy" onClick="javascript:action_single('copy','{{ system.name }}')" value="Copy"/></td>
-        </tr>
-        {% endfor %}
+               </td>
+               <td><input type="button" name="edit" onClick="javascript:action_single('edit','{{ system.name }}')" value="Edit"/></td>
+               <td><input type="button" name="rename" onClick="javascript:action_single('rename','{{ system.name }}')" value="Rename"/></td>
+               <td><input type="button" name="copy" onClick="javascript:action_single('copy','{{ system.name }}')" value="Copy"/></td>
+           </tr>
+           {% endfor %}
+        {% else %}
+           <tr><td colspan="8">No systems found.</td></tr>
+        {% endif %}
     </tbody>
     </table>
 </form>

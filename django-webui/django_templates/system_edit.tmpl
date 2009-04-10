@@ -15,19 +15,10 @@ function disablename(value)
 
 function get_selected_virttype()
 {
-    var virttype_field = document.getElementById("virttype");
-    if (virttype_field) {
-        if (virttype_field.length == undefined) {
-            if (virttype_field.checked) {
-                return virttype_field.value;
-            }
-        }
-        else {
-            for (var i=0; i < virttype_field.length; i++) {
-                if (virttype_field[i].checked) {
-                    return virttype_field[i].value;
-                }
-            }
+    var virttype_field = document.getElementsByName("virttype");
+    for (var i=0; i < virttype_field.length; i++) {
+        if (virttype_field[i].checked) {
+            return virttype_field[i].value;
         }
     }
 
@@ -38,10 +29,10 @@ function get_random_mac()
 {
     xmlHttp = new XMLHttpRequest();
 
-    var request_str = "$base_url?mode=random_mac";
+    var request_str = "/cobbler_web/random_mac";
     var virttype = get_selected_virttype();
     if (virttype != "" && virttype != "<<inherit>>") {
-        request_str += "&virt_type=" + virttype;
+        request_str += "/virttype/" + virttype;
     }
 
     xmlHttp.open("GET", request_str, true);
@@ -578,9 +569,7 @@ function page_onload() {
     <label for="virttype">Virt Type</label>
     </td>
     <td class="virtedit">
-    {% for virt_type,virt_desc in available_virttypes %}
-    <input type="radio" name="virttype" id="virttype" value="{{ virt_type }}"{% if system %}{% ifequal system.virt_type virt_type %} checked{% endifequal %}{% endif %}>{{ virt_desc }}</input>
-    {% endfor %}
+    {% for virt_type,virt_desc in available_virttypes %}<input type="radio" name="virttype" id="virttype" value="{{ virt_type }}"{% if system %}{% ifequal system.virt_type virt_type %} checked{% endifequal %}{% endif %}>{{ virt_desc }}</input>{% endfor %}
     <p class="context-tip">What virtualization technology should koan use?</p>
     </td>
     </tr>

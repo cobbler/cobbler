@@ -19,34 +19,38 @@
         </tr>
     </thead>
     <tbody>
-        {% for profile in profiles %}
-        <tr class="{% cycle 'rowodd' 'roweven' %}">
-            <td>
-                <a href="/cobbler_web/profile/edit/{{ profile.name }}">{{ profile.name }}</a>
-            </td>
-            <td>
-            {% ifnotequal profile.distro "<<inherit>>" %}
-            <a href="/cobbler_web/distro/edit/{{ profile.distro }}">{{ profile.distro }}</a>
-            {% else %}
-            <a href="/cobbler_web/profile/edit/{{ profile.parent }}">{{ profile.parent }}</a>
-            {% endifnotequal %}
-            </td>
-            <td>
-                {% if profile.web_kickstart or profile.nfs_kickstart %}
-                   {% if profile.web_kickstart %}
-                   <a href="{{ profile.web_kickstart }}">{{ profile.web_kickstart }}</a>
-                   {% else %} 
-                   {{ profile.nfs_kickstart }}
+        {% if profiles %}
+           {% for profile in profiles %}
+           <tr class="{% cycle 'rowodd' 'roweven' %}">
+               <td>
+                   <a href="/cobbler_web/profile/edit/{{ profile.name }}">{{ profile.name }}</a>
+               </td>
+               <td>
+               {% ifnotequal profile.distro "<<inherit>>" %}
+               <a href="/cobbler_web/distro/edit/{{ profile.distro }}">{{ profile.distro }}</a>
+               {% else %}
+               <a href="/cobbler_web/profile/edit/{{ profile.parent }}">{{ profile.parent }}</a>
+               {% endifnotequal %}
+               </td>
+               <td>
+                   {% if profile.web_kickstart or profile.nfs_kickstart %}
+                      {% if profile.web_kickstart %}
+                      <a href="{{ profile.web_kickstart }}">{{ profile.web_kickstart }}</a>
+                      {% else %} 
+                      {{ profile.nfs_kickstart }}
+                      {% endif %}
+                   {% else %}
+                      <a href="/cblr/svc/op/ks/profile/{{ profile.name }}">(view rendered)</a>&nbsp;
+                      {% ifnotequal profile.kickstart "<<inherit>>" %}
+                      <a href="/cobbler_web/ksfile/edit/{{ profile.kickstart }}">(edit template)</a>
+                      {% endifnotequal %}
                    {% endif %}
-                {% else %}
-                   <a href="/cblr/svc/op/ks/profile/{{ profile.name }}">(view rendered)</a>&nbsp;
-                   {% ifnotequal profile.kickstart "<<inherit>>" %}
-                   <a href="/cobbler_web/ksfile/edit/{{ profile.kickstart }}">(edit template)</a>
-                   {% endifnotequal %}
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
+               </td>
+           </tr>
+           {% endfor %}
+        {% else %}
+           <tr><td colspan="3">No profiles found.</td></tr>
+        {% endif %}
     </tbody>
 </table>
 {% endblock content %}

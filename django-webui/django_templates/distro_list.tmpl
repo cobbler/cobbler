@@ -19,6 +19,7 @@
         </tr>
     </thead>
     <tbody>
+        {% if distros %}
         {% for distro in distros %}
         <tr class="{% cycle 'rowodd' 'roweven' %}">
             <td>
@@ -28,6 +29,11 @@
             <td>{{ distro.arch }}</td>
         </tr>
         {% endfor %}
+        {% else %}
+        <tr>
+          <td colspan="3">No distros found.</td>
+        </tr>
+        {% endif %}
     </tbody>
 </table>
 

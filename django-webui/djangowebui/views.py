@@ -1,6 +1,7 @@
 from django.template.loader import get_template
 from django.template import Context
 from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 
 import xmlrpclib, time
 
@@ -18,8 +19,38 @@ def search(request, what):
    html = t.render(Context({'what':what, 'item_count':["1","2","3","4","5"]}))
    return HttpResponse(html)
 
-def distro_list(request):
-   distros = remote.get_distros(token)
+def dosearch(request, what):
+   criteria = {}
+   for i in range(1,6):
+      key = request.POST.get("key%d" % i, None)
+      val = request.POST.get("value%d" % i, None)
+      if key not in (None, ''):
+         if val != None:
+            val = val.replace('"','')
+         criteria[key] = val
+
+   results = []
+   if what == "distro":
+      results = remote.find_distro(criteria,True,token)
+      return distro_list(request, results)
+   elif what == "profile":
+      results = remote.find_profile(criteria,True,token)
+      return profile_list(request, results)
+   elif what == "system":
+      results = remote.find_system(criteria,True,token)
+      return system_list(request, results)
+   elif what == "image":
+      results = remote.find_image(criteria,True,token)
+      return image_list(request, results)
+   elif what == "repo":
+      results = remote.find_repo(criteria,True,token)
+      return repo_list(request, results)
+   else:
+      raise "internal error, unknown search type"
+
+def distro_list(request, distros=None):
+   if distros is None:
+      distros = remote.get_distros(token)
    t = get_template('distro_list.tmpl')
    html = t.render(Context({'distros': distros}))
    return HttpResponse(html)
@@ -36,8 +67,38 @@ def distro_edit(request, distro_name=None):
    html = t.render(Context({'distro': distro, 'available_arches': available_arches, 'available_breeds': available_breeds, "editable":True}))
    return HttpResponse(html)
 
-def profile_list(request):
-   profiles = remote.get_profiles(token)
+def distro_save(request):
+   # FIXME: error checking
+   field_list = ('name','comment','kernel','initrd','kopts','kopts','kopts_post','ksmeta','arch','breed','os_version','mgmt_classes','template_files','redhat_management_key','redhat_management_server')
+
+   distro_name = request.POST.get('oldname', request.POST.get('name',None))
+   if distro_name == None:
+      return HttpResponse("NO DISTRO NAME SPECIFIED")
+
+   if request.POST.get('new_or_edit','new') == 'new':
+      distro_id = remote.new_distro(token)
+   else:
+      distro_id = remote.get_distro_handle(distro_name, token)
+
+   delete1   = request.POST.get('delete1', None)
+   delete2   = request.POST.get('delete2', None)
+   recursive = request.POST.get('recursive', False)
+
+   if delete1 and delete2:
+      remote.remove_distro(distro_name, token, recursive)
+      return HttpResponseRedirect('/cobbler_web/distro/list')
+   else:
+      for field in field_list:
+         value = request.POST.get(field, None)
+         if value != None:
+            remote.modify_distro(distro_id, field, value, token)
+
+      remote.save_distro(distro_id, token, request.POST.get('new_or_edit','new'))
+      return HttpResponseRedirect('/cobbler_web/distro/edit/%s' % distro_name)
+
+def profile_list(request, profiles=None):
+   if profiles is None:
+      profiles = remote.get_profiles(token)
    for profile in profiles:
       if profile["kickstart"]:
          if profile["kickstart"].startswith("http://") or profile["kickstart"].startswith("ftp://"):
@@ -62,8 +123,12 @@ def profile_edit(request, profile_name=None, subprofile=0):
    html = t.render(Context({'profile': profile, 'subprofile': subprofile, 'profiles': profiles, 'distros': distros, 'editable':True, 'available_virttypes': available_virttypes}))
    return HttpResponse(html)
 
-def system_list(request):
-   systems = remote.get_systems(token)
+def profile_save(request):
+   return HttpResponse("")
+
+def system_list(request, systems=None):
+   if systems is None:
+      systems = remote.get_systems(token)
    t = get_template('system_list.tmpl')
    html = t.render(Context({'systems': systems}))
    return HttpResponse(html)
@@ -83,8 +148,12 @@ def system_edit(request, system_name=None, editmode="new"):
    html = t.render(Context({'system': system, 'profiles': profiles, 'distros': distros, 'repos': repos, 'editmode': editmode, 'available_virttypes': available_virttypes, 'available_power': available_power, 'editable':True}))
    return HttpResponse(html)
 
-def repo_list(request):
-   repos = remote.get_repos(token)
+def system_save(request):
+   return HttpResponse("")
+
+def repo_list(request, repos=None):
+   if repos is None:
+      repos = remote.get_repos(token)
    t = get_template('repo_list.tmpl')
    html = t.render(Context({'repos': repos}))
    return HttpResponse(html)
@@ -99,8 +168,9 @@ def repo_edit(request, repo_name=None):
    html = t.render(Context({'repo': repo, 'available_arches': available_arches, 'available_breeds': available_breeds, "editable":True}))
    return HttpResponse(html)
 
-def image_list(request):
-   images = remote.get_images(token)
+def image_list(request, images=None):
+   if images is None:
+      images = remote.get_images(token)
    t = get_template('image_list.tmpl')
    html = t.render(Context({'images': images}))
    return HttpResponse(html)
@@ -133,3 +203,6 @@ def ksfile_edit(request, ksfile_name=None):
    """
    return HttpResponse("NOT IMPLEMENTED YET")
 
+def random_mac(request, virttype="xenpv"):
+   random_mac = remote.get_random_mac(virttype, token)
+   return HttpResponse(random_mac)
