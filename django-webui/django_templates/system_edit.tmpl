@@ -440,7 +440,7 @@ function page_onload() {
     <label for="koptspost">Post Kernel Options</label>
     </td>
     <td>
-    <input type="text" size="255" style="width: 400px;" name="koptspost" id="koptspost" {% if system %}value="{{ system.kernel_options_post }}"{% endif %}/> 
+    <input type="text" size="255" style="width: 400px;" name="kopts_post" id="kopts_post" {% if system %}value="{{ system.kernel_options_post }}"{% endif %}/> 
     <p class="context-tip">Example: clocksource=pit nosmp noapic nolapic</p>
     </td>
     </tr>
@@ -450,7 +450,7 @@ function page_onload() {
     <label for="server_override">Server Override</label>
     </td>
     <td>
-    <input type="text" size="128" style="width: 150px;" name="server_override" id="server_override" {% if system %}value="{{ system.server }}"{% else %} value="<<inherit>>"{% endif %} />
+    <input type="text" size="128" style="width: 150px;" name="server" id="server" {% if system %}value="{{ system.server }}"{% else %} value="<<inherit>>"{% endif %} />
     <p class="context-tip">Use this server for kickstarts, not the value in settings.  Usually this should be left alone.</p>
     </td>
     </tr>
@@ -460,7 +460,7 @@ function page_onload() {
     <label for="redhatmanagementkey">Management Key</label>
     </td>
     <td>
-    <input type="text" size="255" style="width: 400px;" name="redhatmanagementkey" id="redhatmanagementkey" {% if system %}value="{{ system.redhat_management_key }}"{% endif %}/>
+    <input type="text" size="255" style="width: 400px;" name="redhat_management_key" id="redhat_management_key" {% if system %}value="{{ system.redhat_management_key }}"{% endif %}/>
     <p class="context-tip">Registration key for RHN, Satellite, or Spacewalk</p>
     </td>
     </tr>
@@ -470,7 +470,7 @@ function page_onload() {
     <label for="redhatmanagementserver">Management Server</label>
     </td>
     <td>
-    <input type="text" size="255" style="width: 400px;" name="redhatmanagementserver" id="redhatmanagementserver" {% if system %}value="{{ system.redhat_management_server }}"{% endif %}/>
+    <input type="text" size="255" style="width: 400px;" name="redhat_management_server" id="redhat_management_server" {% if system %}value="{{ system.redhat_management_server }}"{% endif %}/>
     <p class="context-tip">RHN, Satellite, or Spacewalk server</p>
     </td>
     </tr>
@@ -508,7 +508,7 @@ function page_onload() {
 
     <tr>
     <td class="netedit">
-    <label for="name_servers">Name Servers</label>
+    <label for="nameservers">Name Servers</label>
     </td>
     <td class="netedit">
     <input type="text" size="255" style="width: 400px;" name="name_servers" id="name_servers" {% if system %}value="{{ server.name_servers|join:" " }}"{% endif %}/>
@@ -518,7 +518,7 @@ function page_onload() {
 
     <tr>
     <td class="netedit">
-    <label for="name_servers_search">Name Servers Search Path</label>
+    <label for="nameserverssearch">Name Servers Search Path</label>
     </td>
     <td class="netedit">
     <input type="text" size="255" style="width: 400px;" name="name_servers_search" id="name_servers_search" {% if system %}value="{{ server.name_servers_search|join:" " }}"{% endif %}/>
@@ -528,7 +528,7 @@ function page_onload() {
 
     <tr>
     <td class="netedit">
-    <label for="mgmt_classes">Management Classes</label>
+    <label for="mgmtclasses">Management Classes</label>
     </td>
     <td class="netedit">
     <input type="text" size="255" style="width: 400px;" name="mgmt_classes" id="mgmt_classes" {% if system %}value="{{ server.mgmt_classes|join:" " }}"{% endif %}/>
@@ -541,7 +541,7 @@ function page_onload() {
     <label for="virtfilesize">Virt Disk (GB)</label>
     </td>
     <td class="virtedit">
-    <input type="text" size="5" style="width: 150px;" name="virtfilesize" id="virtfilesize" {% if system %}value="{{ system.virt_file_size }}"{% endif %}/>
+    <input type="text" size="5" style="width: 150px;" name="virt_file_size" id="virt_file_size" {% if system %}value="{{ system.virt_file_size }}"{% endif %}/>
     <p class="context-tip">For virtual installs only, require this disk size in GB.</p>
     </td>
     </tr>
@@ -551,7 +551,7 @@ function page_onload() {
     <label for="virtram">Virt RAM (MB)</label>
     </td>
     <td class="virtedit">
-    <input type="text" size="5" style="width: 150px;" name="virtram" id="virtram" {% if system %}value="{{ system.virt_ram }}"{% endif %}/>
+    <input type="text" size="5" style="width: 150px;" name="virt_ram" id="virt_ram" {% if system %}value="{{ system.virt_ram }}"{% endif %}/>
     <p class="context-tip">For virtual installs only, allocate this amount of RAM, in MB.</p>
     </td>
     </tr>
@@ -561,7 +561,7 @@ function page_onload() {
     <label for="virtautoboot">Virt AutoBoot</label>
     </td>
     <td class="virtedit">
-    <input type="text" size="5" style="width: 150px;" name="virtautoboot" id="virtautoboot" {% if system %}value="{{ system.virt_auto_boot }}"{% endif %}/>
+    <input type="text" size="5" style="width: 150px;" name="virt_auto_boot" id="virt_auto_boot" {% if system %}value="{{ system.virt_auto_boot }}"{% endif %}/>
     <p class="context-tip">For virtual installs only, enable/disable VM autoboot.</p>
     </td>
     <tr>
@@ -569,7 +569,7 @@ function page_onload() {
     <label for="virttype">Virt Type</label>
     </td>
     <td class="virtedit">
-    {% for virt_type,virt_desc in available_virttypes %}<input type="radio" name="virttype" id="virttype" value="{{ virt_type }}"{% if system %}{% ifequal system.virt_type virt_type %} checked{% endifequal %}{% endif %}>{{ virt_desc }}</input>{% endfor %}
+    {% for virt_type,virt_desc in available_virttypes %}<input type="radio" name="virt_type" id="virt_type" value="{{ virt_type }}"{% if system %}{% ifequal system.virt_type virt_type %} checked{% endifequal %}{% endif %}>{{ virt_desc }}</input>{% endfor %}
     <p class="context-tip">What virtualization technology should koan use?</p>
     </td>
     </tr>
@@ -579,7 +579,7 @@ function page_onload() {
     <label for="virtpath">Virt Path</label>
     </td>
     <td class="virtedit">
-    <input type="text" size="255" style="width: 400px;" name="virtpath" id="virtpath" {% if system %}value="{{ system.virt_path }}"{% else %}value="<<inherit>>"{% endif %}/>
+    <input type="text" size="255" style="width: 400px;" name="virt_path" id="virt_path" {% if system %}value="{{ system.virt_path }}"{% else %}value="<<inherit>>"{% endif %}/>
     <p class="context-tip">Sets koan's storage preferences, read manpage or leave blank.</p>
     </td>
     </tr>
@@ -589,7 +589,7 @@ function page_onload() {
     <label for="virtpath">Virt CPUs</label>
     </td>
     <td class="virtedit">
-    <input type="text" size="255" style="width: 150px;" name="virtcpus" id="virtcpus" {% if system %}value="{{ system.virt_cpus }}"{% endif %}/>
+    <input type="text" size="255" style="width: 150px;" name="virt_cpus" id="virt_cpus" {% if system %}value="{{ system.virt_cpus }}"{% endif %}/>
     <p class="context-tip">How many virtual CPUs?  This is an integer.</p>
     </td>
     </tr>

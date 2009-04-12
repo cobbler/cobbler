@@ -209,7 +209,57 @@ def system_edit(request, system_name=None, editmode="new"):
    return HttpResponse(html)
 
 def system_save(request):
-   return HttpResponse("")
+   # FIXME: error checking
+   field_list = ('name','profile','kopts','kopts_post','ksmeta','owners','netboot_enabled','server','virt_file_size','virt_cpus','virt_ram','virt_type','virt_path','virt_auto_boot','comment','power_type','power_user','power_pass','power_id','power_address','name_servers','name_servers_search','gateway','hostname','redhat_management_key','redhat_management_server','mgmt_classes')
+   interface_field_list = ('macaddress','ipaddress','dns_name','static_routes','static','virtbridge','dhcptag','subnet','bonding','bondingopts','bondingmaster','present','original')
+
+   editmode = request.POST.get('editmode', 'edit')
+   system_name = request.POST.get('name', request.POST.get('oldname', None))
+   system_oldname = request.POST.get('oldname', None)
+   interfaces = request.POST.get('interface_list', "").split(",")
+
+   if system_name == None:
+      return HttpResponse("NO SYSTEM NAME SPECIFIED")
+
+   if editmode == 'copy':
+      system_id = remote.new_system(token)
+   else:
+      if editmode == 'edit':
+         system_id = remote.get_system_handle(system_name, token)
+      else:
+         if system_name == system_oldname:
+            return HttpResponse("The name was not changed, cannot %s" % editmode)
+         system_id = remote.get_system_handle(system_oldname, token)
+
+   delete1   = request.POST.get('delete1', None)
+   delete2   = request.POST.get('delete2', None)
+
+   if delete1 and delete2:
+      remote.remove_system(system_name, token, recursive)
+      return HttpResponseRedirect('/cobbler_web/system/list')
+   else:
+      for field in field_list:
+         value = request.POST.get(field, None)
+         if field == 'name' and editmode == 'rename': continue
+         elif value != None:
+            remote.modify_system(system_id, field, value, token)
+
+      for interface in interfaces:
+         ifdata = {}
+         for item in interface_field_list:
+            ifdata["%s-%s" % (item,interface)] = request.POST.get("%s-%s" % (item,interface), "")
+
+         if ifdata['present-%s' % interface] == "0" and ifdata['original-%s' % interface] == "1":
+            remote.modify_system(system_id, 'delete_interface', interface, token)
+         elif ifdata['present-%s' % interface] == "1":
+            remote.modify_system(system_id, 'modify_interface', ifdata, token)
+
+      remote.save_system(system_id, token, editmode)
+
+      if editmode == 'rename':
+         remote.rename_system(system_id, system_name, token)
+
+      return HttpResponseRedirect('/cobbler_web/system/edit/%s' % system_name)
 
 def repo_list(request, repos=None):
    if repos is None:
