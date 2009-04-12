@@ -98,13 +98,13 @@ def distro_save(request):
    else:
       for field in field_list:
          value = request.POST.get(field, None)
-         if field == 'name' and editmode not in ('copy','rename'): continue
+         if field == 'name' and editmode == 'rename': continue
          elif value != None:
             remote.modify_distro(distro_id, field, value, token)
 
-      remote.save_distro(distro_id, token, request.POST.get('new_or_edit','new'))
+      remote.save_distro(distro_id, token, new_or_edit)
 
-      if editmode == 'rename' and distro_name != distro_oldname:
+      if editmode == 'rename':
          remote.rename_distro(distro_id, distro_name, token)
 
       return HttpResponseRedirect('/cobbler_web/distro/edit/%s' % distro_name)
@@ -142,36 +142,48 @@ def profile_save(request):
    # FIXME: error checking
    field_list = ('name','parent','profile','distro','enable_menu','kickstart','kopts','kopts_post','virt_auto_boot','virt_file_size','virt_ram','ksmeta','template_files','repos','virt_path','virt_type','virt_bridge','virt_cpus','dhcp_tag','server','owners','mgmt_classes','comment','name_servers','name_servers_search','redhat_management_key','redhat_management_server')
 
-   profile_name = request.POST.get('oldname', request.POST.get('name',None))
+   new_or_edit = request.POST.get('new_or_edit','new')
+   editmode = request.POST.get('editmode', 'edit')
+   profile_name = request.POST.get('name', request.POST.get('oldname', None))
+   profile_oldname = request.POST.get('oldname', None)
    if profile_name == None:
       return HttpResponse("NO PROFILE NAME SPECIFIED")
 
    subprofile = int(request.POST.get('subprofile','0'))
-   if request.POST.get('new_or_edit','new') == 'new':
+   if new_or_edit == 'new' or editmode == 'copy':
       if subprofile:
          profile_id = remote.new_subprofile(token)
       else:
          profile_id = remote.new_profile(token)
    else:
-      profile_id = remote.get_profile_handle(profile_name, token)
+      if editmode == 'edit':
+         profile_id = remote.get_profile_handle(profile_name, token)
+      else:
+         if profile_name == profile_oldname:
+            return HttpResponse("The name was not changed, cannot %s" % editmode )
+         profile_id = remote.get_profile_handle(profile_oldname, token)
 
    delete1   = request.POST.get('delete1', None)
    delete2   = request.POST.get('delete2', None)
    recursive = request.POST.get('recursive', False)
 
-   if delete1 and delete2:
+   if new_or_edit == 'edit' and delete1 and delete2:
       remote.remove_profile(profile_name, token, recursive)
       return HttpResponseRedirect('/cobbler_web/profile/list')
    else:
       for field in field_list:
+         value = request.POST.get(field, None)
          if field == "distro" and subprofile: continue
          elif field == "parent" and not subprofile: continue
-
-         value = request.POST.get(field, None)
+         elif field == "name" and editmode == "rename": continue
          if value != None:
             remote.modify_profile(profile_id, field, value, token)
 
-      remote.save_profile(profile_id, token, request.POST.get('new_or_edit','new'))
+      remote.save_profile(profile_id, token, new_or_edit)
+
+      if editmode == "rename":
+         remote.rename_profile(profile_id, profile_name, token)
+
       return HttpResponseRedirect('/cobbler_web/profile/edit/%s' % profile_name)
 
 def system_list(request, systems=None):
