@@ -276,39 +276,48 @@ def system_rename(request, system_name=None, system_newname=None):
 def system_multi(request, multi_mode=None):
    items = request.POST.get('items',[])
 
-   # prepare this, just in case we need it
+   all_systems = remote.get_systems(token)
+   sel_systems = []
+   sel_names = []
+   for system in all_systems:
+      if system['name'] in items:
+         sel_systems.append(system)
+         sel_names.append(system['name'])
+
    t = get_template('system_%s.tmpl' % multi_mode)
-   html = t.render(Context({'systems':list}))
+   html = t.render(Context({'systems':sel_systems, 'items':sel_names}))
+   return HttpResponse(html)
 
-   if multi_mode == "delete":
-      confirm = request.POST.get('confirm', None)
-      if confirm:
-         for item in items:
-            remote.remove_system(item, token)
-      else:
-         return HttpResponse(html)
-   elif multi_mode == "netboot":
-      netboot = request.POST.get('netboot', None)
-      if netboot != None:
-         for item in items:
-            system_id = remote.get_system_handle(item, token)
-            remote.modify_system(system_id, 'netboot_enabled', netboot, token)
-            remote.save_system(system_id, token, 'edit')
-      else:
-         return HttpResponse(html)
-   elif multi_mode == "profile":
-      profile = request.POST.get('profile', None)
-      if profile != None:
-         for item in items:
-            system_id = remote.get_system_handle(item, token)
-            remote.modify_system(system_id, 'profile', profile, token)
-            remote.save_system(system_id, token, 'edit')
-      else:
-         return HttpResponse(html)
-   elif multi_mode == "power":
-      pass
+def system_domulti(request, multi_mode=None):
+   items = request.POST.get('items', '').split(" ")
+   netboot = request.POST.get('netboot', None)
+   profile = request.POST.get('profile', None)
+   power   = request.POST.get('power', None)
 
-   return HttpResponseRedirect('/cobbler_web/system/list')
+   for system_name in items:
+      system_id = remote.get_system(system_name, token)
+      if multi_mode == "delete":
+         remote.remove_system(system_name, token)
+      elif multi_mode == "netboot":
+         if netboot is None:
+            raise "Cannot modify systems without specifying netboot_enabled"
+         remote.modify_system(system_id, "netboot_enabled", netboot, token)
+         remote.save_system(system_id, token, "edit")
+      elif multi_mode == "profile":
+         if profile is None:
+            raise "Cannot modify systems without specifying profile"
+         remote.modify_system(system_id, "profile", profile, token)
+         remote.save_system(system_id, token, "edit")
+      elif multi_mode == "power":
+         if power is None:
+            raise "Cannot modify systems without specifying power option"
+         remote.modify_system(system_id, "power", power, token)
+         remote.save_system(system_id, token, "edit")
+      else:
+         raise "Unknowm multiple operation on systems: %s" % str(multi_mode)
+      
+   #return HttpResponse("doing multi: " + str(multi_mode) + " on " + str(items))
+   return HttpResponseRedirect("/cobbler_web/system/list")
 
 def repo_list(request, repos=None):
    if repos is None:

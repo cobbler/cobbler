@@ -1,10 +1,7 @@
-#extends cobbler.webui.master
+{% extends "master.tmpl" %}
 
-#block body
-
-<form name="myform" method="post" action="$base_url?mode=system_delete">
-    <input type="hidden" name="targetlist" id="targetlist" value="$targetlist"/>
-    
+{% block content %}
+<form name="myform" method="post" action="/cobbler_web/system/delete/domulti">
     <table class="sortable">
     <thead>
         <caption>Confirm deleting the following systems</caption>
@@ -13,27 +10,18 @@
         </tr>
     </thead>
     <tbody>
-        #set $evenodd = 1
-        #for $system in $systems
-        #if $evenodd % 2 == 0
-            #set $tr_class = "roweven"
-        #else
-            #set $tr_class = "rowodd"
-        #end if
-        #set $evenodd += 1
-
-        <tr class="$tr_class">
-            <td>
-                ${system.name}
-            </td>
+        {% for system in systems %}
+        <tr class="{% cycle 'rowodd' 'roweven' %}">
+            <td>{{ system.name }}</td>
         </tr>
-        #end for
+        {% endfor %}
     </tbody>
     </table>
 
     </p>
     
+    <input type="hidden" name="items" value="{{ items|join:" " }}" />
     <input type="submit" name="delete" value="Delete Systems"/>
     <input type="button" name="cancel" onclick="javascript:history.go(-1)" value="Cancel"/>
 </form>
-#end block body
+{% endblock content %}

@@ -1,7 +1,6 @@
-#extends cobbler.webui.master
+{% extends "master.tmpl" %}
 
-#block body
-
+{% block content %}
 <script language="Javascript">
 function submit_netboot(value)
 {
@@ -10,7 +9,7 @@ function submit_netboot(value)
 }
 </script>
 
-<form name="myform" method="post" action="$base_url?mode=system_netboot">
+<form name="myform" method="post" action="/cobbler_web/system/netboot/domulti">
     <input type="hidden" name="targetlist" id="targetlist" value="$targetlist"/>
     <input type="hidden" name="netboot" id="netboot" value="0"/>
 
@@ -56,4 +55,4 @@ function submit_netboot(value)
     <input type="button" name="pxedisable" onclick="javascript:submit_netboot(0)" value="Disable Netboot"/>
     <input type="button" name="cancel" onclick="javascript:history.go(-1)" value="Cancel"/>
 </form>
-#end block body
+{% endblock content %}
