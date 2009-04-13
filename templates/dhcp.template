@@ -44,6 +44,9 @@ group {
         #if $iface.ip_address:
             fixed-address $iface.ip_address;
         #end if
+        #if $iface.hostname:
+            hostname $iface.hostname;
+        #end if
         #if $iface.subnet:
             option subnet-mask $iface.subnet;
         #end if
