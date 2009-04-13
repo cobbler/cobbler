@@ -273,6 +273,43 @@ def system_rename(request, system_name=None, system_newname=None):
       remote.rename_system(system_id, system_newname, token)
       return HttpResponseRedirect("/cobbler_web/system/list")
 
+def system_multi(request, multi_mode=None):
+   items = request.POST.get('items',[])
+
+   # prepare this, just in case we need it
+   t = get_template('system_%s.tmpl' % multi_mode)
+   html = t.render(Context({'systems':list}))
+
+   if multi_mode == "delete":
+      confirm = request.POST.get('confirm', None)
+      if confirm:
+         for item in items:
+            remote.remove_system(item, token)
+      else:
+         return HttpResponse(html)
+   elif multi_mode == "netboot":
+      netboot = request.POST.get('netboot', None)
+      if netboot != None:
+         for item in items:
+            system_id = remote.get_system_handle(item, token)
+            remote.modify_system(system_id, 'netboot_enabled', netboot, token)
+            remote.save_system(system_id, token, 'edit')
+      else:
+         return HttpResponse(html)
+   elif multi_mode == "profile":
+      profile = request.POST.get('profile', None)
+      if profile != None:
+         for item in items:
+            system_id = remote.get_system_handle(item, token)
+            remote.modify_system(system_id, 'profile', profile, token)
+            remote.save_system(system_id, token, 'edit')
+      else:
+         return HttpResponse(html)
+   elif multi_mode == "power":
+      pass
+
+   return HttpResponseRedirect('/cobbler_web/system/list')
+
 def repo_list(request, repos=None):
    if repos is None:
       repos = remote.get_repos(token)
