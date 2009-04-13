@@ -1,4 +1,3 @@
-<script language="Javascript">
 function items_check_all()
 {
     var checkall=document.getElementById("itemsall").checked
@@ -38,4 +37,3 @@ function items_checked_values()
     }
     return s;
 }
-</script>

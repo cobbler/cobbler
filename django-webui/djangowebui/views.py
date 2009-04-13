@@ -193,6 +193,12 @@ def system_list(request, systems=None):
    html = t.render(Context({'systems': systems}))
    return HttpResponse(html)
 
+def system_action(request):
+   actionname = request.POST.get('actionname', None)
+   targetlist = request.POST.get('targetlist', None)
+   raise ""
+   return HttpResponse('Unknown action entered: %s' % str(actionname))
+
 def system_edit(request, system_name=None, editmode="new"):
    available_virttypes = [['<<inherit>>','<<inherit>>'],['auto','Any'],['xenpv','Xen(pv)'],['xenfv','Xen(fv)'],['qemu','KVM/qemu'],['vmware','VMWare Server'],['vmwarew','VMWare WkStn']]
    available_power = ['','bullpap','wti','apc_snmp','ether-wake','ipmilan','drac','ipmitool','ilo','rsa','lpar','bladecenter','virsh','integrity']
