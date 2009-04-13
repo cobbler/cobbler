@@ -193,12 +193,6 @@ def system_list(request, systems=None):
    html = t.render(Context({'systems': systems}))
    return HttpResponse(html)
 
-def system_action(request):
-   actionname = request.POST.get('actionname', None)
-   targetlist = request.POST.get('targetlist', None)
-   raise ""
-   return HttpResponse('Unknown action entered: %s' % str(actionname))
-
 def system_edit(request, system_name=None, editmode="new"):
    available_virttypes = [['<<inherit>>','<<inherit>>'],['auto','Any'],['xenpv','Xen(pv)'],['xenfv','Xen(fv)'],['qemu','KVM/qemu'],['vmware','VMWare Server'],['vmwarew','VMWare WkStn']]
    available_power = ['','bullpap','wti','apc_snmp','ether-wake','ipmilan','drac','ipmitool','ilo','rsa','lpar','bladecenter','virsh','integrity']
@@ -266,6 +260,18 @@ def system_save(request):
          remote.rename_system(system_id, system_name, token)
 
       return HttpResponseRedirect('/cobbler_web/system/edit/%s' % system_name)
+
+def system_rename(request, system_name=None, system_newname=None):
+   if system_name == None:
+      return HttpResponse("You must specify a system to rename")
+   elif system_newname == None:
+      t = get_template('system_rename.tmpl')
+      html = t.render(Context({'system':system_name}))
+      return HttpResponse(html)
+   else:
+      system_id = remote.get_system_handle(system_name, token)
+      remote.rename_system(system_id, system_newname, token)
+      return HttpResponseRedirect("/cobbler_web/system/list")
 
 def repo_list(request, repos=None):
    if repos is None:

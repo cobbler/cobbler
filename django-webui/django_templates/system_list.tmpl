@@ -40,16 +40,16 @@ function action_selected(actionname)
     }
 
     document.getElementById("targetlist").value=items_checked_values();
-    document.getElementById("actionname").value=actionname;
-
+    //document.getElementById("actionname").value=actionname;
+    document.myform.action = "/cobbler_web/system/"+actionname+"/multi";
     document.myform.submit();
 }
 
 function action_single(actionname,target)
 {
-    document.getElementById("targetlist").value=target;
-    document.getElementById("actionname").value=actionname;
-
+    //document.getElementById("targetlist").value=target;
+    //document.getElementById("actionname").value=actionname;
+    document.myform.action = "/cobbler_web/system/"+actionname+"/"+target;
     document.myform.submit();
 }
 </script>

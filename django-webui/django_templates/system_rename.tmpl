@@ -1,10 +1,14 @@
-#extends cobbler.webui.master
+{% extends "master.tmpl" %}
 
-#block body
+{% block content %}
+<script language="Javascript">
+function submit_rename() {
+   document.myform.action = "/cobbler_web/system/rename/{{ system }}/" + document.getElementById("newname").value;
+   document.myform.submit();
+}
+</script>
 
-<form name="myform" method="post" action="$base_url?mode=system_rename">
-    <input type="hidden" name="targetlist" id="targetlist" value="$targetlist"/>
-    
+<form name="myform" method="post" action="">
     <table class="sortable">
     <thead>
         <caption>Rename the following system</caption>
@@ -13,29 +17,19 @@
         </tr>
     </thead>
     <tbody>
-        #set $evenodd = 1
-        #for $system in $systems
-        #if $evenodd % 2 == 0
-            #set $tr_class = "roweven"
-        #else
-            #set $tr_class = "rowodd"
-        #end if
-        #set $evenodd += 1
-
-        <tr class="$tr_class">
+        <tr class="even">
             <td>
-                ${system.name}
+                {{ system }}
             </td>
         </tr>
-        #end for
     </tbody>
     </table>
 
     <p>
-    New name: <input type="text" size="128" style="width: 150px;" name="name" id="name" value=$systems[0].name>
+    New name: <input type="text" size="128" style="width: 150px;" name="newname" id="newname" value="" />
     </p>
     
-    <input type="submit" name="rename" value="Rename System"/>
+    <input type="button" name="rename" onclick="javascript:submit_rename()" value="Rename System"/>
     <input type="button" name="cancel" onclick="javascript:history.go(-1)" value="Cancel"/>
 </form>
-#end block body
+{% endblock content %}
