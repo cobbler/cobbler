@@ -41,7 +41,7 @@ def run(api,args):
     if manage_dhcp != "0":
         if which_dhcp_module == "manage_isc":
             if not omapi_enabled in [ "1", "true", "yes", "y" ] and restart_dhcp:
-                rc = os.system("/usr/sbin/dhcpd -t")
+                rc = os.system("/usr/sbin/dhcpd -t -q")
                 if rc != 0:
                    print "/usr/sbin/dhcpd -t failed"
                    return 1
