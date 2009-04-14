@@ -9,6 +9,7 @@ Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
 Requires: python >= 2.3
+Requires: python-urlgrabber
 %if 0%{?suse_version} >= 1000
 Requires: apache2
 Requires: apache2-mod_python
