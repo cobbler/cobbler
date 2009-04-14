@@ -64,7 +64,7 @@ class BootLiteSync:
         # get the distro record
         distro = self.distros.find(name=name)
         if distro is None:
-            raise CX(_("error in distro lookup: %s") % name)
+            return
         # copy image files to images/$name in webdir & tftpboot:
         self.sync.pxegen.copy_single_distro_files(distro)
         # generate any templates listed in the distro
@@ -101,7 +101,10 @@ class BootLiteSync:
         # get the profile object:
         profile = self.profiles.find(name=name)
         if profile is None:
-            raise CX(_("error in profile lookup for %s" % name))
+            # most likely a subprofile's kid has been
+            # removed already, though the object tree has
+            # not been reloaded ... and this is just noise.
+            return
         # rebuild the yum configuration files for any attached repos
         # generate any templates listed in the distro
         self.sync.pxegen.write_templates(profile)
@@ -134,7 +137,7 @@ class BootLiteSync:
         # get the system object:
         system = self.systems.find(name=name)
         if system is None:
-            raise CX(_("error in system lookup for %s") % name)
+            return
         # rebuild system_list file in webdir
         if self.settings.manage_dhcp:
             self.sync.dhcp.regen_ethers() 
