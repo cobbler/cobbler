@@ -22,6 +22,7 @@ Cobbler CHANGELOG
 - (BUGF) fix webui search error (fixed better on devel)
 - (BUGF) fix duplicate power reference
 - (BUGF) fix error message that makes it appear dnsmasq had a problem restarting, when it did not
+- (BUGF) spec requires python-urlgrabber
 
 - Mon Mar 30 2009 - 1.6.2
 - (BUGF) Fix for cache cleanup problem in cobblerd 
