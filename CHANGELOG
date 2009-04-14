@@ -24,6 +24,8 @@ Cobbler CHANGELOG
 - (BUGF) fix error message that makes it appear dnsmasq had a problem restarting, when it did not
 - (BUGF) spec requires python-urlgrabber
 - (BUGF) change settings default from 'ksdevice=eth0' to 'bootif'
+- (BUGF) keep DHCP restart quiet
+- (BUGF) better hostname setting with DHCP management on
 
 - Mon Mar 30 2009 - 1.6.2
 - (BUGF) Fix for cache cleanup problem in cobblerd 
