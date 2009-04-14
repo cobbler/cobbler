@@ -12,6 +12,7 @@ Cobbler CHANGELOG
 - (BUGF) fix error message that makes it appear dnsmasq had a problem restarting, when it did not
 - (BUGF) workaround for blank ifnames 
 - (BUGF) spec requires python-urlgrabber
+- (BUGF) change settings default from 'ksdevice=eth0' to 'bootif'
 
 - Mon Mar 30 2009 - 1.6.2
 - (BUGF) Fix for cache cleanup problem in cobblerd 
