@@ -896,8 +896,9 @@ class CobblerXMLRPCInterface:
 
     def __get_random(self,length):
         urandom = open("/dev/urandom")
-        b64 = base64.encodestring(urandom.read(25))
+        b64 = base64.encodestring(urandom.read(length))
         urandom.close()
+        b64 = b64.replace("\n","")
         return b64 
 
     def __make_token(self,user):
