@@ -21,13 +21,12 @@
     </tbody>
     </table>
 
-    </p>
-
-    <input type="hidden" name="items" value="{{ items|join:" " }}" />
     <p>
     <input type="radio" name="netboot_enabled" value="1">Enable Netboot</input>
     <input type="radio" name="netboot_enabled" value="0">Disable Netboot</input>
     </p>
+
+    <input type="hidden" name="items" value="{{ items|join:" " }}" />
     <input type="submit" name="submit" value="Submit"/>
     <input type="button" name="cancel" onclick="javascript:history.go(-1)" value="Cancel"/>
 </form>

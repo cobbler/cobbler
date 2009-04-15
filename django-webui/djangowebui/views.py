@@ -342,8 +342,12 @@ def system_multi(request, multi_mode=None):
          sel_systems.append(system)
          sel_names.append(system['name'])
 
+   profiles = []
+   if multi_mode == "profile":
+      profiles = remote.get_profiles(token)
+
    t = get_template('system_%s.tmpl' % multi_mode)
-   html = t.render(Context({'systems':sel_systems, 'items':sel_names}))
+   html = t.render(Context({'systems':sel_systems, 'profiles':profiles, 'items':sel_names}))
    return HttpResponse(html)
 
 def system_domulti(request, multi_mode=None):
