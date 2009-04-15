@@ -332,7 +332,7 @@ def system_rename(request, system_name=None, system_newname=None):
       return HttpResponseRedirect("/cobbler_web/system/list")
 
 def system_multi(request, multi_mode=None):
-   items = request.POST.get('items',[])
+   items = request.POST.getlist('items')
 
    all_systems = remote.get_systems(token)
    sel_systems = []
