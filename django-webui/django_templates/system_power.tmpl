@@ -1,19 +1,8 @@
-#extends cobbler.webui.master
+{% extends "master.tmpl" %}
 
-#block body
+{% block content %}
 
-<script language="Javascript">
-function submit_power(value)
-{
-    document.getElementById("power").value=value;
-    document.myform.submit();
-}
-</script>
-
-<form name="myform" method="post" action="$base_url?mode=system_power">
-    <input type="hidden" name="targetlist" id="targetlist" value="$targetlist"/>
-    <input type="hidden" name="power" id="power" value=""/>
-
+<form name="myform" method="post" action="/cobbler_web/system/power/domulti">
     <table class="sortable">
     <thead>
         <caption>Control power of the following systems</caption>
@@ -24,43 +13,24 @@ function submit_power(value)
         </tr>
     </thead>
     <tbody>
-        #set $evenodd = 1
-        #for $system in $systems
-        #if $evenodd % 2 == 0
-            #set $tr_class = "roweven"
-        #else
-            #set $tr_class = "rowodd"
-        #end if
-        #set $evenodd += 1
-
-        <tr class="$tr_class">
-            <td>
-                ${system.name}
-            </td>
-
-            <td>
-                #set valid_power = [ "none", "bullpap", "wti", "apc_snmp", "ether-wake", "ipmilan", "drac", "ipmitool", "ilo", "rsa", "lpar", "bladecenter" ]
-                #set nothing = valid_power.sort()
-                #for $value in $valid_power:
-                    #if $system and (($system.power_type == $value) or ($system.power_type == "" and $value == "none"))
-                            $value
-                    #end if
-                #end for
-            </td>
-
-            <td>
-                ${system.power_address}
-            </td>
+        {% for system in systems %}
+        <tr class="{% cycle 'rowodd' 'roweven' %}">
+            <td>{{ system.name }}</td>
+            <td>{{ system.power_type }}</td>
+            <td>{{ system.power_address }}</td>
         </tr>
-        #end for
+        {% endfor %}
     </tbody>
     </table>
 
+    <p>
+    <input type="radio" name="power" value="reboot">Reboot</input>
+    <input type="radio" name="power" value="on">Power On</input>
+    <input type="radio" name="power" value="off">Power Off</input>
     </p>
 
-    <input type="button" name="reboot" onclick="javascript:submit_power('reboot')" value="Reboot"/>
-    <input type="button" name="poweron" onclick="javascript:submit_power('on')" value="Power On"/>
-    <input type="button" name="poweroff" onclick="javascript:submit_power('off')" value="Power Off"/>
+    <input type="hidden" name="items" value="{{ items|join:" " }}" />
+    <input type="submit" name="submit" value="Submit"/>
     <input type="button" name="cancel" onclick="javascript:history.go(-1)" value="Cancel"/>
 </form>
-#end block body
+{% endblock content %}

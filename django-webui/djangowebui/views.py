@@ -49,6 +49,10 @@ def dosearch(request, what):
       raise "internal error, unknown search type"
 
 def __setup__pagination(object_list, page):
+   # TODO: currently hardcoded at 50 results per page
+   #       not sure if this was a setting in the old webui
+   #       (if not it should be)
+
    prev_page = page - 1
    next_page = page + 1
 
@@ -373,12 +377,17 @@ def system_domulti(request, multi_mode=None):
       elif multi_mode == "power":
          if power is None:
             raise "Cannot modify systems without specifying power option"
-         remote.modify_system(system_id, "power", power, token)
-         remote.save_system(system_id, token, "edit")
+         try:
+            remote.power_system(system_id, power, token)
+         except:
+            # TODO: something besides ignore.  We should probably
+            #       print out an error message at the top of whatever
+            #       page we go to next, whether it's the system list 
+            #       or a results page
+            pass
       else:
          raise "Unknowm multiple operation on systems: %s" % str(multi_mode)
       
-   #return HttpResponse("doing multi: " + str(multi_mode) + " on " + str(items))
    return HttpResponseRedirect("/cobbler_web/system/list")
 
 def repo_list(request, repos=None, page=0):
