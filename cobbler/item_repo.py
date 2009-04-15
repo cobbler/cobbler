@@ -86,7 +86,8 @@ class Repo(item.Item):
         self.set_owners(self.owners)
         self.set_environment(self.environment)
         self.set_arch(self.arch)
-        self._guess_breed()
+        if self.mirror != "":
+           self._guess_breed()
 
         self.uid = self.load_item(seed_data,'uid','')
         if self.uid == '':
@@ -96,7 +97,7 @@ class Repo(item.Item):
 
     def _guess_breed(self):
         # backwards compatibility
-        if (self.breed == "" or self.breed is None) and self.mirror is not None:
+        if (self.breed == "" or self.breed is None):
            if self.mirror.startswith("http://") or self.mirror.startswith("ftp://"):
               self.set_breed("yum")
            elif self.mirror.startswith("rhn://"):
