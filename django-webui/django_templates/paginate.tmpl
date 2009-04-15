@@ -1,32 +1,9 @@
-#if $pages > 0
-    ## USAGE:  # set global what="system" 
-    ##         # include "/path/to/this/file"
+<script language="Javascript" src="/cobbler/webui/paginate.js"></script>
 
-    #if $page != 0
-       #set $previous_page = $page - 1
-       <A HREF="${base_url}?mode=${what}_list&page=${previous_page}&limit=${results_per_page}">&lt;</A>&nbsp;
-    #else
-       &lt; 
-    #end if
-
-    <select onchange="location = this.options[this.selectedIndex].value;">
-    #for $this_page in range(0,$pages+1)
-       #if $this_page != $page
-           #set doselect = " "
-       #else
-           #set doselect = " selected " 
-       #end if
-       <option value="${base_url}?mode=${what}_list&page=${this_page}&limit=${results_per_page}" ${doselect} >Page ${this_page}</option>
-    #end for
-    </select>
-
-    #if $page != $pages
-       #set $next_page = $page + 1
-       <A HREF="${base_url}?mode=${what}_list&page=${next_page}&limit=${results_per_page}">&gt;</A>
-    #else
-       &gt;
-    #end if
-
-    <br/>
-    <br/>
-#end if
+<p>
+{% if prev_page %}<a href="/cobbler_web/{{ what }}/list/{{ prev_page }}">&lt;</a>{% else %}&lt;{% endif %}
+<select name="page" id="page" onchange="javascript:page_navigate('{{ what }}',this.value);">
+{% for p in pages %}<option value="{{ p }}"{% ifequal page p %} selected{% endifequal %}>Page {{ p }}</option>{% endfor %}
+</select>
+{% if next_page %}<a href="/cobbler_web/{{ what }}/list/{{ next_page }}">&gt;</a>{% else %}&gt;{% endif %}
+</p>

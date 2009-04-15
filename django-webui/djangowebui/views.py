@@ -48,11 +48,45 @@ def dosearch(request, what):
    else:
       raise "internal error, unknown search type"
 
-def distro_list(request, distros=None):
+def __setup__pagination(object_list, page):
+   prev_page = page - 1
+   next_page = page + 1
+
+   num_pages = (len(object_list)-1)/50 + 1
+   if num_pages > 1:
+      offset = (page-1) * 50
+      ending = offset + 50
+      if ending > len(object_list):
+         ending = len(object_list)
+   else:
+      offset = 0
+      ending = len(object_list)
+
+   if prev_page < 1:
+      prev_page = None
+   if next_page > num_pages:
+      next_page = None
+
+   return (num_pages,prev_page,next_page,offset,ending)
+
+
+def distro_list(request, distros=None, page=None):
    if distros is None:
       distros = remote.get_distros(token)
+
+   if page is None and len(distros) > 50:
+      return HttpResponseRedirect('/cobbler_web/distro/list/1')
+   page = int(page)
+   if page < 1:
+      page = 1
+
+   (num_pages,prev_page,next_page,offset,ending) = __setup__pagination(distros,page)
+
+   if offset > len(distros):
+      return HttpResponseRedirect('/cobbler_web/distro/list/%d' % num_pages)
+
    t = get_template('distro_list.tmpl')
-   html = t.render(Context({'distros': distros}))
+   html = t.render(Context({'what':'distro', 'distros': distros[offset:ending], 'page': page, 'pages': range(1,num_pages+1), 'next_page':next_page, 'prev_page':prev_page}))
    return HttpResponse(html)
 
 def distro_edit(request, distro_name=None):
@@ -109,9 +143,21 @@ def distro_save(request):
 
       return HttpResponseRedirect('/cobbler_web/distro/edit/%s' % distro_name)
 
-def profile_list(request, profiles=None):
+def profile_list(request, profiles=None, page=0):
    if profiles is None:
       profiles = remote.get_profiles(token)
+
+   if page is None and len(profiles) > 50:
+      return HttpResponseRedirect('/cobbler_web/profile/list/1')
+   page = int(page)
+   if page < 1:
+      page = 1
+
+   (num_pages,prev_page,next_page,offset,ending) = __setup__pagination(profiles,page)
+
+   if offset > len(profiles):
+      return HttpResponseRedirect('/cobbler_web/profile/list/%d' % num_pages)
+
    for profile in profiles:
       if profile["kickstart"]:
          if profile["kickstart"].startswith("http://") or profile["kickstart"].startswith("ftp://"):
@@ -119,7 +165,7 @@ def profile_list(request, profiles=None):
          elif profile["kickstart"].startswith("nfs://"):
             profile["nfs_kickstart"] = profile.kickstart
    t = get_template('profile_list.tmpl')
-   html = t.render(Context({'profiles': profiles}))
+   html = t.render(Context({'what':'profile', 'profiles': profiles[offset:ending], 'page': page, 'pages': range(1,num_pages+1), 'next_page':next_page, 'prev_page':prev_page}))
    return HttpResponse(html)
 
 def profile_edit(request, profile_name=None, subprofile=0):
@@ -186,11 +232,23 @@ def profile_save(request):
 
       return HttpResponseRedirect('/cobbler_web/profile/edit/%s' % profile_name)
 
-def system_list(request, systems=None):
+def system_list(request, systems=None, page=0):
    if systems is None:
       systems = remote.get_systems(token)
+
+   if page is None and len(systems) > 50:
+      return HttpResponseRedirect('/cobbler_web/system/list/1')
+   page = int(page)
+   if page < 1:
+      page = 1
+
+   (num_pages,prev_page,next_page,offset,ending) = __setup__pagination(systems,page)
+
+   if offset > len(systems):
+      return HttpResponseRedirect('/cobbler_web/system/list/%d' % num_pages)
+
    t = get_template('system_list.tmpl')
-   html = t.render(Context({'systems': systems}))
+   html = t.render(Context({'what':'system', 'systems': systems[offset:ending], 'page': page, 'pages': range(1,num_pages+1), 'next_page':next_page, 'prev_page':prev_page}))
    return HttpResponse(html)
 
 def system_edit(request, system_name=None, editmode="new"):
@@ -319,11 +377,11 @@ def system_domulti(request, multi_mode=None):
    #return HttpResponse("doing multi: " + str(multi_mode) + " on " + str(items))
    return HttpResponseRedirect("/cobbler_web/system/list")
 
-def repo_list(request, repos=None):
+def repo_list(request, repos=None, page=0):
    if repos is None:
       repos = remote.get_repos(token)
    t = get_template('repo_list.tmpl')
-   html = t.render(Context({'repos': repos}))
+   html = t.render(Context({'what':'repo', 'repos': repos}))
    return HttpResponse(html)
 
 def repo_edit(request, repo_name=None):
@@ -336,11 +394,11 @@ def repo_edit(request, repo_name=None):
    html = t.render(Context({'repo': repo, 'available_arches': available_arches, 'available_breeds': available_breeds, "editable":True}))
    return HttpResponse(html)
 
-def image_list(request, images=None):
+def image_list(request, images=None, page=0):
    if images is None:
       images = remote.get_images(token)
    t = get_template('image_list.tmpl')
-   html = t.render(Context({'images': images}))
+   html = t.render(Context({'what':'image', 'images': images}))
    return HttpResponse(html)
 
 def image_edit(request, image_name=None):
@@ -353,10 +411,10 @@ def image_edit(request, image_name=None):
    html = t.render(Context({'image': image, 'available_arches': available_arches, 'available_breeds': available_breeds, "editable":True}))
    return HttpResponse(html)
 
-def ksfile_list(request):
+def ksfile_list(request, page=0):
    ksfiles = remote.get_kickstart_templates(token)
    t = get_template('ksfile_list.tmpl')
-   html = t.render(Context({'ksfiles': ksfiles}))
+   html = t.render(Context({'what':'ksfile', 'ksfiles': ksfiles}))
    return HttpResponse(html)
 
 def ksfile_edit(request, ksfile_name=None):
