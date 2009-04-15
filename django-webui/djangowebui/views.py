@@ -348,18 +348,18 @@ def system_multi(request, multi_mode=None):
 
 def system_domulti(request, multi_mode=None):
    items = request.POST.get('items', '').split(" ")
-   netboot = request.POST.get('netboot', None)
+   netboot_enabled = request.POST.get('netboot_enabled', None)
    profile = request.POST.get('profile', None)
-   power   = request.POST.get('power', None)
+   power = request.POST.get('power', None)
 
    for system_name in items:
-      system_id = remote.get_system(system_name, token)
+      system_id = remote.get_system_handle(system_name, token)
       if multi_mode == "delete":
          remote.remove_system(system_name, token)
       elif multi_mode == "netboot":
-         if netboot is None:
+         if netboot_enabled is None:
             raise "Cannot modify systems without specifying netboot_enabled"
-         remote.modify_system(system_id, "netboot_enabled", netboot, token)
+         remote.modify_system(system_id, "netboot_enabled", netboot_enabled, token)
          remote.save_system(system_id, token, "edit")
       elif multi_mode == "profile":
          if profile is None:

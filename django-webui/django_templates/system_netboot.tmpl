@@ -1,18 +1,8 @@
 {% extends "master.tmpl" %}
 
 {% block content %}
-<script language="Javascript">
-function submit_netboot(value)
-{
-    document.getElementById("netboot").value=value;
-    document.myform.submit();
-}
-</script>
 
 <form name="myform" method="post" action="/cobbler_web/system/netboot/domulti">
-    <input type="hidden" name="targetlist" id="targetlist" value="$targetlist"/>
-    <input type="hidden" name="netboot" id="netboot" value="0"/>
-
     <table class="sortable">
     <thead>
         <caption>Change netboot of the following systems</caption>
@@ -22,37 +12,23 @@ function submit_netboot(value)
         </tr>
     </thead>
     <tbody>
-        #set $evenodd = 1
-        #for $system in $systems
-        #if $evenodd % 2 == 0
-            #set $tr_class = "roweven"
-        #else
-            #set $tr_class = "rowodd"
-        #end if
-        #set $evenodd += 1
-
-        <tr class="$tr_class">
-            <td>
-                ${system.name}
-            </td>
-
-            <td>
-                #if str($system.netboot_enabled) != "False"
-                    Yes
-                #else
-                    No
-    	        #end if
-            </td>
-
+        {% for system in systems %}
+        <tr class="{% cycle 'rowodd' 'roweven' %}">
+            <td>{{ system.name }}</td>
+            <td>{% if system.netboot_enabled %}Yes{% else %}No{% endif %}</td>
         </tr>
-        #end for
+        {% endfor %}
     </tbody>
     </table>
 
     </p>
 
-    <input type="button" name="pxeenable" onclick="javascript:submit_netboot(1)" value="Enable Netboot"/>
-    <input type="button" name="pxedisable" onclick="javascript:submit_netboot(0)" value="Disable Netboot"/>
+    <input type="hidden" name="items" value="{{ items|join:" " }}" />
+    <p>
+    <input type="radio" name="netboot_enabled" value="1">Enable Netboot</input>
+    <input type="radio" name="netboot_enabled" value="0">Disable Netboot</input>
+    </p>
+    <input type="submit" name="submit" value="Submit"/>
     <input type="button" name="cancel" onclick="javascript:history.go(-1)" value="Cancel"/>
 </form>
 {% endblock content %}
