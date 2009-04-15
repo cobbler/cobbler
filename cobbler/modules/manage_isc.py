@@ -222,13 +222,15 @@ class IscManager:
 
                 # add references to the system, profile, and distro
                 # for use in the template
-                if blender_cache.has_key(interface["name"]):
-                    blended_system = blender_cache[interface["name"]]
+                if blender_cache.has_key(host):
+                    blended_system = blender_cache[host]
                 else:
                     blended_system  = utils.blender( self.api, False, system )
+                    blender_cache[host] = blended_system
 
                 interface["next_server"] = blended_system["server"]
                 interface["netboot_enabled"] = blended_system["netboot_enabled"]
+                interface["hostname"] = blended_system["hostname"]
 
                 interface["filename"] = "/pxelinux.0"
                 # can't use pxelinux.0 anymore
