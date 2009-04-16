@@ -19,7 +19,7 @@ def register():
     return "/var/lib/cobbler/triggers/change/*"
 
 def scall(args):
-    op = sub_process.Popen(args, shell=False, stdout=sub_process.PIPE, stderr=sub_process.PIPE)
+    op = sub_process.Popen(args, shell=False, close_fds=True, stdout=sub_process.PIPE, stderr=sub_process.PIPE)
     op.communicate()
     
 
