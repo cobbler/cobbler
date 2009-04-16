@@ -5,11 +5,15 @@ Name: cobbler
 AutoReq: no
 Version: 1.7.0
 Release: 1%{?dist}
+ExclusiveArch: %{ix86} x86_64 ppc ppc64 s390x
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
 Requires: python >= 2.3
 Requires: python-urlgrabber
+%ifarch %{ix86} x86_64
+Requires: syslinux
+%endif
 %if 0%{?suse_version} >= 1000
 Requires: apache2
 Requires: apache2-mod_python
@@ -51,9 +55,6 @@ BuildRequires: python-setuptools-devel
 BuildRequires: python-setuptools
 %endif
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-BuildArch: noarch
-ExcludeArch: ppc
-ExcludeArch: ppc64
 Url: http://cobbler.et.redhat.com
 
 %description
