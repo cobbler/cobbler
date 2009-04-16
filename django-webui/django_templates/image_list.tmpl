@@ -1,11 +1,6 @@
-#extends cobbler.webui.master
-
-#block body
-
-    ## ==== BEGIN PAGE NAVIGATION ====
-    #set global what="image"
-    #include "/usr/share/cobbler/webui_templates/paginate.tmpl"
-    ## ==== END PAGE NAVIGATION ====
+{% extends 'master.tmpl' %}
+{% block content %}
+{% include 'paginate.tmpl' %}
 
 <table class="sortable">
 
@@ -17,25 +12,16 @@
         </tr>
     </thead>
     <tbody>
-        #set $evenodd = 1
-        #for $image in $images
-        #if $evenodd % 2 == 0
-            #set $tr_class = "roweven"
-        #else
-            #set $tr_class = "rowodd"
-        #end if
-        #set $evenodd += 1
-
-        <tr class="$tr_class">
-            <td>
-                <a href="$base_url?mode=image_edit&name=${image.name}">${image.name}</a>
-            </td>
-            <td> 
-                ${image.file}
-            </td>
+        {% if images %}
+        {% for image in images %}
+        <tr class="{% cycle 'rowodd' 'roweven' %}">
+            <td><a href="/cobbler_web/image/edit/{{ image.name }}">{{ image.name }}</a></td>
+            <td>{{ image.file }}</td>
         </tr>
-
-        #end for
+        {% endfor %}
+        {% else %}
+        <tr><td colspan="2">No images found.</td></tr>
+        {% endif %}
     </tbody>
 </table>
-#end block body
+{% endblock content %}

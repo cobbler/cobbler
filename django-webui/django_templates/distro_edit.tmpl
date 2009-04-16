@@ -1,5 +1,4 @@
 {% extends "master.tmpl" %}
-
 {% block content %}
 
 {% if distro %}
@@ -14,17 +13,9 @@ function disablename(value)
 </script>
 {% endif %}
 
-{% comment %}
-#if $editable != True
-#set global $owners = $distro.owners
-#include "/usr/share/cobbler/webui_templates/enoaccess.tmpl"
-#end if
-{% endcomment %}
-
 <form method="POST" action="/cobbler_web/distro/save">
 <fieldset id="cform">
 
-     
     {% if distro %}
         <legend>Editing Distro</legend>
         <input type="hidden" name="new_or_edit" value="edit"/>

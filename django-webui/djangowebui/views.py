@@ -506,17 +506,61 @@ def image_list(request, images=None, page=None):
    return HttpResponse(html)
 
 def image_edit(request, image_name=None):
-   available_arches = ['i386','x86','x86_64','ppc','ppc64','s390','s390x','ia64']
+   available_arches = ['i386','x86_64']
    available_breeds = [['redhat','Red Hat Based'], ['debian','Debian'], ['ubuntu','Ubuntu'], ['suse','SuSE']]
+   available_virttypes = [['auto','Any'],['xenpv','Xen(pv)'],['xenfv','Xen(fv)'],['qemu','KVM/qemu'],['vmware','VMWare Server'],['vmwarew','VMWare WkStn']]
+   available_imagetypes = ['direct','iso','memdisk','virt-clone']
+
    image = None
    if not image_name is None:
       image = remote.get_image(image_name, True, token)
+      image['ctime'] = time.ctime(image['ctime'])
+      image['mtime'] = time.ctime(image['mtime'])
    t = get_template('image_edit.tmpl')
-   html = t.render(Context({'image': image, 'available_arches': available_arches, 'available_breeds': available_breeds, "editable":True}))
+   html = t.render(Context({'image': image, 'available_arches': available_arches, 'available_breeds': available_breeds, 'available_virttypes': available_virttypes, 'available_imagetypes': available_imagetypes, "editable":True}))
    return HttpResponse(html)
 
 def image_save(request):
-   return HttpResponse("IMAGE SAVE")
+   # FIXME: error checking
+   field_list = ('name','image_type','breed','os_version','arch','file','owners','virt_cpus','network_count','virt_file_size','virt_path','virt_bridge','virt_ram','virt_type','virt_auto_boot','comment')
+
+   editmode = request.POST.get('editmode', 'edit')
+   image_name = request.POST.get('name', request.POST.get('oldname', None))
+   image_oldname = request.POST.get('oldname', None)
+
+   if image_name == None:
+      return HttpResponse("NO SYSTEM NAME SPECIFIED")
+
+   if editmode == 'copy':
+      image_id = remote.new_image(token)
+   else:
+      if editmode == 'edit':
+         image_id = remote.get_image_handle(image_name, token)
+      else:
+         if image_name == image_oldname:
+            return HttpResponse("The name was not changed, cannot %s" % editmode)
+         image_id = remote.get_image_handle(image_oldname, token)
+
+   delete1   = request.POST.get('delete1', None)
+   delete2   = request.POST.get('delete2', None)
+   recursive = request.POST.get('recursive', False)
+
+   if delete1 and delete2:
+      remote.remove_image(image_name, token, recursive)
+      return HttpResponseRedirect('/cobbler_web/image/list')
+   else:
+      for field in field_list:
+         value = request.POST.get(field, None)
+         if field == 'name' and editmode == 'rename': continue
+         elif value != None:
+            remote.modify_image(image_id, field, value, token)
+
+      remote.save_image(image_id, token, editmode)
+
+      if editmode == 'rename':
+         remote.rename_image(image_id, image_name, token)
+
+      return HttpResponseRedirect('/cobbler_web/image/edit/%s' % image_name)
 
 def ksfile_list(request, page=None):
    ksfiles = remote.get_kickstart_templates(token)
