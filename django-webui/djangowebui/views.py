@@ -80,8 +80,12 @@ def distro_list(request, distros=None, page=None):
 
    if page is None and len(distros) > 50:
       return HttpResponseRedirect('/cobbler_web/distro/list/1')
-   page = int(page)
-   if page < 1:
+
+   try:
+      page = int(page)
+      if page < 1:
+         page = 1
+   except:
       page = 1
 
    (num_pages,prev_page,next_page,offset,ending) = __setup__pagination(distros,page)
@@ -147,14 +151,18 @@ def distro_save(request):
 
       return HttpResponseRedirect('/cobbler_web/distro/edit/%s' % distro_name)
 
-def profile_list(request, profiles=None, page=0):
+def profile_list(request, profiles=None, page=None):
    if profiles is None:
       profiles = remote.get_profiles(token)
 
    if page is None and len(profiles) > 50:
       return HttpResponseRedirect('/cobbler_web/profile/list/1')
-   page = int(page)
-   if page < 1:
+
+   try:
+      page = int(page)
+      if page < 1:
+         page = 1
+   except:
       page = 1
 
    (num_pages,prev_page,next_page,offset,ending) = __setup__pagination(profiles,page)
@@ -236,14 +244,18 @@ def profile_save(request):
 
       return HttpResponseRedirect('/cobbler_web/profile/edit/%s' % profile_name)
 
-def system_list(request, systems=None, page=0):
+def system_list(request, systems=None, page=None):
    if systems is None:
       systems = remote.get_systems(token)
 
    if page is None and len(systems) > 50:
       return HttpResponseRedirect('/cobbler_web/system/list/1')
-   page = int(page)
-   if page < 1:
+
+   try:
+      page = int(page)
+      if page < 1:
+         page = 1
+   except:
       page = 1
 
    (num_pages,prev_page,next_page,offset,ending) = __setup__pagination(systems,page)
@@ -390,28 +402,107 @@ def system_domulti(request, multi_mode=None):
       
    return HttpResponseRedirect("/cobbler_web/system/list")
 
-def repo_list(request, repos=None, page=0):
+def repo_list(request, repos=None, page=None):
    if repos is None:
       repos = remote.get_repos(token)
+
+   if page is None and len(repos) > 50:
+      return HttpResponseRedirect('/cobbler_web/repo/list/1')
+
+   try:
+      page = int(page)
+      if page < 1:
+         page = 1
+   except:
+      page = 1
+
+   (num_pages,prev_page,next_page,offset,ending) = __setup__pagination(repos,page)
+
+   if offset > len(repos):
+      return HttpResponseRedirect('/cobbler_web/repo/list/%d' % num_pages)
+
    t = get_template('repo_list.tmpl')
-   html = t.render(Context({'what':'repo', 'repos': repos}))
+   html = t.render(Context({'what':'repo', 'repos': repos[offset:ending], 'page': page, 'pages': range(1,num_pages+1), 'next_page':next_page, 'prev_page':prev_page}))
    return HttpResponse(html)
 
 def repo_edit(request, repo_name=None):
-   available_arches = ['i386','x86','x86_64','ppc','ppc64','s390','s390x','ia64']
-   available_breeds = [['redhat','Red Hat Based'], ['debian','Debian'], ['ubuntu','Ubuntu'], ['suse','SuSE']]
+   available_arches = ['i386','x86','x86_64','ppc','ppc64','s390','s390x','ia64','noarch','src']
    repo = None
    if not repo_name is None:
       repo = remote.get_repo(repo_name, True, token)
+      repo['ctime'] = time.ctime(repo['ctime'])
+      repo['mtime'] = time.ctime(repo['mtime'])
    t = get_template('repo_edit.tmpl')
-   html = t.render(Context({'repo': repo, 'available_arches': available_arches, 'available_breeds': available_breeds, "editable":True}))
+   html = t.render(Context({'repo': repo, 'available_arches': available_arches, "editable":True}))
    return HttpResponse(html)
 
-def image_list(request, images=None, page=0):
+def repo_save(request):
+   # FIXME: error checking
+   field_list = ('name','mirror','keep_updated','priority','mirror_locally','rpm_list','createrepo_flags','arch','yumopts','environment','owners','comment')
+
+   editmode = request.POST.get('editmode', 'edit')
+   repo_name = request.POST.get('name', request.POST.get('oldname', None))
+   repo_oldname = request.POST.get('oldname', None)
+
+   if repo_name == None:
+      return HttpResponse("NO SYSTEM NAME SPECIFIED")
+
+   if editmode == 'copy':
+      repo_id = remote.new_repo(token)
+   else:
+      if editmode == 'edit':
+         repo_id = remote.get_repo_handle(repo_name, token)
+      else:
+         if repo_name == repo_oldname:
+            return HttpResponse("The name was not changed, cannot %s" % editmode)
+         repo_id = remote.get_repo_handle(repo_oldname, token)
+
+   delete1   = request.POST.get('delete1', None)
+   delete2   = request.POST.get('delete2', None)
+
+   if delete1 and delete2:
+      remote.remove_repo(repo_name, token)
+      return HttpResponseRedirect('/cobbler_web/repo/list')
+   else:
+      for field in field_list:
+         value = request.POST.get(field, None)
+         if field == 'name' and editmode == 'rename': continue
+         elif field in ('keep_updated','mirror_locally'):
+            if field in request.POST:
+               remote.modify_repo(repo_id, field, "1", token)
+            else:
+               remote.modify_repo(repo_id, field, "0", token)
+         elif value != None:
+            remote.modify_repo(repo_id, field, value, token)
+
+      remote.save_repo(repo_id, token, editmode)
+
+      if editmode == 'rename':
+         remote.rename_repo(repo_id, repo_name, token)
+
+      return HttpResponseRedirect('/cobbler_web/repo/edit/%s' % repo_name)
+
+def image_list(request, images=None, page=None):
    if images is None:
       images = remote.get_images(token)
+
+   if page is None and len(images) > 50:
+      return HttpResponseRedirect('/cobbler_web/image/list/1')
+
+   try:
+      page = int(page)
+      if page < 1:
+         page = 1
+   except:
+      page = 1
+
+   (num_pages,prev_page,next_page,offset,ending) = __setup__pagination(images,page)
+
+   if offset > len(images):
+      return HttpResponseRedirect('/cobbler_web/image/list/%d' % num_pages)
+
    t = get_template('image_list.tmpl')
-   html = t.render(Context({'what':'image', 'images': images}))
+   html = t.render(Context({'what':'image', 'images': images[offset:ending], 'page': page, 'pages': range(1,num_pages+1), 'next_page':next_page, 'prev_page':prev_page}))
    return HttpResponse(html)
 
 def image_edit(request, image_name=None):
@@ -424,10 +515,29 @@ def image_edit(request, image_name=None):
    html = t.render(Context({'image': image, 'available_arches': available_arches, 'available_breeds': available_breeds, "editable":True}))
    return HttpResponse(html)
 
-def ksfile_list(request, page=0):
+def image_save(request):
+   return HttpResponse("IMAGE SAVE")
+
+def ksfile_list(request, page=None):
    ksfiles = remote.get_kickstart_templates(token)
+
+   if page is None and len(ksfiles) > 50:
+      return HttpResponseRedirect('/cobbler_web/ksfiles/list/1')
+
+   try:
+      page = int(page)
+      if page < 1:
+         page = 1
+   except:
+      page = 1
+
+   (num_pages,prev_page,next_page,offset,ending) = __setup__pagination(ksfiles,page)
+
+   if offset > len(ksfiles):
+      return HttpResponseRedirect('/cobbler_web/ksfiles/list/%d' % num_pages)
+
    t = get_template('ksfile_list.tmpl')
-   html = t.render(Context({'what':'ksfile', 'ksfiles': ksfiles}))
+   html = t.render(Context({'what':'ksfile', 'ksfiles': ksfiles[offset:ending], 'page': page, 'pages': range(1,num_pages+1), 'next_page':next_page, 'prev_page':prev_page}))
    return HttpResponse(html)
 
 def ksfile_edit(request, ksfile_name=None):
@@ -441,6 +551,9 @@ def ksfile_edit(request, ksfile_name=None):
    html = t.render(Context({'ksfile': ksfile, 'available_arches': available_arches, 'available_breeds': available_breeds, "editable":True}))
    """
    return HttpResponse("NOT IMPLEMENTED YET")
+
+def ksfile_save(request):
+   return HttpResponse("KSFILE SAVE")
 
 def random_mac(request, virttype="xenpv"):
    random_mac = remote.get_random_mac(virttype, token)
