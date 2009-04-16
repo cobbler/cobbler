@@ -580,25 +580,61 @@ def ksfile_list(request, page=None):
    if offset > len(ksfiles):
       return HttpResponseRedirect('/cobbler_web/ksfiles/list/%d' % num_pages)
 
+   ksfile_list = []
+   for ksfile in ksfiles:
+      if ksfile.startswith("/var/lib/cobbler/kickstarts") or ksfile.startswith("/etc/cobbler"):
+         ksfile_list.append((ksfile,'editable'))
+      elif ksfile["kickstart"].startswith("http://") or ksfile["kickstart"].startswith("ftp://"):
+         ksfile_list.append((ksfile,'viewable'))
+      else:
+         ksfile_list.append((ksfile,None))
+
    t = get_template('ksfile_list.tmpl')
-   html = t.render(Context({'what':'ksfile', 'ksfiles': ksfiles[offset:ending], 'page': page, 'pages': range(1,num_pages+1), 'next_page':next_page, 'prev_page':prev_page}))
+   html = t.render(Context({'what':'ksfile', 'ksfiles': ksfile_list[offset:ending], 'page': page, 'pages': range(1,num_pages+1), 'next_page':next_page, 'prev_page':prev_page}))
    return HttpResponse(html)
 
-def ksfile_edit(request, ksfile_name=None):
-   """
-   available_arches = ['i386','x86','x86_64','ppc','ppc64','s390','s390x','ia64']
-   available_breeds = [['redhat','Red Hat Based'], ['debian','Debian'], ['ubuntu','Ubuntu'], ['suse','SuSE']]
-   ksfile = None
+def ksfile_edit(request, ksfile_name=None, editmode='edit'):
+   if editmode == 'edit':
+      editable = False
+   else:
+      editable = True
+   deleteable = False
+   ksdata = ""
    if not ksfile_name is None:
-      ksfile = remote.get_ksfile(ksfile_name, True, token)
+      editable = remote.check_access_no_fail(token, "modify_kickstart", ksfile_name)
+      deleteable = remote.is_kickstart_in_use(ksfile_name, token)
+      ksdata = remote.read_or_write_kickstart_template(ksfile_name, True, "", token)
+
    t = get_template('ksfile_edit.tmpl')
-   html = t.render(Context({'ksfile': ksfile, 'available_arches': available_arches, 'available_breeds': available_breeds, "editable":True}))
-   """
-   return HttpResponse("NOT IMPLEMENTED YET")
+   html = t.render(Context({'ksfile_name':ksfile_name, 'deleteable':deleteable, 'ksdata':ksdata, 'editable':editable, 'editmode':editmode}))
+   return HttpResponse(html)
 
 def ksfile_save(request):
-   return HttpResponse("KSFILE SAVE")
+   # FIXME: error checking
+
+   editmode = request.POST.get('editmode', 'edit')
+   ksfile_name = request.POST.get('ksfile_name', None)
+   ksdata = request.POST.get('ksdata', "")
+
+   if ksfile_name == None:
+      return HttpResponse("NO KSFILE NAME SPECIFIED")
+   if editmode != 'edit':
+      ksfile_name = "/var/lib/cobbler/kickstarts/" + ksfile_name
+
+   delete1   = request.POST.get('delete1', None)
+   delete2   = request.POST.get('delete2', None)
+
+   if delete1 and delete2:
+      remote.read_or_write_kickstart_template(ksfile_name, False, -1, token)
+      return HttpResponseRedirect('/cobbler_web/ksfile/list')
+   else:
+      remote.read_or_write_kickstart_template(ksfile_name,False,ksdata,token)
+      return HttpResponseRedirect('/cobbler_web/ksfile/edit/%s' % ksfile_name)
 
 def random_mac(request, virttype="xenpv"):
    random_mac = remote.get_random_mac(virttype, token)
    return HttpResponse(random_mac)
+
+def dosync(request):
+   remote.sync(token)
+   return HttpResponseRedirect("/cobbler_web/")

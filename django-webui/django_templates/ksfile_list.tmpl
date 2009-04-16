@@ -1,6 +1,5 @@
-#extends cobbler.webui.master
-
-#block body
+{% extends 'master.tmpl' %}
+{% block content %}
 <table class="sortable">
     <thead>
         <caption>Cobbler Kickstart Templates</caption>
@@ -10,29 +9,17 @@
         </tr>
     </thead>
     <tbody>
-        #set $evenodd = 1
-        #for $ksfile in $ksfiles
-        <!-- $ksfile -->
-        #if $evenodd % 2 == 0
-            #set $tr_class = "roweven"
-        #else
-            #set $tr_class = "rowodd"
-        #end if
-        #set $evenodd += 1
-
-        <tr class="$tr_class">
-            <td>$ksfile</td>
-            #if $ksfile.startswith("/var/lib/cobbler/kickstarts")
-                <td><a href="$base_url?mode=ksfile_edit&name=$ksfile">edit</a></td>
-            #else if $ksfile.startswith("/etc/cobbler")
-                <td><a href="$base_url?mode=ksfile_edit&name=$ksfile">edit</a></td>
-            #else if $ksfile.startswith("http://")
-                <td><a href="$ksfile">view</A></td>
-            #else
-                <td>N/A</td>
-            #end if 
+        {% for ksfile,option in ksfiles %}
+        <tr class="{% cycle 'rowodd' 'roweven' %}">
+            <td>{{ ksfile }}</td>
+            {% if option %}
+            {% ifequal option "editable" %}<td><a href="/cobbler_web/ksfile/edit/{{ ksfile }}">edit</a></td>{% endifequal %}
+            {% ifequal option "viewable" %}<td><a href="{{ ksfile }}">view</a></td>{% endifequal %}
+            {% else %}
+            <td>N/A</td>
+            {% endif %}
         </tr>
-        #end for
+        {% endfor %}
     </tbody>
 </table>
-#end block body
+{% endblock content %}

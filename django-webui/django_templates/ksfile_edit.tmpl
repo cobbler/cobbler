@@ -1,9 +1,7 @@
-#extends cobbler.webui.master
-##attr $title = "Cobbler: Edit Kickstart File $ksfile"
+{% extends 'master.tmpl' %}
+{% block content %}
 
-#block body
-
-#if $editable != True
+{% if not editable %}
 <blockquote>
 NOTE: You do not have permission to make changes to this
 kickstart template and can only read it.  It is possible that
@@ -14,52 +12,59 @@ you do not have access to.  Alternatively, you may not have access
 to edit *any* kickstart templates.  Contact your Cobbler server administrator
 if you need to resolve this.
 </blockquote>
-</br>
-#end if
+<br />
+{% endif %}
 
-<form method="post" action="$base_url?mode=ksfile_save">
-    <input type="hidden" name="name" value="$name"/>
+<form method="post" action="/cobbler_web/ksfile/save">
     <fieldset id="cform">
-    <legend>Edit Kickstart Template</legend>
+    <legend>{% ifequal editmode 'edit' %}Edit{% else %}Create New{% endifequal %} Kickstart Template</legend>
 
     <table>
-    <tr><td colspan="2">
-    <label for="ksdata">Editing: $name</label>
-    <td></tr> 
+    <tr>
+     <td colspan="2">
+     <label for="ksdata">{% if ksfile_name %}Editing: {{ ksfile_name }}{% else %}Filename:{% endif %}</label>
+     {% ifnotequal editmode 'edit' %}
+     <input type="text" size="128" style="width: 300px;" name="ksfile_name" id="ksfile_name" />
+     <p class="context-tip">Example:  foo.ks (to be saved in /var/lib/cobbler/kickstarts/)</p>
+     {% else %}
+     <input type="hidden" name="ksfile_name" value="{{ ksfile_name }}"/>
+     {% endifnotequal %}
+     <td>
+    </tr> 
     
-    <tr><td colspan="2">
-
-        <pre><textarea rows="40" cols="120" name="ksdata" id="ksdata">$ksdata</textarea></pre>
-        <br/>
-
-    </td></tr>
-       
-
-    #if $deleteable
-    <tr><td>
-    <label>Delete</label>
-    </td>
-    <td>
-    <input type="checkbox" name="delete1" value="delete1">Yes
-    <input type="checkbox" name="delete2" value="delete2">Really
-    <p class="context-tip">Check both buttons and click save to delete this object</p>
-    </td></tr>
-    #else
-    <tr><td colspan="2">
-    NOTE: This kickstart template is currently in-use.
-    </td></tr>
-    #end if
-
-    <tr><td colspan="2">
-        #if $editable == True
-            <input type="submit" name="submit" value="Save"/>
-            <input type="reset" name="reset" value="Reset"/>
-
-        #end if
-    </td></tr>
+    <tr>
+     <td colspan="2">
+      <pre><textarea rows="40" cols="120" name="ksdata" id="ksdata">{{ ksdata }}</textarea></pre>
+      <br/>
+     </td>
+    </tr>
+    {% if deleteable %}
+    <tr>
+     <td>
+     <label>Delete</label>
+     </td>
+     <td>
+     <input type="checkbox" name="delete1" value="delete1">Yes</input>
+     <input type="checkbox" name="delete2" value="delete2">Really</input>
+     <p class="context-tip">Check both buttons and click save to delete this object</p>
+     </td>
+    </tr>
+    {% else %}
+    <tr>
+     <td colspan="2">NOTE: This kickstart template is currently in-use.</td>
+    </tr>
+    {% endif %}
+    <tr>
+     <td colspan="2">
+      {% if editable %}
+      <input type="hidden" name="editmode" value="{{ editmode }}"/>
+      <input type="submit" name="submit" value="Save"/>
+      <input type="reset" name="reset" value="Reset"/>
+      {% endif %}
+     </td>
+    </tr>
 
     </table>
     </fieldset>
 </form>
-
-#end block body
+{% endblock content %}
