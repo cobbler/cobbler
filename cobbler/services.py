@@ -37,6 +37,7 @@ import remote
 import glob
 import sub_process
 import api as cobbler_api
+import utils
 import os
 import os.path
 
@@ -297,7 +298,7 @@ def __test_setup():
     api.add_image(image)
 
     # perhaps an artifact of the test process?
-    os.system("rm -rf /var/www/cobbler/repo_mirror/repo0")
+    utils.os_system("rm -rf /var/www/cobbler/repo_mirror/repo0")
 
     api.reposync(name="repo0")
 
@@ -347,7 +348,7 @@ def test_services_access():
        fd.write("echo \"TESTING %s type ($1) name ($2) ip ($3)\" >> /var/log/cobbler/kicklog/cobbler_trigger_test\n" % a)
        fd.write("exit 0\n")
        fd.close()
-       os.system("chmod +x %s" % filename)
+       utils.os_system("chmod +x %s" % filename)
 
     urls = [
         "http://127.0.0.1/cblr/svc/op/trig/mode/pre/profile/profile0"

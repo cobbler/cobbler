@@ -29,6 +29,7 @@ import glob
 from utils import _
 import xmlrpclib
 import binascii
+import utils
 
 from server import xmlrpclib2
 import api as cobbler_api
@@ -61,8 +62,8 @@ def regen_ss_file():
     fd = open("/var/lib/cobbler/web.ss","w+")
     fd.write(binascii.hexlify(data))
     fd.close()
-    os.system("chmod 700 /var/lib/cobbler/web.ss")
-    os.system("chown apache /var/lib/cobbler/web.ss")
+    utils.os_system("chmod 700 /var/lib/cobbler/web.ss")
+    utils.os_system("chown apache /var/lib/cobbler/web.ss")
     return 1
 
 def do_xmlrpc_tasks(bootapi, settings, xmlrpc_port):

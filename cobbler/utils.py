@@ -1395,3 +1395,12 @@ if __name__ == "__main__":
     #ctrl_c_ok()
     print get_file_device_path("/mnt/engarchive2/released/F-10/GOLD/Fedora/i386/os/images/pxeboot/vmlinuz")
 
+def os_system(cmd):
+    """
+    os.system doesn't close file descriptors, so this is a wrapper
+    to ensure we never use it.
+    """
+    rc = sub_process.call(cmd, shell=True, close_fds=True)
+    return rc
+
+
