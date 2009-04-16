@@ -267,8 +267,11 @@ class Koan:
             return
     
         if not os.getuid() == 0:
-            print "this operation requires root access"
-            return 3
+            if self.is_virt:
+                print "warning: running as non root"
+            else:
+                print "this operation requires root access"
+                return 3
         
         # if both --profile and --system were ommitted, autodiscover
         if self.is_virt:
