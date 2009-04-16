@@ -1,13 +1,13 @@
 import distutils.sysconfig
 import sys
 import os
-from utils import _
 import traceback
 import cexceptions
 import os
 import sys
 import xmlrpclib
 import cobbler.module_loader as module_loader
+import cobbler.utils as utils
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
@@ -42,14 +42,14 @@ def run(api,args):
     if manage_dhcp != "0":
         if which_dhcp_module == "manage_isc":
             if not omapi_enabled in [ "1", "true", "yes", "y" ] and restart_dhcp:
-                rc = os.system("%s -t -q" % dhcpd_bin)
+                rc = utils.os_system("%s -t -q" % dhcpd_bin)
                 if rc != 0:
                    print "%s -t failed" % dhcpd_bin
                    return 1
-                rc = os.system("%s %s restart" % (restart_bin,dhcpd_init))
+                rc = utils.os_system("%s %s restart" % (restart_bin, dhcpd_init))
         elif which_dhcp_module == "manage_dnsmasq":
             if restart_dhcp:
-                rc = os.system("/sbin/service dnsmasq restart")
+                rc = utils.os_system("/sbin/service dnsmasq restart")
                 has_restarted_dnsmasq = True
         else:
             print "- error: unknown DHCP engine: %s" % which_dhcp_module
@@ -57,9 +57,9 @@ def run(api,args):
 
     if manage_dns != "0" and restart_dns != "0":
         if which_dns_module == "manage_bind":
-            rc = os.system("/sbin/service named restart")
+            rc = utils.os_system("/sbin/service named restart")
         elif which_dns_module == "manage_dnsmasq" and not has_restarted_dnsmasq:
-            rc = os.system("/sbin/service dnsmasq restart")
+            rc = utils.os_system("/sbin/service dnsmasq restart")
         elif which_dns_module == "manage_dnsmasq" and has_restarted_dnsmasq:
             rc = 0
         else:

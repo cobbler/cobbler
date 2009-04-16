@@ -50,7 +50,7 @@ class HardLinker:
 
         print "now hardlinking to save space, this may take some time."
 
-        rc = os.system("/usr/sbin/hardlink -c -v /var/www/cobbler/ks_mirror /var/www/cobbler/repo_mirror")
+        rc = utils.os_system("/usr/sbin/hardlink -c -v /var/www/cobbler/ks_mirror /var/www/cobbler/repo_mirror")
 
         return rc
 
