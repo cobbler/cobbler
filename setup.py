@@ -121,6 +121,7 @@ if __name__ == "__main__":
         logpath2 = logpath + "/kicklog"
         logpath3 = logpath + "/syslog"
         logpath4 = "/var/log/httpd/cobbler"
+        logpath5 = logpath + "/anamon"
 
         setup(
                 name="cobbler",
@@ -260,6 +261,7 @@ if __name__ == "__main__":
                                 (logpath2, []),
                                 (logpath3, []),
 				(logpath4, []),
+				(logpath5, []),
 
                                 # web page directories that we own
                                 (vw_localmirror,    []),
