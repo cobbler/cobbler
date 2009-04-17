@@ -3,14 +3,15 @@ Cobbler CHANGELOG
 - Wed Apr 8 2009 - 1.7.0
 - Development release start
 - (FEAT) network objects
-- (FEAT) better Ubuntu import support
 - (FEAT) add two new default flags to yum reposync (-m and -d) for grabbing comps automatically and also deleting duplicate RPMs
-- (FEAT) ongoing work contributed to improve Debian and Ubuntu support 
+- (FEAT) ongoing work contributed to improve Debian and Ubuntu support (import+pkg)
 - (FEAT) ability to toggle virt auto-boot on/off
 - (BUGF) validate gateway input against python-netaddr
 - (FEAT) --kopts="~foo" --in-place can be used to delete a hash entry without affecting the others, not to be confused with "!foo" to supress it.
 - (BUGF) fixes to "cobbler report" (not cobbler ___ report)
 - (BUGF) debian import changes
+- (FEAT) web app moving to Django
+- (FEAT) deployment APIs and command (SSH+Func+TBD)
 
 - Wed Apr 8 2009 - 1.6.3
 - (BUGF) import with datestamp 0 when .discinfo is not found, do not crash
