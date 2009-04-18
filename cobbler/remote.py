@@ -47,6 +47,7 @@ import item_profile
 import item_system
 import item_repo
 import item_image
+import item_userpref
 from utils import *
 from utils import _
 
@@ -188,6 +189,104 @@ class CobblerXMLRPCInterface:
         else:
            logger = self.logger.info
         logger(msg)
+
+    def __sort(self,data,sort_field=None):
+        sort_fields=["name"]
+        sort_rev=False
+        self._log("XX%s"%sort_field)        
+        if sort_field is not None:
+            if sort_field.startswith("!"):
+                sort_field=sort_field[1:]
+                sort_rev=True
+            sort_fields.insert(0,sort_field)
+        sortdata=[(x.sort_key(sort_fields),x) for x in data]
+        if sort_rev:
+            sortdata.sort(lambda a,b:cmp(b,a))
+        else:
+            sortdata.sort()
+        return [x for (key, x) in sortdata]
+            
+    def __paginate(self,data,page=None,items_per_page=None,token=None):
+        default_page = 1
+        default_items_per_page = 25
+
+        try:
+            page = int(page)
+            if page < 1:
+                page = default_page
+        except:
+            page = default_page
+        try:
+            items_per_page = int(items_per_page)
+            if items_per_page <= 0:
+                items_per_page = default_items_per_page
+        except:
+            items_per_page = default_items_per_page
+
+        num_items = len(data)
+        num_pages = ((num_items-1)/items_per_page)+1
+        if num_pages==0:
+            num_pages=1
+        if page>num_pages:
+            page=num_pages
+        start_item = (items_per_page * (page-1))
+        end_item   = start_item + items_per_page
+        if start_item > num_items:
+            start_item = num_items - 1
+        if end_item > num_items:
+            end_item = num_items
+        data = data[start_item:end_item]
+
+        if page > 1:
+            prev_page = page - 1
+        else:
+            prev_page = None
+        if page < num_pages:
+            next_page = page + 1
+        else:
+            next_page = None
+                        
+        return (data,{
+                'page'        : page,
+                'prev_page'   : prev_page,
+                'next_page'   : next_page,
+                'pages'       : range(1,num_pages+1),
+                'num_pages'   : num_pages,
+                'num_items'   : num_items,
+                'start_item'  : start_item,
+                'end_item'    : end_item,
+                'items_per_page' : items_per_page,
+        })
+
+    def get_item(self, what, name):
+        self._log("get_item(%s,%s)"%(what,name))
+        item=self.api.get_item(what,name)
+        if item is not None:
+            item=item.to_datastruct_with_cache()
+        return self.xmlrpc_hacks(item)
+
+    def get_items(self, what):
+        self._log("get_items(%s)"%what)
+        item = [x.to_datastruct_with_cache() for x in self.api.get_items(what)]
+        return self.xmlrpc_hacks(item)
+
+    def find_items(self, what, matchtype="all", criteria={},sort_field=None):
+        self._log("find_items(%s)"%what)
+        items = self.api.find_items(what,matchtype=matchtype,criteria=criteria)
+        items = self.__sort(items,sort_field)
+        items = [x.to_datastruct_with_cache() for x in items]
+        return self.xmlrpc_hacks(items)
+
+    def find_items_paged(self, what, matchtype="all", criteria={}, sort_field=None, page=None, items_per_page=None):
+        self._log("find_items_paged(%s)"%what)
+        items = self.api.find_items(what,matchtype=matchtype,criteria=criteria)
+        items = self.__sort(items,sort_field)
+        (items,pageinfo) = self.__paginate(items,page,items_per_page)
+        items = [x.to_datastruct_with_cache() for x in items]
+        return self.xmlrpc_hacks({
+            'items'    : items,
+            'pageinfo' : pageinfo
+        })
 
     def get_size(self,collection_name,**rest):
         """
@@ -1085,6 +1184,44 @@ class CobblerXMLRPCInterface:
         self.check_access(token,"hardlink")
         return self.api.hardlink()
 
+    def __get_userpref_obj(self,token):
+        """
+        Returns the userpref attribute (webui/filter/report) as a hash.
+        """
+        name=self.get_user_from_token(token)
+        if name is not None:
+            obj=self.api.get_item("userpref",name)
+            if obj is None:
+                obj = item_userpref.Userpref(self.api._config)
+                obj.name = name
+                self.api.add_userpref(obj)
+        else:
+            raise CX(_("failed to get name from token %s" % token)) 
+        return obj
+
+    def get_userpref(self,token,attribute,arg):
+        """
+        Read userperf of token for attribute.
+        """
+        if not attribute.startswith("get_"):
+            attribute="get_"+attribute
+        self._log("get_userpref",token=token,attribute=attribute)
+        obj=self.__get_userpref_obj(token)
+        self.check_access(token, "get_userpref", obj, attribute)
+        prefdata=self.__call_method(obj, attribute, arg)
+        return self.xmlrpc_hacks(prefdata)
+        
+    def modify_userpref(self,token,attribute,arg):
+        """
+        Modify userperf of token with attribute hash.
+        """
+        self._log("modify_userpref",token=token,attribute=attribute)
+        obj=self.__get_userpref_obj(token)
+        self.check_access(token, "modify_userpref", obj, attribute)
+        if self.__call_method(obj, attribute, arg):
+            self.api.add_userpref(obj)
+        return True
+        
     def new_distro(self,token):
         """
         Creates a new (unconfigured) distro object.  It works something like
@@ -1400,7 +1537,10 @@ class CobblerXMLRPCInterface:
         existing system object handle.
         """
         obj = self.__get_object(object_id)
+        self._log("obj is " + str(obj))
+        self._log("checking access...")
         self.check_access(token, "modify_system", obj, attribute)
+        self._log("access ok, calling method, attribute is %s, arg is %s" % (str(attribute),str(arg)))
         return self.__call_method(obj, attribute, arg)
 
     def modify_repo(self,object_id,attribute,arg,token):
@@ -1544,7 +1684,6 @@ class CobblerXMLRPCInterface:
         self.check_access(token, "deploy", obj)
         rc = self.api.deploy(obj, virt_host=virt_host, virt_group=virt_group)
         return rc
-
 
 
 # *********************************************************************************

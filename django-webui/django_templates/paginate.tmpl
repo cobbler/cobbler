@@ -1,9 +1,11 @@
-<script language="Javascript" src="/cobbler/webui/paginate.js"></script>
-
+{% if pageinfo %}
 <p>
-{% if prev_page %}<a href="/cobbler_web/{{ what }}/list/{{ prev_page }}">&lt;</a>{% else %}&lt;{% endif %}
-<select name="page" id="page" onchange="javascript:page_navigate('{{ what }}',this.value);">
-{% for p in pages %}<option value="{{ p }}"{% ifequal page p %} selected{% endifequal %}>Page {{ p }}</option>{% endfor %}
+{% ifnotequal pageinfo.prev_page "~" %}<a href="/cobbler_web/{{ what }}/list/page/{{ pageinfo.prev_page }}">&lt;</a>{% else %}&lt;{% endifnotequal %}
+<select name="page" id="page" onchange="javascript:location='/cobbler_web/{{ what }}/list/page/'+this.value">
+{% for p in pageinfo.pages %}
+  <option value="{{ p }}"{% ifequal pageinfo.page p %} selected{% endifequal %}>Page {{ p }}</option>
+{% endfor %}
 </select>
-{% if next_page %}<a href="/cobbler_web/{{ what }}/list/{{ next_page }}">&gt;</a>{% else %}&gt;{% endif %}
+{% ifnotequal pageinfo.next_page "~" %}<a href="/cobbler_web/{{ what }}/list/page/{{ pageinfo.next_page }}">&gt;</a>{% else %}&gt;{% endifnotequal %}
 </p>
+{% endif %}

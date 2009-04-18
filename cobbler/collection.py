@@ -36,6 +36,7 @@ import item_distro
 import item_repo
 import item_image
 import item_network
+import item_userpref
 from utils import _
 
 class Collection(serializable.Serializable):
@@ -63,7 +64,13 @@ class Collection(serializable.Serializable):
         """
         self.listing = {}
 
-    def find(self, name=None, return_list=False, no_errors=False, **kargs):
+    def get(self, name):
+        """
+        Return object with name in the collection
+        """
+        return self.listing.get(name.lower(), None)
+        
+    def find(self, name=None, return_list=False, no_errors=False, matchtype="all", **kargs):
         """
         Return first object in the collection that maches all item='value'
         pairs passed, else return None if no objects can be found.
@@ -88,7 +95,7 @@ class Collection(serializable.Serializable):
             return self.listing.get(kargs["name"].lower(), None)
 
         for (name, obj) in self.listing.iteritems():
-            if obj.find_match(kargs, no_errors=no_errors):
+            if obj.find_match(kargs, matchtype=matchtype, no_errors=no_errors):
                 matches.append(obj)
 
         if not return_list:
@@ -338,6 +345,8 @@ class Collection(serializable.Serializable):
                 match = self.api.find_image(ref.name)
             elif isinstance(ref, item_network.Network):
                 match = self.api.find_network(ref.name)
+            elif isinstance(ref, item_userpref.Userprefence):
+                match = self.api.find_userpref(ref.name)
             else:
                 raise CX("internal error, unknown object type")
 

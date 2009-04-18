@@ -273,17 +273,28 @@ class Item(serializable.Serializable):
 	"""
         return False
 
-    def find_match(self,kwargs,no_errors=False):
+    def sort_key(self,sort_fields=[]):
+        data = self.to_datastruct()
+        return [data.get(x,"") for x in sort_fields]
+        
+    def find_match(self,kwargs,matchtype="all",no_errors=False):
         # used by find() method in collection.py
         data = self.to_datastruct()
         for (key, value) in kwargs.iteritems():
             # Allow ~ to negate the compare
             if value is not None and value.startswith("~"):
-                if self.find_match_single_key(data,key,value[1:],no_errors):
-                    return False
+                res=not self.find_match_single_key(data,key,value[1:],no_errors)
             else:
-                if not self.find_match_single_key(data,key,value,no_errors):
+                res=self.find_match_single_key(data,key,value,no_errors)
+                
+            # support match all and match any
+            if res:
+                if matchtype == "any":
+                    return True
+            else:
+                if matchtype == "all":
                     return False
+                
         return True
  
 

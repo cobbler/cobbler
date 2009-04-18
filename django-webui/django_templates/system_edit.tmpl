@@ -396,7 +396,7 @@ function page_onload() {
     <label for="netboot">Netboot Enabled</label>
     </td>
     <td>
-    <input type="checkbox" name="netboot" id="netboot" {% if system and system.netboot_enabled %}checked="true"{% endif %}/>
+    <input type="checkbox" name="netboot_enabled" id="netboot_enabled" {% if system and system.netboot_enabled %}checked="true"{% endif %}/>
     <p class="context-tip">For PXE setups, select to boot the profile below for the system.<br/>De-select to boot the system from local disk.</p>
     </td>
     </tr>

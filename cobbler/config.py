@@ -33,6 +33,7 @@ import item_system as system
 import item_repo as repo
 import item_image as image
 import item_network as network
+import item_userpref as userpref
 
 import collection_distros as distros
 import collection_profiles as profiles
@@ -40,6 +41,7 @@ import collection_systems as systems
 import collection_repos as repos
 import collection_images as images
 import collection_networks as networks
+import collection_userprefs as userprefs
 import modules.serializer_yaml as serializer_yaml
 
 import settings
@@ -79,6 +81,7 @@ class Config:
        self._systems      = systems.Systems(weakref.proxy(self))
        self._images       = images.Images(weakref.proxy(self))
        self._networks     = networks.Networks(weakref.proxy(self))
+       self._userprefs    = userprefs.Userprefs(weakref.proxy(self))
        self._settings     = settings.Settings() # not a true collection
 
    def generate_uid(self):
@@ -142,6 +145,12 @@ class Config:
        """
        return self._networks
 
+   def userprefs(self):
+       """
+       Return the definitive copy of the userprefs collection
+       """
+       return self._userprefs
+
    def new_distro(self,is_subobject=False):
        """
        Create a new distro object with a backreference to this object
@@ -178,6 +187,12 @@ class Config:
        """
        return network.Network(weakref.proxy(self),is_subobject=is_subobject)
 
+   def new_userpref(self,is_subobject=False):
+       """
+       Create a new userpref object...
+       """
+       return userpref.Userpref(weakref.proxy(self),is_subobject=is_subobject)
+
    def clear(self):
        """
        Forget about all loaded configuration data
@@ -189,6 +204,7 @@ class Config:
        self._images.clear()
        self._systems.clear(),
        self._networks.clear(),
+       self._userprefs.clear(),
        return True
 
    def serialize(self):
@@ -201,6 +217,7 @@ class Config:
        serializer.serialize(self._images)
        serializer.serialize(self._systems)
        serializer.serialize(self._networks)
+       serializer.serialize(self._userprefs)
        return True
 
    def serialize_item(self,collection,item):
@@ -231,6 +248,7 @@ class Config:
        serializer.deserialize(self._images)
        serializer.deserialize(self._systems)
        serializer.deserialize(self._networks)
+       serializer.deserialize(self._userprefs)
        return True
 
    def deserialize_raw(self,collection_type):
@@ -245,6 +263,21 @@ class Config:
        """
        return serializer.deserialize_item_raw(collection_type,obj_name)
 
-
-
-
+   def get_items(self,collection_type):
+        if collection_type == "distro":
+            result=self._distros
+        elif collection_type == "profile":
+            result=self._profiles
+        elif collection_type == "system":
+            result=self._systems
+        elif collection_type == "repo":
+            result=self._repos
+        elif collection_type == "image":
+            result=self._images
+        elif collection_type == "network":
+            result=self._networks
+        elif collection_type == "userpref":
+            result=self._userprefs
+        else:
+            raise CX("internal error, collection name %s not supported" % collection_type)
+        return result

@@ -1,17 +1,35 @@
 from django.template.loader import get_template
 from django.template import Context
+from django.template import RequestContext
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
+from mod_python import apache
 
 import xmlrpclib, time
 
 my_uri = "http://127.0.0.1/cobbler_api"
-remote = xmlrpclib.Server(my_uri)
-token = remote.login('testing', 'testing')
+remote = None
+token = None
+username = None
+
+def authenhandler(req):
+    global remote
+    global token
+    global username
+
+    password = req.get_basic_auth_pw()
+    username = req.user     
+    try:
+        remote = xmlrpclib.Server(my_uri, allow_none=True)
+        token = remote.login(username, password)
+        remote.update(token)
+        return apache.OK
+    except:
+        return apache.HTTP_UNAUTHORIZED
 
 def index(request):
    t = get_template('index.tmpl')
-   html = t.render(Context({'version': remote.version(token)}))
+   html = t.render(Context({'version': remote.version(token), 'username':username}))
    return HttpResponse(html)
 
 def search(request, what):
@@ -47,6 +65,52 @@ def dosearch(request, what):
       return repo_list(request, results)
    else:
       raise "internal error, unknown search type"
+
+def list(request, what=None, filter_name=None, sort_field=None, limit=None, page=None):
+    pagename="%s_list" % what
+
+    # Merge and save preferences
+    webuipref = remote.get_userpref(token,"webui",pagename)
+    if sort_field is not None:
+        # if this sort was already applied we need to reverse sort?
+        old_field=webuipref.get("sort_field","")
+        old_revsort=False
+        if old_field.startswith("!"):
+            old_field=old_field[1:]
+            old_revsort=True
+        if old_field == sort_field:
+            old_revsort=not old_revsort
+        if old_revsort:
+            sort_field="!" + sort_field
+        webuipref["sort_field"]=sort_field
+    if filter_name is not None:
+        webuipref["filter"]=filter_name
+    if page is not None:
+        webuipref["page"]=page
+    if limit is not None:
+        webuipref["items_per_page"]=limit
+    remote.modify_userpref(token,"set_webui",webuipref)
+    findmatchtype="all"
+    findcriteria={}
+    if webuipref.has_key("filter"):
+        filter = remote.get_userpref(token,"filter",{'what':what, 'name':webuipref["filter"]})
+        if type(filter)==dict:
+            findmatchtype=filter["matchtype"]
+            findcriteria=filter["criteria"]
+    
+    sort_field=webuipref.get("sort_field",None)
+    page=webuipref.get("page",None)
+    items_per_page=webuipref.get("items_per_page",None)
+
+    pageditems = remote.find_items_paged(what,findmatchtype,findcriteria,sort_field,page,items_per_page)
+
+    t = get_template('%s.tmpl'%pagename)
+    html = t.render(RequestContext(request,{
+        'what'      : what,
+        '%ss'%what  : pageditems["items"],
+        'pageinfo'  : pageditems["pageinfo"]
+    }))
+    return HttpResponse(html)
 
 def __setup__pagination(object_list, page):
    # TODO: currently hardcoded at 50 results per page
@@ -234,7 +298,13 @@ def profile_save(request):
          if field == "distro" and subprofile: continue
          elif field == "parent" and not subprofile: continue
          elif field == "name" and editmode == "rename": continue
-         if value != None:
+         elif field in ('enable_menu'):
+            # checkbox fields are weird...
+            if field in request.POST:
+               remote.modify_profile(profile_id, field, "1", token)
+            else:
+               remote.modify_profile(profile_id, field, "0", token)
+         elif value != None:
             remote.modify_profile(profile_id, field, value, token)
 
       remote.save_profile(profile_id, token, new_or_edit)
@@ -552,6 +622,12 @@ def image_save(request):
       for field in field_list:
          value = request.POST.get(field, None)
          if field == 'name' and editmode == 'rename': continue
+         elif field in ('netboot_enabled'):
+            # checkbox fields are weird...
+            if field in request.POST:
+               remote.modify_system(system_id, field, "1", token)
+            else:
+               remote.modify_system(system_id, field, "0", token)
          elif value != None:
             remote.modify_image(image_id, field, value, token)
 
@@ -630,6 +706,12 @@ def ksfile_save(request):
    else:
       remote.read_or_write_kickstart_template(ksfile_name,False,ksdata,token)
       return HttpResponseRedirect('/cobbler_web/ksfile/edit/%s' % ksfile_name)
+
+def settings(request):
+   settings = remote.get_settings()
+   t = get_template('settings.tmpl')
+   html = t.render(Context({'settings': remote.get_settings()}))
+   return HttpResponse(html)
 
 def random_mac(request, virttype="xenpv"):
    random_mac = remote.get_random_mac(virttype, token)
