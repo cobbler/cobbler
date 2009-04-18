@@ -87,7 +87,7 @@ class Validate:
         print "checking url: %s" % url
 
 
-        rc = os.system("/usr/bin/ksvalidator \"%s\"" % url)
+        rc = utils.os_system("/usr/bin/ksvalidator \"%s\"" % url)
         if rc != 0:
             return False
        
