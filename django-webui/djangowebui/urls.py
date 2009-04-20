@@ -7,7 +7,7 @@ from views import *
 
 urlpatterns = patterns('',
     (r'^cobbler_web/$', index),
-    (r'^cobbler_web/(?P<what>\w+)/list(/filter/(?P<filter_name>\w+))?(/sort/(?P<sort_field>[!\w]+))?(/limit/(?P<limit>\w+))?(/page/(?P<page>\d+))?$', list),
+    (r'^cobbler_web/(?P<what>\w+)/list(/filter/(?P<filter_name>[\w\*\?]+))?(/sort/(?P<sort_field>[!\w]+))?(/limit/(?P<limit>\w+))?(/page/(?P<page>\d+))?$', list),
     (r'^cobbler_web/distro/search$', search, {'what':'distro'}),
     (r'^cobbler_web/profile/search$', search, {'what':'profile'}),
     (r'^cobbler_web/system/search$', search, {'what':'system'}),

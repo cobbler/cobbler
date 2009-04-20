@@ -48,6 +48,7 @@ def dosearch(request, what):
          criteria[key] = val
 
    results = []
+   return list(request=request, what=what)
    if what == "distro":
       results = remote.find_distro(criteria,True,token)
       return distro_list(request, results)
