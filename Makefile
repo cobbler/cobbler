@@ -1,5 +1,7 @@
 #MESSAGESPOT=po/messages.pot
 
+TOP_DIR:=$(shell pwd)
+
 prefix=devinstall
 statepath=/tmp/cobbler_settings/$(prefix)
 
@@ -9,13 +11,17 @@ clean:
 	-rm -f cobbler*.gz cobbler*.rpm MANIFEST
 	-rm -rf cobbler-* dist build rpm-build
 	-rm -f *~
-	-rm -f cobbler/*.pyc cobbler/yaml/*.pyc
+	-rm -f cobbler/*.pyc
 	-rm -f cobbler/webui/master.py config/modules.conf config/settings config/version
-	-rm -f docs/cobbler.1.gz docs/cobbler.html pod2htm*.tmp
+	-rm -f docs/*.1.gz docs/cobbler*.html docs/koan*.html pod2htm*.tmp
 
 manpage:
 	pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz
 	pod2html ./docs/cobbler.pod > ./docs/cobbler.html
+	pod2man --center="koan" --release="" ./docs/koan.pod | gzip -c > ./docs/koan.1.gz
+	pod2html ./docs/koan.pod > ./docs/koan.html
+	pod2man --center="cobbler-register" --release="" ./docs/cobbler-register.pod | gzip -c > ./docs/cobbler-register.1.gz
+	pod2html ./docs/cobbler-register.pod > ./docs/cobbler-register.html
 
 test:
 	make savestate prefix=test
@@ -27,14 +33,13 @@ test:
 	make restorestate prefix=test
 
 nosetests:
-	#nosetests tests -w cobbler --with-coverage --cover-package=cobbler --cover-erase --quiet | tee test.log
 	nosetests cobbler/*.py -v | tee test.log
 
 build: manpage updatewui
-	python setup.py build -f
+	python setup_cobbler.py build -f
 
-install: manpage updatewui
-	python setup.py install -f
+install: build manpage updatewui
+	python setup_cobbler.py install -f
 
 debinstall: manpage updatewui
 	python setup.py install -f --root $(DESTDIR)
@@ -87,11 +92,6 @@ restartservices:
 sdist: clean updatewui
 	python setup.py sdist
 
-#messages: cobbler/*.py
-#	xgettext -k_ -kN_ -o $(MESSAGESPOT) cobbler/*.py
-#	sed -i'~' -e 's/SOME DESCRIPTIVE TITLE/cobbler/g' -e 's/YEAR THE PACKAGE'"'"'S COPYRIGHT HOLDER/2007 Red Hat, Inc. /g' -e 's/FIRST AUTHOR <EMAIL@ADDRESS>, YEAR/Michael DeHaan <mdehaan@redhat.com>, 2007/g' -e 's/PACKAGE VERSION/cobbler $(VERSION)-$(RELEASE)/g' -e 's/PACKAGE/cobbler/g' $(MESSAGESPOT)
-
-
 rpms: clean updatewui manpage sdist
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
@@ -99,10 +99,11 @@ rpms: clean updatewui manpage sdist
 	--define "_builddir %{_topdir}" \
 	--define "_rpmdir %{_topdir}" \
 	--define "_srcrpmdir %{_topdir}" \
-	--define '_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm' \
 	--define "_specdir %{_topdir}" \
+	--define '_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm' \
 	--define "_sourcedir  %{_topdir}" \
 	-ba cobbler.spec
+
 
 updatewui:
 	cheetah-compile ./webui_templates/master.tmpl
@@ -121,10 +122,6 @@ eraseconfig:
 	-rm /var/lib/cobbler/config/systems.d/*
 	-rm /var/lib/cobbler/config/repos.d/*
 	-rm /var/lib/cobbler/config/networks.d/*
-
-
-graphviz:
-	dot -Tpdf docs/cobbler.dot -o cobbler.pdf
 
 tags:
 	find . -type f -name '*.py' | xargs etags -c TAGS

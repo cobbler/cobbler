@@ -1,13 +1,15 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+
 %define _binaries_in_noarch_packages_terminate_build 0
+
 Summary: Boot server configurator
 Name: cobbler
+License: GPLv2+
 AutoReq: no
 Version: 1.7.0
 Release: 1%{?dist}
 ExclusiveArch: %{ix86} x86_64 ppc ppc64 s390x
-Source0: %{name}-%{version}.tar.gz
-License: GPLv2+
+Source0: cobbler-%{version}.tar.gz
 Group: Applications/System
 Requires: python >= 2.3
 Requires: python-urlgrabber
@@ -74,7 +76,7 @@ applications.  There is also a web interface.
 %setup -q
 
 %build
-%{__python} setup.py build
+%{__python} setup.py build 
 
 %install
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
@@ -298,16 +300,53 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %endif
 %doc AUTHORS CHANGELOG README COPYING
 
+%package -n koan
+
+Summary: Helper tool that performs cobbler orders on managed machines.
+Version: 1.7.0
+Release: 1%{?dist}
+Group: Applications/System
+Requires: mkinitrd
+Requires: python >= 1.5
+Requires: python-urlgrabber
+BuildRequires: python-devel
+%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
+%{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
+Requires: python(abi)=%{pyver}
+%endif
+%if 0%{?fedora} >= 8
+BuildRequires: python-setuptools-devel
+%else
+BuildRequires: python-setuptools
+%endif
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
+BuildArch: noarch
+Url: http://fedorahosted.org/cobbler/
+
+%description -n koan
+
+Koan stands for kickstart-over-a-network and allows for both
+network installation of new virtualized guests and reinstallation 
+of an existing system.  For use with a boot-server configured with Cobbler
+
+%files -n koan
+%defattr(-,root,root)
+# FIXME: need to generate in setup.py
+#%if 0%{?fedora} > 8
+#%{python_sitelib}/koan*.egg-info
+#%endif
+%dir /var/spool/koan
+%{_bindir}/koan
+%{_bindir}/cobbler-register
+%dir %{python_sitelib}/koan
+%{python_sitelib}/koan/*.py*
+%{_mandir}/man1/koan.1.gz
+%{_mandir}/man1/cobbler-register.1.gz
+%dir /var/log/koan
+%doc AUTHORS COPYING CHANGELOG README
 
 %changelog
 
-* Mon Mar 30 2009 Michael DeHaan <mdehaan@redhat.com> - 1.7.0-1
-- Upstream changes (see CHANGELOG)
-
-* Mon Mar 30 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.2-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Mar 27 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.1-1
-- Upstream changes (see CHANGELOG)
->>>>>>> 9f122d9... Fix for cache cleanup problem in Cobblerd (typo), release bump to 1.6.2:cobbler.spec
+* Tue Apr 21 2009 Michael DeHaan <mdehaan@redhat.com> - 1.8.0-1
+- Unify cobbler and koan spec files
 

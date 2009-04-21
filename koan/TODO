@@ -1,7 +1,0 @@
-- have the RPM own the directories it creates for xen
-  (doesn't already?)
-- put koan in /usr/share so we don't have to deal with
-  different python paths
-- think about cobbler override options 
-- LVM partition targets (?)
-

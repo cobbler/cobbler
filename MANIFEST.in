@@ -36,3 +36,8 @@ recursive-include po *.po
 recursive-include webui_content *
 recursive-include webui_templates *
 recursive-include triggers *
+include docs/koan.1.gz 
+include docs/cobbler-register.1.gz
+include scripts/koan 
+include scripts/cobbler-register
+
