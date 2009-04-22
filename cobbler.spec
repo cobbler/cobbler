@@ -206,10 +206,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /etc/init.d/cobblerd
 %if 0%{?suse_version} >= 1000
 %config(noreplace) /etc/apache2/conf.d/cobbler.conf
-%config(noreplace) /etc/apache2/conf.d/cobbler_svc.conf
 %else
 %config(noreplace) /etc/httpd/conf.d/cobbler.conf
-%config(noreplace) /etc/httpd/conf.d/cobbler_svc.conf
 %endif
 %dir /var/log/cobbler/syslog
 %dir /var/log/cobbler/anamon
@@ -369,8 +367,7 @@ Url: http://fedorahosted.org/cobbler/
 
 %description -n cobbler-web
 
-Web interface for Cobbler that allows visiting http://server/cobbler_web to configure
-the install server.
+Web interface for Cobbler that allows visiting http://server/cobbler_web to configure the install server.
 
 %files -n cobbler-web
 %defattr(-,apache,apache)

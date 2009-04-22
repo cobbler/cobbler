@@ -157,7 +157,6 @@ if __name__ == "__main__":
             # miscellaneous config files
             (rotpath,  ['config/cobblerd_rotate']),
             (wwwconf,  ['config/cobbler.conf']),
-            (wwwconf,  ['config/cobbler_svc.conf']),
             (libpath,  ['config/cobbler_hosts']),
             (etcpath,  ['config/modules.conf']),
             (etcpath,  ['config/users.digest']),
