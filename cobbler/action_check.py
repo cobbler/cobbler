@@ -75,6 +75,7 @@ class BootCheck:
        self.check_httpd(status)
        self.check_iptables(status)
        self.check_yum(status)
+       self.check_debmirror(status)
        self.check_for_default_password(status)
        self.check_for_unreferenced_repos(status)
        self.check_for_unsynced_repos(status)
@@ -132,6 +133,20 @@ class BootCheck:
                yum_utils_ver = yum_utils_check.communicate()[0]
                if yum_utils_ver < "1.1.17":
                    status.append(_("yum-utils need to be at least version 1.1.17 for reposync -l, current version is %s") % yum_utils_ver )
+
+   def check_debmirror(self,status):
+       if not os.path.exists("/usr/bin/debmirror"):
+           status.append(_("debmirror package is not installed, it will be required to manage debian deployments and repositories"))
+       if os.path.exists("/etc/debmirror.conf"):
+          f = open("/etc/debmirror.conf")
+          re_dists = re.compile(r'@dists=')
+          re_arches = re.compile(r'@arches=')
+          for line in f.readlines():
+             if re_dists.search(line) and not line.strip().startswith("#"):
+                 status.append(_("comment 'dists' on /etc/debmirror.conf for proper debian support"))
+             if re_arches.search(line) and not line.strip().startswith("#"):
+                 status.append(_("comment 'arches' on /etc/debmirror.conf for proper debian support"))
+       
 
    def check_name(self,status):
        """
