@@ -8,11 +8,11 @@ statepath=/tmp/cobbler_settings/$(prefix)
 all: clean build
 
 clean:
-	-rm -f cobbler*.gz cobbler*.rpm MANIFEST
-	-rm -rf cobbler-* dist build rpm-build
+	-rm -rf build rpm-build
 	-rm -f *~
 	-rm -f cobbler/*.pyc
-	-rm -f cobbler/webui/master.py config/modules.conf config/settings config/version
+	-rm -f koan/*.pyc
+	-rm -f config/modules.conf config/settings config/version
 	-rm -f docs/*.1.gz docs/cobbler*.html docs/koan*.html pod2htm*.tmp
 
 manpage:
@@ -35,13 +35,13 @@ test:
 nosetests:
 	nosetests cobbler/*.py -v | tee test.log
 
-build: manpage updatewui
-	python setup_cobbler.py build -f
+build: manpage
+	python setup.py build -f
 
-install: build manpage updatewui
-	python setup_cobbler.py install -f
+install: build manpage
+	python setup.py install -f
 
-debinstall: manpage updatewui
+debinstall: manpage
 	python setup.py install -f --root $(DESTDIR)
 
 devinstall:
@@ -79,9 +79,8 @@ restorestate:
 completion:
 	python mkbash.py
 
-webtest: updatewui devinstall
+webtest: devinstall
 	make clean
-	make updatewui
 	make devinstall
 	make restartservices
 
@@ -89,10 +88,10 @@ restartservices:
 	/sbin/service cobblerd restart
 	/sbin/service httpd restart
 
-sdist: clean updatewui
+sdist: clean
 	python setup.py sdist
 
-rpms: clean updatewui manpage sdist
+rpms: clean manpage sdist
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
 	rpmbuild --define "_topdir %(pwd)/rpm-build" \
@@ -103,12 +102,6 @@ rpms: clean updatewui manpage sdist
 	--define '_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm' \
 	--define "_sourcedir  %{_topdir}" \
 	-ba cobbler.spec
-
-
-updatewui:
-	cheetah-compile ./webui_templates/master.tmpl
-	-(rm ./webui_templates/*.bak)
-	mv ./webui_templates/master.py ./cobbler/webui
 
 eraseconfig:
 	-rm /var/lib/cobbler/distros*

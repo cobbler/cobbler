@@ -65,12 +65,13 @@ Cobbler is a network install server.  Cobbler
 supports PXE, virtualized installs, and 
 reinstalling existing Linux machines.  The last two 
 modes use a helper tool, 'koan', that 
-integrates with cobbler.  Cobbler's advanced features 
+integrates with cobbler.  There is also a web interface
+'cobbler-web'.  Cobbler's advanced features 
 include importing distributions from DVDs and rsync 
 mirrors, kickstart templating, integrated yum 
 mirroring, and built-in DHCP/DNS Management.  Cobbler has 
 a Python and XMLRPC API for integration with other  
-applications.  There is also a web interface.
+applications.
 
 %prep
 %setup -q
@@ -141,7 +142,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(755,apache,apache)
 %dir /var/www/cobbler/web/
-/var/www/cobbler/web/*.py*
+/var/www/cobbler/web/index.html
 %dir /var/www/cobbler/svc/
 /var/www/cobbler/svc/*.py*
 
@@ -151,10 +152,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /usr/share/cobbler/installer_templates/*.template
 %defattr(744,root,root)
 /usr/share/cobbler/installer_templates/defaults
-%defattr(755,apache,apache)
-%dir /usr/share/cobbler/webui_templates
-%defattr(444,apache,apache)
-/usr/share/cobbler/webui_templates/*.tmpl
+#%defattr(755,apache,apache)               (MOVED to cobbler-web)
+#%dir /usr/share/cobbler/webui_templates   (MOVED to cobbler-web)
+#%defattr(444,apache,apache)               (MOVED to cobbler-web)
+#/usr/share/cobbler/webui_templates/*.tmpl (MOVED to cobbler-web)
 
 %defattr(755,apache,apache)
 %dir /var/log/cobbler
@@ -167,10 +168,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cobbler/images
 %dir /var/www/cobbler/links
 %defattr(755,apache,apache)
-%dir /var/www/cobbler/webui
+#%dir /var/www/cobbler/webui (MOVED to cobbler-web)
 %dir /var/www/cobbler/aux
 %defattr(444,apache,apache)
-/var/www/cobbler/webui/*
+#/var/www/cobbler/webui/*    (MOVED TO cobbler-web)
 /var/www/cobbler/aux/anamon
 /var/www/cobbler/aux/anamon.init
 
@@ -198,11 +199,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/cobbler/cheetah_macros
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/modules
-%dir %{python_sitelib}/cobbler/webui
 %{python_sitelib}/cobbler/*.py*
-%{python_sitelib}/cobbler/server/*.py*
+#%{python_sitelib}/cobbler/server/*.py*
 %{python_sitelib}/cobbler/modules/*.py*
-%{python_sitelib}/cobbler/webui/*.py*
 %{_mandir}/man1/cobbler.1.gz
 /etc/init.d/cobblerd
 %if 0%{?suse_version} >= 1000
@@ -378,11 +377,11 @@ the install server.
 %dir /usr/share/cobbler/django
 %dir /usr/share/cobbler/django/django_templates
 /usr/share/cobbler/django/django_templates/*
-%dir /usr/share/cobbler/django/django_webui
+%dir /usr/share/cobbler/django/djangowebui
 /usr/share/cobbler/django/djangowebui/*
 /etc/httpd/conf.d/cobbler-django.conf
-%dir /var/www/cobbler_webui
-/var/www/cobbler_webui/*
+%dir /var/www/cobbler_webui_content
+/var/www/cobbler_webui_content/*
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog

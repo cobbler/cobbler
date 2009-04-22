@@ -102,7 +102,7 @@ if __name__ == "__main__":
     else:
         wwwconf  = "/etc/httpd/conf.d"
 
-    wwwcon   = "/var/www/cobbler_web"
+    wwwcon   = "/var/www/cobbler_webui_content"
     vw_localmirror = wwwpath + "/localmirror"
     vw_kickstarts  = wwwpath + "/kickstarts"
     vw_kickstarts_sys  = wwwpath + "/kickstarts_sys"
@@ -130,7 +130,7 @@ if __name__ == "__main__":
     dj_config    = "/etc/httpd/conf.d/"
     dj_templates = "/usr/share/cobbler/django/django_templates"
     dj_webui     = "/usr/share/cobbler/django/djangowebui"
-    dj_js        = "/var/www/cobbler_webui/"
+    dj_js        = "/var/www/cobbler_webui_content/"
 
     setup(
         name="cobbler",
@@ -142,9 +142,6 @@ if __name__ == "__main__":
         packages = [
             "cobbler",
             "cobbler/modules", 
-            "cobbler/server", 
-            # THIS IS SLATED FOR REMOVAL
-            "cobbler/webui",
             "koan"
         ],
         scripts = [
@@ -155,7 +152,6 @@ if __name__ == "__main__":
             "scripts/cobbler-register"
         ],
         data_files = [ 
-            (modpython, ['scripts/index.py']),
             (modpythonsvc, ['scripts/services.py']),
  
             # miscellaneous config files
@@ -173,38 +169,46 @@ if __name__ == "__main__":
             (etcpath,  ['config/settings']),
 
             # django webui content
-            (dj_config,    [ 'django_webui/apache/cobbler-django.conf' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/blank.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/distro_edit.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/distro_list.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/empty.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/enoacess.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/error_page.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/header.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/image_edit.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/index.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/item.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/ksfile_edit.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/ksfile_list.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/ksfile_new.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/master.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/message.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/paginate.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/profile_edit.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/profile_list.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/repo_edit.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/repo_list.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/search.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/system_delete.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/system_edit.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/system_list.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/system_netboot.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/system_power.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/system_profile.tmpl' ]),
-            (dj_templates, [ 'django_webui/djangotemplates/system_rename.tmpl' ]),
+            (dj_config,    [ 'django-webui/apache/cobbler-django.conf' ]),
+            (dj_templates, [ 'django-webui/django_templates/blank.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/distro_edit.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/distro_list.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/empty.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/enoaccess.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/error_page.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/header.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/image_edit.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/index.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/item.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/ksfile_edit.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/ksfile_list.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/ksfile_new.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/master.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/message.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/paginate.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/profile_edit.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/profile_list.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/repo_edit.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/repo_list.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/search.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/system_delete.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/system_edit.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/system_list.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/system_netboot.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/system_power.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/system_profile.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/system_rename.tmpl' ]),
 
-            (dj_js,        [ 'django_webui/javascript/*' ]),	
-            (dj_webui,     [ 'django_webui/djangowebui/*' ]),
+            # django javascript support code (move to section with other js?)
+            (dj_js,        [ 'django-webui/javascript/checkboxes.js' ]),	
+            (dj_js,        [ 'django-webui/javascript/paginate.js' ]),	
+
+            # django code, private to cobbler-web application
+            (dj_webui,     [ 'django-webui/djangowebui/__init__.py' ]),
+            (dj_webui,     [ 'django-webui/djangowebui/manage.py' ]),
+            (dj_webui,     [ 'django-webui/djangowebui/settings.py' ]),
+            (dj_webui,     [ 'django-webui/djangowebui/urls.py' ]),
+            (dj_webui,     [ 'django-webui/djangowebui/views.py' ]),
 
             # backups for upgrades
             (backpath, []),
@@ -344,6 +348,7 @@ if __name__ == "__main__":
             (wwwcon,            ['webui_content/style.css']),
             (wwwcon,            ['webui_content/logo-cobbler.png']),
             (wwwcon,            ['webui_content/cobblerweb.css']),
+            (modpython,         ['webui_content/index.html']),
 
             # Anamon script
             (vw_aux,            ['aux/anamon', 'aux/anamon.init']),

@@ -16,8 +16,6 @@ include config/settings
 include config/version
 include config/users.digest
 include config/users.conf
-include config/completions
-include config/cobbler_bash
 include config/cheetah_macros
 include aux/anamon
 include aux/anamon.init
@@ -31,17 +29,14 @@ include docs/wui.html
 include COPYING AUTHORS README CHANGELOG
 include scripts/*.py
 include snippets/*
-recursive-include po *.pot
-recursive-include po *.po
 recursive-include webui_content *
-recursive-include webui_templates *
 recursive-include triggers *
 include docs/koan.1.gz 
 include docs/cobbler-register.1.gz
 include scripts/koan 
 include scripts/cobbler-register
-recursive-include django-webui/apache/*  
-recursive-include django-webui/django_templates/*  
-recursive-include django-webui/djangowebui/* 
-recursive-include django-webui/javascript/*
+recursive-include django-webui/apache *
+recursive-include django-webui/django_templates *
+recursive-include django-webui/djangowebui *
+recursive-include django-webui/javascript *
 
