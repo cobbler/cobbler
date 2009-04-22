@@ -302,7 +302,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %package -n koan
 
-Summary: Helper tool that performs cobbler orders on managed machines.
+Summary: Helper tool that performs cobbler orders on remote machines.
 Version: 1.7.0
 Release: 1%{?dist}
 Group: Applications/System
@@ -343,6 +343,46 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %{_mandir}/man1/koan.1.gz
 %{_mandir}/man1/cobbler-register.1.gz
 %dir /var/log/koan
+%doc AUTHORS COPYING CHANGELOG README
+
+
+%package -n cobbler-web
+
+Summary: Web interface for Cobbler
+Version: 1.7.0
+Release: 1%{?dist}
+Group: Applications/System
+Requires: mkinitrd
+Requires: Django
+BuildRequires: python-devel
+%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
+%{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
+Requires: python(abi)=%{pyver}
+%endif
+%if 0%{?fedora} >= 8
+BuildRequires: python-setuptools-devel
+%else
+BuildRequires: python-setuptools
+%endif
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
+BuildArch: noarch
+Url: http://fedorahosted.org/cobbler/
+
+%description -n cobbler-web
+
+Web interface for Cobbler that allows visiting http://server/cobbler_web to configure
+the install server.
+
+%files -n cobbler-web
+%defattr(-,apache,apache)
+%dir /usr/share/cobbler/django
+%dir /usr/share/cobbler/django/django_templates
+/usr/share/cobbler/django/django_templates/*
+%dir /usr/share/cobbler/django/django_webui
+/usr/share/cobbler/django/djangowebui/*
+/etc/httpd/conf.d/cobbler-django.conf
+%dir /var/www/cobbler_webui
+/var/www/cobbler_webui/*
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
