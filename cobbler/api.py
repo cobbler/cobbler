@@ -283,12 +283,6 @@ class BootAPI:
         """
         return self._config.networks()
 
-    def userprefs(self):
-        """
-        Return the current list of userprefs
-        """
-        return self._config.userprefs()
-
     def settings(self):
         """
         Return the application configuration
@@ -325,10 +319,6 @@ class BootAPI:
     def copy_network(self, ref, newname):
         self.log("copy_network",[ref.name, newname])
         return self._config.networks().copy(ref,newname)
-
-    def copy_userpref(self, ref, newname):
-        self.log("copy_userpref",[ref.name, newname])
-        return self._config.userprefs().copy(ref,newname)
 
     def remove_distro(self, ref, recursive=False, delete=True, with_triggers=True, ):
         if type(ref) != str:
@@ -378,14 +368,6 @@ class BootAPI:
            self.log("remove_network",ref)
            return self._config.networks().remove(ref, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
 
-    def remove_userpref(self, ref, recursive=False, delete=True, with_triggers=True):
-        if type(ref) != str:
-           self.log("remove_userpref",[ref.name])
-           return self._config.userprefs().remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
-        else:
-           self.log("remove_userpref",ref)
-           return self._config.userprefs().remove(ref, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
-
     def rename_distro(self, ref, newname):
         self.log("rename_distro",[ref.name,newname])
         return self._config.distros().rename(ref,newname)
@@ -410,10 +392,6 @@ class BootAPI:
         self.log("rename_network",[ref.name,newname])
         return self._config.networks().rename(ref,newname)
 
-    def rename_userpref(self, ref, newname):
-        self.log("rename_userpref",[ref.name,newname])
-        return self._config.userprefs().rename(ref,newname)
-
     def new_distro(self,is_subobject=False):
         self.log("new_distro",[is_subobject])
         return self._config.new_distro(is_subobject=is_subobject)
@@ -437,10 +415,6 @@ class BootAPI:
     def new_network(self,is_subobject=False):
         self.log("new_network",[is_subobject])
         return self._config.new_network(is_subobject=is_subobject)
-
-    def new_userpref(self,is_subobject=False):
-        self.log("new_userpref",[is_subobject])
-        return self._config.new_userpref(is_subobject=is_subobject)
 
     def add_distro(self, ref, check_for_duplicate_names=False, save=True):
         self.log("add_distro",[ref.name])
@@ -472,11 +446,6 @@ class BootAPI:
         rc = self._config.networks().add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
         return rc
 
-    def add_userpref(self, ref, check_for_duplicate_names=False,save=True):
-        self.log("add_userpref",[ref.name])
-        rc = self._config.userprefs().add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
-        return rc
-
     def find_distro(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.distros().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
         
@@ -494,9 +463,6 @@ class BootAPI:
 
     def find_network(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.networks().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
-
-    def find_userpref(self, name=None, return_list=False, no_errors=False, **kargs):
-        return self._config.userprefs().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     def __since(self,mtime,collector,collapse=False):
         """
@@ -533,9 +499,6 @@ class BootAPI:
 
     def get_networks_since(self,mtime,collapse=False):
         return self.__since(mtime,self.networks,collapse=collapse)
-
-    def get_userprefs_since(self,mtime,collapse=False):
-        return self.__since(mtime,self.userprefs,collapse=collapse)
 
     def dump_vars(self, obj, format=False):
         return obj.dump_vars(format)

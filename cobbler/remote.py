@@ -47,7 +47,6 @@ import item_profile
 import item_system
 import item_repo
 import item_image
-import item_userpref
 from utils import *
 from utils import _
 
@@ -1184,44 +1183,6 @@ class CobblerXMLRPCInterface:
         self.check_access(token,"hardlink")
         return self.api.hardlink()
 
-    def __get_userpref_obj(self,token):
-        """
-        Returns the userpref attribute (webui/filter/report) as a hash.
-        """
-        name=self.get_user_from_token(token)
-        if name is not None:
-            obj=self.api.get_item("userpref",name)
-            if obj is None:
-                obj = item_userpref.Userpref(self.api._config)
-                obj.name = name
-                self.api.add_userpref(obj)
-        else:
-            raise CX(_("failed to get name from token %s" % token)) 
-        return obj
-
-    def get_userpref(self,token,attribute,arg):
-        """
-        Read userperf of token for attribute.
-        """
-        if not attribute.startswith("get_"):
-            attribute="get_"+attribute
-        self._log("get_userpref",token=token,attribute=attribute)
-        obj=self.__get_userpref_obj(token)
-        self.check_access(token, "get_userpref", obj, attribute)
-        prefdata=self.__call_method(obj, attribute, arg)
-        return self.xmlrpc_hacks(prefdata)
-        
-    def modify_userpref(self,token,attribute,arg):
-        """
-        Modify userperf of token with attribute hash.
-        """
-        self._log("modify_userpref",token=token,attribute=attribute)
-        obj=self.__get_userpref_obj(token)
-        self.check_access(token, "modify_userpref", obj, attribute)
-        if self.__call_method(obj, attribute, arg):
-            self.api.add_userpref(obj)
-        return True
-        
     def new_distro(self,token):
         """
         Creates a new (unconfigured) distro object.  It works something like
