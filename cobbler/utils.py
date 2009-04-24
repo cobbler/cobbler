@@ -387,10 +387,11 @@ def find_kickstart(url):
            return url
     return None
 
-def input_string_or_list(options,delim=","):
+def input_string_or_list(options):
     """
     Accepts a delimited list of stuff or a list, but always returns a list.
     """
+    delim = None
     if options == "<<inherit>>":
        return "<<inherit>>"
     if options is None or options == "" or options == "delete":
@@ -399,13 +400,11 @@ def input_string_or_list(options,delim=","):
        return options
     elif isinstance(options,basestring):
        tokens = options.split(delim)
-       if delim == ",":
-           tokens = [t.lstrip().rstrip() for t in tokens]
        return tokens
     else:
        raise CX(_("invalid input type"))
 
-def input_string_or_hash(options,delim=",",allow_multiples=True):
+def input_string_or_hash(options,allow_multiples=True):
     """
     Older cobbler files stored configurations in a flat way, such that all values for strings.
     Newer versions of cobbler allow dictionaries.  This function is used to allow loading
@@ -1211,7 +1210,7 @@ def set_repos(self,repos,bypass_check=False):
    if repos is None:
         self.repos = []
    else:
-        self.repos = input_string_or_list(repos, delim=" ")
+        self.repos = input_string_or_list(repos)
    if bypass_check:
        return True
 
@@ -1397,7 +1396,7 @@ def set_virt_guests(self,guests):
     For setting the list of cobbler system records that a given host
     has running on it.
     """
-    data = input_string_or_list(guests,delim=" ")
+    data = input_string_or_list(guests)
     data = uniquify(data) # don't double enter any guest names if reinstalled
     self.virt_guests = data
     return True

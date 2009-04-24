@@ -142,7 +142,7 @@ class Item(serializable.Serializable):
         like authz_ownership, which ships with Cobbler but is off by default.  Consult the Wiki
         docs for more info on CustomizableAuthorization.
         """
-        owners = utils.input_string_or_list(data, delim=" ")
+        owners = utils.input_string_or_list(data)
         self.owners = owners
         return True
 
@@ -151,7 +151,7 @@ class Item(serializable.Serializable):
 	Kernel options are a space delimited list,
 	like 'a=b c=d e=f g h i=j' or a hash.
 	"""
-        (success, value) = utils.input_string_or_hash(options,None)
+        (success, value) = utils.input_string_or_hash(options)
         if not success:
             raise CX(_("invalid kernel options"))
         else:
@@ -170,7 +170,7 @@ class Item(serializable.Serializable):
         Post kernel options are a space delimited list,
         like 'a=b c=d e=f g h i=j' or a hash.
         """
-        (success, value) = utils.input_string_or_hash(options,None)
+        (success, value) = utils.input_string_or_hash(options)
         if not success:
             raise CX(_("invalid post kernel options"))
         else:
@@ -190,7 +190,7 @@ class Item(serializable.Serializable):
         The meta tags are used as input to the templating system
         to preprocess kickstart files
         """
-        (success, value) = utils.input_string_or_hash(options,None,allow_multiples=False)
+        (success, value) = utils.input_string_or_hash(options,allow_multiples=False)
         if not success:
             return False
         else:
@@ -209,7 +209,7 @@ class Item(serializable.Serializable):
         Assigns a list of configuration management classes that can be assigned
         to any object, such as those used by Puppet's external_nodes feature.
         """
-        mgmt_classes_split = utils.input_string_or_list(mgmt_classes, delim=" ")
+        mgmt_classes_split = utils.input_string_or_list(mgmt_classes)
         self.mgmt_classes = utils.input_string_or_list(mgmt_classes_split)
         return True
 
@@ -218,7 +218,7 @@ class Item(serializable.Serializable):
         A comma seperated list of source=destination templates
         that should be generated during a sync.
         """
-        (success, value) = utils.input_string_or_hash(template_files,None,allow_multiples=False)
+        (success, value) = utils.input_string_or_hash(template_files,allow_multiples=False)
         if not success:
             return False
         else:
@@ -336,14 +336,14 @@ class Item(serializable.Serializable):
         else:
             if isinstance(from_search, basestring):
                 if type(from_obj) == type([]):
-                    from_search = utils.input_string_or_list(from_search,delim=',')
+                    from_search = utils.input_string_or_list(from_search)
                     for x in from_search:
                         if x not in from_obj:
                             return False
                     return True            
 
                 if type(from_obj) == type({}):
-                    (junk, from_search) = utils.input_string_or_hash(from_search,delim=" ",allow_multiples=True)
+                    (junk, from_search) = utils.input_string_or_hash(from_search,allow_multiples=True)
                     for x in from_search.keys():
                         y = from_search[x]
                         if not from_obj.has_key(x):

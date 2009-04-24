@@ -185,14 +185,14 @@ class Profile(item.Item):
         # FIXME: move to utils since shared with system
         if data == "<<inherit>>":
            data = []
-        data = utils.input_string_or_list(data, delim=" ")
+        data = utils.input_string_or_list(data)
         self.name_servers = data
         return True
 
     def set_name_servers_search(self,data):
         if data == "<<inherit>>":
            data = []
-        data = utils.input_string_or_list(data, delim=" ")
+        data = utils.input_string_or_list(data)
         self.name_servers_search = data
         return True
 

@@ -135,7 +135,7 @@ class Repo(item.Item):
         Kernel options are a space delimited list,
         like 'a=b c=d e=f g h i=j' or a hash.
         """
-        (success, value) = utils.input_string_or_hash(options,None,allow_multiples=False)
+        (success, value) = utils.input_string_or_hash(options,allow_multiples=False)
         if not success:
             raise CX(_("invalid yum options"))
         else:
@@ -151,7 +151,7 @@ class Repo(item.Item):
         Yum can take options from the environment.  This puts them there before
         each reposync.
         """
-        (success, value) = utils.input_string_or_hash(options,None,allow_multiples=False)
+        (success, value) = utils.input_string_or_hash(options,allow_multiples=False)
         if not success:
             raise CX(_("invalid environment options"))
         else:
@@ -181,7 +181,7 @@ class Repo(item.Item):
         contains games, and we probably don't want those), make it possible to list the packages
         one wants out of those repos, so only those packages + deps can be mirrored.
         """
-        self.rpm_list = utils.input_string_or_list(rpms,delim=" ")
+        self.rpm_list = utils.input_string_or_list(rpms)
         return True
 
     def set_createrepo_flags(self,createrepo_flags):

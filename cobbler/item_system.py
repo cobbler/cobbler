@@ -429,7 +429,7 @@ class System(item.Item):
  
     def set_static_routes(self,routes,interface):
         intf = self.__get_interface(interface)
-        data = utils.input_string_or_list(routes,delim=" ")
+        data = utils.input_string_or_list(routes)
         intf["static_routes"] = data
         return True
 
@@ -505,14 +505,14 @@ class System(item.Item):
     def set_name_servers(self,data):
         if data == "<<inherit>>":
            data = []
-        data = utils.input_string_or_list(data, delim=" ")
+        data = utils.input_string_or_list(data)
         self.name_servers = data
         return True
 
     def set_name_servers_search(self,data):
         if data == "<<inherit>>":
            data = []
-        data = utils.input_string_or_list(data, delim=" ")
+        data = utils.input_string_or_list(data)
         self.name_servers_search = data
         return True
 
