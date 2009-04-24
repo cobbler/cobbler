@@ -228,7 +228,6 @@ if __name__ == "__main__":
             (dbpath + "/repos.d",    []),
             (dbpath + "/images.d",   []),
             (dbpath + "/networks.d", []),
-            (dbpath + "/userprefs.d", []),
 
             # sample kickstart files
             (kickpath,  ['kickstarts/legacy.ks']),
