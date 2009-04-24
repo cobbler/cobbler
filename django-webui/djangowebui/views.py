@@ -70,38 +70,14 @@ def dosearch(request, what):
 def list(request, what=None, filter_name=None, sort_field=None, limit=None, page=None):
     pagename="%s_list" % what
 
-    # Merge and save preferences
-    webuipref = remote.get_userpref(token,"webui",pagename)
-    if sort_field is not None:
-        # if this sort was already applied we need to reverse sort?
-        old_field=webuipref.get("sort_field","")
-        old_revsort=False
-        if old_field.startswith("!"):
-            old_field=old_field[1:]
-            old_revsort=True
-        if old_field == sort_field:
-            old_revsort=not old_revsort
-        if old_revsort:
-            sort_field="!" + sort_field
-        webuipref["sort_field"]=sort_field
-    if filter_name is not None:
-        webuipref["filter"]=filter_name
-    if page is not None:
-        webuipref["page"]=page
-    if limit is not None:
-        webuipref["items_per_page"]=limit
-    remote.modify_userpref(token,"set_webui",webuipref)
-    findmatchtype="all"
-    findcriteria={}
-    if webuipref.has_key("filter"):
-        filter = remote.get_userpref(token,"filter",{'what':what, 'name':webuipref["filter"]})
-        if type(filter)==dict:
-            findmatchtype=filter["matchtype"]
-            findcriteria=filter["criteria"]
-    
-    sort_field=webuipref.get("sort_field",None)
-    page=webuipref.get("page",None)
-    items_per_page=webuipref.get("items_per_page",None)
+    # FIMXE: make userprefs come from cookies
+    webuipref = {}
+
+    findmatchtype  = webuipref.get("findmatchtype", "all")
+    findcriteria   = webuipref.get("criteria", {})
+    sort_field     = webuipref.get("sort_field",None)
+    page           = webuipref.get("page",None)
+    items_per_page = webuipref.get("items_per_page",None)
 
     pageditems = remote.find_items_paged(what,findmatchtype,findcriteria,sort_field,page,items_per_page)
 
