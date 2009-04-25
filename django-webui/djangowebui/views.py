@@ -57,16 +57,25 @@ def list(request, what=None, sort_field=None, limit=None, page=None):
 def __list(request, what, action, find_criteria=None, sort_field=None, limit=None, page=None):
     baseurl="/cobbler_web/%s/%s" % (what,action)
 
-    # FIMXE: make userprefs come from cookies
-    webuipref = {}
+    if find_criteria == None:
+        find_criteria = request.session.get("find_criteria", None)
+    if sort_field == None:
+        sort_field = request.session.get("sort_field", None)
+    if page == None:
+        page = request.session.get("page", 1)
+    if limit == None:
+        limit = request.session.get("limit", 10)
 
-    findmatchtype  = webuipref.get("findmatchtype", "all")
-    findcriteria   = webuipref.get("criteria", {})
-    sort_field     = webuipref.get("sort_field",None)
-    page           = webuipref.get("page",None)
-    items_per_page = webuipref.get("items_per_page",None)
+    page = int(page)
+    limit = int(limit)
 
-    pageditems = remote.find_items_paged(what,findcriteria,sort_field,page,items_per_page)
+    # Now save everything back into the session object
+    request.session["find_criteria"] = find_criteria
+    request.session["sort_field"] = sort_field
+    request.session["page"] = page
+    request.session["limit"] = limit
+
+    pageditems = remote.find_items_paged(what,find_criteria,sort_field,page,limit)
 
     if what == "profile":
         for profile in pageditems["items"]:

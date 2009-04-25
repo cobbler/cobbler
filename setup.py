@@ -130,6 +130,7 @@ if __name__ == "__main__":
     dj_config    = "/etc/httpd/conf.d/"
     dj_templates = "/usr/share/cobbler/django/django_templates"
     dj_webui     = "/usr/share/cobbler/django/djangowebui"
+    dj_sessions  = "/usr/share/cobbler/django/sessions"
     dj_js        = "/var/www/cobbler_webui_content/"
 
     setup(
