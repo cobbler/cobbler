@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from mod_python import apache
 
-import xmlrpclib, time
+import xmlrpclib, time, simplejson
 
 my_uri = "http://127.0.0.1/cobbler_api"
 remote = None
@@ -49,16 +49,14 @@ def dosearch(request, what, sort_field=None, limit=None, page=None):
                 criteria[key] = val
     else:
         criteria = None
-    return __list(request,what,"dosearch",find_criteria=criteria,sort_field=sort_field,limit=limit,page=page)
+    return __list(request,what,"dosearch",sort_field=sort_field,limit=limit,page=page)
 
 def list(request, what=None, sort_field=None, limit=None, page=None):
     return __list(request,what,"list",sort_field=sort_field,limit=limit,page=page)
 
-def __list(request, what, action, find_criteria=None, sort_field=None, limit=None, page=None):
+def __list(request, what, action, sort_field=None, limit=None, page=None):
     baseurl="/cobbler_web/%s/%s" % (what,action)
 
-    if find_criteria == None:
-        find_criteria = request.session.get("find_criteria", None)
     if sort_field == None:
         sort_field = request.session.get("sort_field", None)
     if page == None:
@@ -68,14 +66,14 @@ def __list(request, what, action, find_criteria=None, sort_field=None, limit=Non
 
     page = int(page)
     limit = int(limit)
+    filters = simplejson.loads(request.session.get("filters", "{}"))
 
     # Now save everything back into the session object
-    request.session["find_criteria"] = find_criteria
     request.session["sort_field"] = sort_field
     request.session["page"] = page
     request.session["limit"] = limit
 
-    pageditems = remote.find_items_paged(what,find_criteria,sort_field,page,limit)
+    pageditems = remote.find_items_paged(what,filters,sort_field,page,limit)
 
     if what == "profile":
         for profile in pageditems["items"]:
@@ -90,9 +88,30 @@ def __list(request, what, action, find_criteria=None, sort_field=None, limit=Non
         'baseurl'   : baseurl,
         'what'      : what,
         '%ss'%what  : pageditems["items"],
-        'pageinfo'  : pageditems["pageinfo"]
+        'pageinfo'  : pageditems["pageinfo"],
+        'filters'   : filters,
     }))
     return HttpResponse(html)
+
+def modify_filter(request, what, action, filter=None):
+    try:
+        if filter == None: raise ""
+        # read session variable for filter
+        filters = simplejson.loads(request.session.get("filters", "{}"))
+        if action == "add":
+            (field_name, field_value) = filter.split(":", 1)
+            # add this filter
+            filters[field_name] = field_value
+        else:
+            # remove this filter, if it exists
+            if filters.has_key(filter):
+                del filters[filter]
+        # save session variable
+        request.session["filters"] = simplejson.dumps(filters)
+        # redirect to the list for this 
+        return HttpResponseRedirect("/cobbler_web/%s/list" % what)
+    except: 
+        return HttpResponse("Invalid filter: %s" % str(filter))
 
 def distro_edit(request, distro_name=None):
    available_arches = ['i386','x86','x86_64','ppc','ppc64','s390','s390x','ia64']
