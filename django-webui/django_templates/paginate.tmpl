@@ -155,7 +155,7 @@ Add filter:
 {% if filters %}
 <br />
 {% for key,value in filters.items %}
-<a href="/cobbler_web/{{ what }}/removefilter/{{ key }}" title="remove">[x]</a> {{ key }} = {{ value }}&nbsp;
+<a href="/cobbler_web/{{ what }}/removefilter/{{ key }}" title="remove">[x]</a> {{ key }} = {{ value }}{% if not forloop.last %} :: {% endif %}
 {% endfor %}
 {% endif %}
 </p>

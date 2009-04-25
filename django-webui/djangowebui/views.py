@@ -58,20 +58,20 @@ def __list(request, what, action, sort_field=None, limit=None, page=None):
     baseurl="/cobbler_web/%s/%s" % (what,action)
 
     if sort_field == None:
-        sort_field = request.session.get("sort_field", None)
+        sort_field = request.session.get("%s_sort_field" % what, None)
     if page == None:
-        page = request.session.get("page", 1)
+        page = request.session.get("%s_page" % what, 1)
     if limit == None:
-        limit = request.session.get("limit", 10)
+        limit = request.session.get("%s_limit" % what, 10)
 
     page = int(page)
     limit = int(limit)
-    filters = simplejson.loads(request.session.get("filters", "{}"))
+    filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
 
     # Now save everything back into the session object
-    request.session["sort_field"] = sort_field
-    request.session["page"] = page
-    request.session["limit"] = limit
+    request.session["%s_sort_field" % what] = sort_field
+    request.session["%s_page" % what] = page
+    request.session["%s_limit" % what] = limit
 
     pageditems = remote.find_items_paged(what,filters,sort_field,page,limit)
 
@@ -97,7 +97,7 @@ def modify_filter(request, what, action, filter=None):
     try:
         if filter == None: raise ""
         # read session variable for filter
-        filters = simplejson.loads(request.session.get("filters", "{}"))
+        filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
         if action == "add":
             (field_name, field_value) = filter.split(":", 1)
             # add this filter
@@ -107,7 +107,7 @@ def modify_filter(request, what, action, filter=None):
             if filters.has_key(filter):
                 del filters[filter]
         # save session variable
-        request.session["filters"] = simplejson.dumps(filters)
+        request.session["%s_filters" % what] = simplejson.dumps(filters)
         # redirect to the list for this 
         return HttpResponseRedirect("/cobbler_web/%s/list" % what)
     except: 
