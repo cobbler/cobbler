@@ -66,7 +66,7 @@ def __list(request, what, action, find_criteria=None, sort_field=None, limit=Non
     page           = webuipref.get("page",None)
     items_per_page = webuipref.get("items_per_page",None)
 
-    pageditems = remote.find_items_paged(what,findmatchtype,findcriteria,sort_field,page,items_per_page)
+    pageditems = remote.find_items_paged(what,findcriteria,sort_field,page,items_per_page)
 
     if what == "profile":
         for profile in pageditems["items"]:
