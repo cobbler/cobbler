@@ -1,11 +1,17 @@
 {% if pageinfo %}
 <p>
-{% ifnotequal pageinfo.prev_page "~" %}<a href="/cobbler_web/{{ what }}/list/page/{{ pageinfo.prev_page }}">&lt;</a>{% else %}&lt;{% endifnotequal %}
-<select name="page" id="page" onchange="javascript:location='/cobbler_web/{{ what }}/list/page/'+this.value">
+{% ifnotequal pageinfo.prev_page "~" %}<a href="{{ baseurl }}/page/{{ pageinfo.prev_page }}">&lt;</a>{% else %}&lt;{% endifnotequal %}
+<select name="page" id="page" onchange="javascript:location='{{ baseurl }}/page/'+this.value">
 {% for p in pageinfo.pages %}
   <option value="{{ p }}"{% ifequal pageinfo.page p %} selected{% endifequal %}>Page {{ p }}</option>
 {% endfor %}
 </select>
-{% ifnotequal pageinfo.next_page "~" %}<a href="/cobbler_web/{{ what }}/list/page/{{ pageinfo.next_page }}">&gt;</a>{% else %}&gt;{% endifnotequal %}
+{% ifnotequal pageinfo.next_page "~" %}<a href="{{ baseurl }}/page/{{ pageinfo.next_page }}">&gt;</a>{% else %}&gt;{% endifnotequal %}
+&nbsp;Items per page
+<select name="limit" id="limit" onchange="javascript:location='{{ baseurl }}/limit/'+this.value+'/page/1'">
+{% for p in pageinfo.items_per_page_list %}
+  <option value="{{ p }}"{% ifequal pageinfo.items_per_page p %} selected{% endifequal %}>{{ p }}</option>
+{% endfor %}
+</select>
 </p>
 {% endif %}

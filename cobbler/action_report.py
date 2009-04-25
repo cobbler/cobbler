@@ -249,7 +249,7 @@ class Report:
         """
         Prints a specific object in a collection.
         """
-        obj = collection.find(name=name)
+        obj = collection.get(name)
         if obj is not None:
             print obj.printable()
         return True
@@ -341,82 +341,24 @@ class Report:
 
         if report_type == 'text' and report_fields == 'all':
 
-            if report_what in [ "all", "distros", "distro" ]:
-                if report_name:
-                    self.reporting_list_names2(self.api.distros(), report_name)
-                else:
-                    self.reporting_print_sorted(self.api.distros())
+            for collection_name in ["distro","profile","system","repo","network","image","userpref"]:
+                if report_what=="all" or report_what==collection_name or report_what=="%ss"%collection_name:
+                    if report_name:
+                        self.reporting_list_names2(self.api.get_items(collection_name), report_name)
+                    else:
+                        self.reporting_print_sorted(self.api.get_items(collection_name))
 
-            if report_what in [ "all", "profiles", "profile" ]:
-                if report_name:
-                    self.reporting_list_names2(self.api.profiles(), report_name)
-                else:
-                    self.reporting_print_sorted(self.api.profiles())
-
-            if report_what in [ "all", "systems", "system" ]:
-                if report_name:
-                    self.reporting_list_names2(self.api.systems(), report_name)
-                else:
-                    self.reporting_print_sorted(self.api.systems())
-
-            if report_what in [ "all", "repos", "repo" ]:
-                if report_name is not None:
-                    self.reporting_list_names2(self.api.repos(), report_name)
-                else:
-                    self.reporting_print_sorted(self.api.repos())
-
-            if report_what in [ "all", "networks", "network" ]:
-                if report_name is not None:
-                    self.reporting_list_names2(self.api.networks(), report_name)
-                else:
-                    self.reporting_print_sorted(self.api.networks())
-
-            if report_what in [ "all", "images", "image" ]:
-                if report_name is not None:
-                    self.reporting_list_names2(self.api.images(), report_name)
-                else:
-                    self.reporting_print_sorted(self.api.images())
-                   
         elif report_type == 'text' and report_fields != 'all':
             raise CX(_("The 'text' type can only be used with field set to 'all'"))
  
         elif report_type != 'text' and report_fields == 'all':
-            
-            if report_what in [ "all", "distros", "distro" ]:
-                self.reporting_print_all_fields(self.api.distros(), report_name, report_type, report_noheaders)
 
-            if report_what in [ "all", "profiles", "profile" ]:
-                self.reporting_print_all_fields(self.api.profiles(), report_name, report_type, report_noheaders)
-
-            if report_what in [ "all", "systems", "system" ]:
-                self.reporting_print_all_fields(self.api.systems(), report_name, report_type, report_noheaders)
-
-            if report_what in [ "all", "repos", "repo" ]:
-                self.reporting_print_all_fields(self.api.repos(), report_name, report_type, report_noheaders) 
-
-            if report_what in [ "all", "networks", "network" ]:
-                self.reporting_print_all_fields(self.api.networks(), report_type, report_noheaders)
-
-            if report_what in [ "all", "images", "image" ]:
-                self.reporting_print_all_fields(self.api.images(), report_name, report_type, report_noheaders) 
+            for collection_name in ["distro","profile","system","repo","network","image","userpref"]:
+                if report_what=="all" or report_what==collection_name or report_what=="%ss"%collection_name:
+                    self.reporting_print_all_fields(self.api.get_items(collection_name), report_name, report_type, report_noheaders)
         
         else:
-            
-            if report_what in [ "all", "distros", "distro" ]:
-                self.reporting_print_x_fields(self.api.distros(), report_name, report_type, report_fields, report_noheaders)
 
-            if report_what in [ "all", "profiles", "profile" ]:
-                self.reporting_print_x_fields(self.api.profiles(), report_name, report_type, report_fields, report_noheaders)
-
-            if report_what in [ "all", "systems", "system" ]:
-                self.reporting_print_x_fields(self.api.systems(), report_name, report_type, report_fields, report_noheaders)
-
-            if report_what in [ "all", "repos", "repo" ]:
-                self.reporting_print_x_fields(self.api.repos(), report_name, report_type, report_fields, report_noheaders)
-
-            if report_what in [ "all", "images", "image" ]:
-                self.reporting_print_x_fields(self.api.images(), report_name, report_type, report_fields, report_noheaders)
-
-            if report_what in [ "all", "networks", "network" ]:
-                self.reporting_print_x_fields(self.api.networks(), report_name, report_type, report_fields, report_noheaders)
-
+            for collection_name in ["distro","profile","system","repo","network","image","userpref"]:
+                if report_what=="all" or report_what==collection_name or report_what=="%ss"%collection_name:
+                    self.reporting_print_x_fields(self.api.get_items(collection_name), report_name, report_type, report_fields, report_noheaders)

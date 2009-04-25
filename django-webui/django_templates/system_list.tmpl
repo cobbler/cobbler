@@ -51,9 +51,9 @@ function action_single(actionname,target)
         <caption>Cobbler Systems</caption>
         <tr>
 	    <th class="text"><input type="checkbox" id="itemsall" onclick="javascript:items_check_all();"></th>
-            <th class="text"><a href="/cobbler_web/system/list/sort/name">Name</a></th>
-            <th class="text"><a href="/cobbler_web/system/list/sort/netboot_enabled">Netboot</a></th>
-            <th class="text"><a href="/cobbler_web/system/list/sort/profile">Profile</a></th>
+            <th class="text"><a href="{{ baseurl }}/sort/name">Name</a></th>
+            <th class="text"><a href="{{ baseurl }}/sort/netboot_enabled">Netboot</a></th>
+            <th class="text"><a href="{{ baseurl }}/sort/profile">Profile</a></th>
             <th class="text">Kickstart</th>
             <th class="text" colspan="3"></th>
         </tr>

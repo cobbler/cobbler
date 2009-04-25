@@ -277,23 +277,18 @@ class Item(serializable.Serializable):
         data = self.to_datastruct()
         return [data.get(x,"") for x in sort_fields]
         
-    def find_match(self,kwargs,matchtype="all",no_errors=False):
+    def find_match(self,kwargs,no_errors=False):
         # used by find() method in collection.py
         data = self.to_datastruct()
+        self.log_func("kwargs: %s" % kwargs)
         for (key, value) in kwargs.iteritems():
             # Allow ~ to negate the compare
             if value is not None and value.startswith("~"):
                 res=not self.find_match_single_key(data,key,value[1:],no_errors)
             else:
                 res=self.find_match_single_key(data,key,value,no_errors)
-                
-            # support match all and match any
-            if res:
-                if matchtype == "any":
-                    return True
-            else:
-                if matchtype == "all":
-                    return False
+            if not res:
+                return False
                 
         return True
  
@@ -370,4 +365,51 @@ class Item(serializable.Serializable):
             return pprint.pformat(raw)
         else:
             return raw
+
+
+    def to_datastruct(self):
+        data={}
+        for field_key in self.get_field_info().keys():
+            data[field_key]=getattr(self,field_key)
+        return data
+
+    def printable(self,nice_headers=False):
+        buf=""
+        field_info_dict=self.get_field_info()
+        field_info_keys=field_info_dict.keys()
+        field_info_keys.sort()
+        for field_key in field_info_keys:
+            field_info=field_info_dict[field_key]
+            field_value=getattr(self,field_key)
+            if field_info["input_type"]=='dict':
+                buf+=_("%s {\n" % (field_info["header"]))
+                field_value_keys=field_value.keys()
+                field_value_keys.sort()
+                for subfield_key in field_value_keys:
+                    subfield_dict=field_value[subfield_key]
+                    if field_info.has_key("fields"):
+                        buf+=_("  %s {\n" % (subfield_key))
+                        subfield_keys=field_info["fields"].keys()
+                        subfield_keys.sort()
+                        for subfield_key in subfield_keys:
+                            subfield_info=field_info["fields"][subfield_key]
+                            if subfield_key!="key":
+                                subfield_value=subfield_dict.get(subfield_key,'')
+                                if nice_headers:
+                                    prefix=subfield_info["header"]
+                                else:
+                                    prefix=subfield_key
+                                buf+=_("    %-20s : %s\n" % (prefix, subfield_value))
+                        buf+=_("  }\n")
+                    else:
+                        buf+=_("  {%s}\n" % utils.hash_to_string(subfield_dict))
+                buf+=_("}\n")
+            else:
+                if nice_headers:
+                    prefix=field_info["header"]
+                else:
+                    prefix=field_key
+                buf+=_("%-30s : %s\n" % (prefix, field_value))
+        return buf
+
 

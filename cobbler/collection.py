@@ -70,7 +70,7 @@ class Collection(serializable.Serializable):
         """
         return self.listing.get(name.lower(), None)
         
-    def find(self, name=None, return_list=False, no_errors=False, matchtype="all", **kargs):
+    def find(self, name=None, return_list=False, no_errors=False, **kargs):
         """
         Return first object in the collection that maches all item='value'
         pairs passed, else return None if no objects can be found.
@@ -95,7 +95,7 @@ class Collection(serializable.Serializable):
             return self.listing.get(kargs["name"].lower(), None)
 
         for (name, obj) in self.listing.iteritems():
-            if obj.find_match(kargs, matchtype=matchtype, no_errors=no_errors):
+            if obj.find_match(kargs, no_errors=no_errors):
                 matches.append(obj)
 
         if not return_list:
