@@ -521,7 +521,7 @@ def ksfile_edit(request, ksfile_name=None, editmode='edit'):
    ksdata = ""
    if not ksfile_name is None:
       editable = remote.check_access_no_fail(token, "modify_kickstart", ksfile_name)
-      deleteable = remote.is_kickstart_in_use(ksfile_name, token)
+      deleteable = not remote.is_kickstart_in_use(ksfile_name, token)
       ksdata = remote.read_or_write_kickstart_template(ksfile_name, True, "", token)
 
    t = get_template('ksfile_edit.tmpl')
