@@ -118,11 +118,15 @@ def distro_edit(request, distro_name=None):
    available_breeds = [['redhat','Red Hat Based'], ['debian','Debian'], ['ubuntu','Ubuntu'], ['suse','SuSE']]
    distro = None
    if not distro_name is None:
+      editable = remote.check_access_no_fail(token, "modify_distro", distro_name)
       distro = remote.get_distro(distro_name, True, token)
       distro['ctime'] = time.ctime(distro['ctime'])
       distro['mtime'] = time.ctime(distro['mtime'])
+   else:
+      editable = remote.check_access_no_fail(token, "new_distro", None)
+
    t = get_template('distro_edit.tmpl')
-   html = t.render(Context({'distro': distro, 'available_arches': available_arches, 'available_breeds': available_breeds, "editable":True}))
+   html = t.render(Context({'distro': distro, 'available_arches': available_arches, 'available_breeds': available_breeds, "editable":editable}))
    return HttpResponse(html)
 
 def distro_save(request):
@@ -175,16 +179,20 @@ def profile_edit(request, profile_name=None, subprofile=0):
    available_virttypes = [['auto','Any'],['xenpv','Xen(pv)'],['xenfv','Xen(fv)'],['qemu','KVM/qemu'],['vmware','VMWare Server'],['vmwarew','VMWare WkStn']]
    profile = None
    if not profile_name is None:
+      editable = remote.check_access_no_fail(token, "modify_profile", profile_name)
       profile = remote.get_profile(profile_name, True, token)
       if profile.has_key('ctime'):
          profile['ctime'] = time.ctime(profile['ctime'])
       if profile.has_key('mtime'):
          profile['mtime'] = time.ctime(profile['mtime'])
+   else:
+      editable = remote.check_access_no_fail(token, "new_profile", None)
+
    distros = remote.get_distros(token)
    profiles = remote.get_profiles(token)
    repos = remote.get_repos(token)
    t = get_template('profile_edit.tmpl')
-   html = t.render(Context({'profile': profile, 'subprofile': subprofile, 'profiles': profiles, 'distros': distros, 'editable':True, 'available_virttypes': available_virttypes}))
+   html = t.render(Context({'profile': profile, 'subprofile': subprofile, 'profiles': profiles, 'distros': distros, 'editable':editable, 'available_virttypes': available_virttypes}))
    return HttpResponse(html)
 
 def profile_save(request):
@@ -246,14 +254,18 @@ def system_edit(request, system_name=None, editmode="new"):
    available_power = ['','bullpap','wti','apc_snmp','ether-wake','ipmilan','drac','ipmitool','ilo','rsa','lpar','bladecenter','virsh','integrity']
    system = None
    if not system_name is None:
+      editable = remote.check_access_no_fail(token, "modify_system", system_name)
       system = remote.get_system(system_name, True, token)
       system['ctime'] = time.ctime(system['ctime'])
       system['mtime'] = time.ctime(system['mtime'])
+   else:
+      editable = remote.check_access_no_fail(token, "new_system", None)
+
    distros = remote.get_distros(token)
    profiles = remote.get_profiles(token)
    repos = remote.get_repos(token)
    t = get_template('system_edit.tmpl')
-   html = t.render(Context({'system': system, 'profiles': profiles, 'distros': distros, 'repos': repos, 'editmode': editmode, 'available_virttypes': available_virttypes, 'available_power': available_power, 'editable':True}))
+   html = t.render(Context({'system': system, 'profiles': profiles, 'distros': distros, 'repos': repos, 'editmode': editmode, 'available_virttypes': available_virttypes, 'available_power': available_power, 'editable':editable}))
    return HttpResponse(html)
 
 def system_save(request):
@@ -312,6 +324,8 @@ def system_save(request):
 def system_rename(request, system_name=None, system_newname=None):
    if system_name == None:
       return HttpResponse("You must specify a system to rename")
+   elif not remote.check_access_no_fail(token, "modify_system", system_name):
+      return HttpResponse("You do not have permission to rename this system")
    elif system_newname == None:
       t = get_template('system_rename.tmpl')
       html = t.render(Context({'system':system_name}))
@@ -329,6 +343,8 @@ def system_multi(request, multi_mode=None):
    sel_names = []
    for system in all_systems:
       if system['name'] in items:
+         if not remote.check_access_no_fail(token, "modify_system", system["name"]):
+            return HttpResponse("You do not have permission to modify one or more of the systems you selected")
          sel_systems.append(system)
          sel_names.append(system['name'])
 
@@ -380,11 +396,15 @@ def repo_edit(request, repo_name=None):
    available_arches = ['i386','x86','x86_64','ppc','ppc64','s390','s390x','ia64','noarch','src']
    repo = None
    if not repo_name is None:
+      editable = remote.check_access_no_fail(token, "modify_repo", repo_name)
       repo = remote.get_repo(repo_name, True, token)
       repo['ctime'] = time.ctime(repo['ctime'])
       repo['mtime'] = time.ctime(repo['mtime'])
+   else:
+      editable = remote.check_access_no_fail(token, "new_repo", None)
+
    t = get_template('repo_edit.tmpl')
-   html = t.render(Context({'repo': repo, 'available_arches': available_arches, "editable":True}))
+   html = t.render(Context({'repo': repo, 'available_arches': available_arches, "editable":editable}))
    return HttpResponse(html)
 
 def repo_save(request):
@@ -441,11 +461,16 @@ def image_edit(request, image_name=None):
 
    image = None
    if not image_name is None:
+      editable = remote.check_access_no_fail(token, "modify_image", image_name)
       image = remote.get_image(image_name, True, token)
       image['ctime'] = time.ctime(image['ctime'])
       image['mtime'] = time.ctime(image['mtime'])
+   else:
+      editable = remote.check_access_no_fail(token, "new_image", None)
+
+   raise "BRAKE"
    t = get_template('image_edit.tmpl')
-   html = t.render(Context({'image': image, 'available_arches': available_arches, 'available_breeds': available_breeds, 'available_virttypes': available_virttypes, 'available_imagetypes': available_imagetypes, "editable":True}))
+   html = t.render(Context({'image': image, 'available_arches': available_arches, 'available_breeds': available_breeds, 'available_virttypes': available_virttypes, 'available_imagetypes': available_imagetypes, "editable":editable}))
    return HttpResponse(html)
 
 def image_save(request):
