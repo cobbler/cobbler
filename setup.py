@@ -169,7 +169,7 @@ if __name__ == "__main__":
             (etcpath,  ['config/settings']),
 
             # django webui content
-            (dj_config,    [ 'django/apache/cobbler-django.conf' ]),
+            (dj_config,    [ 'config/cobbler_web.conf' ]),
             (dj_templates, [ 'django/django_templates/blank.tmpl' ]),
             (dj_templates, [ 'django/django_templates/distro_edit.tmpl' ]),
             (dj_templates, [ 'django/django_templates/distro_list.tmpl' ]),
