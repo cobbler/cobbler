@@ -511,7 +511,7 @@ function page_onload() {
     <label for="nameservers">Name Servers</label>
     </td>
     <td class="netedit">
-    <input type="text" size="255" style="width: 400px;" name="name_servers" id="name_servers" {% if system %}value="{{ server.name_servers|join:" " }}"{% endif %}/>
+    <input type="text" size="255" style="width: 400px;" name="name_servers" id="name_servers" {% if system %}value="{{ system.name_servers|join:" " }}"{% endif %}/>
     <p class="context-tip">Name servers, space delimited, if not provided by DHCP</p>
     </td>
     </tr>
@@ -521,7 +521,7 @@ function page_onload() {
     <label for="nameserverssearch">Name Servers Search Path</label>
     </td>
     <td class="netedit">
-    <input type="text" size="255" style="width: 400px;" name="name_servers_search" id="name_servers_search" {% if system %}value="{{ server.name_servers_search|join:" " }}"{% endif %}/>
+    <input type="text" size="255" style="width: 400px;" name="name_servers_search" id="name_servers_search" {% if system %}value="{{ system.name_servers_search|join:" " }}"{% endif %}/>
     <p class="context-tip">Name servers search path, space delimited, if not provided by DHCP</p>
     </td>
     </tr>
@@ -531,7 +531,7 @@ function page_onload() {
     <label for="mgmtclasses">Management Classes</label>
     </td>
     <td class="netedit">
-    <input type="text" size="255" style="width: 400px;" name="mgmt_classes" id="mgmt_classes" {% if system %}value="{{ server.mgmt_classes|join:" " }}"{% endif %}/>
+    <input type="text" size="255" style="width: 400px;" name="mgmt_classes" id="mgmt_classes" {% if system %}value="{{ system.mgmt_classes|join:" " }}"{% endif %}/>
     <p class="context-tip">Management classes (space delimited) for use with external configuration management system.</p>
     </td>
     </tr>

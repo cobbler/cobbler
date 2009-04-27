@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from mod_python import apache
 
-import xmlrpclib, time
+import xmlrpclib, time, simplejson
 
 my_uri = "http://127.0.0.1/cobbler_api"
 remote = None
@@ -37,117 +37,96 @@ def search(request, what):
    html = t.render(Context({'what':what, 'item_count':["1","2","3","4","5"]}))
    return HttpResponse(html)
 
-def dosearch(request, what):
-   criteria = {}
-   for i in range(1,6):
-      key = request.POST.get("key%d" % i, None)
-      val = request.POST.get("value%d" % i, None)
-      if key not in (None, ''):
-         if val != None:
-            val = val.replace('"','')
-         criteria[key] = val
+def dosearch(request, what, sort_field=None, limit=None, page=None):
+    if request.POST.has_key("key1"):
+        criteria = {}
+        for i in range(1,6):
+            key = request.POST.get("key%d" % i, None)
+            val = request.POST.get("value%d" % i, None)
+            if key not in (None, ''):
+                if val != None:
+                    val = val.replace('"','')
+                criteria[key] = val
+    else:
+        criteria = None
+    return __list(request,what,"dosearch",sort_field=sort_field,limit=limit,page=page)
 
-   results = []
-   return list(request=request, what=what)
-   if what == "distro":
-      results = remote.find_distro(criteria,True,token)
-      return distro_list(request, results)
-   elif what == "profile":
-      results = remote.find_profile(criteria,True,token)
-      return profile_list(request, results)
-   elif what == "system":
-      results = remote.find_system(criteria,True,token)
-      return system_list(request, results)
-   elif what == "image":
-      results = remote.find_image(criteria,True,token)
-      return image_list(request, results)
-   elif what == "repo":
-      results = remote.find_repo(criteria,True,token)
-      return repo_list(request, results)
-   else:
-      raise "internal error, unknown search type"
+def list(request, what=None, sort_field=None, limit=None, page=None):
+    return __list(request,what,"list",sort_field=sort_field,limit=limit,page=page)
 
-def list(request, what=None, filter_name=None, sort_field=None, limit=None, page=None):
-    pagename="%s_list" % what
+def __list(request, what, action, sort_field=None, limit=None, page=None):
+    baseurl="/cobbler_web/%s/%s" % (what,action)
 
-    # FIMXE: make userprefs come from cookies
-    webuipref = {}
+    if sort_field == None:
+        sort_field = request.session.get("%s_sort_field" % what, None)
+    if page == None:
+        page = request.session.get("%s_page" % what, 1)
+    if limit == None:
+        limit = request.session.get("%s_limit" % what, 10)
 
-    findmatchtype  = webuipref.get("findmatchtype", "all")
-    findcriteria   = webuipref.get("criteria", {})
-    sort_field     = webuipref.get("sort_field",None)
-    page           = webuipref.get("page",None)
-    items_per_page = webuipref.get("items_per_page",None)
+    page = int(page)
+    limit = int(limit)
+    filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
 
-    pageditems = remote.find_items_paged(what,findmatchtype,findcriteria,sort_field,page,items_per_page)
+    # Now save everything back into the session object
+    request.session["%s_sort_field" % what] = sort_field
+    request.session["%s_page" % what] = page
+    request.session["%s_limit" % what] = limit
 
-    t = get_template('%s.tmpl'%pagename)
+    pageditems = remote.find_items_paged(what,filters,sort_field,page,limit)
+
+    if what == "profile":
+        for profile in pageditems["items"]:
+            if profile["kickstart"]:
+                if profile["kickstart"].startswith("http://") or profile["kickstart"].startswith("ftp://"):
+                    profile["web_kickstart"] = profile.kickstart
+                elif profile["kickstart"].startswith("nfs://"):
+                    profile["nfs_kickstart"] = profile.kickstart
+
+    t = get_template('%s_list.tmpl'%what)
     html = t.render(RequestContext(request,{
+        'baseurl'   : baseurl,
         'what'      : what,
         '%ss'%what  : pageditems["items"],
-        'pageinfo'  : pageditems["pageinfo"]
+        'pageinfo'  : pageditems["pageinfo"],
+        'filters'   : filters,
     }))
     return HttpResponse(html)
 
-def __setup__pagination(object_list, page):
-   # TODO: currently hardcoded at 50 results per page
-   #       not sure if this was a setting in the old webui
-   #       (if not it should be)
-
-   prev_page = page - 1
-   next_page = page + 1
-
-   num_pages = (len(object_list)-1)/50 + 1
-   if num_pages > 1:
-      offset = (page-1) * 50
-      ending = offset + 50
-      if ending > len(object_list):
-         ending = len(object_list)
-   else:
-      offset = 0
-      ending = len(object_list)
-
-   if prev_page < 1:
-      prev_page = None
-   if next_page > num_pages:
-      next_page = None
-
-   return (num_pages,prev_page,next_page,offset,ending)
-
-
-def distro_list(request, distros=None, page=None):
-   if distros is None:
-      distros = remote.get_distros(token)
-
-   if page is None and len(distros) > 50:
-      return HttpResponseRedirect('/cobbler_web/distro/list/1')
-
-   try:
-      page = int(page)
-      if page < 1:
-         page = 1
-   except:
-      page = 1
-
-   (num_pages,prev_page,next_page,offset,ending) = __setup__pagination(distros,page)
-
-   if offset > len(distros):
-      return HttpResponseRedirect('/cobbler_web/distro/list/%d' % num_pages)
-
-   t = get_template('distro_list.tmpl')
-   html = t.render(Context({'what':'distro', 'distros': distros[offset:ending], 'page': page, 'pages': range(1,num_pages+1), 'next_page':next_page, 'prev_page':prev_page}))
-   return HttpResponse(html)
+def modify_filter(request, what, action, filter=None):
+    try:
+        if filter == None: raise ""
+        # read session variable for filter
+        filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
+        if action == "add":
+            (field_name, field_value) = filter.split(":", 1)
+            # add this filter
+            filters[field_name] = field_value
+        else:
+            # remove this filter, if it exists
+            if filters.has_key(filter):
+                del filters[filter]
+        # save session variable
+        request.session["%s_filters" % what] = simplejson.dumps(filters)
+        # redirect to the list for this 
+        return HttpResponseRedirect("/cobbler_web/%s/list" % what)
+    except: 
+        return HttpResponse("Invalid filter: %s" % str(filter))
 
 def distro_edit(request, distro_name=None):
    available_arches = ['i386','x86','x86_64','ppc','ppc64','s390','s390x','ia64']
    available_breeds = [['redhat','Red Hat Based'], ['debian','Debian'], ['ubuntu','Ubuntu'], ['suse','SuSE']]
    distro = None
    if not distro_name is None:
+      editable = remote.check_access_no_fail(token, "modify_distro", distro_name)
       distro = remote.get_distro(distro_name, True, token)
       distro['ctime'] = time.ctime(distro['ctime'])
       distro['mtime'] = time.ctime(distro['mtime'])
+   else:
+      editable = remote.check_access_no_fail(token, "new_distro", None)
+
    t = get_template('distro_edit.tmpl')
-   html = t.render(Context({'distro': distro, 'available_arches': available_arches, 'available_breeds': available_breeds, "editable":True}))
+   html = t.render(Context({'distro': distro, 'available_arches': available_arches, 'available_breeds': available_breeds, "editable":editable}))
    return HttpResponse(html)
 
 def distro_save(request):
@@ -192,31 +171,6 @@ def distro_save(request):
 
       return HttpResponseRedirect('/cobbler_web/distro/edit/%s' % distro_name)
 
-def profile_list(request, profiles=None, page=None):
-   if profiles is None:
-      profiles = remote.get_profiles(token)
-
-   if page is None and len(profiles) > 50:
-      return HttpResponseRedirect('/cobbler_web/profile/list/1')
-
-   try:
-      page = int(page)
-      if page < 1:
-         page = 1
-   except:
-      page = 1
-
-   (num_pages,prev_page,next_page,offset,ending) = __setup__pagination(profiles,page)
-
-   if offset > len(profiles):
-      return HttpResponseRedirect('/cobbler_web/profile/list/%d' % num_pages)
-
-   for profile in profiles:
-      if profile["kickstart"]:
-         if profile["kickstart"].startswith("http://") or profile["kickstart"].startswith("ftp://"):
-            profile["web_kickstart"] = profile.kickstart
-         elif profile["kickstart"].startswith("nfs://"):
-            profile["nfs_kickstart"] = profile.kickstart
    t = get_template('profile_list.tmpl')
    html = t.render(Context({'what':'profile', 'profiles': profiles[offset:ending], 'page': page, 'pages': range(1,num_pages+1), 'next_page':next_page, 'prev_page':prev_page}))
    return HttpResponse(html)
@@ -225,16 +179,20 @@ def profile_edit(request, profile_name=None, subprofile=0):
    available_virttypes = [['auto','Any'],['xenpv','Xen(pv)'],['xenfv','Xen(fv)'],['qemu','KVM/qemu'],['vmware','VMWare Server'],['vmwarew','VMWare WkStn']]
    profile = None
    if not profile_name is None:
+      editable = remote.check_access_no_fail(token, "modify_profile", profile_name)
       profile = remote.get_profile(profile_name, True, token)
       if profile.has_key('ctime'):
          profile['ctime'] = time.ctime(profile['ctime'])
       if profile.has_key('mtime'):
          profile['mtime'] = time.ctime(profile['mtime'])
+   else:
+      editable = remote.check_access_no_fail(token, "new_profile", None)
+
    distros = remote.get_distros(token)
    profiles = remote.get_profiles(token)
    repos = remote.get_repos(token)
    t = get_template('profile_edit.tmpl')
-   html = t.render(Context({'profile': profile, 'subprofile': subprofile, 'profiles': profiles, 'distros': distros, 'editable':True, 'available_virttypes': available_virttypes}))
+   html = t.render(Context({'profile': profile, 'subprofile': subprofile, 'profiles': profiles, 'distros': distros, 'editable':editable, 'available_virttypes': available_virttypes}))
    return HttpResponse(html)
 
 def profile_save(request):
@@ -291,42 +249,23 @@ def profile_save(request):
 
       return HttpResponseRedirect('/cobbler_web/profile/edit/%s' % profile_name)
 
-def system_list(request, systems=None, page=None):
-   if systems is None:
-      systems = remote.get_systems(token)
-
-   if page is None and len(systems) > 50:
-      return HttpResponseRedirect('/cobbler_web/system/list/1')
-
-   try:
-      page = int(page)
-      if page < 1:
-         page = 1
-   except:
-      page = 1
-
-   (num_pages,prev_page,next_page,offset,ending) = __setup__pagination(systems,page)
-
-   if offset > len(systems):
-      return HttpResponseRedirect('/cobbler_web/system/list/%d' % num_pages)
-
-   t = get_template('system_list.tmpl')
-   html = t.render(Context({'what':'system', 'systems': systems[offset:ending], 'page': page, 'pages': range(1,num_pages+1), 'next_page':next_page, 'prev_page':prev_page}))
-   return HttpResponse(html)
-
 def system_edit(request, system_name=None, editmode="new"):
    available_virttypes = [['<<inherit>>','<<inherit>>'],['auto','Any'],['xenpv','Xen(pv)'],['xenfv','Xen(fv)'],['qemu','KVM/qemu'],['vmware','VMWare Server'],['vmwarew','VMWare WkStn']]
    available_power = ['','bullpap','wti','apc_snmp','ether-wake','ipmilan','drac','ipmitool','ilo','rsa','lpar','bladecenter','virsh','integrity']
    system = None
    if not system_name is None:
+      editable = remote.check_access_no_fail(token, "modify_system", system_name)
       system = remote.get_system(system_name, True, token)
       system['ctime'] = time.ctime(system['ctime'])
       system['mtime'] = time.ctime(system['mtime'])
+   else:
+      editable = remote.check_access_no_fail(token, "new_system", None)
+
    distros = remote.get_distros(token)
    profiles = remote.get_profiles(token)
    repos = remote.get_repos(token)
    t = get_template('system_edit.tmpl')
-   html = t.render(Context({'system': system, 'profiles': profiles, 'distros': distros, 'repos': repos, 'editmode': editmode, 'available_virttypes': available_virttypes, 'available_power': available_power, 'editable':True}))
+   html = t.render(Context({'system': system, 'profiles': profiles, 'distros': distros, 'repos': repos, 'editmode': editmode, 'available_virttypes': available_virttypes, 'available_power': available_power, 'editable':editable}))
    return HttpResponse(html)
 
 def system_save(request):
@@ -385,6 +324,8 @@ def system_save(request):
 def system_rename(request, system_name=None, system_newname=None):
    if system_name == None:
       return HttpResponse("You must specify a system to rename")
+   elif not remote.check_access_no_fail(token, "modify_system", system_name):
+      return HttpResponse("You do not have permission to rename this system")
    elif system_newname == None:
       t = get_template('system_rename.tmpl')
       html = t.render(Context({'system':system_name}))
@@ -402,6 +343,8 @@ def system_multi(request, multi_mode=None):
    sel_names = []
    for system in all_systems:
       if system['name'] in items:
+         if not remote.check_access_no_fail(token, "modify_system", system["name"]):
+            return HttpResponse("You do not have permission to modify one or more of the systems you selected")
          sel_systems.append(system)
          sel_names.append(system['name'])
 
@@ -449,38 +392,19 @@ def system_domulti(request, multi_mode=None):
       
    return HttpResponseRedirect("/cobbler_web/system/list")
 
-def repo_list(request, repos=None, page=None):
-   if repos is None:
-      repos = remote.get_repos(token)
-
-   if page is None and len(repos) > 50:
-      return HttpResponseRedirect('/cobbler_web/repo/list/1')
-
-   try:
-      page = int(page)
-      if page < 1:
-         page = 1
-   except:
-      page = 1
-
-   (num_pages,prev_page,next_page,offset,ending) = __setup__pagination(repos,page)
-
-   if offset > len(repos):
-      return HttpResponseRedirect('/cobbler_web/repo/list/%d' % num_pages)
-
-   t = get_template('repo_list.tmpl')
-   html = t.render(Context({'what':'repo', 'repos': repos[offset:ending], 'page': page, 'pages': range(1,num_pages+1), 'next_page':next_page, 'prev_page':prev_page}))
-   return HttpResponse(html)
-
 def repo_edit(request, repo_name=None):
    available_arches = ['i386','x86','x86_64','ppc','ppc64','s390','s390x','ia64','noarch','src']
    repo = None
    if not repo_name is None:
+      editable = remote.check_access_no_fail(token, "modify_repo", repo_name)
       repo = remote.get_repo(repo_name, True, token)
       repo['ctime'] = time.ctime(repo['ctime'])
       repo['mtime'] = time.ctime(repo['mtime'])
+   else:
+      editable = remote.check_access_no_fail(token, "new_repo", None)
+
    t = get_template('repo_edit.tmpl')
-   html = t.render(Context({'repo': repo, 'available_arches': available_arches, "editable":True}))
+   html = t.render(Context({'repo': repo, 'available_arches': available_arches, "editable":editable}))
    return HttpResponse(html)
 
 def repo_save(request):
@@ -529,29 +453,6 @@ def repo_save(request):
 
       return HttpResponseRedirect('/cobbler_web/repo/edit/%s' % repo_name)
 
-def image_list(request, images=None, page=None):
-   if images is None:
-      images = remote.get_images(token)
-
-   if page is None and len(images) > 50:
-      return HttpResponseRedirect('/cobbler_web/image/list/1')
-
-   try:
-      page = int(page)
-      if page < 1:
-         page = 1
-   except:
-      page = 1
-
-   (num_pages,prev_page,next_page,offset,ending) = __setup__pagination(images,page)
-
-   if offset > len(images):
-      return HttpResponseRedirect('/cobbler_web/image/list/%d' % num_pages)
-
-   t = get_template('image_list.tmpl')
-   html = t.render(Context({'what':'image', 'images': images[offset:ending], 'page': page, 'pages': range(1,num_pages+1), 'next_page':next_page, 'prev_page':prev_page}))
-   return HttpResponse(html)
-
 def image_edit(request, image_name=None):
    available_arches = ['i386','x86_64']
    available_breeds = [['redhat','Red Hat Based'], ['debian','Debian'], ['ubuntu','Ubuntu'], ['suse','SuSE']]
@@ -560,11 +461,15 @@ def image_edit(request, image_name=None):
 
    image = None
    if not image_name is None:
+      editable = remote.check_access_no_fail(token, "modify_image", image_name)
       image = remote.get_image(image_name, True, token)
       image['ctime'] = time.ctime(image['ctime'])
       image['mtime'] = time.ctime(image['mtime'])
+   else:
+      editable = remote.check_access_no_fail(token, "new_image", None)
+
    t = get_template('image_edit.tmpl')
-   html = t.render(Context({'image': image, 'available_arches': available_arches, 'available_breeds': available_breeds, 'available_virttypes': available_virttypes, 'available_imagetypes': available_imagetypes, "editable":True}))
+   html = t.render(Context({'image': image, 'available_arches': available_arches, 'available_breeds': available_breeds, 'available_virttypes': available_virttypes, 'available_imagetypes': available_imagetypes, "editable":editable}))
    return HttpResponse(html)
 
 def image_save(request):
@@ -618,21 +523,6 @@ def image_save(request):
 def ksfile_list(request, page=None):
    ksfiles = remote.get_kickstart_templates(token)
 
-   if page is None and len(ksfiles) > 50:
-      return HttpResponseRedirect('/cobbler_web/ksfiles/list/1')
-
-   try:
-      page = int(page)
-      if page < 1:
-         page = 1
-   except:
-      page = 1
-
-   (num_pages,prev_page,next_page,offset,ending) = __setup__pagination(ksfiles,page)
-
-   if offset > len(ksfiles):
-      return HttpResponseRedirect('/cobbler_web/ksfiles/list/%d' % num_pages)
-
    ksfile_list = []
    for ksfile in ksfiles:
       if ksfile.startswith("/var/lib/cobbler/kickstarts") or ksfile.startswith("/etc/cobbler"):
@@ -643,7 +533,7 @@ def ksfile_list(request, page=None):
          ksfile_list.append((ksfile,None))
 
    t = get_template('ksfile_list.tmpl')
-   html = t.render(Context({'what':'ksfile', 'ksfiles': ksfile_list[offset:ending], 'page': page, 'pages': range(1,num_pages+1), 'next_page':next_page, 'prev_page':prev_page}))
+   html = t.render(Context({'what':'ksfile', 'ksfiles': ksfile_list}))
    return HttpResponse(html)
 
 def ksfile_edit(request, ksfile_name=None, editmode='edit'):
@@ -655,7 +545,7 @@ def ksfile_edit(request, ksfile_name=None, editmode='edit'):
    ksdata = ""
    if not ksfile_name is None:
       editable = remote.check_access_no_fail(token, "modify_kickstart", ksfile_name)
-      deleteable = remote.is_kickstart_in_use(ksfile_name, token)
+      deleteable = not remote.is_kickstart_in_use(ksfile_name, token)
       ksdata = remote.read_or_write_kickstart_template(ksfile_name, True, "", token)
 
    t = get_template('ksfile_edit.tmpl')

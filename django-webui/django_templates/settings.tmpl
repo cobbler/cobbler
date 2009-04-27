@@ -1,0 +1,31 @@
+{% extends "master.tmpl" %}
+
+{% block content %}
+
+{% include 'paginate.tmpl' %}
+
+<table class="sortable">
+    <thead>
+        <caption>Cobbler Settings</caption>
+        <tr>
+            <th class="text">Setting</th>
+            <th class="text">Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if settings %}
+        {% for setting,value in settings.items %}
+        <tr class="{% cycle 'rowodd' 'roweven' %}">
+            <td>{{ setting }}</td>
+            <td>{{ value }}</td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+          <td colspan="3">No settings found.</td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+{% endblock %}

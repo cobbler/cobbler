@@ -255,6 +255,7 @@ class CobblerXMLRPCInterface:
                 'start_item'  : start_item,
                 'end_item'    : end_item,
                 'items_per_page' : items_per_page,
+                'items_per_page_list' : [10,20,50,100,200,500],
         })
 
     def get_item(self, what, name):
@@ -269,16 +270,16 @@ class CobblerXMLRPCInterface:
         item = [x.to_datastruct_with_cache() for x in self.api.get_items(what)]
         return self.xmlrpc_hacks(item)
 
-    def find_items(self, what, matchtype="all", criteria={},sort_field=None):
+    def find_items(self, what, criteria=None,sort_field=None):
         self._log("find_items(%s)"%what)
-        items = self.api.find_items(what,matchtype=matchtype,criteria=criteria)
+        items = self.api.find_items(what,criteria=criteria)
         items = self.__sort(items,sort_field)
         items = [x.to_datastruct_with_cache() for x in items]
         return self.xmlrpc_hacks(items)
 
-    def find_items_paged(self, what, matchtype="all", criteria={}, sort_field=None, page=None, items_per_page=None):
+    def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page=None):
         self._log("find_items_paged(%s)"%what)
-        items = self.api.find_items(what,matchtype=matchtype,criteria=criteria)
+        items = self.api.find_items(what,criteria=criteria)
         items = self.__sort(items,sort_field)
         (items,pageinfo) = self.__paginate(items,page,items_per_page)
         items = [x.to_datastruct_with_cache() for x in items]

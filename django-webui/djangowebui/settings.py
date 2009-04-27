@@ -84,3 +84,6 @@ TEMPLATE_CONTEXT_PROCESSORS += (
      'django.core.context_processors.request',
 ) 
      
+SESSION_ENGINE = 'django.contrib.sessions.backends.file'
+SESSION_FILE_PATH = '/usr/share/cobbler/django/sessions'
+

@@ -237,14 +237,17 @@ class BootAPI:
         self.log("get_items",[what])
         return self._config.get_items(what)
 
-    def find_items(self, what, matchtype="all", criteria={}):
+    def find_items(self, what, criteria=None):
         self.log("find_items",[what])
+        # defaults
+        if criteria is None:
+            criteria={}
         items=self._config.get_items(what)
         # empty criteria returns everything
         if criteria == {}:
             res=items
         else:
-            res=items.find(return_list=True, matchtype=matchtype, no_errors=False, **criteria)
+            res=items.find(return_list=True, no_errors=False, **criteria)
         return res
         
     def systems(self):
