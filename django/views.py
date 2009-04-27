@@ -512,11 +512,11 @@ def ksfile_list(request, page=None):
    ksfile_list = []
    for ksfile in ksfiles:
       if ksfile.startswith("/var/lib/cobbler/kickstarts") or ksfile.startswith("/etc/cobbler"):
-         ksfile_list.append((ksfile,'editable'))
+         ksfile_list.append((ksfile,ksfile.replace('/var/lib/cobbler/kickstarts/',''),'editable'))
       elif ksfile["kickstart"].startswith("http://") or ksfile["kickstart"].startswith("ftp://"):
-         ksfile_list.append((ksfile,'viewable'))
+         ksfile_list.append((ksfile,ksfile,'','viewable'))
       else:
-         ksfile_list.append((ksfile,None))
+         ksfile_list.append((ksfile,ksfile,None))
 
    t = get_template('ksfile_list.tmpl')
    html = t.render(Context({'what':'ksfile', 'ksfiles': ksfile_list}))

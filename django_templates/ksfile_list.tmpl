@@ -9,9 +9,9 @@
         </tr>
     </thead>
     <tbody>
-        {% for ksfile,option in ksfiles %}
+        {% for ksfile,shortname,option in ksfiles %}
         <tr class="{% cycle 'rowodd' 'roweven' %}">
-            <td>{{ ksfile }}</td>
+            <td>{{ shortname }}</td>
             {% if option %}
             {% ifequal option "editable" %}<td><a href="/cobbler_web/ksfile/edit/{{ ksfile }}">edit</a></td>{% endifequal %}
             {% ifequal option "viewable" %}<td><a href="{{ ksfile }}">view</a></td>{% endifequal %}
