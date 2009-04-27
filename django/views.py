@@ -560,6 +560,63 @@ def ksfile_save(request):
       remote.read_or_write_kickstart_template(ksfile_name,False,ksdata,token)
       return HttpResponseRedirect('/cobbler_web/ksfile/edit/%s' % ksfile_name)
 
+###
+
+
+def snippet_list(request, page=None):
+   snippets = remote.get_snippets(token)
+
+   snippet_list = []
+   for snippet in snippets:
+      if snippet.startswith("/var/lib/cobbler/snippets"):
+         snippet_list.append((snippet,snippet.replace("/var/lib/cobbler/snippets/",""),'editable'))
+      else:
+         snippet_list.append((snippet,snippet,None))
+
+   t = get_template('snippet_list.tmpl')
+   html = t.render(Context({'what':'snippet', 'snippets': snippet_list}))
+   return HttpResponse(html)
+
+def snippet_edit(request, snippet_name=None, editmode='edit'):
+   if editmode == 'edit':
+      editable = False
+   else:
+      editable = True
+   deleteable = False
+   ksdata = ""
+   if not snippet_name is None:
+      editable = remote.check_access_no_fail(token, "modify_snippet", snippet_name)
+      deleteable = True
+      snippetdata = remote.read_or_write_snippet(snippet_name, True, "", token)
+
+   t = get_template('snippet_edit.tmpl')
+   html = t.render(Context({'snippet_name':snippet_name, 'deleteable':deleteable, 'snippetdata':snippetdata, 'editable':editable, 'editmode':editmode}))
+   return HttpResponse(html)
+
+def snippet_save(request):
+   # FIXME: error checking
+
+   editmode = request.POST.get('editmode', 'edit')
+   snippet_name = request.POST.get('snippet_name', None)
+   snippetdata = request.POST.get('snippetdata', "")
+
+   if snippet_name == None:
+      return HttpResponse("NO SNIPPET NAME SPECIFIED")
+   if editmode != 'edit':
+      snippet_name = "/var/lib/cobbler/snippets/" + snippet_name
+
+   delete1   = request.POST.get('delete1', None)
+   delete2   = request.POST.get('delete2', None)
+
+   if delete1 and delete2:
+      remote.read_or_write_snippet(snippet_name, False, -1, token)
+      return HttpResponseRedirect('/cobbler_web/snippet/list')
+   else:
+      remote.read_or_write_snippet(snippet_name,False,snippetdata,token)
+      return HttpResponseRedirect('/cobbler_web/snippet/edit/%s' % snippet_name)
+
+
+
 def settings(request):
    settings = remote.get_settings()
    t = get_template('settings.tmpl')

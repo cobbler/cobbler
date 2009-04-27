@@ -356,6 +356,19 @@ class CobblerXMLRPCInterface:
         #self.check_access(token, "get_kickstart_templates")
         return utils.get_kickstart_templates(self.api)
 
+    def get_snippets(self,token=None,**rest):
+        """
+        Returns all the kickstart snippets.
+        """
+        self._log("get_snippets",token=token)
+        files = glob.glob("/var/lib/cobbler/snippets/*")
+        results = []
+        for f in files:
+           if not os.path.isdir(f):
+              results.append(f)
+        results.sort()
+        return results
+
     def is_kickstart_in_use(self,ks,token=None,**rest):
         self._log("is_kickstart_in_use",token=token)
         for x in self.api.profiles():
@@ -1621,6 +1634,45 @@ class CobblerXMLRPCInterface:
                 fileh.write(new_data)
                 fileh.close()
             return True
+
+    def read_or_write_snippet(self,snippet_file,is_read,new_data,token):
+        """
+        Allows the WebUI to be used as a snippet file editor.  For security
+        reasons we will only allow snippet files to be edited if they reside in
+        /var/lib/cobbler/snippets.
+        """
+        # FIXME: duplicate code with kickstart view/edit
+        # FIXME: need to move to API level functions
+
+        if is_read:
+           what = "read_snippet"
+        else:
+           what = "write_snippet"
+
+        self._log(what,name=snippet_file,token=token)
+        self.check_access(token,what,snippet_file,is_read)
+ 
+        if snippet_file.find("..") != -1 or not snippet_file.startswith("/"):
+            raise CX(_("tainted file location"))
+
+        if not snippet_file.startswith("/var/lib/cobbler/snippets"):
+            raise CX(_("unable to view or edit snippet in this location"))
+        
+        if is_read:
+            fileh = open(snippet_file,"r")
+            data = fileh.read()
+            fileh.close()
+            return data
+        else:
+            if new_data == -1:
+                # FIXME: no way to check if something is using it
+                os.remove(snippet_file)
+            else:
+                fileh = open(snippet_file,"w+")
+                fileh.write(new_data)
+                fileh.close()
+            return True
+
 
     def power_system(self,object_id,power=None,token=None):
         """

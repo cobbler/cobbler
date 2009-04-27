@@ -1,0 +1,24 @@
+{% extends 'master.tmpl' %}
+{% block content %}
+<table class="sortable">
+    <thead>
+        <caption>Cobbler Kickstart Snippets</caption>
+        <tr>
+            <th class="text">File</th>
+            <th class="text">Edit/View</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for snippet,shortname,option in snippets %}
+        <tr class="{% cycle 'rowodd' 'roweven' %}">
+            <td>{{ shortname }}</td>
+            {% if option %}
+            {% ifequal option "editable" %}<td><a href="/cobbler_web/snippet/edit/{{ snippet }}">edit</a></td>{% endifequal %}
+            {% else %}
+            <td>N/A</td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock content %}

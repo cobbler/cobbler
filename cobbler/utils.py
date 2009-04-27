@@ -1418,7 +1418,9 @@ def get_kickstart_templates(api):
         if os.path.isfile(x):
             files[x] = 1
 
-    return files.keys()
+    results = files.keys()
+    results.sort()
+    return results
 
 def safe_filter(var):
     if var is None:

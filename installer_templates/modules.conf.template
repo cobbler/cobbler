@@ -42,7 +42,6 @@ module = $authn_module
 #
 # choices:
 #    authz_allowall   -- full access for all authneticated users (default)
-#    authz_configfile -- determined by /etc/cobbler/users.conf
 #    authz_ownership  -- use users.conf, but add object ownership semantics
 #    (user supplied)  -- you may write your own module
 #
