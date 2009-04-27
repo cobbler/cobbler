@@ -84,6 +84,13 @@ def __authorize_kickstart(api_handle, group, user, kickstart, acl_engine):
           return 0
     return 1
 
+def __authorize_snippet(api_handle, group, user, kickstart, acl_engine):
+    # only allow admins to edit snippets -- since we don't have detection to see
+    # where each snippet is in use
+    if group not in [ "admins", "admin" ]:
+       return False
+    return True
+
 def __is_user_allowed(obj, group, user, resource, arg1, arg2, acl_engine):
     if group in [ "admins", "admin" ]:
         return acl_engine.can_access(group, user, resource, arg1, arg2)
@@ -160,6 +167,15 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,acl_engine=None):
     if resource.find("write_kickstart") != -1:
         return __authorize_kickstart(api_handle,found_group,user,arg1,acl_engine)
     elif resource.find("read_kickstart") != -1:
+        return acl_engine.can_access(found_group,user,resource,arg1,arg2)
+
+    # the API for editing snippets also needs to do something similar.
+    # as with kickstarts, though since they are more widely used it's more
+    # restrictive   
+ 
+    if resource.find("write_snippet") != -1:
+        return __authorize_snippet(api_handle,found_group,user,arg1,acl_engine)
+    elif resource.find("read_snipppet") != -1:
         return acl_engine.can_access(found_group,user,resource,arg1,arg2)
 
     obj = None
