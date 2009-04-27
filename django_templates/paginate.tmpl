@@ -1,8 +1,12 @@
 {% if pageinfo %}
+
 <script language="Javascript">
+
 function add_filter() {
+
    field_name = document.getElementById("filter_field");
    field_value = document.getElementById("filter_value");
+
    if (field_name.value == "") {
       alert("You must select a field to filter on.");
    } else if (field_value.value == "") {
@@ -10,27 +14,19 @@ function add_filter() {
    } else {
       location = '/cobbler_web/{{ what }}/addfilter/'+field_name.value+':'+field_value.value;
    }
+
 }
 </script>
 
-<p>
-{% ifnotequal pageinfo.prev_page "~" %}<a href="{{ baseurl }}/page/{{ pageinfo.prev_page }}">&lt;</a>{% else %}&lt;{% endifnotequal %}
-<select name="page" id="page" onchange="javascript:location='{{ baseurl }}/page/'+this.value">
-{% for p in pageinfo.pages %}
-  <option value="{{ p }}"{% ifequal pageinfo.page p %} selected{% endifequal %}>Page {{ p }}</option>
-{% endfor %}
-</select>
-{% ifnotequal pageinfo.next_page "~" %}<a href="{{ baseurl }}/page/{{ pageinfo.next_page }}">&gt;</a>{% else %}&gt;{% endifnotequal %}
-Items per page
-<select name="limit" id="limit" onchange="javascript:location='{{ baseurl }}/limit/'+this.value+'/page/1'">
-{% for p in pageinfo.items_per_page_list %}
-  <option value="{{ p }}"{% ifequal pageinfo.items_per_page p %} selected{% endifequal %}>{{ p }}</option>
-{% endfor %}
-</select>
-<br />
-Add filter:
-<select id="filter_field" name="filter_field">
-   <option value="">[select]</option>
+<br/>
+<span class="nav_label">Filters:</font>
+<div id="nav_filter">
+<table>
+
+<tr id="filter-adder">
+<td>
+<select id="filter_field" name="filter_field" style="width:80px" width="80">
+   <option value="">[?]</option>
    <option value="name">name</option>
    {% ifequal what "distro" %}
    <option value="arch">arch</option>
@@ -149,14 +145,73 @@ Add filter:
    <option value="virt_bridge">virt bridge</option>
    <option value="virt_file_size">virt file size (GB)</option>
    {% endifequal %}
-</select>
-<input type="text" name="filter_value" id="filter_value" size="8" />
-<input type="button" value="add" onclick="javascript:add_filter();" />
+</select>&nbsp;<input type="text" name="filter_value" id="filter_value" size="10"  onkeypress="javascript:if (event.keyCode == 13) add_filter();"/>
+
+<tr id="filter-remover">
+<td>
 {% if filters %}
-<br />
+<table>
 {% for key,value in filters.items %}
-<a href="/cobbler_web/{{ what }}/removefilter/{{ key }}" title="remove">[x]</a> {{ key }} = {{ value }}{% if not forloop.last %} :: {% endif %}
+<tr>
+<td><a href="/cobbler_web/{{ what }}/removefilter/{{ key }}" title="remove">[x]</a></td>
+<td>{{ key }} = {{ value }}</td>
 {% endfor %}
+</table>
 {% endif %}
-</p>
+
+</td>
+</tr>
+</table>
+
+</div>
+
+<br/> 
+
+<span class="nav_label">Page:</span>
+<div id="nav_page">
+<table>
+<tr>
+<td>
+Items/page: <select name="limit" id="limit" onchange="javascript:location='{{ baseurl }}/limit/'+this.value+'/page/1'">
+{% for p in pageinfo.items_per_page_list %}
+  <option value="{{ p }}"{% ifequal pageinfo.items_per_page p %} selected{% endifequal %}>{{ p }}</option>
+{% endfor %}
+</select>
+</td>
+</tr>
+
+
+<tr id="page_prev_next">
+<td>
+
+{% ifnotequal pageinfo.prev_page "~" %}
+<input type="button" value="&lt;" onclick='javascript:location="{{ baseurl }}/page/{{ pageinfo.prev_page }}"'/>
+{% else %}
+<input type="button" value="&lt;" disabled='true'/>
+{% endifnotequal %}
+
+<select name="page" id="page" onchange="javascript:location='{{ baseurl }}/page/'+this.value">
+
+{% for p in pageinfo.pages %}
+
+  <option value="{{ p }}"{% ifequal pageinfo.page p %} selected{% endifequal %}>Page {{ p }}</option>
+
+{% endfor %}
+
+</select>
+
+{% ifnotequal pageinfo.next_page "~" %}
+
+<input type="button" value="&gt;" onclick='javascript:location="{{ baseurl }}/page/{{ pageinfo.next_page }}"'/>
+{% else %}
+<input type="button" value="&gt;" disabled="true"/>
+{% endifnotequal %}
+
+</td>
+</tr>
+
+</table>
+</div>
+
 {% endif %}
+

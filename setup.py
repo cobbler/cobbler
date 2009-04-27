@@ -24,7 +24,6 @@ OUTPUT_DIR = "config"
 def templatify(template, answers, output):
     t = Template.Template(file=template, searchList=answers)
     data = t.respond()
-    print "response=%s" % data
     outf = open(output,"w")
     outf.write(data)
     outf.close()
