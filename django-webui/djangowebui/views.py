@@ -468,7 +468,6 @@ def image_edit(request, image_name=None):
    else:
       editable = remote.check_access_no_fail(token, "new_image", None)
 
-   raise "BRAKE"
    t = get_template('image_edit.tmpl')
    html = t.render(Context({'image': image, 'available_arches': available_arches, 'available_breeds': available_breeds, 'available_virttypes': available_virttypes, 'available_imagetypes': available_imagetypes, "editable":editable}))
    return HttpResponse(html)
