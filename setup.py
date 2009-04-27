@@ -191,6 +191,7 @@ if __name__ == "__main__":
             (dj_templates, [ 'django_templates/profile_list.tmpl' ]),
             (dj_templates, [ 'django_templates/repo_edit.tmpl' ]),
             (dj_templates, [ 'django_templates/repo_list.tmpl' ]),
+            (dj_templates, [ 'django_templates/settings.tmpl' ]),
             (dj_templates, [ 'django_templates/system_delete.tmpl' ]),
             (dj_templates, [ 'django_templates/system_edit.tmpl' ]),
             (dj_templates, [ 'django_templates/system_list.tmpl' ]),
