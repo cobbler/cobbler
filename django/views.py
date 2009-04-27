@@ -48,7 +48,7 @@ def __list(request, what, action, sort_field=None, limit=None, page=None):
     if page == None:
         page = request.session.get("%s_page" % what, 1)
     if limit == None:
-        limit = request.session.get("%s_limit" % what, 10)
+        limit = request.session.get("%s_limit" % what, 50)
 
     page = int(page)
     limit = int(limit)
