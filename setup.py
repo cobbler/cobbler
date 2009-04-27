@@ -210,6 +210,7 @@ if __name__ == "__main__":
             (dj_webui,     [ 'django-webui/djangowebui/settings.py' ]),
             (dj_webui,     [ 'django-webui/djangowebui/urls.py' ]),
             (dj_webui,     [ 'django-webui/djangowebui/views.py' ]),
+            (dj_sessions,  []),
 
             # backups for upgrades
             (backpath, []),
