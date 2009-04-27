@@ -191,7 +191,6 @@ if __name__ == "__main__":
             (dj_templates, [ 'django-webui/django_templates/profile_list.tmpl' ]),
             (dj_templates, [ 'django-webui/django_templates/repo_edit.tmpl' ]),
             (dj_templates, [ 'django-webui/django_templates/repo_list.tmpl' ]),
-            (dj_templates, [ 'django-webui/django_templates/search.tmpl' ]),
             (dj_templates, [ 'django-webui/django_templates/system_delete.tmpl' ]),
             (dj_templates, [ 'django-webui/django_templates/system_edit.tmpl' ]),
             (dj_templates, [ 'django-webui/django_templates/system_list.tmpl' ]),
