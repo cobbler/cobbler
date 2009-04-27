@@ -8,7 +8,7 @@
         <tr>
             <th class="text">Name</th>
             <th class="text">Parent</th>
-            <th class="text">Kickstart</th>
+            <th class="text">Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -26,18 +26,7 @@
                {% endifnotequal %}
                </td>
                <td>
-                   {% if profile.web_kickstart or profile.nfs_kickstart %}
-                      {% if profile.web_kickstart %}
-                      <a href="{{ profile.web_kickstart }}">{{ profile.web_kickstart }}</a>
-                      {% else %} 
-                      {{ profile.nfs_kickstart }}
-                      {% endif %}
-                   {% else %}
-                      <a href="/cblr/svc/op/ks/profile/{{ profile.name }}">(view rendered)</a>&nbsp;
-                      {% ifnotequal profile.kickstart "<<inherit>>" %}
-                      <a href="/cobbler_web/ksfile/edit/{{ profile.kickstart }}">(edit template)</a>
-                      {% endifnotequal %}
-                   {% endif %}
+                      <input type="button" value="preview ks" onclick='javascript:location="/cblr/svc/op/ks/profile/{{ profile.name }}"'>
                </td>
            </tr>
            {% endfor %}
