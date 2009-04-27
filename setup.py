@@ -177,6 +177,7 @@ if __name__ == "__main__":
             (dj_templates, [ 'django-webui/django_templates/error_page.tmpl' ]),
             (dj_templates, [ 'django-webui/django_templates/header.tmpl' ]),
             (dj_templates, [ 'django-webui/django_templates/image_edit.tmpl' ]),
+            (dj_templates, [ 'django-webui/django_templates/image_list.tmpl' ]),
             (dj_templates, [ 'django-webui/django_templates/index.tmpl' ]),
             (dj_templates, [ 'django-webui/django_templates/item.tmpl' ]),
             (dj_templates, [ 'django-webui/django_templates/ksfile_edit.tmpl' ]),
