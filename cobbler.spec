@@ -375,8 +375,8 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %dir /usr/share/cobbler/django/sessions
 %dir /usr/share/cobbler/django/django_templates
 /usr/share/cobbler/django/django_templates/*
-%dir /usr/share/cobbler/django/djangowebui
-/usr/share/cobbler/django/djangowebui/*
+%dir /usr/share/cobbler/django/lib
+/usr/share/cobbler/django/lib/*
 /etc/httpd/conf.d/cobbler_web.conf
 %dir /usr/share/cobbler/django/sessions
 %dir /var/www/cobbler_webui_content

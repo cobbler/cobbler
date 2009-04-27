@@ -36,6 +36,5 @@ include docs/cobbler-register.1.gz
 include scripts/koan 
 include scripts/cobbler-register
 recursive-include django/django_templates *
-recursive-include django/djangowebui *
-recursive-include django/javascript *
+recursive-include django/lib *
 
