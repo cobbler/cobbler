@@ -37,25 +37,6 @@ def about(request):
    html = t.render(Context({}))
    return HttpResponse(html)
 
-def search(request, what):
-   t = get_template('search.tmpl')
-   html = t.render(Context({'what':what, 'item_count':["1","2","3","4","5"]}))
-   return HttpResponse(html)
-
-def dosearch(request, what, sort_field=None, limit=None, page=None):
-    if request.POST.has_key("key1"):
-        criteria = {}
-        for i in range(1,6):
-            key = request.POST.get("key%d" % i, None)
-            val = request.POST.get("value%d" % i, None)
-            if key not in (None, ''):
-                if val != None:
-                    val = val.replace('"','')
-                criteria[key] = val
-    else:
-        criteria = None
-    return __list(request,what,"dosearch",sort_field=sort_field,limit=limit,page=page)
-
 def list(request, what=None, sort_field=None, limit=None, page=None):
     return __list(request,what,"list",sort_field=sort_field,limit=limit,page=page)
 
