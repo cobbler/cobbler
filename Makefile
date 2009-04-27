@@ -13,15 +13,12 @@ clean:
 	-rm -f cobbler/*.pyc
 	-rm -f koan/*.pyc
 	-rm -f config/modules.conf config/settings config/version
-	-rm -f docs/*.1.gz docs/cobbler*.html docs/koan*.html pod2htm*.tmp
+	-rm -f docs/*.1.gz 
 
 manpage:
 	pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz
-	pod2html ./docs/cobbler.pod > ./docs/cobbler.html
 	pod2man --center="koan" --release="" ./docs/koan.pod | gzip -c > ./docs/koan.1.gz
-	pod2html ./docs/koan.pod > ./docs/koan.html
 	pod2man --center="cobbler-register" --release="" ./docs/cobbler-register.pod | gzip -c > ./docs/cobbler-register.1.gz
-	pod2html ./docs/cobbler-register.pod > ./docs/cobbler-register.html
 
 test:
 	make savestate prefix=test

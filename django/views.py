@@ -32,6 +32,11 @@ def index(request):
    html = t.render(Context({'version': remote.version(token), 'username':username}))
    return HttpResponse(html)
 
+def about(request):
+   t = get_template('about.tmpl')
+   html = t.render(Context({}))
+   return HttpResponse(html)
+
 def search(request, what):
    t = get_template('search.tmpl')
    html = t.render(Context({'what':what, 'item_count':["1","2","3","4","5"]}))

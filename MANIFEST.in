@@ -24,8 +24,6 @@ recursive-include installer_templates *.template defaults
 recursive-include kickstarts *.ks
 recursive-include kickstarts *.seed
 include docs/cobbler.1.gz
-include docs/cobbler.html
-include docs/wui.html
 include COPYING AUTHORS README CHANGELOG
 include scripts/*.py
 include snippets/*

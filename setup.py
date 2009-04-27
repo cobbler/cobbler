@@ -199,6 +199,7 @@ if __name__ == "__main__":
             (dj_templates, [ 'django_templates/system_power.tmpl' ]),
             (dj_templates, [ 'django_templates/system_profile.tmpl' ]),
             (dj_templates, [ 'django_templates/system_rename.tmpl' ]),
+            (dj_templates, [ 'django_templates/about.tmpl' ]),
 
             # django javascript support code (move to section with other js?)
             (wwwcon,        [ 'webui_content/checkboxes.js' ]),	
@@ -343,8 +344,6 @@ if __name__ == "__main__":
             # slurp in whole directory?
 
             # Web UI support files
-            (wwwcon,            ['docs/wui.html']),
-            (wwwcon,            ['docs/cobbler.html']),
             (wwwcon,            ['webui_content/cobbler.js']),
             (wwwcon,            ['webui_content/style.css']),
             (wwwcon,            ['webui_content/logo-cobbler.png']),
