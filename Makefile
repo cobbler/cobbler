@@ -40,6 +40,7 @@ build: manpage
 
 install: build manpage
 	python setup.py install -f
+	chown -R apache /usr/share/cobbler/django
 
 debinstall: manpage
 	python setup.py install -f --root $(DESTDIR)
