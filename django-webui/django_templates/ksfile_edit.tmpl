@@ -50,9 +50,11 @@ if you need to resolve this.
      </td>
     </tr>
     {% else %}
+    {% ifequal editmode "edit" %}
     <tr>
      <td colspan="2">NOTE: This kickstart template is currently in-use.</td>
     </tr>
+    {% endifequal %}
     {% endif %}
     <tr>
      <td colspan="2">
