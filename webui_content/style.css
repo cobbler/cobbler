@@ -52,6 +52,12 @@ span.nav_label {
   font-size: small;
 }
 
+span.section_caption {
+  font-size: medium;
+  font-weight: 900;
+  padding-bottom: 40px;
+}
+
 div#nav_object {
   background-color: #252525;
 }

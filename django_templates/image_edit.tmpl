@@ -17,11 +17,11 @@ function disablename(value)
 <fieldset id="cform">
      
     {% if image %}
-        <legend>Editing Image</legend>
+        <legend>Editing an Image</legend>
         <input type="hidden" name="new_or_edit" value="edit"/>
         <input type="hidden" name="oldname" value="{{ image.name }}"/>
     {% else %}
-        <legend>Adding a Image</legend>
+        <legend>Adding an Image</legend>
         <input type="hidden" name="new_or_edit" value="new"/>
     {% endif %}
     <input type="hidden" name="mode" value="image_save">

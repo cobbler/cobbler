@@ -31,7 +31,7 @@ function disablename(value)
 -->
 
     {% if profile %}
-        <legend>Editing Profile</legend>
+        <legend>Editing a Profile</legend>
         <input type="hidden" name="new_or_edit" value="edit"/>
         <input type="hidden" name="oldname" value="{{ profile.name }}"/>
     {% else %}
@@ -299,7 +299,7 @@ function disablename(value)
         <option value="{{ repo.name }}"{% if profile %}{% for prepo in profile.repos %}{% ifequal prepo.name repo.name %} selected="1"{% endifequal %}{% endfor %}{% endif %}>{{ repo.name }}</option>
     {% endfor %}
     </select>
-    <p class="context-tip">Select one or many additional repos to automatically assign to the target system.   (this is a good place to include an updates repo)</p>
+    <p class="context-tip">Select yum repos to automatically assign to the target system.</p>
     </td>
     </tr>
 
