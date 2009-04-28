@@ -11,9 +11,14 @@ clean:
 	-rm -rf build rpm-build
 	-rm -f *~
 	-rm -f cobbler/*.pyc
+	-rm -rf dist
+	-rm -rf buildiso
+	-rm MANIFEST
 	-rm -f koan/*.pyc
 	-rm -f config/modules.conf config/settings config/version
 	-rm -f docs/*.1.gz 
+	-rm *.tmp
+	-rm *.log
 
 manpage:
 	pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz
