@@ -77,21 +77,24 @@ class PXEGen:
 
         # copy syslinux from one of two locations
         try:
-            utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',   dst, api=self.api, verbose=self.verbose)
+            try:
+                utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',   dst, api=self.api, verbose=self.verbose)
+            except:
+                utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0', dst, api=self.api, verbose=self.verbose)
         except:
-            utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0', dst, api=self.api, verbose=self.verbose)
+            utils.copyfile_pattern('/var/lib/cobbler/loaders/pxelinux.0', dst, api=self.api, verbose=self.verbose)
  
         # copy memtest only if we find it
         utils.copyfile_pattern('/boot/memtest*', dst, require_match=False, api=self.api, verbose=self.verbose)
   
         # copy elilo which we include for IA64 targets
-        utils.copyfile_pattern('/var/lib/cobbler/elilo-3.8-ia64.efi', dst, api=self.api, verbose=self.verbose)
+        utils.copyfile_pattern('/var/lib/cobbler/loaders/elilo.efi', dst, api=self.api, verbose=self.verbose)
  
         # copy menu.c32 as the older one has some bugs on certain RHEL
-        utils.copyfile_pattern('/var/lib/cobbler/menu.c32', dst, api=self.api, verbose=self.verbose)
+        utils.copyfile_pattern('/var/lib/cobbler/loaders/menu.c32', dst, api=self.api, verbose=self.verbose)
 
         # copy yaboot which we include for PowerPC targets
-        utils.copyfile_pattern('/var/lib/cobbler/yaboot-1.3.14', dst, api=self.api, verbose=self.verbose)
+        utils.copyfile_pattern('/var/lib/cobbler/loaders/yaboot', dst, api=self.api, verbose=self.verbose)
 
         # copy memdisk as we need it to boot ISOs
         try:
@@ -253,7 +256,7 @@ class PXEGen:
                 f3 = os.path.join(self.bootloc, "ppc", filename)
                 if os.path.lexists(f3):
                     utils.rmfile(f3)
-                os.symlink("../yaboot-1.3.14", f3)
+                os.symlink("../yaboot", f3)
             else:
                 continue 
 

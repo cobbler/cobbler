@@ -253,7 +253,7 @@ class BootCheck:
           "elilo"      : [ "ia64",       [ "/var/lib/cobbler/loaders/elilo*.efi" ]],
           "menu.c32"   : [ "x86/x86_64", [ "/var/lib/cobbler/loaders/menu.c32" ]],
           "yaboot"     : [ "ppc/ppc64",  [ "/var/lib/cobbler/loaders/yaboot*" ]],
-          "pxelinux.0" : [ "x86_64",     [ "/usr/lib/syslinux/pxelinux.0", "/var/lib/cobbler/loaders/pxelinux.0" ]]
+          "pxelinux.0" : [ "x86_64",     [ "/usr/share/syslinux/pxelinux.0", "/usr/lib/syslinux/pxelinux.0", "/var/lib/cobbler/loaders/pxelinux.0" ]]
        }
 
        # look for bootloaders at the glob locations above
