@@ -4,7 +4,6 @@
   background-color: #717171;
   padding: 2px 16px;
   padding-left: 32px;
-  background-image: url('/cobbler/webui/icon_16_sync.png');
   background-position: 15%;
   background-repeat: no-repeat;
 }
@@ -17,9 +16,7 @@ a.button, a.button:link, a.button:visited, a.button:active {
 }
 
 body, html {
-  background-color: black;
-  margin: 0;
-  padding: 0;
+  background-color: #212121;
 }
 
 td {
@@ -35,7 +32,6 @@ img {
   border: none;
 }
 
-/* site-wide font specifications */
 body, ul, li, p, h1, h2, h3 {
   font-family: "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", sans-serif;
   color: white;
@@ -103,31 +99,7 @@ ul#navaction li a {
   text-decoration: none;
 }
 
-div#feed {
-  width: 160px;
-  font-size: small;
-  margin-top: 28px;
-  margin-bottom: 50px;
-  border-top: 1px solid #444;
-  padding-top: 5px;
-}
-
-div#feed ul {
-  font-size: x-small;
-}
-
-
-#wrap {
-  min-width: 750px;
-  margin: 0px 3%;
-  padding-top: 12px;
-}
-
 div#main {
-  height: 95%;
-  background-color: #212121;
-  border-top: 1px solid #C88800;
-  border-bottom: 1px solid #C88800;
   overflow: auto;
   padding: 20px 0px;
 }
@@ -135,7 +107,7 @@ div#main {
 div#content {
   width: 70%;
   float: right;
-  padding: 0px 24px;
+  padding: 20px 24px;
 }
 
 div#content h1 {
@@ -187,12 +159,6 @@ dd {
   margin-bottom: 2em;
 }
 
-.back-to-top {
-  background: url('/cobbler/webui/up-arrow.gif') left no-repeat;
-  padding-left: 20px;
-  font-size: small;
-}
-
 blockquote {
   border-top: 1px solid #ccc;
   border-bottom: 1px solid #ccc;
@@ -217,24 +183,6 @@ tt {
   font-weight: 700;
 }
 
-#faq, #toc {
-  border-top: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
-  background: #444;
-  padding-top: 12px;
-  padding-bottom: 16px;
-  padding-left: 30px;
-}
-
-#footer {
-  width: 100%;
-  font-size: x-small;
-  color: #aaa;
-  text-align: center;
-  padding-top: 16px;
-  padding-bottom: 16px;
-}
-
 span.tip {
         padding:                2px 8px;
 }
@@ -247,7 +195,5 @@ span.tip p {
         padding:                0px;
         margin:                 0px;
         padding-left:           42px;
-
-        background-image:       url('icon-tip.png');
-        background-repeat:      no-repeat;
 }
+
