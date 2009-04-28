@@ -1,7 +1,4 @@
-  Cobbler Authors
-  ============
-
-Cobbler is written & maintained by:
+Cobbler, Koan, and Cobbler-Web are written & maintained by:
 
     Michael DeHaan <mdehaan@redhat.com>
 
@@ -17,9 +14,12 @@ Patches and other contributions from:
     Jasper Capel <capel@stone-it.com>
     C. Daniel Chase <dan@cdchase.com>
     Carsten Clasohm <cclasohm@redhat.com>
-    Charles Duffy <charles_duffy@messageone.com>
+    Rob Crittenden <rcritten@redhat.com>
+    Scott Dodson <sdodson@redhat.com>
+    Charles Duffy <Charles_Duffy@messageone.com>
     Máirín Duffy <duffy@redhat.com>
     John Eckersberg <jeckersb@redhat.com>
+    Lee Faus <lfaus@redhat.com>
     Dan Guernsey <danpg102@gmail.com>
     Marcel Haerry <haerry+et@puzzle.ch>
     Niels Hasse <haase.niels@googlemail.com>
@@ -34,12 +34,15 @@ Patches and other contributions from:
     Henry Kemp <henrykemp@gmail.com>
     Ruben Kerkhof <ruben@rubenkerkhof.com>
     Don Khan <khan_don@emc.com>
+    Gavin Romig-Koch <gavin@redhat.com>
+    James Laska <jlaska@redhat.com>
     Vito Laurenza <vitolaurenza@gmail.com>
     Adrian Likins <alikins@redhat.com>
     David Lutterkort <dlutter@redhat.com>
     Lester M. <needwork@gmail.com>
     Bryan Mason <bjmason@redhat.com>
     Mike McCune <mmccune@redhat.com>
+    Mark McLoughlin <markmc@redhat.com>
     Jim Meyering <jim@meyering.net>
     Jeroen van Meeuwen <kanarip@kanarip.com>
     Sean Millichamp <sean@bruenor.org>
@@ -57,8 +60,9 @@ Patches and other contributions from:
     Jeff Schroeder <jeffschroeder@computer.org>
     Scott Seago <sseago@redhat.com>
     Justin Sherill <jsherril@redhat.com>
-    Joe Smith <yasumoto7@gmail.com>
     Anderson Silva <ansilva@redhat.com>
+    Joe Smith <yasumoto7@gmail.com>
+    Michael Stahnke <mastahnke@gmail.com>
     Dylan Swift <dylan.swift@gmail.com>
     Al Tobey <tobert@gmail.com>
     Thomas Uhde <thomas.uhde@KabelDeutschland.de>
@@ -66,9 +70,10 @@ Patches and other contributions from:
     Tim Verhoeven <tim.verhoeven.be@gmail.com>
     John L. Villalovos <john@sodarock.com>
     Peter Vreman <peter.vreman@acision.com>
+    Adam Wolf <adamwolf@feelslikeburning.com>
     Simon Woolsgrove <simon@woolsgrove.com>
+    Todd Zullinger <tmz@pobox.com>
 
     [...send patches to get your name here...]
 
--- End
 
