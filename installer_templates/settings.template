@@ -392,6 +392,12 @@ yum_post_install_mirror: $yum_post_install_mirror
 # dramatically improve your "cobbler reposync" time.
 yumcreaterepo_flags: "-c cache"
 
-# additional flags to yum commands
+# Flags to use for yum's reposync.  If your version of yum reposync
+# does not support -l, you may need to remove that option.
 yumreposync_flags: "-l -m -d"
+
+# Flags to use for yumdownloader.  Not all versions may support 
+# --resolve.
 yumdownloader_flags: "--resolve"
+
+
