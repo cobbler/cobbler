@@ -583,7 +583,7 @@ def snippet_edit(request, snippet_name=None, editmode='edit'):
    else:
       editable = True
    deleteable = False
-   ksdata = ""
+   snippetdata = ""
    if not snippet_name is None:
       editable = remote.check_access_no_fail(token, "modify_snippet", snippet_name)
       deleteable = True
