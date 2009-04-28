@@ -42,11 +42,11 @@ class Repo(item.Item):
         self.name             = None
         self.uid              = ""
         # FIXME: subobject code does not really make sense for repos
-        self.mirror           = (None,       '<<inherit>>')[is_subobject]
-        self.keep_updated     = (True,        '<<inherit>>')[is_subobject]
-        self.priority         = (99,         '<<inherit>>')[is_subobject]
-        self.rpm_list         = ("",         '<<inherit>>')[is_subobject]
-        self.createrepo_flags = ("-c cache", '<<inherit>>')[is_subobject]
+        self.mirror           = (None,                              '<<inherit>>')[is_subobject]
+        self.keep_updated     = (True,                              '<<inherit>>')[is_subobject]
+        self.priority         = (99,                                '<<inherit>>')[is_subobject]
+        self.rpm_list         = ("",                                '<<inherit>>')[is_subobject]
+        self.createrepo_flags = (self.settings.yumcreaterepo_flags, '<<inherit>>')[is_subobject]
         self.depth            = 2  # arbitrary, as not really apart of the graph
         self.breed            = ""
         self.os_version       = ""
@@ -66,7 +66,7 @@ class Repo(item.Item):
         self.keep_updated     = self.load_item(seed_data, 'keep_updated',True)
         self.priority         = self.load_item(seed_data, 'priority',99)
         self.rpm_list         = self.load_item(seed_data, 'rpm_list')
-        self.createrepo_flags = self.load_item(seed_data, 'createrepo_flags', '-c cache')
+        self.createrepo_flags = self.load_item(seed_data, 'createrepo_flags', self.settings.yumcreaterepo_flags)
         self.breed            = self.load_item(seed_data, 'breed')
         self.os_version       = self.load_item(seed_data, 'os_version')
         self.arch             = self.load_item(seed_data, 'arch')
