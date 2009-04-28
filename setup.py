@@ -202,7 +202,6 @@ if __name__ == "__main__":
             (dj_templates, [ 'django_templates/system_power.tmpl' ]),
             (dj_templates, [ 'django_templates/system_profile.tmpl' ]),
             (dj_templates, [ 'django_templates/system_rename.tmpl' ]),
-            (dj_templates, [ 'django_templates/about.tmpl' ]),
 
             # django javascript support code (move to section with other js?)
             (wwwcon,        [ 'webui_content/checkboxes.js' ]),	

@@ -7,7 +7,6 @@ from views import *
 
 urlpatterns = patterns('',
     (r'^cobbler_web/$', index),
-    (r'^cobbler_web/about$', about),
     (r'^cobbler_web/ksfile/list(/(?P<page>\d+))?$', ksfile_list),
     (r'^cobbler_web/ksfile/edit$', ksfile_edit, {'editmode':'new'}),
     (r'^cobbler_web/ksfile/edit/(?P<ksfile_name>.+)$', ksfile_edit, {'editmode':'edit'}),

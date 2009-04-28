@@ -32,11 +32,6 @@ def index(request):
    html = t.render(Context({'version': remote.version(token), 'username':username}))
    return HttpResponse(html)
 
-def about(request):
-   t = get_template('about.tmpl')
-   html = t.render(Context({}))
-   return HttpResponse(html)
-
 def list(request, what=None, sort_field=None, limit=None, page=None):
     return __list(request,what,"list",sort_field=sort_field,limit=limit,page=page)
 
