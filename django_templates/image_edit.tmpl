@@ -13,15 +13,20 @@ function disablename(value)
 </script>
 {% endif %} 
 
+{% if image %}
+    <div class="section_caption">Editing an Image</div>
+{% else %}
+    <div class="section_caption">Adding an Image</div>
+{% endif %}
+
+
 <form method="POST" action="/cobbler_web/image/save">
 <fieldset id="cform">
      
     {% if image %}
-        <legend>Editing an Image</legend>
         <input type="hidden" name="new_or_edit" value="edit"/>
         <input type="hidden" name="oldname" value="{{ image.name }}"/>
     {% else %}
-        <legend>Adding an Image</legend>
         <input type="hidden" name="new_or_edit" value="new"/>
     {% endif %}
     <input type="hidden" name="mode" value="image_save">

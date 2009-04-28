@@ -41,6 +41,10 @@ ul {
   list-style-type: square;
 }
 
+fieldset {
+  border: 0;
+}
+
 #sidebar {
   height: auto;
   width: 185px;
@@ -52,10 +56,10 @@ span.nav_label {
   font-size: small;
 }
 
-span.section_caption {
+div.section_caption {
   font-size: medium;
   font-weight: 900;
-  padding-bottom: 40px;
+  padding-bottom: 20px;
 }
 
 div#nav_object {
@@ -159,9 +163,6 @@ dd {
 }
 
 blockquote {
-  border-top: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
-  background: #444;
   padding: 2px 4px;
 }
 

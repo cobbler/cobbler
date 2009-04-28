@@ -14,15 +14,19 @@ function disablename(value)
 </script>
 {% endif %}
 
+{% if repo %}
+    <div class="section_caption">Editing a Repo</div>
+{% else %}
+    <div class="section_caption">Adding a Repo</div>
+{% endif %}
+
 <form method="post" action="/cobbler_web/repo/save">
 <fieldset id="cform">
 
     {% if repo %}
-        <legend>Editing a Repo</legend>
         <input type="hidden" name="new_or_edit" value="edit"/>
         <input type="hidden" name="oldname" value="{{ repo.name }}"/>
     {% else %}
-        <legend>Adding a Repo</legend>
         <input type="hidden" name="new_or_edit" value="new"/>
     {% endif %}
  
@@ -224,9 +228,10 @@ function disablename(value)
 <br/>    
 
 <blockquote>
-Note:  Newly added repo definitions will not be usable until
-"cobbler reposync" is run from the command line on this system.
-Placing "cobbler reposync" on a crontab is recommended procedure.
+Note:  Newly added repo definitions will not be usable<br/>
+until "cobbler reposync" is run from the command line on<br/>
+this system. Placing "cobbler reposync" on a crontab is<br/>
+recommended procedure.
 </blockquote>
 
 <br/>

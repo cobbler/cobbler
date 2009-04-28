@@ -332,7 +332,11 @@ function page_onload() {
 }
 </script>
 
-
+{% if system %}
+    <div class="section_caption">Editing a System</div>
+{% else %}
+    <div class="section_caption">Adding a System</div>
+{% endif %}
 
 {% if editable %}
 {% comment %}
@@ -347,8 +351,6 @@ function page_onload() {
     <input name="interface_list" type="hidden" value="" id="interface_list"/>
     <input type="hidden" name="editmode" value="{{ editmode }}"/>
   
-    <legend>{% ifequal editmode "new" %}Adding a System{% else %}Editing a System{% endifequal %}</legend>
-    
     <table border=0>
 
     <tr>

@@ -21,6 +21,13 @@ function disablename(value)
 {% endif %}
 {% endcomment %}
 
+{% if profile %}
+    <div class="section_caption">Editing a Profile</div>
+{% else %}
+    <div class="section_caption">Adding a Profile</div>
+{% endif %}
+
+
 <form method="post" action="/cobbler_web/profile/save">
 <fieldset id="cform">
 
@@ -31,11 +38,9 @@ function disablename(value)
 -->
 
     {% if profile %}
-        <legend>Editing a Profile</legend>
         <input type="hidden" name="new_or_edit" value="edit"/>
         <input type="hidden" name="oldname" value="{{ profile.name }}"/>
     {% else %}
-        <legend>Adding a {% if subprofile %}Sub-{% endif %}Profile</legend>
         <input type="hidden" name="new_or_edit" value="new"/>
     {% endif %}
 

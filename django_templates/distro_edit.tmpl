@@ -12,16 +12,20 @@ function disablename(value)
 }
 </script>
 {% endif %}
+    
+{% if distro %}
+    <div class="section_caption">Editing a Distribution</div>
+{% else %}
+    <div class="section_caption">Adding a Distribution</div>
+{% endif %}
 
 <form method="POST" action="/cobbler_web/distro/save">
 <fieldset id="cform">
 
     {% if distro %}
-        <legend>Editing a Distribution</legend>
         <input type="hidden" name="new_or_edit" value="edit"/>
         <input type="hidden" name="oldname" value="{{ distro.name }}"/>
     {% else %}
-        <legend>Adding a Distribution</legend>
         <input type="hidden" name="new_or_edit" value="new"/>
     {% endif %}
     <input type="hidden" name="mode" value="distro_save">

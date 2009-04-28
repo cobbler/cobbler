@@ -12,9 +12,15 @@ if you need to resolve this.
 <br />
 {% endif %}
 
+{% ifequal editmode 'edit' %}
+    <div class="section_caption">Editing a Snippet</div>
+{% else %}
+    <div class="section_caption">Adding a Snippet</div>
+{% endifequal %}
+
+
 <form method="post" action="/cobbler_web/snippet/save">
     <fieldset id="cform">
-    <legend>{% ifequal editmode 'edit' %}Edit{% else %}Create New{% endifequal %} Kickstart Template</legend>
 
     <table>
     <tr>
