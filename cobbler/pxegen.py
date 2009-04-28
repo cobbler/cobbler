@@ -78,29 +78,28 @@ class PXEGen:
         # copy syslinux from one of two locations
         try:
             try:
-                utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',   dst, api=self.api, verbose=self.verbose)
+                utils.copyfile_pattern('/var/lib/cobbler/loaders/pxelinux.0', dst, api=self.api, verbose=self.verbose)
+                utils.copyfile_pattern('/var/lib/cobbler/loaders/menu.c32', dst, api=self.api, verbose=self.verbose)
             except:
                 utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0', dst, api=self.api, verbose=self.verbose)
+                utils.copyfile_pattern('/usr/share/syslinux/menu.c32', dst, api=self.api, verbose=self.verbose)
         except:
-            utils.copyfile_pattern('/var/lib/cobbler/loaders/pxelinux.0', dst, api=self.api, verbose=self.verbose)
+            utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',   dst, api=self.api, verbose=self.verbose)
+            utils.copyfile_pattern('/usr/lib/syslinux/menu.c32',   dst, api=self.api, verbose=self.verbose)
  
         # copy memtest only if we find it
         utils.copyfile_pattern('/boot/memtest*', dst, require_match=False, api=self.api, verbose=self.verbose)
   
         # copy elilo which we include for IA64 targets
-        utils.copyfile_pattern('/var/lib/cobbler/loaders/elilo.efi', dst, api=self.api, verbose=self.verbose)
- 
-        # copy menu.c32 as the older one has some bugs on certain RHEL
-        utils.copyfile_pattern('/var/lib/cobbler/loaders/menu.c32', dst, api=self.api, verbose=self.verbose)
+        utils.copyfile_pattern('/var/lib/cobbler/loaders/elilo.efi', dst, require_match=False, api=self.api, verbose=self.verbose)
 
         # copy yaboot which we include for PowerPC targets
-        utils.copyfile_pattern('/var/lib/cobbler/loaders/yaboot', dst, api=self.api, verbose=self.verbose)
+        utils.copyfile_pattern('/var/lib/cobbler/loaders/yaboot', dst, require_match=False, api=self.api, verbose=self.verbose)
 
-        # copy memdisk as we need it to boot ISOs
         try:
             utils.copyfile_pattern('/usr/lib/syslinux/memdisk',   dst, api=self.api, verbose=self.verbose)
         except:
-            utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst, api=self.api, verbose=self.verbose)
+            utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst, require_match=False, api=self.api, verbose=self.verbose)
 
 
     def copy_distros(self):

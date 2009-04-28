@@ -251,7 +251,7 @@ class BootCheck:
 
        bootloaders = {
           "elilo"      : [ "ia64",       [ "/var/lib/cobbler/loaders/elilo*.efi" ]],
-          "menu.c32"   : [ "x86/x86_64", [ "/var/lib/cobbler/loaders/menu.c32" ]],
+          "menu.c32"   : [ "x86/x86_64", [ "/usr/share/syslinux/menu.c32", "/usr/lib/syslinux/menu.c32", "/var/lib/cobbler/loaders/menu.c32" ]],
           "yaboot"     : [ "ppc/ppc64",  [ "/var/lib/cobbler/loaders/yaboot*" ]],
           "pxelinux.0" : [ "x86_64",     [ "/usr/share/syslinux/pxelinux.0", "/usr/lib/syslinux/pxelinux.0", "/var/lib/cobbler/loaders/pxelinux.0" ]]
        }
