@@ -12,6 +12,8 @@ Cobbler CHANGELOG
 - (BUGF) debian import changes
 - (FEAT) web app moving to Django
 - (FEAT) deployment APIs and command (SSH+Func+TBD)
+- (FEAT) koan: Support for virt-autoboot feature (Xen only at this point, needs fixing)
+- (FEAT) koan: use private address range for random MACs
 
 - Wed Apr 17 2009 - 1.6.3
 - (BUGF) import with datestamp 0 when .discinfo is not found, do not crash

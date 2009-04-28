@@ -1,3 +1,0 @@
-include koan.1.gz cobbler-register.1.gz
-include CHANGELOG COPYING README AUTHORS
-include koan/koan koan/cobbler-register
