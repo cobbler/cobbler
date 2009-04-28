@@ -361,10 +361,17 @@ class CobblerXMLRPCInterface:
         Returns all the kickstart snippets.
         """
         self._log("get_snippets",token=token)
-        files = glob.glob("/var/lib/cobbler/snippets/*")
+
+        # FIXME: settings.snippetsdir should be used here
+        return self.__get_sub_snippets("/var/lib/cobbler/snippets")
+
+    def __get_sub_snippets(self, path):
         results = []
+        files = glob.glob(os.path.join(path,"*"))
         for f in files:
-           if not os.path.isdir(f):
+           if os.path.isdir(f) and not os.path.islink(f):
+              results += self.__get_sub_snippets(f)
+           elif not os.path.islink(f):
               results.append(f)
         results.sort()
         return results
