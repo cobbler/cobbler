@@ -25,20 +25,6 @@ import cobbler.commands as commands
 from cexceptions import *
 HELP_FORMAT = commands.HELP_FORMAT
 
-# TO DO list
-# cobbler check
-# cobbler import (--name, --mirror, --available-as)
-# cobbler reserialize
-# cobbler --type=[profile|system|distro|repo] [--name=list]
-# cobbler --type=[profile|system|distro|profile] [--name=report]
-# cobbler status
-# cobbler reposync --name=$name
-# cobbler sync
-# cobbler validateks
-# elsewhere: repo auto-add
-
-########################################################
-
 class HardLinkFunction(commands.CobblerFunction):
     def help_me(self):
         return HELP_FORMAT % ("cobbler hardlink","")
@@ -86,6 +72,23 @@ class CheckFunction(commands.CobblerFunction):
             for i,x in enumerate(status):
                self.logprint(fd,"#%(number)d: %(problem)s" % { "number" : i, "problem" : x })
             return False
+
+########################################################
+
+class GetLoadersFunction(commands.CobblerFunction):
+
+   def help_me(self):
+       return HELP_FORMAT % ("cobbler get-loaders","")
+
+   def command_name(self):
+       return "get-loaders"
+    
+   def add_options(self, p, args):
+       p.add_option("--force", dest="force", action="store_true", help="overwrite any existing content in /var/lib/cobbler/loaders")
+
+   def run(self):
+       status = self.api.dlcontent(force=self.options.force)
+       return status
 
 ########################################################
 
@@ -401,11 +404,20 @@ def register():
 def cli_functions(api):
     return [
        BuildIsoFunction(api), 
-       CheckFunction(api), ImportFunction(api), ReserializeFunction(api),
-       ListFunction(api), StatusFunction(api),
-       SyncFunction(api), RepoSyncFunction(api), ValidateKsFunction(api),
-       ReplicateFunction(api), AclFunction(api),
-       VersionFunction(api), HardLinkFunction(api), DeployFunction(api)
+       CheckFunction(api), 
+       ImportFunction(api), 
+       ReserializeFunction(api),
+       ListFunction(api), 
+       StatusFunction(api),
+       SyncFunction(api), 
+       RepoSyncFunction(api), 
+       ValidateKsFunction(api),
+       ReplicateFunction(api), 
+       AclFunction(api),
+       VersionFunction(api), 
+       HardLinkFunction(api), 
+       DeployFunction(api),
+       GetLoadersFunction(api)
     ]
     return []
 

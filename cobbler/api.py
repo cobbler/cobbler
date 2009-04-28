@@ -37,6 +37,7 @@ import action_acl
 import action_report
 import action_power
 import action_hardlink
+import action_dlcontent
 from cexceptions import *
 import sub_process
 import module_loader
@@ -581,6 +582,17 @@ class BootAPI:
         self.log("check")
         check = action_check.BootCheck(self._config)
         return check.run()
+
+    def dlcontent(self,force=False):
+        """
+        Downloads bootloader content that may not be avialable in packages
+        for the given arch, ex: if installing on PPC, get syslinux. If installing
+        on x86_64, get elilo, etc.
+        """
+        # FIXME: teach code that copies it to grab from the right place
+        self.log("dlcontent")
+        grabber = action_dlcontent.ContentDownloader(self._config)
+        return grabber.run(force)
 
     def validateks(self):
         """

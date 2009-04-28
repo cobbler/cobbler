@@ -26,6 +26,7 @@ import re
 import sub_process
 import action_sync
 import utils
+import glob
 from utils import _
 
 class BootCheck:
@@ -68,7 +69,7 @@ class BootCheck:
 
        self.check_service(status, "cobblerd")
     
-       # self.check_bootloaders(status)
+       self.check_bootloaders(status)
        self.check_tftpd_bin(status)
        self.check_tftpd_dir(status)
        self.check_tftpd_conf(status)
@@ -242,22 +243,45 @@ class BootCheck:
            status.append(_("bind isn't installed, but management is enabled in /etc/cobbler/settings"))
        
 
-   # FIXME: removed as we no longer source bootloaders from settings, it's now done
-   # directly in pxegen.py -- do we want some checks here though?  
+   def check_bootloaders(self,status):
+       """
+       Check if network bootloaders are installed
+       """
+       # FIXME: move zpxe.rexx to loaders
 
-   #def check_bootloaders(self,status):
-   #    """
-   #    Check if network bootloaders are installed
-   #    """
-   #    for loader in self.settings.bootloaders.keys():
-   #       filename = self.settings.bootloaders[loader]
-   #       if not os.path.exists(filename):
-   #           if filename.find("pxelinux") != -1:
-   #              status.append(_("syslinux should be installed but is not, expecting to find something at %s" % filename))
-   #           else:
-   #              status.append(_("bootloader missing: %s" % filename))
-   #           return
+       bootloaders = {
+          "elilo"      : [ "ia64",       [ "/var/lib/cobbler/loaders/elilo*.efi" ]],
+          "menu.c32"   : [ "x86/x86_64", [ "/var/lib/cobbler/loaders/menu.c32" ]],
+          "yaboot"     : [ "ppc/ppc64",  [ "/var/lib/cobbler/loaders/yaboot*" ]],
+          "pxelinux.0" : [ "x86_64",     [ "/usr/lib/syslinux/pxelinux.0", "/var/lib/cobbler/loaders/pxelinux.0" ]]
+       }
 
+       # look for bootloaders at the glob locations above
+       found_bootloaders = []
+       items = bootloaders.keys()
+       for loader_name in items:
+          arch, patterns = bootloaders[loader_name]
+          for pattern in patterns:
+             matches = glob.glob(pattern)
+             if len(matches) > 0:
+                 found_bootloaders.append(loader_name)
+       not_found = []
+
+       # invert the list of what we've found so we can report on what we haven't found
+       for loader_name in items:
+          if loader_name not in found_bootloaders:
+             not_found.append(loader_name)
+
+       # generate warnings about what we haven't found.
+       for loader_name in not_found:
+          arch = bootloaders[loader_name][0]
+          patterns = bootloaders[loader_name][1]
+          if len(patterns) == 0:
+             pattern_str = patterns[0]
+          else:
+             pattern_str = " or ".join(patterns)
+          status.append("content at location %s is needed to network boot arch %s was not found, to correct this problem either supply recent versions of that content manually at that location or run 'cobbler get-loaders' to download it automatically.  If you do not need to netboot %s this message can be ignored." % (patterns, arch, arch)) 
+ 
    def check_tftpd_bin(self,status):
        """
        Check if tftpd is installed

@@ -84,6 +84,7 @@ if __name__ == "__main__":
     snippetpath = libpath + "/snippets"
     kickpath    = libpath + "/kickstarts"
     dbpath      = libpath + "/config"
+    loadpath    = libpath + "/loaders"
 
     # share paths
     sharepath   = "/usr/share/cobbler"
@@ -222,11 +223,10 @@ if __name__ == "__main__":
             (libpath,  ['config/version']),
      
             # bootloaders and syslinux support files
-            (libpath,  ['loaders/elilo-3.8-ia64.efi']),
-            (libpath,  ['loaders/menu.c32']),
-            (libpath,  ['loaders/yaboot-1.3.14']),
-            (libpath,  ['loaders/zpxe.rexx']),
-                                
+            # we only package zpxe.rexx because it's source
+            # user supplies the others
+            (loadpath,  ['loaders/zpxe.rexx']),
+                    
             # database/serializer
             (dbpath + "/distros.d",  []),
             (dbpath + "/profiles.d", []),
