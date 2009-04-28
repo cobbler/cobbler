@@ -222,7 +222,7 @@ if __name__ == "__main__":
             # bootloaders and syslinux support files
             # we only package zpxe.rexx because it's source
             # user supplies the others
-            (loadpath,  ['loaders/zpxe.rexx']),
+            (loadpath,  ['scripts/zpxe.rexx']),
                     
             # database/serializer
             (dbpath + "/distros.d",  []),

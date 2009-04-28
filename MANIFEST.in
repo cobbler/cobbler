@@ -1,22 +1,4 @@
-include loaders/COPYING_ELILO
-include loaders/elilo-3.8-ia64.efi
-include loaders/menu.c32
-include loaders/yaboot-1.3.14
-include loaders/zpxe.rexx
-include config/acls.conf
-include config/cobbler.conf
-include config/cobbler_svc.conf
-include config/rsync.exclude
-include config/cobblerd
-include config/cobblerd_rotate
-include config/cobbler_hosts
-include config/modules.conf
-include config/auth.conf
-include config/settings
-include config/version
-include config/users.digest
-include config/users.conf
-include config/cheetah_macros
+recursive-include config *
 include aux/anamon
 include aux/anamon.init
 recursive-include templates *.template
@@ -26,6 +8,7 @@ recursive-include kickstarts *.seed
 include docs/cobbler.1.gz
 include COPYING AUTHORS README CHANGELOG
 include scripts/*.py
+include scripts/zpxe.rexx
 include snippets/*
 recursive-include webui_content *
 recursive-include triggers *

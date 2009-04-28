@@ -371,8 +371,8 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %defattr(-,apache,apache)
 %dir /usr/share/cobbler/django
 %dir /usr/share/cobbler/django/sessions
-%dir /usr/share/cobbler/django/django_templates
-/usr/share/cobbler/django/django_templates/*
+%dir /usr/share/cobbler/django/templates
+/usr/share/cobbler/django/templates/*
 %dir /usr/share/cobbler/django/lib
 /usr/share/cobbler/django/lib/*
 /etc/httpd/conf.d/cobbler_web.conf
