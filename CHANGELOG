@@ -18,6 +18,7 @@ Cobbler CHANGELOG
 - (BUGF) fix bug in repo breed auto-detection code
 - (BUGF) close file descriptors by using subprocess, not os.system
 - (BUGF) make cobbler package Arch for now, require syslinux where it makes sense only.  To be changed in later release to download it from intertubes.
+- (BUGF) reinstate mod_python form submission code
 
 - Mon Mar 30 2009 - 1.6.2
 - (BUGF) Fix for cache cleanup problem in cobblerd 
