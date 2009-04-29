@@ -1,5 +1,11 @@
 #raw
 
+## this snippet should NOT be used with systems subscribed
+## to Red Hat Satellite Server or Spacewalk as these
+## have a concept of "reactivation keys" to keep the systems
+## appearing to be the same.  Also do not use if changing
+## base channels, i.e. RHEL4 -> RHEL5 upgrades.
+
 echo "Saving RHN keys..." > /dev/ttyS0
 
 rhn_keys_found=no

@@ -15,6 +15,11 @@ Cobbler CHANGELOG
 - (FEAT) koan: Support for virt-autoboot feature (Xen only at this point, needs fixing)
 - (FEAT) koan: use private address range for random MACs
 - (FEAT) yum createrepo flags are now tweakable in settings
+- (FEAT) new snippet for RHN Hosted: keep RHN keys between reinstalls
+
+- placeholder - 1.6.4
+- (BUGF) fix for webui edits on profile page
+- (BUGF) nameserver search paths now handled by network config snippets
 
 - Wed Apr 17 2009 - 1.6.3
 - (BUGF) import with datestamp 0 when .discinfo is not found, do not crash
