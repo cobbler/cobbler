@@ -1102,7 +1102,7 @@ def set_repo_breed(self,breed):
 
 def set_repos(self,repos,bypass_check=False):
    # WARNING: hack
-   # repos = fix_mod_python_select_submission(repos)
+   repos = fix_mod_python_select_submission(repos)
 
    # allow the magic inherit string to persist
    if repos == "<<inherit>>":
