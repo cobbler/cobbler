@@ -262,7 +262,7 @@ def system_save(request):
    if system_name == None:
       return HttpResponse("NO SYSTEM NAME SPECIFIED")
 
-   if editmode == 'copy':
+   if editmode in ('new','copy'):
       system_id = remote.new_system(token)
    else:
       if editmode == 'edit':
