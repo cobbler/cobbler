@@ -723,7 +723,7 @@ def fix_mod_python_select_submission(repos):
     """
 
     # should be nice regex, but this is readable :)
-    repos = str(repos)
+    repos = str(repos).strip()
     repos = repos.replace("'repos'","")
     repos = repos.replace("'","")
     repos = repos.replace("[","")
@@ -733,6 +733,7 @@ def fix_mod_python_select_submission(repos):
     repos = repos.replace(",","")
     repos = repos.replace('"',"")
     repos = repos.lstrip().rstrip()
+    repos = " ".join(repos.split(None))
     return repos
 
 def check_dist():
@@ -1102,7 +1103,7 @@ def set_repo_breed(self,breed):
 
 def set_repos(self,repos,bypass_check=False):
    # WARNING: hack
-   # repos = fix_mod_python_select_submission(repos)
+   repos = fix_mod_python_select_submission(repos)
 
    # allow the magic inherit string to persist
    if repos == "<<inherit>>":

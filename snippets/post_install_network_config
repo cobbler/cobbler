@@ -234,7 +234,9 @@ echo "$network via $router" >> $routesfile
     #end for	
     ## =============================================================================
     ## Configure name server search path in /etc/resolv.conf
-    #if $name_servers_search != ""
+    #set $num_ns = $len($name_servers)
+    #set $num_ns_search = $len($name_servers_search)
+        #if $num_ns_search > 0
 sed -i -e "/^search /d" /etc/resolv.conf
 echo -n "search " >>/etc/resolv.conf
         #for $nameserversearch in $name_servers_search
@@ -243,8 +245,8 @@ echo -n "$nameserversearch " >>/etc/resolv.conf
 echo "" >>/etc/resolv.conf
     #end if
     ## =============================================================================
-    ## Configure name server search path in /etc/resolv.conf
-    #if $name_servers_search != ""
+    ## Configure name servers in /etc/resolv.conf
+    #if $num_ns > 0
 sed -i -e "/^nameserver /d" /etc/resolv.conf
         #for $nameserver in $name_servers
 echo "nameserver $nameserver" >>/etc/resolv.conf
