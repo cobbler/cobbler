@@ -16,6 +16,8 @@ Cobbler CHANGELOG
 - (FEAT) koan: use private address range for random MACs
 - (FEAT) yum createrepo flags are now tweakable in settings
 - (FEAT) new snippet for RHN Hosted: keep RHN keys between reinstalls
+- (FEAT) allow per_distro snippets in addition to per_profile/per_system
+- (BUGF) don't add port number to http_server if it's 80.
 
 - placeholder - 1.6.4
 - (BUGF) nameserver search paths now handled by network config snippets
