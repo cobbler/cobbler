@@ -1109,7 +1109,7 @@ class CobblerXMLRPCInterface:
         """
 
         need_remap = False
-        for x in [ "distro", "profile", "system", "repo" ]:
+        for x in [ "distro", "profile", "system", "repo", "image" ]:
            if arg1 is not None and resource.find(x) != -1:
               need_remap = True
               break
