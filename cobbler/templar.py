@@ -112,7 +112,7 @@ class Templar:
         # now do full templating scan, where we will also templatify the snippet insertions
         t = Template(source=raw_data, errorCatcher="Echo", searchList=[search_table])
         try:
-            data_out = str(t)
+            data_out = t.respond()
         except Exception, e:
             if out_path is None:
                return utils.cheetah_exc(e)
