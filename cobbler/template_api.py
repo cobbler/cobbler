@@ -128,16 +128,16 @@ class Template(BuiltinTemplate, MacrosTemplate):
         """
         Locate the appropriate snippet for the current system and profile.
         This will first check for a per-system snippet, a per-profile snippet,
-        and a general snippet. If no snippet is located, it returns None.
+        a distro snippet, and a general snippet. If no snippet is located, it
+        returns None.
         """
-        if self.varExists('system_name'):
-            fullpath = '%s/per_system/%s/%s' % (self.getVar('snippetsdir'), file, self.getVar('system_name'))
-            if os.path.exists(fullpath):
-                return fullpath
-        if self.varExists('profile_name'):
-            fullpath = '%s/per_profile/%s/%s' % (self.getVar('snippetsdir'), file, self.getVar('profile_name'))
-            if os.path.exists(fullpath):
-                return fullpath
+        for snipclass in ('system', 'profile', 'distro'):
+            if self.varExists('%s_name' % snipclass):
+                fullpath = '%s/per_%s/%s/%s' % (self.getVar('snippetsdir'),
+                    snipclass, file, self.getVar('%s_name' % snipclass))
+                if os.path.exists(fullpath):
+                    return fullpath
+
         return '%s/%s' % (self.getVar('snippetsdir'), file)
     
     # This may be a little frobby, but it's really cool. This is a pure python
