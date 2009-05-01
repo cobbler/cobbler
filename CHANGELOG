@@ -1,5 +1,11 @@
 Cobbler CHANGELOG
 
+- placeholder - 1.6.4
+- (BUGF) nameserver search paths now handled by network config snippets
+- (BUGF) unicode fix for --template-files feature
+- (BUGF) mod python input fix for repo/profile associations in webapp
+- (BUGF) change "hostname" to "option hostname" in dhcp.template
+
 - XXX - 1.6.3
 - (BUGF) import with datestamp 0 when .discinfo is not found, do not crash
 - (BUGF) various fixes to "cobbler report" when using non-standard formats
