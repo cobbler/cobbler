@@ -74,7 +74,7 @@ def deserialize_item_raw(collection_type, item_name):
     fd = open(filename)
     data = fd.read()
     data = data.decode()
-    datastruct = simplejson.loads(data)
+    datastruct = simplejson.loads(data.decode('utf-8'))
     fd.close() 
     return datastruct
 
@@ -114,7 +114,7 @@ def deserialize_raw(collection_type):
              ydata = fd.read()
              ydata = ydata.decode()
              if f.endswith(".json"):
-                 datastruct = simplejson.loads(ydata)
+                 datastruct = simplejson.loads(ydata.decode('utf-8'))
              else:
                  datastruct = yaml.load(ydata)
              results.append(datastruct)
