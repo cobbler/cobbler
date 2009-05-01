@@ -127,7 +127,10 @@ class Templar:
 
         hp = search_table.get("http_port","80")
         server = search_table.get("server","server.example.org")
-        repstr = "%s:%s" % (server, hp)
+        if hp not in (80, '80'):
+            repstr = "%s:%s" % (server, hp)
+        else:
+            repstr = server
         search_table["http_server"] = repstr
 
         for x in search_table.keys():
