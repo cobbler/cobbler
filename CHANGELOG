@@ -18,8 +18,10 @@ Cobbler CHANGELOG
 - (FEAT) new snippet for RHN Hosted: keep RHN keys between reinstalls
 
 - placeholder - 1.6.4
-- (BUGF) fix for webui edits on profile page
 - (BUGF) nameserver search paths now handled by network config snippets
+- (BUGF) unicode fix for --template-files feature
+- (BUGF) mod python input fix for repo/profile associations in webapp
+- (BUGF) change "hostname" to "option hostname" in dhcp.template
 
 - Wed Apr 17 2009 - 1.6.3
 - (BUGF) import with datestamp 0 when .discinfo is not found, do not crash
