@@ -65,7 +65,7 @@ class Templar:
         subject is a profile or system object, if available (for snippet eval)
         """
 
-        if type(data_input) != str:
+        if not isinstance(data_input, basestring):
            raw_data = data_input.read()
         else:
            raw_data = data_input
