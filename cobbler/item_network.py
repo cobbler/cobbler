@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import utils
 import item
+import time
 from cexceptions import *
 from utils import _, _IP, _CIDR
 
@@ -47,6 +48,8 @@ class Network(item.Item):
         self.used_addresses   = {}
         self.free_addresses   = []
         self.comment          = ""
+        self.ctime            = 0
+        self.mtime            = 0
 
     def from_datastruct(self,seed_data):
         self.name             = self.load_item(seed_data, 'name')
@@ -59,6 +62,8 @@ class Network(item.Item):
         self.used_addresses   = self.load_item(seed_data, 'used_addresses', {})
         self.free_addresses   = [_CIDR(c) for c in self.load_item(seed_data, 'free_addresses', [])]
         self.comment          = self.load_item(seed_data, 'comment', '')
+        self.ctime            = self.load_item(seed_data,'ctime',0)
+        self.mtime            = self.load_item(seed_data,'mtime',0)
 
         return self
 
@@ -98,6 +103,14 @@ class Network(item.Item):
         self.nameservers = nameservers
 
     def set_reserved(self, reserved):
+        pass
+
+    def set_used_addresses(self):
+        # FIXME: what should this do?  It was missing before
+        pass
+
+    def set_free_addresses(self):
+        # FIXME: what should this do?  It was missing before
         pass
 
     def get_assigned_address(self, system, intf):
@@ -294,7 +307,9 @@ class Network(item.Item):
             'reserved'       : [str(i) for i in self.reserved],
             'used_addresses' : convert_used_addresses(self.used_addresses),
             'free_addresses' : [str(i) for i in self.free_addresses],
-            'comment'        : self.comment
+            'comment'        : self.comment,
+            'ctime'          : self.ctime,
+            'mtime'          : self.mtime,
         }
 
     def printable(self):
@@ -308,6 +323,8 @@ class Network(item.Item):
         buf = buf + _("free addresses   : %s\n") % self.free_address_count()
         buf = buf + _("used addresses   : %s\n") % self.used_address_count()
         buf = buf + _("comment          : %s\n") % self.comment
+        buf = buf + _("created          : %s\n") % time.ctime(self.ctime)
+        buf = buf + _("modified         : %s\n") % time.ctime(self.mtime)
         return buf
 
     def get_parent(self):

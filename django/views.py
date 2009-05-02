@@ -610,7 +610,63 @@ def snippet_save(request):
       remote.read_or_write_snippet(snippet_name,False,snippetdata,token)
       return HttpResponseRedirect('/cobbler_web/snippet/edit/%s' % snippet_name)
 
+def network_edit(request, network_name=None, editmode='edit'):
+   network = None
+   if not network_name is None:
+      editable = remote.check_access_no_fail(token, "modify_network", network_name)
+      network = remote.get_network(network_name, True, token)
+      if network.has_key('ctime'):
+         network['ctime'] = time.ctime(network['ctime'])
+      if network.has_key('mtime'):
+         network['mtime'] = time.ctime(network['mtime'])
+   else:
+      editable = remote.check_access_no_fail(token, "new_network", None)
 
+   t = get_template('network_edit.tmpl')
+   html = t.render(Context({'network': network, 'editable':editable}))
+   return HttpResponse(html)
+
+def network_save(request):
+   # FIXME: error checking
+   field_list = ('name','cidr','address','gateway','broadcast','nameservers','reserved','used_addresses','free_addresses','comment')
+
+   new_or_edit = request.POST.get('new_or_edit','new')
+   editmode = request.POST.get('editmode', 'edit')
+   network_name = request.POST.get('name', request.POST.get('oldname', None))
+   network_oldname = request.POST.get('oldname', None)
+   if network_name == None:
+      return HttpResponse("NO network NAME SPECIFIED")
+
+   if new_or_edit == 'new' or editmode == 'copy':
+      network_id = remote.new_network(token)
+   else:
+      if editmode == 'edit':
+         network_id = remote.get_network_handle(network_name, token)
+      else:
+         if network_name == network_oldname:
+            return HttpResponse("The name was not changed, cannot %s" % editmode )
+         network_id = remote.get_network_handle(network_oldname, token)
+
+   delete1   = request.POST.get('delete1', None)
+   delete2   = request.POST.get('delete2', None)
+   recursive = request.POST.get('recursive', False)
+
+   if new_or_edit == 'edit' and delete1 and delete2:
+      remote.remove_network(network_name, token, recursive)
+      return HttpResponseRedirect('/cobbler_web/network/list')
+   else:
+      for field in field_list:
+         value = request.POST.get(field, None)
+         if field == "name" and editmode == "rename": continue
+         elif value != None:
+            remote.modify_network(network_id, field, value, token)
+
+      remote.save_network(network_id, token, new_or_edit)
+
+      if editmode == "rename":
+         remote.rename_network(network_id, network_name, token)
+
+      return HttpResponseRedirect('/cobbler_web/network/edit/%s' % network_name)
 
 def settings(request):
    settings = remote.get_settings()

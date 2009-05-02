@@ -187,6 +187,8 @@ if __name__ == "__main__":
             (dj_templates, [ 'django_templates/snippet_list.tmpl' ]),
             (dj_templates, [ 'django_templates/master.tmpl' ]),
             (dj_templates, [ 'django_templates/message.tmpl' ]),
+            (dj_templates, [ 'django_templates/network_edit.tmpl' ]),
+            (dj_templates, [ 'django_templates/network_list.tmpl' ]),
             (dj_templates, [ 'django_templates/paginate.tmpl' ]),
             (dj_templates, [ 'django_templates/profile_edit.tmpl' ]),
             (dj_templates, [ 'django_templates/profile_list.tmpl' ]),
