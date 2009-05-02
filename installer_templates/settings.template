@@ -221,6 +221,7 @@ omshell_bin: /usr/bin/omshell
 # choices:
 #    bullpap
 #    wti
+#    apc
 #    apc_snmp
 #    ether-wake
 #    ipmilan

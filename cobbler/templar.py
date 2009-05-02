@@ -112,7 +112,7 @@ class Templar:
         # now do full templating scan, where we will also templatify the snippet insertions
         t = Template(source=raw_data, errorCatcher="Echo", searchList=[search_table])
         try:
-            data_out = str(t)
+            data_out = t.respond()
         except Exception, e:
             if out_path is None:
                return utils.cheetah_exc(e)
@@ -127,7 +127,10 @@ class Templar:
 
         hp = search_table.get("http_port","80")
         server = search_table.get("server","server.example.org")
-        repstr = "%s:%s" % (server, hp)
+        if hp not in (80, '80'):
+            repstr = "%s:%s" % (server, hp)
+        else:
+            repstr = server
         search_table["http_server"] = repstr
 
         for x in search_table.keys():

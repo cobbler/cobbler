@@ -533,7 +533,7 @@ def blender(api_handle,remove_hashes, root_obj):
                         results[key] = interface[key]
 
     http_port = results.get("http_port",80)
-    if http_port != 80:
+    if http_port not in (80, "80"):
        results["http_server"] = "%s:%s" % (results["server"] , http_port)
     else:
        results["http_server"] = results["server"]

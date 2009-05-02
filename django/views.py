@@ -399,7 +399,7 @@ def repo_save(request):
    if repo_name == None:
       return HttpResponse("NO SYSTEM NAME SPECIFIED")
 
-   if editmode == 'copy':
+   if editmode in ('new','copy'):
       repo_id = remote.new_repo(token)
    else:
       if editmode == 'edit':
@@ -464,7 +464,7 @@ def image_save(request):
    if image_name == None:
       return HttpResponse("NO SYSTEM NAME SPECIFIED")
 
-   if editmode == 'copy':
+   if editmode in ('new','copy'):
       image_id = remote.new_image(token)
    else:
       if editmode == 'edit':

@@ -106,7 +106,7 @@ class SystemFunction(commands.CobblerFunction):
         if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
             p.add_option("--power-pass",      dest="power_pass",      help="password for power management interface")
         if not self.matches_args(args,["dumpvars","poweron","poweroff","reboot","remove","report","getks","list"]):
-            p.add_option("--power-type",      dest="power_type",      help="one of: none, apc_snmp, bullpap, drac, ether-wake, ilo, ipmilan, ipmitool, wti, lpar, bladecenter, virsh, integrity")
+            p.add_option("--power-type",      dest="power_type",      help="one of: none, apc,  apc_snmp, bullpap, drac, ether-wake, ilo, ipmilan, ipmitool, wti, lpar, bladecenter, virsh, integrity")
 
         if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
             p.add_option("--power-user",      dest="power_user",      help="username for power management interface, if required")

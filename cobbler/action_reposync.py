@@ -499,7 +499,10 @@ class RepoSync:
             if mstr.startswith("/"):
                 mstr = "file://%s" % mstr
             line = "baseurl=%s\n" % mstr
-            http_server = "%s:%s" % (self.settings.server, self.settings.http_port)
+            if self.settings.http_port not in (80, '80'):
+                http_server = "%s:%s" % (self.settings.server, self.settings.http_port)
+            else:
+                http_server = self.settings.server
             line = line.replace("@@server@@",http_server)
             config_file.write(line)
         if not optenabled:

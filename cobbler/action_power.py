@@ -150,6 +150,7 @@ class PowerTool:
         powerdir=self.settings.power_template_dir
         map = {
             "bullpap"    : os.path.join(powerdir,"power_bullpap.template"),
+            "apc"        : os.path.join(powerdir,"power_apc.template"),
             "apc_snmp"   : os.path.join(powerdir,"power_apc_snmp.template"),
             "ether-wake" : os.path.join(powerdir,"power_ether_wake.template"),
             "drac"       : os.path.join(powerdir,"power_drac.template"),
