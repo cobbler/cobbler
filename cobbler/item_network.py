@@ -50,6 +50,7 @@ class Network(item.Item):
         self.comment          = ""
         self.ctime            = 0
         self.mtime            = 0
+        self.owners           = self.settings.default_ownership
 
     def from_datastruct(self,seed_data):
         self.name             = self.load_item(seed_data, 'name')
@@ -64,6 +65,9 @@ class Network(item.Item):
         self.comment          = self.load_item(seed_data, 'comment', '')
         self.ctime            = self.load_item(seed_data,'ctime',0)
         self.mtime            = self.load_item(seed_data,'mtime',0)
+        self.owners           = self.load_item(seed_data,'owners',self.settings.default_ownership)
+
+        self.set_owners(self.owners)
 
         return self
 
@@ -299,6 +303,7 @@ class Network(item.Item):
 
         return {
             'name'           : self.name,
+            'owners'         : self.owners,
             'cidr'           : str(self.cidr),
             'address'        : str(self.address),
             'gateway'        : str(self.gateway),
@@ -323,6 +328,7 @@ class Network(item.Item):
         buf = buf + _("free addresses   : %s\n") % self.free_address_count()
         buf = buf + _("used addresses   : %s\n") % self.used_address_count()
         buf = buf + _("comment          : %s\n") % self.comment
+        buf = buf + _("owners           : %s\n") % self.owners
         buf = buf + _("created          : %s\n") % time.ctime(self.ctime)
         buf = buf + _("modified         : %s\n") % time.ctime(self.mtime)
         return buf
@@ -345,5 +351,6 @@ class Network(item.Item):
             'reserved'       : self.set_reserved,
             'used_addresses' : self.set_used_addresses,
             'free_addresses' : self.set_free_addresses,
-            'comment'        : self.set_comment
+            'comment'        : self.set_comment,
+            'owners'         :  self.set_owners,
         }
