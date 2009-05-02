@@ -1,0 +1,31 @@
+{% extends "master.tmpl" %}
+
+{% block content %}
+
+<div class="section_caption">Networks</div>
+
+<table class="sortable">
+    <thead>
+        <tr>
+            <th class="text">Name</th>
+            <th class="text">Network</th>
+            <th class="text">Broadcast</th>
+            <th class="text">Gateway</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if networks %}
+           {% for network in networks %}
+           <tr class="{% cycle 'rowodd' 'roweven' %}">
+               <td><a href="/cobbler_web/network/edit/{{ network.name }}">{{ network.name }}</a></td>
+               <td>{{ network.cidr }}</td>
+               <td>{{ network.broadcast }}</td>
+               <td>{{ network.gateway }}</td>
+           </tr>
+           {% endfor %}
+        {% else %}
+           <tr><td colspan="3">No networks found.</td></tr>
+        {% endif %}
+    </tbody>
+</table>
+{% endblock content %}
