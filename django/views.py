@@ -635,7 +635,7 @@ def network_save(request):
    network_name = request.POST.get('name', request.POST.get('oldname', None))
    network_oldname = request.POST.get('oldname', None)
    if network_name == None:
-      return HttpResponse("NO network NAME SPECIFIED")
+      return HttpResponse("NO NETWORK NAME SPECIFIED")
 
    if new_or_edit == 'new' or editmode == 'copy':
       network_id = remote.new_network(token)

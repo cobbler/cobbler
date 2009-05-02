@@ -58,7 +58,7 @@ class Network(item.Item):
         self.address          = _IP(self.load_item(seed_data, 'address', self.cidr[0]))
         self.gateway          = _IP(self.load_item(seed_data, 'gateway', self.cidr[-2]))
         self.broadcast        = _IP(self.load_item(seed_data, 'broadcast', self.cidr[-1]))
-        self.name_servers     = [_IP(i) for i in self.load_item(seed_data, 'name_servers', [])]
+        self.name_servers     = self.load_item(seed_data, 'name_servers', '')
         self.reserved         = [_CIDR(c) for c in self.load_item(seed_data, 'reserved', [])]
         self.used_addresses   = self.load_item(seed_data, 'used_addresses', {})
         self.free_addresses   = [_CIDR(c) for c in self.load_item(seed_data, 'free_addresses', [])]
@@ -68,6 +68,7 @@ class Network(item.Item):
         self.owners           = self.load_item(seed_data,'owners',self.settings.default_ownership)
 
         self.set_owners(self.owners)
+        self.set_name_servers(self.name_servers)
 
         return self
 
@@ -112,7 +113,7 @@ class Network(item.Item):
 
     def set_name_servers(self, data):
         data = utils.input_string_or_list(data)
-        self.name_servers_search = data
+        self.name_servers = data
         return True
 
     def set_reserved(self, reserved):
