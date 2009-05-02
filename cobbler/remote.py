@@ -1649,6 +1649,16 @@ class CobblerXMLRPCInterface:
         rc = self.api.remove_system(name)
         return rc
 
+    def remove_network(self,name,token,recursive=1):
+        """
+        Deletes a network from a collection.  Note that this just requires the name
+        of the distro, not a handle.
+        """
+        self._log("remove_network (%s)" % recursive,name=name,token=token)
+        self.check_access(token, "remove_network", name)
+        rc = self.api.remove_network(name,recursive=recursive)
+        return rc
+
     def remove_repo(self,name,token,recursive=1):
         """
         Deletes a repo from a collection.  Note that this just requires the name

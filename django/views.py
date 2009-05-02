@@ -628,7 +628,7 @@ def network_edit(request, network_name=None, editmode='edit'):
 
 def network_save(request):
    # FIXME: error checking
-   field_list = ('name','cidr','address','gateway','broadcast','nameservers','reserved','used_addresses','free_addresses','comment')
+   field_list = ('name','cidr','address','gateway','broadcast','name_servers','reserved','used_addresses','free_addresses','comment','owners')
 
    new_or_edit = request.POST.get('new_or_edit','new')
    editmode = request.POST.get('editmode', 'edit')

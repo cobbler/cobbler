@@ -146,7 +146,7 @@ function disablename(value)
     <label for="nameservers">Name Servers</label>
     </td>
     <td>
-    <input type="text" size="255" style="width: 400px;" name="nameservers" id="nameservers" {% if network %}value="{{ network.nameservers|join:" " }}"{% endif %}/>
+    <input type="text" size="255" style="width: 400px;" name="name_servers" id="name_servers" {% if network %}value="{{ network.name_servers|join:" " }}"{% endif %}/>
     <p class="context-tip">Name servers, space delimited, if not provided by DHCP</p>
     </td>
     </tr>

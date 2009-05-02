@@ -43,7 +43,7 @@ class Network(item.Item):
         self.address          = None
         self.gateway          = None
         self.broadcast        = None
-        self.nameservers      = []
+        self.name_servers     = []
         self.reserved         = []
         self.used_addresses   = {}
         self.free_addresses   = []
@@ -58,7 +58,7 @@ class Network(item.Item):
         self.address          = _IP(self.load_item(seed_data, 'address', self.cidr[0]))
         self.gateway          = _IP(self.load_item(seed_data, 'gateway', self.cidr[-2]))
         self.broadcast        = _IP(self.load_item(seed_data, 'broadcast', self.cidr[-1]))
-        self.nameservers      = [_IP(i) for i in self.load_item(seed_data, 'nameservers', [])]
+        self.name_servers     = [_IP(i) for i in self.load_item(seed_data, 'name_servers', [])]
         self.reserved         = [_CIDR(c) for c in self.load_item(seed_data, 'reserved', [])]
         self.used_addresses   = self.load_item(seed_data, 'used_addresses', {})
         self.free_addresses   = [_CIDR(c) for c in self.load_item(seed_data, 'free_addresses', [])]
@@ -75,47 +75,56 @@ class Network(item.Item):
         if self.cidr == None:
             self.free_addresses = [_CIDR(cidr)]
         self.cidr = _CIDR(cidr)
+        return True
 
     def set_address(self, address):
-        if self.address != None:
-            self._add_to_free(address)
-        self.address = _IP(address)
-        self._remove_from_free(self.address)
+        address = address.strip()
+        if address == "":
+            self.address = address
+        else:
+            if self.address != None:
+                self._add_to_free(address)
+            self.address = _IP(address)
+            self._remove_from_free(self.address)
+        return True
 
     def set_gateway(self, gateway):
-        if self.gateway != None:
-            self._add_to_free(gateway)
-        self.gateway = _IP(gateway)
-        self._remove_from_free(self.gateway)
+        gateway = gateway.strip()
+        if gateway == "":
+            self.gateway = gateway
+        else:
+            if self.gateway != None:
+                self._add_to_free(gateway)
+            self.gateway = _IP(gateway)
+            self._remove_from_free(self.gateway)
+        return True
 
     def set_broadcast(self, broadcast):
-        if self.broadcast != None:
-            self._add_to_free(broadcast)
-        self.broadcast = _IP(broadcast)
-        self._remove_from_free(self.broadcast)
+        broadcast = broadcast.strip()
+        if broadcast == "":
+            self.broadcast = broadcast
+        else:
+            if self.broadcast != None:
+                self._add_to_free(broadcast)
+            self.broadcast = _IP(broadcast)
+            self._remove_from_free(self.broadcast)
+        return True
 
-    def set_nameservers(self, nameservers):
-        old = self.nameservers
-        nameservers = [_IP(s.strip()) for s in nameservers.split(',')]
-        if old != None:
-            for ns in old:
-                if ns not in nameservers:
-                    self._add_to_free(ns)
-        for ns in nameservers:
-            if ns not in old:
-                self._remove_from_free(ns)
-        self.nameservers = nameservers
+    def set_name_servers(self, data):
+        data = utils.input_string_or_list(data)
+        self.name_servers_search = data
+        return True
 
     def set_reserved(self, reserved):
-        pass
+        return True
 
     def set_used_addresses(self):
         # FIXME: what should this do?  It was missing before
-        pass
+        return True
 
     def set_free_addresses(self):
         # FIXME: what should this do?  It was missing before
-        pass
+        return True
 
     def get_assigned_address(self, system, intf):
         """
@@ -308,7 +317,7 @@ class Network(item.Item):
             'address'        : str(self.address),
             'gateway'        : str(self.gateway),
             'broadcast'      : str(self.broadcast),
-            'nameservers'    : [str(i) for i in self.nameservers],
+            'name_servers'   : [str(i) for i in self.name_servers],
             'reserved'       : [str(i) for i in self.reserved],
             'used_addresses' : convert_used_addresses(self.used_addresses),
             'free_addresses' : [str(i) for i in self.free_addresses],
@@ -323,7 +332,7 @@ class Network(item.Item):
         buf = buf + _("gateway          : %s\n") % self.gateway
         buf = buf + _("network address  : %s\n") % self.address
         buf = buf + _("broadcast        : %s\n") % self.broadcast
-        buf = buf + _("nameservers      : %s\n") % [str(i) for i in self.nameservers]
+        buf = buf + _("name servers     : %s\n") % [str(i) for i in self.name_servers]
         buf = buf + _("reserved         : %s\n") % [str(i) for i in self.reserved]
         buf = buf + _("free addresses   : %s\n") % self.free_address_count()
         buf = buf + _("used addresses   : %s\n") % self.used_address_count()
@@ -347,10 +356,10 @@ class Network(item.Item):
             'address'        : self.set_address,
             'gateway'        : self.set_gateway,
             'broadcast'      : self.set_broadcast,
-            'nameservers'    : self.set_nameservers,
+            'name_servers'   : self.set_name_servers,
             'reserved'       : self.set_reserved,
             'used_addresses' : self.set_used_addresses,
             'free_addresses' : self.set_free_addresses,
             'comment'        : self.set_comment,
-            'owners'         :  self.set_owners,
+            'owners'         : self.set_owners
         }
