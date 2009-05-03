@@ -682,12 +682,19 @@ def dosync(request):
    remote.sync(token)
    return HttpResponseRedirect("/cobbler_web/")
 
-def edit(request, what=None, obj_name=None):
+def edit(request, what=None, obj_name=None, child=False):
    obj = None
+
+   if what == "subprofile":
+      what = "profile"
+      child = True
+
    if not obj_name is None:
       editable = remote.check_access_no_fail(token, "modify_%s" % what, obj_name)
       if what == "distro":
          obj = remote.get_distro(obj_name, True, token)
+      if what == "profile":
+         obj = remote.get_profile(obj_name, True, token)
 
       if obj.has_key('ctime'):
          obj['ctime'] = time.ctime(obj['ctime'])
@@ -700,6 +707,17 @@ def edit(request, what=None, obj_name=None):
    if obj:
       for key in fields.keys():
          fields[key]["value"] = obj[key]
+
+   # populate select lists with data stored in cobbler,
+   # based on what we are currently editing
+   if what == "profile":
+      if (obj and obj["parent"] not in (None,"")) or child:
+         fields["parent"]["list"] = remote.get_profiles(token)
+         del fields["distro"]
+      else:
+         fields["distro"]["list"] = remote.get_distros(token)
+         del fields["parent"]
+      fields["repos"]["list"]  = remote.get_repos(token)
 
    sorted_fields = [(key, val) for key,val in fields.items()] 
    sorted_fields.sort(lambda a,b: cmp(a[1]["order"], b[1]["order"])) 

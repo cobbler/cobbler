@@ -450,6 +450,8 @@ class CobblerXMLRPCInterface:
     def get_fields(self,what,token):
         if what == "distro":
             return item_distro.get_fields()
+        elif what in ("profile","subprofile"):
+            return item_profile.get_fields()
 
     def register_new_system(self,info,token=None,**rest):
         """
