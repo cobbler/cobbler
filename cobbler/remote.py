@@ -447,6 +447,10 @@ class CobblerXMLRPCInterface:
            return "# object not found: %s" % system_name
         return self.api.get_template_file_for_system(obj,path)
 
+    def get_fields(self,what,token):
+        if what == "distro":
+            return item_distro.get_fields()
+
     def register_new_system(self,info,token=None,**rest):
         """
         If register_new_installs is enabled in settings, this allows

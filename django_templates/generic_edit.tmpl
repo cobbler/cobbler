@@ -1,0 +1,86 @@
+{% extends "master.tmpl" %}
+{% block javascript %}{% comment %}EXTRA JAVASCRIPT GOES HERE{% endcomment %}{% endblock %}
+{% block content %}
+{% if obj %}
+<script language="javascript">
+function disablename(value)
+{
+    document.getElementById("name").disabled=value;
+    if (value) {
+        document.getElementById("name").value = "{{ obj.name }}";
+    }
+}
+</script>
+{% endif %}
+<div class="section_caption">{% if obj %}Editing{% else %}Adding{% endif %} a {{ what|capfirst }}</div>
+<form method="POST" action="/cobbler_web/{{ what }}/save">
+<fieldset id="cform">
+    {% if obj %}
+        <input type="hidden" name="new_or_edit" value="edit"/>
+        <input type="hidden" name="oldname" value="{{ obj.name }}"/>
+    {% else %}
+        <input type="hidden" name="new_or_edit" value="new"/>
+    {% endif %}
+    <input type="hidden" name="mode" value="{{ what }}_save">
+    <table border=0>
+    {% for field in fields %}
+    <tr>
+    <td>
+    <label for="{{ field.0 }}">{{ field.1.label }}</label>
+    </td>
+    <td>
+    {% ifequal field.1.type "text" %}<input type="{{ field.1.type }}" size="{{ field.1.size }}" style="width: {{ field.1.width }};" name="{{ field.0 }}" id="{{ field.0 }}" {% if obj %}{{ field.1.setopts }} value="{% ifequal field.1.valtype "str" %}{{ field.1.value }}{% endifequal %}{% ifequal field.1.valtype "list" %}{{ field.1.value|join:" " }}{% endifequal %}"{% else %}value="{{ field.1.default }}"{% endif %} />{% endifequal %}
+    {% ifequal field.1.type "textarea" %}<textarea rows="{{ field.1.rows }}" cols="{{ field.1.cols }}" name="{{ field.0 }}" id="{{ field.0 }}">{% if obj %}{{ field.1.value }}{% endif %}</textarea>{% endifequal %}
+    {% ifequal field.1.type "radio" %}{% for listitem in field.1.list %}<input type="{{ field.1.type }}" name="{{ field.0 }}" id="{{ field.0 }}" value="{{ listitem.0 }}"{%if obj %}{% ifequal field.1.value listitem.0 %} checked{% endifequal %}{% endif %}>{{ listitem.1 }}</input>{% endfor %}{% endifequal %}
+    {% ifequal field.1.type "label" %}{{ field.1.value }}{% endifequal %}
+    <p class="context-tip">{{ field.1.example }}</p>
+    </td>
+    </tr>
+    {% ifequal field.0 "name" %}
+    {% if obj %}
+    <tr>
+    <td>
+    <label for="mode">Edit Mode</label>
+    </td>
+    <td>
+    <input type="radio" name="editmode" value="edit" checked onclick="javascript:disablename(true)">Edit</input>
+    <input type="radio" name="editmode" value="rename" onclick="javascript:disablename(false)">Rename + Edit</input>
+    <input type="radio" name="editmode" value="copy" onclick="javascript:disablename(false)">Copy + Edit</input>
+    <p class="context-tip">How do you want to modify this object?</p>
+    </td>
+    </tr>
+    {% else %}
+    <input type="hidden" name="editmode" value="new"/>
+    {% endif %}
+    {% endifequal %}
+    {% endfor %}
+
+    {% if obj and editable %}
+    <tr>
+    <td>
+    <label for="delete">Delete</label>
+    </td>
+    <td>
+       <input type="checkbox" name="delete1" value="True">Yes
+       <input type="checkbox" name="delete2" value="True">Really
+       <input type="checkbox" name="recursive" value="True">Delete child objects?
+       <p class="context-tip">Check both buttons and click save to delete this object</p>
+    </td>
+    </tr>
+    {% endif %}
+
+    {% if editable %}
+    <tr>
+    <td>
+    </td>
+    <td>
+    <input type="submit" name="submit" value="Save"/>
+    <input type="reset" name="reset" value="Reset"/>
+    </td>
+    </tr>
+    {% endif %}
+
+</table>
+</fieldset>
+</form>
+{% endblock content %}

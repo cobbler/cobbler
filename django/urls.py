@@ -46,4 +46,6 @@ urlpatterns = patterns('',
     (r'^cobbler_web/random_mac/virttype/(?P<virttype>.+)$', random_mac),
     (r'^cobbler_web/settings$', settings),
     (r'^cobbler_web/sync$', dosync),
+    (r'^cobbler_web/(?P<what>\w+)/genedit$', edit),
+    (r'^cobbler_web/(?P<what>\w+)/genedit/(?P<obj_name>[\w\-]+)$', edit),
 )

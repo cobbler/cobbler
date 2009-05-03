@@ -681,3 +681,29 @@ def random_mac(request, virttype="xenpv"):
 def dosync(request):
    remote.sync(token)
    return HttpResponseRedirect("/cobbler_web/")
+
+def edit(request, what=None, obj_name=None):
+   obj = None
+   if not obj_name is None:
+      editable = remote.check_access_no_fail(token, "modify_%s" % what, obj_name)
+      if what == "distro":
+         obj = remote.get_distro(obj_name, True, token)
+
+      if obj.has_key('ctime'):
+         obj['ctime'] = time.ctime(obj['ctime'])
+      if obj.has_key('mtime'):
+         obj['mtime'] = time.ctime(obj['mtime'])
+   else:
+      editable = remote.check_access_no_fail(token, "new_%s" % what, None)
+
+   fields = remote.get_fields(what, token)
+   if obj:
+      for key in fields.keys():
+         fields[key]["value"] = obj[key]
+
+   sorted_fields = [(key, val) for key,val in fields.items()] 
+   sorted_fields.sort(lambda a,b: cmp(a[1]["order"], b[1]["order"])) 
+
+   t = get_template('generic_edit.tmpl')
+   html = t.render(Context({'what': what, 'obj':obj, 'fields': sorted_fields, 'editable':editable}))
+   return HttpResponse(html)
