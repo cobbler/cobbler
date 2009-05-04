@@ -20,7 +20,7 @@ Cobbler CHANGELOG
 - (BUGF) don't add port number to http_server if it's 80.
 
 - placeholder - 1.6.4
-- (BUGF) nameserver search paths now handled by network config snippets
+- (BUGF) empty nameserver search paths now don't screw up resolv.conf
 - (BUGF) unicode fix for --template-files feature
 - (BUGF) mod python input fix for repo/profile associations in webapp
 - (BUGF) change "hostname" to "option hostname" in dhcp.template
