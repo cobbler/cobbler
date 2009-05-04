@@ -52,8 +52,8 @@ def serialize_item(obj, item):
     filename = filename + ".json"
     datastruct = item.to_datastruct_with_cache()
     fd = open(filename,"w+")
-    data = simplejson.dumps(datastruct)
-    data = data.encode('utf-8')
+    data = simplejson.dumps(datastruct, encoding="utf-8")
+    #data = data.encode('utf-8')
     fd.write(data)
 
     fd.close()
@@ -73,9 +73,7 @@ def deserialize_item_raw(collection_type, item_name):
         return None
     fd = open(filename)
     data = fd.read()
-    data = data.decode()
-    datastruct = simplejson.loads(data.decode('utf-8'))
-    fd.close() 
+    datastruct = simplejson.loads(data, encoding="utf-8")
     return datastruct
 
 def serialize(obj):
@@ -112,9 +110,9 @@ def deserialize_raw(collection_type):
          for f in all_files:
              fd = open(f)
              ydata = fd.read()
-             ydata = ydata.decode()
+             # ydata = ydata.decode()
              if f.endswith(".json"):
-                 datastruct = simplejson.loads(ydata.decode('utf-8'))
+                 datastruct = simplejson.loads(ydata, encoding='utf-8')
              else:
                  datastruct = yaml.load(ydata)
              results.append(datastruct)
