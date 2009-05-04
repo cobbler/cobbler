@@ -1,7 +1,7 @@
 Cobbler CHANGELOG
 
 - placeholder - 1.6.4
-- (BUGF) nameserver search paths now handled by network config snippets
+- (BUGF) empty nameserver search paths now don't break resolv.conf
 - (BUGF) unicode fix for --template-files feature
 - (BUGF) mod python input fix for repo/profile associations in webapp
 - (BUGF) change "hostname" to "option hostname" in dhcp.template
