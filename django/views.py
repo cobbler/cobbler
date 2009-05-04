@@ -32,47 +32,49 @@ def index(request):
    html = t.render(Context({'version': remote.version(token), 'username':username}))
    return HttpResponse(html)
 
-def list(request, what=None, sort_field=None, limit=None, page=None):
-    return __list(request,what,"list",sort_field=sort_field,limit=limit,page=page)
-
-def __list(request, what, action, sort_field=None, limit=None, page=None):
-    baseurl="/cobbler_web/%s/%s" % (what,action)
-
-    if sort_field == None:
-        sort_field = request.session.get("%s_sort_field" % what, None)
+def list(request, what, page=None):
     if page == None:
-        page = request.session.get("%s_page" % what, 1)
-    if limit == None:
-        limit = request.session.get("%s_limit" % what, 50)
-
-    page = int(page)
-    limit = int(limit)
+        page = int(request.session.get("%s_page" % what, 1))
+    limit = int(request.session.get("%s_limit" % what, 50))
+    sort_field = request.session.get("%s_sort_field" % what, None)
     filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
-
-    # Now save everything back into the session object
-    request.session["%s_sort_field" % what] = sort_field
-    request.session["%s_page" % what] = page
-    request.session["%s_limit" % what] = limit
 
     pageditems = remote.find_items_paged(what,filters,sort_field,page,limit)
 
-    if what == "profile":
-        for profile in pageditems["items"]:
-            if profile["kickstart"]:
-                if profile["kickstart"].startswith("http://") or profile["kickstart"].startswith("ftp://"):
-                    profile["web_kickstart"] = profile.kickstart
-                elif profile["kickstart"].startswith("nfs://"):
-                    profile["nfs_kickstart"] = profile.kickstart
-
     t = get_template('%s_list.tmpl'%what)
     html = t.render(RequestContext(request,{
-        'baseurl'   : baseurl,
         'what'      : what,
         '%ss'%what  : pageditems["items"],
         'pageinfo'  : pageditems["pageinfo"],
         'filters'   : filters,
     }))
     return HttpResponse(html)
+
+
+def modify_list(request, what, pref, value=None):
+    try:
+        if pref == "sort":
+            old_sort=request.session["%s_sort_field" % what]
+            if old_sort.startswith("!"):
+                old_sort=old_sort[1:]
+                old_revsort=True
+            else:
+                old_revsort=False
+            if old_sort==value and not old_revsort:
+                value="!" + value
+            request.session["%s_sort_field" % what] = value
+            request.session["%s_page" % what] = 1
+        elif pref == "limit":
+            request.session["%s_limit" % what] = int(value)
+            request.session["%s_page" % what] = 1
+        elif pref == "page":
+            request.session["%s_page" % what] = int(value)
+        else:
+            raise ""
+        # redirect to the list
+        return HttpResponseRedirect("/cobbler_web/%s/list" % what)
+    except:
+        return HttpResponse("Invalid preference: %s" % pref)
 
 def modify_filter(request, what, action, filter=None):
     try:
@@ -89,6 +91,7 @@ def modify_filter(request, what, action, filter=None):
                 del filters[filter]
         # save session variable
         request.session["%s_filters" % what] = simplejson.dumps(filters)
+        request.session["%s_page" % what] = 1
         # redirect to the list for this 
         return HttpResponseRedirect("/cobbler_web/%s/list" % what)
     except: 

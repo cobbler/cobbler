@@ -206,7 +206,6 @@ if __name__ == "__main__":
 
             # django javascript support code (move to section with other js?)
             (wwwcon,        [ 'webui_content/checkboxes.js' ]),	
-            (wwwcon,        [ 'webui_content/paginate.js' ]),	
 
             # django code, private to cobbler-web application
             (dj_webui,     [ 'django/__init__.py' ]),
