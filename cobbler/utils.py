@@ -169,7 +169,7 @@ def _IP(ip):
    If ip is already an netaddr.IP instance just return it.
    Else return a new instance
    """
-   if isinstance(ip, netaddr.IP):
+   if isinstance(ip, netaddr.IP) or ip == "":
       return ip
    else:
       return netaddr.IP(ip)
@@ -180,7 +180,7 @@ def _CIDR(cidr):
    If cidr is already an netaddr.CIDR instance just return it.
    Else return a new instance
    """
-   if isinstance(cidr, netaddr.CIDR):
+   if isinstance(cidr, netaddr.CIDR) or cidr == "":
       return cidr
    else:
       return netaddr.CIDR(cidr)

@@ -47,6 +47,7 @@ import item_profile
 import item_system
 import item_repo
 import item_image
+import item_network
 from utils import *
 from utils import _
 
@@ -127,6 +128,11 @@ class CobblerXMLRPCInterface:
             obj.from_datastruct(data)
             self.api.add_image(obj, False, False)
 
+        if collection_type == "network":
+            obj = item_network.Network(self.api._config)
+            obj.from_datastruct(data)
+            self.api.add_network(obj, False, False)
+
         return True
 
     def internal_cache_remove(self, collection_type, name):
@@ -144,6 +150,8 @@ class CobblerXMLRPCInterface:
                 self.api.remove_repo(name, delete=False, recursive=True, with_triggers=False)
             if collection_type == "image":
                 self.api.remove_image(name, delete=False, recursive=True, with_triggers=False)
+            if collection_type == "network":
+                self.api.remove_network(name, delete=False, recursive=True, with_triggers=False)
 
         return True
 
@@ -323,6 +331,8 @@ class CobblerXMLRPCInterface:
                contents = self.api.repos()
             elif collection_name.startswith("image"):
                contents = self.api.images()
+            elif collection_name.startswith("network"):
+               contents = self.api.networks()
             else:
                raise CX("internal error, collection name is %s" % collection_name)
             # FIXME: speed this up
@@ -436,6 +446,12 @@ class CobblerXMLRPCInterface:
         if obj is None:
            return "# object not found: %s" % system_name
         return self.api.get_template_file_for_system(obj,path)
+
+    def get_fields(self,what,token):
+        if what == "distro":
+            return item_distro.get_fields()
+        elif what in ("profile","subprofile"):
+            return item_profile.get_fields()
 
     def register_new_system(self,info,token=None,**rest):
         """
@@ -855,6 +871,13 @@ class CobblerXMLRPCInterface:
         self._log("get_system",name=name,token=token)
         return self.__get_specific("system",name,flatten=flatten)
 
+    def get_network(self,name,flatten=False,token=None,**rest):
+        """
+        Returns the network named "name" as a hash.
+        """
+        self._log("get_network",name=name,token=token)
+        return self.__get_specific("network",name,flatten=flatten)
+
     # this is used by the puppet external nodes feature
     def find_system_by_dns_name(self,dns_name):
         # FIXME: implement using api.py's find API
@@ -1262,6 +1285,18 @@ class CobblerXMLRPCInterface:
         self.object_cache[key] = (time.time(), s)
         return key
  
+    def new_network(self,token):
+        """
+        Creates a new (unconfigured) network object.  See the documentation
+        for new_distro as it works exactly the same.
+        """
+        self._log("new_network",token=token)
+        self.check_access(token,"new_network")
+        n = item_network.Network(self.api._config)
+        key = "___NEW___network::%s" % self.__get_random(25)
+        self.object_cache[key] = (time.time(), n)
+        return key
+
     def new_repo(self,token):
         """
         Creates a new (unconfigured) repo object.  See the documentation 
@@ -1315,6 +1350,16 @@ class CobblerXMLRPCInterface:
         self._log("get_system_handle",name=name,token=token)
         found = self.api.find_system(name)
         return "system::%s" % found.name
+
+    def get_network_handle(self,name,token=None):
+        """
+        Given the name of an network (or other search parameters), return an
+        object id that can be passed in to modify_network() or save_network()
+        commands. Raises an exception if no object can be matched.
+        """
+        self._log("get_network_handle",name=name,token=token)
+        found = self.api.find_network(name)
+        return "network::%s" % found.name
 
     def get_repo_handle(self,name,token=None):
         """
@@ -1373,7 +1418,20 @@ class CobblerXMLRPCInterface:
            return self.api.add_system(obj,check_for_duplicate_netinfo=True)
         else:
            return self.api.add_system(obj)
-           
+
+    def save_network(self,object_id,token,editmode="bypass"):
+        """
+        Saves a newly created or modified network object to disk.
+        """
+        self._log("save_network",token=token,object_id=object_id)
+        obj = self.__get_object(object_id)
+        self.check_access(token,"save_network",obj)
+        if editmode == "new":
+           return self.api.add_network(obj,check_for_duplicate_names=True)
+        elif editmode == "edit":
+           return self.api.add_network(obj)
+        else:
+           return self.api.add_network(obj)
 
     def save_repo(self,object_id,token=None,editmode="bypass"):
         """
@@ -1423,6 +1481,12 @@ class CobblerXMLRPCInterface:
         obj = self.__get_object(object_id)
         return self.api.copy_system(obj,newname)
 
+    def copy_network(self,object_id,newname,token=None):
+        self._log("copy_network",object_id=object_id,token=token)
+        self.check_access(token,"copy_network")
+        obj = self.__get_object(object_id)
+        return self.api.copy_network(obj,newname)
+
     def copy_repo(self,object_id,newname,token=None):
         self._log("copy_repo",object_id=object_id,token=token)
         self.check_access(token,"copy_repo")
@@ -1457,6 +1521,12 @@ class CobblerXMLRPCInterface:
         obj = self.__get_object(object_id)
         return self.api.rename_system(obj,newname)
 
+    def rename_network(self,object_id,newname,token=None):
+        self._log("rename_network",object_id=object_id,token=token)
+        self.check_access(token,"rename_network")
+        obj = self.__get_object(object_id)
+        return self.api.rename_network(obj,newname)
+
     def rename_repo(self,object_id,newname,token=None):
         self._log("rename_repo",object_id=object_id,token=token)
         self.check_access(token,"rename_repo")
@@ -1483,6 +1553,8 @@ class CobblerXMLRPCInterface:
            return self.api.find_repo(oname)
         elif otype == "image":
            return self.api.find_image(oname)
+        elif otype == "network":
+           return self.api.find_network(oname)
         else:
            return "invalid"
 
@@ -1522,6 +1594,16 @@ class CobblerXMLRPCInterface:
         self._log("obj is " + str(obj))
         self._log("checking access...")
         self.check_access(token, "modify_system", obj, attribute)
+        self._log("access ok, calling method, attribute is %s, arg is %s" % (str(attribute),str(arg)))
+        return self.__call_method(obj, attribute, arg)
+
+    def modify_network(self,object_id,attribute,arg,token):
+        """
+        Allows modification of certain attributes on newly created or
+        existing network object handle.
+        """
+        obj = self.__get_object(object_id)
+        self.check_access(token, "modify_network", obj, attribute)
         self._log("access ok, calling method, attribute is %s, arg is %s" % (str(attribute),str(arg)))
         return self.__call_method(obj, attribute, arg)
 
@@ -1571,6 +1653,16 @@ class CobblerXMLRPCInterface:
         self._log("remove_system (%s)" % recursive,name=name,token=token)
         self.check_access(token, "remove_system", name)
         rc = self.api.remove_system(name)
+        return rc
+
+    def remove_network(self,name,token,recursive=1):
+        """
+        Deletes a network from a collection.  Note that this just requires the name
+        of the distro, not a handle.
+        """
+        self._log("remove_network (%s)" % recursive,name=name,token=token)
+        self.check_access(token, "remove_network", name)
+        rc = self.api.remove_network(name,recursive=recursive)
         return rc
 
     def remove_repo(self,name,token,recursive=1):

@@ -32,47 +32,49 @@ def index(request):
    html = t.render(Context({'version': remote.version(token), 'username':username}))
    return HttpResponse(html)
 
-def list(request, what=None, sort_field=None, limit=None, page=None):
-    return __list(request,what,"list",sort_field=sort_field,limit=limit,page=page)
-
-def __list(request, what, action, sort_field=None, limit=None, page=None):
-    baseurl="/cobbler_web/%s/%s" % (what,action)
-
-    if sort_field == None:
-        sort_field = request.session.get("%s_sort_field" % what, None)
+def list(request, what, page=None):
     if page == None:
-        page = request.session.get("%s_page" % what, 1)
-    if limit == None:
-        limit = request.session.get("%s_limit" % what, 50)
-
-    page = int(page)
-    limit = int(limit)
+        page = int(request.session.get("%s_page" % what, 1))
+    limit = int(request.session.get("%s_limit" % what, 50))
+    sort_field = request.session.get("%s_sort_field" % what, None)
     filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
-
-    # Now save everything back into the session object
-    request.session["%s_sort_field" % what] = sort_field
-    request.session["%s_page" % what] = page
-    request.session["%s_limit" % what] = limit
 
     pageditems = remote.find_items_paged(what,filters,sort_field,page,limit)
 
-    if what == "profile":
-        for profile in pageditems["items"]:
-            if profile["kickstart"]:
-                if profile["kickstart"].startswith("http://") or profile["kickstart"].startswith("ftp://"):
-                    profile["web_kickstart"] = profile.kickstart
-                elif profile["kickstart"].startswith("nfs://"):
-                    profile["nfs_kickstart"] = profile.kickstart
-
     t = get_template('%s_list.tmpl'%what)
     html = t.render(RequestContext(request,{
-        'baseurl'   : baseurl,
         'what'      : what,
         '%ss'%what  : pageditems["items"],
         'pageinfo'  : pageditems["pageinfo"],
         'filters'   : filters,
     }))
     return HttpResponse(html)
+
+
+def modify_list(request, what, pref, value=None):
+    try:
+        if pref == "sort":
+            old_sort=request.session["%s_sort_field" % what]
+            if old_sort.startswith("!"):
+                old_sort=old_sort[1:]
+                old_revsort=True
+            else:
+                old_revsort=False
+            if old_sort==value and not old_revsort:
+                value="!" + value
+            request.session["%s_sort_field" % what] = value
+            request.session["%s_page" % what] = 1
+        elif pref == "limit":
+            request.session["%s_limit" % what] = int(value)
+            request.session["%s_page" % what] = 1
+        elif pref == "page":
+            request.session["%s_page" % what] = int(value)
+        else:
+            raise ""
+        # redirect to the list
+        return HttpResponseRedirect("/cobbler_web/%s/list" % what)
+    except:
+        return HttpResponse("Invalid preference: %s" % pref)
 
 def modify_filter(request, what, action, filter=None):
     try:
@@ -89,6 +91,7 @@ def modify_filter(request, what, action, filter=None):
                 del filters[filter]
         # save session variable
         request.session["%s_filters" % what] = simplejson.dumps(filters)
+        request.session["%s_page" % what] = 1
         # redirect to the list for this 
         return HttpResponseRedirect("/cobbler_web/%s/list" % what)
     except: 
@@ -610,7 +613,63 @@ def snippet_save(request):
       remote.read_or_write_snippet(snippet_name,False,snippetdata,token)
       return HttpResponseRedirect('/cobbler_web/snippet/edit/%s' % snippet_name)
 
+def network_edit(request, network_name=None, editmode='edit'):
+   network = None
+   if not network_name is None:
+      editable = remote.check_access_no_fail(token, "modify_network", network_name)
+      network = remote.get_network(network_name, True, token)
+      if network.has_key('ctime'):
+         network['ctime'] = time.ctime(network['ctime'])
+      if network.has_key('mtime'):
+         network['mtime'] = time.ctime(network['mtime'])
+   else:
+      editable = remote.check_access_no_fail(token, "new_network", None)
 
+   t = get_template('network_edit.tmpl')
+   html = t.render(Context({'network': network, 'editable':editable}))
+   return HttpResponse(html)
+
+def network_save(request):
+   # FIXME: error checking
+   field_list = ('name','cidr','address','gateway','broadcast','name_servers','reserved','used_addresses','free_addresses','comment','owners')
+
+   new_or_edit = request.POST.get('new_or_edit','new')
+   editmode = request.POST.get('editmode', 'edit')
+   network_name = request.POST.get('name', request.POST.get('oldname', None))
+   network_oldname = request.POST.get('oldname', None)
+   if network_name == None:
+      return HttpResponse("NO NETWORK NAME SPECIFIED")
+
+   if new_or_edit == 'new' or editmode == 'copy':
+      network_id = remote.new_network(token)
+   else:
+      if editmode == 'edit':
+         network_id = remote.get_network_handle(network_name, token)
+      else:
+         if network_name == network_oldname:
+            return HttpResponse("The name was not changed, cannot %s" % editmode )
+         network_id = remote.get_network_handle(network_oldname, token)
+
+   delete1   = request.POST.get('delete1', None)
+   delete2   = request.POST.get('delete2', None)
+   recursive = request.POST.get('recursive', False)
+
+   if new_or_edit == 'edit' and delete1 and delete2:
+      remote.remove_network(network_name, token, recursive)
+      return HttpResponseRedirect('/cobbler_web/network/list')
+   else:
+      for field in field_list:
+         value = request.POST.get(field, None)
+         if field == "name" and editmode == "rename": continue
+         elif value != None:
+            remote.modify_network(network_id, field, value, token)
+
+      remote.save_network(network_id, token, new_or_edit)
+
+      if editmode == "rename":
+         remote.rename_network(network_id, network_name, token)
+
+      return HttpResponseRedirect('/cobbler_web/network/edit/%s' % network_name)
 
 def settings(request):
    settings = remote.get_settings()
@@ -625,3 +684,47 @@ def random_mac(request, virttype="xenpv"):
 def dosync(request):
    remote.sync(token)
    return HttpResponseRedirect("/cobbler_web/")
+
+def edit(request, what=None, obj_name=None, child=False):
+   obj = None
+
+   if what == "subprofile":
+      what = "profile"
+      child = True
+
+   if not obj_name is None:
+      editable = remote.check_access_no_fail(token, "modify_%s" % what, obj_name)
+      if what == "distro":
+         obj = remote.get_distro(obj_name, True, token)
+      if what == "profile":
+         obj = remote.get_profile(obj_name, True, token)
+
+      if obj.has_key('ctime'):
+         obj['ctime'] = time.ctime(obj['ctime'])
+      if obj.has_key('mtime'):
+         obj['mtime'] = time.ctime(obj['mtime'])
+   else:
+      editable = remote.check_access_no_fail(token, "new_%s" % what, None)
+
+   fields = remote.get_fields(what, token)
+   if obj:
+      for key in fields.keys():
+         fields[key]["value"] = obj[key]
+
+   # populate select lists with data stored in cobbler,
+   # based on what we are currently editing
+   if what == "profile":
+      if (obj and obj["parent"] not in (None,"")) or child:
+         fields["parent"]["list"] = remote.get_profiles(token)
+         del fields["distro"]
+      else:
+         fields["distro"]["list"] = remote.get_distros(token)
+         del fields["parent"]
+      fields["repos"]["list"]  = remote.get_repos(token)
+
+   sorted_fields = [(key, val) for key,val in fields.items()] 
+   sorted_fields.sort(lambda a,b: cmp(a[1]["order"], b[1]["order"])) 
+
+   t = get_template('generic_edit.tmpl')
+   html = t.render(Context({'what': what, 'obj':obj, 'fields': sorted_fields, 'editable':editable}))
+   return HttpResponse(html)

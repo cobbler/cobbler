@@ -187,6 +187,8 @@ if __name__ == "__main__":
             (dj_templates, [ 'django_templates/snippet_list.tmpl' ]),
             (dj_templates, [ 'django_templates/master.tmpl' ]),
             (dj_templates, [ 'django_templates/message.tmpl' ]),
+            (dj_templates, [ 'django_templates/network_edit.tmpl' ]),
+            (dj_templates, [ 'django_templates/network_list.tmpl' ]),
             (dj_templates, [ 'django_templates/paginate.tmpl' ]),
             (dj_templates, [ 'django_templates/profile_edit.tmpl' ]),
             (dj_templates, [ 'django_templates/profile_list.tmpl' ]),
@@ -200,10 +202,10 @@ if __name__ == "__main__":
             (dj_templates, [ 'django_templates/system_power.tmpl' ]),
             (dj_templates, [ 'django_templates/system_profile.tmpl' ]),
             (dj_templates, [ 'django_templates/system_rename.tmpl' ]),
+            (dj_templates, [ 'django_templates/generic_edit.tmpl' ]),
 
             # django javascript support code (move to section with other js?)
             (wwwcon,        [ 'webui_content/checkboxes.js' ]),	
-            (wwwcon,        [ 'webui_content/paginate.js' ]),	
 
             # django code, private to cobbler-web application
             (dj_webui,     [ 'django/__init__.py' ]),

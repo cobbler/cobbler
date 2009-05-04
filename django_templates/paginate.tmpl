@@ -145,6 +145,14 @@ function add_filter() {
    <option value="virt_bridge">virt bridge</option>
    <option value="virt_file_size">virt file size (GB)</option>
    {% endifequal %}
+   {% ifequal what "network" %}
+   <option value="address">address</option>
+   <option value="broadcast">broadcast</option>
+   <option value="cidr">cidr</option>
+   <option value="gateway">gateway</option>
+   <option value="name_servers">name servers</option>
+   <option value="owners">owners</option>
+   {% endifequal %}
 </select>&nbsp;<input type="text" name="filter_value" id="filter_value" size="10"  onkeypress="javascript:if (event.keyCode == 13) add_filter();"/>
 
 <tr id="filter-remover">
@@ -172,7 +180,7 @@ function add_filter() {
 <table>
 <tr>
 <td>
-Items/page: <select name="limit" id="limit" onchange="javascript:location='{{ baseurl }}/limit/'+this.value+'/page/1'">
+Items/page: <select name="limit" id="limit" onchange="javascript:location='/cobbler_web/{{ what }}/modifylist/limit/'+this.value">
 {% for p in pageinfo.items_per_page_list %}
   <option value="{{ p }}"{% ifequal pageinfo.items_per_page p %} selected{% endifequal %}>{{ p }}</option>
 {% endfor %}
@@ -185,12 +193,12 @@ Items/page: <select name="limit" id="limit" onchange="javascript:location='{{ ba
 <td>
 
 {% ifnotequal pageinfo.prev_page "~" %}
-<input type="button" value="&lt;" onclick='javascript:location="{{ baseurl }}/page/{{ pageinfo.prev_page }}"'/>
+<input type="button" value="&lt;" onclick='javascript:location="/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.prev_page }}"'/>
 {% else %}
 <input type="button" value="&lt;" disabled='true'/>
 {% endifnotequal %}
 
-<select name="page" id="page" onchange="javascript:location='{{ baseurl }}/page/'+this.value">
+<select name="page" id="page" onchange="javascript:location='/cobbler_web/{{ what }}/modifylist/page/'+this.value">
 
 {% for p in pageinfo.pages %}
 
@@ -202,7 +210,7 @@ Items/page: <select name="limit" id="limit" onchange="javascript:location='{{ ba
 
 {% ifnotequal pageinfo.next_page "~" %}
 
-<input type="button" value="&gt;" onclick='javascript:location="{{ baseurl }}/page/{{ pageinfo.next_page }}"'/>
+<input type="button" value="&gt;" onclick='javascript:location="/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.next_page }}"'/>
 {% else %}
 <input type="button" value="&gt;" disabled="true"/>
 {% endifnotequal %}
