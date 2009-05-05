@@ -4,6 +4,7 @@
     ## so we can do the more complex stuff
     ## get the list of interface names
     #set ikeys = $interfaces.keys()
+    #set osversion = $getVar("os_version","") 
     #import re
     #set $vlanpattern = $re.compile("[a-zA-Z0-9]+\.[0-9]+")
     ## Determine if we should use the MAC address to configure the interfaces first
@@ -89,10 +90,16 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
         #end if
         ## if this is a bonded interface, configure it in modprobe.conf
         #if $bonding.lower() == "master"
+            #if $osversion == "rhel4"
+if [ -f "/etc/modprobe.conf" ]; then
+    echo "install $iname /sbin/modprobe bonding -o $iname $bonding_opts" >> /etc/modprobe.conf.cobbler
+fi
+            #else
             ## Add required entry to modprobe.conf
 if [ -f "/etc/modprobe.conf" ]; then
     echo "alias $iname bonding" >> /etc/modprobe.conf.cobbler
 fi
+            #end if
         #end if
         #if $configbymac and $is_vlan == "false" and $bonding.lower() != "master"
             ## This is the code path physical interfaces will follow.
