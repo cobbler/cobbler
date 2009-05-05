@@ -1,11 +1,11 @@
-#extends cobbler.webui.master
-#attr $title = "Cobbler: Error"
+{% extends "master.tmpl" %}
 
-#block body
+{% block content %}
+
 <h1 style="color: red;">Error</h1>
 
-<p color="blue">$message</p>
+<p color="blue">{{ message }}</p>
 
 <a href="javascript: history.go(-1)">Go Back</a>
 
-#end block body
+{% endblock content %}

@@ -195,15 +195,15 @@ if __name__ == "__main__":
             (dj_templates, [ 'django_templates/repo_edit.tmpl' ]),
             (dj_templates, [ 'django_templates/repo_list.tmpl' ]),
             (dj_templates, [ 'django_templates/settings.tmpl' ]),
-            (dj_templates, [ 'django_templates/system_delete.tmpl' ]),
             (dj_templates, [ 'django_templates/system_edit.tmpl' ]),
             (dj_templates, [ 'django_templates/system_list.tmpl' ]),
             (dj_templates, [ 'django_templates/system_netboot.tmpl' ]),
             (dj_templates, [ 'django_templates/system_power.tmpl' ]),
             (dj_templates, [ 'django_templates/system_profile.tmpl' ]),
-            (dj_templates, [ 'django_templates/system_rename.tmpl' ]),
             (dj_templates, [ 'django_templates/generic_edit.tmpl' ]),
             (dj_templates, [ 'django_templates/generic_list.tmpl' ]),
+            (dj_templates, [ 'django_templates/generic_delete.tmpl' ]),
+            (dj_templates, [ 'django_templates/generic_rename.tmpl' ]),
 
             # django javascript support code (move to section with other js?)
             (wwwcon,        [ 'webui_content/checkboxes.js' ]),	

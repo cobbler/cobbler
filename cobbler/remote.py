@@ -296,6 +296,108 @@ class CobblerXMLRPCInterface:
             'pageinfo' : pageinfo
         })
 
+    def has_item(self,what,name,token=None):
+        self._log("has_item(%s)"%what,token=token,name=name)
+        found = self.api.get_item(what,name)
+        if found is None:
+            return False
+        else:
+            return True
+
+    def get_item_handle(self,what,name,token=None):
+        """
+        Given the name of an distro (or other search parameters), return an
+        object id that can be passed in to modify_distro() or save_distro()
+        commands.  Raises an exception if no object can be matched.
+        """
+        self._log("get_item_handle(%s)"%what,token=token,name=name)
+        found = self.api.get_item(what,name)
+        if found is None:
+            raise CX("internal error, unknown %s name %s" % (what,name))
+        return "%s::%s" % (what,found.name)
+        
+    def remove_item(self,what,name,token,recursive=1):
+        """
+        Deletes a system from a collection.  Note that this just requires the name
+        of the distro, not a handle.
+        """
+        self._log("remove_item (%s, recursive=%s)" % (what,recursive),name=name,token=token)
+        self.check_access(token, "remove_item", name)
+        return self.api.remove_item(what,name)
+
+    def copy_item(self,what,object_id,newname,token=None):
+        """
+        All copy methods are pretty much the same.  Get an object handle, pass in the new
+        name for it.
+        """
+        self._log("copy_item(%s)" % what,object_id=object_id,token=token)
+        self.check_access(token,"copy_%s" % what)
+        obj = self.__get_object(object_id)
+        return self.api.copy_item(what,obj,newname)
+        
+    def rename_item(self,what,object_id,newname,token=None):
+        """
+        All rename methods are pretty much the same.  Get an object handle, pass in a new
+        name for it.  Rename will modify dependencies to point them at the new
+        object.  
+        """
+        self._log("rename_item(%s)" % what,object_id=object_id,token=token)
+        obj = self.__get_object(object_id)
+        return self.api.rename_item(what,obj,newname)
+        
+    def new_item(self,what,token):
+        """
+        Creates a new (unconfigured) object.  It works something like
+        this:
+              token = remote.login("user","pass")
+              distro_id = remote.new_distro(token)
+              remote.modify_distro(distro_id, 'name', 'example-distro', token)
+              remote.modify_distro(distro_id, 'kernel', '/foo/vmlinuz', token)
+              remote.modify_distro(distro_id, 'initrd', '/foo/initrd.img', token)
+              remote.save_distro(distro_id, token)
+        """      
+        self._log("new_item(%s)"%what,token=token)
+        self.check_access(token,"new_%s"%what)
+        if what == "distro":
+            d = item_distro.Distro(self.api._config)
+        elif what == "profile":
+            d = item_profile.Profile(self.api._config)
+        elif what == "system":
+            d = item_system.System(self.api._config)
+        elif what == "repo":
+            d = item_repo.Repo(self.api._config)
+        elif what == "image":
+            d = item_image.Image(self.api._config)
+        elif what == "network":
+            d = item_network.Network(self.api._config)
+        else:
+            raise CX("internal error, collection name is %s" % what)
+        key = "___NEW___%s::%s" % (what,self.__get_random(25))
+        self.object_cache[key] = (time.time(), d) 
+        return key
+
+    def modify_item(self,what,object_id,attribute,arg,token):
+        """
+        Allows modification of certain attributes on newly created or
+        existing distro object handle.
+        """
+        self._log("modify_item(%s)"%what,object_id=object_id,attribute=attribute,token=token)
+        obj = self.__get_object(object_id)
+        self.check_access(token, "modify_%s"%what, obj, attribute)
+        return self.__call_method(obj, attribute, arg)
+        
+    def save_item(self,what,object_id,token,editmode="bypass"):
+        """
+        Saves a newly created or modified distro object to disk.
+        """
+        self._log("save_item(%s)"%what,object_id=object_id,token=token)
+        obj = self.__get_object(object_id)
+        self.check_access(token,"save_%s"%what,obj)
+        if editmode == "new":
+            return self.api.add_item(what,obj,check_for_duplicate_names=True)
+        else:
+            return self.api.add_item(what,obj)
+
     def get_size(self,collection_name,**rest):
         """
         Returns the number of entries in a collection (but not the actual
