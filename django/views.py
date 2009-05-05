@@ -50,11 +50,89 @@ def list(request, what, page=None):
     }))
     return HttpResponse(html)
 
+def genlist(request, what, page=None):
+    if page == None:
+        page = int(request.session.get("%s_page" % what, 1))
+    limit = int(request.session.get("%s_limit" % what, 50))
+    sort_field = request.session.get("%s_sort_field" % what, None)
+    filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
+
+    pageditems = remote.find_items_paged(what,filters,sort_field,page,limit)
+
+    # Load columns from settings
+    settings = remote.get_settings()
+    list_columns = settings.get("web_%s_list_columns" % what,["name"])
+
+    # Prepare list of allowed actions on a single object
+    single_actions=[]
+    if what in ("system","profile"):
+        single_actions.append({ 'name': 'viewks',  'label':'Preview KS' })
+    single_actions.append({ 'name': 'edit',    'label':'Edit' })
+    single_actions.append({ 'name': 'rename',    'label':'Rename' })
+    single_actions.append({ 'name': 'copy',    'label':'Copy' })
+
+    # Prepare list of allowed actions on multiple objects
+    multi_actions=[]
+    multi_actions.append({ 'name': 'delete',  'label':'Delete' })
+    if what in ("systems"):
+        multi_actions.append({ 'name': 'netboot', 'label':'Netboot' })
+        multi_actions.append({ 'name': 'profile', 'label':'Profile' })
+        multi_actions.append({ 'name': 'power', 'label':'Power' })
+
+    # Get table headers values
+    fields = remote.get_fields(what, token)
+    headers = []
+    for list_column in list_columns:
+        header={}
+        header['field']=list_column
+        if list_column.find("::") > 0:
+            (field_name,field_key,subfield_name)=list_column.split("::",2)
+            field=fields.get(field_name,{})
+            subfield=field.get("fields",{}).get(subfield_name,{})
+            header['label']="%s(%s)" % (subfield.get("label",""), field_key)
+        else:
+            field=fields.get(list_column,{})
+            header['label']=field.get("label","")
+        headers.append(header)
+
+    # Get table row values
+    rows = []
+    for item in pageditems["items"]:
+        row={}
+        row['name'] = item["name"]
+        row['columns'] = []
+        for list_column in list_columns:
+            column={}
+            if list_column.find("::") > 0:
+                (field_name,field_key,subfield_name)=list_column.split("::",2)
+                field=fields.get(subfield_name,{})
+                subfield=field.get("fields",{}).get(subfield_name,{})
+                column["value"]=item.get(field_name,{}).get(field_key,{}).get(subfield_name,"")
+                column["type"]=subfield.get("type","")
+            else:
+                field=fields.get(list_column,{})
+                column["value"]=item.get(list_column,"")
+                column["type"]=field.get("type","")
+            row['columns'].append(column)
+        rows.append(row)
+
+    t = get_template('generic_list.tmpl')
+    html = t.render(RequestContext(request,{
+        'what'           : what,
+        'headers'        : headers,
+        'rows'           : rows,
+        'single_actions' : single_actions,
+        'multi_actions'  : multi_actions,
+        'pageinfo'       : pageditems["pageinfo"],
+        'filters'        : filters,
+    }))
+    return HttpResponse(html)
+
 
 def modify_list(request, what, pref, value=None):
     try:
         if pref == "sort":
-            old_sort=request.session["%s_sort_field" % what]
+            old_sort=request.session.get("%s_sort_field" % what,"")
             if old_sort.startswith("!"):
                 old_sort=old_sort[1:]
                 old_revsort=True
@@ -694,10 +772,7 @@ def edit(request, what=None, obj_name=None, child=False):
 
    if not obj_name is None:
       editable = remote.check_access_no_fail(token, "modify_%s" % what, obj_name)
-      if what == "distro":
-         obj = remote.get_distro(obj_name, True, token)
-      if what == "profile":
-         obj = remote.get_profile(obj_name, True, token)
+      obj = remote.get_item(what, obj_name)
 
       if obj.has_key('ctime'):
          obj['ctime'] = time.ctime(obj['ctime'])
@@ -709,7 +784,7 @@ def edit(request, what=None, obj_name=None, child=False):
    fields = remote.get_fields(what, token)
    if obj:
       for key in fields.keys():
-         fields[key]["value"] = obj[key]
+         fields[key]["value"] = obj.get(key,"")
 
    # populate select lists with data stored in cobbler,
    # based on what we are currently editing

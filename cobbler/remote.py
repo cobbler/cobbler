@@ -452,6 +452,10 @@ class CobblerXMLRPCInterface:
             return item_distro.get_fields()
         elif what in ("profile","subprofile"):
             return item_profile.get_fields()
+        elif what == "system":
+            return item_system.get_fields()
+        else:
+           raise CX("internal error, collection name is %s" % collection_name)
 
     def register_new_system(self,info,token=None,**rest):
         """
