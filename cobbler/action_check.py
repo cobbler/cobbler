@@ -90,7 +90,7 @@ class BootCheck:
    def check_for_cman(self, status):
        # not doing rpm -q here to be cross-distro friendly
        if not os.path.exists("/sbin/fence_ilo") and not os.path.exists("/usr/sbin/fence_ilo"):
-           status.append("fencing tools were not found, and are required to use the (optional) power management features. install fence-agents to use them")
+           status.append("fencing tools were not found, and are required to use the (optional) power management features. install cman or fence-agents to use them")
        return True
 
    def check_service(self, status, which, notes=""):
