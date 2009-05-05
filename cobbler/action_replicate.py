@@ -85,8 +85,43 @@ class Replicate:
 
     # -------------------------------------------------------
 
+    def should_add_or_replace(self, remote_data, objtype):
+        """
+        We only want to transfer objects that have newer mtimes or when
+        the object does not otherwise exist.
+        """
+        remote_name = remote_data["name"]
+        if objtype == "distros":
+            objdata = self.api.find_distro(remote_name)
+        elif objtype == "profiles":
+            objdata = self.api.find_profile(remote_name)
+        elif objtype == "systems":
+            objdata = self.api.find_system(remote_rename)
+        elif objtype == "images":
+            objdata = self.api.find_image(remote_rename)
+        elif objtype == "repos":
+            objdata = self.api.find_repo(remote_name)
+        elif objtype == "networks":
+            objdata = self.api.find_network(remote_name)
+
+        if objdata is None:
+            return True
+        else:
+            remote_mtime = remote_data["mtime"]
+            local_mtime = objdata.mtime
+            if local_mtime == 0:
+               # upgrade from much older version
+               return True
+            else:
+               return remote_mtime > local_mtime
+
+
+    # -------------------------------------------------------
+
     def replicate_data(self):
        
+        # FIXME: need to replicate network objects
+
         # distros 
         print _("----- Copying Distros")
         local_distros = self.api.distros()
@@ -102,15 +137,19 @@ class Replicate:
         for distro in remote_distros:
             print _("Importing remote distro %s.") % distro['name']
             if os.path.exists(distro['kernel']):
-                new_distro = self.api.new_distro()
-                new_distro.from_datastruct(distro)
-                self.link_distro(new_distro)
-                try:
-                    self.api.add_distro(new_distro)
-                    print _("Copied distro %s.") % distro['name']
-                except Exception, e:
-                    utils.print_exc(e) 
-                    print _("Failed to copy distro %s") % distro['name']
+                remote_mtime = distro['mtime']
+                if self.should_add_or_replace(distro, "distros"): 
+                    new_distro = self.api.new_distro()
+                    new_distro.from_datastruct(distro)
+                    try:
+                        self.api.add_distro(new_distro)
+                        print _("Copied distro %s.") % distro['name']
+                    except Exception, e:
+                        utils.print_exc(e) 
+                        print _("Failed to copy distro %s") % distro['name']
+                else:
+                    # FIXME: force logic
+                    print "Not copying distro %s, sufficiently new mtime" % distro['name']
             else:
                 print _("Failed to copy distro %s, content not here yet.") % distro['name']
 
@@ -131,14 +170,17 @@ class Replicate:
         remote_repos = self.remote.get_repos()
         for repo in remote_repos:
             print _("Importing remote repo %s.") % repo['name']
-            new_repo = self.api.new_repo()
-            new_repo.from_datastruct(repo)
-            try:
-                self.api.add_repo(new_repo)
-                print _("Copied repo %s.") % repo['name']
-            except Exception, e:
-                utils.print_exc(e) 
-                print _("Failed to copy repo %s.") % repo['name']
+            if self.should_add_or_replace(repo, "repos"): 
+                new_repo = self.api.new_repo()
+                new_repo.from_datastruct(repo)
+                try:
+                    self.api.add_repo(new_repo)
+                    print _("Copied repo %s.") % repo['name']
+                except Exception, e:
+                    utils.print_exc(e) 
+                    print _("Failed to copy repo %s.") % repo['name']
+            else:
+                print "Not copying repo %s, sufficiently new mtime" % repo['name']
 
         # profiles
         print _("----- Copying Profiles")
@@ -152,28 +194,34 @@ class Replicate:
 
         for profile in remote_profiles:
             print _("Importing remote profile %s" % profile['name'])
-            new_profile = self.api.new_profile()
-            new_profile.from_datastruct(profile)
-            try:
-                self.api.add_profile(new_profile)
-                print _("Copyied profile %s.") % profile['name']
-            except Exception, e:
-                utils.print_exc(e)
-                print _("Failed to copy profile %s.") % profile['name']
+            if self.should_add_or_replace(profile, "profiles"): 
+                new_profile = self.api.new_profile()
+                new_profile.from_datastruct(profile)
+                try:
+                    self.api.add_profile(new_profile)
+                    print _("Copyied profile %s.") % profile['name']
+                except Exception, e:
+                    utils.print_exc(e)
+                    print _("Failed to copy profile %s.") % profile['name']
+            else:
+                print "Not copying profile %s, sufficiently new mtime" % profile['name']
 
         # images
         print _("----- Copying Images")
         remote_images = self.remote.get_images()
         for image in remote_images:
             print _("Importing remote image %s" % image['name'])
-            new_image = self.api.new_image()
-            new_image.from_datastruct(image)
-            try:
-                self.api.add_image(new_image)
-                print _("Copyied image %s.") % image['name']
-            except Exception, e:
-                utils.print_exc(e)
-                print _("Failed to copy image %s.") % profile['image']
+            if self.should_add_or_replace(image, "images"): 
+                new_image = self.api.new_image()
+                new_image.from_datastruct(image)
+                try:
+                    self.api.add_image(new_image)
+                    print _("Copyied image %s.") % image['name']
+                except Exception, e:
+                    utils.print_exc(e)
+                    print _("Failed to copy image %s.") % profile['image']
+            else:
+                print "Not copying image %s, sufficiently new mtime" % image['name']
 
         # systems
         # (optional)
@@ -183,15 +231,18 @@ class Replicate:
             remote_systems = self.remote.get_systems()
             for system in remote_systems:
                 print _("Importing remote system %s" % system['name'])
-                new_system = self.api.new_system()
-                new_system.from_datastruct(system)
-                try:
-                    self.api.add_system(new_system)
-                    print _("Copied system %s.") % system['name']
-                except Exception, e:
-                    utils.print_exc(e)
-                    print _("Failed to copy system %s") % system['name']        
-        
+                if self.should_add_or_replace(system, "systems"): 
+                    new_system = self.api.new_system()
+                    new_system.from_datastruct(system)
+                    try:
+                        self.api.add_system(new_system)
+                        print _("Copied system %s.") % system['name']
+                    except Exception, e:
+                        utils.print_exc(e)
+                        print _("Failed to copy system %s") % system['name']        
+                else:
+                    print "Not copying system %s, sufficiently new mtime" % system['name']  
+
         if self.sync_all or self.sync_triggers:
             print _("----- Rsyncing triggers")
             self.rsync_it("/var/lib/cobbler/triggers","/var/lib/cobbler")
