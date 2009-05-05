@@ -90,43 +90,49 @@ class Replicate:
         We only want to transfer objects that have newer mtimes or when
         the object does not otherwise exist.
         """
-        remote_name = remote_data["name"]
-        if objtype == "distros":
-            objdata = self.api.find_distro(remote_name)
-        elif objtype == "profiles":
-            objdata = self.api.find_profile(remote_name)
-        elif objtype == "systems":
-            objdata = self.api.find_system(remote_rename)
-        elif objtype == "images":
-            objdata = self.api.find_image(remote_rename)
-        elif objtype == "repos":
-            objdata = self.api.find_repo(remote_name)
-        elif objtype == "networks":
-            objdata = self.api.find_network(remote_name)
-
-        if objdata is None:
-            return True
-        else:
-            remote_mtime = remote_data["mtime"]
-            local_mtime = objdata.mtime
-            if local_mtime == 0:
-               # upgrade from much older version
-               return True
-            else:
-               return remote_mtime > local_mtime
-
+        # FIXME: logic can be removed with get_*_since
+        #remote_name = remote_data["name"]
+        #if objtype == "distros":
+        #    objdata = self.api.find_distro(remote_name)
+        #elif objtype == "profiles":
+        #    objdata = self.api.find_profile(remote_name)
+        #elif objtype == "systems":
+        #    objdata = self.api.find_system(remote_name)
+        #elif objtype == "images":
+        #    objdata = self.api.find_image(remote_name)
+        #3elif objtype == "repos":
+        #    objdata = self.api.find_repo(remote_name)
+        #elif objtype == "networks":
+        #    objdata = self.api.find_network(remote_name)
+        #
+        #if objdata is None:
+        #    return True
+        #else:
+        #    remote_mtime = remote_data["mtime"]
+        #    local_mtime = objdata.mtime
+        #    if local_mtime == 0:
+        #       # upgrade from much older version
+        #       return True
+        #    else:
+        #      return remote_mtime > local_mtime
+        return True
 
     # -------------------------------------------------------
 
     def replicate_data(self):
        
         # FIXME: need to replicate network objects
+        fh = open("/var/lib/cobbler/.mtime")
+        data = fh.read()
+        last_edit = float(data)
+        fh.close()
+
 
         # distros 
         print _("----- Copying Distros")
         local_distros = self.api.distros()
         try:
-            remote_distros = self.remote.get_distros()
+            remote_distros = self.remote.get_distros_since(last_edit)
         except:
             raise CX(_("Failed to contact remote server"))
 
@@ -167,7 +173,7 @@ class Replicate:
         # FIXME: check to see if local mirror is here, or if otherwise accessible
         print _("----- Copying Repos")
         local_repos = self.api.repos()
-        remote_repos = self.remote.get_repos()
+        remote_repos = self.remote.get_repos_since(last_edit)
         for repo in remote_repos:
             print _("Importing remote repo %s.") % repo['name']
             if self.should_add_or_replace(repo, "repos"): 
@@ -185,7 +191,7 @@ class Replicate:
         # profiles
         print _("----- Copying Profiles")
         local_profiles = self.api.profiles()
-        remote_profiles = self.remote.get_profiles()
+        remote_profiles = self.remote.get_profiles_since(last_edit)
 
         # workaround for profile inheritance, must load in order
         def __depth_sort(a,b):
@@ -208,7 +214,7 @@ class Replicate:
 
         # images
         print _("----- Copying Images")
-        remote_images = self.remote.get_images()
+        remote_images = self.remote.get_images_since(last_edit)
         for image in remote_images:
             print _("Importing remote image %s" % image['name'])
             if self.should_add_or_replace(image, "images"): 
@@ -228,7 +234,7 @@ class Replicate:
         if self.include_systems:
             print _("----- Copying Systems")
             local_systems = self.api.systems()
-            remote_systems = self.remote.get_systems()
+            remote_systems = self.remote.get_systems_since(last_edit)
             for system in remote_systems:
                 print _("Importing remote system %s" % system['name'])
                 if self.should_add_or_replace(system, "systems"): 
