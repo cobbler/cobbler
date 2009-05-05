@@ -1,2 +1,2 @@
-/sbin/fence_ilo -a $power_address -l $power_user -p $power_pass -o $power_mode
+fence_ilo -a $power_address -l $power_user -p $power_pass -o $power_mode
 
