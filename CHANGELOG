@@ -20,6 +20,7 @@ Cobbler CHANGELOG
 - (BUGF) don't add port number to http_server if it's 80.
 - (FEAT) replicate is now mtime aware
 - (FEAT) support F11 fence-agent paths
+- (FEAT) bringing back the koan live CD
 
 - placeholder - 1.6.4
 - (BUGF) empty nameserver search paths now don't screw up resolv.conf

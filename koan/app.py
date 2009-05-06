@@ -284,8 +284,10 @@ class Koan:
                 raise InfoException, "must specify --profile, --system, or --image"
         else:
             if (self.profile is None and self.system is None and self.image is None):
-                self.system = self.autodetect_system()
-
+                self.system = self.autodetect_system(allow_interactive=self.live_cd)
+                if self.system is None:
+                   while self.profile is None:
+                      self.profile = self.ask_profile()
 
 
         # if --virt-type was specified and invalid, then fail
@@ -308,10 +310,39 @@ class Koan:
             self.update_files()
         else:
             self.display()
-    
+
+    # --------------------------------------------------   
+
+    def ask_profile(self):
+        """
+        Used by the live CD mode, if the system can not be auto-discovered, show a list of available
+        profiles and ask the user what they want to install.  
+        """
+        # FIXME: use a TUI library to make this more presentable.
+        try:
+            available_profiles = self.xmlrpc_server.get_profiles()
+        except:
+            traceback.print_exc()
+            self.connect_fail()
+
+        print "\n- which profile to install?\n"
+      
+        for x in available_profiles:
+            print "%s" % x["name"]
+
+        sys.stdout.write("\n?>")
+
+        data = sys.stdin.readline().strip()
+ 
+        for x in available_profiles:
+            print "comp (%s,%s)" % (x["name"],data)
+            if x["name"] == data:
+                return data
+        return None
+
     #---------------------------------------------------
 
-    def autodetect_system(self):
+    def autodetect_system(self, allow_interactive=False):
         """
         Determine the name of the cobbler system record that
         matches this MAC address. 
@@ -338,7 +369,7 @@ class Koan:
                 ip  = obj_interface["ip_address"].upper()
                 for my_mac in mac_criteria:
                     if mac == my_mac:
-                        detected_systems.append(obj_name)
+                        detLected_systems.append(obj_name)
                 for my_ip in ip_criteria:
                     if ip == my_ip:
                         detected_systems.append(obj_name)
@@ -348,7 +379,10 @@ class Koan:
         if len(detected_systems) > 1:
             raise InfoException, "Error: Multiple systems matched"
         elif len(detected_systems) == 0:
-            raise InfoException, "Error: Could not find a matching system with MACs: %s or IPs: %s" % (",".join(mac_criteria), ",".join(ip_criteria))
+            if not allow_interactive:
+                raise InfoException, "Error: Could not find a matching system with MACs: %s or IPs: %s" % (",".join(mac_criteria), ",".join(ip_criteria))
+            else:
+                return None
         elif len(detected_systems) == 1:
             print "- Auto detected: %s" % detected_systems[0]
             return detected_systems[0]
