@@ -1,0 +1,27 @@
+{% extends "master.tmpl" %}
+
+{% block content %}
+<form name="myform" method="post" action="/cobbler_web/{{ what }}/delete/domulti">
+    <table class="sortable">
+    <thead>
+        <caption>Confirm deleting the following {{ what }}s</caption>
+        <tr>
+            <th class="text">Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr class="{% cycle 'rowodd' 'roweven' %}">
+            <td>{{ item.name }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+
+    </p>
+    
+    <input type="hidden" name="names" value="{{ names|join:" " }}" />
+    <input type="submit" name="delete" value="Delete {{ what|title }}s"/>
+    <input type="button" name="cancel" onclick="javascript:history.go(-1)" value="Cancel"/>
+</form>
+{% endblock content %}
