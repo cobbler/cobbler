@@ -319,10 +319,16 @@ def os_release():
    else:
       return ("unknown",0)
 
-def uniqify(lst):
+def uniqify(lst, purge=None):
    temp = {}
    for x in lst:
       temp[x] = 1
+   if purge is not None:
+      temp2 = {}
+      for x in temp.keys():
+         if x != purge:
+            temp2[x] = 1
+      temp = temp2
    return temp.keys()
 
 def get_network_info():
@@ -333,20 +339,26 @@ def get_network_info():
 
    interfaces = {}
    # get names
-   inames  = ethtool.get_active_devices() 
+   inames  = ethtool.get_devices() 
    for iname in inames:
       mac = ethtool.get_hwaddr(iname)
-      ip  = ethtool.get_ipaddr(iname)
-      nm  = ethtool.get_netmask(iname)
+
+      if mac == "00:00:00:00:00:00":
+         mac = "?"
+
       try:
-         module = ethtool.get_module(iname)
-         if module == "bridge":
-            continue
+         ip  = ethtool.get_ipaddr(iname)
+         if ip == "127.0.0.1":
+            ip = "?"
       except:
-         # workaround:
-         # this is "Operation Not Supported"
-         # on x86_64 only for real interfaces
-         pass
+         # inactive address (?) -- have to do it this way though or we miss bridged interfaces
+         ip  = "?"
+
+      try:
+         nm  = ethtool.get_netmask(iname)
+      except:
+         nm  = "?"
+
       interfaces[iname] = {
          "ip_address"  : ip,
          "mac_address" : mac,

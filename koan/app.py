@@ -380,6 +380,8 @@ class Koan:
             raise InfoException, "Error: Multiple systems matched"
         elif len(detected_systems) == 0:
             if not allow_interactive:
+                mac_criteria = utils.uniqify(mac_criteria, purge="?")
+                ip_criteria  = utils.uniqify(ip_criteria, purge="?")
                 raise InfoException, "Error: Could not find a matching system with MACs: %s or IPs: %s" % (",".join(mac_criteria), ",".join(ip_criteria))
             else:
                 return None

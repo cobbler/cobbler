@@ -21,6 +21,8 @@ Cobbler CHANGELOG
 - (FEAT) replicate is now mtime aware
 - (FEAT) support F11 fence-agent paths
 - (FEAT) bringing back the koan live CD
+- (FEAT) koan live CD can go interactive if no profile is specified and system autodiscovery fails
+- (BUGF) koan autodetection now can gather MACs/IPs for bridged interfaces better
 
 - placeholder - 1.6.4
 - (BUGF) empty nameserver search paths now don't screw up resolv.conf
