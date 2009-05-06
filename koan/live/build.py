@@ -28,14 +28,6 @@ basef = open("./base.cfg")
 base_config = basef.read()
 basef.close()
 
-# not expected to work with anything lower than FC-7
-# use i386 for compatibility, still works with x86_64
-# this is the LiveCD's OS, not the target install OS
-
-USE_DISTRO_SHORT = "FC-7"
-USE_DISTRO = "FC-7-i386"
-USE_REPO   = "fc7i386extras"
-
 # packages to put on the LiveCD
 
 #packages = [
@@ -48,8 +40,8 @@ def main(args):
 
 
    p = optparse.OptionParser()
-   p.add_option("-k","--koan",action="store",help="koan arguments")
-   p.add_option("-s","--server",action="store",help="cobbler server name")
+   p.add_option("-k","--koan",action="store",help="additional koan arguments, if any")
+   p.add_option("-s","--server",action="store",help="cobbler server address")
    (options,args) = p.parse_args()
 
    if options.server is None:

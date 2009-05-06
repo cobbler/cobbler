@@ -782,7 +782,7 @@ class Koan:
                
             if self.live_cd:
                cmd.append("--bad-image-okay")
-               cmd.append("--boot-filesystem=/dev/sda1")
+               cmd.append("--boot-filesystem=/")
                cmd.append("--config-file=/tmp/boot/boot/grub/grub.conf")
                # utils.subprocess_call(["/sbin/grubby","--remove-kernel","/boot/vmlinuz"])
 
