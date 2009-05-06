@@ -11,8 +11,8 @@ Release: 1%{?dist}
 ExclusiveArch: %{ix86} x86_64 ppc ppc64 s390x
 Source0: cobbler-%{version}.tar.gz
 Group: Applications/System
+
 Requires: python >= 2.3
-Requires: python-urlgrabber
 %ifarch %{ix86} x86_64
 Requires: syslinux
 %endif
@@ -25,37 +25,46 @@ Requires: httpd
 Requires: tftp-server
 Requires: mod_python
 %endif
-Requires: python-devel
+
 Requires: createrepo
-Requires: python-cheetah
-Requires: rsync
-Requires: python-netaddr
-Requires: PyYAML
-Requires: python-simplejson
-BuildRequires: PyYAML
-Requires: libyaml
+%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
+Requires: fence-agents
+%endif
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 Requires: genisoimage
 %else
 Requires: mkisofs
 %endif
-Requires(post):  /sbin/chkconfig
-Requires(preun): /sbin/chkconfig
-Requires(preun): /sbin/service
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
-%{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]" || echo 0)}
+Requires: libyaml
 Requires: python(abi) = %{pyver}
-%endif
-%if 0%{?suse_version} < 0
-BuildRequires: redhat-rpm-config
-%endif
-BuildRequires: python-devel
-BuildRequires: python-cheetah
+Requires: python-cheetah
+Requires: python-devel
+Requires: python-netaddr
+Requires: python-simplejson
 %if 0%{?fedora} >= 8
 BuildRequires: python-setuptools-devel
 %else
 BuildRequires: python-setuptools
 %endif
+Requires: python-urlgrabber
+Requires: PyYAML
+%if 0%{?suse_version} < 0
+BuildRequires: redhat-rpm-config
+%endif
+Requires: rsync
+%if 0%{?fedora} >= 6 || 0%{?rhel} >= 5
+Requires: yum-utils
+%endif
+
+Requires(post):  /sbin/chkconfig
+Requires(preun): /sbin/chkconfig
+
+Requires(preun): /sbin/service
+%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
+%{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]" || echo 0)}
+%endif
+
+BuildRequires: PyYAML
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Url: http://cobbler.et.redhat.com
 

@@ -96,14 +96,14 @@ class Replicate:
         elif objtype == "profiles":
             objdata = self.api.find_profile(remote_name)
         elif objtype == "systems":
-            objdata = self.api.find_system(remote_rename)
+            objdata = self.api.find_system(remote_name)
         elif objtype == "images":
-            objdata = self.api.find_image(remote_rename)
+            objdata = self.api.find_image(remote_name)
         elif objtype == "repos":
             objdata = self.api.find_repo(remote_name)
         elif objtype == "networks":
             objdata = self.api.find_network(remote_name)
-
+        
         if objdata is None:
             return True
         else:
@@ -113,15 +113,13 @@ class Replicate:
                # upgrade from much older version
                return True
             else:
-               return remote_mtime > local_mtime
-
+              return remote_mtime > local_mtime
+        return True
 
     # -------------------------------------------------------
 
     def replicate_data(self):
        
-        # FIXME: need to replicate network objects
-
         # distros 
         print _("----- Copying Distros")
         local_distros = self.api.distros()
@@ -199,7 +197,7 @@ class Replicate:
                 new_profile.from_datastruct(profile)
                 try:
                     self.api.add_profile(new_profile)
-                    print _("Copyied profile %s.") % profile['name']
+                    print _("Copied profile %s.") % profile['name']
                 except Exception, e:
                     utils.print_exc(e)
                     print _("Failed to copy profile %s.") % profile['name']
@@ -216,7 +214,7 @@ class Replicate:
                 new_image.from_datastruct(image)
                 try:
                     self.api.add_image(new_image)
-                    print _("Copyied image %s.") % image['name']
+                    print _("Copied image %s.") % image['name']
                 except Exception, e:
                     utils.print_exc(e)
                     print _("Failed to copy image %s.") % profile['image']

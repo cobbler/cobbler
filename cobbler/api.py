@@ -251,6 +251,26 @@ class BootAPI:
             res=items.find(return_list=True, no_errors=False, **criteria)
         return res
         
+    def remove_item(self, what, ref, recursive=False, delete=True, with_triggers=True):
+        if type(ref) != str:
+           self.log("remove_item(%s)"%what,[ref.name])
+           return self.get_items(what).remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
+        else:
+           self.log("remove_item(%s)"%what,ref)
+           return self.get_items(what).remove(ref, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
+
+    def copy_item(self, what, ref, newname):
+        self.log("copy_item(%s)"%what,[ref.name, newname])
+        return self.get_items(what).copy(ref,newname)
+
+    def rename_item(self, what, ref, newname):
+        self.log("rename_item(%s)"%what,[ref.name,newname])
+        return self.get_items(what).rename(ref,newname)
+
+    def add_item(self, what, ref, check_for_duplicate_names=False, save=True):
+        self.log("add_item(%s)"%what,[ref.name])
+        return self.get_items(what).add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save)
+
     def systems(self):
         """
         Return the current list of systems

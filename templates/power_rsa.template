@@ -1,1 +1,1 @@
-/sbin/fence_rsa -a $power_address -l $power_user -p $power_pass -o $power_mode
+fence_rsa -a $power_address -l $power_user -p $power_pass -o $power_mode
