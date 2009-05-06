@@ -21,12 +21,34 @@ function on_form_submit()
     <label for="{{ field.0 }}">{{ field.1.label }}</label>
     </td>
     <td{% if field.1.tdclass %} class="{{ field.1.tdclass }}"{% endif %}>
-    {% ifequal field.1.type "text" %}<input type="{{ field.1.type }}" size="{{ field.1.size }}" style="width: {{ field.1.width }};" name="{{ field.0 }}" id="{{ field.0 }}" {% if obj %}{{ field.1.setopts }} value="{% ifequal field.1.valtype "str" %}{{ field.1.value }}{% endifequal %}{% ifequal field.1.valtype "list" %}{{ field.1.value|join:" " }}{% endifequal %}"{% else %}value="{{ field.1.default }}"{% endif %} />{% endifequal %}
-    {% ifequal field.1.type "textarea" %}<textarea rows="{{ field.1.rows }}" cols="{{ field.1.cols }}" name="{{ field.0 }}" id="{{ field.0 }}">{% if obj %}{{ field.1.value }}{% endif %}</textarea>{% endifequal %}
-    {% ifequal field.1.type "radio" %}{% for listitem in field.1.list %}<input type="radio" name="{{ field.0 }}" id="{{ field.0 }}" value="{{ listitem.0 }}"{%if obj %}{% ifequal field.1.value listitem.0 %} checked="true"{% endifequal %}{% endif %}>{{ listitem.1 }}</input>{% endfor %}{% endifequal %}
-    {% ifequal field.1.type "checkbox" %}<input type="checkbox" name="{{ field.0 }}" id="{{ field.0 }}"{%if obj %}{% if field.1.value %} checked="true"{% endif %}{% endif %} />{% endifequal %}
+
+    {% ifequal field.1.type "text" %}
+    <input type="{{ field.1.type }}" size="{{ field.1.size }}" style="width: {{ field.1.width }};" name="{{ field.0 }}" id="{{ field.0 }}" {% if obj %}{{ field.1.setopts }} value="{% ifequal field.1.valtype "str" %}{{ field.1.value }}{% endifequal %}{% ifequal field.1.valtype "list" %}{{ field.1.value|join:" " }}{% endifequal %}"{% else %}value="{{ field.1.default }}"{% endif %} />
+    {% endifequal %}
+
+    {% ifequal field.1.type "textarea" %}
+    <textarea rows="{{ field.1.rows }}" cols="{{ field.1.cols }}" name="{{ field.0 }}" id="{{ field.0 }}">{% if obj %}{{ field.1.value }}{% endif %}</textarea>
+    {% endifequal %}
+
+    {% ifequal field.1.type "radio" %}
+    {% for listitem in field.1.list %}
+    <input type="radio" name="{{ field.0 }}" id="{{ field.0 }}" value="{{ listitem.0 }}"{%if obj %}{% ifequal field.1.value listitem.0 %} checked="true"{% endifequal %}{% endif %}>{{ listitem.1 }}</input>
+    {% endfor %}
+    {% endifequal %}
+
+    {% ifequal field.1.type "checkbox" %}
+    <input type="checkbox" name="{{ field.0 }}" id="{{ field.0 }}"{%if obj %}{% if field.1.value %} checked="true"{% endif %}{% endif %} />
+    {% endifequal %}
+
     {% ifequal field.1.type "label" %}{{ field.1.value }}{% endifequal %}
-    {% ifequal field.1.type "select" %}<select name="{{ field.0 }}" id="{{ field.0 }}" {{ field.1.opts }}>{% for listitem in field.1.list %}<option value="{{ listitem.name }}"{%if obj %}{% ifequal field.1.value listitem.name %} selected="true"{% endifequal %}{% endif %}>{{ listitem.name }}</option>{% endfor %}</select>{% endifequal %}
+
+    {% ifequal field.1.type "select" %}
+    <select name="{{ field.0 }}" id="{{ field.0 }}" {{ field.1.opts }}>
+      {% for listitem in field.1.list %}
+      <option value="{{ listitem.name }}"{%if obj %}{% ifequal field.1.value listitem.name %} selected="true"{% endifequal %}{% endif %}>{{ listitem.name }}</option>
+      {% endfor %}
+    </select>
+    {% endifequal %}
     <p class="context-tip">{{ field.1.example }}</p>
     </td>
     </tr>

@@ -27,7 +27,8 @@
             #set $static   = $idata["static"]
             #set $ip       = $idata["ip_address"]
             #set $netmask  = $idata["subnet"]
-            #if $vlanpattern.match($iname)
+            #set $bonding  = $idata["bonding"]
+            #if $vlanpattern.match($iname) or $bonding == "master" 
                 ## If this is a VLAN interface, skip it, anaconda doesn't know
                 ## about VLANs.
                 #set $is_vlan = "true"
