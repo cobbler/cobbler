@@ -178,6 +178,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/cobblerd
 
 %defattr(-,root,root)
+%dir /usr/share/cobbler
 %dir /etc/cobbler
 %dir /etc/cobbler/pxe
 %dir /etc/cobbler/reporting
@@ -196,6 +197,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/cobbler/cheetah_macros
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/modules
+%dir %{python_sitelib}/cobbler/server
 %dir %{python_sitelib}/cobbler/webui
 %{python_sitelib}/cobbler/*.py*
 %{python_sitelib}/cobbler/server/*.py*
