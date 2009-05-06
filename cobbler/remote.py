@@ -135,15 +135,15 @@ class CobblerXMLRPCInterface:
         data = self.api.deserialize_item_raw(collection_type, name)
         if data is None:
             if collection_type == "distro":
-                self.api.remove_distro(name, delete=False, recursive=True, with_triggers=False)
+                self.api.remove_distro(name, delete=False, recursive=False, with_triggers=False)
             if collection_type == "profile":
-                self.api.remove_profile(name, delete=False, recursive=True, with_triggers=False)
+                self.api.remove_profile(name, delete=False, recursive=False, with_triggers=False)
             if collection_type == "system":
-                self.api.remove_system(name, delete=False, recursive=True, with_triggers=False)
+                self.api.remove_system(name, delete=False, recursive=False, with_triggers=False)
             if collection_type == "repo":
-                self.api.remove_repo(name, delete=False, recursive=True, with_triggers=False)
+                self.api.remove_repo(name, delete=False, recursive=False, with_triggers=False)
             if collection_type == "image":
-                self.api.remove_image(name, delete=False, recursive=True, with_triggers=False)
+                self.api.remove_image(name, delete=False, recursive=False, with_triggers=False)
 
         return True
 
