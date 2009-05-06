@@ -9,6 +9,7 @@ Cobbler CHANGELOG
 - (BUGF) another potential unicode fix
 - (BUGF) bonding interface setup for RHEL4 now works
 - (BUGF) generate DHCP info even if netboot is disabled
+- (BUGF) Change to network_config snippet to ignore bond masters to prevent anaconda failures when MAC addresses are not specified
 
 - XXX - 1.6.3
 - (BUGF) import with datestamp 0 when .discinfo is not found, do not crash
