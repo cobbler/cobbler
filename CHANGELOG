@@ -26,6 +26,9 @@ Cobbler CHANGELOG
 - (BUGF) change "hostname" to "option hostname" in dhcp.template
 - (BUGF) fixes for unicode problem with Cheetah, repos, and json
 - (BUGF) unicode fix for --template-files feature
+- (BUGF) another unicode fix
+- (BUGF) bonding interface setup for RHEL4 now works
+- (BUGF) generate DHCP info even if netboot is disabled
 
 - XXX - 1.6.3
 - (BUGF) import with datestamp 0 when .discinfo is not found, do not crash
