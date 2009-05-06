@@ -11,6 +11,7 @@ Cobbler CHANGELOG
 - (BUGF) generate DHCP info even if netboot is disabled
 - (BUGF) Change to network_config snippet to ignore bond masters to prevent anaconda failures when MAC addresses are not specified
 - (BUGF) fix to CLI rename deleting subobjects via cobblerd (important!)
+- (BUGF) fix blender cache problem with using dnsnames instead of record names (ISC DHCP management)
 
 - XXX - 1.6.3
 - (BUGF) import with datestamp 0 when .discinfo is not found, do not crash

@@ -222,11 +222,11 @@ class IscManager:
 
                 # add references to the system, profile, and distro
                 # for use in the template
-                if blender_cache.has_key(host):
-                    blended_system = blender_cache[host]
+                if blender_cache.has_key(system.name):
+                    blended_system = blender_cache[system.name]
                 else:
                     blended_system  = utils.blender( self.api, False, system )
-                    blender_cache[host] = blended_system
+                    blender_cache[system.name] = blended_system
 
                 interface["next_server"] = blended_system["server"]
                 interface["netboot_enabled"] = blended_system["netboot_enabled"]
