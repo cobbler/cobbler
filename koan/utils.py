@@ -354,6 +354,16 @@ def get_network_info():
          # inactive address (?) -- have to do it this way though or we miss bridged interfaces
          ip  = "?"
 
+      bridge = 0
+      module = ""
+      try:
+         module = ethtool.get_module(iname)
+         if module == "bridge":
+            bridge = 1
+      except:
+         pass
+        
+
       try:
          nm  = ethtool.get_netmask(iname)
       except:
@@ -362,9 +372,12 @@ def get_network_info():
       interfaces[iname] = {
          "ip_address"  : ip,
          "mac_address" : mac,
-         "netmask"     : nm
+         "netmask"     : nm,
+         "bridge"      : bridge,
+         "module"      : module
       }
 
+   print interfaces
    return interfaces
 
 def connect_to_server(server=None,port=None):

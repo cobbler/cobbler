@@ -621,15 +621,24 @@ class CobblerXMLRPCInterface:
            obj.set_hostname(hostname)
         obj.set_netboot_enabled(False)
         for iname in inames:
+            if info["interfaces"][iname].get("bridge","") == 1:
+               # don't add bridges
+               continue
+            #if info["interfaces"][iname].get("module","") == "":
+            #   # don't attempt to add wireless interfaces
+            #   continue
             mac      = info["interfaces"][iname].get("mac_address","")
             ip       = info["interfaces"][iname].get("ip_address","")
             netmask  = info["interfaces"][iname].get("netmask","")
+            if mac == "?":
+                # see koan/utils.py for explanation of network info discovery
+                continue;
             obj.set_mac_address(mac, iname)
             if hostname != "":
                 obj.set_dns_name(hostname, iname)
-            if ip != "":
+            if ip != "" and ip != "?":
                 obj.set_ip_address(ip, iname)
-            if netmask != "":
+            if netmask != "" and netmask != "?":
                 obj.set_subnet(netmask, iname)
         self.api.add_system(obj)
         return 0
