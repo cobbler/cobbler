@@ -36,7 +36,6 @@ Requires: genisoimage
 Requires: mkisofs
 %endif
 Requires: libyaml
-Requires: python(abi) = %{pyver}
 Requires: python-cheetah
 Requires: python-devel
 Requires: python-netaddr
@@ -62,6 +61,7 @@ Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]" || echo 0)}
+Requires: python(abi) = %{pyver}
 %endif
 
 BuildRequires: PyYAML
