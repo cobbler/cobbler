@@ -272,6 +272,7 @@ class BootCheck:
           if loader_name not in found_bootloaders:
              not_found.append(loader_name)
 
+       missing = False
        # generate warnings about what we haven't found.
        for loader_name in not_found:
           arch = bootloaders[loader_name][0]
@@ -280,7 +281,10 @@ class BootCheck:
              pattern_str = patterns[0]
           else:
              pattern_str = " or ".join(patterns)
-          status.append("content at location %s is needed to network boot arch %s was not found, to correct this problem either supply recent versions of that content manually at that location or run 'cobbler get-loaders' to download it automatically.  If you do not need to netboot %s this message can be ignored." % (patterns, arch, arch)) 
+          missing = True
+
+       if missing:
+          status.append("some network boot-loaders are missing from /var/lib/cobbler/loaders, you may run 'cobbler get-loaders' to download them, or, if you only want to handle x86/x86_64 netbooting, you may ensure that you have installed a *recent* version of the syslinux package installed and can ignore this message entirely.  Files in this directory, should you want to support all architectures, should include pxelinux.0, menu.c32, elilo.efi, and yaboot. The 'cobbler get-loaders' command is the easiest way to resolve these requirements.")
  
    def check_tftpd_bin(self,status):
        """
