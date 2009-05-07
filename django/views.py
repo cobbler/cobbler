@@ -796,7 +796,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
    if not obj_name is None:
       editable = remote.check_access_no_fail(token, "modify_%s" % what, obj_name)
-      obj = remote.get_item(what, obj_name)
+      obj = remote.get_item(what, obj_name, True)
 
       if obj.has_key('ctime'):
          obj['ctime'] = time.ctime(obj['ctime'])
