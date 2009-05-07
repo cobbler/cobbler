@@ -558,8 +558,10 @@ class CobblerXMLRPCInterface:
             return item_profile.get_fields()
         elif what == "system":
             return item_system.get_fields()
+        elif what == "network":
+            return item_network.get_fields()
         else:
-           raise CX("internal error, collection name is %s" % collection_name)
+           raise CX("internal error, unknown collection type: %s" % what)
 
     def register_new_system(self,info,token=None,**rest):
         """
