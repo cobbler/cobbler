@@ -207,7 +207,7 @@ class Image(item.Item):
         try:
             self.network_count = int(num)
         except:
-            raise CX("invalid network count")
+            raise CX("invalid network count (%s)" % num)
         return True
 
     def set_virt_auto_boot(self,num):
