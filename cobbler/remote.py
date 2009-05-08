@@ -560,6 +560,8 @@ class CobblerXMLRPCInterface:
             return item_system.get_fields()
         elif what == "network":
             return item_network.get_fields()
+        elif what == "repo":
+            return item_repo.get_fields()
         else:
            raise CX("internal error, unknown collection type: %s" % what)
 

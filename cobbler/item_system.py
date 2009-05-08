@@ -886,7 +886,7 @@ class System(item.Item):
         }
 
 def get_fields():
-        return {
+   return {
      'name': {
        'type'    :'text',
        'valtype' :'str',
@@ -1095,10 +1095,9 @@ def get_fields():
        'valtype' :'str',
        'label'   :'Virt Autoboot',
        'example' :'For virtual installs only, enable/disable VM auto start',
-       'size'    :'5',
-       'width'   :'150px',
        'value'   :'',
        'default' :'',
+       'list'    :[],
        'opts'    :'',
        'setopts' :'',
        'tdclass' :'virtedit',
