@@ -512,7 +512,7 @@ class System(item.Item):
             self.profile = profile_name
             self.depth = p.depth + 1 # subprofiles have varying depths.
             return True
-        raise CX(_("invalid profile name"))
+        raise CX("invalid profile name (%s)" % profile_name)
 
     def set_image(self,image_name):
         """

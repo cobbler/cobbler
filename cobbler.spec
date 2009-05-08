@@ -3,7 +3,7 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 1.6.3
+Version: 1.6.4
 Release: 1%{?dist}
 ExclusiveArch: %{ix86} x86_64 ppc ppc64 s390x
 Source0: %{name}-%{version}.tar.gz
@@ -300,6 +300,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+
+* Fri May 8 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.4-1
+- Upstream changes (see CHANGELOG)
 
 * Fri Apr 17 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.3-1
 - Upstream changes (see CHANGELOG)

@@ -4,12 +4,12 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-VERSION = "1.6.3"
+VERSION = "1.6.4"
 SHORT_DESC = "Network install tool for use with Cobbler"
 LONG_DESC = """
 Koan is a helper tool for use with 'cobbler'.  It allows for
-network installation of new virtualized guests and reinstallation
-of an existing system.
+network installation of new virtualized guests, updating files, 
+and reinstallation of an existing system.
 """
 
 if __name__ == "__main__":
