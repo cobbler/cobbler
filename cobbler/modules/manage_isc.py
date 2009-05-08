@@ -216,7 +216,10 @@ class IscManager:
 
                 # the label the entry after the hostname if possible
                 if host is not None and host != "":
-                    interface["name"] = "%s_%s"%(host,name)
+                    if name != "eth0":
+                        interface["name"] = "%s_%s" % (host,name)
+                    else:
+                        interface["name"] = "%s" % (host)
                 else:
                     interface["name"] = "generic%d" % counter
 

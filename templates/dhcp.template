@@ -42,16 +42,16 @@ group {
     host $iface.name {
         hardware ethernet $mac;
         #if $iface.ip_address:
-            fixed-address $iface.ip_address;
+        fixed-address $iface.ip_address;
         #end if
         #if $iface.hostname:
-            option host-name "$iface.hostname";
+        option host-name "$iface.hostname";
         #end if
         #if $iface.subnet:
-            option subnet-mask $iface.subnet;
+        option subnet-mask $iface.subnet;
         #end if
         #if $iface.gateway:
-            option routers $iface.gateway;
+        option routers $iface.gateway;
         #end if
         filename "$iface.filename";
         ## Cobbler defaults to $next_server, but some users
