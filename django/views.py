@@ -820,6 +820,8 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
          fields["distro"]["list"] = remote.get_distros(token)
          del fields["parent"]
       fields["repos"]["list"]  = remote.get_repos(token)
+   elif what == "system":
+      fields["profile"]["list"] = remote.get_profiles(token)
 
    sorted_fields = [(key, val) for key,val in fields.items()] 
    sorted_fields.sort(lambda a,b: cmp(a[1]["order"], b[1]["order"])) 
