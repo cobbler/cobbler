@@ -34,7 +34,6 @@ def get_fields():
            'default' :'',
            'opts'    :'',
            'setopts' :'disabled="true"',
-           'order'   :0,
            'editable':True,
        },
        'ctime': {
@@ -43,7 +42,6 @@ def get_fields():
            'label'   :'Created',
            'value'   :'',
            'default' :'',
-           'order'   :1,
            'editable':False,
        },
        'mtime': {
@@ -52,7 +50,6 @@ def get_fields():
            'label'   :'Last Modified',
            'value'   :'',
            'default' :'',
-           'order'   :2,
            'editable':False,
        },
        'comment': {
@@ -67,7 +64,6 @@ def get_fields():
            'default' : '',
            'opts'    : '',
            'setopts' : '',
-           'order'   : 3,
            'editable': True,
         },
         'netboot_enabled': {
@@ -79,7 +75,6 @@ def get_fields():
            'default' : '',
            'list'    : [],
            'opts'    : '',
-           'order'   : 4,
            'editable': True,
         },
         'profile': {
@@ -91,7 +86,6 @@ def get_fields():
            'default' : '',
            'list'    : [],
            'opts'    : '',
-           'order'   : 4,
            'editable': True,
         },
         'ks_meta': {
@@ -105,7 +99,6 @@ def get_fields():
            'default'  : '',
            'opts'     : '',
            'setopts'  : '',
-           'order'    : 5,
            'editable' : True,
         },
         'kernel_options': {
@@ -119,7 +112,6 @@ def get_fields():
            'default' :'',
            'opts'    :'',
            'setopts' :'',
-           'order'   :6,
            'editable':True,
         },
         'kernel_options_post': {
@@ -133,7 +125,6 @@ def get_fields():
            'default' :'',
            'opts'    :'',
            'setopts' :'',
-           'order'   :7,
            'editable':True,
         },
         'hostname': {
@@ -148,7 +139,6 @@ def get_fields():
             'opts'    :'',
             'setopts' :'',
             'tdclass' :'netedit',
-            'order'   :20,
             'editable':True,
         },
         'gateway': {
@@ -163,7 +153,6 @@ def get_fields():
             'opts'    :'',
             'setopts' :'',
             'tdclass' :'netedit',
-            'order'   :21,
             'editable':True,
         },
         'name_servers': {
@@ -178,7 +167,6 @@ def get_fields():
             'opts'    :'',
             'setopts' :'',
             'tdclass' :'netedit',
-            'order'   :22,
             'editable':True,
         },
         'name_servers_search': {
@@ -193,7 +181,6 @@ def get_fields():
             'opts'    :'',
             'setopts' :'',
             'tdclass' :'netedit',
-            'order'   :23,
             'editable':True,
         },
         'virt_file_size': {
@@ -208,7 +195,6 @@ def get_fields():
             'opts'    :'',
             'setopts' :'',
             'tdclass' :'virtedit',
-            'order'   :40,
             'editable':True,
         },
         'virt_ram': {
@@ -223,7 +209,6 @@ def get_fields():
             'opts'    :'',
             'setopts' :'',
             'tdclass' :'virtedit',
-            'order'   :41,
             'editable':True,
         },
         'virt_auto_boot': {
@@ -238,7 +223,6 @@ def get_fields():
             'opts'    :'',
             'setopts' :'',
             'tdclass' :'virtedit',
-            'order'   :42,
             'editable':True,
         },
         'virt_type': {
@@ -252,7 +236,6 @@ def get_fields():
             'opts'    :'',
             'setopts' :'',
             'tdclass' :'virtedit',
-            'order'   :43,
             'editable':True,
         },
         'virt_path': {
@@ -267,7 +250,6 @@ def get_fields():
             'opts'    :'',
             'setopts' :'',
             'tdclass' :'virtedit',
-            'order'   :44,
             'editable':True,
         },
         'virt_cpus': {
@@ -282,7 +264,6 @@ def get_fields():
             'opts'    :'',
             'setopts' :'',
             'tdclass' :'virtedit',
-            'order'   :46,
             'editable':True,
         },
         'power_address': {
@@ -297,7 +278,6 @@ def get_fields():
             'opts'    :'',
             'setopts' :'',
             'tdclass' :'poweredit',
-            'order'   :60,
             'editable':True,
         },
         'power_id': {
@@ -312,7 +292,6 @@ def get_fields():
             'opts'    :'',
             'setopts' :'',
             'tdclass' :'poweredit',
-            'order'   :61,
             'editable':True,
         },
         'power_user': {
@@ -327,7 +306,6 @@ def get_fields():
             'opts'    :'',
             'setopts' :'',
             'tdclass' :'poweredit',
-            'order'   :62,
             'editable':True,
         },
         'power_pass': {
@@ -342,7 +320,6 @@ def get_fields():
             'opts'    :'',
             'setopts' :'',
             'tdclass' :'poweredit',
-            'order'   :63,
             'editable':True,
         },
         'server': {
@@ -356,7 +333,6 @@ def get_fields():
             'default' :'',
             'opts'    :'',
             'setopts' :'',
-            'order'   :81,
             'editable':True,
         },
         'redhat_management_key': {
@@ -370,7 +346,6 @@ def get_fields():
             'default' :'',
             'opts'    :'',
             'setopts' :'',
-            'order'   :82,
             'editable':True,
         },
         'redhat_management_server': {
@@ -384,7 +359,6 @@ def get_fields():
             'default' :'',
             'opts'    :'',
             'setopts' :'',
-            'order'   :83,
             'editable':True,
         },
         'mgmt_classes': {
@@ -398,7 +372,6 @@ def get_fields():
             'default' :'',
             'opts'    :'',
             'setopts' :'',
-            'order'   :84,
             'editable':True,
         },
         'owners': {
@@ -412,12 +385,10 @@ def get_fields():
             'default' :'',
             'opts'    :'',
             'setopts' :'',
-            'order'   :85,
             'editable':True,
         },
         'interfaces': {
             'type'    :'dict',
-            'order'   : 100,
             'fields'  : {
                 'key': {
                     'type'    :'text',
@@ -431,7 +402,6 @@ def get_fields():
                     'opts'    :'',
                     'setopts' :'',
                     'tdclass' :'nicedit',
-                    'order'   :1,
                     'editable':True,
                 },
                 'ip_address': {
@@ -446,7 +416,6 @@ def get_fields():
                     'opts'    :'',
                     'setopts' :'',
                     'tdclass' :'nicedit',
-                    'order'   :2,
                     'editable':True,
                 },
             },
@@ -461,7 +430,6 @@ def get_fields():
             'default' :'',
             'opts'    :'',
             'setopts' :'',
-            'order'   :3,
             'editable':True,
         },
     },

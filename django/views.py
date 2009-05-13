@@ -821,8 +821,10 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
          del fields["parent"]
       fields["repos"]["list"]  = remote.get_repos(token)
 
+   # FIXME: fields should be be in order listed in order of groups listed
+
    sorted_fields = [(key, val) for key,val in fields.items()] 
-   sorted_fields.sort(lambda a,b: cmp(a[1]["order"], b[1]["order"])) 
+   #sorted_fields.sort(lambda a,b: cmp(a[1]["order"], b[1]["order"])) 
 
    # Enable empty name field when copying
    if editmode == "copy":

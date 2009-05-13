@@ -13,7 +13,6 @@ def get_fields():
        'default' :'',
        'opts'    :'',
        'setopts' :'disabled="true"',
-       'order'   :0,
        'editable':True,
      },
      'ctime': {
@@ -22,7 +21,6 @@ def get_fields():
        'label'   :'Created',
        'value'   :'',
        'default' :'',
-       'order'   :1,
        'editable':False,
      },
      'mtime': {
@@ -31,7 +29,6 @@ def get_fields():
        'label'   :'Last Modified',
        'value'   :'',
        'default' :'',
-       'order'   :2,
        'editable':False,
      },
      'kernel': {
@@ -45,7 +42,6 @@ def get_fields():
        'default' :'',
        'opts'    :'',
        'setopts' :'',
-       'order'   :4,
        'editable':True,
      },
      'initrd': {
@@ -59,7 +55,6 @@ def get_fields():
        'default' :'',
        'opts'    :'',
        'setopts' :'',
-       'order'   :5,
        'editable':True,
     },
      'kernel_options': {
@@ -73,7 +68,6 @@ def get_fields():
        'default' :'',
        'opts'    :'',
        'setopts' :'',
-       'order'   :7,
        'editable':True,
      },
      'kernel_options_post': {
@@ -87,7 +81,6 @@ def get_fields():
        'default' :'',
        'opts'    :'',
        'setopts' :'',
-       'order'   :8,
        'editable':True,
      },
      'arch': {
@@ -100,7 +93,6 @@ def get_fields():
        'list'    :(('i386','i386'),('x86','x86'),('x86_64','x86_64'),('ppc','ppc'),('ppc64','ppc64'),('s390','s390'),('s390x','s390x'),('ia64','ia64')),
        'opts'    :'',
        'setopts' :'',
-       'order'   :6,
        'editable':True,
      },
      'ks_meta': {
@@ -114,7 +106,6 @@ def get_fields():
        'default' :'',
        'opts'    :'',
        'setopts' :'',
-       'order'   :9,
        'editable':True,
      },
      'breed': {
@@ -127,7 +118,6 @@ def get_fields():
        'list'    :(('redhat','Red Hat Based'), ('debian','Debian'), ('ubuntu','Ubuntu'), ('suse','SuSE')),
        'opts'    :'',
        'setopts' :'',
-       'order'   :10,
        'editable':True,
      },
      'os_version': {
@@ -141,7 +131,6 @@ def get_fields():
        'default' :'',
        'opts'    :'',
        'setopts' :'',
-       'order'   :11,
        'editable':True,
      },
      'owners': {
@@ -155,7 +144,6 @@ def get_fields():
        'default' :'',
        'opts'    :'',
        'setopts' :'',
-       'order'   :15,
        'editable':True,
      },
      'mgmt_classes': {
@@ -169,7 +157,6 @@ def get_fields():
        'default' :'',
        'opts'    :'',
        'setopts' :'',
-       'order'   :14,
        'editable':True,
      },
      'template_files': {
@@ -183,7 +170,6 @@ def get_fields():
        'default' :'',
        'opts'    :'',
        'setopts' :'',
-       'order'   :16,
        'editable':True,
      },
      'comment': {
@@ -198,7 +184,6 @@ def get_fields():
        'default' :'',
        'opts'    :'',
        'setopts' :'',
-       'order'   :3,
        'editable':True,
      },
      'redhat_management_key': {
@@ -212,7 +197,6 @@ def get_fields():
        'default' :'',
        'opts'    :'',
        'setopts' :'',
-       'order'   :12,
        'editable':True,
      },
      'redhat_management_server': {
@@ -226,7 +210,6 @@ def get_fields():
        'default' :'',
        'opts'    :'',
        'setopts' :'',
-       'order'   :13,
        'editable':True,
      },
    }
