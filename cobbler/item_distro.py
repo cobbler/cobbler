@@ -32,6 +32,28 @@ from cexceptions import *
 
 from utils import _
 
+FIELDS = [
+   [ "name",                     None                            ],
+   [ "uid",                      ""                              ],
+   [ "owners",                   "SETTINGS:default_ownership"    ],
+   [ "kernel",                   None                            ],
+   [ "initrd",                   None                            ],
+   [ "kernel_options",           {}                              ],
+   [ "kernel_options_post",      {}                              ],
+   [ "ks_meta",                  {}                              ],
+   [ "arch",                     'i386'                          ],
+   [ "breed",                    'redhat'                        ],
+   [ "os_version",               ''                              ],
+   [ "source_repos",             []                              ],
+   [ "mgmt_classes",             []                              ],
+   [ "depth",                    0                               ],
+   [ "template_files",           {}                              ],
+   [ "comment",                  ""                              ],
+   [ "tree_build_time",          0                               ],
+   [ "redhat_management_key",    "<<inherit>>"                   ],
+   [ "redhat_management_server", "<<inherit>>"                   ]
+]
+
 class Distro(item.Item):
 
     TYPE_NAME = _("distro")
@@ -41,25 +63,7 @@ class Distro(item.Item):
         """
         Reset this object.
         """
-        self.name                      = None
-        self.uid                       = ""
-        self.owners                    = self.settings.default_ownership
-        self.kernel                    = None
-        self.initrd                    = None
-        self.kernel_options            = {}
-        self.kernel_options_post       = {}
-        self.ks_meta                   = {}
-        self.arch                      = 'i386'
-        self.breed                     = 'redhat'
-        self.os_version                = ''
-        self.source_repos              = []
-        self.mgmt_classes              = []
-        self.depth                     = 0
-        self.template_files            = {}
-	self.comment                   = ""
-        self.tree_build_time           = 0
-        self.redhat_management_key     = "<<inherit>>"
-        self.redhat_management_server  = "<<inherit>>"
+        utils.clear_from_fields(self,FIELDS,is_subobject=is_subobject)
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -78,49 +82,7 @@ class Distro(item.Item):
         """
         Modify this object to take on values in seed_data
         """
-        self.parent                    = self.load_item(seed_data,'parent')
-        self.name                      = self.load_item(seed_data,'name')
-        self.owners                    = self.load_item(seed_data,'owners',self.settings.default_ownership)
-        self.kernel                    = self.load_item(seed_data,'kernel')
-        self.initrd                    = self.load_item(seed_data,'initrd')
-        self.kernel_options            = self.load_item(seed_data,'kernel_options')
-        self.kernel_options_post       = self.load_item(seed_data,'kernel_options_post')
-        self.ks_meta                   = self.load_item(seed_data,'ks_meta')
-        self.arch                      = self.load_item(seed_data,'arch','i386')
-        self.breed                     = self.load_item(seed_data,'breed','redhat')
-        self.os_version                = self.load_item(seed_data,'os_version','')
-        self.source_repos              = self.load_item(seed_data,'source_repos',[])
-        self.depth                     = self.load_item(seed_data,'depth',0)
-        self.mgmt_classes              = self.load_item(seed_data,'mgmt_classes',[])
-        self.template_files            = self.load_item(seed_data,'template_files',{})
-	self.comment                   = self.load_item(seed_data,'comment')
-        self.redhat_management_key     = self.load_item(seed_data,'redhat_management_key',"<<inherit>>")
-        self.redhat_management_server  = self.load_item(seed_data,'redhat_management_server',"<<inherit>>")
-
-        # backwards compatibility enforcement
-        self.set_arch(self.arch)
-        if self.kernel_options != "<<inherit>>" and type(self.kernel_options) != dict:
-            self.set_kernel_options(self.kernel_options)
-        if self.kernel_options_post != "<<inherit>>" and type(self.kernel_options_post) != dict:
-            self.set_kernel_options_post(self.kernel_options_post)
-        if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
-            self.set_ksmeta(self.ks_meta)
-        
-        self.set_mgmt_classes(self.mgmt_classes)
-        self.set_template_files(self.template_files)
-        self.set_owners(self.owners)
-
-        self.tree_build_time = self.load_item(seed_data, 'tree_build_time', -1)
-        self.ctime = self.load_item(seed_data, 'ctime', 0)
-        self.mtime = self.load_item(seed_data, 'mtime', 0)
-
-        self.set_tree_build_time(self.tree_build_time)
-
-        self.uid = self.load_item(seed_data,'uid','')
-        if self.uid == '':
-           self.uid = self.config.generate_uid()
-
-        return self
+        return utils.from_datastruct_from_fields(self,seed_data,FIELDS)
 
     def set_kernel(self,kernel):
         """
@@ -210,33 +172,7 @@ class Distro(item.Item):
         return True
 
     def to_datastruct(self):
-        """
-        Return a serializable datastructure representation of this object.
-        """
-        return {
-            'name'                      : self.name,
-            'kernel'                    : self.kernel,
-            'initrd'                    : self.initrd,
-            'kernel_options'            : self.kernel_options,
-            'kernel_options_post'       : self.kernel_options_post,
-            'ks_meta'                   : self.ks_meta,
-            'mgmt_classes'              : self.mgmt_classes,
-            'template_files'            : self.template_files,
-            'arch'                      : self.arch,
-            'breed'                     : self.breed,
-            'os_version'                : self.os_version,
-            'source_repos'              : self.source_repos,
-            'parent'                    : self.parent,
-            'depth'                     : self.depth,
-            'owners'                    : self.owners,
-            'comment'                   : self.comment,
-            'tree_build_time'           : self.tree_build_time,
-            'ctime'                     : self.ctime,
-            'mtime'                     : self.mtime,
-            'uid'                       : self.uid,
-            'redhat_management_key'     : self.redhat_management_key,
-            'redhat_management_server'  : self.redhat_management_server
-        }
+        return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
         """

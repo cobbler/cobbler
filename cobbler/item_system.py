@@ -26,6 +26,55 @@ import time
 from cexceptions import *
 from utils import _
 
+FIELDS = [
+    [ "name"                      , None ],
+    [ "uid"                       , "" ],
+    [ "owners"                    , "SETTINGS:default_ownership" ],
+    [ "profile"                   , None ],
+    [ "image"                     , None ],
+    [ "kernel_options"            , {} ],
+    [ "kernel_options_post"       , {} ],
+    [ "ks_meta"                   , {} ], 
+    [ "interfaces"                , {} ],
+    [ "netboot_enabled"           , True ],
+    [ "depth"                     , 2 ],
+    [ "mgmt_classes"              , [] ],             
+    [ "template_files"            , {} ],
+    [ "kickstart"                 , "<<inherit>>" ],  # use value in profile
+    [ "server"                    , "<<inherit>>" ],  # "" (or settings)
+    [ "virt_path"                 , "<<inherit>>" ],  # ""
+    [ "virt_type"                 , "<<inherit>>" ],  # "" 
+    [ "virt_cpus"                 , "<<inherit>>" ],  # ""
+    [ "virt_file_size"            , "<<inherit>>" ],  # ""
+    [ "virt_ram"                  , "<<inherit>>" ],  # ""
+    [ "virt_auto_boot"            , "<<inherit>>" ],  # ""
+    [ "virt_type"                 , "<<inherit>>" ],  # ""
+    [ "virt_path"                 , "<<inherit>>" ],  # ""
+    [ "virt_bridge"               , "<<inherit>>" ],  # ""
+    [ "virt_host"                 , ""            ],
+    [ "virt_group"                , ""            ],  
+    [ "virt_guests"               , []            ],
+    [ "comment"                   , ""            ],
+    [ "ctime"                     , 0             ],
+    [ "mtime"                     , 0             ],
+    [ "uid"                       , ""            ],
+    [ "random_id"                 , ""            ],
+    [ "power_type"                , "SETTINGS:power_management_default_type" ],
+    [ "power_address"             , ""            ],
+    [ "power_user"                , ""            ],
+    [ "power_pass"                , ""            ],
+    [ "power_id"                  , ""            ],
+    [ "hostname"                  , ""            ],
+    [ "gateway"                   , ""            ],
+    [ "name_servers"              , []            ],
+    [ "name_servers_search"       , []            ],
+    [ "bonding"                   , ""            ],
+    [ "bonding_master"            , ""            ],
+    [ "bonding_opts"              , ""            ],
+    [ "redhat_management_key"     , "<<inherit>>" ],
+    [ "redhat_management_server"  , "<<inherit>>" ]
+]
+
 class System(item.Item):
 
     TYPE_NAME = _("system")
@@ -38,53 +87,7 @@ class System(item.Item):
         return cloned
 
     def clear(self,is_subobject=False):
-        self.name                      = None
-        self.uid                       = ""
-        self.owners                    = self.settings.default_ownership
-        self.profile                   = None
-        self.image                     = None
-        self.kernel_options            = {}
-        self.kernel_options_post       = {}
-        self.ks_meta                   = {}    
-        self.interfaces                = {}
-        self.netboot_enabled           = True
-        self.depth                     = 2
-        self.mgmt_classes              = []              
-        self.template_files            = {}
-        self.kickstart                 = "<<inherit>>"   # use value in profile
-        self.server                    = "<<inherit>>"   # "" (or settings)
-        self.virt_path                 = "<<inherit>>"   # ""
-        self.virt_type                 = "<<inherit>>"   # "" 
-        self.virt_cpus                 = "<<inherit>>"   # ""
-        self.virt_file_size            = "<<inherit>>"   # ""
-        self.virt_ram                  = "<<inherit>>"   # ""
-        self.virt_auto_boot            = "<<inherit>>"   # ""
-        self.virt_type                 = "<<inherit>>"   # ""
-        self.virt_path                 = "<<inherit>>"   # ""
-        self.virt_bridge               = "<<inherit>>"   # ""
-        self.virt_host                 = ""              # ""
-        self.virt_group                = ""              # ""
-        self.virt_guests               = []
-        self.comment                   = ""
-        self.ctime                     = 0
-        self.mtime                     = 0
-        self.uid                       = ""
-        self.random_id                 = ""
-        self.power_type                = self.settings.power_management_default_type
-        self.power_address             = ""
-        self.power_user                = ""
-        self.power_pass                = ""
-        self.power_id                  = ""
-        self.hostname                  = ""
-        self.gateway                   = ""
-        self.name_servers              = []
-        self.name_servers_search       = []
-        self.bonding                   = ""
-        self.bonding_master            = ""
-        self.bonding_opts              = ""
-        self.redhat_management_key     = "<<inherit>>"
-        self.redhat_management_server  = "<<inherit>>"
-
+        utils.clear_from_fields(self,FIELDS)
 
     def delete_interface(self,name):
         """
@@ -123,193 +126,8 @@ class System(item.Item):
 
 
     def from_datastruct(self,seed_data):
-
-        # this is to upgrade older cobbler installs.
-        # previously we had interfaces in a hash from intf0 ... intf8
-        # now we support arbitrary names but want to make sure any interfaces named intfN
-        # are named after the actual interface name -- before we couldn't assure order so
-        # we didn't want apply intf0 == eth0, now we can.
-
-        intf = self.load_item(seed_data, "interfaces", {})
-        for x in range(0,8):
-           key1 = "intf%d" % x
-           key2 = "eth%d" % x
-           if intf.has_key(key1) and not intf.has_key(key2):
-               # copy intfN to ethN
-               seed_data["interfaces"][key2] = seed_data["interfaces"][key1].copy()
-               del seed_data["interfaces"][key1]
-
-        # certain per-interface settings are now global settings and not-per interface
-        # these are "gateway" and "hostname", so we migrate the first one we can find.
-        # I don't expect new users of cobbler to understand this but it's important
-        # for backwards-compatibility upgrade reasons.
-
-        __gateway  = ""
-        __hostname = ""
-        keyz = intf.keys()
-        keyz.sort()
-        for x in keyz:
-            y = intf[x]
-            if y.get("gateway","") != "":
-                __gateway = y["gateway"]
-            if y.get("hostname","") != "":
-                __hostname = y["hostname"]
-
-        # load datastructures from previous and current versions of cobbler
-        # and store (in-memory) in the new format.
-        # (the main complexity here is the migration to NIC data structures)
-
-        self.parent               = self.load_item(seed_data, 'parent')
-        self.name                 = self.load_item(seed_data, 'name')
-        self.owners               = self.load_item(seed_data, 'owners', self.settings.default_ownership)
-        self.profile              = self.load_item(seed_data, 'profile')
-        self.image                = self.load_item(seed_data, 'image')
-
-        self.kernel_options       = self.load_item(seed_data, 'kernel_options', {})
-        self.kernel_options_post  = self.load_item(seed_data, 'kernel_options_post', {})
-        self.ks_meta              = self.load_item(seed_data, 'ks_meta', {})
-        self.depth                = self.load_item(seed_data, 'depth', 2)        
-        self.kickstart            = self.load_item(seed_data, 'kickstart', '<<inherit>>')
-        self.netboot_enabled      = self.load_item(seed_data, 'netboot_enabled', True)
-        self.server               = self.load_item(seed_data, 'server', '<<inherit>>')
-        self.mgmt_classes         = self.load_item(seed_data, 'mgmt_classes', [])
-        self.template_files       = self.load_item(seed_data, 'template_files', {})
-        self.comment              = self.load_item(seed_data, 'comment', '')
-
-        # here are some global settings that have weird defaults, since they might
-        # have been moved over from a cobbler upgrade
-
-        self.gateway      = self.load_item(seed_data, 'gateway', __gateway)
-        self.hostname     = self.load_item(seed_data, 'hostname', __hostname)
-        
-        self.name_servers = self.load_item(seed_data, 'name_servers', [])
-        self.name_servers_search = self.load_item(seed_data, 'name_servers_search', [])
-        self.redhat_management_key = self.load_item(seed_data, 'redhat_management_key', '<<inherit>>')
-        self.redhat_management_server = self.load_item(seed_data, 'redhat_management_server', '<<inherit>>')
-
-        # virt specific 
-
-        self.virt_path   = self.load_item(seed_data, 'virt_path', '<<inherit>>') 
-        self.virt_type   = self.load_item(seed_data, 'virt_type', '<<inherit>>')
-        self.virt_ram    = self.load_item(seed_data,'virt_ram','<<inherit>>')
-        self.virt_auto_boot    = self.load_item(seed_data,'virt_auto_boot','<<inherit>>')
-        self.virt_file_size  = self.load_item(seed_data,'virt_file_size','<<inherit>>')
-        self.virt_path   = self.load_item(seed_data,'virt_path','<<inherit>>')
-        self.virt_type   = self.load_item(seed_data,'virt_type','<<inherit>>')
-        self.virt_bridge = self.load_item(seed_data,'virt_bridge','<<inherit>>')
-        self.virt_cpus   = self.load_item(seed_data,'virt_cpus','<<inherit>>')
-        self.virt_host   = self.load_item(seed_data,'virt_host','')
-        self.virt_group  = self.load_item(seed_data,'virt_group','')
-        self.virt_guests = self.load_item(seed_data,'virt_guests',[])
-
-        self.ctime       = self.load_item(seed_data,'ctime',0)
-        self.mtime       = self.load_item(seed_data,'mtime',0)
-
-        self.uid         = self.load_item(seed_data,'uid','')
-        if self.uid == '':
-           self.uid = self.config.generate_uid()
-
-        self.random_id   = self.load_item(seed_data,'random_id','')
-        if self.random_id == '' or len(self.random_id) != 4:
-           self.random_id = self.config.generate_random_id(4)
-
-        # power management integration features
-
-        self.power_type     = self.load_item(seed_data, 'power_type', self.settings.power_management_default_type)
-
-        self.power_address  = self.load_item(seed_data, 'power_address', '')
-        self.power_user     = self.load_item(seed_data, 'power_user', '')
-        self.power_pass     = self.load_item(seed_data, 'power_pass', '')
-        self.power_id       = self.load_item(seed_data, 'power_id', '')
-
-
-        # backwards compat, these settings are now part of the interfaces data structure
-        # and will contain data only in upgrade scenarios.
-
-        __ip_address      = self.load_item(seed_data, 'ip_address',  "")
-        __dhcp_tag        = self.load_item(seed_data, 'dhcp_tag',    "")
-        __hostname        = self.load_item(seed_data, 'hostname',    "")
-        __mac_address     = self.load_item(seed_data, 'mac_address', "")
-
-        # now load the new-style interface definition data structure
-
-        self.interfaces      = self.load_item(seed_data, 'interfaces', {})
-
-        # now backfill the interface structure with any old values from
-        # before the upgrade
-
-        if not self.interfaces.has_key("eth0"):
-            if __mac_address != "":
-                self.set_mac_address(__mac_address, "eth0")
-            if __ip_address != "":
-                self.set_ip_address(__ip_address, "eth0")
-            if __dhcp_tag != "":
-                self.set_dhcp_tag(__dhcp_tag, "eth0")
-
-        # backwards compatibility:
-        # for interfaces that do not have all the fields filled in, populate the new fields
-        # that have been added (applies to any new interface fields Cobbler 1.3 and later)
-        # other fields have been created because of upgrade usage        
-        # and remove fields that are no longer part of the interface in this version
-
-        for k in self.interfaces.keys():
-            if not self.interfaces[k].has_key("static"):
-               self.interfaces[k]["static"] = False
-            if not self.interfaces[k].has_key("bonding"):
-               self.interfaces[k]["bonding"] = ""
-            if not self.interfaces[k].has_key("bonding_master"):
-               self.interfaces[k]["bonding_master"] = ""
-            if not self.interfaces[k].has_key("bonding_opts"):
-               self.interfaces[k]["bonding_opts"] = ""
-            if not self.interfaces[k].has_key("dns_name"):
-               # hostname is global for the system, dns_name is per interface
-               # this handles the backwards compatibility update details for
-               # older versions of cobbler which had hostname per interface
-               # which is wrong.
-               possible = self.interfaces[k].get("hostname","")
-               self.interfaces[k]["dns_name"] = possible
-               if self.interfaces[k].has_key("hostname"):
-                  del self.interfaces[k]["hostname"]
-            if self.interfaces[k].has_key("gateway"):
-               del self.interfaces[k]["gateway"]
-            if not self.interfaces[k].has_key("static_routes"):
-               self.interfaces[k]["static_routes"] = []
-            if not self.interfaces[k].has_key("network"):
-                self.interfaces[k]["network"] = ""
-
-        # backwards compatibility -- convert string entries to dicts for storage
-        # this allows for better usage from the API.
-
-        if self.kernel_options != "<<inherit>>" and type(self.kernel_options) != dict:
-            self.set_kernel_options(self.kernel_options)
-        if self.kernel_options_post != "<<inherit>>" and type(self.kernel_options_post) != dict:
-            self.set_kernel_options_post(self.kernel_options_post)
-        if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
-            self.set_ksmeta(self.ks_meta)
-
-        # explicitly re-call the set_name function to possibily populate MAC/IP.
-        self.set_name(self.name)
-
-        # coerce types from input file
-        self.set_netboot_enabled(self.netboot_enabled)
-        self.set_owners(self.owners) 
-        self.set_mgmt_classes(self.mgmt_classes)
-        self.set_template_files(self.template_files)
-        self.set_name_servers(self.name_servers)
-        self.set_name_servers_search(self.name_servers_search)
-
-        # enforce that the system extends from a profile or system but not both
-        # profile wins as it's the more common usage
-        self.set_image(self.image)
-        self.set_profile(self.profile)
-
-
-        # enforce that the system extends from a profile or system but not both
-        # profile wins as it's the more common usage
-        self.set_image(self.image)
-        self.set_profile(self.profile)
-
-        return self
+        # FIXME: most definitely doesn't grok interfaces yet.
+        return utils.from_datastruct_from_fields(self,seed_data,FIELDS)
 
     def get_parent(self):
         """
@@ -563,7 +381,7 @@ class System(item.Item):
             self.profile = profile_name
             self.depth = p.depth + 1 # subprofiles have varying depths.
             return True
-        raise CX(_("invalid profile name"))
+        raise CX(_("invalid profile name: %s") % profile_name)
 
     def set_image(self,image_name):
         """
@@ -709,49 +527,7 @@ class System(item.Item):
         return True
 
     def to_datastruct(self):
-        return {
-           'name'                     : self.name,
-           'uid'                      : self.uid,
-           'random_id'                : self.random_id,
-           'kernel_options'           : self.kernel_options,
-           'kernel_options_post'      : self.kernel_options_post,
-           'depth'                    : self.depth,
-           'interfaces'               : self.interfaces,
-           'ks_meta'                  : self.ks_meta,
-           'kickstart'                : self.kickstart,
-           'netboot_enabled'          : self.netboot_enabled,
-           'owners'                   : self.owners,
-           'parent'                   : self.parent,
-           'profile'                  : self.profile,
-           'image'                    : self.image,
-           'server'                   : self.server,
-           'virt_cpus'                : self.virt_cpus,
-           'virt_host'                : self.virt_host,
-           'virt_group'               : self.virt_group,
-           'virt_guests'              : self.virt_guests,
-           'virt_bridge'              : self.virt_bridge,
-           'virt_file_size'           : self.virt_file_size,
-           'virt_path'                : self.virt_path,
-           'virt_ram'                 : self.virt_ram,
-           'virt_auto_boot'           : self.virt_auto_boot,
-           'virt_type'                : self.virt_type,
-           'mgmt_classes'             : self.mgmt_classes,
-           'template_files'           : self.template_files,
-           'comment'                  : self.comment,
-           'ctime'                    : self.ctime,
-           'mtime'                    : self.mtime,
-           'power_type'               : self.power_type,
-           'power_address'            : self.power_address,
-           'power_user'               : self.power_user,
-           'power_pass'               : self.power_pass,
-           'power_id'                 : self.power_id, 
-           'hostname'                 : self.hostname,
-           'gateway'                  : self.gateway,
-           'name_servers'             : self.name_servers,
-           'name_servers_search'      : self.name_servers_search,
-           'redhat_management_key'    : self.redhat_management_key,
-           'redhat_management_server' : self.redhat_management_server
-        }
+        return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
         buf =       _("system                : %s\n") % self.name

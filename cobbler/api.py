@@ -136,24 +136,24 @@ class BootAPI:
     def __setup_logger(self,name):
         return utils.setup_logger(name, is_cobblerd=self.is_cobblerd, **self.log_settings)
    
-    def get_distro_fields(self):
-        """
-        Returns datastructures used to provide object field info
-        to auto-build the CLI and webapp.
-        """
-        return fields_distro.get_fields()
-    
-    def get_profile_fields(self):
-        return fields_profile.get_fields()
- 
-    def get_system_fields(self):
-        return fields_system.get_fields()
-
-    def get_image_fields(self):
-        return fields_image.get_fields()
- 
-    def get_repo_fields(self):
-        return fields_repo.get_fields()
+    #def get_distro_fields(self):
+    #    """
+    #    Returns datastructures used to provide object field info
+    #    to auto-build the CLI and webapp.
+    #    """
+    #    return fields_distro.get_fields()
+    # 
+    #def get_profile_fields(self):
+    #    return fields_profile.get_fields()
+    # 
+    #def get_system_fields(self):
+    #    return fields_system.get_fields()
+    #
+    #def get_image_fields(self):
+    #    return fields_image.get_fields()
+    #
+    #def get_repo_fields(self):
+    #    return fields_repo.get_fields()
 
     def is_selinux_enabled(self):
         """
