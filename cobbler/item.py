@@ -232,15 +232,15 @@ class Item(serializable.Serializable):
                 self.template_files = value
             return True
 
-    def load_item(self,datastruct,key,default=''):
-        """
-        Used in subclass from_datastruct functions to load items from
-        a hash.  Intented to ease backwards compatibility of config
-        files during upgrades.  
-        """
-        if datastruct.has_key(key):
-            return datastruct[key]
-        return default
+    #def load_item(self,datastruct,key,default=''):
+    #    """
+    #    Used in subclass from_datastruct functions to load items from
+    #    a hash.  Intented to ease backwards compatibility of config
+    #    files during upgrades.  
+    #    """
+    #    if datastruct.has_key(key):
+    #        return datastruct[key]
+    #    return default
 
     def to_datastruct_with_cache(self):
         """

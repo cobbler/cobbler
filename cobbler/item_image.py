@@ -28,6 +28,31 @@ from cexceptions import *
 
 from utils import _
 
+FIELDS = [
+   [ 'name'            , '' ],
+   [ 'uid'             , "" ],
+   [ 'arch'            , 'i386' ],
+   [ 'file'            , '' ],
+   [ 'parent'          , '' ],
+   [ 'depth'           , 0  ],
+   [ 'virt_auto_boot'  , "SETTINGS:virt_auto_boot"   ],
+   [ 'virt_ram'        , "SETTINGS:default_virt_ram" ],
+   [ 'virt_file_size'  , "SETTINGS:default_virt_file_size" ],
+   [ 'virt_path'       , '' ],
+   [ 'virt_type'       , "SETTINGS:default_virt_type" ],
+   [ 'virt_cpus'       , 1  ],
+   [ 'network_count'   , 1  ],
+   [ 'virt_bridge'     , "SETTINGS:default_virt_bridge" ],
+   [ 'owners'          , "SETTINGS:default_ownership" ],
+   [ 'image_type'      , "iso" ],
+   [ 'breed'           , 'redhat' ],
+   [ 'os_version'      , '' ],
+   [ 'comment'         , '' ],
+   [ 'ctime'           , 0  ],
+   [ 'mtime'           , 0  ],
+   [ 'kickstart'       , '' ]
+]
+
 class Image(item.Item):
 
     TYPE_NAME = _("image")
@@ -43,70 +68,13 @@ class Image(item.Item):
         """
         Reset this object.
         """
-        self.name            = ''
-        self.uid             = ""
-        self.arch            = 'i386'
-        self.file            = ''
-        self.parent          = ''
-        self.depth           = 0
-        self.virt_auto_boot  = self.settings.virt_auto_boot
-        self.virt_ram        = self.settings.default_virt_ram
-        self.virt_file_size  = self.settings.default_virt_file_size
-        self.virt_path       = ''
-        self.virt_type       = self.settings.default_virt_type
-        self.virt_cpus       = 1
-        self.network_count   = 1
-        self.virt_bridge     = self.settings.default_virt_bridge
-        self.owners          = self.settings.default_ownership
-        self.image_type      = "iso" # direct, iso, memdisk, virt-clone
-        self.breed           = 'redhat'
-        self.os_version      = ''
-        self.comment         = ''
-        self.ctime           = 0
-        self.mtime           = 0
-        self.kickstart       = ''
-
+        utils.clear_from_fields(self,FIELDS)
+ 
     def from_datastruct(self,seed_data):
         """
         Load this object's properties based on seed_data
         """
-
-        self.name            = self.load_item(seed_data,'name','')
-        self.parent          = self.load_item(seed_data,'parent','')
-        self.file            = self.load_item(seed_data,'file','')
-        self.depth           = self.load_item(seed_data,'depth',0)
-        self.owners          = self.load_item(seed_data,'owners',self.settings.default_ownership)
-
-        self.virt_auto_boot  = self.load_item(seed_data, 'virt_auto_boot', self.settings.virt_auto_boot)
-        self.virt_ram        = self.load_item(seed_data, 'virt_ram', self.settings.default_virt_ram)
-        self.virt_file_size  = self.load_item(seed_data, 'virt_file_size', self.settings.default_virt_file_size)
-        self.virt_path       = self.load_item(seed_data, 'virt_path')
-        self.virt_type       = self.load_item(seed_data, 'virt_type', self.settings.default_virt_type)
-        self.virt_cpus       = self.load_item(seed_data, 'virt_cpus')
-        self.network_count   = self.load_item(seed_data, 'network_count')
-        self.virt_bridge     = self.load_item(seed_data, 'virt_bridge')
-        self.arch            = self.load_item(seed_data,'arch','i386')
-
-        self.image_type      = self.load_item(seed_data, 'image_type', 'iso')
-
-        self.breed           = self.load_item(seed_data, 'breed', 'redhat')
-        self.os_version      = self.load_item(seed_data, 'os_version', '')
-
-        self.comment         = self.load_item(seed_data, 'comment', '')
-        self.kickstart       = self.load_item(seed_data, 'kickstart', '')
-
-        self.set_owners(self.owners)
-        self.set_arch(self.arch)
-         
-        self.ctime           = self.load_item(seed_data, 'ctime', 0)
-        self.mtime           = self.load_item(seed_data, 'mtime', 0)
-
-        self.uid = self.load_item(seed_data,'uid','')
-
-        if self.uid == '':
-           self.uid = self.config.generate_uid()
-
-        return self
+        return utils.from_datastruct_from_fields(self,seed_data,FIELDS)
 
     def set_arch(self,arch):
         """
@@ -241,36 +209,8 @@ class Image(item.Item):
             raise CX(_("image has no name specified"))
         return True
 
-    # FIXME: add virt parameters here as needed
-
     def to_datastruct(self):
-        """
-        Return hash representation for the serializer
-        """
-        return {
-            'name'             : self.name,
-            'arch'             : self.arch,
-            'image_type'       : self.image_type,
-            'file'             : self.file,
-            'depth'            : 0,
-            'parent'           : '',
-            'owners'           : self.owners,
-            'virt_auto_boot'   : self.virt_auto_boot,
-            'virt_ram'         : self.virt_ram,
-            'virt_path'        : self.virt_path,
-            'virt_type'        : self.virt_type,
-            'virt_cpus'        : self.virt_cpus,
-            'network_count'    : self.network_count,
-            'virt_bridge'      : self.virt_bridge,
-            'virt_file_size'   : self.virt_file_size,
-            'breed'            : self.breed,
-            'os_version'       : self.os_version,
-            'comment'          : self.comment,
-            'ctime'            : self.ctime,
-            'mtime'            : self.mtime,
-            'uid'              : self.uid,
-            'kickstart'        : self.kickstart
-        }
+        return utils.to_datastruct(self,FIELDS)
 
     def printable(self):
         """

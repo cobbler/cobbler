@@ -32,6 +32,28 @@ from cexceptions import *
 
 from utils import _
 
+FIELDS = [
+   [ "name",                     None                            ],
+   [ "uid",                      ""                              ],
+   [ "owners",                   "SETTINGS:default_ownership"    ],
+   [ "kernel",                   None                            ],
+   [ "initrd",                   None                            ],
+   [ "kernel_options",           {}                              ],
+   [ "kernel_options_post",      {}                              ],
+   [ "ks_meta",                  {}                              ],
+   [ "arch",                     'i386'                          ],
+   [ "breed",                    'redhat'                        ],
+   [ "os_version",               ''                              ],
+   [ "source_repos",             []                              ],
+   [ "mgmt_classes",             []                              ],
+   [ "depth",                    0                               ],
+   [ "template_files",           {}                              ],
+   [ "comment",                  ""                              ],
+   [ "tree_build_time",          0                               ],
+   [ "redhat_management_key",    "<<inherit>>"                   ],
+   [ "redhat_management_server", "<<inherit>>"                   ]
+]
+
 class Distro(item.Item):
 
     TYPE_NAME = _("distro")
@@ -41,25 +63,7 @@ class Distro(item.Item):
         """
         Reset this object.
         """
-        self.name                      = None
-        self.uid                       = ""
-        self.owners                    = self.settings.default_ownership
-        self.kernel                    = None
-        self.initrd                    = None
-        self.kernel_options            = {}
-        self.kernel_options_post       = {}
-        self.ks_meta                   = {}
-        self.arch                      = 'i386'
-        self.breed                     = 'redhat'
-        self.os_version                = ''
-        self.source_repos              = []
-        self.mgmt_classes              = []
-        self.depth                     = 0
-        self.template_files            = {}
-	self.comment                   = ""
-        self.tree_build_time           = 0
-        self.redhat_management_key     = "<<inherit>>"
-        self.redhat_management_server  = "<<inherit>>"
+        utils.clear_from_fields(self,FIELDS,is_subobject=is_subobject)
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -78,49 +82,7 @@ class Distro(item.Item):
         """
         Modify this object to take on values in seed_data
         """
-        self.parent                    = self.load_item(seed_data,'parent')
-        self.name                      = self.load_item(seed_data,'name')
-        self.owners                    = self.load_item(seed_data,'owners',self.settings.default_ownership)
-        self.kernel                    = self.load_item(seed_data,'kernel')
-        self.initrd                    = self.load_item(seed_data,'initrd')
-        self.kernel_options            = self.load_item(seed_data,'kernel_options')
-        self.kernel_options_post       = self.load_item(seed_data,'kernel_options_post')
-        self.ks_meta                   = self.load_item(seed_data,'ks_meta')
-        self.arch                      = self.load_item(seed_data,'arch','i386')
-        self.breed                     = self.load_item(seed_data,'breed','redhat')
-        self.os_version                = self.load_item(seed_data,'os_version','')
-        self.source_repos              = self.load_item(seed_data,'source_repos',[])
-        self.depth                     = self.load_item(seed_data,'depth',0)
-        self.mgmt_classes              = self.load_item(seed_data,'mgmt_classes',[])
-        self.template_files            = self.load_item(seed_data,'template_files',{})
-	self.comment                   = self.load_item(seed_data,'comment')
-        self.redhat_management_key     = self.load_item(seed_data,'redhat_management_key',"<<inherit>>")
-        self.redhat_management_server  = self.load_item(seed_data,'redhat_management_server',"<<inherit>>")
-
-        # backwards compatibility enforcement
-        self.set_arch(self.arch)
-        if self.kernel_options != "<<inherit>>" and type(self.kernel_options) != dict:
-            self.set_kernel_options(self.kernel_options)
-        if self.kernel_options_post != "<<inherit>>" and type(self.kernel_options_post) != dict:
-            self.set_kernel_options_post(self.kernel_options_post)
-        if self.ks_meta != "<<inherit>>" and type(self.ks_meta) != dict:
-            self.set_ksmeta(self.ks_meta)
-        
-        self.set_mgmt_classes(self.mgmt_classes)
-        self.set_template_files(self.template_files)
-        self.set_owners(self.owners)
-
-        self.tree_build_time = self.load_item(seed_data, 'tree_build_time', -1)
-        self.ctime = self.load_item(seed_data, 'ctime', 0)
-        self.mtime = self.load_item(seed_data, 'mtime', 0)
-
-        self.set_tree_build_time(self.tree_build_time)
-
-        self.uid = self.load_item(seed_data,'uid','')
-        if self.uid == '':
-           self.uid = self.config.generate_uid()
-
-        return self
+        return utils.from_datastruct_from_fields(self,seed_data,FIELDS)
 
     def set_kernel(self,kernel):
         """
@@ -210,33 +172,7 @@ class Distro(item.Item):
         return True
 
     def to_datastruct(self):
-        """
-        Return a serializable datastructure representation of this object.
-        """
-        return {
-            'name'                      : self.name,
-            'kernel'                    : self.kernel,
-            'initrd'                    : self.initrd,
-            'kernel_options'            : self.kernel_options,
-            'kernel_options_post'       : self.kernel_options_post,
-            'ks_meta'                   : self.ks_meta,
-            'mgmt_classes'              : self.mgmt_classes,
-            'template_files'            : self.template_files,
-            'arch'                      : self.arch,
-            'breed'                     : self.breed,
-            'os_version'                : self.os_version,
-            'source_repos'              : self.source_repos,
-            'parent'                    : self.parent,
-            'depth'                     : self.depth,
-            'owners'                    : self.owners,
-            'comment'                   : self.comment,
-            'tree_build_time'           : self.tree_build_time,
-            'ctime'                     : self.ctime,
-            'mtime'                     : self.mtime,
-            'uid'                       : self.uid,
-            'redhat_management_key'     : self.redhat_management_key,
-            'redhat_management_server'  : self.redhat_management_server
-        }
+        return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
         """
@@ -290,233 +226,3 @@ class Distro(item.Item):
             'redhat_management_server' : self.set_redhat_management_server
         }
 
-def get_fields():
-   return {
-     'name': {
-       'type'    :'text',
-       'valtype' :'str',
-       'label'   :'Name',
-       'example' :'Example: RHEL-5-i386',
-       'size'    :'128',
-       'width'   :'150px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'disabled="true"',
-       'order'   :0,
-       'editable':True,
-     },
-     'ctime': {
-       'type'    :'label',
-       'valtype' :'str',
-       'label'   :'Created',
-       'value'   :'',
-       'default' :'',
-       'order'   :1,
-       'editable':False,
-     },
-     'mtime': {
-       'type'    :'label',
-       'valtype' :'str',
-       'label'   :'Last Modified',
-       'value'   :'',
-       'default' :'',
-       'order'   :2,
-       'editable':False,
-     },
-     'kernel': {
-       'type'    :'text',
-       'valtype' :'str',
-       'label'   :'Kernel',
-       'example' :'Absolute filesystem path to a kernel file',
-       'size'    :'255',
-       'width'   :'400px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :4,
-       'editable':True,
-     },
-     'initrd': {
-       'type'    :'text',
-       'valtype' :'str',
-       'label'   :'Initrd',
-       'example' :'Absolute filesystem path to an initrd file',
-       'size'    :'255',
-       'width'   :'400px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :5,
-       'editable':True,
-    },
-     'kernel_options': {
-       'type'    :'text',
-       'valtype' :'str',
-       'label'   :'Kernel Options',
-       'example' :'Example: noipv6 magic=foo',
-       'size'    :'255',
-       'width'   :'400px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :7,
-       'editable':True,
-     },
-     'kernel_options_post': {
-       'type'    :'text',
-       'valtype' :'str',
-       'label'   :'Kernel Options Post',
-       'example' :'Example: clocksource=pit nosmp noapic nolapic',
-       'size'    :'255',
-       'width'   :'400px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :8,
-       'editable':True,
-     },
-     'arch': {
-       'type'    :'radio',
-       'valtype' :'str',
-       'label'   :'Architecture',
-       'example' :'What architecture is the distro?',
-       'value'   :'',
-       'default' :'',
-       'list'    :(('i386','i386'),('x86','x86'),('x86_64','x86_64'),('ppc','ppc'),('ppc64','ppc64'),('s390','s390'),('s390x','s390x'),('ia64','ia64')),
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :6,
-       'editable':True,
-     },
-     'ks_meta': {
-       'type'    :'text',
-       'valtype' :'str',
-       'label'   :'Kickstart Metadata',
-       'example' :'Example: dog=fido gnome=yes foo bar',
-       'size'    :'255',
-       'width'   :'400px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :9,
-       'editable':True,
-     },
-     'breed': {
-       'type'    :'radio',
-       'valtype' :'str',
-       'label'   :'Breed',
-       'example' :'This option determines how kernel options are prepared',
-       'value'   :'',
-       'default' :'',
-       'list'    :(('redhat','Red Hat Based'), ('debian','Debian'), ('ubuntu','Ubuntu'), ('suse','SuSE')),
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :10,
-       'editable':True,
-     },
-     'os_version': {
-       'type'    :'text',
-       'valtype' :'str',
-       'label'   :'OS Version',
-       'example' :'Example: rhel2.1, rhel4, fedora8',
-       'size'    :'255',
-       'width'   :'400px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :11,
-       'editable':True,
-     },
-     'owners': {
-       'type'    :'text',
-       'valtype' :'list',
-       'label'   :'Access Allowed For',
-       'example' :'Applies only if using authz_ownership module, space delimited',
-       'size'    :'255',
-       'width'   :'400px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :15,
-       'editable':True,
-     },
-     'mgmt_classes': {
-       'type'    :'text',
-       'valtype' :'list',
-       'label'   :'Management Classes',
-       'example' :'Management classes (space delimited) for use with external configuration management system',
-       'size'    :'255',
-       'width'   :'400px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :14,
-       'editable':True,
-     },
-     'template_files': {
-       'type'    :'text',
-       'valtype' :'str',
-       'label'   :'Templated Files',
-       'example' :'Files that can be downloaded to the system during kickstart and with koan, using internal templating',
-       'size'    :'255',
-       'width'   :'400px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :16,
-       'editable':True,
-     },
-     'comment': {
-       'type'    :'textarea',
-       'valtype' :'str',
-       'label'   :'Comment',
-       'example' :'This is a free-form description field',
-       'rows'    :'5',
-       'cols'    :'30',
-       'width'   :'400px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :3,
-       'editable':True,
-     },
-     'redhat_management_key': {
-       'type'    :'text',
-       'valtype' :'str',
-       'label'   :'Management Key',
-       'example' :'Registration key for RHN, Satellite, or Spacewalk',
-       'size'    :'255',
-       'width'   :'400px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :12,
-       'editable':True,
-     },
-     'redhat_management_server': {
-       'type'    :'text',
-       'valtype' :'str',
-       'label'   :'Management Server',
-       'example' :'RHN, Satellite, or Spacewalk server',
-       'size'    :'255',
-       'width'   :'400px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :13,
-       'editable':True,
-     },
-   }

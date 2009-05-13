@@ -26,6 +26,29 @@ from cexceptions import *
 from utils import _
 import time
 
+FIELDS = [
+    [ "parent"              , None ],
+    [ "name"                , None ],
+    [ "uid"                 , None ],
+    [ "mirror"              , None ],
+    [ "keep_update"         , None ],
+    [ "keep_updated"        , True ],
+    [ "priority"            , 99   ],
+    [ "rpm_list"            , '<<inherit>>' ],
+    [ "createrepo_flags"    , '<<inherit>>' ],
+    [ "depth"               , 2  ],
+    [ "breed"               , "" ],
+    [ "os_version"          , "" ],
+    [ "arch"                , "" ],
+    [ "yumopts"             , {} ],
+    [ "owners"              , "SETTINGS:default_ownership" ],
+    [ "mirror_locally"      , True ],
+    [ "environment"         , {}   ],
+    [ "comment"             , ""   ],
+    [ "ctime"               , 0    ],
+    [ "mtime"               , 0    ]
+]
+
 class Repo(item.Item):
 
     TYPE_NAME = _("repo")
@@ -38,62 +61,10 @@ class Repo(item.Item):
         return cloned
 
     def clear(self,is_subobject=False):
-        self.parent           = None
-        self.name             = None
-        self.uid              = ""
-        # FIXME: subobject code does not really make sense for repos
-        self.mirror           = (None,                              '<<inherit>>')[is_subobject]
-        self.keep_updated     = (True,                              '<<inherit>>')[is_subobject]
-        self.priority         = (99,                                '<<inherit>>')[is_subobject]
-        self.rpm_list         = ("",                                '<<inherit>>')[is_subobject]
-        self.createrepo_flags = (self.settings.yumcreaterepo_flags, '<<inherit>>')[is_subobject]
-        self.depth            = 2  # arbitrary, as not really apart of the graph
-        self.breed            = ""
-        self.os_version       = ""
-        self.arch             = "" # use default arch
-        self.yumopts          = {}
-        self.owners           = self.settings.default_ownership
-        self.mirror_locally   = True
-        self.environment      = {}
-        self.comment          = ""
-        self.ctime            = 0
-        self.mtime            = 0
+        utils.clear_from_fields(self,FIELDS)
 
     def from_datastruct(self,seed_data):
-        self.parent           = self.load_item(seed_data, 'parent')
-        self.name             = self.load_item(seed_data, 'name')
-        self.mirror           = self.load_item(seed_data, 'mirror')
-        self.keep_updated     = self.load_item(seed_data, 'keep_updated',True)
-        self.priority         = self.load_item(seed_data, 'priority',99)
-        self.rpm_list         = self.load_item(seed_data, 'rpm_list')
-        self.createrepo_flags = self.load_item(seed_data, 'createrepo_flags', self.settings.yumcreaterepo_flags)
-        self.breed            = self.load_item(seed_data, 'breed')
-        self.os_version       = self.load_item(seed_data, 'os_version')
-        self.arch             = self.load_item(seed_data, 'arch')
-        self.depth            = self.load_item(seed_data, 'depth', 2)
-        self.yumopts          = self.load_item(seed_data, 'yumopts', {})
-        self.owners           = self.load_item(seed_data, 'owners', self.settings.default_ownership)
-        self.mirror_locally   = self.load_item(seed_data, 'mirror_locally', True)
-        self.environment      = self.load_item(seed_data, 'environment', {})
-        self.comment          = self.load_item(seed_data, 'comment', '')
-
-        self.ctime            = self.load_item(seed_data, 'ctime', 0)
-        self.mtime            = self.load_item(seed_data, 'mtime', 0)
-
-        # coerce types/values from input file
-        self.set_keep_updated(self.keep_updated)
-        self.set_mirror_locally(self.mirror_locally)
-        self.set_owners(self.owners)
-        self.set_environment(self.environment)
-        self.set_arch(self.arch)
-        if self.mirror != "":
-           self._guess_breed()
-
-        self.uid = self.load_item(seed_data,'uid','')
-        if self.uid == '':
-           self.uid = self.config.generate_uid()
-
-        return self
+        return utils.from_datastruct_from_fields(self,seed_data,FIELDS)
 
     def _guess_breed(self):
         # backwards compatibility
@@ -225,32 +196,12 @@ class Repo(item.Item):
                 raise CX(_("Since mirror is RHN %(m1)s, the repo must also be named %(m2)s") % args)
         return True
 
-    def to_datastruct(self):
-        return {
-           'name'             : self.name,
-           'owners'           : self.owners,
-           'mirror'           : self.mirror,
-           'mirror_locally'   : self.mirror_locally,
-           'keep_updated'     : self.keep_updated,
-           'priority'         : self.priority,
-           'rpm_list'         : self.rpm_list,
-           'createrepo_flags' : self.createrepo_flags,
-           'breed'            : self.breed,
-           'os_version'       : self.os_version,
-           'arch'             : self.arch,
-           'parent'           : self.parent,
-           'depth'            : self.depth,
-           'yumopts'          : self.yumopts,
-           'environment'      : self.environment,
-           'comment'          : self.comment,
-           'ctime'            : self.ctime,
-           'mtime'            : self.mtime,
-           'uid'              : self.uid
-        }
-
     def set_mirror_locally(self,value):
         self.mirror_locally = utils.input_boolean(value)
         return True
+
+    def to_datastruct(self):
+        return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
         buf =       _("repo             : %s\n") % self.name
@@ -284,19 +235,15 @@ class Repo(item.Item):
             'breed'            :  self.set_breed,
             'os_version'       :  self.set_os_version,
             'arch'             :  self.set_arch,
-            'mirror-name'      :  self.set_name,
             'mirror_name'      :  self.set_name,            
             'mirror'           :  self.set_mirror,
-            'keep-updated'     :  self.set_keep_updated,
             'keep_updated'     :  self.set_keep_updated,            
             'priority'         :  self.set_priority,
             'rpm-list'         :  self.set_rpm_list,
             'rpm_list'         :  self.set_rpm_list,            
-            'createrepo-flags' :  self.set_createrepo_flags,
             'createrepo_flags' :  self.set_createrepo_flags,            
             'yumopts'          :  self.set_yumopts,
             'owners'           :  self.set_owners,
-            'mirror-locally'   :  self.set_mirror_locally,
             'mirror_locally'   :  self.set_mirror_locally,            
             'environment'      :  self.set_environment,
             'comment'          :  self.set_comment

@@ -553,19 +553,17 @@ class CobblerXMLRPCInterface:
 
     def get_fields(self,what,token):
         if what == "distro":
-            return item_distro.get_fields()
+            return self.api.get_distro_fields()
         elif what in ("profile","subprofile"):
-            return item_profile.get_fields()
+            return self.api.get_profile_fields()
         elif what == "system":
-            return item_system.get_fields()
-        elif what == "network":
-            return item_network.get_fields()
+            return self.api.get_system_fields()
         elif what == "repo":
-            return item_repo.get_fields()
+            return self.api.get_repo_fields()
         elif what == "image":
-            return item_image.get_fields()
-        else:
-           raise CX("internal error, unknown collection type: %s" % what)
+            return self.api.get_image_fields()
+        elif what == "network":
+            return self.api.get_network_fields()
 
     def register_new_system(self,info,token=None,**rest):
         """

@@ -54,6 +54,12 @@ import os
 import xmlrpclib
 import traceback
 
+import fields_distro
+import fields_profile
+import fields_system
+import fields_image
+import fields_system
+
 ERROR = 100
 INFO  = 10
 DEBUG = 5
@@ -129,7 +135,26 @@ class BootAPI:
 
     def __setup_logger(self,name):
         return utils.setup_logger(name, is_cobblerd=self.is_cobblerd, **self.log_settings)
-    
+   
+    #def get_distro_fields(self):
+    #    """
+    #    Returns datastructures used to provide object field info
+    #    to auto-build the CLI and webapp.
+    #    """
+    #    return fields_distro.get_fields()
+    # 
+    #def get_profile_fields(self):
+    #    return fields_profile.get_fields()
+    # 
+    #def get_system_fields(self):
+    #    return fields_system.get_fields()
+    #
+    #def get_image_fields(self):
+    #    return fields_image.get_fields()
+    #
+    #def get_repo_fields(self):
+    #    return fields_repo.get_fields()
+
     def is_selinux_enabled(self):
         """
         Returns whether selinux is enabled on the cobbler server.

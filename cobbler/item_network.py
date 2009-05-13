@@ -26,6 +26,23 @@ import time
 from cexceptions import *
 from utils import _, _IP, _CIDR
 
+FIELDS = [
+    [ "name",           None ],
+    [ "cidr",           None ],
+    [ "address",        None ],
+    [ "gateway",        None ],
+    [ "broadcast",      None ],
+    [ "name_servers",   None ],
+    [ "reserved",       None ],
+    [ "used_addresses", None ],
+    [ "free_addresses", None ],
+    [ "comment",        ""   ],
+    [ "ctime",          0    ],
+    [ "mtime",          0    ],
+    [ "owners",         "SETTINGS:default_ownership"],
+    [ "uid",            None ],
+]
+
 class Network(item.Item):
 
     TYPE_NAME = _("network")
@@ -38,39 +55,10 @@ class Network(item.Item):
         return cloned
 
     def clear(self,is_subobject=False):
-        self.name             = None
-        self.cidr             = None
-        self.address          = None
-        self.gateway          = None
-        self.broadcast        = None
-        self.name_servers     = []
-        self.reserved         = []
-        self.used_addresses   = {}
-        self.free_addresses   = []
-        self.comment          = ""
-        self.ctime            = 0
-        self.mtime            = 0
-        self.owners           = self.settings.default_ownership
+        utils.clear_from_fields(self,FIELDS)
 
     def from_datastruct(self,seed_data):
-        self.name             = self.load_item(seed_data, 'name')
-        self.cidr             = _CIDR(self.load_item(seed_data, 'cidr'))
-        self.address          = _IP(self.load_item(seed_data, 'address', self.cidr[0]))
-        self.gateway          = _IP(self.load_item(seed_data, 'gateway', self.cidr[-2]))
-        self.broadcast        = _IP(self.load_item(seed_data, 'broadcast', self.cidr[-1]))
-        self.name_servers     = self.load_item(seed_data, 'name_servers', '')
-        self.reserved         = [_CIDR(c) for c in self.load_item(seed_data, 'reserved', [])]
-        self.used_addresses   = self.load_item(seed_data, 'used_addresses', {})
-        self.free_addresses   = [_CIDR(c) for c in self.load_item(seed_data, 'free_addresses', [])]
-        self.comment          = self.load_item(seed_data, 'comment', '')
-        self.ctime            = self.load_item(seed_data,'ctime',0)
-        self.mtime            = self.load_item(seed_data,'mtime',0)
-        self.owners           = self.load_item(seed_data,'owners',self.settings.default_ownership)
-
-        self.set_owners(self.owners)
-        self.set_name_servers(self.name_servers)
-
-        return self
+        return utils.from_datastruct_from_fields(self,seed_data,FIELDS)
 
     def set_cidr(self, cidr):
         if self.cidr == None:
@@ -302,30 +290,10 @@ class Network(item.Item):
         return True
 
     def to_datastruct(self):
-        def convert_used_addresses(d):
-            """
-            used_addresses is a bit more involved...
-            """
-            stringified = {}
-            for k,v in d.iteritems():
-                stringified[k] = str(v)
-            return stringified
-
-        return {
-            'name'           : self.name,
-            'owners'         : self.owners,
-            'cidr'           : str(self.cidr),
-            'address'        : str(self.address),
-            'gateway'        : str(self.gateway),
-            'broadcast'      : str(self.broadcast),
-            'name_servers'   : [str(i) for i in self.name_servers],
-            'reserved'       : [str(i) for i in self.reserved],
-            'used_addresses' : convert_used_addresses(self.used_addresses),
-            'free_addresses' : [str(i) for i in self.free_addresses],
-            'comment'        : self.comment,
-            'ctime'          : self.ctime,
-            'mtime'          : self.mtime,
-        }
+        # FIXME: can't store things as native python-netaddr objects here
+        # and therefore should do that in indiv. set_* functions
+        # until then this class really doesn't work.
+        return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
         buf =       _("network          : %s\n") % self.name

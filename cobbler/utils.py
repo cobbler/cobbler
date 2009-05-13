@@ -1609,4 +1609,35 @@ def os_system(cmd):
     rc = sub_process.call(cmd, shell=True, close_fds=True)
     return rc
 
+def clear_from_fields(obj, fields, is_subobject=False):
+    """
+    Used by various item_*.py classes for automating datastructure boilerplate.
+    """
+    for elems in fields:
+        if is_subobject:
+           val = elems[2]
+        else:
+           val = elems[1]
+        if isinstance(val,basestring):
+           if val.startswith("SETTINGS:"):
+               setkey = val.split(":")[-1]
+               val = getattr(obj.settings, setkey)
+        setattr(obj, elems[0], val)
+
+def from_datastruct_from_fields(obj, seed_data, fields):
+    for elems in fields:
+        k = elems[0]
+        if seed_data.has_key(k):
+            setattr(obj, k, seed_data[k])
+    if obj.uid == '':
+        obj.uid = obj.config.generate_uid()
+    return obj
+
+def to_datastruct_from_fields(obj, fields):
+    ds = {}
+    for elem in fields:
+        k = elem[0]
+        data = getattr(obj, k)
+        ds[k] = data
+    return ds
 
