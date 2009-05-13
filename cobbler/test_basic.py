@@ -12,12 +12,6 @@ import traceback
 from cexceptions import *  
 import acls
 
-#from cobbler import settings
-#from cobbler import collection_distros
-#from cobbler import collection_profiles
-#from cobbler import collection_systems
-#from cobbler import collection_repos
-#from cobbler import collection_images
 import modules.authz_ownership as authz_module
 import api
 import config
