@@ -44,7 +44,7 @@ class RepoFunction(commands.CobblerFunction):
         return [ "add", "copy", "dumpvars", "edit", "find", "list", "remove", "rename", "report" ]
 
     def add_options(self, p, args):
-        return utils.add_options_from_fields(p, item_distro.FIELDS, args)
+        return utils.add_options_from_fields(p, item_repo.FIELDS, args)
 
     def run(self):
 

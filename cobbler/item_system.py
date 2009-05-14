@@ -54,7 +54,6 @@ FIELDS = [
     [ "comment"                   , "",            0, "Free form text description", True ],
     [ "ctime"                     , 0,             0, "", False ],
     [ "mtime"                     , 0,             0, "", False ],
-    [ "uid"                       , "",            0, "", False ],
     [ "power_type"                , "SETTINGS:power_management_default_type", 0, "Power management type", True ],
     [ "power_address"             , "",            0, "Power management address", True ],
     [ "power_user"                , "",            0, "Power username", True ],
