@@ -233,6 +233,9 @@ class Collection(serializable.Serializable):
 
         """
     
+        if ref is None or ref.name is None:
+           return
+
         if ref.uid == '':
            ref.uid = self.config.generate_uid()
         
@@ -259,17 +262,12 @@ class Collection(serializable.Serializable):
         # if an object of the same/ip/mac already exists.
         self.__duplication_checks(ref,check_for_duplicate_names,check_for_duplicate_netinfo)
 
-
-        if ref is None or not ref.is_valid():
-            raise CX(_("insufficient or invalid arguments supplied"))
-
         if ref.COLLECTION_TYPE != self.collection_type():
             raise CX(_("API error: storing wrong data type in collection"))
 
         if not save:
             # don't need to run triggers, so add it already ...
             self.listing[ref.name.lower()] = ref
-
 
         # perform filesystem operations
         if save:

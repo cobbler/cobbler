@@ -272,23 +272,6 @@ class Network(item.Item):
             total += len(item)
         return total
 
-    def is_valid(self):
-        """
-	A network is valid if:
-          * it has a name and a CIDR
-          * it does not overlap another network
-	"""
-        if self.name is None:
-            raise CX(_("name is required"))
-        if self.cidr is None:
-            raise CX(_("cidr is required"))
-        for other in self.config.networks():
-            if other.name == self.name:
-                continue
-            if self.cidr in other.cidr or other.cidr in self.cidr:
-                raise CX(_("cidr %s overlaps with network %s (%s)" % (self.cidr, other.name, other.cidr)))
-        return True
-
     def to_datastruct(self):
         # FIXME: can't store things as native python-netaddr objects here
         # and therefore should do that in indiv. set_* functions

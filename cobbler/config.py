@@ -91,12 +91,6 @@ class Config:
        data = "%s%s" % (time.time(), random.uniform(1,9999999))
        return binascii.b2a_base64(data).replace("=","").strip()
        
-   def generate_random_id(self,length=8):
-       """
-       Return a random string using ASCII 0..9 and A..z
-       """
-       return string.join(random.Random().sample(string.letters+string.digits, length),'')
-
    def __cmp(self,a,b):
        return cmp(a.name,b.name)
 

@@ -30,7 +30,6 @@ from utils import _
 FIELDS = [
     [ "name"                      , "None",                                   "None",     ],
     [ "uid"                       , "",                                       ""          ],
-    [ "random_id"                 , "",                                       ""          ],
     [ "owners"                    , "SETTINGS:default_ownership",             "SETTINGS:self.settings.default_ownership" ],
     [ "distro"                    , None,                                     '<<inherit>>'],
     [ "enable_menu"               , "SETTINGS:enable_menu",                   '<<inherit>>'],
@@ -212,27 +211,6 @@ class Profile(item.Item):
         else:
             result = self.config.profiles().find(name=self.parent)
         return result
-
-    def is_valid(self):
-        """
-	A profile only needs a name and a distro.  Kickstart info,
-	as well as Virt info, are optional.  (Though I would say provisioning
-	without a kickstart is *usually* not a good idea).
-	"""
-        if self.parent is None or self.parent == '':
-            # all values must be filled in if not inheriting from another profile
-            if self.name is None:
-                raise CX(_("no name specified"))
-            if self.distro is None:
-                raise CX(_("no distro specified"))
-        else:
-            # if inheriting, specifying distro is not allowed, and
-            # name is required, but there are no other rules.
-            if self.name is None:
-                raise CX(_("no name specified"))
-            if self.distro != "<<inherit>>":
-                raise CX(_("cannot override distro when inheriting a profile"))
-        return True
 
     def to_datastruct(self):
         return utils.to_datastruct_from_fields(self,FIELDS)

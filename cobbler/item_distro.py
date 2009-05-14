@@ -156,21 +156,6 @@ class Distro(item.Item):
         """
         return utils.set_arch(self,arch)
 
-    def is_valid(self):
-        """
-	A distro requires that the kernel and initrd be set.  All
-	other variables are optional.
-	"""
-        # NOTE: this code does not support inheritable distros at this time.
-        # this is by design because inheritable distros do not make sense.
-        if self.name is None:
-            raise CX(_("name is required"))
-        if self.kernel is None:
-            raise CX(_("kernel is required"))
-        if self.initrd is None:
-            raise CX(_("initrd is required"))
-        return True
-
     def to_datastruct(self):
         return utils.to_datastruct_from_fields(self,FIELDS)
 

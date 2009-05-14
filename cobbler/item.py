@@ -242,15 +242,6 @@ class Item(serializable.Serializable):
 	"""
         raise exceptions.NotImplementedError
 
-    def is_valid(self):
-        """
-	The individual set_ methods will return failure if any set is
-	rejected, but the is_valid method is intended to indicate whether
-	the object is well formed ... i.e. have all of the important
-	items been set, are they free of conflicts, etc.
-	"""
-        return False
-
     def sort_key(self,sort_fields=[]):
         data = self.to_datastruct()
         return [data.get(x,"") for x in sort_fields]
@@ -392,5 +383,14 @@ class Item(serializable.Serializable):
 
     def set_depth(self,depth):
         self.depth = depth
+
+    def set_ctime(self,ctime):
+        self.ctime = ctime
+
+    def set_mtime(self,mtime):
+        self.mtime = mtime
+
+    def set_parent(self,parent):
+        self.parent = parent
 
 

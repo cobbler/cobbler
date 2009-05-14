@@ -50,7 +50,7 @@ FIELDS = [
     [ "virt_auto_boot"            , "<<inherit>>" ],  # ""
     [ "virt_type"                 , "<<inherit>>" ],  # ""
     [ "virt_path"                 , "<<inherit>>" ],  # ""
-    [ "virt_bridge"               , "<<inherit>>" ],  # ""
+#   [ "virt_bridge"               , "<<inherit>>" ],  # ""
     [ "virt_host"                 , ""            ],
     [ "virt_group"                , ""            ],  
     [ "virt_guests"               , []            ],
@@ -58,7 +58,6 @@ FIELDS = [
     [ "ctime"                     , 0             ],
     [ "mtime"                     , 0             ],
     [ "uid"                       , ""            ],
-    [ "random_id"                 , ""            ],
     [ "power_type"                , "SETTINGS:power_management_default_type" ],
     [ "power_address"             , ""            ],
     [ "power_user"                , ""            ],
@@ -68,9 +67,9 @@ FIELDS = [
     [ "gateway"                   , ""            ],
     [ "name_servers"              , []            ],
     [ "name_servers_search"       , []            ],
-    [ "bonding"                   , ""            ],
-    [ "bonding_master"            , ""            ],
-    [ "bonding_opts"              , ""            ],
+#   [ "bonding"                   , ""            ],
+#   [ "bonding_master"            , ""            ],
+#   [ "bonding_opts"              , ""            ],
     [ "redhat_management_key"     , "<<inherit>>" ],
     [ "redhat_management_server"  , "<<inherit>>" ]
 ]
@@ -446,19 +445,6 @@ class System(item.Item):
         self.netboot_enabled = utils.input_boolean(netboot_enabled)
         return True
 
-    def is_valid(self):
-        """
-        A system is valid when it contains a valid name and a profile.
-        """
-        # NOTE: this validation code does not support inheritable distros at this time.
-        # this is by design as inheritable systems don't make sense.
-        if self.name is None:
-            raise CX(_("need to specify a name for this object"))
-        if self.profile in [ None, "" ] and self.image in [ None,"" ]:
-            raise CX(_("need to specify a profile or image as a parent for this system"))
-
-        return True
-
     def set_kickstart(self,kickstart):
         """
         Sets the kickstart.  This must be a NFS, HTTP, or FTP URL.
@@ -471,13 +457,13 @@ class System(item.Item):
         abstraction layer -- assigning systems to defined and repeatable 
         roles.
         """
-        if kickstart is None or kickstart == "" or kickstart == "delete":
+        if kickstart is None or kickstart in [ "", "delete", "<<inherit>>" ]:
             self.kickstart = "<<inherit>>"
             return True
         if utils.find_kickstart(kickstart):
             self.kickstart = kickstart
             return True
-        raise CX(_("kickstart not found"))
+        raise CX(_("kickstart not found: %s" % kickstart))
 
 
         #self.power_type           = self.settings.power_management_default_type

@@ -625,7 +625,7 @@ def __consolidate(node,results):
     data from past scanned nodes.  Hashes and arrays are treated
     specially.
     """
-    node_data =  node.to_datastruct_with_cache()
+    node_data =  node.to_datastruct()
 
     # if the node has any data items labelled <<inherit>> we need to expunge them.
     # so that they do not override the supernodes.
@@ -1628,7 +1628,13 @@ def from_datastruct_from_fields(obj, seed_data, fields):
     for elems in fields:
         k = elems[0]
         if seed_data.has_key(k):
-            setattr(obj, k, seed_data[k])
+            # print "FDFF: %s->%s"  % (k,seed_data[k])
+            if k == "interfaces":
+                # FIXME: add a method for this?
+                setattr(obj, k, seed_data[k])
+            else:
+                setfn = getattr(obj, "set_%s" % k)
+                setfn(seed_data[k])
     if obj.uid == '':
         obj.uid = obj.config.generate_uid()
     return obj
@@ -1638,11 +1644,6 @@ def to_datastruct_from_fields(obj, fields):
     for elem in fields:
         k = elem[0]
         data = getattr(obj, k)
-        # rare exceptions
-        if k == "interfaces":
-            ds[k] = data
-        else:
-            setfn = getattr(obj, "set_%s" % k)
-            setfn(data)
+        ds[k] = data
     return ds
 

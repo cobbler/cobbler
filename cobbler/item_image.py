@@ -96,7 +96,7 @@ class Image(item.Item):
         if utils.find_kickstart(kickstart):
             self.kickstart = kickstart
             return True
-        raise CX(_("kickstart not found"))
+        raise CX(_("kickstart not found for image"))
 
 
     def set_file(self,filename):
@@ -201,13 +201,6 @@ class Image(item.Item):
         Return object next highest up the tree.
         """
         return None  # no parent
-
-    def is_valid(self):
-        if self.file is None or self.file == '':
-            raise CX(_("image has no file specified"))
-        if self.name is None or self.name == '':
-            raise CX(_("image has no name specified"))
-        return True
 
     def to_datastruct(self):
         return utils.to_datastruct(self,FIELDS)
