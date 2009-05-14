@@ -1638,6 +1638,11 @@ def to_datastruct_from_fields(obj, fields):
     for elem in fields:
         k = elem[0]
         data = getattr(obj, k)
-        ds[k] = data
+        # rare exceptions
+        if k == "interfaces":
+            ds[k] = data
+        else:
+            setfn = getattr(obj, "set_%s" % k)
+            setfn(data)
     return ds
 

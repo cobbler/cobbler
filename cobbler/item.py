@@ -62,6 +62,9 @@ class Item(serializable.Serializable):
         self.last_cached_mtime = 0
         self.cached_datastruct = ""
 
+    def set_uid(self,uid):
+        self.uid = uid
+
     def clear(self):
         raise exceptions.NotImplementedError
 
@@ -184,7 +187,7 @@ class Item(serializable.Serializable):
                 self.kernel_options_post = value
             return True
 
-    def set_ksmeta(self,options,inplace=False):
+    def set_ks_meta(self,options,inplace=False):
         """
         A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a hash.
         The meta tags are used as input to the templating system
@@ -231,31 +234,6 @@ class Item(serializable.Serializable):
             else:
                 self.template_files = value
             return True
-
-    #def load_item(self,datastruct,key,default=''):
-    #    """
-    #    Used in subclass from_datastruct functions to load items from
-    #    a hash.  Intented to ease backwards compatibility of config
-    #    files during upgrades.  
-    #    """
-    #    if datastruct.has_key(key):
-    #        return datastruct[key]
-    #    return default
-
-    def to_datastruct_with_cache(self):
-        """
-        Try to not create or run to_datastruct
-        when we the object has not changed so we create
-        less Python objects.
-        """
-        if not (self.mtime == 0) and (self.last_cached_mtime == self.mtime):
-            # print "FROM CACHE = %s" % self.last_cached_mtime
-            return self.cached_datastruct
-        else:
-            # print "CACHE STORE = %s" % self.mtime
-            self.last_cached_mtime = self.mtime
-            self.cached_datastruct = self.to_datastruct()
-            return self.cached_datastruct
 
     def to_datastruct(self):
         """
@@ -411,5 +389,8 @@ class Item(serializable.Serializable):
                     prefix=field_key
                 buf+=_("%-30s : %s\n" % (prefix, field_value))
         return buf
+
+    def set_depth(self,depth):
+        self.depth = depth
 
 

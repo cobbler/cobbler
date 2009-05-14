@@ -95,7 +95,7 @@ class Distro(item.Item):
         if utils.find_kernel(kernel):
             self.kernel = kernel
             return True
-        raise CX(_("kernel not found"))
+        raise CX("kernel not found: %s" % kernel)
 
     def set_tree_build_time(self, datestamp):
         """

@@ -160,7 +160,7 @@ class SystemFunction(commands.CobblerFunction):
         if self.options.kopts_post is not None:      
             obj.set_kernel_options_post(self.options.kopts_post,self.options.inplace)
         if self.options.ksmeta is not None:          
-            obj.set_ksmeta(self.options.ksmeta,self.options.inplace)
+            obj.set_ks_meta(self.options.ksmeta,self.options.inplace)
         if self.options.kickstart is not None:       
             obj.set_kickstart(self.options.kickstart)
         if self.options.netboot_enabled is not None: 

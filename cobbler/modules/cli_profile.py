@@ -133,7 +133,7 @@ class ProfileFunction(commands.CobblerFunction):
             if self.options.kopts_post is not None:      
                 obj.set_kernel_options_post(self.options.kopts_post,self.options.inplace)
             if self.options.ksmeta is not None:          
-                obj.set_ksmeta(self.options.ksmeta,self.options.inplace)
+                obj.set_ks_meta(self.options.ksmeta,self.options.inplace)
             if self.options.virt_auto_boot is not None:
                 obj.set_virt_auto_boot(self.options.virt_auto_boot)
             if self.options.virt_file_size is not None:  
