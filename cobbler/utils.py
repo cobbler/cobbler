@@ -1647,3 +1647,18 @@ def to_datastruct_from_fields(obj, fields):
         ds[k] = data
     return ds
 
+def printable_from_fields(obj, fields):
+    buf  = ""
+    keys = []
+    for elem in fields:
+       keys.append(elem[0])
+    keys.sort()
+    buf = buf + "%-30s : %s\n" % ("name", getattr(obj, "name"))
+    for k in keys:
+       # FIXME: make interfaces print nicely
+       # FIXME: supress fields users don't need to see?
+       # FIXME: print ctime, mtime nicely
+       if k != "name":
+           buf = buf + "%-30s : %s\n" % (k, getattr(obj, k))
+    return buf
+

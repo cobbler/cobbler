@@ -216,41 +216,7 @@ class Profile(item.Item):
         return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
-        """
-        A human readable representaton
-        """
-        buf =       _("profile              : %s\n") % self.name
-        if self.distro == "<<inherit>>":
-            buf = buf + _("parent               : %s\n") % self.parent
-        else:
-            buf = buf + _("distro               : %s\n") % self.distro
-        buf = buf + _("comment              : %s\n") % self.comment
-        buf = buf + _("created              : %s\n") % time.ctime(self.ctime)
-        buf = buf + _("dhcp tag             : %s\n") % self.dhcp_tag
-        buf = buf + _("enable menu          : %s\n") % self.enable_menu
-        buf = buf + _("kernel options       : %s\n") % self.kernel_options
-        buf = buf + _("kickstart            : %s\n") % self.kickstart
-        buf = buf + _("ks metadata          : %s\n") % self.ks_meta
-        buf = buf + _("mgmt classes         : %s\n") % self.mgmt_classes
-        buf = buf + _("modified             : %s\n") % time.ctime(self.mtime)
-        buf = buf + _("name servers         : %s\n") % self.name_servers
-        buf = buf + _("name servers search  : %s\n") % self.name_servers_search
-        buf = buf + _("owners               : %s\n") % self.owners
-        buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
-        buf = buf + _("redhat mgmt key      : %s\n") % self.redhat_management_key
-        buf = buf + _("redhat mgmt server   : %s\n") % self.redhat_management_server
-        buf = buf + _("repos                : %s\n") % self.repos
-        buf = buf + _("server               : %s\n") % self.server
-        buf = buf + _("template_files       : %s\n") % self.template_files
-        buf = buf + _("virt auto boot       : %s\n") % self.virt_auto_boot
-        buf = buf + _("virt bridge          : %s\n") % self.virt_bridge
-        buf = buf + _("virt cpus            : %s\n") % self.virt_cpus
-        buf = buf + _("virt file size       : %s\n") % self.virt_file_size
-        buf = buf + _("virt path            : %s\n") % self.virt_path
-        buf = buf + _("virt ram             : %s\n") % self.virt_ram
-        buf = buf + _("virt type            : %s\n") % self.virt_type
-        return buf
-
+        return utils.printable_from_fields(self,FIELDS)
   
     def remote_methods(self):
         return {           

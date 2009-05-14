@@ -279,20 +279,7 @@ class Network(item.Item):
         return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
-        buf =       _("network          : %s\n") % self.name
-        buf = buf + _("CIDR             : %s\n") % self.cidr
-        buf = buf + _("gateway          : %s\n") % self.gateway
-        buf = buf + _("network address  : %s\n") % self.address
-        buf = buf + _("broadcast        : %s\n") % self.broadcast
-        buf = buf + _("name servers     : %s\n") % [str(i) for i in self.name_servers]
-        buf = buf + _("reserved         : %s\n") % [str(i) for i in self.reserved]
-        buf = buf + _("free addresses   : %s\n") % self.free_address_count()
-        buf = buf + _("used addresses   : %s\n") % self.used_address_count()
-        buf = buf + _("comment          : %s\n") % self.comment
-        buf = buf + _("owners           : %s\n") % self.owners
-        buf = buf + _("created          : %s\n") % time.ctime(self.ctime)
-        buf = buf + _("modified         : %s\n") % time.ctime(self.mtime)
-        return buf
+        return utils.to_datastruct_from_fields(self,FIELDS)
 
     def get_parent(self):
         """

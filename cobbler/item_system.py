@@ -516,66 +516,7 @@ class System(item.Item):
         return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
-        buf =       _("system                : %s\n") % self.name
-        buf = buf + _("profile               : %s\n") % self.profile
-        buf = buf + _("comment               : %s\n") % self.comment
-        buf = buf + _("created               : %s\n") % time.ctime(self.ctime)
-        buf = buf + _("gateway               : %s\n") % self.gateway
-        buf = buf + _("hostname              : %s\n") % self.hostname
-        buf = buf + _("image                 : %s\n") % self.image
-        buf = buf + _("kernel options        : %s\n") % self.kernel_options
-        buf = buf + _("kernel options post   : %s\n") % self.kernel_options_post
-        buf = buf + _("kickstart             : %s\n") % self.kickstart
-        buf = buf + _("ks metadata           : %s\n") % self.ks_meta
-        buf = buf + _("mgmt classes          : %s\n") % self.mgmt_classes
-        buf = buf + _("modified              : %s\n") % time.ctime(self.mtime)
-
-        buf = buf + _("name servers          : %s\n") % self.name_servers
-        buf = buf + _("name servers search   : %s\n") % self.name_servers_search
-        buf = buf + _("netboot enabled?      : %s\n") % self.netboot_enabled 
-        buf = buf + _("owners                : %s\n") % self.owners
-        
-        buf = buf + _("redhat mgmt key       : %s\n") % self.redhat_management_key
-        buf = buf + _("redhat mgmt server    : %s\n") % self.redhat_management_server
-
-        buf = buf + _("server                : %s\n") % self.server
-        buf = buf + _("template files        : %s\n") % self.template_files
-        buf = buf + _("virt auto boot        : %s\n") % self.virt_auto_boot
-
-        buf = buf + _("virt cpus             : %s\n") % self.virt_cpus
-        buf = buf + _("virt host             : %s\n") % self.virt_host
-        buf = buf + _("virt group            : %s\n") % self.virt_group
-        buf = buf + _("virt guests           : %s\n") % self.virt_guests
-        buf = buf + _("virt file size        : %s\n") % self.virt_file_size
-        buf = buf + _("virt path             : %s\n") % self.virt_path
-        buf = buf + _("virt ram              : %s\n") % self.virt_ram
-        buf = buf + _("virt type             : %s\n") % self.virt_type
-
-        buf = buf + _("power type            : %s\n") % self.power_type
-        buf = buf + _("power address         : %s\n") % self.power_address
-        buf = buf + _("power user            : %s\n") % self.power_user
-        buf = buf + _("power password        : %s\n") % self.power_pass
-        buf = buf + _("power id              : %s\n") % self.power_id
-
-        ikeys = self.interfaces.keys()
-        ikeys.sort()
-        for name in ikeys:
-            x = self.__get_interface(name)
-            buf = buf + _("interface        : %s\n") % (name)
-            buf = buf + _("  network        : %s\n") % x.get("network","")
-            buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
-            buf = buf + _("  bonding        : %s\n") % x.get("bonding","")
-            buf = buf + _("  bonding_master : %s\n") % x.get("bonding_master","")
-            buf = buf + _("  bonding_opts   : %s\n") % x.get("bonding_opts","")
-            buf = buf + _("  is static?     : %s\n") % x.get("static",False)
-            buf = buf + _("  ip address     : %s\n") % self.get_ip_address(name)
-            buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
-            buf = buf + _("  static routes  : %s\n") % x.get("static_routes",[])
-            buf = buf + _("  dns name       : %s\n") % x.get("dns_name","")
-            buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
-            buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
-
-        return buf
+        return utils.printable_from_fields(self,FIELDS)
 
     def modify_interface(self, hash):
         """

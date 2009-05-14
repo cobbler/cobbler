@@ -186,23 +186,7 @@ class Repo(item.Item):
         return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
-        buf =       _("repo             : %s\n") % self.name
-        buf = buf + _("arch             : %s\n") % self.arch
-        buf = buf + _("breed            : %s\n") % self.breed
-        buf = buf + _("os_version       : %s\n") % self.os_version
-        buf = buf + _("comment          : %s\n") % self.comment
-        buf = buf + _("created          : %s\n") % time.ctime(self.ctime)
-        buf = buf + _("createrepo_flags : %s\n") % self.createrepo_flags
-        buf = buf + _("environment      : %s\n") % self.environment
-        buf = buf + _("keep updated     : %s\n") % self.keep_updated
-        buf = buf + _("mirror           : %s\n") % self.mirror
-        buf = buf + _("mirror locally   : %s\n") % self.mirror_locally
-        buf = buf + _("modified         : %s\n") % time.ctime(self.mtime)
-        buf = buf + _("owners           : %s\n") % self.owners
-        buf = buf + _("priority         : %s\n") % self.priority
-        buf = buf + _("rpm list         : %s\n") % self.rpm_list
-        buf = buf + _("yum options      : %s\n") % self.yumopts
-        return buf
+        return utils.printable_from_fields(self,FIELDS)
 
     def get_parent(self):
         """

@@ -203,33 +203,13 @@ class Image(item.Item):
         return None  # no parent
 
     def to_datastruct(self):
-        return utils.to_datastruct(self,FIELDS)
+        return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
         """
         A human readable representaton
         """
-        buf =       _("image           : %s\n") % self.name
-        buf = buf + _("arch            : %s\n") % self.arch
-        buf = buf + _("breed           : %s\n") % self.breed
-        buf = buf + _("comment         : %s\n") % self.comment
-        buf = buf + _("created         : %s\n") % time.ctime(self.ctime)
-        buf = buf + _("file            : %s\n") % self.file
-        buf = buf + _("image type      : %s\n") % self.image_type
-        buf = buf + _("kickstart       : %s\n") % self.kickstart
-        buf = buf + _("modified        : %s\n") % time.ctime(self.mtime)
-        buf = buf + _("os version      : %s\n") % self.os_version
-        buf = buf + _("owners          : %s\n") % self.owners
-        buf = buf + _("virt bridge     : %s\n") % self.virt_bridge
-        buf = buf + _("virt cpus       : %s\n") % self.virt_cpus
-        buf = buf + _("network count   : %s\n") % self.network_count
-        buf = buf + _("virt auto boot  : %s\n") % self.virt_auto_boot
-        buf = buf + _("virt file size  : %s\n") % self.virt_file_size
-        buf = buf + _("virt path       : %s\n") % self.virt_path
-        buf = buf + _("virt ram        : %s\n") % self.virt_ram
-        buf = buf + _("virt type       : %s\n") % self.virt_type
-        return buf
-
+        return utils.printable_from_fields(self,FIELDS)
   
     def remote_methods(self):
         return {           
