@@ -1639,6 +1639,14 @@ def from_datastruct_from_fields(obj, seed_data, fields):
         obj.uid = obj.config.generate_uid()
     return obj
 
+def get_methods_from_fields(obj, fields):
+    ds = {}
+    for elem in fields:
+        k = elem[0]
+        setfn = getattr(obj, "set_%s" % k)
+        ds[k] = setfn
+    return ds
+
 def to_datastruct_from_fields(obj, fields):
     ds = {}
     for elem in fields:

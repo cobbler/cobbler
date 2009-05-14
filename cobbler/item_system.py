@@ -537,53 +537,8 @@ class System(item.Item):
             if field == "bondingopts"   : self.set_bonding_opts(value, interface)
             if field == "staticroutes"  : self.set_static_routes(value, interface)
         return True
-         
 
     def remote_methods(self):
+        return utils.get_remote_methods_from_fields(self,FIELDS)
 
-        # WARNING: versions with hyphens are old and are in for backwards
-        # compatibility.  At some point they may be removed.
 
-        return {
-           'name'                     : self.set_name,
-           'profile'                  : self.set_profile,
-           'image'                    : self.set_image,
-           'kopts'                    : self.set_kernel_options,
-           'kopts_post'               : self.set_kernel_options_post,           
-           'kernel_options'           : self.set_kernel_options,
-           'kernel_options_post'      : self.set_kernel_options_post,
-           'ksmeta'                   : self.set_ksmeta,
-           'ks_meta'                  : self.set_ksmeta,
-           'kickstart'                : self.set_kickstart,
-           'netboot_enabled'          : self.set_netboot_enabled,           
-           'virt_path'                : self.set_virt_path,           
-           'virt_type'                : self.set_virt_type,           
-           'modify_interface'         : self.modify_interface,           
-           'delete_interface'         : self.delete_interface,           
-           'virt_path'                : self.set_virt_path,           
-           'virt_auto_boot'           : self.set_virt_auto_boot,           
-           'virt_ram'                 : self.set_virt_ram,           
-           'virt_type'                : self.set_virt_type,           
-           'virt_cpus'                : self.set_virt_cpus,           
-           'virt-host'                : self.set_virt_host,
-           'virt_host'                : self.set_virt_host,           
-           'virt_group'               : self.set_virt_group,
-           'virt_guests'              : self.set_virt_guests,           
-           'virt_file_size'           : self.set_virt_file_size,           
-           'server'                   : self.set_server,
-           'owners'                   : self.set_owners,
-           'mgmt_classes'             : self.set_mgmt_classes,           
-           'template_files'           : self.set_template_files,           
-           'comment'                  : self.set_comment,
-           'power_type'               : self.set_power_type,
-           'power_address'            : self.set_power_address,
-           'power_user'               : self.set_power_user,
-           'power_pass'               : self.set_power_pass,
-           'power_id'                 : self.set_power_id,
-           'hostname'                 : self.set_hostname,
-           'gateway'                  : self.set_gateway,
-           'name_servers'             : self.set_name_servers,
-           'name_servers_search'      : self.set_name_servers_search,
-           'redhat_management_key'    : self.set_redhat_management_key,
-           'redhat_management_server' : self.set_redhat_management_server
-        }

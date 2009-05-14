@@ -196,22 +196,6 @@ class Repo(item.Item):
         return None
 
     def remote_methods(self):
-        return {
-            'name'             :  self.set_name,
-            'breed'            :  self.set_breed,
-            'os_version'       :  self.set_os_version,
-            'arch'             :  self.set_arch,
-            'mirror_name'      :  self.set_name,            
-            'mirror'           :  self.set_mirror,
-            'keep_updated'     :  self.set_keep_updated,            
-            'priority'         :  self.set_priority,
-            'rpm-list'         :  self.set_rpm_list,
-            'rpm_list'         :  self.set_rpm_list,            
-            'createrepo_flags' :  self.set_createrepo_flags,            
-            'yumopts'          :  self.set_yumopts,
-            'owners'           :  self.set_owners,
-            'mirror_locally'   :  self.set_mirror_locally,            
-            'environment'      :  self.set_environment,
-            'comment'          :  self.set_comment
-        }
+        return utils.get_remote_methods_from_fields(self,FIELDS)
+
 

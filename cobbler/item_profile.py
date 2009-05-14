@@ -219,45 +219,6 @@ class Profile(item.Item):
         return utils.printable_from_fields(self,FIELDS)
   
     def remote_methods(self):
-        return {           
-            'name'                     :  self.set_name,
-            'parent'                   :  self.set_parent,
-            'profile'                  :  self.set_name,
-            'distro'                   :  self.set_distro,
-            'enable-menu'              :  self.set_enable_menu,
-            'enable_menu'              :  self.set_enable_menu,            
-            'kickstart'                :  self.set_kickstart,
-            'kopts'                    :  self.set_kernel_options,
-            'kopts-post'               :  self.set_kernel_options_post,
-            'kopts_post'               :  self.set_kernel_options_post,            
-            'virt-auto-boot'           :  self.set_virt_auto_boot,
-            'virt_auto_boot'           :  self.set_virt_auto_boot,            
-            'virt-file-size'           :  self.set_virt_file_size,
-            'virt_file_size'           :  self.set_virt_file_size,            
-            'virt-ram'                 :  self.set_virt_ram,
-            'virt_ram'                 :  self.set_virt_ram,            
-            'ksmeta'                   :  self.set_ksmeta,
-            'template-files'           :  self.set_template_files,
-            'template_files'           :  self.set_template_files,            
-            'repos'                    :  self.set_repos,
-            'virt-path'                :  self.set_virt_path,
-            'virt_path'                :  self.set_virt_path,            
-            'virt-type'                :  self.set_virt_type,
-            'virt_type'                :  self.set_virt_type,            
-            'virt-bridge'              :  self.set_virt_bridge,
-            'virt_bridge'              :  self.set_virt_bridge,            
-            'virt-cpus'                :  self.set_virt_cpus,
-            'virt_cpus'                :  self.set_virt_cpus,            
-            'dhcp-tag'                 :  self.set_dhcp_tag,
-            'dhcp_tag'                 :  self.set_dhcp_tag,            
-            'server'                   :  self.set_server,
-            'owners'                   :  self.set_owners,
-            'mgmt-classes'             :  self.set_mgmt_classes,
-            'mgmt_classes'             :  self.set_mgmt_classes,            
-            'comment'                  :  self.set_comment,
-            'name_servers'             :  self.set_name_servers,
-            'name_servers_search'      :  self.set_name_servers_search,
-            'redhat_management_key'    :  self.set_redhat_management_key,
-            'redhat_management_server' :  self.set_redhat_management_server
-        }
+        return utils.get_remote_methods_from_fields(self,FIELDS)
+
 

@@ -289,16 +289,6 @@ class Network(item.Item):
         return None
 
     def remote_methods(self):
-        return {
-            'name'           : self.set_name,
-            'cidr'           : self.set_cidr,
-            'address'        : self.set_address,
-            'gateway'        : self.set_gateway,
-            'broadcast'      : self.set_broadcast,
-            'name_servers'   : self.set_name_servers,
-            'reserved'       : self.set_reserved,
-            'used_addresses' : self.set_used_addresses,
-            'free_addresses' : self.set_free_addresses,
-            'comment'        : self.set_comment,
-            'owners'         : self.set_owners
-        }
+        return utils.get_remote_methods_from_fields(self,FIELDS)
+
+

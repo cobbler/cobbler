@@ -163,25 +163,5 @@ class Distro(item.Item):
         return utils.printable_from_fields(self,FIELDS)
 
     def remote_methods(self):
-        return {
-            'name'                     : self.set_name,
-            'kernel'                   : self.set_kernel,
-            'initrd'                   : self.set_initrd,
-            'kopts'                    : self.set_kernel_options,
-            'kopts-post'               : self.set_kernel_options_post,
-            'kopts_post'               : self.set_kernel_options_post,            
-            'arch'                     : self.set_arch,
-            'ksmeta'                   : self.set_ksmeta,
-            'breed'                    : self.set_breed,
-            'os-version'               : self.set_os_version,
-            'os_version'               : self.set_os_version,            
-            'owners'                   : self.set_owners,
-            'mgmt-classes'             : self.set_mgmt_classes,
-            'mgmt_classes'             : self.set_mgmt_classes,            
-            'template-files'           : self.set_template_files,
-            'template_files'           : self.set_template_files,            
-            'comment'                  : self.set_comment,
-            'redhat_management_key'    : self.set_redhat_management_key,
-            'redhat_management_server' : self.set_redhat_management_server
-        }
+        return utils.get_remote_methods_from_fields(self,FIELDS)
 

@@ -212,33 +212,6 @@ class Image(item.Item):
         return utils.printable_from_fields(self,FIELDS)
   
     def remote_methods(self):
-        return {           
-            'name'            :  self.set_name,
-            'image-type'      :  self.set_image_type,
-            'image_type'      :  self.set_image_type,            
-            'breed'           :  self.set_breed,
-            'os-version'      :  self.set_os_version,
-            'os_version'      :  self.set_os_version,            
-            'arch'            :  self.set_arch,
-            'file'            :  self.set_file,
-            'kickstart'       :  self.set_kickstart,
-            'owners'          :  self.set_owners,
-            'virt-cpus'       :  self.set_virt_cpus,
-            'virt_cpus'       :  self.set_virt_cpus,            
-            'network-count'   :  self.set_network_count,
-            'network_count'   :  self.set_network_count,            
-            'virt-auto-boot'  :  self.set_virt_auto_boot,
-            'virt_auto_boot'  :  self.set_virt_auto_boot,            
-            'virt-file-size'  :  self.set_virt_file_size,
-            'virt_file_size'  :  self.set_virt_file_size,            
-            'virt-bridge'     :  self.set_virt_bridge,
-            'virt_bridge'     :  self.set_virt_bridge,            
-            'virt-path'       :  self.set_virt_path,
-            'virt_path'       :  self.set_virt_path,            
-            'virt-ram'        :  self.set_virt_ram,
-            'virt_ram'        :  self.set_virt_ram,            
-            'virt-type'       :  self.set_virt_type,
-            'virt_type'       :  self.set_virt_type,            
-            'comment'         :  self.set_comment
-        }
+        return utils.get_remote_methods_from_fields(self,FIELDS)
+
 
