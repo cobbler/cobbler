@@ -59,35 +59,39 @@ class DistroFunction(commands.CobblerFunction):
         if obj is None:
             return True
 
+        # FIXME: inplace is not handled.  Do we need to retain this?
+
         if not "dumpvars" in self.args:
-            if self.options.comment is not None:
-                obj.set_comment(self.options.comment)
-            if self.options.arch is not None:
-                obj.set_arch(self.options.arch)
-            if self.options.kernel is not None:
-                obj.set_kernel(self.options.kernel)
-            if self.options.initrd is not None:
-                obj.set_initrd(self.options.initrd)
-            if self.options.kopts is not None:
-                obj.set_kernel_options(self.options.kopts,self.options.inplace)
-            if self.options.kopts_post is not None:
-                obj.set_kernel_options_post(self.options.kopts_post,self.options.inplace)
-            if self.options.ksmeta is not None:
-                obj.set_ks_meta(self.options.ksmeta,self.options.inplace)
-            if self.options.breed is not None:
-                obj.set_breed(self.options.breed)
-            if self.options.os_version is not None:
-                obj.set_os_version(self.options.os_version)
-            if self.options.owners is not None:
-                obj.set_owners(self.options.owners)
-            if self.options.mgmt_classes is not None:
-                obj.set_mgmt_classes(self.options.mgmt_classes)
-            if self.options.template_files is not None:
-                obj.set_template_files(self.options.template_files,self.options.inplace)
-            if self.options.redhat_management_key is not None:
-                obj.set_redhat_management_key(self.options.redhat_management_key)
-            if self.options.redhat_management_server is not None:
-                obj.set_redhat_management_server(self.options.redhat_management_server)
+            utils.apply_options_from_fields(obj, item_distro.FIELDS, self.options)
+
+            #if self.options.comment is not None:
+            #    obj.set_comment(self.options.comment)
+            #if self.options.arch is not None:
+            #    obj.set_arch(self.options.arch)
+            #if self.options.kernel is not None:
+            #    obj.set_kernel(self.options.kernel)
+            #if self.options.initrd is not None:
+            #    obj.set_initrd(self.options.initrd)
+            #if self.options.kopts is not None:
+            #    obj.set_kernel_options(self.options.kopts,self.options.inplace)
+            #if self.options.kopts_post is not None:
+            #    obj.set_kernel_options_post(self.options.kopts_post,self.options.inplace)
+            #if self.options.ksmeta is not None:
+            #    obj.set_ks_meta(self.options.ksmeta,self.options.inplace)
+            #if self.options.breed is not None:
+            #    obj.set_breed(self.options.breed)
+            #if self.options.os_version is not None:
+            #    obj.set_os_version(self.options.os_version)
+            #if self.options.owners is not None:
+            #    obj.set_owners(self.options.owners)
+            #if self.options.mgmt_classes is not None:
+            #    obj.set_mgmt_classes(self.options.mgmt_classes)
+            #if self.options.template_files is not None:
+            #    obj.set_template_files(self.options.template_files,self.options.inplace)
+            #if self.options.redhat_management_key is not None:
+            #    obj.set_redhat_management_key(self.options.redhat_management_key)
+            #if self.options.redhat_management_server is not None:
+            #    obj.set_redhat_management_server(self.options.redhat_management_server)
 
         return self.object_manipulator_finish(obj, self.api.distros, self.options)
 

@@ -1679,6 +1679,17 @@ def matches_args(args, list_of):
             return True
     return False
 
+def apply_options_from_fields(obj, fields, options):
+    for elem in fields:
+       k = elem[0]
+       details  = elem[3]
+       editable = elem[4]
+       if editable and details != "":
+          optval = getattr(options, k)
+          if optval is not None:
+              setfn = getattr(obj, "set_%s" % k)
+              setfn(optval)
+
 def add_options_from_fields(parser, fields, args):
     for elem in fields:
        k = elem[0] 
