@@ -28,9 +28,10 @@ mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
 from utils import _, _IP, _CIDR
+import utils
 import cobbler.commands as commands
 from cexceptions import *
-
+import cobbler.item_network as item_network
 
 class NetworkFunction(commands.CobblerFunction):
 
@@ -44,28 +45,7 @@ class NetworkFunction(commands.CobblerFunction):
         return [ "add", "copy", "dumpvars", "edit", "find", "list", "remove", "rename", "report" ]
 
     def add_options(self, p, args):
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            p.add_option("--cidr",             dest="cidr",             help="CIDR representation of the network (REQUIRED)")
-            p.add_option("--address",          dest="address",          help="Network address")
-            p.add_option("--broadcast",        dest="broadcast",        help="Broadcast address")
-            p.add_option("--gateway",          dest="gateway",          help="Gateway address")
-            p.add_option("--ns",               dest="ns",               help="comma-delimited list of nameservers")
-            p.add_option("--reserved",         dest="reserved",         help="comma-delimited list of IP/CIDR to reserve")
-            p.add_option("--comment",          dest="comment",          help="user field")
-
-        p.add_option("--name",                 dest="name",             help="ex: 'vlan001' (REQUIRED)")
-
-        if self.matches_args(args,["add"]):
-            p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
-        if self.matches_args(args,["copy","rename"]):
-            p.add_option("--newname",          dest="newname",          help="used for copy/edit")
-        if not self.matches_args(args,["dumpvars","find","remove","report","list"]):
-            p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
-        if not self.matches_args(args,["dumpvars","find","report","list"]):
-            p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            p.add_option("--owners", dest="owners", help="specify owners for authz_ownership module")
-
+        return utils.add_options_from_fields(p, item_network.FIELDS, args)
 
     def run(self):
         if self.args and "find" in self.args:

@@ -499,13 +499,13 @@ class CobblerFunction:
            print str
         return True
 
-    def matches_args(self, args, list_of):
-        """
-        Used to simplify some code around which arguments to add when.
-        """
-        for x in args:
-            if x in list_of:
-                return True
-        return False
+    #def matches_args(self, args, list_of):
+    #    """
+    #    Used to simplify some code around which arguments to add when.
+    #    """
+    #    for x in args:
+    #        if x in list_of:
+    #            return True
+    #    return False
 
 

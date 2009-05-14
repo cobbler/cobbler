@@ -1670,17 +1670,33 @@ def printable_from_fields(obj, fields):
            buf = buf + "%-30s : %s\n" % (k, getattr(obj, k))
     return buf
 
-def add_options_from_fields(parser, fields, optype=None):
-    # FIXME: need to add types!
-    # FIXME: need to conditionally add things based on what arg type 
-    # things are.  
-    # FIXME: need to add additional options like clobber/recursive in some
-    # cases, in-place, etc, --newname, no-triggers, no-sync
+def matches_args(args, list_of):
+    """
+    Used to simplify some code around which arguments to add when.
+    """
+    for x in args:
+        if x in list_of:
+            return True
+    return False
+
+def add_options_from_fields(parser, fields, args):
     for elem in fields:
        k = elem[0] 
        desc = elem[3]
        niceopt = "--%s" % k.replace("_","-")
        parser.add_option(niceopt, dest=k, help=desc)
+    
+    if not matches_args(args, ["dumpvars","find","remove","report","list"]): 
+       parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
+       parser.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts or ksmeta without clearing the other items")
+    if matches_args(args, ["copy","rename"]):
+       parser.add_option("--newname",   action="newname", help="new object name")
+    if not matches_args(args, ["dumpvars","find","remove","report","list"]): 
+       parser.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
+    if not matches_args(args,["dumpvars","report","list"]):
+       parser.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
+    if matches_args(args,["remove"]):
+       parser.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
 
 
 

@@ -19,7 +19,8 @@ plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
-from utils import _
+import utils
+import cobbler.item_image as item_image
 import cobbler.commands as commands
 import cexceptions
 
@@ -36,53 +37,7 @@ class ImageFunction(commands.CobblerFunction):
         return [ "add", "copy", "dumpvars", "edit", "find", "list", "remove", "rename", "report" ]
 
     def add_options(self, p, args):
-
-
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            p.add_option("--arch",           dest="arch",         help="ex: i386, x86_64")
-            p.add_option("--breed",          dest="breed",        help="ex: redhat")
-            p.add_option("--comment",        dest="comment",      help="user field")
-
-        if self.matches_args(args,["add"]):
-            p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
-
-        p.add_option("--name",                 dest="name",       help="ex: 'LemurSoft-v3000' (REQUIRED)")
-        
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            p.add_option("--file",             dest="file",       help="common filesystem path to image for all hosts (nfs is good)")
-            p.add_option("--image-type",       dest="image_type", help="what kind of image is this?")
-
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            p.add_option("--kickstart",        dest="kickstart", help="answer file if --image-type=iso") 
-            p.add_option("--os-version",       dest="os_version", help="ex: rhel4, fedora 9") 
-        if self.matches_args(args,["remove"]):
-            p.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
-
-        if self.matches_args(args,["copy","rename"]):
-
-            p.add_option("--newname",          dest="newname",    help="used for copy/edit")
-
-        if not self.matches_args(args,["dumpvars","find","remove","report","list"]):
-            # FIXME: there's really nothing to sync here.  Remove?
-            p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
-
-        if not self.matches_args(args,["dumpvars","find","report","list"]):
-            p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            p.add_option("--owners", dest="owners", help="specify owners for authz_ownership module")
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            # virt ram
-            # virt cpus
-            # virt bridge
-            p.add_option("--virt-cpus",            dest="virt_cpus",            help="specify VCPU count")
-            p.add_option("--virt-bridge",          dest="virt_bridge",          help="ex: virbr0")
-            p.add_option("--virt-file-size",       dest="virt_file_size",       help="size in GB (not for use with non-ISO virt-images), ex: 5")
-            p.add_option("--virt-path",            dest="virt_path",            help="virt install location")
-            p.add_option("--virt-type",            dest="virt_type",            help="virt install type (ISOs only)")
-            p.add_option("--virt-ram",             dest="virt_ram",             help="ex: 1024")
-            p.add_option("--xml-file",             dest="xml_file",             help="associate a XML file for tracking (warning: cobbler does not use)")
-
-
+        return utils.add_options_from_fields(p, item_image.FIELDS, args)
 
     def run(self):
 

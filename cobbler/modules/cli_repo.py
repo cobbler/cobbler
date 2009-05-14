@@ -27,10 +27,10 @@ plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
-from utils import _
 import cobbler.commands as commands
 import cexceptions
-
+import utils
+import cobbler.item_repo as item_repo
 
 class RepoFunction(commands.CobblerFunction):
 
@@ -44,42 +44,7 @@ class RepoFunction(commands.CobblerFunction):
         return [ "add", "copy", "dumpvars", "edit", "find", "list", "remove", "rename", "report" ]
 
     def add_options(self, p, args):
-
-
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            p.add_option("--arch",             dest="arch",             help="overrides repo arch if required")
-            p.add_option("--breed",            dest="breed",            help="sets the breed of the repo")
-            p.add_option("--os-version",       dest="os_version",       help="sets the version of the repo")
-            p.add_option("--comment",          dest="comment",          help="user field")
-        if self.matches_args(args,["add"]):
-            p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            p.add_option("--createrepo-flags", dest="createrepo_flags", help="additional flags for createrepo")
-            p.add_option("--environment",      dest="environment",      help="key=value parameters to add into environment before syncing this")
-            p.add_option("--keep-updated",     dest="keep_updated",     help="update on each reposync, yes/no")
-
-        p.add_option("--name",                 dest="name",             help="ex: 'Fedora-8-updates-i386' (REQUIRED)")
-        
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            p.add_option("--mirror",           dest="mirror",           help="source to mirror (REQUIRED)")
-            p.add_option("--mirror-locally",   dest="mirror_locally",   help="mirror or use external directly? (default 1)")
-            p.add_option("--priority",         dest="priority",         help="set priority") 
-            p.add_option("--rpm-list",         dest="rpm_list",         help="just mirror these rpms")
-            p.add_option("--yumopts",          dest="yumopts",          help="ex: pluginvar=abcd")
-
-            if not self.matches_args(args, ["find"]):
-                p.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in yumopts without clearing the other items")
-
-        if self.matches_args(args,["copy","rename"]):
-            p.add_option("--newname",          dest="newname",          help="used for copy/edit")
-
-        if not self.matches_args(args,["dumpvars","find","remove","report","list"]):
-            p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
-        if not self.matches_args(args,["dumpvars","find","report","list"]):
-            p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
-        if not self.matches_args(args,["dumpvars","remove","report","list"]):
-            p.add_option("--owners", dest="owners", help="specify owners for authz_ownership module")
-
+        return utils.add_options_from_fields(p, item_distro.FIELDS, args)
 
     def run(self):
 

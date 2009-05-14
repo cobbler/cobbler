@@ -32,28 +32,28 @@ from cexceptions import *
 
 from utils import _
 
-# FIXME: better descriptions in column 4.
+# name | default | subobject default | tooltip | editable?
 
 FIELDS = [
-   [ "name",                     None                         ,0, "Name"    ],
-   [ "uid",                      ""                           ,0, ""        ],
-   [ "owners",                   "SETTINGS:default_ownership" ,0, "Owners list for authz_ownership"   ],
-   [ "kernel",                   None                         ,0, "Path to kernel file" ],
-   [ "initrd",                   None                         ,0, "Path to initrd file" ],
-   [ "kernel_options",           {}                           ,0, "List of install time kernel options" ],
-   [ "kernel_options_post",      {}                           ,0, "List of post install kernel options"   ],
-   [ "ks_meta",                  {}                           ,0, "Kickstart templating variables"   ],
-   [ "arch",                     'i386'                       ,0, "Architecture"   ],
-   [ "breed",                    'redhat'                     ,0, "Breed"   ],
-   [ "os_version",               ''                           ,0, "OS Version" ],
-   [ "source_repos",             []                           ,0, "Source Repos" ],
-   [ "mgmt_classes",             []                           ,0, "Management classes" ],
-   [ "depth",                    0                            ,0, "",   ],
-   [ "template_files",           {}                           ,0, "Template files"   ],
-   [ "comment",                  ""                           ,0, "Free form text description"   ],
-   [ "tree_build_time",          0                            ,0, ""   ],
-   [ "redhat_management_key",    "<<inherit>>"                ,0, "Registration key if needed"   ],
-   [ "redhat_management_server", "<<inherit>>"                ,0, "Management server if needed"   ]
+   [ "name",                     None                         ,0, "Name"                                , True    ],
+   [ "uid",                      ""                           ,0, ""                                    , False        ],
+   [ "owners",                   "SETTINGS:default_ownership" ,0, "Owners list for authz_ownership"     , True  ],
+   [ "kernel",                   None                         ,0, "Path to kernel file"                 , True ],
+   [ "initrd",                   None                         ,0, "Path to initrd file"                 , True ],
+   [ "kernel_options",           {}                           ,0, "List of install time kernel options" , True ],
+   [ "kernel_options_post",      {}                           ,0, "List of post install kernel options" , True  ],
+   [ "ks_meta",                  {}                           ,0, "Kickstart templating variables"      , True],
+   [ "arch",                     'i386'                       ,0, "Architecture"                        , True],
+   [ "breed",                    'redhat'                     ,0, "Breed"                               , True],
+   [ "os_version",               ''                           ,0, "OS Version"                          , True],
+   [ "source_repos",             []                           ,0, "Source Repos"                        , False],
+   [ "mgmt_classes",             []                           ,0, "Management classes"                  , True],
+   [ "depth",                    0                            ,0, ""                                   , False],
+   [ "template_files",           {}                           ,0, "Template files"                      , True],
+   [ "comment",                  ""                           ,0, "Free form text description"          , True],
+   [ "tree_build_time",          0                            ,0, ""                                    , False ],
+   [ "redhat_management_key",    "<<inherit>>"                ,0, "Registration key if needed"          , True],
+   [ "redhat_management_server", "<<inherit>>"                ,0, "Management server if needed"         , True]
 ]
 
 class Distro(item.Item):

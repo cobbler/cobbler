@@ -27,25 +27,25 @@ from utils import _
 import time
 
 FIELDS = [
-    [ "parent"              , None ],
-    [ "name"                , None ],
-    [ "uid"                 , None ],
-    [ "mirror"              , None ],
-    [ "keep_updated"        , True ],
-    [ "priority"            , 99   ],
-    [ "rpm_list"            , '<<inherit>>' ],
-    [ "createrepo_flags"    , '<<inherit>>' ],
-    [ "depth"               , 2  ],
-    [ "breed"               , "" ],
-    [ "os_version"          , "" ],
-    [ "arch"                , "" ],
-    [ "yumopts"             , {} ],
-    [ "owners"              , "SETTINGS:default_ownership" ],
-    [ "mirror_locally"      , True ],
-    [ "environment"         , {}   ],
-    [ "comment"             , ""   ],
-    [ "ctime"               , 0    ],
-    [ "mtime"               , 0    ]
+    [ "parent"              , None, 0, "", False ],
+    [ "name"                , None, 0, "Name", True ],
+    [ "uid"                 , None, 0, "", False ],
+    [ "mirror"              , None, 0, "Mirror", True ],
+    [ "keep_updated"        , True, 0, "Keep Updated", True ],
+    [ "priority"            , 99,   0, "Priority", True   ],
+    [ "rpm_list"            , '<<inherit>>', 0, "RPM List", True ],
+    [ "createrepo_flags"    , '<<inherit>>', 0, "Createrepo Flags", True ],
+    [ "depth"               , 2,    0, "", False  ],
+    [ "breed"               , "",   0,  "Breed", True ],
+    [ "os_version"          , "",   0,  "OS Version", True],
+    [ "arch"                , "",   0,  "Arch", True],
+    [ "yumopts"             , {},   0,  "Yum Options", True],
+    [ "owners"              , "SETTINGS:default_ownership", 0, "Owners list (for authz_ownership)", True ],
+    [ "mirror_locally"      , True,                         0, "Mirror locally", True ],
+    [ "environment"         , {},   0, "Environment Variables for reposync", True  ],
+    [ "comment"             , "",   0, "Free form description", True],
+    [ "ctime"               , 0,    0, "", False],
+    [ "mtime"               , 0,    0, "", False  ]
 ]
 
 class Repo(item.Item):

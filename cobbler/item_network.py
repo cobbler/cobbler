@@ -27,20 +27,20 @@ from cexceptions import *
 from utils import _, _IP, _CIDR
 
 FIELDS = [
-    [ "name",           None ],
-    [ "cidr",           None ],
-    [ "address",        None ],
-    [ "gateway",        None ],
-    [ "broadcast",      None ],
-    [ "name_servers",   None ],
-    [ "reserved",       None ],
-    [ "used_addresses", None ],
-    [ "free_addresses", None ],
-    [ "comment",        ""   ],
-    [ "ctime",          0    ],
-    [ "mtime",          0    ],
-    [ "owners",         "SETTINGS:default_ownership"],
-    [ "uid",            None ],
+    [ "name",           None, 0, "Name",    True ],
+    [ "cidr",           None, 0, "CIDR",    True ],
+    [ "address",        None, 0, "Address", True ],
+    [ "gateway",        None, 0, "Gateway", True ],
+    [ "broadcast",      None, 0, "Broadcast", True],
+    [ "name_servers",   None, 0, "Name Servers", True ],
+    [ "reserved",       None, 0, "Reserved", True ],
+    [ "used_addresses", None, 0, "Used Addresses", False ],
+    [ "free_addresses", None, 0, "Free Addresses", False ],
+    [ "comment",        "",   0, "Free form description", True ],
+    [ "ctime",          0,    0, "", False ],
+    [ "mtime",          0,    0, "", False ],
+    [ "owners",         "SETTINGS:default_ownership", 0, "Owners list (for authz_ownership)", True],
+    [ "uid",            None, 0, "", False ],
 ]
 
 class Network(item.Item):

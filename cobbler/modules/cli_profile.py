@@ -27,9 +27,11 @@ plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
-from utils import _
+import utils
+import cobbler.item_profile as item_profile
 import cobbler.commands as commands
 import cexceptions
+
 
 
 class ProfileFunction(commands.CobblerFunction):
@@ -44,62 +46,7 @@ class ProfileFunction(commands.CobblerFunction):
         return ["add","copy","dumpvars","edit","find","getks","list","remove","rename","report"]
 
     def add_options(self, p, args):
-            
-        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
-            p.add_option("--comment",  dest="comment",  help="user field")
-
-        if self.matches_args(args,["add"]):
-            p.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
-
-
-        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
-
-            p.add_option("--distro",           dest="distro",    help="ex: 'RHEL-5-i386' (REQUIRED)")
-            p.add_option("--dhcp-tag",         dest="dhcp_tag",  help="for use in advanced DHCP configuration")
-            p.add_option("--enable-menu", dest="enable_menu", help="yes/no. When yes, adds profile to default PXE menu")
-            p.add_option("--inherit",          dest="inherit",   help="inherit from this profile name, defaults to no")
-            if not self.matches_args(args,["find"]):
-                p.add_option("--in-place",action="store_true", dest="inplace", default=False, help="edit items in kopts, kopts_post or ksmeta without clearing the other items")
-            p.add_option("--kickstart",        dest="kickstart", help="absolute path to kickstart template (RECOMMENDED)")
-            p.add_option("--ksmeta",           dest="ksmeta",    help="ex: 'blippy=7'")
-            p.add_option("--kopts",            dest="kopts",     help="ex: 'noipv6'")
-            p.add_option("--kopts-post",       dest="kopts_post",help="ex: 'clocksource=pit'")
-            p.add_option("--mgmt-classes", dest="mgmt_classes",  help="list of config management classes (for Puppet, etc)")
-
-
-        p.add_option("--name",   dest="name",  help="a name for the profile (REQUIRED)")
-
-        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
-
-            p.add_option("--name-servers", dest="name_servers",  help="name servers for static setups")
-            p.add_option("--name-servers-search", dest="name_servers_search",  help="name servers search path for static setups")
-
-        if "copy" in args or "rename" in args:
-            p.add_option("--newname", dest="newname")
-
-        if not self.matches_args(args,["dumpvars","find","remove","report","getks","list"]):
-            p.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
-        if not self.matches_args(args,["dumpvars","find","report","getks","list"]):
-            p.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
-        if not self.matches_args(args,["dumpvars","report","getks","list"]):
-            p.add_option("--owners", dest="owners", help="specify owners for authz_ownership module")
-
-        if self.matches_args(args,["remove"]):
-            p.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
-
-        if not self.matches_args(args,["dumpvars","remove","report","getks","list"]):
-            p.add_option("--redhat-management-key", dest="redhat_management_key", help="authentication token for RHN/Spacewalk/Satellite")
-            p.add_option("--redhat-management-server", dest="redhat_management_server", help="RHN/Spacewalk/Satellite server")
-            p.add_option("--repos",            dest="repos", help="names of cobbler repos")
-            p.add_option("--server",           dest="server_override", help="overrides value in settings file")
-            p.add_option("--template-files",   dest="template_files", help="specify files to be generated from templates during a sync")
-            p.add_option("--virt-auto-boot",   dest="virt_auto_boot", help="auto boot this VM with host?")
-            p.add_option("--virt-bridge",      dest="virt_bridge", help="ex: 'virbr0'")
-            p.add_option("--virt-cpus",        dest="virt_cpus", help="integer (default: 1)")
-            p.add_option("--virt-file-size",   dest="virt_file_size", help="size in GB")
-            p.add_option("--virt-path",        dest="virt_path", help="path, partition, or volume")
-            p.add_option("--virt-ram",         dest="virt_ram", help="size in MB")
-            p.add_option("--virt-type",        dest="virt_type", help="ex: 'xenpv', 'qemu'")
+        return utils.add_options_from_fields(p, item_profile.FIELDS, args)
 
     def run(self):
 

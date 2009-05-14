@@ -27,52 +27,47 @@ from cexceptions import *
 from utils import _
 
 FIELDS = [
-    [ "name"                      , None ],
-    [ "uid"                       , "" ],
-    [ "owners"                    , "SETTINGS:default_ownership" ],
-    [ "profile"                   , None ],
-    [ "image"                     , None ],
-    [ "kernel_options"            , {} ],
-    [ "kernel_options_post"       , {} ],
-    [ "ks_meta"                   , {} ], 
-    [ "interfaces"                , {} ],
-    [ "netboot_enabled"           , True ],
-    [ "depth"                     , 2 ],
-    [ "mgmt_classes"              , [] ],             
-    [ "template_files"            , {} ],
-    [ "kickstart"                 , "<<inherit>>" ],  # use value in profile
-    [ "server"                    , "<<inherit>>" ],  # "" (or settings)
-    [ "virt_path"                 , "<<inherit>>" ],  # ""
-    [ "virt_type"                 , "<<inherit>>" ],  # "" 
-    [ "virt_cpus"                 , "<<inherit>>" ],  # ""
-    [ "virt_file_size"            , "<<inherit>>" ],  # ""
-    [ "virt_ram"                  , "<<inherit>>" ],  # ""
-    [ "virt_auto_boot"            , "<<inherit>>" ],  # ""
-    [ "virt_type"                 , "<<inherit>>" ],  # ""
-    [ "virt_path"                 , "<<inherit>>" ],  # ""
-#   [ "virt_bridge"               , "<<inherit>>" ],  # ""
-    [ "virt_host"                 , ""            ],
-    [ "virt_group"                , ""            ],  
-    [ "virt_guests"               , []            ],
-    [ "comment"                   , ""            ],
-    [ "ctime"                     , 0             ],
-    [ "mtime"                     , 0             ],
-    [ "uid"                       , ""            ],
-    [ "power_type"                , "SETTINGS:power_management_default_type" ],
-    [ "power_address"             , ""            ],
-    [ "power_user"                , ""            ],
-    [ "power_pass"                , ""            ],
-    [ "power_id"                  , ""            ],
-    [ "hostname"                  , ""            ],
-    [ "gateway"                   , ""            ],
-    [ "name_servers"              , []            ],
-    [ "name_servers_search"       , []            ],
-#   [ "bonding"                   , ""            ],
-#   [ "bonding_master"            , ""            ],
-#   [ "bonding_opts"              , ""            ],
-    [ "redhat_management_key"     , "<<inherit>>" ],
-    [ "redhat_management_server"  , "<<inherit>>" ]
+    [ "name"                      , None,                         0, "Name", True ],
+    [ "uid"                       , "",                           0, "",     False ],
+    [ "owners"                    , "SETTINGS:default_ownership", 0, "Owners list for authz_ownership", False ],
+    [ "profile"                   , None,                         0, "Parent Profile", True ],
+    [ "image"                     , None,                         0, "Parent Image", True ],
+    [ "kernel_options"            , {},                           0, "Kernel Options", True ],
+    [ "kernel_options_post"       , {},                           0, "Post Install Kernel Options", False ],
+    [ "ks_meta"                   , {},                           0, "Kickstart metadata", True ], 
+    [ "interfaces"                , {},                           0, "", False ],
+    [ "netboot_enabled"           , True,                         0, "Netboot enabled", True  ],
+    [ "depth"                     , 2,                            0, "", False],
+    [ "mgmt_classes"              , [],                           0, "Management classes", True ],             
+    [ "template_files"            , {},                           0, "Template files", True ],
+    [ "kickstart"                 , "<<inherit>>", 0, "Kickstart template path", True ],  # use value in profile
+    [ "server"                    , "<<inherit>>", 0, "Server override", True ],  # "" (or settings)
+    [ "virt_path"                 , "<<inherit>>", 0, "Virt path", True ],  # ""
+    [ "virt_type"                 , "<<inherit>>", 0, "Virt type", True ],  # "" 
+    [ "virt_cpus"                 , "<<inherit>>", 0, "Virt CPU count", True ],  # ""
+    [ "virt_file_size"            , "<<inherit>>", 0, "Virt File Size (GB)", True ],  # ""
+    [ "virt_ram"                  , "<<inherit>>", 0, "Virt RAM (MB)", True ],  # ""
+    [ "virt_auto_boot"            , "<<inherit>>", 0, "Autoboot this VM?", True ],  # ""
+    [ "virt_host"                 , "",            0, "Host for this VM", True ],
+    [ "virt_group"                , "",            0, "Group this system belongs to", True ],  
+    [ "virt_guests"               , [],            0, "Guests this host hosts", True ],
+    [ "comment"                   , "",            0, "Free form text description", True ],
+    [ "ctime"                     , 0,             0, "", False ],
+    [ "mtime"                     , 0,             0, "", False ],
+    [ "uid"                       , "",            0, "", False ],
+    [ "power_type"                , "SETTINGS:power_management_default_type", 0, "Power management type", True ],
+    [ "power_address"             , "",            0, "Power management address", True ],
+    [ "power_user"                , "",            0, "Power username", True ],
+    [ "power_pass"                , "",            0, "Power password", True ],
+    [ "power_id"                  , "",            0, "Power ID",       True ],
+    [ "hostname"                  , "",            0, "Hostname",       True ],
+    [ "gateway"                   , "",            0, "Gateway",        True ],
+    [ "name_servers"              , [],            0, "Name Servers",   True ],
+    [ "name_servers_search"       , [],            0, "Name Servers Search Path", True ],
+    [ "redhat_management_key"     , "<<inherit>>", 0, "Registration key if required", True ],
+    [ "redhat_management_server"  , "<<inherit>>", 0, "Management server if required", True ]
 ]
+# FIXME: interfaces needs it's own fields (somehow)
 
 class System(item.Item):
 
@@ -466,13 +461,8 @@ class System(item.Item):
         raise CX(_("kickstart not found: %s" % kickstart))
 
 
-        #self.power_type           = self.settings.power_management_default_type
-        #self.power_address        = ""
-        #self.power_user           = ""
-        #self.power_pass           = ""
-        #self.power_id             = ""
-
     def set_power_type(self, power_type):
+        # FIXME: modularize this better
         if power_type is None:
             power_type = ""
         power_type = power_type.lower()
