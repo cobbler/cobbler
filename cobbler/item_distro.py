@@ -32,26 +32,28 @@ from cexceptions import *
 
 from utils import _
 
+# FIXME: better descriptions in column 4.
+
 FIELDS = [
-   [ "name",                     None                            ],
-   [ "uid",                      ""                              ],
-   [ "owners",                   "SETTINGS:default_ownership"    ],
-   [ "kernel",                   None                            ],
-   [ "initrd",                   None                            ],
-   [ "kernel_options",           {}                              ],
-   [ "kernel_options_post",      {}                              ],
-   [ "ks_meta",                  {}                              ],
-   [ "arch",                     'i386'                          ],
-   [ "breed",                    'redhat'                        ],
-   [ "os_version",               ''                              ],
-   [ "source_repos",             []                              ],
-   [ "mgmt_classes",             []                              ],
-   [ "depth",                    0                               ],
-   [ "template_files",           {}                              ],
-   [ "comment",                  ""                              ],
-   [ "tree_build_time",          0                               ],
-   [ "redhat_management_key",    "<<inherit>>"                   ],
-   [ "redhat_management_server", "<<inherit>>"                   ]
+   [ "name",                     None                         ,0, "Name"    ],
+   [ "uid",                      ""                           ,0, ""        ],
+   [ "owners",                   "SETTINGS:default_ownership" ,0, "Owners list for authz_ownership"   ],
+   [ "kernel",                   None                         ,0, "Path to kernel file" ],
+   [ "initrd",                   None                         ,0, "Path to initrd file" ],
+   [ "kernel_options",           {}                           ,0, "List of install time kernel options" ],
+   [ "kernel_options_post",      {}                           ,0, "List of post install kernel options"   ],
+   [ "ks_meta",                  {}                           ,0, "Kickstart templating variables"   ],
+   [ "arch",                     'i386'                       ,0, "Architecture"   ],
+   [ "breed",                    'redhat'                     ,0, "Breed"   ],
+   [ "os_version",               ''                           ,0, "OS Version" ],
+   [ "source_repos",             []                           ,0, "Source Repos" ],
+   [ "mgmt_classes",             []                           ,0, "Management classes" ],
+   [ "depth",                    0                            ,0, "",   ],
+   [ "template_files",           {}                           ,0, "Template files"   ],
+   [ "comment",                  ""                           ,0, "Free form text description"   ],
+   [ "tree_build_time",          0                            ,0, ""   ],
+   [ "redhat_management_key",    "<<inherit>>"                ,0, "Registration key if needed"   ],
+   [ "redhat_management_server", "<<inherit>>"                ,0, "Management server if needed"   ]
 ]
 
 class Distro(item.Item):

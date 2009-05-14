@@ -1670,3 +1670,17 @@ def printable_from_fields(obj, fields):
            buf = buf + "%-30s : %s\n" % (k, getattr(obj, k))
     return buf
 
+def add_options_from_fields(parser, fields, optype=None):
+    # FIXME: need to add types!
+    # FIXME: need to conditionally add things based on what arg type 
+    # things are.  
+    # FIXME: need to add additional options like clobber/recursive in some
+    # cases, in-place, etc, --newname, no-triggers, no-sync
+    for elem in fields:
+       k = elem[0] 
+       desc = elem[3]
+       niceopt = "--%s" % k.replace("_","-")
+       parser.add_option(niceopt, dest=k, help=desc)
+
+
+
