@@ -4,6 +4,7 @@
 - Make deletes and renames work in the web app, test
 - Test interfaces in CLI and webapp thoroughly
 - Reinstitute is_valid functions for all object saves (name required, fields consistent, etc)
+- Figure out how we handle field transmogrification on upgrades now.
 
 - MODERATE PRIORITY:
 - Make snippets and ksfiles work as pseudo collections so we can generalize the web pages for them
