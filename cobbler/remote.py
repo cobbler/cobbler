@@ -551,20 +551,6 @@ class CobblerXMLRPCInterface:
            return "# object not found: %s" % system_name
         return self.api.get_template_file_for_system(obj,path)
 
-    def get_fields(self,what,token):
-        if what == "distro":
-            return self.api.get_distro_fields()
-        elif what in ("profile","subprofile"):
-            return self.api.get_profile_fields()
-        elif what == "system":
-            return self.api.get_system_fields()
-        elif what == "repo":
-            return self.api.get_repo_fields()
-        elif what == "image":
-            return self.api.get_image_fields()
-        elif what == "network":
-            return self.api.get_network_fields()
-
     def register_new_system(self,info,token=None,**rest):
         """
         If register_new_installs is enabled in settings, this allows

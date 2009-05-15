@@ -1,0 +1,18 @@
+- HIGH PRIORITY:
+- Add field type, CSS type, and choices to FIELDS structures for all object types
+- Make webapp use get_fields logic and make it work for all pages, no more generic templates
+- Make deletes and renames work in the web app, test
+- Test interfaces in CLI and webapp thoroughly
+- Reinstitute is_valid functions for all object saves (name required, fields consistent, etc)
+
+- MODERATE PRIORITY:
+- Make snippets and ksfiles work as pseudo collections so we can generalize the web pages for them
+- Finish network objects or push to 2.2
+- See that --clobber, --in-place, --delete-interface and other odd fields still work.
+- Look over old webapp and ensure tooltips in new version are good enough or better
+- Look for missing fields in CLI/webapp
+- Gut functionality for customizable columns in web app or see that a UI is build for it and settings are added proprely.
+
+- FUTURE:
+- Console management ideas
+- API to clear logs

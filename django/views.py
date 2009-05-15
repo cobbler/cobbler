@@ -55,7 +55,41 @@ def list(request, what, page=None):
     }))
     return HttpResponse(html)
 
+def get_fields(what):
+    if what == "distro":
+       f = item_distro.FIELDS
+    if what == "profile":
+       f = item_profile.FIELDS
+    if what == "system":
+       f = item_system.FIELDS
+    if what == "repo":
+       f = item_repo.FIELDS
+    if what == "image":
+       f =  item_image.FIELDS
+    if what == "network":
+       f = item_network.FIELDS
+  
+    # FIXME: somewhat temporary, this maps the arrays in item_* to the hash structures in PV's
+    # original version.  In process of cleanup. -- MPD
+    ds = []
+    for row in f:
+        ds.append((row[0], {
+            "value" : row[1], # default value
+            "type" : "text",  : # FIXME, not added yet!
+            "size" : "100",  # FIXME, should be CSS governed only!
+            "width" : "100", # ditto
+            "cols"  : 5, # ditto
+            "valtype" : "str", # fixme: should be eliminated
+            "example" : row[4] # fixme: should be named "tip", not example      
+        }))  
+        # FIXME: need fields for CSS type and also choices list for radio buttons, and also display type
+        # all added to item_*.py
+    return ds
+
 def genlist(request, what, page=None):
+
+    # FIXME: cleanup
+
     if page == None:
         page = int(request.session.get("%s_page" % what, 1))
     limit = int(request.session.get("%s_limit" % what, 50))
@@ -135,6 +169,10 @@ def genlist(request, what, page=None):
 
 
 def modify_list(request, what, pref, value=None):
+
+    # FIXME: cleanup
+    # FIXME: what does this do?  COMMENTS!
+
     try:
         if pref == "sort":
             old_sort=request.session.get("%s_sort_field" % what,"")
@@ -160,6 +198,7 @@ def modify_list(request, what, pref, value=None):
         return error_page(request,"Invalid preference: %s" % pref)
 
 def modify_filter(request, what, action, filter=None):
+    # FIXME: cleanup
     try:
         if filter == None: raise ""
         # read session variable for filter
@@ -181,6 +220,7 @@ def modify_filter(request, what, action, filter=None):
         return error_page(request,"Invalid filter: %s" % str(filter))
 
 def generic_rename(request, what, obj_name=None, obj_newname=None):
+   # FIXME: cleanup
    if obj_name == None:
       return error_page(request,"You must specify a %s to rename" % what)
    if not remote.has_item(what,obj_name):
@@ -200,6 +240,9 @@ def generic_rename(request, what, obj_name=None, obj_newname=None):
       return HttpResponseRedirect("/cobbler_web/%s/list" % what)
 
 def generic_multi(request, what, multi_mode=None):
+    # FIXME: cleanup
+    # FIXME: how does this work, COMMENTS!
+
     names = request.POST.getlist('items')
 
     all_items = remote.get_items(what)
@@ -230,6 +273,10 @@ def generic_multi(request, what, multi_mode=None):
     return HttpResponse(html)
 
 def generic_domulti(request, what, multi_mode=None):
+
+    # FIXME: cleanup
+    # FIXME: COMMENTS!!!11111???
+
     names = request.POST.get('names', '').split(" ")
 
     if multi_mode == "delete":
@@ -268,22 +315,6 @@ def generic_domulti(request, what, multi_mode=None):
     else:
         raise "Unknown multiple operation on %ss: %s" % (what,str(multi_mode))
     return HttpResponseRedirect("/cobbler_web/%s/list"%what)
-
-def distro_edit(request, distro_name=None):
-   available_arches = ['i386','x86','x86_64','ppc','ppc64','s390','s390x','ia64']
-   available_breeds = [['redhat','Red Hat Based'], ['debian','Debian'], ['ubuntu','Ubuntu'], ['suse','SuSE']]
-   distro = None
-   if not distro_name is None:
-      editable = remote.check_access_no_fail(token, "modify_distro", distro_name)
-      distro = remote.get_distro(distro_name, True, token)
-      distro['ctime'] = time.ctime(distro['ctime'])
-      distro['mtime'] = time.ctime(distro['mtime'])
-   else:
-      editable = remote.check_access_no_fail(token, "new_distro", None)
-
-   t = get_template('distro_edit.tmpl')
-   html = t.render(Context({'distro': distro, 'available_arches': available_arches, 'available_breeds': available_breeds, "editable":editable}))
-   return HttpResponse(html)
 
 def ksfile_list(request, page=None):
    ksfiles = remote.get_kickstart_templates(token)
@@ -409,6 +440,10 @@ def dosync(request):
    return HttpResponseRedirect("/cobbler_web/")
 
 def generic_edit(request, what=None, obj_name=None, editmode="new"):
+
+   # FIXME: cleanup
+   # FIXME: comments
+
    obj = None
 
    child = False
@@ -458,6 +493,10 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    return HttpResponse(html)
 
 def generic_save(request,what):
+
+    # FIXME: cleanup
+    # FIXME: comments
+
     editmode = request.POST.get('editmode', 'edit')
     obj_name = request.POST.get('name', "")
     
