@@ -94,6 +94,9 @@ class System(item.Item):
     def clear(self,is_subobject=False):
         utils.clear_from_fields(self,FIELDS)
 
+    # FIXME: need to ensure duplicate interface/hostname checks are reinstated
+    # FIXME: need is_valid logic back, but more generalized
+
     def delete_interface(self,name):
         """
         Used to remove an interface.

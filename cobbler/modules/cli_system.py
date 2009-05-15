@@ -46,7 +46,7 @@ class SystemFunction(commands.CobblerFunction):
 
     def add_options(self, p, args):
         # FIXME: must create per-interface fields also.  Do this manually?
-        p.add_option("--interface",dest="interface",help="which interface to add/edit?")
+        p.add_option("--interface",dest="interface",help="which interface to add/edit?",default="eth0")
         return utils.add_options_from_fields(p, item_system.FIELDS, args)
 
     def run(self):

@@ -199,7 +199,7 @@ def get_config_filename(sys,interface):
 
     interface = str(interface)
     if not sys.interfaces.has_key(interface):
-        raise CX(_("internal error:  probing an interface that does not exist"))
+        return None
 
     if sys.name == "default":
         return "default"

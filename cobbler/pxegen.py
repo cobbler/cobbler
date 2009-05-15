@@ -225,6 +225,9 @@ class PXEGen:
             ip = interface["ip_address"]
 
             f1 = utils.get_config_filename(system,interface=name)
+            if f1 is None:
+                print "WARNING: invalid interface recorded for system (%s,%s)" % (system.name,name)
+                continue;
 
             if image_based:
                 working_arch = image.arch
