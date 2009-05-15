@@ -27,8 +27,8 @@ from cexceptions import *
 from utils import _, _IP, _CIDR
 
 FIELDS = [
-  ["name",None,0,"Name",True,""],
-  ["cidr",None,0,"CIDR",True,""],
+  ["name",None,0,"Name",True,"Ex: testlab"],
+  ["cidr",None,0,"CIDR",True,"CIDR range of this network"],
   ["address",None,0,"Address",True,""],
   ["gateway",None,0,"Gateway",True,""],
   ["broadcast",None,0,"Broadcast",True,""],
@@ -36,10 +36,10 @@ FIELDS = [
   ["reserved",None,0,"Reserved",True,""],
   ["used_addresses",None,0,"Used Addresses",False,""],
   ["free_addresses",None,0,"Free Addresses",False,""],
-  ["comment","",0,"Comment",True,""],
+  ["comment","",0,"Comment",True,"Free form text description"],
   ["ctime",0,0,"",False,""],
   ["mtime",0,0,"",False,""],
-  ["owners","SETTINGS:default_ownership",0,"Owners",True,""],
+  ["owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)"],
   ["uid",None,0,"",False,""],
 
 ]
