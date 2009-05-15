@@ -187,7 +187,6 @@ def _CIDR(cidr):
    else:
       return netaddr.CIDR(cidr)
 
-
 def get_config_filename(sys,interface):
     """
     The configuration file for each system pxe uses is either
@@ -1616,6 +1615,9 @@ def clear_from_fields(obj, fields, is_subobject=False):
     Used by various item_*.py classes for automating datastructure boilerplate.
     """
     for elems in fields:
+        # if elems startswith * it's an interface field and we do not operate on it.
+        if elems[0].startswith("*"):
+           continue
         if is_subobject:
            val = elems[2]
         else:
@@ -1628,6 +1630,9 @@ def clear_from_fields(obj, fields, is_subobject=False):
 
 def from_datastruct_from_fields(obj, seed_data, fields):
     for elems in fields:
+        # we don't have to load interface fields here
+        if elems[0].startswith("*"):
+            continue
         k = elems[0]
         if seed_data.has_key(k):
             # print "FDFF: %s->%s"  % (k,seed_data[k])
@@ -1645,6 +1650,9 @@ def get_methods_from_fields(obj, fields):
     ds = {}
     for elem in fields:
         k = elem[0]
+        # modify interfaces is handled differently, and need not work this way
+        if k.startswith("*"):
+            continue
         setfn = getattr(obj, "set_%s" % k)
         ds[k] = setfn
     return ds
@@ -1653,6 +1661,8 @@ def to_datastruct_from_fields(obj, fields):
     ds = {}
     for elem in fields:
         k = elem[0]
+        if k.startswith("*"):
+            continue
         data = getattr(obj, k)
         ds[k] = data
     return ds
@@ -1668,8 +1678,21 @@ def printable_from_fields(obj, fields):
        # FIXME: make interfaces print nicely
        # FIXME: supress fields users don't need to see?
        # FIXME: print ctime, mtime nicely
+       if k.startswith("*"):
+           continue
+
        if k != "name":
            buf = buf + "%-30s : %s\n" % (k, getattr(obj, k))
+
+    # somewhat brain-melting special handling to print the hashes
+    # inside of the interfaces more neatly.
+    if obj.COLLECTION_TYPE == "system":
+       for iname in obj.interfaces.keys():
+          # FIXME: inames possibly not sorted
+          buf = buf + "%-30s : %s\n" % ("interface",iname)
+          for k in keys:
+             if k.startswith("*"):
+                 buf = buf + "%-30s : %s\n" % (k, obj.interfaces[iname][k.replace("*","")])
     return buf
 
 def matches_args(args, list_of):
@@ -1684,17 +1707,24 @@ def matches_args(args, list_of):
 def apply_options_from_fields(obj, fields, options):
     for elem in fields:
        k = elem[0]
+       # interfaces are handled differently
        details  = elem[3]
        editable = elem[4]
        if editable and details != "":
-          optval = getattr(options, k)
+          optval = getattr(options, k.replace("*",""))
           if optval is not None:
-              setfn = getattr(obj, "set_%s" % k)
-              setfn(optval)
+              setfn = getattr(obj, "set_%s" % k.replace("*",""))
+              if not k.startswith("*"):
+                  setfn(optval)
+              else:
+                  # handling for system interface options on the CLI
+                  setfn(optval, options.interface)
 
 def add_options_from_fields(parser, fields, args):
     for elem in fields:
        k = elem[0] 
+       # scrub interface tags so all fields get added correctly.
+       k = k.replace("*","")
        desc = elem[3]
        niceopt = "--%s" % k.replace("_","-")
        parser.add_option(niceopt, dest=k, help=desc)

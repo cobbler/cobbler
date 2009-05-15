@@ -64,7 +64,19 @@ FIELDS = [
     [ "name_servers"              , [],            0, "Name Servers",   True ],
     [ "name_servers_search"       , [],            0, "Name Servers Search Path", True ],
     [ "redhat_management_key"     , "<<inherit>>", 0, "Registration key if required", True ],
-    [ "redhat_management_server"  , "<<inherit>>", 0, "Management server if required", True ]
+    [ "redhat_management_server"  , "<<inherit>>", 0, "Management server if required", True ],
+    [ "*mac_address"              , "",            0, "MAC Address, ex: AA:BB:CC:DD:EE:FF", True ],
+    [ "*ip_address"               , "",            0, "IP Address, ex: 192.168.10.50", True ],
+    [ "*dhcp_tag"                 , "",            0, "DHCP Tag", True ],
+    [ "*subnet"                   , "",            0, "Subnet", True ],
+    [ "*virt_bridge"              , "",            0, "Virt Brige, ex: virbr0", True ],
+    [ "*static"                   , False,         0, "Static", True ],
+    [ "*bonding"                  , "",            0, "Bonding Y/N?", True ],
+    [ "*bonding_master"           , "",            0, "Bonding Master", True ],
+    [ "*bonding_opts"             , "",            0, "Bonding Opts", True ],
+    [ "*dns_name"                 , "",            0, "DNS Name", True ],
+    [ "*static_routes"            , [],            0, "Static Routes", True ],
+    [ "*network"                  , "",            0, "Network", True ]
 ]
 # FIXME: interfaces needs it's own fields (somehow)
 
