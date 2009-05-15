@@ -180,6 +180,8 @@ def _CIDR(cidr):
    If cidr is already an netaddr.CIDR instance just return it.
    Else return a new instance
    """
+   if cidr is None:
+      return None
    if isinstance(cidr, netaddr.CIDR) or cidr == "":
       return cidr
    else:

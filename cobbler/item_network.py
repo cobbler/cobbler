@@ -67,6 +67,11 @@ class Network(item.Item):
         return True
 
     def set_address(self, address):
+        if address is None:
+            # FIXME: probably wrong handling, need to reimpl "is_valid"
+            # logic for all objects?
+            self.address = None
+            return
         address = address.strip()
         if address == "":
             self.address = address
@@ -78,6 +83,10 @@ class Network(item.Item):
         return True
 
     def set_gateway(self, gateway):
+        if gateway is None:
+            # FIXME
+            self.gateway = None
+            return
         gateway = gateway.strip()
         if gateway == "":
             self.gateway = gateway
@@ -89,6 +98,10 @@ class Network(item.Item):
         return True
 
     def set_broadcast(self, broadcast):
+        if broadcast is None:
+            # FIXME:
+            self.broadcast = None
+            return
         broadcast = broadcast.strip()
         if broadcast == "":
             self.broadcast = broadcast
@@ -105,13 +118,14 @@ class Network(item.Item):
         return True
 
     def set_reserved(self, reserved):
+        # FIXME: what should this do?
         return True
 
-    def set_used_addresses(self):
+    def set_used_addresses(self, junk):
         # FIXME: what should this do?  It was missing before
         return True
 
-    def set_free_addresses(self):
+    def set_free_addresses(self, junk):
         # FIXME: what should this do?  It was missing before
         return True
 
@@ -279,7 +293,7 @@ class Network(item.Item):
         return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
-        return utils.to_datastruct_from_fields(self,FIELDS)
+        return utils.printable_from_fields(self,FIELDS)
 
     def get_parent(self):
         """

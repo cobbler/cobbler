@@ -57,37 +57,13 @@ class NetworkFunction(commands.CobblerFunction):
         obj = self.object_manipulator_start(self.api.new_network,self.api.networks)
         if obj is None:
             return True
-        if self.matches_args(self.args,["dumpvars"]):
+        if utils.matches_args(self.args,["dumpvars"]):
             return self.object_manipulator_finish(obj, self.api.profiles, self.options)
 
-        if self.options.cidr is not None:
-            obj.set_cidr(self.options.cidr)
-        elif self.matches_args(self.args, ['add']):
-            raise CX(_("cidr is required"))
+        # FIXME: for all objects, ensure that the objects we save are completed
+        # given that we no longer use is_valid
 
-        if self.options.address is not None:
-            obj.set_address(self.options.address)
-        elif self.matches_args(self.args, ["add"]):
-            obj.set_address(obj.cidr[0])
-
-        if self.options.broadcast is not None:
-            obj.set_broadcast(self.options.broadcast)
-        elif self.matches_args(self.args, ["add"]):
-            obj.set_broadcast(_CIDR(self.options.cidr)[-1])
-
-        if self.options.gateway is not None:
-            obj.set_gateway(self.options.gateway)
-        elif self.matches_args(self.args, ["add"]):
-            obj.set_gateway(_CIDR(self.options.cidr)[-2])
-
-        if self.options.ns is not None:
-            obj.set_nameservers(self.options.ns)
-        if self.options.reserved is not None:
-            obj.set_reserved(self.options.reserved)
-        if self.options.owners is not None:
-            obj.set_owners(self.options.owners)
-        if self.options.comment is not None:
-            obj.set_comment(self.options.comment)
+        utils.apply_options_from_fields(obj, item_network.FIELDS, self.options)
 
         return self.object_manipulator_finish(obj, self.api.networks, self.options)
 
