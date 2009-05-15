@@ -69,10 +69,10 @@ def main(args):
 
    # create the local repo so we can have the latest koan
    # even if it's not in Fedora yet
-   subprocess.call("createrepo ../rpm-build",shell=True)
+   subprocess.call("createrepo ../../rpm-build",shell=True)
 
    subprocess.call("mkdir -p /tmp/newkoan", shell=True) 
-   subprocess.call("cp -r ../rpm-build/* /tmp/newkoan/",shell=True) 
+   subprocess.call("cp -r ../../rpm-build/* /tmp/newkoan/",shell=True) 
 
    # write config file
    cfg = open("/tmp/koanlive.cfg","w+")
