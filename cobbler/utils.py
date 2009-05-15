@@ -1629,6 +1629,7 @@ def clear_from_fields(obj, fields, is_subobject=False):
         setattr(obj, elems[0], val)
 
 def from_datastruct_from_fields(obj, seed_data, fields):
+
     for elems in fields:
         # we don't have to load interface fields here
         if elems[0].startswith("*"):
@@ -1636,14 +1637,20 @@ def from_datastruct_from_fields(obj, seed_data, fields):
         k = elems[0]
         if seed_data.has_key(k):
             # print "FDFF: %s->%s"  % (k,seed_data[k])
-            if k == "interfaces":
-                # FIXME: add a method for this?
-                setattr(obj, k, seed_data[k])
-            else:
-                setfn = getattr(obj, "set_%s" % k)
-                setfn(seed_data[k])
+            #if k == "interfaces":
+            #    # FIXME: add a method for this?
+            #    setattr(obj, k, seed_data[k])
+            #else:
+            #    setfn = getattr(obj, "set_%s" % k)
+            #    setfn(seed_data[k])
+
+            # provided we have a validation function elsewhere it's much faster
+            # not to play getattr/setfn games here.
+            setattr(obj, k, seed_data[k])
+
     if obj.uid == '':
         obj.uid = obj.config.generate_uid()
+
     return obj
 
 def get_methods_from_fields(obj, fields):
@@ -1671,28 +1678,30 @@ def printable_from_fields(obj, fields):
     buf  = ""
     keys = []
     for elem in fields:
-       keys.append(elem[0])
+       keys.append((elem[0], elem[3], elem[4]))
     keys.sort()
-    buf = buf + "%-30s : %s\n" % ("name", getattr(obj, "name"))
-    for k in keys:
+    buf = buf + "%-30s : %s\n" % ("Name", getattr(obj, "name"))
+    for (k, nicename, editable) in keys:
        # FIXME: make interfaces print nicely
        # FIXME: supress fields users don't need to see?
        # FIXME: print ctime, mtime nicely
-       if k.startswith("*"):
+       if k.startswith("*") or not editable:
            continue
 
        if k != "name":
-           buf = buf + "%-30s : %s\n" % (k, getattr(obj, k))
+           # FIXME: move examples one field over, use description here.
+           buf = buf + "%-30s : %s\n" % (nicename, getattr(obj, k))
 
     # somewhat brain-melting special handling to print the hashes
     # inside of the interfaces more neatly.
     if obj.COLLECTION_TYPE == "system":
        for iname in obj.interfaces.keys():
           # FIXME: inames possibly not sorted
-          buf = buf + "%-30s : %s\n" % ("interface",iname)
-          for k in keys:
-             if k.startswith("*"):
-                 buf = buf + "%-30s : %s\n" % (k, obj.interfaces[iname][k.replace("*","")])
+          buf = buf + "%-30s : %s\n" % ("Interface ===== ",iname)
+          for (k, nicename, editable) in keys:
+             if k.startswith("*") and editable:
+                 buf = buf + "%-30s : %s\n" % (nicename, obj.interfaces[iname][k.replace("*","")])
+
     return buf
 
 def matches_args(args, list_of):
@@ -1725,8 +1734,12 @@ def add_options_from_fields(parser, fields, args):
        k = elem[0] 
        # scrub interface tags so all fields get added correctly.
        k = k.replace("*","")
-       desc = elem[3]
+       nicename = elem[3]
+       example = elem[5]
        niceopt = "--%s" % k.replace("_","-")
+       desc = nicename
+       if example != "":
+          desc = nicename + " (%s)" % example
        parser.add_option(niceopt, dest=k, help=desc)
     
     if not matches_args(args, ["dumpvars","find","remove","report","list"]): 

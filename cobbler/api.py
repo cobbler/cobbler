@@ -54,12 +54,6 @@ import os
 import xmlrpclib
 import traceback
 
-import fields_distro
-import fields_profile
-import fields_system
-import fields_image
-import fields_system
-
 ERROR = 100
 INFO  = 10
 DEBUG = 5
@@ -183,6 +177,7 @@ class BootAPI:
         if self.is_cobblerd:
            # don't signal yourself, that's asking for trouble.
            return True
+        print "*** DEBUG: XMLRPC UPDATE ***"
         self.server = xmlrpclib.Server("http://127.0.0.1:%s" % self.settings().xmlrpc_port)
         try:
             if not remove:

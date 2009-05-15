@@ -27,57 +27,58 @@ from cexceptions import *
 from utils import _
 
 FIELDS = [
-    [ "name"                      , None,                         0, "Name", True ],
-    [ "uid"                       , "",                           0, "",     False ],
-    [ "owners"                    , "SETTINGS:default_ownership", 0, "Owners list for authz_ownership", False ],
-    [ "profile"                   , None,                         0, "Parent Profile", True ],
-    [ "image"                     , None,                         0, "Parent Image", True ],
-    [ "kernel_options"            , {},                           0, "Kernel Options", True ],
-    [ "kernel_options_post"       , {},                           0, "Post Install Kernel Options", False ],
-    [ "ks_meta"                   , {},                           0, "Kickstart metadata", True ], 
-    [ "interfaces"                , {},                           0, "", False ],
-    [ "netboot_enabled"           , True,                         0, "Netboot enabled", True  ],
-    [ "depth"                     , 2,                            0, "", False],
-    [ "mgmt_classes"              , [],                           0, "Management classes", True ],             
-    [ "template_files"            , {},                           0, "Template files", True ],
-    [ "kickstart"                 , "<<inherit>>", 0, "Kickstart template path", True ],  # use value in profile
-    [ "server"                    , "<<inherit>>", 0, "Server override", True ],  # "" (or settings)
-    [ "virt_path"                 , "<<inherit>>", 0, "Virt path", True ],  # ""
-    [ "virt_type"                 , "<<inherit>>", 0, "Virt type", True ],  # "" 
-    [ "virt_cpus"                 , "<<inherit>>", 0, "Virt CPU count", True ],  # ""
-    [ "virt_file_size"            , "<<inherit>>", 0, "Virt File Size (GB)", True ],  # ""
-    [ "virt_ram"                  , "<<inherit>>", 0, "Virt RAM (MB)", True ],  # ""
-    [ "virt_auto_boot"            , "<<inherit>>", 0, "Autoboot this VM?", True ],  # ""
-    [ "virt_host"                 , "",            0, "Host for this VM", True ],
-    [ "virt_group"                , "",            0, "Group this system belongs to", True ],  
-    [ "virt_guests"               , [],            0, "Guests this host hosts", True ],
-    [ "comment"                   , "",            0, "Free form text description", True ],
-    [ "ctime"                     , 0,             0, "", False ],
-    [ "mtime"                     , 0,             0, "", False ],
-    [ "power_type"                , "SETTINGS:power_management_default_type", 0, "Power management type", True ],
-    [ "power_address"             , "",            0, "Power management address", True ],
-    [ "power_user"                , "",            0, "Power username", True ],
-    [ "power_pass"                , "",            0, "Power password", True ],
-    [ "power_id"                  , "",            0, "Power ID",       True ],
-    [ "hostname"                  , "",            0, "Hostname",       True ],
-    [ "gateway"                   , "",            0, "Gateway",        True ],
-    [ "name_servers"              , [],            0, "Name Servers",   True ],
-    [ "name_servers_search"       , [],            0, "Name Servers Search Path", True ],
-    [ "redhat_management_key"     , "<<inherit>>", 0, "Registration key if required", True ],
-    [ "redhat_management_server"  , "<<inherit>>", 0, "Management server if required", True ],
-    [ "*mac_address"              , "",            0, "MAC Address, ex: AA:BB:CC:DD:EE:FF", True ],
-    [ "*ip_address"               , "",            0, "IP Address, ex: 192.168.10.50", True ],
-    [ "*dhcp_tag"                 , "",            0, "DHCP Tag", True ],
-    [ "*subnet"                   , "",            0, "Subnet", True ],
-    [ "*virt_bridge"              , "",            0, "Virt Brige, ex: virbr0", True ],
-    [ "*static"                   , False,         0, "Static", True ],
-    [ "*bonding"                  , "",            0, "Bonding Y/N?", True ],
-    [ "*bonding_master"           , "",            0, "Bonding Master", True ],
-    [ "*bonding_opts"             , "",            0, "Bonding Opts", True ],
-    [ "*dns_name"                 , "",            0, "DNS Name", True ],
-    [ "*static_routes"            , [],            0, "Static Routes", True ],
-    [ "*network"                  , "",            0, "Network", True ]
+  ["name",None,0,"Name",True,""],
+  ["uid","",0,"",False,""],
+  ["owners","SETTINGS:default_ownership",0,"Owners",False,""],
+  ["profile",None,0,"Profile",True,""],
+  ["image",None,0,"Image",True,""],
+  ["kernel_options",{},0,"Kernel Options",True,""],
+  ["kernel_options_post",{},0,"Post Install Kernel Options",False,""],
+  ["ks_meta",{},0,"Kickstart Metadata",True,""],
+  ["interfaces",{},0,"",False,""],
+  ["netboot_enabled",True,0,"Netboot Enabled",True,""],
+  ["depth",2,0,"",False,""],
+  ["mgmt_classes",[],0,"Management Classes",True,""],
+  ["template_files",{},0,"Template Files",True,""],
+  ["kickstart","<<inherit>>",0,"Kickstart",True,""],#usevalueinprofile
+  ["server","<<inherit>>",0,"Server Override",True,""],#""(orsettings)
+  ["virt_path","<<inherit>>",0,"Virt Path",True,""],#""
+  ["virt_type","<<inherit>>",0,"Virt Type",True,""],#""
+  ["virt_cpus","<<inherit>>",0,"Virt CPUs",True,""],#""
+  ["virt_file_size","<<inherit>>",0,"Virt File Size(GB)",True,""],#""
+  ["virt_ram","<<inherit>>",0,"Virt RAM (MB)",True,""],#""
+  ["virt_auto_boot","<<inherit>>",0,"Virt Auto Boot",True,""],#""
+  ["virt_host","",0,"Virt Host",True,""],
+  ["virt_group","",0,"Virt Group",True,""],
+  ["virt_guests",[],0,"Virt Guests",True,""],
+  ["comment","",0,"Comment",True,""],
+  ["ctime",0,0,"",False,""],
+  ["mtime",0,0,"",False,""],
+  ["power_type","SETTINGS:power_management_default_type",0,"Power Management Type",True,""],
+  ["power_address","",0,"Power Management Address",True,""],
+  ["power_user","",0,"Power Username ",True,""],
+  ["power_pass","",0,"Power Password",True,""],
+  ["power_id","",0,"Power ID",True,""],
+  ["hostname","",0,"Hostname",True,""],
+  ["gateway","",0,"Gateway",True,""],
+  ["name_servers",[],0,"Name Servers",True,""],
+  ["name_servers_search",[],0,"Name Servers Search Path",True,""],
+  ["redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,""],
+  ["redhat_management_server","<<inherit>>",0,"Red Hat Management Server",True,""],
+  ["*mac_address","",0,"MAC Address",True,""],
+  ["*ip_address","",0,"IP Address",True,""],
+  ["*dhcp_tag","",0,"DHCP Tag",True,""],
+  ["*subnet","",0,"Subnet",True,""],
+  ["*virt_bridge","",0,"Virt Bridge",True,""],
+  ["*static",False,0,"Static",True,""],
+  ["*bonding","",0,"Bonding",True,""],
+  ["*bonding_master","",0,"Bonding Master",True,""],
+  ["*bonding_opts","",0,"Bonding Opts",True,""],
+  ["*dns_name","",0,"DNS Name",True,""],
+  ["*static_routes",[],0,"Static Routes",True,""],
+  ["*network","",0,"Network",True,""]
 ]
+
 # FIXME: interfaces needs it's own fields (somehow)
 
 class System(item.Item):

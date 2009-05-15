@@ -35,25 +35,25 @@ from utils import _
 # name | default | subobject default | tooltip | editable?
 
 FIELDS = [
-   [ "name",                     None                         ,0, "Name"                                , True    ],
-   [ "uid",                      ""                           ,0, ""                                    , False        ],
-   [ "owners",                   "SETTINGS:default_ownership" ,0, "Owners list for authz_ownership"     , True  ],
-   [ "kernel",                   None                         ,0, "Path to kernel file"                 , True ],
-   [ "initrd",                   None                         ,0, "Path to initrd file"                 , True ],
-   [ "kernel_options",           {}                           ,0, "List of install time kernel options" , True ],
-   [ "kernel_options_post",      {}                           ,0, "List of post install kernel options" , True  ],
-   [ "ks_meta",                  {}                           ,0, "Kickstart templating variables"      , True],
-   [ "arch",                     'i386'                       ,0, "Architecture"                        , True],
-   [ "breed",                    'redhat'                     ,0, "Breed"                               , True],
-   [ "os_version",               ''                           ,0, "OS Version"                          , True],
-   [ "source_repos",             []                           ,0, "Source Repos"                        , False],
-   [ "mgmt_classes",             []                           ,0, "Management classes"                  , True],
-   [ "depth",                    0                            ,0, ""                                   , False],
-   [ "template_files",           {}                           ,0, "Template files"                      , True],
-   [ "comment",                  ""                           ,0, "Free form text description"          , True],
-   [ "tree_build_time",          0                            ,0, ""                                    , False ],
-   [ "redhat_management_key",    "<<inherit>>"                ,0, "Registration key if needed"          , True],
-   [ "redhat_management_server", "<<inherit>>"                ,0, "Management server if needed"         , True]
+   [ "name",None,0,"Name",True,""],
+   [ "uid","",0,"",False,""],
+   [ "owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list"],
+   [ "kernel",None,0,"Kernel",True,""],
+   [ "initrd",None,0,"Initrd",True,""],
+   [ "kernel_options",{},0,"Kernel Options",True,""],
+   [ "kernel_options_post",{},0,"Kernel Options (Post Install)", True,""],
+   [ "ks_meta",{},0,"Kickstart Metadata",True,""],
+   [ "arch",'i386',0,"Architecture",True,""],
+   [ "breed",'redhat',0,"Breed",True,""],
+   [ "os_version",'',0,"OS Version",True,""],
+   [ "source_repos",[],0,"Source Repos", False,""],
+   [ "mgmt_classes",[],0,"Management Classes",True,""],
+   [ "depth",0,0,"Depth",False,""],
+   [ "template_files",{},0,"Template Files",True,""],
+   [ "comment","",0,"Comment",True,""],
+   [ "tree_build_time",0,0,"Tree Build Time",False,"" ],
+   [ "redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,""],
+   [ "redhat_management_server", "<<inherit>>",0,"Red Hat Management Server",True,""]
 ]
 
 class Distro(item.Item):
