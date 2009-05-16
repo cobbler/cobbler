@@ -54,11 +54,12 @@ import os
 import xmlrpclib
 import traceback
 
-import fields_distro
-import fields_profile
-import fields_system
-import fields_image
-import fields_system
+import item_distro
+import item_profile
+import item_system
+import item_repo
+import item_image
+import item_network
 
 ERROR = 100
 INFO  = 10
@@ -136,24 +137,27 @@ class BootAPI:
     def __setup_logger(self,name):
         return utils.setup_logger(name, is_cobblerd=self.is_cobblerd, **self.log_settings)
    
-    #def get_distro_fields(self):
-    #    """
-    #    Returns datastructures used to provide object field info
-    #    to auto-build the CLI and webapp.
-    #    """
-    #    return fields_distro.get_fields()
-    # 
-    #def get_profile_fields(self):
-    #    return fields_profile.get_fields()
-    # 
-    #def get_system_fields(self):
-    #    return fields_system.get_fields()
-    #
-    #def get_image_fields(self):
-    #    return fields_image.get_fields()
-    #
-    #def get_repo_fields(self):
-    #    return fields_repo.get_fields()
+    def get_distro_fields(self):
+        """
+        Returns datastructures used to provide object field info
+        to auto-build the CLI and webapp.
+        """
+        return item_distro.FIELDS
+     
+    def get_profile_fields(self):
+        return item_profile.FIELDS
+     
+    def get_system_fields(self):
+        return item_system.FIELDS
+    
+    def get_image_fields(self):
+        return item_image.FIELDS
+    
+    def get_repo_fields(self):
+        return item_repo.FIELDS
+
+    def get_network_fields(self):
+        return item_network.FIELDS
 
     def is_selinux_enabled(self):
         """
@@ -183,6 +187,7 @@ class BootAPI:
         if self.is_cobblerd:
            # don't signal yourself, that's asking for trouble.
            return True
+        print "*** DEBUG: XMLRPC UPDATE ***"
         self.server = xmlrpclib.Server("http://127.0.0.1:%s" % self.settings().xmlrpc_port)
         try:
             if not remove:
@@ -524,7 +529,7 @@ class BootAPI:
               if not collapse:
                   results2.append(x)
               else:
-                  results2.append(x.to_datastruct_with_cache())
+                  results2.append(x.to_datastruct())
         return results2
 
     def get_distros_since(self,mtime,collapse=False):

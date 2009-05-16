@@ -225,6 +225,9 @@ class PXEGen:
             ip = interface["ip_address"]
 
             f1 = utils.get_config_filename(system,interface=name)
+            if f1 is None:
+                print "WARNING: invalid interface recorded for system (%s,%s)" % (system.name,name)
+                continue;
 
             if image_based:
                 working_arch = image.arch
@@ -443,7 +446,7 @@ class PXEGen:
 	        blended = utils.blender(self.api, True, system)
             else:
                 blended = utils.blender(self.api, True, profile)
-            kickstart_path = blended["kickstart"]
+            kickstart_path = blended.get("kickstart","")
             
         else:
             # this is an image we are making available, not kernel+initrd
@@ -639,11 +642,17 @@ class PXEGen:
         blended = utils.blender(self.api, False, obj)
 
         ksmeta = blended.get("ks_meta",{})
-        del blended["ks_meta"]
+        try:
+            del blended["ks_meta"]
+        except:
+            pass
         blended.update(ksmeta) # make available at top level
 
         templates = blended.get("template_files",{})
-        del blended["template_files"]
+        try:
+            del blended["template_files"]
+        except:
+            pass
         blended.update(templates) # make available at top level
 
         (success, templates) = utils.input_string_or_hash(templates)

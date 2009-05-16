@@ -29,28 +29,28 @@ from cexceptions import *
 from utils import _
 
 FIELDS = [
-   [ 'name'            , '' ],
-   [ 'uid'             , "" ],
-   [ 'arch'            , 'i386' ],
-   [ 'file'            , '' ],
-   [ 'parent'          , '' ],
-   [ 'depth'           , 0  ],
-   [ 'virt_auto_boot'  , "SETTINGS:virt_auto_boot"   ],
-   [ 'virt_ram'        , "SETTINGS:default_virt_ram" ],
-   [ 'virt_file_size'  , "SETTINGS:default_virt_file_size" ],
-   [ 'virt_path'       , '' ],
-   [ 'virt_type'       , "SETTINGS:default_virt_type" ],
-   [ 'virt_cpus'       , 1  ],
-   [ 'network_count'   , 1  ],
-   [ 'virt_bridge'     , "SETTINGS:default_virt_bridge" ],
-   [ 'owners'          , "SETTINGS:default_ownership" ],
-   [ 'image_type'      , "iso" ],
-   [ 'breed'           , 'redhat' ],
-   [ 'os_version'      , '' ],
-   [ 'comment'         , '' ],
-   [ 'ctime'           , 0  ],
-   [ 'mtime'           , 0  ],
-   [ 'kickstart'       , '' ]
+  ['name','',0,"Name",True,""],
+  ['uid',"",0,"",False,""],
+  ['arch','i386',0,"Architecture",True,""],
+  ['file','',0,"File",True,"Path to local file or nfs://user@host:path"],
+  ['parent','',0,"",False,""],
+  ['depth',0,0,"",False,""],
+  ['virt_auto_boot',"SETTINGS:virt_auto_boot",0,"Virt Auto Boot",True,"Auto boot this VM?"],
+  ['virt_ram',"SETTINGS:default_virt_ram",0,"Virt RAM (MB)",True,""],
+  ['virt_file_size',"SETTINGS:default_virt_file_size",0,"Virt File Size (GB)",True,""],
+  ['virt_path','',0,"Virt Path",True,"Ex: /directory or VolGroup00"],
+  ['virt_type',"SETTINGS:default_virt_type",0,"Virt Type",True,""],
+  ['virt_cpus',1,0,"Virt CPUs",True,""],
+  ['network_count',1,0,"Virt NICs",True,""],
+  ['virt_bridge',"SETTINGS:default_virt_bridge",0,"Virt Bridge",True,""],
+  ['owners',"SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)"],
+  ['image_type',"iso",0,"Image Type",True,"ex: iso, direct, virt-image"],
+  ['breed','redhat',0,"Breed",True,"ex: redhat, suse, debian"],
+  ['os_version','',0,"OS Version",True,"ex: rhel4"],
+  ['comment','',0,"Comment",True,"Free form text description"],
+  ['ctime',0,0,"",False,""],
+  ['mtime',0,0,"",False,""],
+  ['kickstart','',0,"Kickstart",True,"Path to kickstart/answer file template"]
 ]
 
 class Image(item.Item):
@@ -96,7 +96,7 @@ class Image(item.Item):
         if utils.find_kickstart(kickstart):
             self.kickstart = kickstart
             return True
-        raise CX(_("kickstart not found"))
+        raise CX(_("kickstart not found for image"))
 
 
     def set_file(self,filename):
@@ -202,72 +202,18 @@ class Image(item.Item):
         """
         return None  # no parent
 
-    def is_valid(self):
-        if self.file is None or self.file == '':
-            raise CX(_("image has no file specified"))
-        if self.name is None or self.name == '':
-            raise CX(_("image has no name specified"))
-        return True
-
     def to_datastruct(self):
-        return utils.to_datastruct(self,FIELDS)
+        return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
         """
         A human readable representaton
         """
-        buf =       _("image           : %s\n") % self.name
-        buf = buf + _("arch            : %s\n") % self.arch
-        buf = buf + _("breed           : %s\n") % self.breed
-        buf = buf + _("comment         : %s\n") % self.comment
-        buf = buf + _("created         : %s\n") % time.ctime(self.ctime)
-        buf = buf + _("file            : %s\n") % self.file
-        buf = buf + _("image type      : %s\n") % self.image_type
-        buf = buf + _("kickstart       : %s\n") % self.kickstart
-        buf = buf + _("modified        : %s\n") % time.ctime(self.mtime)
-        buf = buf + _("os version      : %s\n") % self.os_version
-        buf = buf + _("owners          : %s\n") % self.owners
-        buf = buf + _("virt bridge     : %s\n") % self.virt_bridge
-        buf = buf + _("virt cpus       : %s\n") % self.virt_cpus
-        buf = buf + _("network count   : %s\n") % self.network_count
-        buf = buf + _("virt auto boot  : %s\n") % self.virt_auto_boot
-        buf = buf + _("virt file size  : %s\n") % self.virt_file_size
-        buf = buf + _("virt path       : %s\n") % self.virt_path
-        buf = buf + _("virt ram        : %s\n") % self.virt_ram
-        buf = buf + _("virt type       : %s\n") % self.virt_type
-        return buf
-
+        return utils.printable_from_fields(self,FIELDS)
   
     def remote_methods(self):
-        return {           
-            'name'            :  self.set_name,
-            'image-type'      :  self.set_image_type,
-            'image_type'      :  self.set_image_type,            
-            'breed'           :  self.set_breed,
-            'os-version'      :  self.set_os_version,
-            'os_version'      :  self.set_os_version,            
-            'arch'            :  self.set_arch,
-            'file'            :  self.set_file,
-            'kickstart'       :  self.set_kickstart,
-            'owners'          :  self.set_owners,
-            'virt-cpus'       :  self.set_virt_cpus,
-            'virt_cpus'       :  self.set_virt_cpus,            
-            'network-count'   :  self.set_network_count,
-            'network_count'   :  self.set_network_count,            
-            'virt-auto-boot'  :  self.set_virt_auto_boot,
-            'virt_auto_boot'  :  self.set_virt_auto_boot,            
-            'virt-file-size'  :  self.set_virt_file_size,
-            'virt_file_size'  :  self.set_virt_file_size,            
-            'virt-bridge'     :  self.set_virt_bridge,
-            'virt_bridge'     :  self.set_virt_bridge,            
-            'virt-path'       :  self.set_virt_path,
-            'virt_path'       :  self.set_virt_path,            
-            'virt-ram'        :  self.set_virt_ram,
-            'virt_ram'        :  self.set_virt_ram,            
-            'virt-type'       :  self.set_virt_type,
-            'virt_type'       :  self.set_virt_type,            
-            'comment'         :  self.set_comment
-        }
+        return utils.get_remote_methods_from_fields(self,FIELDS)
+
 
 def get_fields():
    return {

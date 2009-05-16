@@ -55,7 +55,41 @@ def list(request, what, page=None):
     }))
     return HttpResponse(html)
 
+def get_fields(what):
+    if what == "distro":
+       f = item_distro.FIELDS
+    if what == "profile":
+       f = item_profile.FIELDS
+    if what == "system":
+       f = item_system.FIELDS
+    if what == "repo":
+       f = item_repo.FIELDS
+    if what == "image":
+       f =  item_image.FIELDS
+    if what == "network":
+       f = item_network.FIELDS
+  
+    # FIXME: somewhat temporary, this maps the arrays in item_* to the hash structures in PV's
+    # original version.  In process of cleanup. -- MPD
+    ds = []
+    for row in f:
+        ds.append((row[0], {
+            "value" : row[1], # default value
+            "type" : "text",  : # FIXME, not added yet!
+            "size" : "100",  # FIXME, should be CSS governed only!
+            "width" : "100", # ditto
+            "cols"  : 5, # ditto
+            "valtype" : "str", # fixme: should be eliminated
+            "example" : row[4] # fixme: should be named "tip", not example      
+        }))  
+        # FIXME: need fields for CSS type and also choices list for radio buttons, and also display type
+        # all added to item_*.py
+    return ds
+
 def genlist(request, what, page=None):
+
+    # FIXME: cleanup
+
     if page == None:
         page = int(request.session.get("%s_page" % what, 1))
     limit = int(request.session.get("%s_limit" % what, 50))
@@ -135,6 +169,10 @@ def genlist(request, what, page=None):
 
 
 def modify_list(request, what, pref, value=None):
+
+    # FIXME: cleanup
+    # FIXME: what does this do?  COMMENTS!
+
     try:
         if pref == "sort":
             old_sort=request.session.get("%s_sort_field" % what,"")
@@ -160,6 +198,7 @@ def modify_list(request, what, pref, value=None):
         return error_page(request,"Invalid preference: %s" % pref)
 
 def modify_filter(request, what, action, filter=None):
+    # FIXME: cleanup
     try:
         if filter == None: raise ""
         # read session variable for filter
@@ -181,6 +220,7 @@ def modify_filter(request, what, action, filter=None):
         return error_page(request,"Invalid filter: %s" % str(filter))
 
 def generic_rename(request, what, obj_name=None, obj_newname=None):
+   # FIXME: cleanup
    if obj_name == None:
       return error_page(request,"You must specify a %s to rename" % what)
    if not remote.has_item(what,obj_name):
@@ -200,6 +240,9 @@ def generic_rename(request, what, obj_name=None, obj_newname=None):
       return HttpResponseRedirect("/cobbler_web/%s/list" % what)
 
 def generic_multi(request, what, multi_mode=None):
+    # FIXME: cleanup
+    # FIXME: how does this work, COMMENTS!
+
     names = request.POST.getlist('items')
 
     all_items = remote.get_items(what)
@@ -230,6 +273,10 @@ def generic_multi(request, what, multi_mode=None):
     return HttpResponse(html)
 
 def generic_domulti(request, what, multi_mode=None):
+
+    # FIXME: cleanup
+    # FIXME: COMMENTS!!!11111???
+
     names = request.POST.get('names', '').split(" ")
 
     if multi_mode == "delete":
@@ -268,342 +315,6 @@ def generic_domulti(request, what, multi_mode=None):
     else:
         raise "Unknown multiple operation on %ss: %s" % (what,str(multi_mode))
     return HttpResponseRedirect("/cobbler_web/%s/list"%what)
-
-def distro_edit(request, distro_name=None):
-   available_arches = ['i386','x86','x86_64','ppc','ppc64','s390','s390x','ia64']
-   available_breeds = [['redhat','Red Hat Based'], ['debian','Debian'], ['ubuntu','Ubuntu'], ['suse','SuSE']]
-   distro = None
-   if not distro_name is None:
-      editable = remote.check_access_no_fail(token, "modify_distro", distro_name)
-      distro = remote.get_distro(distro_name, True, token)
-      distro['ctime'] = time.ctime(distro['ctime'])
-      distro['mtime'] = time.ctime(distro['mtime'])
-   else:
-      editable = remote.check_access_no_fail(token, "new_distro", None)
-
-   t = get_template('distro_edit.tmpl')
-   html = t.render(Context({'distro': distro, 'available_arches': available_arches, 'available_breeds': available_breeds, "editable":editable}))
-   return HttpResponse(html)
-
-def distro_save(request):
-   # FIXME: error checking
-   field_list = ('name','comment','kernel','initrd','kopts','kopts','kopts_post','ksmeta','arch','breed','os_version','mgmt_classes','template_files','redhat_management_key','redhat_management_server')
-
-   new_or_edit = request.POST.get('new_or_edit','new')
-   editmode = request.POST.get('editmode', 'edit')
-   distro_name = request.POST.get('name', request.POST.get('oldname', None))
-   distro_oldname = request.POST.get('oldname', None)
-   if distro_name == None:
-      return HttpResponse("NO DISTRO NAME SPECIFIED")
-
-   if new_or_edit == 'new' or editmode == 'copy':
-      distro_id = remote.new_distro(token)
-   else:
-      if editmode == 'edit':
-         distro_id = remote.get_distro_handle(distro_name, token)
-      else:
-         if distro_name == distro_oldname:
-            return HttpResponse("The name was not changed, cannot %s" % editmode)
-         distro_id = remote.get_distro_handle(distro_oldname, token)
-
-   delete1   = request.POST.get('delete1', None)
-   delete2   = request.POST.get('delete2', None)
-   recursive = request.POST.get('recursive', False)
-
-   if new_or_edit == 'edit' and delete1 and delete2:
-      remote.remove_distro(distro_name, token, recursive)
-      return HttpResponseRedirect('/cobbler_web/distro/list')
-   else:
-      for field in field_list:
-         value = request.POST.get(field, None)
-         if field == 'name' and editmode == 'rename': continue
-         elif value != None:
-            remote.modify_distro(distro_id, field, value, token)
-
-      remote.save_distro(distro_id, token, new_or_edit)
-
-      if editmode == 'rename':
-         remote.rename_distro(distro_id, distro_name, token)
-
-      return HttpResponseRedirect('/cobbler_web/distro/edit/%s' % distro_name)
-
-   t = get_template('profile_list.tmpl')
-   html = t.render(Context({'what':'profile', 'profiles': profiles[offset:ending], 'page': page, 'pages': range(1,num_pages+1), 'next_page':next_page, 'prev_page':prev_page}))
-   return HttpResponse(html)
-
-def profile_edit(request, profile_name=None, subprofile=0):
-   available_virttypes = [['auto','Any'],['xenpv','Xen(pv)'],['xenfv','Xen(fv)'],['qemu','KVM/qemu'],['vmware','VMWare Server'],['vmwarew','VMWare WkStn']]
-   profile = None
-   if not profile_name is None:
-      editable = remote.check_access_no_fail(token, "modify_profile", profile_name)
-      profile = remote.get_profile(profile_name, True, token)
-      if profile.has_key('ctime'):
-         profile['ctime'] = time.ctime(profile['ctime'])
-      if profile.has_key('mtime'):
-         profile['mtime'] = time.ctime(profile['mtime'])
-   else:
-      editable = remote.check_access_no_fail(token, "new_profile", None)
-
-   distros = remote.get_distros(token)
-   profiles = remote.get_profiles(token)
-   repos = remote.get_repos(token)
-   t = get_template('profile_edit.tmpl')
-   html = t.render(Context({'profile': profile, 'subprofile': subprofile, 'profiles': profiles, 'distros': distros, 'editable':editable, 'available_virttypes': available_virttypes}))
-   return HttpResponse(html)
-
-def profile_save(request):
-   # FIXME: error checking
-   field_list = ('name','parent','profile','distro','enable_menu','kickstart','kopts','kopts_post','virt_auto_boot','virt_file_size','virt_ram','ksmeta','template_files','repos','virt_path','virt_type','virt_bridge','virt_cpus','dhcp_tag','server','owners','mgmt_classes','comment','name_servers','name_servers_search','redhat_management_key','redhat_management_server')
-
-   new_or_edit = request.POST.get('new_or_edit','new')
-   editmode = request.POST.get('editmode', 'edit')
-   profile_name = request.POST.get('name', request.POST.get('oldname', None))
-   profile_oldname = request.POST.get('oldname', None)
-   if profile_name == None:
-      return HttpResponse("NO PROFILE NAME SPECIFIED")
-
-   subprofile = int(request.POST.get('subprofile','0'))
-   if new_or_edit == 'new' or editmode == 'copy':
-      if subprofile:
-         profile_id = remote.new_subprofile(token)
-      else:
-         profile_id = remote.new_profile(token)
-   else:
-      if editmode == 'edit':
-         profile_id = remote.get_profile_handle(profile_name, token)
-      else:
-         if profile_name == profile_oldname:
-            return HttpResponse("The name was not changed, cannot %s" % editmode )
-         profile_id = remote.get_profile_handle(profile_oldname, token)
-
-   delete1   = request.POST.get('delete1', None)
-   delete2   = request.POST.get('delete2', None)
-   recursive = request.POST.get('recursive', False)
-
-   if new_or_edit == 'edit' and delete1 and delete2:
-      remote.remove_profile(profile_name, token, recursive)
-      return HttpResponseRedirect('/cobbler_web/profile/list')
-   else:
-      for field in field_list:
-         value = request.POST.get(field, None)
-         if field == "distro" and subprofile: continue
-         elif field == "parent" and not subprofile: continue
-         elif field == "name" and editmode == "rename": continue
-         elif field in ('enable_menu'):
-            # checkbox fields are weird...
-            if field in request.POST:
-               remote.modify_profile(profile_id, field, "1", token)
-            else:
-               remote.modify_profile(profile_id, field, "0", token)
-         elif value != None:
-            remote.modify_profile(profile_id, field, value, token)
-
-      remote.save_profile(profile_id, token, new_or_edit)
-
-      if editmode == "rename":
-         remote.rename_profile(profile_id, profile_name, token)
-
-      return HttpResponseRedirect('/cobbler_web/profile/edit/%s' % profile_name)
-
-def system_edit(request, system_name=None, editmode="new"):
-   available_virttypes = [['<<inherit>>','<<inherit>>'],['auto','Any'],['xenpv','Xen(pv)'],['xenfv','Xen(fv)'],['qemu','KVM/qemu'],['vmware','VMWare Server'],['vmwarew','VMWare WkStn']]
-   available_power = ['','bullpap','wti','apc_snmp','ether-wake','ipmilan','drac','ipmitool','ilo','rsa','lpar','bladecenter','virsh','integrity']
-   system = None
-   if not system_name is None:
-      editable = remote.check_access_no_fail(token, "modify_system", system_name)
-      system = remote.get_system(system_name, True, token)
-      system['ctime'] = time.ctime(system['ctime'])
-      system['mtime'] = time.ctime(system['mtime'])
-   else:
-      editable = remote.check_access_no_fail(token, "new_system", None)
-
-   distros = remote.get_distros(token)
-   profiles = remote.get_profiles(token)
-   repos = remote.get_repos(token)
-   t = get_template('system_edit.tmpl')
-   html = t.render(Context({'system': system, 'profiles': profiles, 'distros': distros, 'repos': repos, 'editmode': editmode, 'available_virttypes': available_virttypes, 'available_power': available_power, 'editable':editable}))
-   return HttpResponse(html)
-
-def system_save(request):
-   # FIXME: error checking
-   field_list = ('name','profile','kopts','kopts_post','ksmeta','owners','netboot_enabled','server','virt_file_size','virt_cpus','virt_ram','virt_type','virt_path','virt_auto_boot','comment','power_type','power_user','power_pass','power_id','power_address','name_servers','name_servers_search','gateway','hostname','redhat_management_key','redhat_management_server','mgmt_classes')
-   interface_field_list = ('macaddress','ipaddress','dns_name','static_routes','static','virtbridge','dhcptag','subnet','bonding','bondingopts','bondingmaster','present','original')
-
-   editmode = request.POST.get('editmode', 'edit')
-   system_name = request.POST.get('name', request.POST.get('oldname', None))
-   system_oldname = request.POST.get('oldname', None)
-   interfaces = request.POST.get('interface_list', "").split(",")
-
-   if system_name == None:
-      return HttpResponse("NO SYSTEM NAME SPECIFIED")
-
-   if editmode in ('new','copy'):
-      system_id = remote.new_system(token)
-   else:
-      if editmode == 'edit':
-         system_id = remote.get_system_handle(system_name, token)
-      else:
-         if system_name == system_oldname:
-            return HttpResponse("The name was not changed, cannot %s" % editmode)
-         system_id = remote.get_system_handle(system_oldname, token)
-
-   delete1   = request.POST.get('delete1', None)
-   delete2   = request.POST.get('delete2', None)
-
-   if delete1 and delete2:
-      remote.remove_system(system_name, token, recursive)
-      return HttpResponseRedirect('/cobbler_web/system/list')
-   else:
-      for field in field_list:
-         value = request.POST.get(field, None)
-         if field == 'name' and editmode == 'rename': continue
-         elif value != None:
-            remote.modify_system(system_id, field, value, token)
-
-      for interface in interfaces:
-         ifdata = {}
-         for item in interface_field_list:
-            ifdata["%s-%s" % (item,interface)] = request.POST.get("%s-%s" % (item,interface), "")
-
-         if ifdata['present-%s' % interface] == "0" and ifdata['original-%s' % interface] == "1":
-            remote.modify_system(system_id, 'delete_interface', interface, token)
-         elif ifdata['present-%s' % interface] == "1":
-            remote.modify_system(system_id, 'modify_interface', ifdata, token)
-
-      remote.save_system(system_id, token, editmode)
-
-      if editmode == 'rename':
-         remote.rename_system(system_id, system_name, token)
-
-      return HttpResponseRedirect('/cobbler_web/system/edit/%s' % system_name)
-
-def repo_edit(request, repo_name=None):
-   available_arches = ['i386','x86','x86_64','ppc','ppc64','s390','s390x','ia64','noarch','src']
-   repo = None
-   if not repo_name is None:
-      editable = remote.check_access_no_fail(token, "modify_repo", repo_name)
-      repo = remote.get_repo(repo_name, True, token)
-      repo['ctime'] = time.ctime(repo['ctime'])
-      repo['mtime'] = time.ctime(repo['mtime'])
-   else:
-      editable = remote.check_access_no_fail(token, "new_repo", None)
-
-   t = get_template('repo_edit.tmpl')
-   html = t.render(Context({'repo': repo, 'available_arches': available_arches, "editable":editable}))
-   return HttpResponse(html)
-
-def repo_save(request):
-   # FIXME: error checking
-   field_list = ('name','mirror','keep_updated','priority','mirror_locally','rpm_list','createrepo_flags','arch','yumopts','environment','owners','comment')
-
-   editmode = request.POST.get('editmode', 'edit')
-   repo_name = request.POST.get('name', request.POST.get('oldname', None))
-   repo_oldname = request.POST.get('oldname', None)
-
-   if repo_name == None:
-      return HttpResponse("NO SYSTEM NAME SPECIFIED")
-
-   if editmode in ('new','copy'):
-      repo_id = remote.new_repo(token)
-   else:
-      if editmode == 'edit':
-         repo_id = remote.get_repo_handle(repo_name, token)
-      else:
-         if repo_name == repo_oldname:
-            return HttpResponse("The name was not changed, cannot %s" % editmode)
-         repo_id = remote.get_repo_handle(repo_oldname, token)
-
-   delete1   = request.POST.get('delete1', None)
-   delete2   = request.POST.get('delete2', None)
-
-   if delete1 and delete2:
-      remote.remove_repo(repo_name, token)
-      return HttpResponseRedirect('/cobbler_web/repo/list')
-   else:
-      for field in field_list:
-         value = request.POST.get(field, None)
-         if field == 'name' and editmode == 'rename': continue
-         elif field in ('keep_updated','mirror_locally'):
-            if field in request.POST:
-               remote.modify_repo(repo_id, field, "1", token)
-            else:
-               remote.modify_repo(repo_id, field, "0", token)
-         elif value != None:
-            remote.modify_repo(repo_id, field, value, token)
-
-      remote.save_repo(repo_id, token, editmode)
-
-      if editmode == 'rename':
-         remote.rename_repo(repo_id, repo_name, token)
-
-      return HttpResponseRedirect('/cobbler_web/repo/edit/%s' % repo_name)
-
-def image_edit(request, image_name=None):
-   available_arches = ['i386','x86_64']
-   available_breeds = [['redhat','Red Hat Based'], ['debian','Debian'], ['ubuntu','Ubuntu'], ['suse','SuSE']]
-   available_virttypes = [['auto','Any'],['xenpv','Xen(pv)'],['xenfv','Xen(fv)'],['qemu','KVM/qemu'],['vmware','VMWare Server'],['vmwarew','VMWare WkStn']]
-   available_imagetypes = ['direct','iso','memdisk','virt-clone']
-
-   image = None
-   if not image_name is None:
-      editable = remote.check_access_no_fail(token, "modify_image", image_name)
-      image = remote.get_image(image_name, True, token)
-      image['ctime'] = time.ctime(image['ctime'])
-      image['mtime'] = time.ctime(image['mtime'])
-   else:
-      editable = remote.check_access_no_fail(token, "new_image", None)
-
-   t = get_template('image_edit.tmpl')
-   html = t.render(Context({'image': image, 'available_arches': available_arches, 'available_breeds': available_breeds, 'available_virttypes': available_virttypes, 'available_imagetypes': available_imagetypes, "editable":editable}))
-   return HttpResponse(html)
-
-def image_save(request):
-   # FIXME: error checking
-   field_list = ('name','image_type','breed','os_version','arch','file','owners','virt_cpus','network_count','virt_file_size','virt_path','virt_bridge','virt_ram','virt_type','virt_auto_boot','comment')
-
-   editmode = request.POST.get('editmode', 'edit')
-   image_name = request.POST.get('name', request.POST.get('oldname', None))
-   image_oldname = request.POST.get('oldname', None)
-
-   if image_name == None:
-      return HttpResponse("NO SYSTEM NAME SPECIFIED")
-
-   if editmode in ('new','copy'):
-      image_id = remote.new_image(token)
-   else:
-      if editmode == 'edit':
-         image_id = remote.get_image_handle(image_name, token)
-      else:
-         if image_name == image_oldname:
-            return HttpResponse("The name was not changed, cannot %s" % editmode)
-         image_id = remote.get_image_handle(image_oldname, token)
-
-   delete1   = request.POST.get('delete1', None)
-   delete2   = request.POST.get('delete2', None)
-   recursive = request.POST.get('recursive', False)
-
-   if delete1 and delete2:
-      remote.remove_image(image_name, token, recursive)
-      return HttpResponseRedirect('/cobbler_web/image/list')
-   else:
-      for field in field_list:
-         value = request.POST.get(field, None)
-         if field == 'name' and editmode == 'rename': continue
-         elif field in ('netboot_enabled'):
-            # checkbox fields are weird...
-            if field in request.POST:
-               remote.modify_system(system_id, field, "1", token)
-            else:
-               remote.modify_system(system_id, field, "0", token)
-         elif value != None:
-            remote.modify_image(image_id, field, value, token)
-
-      remote.save_image(image_id, token, editmode)
-
-      if editmode == 'rename':
-         remote.rename_image(image_id, image_name, token)
-
-      return HttpResponseRedirect('/cobbler_web/image/edit/%s' % image_name)
 
 def ksfile_list(request, page=None):
    ksfiles = remote.get_kickstart_templates(token)
@@ -714,64 +425,6 @@ def snippet_save(request):
       remote.read_or_write_snippet(snippet_name,False,snippetdata,token)
       return HttpResponseRedirect('/cobbler_web/snippet/edit/%s' % snippet_name)
 
-def network_edit(request, network_name=None, editmode='edit'):
-   network = None
-   if not network_name is None:
-      editable = remote.check_access_no_fail(token, "modify_network", network_name)
-      network = remote.get_network(network_name, True, token)
-      if network.has_key('ctime'):
-         network['ctime'] = time.ctime(network['ctime'])
-      if network.has_key('mtime'):
-         network['mtime'] = time.ctime(network['mtime'])
-   else:
-      editable = remote.check_access_no_fail(token, "new_network", None)
-
-   t = get_template('network_edit.tmpl')
-   html = t.render(Context({'network': network, 'editable':editable}))
-   return HttpResponse(html)
-
-def network_save(request):
-   # FIXME: error checking
-   field_list = ('name','cidr','address','gateway','broadcast','name_servers','reserved','used_addresses','free_addresses','comment','owners')
-
-   new_or_edit = request.POST.get('new_or_edit','new')
-   editmode = request.POST.get('editmode', 'edit')
-   network_name = request.POST.get('name', request.POST.get('oldname', None))
-   network_oldname = request.POST.get('oldname', None)
-   if network_name == None:
-      return HttpResponse("NO NETWORK NAME SPECIFIED")
-
-   if new_or_edit == 'new' or editmode == 'copy':
-      network_id = remote.new_network(token)
-   else:
-      if editmode == 'edit':
-         network_id = remote.get_network_handle(network_name, token)
-      else:
-         if network_name == network_oldname:
-            return HttpResponse("The name was not changed, cannot %s" % editmode )
-         network_id = remote.get_network_handle(network_oldname, token)
-
-   delete1   = request.POST.get('delete1', None)
-   delete2   = request.POST.get('delete2', None)
-   recursive = request.POST.get('recursive', False)
-
-   if new_or_edit == 'edit' and delete1 and delete2:
-      remote.remove_network(network_name, token, recursive)
-      return HttpResponseRedirect('/cobbler_web/network/list')
-   else:
-      for field in field_list:
-         value = request.POST.get(field, None)
-         if field == "name" and editmode == "rename": continue
-         elif value != None:
-            remote.modify_network(network_id, field, value, token)
-
-      remote.save_network(network_id, token, new_or_edit)
-
-      if editmode == "rename":
-         remote.rename_network(network_id, network_name, token)
-
-      return HttpResponseRedirect('/cobbler_web/network/edit/%s' % network_name)
-
 def settings(request):
    settings = remote.get_settings()
    t = get_template('settings.tmpl')
@@ -787,6 +440,10 @@ def dosync(request):
    return HttpResponseRedirect("/cobbler_web/")
 
 def generic_edit(request, what=None, obj_name=None, editmode="new"):
+
+   # FIXME: cleanup
+   # FIXME: comments
+
    obj = None
 
    child = False
@@ -838,6 +495,10 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    return HttpResponse(html)
 
 def generic_save(request,what):
+
+    # FIXME: cleanup
+    # FIXME: comments
+
     editmode = request.POST.get('editmode', 'edit')
     obj_name = request.POST.get('name', "")
     
@@ -858,7 +519,7 @@ def generic_save(request,what):
         if field == 'name' and editmode == 'edit':
             continue
         elif what == 'system' and field == "interfaces":
-            interface_field_list = ('macaddress','ipaddress','dns_name','static_routes','static','virtbridge','dhcptag','subnet','bonding','bondingopts','bondingmaster','present','original')
+            interface_field_list = ('mac_address','ip_address','dns_name','static_routes','static','virt_bridge','dhcptag','subnet','bonding','bonding_opts','bonding_master','present','original')
             interfaces = request.POST.get('interface_list', "").split(",")
             for interface in interfaces:
                 ifdata = {}

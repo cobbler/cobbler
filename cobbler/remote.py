@@ -270,21 +270,21 @@ class CobblerXMLRPCInterface:
         self._log("get_item(%s,%s)"%(what,name))
         item=self.api.get_item(what,name)
         if item is not None:
-            item=item.to_datastruct_with_cache()
+            item=item.to_datastruct()
         if flatten:
             item = utils.flatten(item)
         return self.xmlrpc_hacks(item)
 
     def get_items(self, what):
         self._log("get_items(%s)"%what)
-        item = [x.to_datastruct_with_cache() for x in self.api.get_items(what)]
+        item = [x.to_datastruct() for x in self.api.get_items(what)]
         return self.xmlrpc_hacks(item)
 
     def find_items(self, what, criteria=None,sort_field=None):
         self._log("find_items(%s)"%what)
         items = self.api.find_items(what,criteria=criteria)
         items = self.__sort(items,sort_field)
-        items = [x.to_datastruct_with_cache() for x in items]
+        items = [x.to_datastruct() for x in items]
         return self.xmlrpc_hacks(items)
 
     def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page=None):
@@ -292,7 +292,7 @@ class CobblerXMLRPCInterface:
         items = self.api.find_items(what,criteria=criteria)
         items = self.__sort(items,sort_field)
         (items,pageinfo) = self.__paginate(items,page,items_per_page)
-        items = [x.to_datastruct_with_cache() for x in items]
+        items = [x.to_datastruct() for x in items]
         return self.xmlrpc_hacks({
             'items'    : items,
             'pageinfo' : pageinfo
@@ -440,7 +440,7 @@ class CobblerXMLRPCInterface:
             else:
                raise CX("internal error, collection name is %s" % collection_name)
             # FIXME: speed this up
-            data = contents.to_datastruct_with_cache()
+            data = contents.to_datastruct()
             total_items = len(data)
 
         data.sort(self.__sorter)
@@ -550,20 +550,6 @@ class CobblerXMLRPCInterface:
         if obj is None:
            return "# object not found: %s" % system_name
         return self.api.get_template_file_for_system(obj,path)
-
-    def get_fields(self,what,token):
-        if what == "distro":
-            return self.api.get_distro_fields()
-        elif what in ("profile","subprofile"):
-            return self.api.get_profile_fields()
-        elif what == "system":
-            return self.api.get_system_fields()
-        elif what == "repo":
-            return self.api.get_repo_fields()
-        elif what == "image":
-            return self.api.get_image_fields()
-        elif what == "network":
-            return self.api.get_network_fields()
 
     def register_new_system(self,info,token=None,**rest):
         """
@@ -827,7 +813,7 @@ class CobblerXMLRPCInterface:
         if not expand:     
             data = [x.name for x in find_function(name, True, True, **criteria)]
         else:
-            data = [x.to_datastruct_with_cache() for x in find_function(name, True, True, **criteria)]
+            data = [x.to_datastruct() for x in find_function(name, True, True, **criteria)]
         return self.xmlrpc_hacks(data)
 
     def find_distro(self,criteria={},expand=False,token=None,**rest):

@@ -27,20 +27,21 @@ from cexceptions import *
 from utils import _, _IP, _CIDR
 
 FIELDS = [
-    [ "name",           None ],
-    [ "cidr",           None ],
-    [ "address",        None ],
-    [ "gateway",        None ],
-    [ "broadcast",      None ],
-    [ "name_servers",   None ],
-    [ "reserved",       None ],
-    [ "used_addresses", None ],
-    [ "free_addresses", None ],
-    [ "comment",        ""   ],
-    [ "ctime",          0    ],
-    [ "mtime",          0    ],
-    [ "owners",         "SETTINGS:default_ownership"],
-    [ "uid",            None ],
+  ["name",None,0,"Name",True,"Ex: testlab"],
+  ["cidr",None,0,"CIDR",True,"CIDR range of this network"],
+  ["address",None,0,"Address",True,""],
+  ["gateway",None,0,"Gateway",True,""],
+  ["broadcast",None,0,"Broadcast",True,""],
+  ["name_servers",None,0,"Name Servers",True,""],
+  ["reserved",None,0,"Reserved",True,""],
+  ["used_addresses",None,0,"Used Addresses",False,""],
+  ["free_addresses",None,0,"Free Addresses",False,""],
+  ["comment","",0,"Comment",True,"Free form text description"],
+  ["ctime",0,0,"",False,""],
+  ["mtime",0,0,"",False,""],
+  ["owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)"],
+  ["uid",None,0,"",False,""],
+
 ]
 
 class Network(item.Item):
@@ -67,6 +68,11 @@ class Network(item.Item):
         return True
 
     def set_address(self, address):
+        if address is None:
+            # FIXME: probably wrong handling, need to reimpl "is_valid"
+            # logic for all objects?
+            self.address = None
+            return
         address = address.strip()
         if address == "":
             self.address = address
@@ -78,6 +84,10 @@ class Network(item.Item):
         return True
 
     def set_gateway(self, gateway):
+        if gateway is None:
+            # FIXME
+            self.gateway = None
+            return
         gateway = gateway.strip()
         if gateway == "":
             self.gateway = gateway
@@ -89,6 +99,10 @@ class Network(item.Item):
         return True
 
     def set_broadcast(self, broadcast):
+        if broadcast is None:
+            # FIXME:
+            self.broadcast = None
+            return
         broadcast = broadcast.strip()
         if broadcast == "":
             self.broadcast = broadcast
@@ -105,13 +119,14 @@ class Network(item.Item):
         return True
 
     def set_reserved(self, reserved):
+        # FIXME: what should this do?
         return True
 
-    def set_used_addresses(self):
+    def set_used_addresses(self, junk):
         # FIXME: what should this do?  It was missing before
         return True
 
-    def set_free_addresses(self):
+    def set_free_addresses(self, junk):
         # FIXME: what should this do?  It was missing before
         return True
 
@@ -272,23 +287,6 @@ class Network(item.Item):
             total += len(item)
         return total
 
-    def is_valid(self):
-        """
-	A network is valid if:
-          * it has a name and a CIDR
-          * it does not overlap another network
-	"""
-        if self.name is None:
-            raise CX(_("name is required"))
-        if self.cidr is None:
-            raise CX(_("cidr is required"))
-        for other in self.config.networks():
-            if other.name == self.name:
-                continue
-            if self.cidr in other.cidr or other.cidr in self.cidr:
-                raise CX(_("cidr %s overlaps with network %s (%s)" % (self.cidr, other.name, other.cidr)))
-        return True
-
     def to_datastruct(self):
         # FIXME: can't store things as native python-netaddr objects here
         # and therefore should do that in indiv. set_* functions
@@ -296,20 +294,7 @@ class Network(item.Item):
         return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
-        buf =       _("network          : %s\n") % self.name
-        buf = buf + _("CIDR             : %s\n") % self.cidr
-        buf = buf + _("gateway          : %s\n") % self.gateway
-        buf = buf + _("network address  : %s\n") % self.address
-        buf = buf + _("broadcast        : %s\n") % self.broadcast
-        buf = buf + _("name servers     : %s\n") % [str(i) for i in self.name_servers]
-        buf = buf + _("reserved         : %s\n") % [str(i) for i in self.reserved]
-        buf = buf + _("free addresses   : %s\n") % self.free_address_count()
-        buf = buf + _("used addresses   : %s\n") % self.used_address_count()
-        buf = buf + _("comment          : %s\n") % self.comment
-        buf = buf + _("owners           : %s\n") % self.owners
-        buf = buf + _("created          : %s\n") % time.ctime(self.ctime)
-        buf = buf + _("modified         : %s\n") % time.ctime(self.mtime)
-        return buf
+        return utils.printable_from_fields(self,FIELDS)
 
     def get_parent(self):
         """
@@ -319,151 +304,6 @@ class Network(item.Item):
         return None
 
     def remote_methods(self):
-        return {
-            'name'           : self.set_name,
-            'cidr'           : self.set_cidr,
-            'address'        : self.set_address,
-            'gateway'        : self.set_gateway,
-            'broadcast'      : self.set_broadcast,
-            'name_servers'   : self.set_name_servers,
-            'reserved'       : self.set_reserved,
-            'used_addresses' : self.set_used_addresses,
-            'free_addresses' : self.set_free_addresses,
-            'comment'        : self.set_comment,
-            'owners'         : self.set_owners
-        }
+        return utils.get_remote_methods_from_fields(self,FIELDS)
 
-def get_fields():
-   return {
-     'name': {
-       'type'    :'text',
-       'valtype' :'str',
-       'label'   :'Network Name',
-       'example' :'Example: VLAN001',
-       'size'    :'128',
-       'width'   :'150px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'disabled="true"',
-       'order'   :0,
-       'editable':True,
-     },
-     'ctime': {
-       'type'    :'label',
-       'valtype' :'str',
-       'label'   :'Created',
-       'value'   :'',
-       'default' :'',
-       'order'   :1,
-       'editable':False,
-     },
-     'mtime': {
-       'type'    :'label',
-       'valtype' :'str',
-       'label'   :'Last Modified',
-       'value'   :'',
-       'default' :'',
-       'order'   :2,
-       'editable':False,
-     },
-     'comment': {
-       'type'    :'textarea',
-       'valtype' :'str',
-       'label'   :'Comment',
-       'example' :'This is a free-form description field',
-       'rows'    :'5',
-       'cols'    :'30',
-       'width'   :'400px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :3,
-       'editable':True,
-     },
-     'cidr': {
-       'type'    :'text',
-       'valtype' :'str',
-       'label'   :'CIDR Address',
-       'example' :'Example: 192.168.1.0/24 (REQUIRED)',
-       'size'    :'128',
-       'width'   :'150px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :4,
-       'editable':True,
-     },
-     'address': {
-       'type'    :'text',
-       'valtype' :'str',
-       'label'   :'Network Address',
-       'example' :'Example: 192.168.1.0',
-       'size'    :'128',
-       'width'   :'150px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :5,
-       'editable':True,
-     },
-     'gateway': {
-       'type'    :'text',
-       'valtype' :'str',
-       'label'   :'Gateway Address',
-       'example' :'The default gateway of the network',
-       'size'    :'128',
-       'width'   :'150px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :6,
-       'editable':True,
-     },
-     'broadcast': {
-       'type'    :'text',
-       'valtype' :'str',
-       'label'   :'Broadcast Address',
-       'example' :'Optional, will be calcualted unless overridden',
-       'size'    :'128',
-       'width'   :'150px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :7,
-       'editable':True,
-     },
-     'name_servers': {
-       'type'    :'text',
-       'valtype' :'list',
-       'label'   :'Name Servers',
-       'example' :'Name servers, space delimited, if not provided by DHCP',
-       'size'    :'255',
-       'width'   :'400px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :8,
-       'editable':True,
-     },
-     'owners': {
-       'type'    :'text',
-       'valtype' :'list',
-       'label'   :'Access Allowed For',
-       'example' :'Applies only if using authz_ownership module, space-delimited',
-       'size'    :'255',
-       'width'   :'400px',
-       'value'   :'',
-       'default' :'',
-       'opts'    :'',
-       'setopts' :'',
-       'order'   :9,
-       'editable':True,
-     },
-   }
+

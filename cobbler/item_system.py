@@ -27,53 +27,59 @@ from cexceptions import *
 from utils import _
 
 FIELDS = [
-    [ "name"                      , None ],
-    [ "uid"                       , "" ],
-    [ "owners"                    , "SETTINGS:default_ownership" ],
-    [ "profile"                   , None ],
-    [ "image"                     , None ],
-    [ "kernel_options"            , {} ],
-    [ "kernel_options_post"       , {} ],
-    [ "ks_meta"                   , {} ], 
-    [ "interfaces"                , {} ],
-    [ "netboot_enabled"           , True ],
-    [ "depth"                     , 2 ],
-    [ "mgmt_classes"              , [] ],             
-    [ "template_files"            , {} ],
-    [ "kickstart"                 , "<<inherit>>" ],  # use value in profile
-    [ "server"                    , "<<inherit>>" ],  # "" (or settings)
-    [ "virt_path"                 , "<<inherit>>" ],  # ""
-    [ "virt_type"                 , "<<inherit>>" ],  # "" 
-    [ "virt_cpus"                 , "<<inherit>>" ],  # ""
-    [ "virt_file_size"            , "<<inherit>>" ],  # ""
-    [ "virt_ram"                  , "<<inherit>>" ],  # ""
-    [ "virt_auto_boot"            , "<<inherit>>" ],  # ""
-    [ "virt_type"                 , "<<inherit>>" ],  # ""
-    [ "virt_path"                 , "<<inherit>>" ],  # ""
-    [ "virt_bridge"               , "<<inherit>>" ],  # ""
-    [ "virt_host"                 , ""            ],
-    [ "virt_group"                , ""            ],  
-    [ "virt_guests"               , []            ],
-    [ "comment"                   , ""            ],
-    [ "ctime"                     , 0             ],
-    [ "mtime"                     , 0             ],
-    [ "uid"                       , ""            ],
-    [ "random_id"                 , ""            ],
-    [ "power_type"                , "SETTINGS:power_management_default_type" ],
-    [ "power_address"             , ""            ],
-    [ "power_user"                , ""            ],
-    [ "power_pass"                , ""            ],
-    [ "power_id"                  , ""            ],
-    [ "hostname"                  , ""            ],
-    [ "gateway"                   , ""            ],
-    [ "name_servers"              , []            ],
-    [ "name_servers_search"       , []            ],
-    [ "bonding"                   , ""            ],
-    [ "bonding_master"            , ""            ],
-    [ "bonding_opts"              , ""            ],
-    [ "redhat_management_key"     , "<<inherit>>" ],
-    [ "redhat_management_server"  , "<<inherit>>" ]
+  ["name",None,0,"Name",True,"Ex: vanhalen.example.org"],
+  ["uid","",0,"",False,""],
+  ["owners","SETTINGS:default_ownership",0,"Owners",False,"Owners list for authz_ownership (space delimited)"],
+  ["profile",None,0,"Profile",True,"Parent profile"],
+  ["image",None,0,"Image",True,"Parent image (if not a profile)"],
+  ["kernel_options",{},0,"Kernel Options",True,"Ex: selinux=permissive"],
+  ["kernel_options_post",{},0,"Post Install Kernel Options",False,"Ex: clocksource=pit noapic"],
+  ["ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86"],
+  ["interfaces",{},0,"",False,""],
+  ["netboot_enabled",True,0,"Netboot Enabled",True,"PXE (re)install this machine at next boot?"],
+  ["depth",2,0,"",False,""],
+  ["mgmt_classes",[],0,"Management Classes",True,"For external config management"],
+  ["template_files",{},0,"Template Files",True,"File mappings for built-in configuration management"],
+  ["kickstart","<<inherit>>",0,"Kickstart",True,"Path to kickstart template"],#usevalueinprofile
+  ["server","<<inherit>>",0,"Server Override",True,"See manpage or leave blank"],#""(orsettings)
+  ["virt_path","<<inherit>>",0,"Virt Path",True,"Ex: /directory or VolGroup00"],#""
+  ["virt_type","<<inherit>>",0,"Virt Type",True,"Virtualization technology to use"],#""
+  ["virt_cpus","<<inherit>>",0,"Virt CPUs",True,""],#""
+  ["virt_file_size","<<inherit>>",0,"Virt File Size(GB)",True,""],#""
+  ["virt_ram","<<inherit>>",0,"Virt RAM (MB)",True,""],#""
+  ["virt_auto_boot","<<inherit>>",0,"Virt Auto Boot",True,"Auto boot this VM?"],#""
+  ["virt_host","",0,"Virt Host",True,"What physical host was this VM installed on?"],
+  ["virt_group","",0,"Virt Group",True,"To what physical group does this host belong?"],
+  ["virt_guests",[],0,"Virt Guests",True,"What virtual guests does this host host?"],
+  ["comment","",0,"Comment",True,"Free form text description"],
+  ["ctime",0,0,"",False,""],
+  ["mtime",0,0,"",False,""],
+  ["power_type","SETTINGS:power_management_default_type",0,"Power Management Type",True,""],
+  ["power_address","",0,"Power Management Address",True,"Ex: power-device.example.org"],
+  ["power_user","",0,"Power Username ",True,""],
+  ["power_pass","",0,"Power Password",True,""],
+  ["power_id","",0,"Power ID",True,"Usually a plug number or blade name, if power type requires it"],
+  ["hostname","",0,"Hostname",True,""],
+  ["gateway","",0,"Gateway",True,""],
+  ["name_servers",[],0,"Name Servers",True,"space delimited"],
+  ["name_servers_search",[],0,"Name Servers Search Path",True,"space delimited"],
+  ["redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Satellite, or Spacewalk"],
+  ["redhat_management_server","<<inherit>>",0,"Red Hat Management Server",True,"Address of Satellite or Spacewalk Server"],
+  ["*mac_address","",0,"MAC Address",True,""],
+  ["*ip_address","",0,"IP Address",True,""],
+  ["*dhcp_tag","",0,"DHCP Tag",True,""],
+  ["*subnet","",0,"Subnet",True,""],
+  ["*virt_bridge","",0,"Virt Bridge",True,""],
+  ["*static",False,0,"Static",True,"Is this interface static?"],
+  ["*bonding","",0,"Bonding",True,""],
+  ["*bonding_master","",0,"Bonding Master",True,""],
+  ["*bonding_opts","",0,"Bonding Opts",True,""],
+  ["*dns_name","",0,"DNS Name",True,""],
+  ["*static_routes",[],0,"Static Routes",True,""],
+  ["*network","",0,"Network",True,"Parent network object for this interface"]
 ]
+
+# FIXME: interfaces needs it's own fields (somehow)
 
 class System(item.Item):
 
@@ -88,6 +94,9 @@ class System(item.Item):
 
     def clear(self,is_subobject=False):
         utils.clear_from_fields(self,FIELDS)
+
+    # FIXME: need to ensure duplicate interface/hostname checks are reinstated
+    # FIXME: need is_valid logic back, but more generalized
 
     def delete_interface(self,name):
         """
@@ -446,19 +455,6 @@ class System(item.Item):
         self.netboot_enabled = utils.input_boolean(netboot_enabled)
         return True
 
-    def is_valid(self):
-        """
-        A system is valid when it contains a valid name and a profile.
-        """
-        # NOTE: this validation code does not support inheritable distros at this time.
-        # this is by design as inheritable systems don't make sense.
-        if self.name is None:
-            raise CX(_("need to specify a name for this object"))
-        if self.profile in [ None, "" ] and self.image in [ None,"" ]:
-            raise CX(_("need to specify a profile or image as a parent for this system"))
-
-        return True
-
     def set_kickstart(self,kickstart):
         """
         Sets the kickstart.  This must be a NFS, HTTP, or FTP URL.
@@ -471,22 +467,17 @@ class System(item.Item):
         abstraction layer -- assigning systems to defined and repeatable 
         roles.
         """
-        if kickstart is None or kickstart == "" or kickstart == "delete":
+        if kickstart is None or kickstart in [ "", "delete", "<<inherit>>" ]:
             self.kickstart = "<<inherit>>"
             return True
         if utils.find_kickstart(kickstart):
             self.kickstart = kickstart
             return True
-        raise CX(_("kickstart not found"))
+        raise CX(_("kickstart not found: %s" % kickstart))
 
-
-        #self.power_type           = self.settings.power_management_default_type
-        #self.power_address        = ""
-        #self.power_user           = ""
-        #self.power_pass           = ""
-        #self.power_id             = ""
 
     def set_power_type(self, power_type):
+        # FIXME: modularize this better
         if power_type is None:
             power_type = ""
         power_type = power_type.lower()
@@ -530,66 +521,7 @@ class System(item.Item):
         return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
-        buf =       _("system                : %s\n") % self.name
-        buf = buf + _("profile               : %s\n") % self.profile
-        buf = buf + _("comment               : %s\n") % self.comment
-        buf = buf + _("created               : %s\n") % time.ctime(self.ctime)
-        buf = buf + _("gateway               : %s\n") % self.gateway
-        buf = buf + _("hostname              : %s\n") % self.hostname
-        buf = buf + _("image                 : %s\n") % self.image
-        buf = buf + _("kernel options        : %s\n") % self.kernel_options
-        buf = buf + _("kernel options post   : %s\n") % self.kernel_options_post
-        buf = buf + _("kickstart             : %s\n") % self.kickstart
-        buf = buf + _("ks metadata           : %s\n") % self.ks_meta
-        buf = buf + _("mgmt classes          : %s\n") % self.mgmt_classes
-        buf = buf + _("modified              : %s\n") % time.ctime(self.mtime)
-
-        buf = buf + _("name servers          : %s\n") % self.name_servers
-        buf = buf + _("name servers search   : %s\n") % self.name_servers_search
-        buf = buf + _("netboot enabled?      : %s\n") % self.netboot_enabled 
-        buf = buf + _("owners                : %s\n") % self.owners
-        
-        buf = buf + _("redhat mgmt key       : %s\n") % self.redhat_management_key
-        buf = buf + _("redhat mgmt server    : %s\n") % self.redhat_management_server
-
-        buf = buf + _("server                : %s\n") % self.server
-        buf = buf + _("template files        : %s\n") % self.template_files
-        buf = buf + _("virt auto boot        : %s\n") % self.virt_auto_boot
-
-        buf = buf + _("virt cpus             : %s\n") % self.virt_cpus
-        buf = buf + _("virt host             : %s\n") % self.virt_host
-        buf = buf + _("virt group            : %s\n") % self.virt_group
-        buf = buf + _("virt guests           : %s\n") % self.virt_guests
-        buf = buf + _("virt file size        : %s\n") % self.virt_file_size
-        buf = buf + _("virt path             : %s\n") % self.virt_path
-        buf = buf + _("virt ram              : %s\n") % self.virt_ram
-        buf = buf + _("virt type             : %s\n") % self.virt_type
-
-        buf = buf + _("power type            : %s\n") % self.power_type
-        buf = buf + _("power address         : %s\n") % self.power_address
-        buf = buf + _("power user            : %s\n") % self.power_user
-        buf = buf + _("power password        : %s\n") % self.power_pass
-        buf = buf + _("power id              : %s\n") % self.power_id
-
-        ikeys = self.interfaces.keys()
-        ikeys.sort()
-        for name in ikeys:
-            x = self.__get_interface(name)
-            buf = buf + _("interface        : %s\n") % (name)
-            buf = buf + _("  network        : %s\n") % x.get("network","")
-            buf = buf + _("  mac address    : %s\n") % x.get("mac_address","")
-            buf = buf + _("  bonding        : %s\n") % x.get("bonding","")
-            buf = buf + _("  bonding_master : %s\n") % x.get("bonding_master","")
-            buf = buf + _("  bonding_opts   : %s\n") % x.get("bonding_opts","")
-            buf = buf + _("  is static?     : %s\n") % x.get("static",False)
-            buf = buf + _("  ip address     : %s\n") % self.get_ip_address(name)
-            buf = buf + _("  subnet         : %s\n") % x.get("subnet","")
-            buf = buf + _("  static routes  : %s\n") % x.get("static_routes",[])
-            buf = buf + _("  dns name       : %s\n") % x.get("dns_name","")
-            buf = buf + _("  dhcp tag       : %s\n") % x.get("dhcp_tag","")
-            buf = buf + _("  virt bridge    : %s\n") % x.get("virt_bridge","")
-
-        return buf
+        return utils.printable_from_fields(self,FIELDS)
 
     def modify_interface(self, hash):
         """
@@ -610,53 +542,8 @@ class System(item.Item):
             if field == "bondingopts"   : self.set_bonding_opts(value, interface)
             if field == "staticroutes"  : self.set_static_routes(value, interface)
         return True
-         
 
     def remote_methods(self):
+        return utils.get_remote_methods_from_fields(self,FIELDS)
 
-        # WARNING: versions with hyphens are old and are in for backwards
-        # compatibility.  At some point they may be removed.
 
-        return {
-           'name'                     : self.set_name,
-           'profile'                  : self.set_profile,
-           'image'                    : self.set_image,
-           'kopts'                    : self.set_kernel_options,
-           'kopts_post'               : self.set_kernel_options_post,           
-           'kernel_options'           : self.set_kernel_options,
-           'kernel_options_post'      : self.set_kernel_options_post,
-           'ksmeta'                   : self.set_ksmeta,
-           'ks_meta'                  : self.set_ksmeta,
-           'kickstart'                : self.set_kickstart,
-           'netboot_enabled'          : self.set_netboot_enabled,           
-           'virt_path'                : self.set_virt_path,           
-           'virt_type'                : self.set_virt_type,           
-           'modify_interface'         : self.modify_interface,           
-           'delete_interface'         : self.delete_interface,           
-           'virt_path'                : self.set_virt_path,           
-           'virt_auto_boot'           : self.set_virt_auto_boot,           
-           'virt_ram'                 : self.set_virt_ram,           
-           'virt_type'                : self.set_virt_type,           
-           'virt_cpus'                : self.set_virt_cpus,           
-           'virt-host'                : self.set_virt_host,
-           'virt_host'                : self.set_virt_host,           
-           'virt_group'               : self.set_virt_group,
-           'virt_guests'              : self.set_virt_guests,           
-           'virt_file_size'           : self.set_virt_file_size,           
-           'server'                   : self.set_server,
-           'owners'                   : self.set_owners,
-           'mgmt_classes'             : self.set_mgmt_classes,           
-           'template_files'           : self.set_template_files,           
-           'comment'                  : self.set_comment,
-           'power_type'               : self.set_power_type,
-           'power_address'            : self.set_power_address,
-           'power_user'               : self.set_power_user,
-           'power_pass'               : self.set_power_pass,
-           'power_id'                 : self.set_power_id,
-           'hostname'                 : self.set_hostname,
-           'gateway'                  : self.set_gateway,
-           'name_servers'             : self.set_name_servers,
-           'name_servers_search'      : self.set_name_servers_search,
-           'redhat_management_key'    : self.set_redhat_management_key,
-           'redhat_management_server' : self.set_redhat_management_server
-        }

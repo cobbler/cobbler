@@ -27,26 +27,25 @@ from utils import _
 import time
 
 FIELDS = [
-    [ "parent"              , None ],
-    [ "name"                , None ],
-    [ "uid"                 , None ],
-    [ "mirror"              , None ],
-    [ "keep_update"         , None ],
-    [ "keep_updated"        , True ],
-    [ "priority"            , 99   ],
-    [ "rpm_list"            , '<<inherit>>' ],
-    [ "createrepo_flags"    , '<<inherit>>' ],
-    [ "depth"               , 2  ],
-    [ "breed"               , "" ],
-    [ "os_version"          , "" ],
-    [ "arch"                , "" ],
-    [ "yumopts"             , {} ],
-    [ "owners"              , "SETTINGS:default_ownership" ],
-    [ "mirror_locally"      , True ],
-    [ "environment"         , {}   ],
-    [ "comment"             , ""   ],
-    [ "ctime"               , 0    ],
-    [ "mtime"               , 0    ]
+  ["parent",None,0,"",False,""],
+  ["name",None,0,"Name",True,"Ex: f10-i386-updates"],
+  ["uid",None,0,"",False,""],
+  ["mirror",None,0,"Mirror",True,"Address of yum or rsync repo to mirror"],
+  ["keep_updated",True,0,"Keep Updated",True,"Update this repo on next 'cobbler reposync'?"],
+  ["priority",99,0,"Priority",True,"Value for yum priorities plugin, if installed"],
+  ["rpm_list",'<<inherit>>',0,"RPM List",True,"Mirror just these RPMs (yum only)"],
+  ["createrepo_flags",'<<inherit>>',0,"Createrepo Flags",True,"Flags to use with createrepo"],
+  ["depth",2,0,"",False,""],
+  ["breed","",0,"Breed",True,"ex: redhat, debian"],
+#  ["os_version","",0,"OS Version",True,"ex: rhel4"],
+  ["arch","",0,"Arch",True,"ex: i386, x86_64"],
+  ["yumopts",{},0,"Yum Options",True,"Options to write to yum config file"],
+  ["owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)"],
+  ["mirror_locally",True,0,"Mirror locally",True,"Copy files or just reference the repo externally?"],
+  ["environment",{},0,"Environment Variables",True,"Use these environment variables during commands (key=value, space delimited)"],
+  ["comment","",0,"Comment",True,"Free form text description"],
+  ["ctime",0,0,"",False,""],
+  ["mtime",0,0,"",False,""]
 ]
 
 class Repo(item.Item):
@@ -179,23 +178,6 @@ class Repo(item.Item):
         """
         return utils.set_arch(self,arch,repo=True)
 
-    def is_valid(self):
-        """
-	A repo is valid if it has a name and a mirror URL
-	"""
-        if self.name is None:
-            raise CX(_("name is required"))
-        if self.mirror is None:
-            raise CX(_("mirror is required"))
-        if self.mirror.startswith("rhn://"):
-            # reposync creates directories based on the channel name so this 
-            # prevents a lot of ugly special case handling if we make the
-            # requirement that repo names match the channels.  It makes sense too.
-            if self.mirror != "rhn://%s" % self.name:
-                args = { "m1" : self.mirror, "m2" : self.mirror.replace("rhn://","") }
-                raise CX(_("Since mirror is RHN %(m1)s, the repo must also be named %(m2)s") % args)
-        return True
-
     def set_mirror_locally(self,value):
         self.mirror_locally = utils.input_boolean(value)
         return True
@@ -204,23 +186,7 @@ class Repo(item.Item):
         return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
-        buf =       _("repo             : %s\n") % self.name
-        buf = buf + _("arch             : %s\n") % self.arch
-        buf = buf + _("breed            : %s\n") % self.breed
-        buf = buf + _("os_version       : %s\n") % self.os_version
-        buf = buf + _("comment          : %s\n") % self.comment
-        buf = buf + _("created          : %s\n") % time.ctime(self.ctime)
-        buf = buf + _("createrepo_flags : %s\n") % self.createrepo_flags
-        buf = buf + _("environment      : %s\n") % self.environment
-        buf = buf + _("keep updated     : %s\n") % self.keep_updated
-        buf = buf + _("mirror           : %s\n") % self.mirror
-        buf = buf + _("mirror locally   : %s\n") % self.mirror_locally
-        buf = buf + _("modified         : %s\n") % time.ctime(self.mtime)
-        buf = buf + _("owners           : %s\n") % self.owners
-        buf = buf + _("priority         : %s\n") % self.priority
-        buf = buf + _("rpm list         : %s\n") % self.rpm_list
-        buf = buf + _("yum options      : %s\n") % self.yumopts
-        return buf
+        return utils.printable_from_fields(self,FIELDS)
 
     def get_parent(self):
         """
@@ -230,24 +196,8 @@ class Repo(item.Item):
         return None
 
     def remote_methods(self):
-        return {
-            'name'             :  self.set_name,
-            'breed'            :  self.set_breed,
-            'os_version'       :  self.set_os_version,
-            'arch'             :  self.set_arch,
-            'mirror_name'      :  self.set_name,            
-            'mirror'           :  self.set_mirror,
-            'keep_updated'     :  self.set_keep_updated,            
-            'priority'         :  self.set_priority,
-            'rpm-list'         :  self.set_rpm_list,
-            'rpm_list'         :  self.set_rpm_list,            
-            'createrepo_flags' :  self.set_createrepo_flags,            
-            'yumopts'          :  self.set_yumopts,
-            'owners'           :  self.set_owners,
-            'mirror_locally'   :  self.set_mirror_locally,            
-            'environment'      :  self.set_environment,
-            'comment'          :  self.set_comment
-        }
+        return utils.get_remote_methods_from_fields(self,FIELDS)
+
 
 def get_fields():
    return {

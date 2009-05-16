@@ -141,14 +141,11 @@ class Collection(serializable.Serializable):
               newhash[x] = hash[x]   
         return newhash
 
-    def to_datastruct_with_cache(self):
-        return self.to_datastruct()
-
     def to_datastruct(self):
         """
         Serialize the collection
         """
-        datastruct = [x.to_datastruct_with_cache() for x in self.listing.values()]
+        datastruct = [x.to_datastruct() for x in self.listing.values()]
         return datastruct
 
     def from_datastruct(self,datastruct):
@@ -233,6 +230,9 @@ class Collection(serializable.Serializable):
 
         """
     
+        if ref is None or ref.name is None:
+           return
+
         if ref.uid == '':
            ref.uid = self.config.generate_uid()
         
@@ -259,17 +259,12 @@ class Collection(serializable.Serializable):
         # if an object of the same/ip/mac already exists.
         self.__duplication_checks(ref,check_for_duplicate_names,check_for_duplicate_netinfo)
 
-
-        if ref is None or not ref.is_valid():
-            raise CX(_("insufficient or invalid arguments supplied"))
-
         if ref.COLLECTION_TYPE != self.collection_type():
             raise CX(_("API error: storing wrong data type in collection"))
 
         if not save:
             # don't need to run triggers, so add it already ...
             self.listing[ref.name.lower()] = ref
-
 
         # perform filesystem operations
         if save:

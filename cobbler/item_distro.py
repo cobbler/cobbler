@@ -32,26 +32,28 @@ from cexceptions import *
 
 from utils import _
 
+# name | default | subobject default | tooltip | editable?
+
 FIELDS = [
-   [ "name",                     None                            ],
-   [ "uid",                      ""                              ],
-   [ "owners",                   "SETTINGS:default_ownership"    ],
-   [ "kernel",                   None                            ],
-   [ "initrd",                   None                            ],
-   [ "kernel_options",           {}                              ],
-   [ "kernel_options_post",      {}                              ],
-   [ "ks_meta",                  {}                              ],
-   [ "arch",                     'i386'                          ],
-   [ "breed",                    'redhat'                        ],
-   [ "os_version",               ''                              ],
-   [ "source_repos",             []                              ],
-   [ "mgmt_classes",             []                              ],
-   [ "depth",                    0                               ],
-   [ "template_files",           {}                              ],
-   [ "comment",                  ""                              ],
-   [ "tree_build_time",          0                               ],
-   [ "redhat_management_key",    "<<inherit>>"                   ],
-   [ "redhat_management_server", "<<inherit>>"                   ]
+   [ "name",None,0,"Name",True,"Ex: Fedora-11-i386"],
+   [ "uid","",0,"",False,""],
+   [ "owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)"],
+   [ "kernel",None,0,"Kernel",True,"Absolute path to kernel on filesystem"],
+   [ "initrd",None,0,"Initrd",True,"Absolute path to kernel on filesystem"],
+   [ "kernel_options",{},0,"Kernel Options",True,"Ex: selinux=permissive"],
+   [ "kernel_options_post",{},0,"Kernel Options (Post Install)", True,"Ex: clocksource=pit noapic"],
+   [ "ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86"],
+   [ "arch",'i386',0,"Architecture",True,"Ex: i386, x86_64, etc"],
+   [ "breed",'redhat',0,"Breed",True,"Ex: redhat, debian, suse"],
+   [ "os_version",'',0,"OS Version",True,"Ex: rhel4"],
+   [ "source_repos",[],0,"Source Repos", False,""],
+   [ "mgmt_classes",[],0,"Management Classes",True,"Management classes for external config management"],
+   [ "depth",0,0,"Depth",False,""],
+   [ "template_files",{},0,"Template Files",True,"File mappings for built-in config management "],
+   [ "comment","",0,"Comment",True,"Free form text description"],
+   [ "tree_build_time",0,0,"Tree Build Time",False,"" ],
+   [ "redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Spacewalk, or Satellite"],
+   [ "redhat_management_server", "<<inherit>>",0,"Red Hat Management Server",True,"Address of Spacewalk or Satellite Server"]
 ]
 
 class Distro(item.Item):
@@ -95,7 +97,7 @@ class Distro(item.Item):
         if utils.find_kernel(kernel):
             self.kernel = kernel
             return True
-        raise CX(_("kernel not found"))
+        raise CX("kernel not found: %s" % kernel)
 
     def set_tree_build_time(self, datestamp):
         """
@@ -156,73 +158,12 @@ class Distro(item.Item):
         """
         return utils.set_arch(self,arch)
 
-    def is_valid(self):
-        """
-	A distro requires that the kernel and initrd be set.  All
-	other variables are optional.
-	"""
-        # NOTE: this code does not support inheritable distros at this time.
-        # this is by design because inheritable distros do not make sense.
-        if self.name is None:
-            raise CX(_("name is required"))
-        if self.kernel is None:
-            raise CX(_("kernel is required"))
-        if self.initrd is None:
-            raise CX(_("initrd is required"))
-        return True
-
     def to_datastruct(self):
         return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
-        """
-	Human-readable representation.
-	"""
-        kstr = utils.find_kernel(self.kernel)
-        istr = utils.find_initrd(self.initrd)
-        buf =       _("distro               : %s\n") % self.name
-        buf = buf + _("architecture         : %s\n") % self.arch
-        buf = buf + _("breed                : %s\n") % self.breed
-        buf = buf + _("created              : %s\n") % time.ctime(self.ctime)
-        buf = buf + _("comment              : %s\n") % self.comment
-        buf = buf + _("initrd               : %s\n") % istr
-        buf = buf + _("kernel               : %s\n") % kstr
-        buf = buf + _("kernel options       : %s\n") % self.kernel_options
-        buf = buf + _("ks metadata          : %s\n") % self.ks_meta
-        if self.tree_build_time != -1:
-            buf = buf + _("tree build time      : %s\n") % time.ctime(self.tree_build_time)
-        else:
-            buf = buf + _("tree build time      : %s\n") % "N/A"
-        buf = buf + _("modified             : %s\n") % time.ctime(self.mtime)
-        buf = buf + _("mgmt classes         : %s\n") % self.mgmt_classes 
-        buf = buf + _("os version           : %s\n") % self.os_version
-        buf = buf + _("owners               : %s\n") % self.owners
-        buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
-        buf = buf + _("redhat mgmt key      : %s\n") % self.redhat_management_key
-        buf = buf + _("redhat mgmt server   : %s\n") % self.redhat_management_server
-        buf = buf + _("template files       : %s\n") % self.template_files
-        return buf
+        return utils.printable_from_fields(self,FIELDS)
 
     def remote_methods(self):
-        return {
-            'name'                     : self.set_name,
-            'kernel'                   : self.set_kernel,
-            'initrd'                   : self.set_initrd,
-            'kopts'                    : self.set_kernel_options,
-            'kopts-post'               : self.set_kernel_options_post,
-            'kopts_post'               : self.set_kernel_options_post,            
-            'arch'                     : self.set_arch,
-            'ksmeta'                   : self.set_ksmeta,
-            'breed'                    : self.set_breed,
-            'os-version'               : self.set_os_version,
-            'os_version'               : self.set_os_version,            
-            'owners'                   : self.set_owners,
-            'mgmt-classes'             : self.set_mgmt_classes,
-            'mgmt_classes'             : self.set_mgmt_classes,            
-            'template-files'           : self.set_template_files,
-            'template_files'           : self.set_template_files,            
-            'comment'                  : self.set_comment,
-            'redhat_management_key'    : self.set_redhat_management_key,
-            'redhat_management_server' : self.set_redhat_management_server
-        }
+        return utils.get_remote_methods_from_fields(self,FIELDS)
 

@@ -180,11 +180,12 @@ def _CIDR(cidr):
    If cidr is already an netaddr.CIDR instance just return it.
    Else return a new instance
    """
+   if cidr is None:
+      return None
    if isinstance(cidr, netaddr.CIDR) or cidr == "":
       return cidr
    else:
       return netaddr.CIDR(cidr)
-
 
 def get_config_filename(sys,interface):
     """
@@ -198,7 +199,7 @@ def get_config_filename(sys,interface):
 
     interface = str(interface)
     if not sys.interfaces.has_key(interface):
-        raise CX(_("internal error:  probing an interface that does not exist"))
+        return None
 
     if sys.name == "default":
         return "default"
@@ -625,7 +626,7 @@ def __consolidate(node,results):
     data from past scanned nodes.  Hashes and arrays are treated
     specially.
     """
-    node_data =  node.to_datastruct_with_cache()
+    node_data =  node.to_datastruct()
 
     # if the node has any data items labelled <<inherit>> we need to expunge them.
     # so that they do not override the supernodes.
@@ -1614,6 +1615,9 @@ def clear_from_fields(obj, fields, is_subobject=False):
     Used by various item_*.py classes for automating datastructure boilerplate.
     """
     for elems in fields:
+        # if elems startswith * it's an interface field and we do not operate on it.
+        if elems[0].startswith("*"):
+           continue
         if is_subobject:
            val = elems[2]
         else:
@@ -1625,19 +1629,130 @@ def clear_from_fields(obj, fields, is_subobject=False):
         setattr(obj, elems[0], val)
 
 def from_datastruct_from_fields(obj, seed_data, fields):
+
     for elems in fields:
+        # we don't have to load interface fields here
+        if elems[0].startswith("*"):
+            continue
         k = elems[0]
         if seed_data.has_key(k):
+            # print "FDFF: %s->%s"  % (k,seed_data[k])
+            #if k == "interfaces":
+            #    # FIXME: add a method for this?
+            #    setattr(obj, k, seed_data[k])
+            #else:
+            #    setfn = getattr(obj, "set_%s" % k)
+            #    setfn(seed_data[k])
+
+            # provided we have a validation function elsewhere it's much faster
+            # not to play getattr/setfn games here.
             setattr(obj, k, seed_data[k])
+
     if obj.uid == '':
         obj.uid = obj.config.generate_uid()
+
     return obj
+
+def get_methods_from_fields(obj, fields):
+    ds = {}
+    for elem in fields:
+        k = elem[0]
+        # modify interfaces is handled differently, and need not work this way
+        if k.startswith("*"):
+            continue
+        setfn = getattr(obj, "set_%s" % k)
+        ds[k] = setfn
+    return ds
 
 def to_datastruct_from_fields(obj, fields):
     ds = {}
     for elem in fields:
         k = elem[0]
+        if k.startswith("*"):
+            continue
         data = getattr(obj, k)
         ds[k] = data
     return ds
+
+def printable_from_fields(obj, fields):
+    buf  = ""
+    keys = []
+    for elem in fields:
+       keys.append((elem[0], elem[3], elem[4]))
+    keys.sort()
+    buf = buf + "%-30s : %s\n" % ("Name", getattr(obj, "name"))
+    for (k, nicename, editable) in keys:
+       # FIXME: make interfaces print nicely
+       # FIXME: supress fields users don't need to see?
+       # FIXME: print ctime, mtime nicely
+       if k.startswith("*") or not editable:
+           continue
+
+       if k != "name":
+           # FIXME: move examples one field over, use description here.
+           buf = buf + "%-30s : %s\n" % (nicename, getattr(obj, k))
+
+    # somewhat brain-melting special handling to print the hashes
+    # inside of the interfaces more neatly.
+    if obj.COLLECTION_TYPE == "system":
+       for iname in obj.interfaces.keys():
+          # FIXME: inames possibly not sorted
+          buf = buf + "%-30s : %s\n" % ("Interface ===== ",iname)
+          for (k, nicename, editable) in keys:
+             if k.startswith("*") and editable:
+                 buf = buf + "%-30s : %s\n" % (nicename, obj.interfaces[iname][k.replace("*","")])
+
+    return buf
+
+def matches_args(args, list_of):
+    """
+    Used to simplify some code around which arguments to add when.
+    """
+    for x in args:
+        if x in list_of:
+            return True
+    return False
+
+def apply_options_from_fields(obj, fields, options):
+    for elem in fields:
+       k = elem[0]
+       # interfaces are handled differently
+       details  = elem[3]
+       editable = elem[4]
+       if editable and details != "":
+          optval = getattr(options, k.replace("*",""))
+          if optval is not None:
+              setfn = getattr(obj, "set_%s" % k.replace("*",""))
+              if not k.startswith("*"):
+                  setfn(optval)
+              else:
+                  # handling for system interface options on the CLI
+                  setfn(optval, options.interface)
+
+def add_options_from_fields(parser, fields, args):
+    for elem in fields:
+       k = elem[0] 
+       # scrub interface tags so all fields get added correctly.
+       k = k.replace("*","")
+       nicename = elem[3]
+       example = elem[5]
+       niceopt = "--%s" % k.replace("_","-")
+       desc = nicename
+       if example != "":
+          desc = nicename + " (%s)" % example
+       parser.add_option(niceopt, dest=k, help=desc)
+    
+    if not matches_args(args, ["dumpvars","find","remove","report","list"]): 
+       parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
+       parser.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts or ksmeta without clearing the other items")
+    if matches_args(args, ["copy","rename"]):
+       parser.add_option("--newname",   action="newname", help="new object name")
+    if not matches_args(args, ["dumpvars","find","remove","report","list"]): 
+       parser.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
+    if not matches_args(args,["dumpvars","report","list"]):
+       parser.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
+    if matches_args(args,["remove"]):
+       parser.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
+
+
 

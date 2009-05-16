@@ -28,37 +28,36 @@ from cexceptions import *
 from utils import _
 
 FIELDS = [
-    [ "name"                      , "None",                                   "None",     ],
-    [ "uid"                       , "",                                       ""          ],
-    [ "random_id"                 , "",                                       ""          ],
-    [ "owners"                    , "SETTINGS:default_ownership",             "SETTINGS:self.settings.default_ownership" ],
-    [ "distro"                    , None,                                     '<<inherit>>'],
-    [ "enable_menu"               , "SETTINGS:enable_menu",                   '<<inherit>>'],
-    [ "kickstart"                 , "SETTINGS:default_kickstart",             '<<inherit>>'],  
-    [ "kernel_options"            , {},                                       '<<inherit>>'],
-    [ "kernel_options_post"       , {},                                       '<<inherit>>'],
-    [ "ks_meta"                   , {},                                       '<<inherit>>'],
-    [ "template_files"            , {},                                       '<<inherit>>'],
-    [ "virt_auto_boot"            , "SETTINGS:virt_auto_boot",                '<<inherit>>'],
-    [ "virt_cpus"                 , 1,                                        '<<inherit>>'],
-    [ "virt_file_size"            , "SETTINGS:default_virt_file_size",        '<<inherit>>'],
-    [ "virt_ram"                  , "SETTINGS:default_virt_ram",              '<<inherit>>'],
-    [ "repos"                     , [],                                       '<<inherit>>'],
-    [ "depth"                     , 1,                                        1            ],
-    [ "virt_type"                 , "SETTINGS:default_virt_type",             '<<inherit>>'],
-    [ "virt_path"                 , "",                                       '<<inherit>>'],
-    [ "virt_bridge"               , "SETTINGS:default_virt_bridge",           '<<inherit>>'],
-    [ "dhcp_tag"                  , "default",                                '<<inherit>>'],
-    [ "mgmt_classes"              , [],                                       '<<inherit>>'],
-    [ "parent"                    , '',                                       ''           ],
-    [ "server"                    , "<<inherit>>",                            '<<inherit>>'],
-    [ "comment"                   , "",                                       ""           ],
-    [ "ctime"                     , 0,                                        0            ],
-    [ "mtime"                     , 0,                                        0            ],
-    [ "name_servers"              , "SETTINGS:default_name_servers",          []],
-    [ "name_servers_search"       , "SETTINGS:default_name_servers_search",   []],
-    [ "redhat_management_key"     , "<<inherit>>",                            "<<inherit>>" ],
-    [ "redhat_management_server"  , "<<inherit>>",                            "<<inherit>>" ] 
+  ["name","None","None","Name",True,"Ex: F10-i386-webserver"],
+  ["uid","","","",False,""],
+  ["owners","SETTINGS:default_ownership","SETTINGS:self.settings.default_ownership","Owners",False,"Owners list for authz_ownership (space delimited)"],
+  ["distro",None,'<<inherit>>',"Distribution",True,"Parent distribution"],
+  ["enable_menu","SETTINGS:enable_menu",'<<inherit>>',"Enable PXE Menu?",True,"Show this profile in the PXE menu?"],
+  ["kickstart","SETTINGS:default_kickstart",'<<inherit>>',"Kickstart",True,"Path to kickstart template"],
+  ["kernel_options",{},'<<inherit>>',"Kernel Options",True,"Ex: selinux=permissive"],
+  ["kernel_options_post",{},'<<inherit>>',"Kernel Options (Post Install)",True,"Ex: clocksource=pit noapic"],
+  ["ks_meta",{},'<<inherit>>',"Kickstart Metadata",True,"Ex: dog=fang agent=86"],
+  ["template_files",{},'<<inherit>>',"Template Files",True,"File mappings for built-in config management"],
+  ["virt_auto_boot","SETTINGS:virt_auto_boot",'<<inherit>>',"Virt Auto Boot",True,"Auto boot this VM?"],
+  ["virt_cpus",1,'<<inherit>>',"Virt CPUs",True,"integer"],
+  ["virt_file_size","SETTINGS:default_virt_file_size",'<<inherit>>',"Virt File Size(GB)",True,""],
+  ["virt_ram","SETTINGS:default_virt_ram",'<<inherit>>',"Virt RAM (MB)",True,""],
+  ["repos",[],'<<inherit>>',"Repos",True,"Repos to auto-assign to this profile"],
+  ["depth",1,1,"",False,""],
+  ["virt_type","SETTINGS:default_virt_type",'<<inherit>>',"Virt Type",True,"Virtualization technology to use"],
+  ["virt_path","",'<<inherit>>',"Virt Path",True,"Ex: /directory OR VolGroup00"],
+  ["virt_bridge","SETTINGS:default_virt_bridge",'<<inherit>>',"Virt Bridge",True,""],
+  ["dhcp_tag","default",'<<inherit>>',"DHCP Tag",True,"See manpage or leave blank"],
+  ["mgmt_classes",[],'<<inherit>>',"Management Classes",True,"For external configuration management"],
+  ["parent",'','',"",False,""],
+  ["server","<<inherit>>",'<<inherit>>',"Server Override",True,"See manpage or leave blank"],
+  ["comment","","","Comment",True,"Free form text description"],
+  ["ctime",0,0,"",False,""],
+  ["mtime",0,0,"",False,""],
+  ["name_servers","SETTINGS:default_name_servers",[],"Name Servers",True,"space delimited"],
+  ["name_servers_search","SETTINGS:default_name_servers_search",[],"Name Servers Search Path",True,"space delimited"],
+  ["redhat_management_key","<<inherit>>","<<inherit>>","Red Hat Management Key",True,"Registration key for RHN, Spacewalk, or Satellite"],
+  ["redhat_management_server","<<inherit>>","<<inherit>>","Red Hat Management Server",True,"Address of Spacewalk or Satellite Server"]
 ]
 
 class Profile(item.Item):
@@ -213,107 +212,13 @@ class Profile(item.Item):
             result = self.config.profiles().find(name=self.parent)
         return result
 
-    def is_valid(self):
-        """
-	A profile only needs a name and a distro.  Kickstart info,
-	as well as Virt info, are optional.  (Though I would say provisioning
-	without a kickstart is *usually* not a good idea).
-	"""
-        if self.parent is None or self.parent == '':
-            # all values must be filled in if not inheriting from another profile
-            if self.name is None:
-                raise CX(_("no name specified"))
-            if self.distro is None:
-                raise CX(_("no distro specified"))
-        else:
-            # if inheriting, specifying distro is not allowed, and
-            # name is required, but there are no other rules.
-            if self.name is None:
-                raise CX(_("no name specified"))
-            if self.distro != "<<inherit>>":
-                raise CX(_("cannot override distro when inheriting a profile"))
-        return True
-
     def to_datastruct(self):
         return utils.to_datastruct_from_fields(self,FIELDS)
 
     def printable(self):
-        """
-        A human readable representaton
-        """
-        buf =       _("profile              : %s\n") % self.name
-        if self.distro == "<<inherit>>":
-            buf = buf + _("parent               : %s\n") % self.parent
-        else:
-            buf = buf + _("distro               : %s\n") % self.distro
-        buf = buf + _("comment              : %s\n") % self.comment
-        buf = buf + _("created              : %s\n") % time.ctime(self.ctime)
-        buf = buf + _("dhcp tag             : %s\n") % self.dhcp_tag
-        buf = buf + _("enable menu          : %s\n") % self.enable_menu
-        buf = buf + _("kernel options       : %s\n") % self.kernel_options
-        buf = buf + _("kickstart            : %s\n") % self.kickstart
-        buf = buf + _("ks metadata          : %s\n") % self.ks_meta
-        buf = buf + _("mgmt classes         : %s\n") % self.mgmt_classes
-        buf = buf + _("modified             : %s\n") % time.ctime(self.mtime)
-        buf = buf + _("name servers         : %s\n") % self.name_servers
-        buf = buf + _("name servers search  : %s\n") % self.name_servers_search
-        buf = buf + _("owners               : %s\n") % self.owners
-        buf = buf + _("post kernel options  : %s\n") % self.kernel_options_post
-        buf = buf + _("redhat mgmt key      : %s\n") % self.redhat_management_key
-        buf = buf + _("redhat mgmt server   : %s\n") % self.redhat_management_server
-        buf = buf + _("repos                : %s\n") % self.repos
-        buf = buf + _("server               : %s\n") % self.server
-        buf = buf + _("template_files       : %s\n") % self.template_files
-        buf = buf + _("virt auto boot       : %s\n") % self.virt_auto_boot
-        buf = buf + _("virt bridge          : %s\n") % self.virt_bridge
-        buf = buf + _("virt cpus            : %s\n") % self.virt_cpus
-        buf = buf + _("virt file size       : %s\n") % self.virt_file_size
-        buf = buf + _("virt path            : %s\n") % self.virt_path
-        buf = buf + _("virt ram             : %s\n") % self.virt_ram
-        buf = buf + _("virt type            : %s\n") % self.virt_type
-        return buf
-
+        return utils.printable_from_fields(self,FIELDS)
   
     def remote_methods(self):
-        return {           
-            'name'                     :  self.set_name,
-            'parent'                   :  self.set_parent,
-            'profile'                  :  self.set_name,
-            'distro'                   :  self.set_distro,
-            'enable-menu'              :  self.set_enable_menu,
-            'enable_menu'              :  self.set_enable_menu,            
-            'kickstart'                :  self.set_kickstart,
-            'kopts'                    :  self.set_kernel_options,
-            'kopts-post'               :  self.set_kernel_options_post,
-            'kopts_post'               :  self.set_kernel_options_post,            
-            'virt-auto-boot'           :  self.set_virt_auto_boot,
-            'virt_auto_boot'           :  self.set_virt_auto_boot,            
-            'virt-file-size'           :  self.set_virt_file_size,
-            'virt_file_size'           :  self.set_virt_file_size,            
-            'virt-ram'                 :  self.set_virt_ram,
-            'virt_ram'                 :  self.set_virt_ram,            
-            'ksmeta'                   :  self.set_ksmeta,
-            'template-files'           :  self.set_template_files,
-            'template_files'           :  self.set_template_files,            
-            'repos'                    :  self.set_repos,
-            'virt-path'                :  self.set_virt_path,
-            'virt_path'                :  self.set_virt_path,            
-            'virt-type'                :  self.set_virt_type,
-            'virt_type'                :  self.set_virt_type,            
-            'virt-bridge'              :  self.set_virt_bridge,
-            'virt_bridge'              :  self.set_virt_bridge,            
-            'virt-cpus'                :  self.set_virt_cpus,
-            'virt_cpus'                :  self.set_virt_cpus,            
-            'dhcp-tag'                 :  self.set_dhcp_tag,
-            'dhcp_tag'                 :  self.set_dhcp_tag,            
-            'server'                   :  self.set_server,
-            'owners'                   :  self.set_owners,
-            'mgmt-classes'             :  self.set_mgmt_classes,
-            'mgmt_classes'             :  self.set_mgmt_classes,            
-            'comment'                  :  self.set_comment,
-            'name_servers'             :  self.set_name_servers,
-            'name_servers_search'      :  self.set_name_servers_search,
-            'redhat_management_key'    :  self.set_redhat_management_key,
-            'redhat_management_server' :  self.set_redhat_management_server
-        }
+        return utils.get_remote_methods_from_fields(self,FIELDS)
+
 
