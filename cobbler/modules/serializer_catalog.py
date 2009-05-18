@@ -37,6 +37,11 @@ import utils
 from cexceptions import *
 import os
 
+def can_use_json():
+    version = sys.version[:3]
+    version = float(version)
+    return (version > 2.3)
+
 def register():
     """
     The mandatory cobbler module registration hook.
@@ -45,33 +50,63 @@ def register():
 
 def serialize_item(obj, item):
     filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
-    datastruct = item.to_datastruct()
-    if os.path.exists(filename):
-        print "upgrading yaml file to json: %s" % filename
-        os.remove(filename)
-    filename = filename + ".json"
-    fd = open(filename,"w+")
-    data = simplejson.dumps(datastruct, encoding="utf-8")
-    fd.write(data)
+    datastruct = item.to_datastruct_with_cache()
+
+    jsonable = can_use_json()
+
+    if jsonable:
+
+        # avoid using JSON on python 2.3 where we can encounter
+        # unicode problems with simplejson pre 2.0
+
+        if os.path.exists(filename):
+            print "upgrading yaml file to json: %s" % filename
+            os.remove(filename)
+        filename = filename + ".json"
+        datastruct = item.to_datastruct_with_cache()
+        fd = open(filename,"w+")
+        data = simplejson.dumps(datastruct, encoding="utf-8")
+        #data = data.encode('utf-8')
+        fd.write(data)
+
+    else:
+
+        if os.path.exists(filename + ".json"):
+            print "downgrading json file back to yaml: %s" % filename
+            os.remove(filename + ".json")
+        datastruct = item.to_datastruct_with_cache()
+        fd = open(filename,"w+")
+        data = yaml.dump(datastruct)
+        fd.write(data)
+
     fd.close()
     return True
 
 def serialize_delete(obj, item):
-    filename = "/var/lib/cobbler/config/%ss.d/%s.json" % (obj.collection_type(),item.name)
+    filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
+    filename2 = filename + ".json"
     if os.path.exists(filename):
         os.remove(filename)
+    if os.path.exists(filename2):
+        os.remove(filename2)
     return True
 
 def deserialize_item_raw(collection_type, item_name):
     # this new fn is not really implemented performantly in this module.
     # yet.
-    filename = "/var/lib/cobbler/config/%ss.d/%s.json" % (collection_type,item_name)
-    if not os.path.exists(filename):
-        return None
-    fd = open(filename)
-    data = fd.read()
-    datastruct = simplejson.loads(data, encoding="utf-8")
-    return datastruct
+    filename = "/var/lib/cobbler/config/%ss.d/%s" % (collection_type,item_name)
+    filename2 = filename + ".json"
+    if os.path.exists(filename): 
+        fd = open(filename)
+        data = fd.read()
+        return yaml.load(data)
+    elif os.path.exists(filename2):
+        fd = open(filename2)
+        data = fd.read()
+        return simplejson.loads(data, encoding="utf-8")
+    else: 
+        return None  
+
 
 def serialize(obj):
     """
@@ -94,8 +129,7 @@ def deserialize_raw(collection_type):
          fd.close()
          return datastruct
     elif os.path.exists(old_filename):
-         # for use in migration
-         sys.stderr.write("reading from old config format: %s\n" % old_filename)
+         # for use in migration from serializer_yaml to serializer_catalog (yaml/json)
          fd = open(old_filename)
          datastruct = yaml.load(fd.read())
          fd.close()

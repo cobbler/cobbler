@@ -24,7 +24,10 @@ Cobbler CHANGELOG
 - (FEAT) koan live CD can go interactive if no profile is specified and system autodiscovery fails
 - (BUGF) koan autodetection now can gather MACs/IPs for bridged interfaces better
 
-- placeholder - 1.6.4
+- ... - 1.6.5
+- (BUGF) don't use json on python x<=2.3 since we know it's simplejson x<2.0, which has unicode issues
+
+- Fri May 8 2009 - 1.6.4
 - (BUGF) empty nameserver search paths now don't screw up resolv.conf
 - (BUGF) unicode fix for --template-files feature
 - (BUGF) mod python input fix for repo/profile associations in webapp
