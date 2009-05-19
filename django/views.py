@@ -7,6 +7,13 @@ from mod_python import apache
 
 import xmlrpclib, time, simplejson
 
+import cobbler.item_distro as item_distro
+import cobbler.item_distro as item_profile
+import cobbler.item_distro as item_system
+import cobbler.item_distro as item_repo
+import cobbler.item_distro as item_image
+import cobbler.item_distro as item_network
+
 my_uri = "http://127.0.0.1/cobbler_api"
 remote = None
 token = None
@@ -55,41 +62,51 @@ def list(request, what, page=None):
     }))
     return HttpResponse(html)
 
-def get_fields(what):
+def get_fields(what, is_subobject, seed_item=None):
     if what == "distro":
-       f = item_distro.FIELDS
+       field_data = item_distro.FIELDS
     if what == "profile":
-       f = item_profile.FIELDS
+       field_data = item_profile.FIELDS
     if what == "system":
-       f = item_system.FIELDS
+       field_data = item_system.FIELDS
     if what == "repo":
-       f = item_repo.FIELDS
+       field_data = item_repo.FIELDS
     if what == "image":
-       f =  item_image.FIELDS
+       field_data =  item_image.FIELDS
     if what == "network":
-       f = item_network.FIELDS
+       field_data = item_network.FIELDS
   
-    # FIXME: somewhat temporary, this maps the arrays in item_* to the hash structures in PV's
-    # original version.  In process of cleanup. -- MPD
+    fields = []
+    for row in field_data:
+        elem = {
+            "name"                    : row[0],
+            "caption"                 : row[3],
+            "editable"                : row[4],
+            "tooltip"                 : row[5],
+            "css_class"               : "foo",  # FIXME
+            "html_element"            : "text"  # FIXME
+        }
+        if seed_item is not None:
+            elem["value"]             = seed_item[row[0]]
+        elif is_subobject:
+            elem["value"]             = row[2]
+        else:
+            elem["value"]             = row[1]
 
-    ds = []
+        if elem["editable"]:
+            fields.append(elem)
 
-    #for row in f:
-    #    ds.append((row[0], {
-    #        "value" : row[1], # default value
-    #        "type" : "text",  : # FIXME, not added yet!
-    #        "size" : "100",  # FIXME, should be CSS governed only!
-    #        "width" : "100", # ditto
-    #        "cols"  : 5, # ditto
-    #        "valtype" : "str", # fixme: should be eliminated
-    #        "example" : row[4] # fixme: should be named "tip", not example      
-    #    }))  
-    #    # FIXME: need fields for CSS type and also choices list for radio buttons, and also display type
-    #    # all added to item_*.py
+    return fields
 
-    return ds
+def __tweak_field(fields,field_name,attribute,value):
+    for x in fields:
+       if x["name"] == field_name:
+           x[attribute] = value
 
 def __format_items(items, column_names):
+    """
+    Format items retrieved from XMLRPC for rendering by the generic_edit template
+    """
     dataset = []
     for itemhash in items:
         row = []
@@ -97,6 +114,8 @@ def __format_items(items, column_names):
             row.append(itemhash[fieldname])
         dataset.append(row)
     return dataset
+
+
 
 def genlist(request, what, page=None):
 
@@ -405,6 +424,16 @@ def dosync(request):
    remote.sync(token)
    return HttpResponseRedirect("/cobbler_web/")
 
+def __names_from_dicts(loh):
+   """
+   Tiny helper function.
+   Get the names out of an array of hashes that the remote interface returns.
+   """
+   results = []
+   for x in loh:
+      results.append(x["name"])
+   return results
+
 def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
    # FIXME: cleanup
@@ -417,45 +446,39 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
       what = "profile"
       child = True
 
+
    if not obj_name is None:
       editable = remote.check_access_no_fail(token, "modify_%s" % what, obj_name)
       obj = remote.get_item(what, obj_name, True)
+   #
+   #   if obj.has_key('ctime'):
+   #      obj['ctime'] = time.ctime(obj['ctime'])
+   #   if obj.has_key('mtime'):
+   #      obj['mtime'] = time.ctime(obj['mtime'])
 
-      if obj.has_key('ctime'):
-         obj['ctime'] = time.ctime(obj['ctime'])
-      if obj.has_key('mtime'):
-         obj['mtime'] = time.ctime(obj['mtime'])
    else:
-      editable = remote.check_access_no_fail(token, "new_%s" % what, None)
+       editable = remote.check_access_no_fail(token, "new_%s" % what, None)
+       obj = None
 
-   fields = remote.get_fields(what, token)
-   if obj:
-      for key in fields.keys():
-         fields[key]["value"] = obj.get(key,"")
+   fields = get_fields(what, child, obj)
 
-   # populate select lists with data stored in cobbler,
-   # based on what we are currently editing
+   # populate some select boxes
+   # FIXME: we really want to just populate with the names, right?
    if what == "profile":
       if (obj and obj["parent"] not in (None,"")) or child:
-         fields["parent"]["list"] = remote.get_profiles(token)
-         del fields["distro"]
+         __tweak_field(fields, "parent", "choices", __names_from_dicts(remote.get_profiles()))
       else:
-         fields["distro"]["list"] = remote.get_distros(token)
-         del fields["parent"]
-      fields["repos"]["list"]  = remote.get_repos(token)
+         __tweak_field(fields, "distro", "choices", __names_from_dicts(remote.get_distros()))
+   __tweak_field(fields, "repos", "choices", __names_from_dicts(remote.get_repos()))
 
-   # FIXME: fields should be be in order listed in order of groups listed
-
-   sorted_fields = [(key, val) for key,val in fields.items()] 
-   #sorted_fields.sort(lambda a,b: cmp(a[1]["order"], b[1]["order"])) 
-
-   # Enable empty name field when copying
-   if editmode == "copy":
-      fields["name"]["setopts"] = ""
-      fields["name"]["value"] = ""
-     
    t = get_template('generic_edit.tmpl')
-   html = t.render(Context({'what': what, 'obj':obj, 'fields': sorted_fields, 'editmode': editmode, 'editable':editable}))
+   html = t.render(Context({
+       'what'        : what, 
+       'fields'      : fields, 
+       'editmode'    : editmode, 
+       'editable'    : editable
+   }))
+
    return HttpResponse(html)
 
 def generic_save(request,what):
@@ -478,7 +501,9 @@ def generic_save(request,what):
             return error_page(request,"Failed to create new %s: %s already exists." % (what,obj_name))
         obj_id = remote.new_item( what, token )
 
+    # FIXME: signature has changed 
     fields = remote.get_fields(what, token)
+
     for field in fields.keys():
         if field == 'name' and editmode == 'edit':
             continue

@@ -1,57 +1,48 @@
 {% extends "master.tmpl" %}
-{% block javascript %}{% comment %}EXTRA JAVASCRIPT GOES HERE{% endcomment %}{% endblock %}
 {% block content %}
-{% if obj %}
-<script language="javascript">
-function on_form_submit()
-{
-    document.getElementById("name").disabled= false
-    document.myform.submit()
-}
- </script>
-{% endif %}
+
 <div class="section_caption">{% if obj %}Editing{% else %}Adding{% endif %} a {{ what|capfirst }}</div>
-<form method="POST" action="/cobbler_web/{{ what }}/gensave">
+
+<form method="POST" action="/cobbler_web/{{ what }}/save">
+
 <fieldset id="cform">
+
     <input type="hidden" name="editmode" value="{{ editmode }}"/>
+
     <table border=0>
-    {% for field in fields %}
-    <tr>
-    <td{% if field.1.tdclass %} class="{{ field.1.tdclass }}"{% endif %}>
-    <label for="{{ field.0 }}">{{ field.1.label }}</label>
-    </td>
-    <td{% if field.1.tdclass %} class="{{ field.1.tdclass }}"{% endif %}>
 
-    {% ifequal field.1.type "text" %}
-    <input type="{{ field.1.type }}" size="{{ field.1.size }}" style="width: {{ field.1.width }};" name="{{ field.0 }}" id="{{ field.0 }}" {% if obj %}{{ field.1.setopts }} value="{% ifequal field.1.valtype "str" %}{{ field.1.value }}{% endifequal %}{% ifequal field.1.valtype "list" %}{{ field.1.value|join:" " }}{% endifequal %}"{% else %}value="{{ field.1.default }}"{% endif %} />
-    {% endifequal %}
+    {% for item in fields %}
 
-    {% ifequal field.1.type "textarea" %}
-    <textarea rows="{{ field.1.rows }}" cols="{{ field.1.cols }}" name="{{ field.0 }}" id="{{ field.0 }}">{% if obj %}{{ field.1.value }}{% endif %}</textarea>
-    {% endifequal %}
+        <tr>
 
-    {% ifequal field.1.type "radio" %}
-    {% for listitem in field.1.list %}
-    <input type="radio" name="{{ field.0 }}" id="{{ field.0 }}" value="{{ listitem.0 }}"{%if obj %}{% ifequal field.1.value listitem.0 %} checked="true"{% endifequal %}{% endif %}>{{ listitem.1 }}</input>
-    {% endfor %}
-    {% endifequal %}
+            <td>{{ item.name }}</td>
 
-    {% ifequal field.1.type "checkbox" %}
-    <input type="checkbox" name="{{ field.0 }}" id="{{ field.0 }}"{%if obj %}{% if field.1.value %} checked="true"{% endif %}{% endif %} />
-    {% endifequal %}
+            <td>
+            {% ifequal item.html_element "text" %}
+            Text
+            {% endifequal %}
 
-    {% ifequal field.1.type "label" %}{{ field.1.value }}{% endifequal %}
+            {% ifequal item.html_element "textarea" %}
+            TextArea
+            {% endifequal %}
 
-    {% ifequal field.1.type "select" %}
-    <select name="{{ field.0 }}" id="{{ field.0 }}" {{ field.1.opts }}>
-      {% for listitem in field.1.list %}
-      <option value="{{ listitem.name }}"{%if obj %}{% ifequal field.1.value listitem.name %} selected="true"{% endifequal %}{% endif %}>{{ listitem.name }}</option>
-      {% endfor %}
-    </select>
-    {% endifequal %}
-    <p class="context-tip">{{ field.1.example }}</p>
-    </td>
-    </tr>
+            {% ifequal item.html_element "radio" %}
+            Radio
+            {% endifequal %}
+
+            {% ifequal item.html_element "checkbox" %}
+            Checkbox
+            {% endifequal %}
+
+            {% ifequal item.html_element "select" %}
+            Select
+            {% endifequal %}
+
+            <p class="context-tip">{{ item.tooltip }}</p>
+            </td>
+
+        </tr>
+
     {% endfor %}
 
     {% if editable %}
