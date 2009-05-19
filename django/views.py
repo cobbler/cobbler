@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from mod_python import apache
 
-import xmlrpclib, time, simplejson
+import xmlrpclib, time, simplejson, string
 
 import cobbler.item_distro as item_distro
 import cobbler.item_distro as item_profile
@@ -13,6 +13,7 @@ import cobbler.item_distro as item_system
 import cobbler.item_distro as item_repo
 import cobbler.item_distro as item_image
 import cobbler.item_distro as item_network
+import cobbler.field_info  as field_info
 
 my_uri = "http://127.0.0.1/cobbler_api"
 remote = None
@@ -63,6 +64,7 @@ def list(request, what, page=None):
     return HttpResponse(html)
 
 def get_fields(what, is_subobject, seed_item=None):
+
     if what == "distro":
        field_data = item_distro.FIELDS
     if what == "profile":
@@ -75,17 +77,24 @@ def get_fields(what, is_subobject, seed_item=None):
        field_data =  item_image.FIELDS
     if what == "network":
        field_data = item_network.FIELDS
+
+    settings = remote.get_settings()
+
   
     fields = []
     for row in field_data:
+
+
         elem = {
             "name"                    : row[0],
             "caption"                 : row[3],
             "editable"                : row[4],
             "tooltip"                 : row[5],
-            "css_class"               : "foo",  # FIXME
-            "html_element"            : "text"  # FIXME
+            "css_class"               : "generic",
+            "html_element"            : "generic"
         }
+        if not elem["editable"]:
+            continue
         if seed_item is not None:
             elem["value"]             = seed_item[row[0]]
         elif is_subobject:
@@ -93,8 +102,45 @@ def get_fields(what, is_subobject, seed_item=None):
         else:
             elem["value"]             = row[1]
 
-        if elem["editable"]:
-            fields.append(elem)
+        if isinstance(elem["value"],basestring) and elem["value"].startswith("SETTINGS:"):
+            key = value.replace("SETTINGS:","",1)
+            elem["value"] = settings[key]
+
+        # flatten hashes of all types, they can only be edited as text
+        # as we have no HTML hash widget (yet)
+        if type(elem["value"]) == type({}):
+            tokens = []
+            for (x,y) in elem["value"].items():
+               if y is not None:
+                  tokens.append("%s=%s" % (x,y))
+               else:
+                  tokens.appned("%s" % x)
+            elem["value"] = tokens.join(" ")
+ 
+        name = row[0]
+        if name in field_info.USES_SELECT:
+            elem["html_element"] = "select"
+        elif name in field_info.USES_MULTI_SELECT:
+            elem["html_element"] = "multiselect"
+        elif name in field_info.USES_RADIO:
+            elem["html_element"] = "radio"
+        elif name in field_info.USES_CHECKBOX:
+            elem["html_element"] = "checkbox"
+        elif name in field_info.USES_TEXTAREA:
+            elem["html_element"] = "textarea"
+        else:
+           elem["html_element"]  = "text"
+
+        elem["css_class"] = field_info.CSS_MAPPINGS.get(name, "genericedit")
+        
+        # flatten lists for those that aren't using select boxes
+        if type(elem["value"]) == type([]):
+            if elem["html_element"] != "select":
+                elem["value"] = string.join(elem["value"], sep=" ")
+
+        # FIXME: need to handle interfaces special, they are prefixed with "*"
+
+        fields.append(elem)
 
     return fields
 
@@ -128,7 +174,6 @@ def genlist(request, what, page=None):
     pageditems = remote.find_items_paged(what,filters,sort_field,page,limit)
 
     # what columns to show for each page?
-    settings = remote.get_settings()
     if what == "distro":
        columns = [ "name" ]
     if what == "profile":
@@ -440,6 +485,8 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    # FIXME: comments
 
    obj = None
+
+   settings = remote.get_settings()
 
    child = False
    if what == "subprofile":

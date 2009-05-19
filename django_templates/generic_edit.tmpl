@@ -1,7 +1,7 @@
 {% extends "master.tmpl" %}
 {% block content %}
 
-<div class="section_caption">{% if obj %}Editing{% else %}Adding{% endif %} a {{ what|capfirst }}</div>
+<div class="section_caption">{% ifequal editmode 'edit'  %}Editing{% else %}Adding{% endifequal %} a {{ what|capfirst }}</div>
 
 <form method="POST" action="/cobbler_web/{{ what }}/save">
 
@@ -19,7 +19,7 @@
 
             <td>
             {% ifequal item.html_element "text" %}
-            Text
+            <input type="text" name="{{ item.name }}" value="{{ item.value }}" class="{{ item.css_class }}"/>
             {% endifequal %}
 
             {% ifequal item.html_element "textarea" %}
@@ -36,6 +36,10 @@
 
             {% ifequal item.html_element "select" %}
             Select
+            {% endifequal %}
+
+            {% ifequal item.html_element "multiselect" %}
+            Multi-Select
             {% endifequal %}
 
             <p class="context-tip">{{ item.tooltip }}</p>
