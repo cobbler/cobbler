@@ -71,131 +71,97 @@ def get_fields(what):
   
     # FIXME: somewhat temporary, this maps the arrays in item_* to the hash structures in PV's
     # original version.  In process of cleanup. -- MPD
+
     ds = []
-    for row in f:
-        ds.append((row[0], {
-            "value" : row[1], # default value
-            "type" : "text",  : # FIXME, not added yet!
-            "size" : "100",  # FIXME, should be CSS governed only!
-            "width" : "100", # ditto
-            "cols"  : 5, # ditto
-            "valtype" : "str", # fixme: should be eliminated
-            "example" : row[4] # fixme: should be named "tip", not example      
-        }))  
-        # FIXME: need fields for CSS type and also choices list for radio buttons, and also display type
-        # all added to item_*.py
+
+    #for row in f:
+    #    ds.append((row[0], {
+    #        "value" : row[1], # default value
+    #        "type" : "text",  : # FIXME, not added yet!
+    #        "size" : "100",  # FIXME, should be CSS governed only!
+    #        "width" : "100", # ditto
+    #        "cols"  : 5, # ditto
+    #        "valtype" : "str", # fixme: should be eliminated
+    #        "example" : row[4] # fixme: should be named "tip", not example      
+    #    }))  
+    #    # FIXME: need fields for CSS type and also choices list for radio buttons, and also display type
+    #    # all added to item_*.py
+
     return ds
+
+def __format_items(items, column_names):
+    dataset = []
+    for itemhash in items:
+        row = []
+        for fieldname in column_names:
+            row.append(itemhash[fieldname])
+        dataset.append(row)
+    return dataset
 
 def genlist(request, what, page=None):
 
     # FIXME: cleanup
-
     if page == None:
         page = int(request.session.get("%s_page" % what, 1))
-    limit = int(request.session.get("%s_limit" % what, 50))
-    sort_field = request.session.get("%s_sort_field" % what, None)
+    limit = int(request.session.get("%s_limit" % what, 50))                      # FIXME: does this work?
+    sort_field = request.session.get("%s_sort_field" % what, None)               # FIXME: is this used?
     filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
-
     pageditems = remote.find_items_paged(what,filters,sort_field,page,limit)
 
-    # Load columns from settings
+    # what columns to show for each page?
     settings = remote.get_settings()
-    list_columns = settings.get("web_%s_list_columns" % what,["name"])
-
-    # Prepare list of allowed actions on a single object
-    single_actions=[]
-    if what in ("system","profile"):
-        single_actions.append({ 'name': 'viewks',  'label':'Preview KS' })
-    single_actions.append({ 'name': 'edit',    'label':'Edit' })
-    single_actions.append({ 'name': 'rename',    'label':'Rename' })
-    single_actions.append({ 'name': 'copy',    'label':'Copy' })
-
-    # Prepare list of allowed actions on multiple objects
-    multi_actions=[]
-    multi_actions.append({ 'name': 'delete',  'label':'Delete' })
-    if what in ("systems"):
-        multi_actions.append({ 'name': 'netboot', 'label':'Netboot' })
-        multi_actions.append({ 'name': 'profile', 'label':'Profile' })
-        multi_actions.append({ 'name': 'power', 'label':'Power' })
-
-    # Get table headers values
-    fields = remote.get_fields(what, token)
-    headers = []
-    for list_column in list_columns:
-        header={}
-        header['field']=list_column
-        if list_column.find("::") > 0:
-            (field_name,field_key,subfield_name)=list_column.split("::",2)
-            field=fields.get(field_name,{})
-            subfield=field.get("fields",{}).get(subfield_name,{})
-            header['label']="%s(%s)" % (subfield.get("label",""), field_key)
-        else:
-            field=fields.get(list_column,{})
-            header['label']=field.get("label","")
-        headers.append(header)
-
-    # Get table row values
-    rows = []
-    for item in pageditems["items"]:
-        row={}
-        row['name'] = item["name"]
-        row['columns'] = []
-        for list_column in list_columns:
-            column={}
-            if list_column.find("::") > 0:
-                (field_name,field_key,subfield_name)=list_column.split("::",2)
-                field=fields.get(subfield_name,{})
-                subfield=field.get("fields",{}).get(subfield_name,{})
-                column["value"]=item.get(field_name,{}).get(field_key,{}).get(subfield_name,"")
-                column["type"]=subfield.get("type","")
-            else:
-                field=fields.get(list_column,{})
-                column["value"]=item.get(list_column,"")
-                column["type"]=field.get("type","")
-            row['columns'].append(column)
-        rows.append(row)
+    if what == "distro":
+       columns = [ "name" ]
+    if what == "profile":
+       columns = [ "name", "distro" ]
+    if what == "system":
+       columns = [ "name", "profile" ] 
+    if what == "repo":
+       columns = [ "name", "mirror" ]
+    if what == "image":
+       columns = [ "name", "file" ]
+    if what == "network":
+       columns = [ "name" ] 
 
     t = get_template('generic_list.tmpl')
     html = t.render(RequestContext(request,{
         'what'           : what,
-        'headers'        : headers,
-        'rows'           : rows,
-        'single_actions' : single_actions,
-        'multi_actions'  : multi_actions,
+        'columns'        : columns,
+        'items'          : __format_items(pageditems["items"],columns),
         'pageinfo'       : pageditems["pageinfo"],
         'filters'        : filters,
     }))
     return HttpResponse(html)
 
 
-def modify_list(request, what, pref, value=None):
-
-    # FIXME: cleanup
-    # FIXME: what does this do?  COMMENTS!
-
-    try:
-        if pref == "sort":
-            old_sort=request.session.get("%s_sort_field" % what,"")
-            if old_sort.startswith("!"):
-                old_sort=old_sort[1:]
-                old_revsort=True
-            else:
-                old_revsort=False
-            if old_sort==value and not old_revsort:
-                value="!" + value
-            request.session["%s_sort_field" % what] = value
-            request.session["%s_page" % what] = 1
-        elif pref == "limit":
-            request.session["%s_limit" % what] = int(value)
-            request.session["%s_page" % what] = 1
-        elif pref == "page":
-            request.session["%s_page" % what] = int(value)
-        else:
-            raise ""
-        # redirect to the list
-        return HttpResponseRedirect("/cobbler_web/%s/list" % what)
-    except:
-        return error_page(request,"Invalid preference: %s" % pref)
+#def modify_list(request, what, pref, value=None):
+#
+#    # FIXME: cleanup
+#    # FIXME: what does this do?  COMMENTS!
+#
+#    try:
+#        if pref == "sort":
+#            old_sort=request.session.get("%s_sort_field" % what,"")
+#            if old_sort.startswith("!"):
+#                old_sort=old_sort[1:]
+#                old_revsort=True
+#            else:
+#                old_revsort=False
+#            if old_sort==value and not old_revsort:
+#                value="!" + value
+#            request.session["%s_sort_field" % what] = value
+#            request.session["%s_page" % what] = 1
+#        elif pref == "limit":
+#            request.session["%s_limit" % what] = int(value)
+#            request.session["%s_page" % what] = 1
+#        elif pref == "page":
+#            request.session["%s_page" % what] = int(value)
+#        else:
+#            raise ""
+#        # redirect to the list
+#        return HttpResponseRedirect("/cobbler_web/%s/list" % what)
+#    except:
+#        return error_page(request,"Invalid preference: %s" % pref)
 
 def modify_filter(request, what, action, filter=None):
     # FIXME: cleanup
@@ -517,6 +483,7 @@ def generic_save(request,what):
         if field == 'name' and editmode == 'edit':
             continue
         elif what == 'system' and field == "interfaces":
+            # FIXME: we should pull this from the fields table so it's not hard coded
             interface_field_list = ('mac_address','ip_address','dns_name','static_routes','static','virt_bridge','dhcptag','subnet','bonding','bonding_opts','bonding_master','present','original')
             interfaces = request.POST.get('interface_list', "").split(",")
             for interface in interfaces:
@@ -534,3 +501,5 @@ def generic_save(request,what):
                 
     remote.save_item(what, obj_id, token, editmode)
     return HttpResponseRedirect('/cobbler_web/%s/list' % what)
+
+
