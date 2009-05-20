@@ -484,12 +484,14 @@ def dosync(request):
    remote.sync(token)
    return HttpResponseRedirect("/cobbler_web/")
 
-def __names_from_dicts(loh):
+def __names_from_dicts(loh,optional=True):
    """
    Tiny helper function.
    Get the names out of an array of hashes that the remote interface returns.
    """
    results = []
+   if optional:
+      results.append("<<None>>")
    for x in loh:
       results.append(x["name"])
    return results
@@ -536,7 +538,12 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
          __tweak_field(fields, "parent", "choices", __names_from_dicts(remote.get_profiles()))
       else:
          __tweak_field(fields, "distro", "choices", __names_from_dicts(remote.get_distros()))
-   __tweak_field(fields, "repos", "choices", __names_from_dicts(remote.get_repos()))
+      __tweak_field(fields, "repos", "choices",     __names_from_dicts(remote.get_repos()))
+   if what == "system":
+      __tweak_field(fields, "profile", "choices",   __names_from_dicts(remote.get_profiles()))
+      __tweak_field(fields, "image", "choices",     __names_from_dicts(remote.get_images(),optional=True))
+      __tweak_field(fields, "network", "choices",   __names_from_dicts(remote.get_networks(),optional=True))
+
 
    t = get_template('generic_edit.tmpl')
    html = t.render(Context({

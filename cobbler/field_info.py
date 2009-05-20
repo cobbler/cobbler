@@ -37,6 +37,8 @@ USES_MULTI_SELECT = [
 USES_SELECT = [
    "profile",
    "distro",
+   "network",
+   "image",
 ]
 
 USES_CHECKBOX = [

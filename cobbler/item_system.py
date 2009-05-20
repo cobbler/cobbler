@@ -276,6 +276,12 @@ class System(item.Item):
         Add an interface to a network object.  If network is empty,
         clear the network.
         """
+
+        # the following is to make the absense a network clearer for the webapp
+        # FIXME: testing needed
+        if network == "<<None>>":
+            network = ""
+
         intf = self.__get_interface(interface)
 
         if network == intf['network']:
@@ -300,7 +306,7 @@ class System(item.Item):
 
         # FIXME figure out why the network collection doesn't
         # serialize itself out to disk without this
-        self.config.serialize()
+        # self.config.serialize()
 
     def set_ip_address(self,address,interface):
         """

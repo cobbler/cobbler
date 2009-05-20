@@ -880,6 +880,12 @@ class CobblerXMLRPCInterface:
         """
         data = self.api.get_images_since(mtime, collapse=True)
         return self.xmlrpc_hacks(data)
+    
+    def get_networks_since(self,mtime):
+        """
+        See documentation for get_distros_since
+        """
+        data = self.api.get_networks_since(mtime, collapse=True)
 
     def get_profiles(self,page=None,results_per_page=None,token=None,**rest):
         """
@@ -901,6 +907,13 @@ class CobblerXMLRPCInterface:
         """
         self._log("get_repos",token=token)
         return self.__get_all("repo",page,results_per_page)
+
+    def get_networks(self,page=None,results_per_page=None,token=None,**rest):
+        """
+        Returns all cobbler repos as an array of hashes.
+        """
+        self._log("get_networks",token=token)
+        return self.__get_all("network",page,results_per_page)
    
     def get_repos_compatible_with_profile(self,profile=None,token=None,**rest):
         """
