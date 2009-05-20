@@ -7,13 +7,13 @@ from mod_python import apache
 
 import xmlrpclib, time, simplejson, string, distutils
 
-import cobbler.item_distro as item_distro
-import cobbler.item_distro as item_profile
-import cobbler.item_distro as item_system
-import cobbler.item_distro as item_repo
-import cobbler.item_distro as item_image
-import cobbler.item_distro as item_network
-import cobbler.field_info  as field_info
+import cobbler.item_distro  as item_distro
+import cobbler.item_profile as item_profile
+import cobbler.item_system  as item_system
+import cobbler.item_repo    as item_repo
+import cobbler.item_image   as item_image
+import cobbler.item_network as item_network
+import cobbler.field_info   as field_info
 
 my_uri = "http://127.0.0.1/cobbler_api"
 remote = None
