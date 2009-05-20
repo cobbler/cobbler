@@ -103,6 +103,10 @@ def get_fields(what, is_subobject, seed_item=None):
         else:
             elem["value"]             = row[1]
 
+        # we'll process this for display but still need to present the original to some
+        # template logic
+        elem["value_raw"]             = elem["value"]
+
         if isinstance(elem["value"],basestring) and elem["value"].startswith("SETTINGS:"):
             key = value.replace("SETTINGS:","",1)
             elem["value"] = settings[key]

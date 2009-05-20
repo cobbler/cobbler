@@ -130,6 +130,7 @@ if __name__ == "__main__":
     dj_config    = "/etc/httpd/conf.d/"
     dj_templates = "/usr/share/cobbler/django/templates"
     dj_webui     = "/usr/share/cobbler/django/lib"
+    dj_webui2    = "/usr/share/cobbler/django/lib/templatetags"
     dj_sessions  = "/usr/share/cobbler/django/sessions"
     dj_js        = "/var/www/cobbler_webui_content/"
 
@@ -202,6 +203,8 @@ if __name__ == "__main__":
             (dj_webui,     [ 'django/settings.py' ]),
             (dj_webui,     [ 'django/urls.py' ]),
             (dj_webui,     [ 'django/views.py' ]),
+            (dj_webui2,    [ 'django/templatetags/site.py' ]),
+            (dj_webui2,    [ 'django/templatetags/__init__.py' ]),
             (dj_sessions,  []),
 
             # backups for upgrades

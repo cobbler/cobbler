@@ -1,4 +1,5 @@
 {% extends "master.tmpl" %}
+{% load site %}
 {% block content %}
 
 <div class="section_caption">{% ifequal editmode 'edit'  %}Editing{% else %}Adding{% endifequal %} a {{ what|capfirst }}</div>
@@ -18,34 +19,55 @@
             <td>{{ item.name }}</td>
 
             <td>
+
             {% ifequal item.html_element "text" %}
-            <input type="text" name="{{ item.name }}" value="{{ item.value }}" class="{{ item.css_class }}"/>
+                <input type="text" name="{{ item.name }}" value="{{ item.value }}" class="{{ item.css_class }}"/>
             {% endifequal %}
 
             {% ifequal item.html_element "textarea" %}
-            <input type="textarea" name="{{ item.name }}" rows="4" cols="40" class="{{ item.css_class }}"/>{{ item.value }}"</input>
+                <input type="textarea" name="{{ item.name }}" rows="4" cols="40" class="{{ item.css_class }}"/>{{ item.value }}"</input>
             {% endifequal %}
 
             {% ifequal item.html_element "radio" %}
-            {% for choice in item.choices %}
-                {% ifequal item.value choice %}
-                <input type="radio" name="{{ item.name }}" value="{{ choice }}" checked>{{ choice }}&nbsp;
-                {% else %}
-                <input type="radio" name="{{ item.name }}" value="{{ choice }}">{{ choice }}&nbsp;
-                {%endifequal %}
-            {% endfor %}
+                {% for choice in item.choices %}
+                    {% ifequal item.value choice %}
+                        <input type="radio" name="{{ item.name }}" value="{{ choice }}" checked>{{ choice }}&nbsp;
+                    {% else %}
+                        <input type="radio" name="{{ item.name }}" value="{{ choice }}">{{ choice }}&nbsp;
+                    {%endifequal %}
+                {% endfor %}
             {% endifequal %}
 
             {% ifequal item.html_element "checkbox" %}
-            Checkbox
+                {% if item.value % }
+                    <input type="checkbox" name="{{ item.name }}" value="{{ item.name }}" checked> Enabled<br>
+                {% else % }
+                    <input type="checkbox" name="{{ item.name }}" value="{{ item.name }}"> Enabled<br>
+                {% endif % }
             {% endifequal %}
 
             {% ifequal item.html_element "select" %}
-            Select
+                <select>
+                    {% for choice in item.choices % }
+                        {% ifequal item.value choice %}
+                            <option value="{{ choice }}" selected>{{ choice }}</A>
+                        {% else % }
+                            <option value="{{ choice }}">{{ choice }}</A>
+                        {% endif % }
+                    {% end for } 
+                </select>
             {% endifequal %}
 
             {% ifequal item.html_element "multiselect" %}
-            Multi-Select
+                <select multiple>
+                    {% for choice in item.choices % }
+                        {% ifinlist choice item.value_raw %}
+                            <option value="{{ choice }}" selected>{{ choice }}</A>
+                        {% else %}
+                            <option value="{{ choice }}">{{ choice }}</A>
+                        {% endifinlist %}
+                    {% end for } 
+                </select>
             {% endifequal %}
 
             <p class="context-tip">{{ item.tooltip }}</p>
