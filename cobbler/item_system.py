@@ -43,7 +43,7 @@ FIELDS = [
   ["kickstart","<<inherit>>",0,"Kickstart",True,"Path to kickstart template",0],
   ["server","<<inherit>>",0,"Server Override",True,"See manpage or leave blank",0],
   ["virt_path","<<inherit>>",0,"Virt Path",True,"Ex: /directory or VolGroup00",0],
-  ["virt_type","<<inherit>>",0,"Virt Type",True,"Virtualization technology to use",0,["xenpv","xenfv","qemu","vmware"]],
+  ["virt_type","<<inherit>>",0,"Virt Type",True,"Virtualization technology to use",["xenpv","xenfv","qemu","vmware"]],
   ["virt_cpus","<<inherit>>",0,"Virt CPUs",True,"",0],
   ["virt_file_size","<<inherit>>",0,"Virt File Size(GB)",True,"",0],
   ["virt_ram","<<inherit>>",0,"Virt RAM (MB)",True,"",0],

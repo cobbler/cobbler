@@ -92,16 +92,23 @@ def get_fields(what, is_subobject, seed_item=None):
             "tooltip"                 : row[5],
             "choices"                 : row[6],
             "css_class"               : "generic",
-            "html_element"            : "generic"
+            "html_element"            : "generic",
         }
         if not elem["editable"]:
             continue
+
         if seed_item is not None:
-            elem["value"]             = seed_item[row[0]]
+            if row[0].startswith("*"):
+                # system interfaces are loaded by javascript, not this
+                elem["value"]             = ""
+                elem["name"]              = row[0].replace("*","")
+            else:
+                elem["value"]             = seed_item[row[0]]
         elif is_subobject:
             elem["value"]             = row[2]
         else:
             elem["value"]             = row[1]
+                
 
         # we'll process this for display but still need to present the original to some
         # template logic
@@ -500,7 +507,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    if what == "subprofile":
       what = "profile"
       child = True
-
+   
 
    if not obj_name is None:
       editable = remote.check_access_no_fail(token, "modify_%s" % what, obj_name)
@@ -515,6 +522,11 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
        editable = remote.check_access_no_fail(token, "new_%s" % what, None)
        obj = None
 
+
+   interfaces = {}
+   if what == "system":
+       interfaces = obj.get("interfaces",{})
+
    fields = get_fields(what, child, obj)
 
    # populate some select boxes
@@ -528,10 +540,12 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
    t = get_template('generic_edit.tmpl')
    html = t.render(Context({
-       'what'        : what, 
-       'fields'      : fields, 
-       'editmode'    : editmode, 
-       'editable'    : editable
+       'what'            : what, 
+       'fields'          : fields, 
+       'editmode'        : editmode, 
+       'editable'        : editable,
+       'interfaces'      : interfaces,
+       'interface_names' : interfaces.keys()
    }))
 
    return HttpResponse(html)
