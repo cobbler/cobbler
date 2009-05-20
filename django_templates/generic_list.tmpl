@@ -4,93 +4,42 @@
 
 <script language="Javascript" src="/cobbler_webui_content/checkboxes.js" ></script>
 <script language="Javascript">
-function action_multi(actionname)
-{
-    var itemcount=items_checked_count();
-    if (
-        (itemcount == 0) &&
-        (
-         (actionname == "delete") ||
-         (actionname == "netboot") ||
-         (actionname == "profile") ||
-         (actionname == "power")
-        )
-       )
-    {
-	alert("Select the {{ what }}s to " + actionname+" first");
-	return;
-    }
-    else if (
-             (itemcount != 1) &&
-             (
-              (actionname == "copy") ||
-              (actionname == "rename")
-             )
-            )
-    {
-	alert("Select only one {{ what }} to " + actionname);
-	return;
-    }
-
-    document.myform.action = "/cobbler_web/{{ what }}/"+actionname+"/multi";
-    document.myform.submit();
-}
-
-function action_single(actionname,target)
-{
-    if (actionname == "viewks")
-    {
-        location="/cblr/svc/op/ks/{{ what }}/"+target;
-    }
-    else
-    {
-        document.myform.action = "/cobbler_web/{{ what }}/"+actionname+"/"+target;
-        document.myform.submit();
-    }
-}
 </script>
 
-<div class="section_caption">{{ what|title }}s</div>
+<div class="section_caption">{{ what }}s</div>
 
 <form name="myform" method="post" action="/cobbler_web/{{ what }}/action">
     <table class="sortable">
     <thead>
         <tr>
 	    <th class="text"><input type="checkbox" id="itemsall" onclick="javascript:items_check_all();"></th>
-            {% for header in headers %}
-                <th class="text"><a href="/cobbler_web/{{ what }}/modifylist/sort/{{ header.field }}">{{ header.label }}</a></th>
+            {% for column_name in columns %}
+                <th class="text">{{ column_name }}</th>
             {% endfor %}
-            <th class="text" colspan="{{ single_actions|length }}">Actions</th>
+
+            <th class="text">actions</th>
+
         </tr>
     </thead>
     <tbody>
-        {% if rows %}
-           {% for row in rows %}
+           {% for item in items %}
+
            <tr class="{% cycle 'rowodd' 'roweven' %}">
                <td><input type="checkbox" name="items" value="{{ row.name }}"/></td>
 
-               {% for column in row.columns %}
+               {% for value in item %}
                     <td>
-                    {% if column.url %}
-                        <a href="{{ column.url }}">{{ column.value }}</a>
-                    {% else %}
-                        {% ifequal column.type "checkbox" %}
-                            {% ifequal column.value True %}Yes{% else %}No{% endifequal %}
-                        {% else %}
-                            {{ column.value }}
-                        {% endifequal %}
-                    {% endif %}
+                        {{ value }}
                     </td>
                {% endfor %}
 
-               {% for action in single_actions %}
-                    <td><input type="button" onclick="javascript:action_single('{{ action.name }}','{{ row.name }}')" value="{{ action.label }}"/></td>
-               {% endfor %}
+               <td><input type="button" name="edit" value="Edit" onClick="javascript:location='/cobbler_web/{{ what }}/edit/{{ item.0 }}'"></td>
+
            </tr>
-           {% endfor %}
-        {% else %}
-           <tr><td colspan="8">No {{ what }}s found.</td></tr>
-        {% endif %}
+
+       {% endfor %}
+
+
     </tbody>
     </table>
 </form>
@@ -105,3 +54,5 @@ function action_single(actionname,target)
 {% endif %}
 
 {% endblock content %}
+
+

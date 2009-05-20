@@ -356,7 +356,7 @@ Summary: Web interface for Cobbler
 Version: 1.7.0
 Release: 1%{?dist}
 Group: Applications/System
-Requires: mkinitrd
+Requires: cobbler
 Requires: Django
 BuildRequires: python-devel
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6

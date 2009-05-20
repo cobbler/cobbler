@@ -5,7 +5,15 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from mod_python import apache
 
-import xmlrpclib, time, simplejson
+import xmlrpclib, time, simplejson, string
+
+import cobbler.item_distro as item_distro
+import cobbler.item_distro as item_profile
+import cobbler.item_distro as item_system
+import cobbler.item_distro as item_repo
+import cobbler.item_distro as item_image
+import cobbler.item_distro as item_network
+import cobbler.field_info  as field_info
 
 my_uri = "http://127.0.0.1/cobbler_api"
 remote = None
@@ -55,147 +63,169 @@ def list(request, what, page=None):
     }))
     return HttpResponse(html)
 
-def get_fields(what):
+def get_fields(what, is_subobject, seed_item=None):
+
     if what == "distro":
-       f = item_distro.FIELDS
+       field_data = item_distro.FIELDS
     if what == "profile":
-       f = item_profile.FIELDS
+       field_data = item_profile.FIELDS
     if what == "system":
-       f = item_system.FIELDS
+       field_data = item_system.FIELDS
     if what == "repo":
-       f = item_repo.FIELDS
+       field_data = item_repo.FIELDS
     if what == "image":
-       f =  item_image.FIELDS
+       field_data =  item_image.FIELDS
     if what == "network":
-       f = item_network.FIELDS
+       field_data = item_network.FIELDS
+
+    settings = remote.get_settings()
+
   
-    # FIXME: somewhat temporary, this maps the arrays in item_* to the hash structures in PV's
-    # original version.  In process of cleanup. -- MPD
-    ds = []
-    for row in f:
-        ds.append((row[0], {
-            "value" : row[1], # default value
-            "type" : "text",  : # FIXME, not added yet!
-            "size" : "100",  # FIXME, should be CSS governed only!
-            "width" : "100", # ditto
-            "cols"  : 5, # ditto
-            "valtype" : "str", # fixme: should be eliminated
-            "example" : row[4] # fixme: should be named "tip", not example      
-        }))  
-        # FIXME: need fields for CSS type and also choices list for radio buttons, and also display type
-        # all added to item_*.py
-    return ds
+    fields = []
+    for row in field_data:
+
+
+        elem = {
+            "name"                    : row[0],
+            "caption"                 : row[3],
+            "editable"                : row[4],
+            "tooltip"                 : row[5],
+            "css_class"               : "generic",
+            "html_element"            : "generic"
+        }
+        if not elem["editable"]:
+            continue
+        if seed_item is not None:
+            elem["value"]             = seed_item[row[0]]
+        elif is_subobject:
+            elem["value"]             = row[2]
+        else:
+            elem["value"]             = row[1]
+
+        if isinstance(elem["value"],basestring) and elem["value"].startswith("SETTINGS:"):
+            key = value.replace("SETTINGS:","",1)
+            elem["value"] = settings[key]
+
+        # flatten hashes of all types, they can only be edited as text
+        # as we have no HTML hash widget (yet)
+        if type(elem["value"]) == type({}):
+            tokens = []
+            for (x,y) in elem["value"].items():
+               if y is not None:
+                  tokens.append("%s=%s" % (x,y))
+               else:
+                  tokens.appned("%s" % x)
+            elem["value"] = tokens.join(" ")
+ 
+        name = row[0]
+        if name in field_info.USES_SELECT:
+            elem["html_element"] = "select"
+        elif name in field_info.USES_MULTI_SELECT:
+            elem["html_element"] = "multiselect"
+        elif name in field_info.USES_RADIO:
+            elem["html_element"] = "radio"
+        elif name in field_info.USES_CHECKBOX:
+            elem["html_element"] = "checkbox"
+        elif name in field_info.USES_TEXTAREA:
+            elem["html_element"] = "textarea"
+        else:
+           elem["html_element"]  = "text"
+
+        elem["css_class"] = field_info.CSS_MAPPINGS.get(name, "genericedit")
+        
+        # flatten lists for those that aren't using select boxes
+        if type(elem["value"]) == type([]):
+            if elem["html_element"] != "select":
+                elem["value"] = string.join(elem["value"], sep=" ")
+
+        # FIXME: need to handle interfaces special, they are prefixed with "*"
+
+        fields.append(elem)
+
+    return fields
+
+def __tweak_field(fields,field_name,attribute,value):
+    for x in fields:
+       if x["name"] == field_name:
+           x[attribute] = value
+
+def __format_items(items, column_names):
+    """
+    Format items retrieved from XMLRPC for rendering by the generic_edit template
+    """
+    dataset = []
+    for itemhash in items:
+        row = []
+        for fieldname in column_names:
+            row.append(itemhash[fieldname])
+        dataset.append(row)
+    return dataset
+
+
 
 def genlist(request, what, page=None):
 
     # FIXME: cleanup
-
     if page == None:
         page = int(request.session.get("%s_page" % what, 1))
-    limit = int(request.session.get("%s_limit" % what, 50))
-    sort_field = request.session.get("%s_sort_field" % what, None)
+    limit = int(request.session.get("%s_limit" % what, 50))                      # FIXME: does this work?
+    sort_field = request.session.get("%s_sort_field" % what, None)               # FIXME: is this used?
     filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
-
     pageditems = remote.find_items_paged(what,filters,sort_field,page,limit)
 
-    # Load columns from settings
-    settings = remote.get_settings()
-    list_columns = settings.get("web_%s_list_columns" % what,["name"])
-
-    # Prepare list of allowed actions on a single object
-    single_actions=[]
-    if what in ("system","profile"):
-        single_actions.append({ 'name': 'viewks',  'label':'Preview KS' })
-    single_actions.append({ 'name': 'edit',    'label':'Edit' })
-    single_actions.append({ 'name': 'rename',    'label':'Rename' })
-    single_actions.append({ 'name': 'copy',    'label':'Copy' })
-
-    # Prepare list of allowed actions on multiple objects
-    multi_actions=[]
-    multi_actions.append({ 'name': 'delete',  'label':'Delete' })
-    if what in ("systems"):
-        multi_actions.append({ 'name': 'netboot', 'label':'Netboot' })
-        multi_actions.append({ 'name': 'profile', 'label':'Profile' })
-        multi_actions.append({ 'name': 'power', 'label':'Power' })
-
-    # Get table headers values
-    fields = remote.get_fields(what, token)
-    headers = []
-    for list_column in list_columns:
-        header={}
-        header['field']=list_column
-        if list_column.find("::") > 0:
-            (field_name,field_key,subfield_name)=list_column.split("::",2)
-            field=fields.get(field_name,{})
-            subfield=field.get("fields",{}).get(subfield_name,{})
-            header['label']="%s(%s)" % (subfield.get("label",""), field_key)
-        else:
-            field=fields.get(list_column,{})
-            header['label']=field.get("label","")
-        headers.append(header)
-
-    # Get table row values
-    rows = []
-    for item in pageditems["items"]:
-        row={}
-        row['name'] = item["name"]
-        row['columns'] = []
-        for list_column in list_columns:
-            column={}
-            if list_column.find("::") > 0:
-                (field_name,field_key,subfield_name)=list_column.split("::",2)
-                field=fields.get(subfield_name,{})
-                subfield=field.get("fields",{}).get(subfield_name,{})
-                column["value"]=item.get(field_name,{}).get(field_key,{}).get(subfield_name,"")
-                column["type"]=subfield.get("type","")
-            else:
-                field=fields.get(list_column,{})
-                column["value"]=item.get(list_column,"")
-                column["type"]=field.get("type","")
-            row['columns'].append(column)
-        rows.append(row)
+    # what columns to show for each page?
+    if what == "distro":
+       columns = [ "name" ]
+    if what == "profile":
+       columns = [ "name", "distro" ]
+    if what == "system":
+       columns = [ "name", "profile" ] 
+    if what == "repo":
+       columns = [ "name", "mirror" ]
+    if what == "image":
+       columns = [ "name", "file" ]
+    if what == "network":
+       columns = [ "name" ] 
 
     t = get_template('generic_list.tmpl')
     html = t.render(RequestContext(request,{
         'what'           : what,
-        'headers'        : headers,
-        'rows'           : rows,
-        'single_actions' : single_actions,
-        'multi_actions'  : multi_actions,
+        'columns'        : columns,
+        'items'          : __format_items(pageditems["items"],columns),
         'pageinfo'       : pageditems["pageinfo"],
         'filters'        : filters,
     }))
     return HttpResponse(html)
 
 
-def modify_list(request, what, pref, value=None):
-
-    # FIXME: cleanup
-    # FIXME: what does this do?  COMMENTS!
-
-    try:
-        if pref == "sort":
-            old_sort=request.session.get("%s_sort_field" % what,"")
-            if old_sort.startswith("!"):
-                old_sort=old_sort[1:]
-                old_revsort=True
-            else:
-                old_revsort=False
-            if old_sort==value and not old_revsort:
-                value="!" + value
-            request.session["%s_sort_field" % what] = value
-            request.session["%s_page" % what] = 1
-        elif pref == "limit":
-            request.session["%s_limit" % what] = int(value)
-            request.session["%s_page" % what] = 1
-        elif pref == "page":
-            request.session["%s_page" % what] = int(value)
-        else:
-            raise ""
-        # redirect to the list
-        return HttpResponseRedirect("/cobbler_web/%s/list" % what)
-    except:
-        return error_page(request,"Invalid preference: %s" % pref)
+#def modify_list(request, what, pref, value=None):
+#
+#    # FIXME: cleanup
+#    # FIXME: what does this do?  COMMENTS!
+#
+#    try:
+#        if pref == "sort":
+#            old_sort=request.session.get("%s_sort_field" % what,"")
+#            if old_sort.startswith("!"):
+#                old_sort=old_sort[1:]
+#                old_revsort=True
+#            else:
+#                old_revsort=False
+#            if old_sort==value and not old_revsort:
+#                value="!" + value
+#            request.session["%s_sort_field" % what] = value
+#            request.session["%s_page" % what] = 1
+#        elif pref == "limit":
+#            request.session["%s_limit" % what] = int(value)
+#            request.session["%s_page" % what] = 1
+#        elif pref == "page":
+#            request.session["%s_page" % what] = int(value)
+#        else:
+#            raise ""
+#        # redirect to the list
+#        return HttpResponseRedirect("/cobbler_web/%s/list" % what)
+#    except:
+#        return error_page(request,"Invalid preference: %s" % pref)
 
 def modify_filter(request, what, action, filter=None):
     # FIXME: cleanup
@@ -439,6 +469,16 @@ def dosync(request):
    remote.sync(token)
    return HttpResponseRedirect("/cobbler_web/")
 
+def __names_from_dicts(loh):
+   """
+   Tiny helper function.
+   Get the names out of an array of hashes that the remote interface returns.
+   """
+   results = []
+   for x in loh:
+      results.append(x["name"])
+   return results
+
 def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
    # FIXME: cleanup
@@ -446,52 +486,46 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
    obj = None
 
+   settings = remote.get_settings()
+
    child = False
    if what == "subprofile":
       what = "profile"
       child = True
 
+
    if not obj_name is None:
       editable = remote.check_access_no_fail(token, "modify_%s" % what, obj_name)
       obj = remote.get_item(what, obj_name, True)
+   #
+   #   if obj.has_key('ctime'):
+   #      obj['ctime'] = time.ctime(obj['ctime'])
+   #   if obj.has_key('mtime'):
+   #      obj['mtime'] = time.ctime(obj['mtime'])
 
-      if obj.has_key('ctime'):
-         obj['ctime'] = time.ctime(obj['ctime'])
-      if obj.has_key('mtime'):
-         obj['mtime'] = time.ctime(obj['mtime'])
    else:
-      editable = remote.check_access_no_fail(token, "new_%s" % what, None)
+       editable = remote.check_access_no_fail(token, "new_%s" % what, None)
+       obj = None
 
-   fields = remote.get_fields(what, token)
-   if obj:
-      for key in fields.keys():
-         fields[key]["value"] = obj.get(key,"")
+   fields = get_fields(what, child, obj)
 
-   # populate select lists with data stored in cobbler,
-   # based on what we are currently editing
+   # populate some select boxes
+   # FIXME: we really want to just populate with the names, right?
    if what == "profile":
       if (obj and obj["parent"] not in (None,"")) or child:
-         fields["parent"]["list"] = remote.get_profiles(token)
-         del fields["distro"]
+         __tweak_field(fields, "parent", "choices", __names_from_dicts(remote.get_profiles()))
       else:
-         fields["distro"]["list"] = remote.get_distros(token)
-         del fields["parent"]
-      fields["repos"]["list"]  = remote.get_repos(token)
-   elif what == "system":
-      fields["profile"]["list"] = remote.get_profiles(token)
+         __tweak_field(fields, "distro", "choices", __names_from_dicts(remote.get_distros()))
+   __tweak_field(fields, "repos", "choices", __names_from_dicts(remote.get_repos()))
 
-   # FIXME: fields should be be in order listed in order of groups listed
-
-   sorted_fields = [(key, val) for key,val in fields.items()] 
-   #sorted_fields.sort(lambda a,b: cmp(a[1]["order"], b[1]["order"])) 
-
-   # Enable empty name field when copying
-   if editmode == "copy":
-      fields["name"]["setopts"] = ""
-      fields["name"]["value"] = ""
-     
    t = get_template('generic_edit.tmpl')
-   html = t.render(Context({'what': what, 'obj':obj, 'fields': sorted_fields, 'editmode': editmode, 'editable':editable}))
+   html = t.render(Context({
+       'what'        : what, 
+       'fields'      : fields, 
+       'editmode'    : editmode, 
+       'editable'    : editable
+   }))
+
    return HttpResponse(html)
 
 def generic_save(request,what):
@@ -514,11 +548,14 @@ def generic_save(request,what):
             return error_page(request,"Failed to create new %s: %s already exists." % (what,obj_name))
         obj_id = remote.new_item( what, token )
 
+    # FIXME: signature has changed 
     fields = remote.get_fields(what, token)
+
     for field in fields.keys():
         if field == 'name' and editmode == 'edit':
             continue
         elif what == 'system' and field == "interfaces":
+            # FIXME: we should pull this from the fields table so it's not hard coded
             interface_field_list = ('mac_address','ip_address','dns_name','static_routes','static','virt_bridge','dhcptag','subnet','bonding','bonding_opts','bonding_master','present','original')
             interfaces = request.POST.get('interface_list', "").split(",")
             for interface in interfaces:
@@ -536,3 +573,5 @@ def generic_save(request,what):
                 
     remote.save_item(what, obj_id, token, editmode)
     return HttpResponseRedirect('/cobbler_web/%s/list' % what)
+
+

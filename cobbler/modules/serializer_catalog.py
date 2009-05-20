@@ -50,7 +50,7 @@ def register():
 
 def serialize_item(obj, item):
     filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
-    datastruct = item.to_datastruct_with_cache()
+    datastruct = item.to_datastruct()
 
     jsonable = can_use_json()
 
@@ -63,7 +63,7 @@ def serialize_item(obj, item):
             print "upgrading yaml file to json: %s" % filename
             os.remove(filename)
         filename = filename + ".json"
-        datastruct = item.to_datastruct_with_cache()
+        datastruct = item.to_datastruct()
         fd = open(filename,"w+")
         data = simplejson.dumps(datastruct, encoding="utf-8")
         #data = data.encode('utf-8')
@@ -74,7 +74,7 @@ def serialize_item(obj, item):
         if os.path.exists(filename + ".json"):
             print "downgrading json file back to yaml: %s" % filename
             os.remove(filename + ".json")
-        datastruct = item.to_datastruct_with_cache()
+        datastruct = item.to_datastruct()
         fd = open(filename,"w+")
         data = yaml.dump(datastruct)
         fd.write(data)
