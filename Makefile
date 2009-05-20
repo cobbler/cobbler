@@ -42,7 +42,7 @@ build: manpage
 
 install: build manpage
 	python setup.py install -f
-	chown -R apache /usr/share/cobbler/django
+	chown -R apache /usr/share/cobbler/web
 
 debinstall: manpage
 	python setup.py install -f --root $(DESTDIR)

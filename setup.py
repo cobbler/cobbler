@@ -128,10 +128,11 @@ if __name__ == "__main__":
 
     # django content
     dj_config    = "/etc/httpd/conf.d/"
-    dj_templates = "/usr/share/cobbler/django/templates"
-    dj_webui     = "/usr/share/cobbler/django/lib"
-    dj_webui2    = "/usr/share/cobbler/django/lib/templatetags"
-    dj_sessions  = "/usr/share/cobbler/django/sessions"
+    dj_templates = "/usr/share/cobbler/web/cobbler_web/templates"
+    dj_webui     = "/usr/share/cobbler/web/cobbler_web"
+    dj_webui2    = "/usr/share/cobbler/web/cobbler_web/templatetags"
+    dj_webui_proj= "/usr/share/cobbler/web"
+    dj_sessions  = "/usr/share/cobbler/web/sessions"
     dj_js        = "/var/www/cobbler_webui_content/"
 
     setup(
@@ -171,40 +172,43 @@ if __name__ == "__main__":
 
             # django webui content
             (dj_config,    [ 'config/cobbler_web.conf' ]),
-            (dj_templates, [ 'django_templates/blank.tmpl' ]),
-            (dj_templates, [ 'django_templates/empty.tmpl' ]),
-            (dj_templates, [ 'django_templates/enoaccess.tmpl' ]),
-            (dj_templates, [ 'django_templates/error_page.tmpl' ]),
-            (dj_templates, [ 'django_templates/header.tmpl' ]),
-            (dj_templates, [ 'django_templates/index.tmpl' ]),
-            (dj_templates, [ 'django_templates/item.tmpl' ]),
-            (dj_templates, [ 'django_templates/ksfile_edit.tmpl' ]),
-            (dj_templates, [ 'django_templates/ksfile_list.tmpl' ]),
-            (dj_templates, [ 'django_templates/snippet_edit.tmpl' ]),
-            (dj_templates, [ 'django_templates/snippet_list.tmpl' ]),
-            (dj_templates, [ 'django_templates/master.tmpl' ]),
-            (dj_templates, [ 'django_templates/message.tmpl' ]),
-            (dj_templates, [ 'django_templates/paginate.tmpl' ]),
-            (dj_templates, [ 'django_templates/settings.tmpl' ]),
-            (dj_templates, [ 'django_templates/system_netboot.tmpl' ]),
-            (dj_templates, [ 'django_templates/system_power.tmpl' ]),
-            (dj_templates, [ 'django_templates/system_profile.tmpl' ]),
-            (dj_templates, [ 'django_templates/generic_edit.tmpl' ]),
-            (dj_templates, [ 'django_templates/generic_list.tmpl' ]),
-            (dj_templates, [ 'django_templates/generic_delete.tmpl' ]),
-            (dj_templates, [ 'django_templates/generic_rename.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/blank.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/empty.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/enoaccess.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/error_page.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/header.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/index.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/item.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/ksfile_edit.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/ksfile_list.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/snippet_edit.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/snippet_list.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/master.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/message.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/paginate.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/settings.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/system_netboot.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/system_power.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/system_profile.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/generic_edit.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/generic_list.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/generic_delete.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/generic_rename.tmpl' ]),
 
             # django javascript support code (move to section with other js?)
             (wwwcon,        [ 'webui_content/checkboxes.js' ]),	
 
             # django code, private to cobbler-web application
-            (dj_webui,     [ 'django/__init__.py' ]),
-            (dj_webui,     [ 'django/manage.py' ]),
-            (dj_webui,     [ 'django/settings.py' ]),
-            (dj_webui,     [ 'django/urls.py' ]),
-            (dj_webui,     [ 'django/views.py' ]),
-            (dj_webui2,    [ 'django/templatetags/site.py' ]),
-            (dj_webui2,    [ 'django/templatetags/__init__.py' ]),
+            (dj_webui_proj,  [ "web/authen.py" ]),
+            (dj_webui,       [ 'web/cobbler_web/__init__.py' ]),
+            (dj_webui_proj,  [ 'web/__init__.py' ]),
+            (dj_webui_proj,  [ 'web/urls.py' ]),
+            (dj_webui_proj,  [ 'web/manage.py' ]),
+            (dj_webui_proj,  [ 'web/settings.py' ]),
+            (dj_webui,       [ 'web/cobbler_web/urls.py' ]),
+            (dj_webui,       [ 'web/cobbler_web/views.py' ]),
+            (dj_webui2,      [ 'web/cobbler_web/templatetags/site.py' ]),
+            (dj_webui2,      [ 'web/cobbler_web/templatetags/__init__.py' ]),
             (dj_sessions,  []),
 
             # backups for upgrades

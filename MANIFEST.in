@@ -16,6 +16,5 @@ include docs/koan.1.gz
 include docs/cobbler-register.1.gz
 include scripts/koan 
 include scripts/cobbler-register
-recursive-include django_templates *
-recursive-include django *
+recursive-include web *
 

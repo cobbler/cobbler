@@ -378,14 +378,14 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 
 %files -n cobbler-web
 %defattr(-,apache,apache)
-%dir /usr/share/cobbler/django
-%dir /usr/share/cobbler/django/sessions
-%dir /usr/share/cobbler/django/templates
-/usr/share/cobbler/django/templates/*
-%dir /usr/share/cobbler/django/lib
-/usr/share/cobbler/django/lib/*
+%dir /usr/share/cobbler/web
+%dir /usr/share/cobbler/web/sessions
+%dir /usr/share/cobbler/web/cobbler_web/templates
+/usr/share/cobbler/web/cobbler_web/templates/*
+%dir /usr/share/cobbler/web/cobbler_web
+/usr/share/cobbler/web/cobbler_web/*
 /etc/httpd/conf.d/cobbler_web.conf
-%dir /usr/share/cobbler/django/sessions
+%dir /usr/share/cobbler/web/sessions
 %dir /var/www/cobbler_webui_content
 /var/www/cobbler_webui_content/*
 %doc AUTHORS COPYING CHANGELOG README

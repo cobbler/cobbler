@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from mod_python import apache
 
-import xmlrpclib, time, simplejson, string
+import xmlrpclib, time, simplejson, string, distutils
 
 import cobbler.item_distro as item_distro
 import cobbler.item_distro as item_profile
@@ -27,13 +27,13 @@ def authenhandler(req):
 
     password = req.get_basic_auth_pw()
     username = req.user     
-    try:
-        remote = xmlrpclib.Server(my_uri, allow_none=True)
-        token = remote.login(username, password)
-        remote.update(token)
-        return apache.OK
-    except:
-        return apache.HTTP_UNAUTHORIZED
+    #try:
+    remote = xmlrpclib.Server(my_uri, allow_none=True)
+    token = remote.login(username, password)
+    remote.update(token)
+    return apache.OK
+    #except:
+    #    return apache.HTTP_UNAUTHORIZED
 
 def index(request):
    t = get_template('index.tmpl')

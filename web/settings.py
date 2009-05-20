@@ -45,15 +45,17 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 )
-ROOT_URLCONF = 'lib.urls'
+ROOT_URLCONF = 'urls'
+
 TEMPLATE_DIRS = (
-    '/usr/share/cobbler/django/templates',
+    '/usr/share/cobbler/web/templates',
 )
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
+    'cobbler_web',
 )
 
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
@@ -63,5 +65,5 @@ TEMPLATE_CONTEXT_PROCESSORS += (
 ) 
      
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
-SESSION_FILE_PATH = '/usr/share/cobbler/django/sessions'
+SESSION_FILE_PATH = '/usr/share/cobbler/web/sessions'
 
