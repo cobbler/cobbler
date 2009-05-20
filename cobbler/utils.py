@@ -1700,7 +1700,7 @@ def printable_from_fields(obj, fields):
           buf = buf + "%-30s : %s\n" % ("Interface ===== ",iname)
           for (k, nicename, editable) in keys:
              if k.startswith("*") and editable:
-                 buf = buf + "%-30s : %s\n" % (nicename, obj.interfaces[iname][k.replace("*","")])
+                 buf = buf + "%-30s : %s\n" % (nicename, obj.interfaces[iname].get(k,"").replace("*",""))
 
     return buf
 
