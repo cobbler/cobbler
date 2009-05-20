@@ -115,7 +115,7 @@ def get_fields(what, is_subobject, seed_item=None):
         elem["value_raw"]             = elem["value"]
 
         if isinstance(elem["value"],basestring) and elem["value"].startswith("SETTINGS:"):
-            key = value.replace("SETTINGS:","",1)
+            key = elem["value"].replace("SETTINGS:","",1)
             elem["value"] = settings[key]
 
         # flatten hashes of all types, they can only be edited as text
@@ -127,7 +127,7 @@ def get_fields(what, is_subobject, seed_item=None):
                   tokens.append("%s=%s" % (x,y))
                else:
                   tokens.appned("%s" % x)
-            elem["value"] = tokens.join(" ")
+            elem["value"] = " ".join(tokens)
  
         name = row[0]
         if name in field_info.USES_SELECT:
