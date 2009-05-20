@@ -196,7 +196,7 @@ if __name__ == "__main__":
             (dj_templates, [ 'web/cobbler_web/templates/generic_rename.tmpl' ]),
 
             # django javascript support code (move to section with other js?)
-            (wwwcon,        [ 'webui_content/checkboxes.js' ]),	
+            (wwwcon,        [ 'web/content/checkboxes.js' ]),	
 
             # django code, private to cobbler-web application
             (dj_webui_proj,  [ "web/authen.py" ]),
@@ -341,11 +341,11 @@ if __name__ == "__main__":
             # slurp in whole directory?
 
             # Web UI support files
-            (wwwcon,            ['webui_content/cobbler.js']),
-            (wwwcon,            ['webui_content/style.css']),
-            (wwwcon,            ['webui_content/logo-cobbler.png']),
-            (wwwcon,            ['webui_content/cobblerweb.css']),
-            (modpython,         ['webui_content/index.html']),
+            (wwwcon,            ['web/content/cobbler.js']),
+            (wwwcon,            ['web/content/style.css']),
+            (wwwcon,            ['web/content/logo-cobbler.png']),
+            (wwwcon,            ['web/content/cobblerweb.css']),
+            (modpython,         ['web/content/index.html']),
 
             # Anamon script
             (vw_aux,            ['aux/anamon', 'aux/anamon.init']),
