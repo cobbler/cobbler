@@ -31,13 +31,13 @@ from utils import _
 FIELDS = [
   ['name','',0,"Name",True,"",0],
   ['arch','i386',0,"Architecture",True,"",["i386","x86_64","ia64","s390","ppc"]],
-  ['breed','redhat',0,"Breed",True,"ex: redhat, suse, debian",["redhat","suse","debian"]],
+  ['breed','redhat',0,"Breed",True,"",["redhat","suse","debian"]],
   ['comment','',0,"Comment",True,"Free form text description",0],
   ['ctime',0,0,"",False,"",0],
   ['mtime',0,0,"",False,"",0],
   ['file','',0,"File",True,"Path to local file or nfs://user@host:path",0],
   ['depth',0,0,"",False,"",0],
-  ['image_type',"iso",0,"Image Type",True,"ex: iso, direct, virt-image", ["iso","direct","virt-image"]], #FIXME:complete?
+  ['image_type',"iso",0,"Image Type",True,"", ["iso","direct","virt-image"]], #FIXME:complete?
   ['network_count',1,0,"Virt NICs",True,"",0],
   ['os_version','',0,"OS Version",True,"ex: rhel4",0],
   ['owners',"SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",[]],

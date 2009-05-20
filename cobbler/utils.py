@@ -1735,11 +1735,15 @@ def add_options_from_fields(parser, fields, args):
        # scrub interface tags so all fields get added correctly.
        k = k.replace("*","")
        nicename = elem[3]
-       example = elem[5]
+       tooltip = elem[5]
+       choices = elem[6]
        niceopt = "--%s" % k.replace("_","-")
        desc = nicename
-       if example != "":
-          desc = nicename + " (%s)" % example
+       if tooltip != "":
+          desc = nicename + " (%s)" % tooltip
+       if type(choices) == type([]) and len(choices) != 0:
+          desc = desc + " (valid options: %s)" % ",".join(choices)    
+      
        parser.add_option(niceopt, dest=k, help=desc)
     
     if not matches_args(args, ["dumpvars","find","remove","report","list"]): 
