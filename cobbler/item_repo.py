@@ -27,25 +27,25 @@ from utils import _
 import time
 
 FIELDS = [
-  ["parent",None,0,"",False,""],
-  ["name",None,0,"Name",True,"Ex: f10-i386-updates"],
-  ["uid",None,0,"",False,""],
-  ["mirror",None,0,"Mirror",True,"Address of yum or rsync repo to mirror"],
-  ["keep_updated",True,0,"Keep Updated",True,"Update this repo on next 'cobbler reposync'?"],
-  ["priority",99,0,"Priority",True,"Value for yum priorities plugin, if installed"],
-  ["rpm_list",'<<inherit>>',0,"RPM List",True,"Mirror just these RPMs (yum only)"],
-  ["createrepo_flags",'<<inherit>>',0,"Createrepo Flags",True,"Flags to use with createrepo"],
-  ["depth",2,0,"",False,""],
-  ["breed","",0,"Breed",True,"ex: redhat, debian"],
+  ["arch","",0,"Arch",True,"ex: i386, x86_64",0],
+  ["breed","",0,"Breed",True,"ex: redhat, debian",["redhat","suse","debian"]],
+  ["comment","",0,"Comment",True,"Free form text description",0],
+  ["ctime",0,0,"",False,"",0],
+  ["createrepo_flags",'<<inherit>>',0,"Createrepo Flags",True,"Flags to use with createrepo",0],
+  ["depth",2,0,"",False,"",0],
+  ["environment",{},0,"Environment Variables",True,"Use these environment variables during commands (key=value, space delimited)",0],
+  ["keep_updated",True,0,"Keep Updated",True,"Update this repo on next 'cobbler reposync'?",0],
+  ["mirror",None,0,"Mirror",True,"Address of yum or rsync repo to mirror",0],
+  ["mirror_locally",True,0,"Mirror locally",True,"Copy files or just reference the repo externally?",0],
+  ["mtime",0,0,"",False,"",0],
+  ["name",None,0,"Name",True,"Ex: f10-i386-updates",0],
+  ["owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",[]],
+  ["parent",None,0,"",False,"",0],
+  ["priority",99,0,"Priority",True,"Value for yum priorities plugin, if installed",0],
+  ["rpm_list",'<<inherit>>',0,"RPM List",True,"Mirror just these RPMs (yum only)",0],
 #  ["os_version","",0,"OS Version",True,"ex: rhel4"],
-  ["arch","",0,"Arch",True,"ex: i386, x86_64"],
-  ["yumopts",{},0,"Yum Options",True,"Options to write to yum config file"],
-  ["owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)"],
-  ["mirror_locally",True,0,"Mirror locally",True,"Copy files or just reference the repo externally?"],
-  ["environment",{},0,"Environment Variables",True,"Use these environment variables during commands (key=value, space delimited)"],
-  ["comment","",0,"Comment",True,"Free form text description"],
-  ["ctime",0,0,"",False,""],
-  ["mtime",0,0,"",False,""]
+  ["uid",None,0,"",False,"",0],
+  ["yumopts",{},0,"Yum Options",True,"Options to write to yum config file",0]
 ]
 
 class Repo(item.Item):

@@ -27,56 +27,56 @@ from cexceptions import *
 from utils import _
 
 FIELDS = [
-  ["name",None,0,"Name",True,"Ex: vanhalen.example.org"],
-  ["uid","",0,"",False,""],
-  ["owners","SETTINGS:default_ownership",0,"Owners",False,"Owners list for authz_ownership (space delimited)"],
-  ["profile",None,0,"Profile",True,"Parent profile"],
-  ["image",None,0,"Image",True,"Parent image (if not a profile)"],
-  ["kernel_options",{},0,"Kernel Options",True,"Ex: selinux=permissive"],
-  ["kernel_options_post",{},0,"Post Install Kernel Options",False,"Ex: clocksource=pit noapic"],
-  ["ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86"],
-  ["interfaces",{},0,"",False,""],
-  ["netboot_enabled",True,0,"Netboot Enabled",True,"PXE (re)install this machine at next boot?"],
-  ["depth",2,0,"",False,""],
-  ["mgmt_classes",[],0,"Management Classes",True,"For external config management"],
-  ["template_files",{},0,"Template Files",True,"File mappings for built-in configuration management"],
-  ["kickstart","<<inherit>>",0,"Kickstart",True,"Path to kickstart template"],#usevalueinprofile
-  ["server","<<inherit>>",0,"Server Override",True,"See manpage or leave blank"],#""(orsettings)
-  ["virt_path","<<inherit>>",0,"Virt Path",True,"Ex: /directory or VolGroup00"],#""
-  ["virt_type","<<inherit>>",0,"Virt Type",True,"Virtualization technology to use"],#""
-  ["virt_cpus","<<inherit>>",0,"Virt CPUs",True,""],#""
-  ["virt_file_size","<<inherit>>",0,"Virt File Size(GB)",True,""],#""
-  ["virt_ram","<<inherit>>",0,"Virt RAM (MB)",True,""],#""
-  ["virt_auto_boot","<<inherit>>",0,"Virt Auto Boot",True,"Auto boot this VM?"],#""
-  ["virt_host","",0,"Virt Host",True,"What physical host was this VM installed on?"],
-  ["virt_group","",0,"Virt Group",True,"To what physical group does this host belong?"],
-  ["virt_guests",[],0,"Virt Guests",True,"What virtual guests does this host host?"],
-  ["comment","",0,"Comment",True,"Free form text description"],
-  ["ctime",0,0,"",False,""],
-  ["mtime",0,0,"",False,""],
-  ["power_type","SETTINGS:power_management_default_type",0,"Power Management Type",True,""],
-  ["power_address","",0,"Power Management Address",True,"Ex: power-device.example.org"],
-  ["power_user","",0,"Power Username ",True,""],
-  ["power_pass","",0,"Power Password",True,""],
-  ["power_id","",0,"Power ID",True,"Usually a plug number or blade name, if power type requires it"],
-  ["hostname","",0,"Hostname",True,""],
-  ["gateway","",0,"Gateway",True,""],
-  ["name_servers",[],0,"Name Servers",True,"space delimited"],
-  ["name_servers_search",[],0,"Name Servers Search Path",True,"space delimited"],
-  ["redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Satellite, or Spacewalk"],
-  ["redhat_management_server","<<inherit>>",0,"Red Hat Management Server",True,"Address of Satellite or Spacewalk Server"],
-  ["*mac_address","",0,"MAC Address",True,""],
-  ["*ip_address","",0,"IP Address",True,""],
-  ["*dhcp_tag","",0,"DHCP Tag",True,""],
-  ["*subnet","",0,"Subnet",True,""],
-  ["*virt_bridge","",0,"Virt Bridge",True,""],
-  ["*static",False,0,"Static",True,"Is this interface static?"],
-  ["*bonding","",0,"Bonding",True,""],
-  ["*bonding_master","",0,"Bonding Master",True,""],
-  ["*bonding_opts","",0,"Bonding Opts",True,""],
-  ["*dns_name","",0,"DNS Name",True,""],
-  ["*static_routes",[],0,"Static Routes",True,""],
-  ["*network","",0,"Network",True,"Parent network object for this interface"]
+  ["name",None,0,"Name",True,"Ex: vanhalen.example.org",0],
+  ["uid","",0,"",False,"",0],
+  ["owners","SETTINGS:default_ownership",0,"Owners",False,"Owners list for authz_ownership (space delimited)",0],
+  ["profile",None,0,"Profile",True,"Parent profile",[]],
+  ["image",None,0,"Image",True,"Parent image (if not a profile)",0],
+  ["kernel_options",{},0,"Kernel Options",True,"Ex: selinux=permissive",0],
+  ["kernel_options_post",{},0,"Post Install Kernel Options",False,"Ex: clocksource=pit noapic",0],
+  ["ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86",0],
+  ["interfaces",{},0,"",False,"",0],
+  ["netboot_enabled",True,0,"Netboot Enabled",True,"PXE (re)install this machine at next boot?",0],
+  ["depth",2,0,"",False,"",0],
+  ["mgmt_classes",[],0,"Management Classes",True,"For external config management",0],
+  ["template_files",{},0,"Template Files",True,"File mappings for built-in configuration management",0],
+  ["kickstart","<<inherit>>",0,"Kickstart",True,"Path to kickstart template",0],
+  ["server","<<inherit>>",0,"Server Override",True,"See manpage or leave blank",0],
+  ["virt_path","<<inherit>>",0,"Virt Path",True,"Ex: /directory or VolGroup00",0],
+  ["virt_type","<<inherit>>",0,"Virt Type",True,"Virtualization technology to use",0,["xenpv","xenfv","qemu","vmware"]],
+  ["virt_cpus","<<inherit>>",0,"Virt CPUs",True,"",0],
+  ["virt_file_size","<<inherit>>",0,"Virt File Size(GB)",True,"",0],
+  ["virt_ram","<<inherit>>",0,"Virt RAM (MB)",True,"",0],
+  ["virt_auto_boot","<<inherit>>",0,"Virt Auto Boot",True,"Auto boot this VM?",0],
+  ["virt_host","",0,"Virt Host",True,"What physical host was this VM installed on?",0],
+  ["virt_group","",0,"Virt Group",True,"To what physical group does this host belong?",0],
+  ["virt_guests",[],0,"Virt Guests",True,"What virtual guests does this host host?",0],
+  ["comment","",0,"Comment",True,"Free form text description",0],
+  ["ctime",0,0,"",False,"",0],
+  ["mtime",0,0,"",False,"",0],
+  ["power_type","SETTINGS:power_management_default_type",0,"Power Management Type",True,"",["apc_snmp","bladecenter","bullpap","drac","ether_wake","ilo","integrity","ipmilan","ipmitool","lpar","rsa","virsh","wti"]],
+  ["power_address","",0,"Power Management Address",True,"Ex: power-device.example.org",0],
+  ["power_user","",0,"Power Username ",True,"",0],
+  ["power_pass","",0,"Power Password",True,"",0],
+  ["power_id","",0,"Power ID",True,"Usually a plug number or blade name, if power type requires it",0],
+  ["hostname","",0,"Hostname",True,"",0],
+  ["gateway","",0,"Gateway",True,"",0],
+  ["name_servers",[],0,"Name Servers",True,"space delimited",0],
+  ["name_servers_search",[],0,"Name Servers Search Path",True,"space delimited",0],
+  ["redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Satellite, or Spacewalk",0],
+  ["redhat_management_server","<<inherit>>",0,"Red Hat Management Server",True,"Address of Satellite or Spacewalk Server",0],
+  ["*mac_address","",0,"MAC Address",True,"",0],
+  ["*ip_address","",0,"IP Address",True,"",0],
+  ["*dhcp_tag","",0,"DHCP Tag",True,"",0],
+  ["*subnet","",0,"Subnet",True,"",0],
+  ["*virt_bridge","",0,"Virt Bridge",True,"",0],
+  ["*static",False,0,"Static",True,"Is this interface static?",0],
+  ["*bonding","",0,"Bonding",True,"",0],
+  ["*bonding_master","",0,"Bonding Master",True,"",0],
+  ["*bonding_opts","",0,"Bonding Opts",True,"",0],
+  ["*dns_name","",0,"DNS Name",True,"",0],
+  ["*static_routes",[],0,"Static Routes",True,"",0],
+  ["*network","",0,"Network",True,"Parent network object for this interface",0]
 ]
 
 # FIXME: interfaces needs it's own fields (somehow)
@@ -217,7 +217,7 @@ class System(item.Item):
 
         if intf["ip_address"] != "": 
             return intf["ip_address"].strip()
-        elif intf["network"] != "":
+        elif intf.get("network","") != "":
             net = self.config.networks().find(name=intf["network"])
             if net == None:
                 raise CX(_("Network %s does not exist" % network))

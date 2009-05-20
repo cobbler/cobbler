@@ -23,11 +23,17 @@
             {% endifequal %}
 
             {% ifequal item.html_element "textarea" %}
-            <input type="text" name="{{ item.name }}" rows="4" cols="40" class="{{ item.css_class }}">{{ item.value }}</text>
+            <input type="textarea" name="{{ item.name }}" rows="4" cols="40" class="{{ item.css_class }}"/>{{ item.value }}"</input>
             {% endifequal %}
 
             {% ifequal item.html_element "radio" %}
-            <input type="radio" name="{{ item.name }}" value="{{ choice }}">{{ choice }}&nbsp;
+            {% for choice in item.choices %}
+                {% ifequal item.value choice %}
+                <input type="radio" name="{{ item.name }}" value="{{ choice }}" checked>{{ choice }}&nbsp;
+                {% else %}
+                <input type="radio" name="{{ item.name }}" value="{{ choice }}">{{ choice }}&nbsp;
+                {%endifequal %}
+            {% endfor %}
             {% endifequal %}
 
             {% ifequal item.html_element "checkbox" %}

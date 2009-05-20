@@ -90,6 +90,7 @@ def get_fields(what, is_subobject, seed_item=None):
             "caption"                 : row[3],
             "editable"                : row[4],
             "tooltip"                 : row[5],
+            "choices"                 : row[6],
             "css_class"               : "generic",
             "html_element"            : "generic"
         }
@@ -202,7 +203,7 @@ def modify_list(request, what, pref, value=None):
     """
     This function is used in the generic list view
     to modify the page/column sort/number of items 
-    shown per page/filters.
+    shown per page, and also modify the filters.
 
     This function modifies the session object to 
     store these preferences persistently.
@@ -251,28 +252,6 @@ def modify_list(request, what, pref, value=None):
         return HttpResponseRedirect("/cobbler_web/%s/list" % what)
     except:
         return error_page(request,"Invalid preference: %s" % pref)
-
-def modify_filter(request, what, action, filter=None):
-    # FIXME: cleanup
-    try:
-        if filter == None: raise ""
-        # read session variable for filter
-        filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
-        if action == "add":
-            (field_name, field_value) = filter.split(":", 1)
-            # add this filter
-            filters[field_name] = field_value
-        else:
-            # remove this filter, if it exists
-            if filters.has_key(filter):
-                del filters[filter]
-        # save session variable
-        request.session["%s_filters" % what] = simplejson.dumps(filters)
-        request.session["%s_page" % what] = 1
-        # redirect to the list for this 
-        return HttpResponseRedirect("/cobbler_web/%s/list" % what)
-    except: 
-        return error_page(request,"Invalid filter: %s" % str(filter))
 
 def generic_rename(request, what, obj_name=None, obj_newname=None):
    # FIXME: cleanup

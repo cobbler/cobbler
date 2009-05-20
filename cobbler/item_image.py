@@ -29,28 +29,28 @@ from cexceptions import *
 from utils import _
 
 FIELDS = [
-  ['name','',0,"Name",True,""],
-  ['uid',"",0,"",False,""],
-  ['arch','i386',0,"Architecture",True,""],
-  ['file','',0,"File",True,"Path to local file or nfs://user@host:path"],
-  ['parent','',0,"",False,""],
-  ['depth',0,0,"",False,""],
-  ['virt_auto_boot',"SETTINGS:virt_auto_boot",0,"Virt Auto Boot",True,"Auto boot this VM?"],
-  ['virt_ram',"SETTINGS:default_virt_ram",0,"Virt RAM (MB)",True,""],
-  ['virt_file_size',"SETTINGS:default_virt_file_size",0,"Virt File Size (GB)",True,""],
-  ['virt_path','',0,"Virt Path",True,"Ex: /directory or VolGroup00"],
-  ['virt_type',"SETTINGS:default_virt_type",0,"Virt Type",True,""],
-  ['virt_cpus',1,0,"Virt CPUs",True,""],
-  ['network_count',1,0,"Virt NICs",True,""],
-  ['virt_bridge',"SETTINGS:default_virt_bridge",0,"Virt Bridge",True,""],
-  ['owners',"SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)"],
-  ['image_type',"iso",0,"Image Type",True,"ex: iso, direct, virt-image"],
-  ['breed','redhat',0,"Breed",True,"ex: redhat, suse, debian"],
-  ['os_version','',0,"OS Version",True,"ex: rhel4"],
-  ['comment','',0,"Comment",True,"Free form text description"],
-  ['ctime',0,0,"",False,""],
-  ['mtime',0,0,"",False,""],
-  ['kickstart','',0,"Kickstart",True,"Path to kickstart/answer file template"]
+  ['name','',0,"Name",True,"",0],
+  ['arch','i386',0,"Architecture",True,"",["i386","x86_64","ia64","s390","ppc"]],
+  ['breed','redhat',0,"Breed",True,"ex: redhat, suse, debian",["redhat","suse","debian"]],
+  ['comment','',0,"Comment",True,"Free form text description",0],
+  ['ctime',0,0,"",False,"",0],
+  ['mtime',0,0,"",False,"",0],
+  ['file','',0,"File",True,"Path to local file or nfs://user@host:path",0],
+  ['depth',0,0,"",False,"",0],
+  ['image_type',"iso",0,"Image Type",True,"ex: iso, direct, virt-image", ["iso","direct","virt-image"]], #FIXME:complete?
+  ['network_count',1,0,"Virt NICs",True,"",0],
+  ['os_version','',0,"OS Version",True,"ex: rhel4",0],
+  ['owners',"SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",[]],
+  ['parent','',0,"",False,"",0],
+  ['kickstart','',0,"Kickstart",True,"Path to kickstart/answer file template",0],
+  ['virt_auto_boot',"SETTINGS:virt_auto_boot",0,"Virt Auto Boot",True,"Auto boot this VM?",0],
+  ['virt_bridge',"SETTINGS:default_virt_bridge",0,"Virt Bridge",True,"",0],
+  ['virt_cpus',1,0,"Virt CPUs",True,"",0],
+  ['virt_file_size',"SETTINGS:default_virt_file_size",0,"Virt File Size (GB)",True,"",0],
+  ['virt_path','',0,"Virt Path",True,"Ex: /directory or VolGroup00",0],
+  ['virt_ram',"SETTINGS:default_virt_ram",0,"Virt RAM (MB)",True,"",0],
+  ['virt_type',"SETTINGS:default_virt_type",0,"Virt Type",True,"",["xenpv","xenfv","qemu","vmware"]],
+  ['uid',"",0,"",False,"",0]
 ]
 
 class Image(item.Item):
