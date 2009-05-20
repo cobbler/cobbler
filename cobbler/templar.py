@@ -40,6 +40,7 @@ class Templar:
             self.config      = config
             self.api         = config.api
             self.settings    = config.settings()
+        self.last_errors = []
 
     def check_for_invalid_imports(self,data):
         """
@@ -96,7 +97,7 @@ class Templar:
             raw_data = newdata 
 
         # tell Cheetah not to blow up if it can't find a symbol for something
-        raw_data = "#errorCatcher Echo\n" + raw_data
+        raw_data = "#errorCatcher ListErrors\n" + raw_data
 
         table_copy = search_table.copy()
  
@@ -113,6 +114,7 @@ class Templar:
         t = Template(source=raw_data, errorCatcher="Echo", searchList=[search_table])
         try:
             data_out = t.respond()
+            self.last_errors = t.errorCatcher().listErrors()
         except Exception, e:
             if out_path is None:
                return utils.cheetah_exc(e)

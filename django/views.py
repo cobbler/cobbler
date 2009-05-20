@@ -198,34 +198,59 @@ def genlist(request, what, page=None):
     return HttpResponse(html)
 
 
-#def modify_list(request, what, pref, value=None):
-#
-#    # FIXME: cleanup
-#    # FIXME: what does this do?  COMMENTS!
-#
-#    try:
-#        if pref == "sort":
-#            old_sort=request.session.get("%s_sort_field" % what,"")
-#            if old_sort.startswith("!"):
-#                old_sort=old_sort[1:]
-#                old_revsort=True
-#            else:
-#                old_revsort=False
-#            if old_sort==value and not old_revsort:
-#                value="!" + value
-#            request.session["%s_sort_field" % what] = value
-#            request.session["%s_page" % what] = 1
-#        elif pref == "limit":
-#            request.session["%s_limit" % what] = int(value)
-#            request.session["%s_page" % what] = 1
-#        elif pref == "page":
-#            request.session["%s_page" % what] = int(value)
-#        else:
-#            raise ""
-#        # redirect to the list
-#        return HttpResponseRedirect("/cobbler_web/%s/list" % what)
-#    except:
-#        return error_page(request,"Invalid preference: %s" % pref)
+def modify_list(request, what, pref, value=None):
+    """
+    This function is used in the generic list view
+    to modify the page/column sort/number of items 
+    shown per page/filters.
+
+    This function modifies the session object to 
+    store these preferences persistently.
+    """
+
+    # FIXME: cleanup
+
+    try:
+        if pref == "sort":
+            # sorting list on columns
+            old_sort = request.session.get("%s_sort_field" % what,"")
+            if old_sort.startswith("!"):
+                old_sort = old_sort[1:]
+                old_revsort = True
+            else:
+                old_revsort = False
+            # User clicked on the column already sorted on, 
+            # so reverse the sorting list
+            if old_sort == value and not old_revsort:
+                value = "!" + value
+            request.session["%s_sort_field" % what] = value
+            request.session["%s_page" % what] = 1
+        elif pref == "limit":
+            request.session["%s_limit" % what] = int(value)
+            request.session["%s_page" % what] = 1
+        elif pref == "page":
+            request.session["%s_page" % what] = int(value)
+        elif pref in ("addfilter","removefilter"):
+            # filter are stored in json format for marshalling
+            filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
+            if pref == "addfilter":
+                (field_name, field_value) = value.split(":", 1)
+                # add this filter
+                filters[field_name] = field_value
+            else:
+                # remove this filter, if it exists
+                if filters.has_key(value):
+                    del filters[value]
+            # save session variable
+            request.session["%s_filters" % what] = simplejson.dumps(filters)
+            # since we changed what is viewed, reset the page
+            request.session["%s_page" % what] = 1
+        else:
+            raise ""
+        # redirect to the list
+        return HttpResponseRedirect("/cobbler_web/%s/list" % what)
+    except:
+        return error_page(request,"Invalid preference: %s" % pref)
 
 def modify_filter(request, what, action, filter=None):
     # FIXME: cleanup

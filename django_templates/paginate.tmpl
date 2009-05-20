@@ -12,7 +12,7 @@ function add_filter() {
    } else if (field_value.value == "") {
       alert("You must select a filter value.");
    } else {
-      location = '/cobbler_web/{{ what }}/addfilter/'+field_name.value+':'+field_value.value;
+      location = '/cobbler_web/{{ what }}/modifylist/addfilter/'+field_name.value+':'+field_value.value;
    }
 
 }
@@ -161,7 +161,7 @@ function add_filter() {
 <table>
 {% for key,value in filters.items %}
 <tr>
-<td><a href="/cobbler_web/{{ what }}/removefilter/{{ key }}" title="remove">[x]</a></td>
+<td><a href="/cobbler_web/{{ what }}/modifylist/removefilter/{{ key }}" title="remove">[x]</a></td>
 <td>{{ key }} = {{ value }}</td>
 {% endfor %}
 </table>
