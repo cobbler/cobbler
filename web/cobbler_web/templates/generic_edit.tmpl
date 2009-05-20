@@ -25,7 +25,7 @@
             {% endifequal %}
 
             {% ifequal item.html_element "textarea" %}
-                <input type="textarea" name="{{ item.name }}" rows="4" cols="40" class="{{ item.css_class }}"/>{{ item.value }}"</input>
+                <input type="textarea" name="{{ item.name }}" rows="4" cols="40" class="{{ item.css_class }}" value="{{ item.value }}"/>
             {% endifequal %}
 
             {% ifequal item.html_element "radio" %}
@@ -34,39 +34,39 @@
                         <input type="radio" name="{{ item.name }}" value="{{ choice }}" checked>{{ choice }}&nbsp;
                     {% else %}
                         <input type="radio" name="{{ item.name }}" value="{{ choice }}">{{ choice }}&nbsp;
-                    {%endifequal %}
+                    {% endifequal %}
                 {% endfor %}
             {% endifequal %}
 
             {% ifequal item.html_element "checkbox" %}
-                {% if item.value % }
+                {% ifequal item.value True %}
                     <input type="checkbox" name="{{ item.name }}" value="{{ item.name }}" checked> Enabled<br>
-                {% else % }
+                {% else %}
                     <input type="checkbox" name="{{ item.name }}" value="{{ item.name }}"> Enabled<br>
-                {% endif % }
+                {% endifequal %}
             {% endifequal %}
 
             {% ifequal item.html_element "select" %}
                 <select>
-                    {% for choice in item.choices % }
+                    {% for choice in item.choices %}
                         {% ifequal item.value choice %}
                             <option value="{{ choice }}" selected>{{ choice }}</A>
-                        {% else % }
+                        {% else %}
                             <option value="{{ choice }}">{{ choice }}</A>
-                        {% endif % }
-                    {% end for } 
+                        {% endifequal %}
+                    {% endfor %} 
                 </select>
             {% endifequal %}
 
             {% ifequal item.html_element "multiselect" %}
                 <select multiple>
-                    {% for choice in item.choices % }
-                        {% ifinlist choice item.value_raw %}
+                    {% for choice in item.choices %}
+                        {% smart_if choice in item.value_raw %}
                             <option value="{{ choice }}" selected>{{ choice }}</A>
                         {% else %}
                             <option value="{{ choice }}">{{ choice }}</A>
-                        {% endifinlist %}
-                    {% end for } 
+                        {% endsmart_if %}
+                    {% endfor %} 
                 </select>
             {% endifequal %}
 
@@ -77,7 +77,7 @@
 
     {% endfor %}
 
-    {% if editable %}
+    {% ifequal editable True %}
     <tr>
     <td>
     </td>
@@ -86,7 +86,7 @@
     <input type="reset" name="reset" value="Reset"/>
     </td>
     </tr>
-    {% endif %}
+    {% endifequal %}
 
 </table>
 </fieldset>
