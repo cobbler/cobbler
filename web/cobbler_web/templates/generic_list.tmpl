@@ -4,6 +4,16 @@
 
 <script language="Javascript" src="/cobbler_webui_content/checkboxes.js" ></script>
 <script language="Javascript">
+
+function obj_rename(old) {
+  var newname = window.prompt("Change {{ what }} name to?","");
+  window.location = "/cobbler_web/{{ what }}/rename/" + old + "/" + newname;
+}
+function obj_copy(old) {
+  var newname = window.prompt("Name for the new {{ what }}?","");
+  window.location = "/cobbler_web/{{ what }}/copy/" + old + "/" + newname;
+}
+
 </script>
 
 <div class="section_caption">{{ what }}s</div>
@@ -33,7 +43,10 @@
                     </td>
                {% endfor %}
 
-               <td><input type="button" name="edit" value="Edit" onClick="javascript:location='/cobbler_web/{{ what }}/edit/{{ item.0 }}'"></td>
+               <td><input type="button" name="edit" value="Edit" onClick="javascript:location='/cobbler_web/{{ what }}/edit/{{ item.0 }}'">
+               <input type="button" name="copy" value="Copy" onClick="javascript:obj_copy('{{ item.0 }}')"/>
+               <input type="button" name="copy" value="Rename" onClick="javascript:obj_rename('{{ item.0 }}')"/>
+               </td>
 
            </tr>
 

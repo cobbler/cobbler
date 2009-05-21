@@ -5,7 +5,12 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from mod_python import apache
 
-import xmlrpclib, time, simplejson, string, distutils
+import xmlrpclib
+import time
+import simplejson
+import string
+import distutils
+import exceptions
 
 import cobbler.item_distro  as item_distro
 import cobbler.item_profile as item_profile
@@ -19,6 +24,8 @@ my_uri = "http://127.0.0.1/cobbler_api"
 remote = None
 token = None
 username = None
+
+#==================================================================================
 
 def authenhandler(req):
     global remote
@@ -35,15 +42,22 @@ def authenhandler(req):
     except:
         return apache.HTTP_UNAUTHORIZED
 
+#==================================================================================
+
+
 def index(request):
    t = get_template('index.tmpl')
    html = t.render(Context({'version': remote.version(token), 'username':username}))
    return HttpResponse(html)
 
+#==================================================================================
+
 def error_page(request,message):
    t = get_template('error_page.tmpl')
    html = t.render(Context({'message': message}))
    return HttpResponse(html)
+
+#==================================================================================
 
 def list(request, what, page=None):
     if page == None:
@@ -62,6 +76,8 @@ def list(request, what, page=None):
         'filters'   : filters,
     }))
     return HttpResponse(html)
+
+#==================================================================================
 
 def get_fields(what, is_subobject, seed_item=None):
 
@@ -159,10 +175,15 @@ def get_fields(what, is_subobject, seed_item=None):
 
     return fields
 
+#==================================================================================
+
 def __tweak_field(fields,field_name,attribute,value):
     for x in fields:
        if x["name"] == field_name:
            x[attribute] = value
+
+#==================================================================================
+
 
 def __format_items(items, column_names):
     """
@@ -176,19 +197,24 @@ def __format_items(items, column_names):
         dataset.append(row)
     return dataset
 
-
+#==================================================================================
 
 def genlist(request, what, page=None):
+    """
+    Lists all object types, complete with links to actions
+    on those objects.
+    """
 
-    # FIXME: cleanup
+    # get details from the session
     if page == None:
         page = int(request.session.get("%s_page" % what, 1))
-    limit = int(request.session.get("%s_limit" % what, 50))                      # FIXME: does this work?
-    sort_field = request.session.get("%s_sort_field" % what, None)               # FIXME: is this used?
+    limit = int(request.session.get("%s_limit" % what, 50))   
+    sort_field = request.session.get("%s_sort_field" % what, None)  # FIXME: no UI for this?
     filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
     pageditems = remote.find_items_paged(what,filters,sort_field,page,limit)
 
     # what columns to show for each page?
+    # FIXME: this could be customizable, pull from settings?
     if what == "distro":
        columns = [ "name" ]
     if what == "profile":
@@ -202,6 +228,7 @@ def genlist(request, what, page=None):
     if what == "network":
        columns = [ "name" ] 
 
+    # render the list
     t = get_template('generic_list.tmpl')
     html = t.render(RequestContext(request,{
         'what'           : what,
@@ -223,58 +250,73 @@ def modify_list(request, what, pref, value=None):
     store these preferences persistently.
     """
 
-    # FIXME: cleanup
 
-    try:
-        if pref == "sort":
-            # sorting list on columns
-            old_sort = request.session.get("%s_sort_field" % what,"")
-            if old_sort.startswith("!"):
-                old_sort = old_sort[1:]
-                old_revsort = True
-            else:
-                old_revsort = False
-            # User clicked on the column already sorted on, 
-            # so reverse the sorting list
-            if old_sort == value and not old_revsort:
-                value = "!" + value
-            request.session["%s_sort_field" % what] = value
-            request.session["%s_page" % what] = 1
-        elif pref == "limit":
-            request.session["%s_limit" % what] = int(value)
-            request.session["%s_page" % what] = 1
-        elif pref == "page":
-            request.session["%s_page" % what] = int(value)
-        elif pref in ("addfilter","removefilter"):
-            # filter are stored in json format for marshalling
-            filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
-            if pref == "addfilter":
-                (field_name, field_value) = value.split(":", 1)
-                # add this filter
-                filters[field_name] = field_value
-            else:
-                # remove this filter, if it exists
-                if filters.has_key(value):
-                    del filters[value]
-            # save session variable
-            request.session["%s_filters" % what] = simplejson.dumps(filters)
-            # since we changed what is viewed, reset the page
-            request.session["%s_page" % what] = 1
+    # what preference are we tweaking?
+
+    if pref == "sort":
+
+        # FIXME: this isn't exposed in the UI.
+
+        # sorting list on columns
+        old_sort = request.session.get("%s_sort_field" % what,"")
+        if old_sort.startswith("!"):
+            old_sort = old_sort[1:]
+            old_revsort = True
         else:
-            raise ""
-        # redirect to the list
-        return HttpResponseRedirect("/cobbler_web/%s/list" % what)
-    except:
-        return error_page(request,"Invalid preference: %s" % pref)
+            old_revsort = False
+        # User clicked on the column already sorted on, 
+        # so reverse the sorting list
+        if old_sort == value and not old_revsort:
+            value = "!" + value
+        request.session["%s_sort_field" % what] = value
+        request.session["%s_page" % what] = 1
+
+    elif pref == "limit":
+        # number of items to show per page
+        request.session["%s_limit" % what] = int(value)
+        request.session["%s_page" % what] = 1
+
+    elif pref == "page":
+        # what page are we currently on
+        request.session["%s_page" % what] = int(value)
+
+    elif pref in ("addfilter","removefilter"):
+        # filters limit what we show in the lists
+        # they are stored in json format for marshalling
+        filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
+        if pref == "addfilter":
+            (field_name, field_value) = value.split(":", 1)
+            # add this filter
+            filters[field_name] = field_value
+        else:
+            # remove this filter, if it exists
+            if filters.has_key(value):
+                del filters[value]
+        # save session variable
+        request.session["%s_filters" % what] = simplejson.dumps(filters)
+        # since we changed what is viewed, reset the page
+        request.session["%s_page" % what] = 1
+
+    else:
+        return error_page(request, "Invalid preference change request")
+
+    # redirect to the list page
+    return HttpResponseRedirect("/cobbler_web/%s/list" % what)
+
+# ======================================================================
 
 def generic_rename(request, what, obj_name=None, obj_newname=None):
    # FIXME: cleanup
+
    if obj_name == None:
       return error_page(request,"You must specify a %s to rename" % what)
+
    if not remote.has_item(what,obj_name):
       return error_page(request,"Unknown %s specified" % what)
+
    elif not remote.check_access_no_fail(token, "modify_%s" % what, obj_name):
       return error_page(request,"You do not have permission to rename this %s" % what)
+
    elif obj_newname == None:
       t = get_template('generic_rename.tmpl')
       html = t.render(Context({
@@ -282,10 +324,16 @@ def generic_rename(request, what, obj_name=None, obj_newname=None):
             'name' : obj_name
       }))
       return HttpResponse(html)
+
    else:
       obj_id = remote.get_item_handle(what, obj_name, token)
       remote.rename_item(what, obj_id, obj_newname, token)
       return HttpResponseRedirect("/cobbler_web/%s/list" % what)
+
+# ======================================================================
+
+def generic_copy(request, what, obj_name=None, obj_newname=None):
+   raise exceptions.NotImplementedError
 
 def generic_multi(request, what, multi_mode=None):
     # FIXME: cleanup
