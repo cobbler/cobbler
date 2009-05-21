@@ -1616,7 +1616,7 @@ def clear_from_fields(obj, fields, is_subobject=False):
     """
     for elems in fields:
         # if elems startswith * it's an interface field and we do not operate on it.
-        if elems[0].startswith("*"):
+        if elems[0].startswith("*") or elems[0].find("widget") != -1:
            continue
         if is_subobject:
            val = elems[2]
@@ -1632,7 +1632,7 @@ def from_datastruct_from_fields(obj, seed_data, fields):
 
     for elems in fields:
         # we don't have to load interface fields here
-        if elems[0].startswith("*"):
+        if elems[0].startswith("*") or elems[0].find("widget") != -1:
             continue
         k = elems[0]
         if seed_data.has_key(k):
@@ -1658,7 +1658,7 @@ def get_methods_from_fields(obj, fields):
     for elem in fields:
         k = elem[0]
         # modify interfaces is handled differently, and need not work this way
-        if k.startswith("*"):
+        if k.startswith("*") or k.find("widget") != -1:
             continue
         setfn = getattr(obj, "set_%s" % k)
         ds[k] = setfn
@@ -1668,7 +1668,7 @@ def to_datastruct_from_fields(obj, fields):
     ds = {}
     for elem in fields:
         k = elem[0]
-        if k.startswith("*"):
+        if k.startswith("*") or k.find("widget") != -1:
             continue
         data = getattr(obj, k)
         ds[k] = data
@@ -1685,7 +1685,7 @@ def printable_from_fields(obj, fields):
        # FIXME: make interfaces print nicely
        # FIXME: supress fields users don't need to see?
        # FIXME: print ctime, mtime nicely
-       if k.startswith("*") or not editable:
+       if k.startswith("*") or not editable or k.find("widget") != -1:
            continue
 
        if k != "name":
@@ -1716,6 +1716,8 @@ def matches_args(args, list_of):
 def apply_options_from_fields(obj, fields, options):
     for elem in fields:
        k = elem[0]
+       if k.find("widget") != -1:
+           continue
        # interfaces are handled differently
        details  = elem[3]
        editable = elem[4]
@@ -1732,6 +1734,8 @@ def apply_options_from_fields(obj, fields, options):
 def add_options_from_fields(parser, fields, args):
     for elem in fields:
        k = elem[0] 
+       if k.find("widget") != -1:
+           continue
        # scrub interface tags so all fields get added correctly.
        k = k.replace("*","")
        nicename = elem[3]

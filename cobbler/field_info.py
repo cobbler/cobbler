@@ -43,17 +43,17 @@ USES_SELECT = [
 
 USES_CHECKBOX = [
    "enable_menu",
-   "netboot_enabled"
+   "*netboot_enabled",
+   "netboot_enabled",
+   "*static"
 ]
 
 # FIXME: why not use selects?
 USES_RADIO = [
    "virt_type",
-   "arch"
+   "arch",
+   "*bonding"
 ]
-# FIXME: this list is incomplete and will be evolved
-# as we tune/test the webapp
-
 
 CSS_MAPPINGS = {
    "virt_ram"       : "virtedit",
