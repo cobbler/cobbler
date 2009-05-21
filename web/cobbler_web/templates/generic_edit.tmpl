@@ -25,7 +25,7 @@
             {% endifequal %}
 
             {% ifequal item.html_element "textarea" %}
-                <input type="textarea" name="{{ item.name }}" rows="4" cols="40" class="{{ item.css_class }}" value="{{ item.value }}"/>
+                <textarea name="{{ item.name }}" rows="4" cols="40" class="{{ item.css_class }}">{{ item.value }}</textarea>
             {% endifequal %}
 
             {% ifequal item.html_element "radio" %}
