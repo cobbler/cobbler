@@ -1628,6 +1628,9 @@ def clear_from_fields(obj, fields, is_subobject=False):
                val = getattr(obj.settings, setkey)
         setattr(obj, elems[0], val)
 
+    if obj.COLLECTION_TYPE == "system":
+        obj.interfaces = {}
+
 def from_datastruct_from_fields(obj, seed_data, fields):
 
     for elems in fields:
@@ -1651,6 +1654,10 @@ def from_datastruct_from_fields(obj, seed_data, fields):
     if obj.uid == '':
         obj.uid = obj.config.generate_uid()
 
+    # special handling for interfaces
+    if obj.COLLECTION_TYPE == "system":
+        obj.interfaces = seed_data["interfaces"]
+
     return obj
 
 def get_methods_from_fields(obj, fields):
@@ -1672,6 +1679,10 @@ def to_datastruct_from_fields(obj, fields):
             continue
         data = getattr(obj, k)
         ds[k] = data
+    # interfaces on systems require somewhat special handling
+    # they are the only exception in Cobbler.
+    if obj.COLLECTION_TYPE == "system":
+        ds["interfaces"] = obj.interfaces
     return ds
 
 def printable_from_fields(obj, fields):
@@ -1699,8 +1710,9 @@ def printable_from_fields(obj, fields):
           # FIXME: inames possibly not sorted
           buf = buf + "%-30s : %s\n" % ("Interface ===== ",iname)
           for (k, nicename, editable) in keys:
+             nkey = k.replace("*","")
              if k.startswith("*") and editable:
-                 buf = buf + "%-30s : %s\n" % (nicename, obj.interfaces[iname].get(k,"").replace("*",""))
+                 buf = buf + "%-30s : %s\n" % (nicename, obj.interfaces[iname].get(nkey,""))
 
     return buf
 

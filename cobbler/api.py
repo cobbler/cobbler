@@ -187,7 +187,6 @@ class BootAPI:
         if self.is_cobblerd:
            # don't signal yourself, that's asking for trouble.
            return True
-        print "*** DEBUG: XMLRPC UPDATE ***"
         self.server = xmlrpclib.Server("http://127.0.0.1:%s" % self.settings().xmlrpc_port)
         try:
             if not remove:

@@ -276,7 +276,9 @@ class Item(serializable.Serializable):
         if not data.has_key(key):
             if not key_found_already:
                 if not no_errors:
-                   raise CX(_("searching for field that does not exist: %s" % key))
+                   # FIXME: removed for 2.0 code, shouldn't cause any problems to not have an exception here?
+                   # raise CX(_("searching for field that does not exist: %s" % key))
+                   return False
             else:
                 if value is not None: # FIXME: new?
                    return False
