@@ -66,6 +66,7 @@ function populate_widgets()
     buf = "";
     buf = buf + "<select name='interfaces' id='interfaces' onchange='javascript:on_interface_change()'>";
     buf = buf + "</select>";
+    buf = buf + "<input type='button' name='deleteinterface' value='Delete' onclick='javascript:on_interface_delete()'/>";
     document.getElementById("widget_network_widget_b").innerHTML = buf;
 
 }
