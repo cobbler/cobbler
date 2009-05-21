@@ -302,13 +302,13 @@ function on_form_submit()
             new_input.name=field_name
             new_input.value=current_value
             new_input.style.display='none'
-            document.forms.myform.appendChild(new_input)
+            document.forms[0].appendChild(new_input)
 
         }
     }
     document.getElementById("interface_list").value = listing
     document.getElementById("name").disabled= false
-    document.myform.submit()
+    document.forms[0].submit()
 }
 
 function populate_interfaces() {
@@ -340,9 +340,10 @@ function page_onload() {
 
 <form method="POST" action="/cobbler_web/{{ what }}/save">
 
-<fieldset id="cform">
+<fieldset id="myform">
 
     <input type="hidden" name="editmode" value="{{ editmode }}"/>
+    <input type="hidden" name="subobject" value="{{ subobject }}"/>
 
     <table border=0>
 
@@ -423,9 +424,9 @@ function page_onload() {
     {% endfor %}
 
     {% ifequal what "system" %}
-    <input type="hidden" id="interface_list" name="interface_list" value="1"/>
-    <input type="hidden" id="present" name="present" value="1"/>
-    <input type="hidden" id="original" name="original" value="1"/>
+        <input type="hidden" id="interface_list" name="interface_list" value="1"/>
+        <input type="hidden" id="present" name="present" value="1"/>
+        <input type="hidden" id="original" name="original" value="1"/>
     {% endifequal %}
 
     {% if editable %}

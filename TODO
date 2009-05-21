@@ -1,7 +1,6 @@
 - HIGH PRIORITY:
-- Add field type, CSS type, and choices to FIELDS structures for all object types
-- Make webapp use get_fields logic and make it work for all pages, no more generic templates
-- Make deletes and renames work in the web app, test
+- Reimplement deletes and renames work in the web app, test
+- Restore and expand multi-edit support
 - Test interfaces in CLI and webapp thoroughly
 - Reinstitute is_valid functions for all object saves (name required, fields consistent, etc)
 - Figure out how we handle field transmogrification on upgrades now.

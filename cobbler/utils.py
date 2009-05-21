@@ -1775,4 +1775,18 @@ def add_options_from_fields(parser, fields, args):
        parser.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
 
 
+def get_remote_methods_from_fields(obj,fields):
+    """
+    Return the name of set functions for all fields, keyed by the field name.
+    """
+    ds = {}
+    for elem in fields:
+       name = elem[0].replace("*","")
+       if name.find("widget") == -1:
+          ds[name] = getattr(obj,"set_%s" % name)
+    if obj.COLLECTION_TYPE == "system":
+       ds["modify_interface"] = getattr(obj,"modify_interface")
+       ds["delete_interface"] = getattr(obj,"delete_interface")
+    return ds
 
+          

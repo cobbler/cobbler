@@ -557,6 +557,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    html = t.render(Context({
        'what'            : what, 
        'fields'          : fields, 
+       'subobject'       : child,
        'editmode'        : editmode, 
        'editable'        : editable,
        'interfaces'      : interfaces,
@@ -568,47 +569,66 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
 def generic_save(request,what):
 
-    # FIXME: cleanup
-    # FIXME: comments
+    """
+    Saves an object back using the cobbler API after clearing any 'generic_edit' page.
+    """
 
-    editmode = request.POST.get('editmode', 'edit')
-    obj_name = request.POST.get('name', "")
-    
+    # load request fields and see if they are valid
+    editmode  = request.POST.get('editmode', 'edit')
+    obj_name  = request.POST.get('name', "")    
+    subobject = request.POST.get('subobject', True)    
     if obj_name == "":
-        return error_page(request,"%s name field is missing" % what)
+        return error_page(request,"Required field name is missing")
               
+    # grab the remote object handle
+    # for edits, fail in the object cannot be found to be edited
+    # for new objects, fail if the object already exists
     if editmode == "edit":
-        if not remote.has_item( what, obj_name ):
-            return error_page(request,"Failed to lookup %s: %s" % (what,obj_name))
+        if not remote.has_item(what, obj_name):
+            return error_page(request,"Failure trying to access item %s, it may have been deleted." % (obj_name))
         obj_id = remote.get_item_handle( what, obj_name, token )
     else:
-        if remote.has_item( what, obj_name ):
-            return error_page(request,"Failed to create new %s: %s already exists." % (what,obj_name))
+        if remote.has_item(what, obj_name):
+            return error_page(request,"Could not create a new item %s, it already exists." % (obj_name))
         obj_id = remote.new_item( what, token )
 
-    # FIXME: signature has changed 
-    fields = remote.get_fields(what, token)
+    # walk through our fields list saving things we know how to save
+    fields = get_fields(what, subobject)
 
-    for field in fields.keys():
-        if field == 'name' and editmode == 'edit':
+    for field in fields:
+        if field['name'] == 'name' and editmode == 'edit':
+            # do not attempt renames here
             continue
-        elif what == 'system' and field == "interfaces":
-            # FIXME: we should pull this from the fields table so it's not hard coded
-            interface_field_list = ('mac_address','ip_address','dns_name','static_routes','static','virt_bridge','dhcptag','subnet','bonding','bonding_opts','bonding_master','present','original')
-            interfaces = request.POST.get('interface_list', "").split(",")
-            for interface in interfaces:
-                ifdata = {}
-                for item in interface_field_list:
-                    ifdata["%s-%s" % (item,interface)] = request.POST.get("%s-%s" % (item,interface), "")
-                if ifdata['present-%s' % interface] == "0" and ifdata['original-%s' % interface] == "1":
-                    remote.modify_system(obj_id, 'delete_interface', interface, token)
-                elif ifdata['present-%s' % interface] == "1":
-                    remote.modify_system(obj_id, 'modify_interface', ifdata, token)
+        elif field['name'].startswith("*"):
+            # interface fields will be handled below
+            continue
         else:
-            value = request.POST.get(field, None)
+            value = request.POST.get(field['name'],None)
             if value != None:
-                remote.modify_item(what,obj_id, field, value, token)
+                remote.modify_item(what,obj_id,field['name'],value,token)
                 
+    # special handling for system interface fields
+    # which are the only objects in cobbler that will ever work this way
+    if what == "system":
+        interface_field_list = []
+        for field in fields:
+            if field['name'].startswith("*"):
+                field = field['name'].replace("*","")
+                interface_field_list.append(field)
+        interfaces = request.POST.get('interface_list', "").split(",")
+        for interface in interfaces:
+            ifdata = {}
+            for item in interface_field_list:
+                ifdata["%s-%s" % (item,interface)] = request.POST.get("%s-%s" % (item,interface), "")
+            # FIXME: I think this button is missing.
+            present  = request.POST.get("present-%s" % interface, "") 
+            original = request.POST.get("original-%s" % interface, "") 
+            if present == "0" and original == "1":
+                remote.modify_system(obj_id, 'delete_interface', interface, token)
+            elif present == "1":
+                remote.modify_system(obj_id, 'modify_interface', ifdata, token)
+
+
     remote.save_item(what, obj_id, token, editmode)
     return HttpResponseRedirect('/cobbler_web/%s/list' % what)
 
