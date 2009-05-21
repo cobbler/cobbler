@@ -87,6 +87,7 @@ CSS_MAPPINGS = {
    "*dns_name"       : "netedit",
    "*static_routes"  : "netedit",
    "*network"        : "netedit",
+   "*subnet"         : "netedit",
    "hostname"        : "netedit",
    "gateway"         : "netedit",
    "name_servers"         : "netedit",

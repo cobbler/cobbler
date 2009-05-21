@@ -65,11 +65,7 @@ function populate_widgets()
 
     buf = "";
     buf = buf + "<select name='interfaces' id='interfaces' onchange='javascript:on_interface_change()'>";
-    //{% for ikey in interfaces %}
-    //     buf = buf + "<option name='{{ ikey }}' value='{{ ikey }}'/>";
-    //{% endfor %}
     buf = buf + "</select>";
-    alert(buf)
     document.getElementById("widget_network_widget_b").innerHTML = buf;
 
 }
@@ -206,7 +202,6 @@ function load_intf()
     // and is called when the user picks a certain interface from the drop-down
     // FIXME: can we load this up from the template data?
     intf = get_selected_interface()
-    alert("selected interface is "+intf)
     document.getElementById("mac_address").value    = interface_table[intf]["mac_address"]
     // FIXME: not sure we can do this to radios
     document.getElementById("bonding").value        = interface_table[intf]["bonding"]  
@@ -249,7 +244,6 @@ function build_interface_table()
 {
     // called during onload, this stores all of the interfaces from Cheetah in javascript
     // so that we can manipulate them dynamically in more interesting ways
-    //alert("building interface table")
     interface_table = new Array()
     var last = ""
     {% smart_if interface_length > 0 %}
@@ -328,7 +322,7 @@ function populate_interfaces() {
     {% endfor %}
     interfaces.selectedIndex = 0
     document.getElementById("static").onchange=intf_update_visibility;
-
+    document.getElementById("bonding").onchange=intf_update_visibility;
 }
 
 function page_onload() {

@@ -67,18 +67,18 @@ FIELDS = [
   ["redhat_management_server","<<inherit>>",0,"Red Hat Management Server",True,"Address of Satellite or Spacewalk Server",0],
   ["network_widget_a","",0,"Add Interface",True,"",0], # not a real field, a marker for the web app
   ["network_widget_b","",0,"Edit Interface",True,"",0], # not a real field, a marker for the web app
+  ["*network","",0,"Network",True,"Parent network object for this interface",0],
   ["*mac_address","",0,"MAC Address",True,"",0],
   ["*ip_address","",0,"IP Address",True,"",0],
-  ["*dhcp_tag","",0,"DHCP Tag",True,"",0],
-  ["*subnet","",0,"Subnet",True,"",0],
-  ["*virt_bridge","",0,"Virt Bridge",True,"",0],
-  ["*static",False,0,"Static",True,"Is this interface static?",0],
   ["*bonding","na",0,"Bonding Mode",True,"",["na","master","slave"]],
   ["*bonding_master","",0,"Bonding Master",True,"",0],
   ["*bonding_opts","",0,"Bonding Opts",True,"",0],
+  ["*static",False,0,"Static",True,"Is this interface static?",0],
+  ["*subnet","",0,"Subnet",True,"",0],
+  ["*dhcp_tag","",0,"DHCP Tag",True,"",0],
   ["*dns_name","",0,"DNS Name",True,"",0],
   ["*static_routes",[],0,"Static Routes",True,"",0],
-  ["*network","",0,"Network",True,"Parent network object for this interface",0],
+  ["*virt_bridge","",0,"Virt Bridge",True,"",0],
 ]
 
 # FIXME: interfaces needs it's own fields (somehow)
