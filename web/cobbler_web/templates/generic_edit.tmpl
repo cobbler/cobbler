@@ -10,11 +10,9 @@
 function intf_enable_field(field,enabled)
 {
     if (enabled) {
-        document.getElementById(field+"_caption").style.display="table-row"
-        document.getElementById(field).style.display="table-row"
+        document.getElementById(field+"_row").style.display="table-row"
     } else {
-        document.getElementById(field+"_caption").style.display="none"
-        document.getElementById(field).style.display="none"
+        document.getElementById(field+"_row").style.display="none"
     }
 }
 
@@ -319,12 +317,9 @@ function on_form_submit()
     document.myform.submit()
 }
 
-function page_onload() {
-    populate_widgets()
-    interface_table = build_interface_table()
+function populate_interfaces() {
     interfaces = document.getElementById("interfaces")
     ilen = interfaces.length
-  
     {% for x in interface_names %}
         var new_option = new Option("{{ x }}","{{ x }}")
         interfaces.options[ilen] = new_option
@@ -332,7 +327,14 @@ function page_onload() {
         ilen = ilen + 1 
     {% endfor %}
     interfaces.selectedIndex = 0
+    document.getElementById("static").onchange=intf_update_visibility;
 
+}
+
+function page_onload() {
+    populate_widgets()
+    interface_table = build_interface_table()
+    populate_interfaces()
     last_interface = get_selected_interface()
     load_intf()
 }
@@ -352,26 +354,26 @@ function page_onload() {
 
     {% for item in fields %}
 
-        <tr>
+        <tr id="{{ item.name }}_row" class="{{ item.css_class }}">
 
             {% ifequal item.html_element "widget" %}
 
-                <td>{{ item.caption }}</td>
+                <td><span id="{{item.name}}_caption">{{ item.caption }}</span></td>
                 <td><DIV id="widget_{{ item.name }}"/></td>
 
 
             {% else %}
             
-            <td>{{ item.caption }}</td>
+            <td><span id="{{item.name}}_caption">{{ item.caption }}</span></td>
 
             <td>
 
             {% ifequal item.html_element "text" %}
-                <input type="text" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.value }}" class="{{ item.css_class }}"/>
+                <input type="text" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.value }}"/>
             {% endifequal %}
 
             {% ifequal item.html_element "textarea" %}
-                <textarea name="{{ item.name }}" id="{{ item.name }}" rows="4" cols="40" class="{{ item.css_class }}">{{ item.value }}</textarea>
+                <textarea name="{{ item.name }}" id="{{ item.name }}" rows="4" cols="40">{{ item.value }}</textarea>
             {% endifequal %}
 
             {% ifequal item.html_element "radio" %}

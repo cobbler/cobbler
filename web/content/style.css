@@ -115,6 +115,18 @@ div#content {
   padding: 20px 45px;
 }
 
+tr.virtedit {
+  background-color: #882121;
+}
+
+tr.poweredit {
+  background-color: #218821;
+}
+
+tr.netedit {
+  background-color: #212188;
+}
+
 div#content h1 {
   font-size: x-large;
   font-weight: normal;
@@ -195,5 +207,36 @@ span.tip p {
         padding:                0px;
         margin:                 0px;
         padding-left:           42px;
+}
+
+textarea#ksdata {
+    width: 100%;
+    height: 100%;
+}
+
+select#repos {
+    width: 256px;
+    height: 8em;
+}
+
+pre.config_data {
+    font-family: monospace;
+    background: white;
+    color: black;
+    width: 640px;
+    min-height: 480px;
+}
+
+br {
+    clear: both;
+}
+
+tr.rowodd  { background-color: #212121; }
+tr.roweven { background-color: #3f3d3d; }
+
+table.sortable th {
+    background-color: #363a4e;
+    margin: 0;
+    white-space: nowrap;
 }
 

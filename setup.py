@@ -341,10 +341,8 @@ if __name__ == "__main__":
             # slurp in whole directory?
 
             # Web UI support files
-            (wwwcon,            ['web/content/cobbler.js']),
             (wwwcon,            ['web/content/style.css']),
             (wwwcon,            ['web/content/logo-cobbler.png']),
-            (wwwcon,            ['web/content/cobblerweb.css']),
             (modpython,         ['web/content/index.html']),
 
             # Anamon script
