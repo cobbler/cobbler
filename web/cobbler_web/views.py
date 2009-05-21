@@ -28,6 +28,11 @@ username = None
 #==================================================================================
 
 def authenhandler(req):
+    """
+    Mod python security handler.   Logs into XMLRPC and saves the token
+    for later use.
+    """
+
     global remote
     global token
     global username
@@ -46,6 +51,9 @@ def authenhandler(req):
 
 
 def index(request):
+   """
+   This is the main greeting page for cobbler web.  
+   """
    t = get_template('index.tmpl')
    html = t.render(Context({'version': remote.version(token), 'username':username}))
    return HttpResponse(html)
@@ -53,33 +61,45 @@ def index(request):
 #==================================================================================
 
 def error_page(request,message):
+   """
+   This page is used to explain error messages to the user.
+   """
+   # FIXME: test and make sure we use this rather than throwing lots of tracebacks for
+   # field errors
    t = get_template('error_page.tmpl')
    html = t.render(Context({'message': message}))
    return HttpResponse(html)
 
 #==================================================================================
 
-def list(request, what, page=None):
-    if page == None:
-        page = int(request.session.get("%s_page" % what, 1))
-    limit = int(request.session.get("%s_limit" % what, 50))
-    sort_field = request.session.get("%s_sort_field" % what, None)
-    filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
-
-    pageditems = remote.find_items_paged(what,filters,sort_field,page,limit)
-
-    t = get_template('%s_list.tmpl'%what)
-    html = t.render(RequestContext(request,{
-        'what'      : what,
-        '%ss'%what  : pageditems["items"],
-        'pageinfo'  : pageditems["pageinfo"],
-        'filters'   : filters,
-    }))
-    return HttpResponse(html)
+#def list(request, what, page=None):
+#    if page == None:
+#        page = int(request.session.get("%s_page" % what, 1))
+#    limit = int(request.session.get("%s_limit" % what, 50))
+#    sort_field = request.session.get("%s_sort_field" % what, None)
+#    filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
+#
+#    pageditems = remote.find_items_paged(what,filters,sort_field,page,limit)
+#
+#    t = get_template('%s_list.tmpl'%what)
+#    html = t.render(RequestContext(request,{
+#        'what'      : what,
+#        '%ss'%what  : pageditems["items"],
+#        'pageinfo'  : pageditems["pageinfo"],
+#        'filters'   : filters,
+#    }))
+#    return HttpResponse(html)
 
 #==================================================================================
 
 def get_fields(what, is_subobject, seed_item=None):
+  
+    """
+    Helper function.  Retrieves the field table from the cobbler objects
+    and formats it in a way to make it useful for Django templating.
+    The field structure indicates what fields to display and what the default
+    values are, etc.
+    """
 
     if what == "distro":
        field_data = item_distro.FIELDS
@@ -178,6 +198,10 @@ def get_fields(what, is_subobject, seed_item=None):
 #==================================================================================
 
 def __tweak_field(fields,field_name,attribute,value):
+    """
+    Helper function to insert extra data into the field list.
+    """
+    # FIXME: eliminate this function.
     for x in fields:
        if x["name"] == field_name:
            x[attribute] = value
@@ -306,25 +330,17 @@ def modify_list(request, what, pref, value=None):
 # ======================================================================
 
 def generic_rename(request, what, obj_name=None, obj_newname=None):
-   # FIXME: cleanup
+
+   """
+   Renames an object.
+   """
 
    if obj_name == None:
       return error_page(request,"You must specify a %s to rename" % what)
-
    if not remote.has_item(what,obj_name):
       return error_page(request,"Unknown %s specified" % what)
-
    elif not remote.check_access_no_fail(token, "modify_%s" % what, obj_name):
       return error_page(request,"You do not have permission to rename this %s" % what)
-
-   elif obj_newname == None:
-      t = get_template('generic_rename.tmpl')
-      html = t.render(Context({
-            'what' : what,
-            'name' : obj_name
-      }))
-      return HttpResponse(html)
-
    else:
       obj_id = remote.get_item_handle(what, obj_name, token)
       remote.rename_item(what, obj_id, obj_newname, token)
@@ -333,11 +349,31 @@ def generic_rename(request, what, obj_name=None, obj_newname=None):
 # ======================================================================
 
 def generic_copy(request, what, obj_name=None, obj_newname=None):
-   raise exceptions.NotImplementedError
+   """
+   Copies an object.
+   """
+   # FIXME: shares all but one line with rename, merge it.
+   if obj_name == None:
+      return error_page(request,"You must specify a %s to rename" % what)
+   if not remote.has_item(what,obj_name):
+      return error_page(request,"Unknown %s specified" % what)
+   elif not remote.check_access_no_fail(token, "modify_%s" % what, obj_name):
+      return error_page(request,"You do not have permission to rename this %s" % what)
+   else:
+      obj_id = remote.get_item_handle(what, obj_name, token)
+      remote.copy_item(what, obj_id, obj_newname, token)
+      return HttpResponseRedirect("/cobbler_web/%s/list" % what)
+
+# ======================================================================
 
 def generic_multi(request, what, multi_mode=None):
-    # FIXME: cleanup
-    # FIXME: how does this work, COMMENTS!
+    """
+    Presents a UI that allows multiple actions to be performed.
+    Ideally we do not need a second page for this, and can offer power actions all on the front page.
+    """
+
+    # FIXME: eliminate this function entirely, just keep do_multi and merge everything into
+    # the list page
 
     names = request.POST.getlist('items')
 
@@ -368,7 +404,14 @@ def generic_multi(request, what, multi_mode=None):
     html=t.render(Context(htmlvars))
     return HttpResponse(html)
 
+# ======================================================================
+
 def generic_domulti(request, what, multi_mode=None):
+
+    """
+    Process operations like profile reassignment, netboot toggling, and deletion
+    which occur on all items that are checked on the list page.
+    """
 
     # FIXME: cleanup
     # FIXME: COMMENTS!!!11111???
@@ -412,7 +455,12 @@ def generic_domulti(request, what, multi_mode=None):
         raise "Unknown multiple operation on %ss: %s" % (what,str(multi_mode))
     return HttpResponseRedirect("/cobbler_web/%s/list"%what)
 
+# ======================================================================
+
 def ksfile_list(request, page=None):
+   """
+   List all kickstart templates and link to their edit pages.
+   """
    ksfiles = remote.get_kickstart_templates(token)
 
    ksfile_list = []
@@ -428,7 +476,12 @@ def ksfile_list(request, page=None):
    html = t.render(Context({'what':'ksfile', 'ksfiles': ksfile_list}))
    return HttpResponse(html)
 
+# ======================================================================
+
 def ksfile_edit(request, ksfile_name=None, editmode='edit'):
+   """
+   This is the page where a kickstart file is edited.
+   """
    if editmode == 'edit':
       editable = False
    else:
@@ -444,7 +497,12 @@ def ksfile_edit(request, ksfile_name=None, editmode='edit'):
    html = t.render(Context({'ksfile_name':ksfile_name, 'deleteable':deleteable, 'ksdata':ksdata, 'editable':editable, 'editmode':editmode}))
    return HttpResponse(html)
 
+# ======================================================================
+
 def ksfile_save(request):
+   """
+   This page processes and saves edits to a kickstart file.
+   """
    # FIXME: error checking
 
    editmode = request.POST.get('editmode', 'edit')
@@ -466,10 +524,12 @@ def ksfile_save(request):
       remote.read_or_write_kickstart_template(ksfile_name,False,ksdata,token)
       return HttpResponseRedirect('/cobbler_web/ksfile/edit/%s' % ksfile_name)
 
-###
-
+# ======================================================================
 
 def snippet_list(request, page=None):
+   """
+   This page lists all available snippets and has links to edit them.
+   """
    snippets = remote.get_snippets(token)
 
    snippet_list = []
@@ -483,7 +543,12 @@ def snippet_list(request, page=None):
    html = t.render(Context({'what':'snippet', 'snippets': snippet_list}))
    return HttpResponse(html)
 
+# ======================================================================
+
 def snippet_edit(request, snippet_name=None, editmode='edit'):
+   """
+   This page edits a specific snippet.
+   """
    if editmode == 'edit':
       editable = False
    else:
@@ -499,7 +564,12 @@ def snippet_edit(request, snippet_name=None, editmode='edit'):
    html = t.render(Context({'snippet_name':snippet_name, 'deleteable':deleteable, 'snippetdata':snippetdata, 'editable':editable, 'editmode':editmode}))
    return HttpResponse(html)
 
+# ======================================================================
+
 def snippet_save(request):
+   """
+   This snippet saves a snippet once edited.
+   """
    # FIXME: error checking
 
    editmode = request.POST.get('editmode', 'edit')
@@ -521,19 +591,37 @@ def snippet_save(request):
       remote.read_or_write_snippet(snippet_name,False,snippetdata,token)
       return HttpResponseRedirect('/cobbler_web/snippet/edit/%s' % snippet_name)
 
+# ======================================================================
+
 def settings(request):
+   """
+   This page presents a list of all the settings to the user.  They are not editable.
+   """
    settings = remote.get_settings()
    t = get_template('settings.tmpl')
    html = t.render(Context({'settings': remote.get_settings()}))
    return HttpResponse(html)
 
+# ======================================================================
+
 def random_mac(request, virttype="xenpv"):
+   """
+   Used in an ajax call to fill in a field with a mac address.
+   """
+   # FIXME: not exposed in UI currently
    random_mac = remote.get_random_mac(virttype, token)
    return HttpResponse(random_mac)
 
+# ======================================================================
+
 def dosync(request):
+   """
+   Runs 'cobbler sync' from the API when the user presses the sync button.
+   """
    remote.sync(token)
    return HttpResponseRedirect("/cobbler_web/")
+
+# ======================================================================
 
 def __names_from_dicts(loh,optional=True):
    """
@@ -547,10 +635,14 @@ def __names_from_dicts(loh,optional=True):
       results.append(x["name"])
    return results
 
+# ======================================================================
+
 def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
-   # FIXME: cleanup
-   # FIXME: comments
+   """
+   Presents an editor page for any type of object.
+   While this is generally standardized, systems are a little bit special.
+   """
 
    obj = None
 
@@ -614,6 +706,8 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    }))
 
    return HttpResponse(html)
+
+# ======================================================================
 
 def generic_save(request,what):
 
