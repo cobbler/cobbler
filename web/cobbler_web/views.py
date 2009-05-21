@@ -27,13 +27,13 @@ def authenhandler(req):
 
     password = req.get_basic_auth_pw()
     username = req.user     
-    #try:
-    remote = xmlrpclib.Server(my_uri, allow_none=True)
-    token = remote.login(username, password)
-    remote.update(token)
-    return apache.OK
-    #except:
-    #    return apache.HTTP_UNAUTHORIZED
+    try:
+        remote = xmlrpclib.Server(my_uri, allow_none=True)
+        token = remote.login(username, password)
+        remote.update(token)
+        return apache.OK
+    except:
+        return apache.HTTP_UNAUTHORIZED
 
 def index(request):
    t = get_template('index.tmpl')
@@ -527,7 +527,10 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
    interfaces = {}
    if what == "system":
-       interfaces = obj.get("interfaces",{})
+       if obj:
+           interfaces = obj.get("interfaces",{})
+       else:
+           interfaces = {}
 
    fields = get_fields(what, child, obj)
 
@@ -539,7 +542,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
       else:
          __tweak_field(fields, "distro", "choices", __names_from_dicts(remote.get_distros()))
       __tweak_field(fields, "repos", "choices",     __names_from_dicts(remote.get_repos()))
-   if what == "system":
+   elif what == "system":
       __tweak_field(fields, "profile", "choices",   __names_from_dicts(remote.get_profiles()))
       __tweak_field(fields, "image", "choices",     __names_from_dicts(remote.get_images(),optional=True))
       __tweak_field(fields, "network", "choices",   __names_from_dicts(remote.get_networks(),optional=True))
