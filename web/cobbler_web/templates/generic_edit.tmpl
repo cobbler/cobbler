@@ -50,18 +50,18 @@ function on_interface_change()
 function populate_widgets() 
 {
 
-    var buf = ""
-    buf = buf + "<input type='text' name='newinterfacename' id='newinterfacename' value=''>"
-    buf = buf + "<input type='button' name='addinterface' value='Add' onclick='javascript:on_interface_add()'/>"
-    document.getElementById("widget_network_widget_a").innerHTML = buf
+    var buf = "";
+    buf = buf + "<input type='text' name='newinterfacename' id='newinterfacename' value=''>";
+    buf = buf + "<input type='button' name='addinterface' value='Add' onclick='javascript:on_interface_add()'/>";
+    document.getElementById("widget_network_widget_a").innerHTML = buf;
 
-    buf = ""
-    buf = buf + "<select name='interfaces' id='interfaces'>"
-    {% for key in obj.interfaces %}
-         buf = buf + "<option name="{{ key }}" value="{{ key }}"/>"
+    buf = "";
+    buf = buf + "<select name='interfaces' id='interfaces'>";
+    {% for ikey in interfaces %}
+         buf = buf + "<option name='{{ ikey }}' value='{{ ikey }}'/>";
     {% endfor %}
-    buf = buf + "</select>"
-    document.getElementById("widget_network_widget_b").innerHTML = buf
+    buf = buf + "</select>";
+    document.getElementById("widget_network_widget_b").innerHTML = buf;
 
 }
 
@@ -235,7 +235,7 @@ function build_interface_table()
     var last = ""
     {% if obj %}
        var ifound = 0
-       {% for key,value in obj.interfaces.items %}
+       {% for key,value in interfaces.items %}
            interface_table['{{ key }}'] = new Array()
            interface_table['{{ key }}']["mac_address"]    = "{{ value.mac_address }}"
            interface_table['{{ key }}']["bonding"]        = "{{ value.bonding }}"
@@ -335,33 +335,33 @@ function page_onload() {
             <td>
 
             {% ifequal item.html_element "text" %}
-                <input type="text" name="{{ item.name }}" value="{{ item.value }}" class="{{ item.css_class }}"/>
+                <input type="text" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.value }}" class="{{ item.css_class }}"/>
             {% endifequal %}
 
             {% ifequal item.html_element "textarea" %}
-                <textarea name="{{ item.name }}" rows="4" cols="40" class="{{ item.css_class }}">{{ item.value }}</textarea>
+                <textarea name="{{ item.name }}" id="{{ item.name }}" rows="4" cols="40" class="{{ item.css_class }}">{{ item.value }}</textarea>
             {% endifequal %}
 
             {% ifequal item.html_element "radio" %}
                 {% for choice in item.choices %}
                     {% ifequal item.value choice %}
-                        <input type="radio" name="{{ item.name }}" value="{{ choice }}" checked>{{ choice }}&nbsp;
+                        <input type="radio" name="{{ item.name }}" id="{{ item.name }}" value="{{ choice }}" checked>{{ choice }}&nbsp;
                     {% else %}
-                        <input type="radio" name="{{ item.name }}" value="{{ choice }}">{{ choice }}&nbsp;
+                        <input type="radio" name="{{ item.name }}" id="{{ item.name }}" value="{{ choice }}">{{ choice }}&nbsp;
                     {% endifequal %}
                 {% endfor %}
             {% endifequal %}
 
             {% ifequal item.html_element "checkbox" %}
                 {% ifequal item.value True %}
-                    <input type="checkbox" name="{{ item.name }}" value="{{ item.name }}" checked> Enabled<br>
+                    <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}" checked> Enabled<br>
                 {% else %}
-                    <input type="checkbox" name="{{ item.name }}" value="{{ item.name }}"> Enabled<br>
+                    <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}"> Enabled<br>
                 {% endifequal %}
             {% endifequal %}
 
             {% ifequal item.html_element "select" %}
-                <select>
+                <select id="{{ item.name }}">
                     {% for choice in item.choices %}
                         {% ifequal item.value choice %}
                             <option value="{{ choice }}" selected>{{ choice }}</A>
@@ -373,7 +373,7 @@ function page_onload() {
             {% endifequal %}
 
             {% ifequal item.html_element "multiselect" %}
-                <select multiple>
+                <select multiple id="{{ item.name }}">
                     {% for choice in item.choices %}
                         {% smart_if choice in item.value_raw %}
                             <option value="{{ choice }}" selected>{{ choice }}</A>
@@ -393,6 +393,11 @@ function page_onload() {
         </tr>
 
     {% endfor %}
+
+    {% ifequal what "system" %}
+    <input type="hidden" id="present" name="present" value="1"/>
+    <input type="hidden" id="original" name="original" value="1"/>
+    {% endifequal %}
 
     {% if editable %}
     <tr>

@@ -108,7 +108,8 @@ def get_fields(what, is_subobject, seed_item=None):
             elem["value"]             = row[2]
         else:
             elem["value"]             = row[1]
-                
+       
+
 
         # we'll process this for display but still need to present the original to some
         # template logic
