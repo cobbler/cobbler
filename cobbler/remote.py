@@ -318,14 +318,14 @@ class CobblerXMLRPCInterface:
             raise CX("internal error, unknown %s name %s" % (what,name))
         return "%s::%s" % (what,found.name)
         
-    def remove_item(self,what,name,token,recursive=1):
+    def remove_item(self,what,name,token,recursive=True):
         """
         Deletes a system from a collection.  Note that this just requires the name
         of the distro, not a handle.
         """
         self._log("remove_item (%s, recursive=%s)" % (what,recursive),name=name,token=token)
         self.check_access(token, "remove_item", name)
-        return self.api.remove_item(what,name)
+        return self.api.remove_item(what,name,delete=True,with_triggers=True,recursive=recursive)
 
     def copy_item(self,what,object_id,newname,token=None):
         """

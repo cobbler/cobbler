@@ -358,11 +358,30 @@ def generic_copy(request, what, obj_name=None, obj_newname=None):
    if not remote.has_item(what,obj_name):
       return error_page(request,"Unknown %s specified" % what)
    elif not remote.check_access_no_fail(token, "modify_%s" % what, obj_name):
-      return error_page(request,"You do not have permission to rename this %s" % what)
+      return error_page(request,"You do not have permission to copy this %s" % what)
    else:
       obj_id = remote.get_item_handle(what, obj_name, token)
       remote.copy_item(what, obj_id, obj_newname, token)
       return HttpResponseRedirect("/cobbler_web/%s/list" % what)
+
+# ======================================================================
+
+def generic_delete(request, what, obj_name=None):
+   """
+   Deletes an object.
+   """
+   # FIXME: consolidate code with above functions.
+   if obj_name == None:
+      return error_page(request,"You must specify a %s to delete" % what)
+   if not remote.has_item(what,obj_name):
+      return error_page(request,"Unknown %s specified" % what)
+   elif not remote.check_access_no_fail(token, "remove_%s" % what, obj_name):
+      return error_page(request,"You do not have permission to delete this %s" % what)
+   else:  
+      obj_id = remote.get_item_handle(what, obj_name, token)
+      remote.remove_item(what, obj_id, token)
+      return HttpResponseRedirect("/cobbler_web/%s/list" % what)
+
 
 # ======================================================================
 

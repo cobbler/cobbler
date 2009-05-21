@@ -70,6 +70,5 @@ class Systems(collection.Collection):
 
             return True
        
-        #if not recursive: 
-        #    raise CX(_("cannot delete an object that does not exist: %s") % name)
+        raise CX(_("cannot delete an object that does not exist: %s") % name)
      

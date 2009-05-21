@@ -34,6 +34,7 @@ urlpatterns = patterns('',
 
     (r'^(?P<what>\w+)/rename/(?P<obj_name>.+)/(?P<obj_newname>.+)$', generic_rename),
     (r'^(?P<what>\w+)/copy/(?P<obj_name>.+)/(?P<obj_newname>.+)$', generic_copy),
+    (r'^(?P<what>\w+)/delete/(?P<obj_name>.+)$', generic_delete),
 
     #(r'^(?P<what>\w+)/rename/(?P<obj_name>[^/]+)/(?P<obj_newname>[^/]+)$', generic_rename),
     #(r'^(?P<what>\w+)/(?P<multi_mode>[\w\-]+)/multi$', generic_multi),

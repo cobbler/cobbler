@@ -53,6 +53,7 @@ import random
 import os
 import xmlrpclib
 import traceback
+import exceptions
 
 import item_distro
 import item_profile
@@ -281,12 +282,20 @@ class BootAPI:
         return res
         
     def remove_item(self, what, ref, recursive=False, delete=True, with_triggers=True):
-        if type(ref) != str:
-           self.log("remove_item(%s)"%what,[ref.name])
-           return self.get_items(what).remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
+        if what == "distro":
+           return self.remove_distro(ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
+        elif what == "profile":
+           return self.remove_profile(ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
+        elif what == "system":
+           return self.remove_system(ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
+        elif what == "image":
+           return self.remove_image(ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
+        elif what == "repo":
+           return self.remove_repo(ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
+        elif what == "network":
+           return self.remove_network(ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
         else:
-           self.log("remove_item(%s)"%what,ref)
-           return self.get_items(what).remove(ref, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
+           raise exceptions.NotImplementedError()
 
     def copy_item(self, what, ref, newname):
         self.log("copy_item(%s)"%what,[ref.name, newname])
@@ -375,10 +384,10 @@ class BootAPI:
 
     def remove_distro(self, ref, recursive=False, delete=True, with_triggers=True, ):
         if type(ref) != str:
-           self.log("remove_distro",[ref.name])
+           self.log("remove_distro (name)",[ref.name])
            return self._config.distros().remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
         else:
-           self.log("remove_distro",ref)
+           self.log("remove_distro (id)",ref)
            return self._config.distros().remove(ref, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
 
     def remove_profile(self,ref, recursive=False, delete=True, with_triggers=True):
