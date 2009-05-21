@@ -10,17 +10,27 @@
 function intf_enable_field(field,enabled)
 {
     if (enabled) {
+        document.getElementById(field+"_caption").style.display="table-row"
         document.getElementById(field).style.display="table-row"
     } else {
+        document.getElementById(field+"_caption").style.display="none"
         document.getElementById(field).style.display="none"
     }
 }
 
 function intf_update_visibility()
 {
-    is_slave  = document.getElementById("bonding_is_slave").checked
-    is_master = document.getElementById("bonding_is_master").checked
-    is_static = document.getElementById("static_true").checked
+    is_slave  = false
+    is_master = false
+    value = document.getElementById("bonding").value
+    if (value == "slave") {
+        is_slave = true;
+    }    
+    else if (value == "master") {
+        is_master = true;
+    }
+
+    is_static = document.getElementById("static").checked
  
     intf_enable_field("static",!is_slave)
     intf_enable_field("ip_address",(!is_slave))
@@ -56,11 +66,12 @@ function populate_widgets()
     document.getElementById("widget_network_widget_a").innerHTML = buf;
 
     buf = "";
-    buf = buf + "<select name='interfaces' id='interfaces'>";
-    {% for ikey in interfaces %}
-         buf = buf + "<option name='{{ ikey }}' value='{{ ikey }}'/>";
-    {% endfor %}
+    buf = buf + "<select name='interfaces' id='interfaces' onchange='javascript:on_interface_change()'>";
+    //{% for ikey in interfaces %}
+    //     buf = buf + "<option name='{{ ikey }}' value='{{ ikey }}'/>";
+    //{% endfor %}
     buf = buf + "</select>";
+    alert(buf)
     document.getElementById("widget_network_widget_b").innerHTML = buf;
 
 }
@@ -150,27 +161,36 @@ function save_intf(which)
        itable = interface_table[iname]
     }
 
-    is_slave=document.getElementById("bonding").value == "slave"
-    is_master=document.getElementById("bonding_is_master").checked
-    is_static=document.getElementById("static_true").checked
+
+    is_slave  = false
+    is_master = false
+
+    // FIXME
+    value = document.getElementById("bonding").value
+    if (value == "master") {
+       master = true;
+    } else if (value == "slave") {
+       slave = true;
+    }
+    is_static=document.getElementById("static").checked
 
     itable["name"]       = iname
-    itable["macaddress"] = document.getElementById("macaddress").value
+    itable["mac_address"] = document.getElementById("mac_address").value
 
     var bond = document.getElementById("bonding").value
-    var is_slave=False
-    var is_static=False
-    var is_master=False
+    var is_slave  = false;
+    var is_static = false;
+    var is_master = false;
     if (bond == "master") {
-       is_master=True
+       is_master  = true;
     }
     if (bond == "slave") {
-       is_slave=True 
+       is_slave   = true;
     }
     itable["bonding"]        = bond
     itable["bonding_master"] = get_enabled_field("bonding_master",is_slave)
     itable["bonding_opts"]   = get_enabled_field("bonding_opts",is_master)
-    itable["static"]         = document.getElementById("static_true").checked
+    itable["static"]         = document.getElementById("static").checked
     itable["ip_address"]     = get_enabled_field("ip_address",(!is_slave))
     itable["subnet"]         = get_enabled_field("subnet",(!is_slave) && is_static)
     itable["dns_name"]       = get_enabled_field("dns_name",!is_slave)
@@ -188,6 +208,7 @@ function load_intf()
     // and is called when the user picks a certain interface from the drop-down
     // FIXME: can we load this up from the template data?
     intf = get_selected_interface()
+    alert("selected interface is "+intf)
     document.getElementById("mac_address").value    = interface_table[intf]["mac_address"]
     // FIXME: not sure we can do this to radios
     document.getElementById("bonding").value        = interface_table[intf]["bonding"]  
@@ -198,7 +219,7 @@ function load_intf()
     document.getElementById("subnet").value         = interface_table[intf]["subnet"]
     document.getElementById("dns_name").value       = interface_table[intf]["dns_name"]
     document.getElementById("static_routes").value  = interface_table[intf]["static_routes"]
-    document.getElementById("dhcp_tag").value       = interface_table[intf]["dhcptag"]
+    document.getElementById("dhcp_tag").value       = interface_table[intf]["dhcp_tag"]
     document.getElementById("virt_bridge").value    = interface_table[intf]["virt_bridge"]
     document.getElementById("present").value        = interface_table[intf]["present"]
     document.getElementById("original").value       = interface_table[intf]["original"]
@@ -233,7 +254,7 @@ function build_interface_table()
     //alert("building interface table")
     interface_table = new Array()
     var last = ""
-    {% if obj %}
+    {% smart_if interface_length > 0 %}
        var ifound = 0
        {% for key,value in interfaces.items %}
            interface_table['{{ key }}'] = new Array()
@@ -241,7 +262,7 @@ function build_interface_table()
            interface_table['{{ key }}']["bonding"]        = "{{ value.bonding }}"
            interface_table['{{ key }}']["bonding_master"] = "{{ value.bonding_master }}"
            interface_table['{{ key }}']["bonding_opts"]   = "{{ value.bonding_opts }}"
-           interface_table['{{ key }}']["static"]         = {{ value.static }}
+           interface_table['{{ key }}']["static"]         = {{ value.static|lower }}
            interface_table['{{ key }}']["ip_address"]     = "{{ value.ip_address }}"
            interface_table['{{ key }}']["subnet"]         = "{{ value.subnet }}"
            interface_table['{{ key }}']["dns_name"]       = "{{ value.dns_name }}"
@@ -267,7 +288,7 @@ function build_interface_table()
        interface_table["eth0"]["virt_bridge"]    = ""
        interface_table["eth0"]["present"]        = "1"
        interface_table["eth0"]["original"]       = "0"
-    {% endif %}
+    {% endsmart_if %}
     return interface_table
 }
 
@@ -301,6 +322,17 @@ function on_form_submit()
 function page_onload() {
     populate_widgets()
     interface_table = build_interface_table()
+    interfaces = document.getElementById("interfaces")
+    ilen = interfaces.length
+  
+    {% for x in interface_names %}
+        var new_option = new Option("{{ x }}","{{ x }}")
+        interfaces.options[ilen] = new_option
+        interfaces.selectedIndex = ilen
+        ilen = ilen + 1 
+    {% endfor %}
+    interfaces.selectedIndex = 0
+
     last_interface = get_selected_interface()
     load_intf()
 }
@@ -395,6 +427,7 @@ function page_onload() {
     {% endfor %}
 
     {% ifequal what "system" %}
+    <input type="hidden" id="interface_list" name="interface_list" value="1"/>
     <input type="hidden" id="present" name="present" value="1"/>
     <input type="hidden" id="original" name="original" value="1"/>
     {% endifequal %}

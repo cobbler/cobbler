@@ -39,6 +39,9 @@ USES_SELECT = [
    "distro",
    "network",
    "image",
+   "virt_type",
+   "arch",
+   "*bonding"
 ]
 
 USES_CHECKBOX = [
@@ -48,11 +51,8 @@ USES_CHECKBOX = [
    "*static"
 ]
 
-# FIXME: why not use selects?
+# select killed the radio button
 USES_RADIO = [
-   "virt_type",
-   "arch",
-   "*bonding"
 ]
 
 CSS_MAPPINGS = {

@@ -552,13 +552,16 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
 
    t = get_template('generic_edit.tmpl')
+   inames = interfaces.keys()
+   inames.sort()
    html = t.render(Context({
        'what'            : what, 
        'fields'          : fields, 
        'editmode'        : editmode, 
        'editable'        : editable,
        'interfaces'      : interfaces,
-       'interface_names' : interfaces.keys()
+       'interface_names' : inames,
+       'interface_length': len(inames)
    }))
 
    return HttpResponse(html)
