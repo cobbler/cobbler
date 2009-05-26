@@ -158,10 +158,11 @@ def start_install(name=None,
         counter = 0
         interfaces = profile_data["interfaces"].keys()
         interfaces.sort()
+        vlanpattern = re.compile("[a-zA-Z0-9]+\.[0-9]+")
         for iname in interfaces:
             intf = profile_data["interfaces"][iname]
 
-            if intf["bonding"] == "master":
+            if intf["bonding"] == "master" or vlanpattern.match(iname):
                 continue
 
             mac = intf["mac_address"]
