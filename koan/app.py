@@ -691,6 +691,7 @@ class Koan:
         def after_download(self, profile_data):
             k_args = self.calc_kernel_args(profile_data)
             kickstart = self.safe_load(profile_data,'kickstart')
+            arch      = self.safe_load(profile_data,'arch')
 
             (make, version, rest) = utils.os_release()
 
