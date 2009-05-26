@@ -3,7 +3,7 @@ Enables the "cobbler import" command to seed cobbler
 information with available distribution from rsync mirrors
 and mounted DVDs.  
 
-Copyright 2006-2008, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify
@@ -488,7 +488,7 @@ class Importer:
 
    # ========================================================================
 
-   def distro_adder(self,foo,dirname,fnames):
+   def distro_adder(self,distros_added,dirname,fnames):
 
        """
        This is an os.path.walk routine that finds distributions in the directory
@@ -501,11 +501,13 @@ class Importer:
        initrd = None
        kernel = None
 
-       # Windows Variables
-       startrom = None
-       setupldr = None
+       # make sure we don't mismatch PAE and non-PAE types
+       pae_initrd = None
+       pae_kernel = None
 
        for x in fnames:
+
+           adtl = None
 
            fullname = os.path.join(dirname,x)
            if os.path.islink(fullname) and os.path.isdir(fullname):
@@ -514,28 +516,27 @@ class Importer:
                   print "- warning: avoiding symlink loop"
                   continue
               print "- following symlink: %s" % fullname
-              os.path.walk(fullname, self.distro_adder, foo)
+              os.path.walk(fullname, self.distro_adder, distros_added)
 
            if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") ) and x != "initrd.size":
-               initrd = os.path.join(dirname,x)
+               if x.find("PAE") == -1:
+                  initrd = os.path.join(dirname,x)
+               else:
+                  pae_initrd = os.path.join(dirname, x)
 
            if ( x.startswith("vmlinu") or x.startswith("kernel.img") or x.startswith("linux") ) and x.find("initrd") == -1:
                kernel = os.path.join(dirname,x)
-           if x.lower().startswith("startrom.n1_"):
-               startrom = os.path.join(dirname,x)
-           if x.lower().startswith("setupldr.ex_"):
-               setupldr = os.path.join(dirname,x)
+
+           # if we've collected a matching kernel and initrd pair, turn the in and add them to the list
            if initrd is not None and kernel is not None and dirname.find("isolinux") == -1:
                adtl = self.add_entry(dirname,kernel,initrd)
-               if adtl != None:
-                   foo.extend(adtl)
-                   # Not resetting these values causes problems importing debian media because there are remaining items in fnames
-                   initrd = None
-                   kernel = None
-           elif startrom is not None and setupldr is not None:
-               self.add_win_entry(dirname,startrom,setupldr)
-               startrom = None
-               setupldr = None
+           elif pae_initrd is not None and pae_kernel is not None and dirname.find("isolinux") == -1:
+               adtl = self.add_entry(dirname,pae_kernel,pae_initrd)
+           if adtl != None:
+               distros_added.extend(adtl)
+               initrd = None
+               kernel = None
+               
    
    # ========================================================================
 
@@ -547,7 +548,7 @@ class Importer:
        if possible.
        """
 
-       proposed_name = self.get_proposed_name(dirname)
+       proposed_name = self.get_proposed_name(dirname,kernel)
        proposed_arch = self.get_proposed_arch(dirname)
        if self.arch and proposed_arch and self.arch != proposed_arch:
            raise CX(_("Arch from pathname (%s) does not match with supplied one %s")%(proposed_arch,self.arch))
@@ -659,87 +660,7 @@ class Importer:
 
    # ========================================================================
 
-   def add_win_entry(self, dirname, startrom, setupldr):
-
-       proposed_name = self.get_proposed_name(dirname)
-       proposed_arch = self.get_proposed_arch(dirname)
-       if self.arch and proposed_arch and self.arch != proposed_arch:
-           raise CX(_("Arch from pathname (%s) does not match with supplied one %s")%(proposed_arch,self.arch))
-
-       importer = import_factory(dirname,self.path)
-       if self.breed and self.breed != importer.breed:
-           raise CX( _("Requested breed (%s); breed found is %s") % ( self.breed , breed ) )
-
-       #archs = importer.learn_arch_from_tree()
-       #if self.arch and self.arch not in archs:
-       #    raise CX(_("Given arch (%s) not found on imported tree %s")%(self.arch,importer.get_pkgdir()))
-       #if proposed_arch:
-       #    if proposed_arch not in archs:
-       #        print _("Warning: arch from pathname (%s) not found on imported tree %s") % (proposed_arch,importer.get_pkgdir())
-       #        return
-       #
-       #    archs = [ proposed_arch ]
-
-       archs = [ proposed_arch ]
-
-       if len(archs)>1:
-           print _("- Warning : Multiple archs found : %s") % (archs)
-
-       distros_added = []
-
-       for pxe_arch in archs:
-
-           name = proposed_name + "-" + pxe_arch
-           existing_distro = self.distros.find(name=name)
-
-           if existing_distro is not None:
-               print _("- warning: skipping import, as distro name already exists: %s") % name
-               continue
-
-           else:
-               print _("- creating new distro: %s") % name
-               distro = self.config.new_distro()
-
-           distro.set_name(name)
-           distro.set_kernel(startrom)
-           distro.set_initrd(setupldr)
-           distro.set_arch(pxe_arch)
-           distro.set_breed(importer.breed)
-           distro.source_repos = []
-
-           self.distros.add(distro,save=True)
-           distros_added.append(distro)
-
-           existing_profile = self.profiles.find(name=name)
-
-           # see if the profile name is already used, if so, skip it and
-           # do not modify the existing profile
-
-           if existing_profile is None:
-               print _("- creating new profile: %s") % name
-               profile = self.config.new_profile()
-           else:
-               print _("- skipping existing profile, name already exists: %s") % name
-               continue
-
-           # save our minimal profile which just points to the distribution and a good
-           # default answer file
-
-           profile.set_name(name)
-           profile.set_distro(name)
-           if self.kickstart_file:
-               profile.set_kickstart(self.kickstart_file)
-
-           # save our new profile to the collection
-
-           self.profiles.add(profile,save=True)
-
-       self.api.serialize()
-       return distros_added
-
-   # ========================================================================
-
-   def get_proposed_name(self,dirname):
+   def get_proposed_name(self,dirname,kernel=None):
 
        """
        Given a directory name where we have a kernel/initrd pair, try to autoname
@@ -751,6 +672,16 @@ class Importer:
        else:
           # remove the part that says /var/www/cobbler/ks_mirror/name
           name = "-".join(dirname.split("/")[5:])
+
+       if kernel is not None and kernel.find("PAE") != -1:
+          name = name + "-PAE"
+
+       # These are all Ubuntu's doing, the netboot images are buried pretty
+       # deep. ;-) -JC
+       name = name.replace("-netboot","")
+       name = name.replace("-ubuntu-installer","")
+       name = name.replace("-amd64","")
+       name = name.replace("-i386","")
 
        # we know that some kernel paths should not be in the name
 
