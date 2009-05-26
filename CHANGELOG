@@ -5,6 +5,7 @@ Cobbler CHANGELOG
 - (BUGF) don't add duplicate interfaces in koan if vlan tagged
 - (FEAT) support F-11 imports
 - (BUGF) pair PAE and non-PAE content in imports better 
+- (BUGF) don't try to scp /etc/cobbler/*.ks on replicate, this is an old path
 
 - Fri May 8 2009 - 1.6.4
 - (BUGF) empty nameserver search paths now don't break resolv.conf
