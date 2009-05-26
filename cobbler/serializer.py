@@ -75,9 +75,11 @@ def __release_lock(with_changes=False):
         # this file is used to know when the last config change
         # was made -- allowing the API to work more smoothly without
         # a lot of unneccessary reloads.  
+        old = os.umask(0x777)
         fd = open("/var/lib/cobbler/.mtime","w")
         fd.write("%f" % time.time())
         fd.close()
+        os.umask(old)
     if LOCK_ENABLED:
         LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
         fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
