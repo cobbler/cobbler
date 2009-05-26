@@ -28,6 +28,7 @@ Cobbler CHANGELOG
 - (BUGF) don't use json on python x<=2.3 since we know it's simplejson x<2.0, which has unicode issues
 - (FEAT) support F-11 imports
 - (BUGF) don't add koan virtual interfaces for vlan tagged interfaces
+- (BUGF) pair PAE and non-PAE content in imports better 
 
 - Fri May 8 2009 - 1.6.4
 - (BUGF) empty nameserver search paths now don't screw up resolv.conf

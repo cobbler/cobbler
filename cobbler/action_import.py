@@ -3,7 +3,7 @@ Enables the "cobbler import" command to seed cobbler
 information with available distribution from rsync mirrors
 and mounted DVDs.  
 
-Copyright 2006-2008, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify
@@ -499,7 +499,7 @@ class Importer:
 
    # ========================================================================
 
-   def distro_adder(self,foo,dirname,fnames):
+   def distro_adder(self,distros_added,dirname,fnames):
 
        """
        This is an os.path.walk routine that finds distributions in the directory
@@ -512,7 +512,13 @@ class Importer:
        initrd = None
        kernel = None
 
+       # make sure we don't mismatch PAE and non-PAE types
+       pae_initrd = None
+       pae_kernel = None
+
        for x in fnames:
+
+           adtl = None
 
            fullname = os.path.join(dirname,x)
            if os.path.islink(fullname) and os.path.isdir(fullname):
@@ -521,20 +527,30 @@ class Importer:
                   print "- warning: avoiding symlink loop"
                   continue
               print "- following symlink: %s" % fullname
-              os.path.walk(fullname, self.distro_adder, foo)
+              os.path.walk(fullname, self.distro_adder, distros_added)
 
            if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") ) and x != "initrd.size":
-               initrd = os.path.join(dirname,x)
+               if x.find("PAE") == -1:
+                  initrd = os.path.join(dirname,x)
+               else:
+                  pae_initrd = os.path.join(dirname, x)
 
            if ( x.startswith("vmlinu") or x.startswith("kernel.img") or x.startswith("linux") ) and x.find("initrd") == -1:
-               kernel = os.path.join(dirname,x)
+               if x.find("PAE") == -1:
+                  kernel = os.path.join(dirname,x)
+               else:
+                  pae_kernel = os.path.join(dirname, x)
+
+           # if we've collected a matching kernel and initrd pair, turn the in and add them to the list
            if initrd is not None and kernel is not None and dirname.find("isolinux") == -1:
                adtl = self.add_entry(dirname,kernel,initrd)
-               if adtl != None:
-                   foo.extend(adtl)
-                   # Not resetting these values causes problems importing debian media because there are remaining items in fnames
-                   initrd = None
-                   kernel = None
+           elif pae_initrd is not None and pae_kernel is not None and dirname.find("isolinux") == -1:
+               adtl = self.add_entry(dirname,pae_kernel,pae_initrd)
+           if adtl != None:
+               distros_added.extend(adtl)
+               initrd = None
+               kernel = None
+               
    
    # ========================================================================
 
@@ -546,7 +562,7 @@ class Importer:
        if possible.
        """
 
-       proposed_name = self.get_proposed_name(dirname)
+       proposed_name = self.get_proposed_name(dirname,kernel)
        proposed_arch = self.get_proposed_arch(dirname)
        if self.arch and proposed_arch and self.arch != proposed_arch:
            raise CX(_("Arch from pathname (%s) does not match with supplied one %s")%(proposed_arch,self.arch))
@@ -671,7 +687,7 @@ class Importer:
 
    # ========================================================================
 
-   def get_proposed_name(self,dirname):
+   def get_proposed_name(self,dirname,kernel=None):
 
        """
        Given a directory name where we have a kernel/initrd pair, try to autoname
@@ -683,6 +699,9 @@ class Importer:
        else:
           # remove the part that says /var/www/cobbler/ks_mirror/name
           name = "-".join(dirname.split("/")[5:])
+
+       if kernel is not None and kernel.find("PAE") != -1:
+          name = name + "-PAE"
 
        # These are all Ubuntu's doing, the netboot images are buried pretty
        # deep. ;-) -JC

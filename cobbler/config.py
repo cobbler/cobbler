@@ -191,7 +191,7 @@ class Config:
        """
        serializer.serialize(self._distros)
        serializer.serialize(self._repos)
-       serializer.serialize(self._profile)
+       serializer.serialize(self._profiles)
        serializer.serialize(self._images)
        serializer.serialize(self._systems)
        serializer.serialize(self._networks)
