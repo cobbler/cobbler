@@ -525,7 +525,10 @@ class Importer:
                   pae_initrd = os.path.join(dirname, x)
 
            if ( x.startswith("vmlinu") or x.startswith("kernel.img") or x.startswith("linux") ) and x.find("initrd") == -1:
-               kernel = os.path.join(dirname,x)
+               if x.find("PAE") == -1:
+                   kernel = os.path.join(dirname,x)
+               else:
+                   pae_kernel = os.path.join(dirname, x)
 
            # if we've collected a matching kernel and initrd pair, turn the in and add them to the list
            if initrd is not None and kernel is not None and dirname.find("isolinux") == -1:
