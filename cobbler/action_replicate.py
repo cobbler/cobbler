@@ -157,7 +157,6 @@ class Replicate:
 
         if self.sync_all or self.sync_kickstarts:
             print _("----- Rsyncing kickstart templates & snippets")
-            self.scp_it("/etc/cobbler/*.ks","/etc/cobbler")
             self.rsync_it("/var/lib/cobbler/kickstarts","/var/lib/cobbler")
             self.rsync_it("/var/lib/cobbler/snippets","/var/lib/cobbler")
 
