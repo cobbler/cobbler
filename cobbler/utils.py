@@ -1091,7 +1091,7 @@ def set_breed(self,breed):
        self.breed = breed.lower()
        return True
    nicer = ", ".join(valid_breeds)
-   raise CX(_("invalid value for --breed, must be one of %s, different breeds have different levels of support") % nicer)
+   raise CX(_("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support") % (breed, nicer))
 
 def set_repo_breed(self,breed):
    valid_breeds = codes.VALID_REPO_BREEDS
@@ -1099,7 +1099,7 @@ def set_repo_breed(self,breed):
        self.breed = breed.lower()
        return True
    nicer = ", ".join(valid_breeds)
-   raise CX(_("invalid value for --breed, must be one of %s, different breeds have different levels of support") % nicer)
+   raise CX(_("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support") % (breed, nicer))
 
 def set_repos(self,repos,bypass_check=False):
    # WARNING: hack
@@ -1155,13 +1155,13 @@ def set_virt_file_size(self,num):
     try:
         inum = int(num)
         if inum != float(num):
-            return CX(_("invalid virt file size"))
+            return CX(_("invalid virt file size (%s)" % inum))
         if inum >= 0:
             self.virt_file_size = inum
             return True
-        raise CX(_("invalid virt file size"))
+        raise CX(_("invalid virt file size (%s)" % inum))
     except:
-        raise CX(_("invalid virt file size"))
+        raise CX(_("invalid virt file size (%s)" % inum))
     return True
 
 def set_virt_ram(self,num):
@@ -1179,13 +1179,13 @@ def set_virt_ram(self,num):
      try:
          inum = int(num)
          if inum != float(num):
-             return CX(_("invalid virt ram size"))
+             return CX(_("invalid virt ram size (%s)" % inum))
          if inum >= 0:
              self.virt_ram = inum
              return True
-         return CX(_("invalid virt ram size"))
+         return CX(_("invalid virt ram size (%s)" % inum))
      except:
-         return CX(_("invalid virt ram size"))
+         return CX(_("invalid virt ram size (%s)" % inum))
      return True
 
 def set_virt_type(self,vtype):
@@ -1198,7 +1198,7 @@ def set_virt_type(self,vtype):
          return True
 
      if vtype.lower() not in [ "qemu", "xenpv", "xenfv", "vmware", "vmwarew", "auto" ]:
-         raise CX(_("invalid virt type"))
+         raise CX(_("invalid virt type (%s)" % vtype))
      self.virt_type = vtype
      return True
 
@@ -1241,7 +1241,7 @@ def set_virt_cpus(self,num):
      try:
          num = int(str(num))
      except:
-         raise CX(_("invalid number of virtual CPUs"))
+         raise CX(_("invalid number of virtual CPUs (%s)" % num))
 
      self.virt_cpus = num
      return True
