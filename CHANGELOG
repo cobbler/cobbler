@@ -31,6 +31,8 @@ Cobbler CHANGELOG
 - (BUGF) pair PAE and non-PAE content in imports better 
 - (BUGF) don't try to scp /etc/cobbler/*.ks on replicate, this is an old path
 - (BUGF) set proper umask on .mtime files
+- (BUGF) fix koan error with unspecified arch using --kexec
+- (BUGF) don't use --onboot=on in network config for kickstart for RHEL 3.
 
 - Fri May 8 2009 - 1.6.4
 - (BUGF) empty nameserver search paths now don't screw up resolv.conf
