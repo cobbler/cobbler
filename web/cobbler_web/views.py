@@ -378,8 +378,7 @@ def generic_delete(request, what, obj_name=None):
    elif not remote.check_access_no_fail(token, "remove_%s" % what, obj_name):
       return error_page(request,"You do not have permission to delete this %s" % what)
    else:  
-      obj_id = remote.get_item_handle(what, obj_name, token)
-      remote.remove_item(what, obj_id, token)
+      remote.remove_item(what, obj_name, token)
       return HttpResponseRedirect("/cobbler_web/%s/list" % what)
 
 
