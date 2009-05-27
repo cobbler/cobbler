@@ -5,7 +5,7 @@
         <caption>Cobbler Kickstart Snippets</caption>
         <tr>
             <th class="text">File</th>
-            <th class="text">Edit/View</th>
+            <th class="text">Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -13,7 +13,7 @@
         <tr class="{% cycle 'rowodd' 'roweven' %}">
             <td>{{ shortname }}</td>
             {% if option %}
-            {% ifequal option "editable" %}<td><a href="/cobbler_web/snippet/edit/{{ snippet }}">edit</a></td>{% endifequal %}
+            {% ifequal option "editable" %}<td><input type="button" value="Edit" onclick="javascript:location='/cobbler_web/snippet/edit/{{ snippet }}'"/></td>{% endifequal %}
             {% else %}
             <td>N/A</td>
             {% endif %}

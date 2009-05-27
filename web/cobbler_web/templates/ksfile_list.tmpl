@@ -5,7 +5,7 @@
         <caption>Cobbler Kickstart Templates</caption>
         <tr>
             <th class="text">File</th>
-            <th class="text">Edit/View</th>
+            <th class="text">Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -13,8 +13,8 @@
         <tr class="{% cycle 'rowodd' 'roweven' %}">
             <td>{{ shortname }}</td>
             {% if option %}
-            {% ifequal option "editable" %}<td><a href="/cobbler_web/ksfile/edit/{{ ksfile }}">edit</a></td>{% endifequal %}
-            {% ifequal option "viewable" %}<td><a href="{{ ksfile }}">view</a></td>{% endifequal %}
+            {% ifequal option "editable" %}<td><input type="button" value="Edit" onclick="javascript:location='/cobbler_web/ksfile/edit/{{ ksfile }}'"/></td>{% endifequal %}
+            {% ifequal option "viewable" %}<td><input type="button" value="View" onclick="javascript:location='{{ ksfile }}'/></td>{% endifequal %}
             {% else %}
             <td>N/A</td>
             {% endif %}
