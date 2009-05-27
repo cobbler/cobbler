@@ -170,17 +170,28 @@ def anamon_loop():
     scrlog = WatchedFile("/tmp/ks-script.log", "ks-script.log")
     dump = WatchedFile("/tmp/anacdump.txt", "anacdump.txt")
     mod = WatchedFile("/tmp/modprobe.conf", "modprobe.conf")
-    ilog = WatchedFile("/mnt/sysimage/root/install.log", "install.log")
-    ilog2 = WatchedFile("/mnt/sysimage/tmp/install.log", "tmp+install.log")
-    ulog = WatchedFile("/mnt/sysimage/root/upgrade.log", "upgrade.log")
-    ulog2 = WatchedFile("/mnt/sysimage/tmp/upgrade.log", "tmp+upgrade.log")
+
+    # Setup '/mnt/sysimage' watcher
     sysimage = MountWatcher("/mnt/sysimage")
 
-    # Were we asked to watch specific files?
-    if watchfiles:
-        watchlist = []
-        waitlist = []
+    # Monitor for {install,upgrade}.log changes
+    package_logs = list()
+    package_logs.append(WatchedFile("/mnt/sysimage/root/install.log", "install.log"))
+    package_logs.append(WatchedFile("/mnt/sysimage/tmp/install.log", "tmp+install.log"))
+    package_logs.append(WatchedFile("/mnt/sysimage/root/upgrade.log", "upgrade.log"))
+    package_logs.append(WatchedFile("/mnt/sysimage/tmp/upgrade.log", "tmp+upgrade.log"))
 
+    # Monitor for bootloader configuration changes
+    bootloader_cfgs = list()
+    bootloader_cfgs.append(WatchedFile("/mnt/sysimage/boot/grub/grub.conf", "grub.conf"))
+    bootloader_cfgs.append(WatchedFile("/mnt/sysimage/boot/etc/yaboot.conf", "yaboot.conf"))
+    bootloader_cfgs.append(WatchedFile("/mnt/sysimage/boot/efi/efi/redhat/elilo.conf", "elilo.conf"))
+    bootloader_cfgs.append(WatchedFile("/mnt/sysimage/etc/zipl.conf", "zipl.conf"))
+
+    # Were we asked to watch specific files?
+    watchlist = list()
+    waitlist = list()
+    if watchfiles:
         # Create WatchedFile objects for each requested file
         for watchfile in watchfiles:
             if os.path.exists(watchfile):
@@ -191,7 +202,8 @@ def anamon_loop():
     # Use the default watchlist and waitlist
     else:
         watchlist = [alog, slog, dump, scrlog, mod, llog, kcfg, storage_log, prgm_log, vnc_log]
-        waitlist = [ilog, ilog2, ulog, ulog2]
+        waitlist.extend(package_logs)
+        waitlist.extend(bootloader_cfgs)
 
     # Monitor loop
     while 1:
