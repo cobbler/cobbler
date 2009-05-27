@@ -195,8 +195,7 @@ if __name__ == "__main__":
             (dj_templates, [ 'web/cobbler_web/templates/generic_delete.tmpl' ]),
             (dj_templates, [ 'web/cobbler_web/templates/generic_rename.tmpl' ]),
 
-            # django javascript support code (move to section with other js?)
-            (wwwcon,        [ 'web/content/checkboxes.js' ]),	
+            (wwwcon,        [ 'web/content/cobbler.js' ]),	
 
             # django code, private to cobbler-web application
             (dj_webui_proj,  [ "web/authen.py" ]),

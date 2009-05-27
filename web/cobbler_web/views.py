@@ -72,26 +72,6 @@ def error_page(request,message):
 
 #==================================================================================
 
-#def list(request, what, page=None):
-#    if page == None:
-#        page = int(request.session.get("%s_page" % what, 1))
-#    limit = int(request.session.get("%s_limit" % what, 50))
-#    sort_field = request.session.get("%s_sort_field" % what, None)
-#    filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
-#
-#    pageditems = remote.find_items_paged(what,filters,sort_field,page,limit)
-#
-#    t = get_template('%s_list.tmpl'%what)
-#    html = t.render(RequestContext(request,{
-#        'what'      : what,
-#        '%ss'%what  : pageditems["items"],
-#        'pageinfo'  : pageditems["pageinfo"],
-#        'filters'   : filters,
-#    }))
-#    return HttpResponse(html)
-
-#==================================================================================
-
 def get_fields(what, is_subobject, seed_item=None):
   
     """
@@ -384,47 +364,7 @@ def generic_delete(request, what, obj_name=None):
 
 # ======================================================================
 
-def generic_multi(request, what, multi_mode=None):
-    """
-    Presents a UI that allows multiple actions to be performed.
-    Ideally we do not need a second page for this, and can offer power actions all on the front page.
-    """
-
-    # FIXME: eliminate this function entirely, just keep do_multi and merge everything into
-    # the list page
-
-    names = request.POST.getlist('items')
-
-    all_items = remote.get_items(what)
-    sel_items = []
-    sel_names = []
-    for item in all_items:
-        if item['name'] in names:
-            if not remote.check_access_no_fail(token, "modify_%s" % what, item["name"]):
-                return error_page(request,"You do not have permission to modify one or more of the %ss you selected" % what)
-            sel_items.append(item)
-            sel_names.append(item['name'])
-
-    htmlvars={
-        'what'  : what,
-        'names' : sel_names,
-    }
-    if multi_mode in ("profile","power","netboot"):
-        htmlname='system_%s.tmpl' % multi_mode
-        htmlvars['systems']=sel_items
-        if multi_mode=="profile":
-            htmlvars['profiles'] = remote.get_profiles(token)
-    else:
-        htmlname='generic_%s.tmpl' % multi_mode
-        htmlvars['items']=sel_items
-
-    t = get_template(htmlname)
-    html=t.render(Context(htmlvars))
-    return HttpResponse(html)
-
-# ======================================================================
-
-def generic_domulti(request, what, multi_mode=None):
+def generic_domulti(request, what, multi_mode=None, multi_arg=None):
 
     """
     Process operations like profile reassignment, netboot toggling, and deletion
@@ -434,21 +374,30 @@ def generic_domulti(request, what, multi_mode=None):
     # FIXME: cleanup
     # FIXME: COMMENTS!!!11111???
 
-    names = request.POST.get('names', '').split(" ")
+    names = request.POST.get('names', '').strip().split()
+    if names == "":
+        return error_page(request, "Need to select some systems first")        
+    return error_page(request, "names=(%s)" % names)
 
     if multi_mode == "delete":
-        for obj_name in names:
-            remote.remove_item(what,obj_name, token)
+        # too dangerous to expose?
+        # for obj_name in names:
+        #    remote.remove_item(what,obj_name, token)
+        pass
     elif what == "system" and multi_mode == "netboot":
-        netboot_enabled = request.POST.get('netboot_enabled', None)
+        netboot_enabled = multi_arg # values: enable or disable
         if netboot_enabled is None:
             raise "Cannot modify systems without specifying netboot_enabled"
+        if netboot_enabled == "on":
+            netboot_enabled = True
+        else:
+            netboot_enabled = False
         for obj_name in names:
             obj_id = remote.get_system_handle(obj_name, token)
             remote.modify_system(obj_id, "netboot_enabled", netboot_enabled, token)
             remote.save_system(obj_id, token, "edit")
     elif what == "system" and multi_mode == "profile":
-        profile = request.POST.get('profile', None)
+        profile = multi_arg
         if profile is None:
             raise "Cannot modify systems without specifying profile"
         for obj_name in names:
@@ -456,21 +405,16 @@ def generic_domulti(request, what, multi_mode=None):
             remote.modify_system(obj_id, "profile", profile, token)
             remote.save_system(obj_id, token, "edit")
     elif what == "system" and multi_mode == "power":
-        power = request.POST.get('power', None)
+        power = multi_arg
         if power is None:
             raise "Cannot modify systems without specifying power option"
-        try:
-            for obj_name in names:
-                obj_id = remote.get_system_handle(obj_name, token)
-                remote.power_system(obj_id, power, token)
-        except:
-            # TODO: something besides ignore.  We should probably
-            #       print out an error message at the top of whatever
-            #       page we go to next, whether it's the system list 
-            #       or a results page
-            pass
+        for obj_name in names:
+            obj_id = remote.get_system_handle(obj_name, token)
+            remote.power_system(obj_id, power, token)
     else:
         raise "Unknown multiple operation on %ss: %s" % (what,str(multi_mode))
+
+    # FIXME: "operation complete" would make a lot more sense here than a redirect
     return HttpResponseRedirect("/cobbler_web/%s/list"%what)
 
 # ======================================================================

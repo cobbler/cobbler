@@ -23,6 +23,39 @@ function obj_delete(old) {
   }
 }
 
+function action_multi(otype, action, param) {
+  document.getElementById("names").value = items_checked_values()
+  if (action == "profile") {
+       param = window.prompt("New installation profile name for checked systems?","")
+       if ((param == null) || (param == "")) {
+          return
+       }
+       value = 1
+  }
+  else {
+       value = null
+  }
+  if ((action == "power") && (param == "on")) {
+     value = confirm("Confirm: Really power up all checked systems?")
+  }
+  if ((action == "power") && (param == "off")) {
+     value = confirm("Confirm: Really power down all checked systems?")
+  }
+  if ((action == "power") && (param == "reboot")) {
+     value = confirm("Confirm: Really reboot all checked systems?")
+  }
+  if ((action == "netboot") && (param == "on")) {
+     value = confirm("Confirm: Really flag all checked systems for PXE reinstallation?")
+  }
+  if (value) {
+     document.myform.action = "/cobbler_web/" + otype + "/multi/" + action + "/" + param
+     document.myform.submit()  
+  }
+  else {
+     alert("Operation aborted.")
+  }
+}
+
 </script>
 
 <div class="section_caption">{{ what }}s</div>
@@ -65,16 +98,22 @@ function obj_delete(old) {
 
     </tbody>
     </table>
+
+<input type="hidden" name="names" id="names" value=""/>
+
 </form>
 
-{% if multi_actions %}
-    <br/>
-    Operations on selected {{ what }}s:
-    <br/>
-    {% for action in multi_actions %}
-        <input type="button" onClick="javascript:action_multi('{{ action.name }}')" value="{{ action.label }}"/>
-    {% endfor %}
-{% endif %}
+{% ifequal what "system" %}
+   <br/>
+   Batch actions
+   <br/>
+   <input type="button" onClick="javascript:action_multi('system','power','on')" value="Power On"/>
+   <input type="button" onClick="javascript:action_multi('system','power','off')" value="Power On"/>
+   <input type="button" onClick="javascript:action_multi('system','reboot','reboot')" value="Reboot"/>
+   <input type="button" onClick="javascript:action_multi('system','profile','')" value="Change Profile"/>
+   <input type="button" onClick="javascript:action_multi('system','netboot','enable')" value="Enable Netboot"/>
+   <input type="button" onClick="javascript:action_multi('system','netboot','disable')" value="Disable Netboot"/>
+{% endifequal %}
 
 {% endblock content %}
 
