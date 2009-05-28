@@ -54,7 +54,7 @@ FIELDS = [
   ["comment","",0,"Comment",True,"Free form text description",0],
   ["ctime",0,0,"",False,"",0],
   ["mtime",0,0,"",False,"",0],
-  ["power_type","SETTINGS:power_management_default_type",0,"Power Management Type",True,"",["apc_snmp","bladecenter","bullpap","drac","ether_wake","ilo","integrity","ipmilan","ipmitool","lpar","rsa","virsh","wti"]],
+  ["power_type","SETTINGS:power_management_default_type",0,"Power Management Type",True,"",utils.get_power_types()],
   ["power_address","",0,"Power Management Address",True,"Ex: power-device.example.org",0],
   ["power_user","",0,"Power Username ",True,"",0],
   ["power_pass","",0,"Power Password",True,"",0],
@@ -489,8 +489,7 @@ class System(item.Item):
         if power_type is None:
             power_type = ""
         power_type = power_type.lower()
-        valid = "bullpap wti apc_snmp ether-wake ipmilan drac ipmitool ilo rsa lpar bladecenter virsh integrity none"
-        choices = valid.split(" ")
+        choices = utils.get_power_types()
         choices.sort()
         if power_type not in choices:
             raise CX("power type must be one of: %s" % ",".join(choices))

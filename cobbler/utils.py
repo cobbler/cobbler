@@ -1789,4 +1789,22 @@ def get_remote_methods_from_fields(obj,fields):
        ds["delete_interface"] = getattr(obj,"delete_interface")
     return ds
 
-          
+def get_power_types():
+    """
+    Return all possible power types
+    """
+    power_types = []
+    power_template = re.compile(r'power_(.*).template')
+    for x in glob.glob("/etc/cobbler/power/power_*.template"):
+        power_types.append(power_template.search(x).group(1))
+    return power_types
+
+def get_power(powertype=None):
+    """
+    Return power command for type
+    """
+    if powertype:
+        powerpath = "/etc/cobbler/power/power_%s.template" % powertype
+        if os.path.isfile(powerpath):
+            return powerpath
+    return None

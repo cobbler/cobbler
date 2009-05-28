@@ -147,26 +147,8 @@ class PowerTool:
         if self.system.power_type in [ "", "none" ]:
             raise CX("Power management is not enabled for this system")
 
-        powerdir=self.settings.power_template_dir
-        map = {
-            "bullpap"    : os.path.join(powerdir,"power_bullpap.template"),
-            "apc"        : os.path.join(powerdir,"power_apc.template"),
-            "apc_snmp"   : os.path.join(powerdir,"power_apc_snmp.template"),
-            "ether-wake" : os.path.join(powerdir,"power_ether_wake.template"),
-            "drac"       : os.path.join(powerdir,"power_drac.template"),
-            "ipmitool"   : os.path.join(powerdir,"power_ipmitool.template"),
-            "ipmilan"    : os.path.join(powerdir,"power_ipmilan.template"),
-            "ilo"        : os.path.join(powerdir,"power_ilo.template"),
-            "rsa"        : os.path.join(powerdir,"power_rsa.template"),
-            "lpar"       : os.path.join(powerdir,"power_lpar.template"),
-            "bladecenter": os.path.join(powerdir,"power_bladecenter.template"),
-            "virsh"      : os.path.join(powerdir,"power_virsh.template"),
-            "integrity"  : os.path.join(powerdir,"power_integrity.template"),
-            "wti"        : os.path.join(powerdir,"power_wti.template"),
-        }
-
-        result = map.get(self.system.power_type, "")
-        if result == "":
+        result = utils.get_power(self.system.power_type)
+        if not result:
             raise CX("Invalid power management type for this system (%s, %s)" % (self.system.power_type, self.system.name))
         return result
 
