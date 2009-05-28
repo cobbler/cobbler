@@ -24,7 +24,7 @@ Work in progress
 """
 
 # if new releases come out or old ones go away, edit here
-PROCESS_RELEASES = [ "devel", "F-11", "F-10", "F-9", "EL-5", "EL-4" ]
+PROCESS_RELEASES = [ "devel", "F-11", "F-10", "EL-5", "EL-4" ]
 
 import optparse
 import os
