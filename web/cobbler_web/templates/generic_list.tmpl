@@ -2,8 +2,27 @@
 
 {% block content %}
 
-<script language="Javascript" src="/cobbler_webui_content/checkboxes.js" ></script>
-<script language="Javascript">
+<script language="javascript">
+
+function items_check_all(){
+    var checkall = document.getElementById("itemsall").checked
+    var items    = document.getElementsByName("items")
+    for(i=0; i<items.length; ++i) {
+        items[i].checked=checkall;
+    }
+}
+
+function items_checked_values() {
+    var items = document.getElementsByName("items")
+    var values = new Array();
+    for(i=0; i<items.length; ++i) {
+        if (items[i].checked) {
+            values.push(items[i].value)
+        }
+    }
+    s = values.join(" ")
+    return s;
+}
 
 function obj_rename(old) {
   var newname = window.prompt("Change {{ what }} name to?",old);
@@ -24,7 +43,9 @@ function obj_delete(old) {
 }
 
 function action_multi(otype, action, param) {
-  document.getElementById("names").value = items_checked_values()
+  var values = items_checked_values()
+  document.getElementById("names").value = values
+
   if (action == "profile") {
        param = window.prompt("New installation profile name for checked systems?","")
        if ((param == null) || (param == "")) {
@@ -77,7 +98,7 @@ function action_multi(otype, action, param) {
            {% for item in items %}
 
            <tr class="{% cycle 'rowodd' 'roweven' %}">
-               <td><input type="checkbox" name="items" value="{{ row.name }}"/></td>
+               <td><input type="checkbox" name="items" value="{{ item.0 }}"/></td>
 
                {% for value in item %}
                     <td>

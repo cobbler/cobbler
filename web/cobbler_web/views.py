@@ -377,7 +377,6 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
     names = request.POST.get('names', '').strip().split()
     if names == "":
         return error_page(request, "Need to select some systems first")        
-    return error_page(request, "names=(%s)" % names)
 
     if multi_mode == "delete":
         # too dangerous to expose?
