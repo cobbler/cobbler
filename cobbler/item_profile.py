@@ -28,7 +28,7 @@ from cexceptions import *
 from utils import _
 
 FIELDS = [
-  ["name","None","None","Name",True,"Ex: F10-i386-webserver",0],
+  ["name",None,None,"Name",True,"Ex: F10-i386-webserver",0],
   ["uid","","","",False,"",0],
   ["owners","SETTINGS:default_ownership","SETTINGS:self.settings.default_ownership","Owners",False,"Owners list for authz_ownership (space delimited)",0],
   ["distro",None,'<<inherit>>',"Distribution",True,"Parent distribution",[]],
@@ -221,4 +221,10 @@ class Profile(item.Item):
     def remote_methods(self):
         return utils.get_remote_methods_from_fields(self,FIELDS)
 
+    def check_if_valid(self):
+        if self.name is None:
+            raise CX("name is required")
+        if self.distro is None or self.distro == "":
+            if self.parent is None or self.parent == "":
+                raise CX("distro is required")
 

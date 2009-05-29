@@ -168,3 +168,11 @@ class Distro(item.Item):
     def remote_methods(self):
         return utils.get_remote_methods_from_fields(self,FIELDS)
 
+    def check_if_valid(self):
+        if self.name is None:
+            raise CX("name is required")
+        if not os.path.exists(self.kernel):
+            raise CX("kernel path not found")
+        if not os.path.exists(self.initrd):
+            raise CX("initrd path not found")
+

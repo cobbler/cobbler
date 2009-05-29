@@ -395,4 +395,12 @@ class Item(serializable.Serializable):
     def set_parent(self,parent):
         self.parent = parent
 
+    def check_if_valid(self):
+        """
+        Raise exceptions if the object state is inconsistent
+        """
+        if self.name is None:
+           raise CX("Name is required")
+
+
 

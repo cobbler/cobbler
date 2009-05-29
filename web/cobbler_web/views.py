@@ -67,6 +67,8 @@ def error_page(request,message):
    # FIXME: test and make sure we use this rather than throwing lots of tracebacks for
    # field errors
    t = get_template('error_page.tmpl')
+   message = message.replace("<Fault 1: \"<class 'cobbler.cexceptions.CX'>:'","Remote exception: ")
+   message = message.replace(": '\">","")
    html = t.render(Context({'message': message}))
    return HttpResponse(html)
 
@@ -720,8 +722,11 @@ def generic_save(request,what):
             value = request.POST.get(field['name'],None)
             if value != None:
                 if value is not None and (not subobject or field['name'] != 'distro'):
-                    remote.modify_item(what,obj_id,field['name'],value,token)
-                
+                    try:
+                        remote.modify_item(what,obj_id,field['name'],value,token)
+                    except Exception, e:
+                        return error_page(request, str(e))                
+
     # special handling for system interface fields
     # which are the only objects in cobbler that will ever work this way
     if what == "system":
@@ -738,13 +743,20 @@ def generic_save(request,what):
             # FIXME: I think this button is missing.
             present  = request.POST.get("present-%s" % interface, "") 
             original = request.POST.get("original-%s" % interface, "") 
-            if present == "0" and original == "1":
-                remote.modify_system(obj_id, 'delete_interface', interface, token)
-            elif present == "1":
-                remote.modify_system(obj_id, 'modify_interface', ifdata, token)
+            try:
+                if present == "0" and original == "1":
+                    remote.modify_system(obj_id, 'delete_interface', interface, token)
+                elif present == "1":
+                    remote.modify_system(obj_id, 'modify_interface', ifdata, token)
+            except Exception, e:
+                return error_page(request, str(e))
 
 
-    remote.save_item(what, obj_id, token, editmode)
+    try:
+        remote.save_item(what, obj_id, token, editmode)
+    except:
+        return error_page(request, str(e))
+
     return HttpResponseRedirect('/cobbler_web/%s/list' % what)
 
 

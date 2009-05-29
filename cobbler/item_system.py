@@ -553,4 +553,11 @@ class System(item.Item):
     def remote_methods(self):
         return utils.get_remote_methods_from_fields(self,FIELDS)
 
+    def check_if_valid(self):
+        if self.name is None:
+            raise CX("name is required")
+        if self.profile is None:
+            raise CX("profile is required")
+            
+
 

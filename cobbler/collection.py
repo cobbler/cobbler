@@ -232,6 +232,7 @@ class Collection(serializable.Serializable):
     
         if ref is None or ref.name is None:
            return
+        ref.check_if_valid()
 
         if ref.uid == '':
            ref.uid = self.config.generate_uid()
