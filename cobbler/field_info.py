@@ -41,7 +41,8 @@ USES_SELECT = [
    "image",
    "virt_type",
    "arch",
-   "*bonding"
+   "*bonding",
+   "parent"
 ]
 
 USES_CHECKBOX = [

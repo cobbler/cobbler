@@ -119,10 +119,10 @@ function action_multi(otype, action, param) {
                     </td>
                {% endfor %}
 
-               <td><input type="button" name="edit" value="Edit" onClick="javascript:location='/cobbler_web/{{ what }}/edit/{{ item.0 }}'">
-               <input type="button" name="copy" value="Copy" onClick="javascript:obj_copy('{{ item.0 }}')"/>
-               <input type="button" name="rename" value="Rename" onClick="javascript:obj_rename('{{ item.0 }}')"/>
-               <input type="button" name="delete" value="Delete" onClick="javascript:obj_delete('{{ item.0 }}')"/>
+               <td><input type="button" name="edit" value="Edit" onClick="javascript:location='/cobbler_web/{{ what }}/edit/{{ item.0.1 }}'">
+               <input type="button" name="copy" value="Copy" onClick="javascript:obj_copy('{{ item.0.1 }}')"/>
+               <input type="button" name="rename" value="Rename" onClick="javascript:obj_rename('{{ item.0.1 }}')"/>
+               <input type="button" name="delete" value="Delete" onClick="javascript:obj_delete('{{ item.0.1 }}')"/>
                </td>
 
            </tr>

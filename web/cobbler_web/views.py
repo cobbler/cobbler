@@ -99,6 +99,13 @@ def get_fields(what, is_subobject, seed_item=None):
     fields = []
     for row in field_data:
 
+        # if we are subprofile and see the field "distro", make it say parent
+        # with this really sneaky hack here
+        if is_subobject and row[0] == "distro":
+            row[0] = "parent"
+            row[3] = "Parent object"
+            row[5] = "Inherit settings from this profile" 
+            row[6] = []
 
         elem = {
             "name"                    : row[0],
@@ -110,6 +117,8 @@ def get_fields(what, is_subobject, seed_item=None):
             "css_class"               : "generic",
             "html_element"            : "generic",
         }
+
+
         if not elem["editable"]:
             continue
 
@@ -124,8 +133,9 @@ def get_fields(what, is_subobject, seed_item=None):
             elem["value"]             = row[2]
         else:
             elem["value"]             = row[1]
-       
 
+        if elem["value"] is None:
+            elem["value"] = ""
 
         # we'll process this for display but still need to present the original to some
         # template logic
@@ -709,7 +719,8 @@ def generic_save(request,what):
         else:
             value = request.POST.get(field['name'],None)
             if value != None:
-                remote.modify_item(what,obj_id,field['name'],value,token)
+                if value is not None and (not subobject or field['name'] != 'distro'):
+                    remote.modify_item(what,obj_id,field['name'],value,token)
                 
     # special handling for system interface fields
     # which are the only objects in cobbler that will ever work this way
