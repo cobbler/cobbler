@@ -224,7 +224,7 @@ def genlist(request, what, page=None):
     if what == "profile":
        columns = [ "name", "distro" ]
     if what == "system":
-       columns = [ "name", "profile" ] 
+       columns = [ "name", "profile", "netboot_enabled" ] 
     if what == "repo":
        columns = [ "name", "mirror" ]
     if what == "image":
@@ -387,7 +387,7 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
         netboot_enabled = multi_arg # values: enable or disable
         if netboot_enabled is None:
             raise "Cannot modify systems without specifying netboot_enabled"
-        if netboot_enabled == "on":
+        if netboot_enabled == "enabled":
             netboot_enabled = True
         else:
             netboot_enabled = False
