@@ -20,7 +20,10 @@ body, html {
 }
 
 td {
-  vertical-align: top;
+  text-align: left;
+}
+
+th {
   text-align: left;
 }
 
@@ -37,9 +40,11 @@ body, ul, li, p, h1, h2, h3 {
   color: white;
 }
 
+/* 
 ul {
   list-style-type: square;
 }
+*/
 
 fieldset {
   border: 0;
