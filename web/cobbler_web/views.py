@@ -197,7 +197,7 @@ def __format_items(items, column_names):
     for itemhash in items:
         row = []
         for fieldname in column_names:
-            row.append(itemhash[fieldname])
+            row.append([fieldname,itemhash[fieldname]])
         dataset.append(row)
     return dataset
 
@@ -218,12 +218,12 @@ def genlist(request, what, page=None):
     pageditems = remote.find_items_paged(what,filters,sort_field,page,limit)
 
     # what columns to show for each page?
-    # FIXME: this could be customizable, pull from settings?
     if what == "distro":
        columns = [ "name" ]
     if what == "profile":
        columns = [ "name", "distro" ]
     if what == "system":
+       # FIXME: also list network, once working
        columns = [ "name", "profile", "netboot_enabled" ] 
     if what == "repo":
        columns = [ "name", "mirror" ]
@@ -236,6 +236,7 @@ def genlist(request, what, page=None):
     t = get_template('generic_list.tmpl')
     html = t.render(RequestContext(request,{
         'what'           : what,
+        'otypes'         : [ "distro", "profile", "image" ], # controls linking in fields
         'columns'        : columns,
         'items'          : __format_items(pageditems["items"],columns),
         'pageinfo'       : pageditems["pageinfo"],

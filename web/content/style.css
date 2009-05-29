@@ -21,6 +21,7 @@ body, html {
 
 td {
   text-align: left;
+  vertical-align: top;
 }
 
 th {

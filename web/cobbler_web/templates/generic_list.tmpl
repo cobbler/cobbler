@@ -1,5 +1,5 @@
 {% extends "master.tmpl" %}
-
+{% load site %}
 {% block content %}
 
 <script language="javascript">
@@ -103,7 +103,19 @@ function action_multi(otype, action, param) {
 
                {% for value in item %}
                     <td>
-                        {{ value }}
+                        {% ifequal value.0 "profile" %}
+                           <A HREF="/cobbler_web/profile/edit/{{ value.1 }}">{{ value.1 }}</A>
+                        {% endifequal %}
+                        {% ifequal value.0 "distro" %}
+                           <A HREF="/cobbler_web/distro/edit/{{ value.1 }}">{{ value.1 }}</A>
+                        {% endifequal %}
+                        {% ifequal value.0 "image" %}
+                           <A HREF="/cobbler_web/image/edit/{{ value.1 }}">{{ value.1 }}</A>
+                        {% endifequal %}
+                        {% smart_if value.0 in otypes %}
+                        {% else %}
+                            {{ value.1 }}
+                        {% endsmart_if %}
                     </td>
                {% endfor %}
 
