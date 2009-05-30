@@ -721,6 +721,8 @@ def generic_save(request,what):
         else:
             value = request.POST.get(field['name'],None)
             if value != None:
+                if value == "<<None>>":
+                    value = ""
                 if value is not None and (not subobject or field['name'] != 'distro'):
                     try:
                         remote.modify_item(what,obj_id,field['name'],value,token)
@@ -751,10 +753,9 @@ def generic_save(request,what):
             except Exception, e:
                 return error_page(request, str(e))
 
-
     try:
         remote.save_item(what, obj_id, token, editmode)
-    except:
+    except Exception, e:
         return error_page(request, str(e))
 
     return HttpResponseRedirect('/cobbler_web/%s/list' % what)
