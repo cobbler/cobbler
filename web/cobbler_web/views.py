@@ -739,6 +739,8 @@ def generic_save(request,what):
                 interface_field_list.append(field)
         interfaces = request.POST.get('interface_list', "").split(",")
         for interface in interfaces:
+            if interface == "":
+                continue
             ifdata = {}
             for item in interface_field_list:
                 ifdata["%s-%s" % (item,interface)] = request.POST.get("%s-%s" % (item,interface), "")
