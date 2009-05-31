@@ -1737,7 +1737,9 @@ def apply_options_from_fields(obj, fields, options):
           optval = getattr(options, k.replace("*",""))
           if optval is not None:
               setfn = getattr(obj, "set_%s" % k.replace("*",""))
-              if not k.startswith("*"):
+              if k in ("kernel_options","kernel_options_post","ks_meta","template_files"):
+                  setfn(optval, options.inplace)
+              elif not k.startswith("*"):
                   setfn(optval)
               else:
                   # handling for system interface options on the CLI
