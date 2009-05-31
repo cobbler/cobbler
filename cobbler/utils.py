@@ -40,6 +40,7 @@ import codes
 import time
 import netaddr
 import shlex
+import field_info
 
 try:
     import hashlib as fiver
@@ -1747,34 +1748,37 @@ def apply_options_from_fields(obj, fields, options):
 
 def add_options_from_fields(parser, fields, args):
     for elem in fields:
-       k = elem[0] 
-       if k.find("widget") != -1:
-           continue
-       # scrub interface tags so all fields get added correctly.
-       k = k.replace("*","")
-       nicename = elem[3]
-       tooltip = elem[5]
-       choices = elem[6]
-       niceopt = "--%s" % k.replace("_","-")
-       desc = nicename
-       if tooltip != "":
-          desc = nicename + " (%s)" % tooltip
-       if type(choices) == type([]) and len(choices) != 0:
-          desc = desc + " (valid options: %s)" % ",".join(choices)    
-      
-       parser.add_option(niceopt, dest=k, help=desc)
-    
+        k = elem[0] 
+        if k.find("widget") != -1:
+            continue
+        # scrub interface tags so all fields get added correctly.
+        k = k.replace("*","")
+        nicename = elem[3]
+        tooltip = elem[5]
+        choices = elem[6]
+        if field_info.ALTERNATE_OPTIONS.has_key(k):
+            niceopt = field_info.ALTERNATE_OPTIONS[k]
+        else:
+            niceopt = "--%s" % k.replace("_","-")
+        desc = nicename
+        if tooltip != "":
+            desc = nicename + " (%s)" % tooltip
+        if type(choices) == type([]) and len(choices) != 0:
+            desc = desc + " (valid options: %s)" % ",".join(choices)    
+        
+        parser.add_option(niceopt, dest=k, help=desc)
+
     if not matches_args(args, ["dumpvars","find","remove","report","list"]): 
-       parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
-       parser.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts or ksmeta without clearing the other items")
+        parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
+        parser.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts or ksmeta without clearing the other items")
     if matches_args(args, ["copy","rename"]):
-       parser.add_option("--newname",   action="newname", help="new object name")
+        parser.add_option("--newname",   action="newname", help="new object name")
     if not matches_args(args, ["dumpvars","find","remove","report","list"]): 
-       parser.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
+        parser.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
     if not matches_args(args,["dumpvars","report","list"]):
-       parser.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
+        parser.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
     if matches_args(args,["remove"]):
-       parser.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
+        parser.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
 
 
 def get_remote_methods_from_fields(obj,fields):

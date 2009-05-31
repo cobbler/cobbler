@@ -95,4 +95,8 @@ CSS_MAPPINGS = {
    "name_servers_search"  : "netedit"
 }
     
-
+ALTERNATE_OPTIONS = {
+   "ks_meta"             : "--ksmeta",
+   "kernel_options"      : "--kopts",
+   "kernel_options_post" : "--kopts-post",
+}
