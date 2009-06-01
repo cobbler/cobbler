@@ -196,7 +196,6 @@ if __name__ == "__main__":
             (dj_templates, [ 'web/cobbler_web/templates/generic_rename.tmpl' ]),
 
             # django code, private to cobbler-web application
-            (dj_webui_proj,  [ "web/authen.py" ]),
             (dj_webui,       [ 'web/cobbler_web/__init__.py' ]),
             (dj_webui_proj,  [ 'web/__init__.py' ]),
             (dj_webui_proj,  [ 'web/urls.py' ]),
