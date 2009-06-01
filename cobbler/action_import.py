@@ -311,7 +311,11 @@ class Importer:
 
        if self.network_root is None:
            if distro.breed == "debian" or distro.breed == "ubuntu":
-               tree = "http://@@http_server@@/cblr/repo_mirror/%s" % (distro.name)
+               dists_path = os.path.join( self.path , "dists" )
+               if os.path.isdir( dists_path ):
+                   tree = "http://@@http_server@@/cblr/ks_mirror/%s" % (self.mirror_name)
+               else:
+                   tree = "http://@@http_server@@/cblr/repo_mirror/%s" % (distro.name)
            else:
                dest_link = os.path.join(self.settings.webdir, "links", distro.name)
                # create the links directory only if we are mirroring because with
