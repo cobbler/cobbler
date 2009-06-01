@@ -24,6 +24,7 @@ Cobbler CHANGELOG
 - (FEAT) koan live CD can go interactive if no profile is specified and system autodiscovery fails
 - (BUGF) koan autodetection now can gather MACs/IPs for bridged interfaces better
 - (BUGF) don't use -m option for drac unless power_id is set
+- (BUGF) don't run createrepo on reposync'd repos, it is redundant
 
 - ... - 1.6.5
 - (BUGF) don't use json on python x<=2.3 since we know it's simplejson x<2.0, which has unicode issues

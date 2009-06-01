@@ -42,7 +42,7 @@ FIELDS = [
   ["owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",[]],
   ["parent",None,0,"",False,"",0],
   ["priority",99,0,"Priority",True,"Value for yum priorities plugin, if installed",0],
-  ["rpm_list",'<<inherit>>',0,"RPM List",True,"Mirror just these RPMs (yum only)",0],
+  ["rpm_list",[],0,"RPM List",True,"Mirror just these RPMs (yum only)",0],
 #  ["os_version","",0,"OS Version",True,"ex: rhel4"],
   ["uid",None,0,"",False,"",0],
   ["yumopts",{},0,"Yum Options",True,"Options to write to yum config file",0]
