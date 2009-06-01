@@ -1122,6 +1122,9 @@ class DebianImporter ( BaseImporter ) :
               accum.append(val)
           except:
               pass
+       # Safeguard for non-guessable versions
+       if not accum:
+          return None
        accum.append(0)
 
        return (None, accum[0], accum[1])
@@ -1200,6 +1203,9 @@ class UbuntuImporter ( DebianImporter ) :
               accum.append(val)
           except:
               pass
+       # Safeguard for non-guessable versions
+       if not accum:
+          return None
        # FIXME : These three lines are the only ones that differ on ubuntu, and actually they filter out the underlying debian version
        if deb.lower().find("ubuntu") != -1:
           accum.pop(0)
