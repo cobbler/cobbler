@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import utils
 
 # OS variants table.  This is a variance of the data from 
 # ls /usr/lib/python2.X/site-packages/virtinst/FullVirtGuest.py
@@ -54,4 +55,17 @@ VALID_OS_VERSIONS = {
 VALID_REPO_BREEDS = [
     "rsync", "rhn", "yum", "apt"
 ]
+
+def get_all_os_versions():
+   """
+   Collapse the above list of OS versions for usage/display by the CLI/webapp.
+   """
+   results = ['']
+   for x in VALID_OS_VERSIONS.keys():
+      for y in VALID_OS_VERSIONS[x]:
+         results.append(y)
+   results = utils.uniquify(results)
+   results.sort()
+   return results
+
 

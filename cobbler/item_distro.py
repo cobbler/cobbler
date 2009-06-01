@@ -31,6 +31,7 @@ import time
 from cexceptions import *
 
 from utils import _
+import codes
 
 # name | default | subobject default | tooltip | editable?
 
@@ -44,8 +45,8 @@ FIELDS = [
    [ "kernel_options_post",{},0,"Kernel Options (Post Install)",True,"Ex: clocksource=pit noapic",0],
    [ "ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86", 0],
    [ "arch",'i386',0,"Architecture",True,"", ['i386','x86_64','ia64','ppc','s390']],
-   [ "breed",'redhat',0,"Breed",True,"",['redhat','debian','suse']],
-   [ "os_version",'',0,"OS Version",True,"Ex: rhel4",0],
+   [ "breed",'redhat',0,"Breed",True,"What is the type of distribution?",codes.VALID_OS_BREEDS],
+   [ "os_version","generic26",0,"OS Version",True,"Needed for some virtualization optimizations",codes.get_all_os_versions()],
    [ "source_repos",[],0,"Source Repos", False,"",0],
    [ "mgmt_classes",[],0,"Management Classes",True,"Management classes for external config management",0],
    [ "depth",0,0,"Depth",False,"",0],
