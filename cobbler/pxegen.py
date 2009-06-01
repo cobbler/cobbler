@@ -541,8 +541,8 @@ class PXEGen:
                 for k,v in translations.iteritems():
                     append_line = append_line.replace("%s="%k,"%s="%v)
 
-            # interface=bootif causes a failure
-            #    append_line = append_line.replace("ksdevice","interface")
+                # interface=bootif causes a failure
+                append_line = append_line.replace("interface=bootif","")
 
         if distro is not None and (distro.breed in [ "debian", "ubuntu" ]):
             # Hostname is required as a parameter, the one in the preseed is
