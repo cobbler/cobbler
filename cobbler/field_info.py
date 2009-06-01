@@ -78,6 +78,10 @@ CSS_MAPPINGS = {
    "power_user"      : "poweredit",
    "power_pass"      : "poweredit",
    "power_type"      : "poweredit",
+   "address"         : "netedit", # from network
+   "cidr"            : "netedit", # ditto
+   "broadcast"       : "netedit", # ..
+   "reserved"        : "netedit", # ..
    "*mac_address"    : "netedit",
    "*ip_address"     : "netedit",
    "*dhcp_tag"       : "netedit",
