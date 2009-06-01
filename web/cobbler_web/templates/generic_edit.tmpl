@@ -391,7 +391,7 @@ function page_onload() {
             {% endifequal %}
 
             {% ifequal item.html_element "select" %}
-                <select id="{{ item.name }}">
+                <select id="{{ item.name }}" name="{{ item.name }}">
                     {% for choice in item.choices %}
                         {% ifequal item.value choice %}
                             <option value="{{ choice }}" selected>{{ choice }}</A>
