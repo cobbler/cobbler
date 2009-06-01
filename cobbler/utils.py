@@ -1298,13 +1298,13 @@ def set_virt_ram(self,num):
     try:
         inum = int(num)
         if inum != float(num):
-            return CX(_("invalid virt ram size (%s)" % inum))
+            return CX(_("invalid virt ram size (%s)" % num))
         if inum >= 0:
             self.virt_ram = inum
             return True
-        return CX(_("invalid virt ram size (%s)" % inum))
+        return CX(_("invalid virt ram size (%s)" % num))
     except:
-        return CX(_("invalid virt ram size (%s)" %inum))
+        return CX(_("invalid virt ram size (%s)" % num))
     return True
 
 def set_virt_type(self,vtype):
