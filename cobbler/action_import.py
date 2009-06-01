@@ -274,7 +274,9 @@ class Importer:
                      if rpm.find("notes") != -1:
                          continue
                      results = importer.scan_pkg_filename(rpm)
+                     # FIXME : If os is not found on tree but set with CLI, no kickstart is searched
                      if results is None:
+                         print _("- No version found on imported tree")
                          continue
                      (flavor, major, minor) = results
                      # print _("- finding default kickstart template for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
@@ -1188,33 +1190,10 @@ class UbuntuImporter ( DebianImporter ) :
        DebianImporter.__init__(self,(rootdir,pkgdir))
        self.breed = "ubuntu"
 
-   def scan_pkg_filename(self, deb):
-
-       deb = os.path.basename(deb)
-       print "- processing deb : %s" % deb
-
-       # get all the tokens and try to guess a version
-       accum = []
-       tokens = deb.split("_")
-       tokens2 = tokens[1].split(".")
-       for t2 in tokens2:
-          try:
-              val = int(t2)
-              accum.append(val)
-          except:
-              pass
-       # Safeguard for non-guessable versions
-       if not accum:
-          return None
-       # FIXME : These three lines are the only ones that differ on ubuntu, and actually they filter out the underlying debian version
-       if deb.lower().find("ubuntu") != -1:
-          accum.pop(0)
-          accum.pop(0)
-       if not accum:
-           accum.extend( tokens2[2:] )
-       accum.append(0)
-
-       return (None, accum[0], accum[1])
+   def get_release_files(self):
+       if not self.get_pkgdir():
+           return []
+       return glob.glob(os.path.join(self.get_pkgdir(), "main/u/ubuntu-docs" , "ubuntu-docs_*"))
 
    def set_variance(self, flavor, major, minor, arch):
   
