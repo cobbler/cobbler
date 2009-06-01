@@ -1220,3 +1220,8 @@ class UbuntuImporter ( DebianImporter ) :
        os_version = dist_names[dist_vers]
 
        return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
+
+   def process_repos(self, main_importer, distro):
+
+       pass
+
