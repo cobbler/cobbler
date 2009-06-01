@@ -376,7 +376,9 @@ class Importer:
                top = importer.get_rootdir()
                print _("- descent into %s") % top
                if distro.breed in [ "debian" , "ubuntu" ]:
-                   importer.process_repos( self , distro )
+                   dists_path = os.path.join( self.path , "dists" )
+                   if not os.path.isdir( dists_path ):
+                       importer.process_repos( self , distro )
                else:
                    # FIXME : The location of repo definition is known from breed
                    os.path.walk(top, self.repo_scanner, distro)
