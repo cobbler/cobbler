@@ -1202,7 +1202,7 @@ class UbuntuImporter ( DebianImporter ) :
    def set_variance(self, flavor, major, minor, arch):
   
        # Release names taken from wikipedia
-       dist_names = { '4.10':"WartyWarthog", '5.4':"HoaryHedgehog", '5.10':"BreezyBadger", '6.4':"DapperDrake", '6.10':"EdgyEft", '7.4':"FeistyFawn", '7.10':"GutsyGibbon", '8.4':"HardyHeron", '8.10':"IntrepidIbex", '9.4':"JauntyJackalope" }
+       dist_names = { '6.4':"dapper", '8.4':"hardy", '8.10':"intrepid", '9.4':"jaunty" }
        dist_vers = "%s.%s" % ( major , minor )
        if not dist_names.has_key( dist_vers ):
            dist_names['4ubuntu2.0'] = "IntrepidIbex"

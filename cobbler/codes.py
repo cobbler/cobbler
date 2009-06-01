@@ -44,7 +44,7 @@ VALID_OS_VERSIONS = {
     "redhat"  : [ "rhel2.1", "rhel3", "rhel4", "rhel5", "fedora5", "fedora6", "fedora7", "fedora8", "fedora9", "fedora10", "generic24", "generic26", "other" ],
     "suse"    : [ "sles10", "generic24", "generic26", "other" ],
     "debian"  : [ "etch", "lenny", "generic24", "generic26", "other" ],
-    "ubuntu"  : [ "WartyWarthog", "HoaryHedgehog", "BreezyBadger", "DapperDrake", "EdgyEft", "FeistyFawn", "GutsyGibbon", "HardyHeron", "IntrepidIbex", "JauntyJackalope" ],
+    "ubuntu"  : [ "dapper", "hardy", "intrepid", "jaunty" ],
     "generic" : [ "generic24", "generic26", "other" ],
     "windows" : [ "winxp", "win2k", "win2k3", "vista", "other" ],
     "unix"    : [ "solaris9", "solaris10", "freebsd6", "openbsd4", "other" ],
