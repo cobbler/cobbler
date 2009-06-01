@@ -117,7 +117,7 @@ div#main {
 }
 
 div#content {
-  float: left;
+  /* float: left; */
   padding: 20px 45px;
 }
 
