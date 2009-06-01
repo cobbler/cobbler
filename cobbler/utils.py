@@ -1165,28 +1165,28 @@ def set_virt_file_size(self,num):
     return True
 
 def set_virt_ram(self,num):
-     """
-     For Virt only.
-     Specifies the size of the Virt RAM in MB.
-     0 tells Koan to just choose a reasonable default.
-     """
+    """
+    For Virt only.
+    Specifies the size of the Virt RAM in MB.
+    0 tells Koan to just choose a reasonable default.
+    """
 
-     if num == "<<inherit>>":
-         self.virt_ram = "<<inherit>>"
-         return True
+    if num == "<<inherit>>":
+        self.virt_ram = "<<inherit>>"
+        return True
 
-     # num is a non-negative integer (0 means default)
-     try:
-         inum = int(num)
-         if inum != float(num):
-             return CX(_("invalid virt ram size (%s)" % inum))
-         if inum >= 0:
-             self.virt_ram = inum
-             return True
-         return CX(_("invalid virt ram size (%s)" % inum))
-     except:
-         return CX(_("invalid virt ram size (%s)" % inum))
-     return True
+    # num is a non-negative integer (0 means default)
+    try:
+        inum = int(num)
+        if inum != float(num):
+            return CX(_("invalid virt ram size (%s)" % num))
+        if inum >= 0:
+            self.virt_ram = inum
+            return True
+        return CX(_("invalid virt ram size (%s)" % num))
+    except:
+        return CX(_("invalid virt ram size (%s)" % num))
+    return True
 
 def set_virt_type(self,vtype):
      """
