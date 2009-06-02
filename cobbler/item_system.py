@@ -35,7 +35,6 @@ FIELDS = [
   ["kernel_options",{},0,"Kernel Options",True,"Ex: selinux=permissive",0],
   ["kernel_options_post",{},0,"Post Install Kernel Options",False,"Ex: clocksource=pit noapic",0],
   ["ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86",0],
-  # ["interfaces",{},0,"",False,"",0],
   ["netboot_enabled",True,0,"Netboot Enabled",True,"PXE (re)install this machine at next boot?",0],
   ["depth",2,0,"",False,"",0],
   ["mgmt_classes",[],0,"Management Classes",True,"For external config management",0],
@@ -80,8 +79,6 @@ FIELDS = [
   ["*static_routes",[],0,"Static Routes",True,"",0],
   ["*virt_bridge","",0,"Virt Bridge",True,"",0],
 ]
-
-# FIXME: interfaces needs it's own fields (somehow)
 
 class System(item.Item):
 
