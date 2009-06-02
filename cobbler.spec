@@ -380,7 +380,6 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %defattr(-,apache,apache)
 %dir /usr/share/cobbler/web
 /usr/share/cobbler/web/*.py
-%dir /usr/share/cobbler/web/sessions
 %dir /usr/share/cobbler/web/cobbler_web
 /usr/share/cobbler/web/cobbler_web/*
 #%dir /usr/share/cobbler/web/cobbler_web/templates
