@@ -27,7 +27,7 @@ from cexceptions import *
 from utils import _
 
 FIELDS = [
-  ["name",None,0,"Name",True,"Ex: vanhalen.example.org",0],
+  ["name","",0,"Name",True,"Ex: vanhalen.example.org",0],
   ["uid","",0,"",False,"",0],
   ["owners","SETTINGS:default_ownership",0,"Owners",False,"Owners list for authz_ownership (space delimited)",0],
   ["profile",None,0,"Profile",True,"Parent profile",[]],
@@ -105,7 +105,8 @@ class System(item.Item):
             del self.interfaces[name]
         else:
             if not self.interfaces.has_key(name):
-                raise CX(_("Cannot delete interface that is not present: %s") % name)
+                # no interface here to delete
+                pass
             else:
                 raise CX(_("At least one interface needs to be defined."))
 
@@ -551,9 +552,9 @@ class System(item.Item):
         return utils.get_remote_methods_from_fields(self,FIELDS)
 
     def check_if_valid(self):
-        if self.name is None:
+        if self.name is None or self.name == "":
             raise CX("name is required")
-        if self.profile is None:
+        if self.profile is None or self.profile == "":
             raise CX("profile is required")
             
 

@@ -36,7 +36,7 @@ import codes
 # name | default | subobject default | tooltip | editable?
 
 FIELDS = [
-   [ "name",None,0,"Name",True,"Ex: Fedora-11-i386",0],
+   [ "name","",0,"Name",True,"Ex: Fedora-11-i386",0],
    [ "uid","",0,"",False,"",0],
    [ "owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",0],
    [ "kernel",None,0,"Kernel",True,"Absolute path to kernel on filesystem",0],

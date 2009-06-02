@@ -1252,13 +1252,13 @@ def set_virt_file_size(self,num):
     try:
         inum = int(num)
         if inum != float(num):
-            return CX(_("invalid virt file size (%s)" % inum))
+            return CX(_("invalid virt file size (%s)" % num))
         if inum >= 0:
             self.virt_file_size = inum
             return True
-        raise CX(_("invalid virt file size (%s)" % inum))
+        raise CX(_("invalid virt file size (%s)" % num))
     except:
-        raise CX(_("invalid virt file sizei (%s)" % inum))
+        raise CX(_("invalid virt file size (%s)" % num))
     return True
 
 def set_virt_auto_boot(self,num):
@@ -1589,20 +1589,6 @@ def choose_virt_host(systems, api):
           least_host_ct = ct
     return least_host.name
 
-    
-
-if __name__ == "__main__":
-    # print redhat_release()
-    # print tftpboot_location()
-    #print get_host_ip("255.255.255.250")
-    #for x in range(32,1,-1):
-    #   value = get_host_ip("255.255.255.0/%s" % x, shorten=False)
-    #   value2 = get_host_ip("255.255.255.0/%s" % x, shorten=True)
-    #   print "%s -> %s" % (value,value2)
-    #no_ctrl_c()
-    #ctrl_c_ok()
-    print get_file_device_path("/mnt/engarchive2/released/F-10/GOLD/Fedora/i386/os/images/pxeboot/vmlinuz")
-
 def os_system(cmd):
     """
     os.system doesn't close file descriptors, so this is a wrapper
@@ -1741,10 +1727,24 @@ def apply_options_from_fields(obj, fields, options):
               if k in ("kernel_options","kernel_options_post","ks_meta","template_files"):
                   setfn(optval, options.inplace)
               elif not k.startswith("*"):
+                  # if it doesn't start with "*", it's not a per interface
+                  # option and we can treat it normally
                   setfn(optval)
               else:
                   # handling for system interface options on the CLI
-                  setfn(optval, options.interface)
+                  interfaces = options.interface.split()
+                  for x in interfaces:
+                      setfn(optval, x)
+
+       # the delete interface option (systems only) is also special
+       deleter = getattr(obj,"delete_interface")
+       if deleter:
+          cli_value = getattr(options, "delete_interface")
+          if cli_value is not None:
+              interfaces = cli_value.split()
+              for x in interfaces:
+                  deleter(x)
+
 
 def add_options_from_fields(parser, fields, args):
     for elem in fields:
@@ -1753,6 +1753,7 @@ def add_options_from_fields(parser, fields, args):
             continue
         # scrub interface tags so all fields get added correctly.
         k = k.replace("*","")
+        default = elem[1]
         nicename = elem[3]
         tooltip = elem[5]
         choices = elem[6]
@@ -1763,10 +1764,13 @@ def add_options_from_fields(parser, fields, args):
         desc = nicename
         if tooltip != "":
             desc = nicename + " (%s)" % tooltip
+
+
         if type(choices) == type([]) and len(choices) != 0:
             desc = desc + " (valid options: %s)" % ",".join(choices)    
-        
-        parser.add_option(niceopt, dest=k, help=desc)
+            parser.add_option(niceopt, dest=k, help=desc, choices=choices)
+        else:
+            parser.add_option(niceopt, dest=k, help=desc)
 
     if not matches_args(args, ["dumpvars","find","remove","report","list"]): 
         parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
