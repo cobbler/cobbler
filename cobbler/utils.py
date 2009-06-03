@@ -1736,14 +1736,16 @@ def apply_options_from_fields(obj, fields, options):
                   for x in interfaces:
                       setfn(optval, x)
 
-       # the delete interface option (systems only) is also special
-       deleter = getattr(obj,"delete_interface")
-       if deleter:
-          cli_value = getattr(options, "delete_interface")
-          if cli_value is not None:
-              interfaces = cli_value.split()
-              for x in interfaces:
-                  deleter(x)
+    # the delete interface option (systems only) is also special
+    try:
+        deleter = getattr(obj,"delete_interface")
+    except:
+        return
+    cli_value = getattr(options, "delete_interface")
+    if cli_value is not None:
+        interfaces = cli_value.split()
+        for x in interfaces:
+            deleter(x)
 
 
 def add_options_from_fields(parser, fields, args):
