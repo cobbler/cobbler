@@ -10,6 +10,8 @@
 
 <body onload="if (window.page_onload) { page_onload(); }">
 <div id="main">
+<TABLE BORDER="0" id="container"/>
+<TR><TD>
 <div id="sidebar">
     <a href="/cobbler_web/"><img alt="Cobbler Logo" width="185" src="/cobbler_webui_content/logo-cobbler.png"/></a>
     <br/>
@@ -69,7 +71,8 @@
 {% include "paginate.tmpl" %}
 
 </div>
-
+</TD>
+<TD>
 <div id="content">
 {% block content %}
 
@@ -77,6 +80,7 @@
 
 {% endblock %}
 </div><!-- content -->
+</TD></TABLE>
 </div><!-- main -->
 </body>
 </html>

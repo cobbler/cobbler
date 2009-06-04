@@ -196,7 +196,6 @@ if __name__ == "__main__":
             (dj_templates, [ 'web/cobbler_web/templates/generic_rename.tmpl' ]),
 
             # django code, private to cobbler-web application
-            (dj_webui_proj,  [ "web/authen.py" ]),
             (dj_webui,       [ 'web/cobbler_web/__init__.py' ]),
             (dj_webui_proj,  [ 'web/__init__.py' ]),
             (dj_webui_proj,  [ 'web/urls.py' ]),
@@ -294,6 +293,7 @@ if __name__ == "__main__":
             (snippetpath, ['snippets/pre_anamon']),
             (snippetpath, ['snippets/post_anamon']),
             (snippetpath, ['snippets/post_s390_reboot']),
+            (snippetpath, ['snippets/post_koan_add_reinstall_entry']),
             (snippetpath, ['snippets/redhat_register']),
             (snippetpath, ['snippets/cobbler_register']),
             (snippetpath, ['snippets/keep_ssh_host_keys']),

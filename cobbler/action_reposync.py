@@ -364,8 +364,9 @@ class RepoSync:
                 raise CX(_("wget failed"))
 
         # now run createrepo to rebuild the index
+        # only needed if we didn't use yum's reposync already.
 
-        if repo.mirror_locally:
+        if not has_rpm_list and repo.mirror_locally:
             os.path.walk(dest_path, self.createrepo_walker, repo)
 
         # create the config file the hosts will use to access the repository.

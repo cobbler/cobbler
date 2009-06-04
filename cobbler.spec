@@ -65,6 +65,7 @@ Requires: python(abi) = %{pyver}
 %endif
 
 BuildRequires: PyYAML
+BuildRequires: python-cheetah
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Url: http://cobbler.et.redhat.com
 

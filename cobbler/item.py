@@ -399,7 +399,7 @@ class Item(serializable.Serializable):
         """
         Raise exceptions if the object state is inconsistent
         """
-        if self.name is None:
+        if self.name is None or self.name == "":
            raise CX("Name is required")
 
 

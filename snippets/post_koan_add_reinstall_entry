@@ -1,0 +1,6 @@
+%post
+#if $getVar("system_name","") != ""
+   koan --server=$server --replace-self --add-reinstall-entry
+#else
+   koan --server=$server --replace-self --profile=$profile_name --add-reinstall-entry
+#end if

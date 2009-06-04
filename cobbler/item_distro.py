@@ -31,11 +31,12 @@ import time
 from cexceptions import *
 
 from utils import _
+import codes
 
 # name | default | subobject default | tooltip | editable?
 
 FIELDS = [
-   [ "name",None,0,"Name",True,"Ex: Fedora-11-i386",0],
+   [ "name","",0,"Name",True,"Ex: Fedora-11-i386",0],
    [ "uid","",0,"",False,"",0],
    [ "owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",0],
    [ "kernel",None,0,"Kernel",True,"Absolute path to kernel on filesystem",0],
@@ -44,8 +45,8 @@ FIELDS = [
    [ "kernel_options_post",{},0,"Kernel Options (Post Install)",True,"Ex: clocksource=pit noapic",0],
    [ "ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86", 0],
    [ "arch",'i386',0,"Architecture",True,"", ['i386','x86_64','ia64','ppc','s390']],
-   [ "breed",'redhat',0,"Breed",True,"",['redhat','debian','suse']],
-   [ "os_version",'',0,"OS Version",True,"Ex: rhel4",0],
+   [ "breed",'redhat',0,"Breed",True,"What is the type of distribution?",codes.VALID_OS_BREEDS],
+   [ "os_version","generic26",0,"OS Version",True,"Needed for some virtualization optimizations",codes.get_all_os_versions()],
    [ "source_repos",[],0,"Source Repos", False,"",0],
    [ "mgmt_classes",[],0,"Management Classes",True,"Management classes for external config management",0],
    [ "depth",0,0,"Depth",False,"",0],

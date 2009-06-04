@@ -42,7 +42,9 @@ USES_SELECT = [
    "virt_type",
    "arch",
    "*bonding",
-   "parent"
+   "parent",
+   "breed",
+   "os_version",
 ]
 
 USES_CHECKBOX = [
@@ -65,6 +67,9 @@ CSS_MAPPINGS = {
    "virt_file_size"  : "virtedit",
    "virt_type"       : "virtedit",
    "virt_auto_boot"  : "virtedit",
+   "virt_host"       : "virtedit",
+   "virt_group"      : "virtedit",
+   "virt_guests"     : "virtedit",
    "*virt_ram"       : "virtedit",
    "*virt_disk"      : "virtedit",
    "*virt_path"      : "virtedit",
@@ -78,6 +83,10 @@ CSS_MAPPINGS = {
    "power_user"      : "poweredit",
    "power_pass"      : "poweredit",
    "power_type"      : "poweredit",
+   "address"         : "netedit", # from network
+   "cidr"            : "netedit", # ditto
+   "broadcast"       : "netedit", # ..
+   "reserved"        : "netedit", # ..
    "*mac_address"    : "netedit",
    "*ip_address"     : "netedit",
    "*dhcp_tag"       : "netedit",
