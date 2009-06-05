@@ -313,6 +313,19 @@ class CobblerXMLRPCInterface:
         self._log("remove_item (%s, recursive=%s)" % (what,recursive),name=name,token=token)
         self.check_access(token, "remove_item", name)
         return self.api.remove_item(what,name,delete=True,with_triggers=True,recursive=recursive)
+    
+    def remove_distro(self,name,token,recursive=1):
+        return self.remove_item("distro",name,token,recursive)
+    def remove_profile(self,name,token,recursive=1):
+        return self.remove_item("profile",name,token,recursive)
+    def remove_system(self,name,token,recursive=1):
+        return self.remove_item("system",name,token,recursive)
+    def remove_repo(self,name,token,recursive=1):
+        return self.remove_item("repo",name,token,recursive)
+    def remove_image(self,name,token,recursive=1):
+        return self.remove_item("image",name,token,recursive)
+    def remove_network(self,name,token,recursive=1):
+        return self.remove_item("network",name,token,recursive)
 
     def copy_item(self,what,object_id,newname,token=None):
         """
@@ -322,7 +335,20 @@ class CobblerXMLRPCInterface:
         self.check_access(token,"copy_%s" % what)
         obj = self.__get_object(object_id)
         return self.api.copy_item(what,obj,newname)
-        
+    
+    def copy_distro(self,object_id,newname,token=None):
+        return self.copy_item("distro",object_id,newname,token)
+    def copy_profile(self,object_id,newname,token=None):
+        return self.copy_item("profile",object_id,newname,token)
+    def copy_system(self,object_id,newname,token=None):
+        return self.copy_item("system",object_id,newname,token)
+    def copy_repo(self,object_id,newname,token=None):
+        return self.copy_item("repo",object_id,newname,token)
+    def copy_image(self,object_id,newname,token=None):
+        return self.copy_item("image",object_id,newname,token)
+    def copy_network(self,object_id,newname,token=None):
+        return self.copy_item("network",object_id,newname,token)
+    
     def rename_item(self,what,object_id,newname,token=None):
         """
         Renames an object specified by object_id to a new name.
@@ -330,7 +356,20 @@ class CobblerXMLRPCInterface:
         self._log("rename_item(%s)" % what,object_id=object_id,token=token)
         obj = self.__get_object(object_id)
         return self.api.rename_item(what,obj,newname)
-        
+    
+    def rename_distro(self,object_id,newname,token=None):
+        return self.rename_item("distro",object_id,newname,token)
+    def rename_profile(self,object_id,newname,token=None):
+        return self.rename_item("profile",object_id,newname,token)
+    def rename_system(self,object_id,newname,token=None):
+        return self.rename_item("system",object_id,newname,token)
+    def rename_repo(self,object_id,newname,token=None):
+        return self.rename_item("repo",object_id,newname,token)
+    def rename_image(self,object_id,newname,token=None):
+        return self.rename_item("image",object_id,newname,token)
+    def rename_network(self,object_id,newname,token=None):
+        return self.rename_item("network",object_id,newname,token)
+    
     def new_item(self,what,token):
         """
         Creates a new (unconfigured) object, returning an object
@@ -359,6 +398,19 @@ class CobblerXMLRPCInterface:
         self.object_cache[key] = (time.time(), d) 
         return key
 
+    def new_distro(self,token):
+        return self.new_item("distro",token)
+    def new_profile(self,token):
+        return self.new_item("profile",token)
+    def new_system(self,token):
+        return self.new_item("system",token)
+    def new_repo(self,token):
+        return self.new_item("repo",token)
+    def new_image(self,token):
+        return self.new_item("image",token)
+    def new_network(self,token):
+        return self.new_item("network",token)
+
     def modify_item(self,what,object_id,attribute,arg,token):
         """
         Adjusts the value of a given field, specified by 'what' on a given object id.
@@ -369,7 +421,20 @@ class CobblerXMLRPCInterface:
         obj = self.__get_object(object_id)
         self.check_access(token, "modify_%s"%what, obj, attribute)
         return self.__call_method(obj, attribute, arg)
-        
+    
+    def modify_distro(self,object_id,attribute,arg,token):
+        return self.modify_item("distro",object_id,attribute,arg,token)
+    def modify_profile(self,object_id,attribute,arg,token):
+        return self.modify_item("profile",object_id,attribute,arg,token)
+    def modify_system(self,object_id,attribute,arg,token):
+        return self.modify_item("system",object_id,attribute,arg,token)
+    def modify_image(self,object_id,attribute,arg,token):
+        return self.modify_item("image",object_id,attribute,arg,token)
+    def modify_repo(self,object_id,attribute,arg,token):
+        return self.modify_item("repo",object_id,attribute,arg,token)
+    def modify_network(self,object_id,attribute,arg,token):
+        return self.modify_item("network",object_id,attribute,arg,token)
+    
     def save_item(self,what,object_id,token,editmode="bypass"):
         """
         Saves a newly created or modified object to disk.
@@ -382,6 +447,19 @@ class CobblerXMLRPCInterface:
             return self.api.add_item(what,obj,check_for_duplicate_names=True)
         else:
             return self.api.add_item(what,obj)
+
+    def save_distro(self,object_id,token,editmode="bypass"):
+        return self.save_item("distro",object_id,token,editmode=editmode)
+    def save_profile(self,object_id,token,editmode="bypass"):
+        return self.save_item("profile",object_id,token,editmode=editmode)
+    def save_system(self,object_id,token,editmode="bypass"):
+        return self.save_item("system",object_id,token,editmode=editmode)
+    def save_image(self,object_id,token,editmode="bypass"):
+        return self.save_item("image",object_id,token,editmode=editmode)
+    def save_repo(self,object_id,token,editmode="bypass"):
+        return self.save_item("repo",object_id,token,editmode=editmode)
+    def save_network(self,object_id,token,editmode="bypass"):
+        return self.save_item("network",object_id,token,editmode=editmode)
 
     def get_size(self,collection_name,**rest):
         """
@@ -1319,100 +1397,6 @@ class CobblerXMLRPCInterface:
         self.check_access(token,"hardlink")
         return self.api.hardlink()
 
-    def new_distro(self,token):
-        """
-        Creates a new (unconfigured) distro object.  It works something like
-        this:
-              token = remote.login("user","pass")
-              distro_id = remote.new_distro(token)
-              remote.modify_distro(distro_id, 'name', 'example-distro', token)
-              remote.modify_distro(distro_id, 'kernel', '/foo/vmlinuz', token)
-              remote.modify_distro(distro_id, 'initrd', '/foo/initrd.img', token)
-              remote.save_distro(distro_id, token)
-        """      
-        self._log("new_distro",token=token)
-        self.check_access(token,"new_distro")
-        d = item_distro.Distro(self.api._config)
-        key = "___NEW___distro::%s" % self.__get_random(25)
-        self.object_cache[key] = (time.time(), d) 
-        return key
-
-    def new_profile(self,token):    
-        """
-        Creates a new (unconfigured) profile object.  See the documentation
-        for new_distro as it works exactly the same.
-        """
-        self._log("new_profile",token=token)
-        self.check_access(token,"new_profile")
-        p = item_profile.Profile(self.api._config)
-        key = "___NEW___profile::%s" % self.__get_random(25)
-        self.object_cache[key] = (time.time(), p)
-        return key
-
-    def new_subprofile(self,token):
-        """
-        A subprofile is a profile that inherits directly from another profile,
-        not a distro.  In addition to the normal profile setup, setting
-        the parent variable to the name of an existing profile is also
-        mandatory.   Systems can be assigned to subprofiles just like they
-        were regular profiles.  The same XMLRPC API methods work on them as profiles
-        also.
-        """
-        self._log("new_subprofile",token=token)
-        self.check_access(token,"new_subprofile")
-        p = item_profile.Profile(self.api._config,is_subobject=True)
-        key = "___NEW___profile::%s" % self.__get_random(25)
-        self.object_cache[key] = (time.time(), p)
-        return key
-
-    def new_system(self,token):
-        """
-        Creates a new (unconfigured) system object.  See the documentation
-        for new_distro as it works exactly the same.
-        """
-        self._log("new_system",token=token)
-        self.check_access(token,"new_system")
-        s = item_system.System(self.api._config)
-        key = "___NEW___system::%s" % self.__get_random(25)
-        self.object_cache[key] = (time.time(), s)
-        return key
- 
-    def new_network(self,token):
-        """
-        Creates a new (unconfigured) network object.  See the documentation
-        for new_distro as it works exactly the same.
-        """
-        self._log("new_network",token=token)
-        self.check_access(token,"new_network")
-        n = item_network.Network(self.api._config)
-        key = "___NEW___network::%s" % self.__get_random(25)
-        self.object_cache[key] = (time.time(), n)
-        return key
-
-    def new_repo(self,token):
-        """
-        Creates a new (unconfigured) repo object.  See the documentation 
-        for new_distro as it works exactly the same.
-        """
-        self._log("new_repo",token=token)
-        self.check_access(token,"new_repo")
-        r = item_repo.Repo(self.api._config)
-        key = "___NEW___repo::%s" % self.__get_random(25)
-        self.object_cache[key] = (time.time(), r)
-        return key
-
-    def new_image(self,token):
-        """
-        Creates a new (unconfigured) image object.  See the documentation 
-        for new_distro as it works exactly the same.
-        """
-        self._log("new_image",token=token)
-        self.check_access(token,"new_image")
-        i = item_image.Image(self.api._config)
-        key = "___NEW___image::%s" % self.__get_random(25)
-        self.object_cache[key] = (time.time(), i)
-        return key         
-
     def get_distro_handle(self,name,token=None):
         """
         Given the name of an distro (or other search parameters), return an
@@ -1473,165 +1457,14 @@ class CobblerXMLRPCInterface:
         found = self.api.find_image(name)
         return "image::%s" % found.name
 
-    def save_distro(self,object_id,token,editmode="bypass"):
-        """
-        Saves a newly created or modified distro object to disk.
-        """
-        self._log("save_distro",object_id=object_id,token=token)
-        obj = self.__get_object(object_id)
-        self.check_access(token,"save_distro",obj)
-        if editmode == "new":
-            return self.api.add_distro(obj,check_for_duplicate_names=True)
-        else:
-            return self.api.add_distro(obj)
-
-    def save_profile(self,object_id,token,editmode="bypass"):
-        """
-        Saves a newly created or modified profile object to disk.
-        """
-        self._log("save_profile",token=token,object_id=object_id)
-        obj = self.__get_object(object_id)
-        self.check_access(token,"save_profile",obj)
-        if editmode == "new":
-           return self.api.add_profile(obj,check_for_duplicate_names=True)
-        else:
-           return self.api.add_profile(obj)
-
-    def save_system(self,object_id,token,editmode="bypass"):
-        """
-        Saves a newly created or modified system object to disk.
-        """
-        self._log("save_system",token=token,object_id=object_id)
-        obj = self.__get_object(object_id)
-        self.check_access(token,"save_system",obj)
-        if editmode == "new":
-           return self.api.add_system(obj,check_for_duplicate_names=True,check_for_duplicate_netinfo=True)
-        elif editmode == "edit":
-           return self.api.add_system(obj,check_for_duplicate_netinfo=True)
-        else:
-           return self.api.add_system(obj)
-
-    def save_network(self,object_id,token,editmode="bypass"):
-        """
-        Saves a newly created or modified network object to disk.
-        """
-        self._log("save_network",token=token,object_id=object_id)
-        obj = self.__get_object(object_id)
-        self.check_access(token,"save_network",obj)
-        if editmode == "new":
-           return self.api.add_network(obj,check_for_duplicate_names=True)
-        elif editmode == "edit":
-           return self.api.add_network(obj)
-        else:
-           return self.api.add_network(obj)
-
-    def save_repo(self,object_id,token=None,editmode="bypass"):
-        """
-        Saves a newly created or modified repo object to disk.
-        """
-        self._log("save_repo",object_id=object_id,token=token)
-        obj = self.__get_object(object_id)
-        self.check_access(token,"save_repo",obj)
-        if editmode == "new":
-           return self.api.add_repo(obj,check_for_duplicate_names=True)
-        else:
-           return self.api.add_repo(obj)
-
-    def save_image(self,object_id,token=None,editmode="bypass"):
-        """
-        Saves a newly created or modified repo object to disk.
-        """
-        self._log("save_image",object_id=object_id,token=token)
-        obj = self.__get_object(object_id)
-        self.check_access(token,"save_image",obj)
-        if editmode == "new":
-           return self.api.add_image(obj,check_for_duplicate_names=True)
-        else:
-           return self.api.add_image(obj)
-
-    ## FIXME: refactor out all of the boilerplate stuff like ^^
-
-    def copy_distro(self,object_id,newname,token=None):
-        """
-        All copy methods are pretty much the same.  Get an object handle, pass in the new
-        name for it.
-        """
-        self._log("copy_distro",object_id=object_id,token=token)
-        self.check_access(token,"copy_distro")
-        obj = self.__get_object(object_id)
-        return self.api.copy_distro(obj,newname)
-
-    def copy_profile(self,object_id,newname,token=None):
-        self._log("copy_profile",object_id=object_id,token=token)
-        self.check_access(token,"copy_profile")
-        obj = self.__get_object(object_id)
-        return self.api.copy_profile(obj,newname)
-
-    def copy_system(self,object_id,newname,token=None):
-        self._log("copy_system",object_id=object_id,token=token)
-        self.check_access(token,"copy_system")
-        obj = self.__get_object(object_id)
-        return self.api.copy_system(obj,newname)
-
-    def copy_network(self,object_id,newname,token=None):
-        self._log("copy_network",object_id=object_id,token=token)
-        self.check_access(token,"copy_network")
-        obj = self.__get_object(object_id)
-        return self.api.copy_network(obj,newname)
-
-    def copy_repo(self,object_id,newname,token=None):
-        self._log("copy_repo",object_id=object_id,token=token)
-        self.check_access(token,"copy_repo")
-        obj = self.__get_object(object_id)
-        return self.api.copy_repo(obj,newname)
-
-    def copy_image(self,object_id,newname,token=None):
-        self._log("copy_image",object_id=object_id,token=token)
-        self.check_access(token,"copy_image")
-        obj = self.__get_object(object_id)
-        return self.api.copy_image(obj,newname)
-
-    def rename_distro(self,object_id,newname,token=None):
-        """
-        All rename methods are pretty much the same.  Get an object handle, pass in a new
-        name for it.  Rename will modify dependencies to point them at the new
-        object.  
-        """
-        self._log("rename_distro",object_id=object_id,token=token)
-        obj = self.__get_object(object_id)
-        return self.api.rename_distro(obj,newname)
-
-    def rename_profile(self,object_id,newname,token=None):
-        self._log("rename_profile",object_id=object_id,token=token)
-        self.check_access(token,"rename_profile")
-        obj = self.__get_object(object_id)
-        return self.api.rename_profile(obj,newname)
-
-    def rename_system(self,object_id,newname,token=None):
-        self._log("rename_system",object_id=object_id,token=token)
-        self.check_access(token,"rename_system")
-        obj = self.__get_object(object_id)
-        return self.api.rename_system(obj,newname)
-
-    def rename_network(self,object_id,newname,token=None):
-        self._log("rename_network",object_id=object_id,token=token)
-        self.check_access(token,"rename_network")
-        obj = self.__get_object(object_id)
-        return self.api.rename_network(obj,newname)
-
-    def rename_repo(self,object_id,newname,token=None):
-        self._log("rename_repo",object_id=object_id,token=token)
-        self.check_access(token,"rename_repo")
-        obj = self.__get_object(object_id)
-        return self.api.rename_repo(obj,newname)
-    
-    def rename_image(self,object_id,newname,token=None):
-        self._log("rename_image",object_id=object_id,token=token)
-        self.check_access(token,"rename_image")
-        obj = self.__get_object(object_id)
-        return self.api.rename_image(obj,newname)
+    # FIXME:
+    # def save_distro(self,object_id,token,editmode="bypass"):
+    # def modify_distro(self,object_id,attribute,arg,token):
 
     def __get_object(self, object_id):
+        """
+        Helper function. Given an object id, return the actual object.
+        """
         if object_id.startswith("___NEW___"):
            return self.object_cache[object_id][1]
         (otype, oname) = object_id.split("::",1)
@@ -1659,133 +1492,15 @@ class CobblerXMLRPCInterface:
             raise CX(_("object has no method: %s") % attribute)
         return method(arg)
 
-    def modify_distro(self,object_id,attribute,arg,token):
-        """
-        Allows modification of certain attributes on newly created or
-        existing distro object handle.
-        """
-        obj = self.__get_object(object_id)
-        self.check_access(token, "modify_distro", obj, attribute)
-        return self.__call_method(obj, attribute, arg)
-
-    def modify_profile(self,object_id,attribute,arg,token):
-        """
-        Allows modification of certain attributes on newly created or
-        existing profile object handle.
-        """
-        obj = self.__get_object(object_id)
-        self.check_access(token, "modify_profile", obj, attribute)
-        return self.__call_method(obj, attribute, arg)
-
-    def modify_system(self,object_id,attribute,arg,token):
-        """
-        Allows modification of certain attributes on newly created or
-        existing system object handle.
-        """
-        obj = self.__get_object(object_id)
-        self._log("obj is " + str(obj))
-        self._log("checking access...")
-        self.check_access(token, "modify_system", obj, attribute)
-        self._log("access ok, calling method, attribute is %s, arg is %s" % (str(attribute),str(arg)))
-        return self.__call_method(obj, attribute, arg)
-
-    def modify_network(self,object_id,attribute,arg,token):
-        """
-        Allows modification of certain attributes on newly created or
-        existing network object handle.
-        """
-        obj = self.__get_object(object_id)
-        self.check_access(token, "modify_network", obj, attribute)
-        self._log("access ok, calling method, attribute is %s, arg is %s" % (str(attribute),str(arg)))
-        return self.__call_method(obj, attribute, arg)
-
-    def modify_repo(self,object_id,attribute,arg,token):
-        """
-        Allows modification of certain attributes on newly created or
-        existing repo object handle.
-        """
-        obj = self.__get_object(object_id)
-        self.check_access(token, "modify_repo", obj, attribute)
-        return self.__call_method(obj, attribute, arg)
-    
-    def modify_image(self,object_id,attribute,arg,token):
-        """
-        Allows modification of certain attributes on newly created or
-        existing image object handle.
-        """
-        ## FIXME: lots of boilerplate to remove here, move to utils.py
-        obj = self.__get_object(object_id)
-        self.check_access(token, "modify_image", obj, attribute)
-        return self.__call_method(obj, attribute, arg)
-
-    def remove_distro(self,name,token,recursive=1):
-        """
-        Deletes a distro from a collection.  Note that this just requires the name
-        of the distro, not a handle.
-        """
-        self._log("remove_distro (%s)" % recursive,name=name,token=token)
-        self.check_access(token, "remove_distro", name)
-        rc = self.api.remove_distro(name,recursive=True)
-        return rc
-
-    def remove_profile(self,name,token,recursive=1):
-        """
-        Deletes a profile from a collection.  Note that this just requires the name
-        """
-        self._log("remove_profile (%s)" % recursive,name=name,token=token)
-        self.check_access(token, "remove_profile", name)
-        rc = self.api.remove_profile(name,recursive=True)
-        return rc
-
-    def remove_system(self,name,token,recursive=1):
-        """
-        Deletes a system from a collection.  Note that this just requires the name
-        of the distro, not a handle.
-        """
-        self._log("remove_system (%s)" % recursive,name=name,token=token)
-        self.check_access(token, "remove_system", name)
-        rc = self.api.remove_system(name)
-        return rc
-
-    def remove_network(self,name,token,recursive=1):
-        """
-        Deletes a network from a collection.  Note that this just requires the name
-        of the distro, not a handle.
-        """
-        self._log("remove_network (%s)" % recursive,name=name,token=token)
-        self.check_access(token, "remove_network", name)
-        rc = self.api.remove_network(name,recursive=recursive)
-        return rc
-
-    def remove_repo(self,name,token,recursive=1):
-        """
-        Deletes a repo from a collection.  Note that this just requires the name
-        of the repo, not a handle.
-        """
-        self._log("remove_repo (%s)" % recursive,name=name,token=token)
-        self.check_access(token, "remove_repo", name)
-        rc = self.api.remove_repo(name, recursive=True)
-        return rc
-
-    def remove_image(self,name,token,recursive=1):
-        """
-        Deletes a image from a collection.  Note that this just requires the name
-        of the image, not a handle.
-        """
-        self._log("remove_image (%s)" % recursive,name=name,token=token)
-        self.check_access(token, "remove_image", name)
-        rc = self.api.remove_image(name, recursive=True)
-        return rc
 
     def read_or_write_kickstart_template(self,kickstart_file,is_read,new_data,token):
         """
-        Allows the WebUI to be used as a kickstart file editor.  For security
+        Allows the web app to be used as a kickstart file editor.  For security
         reasons we will only allow kickstart files to be edited if they reside in
         /var/lib/cobbler/kickstarts/ or /etc/cobbler.  This limits the damage
         doable by Evil who has a cobbler password but not a system password.
         Also if living in /etc/cobbler the file must be a kickstart file.
         """
-
 
         if is_read:
            what = "read_kickstart_template"
@@ -1867,7 +1582,7 @@ class CobblerXMLRPCInterface:
 
     def power_system(self,object_id,power=None,token=None):
         """
-        Allows poweron/poweroff/reboot of a system
+        Allows poweron/poweroff/reboot of a system specified by object_id.
         """
         obj = self.__get_object(object_id)
         self.check_access(token, "power_system", obj)
@@ -1881,13 +1596,15 @@ class CobblerXMLRPCInterface:
             raise CX(_("invalid power mode '%s', expected on/off/reboot" % power))
         return rc
 
-    def deploy(self, object_id, virt_host=None, virt_group=None, token=None):
+    def deploy(self, object_id, virt_host=None, virt_group=None, token=None, method="ssh", operation="install"):
         """
-        Deploy a system
+        Deploy a system named object_id.
+        See documentation in api.py (FIXME)
+        # FIXME: needs testing!
         """
         obj = self.__get_object(object_id)
         self.check_access(token, "deploy", obj)
-        rc = self.api.deploy(obj, virt_host=virt_host, virt_group=virt_group)
+        rc = self.api.deploy(obj, virt_host=virt_host, virt_group=virt_group, operation=operation, method=method)
         return rc
 
 
