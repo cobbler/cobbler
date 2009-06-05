@@ -89,68 +89,6 @@ class CobblerXMLRPCInterface:
         # no longer neccessary
         return True
 
-    def internal_cache_update(self, collection_type, name):
-        self._log("DEBUG: adding to %s, %s" % (collection_type, name))
-
-        if name is None:
-            return False
-        data = self.api.deserialize_item_raw(collection_type, name)
-
-        if collection_type == "distro":
-            obj = item_distro.Distro(self.api._config)
-            obj.from_datastruct(data)
-            self.api.add_distro(obj, False, False)
-
-        if collection_type == "profile":
-            subprofile = False
-            if data.has_key("parent") and data["parent"] != "":
-               subprofile = True
-            obj = item_profile.Profile(self.api._config, is_subobject = subprofile)
-            obj.from_datastruct(data)
-            self.api.add_profile(obj, False, False)
-
-        if collection_type == "system":
-            obj = item_system.System(self.api._config)
-            obj.from_datastruct(data)
-            self.api.add_system(obj, False, False, False)
-
-        if collection_type == "repo":
-            obj = item_repo.Repo(self.api._config)
-            obj.from_datastruct(data)
-            self.api.add_repo(obj, False, False)
-
-        if collection_type == "image":
-            obj = item_image.Image(self.api._config)
-            obj.from_datastruct(data)
-            self.api.add_image(obj, False, False)
-
-        if collection_type == "network":
-            obj = item_network.Network(self.api._config)
-            obj.from_datastruct(data)
-            self.api.add_network(obj, False, False)
-
-        return True
-
-    def internal_cache_remove(self, collection_type, name):
-        self._log("DEBUG: removing from %s, %s" % (collection_type, name))
-
-        data = self.api.deserialize_item_raw(collection_type, name)
-        if data is None:
-            if collection_type == "distro":
-                self.api.remove_distro(name, delete=False, recursive=False, with_triggers=False)
-            if collection_type == "profile":
-                self.api.remove_profile(name, delete=False, recursive=False, with_triggers=False)
-            if collection_type == "system":
-                self.api.remove_system(name, delete=False, recursive=False, with_triggers=False)
-            if collection_type == "repo":
-                self.api.remove_repo(name, delete=False, recursive=False, with_triggers=False)
-            if collection_type == "image":
-                self.api.remove_image(name, delete=False, recursive=False, with_triggers=False)
-            if collection_type == "network":
-                self.api.remove_network(name, delete=False, recursive=False, with_triggers=False)
-
-        return True
-
     def ping(self):
         return True
 
