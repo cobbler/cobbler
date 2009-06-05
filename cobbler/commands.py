@@ -275,34 +275,34 @@ class CobblerFunction:
                 raise CX(_("name is required"))
             obj = collect_fn().find(self.options.name)
             if obj is None:
-                raise CX(_("object not found")) 
+                raise CX(_("object not found (%s)" % self.options.name)) 
             return obj
 
         if "poweron" in self.args:
             obj = collect_fn().find(self.options.name)
             if obj is None:
-                raise CX(_("object not found"))
+                raise CX(_("object not found (%s)" % self.options.name))
             self.api.power_on(obj,self.options.power_user,self.options.power_pass)
             return None
 
         if "poweroff" in self.args:
             obj = collect_fn().find(self.options.name)
             if obj is None:
-                raise CX(_("object not found"))
+                raise CX(_("object not found (%s)" % self.options.name))
             self.api.power_off(obj,self.options.power_user,self.options.power_pass)
             return None
 
         if "reboot" in self.args:
             obj = collect_fn().find(self.options.name)
             if obj is None:
-                raise CX(_("object not found"))
+                raise CX(_("object not found (%s)" % self.options.name))
             self.api.reboot(obj,self.options.power_user,self.options.power_pass)
             return None
 
         if "deploy" in self.args:
             obj = collect_fn().find(self.options.name)
             if obj is None:
-                raise CX(_("object not found"))
+                raise CX(_("object not found (%s)" % sellf.options.name))
             if self.options.virt_host == '':
                 virt_host = None
             else:
@@ -344,7 +344,7 @@ class CobblerFunction:
                 raise CX(_("name is required"))
             obj = collect_fn().find(self.options.name)
             if obj is None:
-                raise CX(_("object not found")) 
+                raise CX(_("object not found (%s)" % self.options.name)) 
             return obj
 
         if "deploy" in self.args:
