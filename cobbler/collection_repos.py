@@ -72,9 +72,6 @@ class Repos(collection.Collection):
                 if os.path.exists(path):
                     utils.rmtree(path)
 
-            if with_delete and not self.api.is_cobblerd:
-                self.api._internal_cache_update("repo", name, remove=True)
-
             return True
 
         raise CX(_("cannot delete an object that does not exist: %s") % name)

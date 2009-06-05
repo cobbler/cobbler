@@ -58,16 +58,17 @@ CACHE_TIMEOUT = 10*60 # 10 minutes
 class CobblerXMLRPCInterface:
     """
     This is the interface used for all XMLRPC methods, for instance,
-    as used by koan or CobblerWeb
- 
-    note:  public methods take an optional parameter token that is just
-    here for consistancy with the ReadWrite API.  Read write operations do
-    require the token.
+    as used by koan or CobblerWeb.
+   
+    Most read-write operations require a token returned from "login". 
+    Read operations do not.
     """
 
-    def __init__(self,api,enable_auth_if_relevant):
+    def __init__(self,api):
+        """
+        Constructor.  Requires a Cobbler API handle.
+        """
         self.api = api
-        self.auth_enabled = enable_auth_if_relevant
         self.logger = self.api.logger
         self.token_cache = {}
         self.object_cache = {}
@@ -75,30 +76,47 @@ class CobblerXMLRPCInterface:
         random.seed(time.time())
 
     def __sorter(self,a,b):
+        """
+        Helper function to sort two datastructure representations of
+        cobbler objects by name.
+        """
         return cmp(a["name"],b["name"])
 
-    def last_modified_time(self):
+    def last_modified_time(self, token=None):
         """
-        Return the time of the last modification to any object
-        so that we can tell if we need to check for any other
-        modified objects via more specific calls.
+        Return the time of the last modification to any object.
+        Used to verify from a calling application that no cobbler
+        objects have changed since last check.
         """
         return self.api.last_modified_time()
 
     def update(self, token=None):
-        # no longer neccessary
+        """
+        Deprecated method.  Now does nothing.
+        """
         return True
 
     def ping(self):
+        """
+        Deprecated method.  Now does nothing.
+        """
         return True
 
     def get_user_from_token(self,token):
+        """
+        Given a token returned from login, return the username
+        that logged in with it.
+        """
         if not self.token_cache.has_key(token):
             raise CX(_("invalid token: %s") % token)
         else:
             return self.token_cache[token][1]
 
     def _log(self,msg,user=None,token=None,name=None,object_id=None,attribute=None,debug=False,error=False):
+        """
+        Helper function to write data to the log file from the XMLRPC remote implementation.
+        Takes various optional parameters that should be supplied when known.
+        """
 
         # add the user editing the object, if supplied
         m_user = "?"
@@ -132,9 +150,12 @@ class CobblerXMLRPCInterface:
         logger(msg)
 
     def __sort(self,data,sort_field=None):
+        """
+        Helper function used by the various find/search functions to return
+        object representations in order.
+        """
         sort_fields=["name"]
         sort_rev=False
-        self._log("XX%s"%sort_field)        
         if sort_field is not None:
             if sort_field.startswith("!"):
                 sort_field=sort_field[1:]
@@ -148,6 +169,11 @@ class CobblerXMLRPCInterface:
         return [x for (key, x) in sortdata]
             
     def __paginate(self,data,page=None,items_per_page=None,token=None):
+        """
+        Helper function to support returning parts of a selection, for
+        example, for use in a web app where only a part of the results
+        are to be presented on each screen.
+        """
         default_page = 1
         default_items_per_page = 25
 
@@ -201,6 +227,12 @@ class CobblerXMLRPCInterface:
         })
 
     def get_item(self, what, name, flatten=False):
+        """
+        Returns a hash describing a given object.
+        what -- "distro", "profile", "system", "image", "repo", etc
+        name -- the object name to retrieve
+        flatten -- reduce hashes to string representations (True/False)
+        """
         self._log("get_item(%s,%s)"%(what,name))
         item=self.api.get_item(what,name)
         if item is not None:
@@ -210,19 +242,36 @@ class CobblerXMLRPCInterface:
         return self.xmlrpc_hacks(item)
 
     def get_items(self, what):
+        """
+        Returns a list of hashes.  
+        what is the name of a cobbler object type, as described for get_item.
+        Individual list elements are the same for get_item.
+        """
         self._log("get_items(%s)"%what)
         item = [x.to_datastruct() for x in self.api.get_items(what)]
         return self.xmlrpc_hacks(item)
 
     def find_items(self, what, criteria=None,sort_field=None):
+        """
+        Returns a list of hashes.
+        Works like get_items but also accepts criteria as a hash to search on.
+        Example:  { "name" : "*.example.org" }
+        Wildcards work as described by 'pydoc fnmatch'.
+        """
         self._log("find_items(%s)"%what)
         items = self.api.find_items(what,criteria=criteria)
         items = self.__sort(items,sort_field)
         items = [x.to_datastruct() for x in items]
         return self.xmlrpc_hacks(items)
 
-    def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page=None):
-        self._log("find_items_paged(%s)"%what)
+    def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page=None, token=None):
+        """
+        Returns a list of hashes as with find_items but additionally supports
+        returning just a portion of the total list, for instance in supporting
+        a web app that wants to show a limited amount of items per page.
+        """
+        # FIXME: make token required for all logging calls
+        self._log("find_items_paged(%s)" % what, token=token)
         items = self.api.find_items(what,criteria=criteria)
         items = self.__sort(items,sort_field)
         (items,pageinfo) = self.__paginate(items,page,items_per_page)
@@ -233,6 +282,10 @@ class CobblerXMLRPCInterface:
         })
 
     def has_item(self,what,name,token=None):
+        """
+        Returns True if a given collection has an item with a given name,
+        otherwise returns False.
+        """
         self._log("has_item(%s)"%what,token=token,name=name)
         found = self.api.get_item(what,name)
         if found is None:
@@ -242,9 +295,9 @@ class CobblerXMLRPCInterface:
 
     def get_item_handle(self,what,name,token=None):
         """
-        Given the name of an distro (or other search parameters), return an
-        object id that can be passed in to modify_distro() or save_distro()
-        commands.  Raises an exception if no object can be matched.
+        Given the name of an object (or other search parameters), return a
+        reference (object id) that can be used with modify_* functions or save_* functions
+        to manipulate that object.
         """
         self._log("get_item_handle(%s)"%what,token=token,name=name)
         found = self.api.get_item(what,name)
@@ -254,8 +307,8 @@ class CobblerXMLRPCInterface:
         
     def remove_item(self,what,name,token,recursive=True):
         """
-        Deletes a system from a collection.  Note that this just requires the name
-        of the distro, not a handle.
+        Deletes an item from a collection.  
+        Note that this requires the name of the distro, not an item handle.
         """
         self._log("remove_item (%s, recursive=%s)" % (what,recursive),name=name,token=token)
         self.check_access(token, "remove_item", name)
@@ -263,8 +316,7 @@ class CobblerXMLRPCInterface:
 
     def copy_item(self,what,object_id,newname,token=None):
         """
-        All copy methods are pretty much the same.  Get an object handle, pass in the new
-        name for it.
+        Creates a new object that matches an existing object, as specified by an id.
         """
         self._log("copy_item(%s)" % what,object_id=object_id,token=token)
         self.check_access(token,"copy_%s" % what)
@@ -273,9 +325,7 @@ class CobblerXMLRPCInterface:
         
     def rename_item(self,what,object_id,newname,token=None):
         """
-        All rename methods are pretty much the same.  Get an object handle, pass in a new
-        name for it.  Rename will modify dependencies to point them at the new
-        object.  
+        Renames an object specified by object_id to a new name.
         """
         self._log("rename_item(%s)" % what,object_id=object_id,token=token)
         obj = self.__get_object(object_id)
@@ -283,14 +333,11 @@ class CobblerXMLRPCInterface:
         
     def new_item(self,what,token):
         """
-        Creates a new (unconfigured) object.  It works something like
-        this:
-              token = remote.login("user","pass")
-              distro_id = remote.new_distro(token)
-              remote.modify_distro(distro_id, 'name', 'example-distro', token)
-              remote.modify_distro(distro_id, 'kernel', '/foo/vmlinuz', token)
-              remote.modify_distro(distro_id, 'initrd', '/foo/initrd.img', token)
-              remote.save_distro(distro_id, token)
+        Creates a new (unconfigured) object, returning an object
+        handle that can be used with modify_* methods and then finally
+        save_* methods.  The handle only exists in memory until saved.
+        "what" specifies the type of object: 
+            distro, profile, system, repo, image, or network
         """      
         self._log("new_item(%s)"%what,token=token)
         self.check_access(token,"new_%s"%what)
@@ -314,19 +361,21 @@ class CobblerXMLRPCInterface:
 
     def modify_item(self,what,object_id,attribute,arg,token):
         """
+        Adjusts the value of a given field, specified by 'what' on a given object id.
         Allows modification of certain attributes on newly created or
         existing distro object handle.
         """
-        self._log("modify_item(%s)"%what,object_id=object_id,attribute=attribute,token=token)
+        self._log("modify_item(%s)" % what,object_id=object_id,attribute=attribute,token=token)
         obj = self.__get_object(object_id)
         self.check_access(token, "modify_%s"%what, obj, attribute)
         return self.__call_method(obj, attribute, arg)
         
     def save_item(self,what,object_id,token,editmode="bypass"):
         """
-        Saves a newly created or modified distro object to disk.
+        Saves a newly created or modified object to disk.
+        Calling save is required for any changes to persist.
         """
-        self._log("save_item(%s)"%what,object_id=object_id,token=token)
+        self._log("save_item(%s)" % what,object_id=object_id,token=token)
         obj = self.__get_object(object_id)
         self.check_access(token,"save_%s"%what,obj)
         if editmode == "new":
@@ -1148,13 +1197,6 @@ class CobblerXMLRPCInterface:
         """
         self.__invalidate_expired_tokens()
 
-        #if not self.auth_enabled:
-        #    user = self.get_user_from_token(token)
-        #    # old stuff, preserving for future usage
-        #    # if user == "<system>":
-        #    #    self.token_cache[token] = (time.time(), user) # update to prevent timeout
-        #    #    return True
-
         if self.token_cache.has_key(token):
             user = self.get_user_from_token(token)
             if user == "<system>":
@@ -1205,10 +1247,6 @@ class CobblerXMLRPCInterface:
     def check_access(self,token,resource,arg1=None,arg2=None):
         validated = self.__validate_token(token)
         user = self.get_user_from_token(token)
-        if not self.auth_enabled:
-            # for public read-only XMLRPC, permit access
-            self._log("permitting read-only access")
-            return True
         rc = self.__authorize(token,resource,arg1,arg2)
         self._log("authorization result: %s" % rc)
         if not rc:
@@ -1867,8 +1905,8 @@ class CobblerXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
 
 class ProxiedXMLRPCInterface:
 
-    def __init__(self,api,proxy_class,enable_auth_if_relevant=True):
-        self.proxied = proxy_class(api,enable_auth_if_relevant)
+    def __init__(self,api,proxy_class):
+        self.proxied = proxy_class(api)
         self.logger = self.proxied.api.logger
 
     def _dispatch(self, method, params, **rest):
