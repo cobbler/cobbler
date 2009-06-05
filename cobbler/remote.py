@@ -1,10 +1,7 @@
 """
-Interface for Cobbler's XMLRPC API(s).
-there are two:
-   a read-only API that koan uses
-   a read-write API that requires logins
+Code for Cobbler's XMLRPC API
 
-Copyright 2007-2008, Red Hat, Inc
+Copyright 2007-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
  
 This program is free software; you can redistribute it and/or modify
@@ -54,7 +51,6 @@ from utils import _
 # FIXME: make configurable?
 TOKEN_TIMEOUT = 60*60 # 60 minutes
 CACHE_TIMEOUT = 10*60 # 10 minutes
-TOKEN_CACHE = {}
 
 # *********************************************************************
 # *********************************************************************
@@ -73,7 +69,7 @@ class CobblerXMLRPCInterface:
         self.api = api
         self.auth_enabled = enable_auth_if_relevant
         self.logger = self.api.logger
-        self.token_cache = TOKEN_CACHE
+        self.token_cache = {}
         self.object_cache = {}
         self.timestamp = self.api.last_modified_time()
         random.seed(time.time())
@@ -159,7 +155,7 @@ class CobblerXMLRPCInterface:
         return True
 
     def get_user_from_token(self,token):
-        if not TOKEN_CACHE.has_key(token):
+        if not self.token_cache.has_key(token):
             raise CX(_("invalid token: %s") % token)
         else:
             return self.token_cache[token][1]
