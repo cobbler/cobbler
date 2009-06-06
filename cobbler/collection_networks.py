@@ -66,9 +66,6 @@ class Networks(collection.Collection):
                 if with_triggers:
                     self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/network/post/*")
 
-            if with_delete and not self.api.is_cobblerd:
-                self.api._internal_cache_update("network", name, remove=True)
-
             return True
         raise CX(_("cannot delete an object that does not exist: %s") % name)
 

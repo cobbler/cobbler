@@ -101,8 +101,5 @@ class Distros(collection.Collection):
                if not found:
                    utils.rmtree(path)
 
-            if with_delete and not self.api.is_cobblerd:
-                self.api._internal_cache_update("distro", name, remove=True)
-
         raise CX(_("cannot delete object that does not exist: %s") % name)
 
