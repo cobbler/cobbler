@@ -76,10 +76,6 @@ class Profiles(collection.Collection):
                     self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/profile/post/*")
                     self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*")
 
-
-            if with_delete and not self.api.is_cobblerd:
-                self.api._internal_cache_update("profile", name, remove=True)
-
             return True
 
         raise CX(_("cannot delete an object that does not exist: %s") % name)

@@ -180,28 +180,6 @@ class BootAPI:
            return False 
         return True
 
-    def _internal_cache_update(self, collection_type, name, remove=False):
-        """
-        Update cobblerd so it won't have to ever reload the config, once started.
-        """
-        # FIXME: take value from settings, use raw port
-        if self.is_cobblerd:
-           # don't signal yourself, that's asking for trouble.
-           return True
-        self.server = xmlrpclib.Server("http://127.0.0.1:%s" % self.settings().xmlrpc_port)
-        try:
-            if not remove:
-                self.server.internal_cache_update(collection_type, name)
-            else:
-                self.server.internal_cache_remove(collection_type, name)
-        except Exception, e:
-            if len(e.args) == 2 and e[0] == 111:
-                # if cobblerd is not running, no harm done, nothing to signal
-                pass
-            else: 
-                raise
-        return False
-
     def last_modified_time(self):
         """
         Returns the time of the last modification to cobbler, made by any

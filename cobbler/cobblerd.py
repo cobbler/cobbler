@@ -104,7 +104,7 @@ def log(logger,msg):
 
 def do_xmlrpc_rw(bootapi,settings,port):
 
-    xinterface = remote.ProxiedXMLRPCInterface(bootapi,remote.CobblerXMLRPCInterface,True)
+    xinterface = remote.ProxiedXMLRPCInterface(bootapi,remote.CobblerXMLRPCInterface)
     server = remote.CobblerXMLRPCServer(('127.0.0.1', port))
     server.logRequests = 0  # don't print stuff
     xinterface.logger.debug("XMLRPC running on %s" % port)

@@ -309,10 +309,6 @@ class Collection(serializable.Serializable):
         if parent != None:
             parent.children[ref.name] = ref
 
-        # signal remote cobblerd to update it's cache of this item.
-        if save and not self.api.is_cobblerd:
-           self.api._internal_cache_update(ref.COLLECTION_TYPE,ref.name)
-
         return True
 
     def _run_triggers(self,api_handle,ref,globber):
