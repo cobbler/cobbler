@@ -25,10 +25,13 @@ import random
 import os
 import traceback
 import tempfile
-import urllib2
-import opt_parse  # importing this for backwards compat with 2.2
 import exceptions
-import sub_process
+ANCIENT_PYTHON = 0
+try:
+   import sub_process
+   import urllib2	
+except:
+   ANCIENT_PYTHON = 1
 import time
 import shutil
 import errno
@@ -63,7 +66,7 @@ class InfoException(exceptions.Exception):
     def __str__(self):
         return repr(self.value)
 
-def setupLogging(appname, debug=False):
+def setupLogging(appname):
     """
     set up logging ... code borrowed/adapted from virt-manager
     """
@@ -87,10 +90,7 @@ def setupLogging(appname, debug=False):
     streamHandler = logging.StreamHandler(sys.stderr)
     streamHandler.setFormatter(logging.Formatter(streamFormat,
                                                  dateFormat))
-    if debug:
-        streamHandler.setLevel(logging.DEBUG)
-    else:
-        streamHandler.setLevel(logging.ERROR)
+    streamHandler.setLevel(logging.DEBUG)
     rootLogger.addHandler(streamHandler)
 
 
@@ -104,7 +104,7 @@ def urlread(url):
     if url is None or url == "":
         raise InfoException, "invalid URL: %s" % url
 
-    elif url.startswith("nfs"):
+    elif url[0:3] == "nfs":
         try:
             ndir  = os.path.dirname(url[6:])
             nfile = os.path.basename(url[6:])
@@ -119,17 +119,26 @@ def urlread(url):
             subprocess_call(cmd)
             return data
         except:
+            traceback.print_exc()
             raise InfoException, "Couldn't mount and read URL: %s" % url
           
-    elif url.startswith("http") or url.startswith("ftp"):
+    elif url[0:4] == "http":
         try:
             fd = urllib2.urlopen(url)
             data = fd.read()
             fd.close()
             return data
         except:
+            if ANCIENT_PYTHON:
+                # this logic is to support python 1.5 and EL 2
+                import urllib
+                fd = urllib.urlopen(url)
+                data = fd.read()
+                fd.close()
+                return data
+            traceback.print_exc()
             raise InfoException, "Couldn't download: %s" % url
-    elif url.startswith("file"):
+    elif url[0:4] == "file":
         try:
             fd = open(url[5:])
             data = fd.read()
@@ -151,16 +160,20 @@ def urlgrab(url,saveto):
     fd.write(data)
     fd.close()
 
-def subprocess_call(cmd,ignore_rc=False):
+def subprocess_call(cmd,ignore_rc=0):
     """
     Wrapper around subprocess.call(...)
     """
     print "- %s" % cmd
-    rc = sub_process.call(cmd)
+    if not ANCIENT_PYTHON:
+        rc = sub_process.call(cmd)
+    else:
+        cmd = string.join(cmd, " ")
+        print "cmdstr=(%s)" % cmd
+        rc = os.system(cmd)
     if rc != 0 and not ignore_rc:
         raise InfoException, "command failed (%s)" % rc
     return rc
-
 
 def input_string_or_hash(options,delim=None):
     """
@@ -172,12 +185,12 @@ def input_string_or_hash(options,delim=None):
     if options is None:
         return {}
     elif type(options) == list:
-        raise CX(_("No idea what to do with list: %s") % options)
-    elif type(options) == str:
+        raise InfoException("No idea what to do with list: %s" % options)
+    elif type(options) == type(""):
         new_dict = {}
-        tokens = options.split(delim)
+        tokens = string.split(options, delim)
         for t in tokens:
-            tokens2 = t.split("=")
+            tokens2 = string.split(t,"=")
             if len(tokens2) == 1 and tokens2[0] != '':
                 new_dict[tokens2[0]] = None
             elif len(tokens2) == 2 and tokens2[0] != '':
@@ -188,11 +201,11 @@ def input_string_or_hash(options,delim=None):
         if new_dict.has_key(""):
            del new_dict[""]
         return new_dict
-    elif type(options) == dict:
+    elif type(options) == type({}):
         options.pop('',None)
         return options
     else:
-        raise CX(_("invalid input type"))
+        raise InfoException("invalid input type: %s" % type(options))
 
 def nfsmount(input_path):
     # input:  nfs://user@server:/foo/bar/x.img as string
@@ -274,10 +287,13 @@ def os_release():
    This code is borrowed from Cobbler and really shouldn't be repeated.
    """
 
+   if ANCIENT_PYTHON:
+      return ("unknown", 0, 0)
+
    if check_dist() == "redhat":
 
       if not os.path.exists("/bin/rpm"):
-         return ("unknown", 0)
+         return ("unknown", 0, 0)
       args = ["/bin/rpm", "-q", "--whatprovides", "redhat-release"]
       cmd = sub_process.Popen(args,shell=False,stdout=sub_process.PIPE,close_fds=True)
       data = cmd.communicate()[0]
@@ -317,7 +333,7 @@ def os_release():
       make = "suse"
       return (make, float(version), rest)
    else:
-      return ("unknown",0)
+      return ("unknown",0,0)
 
 def uniqify(lst, purge=None):
    temp = {}
@@ -333,39 +349,32 @@ def uniqify(lst, purge=None):
 
 def get_network_info():
    try:
-      import rhpl.ethtool as ethtool
+      import rhpl.ethtool 
    except:
-      raise CX("the rhpl module is required to use this feature (is your OS>=EL3?)")
+      raise InfoException("the rhpl module is required to use this feature (is your OS>=EL3?)")
 
    interfaces = {}
    # get names
-   inames  = ethtool.get_devices() 
+   inames  = rhpl.ethtool.get_devices() 
+
    for iname in inames:
-      mac = ethtool.get_hwaddr(iname)
+      mac = rhpl.ethtool.get_hwaddr(iname)
 
       if mac == "00:00:00:00:00:00":
          mac = "?"
 
       try:
-         ip  = ethtool.get_ipaddr(iname)
+         ip  = rhpl.ethtool.get_ipaddr(iname)
          if ip == "127.0.0.1":
             ip = "?"
       except:
-         # inactive address (?) -- have to do it this way though or we miss bridged interfaces
          ip  = "?"
 
       bridge = 0
       module = ""
-      try:
-         module = ethtool.get_module(iname)
-         if module == "bridge":
-            bridge = 1
-      except:
-         pass
-        
 
       try:
-         nm  = ethtool.get_netmask(iname)
+         nm  = rhpl.ethtool.get_netmask(iname)
       except:
          nm  = "?"
 
@@ -377,7 +386,7 @@ def get_network_info():
          "module"      : module
       }
 
-   print interfaces
+   # print interfaces
    return interfaces
 
 def connect_to_server(server=None,port=None):
@@ -390,7 +399,7 @@ def connect_to_server(server=None,port=None):
     if port is None: 
         port = 25151 
         
-    connect_ok = False
+    connect_ok = 0
 
     try_urls = [
         "http://%s/cobbler_api" % (server),
@@ -460,18 +469,18 @@ def make_floppy(kickstart):
     return floppy_path
 
 
-class ServerProxy(xmlrpclib.ServerProxy):
-
-    def __init__(self, url=None):
-        try:
-            xmlrpclib.ServerProxy.__init__(self, url, allow_none=True)
-        except:
-            # for RHEL3's xmlrpclib -- cobblerd should strip Nones anyway
-            xmlrpclib.ServerProxy.__init__(self, url)
+#class ServerProxy(xmlrpclib.ServerProxy):
+#
+#    def __init__(self, url=None):
+#        try:
+#            xmlrpclib.ServerProxy.__init__(self, url, allow_none=True)
+#        except:
+#            # for RHEL3's xmlrpclib -- cobblerd should strip Nones anyway
+#            xmlrpclib.ServerProxy.__init__(self, url)
 
 def __try_connect(url):
     try:
-        xmlrpc_server = ServerProxy(url)
+        xmlrpc_server = xmlrpclib.Server(url)
         xmlrpc_server.ping()
         return xmlrpc_server
     except:

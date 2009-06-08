@@ -28,10 +28,21 @@ import random
 import os
 import traceback
 import tempfile
-import urllib2
-import opt_parse  # importing this for backwards compat with 2.2
+
+ANCIENT_PYTHON = 0
+try:
+   import opt_parse  # importing this for backwards compat with 2.2
+   import sub_process
+except:
+   # the main "replace-self" codepath of koan must support
+   # Python 1.5.  Other sections may use 2.3 features (nothing newer)
+   # provided they are conditionally imported.  This is to support
+   # EL 2.1. -- mpd
+   ANCIENT_PYTHON = 1 
+   True = 1
+   False = 0
+
 import exceptions
-import sub_process
 import time
 import shutil
 import errno
@@ -75,6 +86,11 @@ def main():
     except:
         # most likely running RHEL3, where we don't need virt logging anyway
         pass
+
+    if ANCIENT_PYTHON:
+        print "- command line usage on this version of python is unsupported"
+        print "- usage via spacewalk APIs only.  Python x>=2.3 required"
+        return
 
     p = opt_parse.OptionParser()
     p.add_option("-k", "--kopts",
@@ -420,7 +436,7 @@ class Koan:
         if profile_data.has_key("kickstart"):
 
             # fix URLs
-            if profile_data["kickstart"].startswith("/"):
+            if profile_data["kickstart"][0] == "/":
                if not self.system:
                    profile_data["kickstart"] = "http://%s/cblr/svc/op/ks/profile/%s" % (profile_data['http_server'], profile_data['name'])
                else:
@@ -469,15 +485,16 @@ class Koan:
                 else:
                     # FIXME: auto never selects vmware, maybe it should if we find it?
 
-                    cmd = sub_process.Popen("/bin/uname -r", stdout=sub_process.PIPE, shell=True)
-                    uname_str = cmd.communicate()[0]
-                    if uname_str.find("xen") != -1:
-                       self.virt_type = "xenpv"
-                    elif os.path.exists("/usr/bin/qemu-img"):
-                       self.virt_type = "qemu"
-                    else:
-                       # assume Xen, we'll check to see if virt-type is really usable later.
-                       raise InfoException, "Not running a Xen kernel and qemu is not installed"
+                    if not ANCIENT_PYTHON:
+                        cmd = sub_process.Popen("/bin/uname -r", stdout=sub_process.PIPE, shell=True)
+                        uname_str = cmd.communicate()[0]
+                        if uname_str.find("xen") != -1:
+                            self.virt_type = "xenpv"
+                        elif os.path.exists("/usr/bin/qemu-img"):
+                            self.virt_type = "qemu"
+                        else:
+                            # assume Xen, we'll check to see if virt-type is really usable later.
+                            raise InfoException, "Not running a Xen kernel and qemu is not installed"
 
                 print "- no virt-type specified, auto-selecting %s" % self.virt_type
 
@@ -736,6 +753,18 @@ class Koan:
 
 
     #---------------------------------------------------
+        
+    def get_boot_loader_info(self):
+        if ANCIENT_PYTHON:
+            # FIXME: implement this to work w/o subprocess
+            if os.path.exists("/etc/grub.conf"):
+               return (0, "grub")
+            else:
+               return (0, "lilo") 
+        cmd = [ "/sbin/grubby", "--bootloader-probe" ]
+        probe_process = sub_process.Popen(cmd, stdout=sub_process.PIPE)
+        which_loader = probe_process.communicate()[0]
+        return probe_process.returncode, which_loader
 
     def replace(self):
         """
@@ -754,16 +783,11 @@ class Koan:
             if err != errno.EEXIST:
                 raise
     
-        def get_boot_loader_info():
-            cmd = [ "/sbin/grubby", "--bootloader-probe" ]
-            probe_process = sub_process.Popen(cmd, stdout=sub_process.PIPE)
-            which_loader = probe_process.communicate()[0]
-            return probe_process.returncode, which_loader
 
         def after_download(self, profile_data):
             if not os.path.exists("/sbin/grubby"):
                 raise InfoException, "grubby is not installed"
-            k_args = self.calc_kernel_args(profile_data,replace_self=True)
+            k_args = self.calc_kernel_args(profile_data,replace_self=1)
 
             kickstart = self.safe_load(profile_data,'kickstart')
 
@@ -782,8 +806,11 @@ class Koan:
                         profile_data
                     )
 
-            arch_cmd = sub_process.Popen("/bin/uname -m", stdout=sub_process.PIPE, shell=True)
-            arch = arch_cmd.communicate()[0]
+            if not ANCIENT_PYTHON:
+                arch_cmd = sub_process.Popen("/bin/uname -m", stdout=sub_process.PIPE, shell=True)
+                arch = arch_cmd.communicate()[0]
+            else:
+                arch = "i386"
 
             # Validate kernel argument length (limit depends on architecture --
             # see asm-*/setup.h).  For example:
@@ -792,23 +819,24 @@ class Koan:
             #   asm-powerpc/setup.h:#define COMMAND_LINE_SIZE   512
             #   asm-s390/setup.h:#define COMMAND_LINE_SIZE  896
             #   asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
-            if arch.startswith("ppc") or arch.startswith("ia64"):
-                if len(k_args) > 511:
-                    raise InfoException, "Kernel options are too long, 512 chars exceeded: %s" % k_args
-            elif arch.startswith("s390"):
-                if len(k_args) > 895:
-                    raise InfoException, "Kernel options are too long, 896 chars exceeded: %s" % k_args
-            elif len(k_args) > 255:
-                raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
+            if not ANCIENT_PYTHON:
+                if arch.startswith("ppc") or arch.startswith("ia64"):
+                    if len(k_args) > 511:
+                        raise InfoException, "Kernel options are too long, 512 chars exceeded: %s" % k_args
+                elif arch.startswith("s390"):
+                    if len(k_args) > 895:
+                        raise InfoException, "Kernel options are too long, 896 chars exceeded: %s" % k_args
+                elif len(k_args) > 255:
+                    raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
 
             cmd = [ "/sbin/grubby",
                     "--add-kernel", self.safe_load(profile_data,'kernel_local'),
                     "--initrd", self.safe_load(profile_data,'initrd_local'),
-                    "--args", k_args,
+                    "--args", "\"%s\"" % k_args,
                     "--copy-default"
             ]
-            boot_probe_ret_code, probe_output = get_boot_loader_info()
-            if boot_probe_ret_code == 0 and probe_output.find("lilo") > -1:
+            boot_probe_ret_code, probe_output = self.get_boot_loader_info()
+            if boot_probe_ret_code == 0 and string.find(probe_output, "lilo") >= 0:
                 cmd.append("--lilo")
 
             if self.add_reinstall_entry:
@@ -821,33 +849,33 @@ class Koan:
                cmd.append("--bad-image-okay")
                cmd.append("--boot-filesystem=/")
                cmd.append("--config-file=/tmp/boot/boot/grub/grub.conf")
-               # utils.subprocess_call(["/sbin/grubby","--remove-kernel","/boot/vmlinuz"])
 
             # Are we running on ppc?
-            if arch.startswith("ppc"):
-               cmd.append("--yaboot")
-            elif arch.startswith("s390"):
-               cmd.append("--zipl")
+            if not ANCIENT_PYTHON:
+               if arch.startswith("ppc"):
+                   cmd.append("--yaboot")
+               elif arch.startswith("s390"):
+                   cmd.append("--zipl")
 
             utils.subprocess_call(cmd)
 
             # Any post-grubby processing required (e.g. ybin, zipl, lilo)?
-            if arch.startswith("ppc"):
+            if not ANCIENT_PYTHON and arch.startswith("ppc"):
                 # FIXME - CHRP hardware uses a 'PPC PReP Boot' partition and doesn't require running ybin
                 print "- applying ybin changes"
                 cmd = [ "/sbin/ybin" ]
-                sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
-            elif arch.startswith("s390"):
+                utils.subprocess_call(cmd)
+            elif not ANCIENT_PYTHON and arch.startswith("s390"):
                 print "- applying zipl changes"
                 cmd = [ "/sbin/zipl" ]
-                sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
+                utils.subprocess_call(cmd)
             else:
                 # if grubby --bootloader-probe returns lilo,
                 #    apply lilo changes
-                if boot_probe_ret_code == 0 and probe_output.find("lilo") != -1:
+                if boot_probe_ret_code == 0 and string.find(probe_output, "lilo") != -1:
                     print "- applying lilo changes"
                     cmd = [ "/sbin/lilo" ]
-                    sub_process.Popen(cmd, stdout=sub_process.PIPE).communicate()[0]
+                    utils.subprocess_call(cmd)
 
             if not self.add_reinstall_entry:
                 print "- reboot to apply changes"
@@ -975,9 +1003,9 @@ class Koan:
         initrd_save = "%s/%s" % (download_root, initrd_short)
 
         if self.server:
-            if kernel.startswith("/"):
+            if kernel[0] == "/":
                 kernel = "http://%s/cobbler/images/%s/%s" % (self.server, distro, kernel_short)
-            if initrd.startswith("/"):
+            if initrd[0] == "/":
                 initrd = "http://%s/cobbler/images/%s/%s" % (self.server, distro, initrd_short)
 
         try:
@@ -996,7 +1024,7 @@ class Koan:
 
     #---------------------------------------------------
 
-    def calc_kernel_args(self, pd, replace_self=False):
+    def calc_kernel_args(self, pd, replace_self=0):
         kickstart = self.safe_load(pd,'kickstart')
         options   = self.safe_load(pd,'kernel_options',default='')
         breed     = self.safe_load(pd,'breed')
@@ -1050,10 +1078,10 @@ class Koan:
                 options = options + "%s " % x
             else:
                 options = options + "%s=%s " % (x, hashv[x])
-        options = options.replace("lang ","lang= ")
+        options = string.replace(options, "lang ","lang= ")
         # if using ksdevice=bootif that only works for PXE so replace
         # it with something that will work
-        options = options.replace("ksdevice=bootif","ksdevice=link")
+        options = string.replace(options, "ksdevice=bootif","ksdevice=link")
         return options
 
     #---------------------------------------------------
@@ -1482,7 +1510,10 @@ class Koan:
         """
         Generate a random UUID.  Copied from xend/uuid.py
         """
-        return [ random.randint(0, 255) for x in range(0, 16) ]
+        rc = []
+        for x in range(0, 16):
+           rc.append(random.randint(0,255))
+        return rc
 
     def uuidToString(self, u):
         """
