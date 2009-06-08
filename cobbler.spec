@@ -291,6 +291,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/snippets/keep_ssh_host_keys
 %config(noreplace) /var/lib/cobbler/snippets/log_ks_pre
 %config(noreplace) /var/lib/cobbler/snippets/log_ks_post
+%config(noreplace) /var/lib/cobbler/snippets/post_koan_add_reinstall_entry
 %dir /var/lib/cobbler/loaders/
 /var/lib/cobbler/loaders/zpxe.rexx
 %defattr(660,root,root)
