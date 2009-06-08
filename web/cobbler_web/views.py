@@ -399,11 +399,13 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
     elif what == "system" and multi_mode == "netboot":
         netboot_enabled = multi_arg # values: enable or disable
         if netboot_enabled is None:
-            raise "Cannot modify systems without specifying netboot_enabled"
-        if netboot_enabled == "enabled":
+            return error_page(request,"Cannot modify systems without specifying netboot_enabled")
+        if netboot_enabled == "enable":
             netboot_enabled = True
-        else:
+        elif netboot_enabled == "disable":
             netboot_enabled = False
+        else:
+            return error_page(request,"Invalid netboot option, expect enable or disable")
         for obj_name in names:
             obj_id = remote.get_system_handle(obj_name, token)
             remote.modify_system(obj_id, "netboot_enabled", netboot_enabled, token)
@@ -411,7 +413,7 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
     elif what == "system" and multi_mode == "profile":
         profile = multi_arg
         if profile is None:
-            raise "Cannot modify systems without specifying profile"
+            return error_page(request,"Cannot modify systems without specifying profile")
         for obj_name in names:
             obj_id = remote.get_system_handle(obj_name, token)
             remote.modify_system(obj_id, "profile", profile, token)
@@ -419,12 +421,12 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
     elif what == "system" and multi_mode == "power":
         power = multi_arg
         if power is None:
-            raise "Cannot modify systems without specifying power option"
+            return error_page(request,"Cannot modify systems without specifying power option")
         for obj_name in names:
             obj_id = remote.get_system_handle(obj_name, token)
             remote.power_system(obj_id, power, token)
     else:
-        raise "Unknown multiple operation on %ss: %s" % (what,str(multi_mode))
+        return error_page(request,"Unknown multiple operation on %ss: %s" % (what,str(multi_mode)))
 
     # FIXME: "operation complete" would make a lot more sense here than a redirect
     return HttpResponseRedirect("/cobbler_web/%s/list"%what)

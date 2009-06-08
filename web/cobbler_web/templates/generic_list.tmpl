@@ -44,6 +44,9 @@ function obj_delete(old) {
 
 function action_multi(otype, action, param) {
   var values = items_checked_values()
+  if (values == "") {
+     return
+  }
   document.getElementById("names").value = values
 
   if (action == "profile") {
@@ -67,6 +70,9 @@ function action_multi(otype, action, param) {
   }
   if ((action == "netboot") && (param == "enable")) {
      value = confirm("Confirm: Really flag all checked systems for PXE reinstallation?")
+  }
+  if ((action == "netboot") && (param == "disable")) {
+     value = confirm("Confirm: Really disable all checked systems for PXE reinstallation?")
   }
   if (value) {
      document.myform.action = "/cobbler_web/" + otype + "/multi/" + action + "/" + param
@@ -99,7 +105,7 @@ function action_multi(otype, action, param) {
            {% for item in items %}
 
            <tr class="{% cycle 'rowodd' 'roweven' %}">
-               <td><input type="checkbox" name="items" value="{{ item.0 }}"/></td>
+               <td><input type="checkbox" name="items" value="{{ item.0.1 }}"/></td>
 
                {% for value in item %}
                     <td>
