@@ -272,26 +272,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %defattr(664,root,root)
 %config(noreplace) /etc/cobbler/settings
 /var/lib/cobbler/version
-%config(noreplace) /var/lib/cobbler/snippets/partition_select
-%config(noreplace) /var/lib/cobbler/snippets/pre_partition_select
-%config(noreplace) /var/lib/cobbler/snippets/main_partition_select
-%config(noreplace) /var/lib/cobbler/snippets/post_install_kernel_options
-%config(noreplace) /var/lib/cobbler/snippets/network_config
-%config(noreplace) /var/lib/cobbler/snippets/pre_install_network_config
-%config(noreplace) /var/lib/cobbler/snippets/post_install_network_config
-%config(noreplace) /var/lib/cobbler/snippets/func_install_if_enabled
-%config(noreplace) /var/lib/cobbler/snippets/func_register_if_enabled
-%config(noreplace) /var/lib/cobbler/snippets/download_config_files
-%config(noreplace) /var/lib/cobbler/snippets/koan_environment
-%config(noreplace) /var/lib/cobbler/snippets/pre_anamon
-%config(noreplace) /var/lib/cobbler/snippets/post_anamon
-%config(noreplace) /var/lib/cobbler/snippets/post_s390_reboot
-%config(noreplace) /var/lib/cobbler/snippets/redhat_register
-%config(noreplace) /var/lib/cobbler/snippets/cobbler_register
-%config(noreplace) /var/lib/cobbler/snippets/keep_ssh_host_keys
-%config(noreplace) /var/lib/cobbler/snippets/log_ks_pre
-%config(noreplace) /var/lib/cobbler/snippets/log_ks_post
-%config(noreplace) /var/lib/cobbler/snippets/post_koan_add_reinstall_entry
+%config(noreplace) /var/lib/cobbler/snippets/*
 %dir /var/lib/cobbler/loaders/
 /var/lib/cobbler/loaders/zpxe.rexx
 %defattr(660,root,root)
