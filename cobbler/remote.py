@@ -251,17 +251,17 @@ class CobblerXMLRPCInterface:
         return self.xmlrpc_hacks(item)
 
     def get_distro(self,name,flatten=False,token=None,**rest):
-        return get_item("distro",name,flatten=flatten)
+        return self.get_item("distro",name,flatten=flatten)
     def get_profile(self,name,flatten=False,token=None,**rest):
-        return get_item("profile",name,flatten=flatten)
+        return self.get_item("profile",name,flatten=flatten)
     def get_system(self,name,flatten=False,token=None,**rest):
-        return get_item("system",name,flatten=flatten)
+        return self.get_item("system",name,flatten=flatten)
     def get_repo(self,name,flatten=False,token=None,**rest):
-        return get_item("repo",name,flatten=flatten)
+        return self.get_item("repo",name,flatten=flatten)
     def get_image(self,name,flatten=False,token=None,**rest):
-        return get_item("image",name,flatten=flatten)
+        return self.get_item("image",name,flatten=flatten)
     def get_network(self,name,flatten=False,token=None,**rest):
-        return get_item("network",name,flatten=flatten)
+        return self.get_item("network",name,flatten=flatten)
 
     def get_items(self, what):
         """
@@ -274,17 +274,17 @@ class CobblerXMLRPCInterface:
         return self.xmlrpc_hacks(item)
 
     def get_distros(self,page=None,results_per_page=None,token=None,**rest):
-        return get_items(self,"distro")
-    def get_profile(self,page=None,results_per_page=None,token=None,**rest):
-        return get_items(self,"profile")
-    def get_system(self,page=None,results_per_page=None,token=None,**rest):
-        return get_items(self,"system")
-    def get_repo(self,page=None,results_per_page=None,token=None,**rest):
-        return get_items(self,"repo")
-    def get_image(self,page=None,results_per_page=None,token=None,**rest):
-        return get_items(self,"image")
-    def get_network(self,page=None,results_per_page=None,token=None,**rest):
-        return get_items(self,"network")
+        return self.get_items("distro")
+    def get_profiles(self,page=None,results_per_page=None,token=None,**rest):
+        return self.get_items("profile")
+    def get_systems(self,page=None,results_per_page=None,token=None,**rest):
+        return self.get_items("system")
+    def get_repos(self,page=None,results_per_page=None,token=None,**rest):
+        return self.get_items("repo")
+    def get_images(self,page=None,results_per_page=None,token=None,**rest):
+        return self.get_items("image")
+    def get_networks(self,page=None,results_per_page=None,token=None,**rest):
+        return self.get_items("network")
 
     def find_items(self, what, criteria=None,sort_field=None,expand=True):
         """
@@ -303,17 +303,17 @@ class CobblerXMLRPCInterface:
         return self.xmlrpc_hacks(items)
 
     def find_distro(self,criteria={},expand=False,token=None,**rest):
-        return find_items("distro",criteria,expand=expand)
+        return self.find_items("distro",criteria,expand=expand)
     def find_profile(self,criteria={},expand=False,token=None,**rest):
-        return find_items("profile",criteria,expand=expand)
+        return self.find_items("profile",criteria,expand=expand)
     def find_system(self,criteria={},expand=False,token=None,**rest):
-        return find_items("system",criteria,expand=expand)
+        return self.find_items("system",criteria,expand=expand)
     def find_repo(self,criteria={},expand=False,token=None,**rest):
-        return find_items("repo",criteria,expand=expand)
+        return self.find_items("repo",criteria,expand=expand)
     def find_image(self,criteria={},expand=False,token=None,**rest):
-        return find_items("image",criteria,expand=expand)
+        return self.find_items("image",criteria,expand=expand)
     def find_network(self,criteria={},expand=False,token=None,**rest):
-        return find_items("network",criteria,expand=expand)
+        return self.find_items("network",criteria,expand=expand)
 
     def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page=None, token=None):
         """
