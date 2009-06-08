@@ -18,7 +18,7 @@ Requires: python(abi)=%{pyver}
 %if 0%{?fedora} >= 8
 BuildRequires: python-setuptools-devel
 %endif
-%if 0%{?rhel} > 3 || 0%{?fedora} < 8
+%if 0%{?rhel} >= 4
 BuildRequires: python-setuptools
 %endif
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
