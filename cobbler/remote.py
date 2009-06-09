@@ -35,6 +35,7 @@ import string
 import traceback
 import glob
 import sub_process as subprocess
+from threading import Thread
 
 import api as cobbler_api
 import utils
@@ -51,6 +52,11 @@ from utils import _
 # FIXME: make configurable?
 TOKEN_TIMEOUT = 60*60 # 60 minutes
 CACHE_TIMEOUT = 10*60 # 10 minutes
+
+# task codes
+TASK_STARTED  = "started"
+TASK_COMPLETE = "complete"
+TASK_FAILED   = "failed"
 
 # *********************************************************************
 # *********************************************************************
@@ -73,7 +79,63 @@ class CobblerXMLRPCInterface:
         self.token_cache = {}
         self.object_cache = {}
         self.timestamp = self.api.last_modified_time()
+        self.tasks = {}
+        self.next_task_id = 0
         random.seed(time.time())
+
+    def background_sync(self):
+
+        class SyncThread(Thread):
+            def __init__(self,task_id,remote):
+                Thread.__init__(self)
+                self.task_id  = task_id
+                self.remote = remote
+            def run(self):
+                try:
+                    self.remote.api.sync()
+                    self.remote._finish_task(self.task_id, True)
+                except:
+                    self.remote._finish_task(self.task_id, False)
+
+        id = self.__start_task(SyncThread, "Background sync") 
+        return id
+
+    def get_tasks(self):
+        # FIXME:
+        return self.tasks
+
+    def __start_task(self, thr_obj, name):
+        id = self.next_task_id
+        self.next_task_id = self.next_task_id + 1
+        self.tasks[id] = [ time.time(), name, TASK_STARTED ]
+        thr = thr_obj(id,self)
+        thr.run()
+        return id
+
+    def _finish_task(self,task_id,ok):
+        if ok:
+            self.tasks[task_id][2] = TASK_COMPLETE
+        else:
+            self.tasks[task_id][2] = TASK_FAILED
+
+
+    def get_task_log_data(id):
+        id = int(id) # force safe values
+        path = "/var/log/cobbler/tasks/%s" % id
+        if os.path.exists(path):
+            fd = open(path)
+            data = fd.read()
+            fd.close()
+        else:
+            data = "No log data exists for task %s" % id
+        return data
+
+    def get_task_status(self, id):
+        if self.tasks.has_key(id):
+            return self.tasks[id]
+        else:
+            raise CX("no task with that id")
+        
 
     def __sorter(self,a,b):
         """
