@@ -27,7 +27,11 @@ import time
 import yaml # Howell-Clark version
 import sub_process
 import sys
-import yum
+HAS_YUM = True
+try:
+    import yum
+except:
+    HAS_YUM = False
 
 import utils
 from cexceptions import *
@@ -153,7 +157,10 @@ class RepoSync:
 
             # add any repo metadata we can use
             mdoptions = []
-            if self.settings.discover_repodata and os.path.isfile("%s/repodata/repomd.xml" % (dirname)):
+            if os.path.isfile("%s/repodata/repomd.xml" % (dirname)):
+                if not HAS_YUM:
+                   raise InfoException("yum is required to use this feature")
+
                 rmd = yum.repoMDObject.RepoMD('', "%s/repodata/repomd.xml" % (dirname))
                 if rmd.repoData.has_key("group"):
                     groupmdfile = rmd.getData("group").location[1]
