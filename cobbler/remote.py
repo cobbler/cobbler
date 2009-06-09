@@ -1169,6 +1169,7 @@ class CobblerXMLRPCInterface:
     def __invalidate_expired_tokens(self):
         """
         Deletes any login tokens that might have expired.
+        Also removes expired tasks
         """
         timenow = time.time()
         for token in self.token_cache.keys():
@@ -1181,6 +1182,15 @@ class CobblerXMLRPCInterface:
             (tokentime, entry) = self.object_cache[oid]
             if (timenow > tokentime + CACHE_TIMEOUT):
                 del self.object_cache[oid]
+        #for ids in self.tasks.keys()
+        #    (tasktime, name, status) = self.tasks[id]
+        #    if status in [ TASK_COMPLETE, TASK_FAILED ]:
+        #        if (timenow > tasktime) 
+        #        filename = "/var/log/cobbler/tasks/%s.log" % ids
+        #        if os.path.exists(filename):
+        #            os.remove(filename)
+            
+
 
     def __validate_user(self,input_user,input_password):
         """
