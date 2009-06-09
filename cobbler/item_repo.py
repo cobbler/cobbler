@@ -54,6 +54,9 @@ class Repo(item.Item):
     TYPE_NAME = _("repo")
     COLLECTION_TYPE = "repo"
 
+    def get_fields(self):
+        return FIELDS
+
     def _guess_breed(self):
         # backwards compatibility
         if (self.breed == "" or self.breed is None):

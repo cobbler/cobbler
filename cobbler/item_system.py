@@ -85,6 +85,10 @@ class System(item.Item):
     TYPE_NAME = _("system")
     COLLECTION_TYPE = "system"
 
+    def get_fields(self):
+        return FIELDS
+
+
     def delete_interface(self,name):
         """
         Used to remove an interface.

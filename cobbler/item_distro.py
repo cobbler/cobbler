@@ -63,6 +63,9 @@ class Distro(item.Item):
     TYPE_NAME = _("distro")
     COLLECTION_TYPE = "distro"
 
+    def get_fields(self):
+        return FIELDS
+
     def get_parent(self):
         """
         Return object next highest up the tree.

@@ -57,6 +57,9 @@ class Image(item.Item):
 
     TYPE_NAME = _("image")
     COLLECTION_TYPE = "image"
+
+    def get_fields(self):
+        return FIELDS
  
     def set_arch(self,arch):
         """

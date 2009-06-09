@@ -64,6 +64,10 @@ class Profile(item.Item):
 
     TYPE_NAME = _("profile")
     COLLECTION_TYPE = "profile"
+
+    def get_fields(self):
+        return FIELDS
+
  
     def set_parent(self,parent_name):
         """

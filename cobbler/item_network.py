@@ -49,6 +49,9 @@ class Network(item.Item):
     TYPE_NAME = _("network")
     COLLECTION_TYPE = "network"
 
+    def get_fields(self):
+        return FIELDS
+
     def set_cidr(self, cidr):
         if self.cidr == None:
             self.free_addresses = [_CIDR(cidr)]
