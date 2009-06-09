@@ -85,18 +85,6 @@ class System(item.Item):
     TYPE_NAME = _("system")
     COLLECTION_TYPE = "system"
 
-    def make_clone(self):
-        ds = self.to_datastruct()
-        cloned = System(self.config)
-        cloned.from_datastruct(ds)
-        return cloned
-
-    def clear(self,is_subobject=False):
-        utils.clear_from_fields(self,FIELDS)
-
-    # FIXME: need to ensure duplicate interface/hostname checks are reinstated
-    # FIXME: need is_valid logic back, but more generalized
-
     def delete_interface(self,name):
         """
         Used to remove an interface.
@@ -522,12 +510,6 @@ class System(item.Item):
         self.power_id = power_id
         return True
 
-    def to_datastruct(self):
-        return utils.to_datastruct_from_fields(self,FIELDS)
-
-    def printable(self):
-        return utils.printable_from_fields(self,FIELDS)
-
     def modify_interface(self, hash):
         """
         Used by the WUI to modify an interface more-efficiently
@@ -547,9 +529,6 @@ class System(item.Item):
             if field == "bondingopts"   : self.set_bonding_opts(value, interface)
             if field == "staticroutes"  : self.set_static_routes(value, interface)
         return True
-
-    def remote_methods(self):
-        return utils.get_remote_methods_from_fields(self,FIELDS)
 
     def check_if_valid(self):
         if self.name is None or self.name == "":

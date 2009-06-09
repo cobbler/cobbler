@@ -49,18 +49,6 @@ class Network(item.Item):
     TYPE_NAME = _("network")
     COLLECTION_TYPE = "network"
 
-    def make_clone(self):
-        ds = self.to_datastruct()
-        cloned = Network(self.config)
-        cloned.from_datastruct(ds)
-        return cloned
-
-    def clear(self,is_subobject=False):
-        utils.clear_from_fields(self,FIELDS)
-
-    def from_datastruct(self,seed_data):
-        return utils.from_datastruct_from_fields(self,seed_data,FIELDS)
-
     def set_cidr(self, cidr):
         if self.cidr == None:
             self.free_addresses = [_CIDR(cidr)]
@@ -287,23 +275,10 @@ class Network(item.Item):
             total += len(item)
         return total
 
-    def to_datastruct(self):
-        # FIXME: can't store things as native python-netaddr objects here
-        # and therefore should do that in indiv. set_* functions
-        # until then this class really doesn't work.
-        return utils.to_datastruct_from_fields(self,FIELDS)
-
-    def printable(self):
-        return utils.printable_from_fields(self,FIELDS)
-
     def get_parent(self):
         """
         currently the Cobbler object space does not support subobjects of this object
         as it is conceptually not useful.
         """
         return None
-
-    def remote_methods(self):
-        return utils.get_remote_methods_from_fields(self,FIELDS)
-
 

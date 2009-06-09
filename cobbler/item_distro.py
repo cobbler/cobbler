@@ -63,30 +63,12 @@ class Distro(item.Item):
     TYPE_NAME = _("distro")
     COLLECTION_TYPE = "distro"
 
-    def clear(self,is_subobject=False):
-        """
-        Reset this object.
-        """
-        utils.clear_from_fields(self,FIELDS,is_subobject=is_subobject)
-
-    def make_clone(self):
-        ds = self.to_datastruct()
-        cloned = Distro(self.config)
-        cloned.from_datastruct(ds)
-        return cloned
-
     def get_parent(self):
         """
         Return object next highest up the tree.
         NOTE: conceptually there is no need for subdistros
         """
         return None
-
-    def from_datastruct(self,seed_data):
-        """
-        Modify this object to take on values in seed_data
-        """
-        return utils.from_datastruct_from_fields(self,seed_data,FIELDS)
 
     def set_kernel(self,kernel):
         """
@@ -159,15 +141,6 @@ class Distro(item.Item):
         Update: (7/2008) this is now used to build fake PXE trees for s390x also
         """
         return utils.set_arch(self,arch)
-
-    def to_datastruct(self):
-        return utils.to_datastruct_from_fields(self,FIELDS)
-
-    def printable(self):
-        return utils.printable_from_fields(self,FIELDS)
-
-    def remote_methods(self):
-        return utils.get_remote_methods_from_fields(self,FIELDS)
 
     def check_if_valid(self):
         if self.name is None:

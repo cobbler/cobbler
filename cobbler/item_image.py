@@ -58,24 +58,6 @@ class Image(item.Item):
     TYPE_NAME = _("image")
     COLLECTION_TYPE = "image"
  
-    def make_clone(self):
-        ds = self.to_datastruct()
-        cloned = Image(self.config)
-        cloned.from_datastruct(ds)
-        return cloned
-
-    def clear(self,is_subobject=False):
-        """
-        Reset this object.
-        """
-        utils.clear_from_fields(self,FIELDS)
- 
-    def from_datastruct(self,seed_data):
-        """
-        Load this object's properties based on seed_data
-        """
-        return utils.from_datastruct_from_fields(self,seed_data,FIELDS)
-
     def set_arch(self,arch):
         """
         The field is mainly relevant to PXE provisioning.
@@ -201,17 +183,4 @@ class Image(item.Item):
         Return object next highest up the tree.
         """
         return None  # no parent
-
-    def to_datastruct(self):
-        return utils.to_datastruct_from_fields(self,FIELDS)
-
-    def printable(self):
-        """
-        A human readable representaton
-        """
-        return utils.printable_from_fields(self,FIELDS)
-  
-    def remote_methods(self):
-        return utils.get_remote_methods_from_fields(self,FIELDS)
-
 
