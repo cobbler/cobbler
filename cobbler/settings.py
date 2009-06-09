@@ -116,9 +116,9 @@ DEFAULTS = {
     "webdir"                      : "/var/www/cobbler",
     "xmlrpc_port"                 : 25151,
     "yum_post_install_mirror"     : 1,
-    "yumcreaterepo_flags"         : "-c cache",
+    "createrepo_flags"            : "-c cache",
     "yumdownloader_flags"         : "--resolve",
-    "yumreposync_flags"           : "-l -m -d"
+    "reposync_flags"              : "-l -m -d"
 }
 
 

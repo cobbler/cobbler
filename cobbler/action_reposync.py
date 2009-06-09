@@ -52,6 +52,7 @@ class RepoSync:
         Constructor
         """
         self.verbose   = True
+        self.api       = config.api
         self.config    = config
         self.distros   = config.distros()
         self.profiles  = config.profiles()
@@ -172,13 +173,19 @@ class RepoSync:
                         createrepo_ver = createrepo_check.communicate()[0]
                         if createrepo_ver >= "0.9.7":
                             mdoptions.append("--deltas")
+                        else:
+                            raise InfoException("this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 first and then need to resync the repo through cobbler.")
 
+            blended = utils.blender(self.api, False, repo)
+            flags = blended.get("createrepo_flags","(ERROR: FLAGS)")
             try:
-                cmd = "createrepo %s %s %s" % (" ".join(mdoptions), repo.createrepo_flags, dirname)
+                # BOOKMARK
+                cmd = "createrepo %s %s %s" % (" ".join(mdoptions), flags, dirname)
                 print _("- %s") % cmd
                 sub_process.call(cmd, shell=True, close_fds=True)
             except:
-                print _("- createrepo failed.  Is it installed?")
+                traceback.print_exc()
+                print _("- createrepo failed.")
             del fnames[:] # we're in the right place
 
     # ====================================================================================
