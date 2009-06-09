@@ -55,6 +55,7 @@ DEFAULTS = {
     "dhcpd_conf"                  : "/etc/dhcpd.conf",
     "dhcpd_bin"                   : "/usr/sbin/dhcpd",
     "dhcpd_init"                  : "dhcpd",
+    "discover_repodata"           : 1,
     "dnsmasq_bin"                 : "/usr/sbin/dnsmasq",
     "dnsmasq_conf"                : "/etc/dnsmasq.conf",
     "enable_menu"                 : 1,
