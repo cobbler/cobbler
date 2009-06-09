@@ -133,7 +133,6 @@ if __name__ == "__main__":
                 packages = [
                     "cobbler",
                     "cobbler/modules", 
-                    "cobbler/server", 
                     "cobbler/webui",
                 ],
                 scripts = [

@@ -5,6 +5,7 @@ Cobbler CHANGELOG
 - (NOTE: koan changelog in subdirectory is no longer maintained)
 - (BUGF) fix error message when wrong virt ram value is applied
 - (FEAT) koan now partially works in source code form on EL 2
+- (BUGF) Satellite also has a python module named "server" so we have to remove ours for Python imports.  This code was not used anyway.
 
 - - 1.6.5
 - (BUGF) don't use json on python x<=2.3 since we know it's simplejson x<2.0, which has unicode issues
