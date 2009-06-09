@@ -226,6 +226,15 @@ class CobblerXMLRPCInterface:
                 'items_per_page_list' : [10,20,50,100,200,500],
         })
 
+    def __get_object(self, object_id):
+        """
+        Helper function. Given an object id, return the actual object.
+        """
+        if object_id.startswith("___NEW___"):
+           return self.object_cache[object_id][1]
+        (otype, oname) = object_id.split("::",1)
+        return self.api.get_item(otype,oname)
+
     def get_item(self, what, name, flatten=False):
         """
         Returns a hash describing a given object.
@@ -241,6 +250,19 @@ class CobblerXMLRPCInterface:
             item = utils.flatten(item)
         return self.xmlrpc_hacks(item)
 
+    def get_distro(self,name,flatten=False,token=None,**rest):
+        return self.get_item("distro",name,flatten=flatten)
+    def get_profile(self,name,flatten=False,token=None,**rest):
+        return self.get_item("profile",name,flatten=flatten)
+    def get_system(self,name,flatten=False,token=None,**rest):
+        return self.get_item("system",name,flatten=flatten)
+    def get_repo(self,name,flatten=False,token=None,**rest):
+        return self.get_item("repo",name,flatten=flatten)
+    def get_image(self,name,flatten=False,token=None,**rest):
+        return self.get_item("image",name,flatten=flatten)
+    def get_network(self,name,flatten=False,token=None,**rest):
+        return self.get_item("network",name,flatten=flatten)
+
     def get_items(self, what):
         """
         Returns a list of hashes.  
@@ -251,7 +273,20 @@ class CobblerXMLRPCInterface:
         item = [x.to_datastruct() for x in self.api.get_items(what)]
         return self.xmlrpc_hacks(item)
 
-    def find_items(self, what, criteria=None,sort_field=None):
+    def get_distros(self,page=None,results_per_page=None,token=None,**rest):
+        return self.get_items("distro")
+    def get_profiles(self,page=None,results_per_page=None,token=None,**rest):
+        return self.get_items("profile")
+    def get_systems(self,page=None,results_per_page=None,token=None,**rest):
+        return self.get_items("system")
+    def get_repos(self,page=None,results_per_page=None,token=None,**rest):
+        return self.get_items("repo")
+    def get_images(self,page=None,results_per_page=None,token=None,**rest):
+        return self.get_items("image")
+    def get_networks(self,page=None,results_per_page=None,token=None,**rest):
+        return self.get_items("network")
+
+    def find_items(self, what, criteria=None,sort_field=None,expand=True):
         """
         Returns a list of hashes.
         Works like get_items but also accepts criteria as a hash to search on.
@@ -261,8 +296,24 @@ class CobblerXMLRPCInterface:
         self._log("find_items(%s)"%what)
         items = self.api.find_items(what,criteria=criteria)
         items = self.__sort(items,sort_field)
-        items = [x.to_datastruct() for x in items]
+        if not expand:     
+            items = [x.name for x in items]
+        else:
+            items = [x.to_datastruct() for x in items]
         return self.xmlrpc_hacks(items)
+
+    def find_distro(self,criteria={},expand=False,token=None,**rest):
+        return self.find_items("distro",criteria,expand=expand)
+    def find_profile(self,criteria={},expand=False,token=None,**rest):
+        return self.find_items("profile",criteria,expand=expand)
+    def find_system(self,criteria={},expand=False,token=None,**rest):
+        return self.find_items("system",criteria,expand=expand)
+    def find_repo(self,criteria={},expand=False,token=None,**rest):
+        return self.find_items("repo",criteria,expand=expand)
+    def find_image(self,criteria={},expand=False,token=None,**rest):
+        return self.find_items("image",criteria,expand=expand)
+    def find_network(self,criteria={},expand=False,token=None,**rest):
+        return self.find_items("network",criteria,expand=expand)
 
     def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page=None, token=None):
         """
@@ -304,6 +355,19 @@ class CobblerXMLRPCInterface:
         if found is None:
             raise CX("internal error, unknown %s name %s" % (what,name))
         return "%s::%s" % (what,found.name)
+
+    def get_distro_handle(self,name,token):
+        return self.get_item_handle("distro",name,token)
+    def get_profile_handle(self,name,token):
+        return self.get_item_handle("profile",name,token)
+    def get_system_handle(self,name,token):
+        return self.get_item_handle("system",name,token)
+    def get_repo_handle(self,name,token):
+        return self.get_item_handle("repo",name,token)
+    def get_image_handle(self,name,token):
+        return self.get_item_handle("image",name,token)
+    def get_network_handle(self,name,token):
+        return self.get_item_handle("network",name,token)
         
     def remove_item(self,what,name,token,recursive=True):
         """
@@ -420,7 +484,10 @@ class CobblerXMLRPCInterface:
         self._log("modify_item(%s)" % what,object_id=object_id,attribute=attribute,token=token)
         obj = self.__get_object(object_id)
         self.check_access(token, "modify_%s"%what, obj, attribute)
-        return self.__call_method(obj, attribute, arg)
+        method = obj.remote_methods().get(attribute, None)
+        if method == None:
+            raise CX(_("object has no method: %s") % attribute)
+        return method(arg)
     
     def modify_distro(self,object_id,attribute,arg,token):
         return self.modify_item("distro",object_id,attribute,arg,token)
@@ -460,68 +527,6 @@ class CobblerXMLRPCInterface:
         return self.save_item("repo",object_id,token,editmode=editmode)
     def save_network(self,object_id,token,editmode="bypass"):
         return self.save_item("network",object_id,token,editmode=editmode)
-
-    def get_size(self,collection_name,**rest):
-        """
-        Returns the number of entries in a collection (but not the actual
-        collection) for WUI/TUI interfaces that want to paginate the results.
-        """
-        data = self.__get_all(collection_name)
-        return len(data)
-
-    def __get_all(self,collection_name,page=None,results_per_page=None):
-        """
-        Helper method to return all data to the WebUI or another caller
-        without going through the process of loading all the data into
-        objects and recalculating.  
-
-        Supports pagination for WUI or TUI based interfaces.
-        """
-
-        # FIXME: a global lock or module around data access loading
-        # would be useful for non-db backed storage
-
-        if collection_name == "settings":
-            data = self.api.deserialize_raw("settings")
-            return self.xmlrpc_hacks(data)
-        else:
-            contents = []
-            if collection_name.startswith("distro"):
-               contents = self.api.distros()
-            elif collection_name.startswith("profile"):
-               contents = self.api.profiles()
-            elif collection_name.startswith("system"):
-               contents = self.api.systems()
-            elif collection_name.startswith("repo"):
-               contents = self.api.repos()
-            elif collection_name.startswith("image"):
-               contents = self.api.images()
-            elif collection_name.startswith("network"):
-               contents = self.api.networks()
-            else:
-               raise CX("internal error, collection name is %s" % collection_name)
-            # FIXME: speed this up
-            data = contents.to_datastruct()
-            total_items = len(data)
-
-        data.sort(self.__sorter)
-
-        if page is not None and results_per_page is not None:
-            page = int(page)
-            results_per_page = int(results_per_page)
-            if page < 0:
-                return []
-            if results_per_page <= 0:
-                return []
-            start_point = (results_per_page * page)
-            end_point   = (results_per_page * page) + results_per_page
-            if start_point > total_items:
-                start_point = total_items - 1 # correct ???
-            if end_point > total_items:
-                end_point = total_items
-            data = self.xmlrpc_hacks(data[start_point:end_point])
-
-        return self.xmlrpc_hacks(data)
 
     def get_kickstart_templates(self,token=None,**rest):
         """
@@ -859,53 +864,6 @@ class CobblerXMLRPCInterface:
         self._log("version",token=token)
         return self.api.version(extended=True)
 
-    def get_distros(self,page=None,results_per_page=None,token=None,**rest):
-        """
-        Returns all cobbler distros as an array of hashes.
-        """
-        self._log("get_distros",token=token)
-        return self.__get_all("distro",page,results_per_page)
-
-
-    def __find(self,find_function,criteria={},expand=False,token=None):
-        name = criteria.get("name",None)
-        if name is not None:
-            del criteria["name"]
-        if not expand:     
-            data = [x.name for x in find_function(name, True, True, **criteria)]
-        else:
-            data = [x.to_datastruct() for x in find_function(name, True, True, **criteria)]
-        return self.xmlrpc_hacks(data)
-
-    def find_distro(self,criteria={},expand=False,token=None,**rest):
-        self._log("find_distro", token=token)
-        # FIXME DEBUG
-        self._log(criteria)
-        data = self.__find(self.api.find_distro,criteria,expand=expand,token=token)
-        # FIXME DEBUG
-        self._log(data)
-        return data
-
-    def find_profile(self,criteria={},expand=False,token=None,**rest):
-        self._log("find_profile", token=token)
-        data = self.__find(self.api.find_profile,criteria,expand=expand,token=token)
-        return data
-
-    def find_system(self,criteria={},expand=False,token=None,**rest):
-        self._log("find_system", token=token)
-        data = self.__find(self.api.find_system,criteria,expand=expand,token=token)
-        return data
-
-    def find_repo(self,criteria={},expand=False,token=None,**rest):
-        self._log("find_repo", token=token)
-        data = self.__find(self.api.find_repo,criteria,expand=expand,token=token)
-        return data
-
-    def find_image(self,criteria={},expand=False,token=None,**rest):
-        self._log("find_image", token=token)
-        data = self.__find(self.api.find_image,criteria,expand=expand,token=token)
-        return data
-
     def get_distros_since(self,mtime):
         """
         Return all of the distro objects that have been modified
@@ -948,34 +906,6 @@ class CobblerXMLRPCInterface:
         """
         data = self.api.get_networks_since(mtime, collapse=True)
 
-    def get_profiles(self,page=None,results_per_page=None,token=None,**rest):
-        """
-        Returns all cobbler profiles as an array of hashes.
-        """
-        self._log("get_profiles",token=token)
-        return self.__get_all("profile",page,results_per_page)
-
-    def get_systems(self,page=None,results_per_page=None,token=None,**rest):
-        """
-        Returns all cobbler systems as an array of hashes.
-        """
-        self._log("get_systems",token=token)
-        return self.__get_all("system",page,results_per_page)
-
-    def get_repos(self,page=None,results_per_page=None,token=None,**rest):
-        """
-        Returns all cobbler repos as an array of hashes.
-        """
-        self._log("get_repos",token=token)
-        return self.__get_all("repo",page,results_per_page)
-
-    def get_networks(self,page=None,results_per_page=None,token=None,**rest):
-        """
-        Returns all cobbler repos as an array of hashes.
-        """
-        self._log("get_networks",token=token)
-        return self.__get_all("network",page,results_per_page)
-   
     def get_repos_compatible_with_profile(self,profile=None,token=None,**rest):
         """
         Get repos that can be used with a given profile name
@@ -1012,53 +942,6 @@ class CobblerXMLRPCInterface:
                       results.append(r)
         return results    
               
-    def get_images(self,page=None,results_per_page=None,token=None,**rest):
-        """
-        Returns all cobbler images as an array of hashes.
-        """
-        self._log("get_images",token=token)
-        return self.__get_all("image",page,results_per_page)
-
-    def __get_specific(self,collection_type,name,flatten=False):
-        """
-        Internal function to return a hash representation of a given object if it exists,
-        otherwise an empty hash will be returned.
-        """
-        result = self.api.deserialize_item_raw(collection_type, name)
-        if result is None:
-            return {}
-        if flatten:
-            result = utils.flatten(result)
-        return self.xmlrpc_hacks(result)
-
-    def get_distro(self,name,flatten=False,token=None,**rest):
-        """
-        Returns the distro named "name" as a hash.
-        """
-        self._log("get_distro",token=token,name=name)
-        return self.__get_specific("distro",name,flatten=flatten)
-
-    def get_profile(self,name,flatten=False,token=None,**rest):
-        """
-        Returns the profile named "name" as a hash.
-        """
-        self._log("get_profile",token=token,name=name)
-        return self.__get_specific("profile",name,flatten=flatten)
-
-    def get_system(self,name,flatten=False,token=None,**rest):
-        """
-        Returns the system named "name" as a hash.
-        """
-        self._log("get_system",name=name,token=token)
-        return self.__get_specific("system",name,flatten=flatten)
-
-    def get_network(self,name,flatten=False,token=None,**rest):
-        """
-        Returns the network named "name" as a hash.
-        """
-        self._log("get_network",name=name,token=token)
-        return self.__get_specific("network",name,flatten=flatten)
-
     # this is used by the puppet external nodes feature
     def find_system_by_dns_name(self,dns_name):
         # FIXME: implement using api.py's find API
@@ -1071,20 +954,6 @@ class CobblerXMLRPCInterface:
                   name = x["name"]
                   return self.get_system_for_koan(name)
         return {}
-
-    def get_repo(self,name,flatten=False,token=None,**rest):
-        """
-        Returns the repo named "name" as a hash.
-        """
-        self._log("get_repo",name=name,token=token)
-        return self.__get_specific("repo",name,flatten=flatten)
-    
-    def get_image(self,name,flatten=False,token=None,**rest):
-        """
-        Returns the repo named "name" as a hash.
-        """
-        self._log("get_image",name=name,token=token)
-        return self.__get_specific("image",name,flatten=flatten)
 
     def get_distro_as_rendered(self,name,token=None,**rest):
         """
@@ -1396,102 +1265,6 @@ class CobblerXMLRPCInterface:
         self._log("hardlink",token=token)
         self.check_access(token,"hardlink")
         return self.api.hardlink()
-
-    def get_distro_handle(self,name,token=None):
-        """
-        Given the name of an distro (or other search parameters), return an
-        object id that can be passed in to modify_distro() or save_distro()
-        commands.  Raises an exception if no object can be matched.
-        """
-        self._log("get_distro_handle",token=token,name=name)
-        found = self.api.find_distro(name)
-        return "distro::%s" % found.name
-
-    def get_profile_handle(self,name,token=None):
-        """
-        Given the name of a profile  (or other search parameters), return an
-        object id that can be passed in to modify_profile() or save_profile()
-        commands.  Raises an exception if no object can be matched.
-        """
-        self._log("get_profile_handle",token=token,name=name)
-        found = self.api.find_profile(name)
-        return "profile::%s" % found.name
-
-    def get_system_handle(self,name,token=None):
-        """
-        Given the name of an system (or other search parameters), return an
-        object id that can be passed in to modify_system() or save_system()
-        commands. Raises an exception if no object can be matched.
-        """
-        self._log("get_system_handle",name=name,token=token)
-        found = self.api.find_system(name)
-        return "system::%s" % found.name
-
-    def get_network_handle(self,name,token=None):
-        """
-        Given the name of an network (or other search parameters), return an
-        object id that can be passed in to modify_network() or save_network()
-        commands. Raises an exception if no object can be matched.
-        """
-        self._log("get_network_handle",name=name,token=token)
-        found = self.api.find_network(name)
-        return "network::%s" % found.name
-
-    def get_repo_handle(self,name,token=None):
-        """
-        Given the name of an repo (or other search parameters), return an
-        object id that can be passed in to modify_repo() or save_repo()
-        commands.  Raises an exception if no object can be matched.
-        """
-        self._log("get_repo_handle",name=name,token=token)
-        found = self.api.find_repo(name)
-        return "repo::%s" % found.name
-
-    def get_image_handle(self,name,token=None):
-        """
-        Given the name of an image (or other search parameters), return an
-        object id that can be passed in to modify_image() or save_image()
-        commands.  Raises an exception if no object can be matched.
-        """
-        self._log("get_image_handle",name=name,token=token)
-        found = self.api.find_image(name)
-        return "image::%s" % found.name
-
-    # FIXME:
-    # def save_distro(self,object_id,token,editmode="bypass"):
-    # def modify_distro(self,object_id,attribute,arg,token):
-
-    def __get_object(self, object_id):
-        """
-        Helper function. Given an object id, return the actual object.
-        """
-        if object_id.startswith("___NEW___"):
-           return self.object_cache[object_id][1]
-        (otype, oname) = object_id.split("::",1)
-        if otype == "distro":
-           return self.api.find_distro(oname)
-        elif otype == "profile":
-           return self.api.find_profile(oname)
-        elif otype == "system":
-           return self.api.find_system(oname)
-        elif otype == "repo":
-           return self.api.find_repo(oname)
-        elif otype == "image":
-           return self.api.find_image(oname)
-        elif otype == "network":
-           return self.api.find_network(oname)
-        else:
-           return "invalid"
-
-    def __call_method(self, obj, attribute, arg):
-        """
-        Internal function used by the modify routines.
-        """
-        method = obj.remote_methods().get(attribute, None)
-        if method == None:
-            raise CX(_("object has no method: %s") % attribute)
-        return method(arg)
-
 
     def read_or_write_kickstart_template(self,kickstart_file,is_read,new_data,token):
         """

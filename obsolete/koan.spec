@@ -9,7 +9,6 @@ License: GPLv2+
 Group: Applications/System
 Requires: mkinitrd
 Requires: python >= 1.5
-Requires: python-urlgrabber
 BuildRequires: python-devel
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
@@ -17,7 +16,8 @@ Requires: python(abi)=%{pyver}
 %endif
 %if 0%{?fedora} >= 8
 BuildRequires: python-setuptools-devel
-%else
+%endif
+%if 0%{?rhel} >= 4
 BuildRequires: python-setuptools
 %endif
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot

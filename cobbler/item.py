@@ -249,7 +249,6 @@ class Item(serializable.Serializable):
     def find_match(self,kwargs,no_errors=False):
         # used by find() method in collection.py
         data = self.to_datastruct()
-        self.log_func("kwargs: %s" % kwargs)
         for (key, value) in kwargs.iteritems():
             # Allow ~ to negate the compare
             if value is not None and value.startswith("~"):
