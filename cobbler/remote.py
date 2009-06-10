@@ -49,6 +49,8 @@ import item_network
 from utils import *
 from utils import _
 
+import sub_process
+
 # FIXME: make configurable?
 TOKEN_TIMEOUT = 60*60 # 60 minutes
 CACHE_TIMEOUT = 10*60 # 10 minutes
@@ -57,6 +59,13 @@ CACHE_TIMEOUT = 10*60 # 10 minutes
 TASK_STARTED  = "started"
 TASK_COMPLETE = "complete"
 TASK_FAILED   = "failed"
+
+class CobblerThread(Thread):
+    def __init__(self,task_id,remote,args):
+        Thread.__init__(self)
+        self.task_id  = task_id
+        self.remote   = remote
+        self.args     = args
 
 # *********************************************************************
 # *********************************************************************
@@ -84,33 +93,64 @@ class CobblerXMLRPCInterface:
         random.seed(time.time())
 
     def background_sync(self, token):
-
-        class SyncThread(Thread):
-            def __init__(self,task_id,remote):
-                Thread.__init__(self)
-                self.task_id  = task_id
-                self.remote = remote
+        class SyncThread(CobblerThread):
             def run(self):
                 try:
                     self.remote.api.sync()
                     self.remote._finish_task(self.task_id, True)
                 except:
+                    traceback.print_exc() # to log file
                     self.remote._finish_task(self.task_id, False)
 
         self.check_access(token, "sync")
-        id = self.__start_task(SyncThread, "Background sync") 
+        id = self.__start_task(SyncThread, "Background sync", []) 
+        return id
+
+
+    def background_reposync(self, repos, tries, token):
+        class RepoSyncThread(CobblerThread):
+            def run(self):
+                print "reposync a"
+                repos = self.args[0]
+                tries = self.args[1]
+                print "reposync b"
+                try:
+                    for name in repos:
+                        print "reposync c"
+                        sub_process.call(["/bin/echo","Hello thread"])
+                        #self.remote.api.reposync(tries=tries, name=name, nofail=True)
+                    print "reposync d"
+                    self.remote._finish_task(self.task_id, True)
+                except:
+                    print "reposync e"
+                    traceback.print_exc() # to log file
+                    self.remote._finish_task(self.task_id, False)
+
+        self.check_access(token, "reposync")
+        id = self.__start_task(RepoSyncThread, "Background reposync", [repos, tries])
         return id
 
     def get_tasks(self):
         # FIXME:
         return self.tasks
 
-    def __start_task(self, thr_obj, name):
+    def __start_task(self, thr_obj, name, args):
         id = self.next_task_id
         self.next_task_id = self.next_task_id + 1
         self.tasks[id] = [ time.time(), name, TASK_STARTED ]
-        thr = thr_obj(id,self)
-        thr.run()
+        thr = thr_obj(id,self,args)
+
+        fdh = open("/var/log/cobbler/tasks/%s.log" % id, "w+")
+        fdh.write("Task log: %s\n" % id)
+        fdh.close()
+        saveout = sys.stdout
+        saveerr = sys.stderr 
+        sys.stdout = open("/var/log/cobbler/tasks/%s.log" % id, "a")
+        sys.stderr = sys.stdout
+        thr.setDaemon(True)
+        thr.start()
+        sys.stdout = saveout
+        sys.stderr = saveerr
         return id
 
     def _finish_task(self,task_id,ok):
