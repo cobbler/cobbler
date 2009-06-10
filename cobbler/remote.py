@@ -83,7 +83,7 @@ class CobblerXMLRPCInterface:
         self.next_task_id = 0
         random.seed(time.time())
 
-    def background_sync(self):
+    def background_sync(self, token):
 
         class SyncThread(Thread):
             def __init__(self,task_id,remote):
@@ -97,6 +97,7 @@ class CobblerXMLRPCInterface:
                 except:
                     self.remote._finish_task(self.task_id, False)
 
+        self.check_access(token, "sync")
         id = self.__start_task(SyncThread, "Background sync") 
         return id
 
