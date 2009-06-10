@@ -26,6 +26,7 @@ import time
 import os
 import base64
 import SimpleXMLRPCServer
+from SocketServer import ThreadingMixIn
 import xmlrpclib
 import random
 import stat
@@ -37,6 +38,7 @@ import glob
 import sub_process as subprocess
 from threading import Thread
 
+# import pdb # FIXME: testing only
 import api as cobbler_api
 import utils
 from cexceptions import *
@@ -117,8 +119,8 @@ class CobblerXMLRPCInterface:
                 try:
                     for name in repos:
                         print "reposync c"
-                        sub_process.call(["/bin/echo","Hello thread"])
-                        #self.remote.api.reposync(tries=tries, name=name, nofail=True)
+                        #sub_process.call(["/bin/echo","Hello thread"])
+                        self.remote.api.reposync(tries=tries, name=name, nofail=True)
                     print "reposync d"
                     self.remote._finish_task(self.task_id, True)
                 except:
@@ -1497,7 +1499,7 @@ class CobblerXMLRPCInterface:
 # *********************************************************************************
 # *********************************************************************************
 
-class CobblerXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
+class CobblerXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer.SimpleXMLRPCServer):
     def __init__(self, args):
         self.allow_reuse_address = True
         SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self,args)
