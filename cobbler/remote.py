@@ -142,17 +142,12 @@ class CobblerXMLRPCInterface:
         self.tasks[id] = [ time.time(), name, TASK_STARTED ]
         thr = thr_obj(id,self,args)
 
-        fdh = open("/var/log/cobbler/tasks/%s.log" % id, "w+")
-        fdh.write("Task log: %s\n" % id)
-        fdh.close()
-        saveout = sys.stdout
-        saveerr = sys.stderr 
-        sys.stdout = open("/var/log/cobbler/tasks/%s.log" % id, "a")
-        sys.stderr = sys.stdout
+        #fdh = open("/var/log/cobbler/tasks/%s.log" % id, "w+")
+        #fdh.write("Task log: %s\n" % id)
+        #fdh.close()
+        # open("/var/log/cobbler/tasks/%s.log" % id, "a")
         thr.setDaemon(True)
         thr.start()
-        sys.stdout = saveout
-        sys.stderr = saveerr
         return id
 
     def _finish_task(self,task_id,ok):
