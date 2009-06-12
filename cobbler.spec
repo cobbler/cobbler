@@ -6,7 +6,6 @@ Name: cobbler
 AutoReq: no
 Version: 1.6.6
 Release: 1%{?dist}
-ExclusiveArch: %{ix86} x86_64 ppc ppc64 s390x
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 Group: Applications/System
