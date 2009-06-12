@@ -1,7 +1,7 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 %define _binaries_in_noarch_packages_terminate_build 0
-
+%global debug_package %{nil}
 Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
