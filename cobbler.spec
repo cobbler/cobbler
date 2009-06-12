@@ -8,8 +8,8 @@ License: GPLv2+
 AutoReq: no
 Version: 1.7.0
 Release: 1%{?dist}
-ExclusiveArch: %{ix86} x86_64 ppc ppc64 s390x
 Source0: cobbler-%{version}.tar.gz
+License: GPLv2+
 Group: Applications/System
 
 Requires: python >= 2.3
