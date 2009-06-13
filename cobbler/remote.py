@@ -26,6 +26,7 @@ import time
 import os
 import base64
 import SimpleXMLRPCServer
+from SocketServer import ThreadingMixIn
 import xmlrpclib
 import random
 import stat
@@ -35,7 +36,9 @@ import string
 import traceback
 import glob
 import sub_process as subprocess
+from threading import Thread
 
+# import pdb # FIXME: testing only
 import api as cobbler_api
 import utils
 from cexceptions import *
@@ -48,9 +51,23 @@ import item_network
 from utils import *
 from utils import _
 
+import sub_process
+
 # FIXME: make configurable?
 TOKEN_TIMEOUT = 60*60 # 60 minutes
 CACHE_TIMEOUT = 10*60 # 10 minutes
+
+# task codes
+TASK_STARTED  = "started"
+TASK_COMPLETE = "complete"
+TASK_FAILED   = "failed"
+
+class CobblerThread(Thread):
+    def __init__(self,task_id,remote,args):
+        Thread.__init__(self)
+        self.task_id  = task_id
+        self.remote   = remote
+        self.args     = args
 
 # *********************************************************************
 # *********************************************************************
@@ -73,7 +90,90 @@ class CobblerXMLRPCInterface:
         self.token_cache = {}
         self.object_cache = {}
         self.timestamp = self.api.last_modified_time()
+        self.tasks = {}
+        self.next_task_id = 0
         random.seed(time.time())
+
+    def background_sync(self, token):
+        class SyncThread(CobblerThread):
+            def run(self):
+                try:
+                    self.remote.api.sync()
+                    self.remote._finish_task(self.task_id, True)
+                except:
+                    traceback.print_exc() # to log file
+                    self.remote._finish_task(self.task_id, False)
+
+        self.check_access(token, "sync")
+        id = self.__start_task(SyncThread, "Background sync", []) 
+        return id
+
+
+    def background_reposync(self, repos, tries, token):
+        class RepoSyncThread(CobblerThread):
+            def run(self):
+                print "reposync a"
+                repos = self.args[0]
+                tries = self.args[1]
+                print "reposync b"
+                try:
+                    for name in repos:
+                        print "reposync c"
+                        #sub_process.call(["/bin/echo","Hello thread"])
+                        self.remote.api.reposync(tries=tries, name=name, nofail=True)
+                    print "reposync d"
+                    self.remote._finish_task(self.task_id, True)
+                except:
+                    print "reposync e"
+                    traceback.print_exc() # to log file
+                    self.remote._finish_task(self.task_id, False)
+
+        self.check_access(token, "reposync")
+        id = self.__start_task(RepoSyncThread, "Background reposync", [repos, tries])
+        return id
+
+    def get_tasks(self):
+        # FIXME:
+        return self.tasks
+
+    def __start_task(self, thr_obj, name, args):
+        id = self.next_task_id
+        self.next_task_id = self.next_task_id + 1
+        self.tasks[id] = [ time.time(), name, TASK_STARTED ]
+        thr = thr_obj(id,self,args)
+
+        #fdh = open("/var/log/cobbler/tasks/%s.log" % id, "w+")
+        #fdh.write("Task log: %s\n" % id)
+        #fdh.close()
+        # open("/var/log/cobbler/tasks/%s.log" % id, "a")
+        thr.setDaemon(True)
+        thr.start()
+        return id
+
+    def _finish_task(self,task_id,ok):
+        if ok:
+            self.tasks[task_id][2] = TASK_COMPLETE
+        else:
+            self.tasks[task_id][2] = TASK_FAILED
+
+
+    def get_task_log_data(id):
+        id = int(id) # force safe values
+        path = "/var/log/cobbler/tasks/%s" % id
+        if os.path.exists(path):
+            fd = open(path)
+            data = fd.read()
+            fd.close()
+        else:
+            data = "No log data exists for task %s" % id
+        return data
+
+    def get_task_status(self, id):
+        if self.tasks.has_key(id):
+            return self.tasks[id]
+        else:
+            raise CX("no task with that id")
+        
 
     def __sorter(self,a,b):
         """
@@ -1107,6 +1207,7 @@ class CobblerXMLRPCInterface:
     def __invalidate_expired_tokens(self):
         """
         Deletes any login tokens that might have expired.
+        Also removes expired tasks
         """
         timenow = time.time()
         for token in self.token_cache.keys():
@@ -1119,6 +1220,15 @@ class CobblerXMLRPCInterface:
             (tokentime, entry) = self.object_cache[oid]
             if (timenow > tokentime + CACHE_TIMEOUT):
                 del self.object_cache[oid]
+        #for ids in self.tasks.keys()
+        #    (tasktime, name, status) = self.tasks[id]
+        #    if status in [ TASK_COMPLETE, TASK_FAILED ]:
+        #        if (timenow > tasktime) 
+        #        filename = "/var/log/cobbler/tasks/%s.log" % ids
+        #        if os.path.exists(filename):
+        #            os.remove(filename)
+            
+
 
     def __validate_user(self,input_user,input_password):
         """
@@ -1384,7 +1494,7 @@ class CobblerXMLRPCInterface:
 # *********************************************************************************
 # *********************************************************************************
 
-class CobblerXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
+class CobblerXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer.SimpleXMLRPCServer):
     def __init__(self, args):
         self.allow_reuse_address = True
         SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self,args)

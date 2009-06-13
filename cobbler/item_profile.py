@@ -64,25 +64,11 @@ class Profile(item.Item):
 
     TYPE_NAME = _("profile")
     COLLECTION_TYPE = "profile"
+
+    def get_fields(self):
+        return FIELDS
+
  
-    def make_clone(self):
-        ds = self.to_datastruct()
-        cloned = Profile(self.config)
-        cloned.from_datastruct(ds)
-        return cloned
-
-    def clear(self,is_subobject=False):
-        """
-        Reset this object.
-        """
-        utils.clear_from_fields(self,FIELDS)
-
-    def from_datastruct(self,seed_data):
-        """
-        Load this object's properties based on seed_data
-        """
-        return utils.from_datastruct_from_fields(self,seed_data,FIELDS)
-
     def set_parent(self,parent_name):
         """
         Instead of a --distro, set the parent of this object to another profile
@@ -211,15 +197,6 @@ class Profile(item.Item):
         else:
             result = self.config.profiles().find(name=self.parent)
         return result
-
-    def to_datastruct(self):
-        return utils.to_datastruct_from_fields(self,FIELDS)
-
-    def printable(self):
-        return utils.printable_from_fields(self,FIELDS)
-  
-    def remote_methods(self):
-        return utils.get_remote_methods_from_fields(self,FIELDS)
 
     def check_if_valid(self):
         if self.name is None or self.name == "":

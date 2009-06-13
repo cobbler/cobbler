@@ -54,17 +54,8 @@ class Repo(item.Item):
     TYPE_NAME = _("repo")
     COLLECTION_TYPE = "repo"
 
-    def make_clone(self):
-        ds = self.to_datastruct()
-        cloned = Repo(self.config)
-        cloned.from_datastruct(ds)
-        return cloned
-
-    def clear(self,is_subobject=False):
-        utils.clear_from_fields(self,FIELDS)
-
-    def from_datastruct(self,seed_data):
-        return utils.from_datastruct_from_fields(self,seed_data,FIELDS)
+    def get_fields(self):
+        return FIELDS
 
     def _guess_breed(self):
         # backwards compatibility
@@ -183,12 +174,6 @@ class Repo(item.Item):
         self.mirror_locally = utils.input_boolean(value)
         return True
 
-    def to_datastruct(self):
-        return utils.to_datastruct_from_fields(self,FIELDS)
-
-    def printable(self):
-        return utils.printable_from_fields(self,FIELDS)
-
     def get_parent(self):
         """
         currently the Cobbler object space does not support subobjects of this object
@@ -196,7 +181,10 @@ class Repo(item.Item):
         """
         return None
 
-    def remote_methods(self):
-        return utils.get_remote_methods_from_fields(self,FIELDS)
+    def check_if_valid(self):
+        if self.name is None:
+            raise CX("name is required")
+        if self.mirror is None:
+            raise CX("mirror is required")
 
 

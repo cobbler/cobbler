@@ -1,15 +1,15 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 %define _binaries_in_noarch_packages_terminate_build 0
-
+%global debug_package %{nil}
 Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
 Version: 1.7.0
 Release: 1%{?dist}
-ExclusiveArch: %{ix86} x86_64 ppc ppc64 s390x
 Source0: cobbler-%{version}.tar.gz
+License: GPLv2+
 Group: Applications/System
 
 Requires: python >= 2.3

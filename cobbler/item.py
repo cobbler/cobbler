@@ -62,11 +62,35 @@ class Item(serializable.Serializable):
         self.last_cached_mtime = 0
         self.cached_datastruct = ""
 
+    def clear(self,is_subobject=False):
+        """
+        Reset this object.
+        """
+        utils.clear_from_fields(self,self.get_fields(),is_subobject=is_subobject)
+
+    def make_clone(self):
+        ds = self.to_datastruct()
+        cloned = Distro(self.config)
+        cloned.from_datastruct(ds)
+        return cloned
+
+    def from_datastruct(self,seed_data):
+        """
+        Modify this object to take on values in seed_data
+        """
+        return utils.from_datastruct_from_fields(self,seed_data,self.get_fields())
+
+    def to_datastruct(self):
+        return utils.to_datastruct_from_fields(self,self.get_fields())
+
+    def printable(self):
+        return utils.printable_from_fields(self,self.get_fields())
+
+    def remote_methods(self):
+        return utils.get_remote_methods_from_fields(self,self.get_fields())
+
     def set_uid(self,uid):
         self.uid = uid
-
-    def clear(self):
-        raise exceptions.NotImplementedError
 
     def get_children(self,sorted=True):
         """
@@ -235,13 +259,6 @@ class Item(serializable.Serializable):
                 self.template_files = value
             return True
 
-    def to_datastruct(self):
-        """
-	Returns an easily-marshalable representation of the collection.
-	i.e. dictionaries/arrays/scalars.
-	"""
-        raise exceptions.NotImplementedError
-
     def sort_key(self,sort_fields=[]):
         data = self.to_datastruct()
         return [data.get(x,"") for x in sort_fields]
@@ -328,59 +345,12 @@ class Item(serializable.Serializable):
                 
             raise CX(_("find cannot compare type: %s") % type(from_obj)) 
 
-
     def dump_vars(self,data,format=True):
         raw = utils.blender(self.config.api, False, self)
         if format:
             return pprint.pformat(raw)
         else:
             return raw
-
-
-    def to_datastruct(self):
-        data={}
-        for field_key in self.get_field_info().keys():
-            data[field_key]=getattr(self,field_key)
-        return data
-
-    def printable(self,nice_headers=False):
-        buf=""
-        field_info_dict=self.get_field_info()
-        field_info_keys=field_info_dict.keys()
-        field_info_keys.sort()
-        for field_key in field_info_keys:
-            field_info=field_info_dict[field_key]
-            field_value=getattr(self,field_key)
-            if field_info["input_type"]=='dict':
-                buf+=_("%s {\n" % (field_info["header"]))
-                field_value_keys=field_value.keys()
-                field_value_keys.sort()
-                for subfield_key in field_value_keys:
-                    subfield_dict=field_value[subfield_key]
-                    if field_info.has_key("fields"):
-                        buf+=_("  %s {\n" % (subfield_key))
-                        subfield_keys=field_info["fields"].keys()
-                        subfield_keys.sort()
-                        for subfield_key in subfield_keys:
-                            subfield_info=field_info["fields"][subfield_key]
-                            if subfield_key!="key":
-                                subfield_value=subfield_dict.get(subfield_key,'')
-                                if nice_headers:
-                                    prefix=subfield_info["header"]
-                                else:
-                                    prefix=subfield_key
-                                buf+=_("    %-20s : %s\n" % (prefix, subfield_value))
-                        buf+=_("  }\n")
-                    else:
-                        buf+=_("  {%s}\n" % utils.hash_to_string(subfield_dict))
-                buf+=_("}\n")
-            else:
-                if nice_headers:
-                    prefix=field_info["header"]
-                else:
-                    prefix=field_key
-                buf+=_("%-30s : %s\n" % (prefix, field_value))
-        return buf
 
     def set_depth(self,depth):
         self.depth = depth

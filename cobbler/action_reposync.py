@@ -27,6 +27,11 @@ import time
 import yaml # Howell-Clark version
 import sub_process
 import sys
+HAS_YUM = True
+try:
+    import yum
+except:
+    HAS_YUM = False
 
 import utils
 from cexceptions import *
@@ -47,6 +52,7 @@ class RepoSync:
         Constructor
         """
         self.verbose   = True
+        self.api       = config.api
         self.config    = config
         self.distros   = config.distros()
         self.profiles  = config.profiles()
@@ -149,12 +155,37 @@ class RepoSync:
         """
         if os.path.exists(dirname) or repo['breed'] == 'rsync':
             utils.remove_yum_olddata(dirname)
+
+            # add any repo metadata we can use
+            mdoptions = []
+            if os.path.isfile("%s/repodata/repomd.xml" % (dirname)):
+                if not HAS_YUM:
+                   raise InfoException("yum is required to use this feature")
+
+                rmd = yum.repoMDObject.RepoMD('', "%s/repodata/repomd.xml" % (dirname))
+                if rmd.repoData.has_key("group"):
+                    groupmdfile = rmd.getData("group").location[1]
+                    mdoptions.append("-g %s" % groupmdfile)
+                if rmd.repoData.has_key("prestodelta"):
+                    # need createrepo >= 0.9.7 to add deltas
+                    if utils.check_dist() == "redhat" or utils.check_dist() == "suse":
+                        createrepo_check = sub_process.Popen("/usr/bin/rpmquery --queryformat=%{VERSION} createrepo", shell=True, close_fds=True, stdout=sub_process.PIPE)
+                        createrepo_ver = createrepo_check.communicate()[0]
+                        if createrepo_ver >= "0.9.7":
+                            mdoptions.append("--deltas")
+                        else:
+                            raise InfoException("this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 first and then need to resync the repo through cobbler.")
+
+            blended = utils.blender(self.api, False, repo)
+            flags = blended.get("createrepo_flags","(ERROR: FLAGS)")
             try:
-                cmd = "createrepo %s %s" % (repo.createrepo_flags, dirname)
+                # BOOKMARK
+                cmd = "createrepo %s %s %s" % (" ".join(mdoptions), flags, dirname)
                 print _("- %s") % cmd
                 sub_process.call(cmd, shell=True, close_fds=True)
             except:
-                print _("- createrepo failed.  Is it installed?")
+                traceback.print_exc()
+                print _("- createrepo failed.")
             del fnames[:] # we're in the right place
 
     # ====================================================================================
@@ -350,18 +381,27 @@ class RepoSync:
         if not os.path.exists("/usr/bin/wget"):
             raise CX(_("no /usr/bin/wget found, please install wget"))
 
-        cmd2 = "/usr/bin/wget -q %s/repodata/comps.xml -O /dev/null" % (repo_mirror)
+        # grab repomd.xml and use it to download any metadata we can use
+        cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O /dev/null" % (repo_mirror)
         rc = sub_process.call(cmd2, shell=True, close_fds=True)
         if rc == 0:
             if not os.path.isdir(repodata_path):
                 os.makedirs(repodata_path)
-
-            cmd2 = "/usr/bin/wget -q %s/repodata/comps.xml -O %s/comps.xml" % (repo_mirror, repodata_path)
+            cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O %s/repomd.xml" % (repo_mirror, repodata_path)
             print _("- %s") % cmd2
-
             rc = sub_process.call(cmd2, shell=True, close_fds=True)
             if rc !=0:
                 raise CX(_("wget failed"))
+            rmd = yum.repoMDObject.RepoMD('', "%s/repomd.xml" % (repodata_path))
+            for mdtype in rmd.repoData.keys():
+                # don't download metadata files that are created by default
+                if mdtype not in ["primary", "primary_db", "filelists", "filelists_db", "other", "other_db"]:
+                    mdfile = rmd.getData(mdtype).location[1]
+                    cmd3 = "/usr/bin/wget -q %s/%s -O %s/%s" % (repo_mirror, mdfile, dest_path, mdfile)
+                    print _("- %s") % cmd3
+                    rc = sub_process.call(cmd3, shell=True, close_fds=True)
+                    if rc !=0:
+                        raise CX(_("wget failed"))
 
         # now run createrepo to rebuild the index
         # only needed if we didn't use yum's reposync already.

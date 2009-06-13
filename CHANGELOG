@@ -1,6 +1,6 @@
 Cobbler CHANGELOG
 
-- TBD 2009 - 1.7.0
+- TBD 2009 - for 2.0 release
 - Development release start
 - (FEAT) network objects
 - (FEAT) add two new default flags to yum reposync (-m and -d) for grabbing comps automatically and also deleting duplicate RPMs
@@ -27,6 +27,7 @@ Cobbler CHANGELOG
 - (BUGF) don't run createrepo on reposync'd repos, it is redundant
 - (BUGF) fix error message when wrong virt ram value is applied
 - (FEAT) koan now partially works in source code form on EL 2
+- (FEAT) discover repomd filenames (for F11 and later)
 
 - ... - 1.6.5
 - (BUGF) don't use json on python x<=2.3 since we know it's simplejson x<2.0, which has unicode issues
