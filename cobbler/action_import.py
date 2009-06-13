@@ -274,7 +274,9 @@ class Importer:
                      if rpm.find("notes") != -1:
                          continue
                      results = importer.scan_pkg_filename(rpm)
+                     # FIXME : If os is not found on tree but set with CLI, no kickstart is searched
                      if results is None:
+                         print _("- No version found on imported tree")
                          continue
                      (flavor, major, minor) = results
                      # print _("- finding default kickstart template for %(flavor)s %(major)s") % { "flavor" : flavor, "major" : major }
@@ -309,7 +311,11 @@ class Importer:
 
        if self.network_root is None:
            if distro.breed == "debian" or distro.breed == "ubuntu":
-               tree = "http://@@http_server@@/cblr/repo_mirror/%s" % (distro.name)
+               dists_path = os.path.join( self.path , "dists" )
+               if os.path.isdir( dists_path ):
+                   tree = "http://@@http_server@@/cblr/ks_mirror/%s" % (self.mirror_name)
+               else:
+                   tree = "http://@@http_server@@/cblr/repo_mirror/%s" % (distro.name)
            else:
                dest_link = os.path.join(self.settings.webdir, "links", distro.name)
                # create the links directory only if we are mirroring because with
@@ -370,7 +376,9 @@ class Importer:
                top = importer.get_rootdir()
                print _("- descent into %s") % top
                if distro.breed in [ "debian" , "ubuntu" ]:
-                   importer.process_repos( self , distro )
+                   dists_path = os.path.join( self.path , "dists" )
+                   if not os.path.isdir( dists_path ):
+                       importer.process_repos( self , distro )
                else:
                    # FIXME : The location of repo definition is known from breed
                    os.path.walk(top, self.repo_scanner, distro)
@@ -1141,6 +1149,9 @@ class DebianImporter ( BaseImporter ) :
               accum.append(val)
           except:
               pass
+       # Safeguard for non-guessable versions
+       if not accum:
+          return None
        accum.append(0)
 
        return (None, accum[0], accum[1])
@@ -1204,38 +1215,23 @@ class UbuntuImporter ( DebianImporter ) :
        DebianImporter.__init__(self,(rootdir,pkgdir))
        self.breed = "ubuntu"
 
-   def scan_pkg_filename(self, deb):
-
-       deb = os.path.basename(deb)
-       print "- processing deb : %s" % deb
-
-       # get all the tokens and try to guess a version
-       accum = []
-       tokens = deb.split("_")
-       tokens2 = tokens[1].split(".")
-       for t2 in tokens2:
-          try:
-              val = int(t2)
-              accum.append(val)
-          except:
-              pass
-       # FIXME : These three lines are the only ones that differ on ubuntu, and actually they filter out the underlying debian version
-       if deb.lower().find("ubuntu") != -1:
-          accum.pop(0)
-          accum.pop(0)
-       if not accum:
-           accum.extend( tokens2[2:] )
-       accum.append(0)
-
-       return (None, accum[0], accum[1])
+   def get_release_files(self):
+       if not self.get_pkgdir():
+           return []
+       return glob.glob(os.path.join(self.get_pkgdir(), "main/u/ubuntu-docs" , "ubuntu-docs_*"))
 
    def set_variance(self, flavor, major, minor, arch):
   
        # Release names taken from wikipedia
-       dist_names = { '4.10':"WartyWarthog", '5.4':"HoaryHedgehog", '5.10':"BreezyBadger", '6.4':"DapperDrake", '6.10':"EdgyEft", '7.4':"FeistyFawn", '7.10':"GutsyGibbon", '8.4':"HardyHeron", '8.10':"IntrepidIbex", '9.4':"JauntyJackalope" }
+       dist_names = { '6.4':"dapper", '8.4':"hardy", '8.10':"intrepid", '9.4':"jaunty" }
        dist_vers = "%s.%s" % ( major , minor )
        if not dist_names.has_key( dist_vers ):
            dist_names['4ubuntu2.0'] = "IntrepidIbex"
        os_version = dist_names[dist_vers]
 
        return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
+
+   def process_repos(self, main_importer, distro):
+
+       pass
+
