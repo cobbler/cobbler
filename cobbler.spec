@@ -9,7 +9,6 @@ AutoReq: no
 Version: 1.7.0
 Release: 1%{?dist}
 Source0: cobbler-%{version}.tar.gz
-License: GPLv2+
 Group: Applications/System
 
 Requires: python >= 2.3
