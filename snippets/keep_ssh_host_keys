@@ -10,11 +10,10 @@ insmod /lib/ext3.o
 
 mkdir -p /tmp/ssh
 
-drives=$(list-harddrives | awk '{print $1}')
-for disk in $drives; do
-    DISKS="$DISKS $(fdisk -l /dev/$disk | awk '/^\/dev/{print $1}')"
-done
-
+DISKS=$(awk '{if ($NF ~ "^[a-zA-Z].*[0-9]$" && $NF !~ "c[0-9]+d[0-9]+$") print "/dev/"$NF}'  /proc/partitions)
+# In the awk line above we want to make list of partitions, but not devices/controllers
+# cciss raid controllers have partitions like /dev/cciss/cNdMpL, where N,M,L - some digits, we want to make sure 'pL' is there
+# 
 # Try to find the keys on ordinary partitions
 for disk in $DISKS; do
     name=$(basename $disk)
@@ -32,6 +31,28 @@ for disk in $DISKS; do
     umount /tmp/$name
     rm -r /tmp/$name
 done
+
+# Try software RAID
+if [ "$keys_found" = "no" ]; then
+  if mdadm -As; then
+      RDISKS="$(awk '/md/{print $1}' /proc/mdstat)"
+      for rdisk in $RDISKS; do
+          mkdir -p /tmp/$rdisk
+          mount /dev/$rdisk /tmp/$rdisk
+          [ $? -eq 0 ] || continue # Skip to the next partition if the mount fails
+          # Copy current ssh host keys out to be reused
+          if [ -d /tmp/${rdisk}/etc/ssh ]; then
+            cp -a /tmp/${rdisk}/etc/ssh/ssh_host* /tmp/ssh
+            keys_found="yes"
+            umount /tmp/$rdisk
+            break
+          fi
+          umount /tmp/$rdisk
+	  rm -r /tmp/$rdisk
+      done
+  fi
+fi
+
 
 # Try LVM if that didn't work
 if [ "$keys_found" = "no" ]; then
