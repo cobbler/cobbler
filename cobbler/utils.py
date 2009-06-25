@@ -80,9 +80,8 @@ MODULE_CACHE = {}
 _re_kernel = re.compile(r'(vmlinu[xz]|kernel.img)')
 _re_initrd = re.compile(r'(initrd(.*).img|ramdisk.image.gz)')
 
-def setup_logger(name, is_cobblerd=False, log_level=logging.INFO, log_file="/var/log/cobbler/cobbler.log"):
-    if is_cobblerd:
-        log_file = "/var/log/cobbler/cobblerd.log"
+def setup_logger(name, log_level=logging.INFO, log_file="/var/log/cobbler/cobbler.log"):
+
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
     try:
@@ -117,11 +116,6 @@ def get_exc(exc,full=True):
       buf = "%s\n%s" % (buf,v)
       if full:
           buf = buf + "\n" + "\n".join(traceback.format_list(traceback.extract_tb(tb)))
-   return buf
-
-def print_exc(exc,full=False):
-   buf = get_exc(exc)
-   sys.stderr.write(buf+"\n")
    return buf
 
 def cheetah_exc(exc,full=False):

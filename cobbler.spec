@@ -168,6 +168,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(755,apache,apache)
 %dir /var/log/cobbler
+%dir /var/log/cobbler/tasks
 %dir /var/log/cobbler/kicklog
 %dir /var/www/cobbler/
 %dir /var/www/cobbler/localmirror

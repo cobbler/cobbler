@@ -37,7 +37,6 @@ import utils
 from cexceptions import *
 import traceback
 import errno
-
 from utils import _
 
 class RepoSync:
@@ -47,7 +46,7 @@ class RepoSync:
 
     # ==================================================================================
 
-    def __init__(self,config,tries=1,nofail=False):
+    def __init__(self,config,tries=1,nofail=False,logger=None):
         """
         Constructor
         """
@@ -62,6 +61,10 @@ class RepoSync:
         self.rflags    = self.settings.yumreposync_flags
         self.tries     = tries
         self.nofail    = nofail
+        self.logger    = logger
+
+        if logger is None:
+           logger = utils.setup_logger()
 
     # ===================================================================
 
@@ -83,7 +86,7 @@ class RepoSync:
             env = repo.environment
 
             for k in env.keys():
-                print _("environment: %s=%s") % (k,env[k])
+                logger.info("environment: %s=%s" % (k,env[k]))
                 if env[k] is not None:
                     os.putenv(k,env[k])
 
@@ -92,7 +95,7 @@ class RepoSync:
                 continue
             elif name is None and not repo.keep_updated:
                 # invoked to run against all repos, but this one is off
-                print _("- %s is set to not be updated") % repo.name
+                logger.info("- %s is set to not be updated" % repo.name)
                 continue
 
             repo_mirror = os.path.join(self.settings.webdir, "repo_mirror")
@@ -111,15 +114,15 @@ class RepoSync:
                     self.sync(repo) 
                     success = True
                 except:
-                    traceback.print_exc()
-                    print _("- reposync failed, tries left: %s") % (x-2)
+                    utils.log_exc(self.logger)
+                    self.logger.warning("- reposync failed, tries left: %s" % (x-2))
 
             if not success:
                 report_failure = True
                 if not self.nofail:
                     raise CX(_("reposync failed, retry limit reached, aborting"))
                 else:
-                    print _("- reposync failed, retry limit reached, skipping")
+                    self.logger.error("- reposync failed, retry limit reached, skipping")
 
             self.update_permissions(repo_path)
 
@@ -181,11 +184,11 @@ class RepoSync:
             try:
                 # BOOKMARK
                 cmd = "createrepo %s %s %s" % (" ".join(mdoptions), flags, dirname)
-                print _("- %s") % cmd
+                self.logger.info("- %s" % cmd)
                 sub_process.call(cmd, shell=True, close_fds=True)
             except:
-                traceback.print_exc()
-                print _("- createrepo failed.")
+                utils.log_exc(self.logger)
+                self.logger.error("- createrepo failed.")
             del fnames[:] # we're in the right place
 
     # ====================================================================================
@@ -202,7 +205,7 @@ class RepoSync:
             raise CX(_("rsync:// urls must be mirrored locally, yum cannot access them directly"))
 
         if repo.rpm_list != "":
-            print _("- warning: --rpm-list is not supported for rsync'd repositories")
+            self.logger.warning("--rpm-list is not supported for rsync'd repositories")
 
         # FIXME: don't hardcode
         dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
@@ -212,12 +215,14 @@ class RepoSync:
             spacer = "-e ssh"
         if not repo.mirror.endswith("/"):
             repo.mirror = "%s/" % repo.mirror
+
+        # FIXME: wrapper for subprocess that logs to logger
         cmd = "rsync -rltDv %s --delete --delete-excluded --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)       
-        print _("- %s") % cmd
+        self.logger.info("- %s") % cmd
+
         rc = sub_process.call(cmd, shell=True, close_fds=True)
         if rc !=0:
             raise CX(_("cobbler reposync failed"))
-        print _("- walking: %s") % dest_path
         os.path.walk(dest_path, self.createrepo_walker, repo)
         self.create_local_file(dest_path, repo)
 
@@ -263,7 +268,7 @@ class RepoSync:
             raise CX(_("rhn:// repos do not work with --mirror-locally=1"))
 
         if has_rpm_list:
-            print _("- warning: --rpm-list is not supported for RHN content")
+            self.logger.warning("warning: --rpm-list is not supported for RHN content")
         rest = repo.mirror[6:] # everything after rhn://
         cmd = "/usr/bin/reposync %s -r %s --download_path=%s" % (self.rflags, rest, "/var/www/cobbler/repo_mirror")
         if repo.name != rest:
@@ -349,7 +354,7 @@ class RepoSync:
                 else:
                    cmd = "%s -a %s" % (cmd, repo.arch)
                     
-            print _("- %s") % cmd
+            self.logger.info("- %s") % cmd
 
         elif repo.mirror_locally:
 
@@ -365,7 +370,7 @@ class RepoSync:
             # if this happens to you, upgrade yum & yum-utils
             extra_flags = self.settings.yumdownloader_flags
             cmd = "/usr/bin/yumdownloader %s %s --disablerepo=* --enablerepo=%s -c %s --destdir=%s %s" % (extra_flags, use_source, repo.name, temp_file, dest_path, " ".join(repo.rpm_list))
-            print _("- %s") % cmd
+            self.logger.info("- %s" % cmd)
 
         # now regardless of whether we're doing yumdownloader or reposync
         # or whether the repo was http://, ftp://, or rhn://, execute all queued
@@ -388,7 +393,7 @@ class RepoSync:
             if not os.path.isdir(repodata_path):
                 os.makedirs(repodata_path)
             cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O %s/repomd.xml" % (repo_mirror, repodata_path)
-            print _("- %s") % cmd2
+            self.logger.info("- %s" % cmd2)
             rc = sub_process.call(cmd2, shell=True, close_fds=True)
             if rc !=0:
                 raise CX(_("wget failed"))
@@ -398,7 +403,7 @@ class RepoSync:
                 if mdtype not in ["primary", "primary_db", "filelists", "filelists_db", "other", "other_db"]:
                     mdfile = rmd.getData(mdtype).location[1]
                     cmd3 = "/usr/bin/wget -q %s/%s -O %s/%s" % (repo_mirror, mdfile, dest_path, mdfile)
-                    print _("- %s") % cmd3
+                    self.logger.info("- %s" % cmd3)
                     rc = sub_process.call(cmd3, shell=True, close_fds=True)
                     if rc !=0:
                         raise CX(_("wget failed"))
@@ -480,8 +485,8 @@ class RepoSync:
                    arch = "amd64" # FIX potential arch errors
                 cmd = "%s --nosource -a %s" % (cmd, arch)
                     
-            print _("- %s") % cmd
-
+            # FIXME: logging call here and elsewhere
+            self.logger.info("- %s" % cmd)
             rc = sub_process.call(cmd, shell=True, close_fds=True)
             if rc !=0:
                 raise CX(_("cobbler reposync failed"))
@@ -509,7 +514,7 @@ class RepoSync:
             fname = os.path.join(dest_path,"config.repo")
         else:
             fname = os.path.join(dest_path, "%s.repo" % repo.name)
-        print _("- creating: %s") % fname
+        self.logger.debug("- creating: %s" % fname)
         if not os.path.exists(dest_path):
             utils.mkdir(dest_path)
         config_file = open(fname, "w+")

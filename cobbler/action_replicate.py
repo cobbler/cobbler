@@ -143,7 +143,7 @@ class Replicate:
                         self.api.add_distro(new_distro)
                         print _("Copied distro %s.") % distro['name']
                     except Exception, e:
-                        utils.print_exc(e) 
+                        traceback.print_exc() 
                         print _("Failed to copy distro %s") % distro['name']
                 else:
                     # FIXME: force logic
@@ -174,7 +174,7 @@ class Replicate:
                     self.api.add_repo(new_repo)
                     print _("Copied repo %s.") % repo['name']
                 except Exception, e:
-                    utils.print_exc(e) 
+                    traceback.print_exc() 
                     print _("Failed to copy repo %s.") % repo['name']
             else:
                 print "Not copying repo %s, sufficiently new mtime" % repo['name']
@@ -198,7 +198,7 @@ class Replicate:
                     self.api.add_profile(new_profile)
                     print _("Copied profile %s.") % profile['name']
                 except Exception, e:
-                    utils.print_exc(e)
+                    traceback.print_exc()
                     print _("Failed to copy profile %s.") % profile['name']
             else:
                 print "Not copying profile %s, sufficiently new mtime" % profile['name']
@@ -215,7 +215,7 @@ class Replicate:
                     self.api.add_image(new_image)
                     print _("Copied image %s.") % image['name']
                 except Exception, e:
-                    utils.print_exc(e)
+                    traceback.print_exc()
                     print _("Failed to copy image %s.") % profile['image']
             else:
                 print "Not copying image %s, sufficiently new mtime" % image['name']
@@ -235,7 +235,7 @@ class Replicate:
                         self.api.add_system(new_system)
                         print _("Copied system %s.") % system['name']
                     except Exception, e:
-                        utils.print_exc(e)
+                        traceback.print_exc()
                         print _("Failed to copy system %s") % system['name']        
                 else:
                     print "Not copying system %s, sufficiently new mtime" % system['name']  

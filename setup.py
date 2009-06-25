@@ -125,6 +125,7 @@ if __name__ == "__main__":
     logpath4 = "/var/log/httpd/cobbler"
     logpath5 = logpath + "/anamon"
     logpath6 = "/var/log/koan"
+    logpath7 = logpath + "/tasks"
 
     # django content
     dj_config    = "/etc/httpd/conf.d/"
@@ -312,6 +313,7 @@ if __name__ == "__main__":
             (logpath4, []),
             (logpath5, []),
             (logpath6, []),
+            (logpath7, []),
   
             # spoolpaths
             (spool_koan, []),

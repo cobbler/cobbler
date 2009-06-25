@@ -64,10 +64,11 @@ TASK_COMPLETE  = "complete"
 TASK_FAILED    = "failed"
 
 class CobblerThread(Thread):
-    def __init__(self,task_id,remote,args):
+    def __init__(self,task_id,remote,logatron,args):
         Thread.__init__(self)
         self.task_id  = task_id
         self.remote   = remote
+        self.logger   = logatron
         self.args     = args
 
 # *********************************************************************
@@ -100,7 +101,7 @@ class CobblerXMLRPCInterface:
             def run(self):
                 try:
                     self.remote._set_task_state(self.task_id,TASK_RUNNING)
-                    self.remote.api.sync()
+                    self.remote.api.sync(logger=self.logger)
                     self.remote._finish_task(self.task_id, True)
                 except:
                     traceback.print_exc() # to log file
@@ -118,7 +119,7 @@ class CobblerXMLRPCInterface:
                 tries = self.args[1]
                 try:
                     for name in repos:
-                        self.remote.api.reposync(tries=tries, name=name, nofail=True)
+                        self.remote.api.reposync(tries=tries, name=name, nofail=True, logger=self.logger)
                     self.remote._finish_task(self.task_id, True)
                 except:
                     traceback.print_exc() # to log file
@@ -136,7 +137,7 @@ class CobblerXMLRPCInterface:
                 token = self.args[2]
                 try:
                     self.remote._set_task_state(self.task_id,TASK_RUNNING)
-                    self.remote.power_system(object_id,power,token)
+                    self.remote.power_system(object_id,power,token,logger=self.logger)
                     self.remote._finish_task(self.task_id, True)
                 except:
                     traceback.print_exc() # to log file
@@ -156,12 +157,8 @@ class CobblerXMLRPCInterface:
         self.tasks[id] = [ time.time(), name, TASK_SCHEDULED ]
         
         self._log("start_task(%s); task_id(%d)"%(name,id))
-        thr = thr_obj(id,self,args)
-
-        #fdh = open("/var/log/cobbler/tasks/%s.log" % id, "w+")
-        #fdh.write("Task log: %s\n" % id)
-        #fdh.close()
-        # open("/var/log/cobbler/tasks/%s.log" % id, "a")
+        logatron = utils.setup_logger(name, log_level=logging.INFO, log_file="/var/log/cobbler/tasks/%s.log" % id)
+        thr = thr_obj(id,self,logatron,args)
         thr.setDaemon(True)
         thr.start()
         return id

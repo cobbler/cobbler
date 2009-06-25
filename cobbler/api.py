@@ -136,7 +136,7 @@ class BootAPI:
 
 
     def __setup_logger(self,name):
-        return utils.setup_logger(name, is_cobblerd=self.is_cobblerd, **self.log_settings)
+        return utils.setup_logger(name, **self.log_settings)
    
     def get_distro_fields(self):
         """
