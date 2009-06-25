@@ -23,11 +23,15 @@ Cobbler CHANGELOG
 - (FEAT) bringing back the koan live CD
 - (FEAT) koan live CD can go interactive if no profile is specified and system autodiscovery fails
 - (BUGF) koan autodetection now can gather MACs/IPs for bridged interfaces better
+
+1.6.6 (for more accurate listing, see release16 branch)
 - (BUGF) don't use -m option for drac unless power_id is set
 - (BUGF) don't run createrepo on reposync'd repos, it is redundant
 - (BUGF) fix error message when wrong virt ram value is applied
 - (FEAT) koan now partially works in source code form on EL 2
 - (FEAT) discover repomd filenames (for F11 and later)
+- (BUGF) Satellite also has a python module named "server" so we have to remove ours for Python imports.  This code was not used anyway.
+- (BUGF) fix typo in network config snippet
 
 - ... - 1.6.5
 - (BUGF) don't use json on python x<=2.3 since we know it's simplejson x<2.0, which has unicode issues
