@@ -9,7 +9,6 @@ AutoReq: no
 Version: 1.7.0
 Release: 1%{?dist}
 Source0: cobbler-%{version}.tar.gz
-License: GPLv2+
 Group: Applications/System
 
 Requires: python >= 2.3
@@ -364,7 +363,6 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %defattr(-,apache,apache)
 %dir /usr/share/cobbler/web
 /usr/share/cobbler/web/*.py
-%dir /usr/share/cobbler/web/sessions
 %dir /usr/share/cobbler/web/cobbler_web
 /usr/share/cobbler/web/cobbler_web/*
 #%dir /usr/share/cobbler/web/cobbler_web/templates
