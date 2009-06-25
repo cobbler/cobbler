@@ -25,8 +25,8 @@ import os
 import os.path
 import time
 import yaml # Howell-Clark version
-import sub_process
 import sys
+import sub_process
 HAS_YUM = True
 try:
     import yum
@@ -38,6 +38,7 @@ from cexceptions import *
 import traceback
 import errno
 from utils import _
+import clogger
 
 class RepoSync:
     """
@@ -64,7 +65,10 @@ class RepoSync:
         self.logger    = logger
 
         if logger is None:
-           logger = utils.setup_logger()
+           self.logger = clogger.Logger()
+
+        self.logger.info("hello, reposync")
+
 
     # ===================================================================
 
@@ -73,10 +77,12 @@ class RepoSync:
         Syncs the current repo configuration file with the filesystem.
         """
             
+        self.logger.info("run, reposync, run!")
+        
         try:
             self.tries = int(self.tries)
         except:
-            raise CX(_("retry value must be an integer"))
+            raise CX("retry value must be an integer")
 
         self.verbose = verbose
 
@@ -86,7 +92,7 @@ class RepoSync:
             env = repo.environment
 
             for k in env.keys():
-                logger.info("environment: %s=%s" % (k,env[k]))
+                self.logger.info("environment: %s=%s" % (k,env[k]))
                 if env[k] is not None:
                     os.putenv(k,env[k])
 
@@ -95,7 +101,7 @@ class RepoSync:
                 continue
             elif name is None and not repo.keep_updated:
                 # invoked to run against all repos, but this one is off
-                logger.info("- %s is set to not be updated" % repo.name)
+                self.logger.info("%s is set to not be updated" % repo.name)
                 continue
 
             repo_mirror = os.path.join(self.settings.webdir, "repo_mirror")
@@ -115,19 +121,19 @@ class RepoSync:
                     success = True
                 except:
                     utils.log_exc(self.logger)
-                    self.logger.warning("- reposync failed, tries left: %s" % (x-2))
+                    self.logger.warning("reposync failed, tries left: %s" % (x-2))
 
             if not success:
                 report_failure = True
                 if not self.nofail:
-                    raise CX(_("reposync failed, retry limit reached, aborting"))
+                    raise CX("reposync failed, retry limit reached, aborting")
                 else:
-                    self.logger.error("- reposync failed, retry limit reached, skipping")
+                    self.logger.error("reposync failed, retry limit reached, skipping")
 
             self.update_permissions(repo_path)
 
         if report_failure:
-            raise CX(_("overall reposync failed, at least one repo failed to synchronize"))
+            raise CX("overall reposync failed, at least one repo failed to synchronize")
 
         return True
 
@@ -172,8 +178,8 @@ class RepoSync:
                 if rmd.repoData.has_key("prestodelta"):
                     # need createrepo >= 0.9.7 to add deltas
                     if utils.check_dist() == "redhat" or utils.check_dist() == "suse":
-                        createrepo_check = sub_process.Popen("/usr/bin/rpmquery --queryformat=%{VERSION} createrepo", shell=True, close_fds=True, stdout=sub_process.PIPE)
-                        createrepo_ver = createrepo_check.communicate()[0]
+                        cmd = "/usr/bin/rpmquery --queryformat=%{VERSION} createrepo"
+                        createrepo_ver = utils.subprocess_get(cmd)
                         if createrepo_ver >= "0.9.7":
                             mdoptions.append("--deltas")
                         else:
@@ -183,12 +189,11 @@ class RepoSync:
             flags = blended.get("createrepo_flags","(ERROR: FLAGS)")
             try:
                 # BOOKMARK
-                cmd = "createrepo %s %s %s" % (" ".join(mdoptions), flags, dirname)
-                self.logger.info("- %s" % cmd)
-                sub_process.call(cmd, shell=True, close_fds=True)
+                cmd = "createrepo %s %s %s --quiet" % (" ".join(mdoptions), flags, dirname)
+                utils.subprocess_call(self.logger, cmd)
             except:
                 utils.log_exc(self.logger)
-                self.logger.error("- createrepo failed.")
+                self.logger.error("createrepo failed.")
             del fnames[:] # we're in the right place
 
     # ====================================================================================
@@ -202,7 +207,7 @@ class RepoSync:
         repo_mirror = repo.mirror
 
         if not repo.mirror_locally:
-            raise CX(_("rsync:// urls must be mirrored locally, yum cannot access them directly"))
+            raise CX("rsync:// urls must be mirrored locally, yum cannot access them directly")
 
         if repo.rpm_list != "":
             self.logger.warning("--rpm-list is not supported for rsync'd repositories")
@@ -218,11 +223,10 @@ class RepoSync:
 
         # FIXME: wrapper for subprocess that logs to logger
         cmd = "rsync -rltDv %s --delete --delete-excluded --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)       
-        self.logger.info("- %s") % cmd
+        rc = utils.subprocess_call(self.logger, cmd)
 
-        rc = sub_process.call(cmd, shell=True, close_fds=True)
         if rc !=0:
-            raise CX(_("cobbler reposync failed"))
+            raise CX("cobbler reposync failed")
         os.path.walk(dest_path, self.createrepo_walker, repo)
         self.create_local_file(dest_path, repo)
 
@@ -240,7 +244,7 @@ class RepoSync:
         # RHEL4 and RHEL5U0 don't have it.
 
         if not os.path.exists("/usr/bin/reposync"):
-            raise CX(_("no /usr/bin/reposync found, please install yum-utils"))
+            raise CX("no /usr/bin/reposync found, please install yum-utils")
 
         cmd = ""                  # command to run
         has_rpm_list = False      # flag indicating not to pull the whole repo
@@ -265,15 +269,15 @@ class RepoSync:
         # this is the somewhat more-complex RHN case.
         # NOTE: this requires that you have entitlements for the server and you give the mirror as rhn://$channelname
         if not repo.mirror_locally:
-            raise CX(_("rhn:// repos do not work with --mirror-locally=1"))
+            raise CX("rhn:// repos do not work with --mirror-locally=1")
 
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")
         rest = repo.mirror[6:] # everything after rhn://
-        cmd = "/usr/bin/reposync %s -r %s --download_path=%s" % (self.rflags, rest, "/var/www/cobbler/repo_mirror")
+        cmd = "/usr/bin/reposync %s -r %s --quiet --download_path=%s" % (self.rflags, rest, "/var/www/cobbler/repo_mirror")
         if repo.name != rest:
             args = { "name" : repo.name, "rest" : rest }
-            raise CX(_("ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository must match the name of the RHN channel") % args)
+            raise CX("ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository must match the name of the RHN channel" % args)
 
         if repo.arch == "i386":
             # counter-intuitive, but we want the newish kernels too
@@ -287,9 +291,10 @@ class RepoSync:
         # commands here.  Any failure at any point stops the operation.
 
         if repo.mirror_locally:
-            rc = sub_process.call(cmd, shell=True, close_fds=True)
+            #rc = sub_process.call(cmd, shell=True, close_fds=True)
+            rc = utils.subprocess_call(self.logger, cmd)
             if rc !=0:
-                raise CX(_("cobbler reposync failed"))
+                raise CX("cobbler reposync failed")
 
         # some more special case handling for RHN.
         # create the config file now, because the directory didn't exist earlier
@@ -319,7 +324,7 @@ class RepoSync:
         # RHEL4 and RHEL5U0 don't have it.
 
         if not os.path.exists("/usr/bin/reposync"):
-            raise CX(_("no /usr/bin/reposync found, please install yum-utils"))
+            raise CX("no /usr/bin/reposync found, please install yum-utils")
 
         cmd = ""                  # command to run
         has_rpm_list = False      # flag indicating not to pull the whole repo
@@ -344,7 +349,7 @@ class RepoSync:
 
         if not has_rpm_list and repo.mirror_locally:
             # if we have not requested only certain RPMs, use reposync
-            cmd = "/usr/bin/reposync %s --config=%s --repoid=%s --download_path=%s" % (self.rflags, temp_file, repo.name, "/var/www/cobbler/repo_mirror")
+            cmd = "/usr/bin/reposync %s --config=%s --repoid=%s --download_path=%s --quiet" % (self.rflags, temp_file, repo.name, "/var/www/cobbler/repo_mirror")
             if repo.arch != "":
                 if repo.arch == "x86":
                    repo.arch = "i386" # FIX potential arch errors
@@ -353,8 +358,6 @@ class RepoSync:
                    cmd = "%s -a i686" % (cmd)
                 else:
                    cmd = "%s -a %s" % (cmd, repo.arch)
-                    
-            self.logger.info("- %s") % cmd
 
         elif repo.mirror_locally:
 
@@ -370,43 +373,40 @@ class RepoSync:
             # if this happens to you, upgrade yum & yum-utils
             extra_flags = self.settings.yumdownloader_flags
             cmd = "/usr/bin/yumdownloader %s %s --disablerepo=* --enablerepo=%s -c %s --destdir=%s %s" % (extra_flags, use_source, repo.name, temp_file, dest_path, " ".join(repo.rpm_list))
-            self.logger.info("- %s" % cmd)
 
         # now regardless of whether we're doing yumdownloader or reposync
         # or whether the repo was http://, ftp://, or rhn://, execute all queued
         # commands here.  Any failure at any point stops the operation.
 
         if repo.mirror_locally:
-            rc = sub_process.call(cmd, shell=True, close_fds=True)
+            rc = utils.subprocess_call(self.logger, cmd)
             if rc !=0:
-                raise CX(_("cobbler reposync failed"))
+                raise CX("cobbler reposync failed")
 
         repodata_path = os.path.join(dest_path, "repodata")
 
         if not os.path.exists("/usr/bin/wget"):
-            raise CX(_("no /usr/bin/wget found, please install wget"))
+            raise CX("no /usr/bin/wget found, please install wget")
 
         # grab repomd.xml and use it to download any metadata we can use
         cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O /dev/null" % (repo_mirror)
-        rc = sub_process.call(cmd2, shell=True, close_fds=True)
+        rc = utils.subprocess_call(self.logger,cmd2)
         if rc == 0:
             if not os.path.isdir(repodata_path):
                 os.makedirs(repodata_path)
             cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O %s/repomd.xml" % (repo_mirror, repodata_path)
-            self.logger.info("- %s" % cmd2)
-            rc = sub_process.call(cmd2, shell=True, close_fds=True)
+            rc = utils.subprocess_call(self.logger,cmd2)
             if rc !=0:
-                raise CX(_("wget failed"))
+                raise CX("wget failed")
             rmd = yum.repoMDObject.RepoMD('', "%s/repomd.xml" % (repodata_path))
             for mdtype in rmd.repoData.keys():
                 # don't download metadata files that are created by default
                 if mdtype not in ["primary", "primary_db", "filelists", "filelists_db", "other", "other_db"]:
                     mdfile = rmd.getData(mdtype).location[1]
                     cmd3 = "/usr/bin/wget -q %s/%s -O %s/%s" % (repo_mirror, mdfile, dest_path, mdfile)
-                    self.logger.info("- %s" % cmd3)
-                    rc = sub_process.call(cmd3, shell=True, close_fds=True)
+                    utils.subprocess_call(self.logger,cmd3)
                     if rc !=0:
-                        raise CX(_("wget failed"))
+                        raise CX("wget failed")
 
         # now run createrepo to rebuild the index
         # only needed if we didn't use yum's reposync already.
@@ -433,7 +433,7 @@ class RepoSync:
 
         mirror_program = "/usr/bin/debmirror"
         if not os.path.exists(mirror_program):
-            raise CX(_("no %s found, please install it")%(mirror_program))
+            raise CX("no %s found, please install it"%(mirror_program))
 
         cmd = ""                  # command to run
         has_rpm_list = False      # flag indicating not to pull the whole repo
@@ -441,10 +441,10 @@ class RepoSync:
         # detect cases that require special handling
 
         if repo.rpm_list != "":
-            raise CX(_("has_rpm_list not yet supported on apt repos"))
+            raise CX("has_rpm_list not yet supported on apt repos")
 
         if not repo.arch:
-            raise CX(_("Architecture is required for apt repositories"))
+            raise CX("Architecture is required for apt repositories")
 
         # built destination path for the repo
         dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
@@ -485,11 +485,9 @@ class RepoSync:
                    arch = "amd64" # FIX potential arch errors
                 cmd = "%s --nosource -a %s" % (cmd, arch)
                     
-            # FIXME: logging call here and elsewhere
-            self.logger.info("- %s" % cmd)
-            rc = sub_process.call(cmd, shell=True, close_fds=True)
+            rc = utils.subprocess_call(self.logger, cmd)
             if rc !=0:
-                raise CX(_("cobbler reposync failed"))
+                raise CX("cobbler reposync failed")
  
 
         
@@ -514,7 +512,7 @@ class RepoSync:
             fname = os.path.join(dest_path,"config.repo")
         else:
             fname = os.path.join(dest_path, "%s.repo" % repo.name)
-        self.logger.debug("- creating: %s" % fname)
+        self.logger.debug("creating: %s" % fname)
         if not os.path.exists(dest_path):
             utils.mkdir(dest_path)
         config_file = open(fname, "w+")
@@ -570,14 +568,14 @@ class RepoSync:
         """
         # all_path = os.path.join(repo_path, "*")
         cmd1 = "chown -R root:apache %s" % repo_path
-        sub_process.call(cmd1, shell=True, close_fds=True)
+        utils.subprocess_call(self.logger, cmd1)
 
         cmd2 = "chmod -R 755 %s" % repo_path
-        sub_process.call(cmd2, shell=True, close_fds=True)
+        utils.subprocess_call(self.logger, cmd2)
 
         if self.config.api.is_selinux_enabled():
             cmd3 = "chcon --reference /var/www %s >/dev/null 2>/dev/null" % repo_path
-            sub_process.call(cmd3, shell=True, close_fds=True)
+            utils.subprocess_call(self.logger, cmd3)
 
 
             

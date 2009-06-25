@@ -52,7 +52,6 @@ except ImportError:
     def md5(key):
         return fiver.md5(key)
 
-
 CHEETAH_ERROR_DISCLAIMER="""
 # *** ERROR ***
 #
@@ -80,28 +79,14 @@ MODULE_CACHE = {}
 _re_kernel = re.compile(r'(vmlinu[xz]|kernel.img)')
 _re_initrd = re.compile(r'(initrd(.*).img|ramdisk.image.gz)')
 
-def setup_logger(name, log_level=logging.INFO, log_file="/var/log/cobbler/cobbler.log"):
-
-    logger = logging.getLogger(name)
-    logger.setLevel(log_level)
-    try:
-        ch = logging.FileHandler(log_file)
-    except:
-        raise CX(_("No write permissions on log file.  Are you root?"))
-    ch.setLevel(log_level)
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(message)s")
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-    return logger
-
 def log_exc(logger):
-   """
-   Log an exception.
-   """
-   (t, v, tb) = sys.exc_info()
-   logger.info("Exception occured: %s" % t )
-   logger.info("Exception value: %s" % v)
-   logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+    """
+    Log an exception.
+    """
+    (t, v, tb) = sys.exc_info()
+    logger.info("Exception occured: %s" % t )
+    logger.info("Exception value: %s" % v)
+    logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
    
 
 def get_exc(exc,full=True):
@@ -743,7 +728,7 @@ def run_triggers(api,ref,globber,additional=[]):
                 arglist.append(ref.name)
             for x in additional:
                 arglist.append(x)
-            rc = sub_process.call(arglist, shell=False, close_fds=True)
+            rc = sub_process.call(arglist, shell=False) # close_fds=True)
         except:
             print _("Warning: failed to execute trigger: %s" % file)
             continue
@@ -961,52 +946,6 @@ def copyfile(src,dst,api=None,verbose=False):
             # traceback.print_exc()
             # raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
-def cabextract(src,dst,api=None):
-    """
-    Extract a cab file, used for importing off of Windows based cds
-    """
-    try:
-        if not os.path.isdir(dst):
-            raise CX(_("Error in cabextract: the destination (%s) must be a directory") % dst)
-        cmd = [ "/usr/bin/cabextract", "-d", dst, src ]
-        rc = sub_process.call(cmd, shell=False, close_fds=True)
-        return rc
-    except:
-        if not os.access(src,os.R_OK):
-            raise CX(_("Cannot read: %s") % src)
-        if not os.path.samefile(src,dst):
-            # accomodate for the possibility that we already copied
-            # the file as a symlink/hardlink
-            raise
-            # traceback.print_exc()
-            # raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
-
-#def bindmount(src,dst):
-#    """
-#    Use mount --bind as an alternative to linking.  This is required
-#    for things in the tftp root since in.tftpd will not follow symlinks
-#    and you cannot hard link directories (or across partitions).
-#    """
-#    try:
-#        if not os.path.isdir(src):
-#            raise CX(_("Error in bindmount: the source (%s) must be a directory") % src)
-#        if not os.path.isdir(dst):
-#            raise CX(_("Error in bindmount: the destination (%s) must be a directory") % dst)
-#        cmd = [ "/bin/mount", "--bind", src, dst ]
-#        rc = sub_process.call(cmd, shell=False, close_fds=True)
-#        return rc
-#    except:
-#        if not os.access(src,os.R_OK):
-#            raise CX(_("Cannot read: %s") % src)
-#        if not os.access(dst,os.R_OK):
-#            raise CX(_("Cannot read: %s") % dst)
-#        if not os.path.samefile(src,dst):
-#            # accomodate for the possibility that we already copied
-#            # the file as a symlink/hardlink
-#            raise
-#            # traceback.print_exc()
-#            # raise CX(_("Error bind-mounting %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
-
 def check_openfiles(src):
     """
     Used to check for open files on a mounted partition.
@@ -1026,28 +965,6 @@ def check_openfiles(src):
             # accomodate for the possibility that we already copied
             # the file as a symlink/hardlink
             raise
-            # traceback.print_exc()
-            # raise CX(_("Error bind-mounting %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
-
-#def umount(src):
-#    """
-#    Used for unmounting things created by bindmount
-#    """
-#    try:
-#        if not os.path.isdir(src):
-#            raise CX(_("Error in umount: the source (%s) must be a directory") % src)
-#        cmd = [ "/bin/umount", "--force", src ]
-#        rc = sub_process.call(cmd, shell=False, close_fds=True)
-#        return rc
-#    except:
-#        if not os.access(src,os.R_OK):
-#            raise CX(_("Cannot read: %s") % src)
-#        if not os.path.samefile(src,dst):
-#            # accomodate for the possibility that we already copied
-#            # the file as a symlink/hardlink
-#            raise
-#            # traceback.print_exc()
-#            # raise CX(_("Error bind-mounting %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
 
 def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None, verbose=False):
@@ -1059,30 +976,6 @@ def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None, v
         dst1 = os.path.join(dst,os.path.basename(file))
         linkfile(file,dst1,symlink_ok=symlink_ok,api=api,verbose=verbose)
         # restorecon(dst1,api=api,verbose=verbose)
-
-#def restorecon(dest, api, verbose=False):
-#
-#    """
-#    Wrapper around functions to manage SELinux contexts.
-#    Use chcon public_content_t where we can to allow
-#    hardlinking between /var/www and tftpboot but use
-#    restorecon everywhere else.
-#    """
-# 
-#    if not api.is_selinux_enabled():
-#        return True
-#
-#    tdest = os.path.realpath(dest)
-#    # remoted = is_remote_file(tdest)
-#
-#    cmd = [ "/sbin/restorecon",dest ]
-#    if verbose:
-#        print "- %s" % " ".join(cmd)
-#    rc = sub_process.call(cmd,shell=False,close_fds=True)
-#    if rc != 0:
-#        raise CX("restorecon operation failed: %s" % cmd)
-#
-#    return 0
 
 def rmfile(path,verbose=False):
     try:
@@ -1529,6 +1422,12 @@ def is_remote_file(file):
     else:
        return False 
 
+def subprocess_call(logger, cmd, shell=True):
+    logger.info("running: %s" % cmd)
+    rc = sub_process.call(cmd, shell=shell, stdout=logger.handle(), stderr=logger.handle())
+    logger.info("returned: %s" % rc)
+    return rc
+
 def popen2(args, **kwargs):
     """ 
     Leftovers from borrowing some bits from Snake, replace this 
@@ -1772,7 +1671,7 @@ def add_options_from_fields(parser, fields, args):
         parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
         parser.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts or ksmeta without clearing the other items")
     if matches_args(args, ["copy","rename"]):
-        parser.add_option("--newname",   action="newname", help="new object name")
+        parser.add_option("--newname", help="new object name")
     if not matches_args(args, ["dumpvars","find","remove","report","list"]): 
         parser.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
     if not matches_args(args,["dumpvars","report","list"]):

@@ -54,6 +54,7 @@ import os
 import xmlrpclib
 import traceback
 import exceptions
+import clogger
 
 import item_distro
 import item_profile
@@ -97,7 +98,7 @@ class BootAPI:
             self.is_cobblerd = is_cobblerd
 
             try:
-                self.logger = self.__setup_logger("api")
+                self.logger = clogger.Logger("/var/log/cobbler/cobbler.log")
             except CX:
                 # return to CLI/other but perms are not valid
                 # perms_ok is False
@@ -134,10 +135,6 @@ class BootAPI:
             self.logger.debug("API handle initialized")
             self.perms_ok = True
 
-
-    def __setup_logger(self,name):
-        return utils.setup_logger(name, **self.log_settings)
-   
     def get_distro_fields(self):
         """
         Returns datastructures used to provide object field info
@@ -645,7 +642,7 @@ class BootAPI:
         validator = action_validate.Validate(self._config)
         return validator.run()
 
-    def sync(self,verbose=False):
+    def sync(self,verbose=False, logger=None):
         """
         Take the values currently written to the configuration files in
         /etc, and /var, and build out the information tree found in
@@ -653,10 +650,10 @@ class BootAPI:
         saved with serialize() will NOT be synchronized with this command.
         """
         self.log("sync")
-        sync = self.get_sync(verbose=verbose)
+        sync = self.get_sync(verbose=verbose, logger=logger)
         return sync.run()
 
-    def get_sync(self,verbose=False):
+    def get_sync(self,verbose=False,logger=None):
         self.dhcp = self.get_module_from_file(
            "dhcp",
            "module",
@@ -667,15 +664,15 @@ class BootAPI:
            "module",
            "manage_bind"
         ).get_manager(self._config)
-        return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns,verbose=verbose)
+        return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns,verbose=verbose,logger=logger)
 
-    def reposync(self, name=None, tries=1, nofail=False):
+    def reposync(self, name=None, tries=1, nofail=False, logger=None):
         """
         Take the contents of /var/lib/cobbler/repos and update them --
         or create the initial copy if no contents exist yet.
         """
         self.log("reposync",[name])
-        reposync = action_reposync.RepoSync(self._config, tries=tries, nofail=nofail)
+        reposync = action_reposync.RepoSync(self._config, tries=tries, nofail=nofail, logger=logger)
         return reposync.run(name)
 
     def status(self,mode=None):
@@ -818,19 +815,19 @@ class BootAPI:
     def get_kickstart_templates(self):
         return utils.get_kickstar_templates(self)
 
-    def power_on(self, system, user=None, password=None):
+    def power_on(self, system, user=None, password=None, logger=None):
         """
         Powers up a system that has power management configured.
         """
-        return action_power.PowerTool(self._config,system,self,user,password).power("on")
+        return action_power.PowerTool(self._config,system,self,user,password,logger).power("on")
 
-    def power_off(self, system, user=None, password=None):
+    def power_off(self, system, user=None, password=None, logger=None):
         """
         Powers down a system that has power management configured.
         """
-        return action_power.PowerTool(self._config,system,self,user,password).power("off")
+        return action_power.PowerTool(self._config,system,self,user,password,logger).power("off")
 
-    def reboot(self,system, user=None, password=None):
+    def reboot(self,system, user=None, password=None, logger=None):
         """
         Cycles power on a system that has power management configured.
         """

@@ -89,7 +89,8 @@ def main():
         if sys.exc_type==SystemExit:
             return exc.code
         else:
-            utils.print_exc(exc,full=True)
+            # FIXME: log this too
+            traceback.print_exc()
             return 1
 
     logger = api.logger

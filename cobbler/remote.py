@@ -48,6 +48,7 @@ import item_system
 import item_repo
 import item_image
 import item_network
+import clogger
 from utils import *
 from utils import _
 
@@ -102,10 +103,10 @@ class CobblerXMLRPCInterface:
                 try:
                     self.remote._set_task_state(self.task_id,TASK_RUNNING)
                     self.remote.api.sync(logger=self.logger)
-                    self.remote._finish_task(self.task_id, True)
+                    self.remote._set_task_state(self.task_id,TASK_COMPLETE)
                 except:
-                    traceback.print_exc() # to log file
-                    self.remote._finish_task(self.task_id, False)
+                    utils.log_exc(self.logger)
+                    self.remote._set_task_state(self.task_id,TASK_FAILED)
 
         self.check_access(token, "sync")
         id = self.__start_task(SyncThread, "Background sync", []) 
@@ -118,12 +119,14 @@ class CobblerXMLRPCInterface:
                 repos = self.args[0]
                 tries = self.args[1]
                 try:
+                    self.remote._set_task_state(self.task_id,TASK_RUNNING)
                     for name in repos:
+                        self.logger.debug("reposync for: %s" % name)
                         self.remote.api.reposync(tries=tries, name=name, nofail=True, logger=self.logger)
-                    self.remote._finish_task(self.task_id, True)
+                    self.remote._set_task_state(self.task_id,TASK_COMPLETE)
                 except:
-                    traceback.print_exc() # to log file
-                    self.remote._finish_task(self.task_id, False)
+                    utils.log_exc(self.logger)
+                    self.remote._set_task_state(self.task_id,TASK_FAILED)
 
         self.check_access(token, "reposync")
         id = self.__start_task(RepoSyncThread, "Background reposync", [repos, tries])
@@ -138,10 +141,10 @@ class CobblerXMLRPCInterface:
                 try:
                     self.remote._set_task_state(self.task_id,TASK_RUNNING)
                     self.remote.power_system(object_id,power,token,logger=self.logger)
-                    self.remote._finish_task(self.task_id, True)
+                    self.remote._set_task_state(self.task_id,TASK_COMPLETE)
                 except:
                     traceback.print_exc() # to log file
-                    self.remote._finish_task(self.task_id, False)
+                    self.remote._set_task_state(self.task_id,TASK_FAILED)
 
         self.check_access(token, "power")
         id = self.__start_task(PowerThread, "Background power", [object_id,power,token])
@@ -157,21 +160,19 @@ class CobblerXMLRPCInterface:
         self.tasks[id] = [ time.time(), name, TASK_SCHEDULED ]
         
         self._log("start_task(%s); task_id(%d)"%(name,id))
-        logatron = utils.setup_logger(name, log_level=logging.INFO, log_file="/var/log/cobbler/tasks/%s.log" % id)
+        logatron = clogger.Logger("/var/log/cobbler/tasks/%s.log" % id)
         thr = thr_obj(id,self,logatron,args)
-        thr.setDaemon(True)
+        # thr.setDaemon(True)
         thr.start()
         return id
 
     def _set_task_state(self,task_id,new_state):
-        self._log("set_task_state task_id(%d); task_name(%s); new_state(%s)"%(task_id,self.tasks[task_id][1],new_state))
-
-    def _finish_task(self,task_id,ok):
-        if ok:
-            self._set_task_state(task_id,TASK_COMPLETE)
-        else:
-            self._set_task_state(task_id,TASK_FAILED)
-
+        if self.tasks.has_key(task_id):
+            start_time = self.tasks[task_id][0]
+            name       = self.tasks[task_id][1]
+            state      = self.tasks[task_id][2]
+            self.logger.info("task %s (%s) moves to state %s" % (task_id, name, state))
+            self.tasks[task_id][2] = new_state
 
     def get_task_log_data(id):
         id = int(id) # force safe values
@@ -224,7 +225,7 @@ class CobblerXMLRPCInterface:
         that logged in with it.
         """
         if not self.token_cache.has_key(token):
-            raise CX(_("invalid token: %s") % token)
+            raise CX("invalid token: %s" % token)
         else:
             return self.token_cache[token][1]
 
@@ -602,7 +603,7 @@ class CobblerXMLRPCInterface:
         self.check_access(token, "modify_%s"%what, obj, attribute)
         method = obj.remote_methods().get(attribute, None)
         if method == None:
-            raise CX(_("object has no method: %s") % attribute)
+            raise CX("object has no method: %s" % attribute)
         return method(arg)
     
     def modify_distro(self,object_id,attribute,arg,token):
@@ -887,7 +888,7 @@ class CobblerXMLRPCInterface:
         tt = string.maketrans("/","+")
         fn = string.translate(file, tt)
         if fn.startswith('..'):
-            raise CX(_("invalid filename used: %s") % fn)
+            raise CX("invalid filename used: %s" % fn)
 
         # FIXME ... get the base dir from cobbler settings()
         udir = "/var/log/cobbler/anamon/%s" % sys_name
@@ -904,7 +905,7 @@ class CobblerXMLRPCInterface:
                 raise
         else:
             if not stat.S_ISREG(st.st_mode):
-                raise CX(_("destination not a file: %s") % fn)
+                raise CX("destination not a file: %s" % fn)
 
         fd = os.open(fn, os.O_RDWR | os.O_CREAT, 0644)
         # log_error("fd=%r" %fd)
@@ -1279,7 +1280,7 @@ class CobblerXMLRPCInterface:
             return True
         else:
             self._log("invalid token",token=token)
-            raise CX(_("invalid token: %s" % token))
+            raise CX("invalid token: %s" % token)
 
     def __name_to_object(self,resource,name):
         if resource.find("distro") != -1:
@@ -1323,7 +1324,7 @@ class CobblerXMLRPCInterface:
         rc = self.__authorize(token,resource,arg1,arg2)
         self._log("authorization result: %s" % rc)
         if not rc:
-            raise CX(_("authorization failure for user %s" % user)) 
+            raise CX("authorization failure for user %s" % user) 
         return rc
 
     def login(self,login_user,login_password):
@@ -1340,7 +1341,7 @@ class CobblerXMLRPCInterface:
             return token
         else:
             self._log("login failed",user=login_user)
-            raise CX(_("login failed: %s") % login_user)
+            raise CX("login failed: %s" % login_user)
 
     def __authorize(self,token,resource,arg1=None,arg2=None):
         user = self.get_user_from_token(token)
@@ -1351,7 +1352,7 @@ class CobblerXMLRPCInterface:
         if rc:
             return True
         else:
-            raise CX(_("user does not have access to resource: %s") % resource)
+            raise CX("user does not have access to resource: %s" % resource)
 
     def logout(self,token):
         """
@@ -1410,17 +1411,17 @@ class CobblerXMLRPCInterface:
         self.check_access(token,what,kickstart_file,is_read)
  
         if kickstart_file.find("..") != -1 or not kickstart_file.startswith("/"):
-            raise CX(_("tainted file location"))
+            raise CX("tainted file location")
 
         if not kickstart_file.startswith("/etc/cobbler/") and not kickstart_file.startswith("/var/lib/cobbler/kickstarts"):
-            raise CX(_("unable to view or edit kickstart in this location"))
+            raise CX("unable to view or edit kickstart in this location")
         
         if kickstart_file.startswith("/etc/cobbler/"):
            if not kickstart_file.endswith(".ks") and not kickstart_file.endswith(".cfg"):
               # take care to not allow config files to be altered.
-              raise CX(_("this does not seem to be a kickstart file"))
+              raise CX("this does not seem to be a kickstart file")
            if not is_read and not os.path.exists(kickstart_file):
-              raise CX(_("new files must go in /var/lib/cobbler/kickstarts"))
+              raise CX("new files must go in /var/lib/cobbler/kickstarts")
         
         if is_read:
             fileh = open(kickstart_file,"r")
@@ -1433,7 +1434,7 @@ class CobblerXMLRPCInterface:
                 if not self.is_kickstart_in_use(kickstart_file,token):
                     os.remove(kickstart_file)
                 else:
-                    raise CX(_("attempt to delete in-use file"))
+                    raise CX("attempt to delete in-use file")
             else:
                 fileh = open(kickstart_file,"w+")
                 fileh.write(new_data)
@@ -1458,10 +1459,10 @@ class CobblerXMLRPCInterface:
         self.check_access(token,what,snippet_file,is_read)
  
         if snippet_file.find("..") != -1 or not snippet_file.startswith("/"):
-            raise CX(_("tainted file location"))
+            raise CX("tainted file location")
 
         if not snippet_file.startswith("/var/lib/cobbler/snippets"):
-            raise CX(_("unable to view or edit snippet in this location"))
+            raise CX("unable to view or edit snippet in this location")
         
         if is_read:
             fileh = open(snippet_file,"r")
@@ -1492,7 +1493,7 @@ class CobblerXMLRPCInterface:
         elif power=="reboot":
             rc=self.api.reboot(obj)
         else:
-            raise CX(_("invalid power mode '%s', expected on/off/reboot" % power))
+            raise CX("invalid power mode '%s', expected on/off/reboot" % power)
         return rc
 
     def deploy(self, object_id, virt_host=None, virt_group=None, token=None, method="ssh", operation="install"):
@@ -1529,7 +1530,7 @@ class ProxiedXMLRPCInterface:
 
         if not hasattr(self.proxied, method):
             self.logger.error("remote:unknown method %s" % method)
-            raise CX(_("Unknown remote method"))
+            raise CX("Unknown remote method")
 
         method_handle = getattr(self.proxied, method)
 

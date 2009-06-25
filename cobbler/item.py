@@ -69,10 +69,7 @@ class Item(serializable.Serializable):
         utils.clear_from_fields(self,self.get_fields(),is_subobject=is_subobject)
 
     def make_clone(self):
-        ds = self.to_datastruct()
-        cloned = Distro(self.config)
-        cloned.from_datastruct(ds)
-        return cloned
+        raise exceptions.NotImplementedError
 
     def from_datastruct(self,seed_data):
         """

@@ -43,6 +43,7 @@ import item_repo
 import item_system
 
 from Cheetah.Template import Template
+import clogger
 
 from utils import _
 
@@ -52,7 +53,7 @@ class BootSync:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,config,verbose=False,dhcp=None,dns=None):
+    def __init__(self,config,verbose=False,dhcp=None,dns=None,logger=None):
         """
         Constructor
         """
@@ -72,6 +73,11 @@ class BootSync:
         self.pxegen.verbose = verbose
         self.dns.verbose    = verbose
         self.dhcp.verbose   = verbose
+        # FIXME: use this, not print
+        self.logger         = logger
+        if logger is None:
+            self.logger     = clogger.Logger()
+
 
     def run(self):
         """
