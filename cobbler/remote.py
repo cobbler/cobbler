@@ -59,9 +59,9 @@ CACHE_TIMEOUT = 10*60 # 10 minutes
 
 # task codes
 TASK_SCHEDULED = "scheduled"
-TASK_RUNNING  = "running"
-TASK_COMPLETE = "complete"
-TASK_FAILED   = "failed"
+TASK_RUNNING   = "running"
+TASK_COMPLETE  = "complete"
+TASK_FAILED    = "failed"
 
 class CobblerThread(Thread):
     def __init__(self,task_id,remote,args):
