@@ -424,7 +424,7 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
             return error_page(request,"Cannot modify systems without specifying power option")
         for obj_name in names:
             obj_id = remote.get_system_handle(obj_name, token)
-            remote.power_system(obj_id, power, token)
+            remote.background_power_system(obj_id, power, token)
     else:
         return error_page(request,"Unknown multiple operation on %ss: %s" % (what,str(multi_mode)))
 
@@ -594,7 +594,7 @@ def dosync(request):
    """
    Runs 'cobbler sync' from the API when the user presses the sync button.
    """
-   remote.sync(token)
+   remote.background_sync(token)
    return HttpResponseRedirect("/cobbler_web/")
 
 # ======================================================================

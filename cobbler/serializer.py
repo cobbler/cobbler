@@ -42,11 +42,11 @@ def handler(num,frame):
    return True
     
 def no_ctrl_c():
-   signal.signal(signal.SIGINT, handler)
+#   signal.signal(signal.SIGINT, handler)
    return True
 
 def ctrl_c_ok():
-   signal.signal(signal.SIGINT, signal.default_int_handler)
+#   signal.signal(signal.SIGINT, signal.default_int_handler)
    return True   
 
 def __grab_lock():

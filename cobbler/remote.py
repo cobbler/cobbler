@@ -58,7 +58,8 @@ TOKEN_TIMEOUT = 60*60 # 60 minutes
 CACHE_TIMEOUT = 10*60 # 10 minutes
 
 # task codes
-TASK_STARTED  = "started"
+TASK_SCHEDULED = "scheduled"
+TASK_RUNNING  = "running"
 TASK_COMPLETE = "complete"
 TASK_FAILED   = "failed"
 
@@ -98,6 +99,7 @@ class CobblerXMLRPCInterface:
         class SyncThread(CobblerThread):
             def run(self):
                 try:
+                    self.remote._set_task_state(self.task_id,TASK_RUNNING)
                     self.remote.api.sync()
                     self.remote._finish_task(self.task_id, True)
                 except:
@@ -132,6 +134,24 @@ class CobblerXMLRPCInterface:
         id = self.__start_task(RepoSyncThread, "Background reposync", [repos, tries])
         return id
 
+    def background_power_system(self, object_id,power=None,token=None):
+        class PowerThread(CobblerThread):
+            def run(self):
+                object_id = self.args[0]
+                power = self.args[1]
+                token = self.args[2]
+                try:
+                    self.remote._set_task_state(self.task_id,TASK_RUNNING)
+                    self.remote.power_system(object_id,power,token)
+                    self.remote._finish_task(self.task_id, True)
+                except:
+                    traceback.print_exc() # to log file
+                    self.remote._finish_task(self.task_id, False)
+
+        self.check_access(token, "power")
+        id = self.__start_task(PowerThread, "Background power", [object_id,power,token])
+        return id
+
     def get_tasks(self):
         # FIXME:
         return self.tasks
@@ -139,7 +159,9 @@ class CobblerXMLRPCInterface:
     def __start_task(self, thr_obj, name, args):
         id = self.next_task_id
         self.next_task_id = self.next_task_id + 1
-        self.tasks[id] = [ time.time(), name, TASK_STARTED ]
+        self.tasks[id] = [ time.time(), name, TASK_SCHEDULED ]
+        
+        self._log("start_task(%s); task_id(%d)"%(name,id))
         thr = thr_obj(id,self,args)
 
         #fdh = open("/var/log/cobbler/tasks/%s.log" % id, "w+")
@@ -150,11 +172,14 @@ class CobblerXMLRPCInterface:
         thr.start()
         return id
 
+    def _set_task_state(self,task_id,new_state):
+        self._log("set_task_state task_id(%d); task_name(%s); new_state(%s)"%(task_id,self.tasks[task_id][1],new_state))
+
     def _finish_task(self,task_id,ok):
         if ok:
-            self.tasks[task_id][2] = TASK_COMPLETE
+            self._set_task_state(task_id,TASK_COMPLETE)
         else:
-            self.tasks[task_id][2] = TASK_FAILED
+            self._set_task_state(task_id,TASK_FAILED)
 
 
     def get_task_log_data(id):
