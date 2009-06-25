@@ -722,6 +722,13 @@ def generic_save(request,what):
             continue
         else:
             value = request.POST.get(field['name'],None)
+            # Checkboxes return the value of the field if checked, otherwise None
+            # convert to True/False
+            if field["html_element"] == "checkbox":
+                if value==field['name']:
+                    value=True
+                else:
+                    value=False
             if value != None:
                 if value == "<<None>>":
                     value = ""
