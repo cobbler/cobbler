@@ -114,19 +114,13 @@ class CobblerXMLRPCInterface:
     def background_reposync(self, repos, tries, token):
         class RepoSyncThread(CobblerThread):
             def run(self):
-                print "reposync a"
                 repos = self.args[0]
                 tries = self.args[1]
-                print "reposync b"
                 try:
                     for name in repos:
-                        print "reposync c"
-                        #sub_process.call(["/bin/echo","Hello thread"])
                         self.remote.api.reposync(tries=tries, name=name, nofail=True)
-                    print "reposync d"
                     self.remote._finish_task(self.task_id, True)
                 except:
-                    print "reposync e"
                     traceback.print_exc() # to log file
                     self.remote._finish_task(self.task_id, False)
 
