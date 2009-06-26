@@ -29,13 +29,19 @@ from cexceptions import *
 from template_api import Template
 from utils import *
 import utils
+import clogger
 
 class Templar:
 
-    def __init__(self,config=None):
+    def __init__(self,config=None,logger=None):
         """
         Constructor
         """
+
+        if logger is None:
+            logger = clogger.Logger()
+        self.logger = logger
+
         if config is not None:
             self.config      = config
             self.api         = config.api
@@ -53,7 +59,6 @@ class Templar:
             if line.find("#import") != -1:
                rest=line.replace("#import","").replace(" ","").strip()
                if rest not in self.settings.cheetah_import_whitelist:
-                   print "warning"
                    raise CX("potentially insecure import in template: %s" % rest)
 
     def render(self, data_input, search_table, out_path, subject=None):
@@ -88,7 +93,7 @@ class Templar:
                    try:
                        (server, dir) = rest.split(":",2)
                    except:
-                       raise CX(_("Invalid syntax for NFS path given during import: %s" % search_table["tree"]))
+                       raise CX("Invalid syntax for NFS path given during import: %s" % search_table["tree"])
                    line = "nfs --server %s --dir %s" % (server,dir)
                    # but put the URL part back in so koan can still see
                    # what the original value was
@@ -120,7 +125,7 @@ class Templar:
                return utils.cheetah_exc(e)
             else:
                # FIXME: log this
-               print utils.cheetah_exc(e)
+               self.logger.error(utils.cheetah_exc(e))
                raise CX("Error templating file: %s" % out_path)
 
         # now apply some magic post-filtering that is used by cobbler import and some

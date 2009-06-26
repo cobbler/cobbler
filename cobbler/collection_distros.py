@@ -35,13 +35,7 @@ class Distros(collection.Collection):
     def collection_type(self):
         return "distro"
 
-    def factory_produce(self,config,seed_data):
-        """
-        Return a Distro forged from seed_data
-        """
-        return distro.Distro(config).from_datastruct(seed_data)
-
-    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False):
+    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False,logger=None):
         """
         Remove element named 'name' from the collection
         """
@@ -60,13 +54,13 @@ class Distros(collection.Collection):
             if recursive:
                 kids = obj.get_children()
                 for k in kids:
-                    self.config.api.remove_profile(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers)
+                    self.config.api.remove_profile(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers, logger=logger)
 
             if with_delete:
                 if with_triggers: 
                     self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/distro/pre/*")
                 if with_sync:
-                    lite_sync = action_litesync.BootLiteSync(self.config)
+                    lite_sync = action_litesync.BootLiteSync(self.config, logger=logger)
                     lite_sync.remove_single_distro(name)
             del self.listing[name]
 

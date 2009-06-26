@@ -35,13 +35,7 @@ class Systems(collection.Collection):
     def collection_type(self):
         return "system"
 
-    def factory_produce(self,config,seed_data):
-        """
-        Return a system forged from seed_data
-        """
-        return system.System(config).from_datastruct(seed_data)
-
-    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False):
+    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False, logger=logger):
         """
         Remove element named 'name' from the collection
         """
@@ -54,7 +48,7 @@ class Systems(collection.Collection):
                 if with_triggers: 
                     self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/system/pre/*")
                 if with_sync:
-                    lite_sync = action_litesync.BootLiteSync(self.config)
+                    lite_sync = action_litesync.BootLiteSync(self.config, logger=logger)
                     lite_sync.remove_single_system(name)
             del self.listing[name]
             self.config.serialize_delete(self, obj)

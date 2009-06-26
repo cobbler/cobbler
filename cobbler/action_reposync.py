@@ -189,7 +189,7 @@ class RepoSync:
             flags = blended.get("createrepo_flags","(ERROR: FLAGS)")
             try:
                 # BOOKMARK
-                cmd = "createrepo %s %s %s --quiet" % (" ".join(mdoptions), flags, dirname)
+                cmd = "createrepo %s %s %s" % (" ".join(mdoptions), flags, dirname)
                 utils.subprocess_call(self.logger, cmd)
             except:
                 utils.log_exc(self.logger)
@@ -274,7 +274,7 @@ class RepoSync:
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")
         rest = repo.mirror[6:] # everything after rhn://
-        cmd = "/usr/bin/reposync %s -r %s --quiet --download_path=%s" % (self.rflags, rest, "/var/www/cobbler/repo_mirror")
+        cmd = "/usr/bin/reposync %s -r %s --download_path=%s" % (self.rflags, rest, "/var/www/cobbler/repo_mirror")
         if repo.name != rest:
             args = { "name" : repo.name, "rest" : rest }
             raise CX("ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository must match the name of the RHN channel" % args)
@@ -349,7 +349,7 @@ class RepoSync:
 
         if not has_rpm_list and repo.mirror_locally:
             # if we have not requested only certain RPMs, use reposync
-            cmd = "/usr/bin/reposync %s --config=%s --repoid=%s --download_path=%s --quiet" % (self.rflags, temp_file, repo.name, "/var/www/cobbler/repo_mirror")
+            cmd = "/usr/bin/reposync %s --config=%s --repoid=%s --download_path=%s" % (self.rflags, temp_file, repo.name, "/var/www/cobbler/repo_mirror")
             if repo.arch != "":
                 if repo.arch == "x86":
                    repo.arch = "i386" # FIX potential arch errors

@@ -37,10 +37,7 @@ class Profiles(collection.Collection):
     def collection_type(self):
         return "profile"
 
-    def factory_produce(self,config,seed_data):
-        return profile.Profile(config).from_datastruct(seed_data)
-
-    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False):
+    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False,logger=None):
         """
         Remove element named 'name' from the collection
         """
@@ -58,15 +55,15 @@ class Profiles(collection.Collection):
                 kids = obj.get_children()
                 for k in kids:
                     if k.COLLECTION_TYPE == "profile":
-                        self.config.api.remove_profile(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers)
+                        self.config.api.remove_profile(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers, logger=logger)
                     else:
-                        self.config.api.remove_system(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers)
+                        self.config.api.remove_system(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers, logger=logger)
  
             if with_delete:
                 if with_triggers: 
                     self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/profile/pre/*")
                 if with_sync:
-                    lite_sync = action_litesync.BootLiteSync(self.config)
+                    lite_sync = action_litesync.BootLiteSync(self.config, logger=logger)
                     lite_sync.remove_single_profile(name)
             del self.listing[name]
             self.config.serialize_delete(self, obj)

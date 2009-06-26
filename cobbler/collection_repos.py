@@ -38,13 +38,7 @@ class Repos(collection.Collection):
     def collection_type(self):
         return "repo"
 
-    def factory_produce(self,config,seed_data):
-        """
-        Return a repo forged from seed_data
-        """
-        return repo.Repo(config).from_datastruct(seed_data)
-
-    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False):
+    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False,logger=None):
         """
         Remove element named 'name' from the collection
         """

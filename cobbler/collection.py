@@ -213,7 +213,7 @@ class Collection(serializable.Serializable):
         return True
 
 
-    def add(self,ref,save=False,with_copy=False,with_triggers=True,with_sync=True,quick_pxe_update=False,check_for_duplicate_names=False,check_for_duplicate_netinfo=False):
+    def add(self,ref,save=False,with_copy=False,with_triggers=True,with_sync=True,quick_pxe_update=False,check_for_duplicate_names=False,check_for_duplicate_netinfo=False,logger=logger):
         """
         Add an object to the collection, if it's valid.  Returns True
         if the object was added to the collection.  Returns False if the
@@ -244,7 +244,7 @@ class Collection(serializable.Serializable):
             ref.mtime = now
 
         if self.lite_sync is None:
-            self.lite_sync = action_litesync.BootLiteSync(self.config)
+            self.lite_sync = action_litesync.BootLiteSync(self.config, logger=logger)
 
         # migration path for old API parameter that I've renamed.
         if with_copy and not save:

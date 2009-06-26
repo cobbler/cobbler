@@ -38,13 +38,7 @@ class Networks(collection.Collection):
     def collection_type(self):
         return "network"
 
-    def factory_produce(self,config,seed_data):
-        """
-        Return a repo forged from seed_data
-        """
-        return network.Network(config).from_datastruct(seed_data)
-
-    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False):
+    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False,logger=None):
         """
         Remove element named 'name' from the collection
         """
