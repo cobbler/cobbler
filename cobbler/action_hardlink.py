@@ -23,17 +23,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import utils
 from cexceptions import *
+import clogger
 
 class HardLinker:
 
-    def __init__(self,config):
+    def __init__(self,config,logger=None):
         """
         Constructor
         """
         #self.config   = config
         #self.api      = config.api
         #self.settings = config.settings()
-        pass
+        if logger is None:
+            logger       = clogger.Logger()
+        self.logger      = logger
+
 
     def run(self):
         """

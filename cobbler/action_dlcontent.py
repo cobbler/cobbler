@@ -24,15 +24,20 @@ import os
 import sub_process
 import glob
 import urlgrabber
+import clogger
 
 class ContentDownloader:
 
-   def __init__(self,config):
+   def __init__(self,config,logger=None):
        """
        Constructor
        """
        self.config   = config
        self.settings = config.settings()
+       if logger is None:
+           logger       = clogger.Logger()
+       self.logger      = logger
+
 
    def run(self,force=False):
        """

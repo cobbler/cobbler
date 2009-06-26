@@ -25,10 +25,11 @@ import re
 from utils import _
 import utils
 import kickgen
+import clogger
 
 class Validate:
 
-    def __init__(self,config):
+    def __init__(self,config,logger=None):
         """
         Constructor
         """
@@ -36,6 +37,10 @@ class Validate:
         self.settings = config.settings()
         self.kickgen  = kickgen.KickGen(config)
         self.ks_cache = []
+        if logger is None:
+            logger       = clogger.Logger()
+        self.logger      = logger
+
 
     def run(self):
         """

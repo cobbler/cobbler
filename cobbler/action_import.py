@@ -32,15 +32,15 @@ import api
 import utils
 import shutil
 from utils import _
-
 import item_repo
+import clogger
 
 # FIXME: add --quiet depending on if not --verbose?
 RSYNC_CMD =  "rsync -a %s '%s' %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --progress"
 
 class Importer:
 
-   def __init__(self,api,config,mirror,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None,breed=None,os_version=None):
+   def __init__(self,api,config,mirror,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None,breed=None,os_version=None,logger=None):
        """
        Performs an import of a install tree (or trees) from the given
        mirror address.  The prefix of the distro is to be specified
@@ -65,6 +65,10 @@ class Importer:
        self.arch = arch
        self.breed = breed
        self.os_version = os_version
+       if logger is None:
+           logger       = clogger.Logger()
+       self.logger      = logger
+
 
    # ========================================================================
 

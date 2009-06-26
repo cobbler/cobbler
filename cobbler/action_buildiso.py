@@ -34,6 +34,7 @@ import re
 import utils
 from cexceptions import *
 from utils import _
+import clogger
 
 # FIXME: lots of overlap with pxegen.py, should consolidate
 # FIXME: disable timeouts and remove local boot for this?
@@ -59,7 +60,7 @@ class BuildIso:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,config,verbose=False):
+    def __init__(self,config,verbose=False,logger=None):
         """
         Constructor
         """
@@ -73,6 +74,10 @@ class BuildIso:
         self.distmap     = {}
         self.distctr     = 0
         self.source      = ""
+        if logger is None:
+            logger       = clogger.Logger()
+        self.logger      = logger
+
 
     def make_shorter(self,distname):
         if self.distmap.has_key(distname):

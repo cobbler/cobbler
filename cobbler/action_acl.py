@@ -32,21 +32,20 @@ import errno
 import utils
 from cexceptions import *
 from utils import _
-
+import clogger
 
 class AclConfig:
 
-    def __init__(self,config):
+    def __init__(self,config,logger=None):
         """
         Constructor
         """
         self.config      = config
         self.api         = config.api
         self.settings    = config.settings()
-        #self.distros     = config.distros()
-        #self.profiles    = config.profiles()
-        #self.systems     = config.systems()
-        #self.repos       = config.repos()
+        if logger is None:
+            logger       = clogger.Logger()
+        self.logger      = logger
 
     def run(self,adduser=None,addgroup=None,removeuser=None,removegroup=None):
         """

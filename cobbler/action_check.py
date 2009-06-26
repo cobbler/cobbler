@@ -28,15 +28,20 @@ import action_sync
 import utils
 import glob
 from utils import _
+import clogger
 
 class BootCheck:
 
-   def __init__(self,config):
+   def __init__(self,config,logger=None):
        """
        Constructor
        """
        self.config   = config
        self.settings = config.settings()
+       if logger is None:
+           logger       = clogger.Logger()
+       self.logger      = logger
+
 
    def run(self):
        """

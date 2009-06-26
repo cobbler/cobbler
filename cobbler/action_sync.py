@@ -31,20 +31,16 @@ import sys
 import glob
 import traceback
 import errno
-
 import utils
 from cexceptions import *
 import templar 
 import pxegen
-
 import item_distro
 import item_profile
 import item_repo
 import item_system
-
 from Cheetah.Template import Template
 import clogger
-
 from utils import _
 
 
