@@ -41,6 +41,7 @@ import time
 import netaddr
 import shlex
 import field_info
+import clogger
 
 try:
     import hashlib as fiver
@@ -78,6 +79,25 @@ MODULE_CACHE = {}
 
 _re_kernel = re.compile(r'(vmlinu[xz]|kernel.img)')
 _re_initrd = re.compile(r'(initrd(.*).img|ramdisk.image.gz)')
+
+# all logging from utils.die goes to the main log even if there
+# is another log.
+main_logger = clogger.Logger()
+
+def die(logger, msg):
+
+    # log the exception once in the per-task log or the main
+    # log if this is not a background op.
+    try:
+       raise CX(msg)
+    except:
+       if logger is not None:
+           log_exc(logger)
+       else:
+           log_exc(main_logger)
+
+    # now re-raise it so the error can fail the operation
+    raise CX(msg)
 
 def log_exc(logger):
     """

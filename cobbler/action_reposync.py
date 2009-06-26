@@ -82,7 +82,7 @@ class RepoSync:
         try:
             self.tries = int(self.tries)
         except:
-            raise CX("retry value must be an integer")
+            utils.die(self.logger,"retry value must be an integer")
 
         self.verbose = verbose
 
@@ -126,14 +126,14 @@ class RepoSync:
             if not success:
                 report_failure = True
                 if not self.nofail:
-                    raise CX("reposync failed, retry limit reached, aborting")
+                    utils.die(self.logger,"reposync failed, retry limit reached, aborting")
                 else:
                     self.logger.error("reposync failed, retry limit reached, skipping")
 
             self.update_permissions(repo_path)
 
         if report_failure:
-            raise CX("overall reposync failed, at least one repo failed to synchronize")
+            utils.die(self.logger,"overall reposync failed, at least one repo failed to synchronize")
 
         return True
 
@@ -154,7 +154,7 @@ class RepoSync:
         elif repo.breed == "rsync":
             return self.rsync_sync(repo)
         else:
-            raise CobblerException("unable to sync repo (%s), unknown type (%s)" % (repo.name, repo.breed))
+            utils.die(self.logger,"unable to sync repo (%s), unknown type (%s)" % (repo.name, repo.breed))
 
     # ====================================================================================
 
@@ -169,7 +169,7 @@ class RepoSync:
             mdoptions = []
             if os.path.isfile("%s/repodata/repomd.xml" % (dirname)):
                 if not HAS_YUM:
-                   raise InfoException("yum is required to use this feature")
+                   utils.die(self.logger,"yum is required to use this feature")
 
                 rmd = yum.repoMDObject.RepoMD('', "%s/repodata/repomd.xml" % (dirname))
                 if rmd.repoData.has_key("group"):
@@ -183,7 +183,7 @@ class RepoSync:
                         if createrepo_ver >= "0.9.7":
                             mdoptions.append("--deltas")
                         else:
-                            raise InfoException("this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 first and then need to resync the repo through cobbler.")
+                            utils.die(self.logger,"this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 first and then need to resync the repo through cobbler.")
 
             blended = utils.blender(self.api, False, repo)
             flags = blended.get("createrepo_flags","(ERROR: FLAGS)")
@@ -207,7 +207,7 @@ class RepoSync:
         repo_mirror = repo.mirror
 
         if not repo.mirror_locally:
-            raise CX("rsync:// urls must be mirrored locally, yum cannot access them directly")
+            utils.die(self.logger,"rsync:// urls must be mirrored locally, yum cannot access them directly")
 
         if repo.rpm_list != "":
             self.logger.warning("--rpm-list is not supported for rsync'd repositories")
@@ -226,7 +226,7 @@ class RepoSync:
         rc = utils.subprocess_call(self.logger, cmd)
 
         if rc !=0:
-            raise CX("cobbler reposync failed")
+            utils.die(self.logger,"cobbler reposync failed")
         os.path.walk(dest_path, self.createrepo_walker, repo)
         self.create_local_file(dest_path, repo)
 
@@ -244,7 +244,7 @@ class RepoSync:
         # RHEL4 and RHEL5U0 don't have it.
 
         if not os.path.exists("/usr/bin/reposync"):
-            raise CX("no /usr/bin/reposync found, please install yum-utils")
+            utils.die(self.logger,"no /usr/bin/reposync found, please install yum-utils")
 
         cmd = ""                  # command to run
         has_rpm_list = False      # flag indicating not to pull the whole repo
@@ -269,7 +269,7 @@ class RepoSync:
         # this is the somewhat more-complex RHN case.
         # NOTE: this requires that you have entitlements for the server and you give the mirror as rhn://$channelname
         if not repo.mirror_locally:
-            raise CX("rhn:// repos do not work with --mirror-locally=1")
+            utils.die("rhn:// repos do not work with --mirror-locally=1")
 
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")
@@ -277,7 +277,7 @@ class RepoSync:
         cmd = "/usr/bin/reposync %s -r %s --download_path=%s" % (self.rflags, rest, "/var/www/cobbler/repo_mirror")
         if repo.name != rest:
             args = { "name" : repo.name, "rest" : rest }
-            raise CX("ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository must match the name of the RHN channel" % args)
+            utils.die(self.logger,"ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository must match the name of the RHN channel" % args)
 
         if repo.arch == "i386":
             # counter-intuitive, but we want the newish kernels too
@@ -294,7 +294,7 @@ class RepoSync:
             #rc = sub_process.call(cmd, shell=True, close_fds=True)
             rc = utils.subprocess_call(self.logger, cmd)
             if rc !=0:
-                raise CX("cobbler reposync failed")
+                utils.die(self.logger,"cobbler reposync failed")
 
         # some more special case handling for RHN.
         # create the config file now, because the directory didn't exist earlier
@@ -324,7 +324,7 @@ class RepoSync:
         # RHEL4 and RHEL5U0 don't have it.
 
         if not os.path.exists("/usr/bin/reposync"):
-            raise CX("no /usr/bin/reposync found, please install yum-utils")
+            utils.die(self.logger,"no /usr/bin/reposync found, please install yum-utils")
 
         cmd = ""                  # command to run
         has_rpm_list = False      # flag indicating not to pull the whole repo
@@ -381,12 +381,12 @@ class RepoSync:
         if repo.mirror_locally:
             rc = utils.subprocess_call(self.logger, cmd)
             if rc !=0:
-                raise CX("cobbler reposync failed")
+                utils.die(self.logger,"cobbler reposync failed")
 
         repodata_path = os.path.join(dest_path, "repodata")
 
         if not os.path.exists("/usr/bin/wget"):
-            raise CX("no /usr/bin/wget found, please install wget")
+            utils.die(self.logger,"no /usr/bin/wget found, please install wget")
 
         # grab repomd.xml and use it to download any metadata we can use
         cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O /dev/null" % (repo_mirror)
@@ -397,7 +397,7 @@ class RepoSync:
             cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O %s/repomd.xml" % (repo_mirror, repodata_path)
             rc = utils.subprocess_call(self.logger,cmd2)
             if rc !=0:
-                raise CX("wget failed")
+                utils.die(self.logger,"wget failed")
             rmd = yum.repoMDObject.RepoMD('', "%s/repomd.xml" % (repodata_path))
             for mdtype in rmd.repoData.keys():
                 # don't download metadata files that are created by default
@@ -406,7 +406,7 @@ class RepoSync:
                     cmd3 = "/usr/bin/wget -q %s/%s -O %s/%s" % (repo_mirror, mdfile, dest_path, mdfile)
                     utils.subprocess_call(self.logger,cmd3)
                     if rc !=0:
-                        raise CX("wget failed")
+                        utils.die(self.logger,"wget failed")
 
         # now run createrepo to rebuild the index
         # only needed if we didn't use yum's reposync already.
@@ -433,7 +433,7 @@ class RepoSync:
 
         mirror_program = "/usr/bin/debmirror"
         if not os.path.exists(mirror_program):
-            raise CX("no %s found, please install it"%(mirror_program))
+            utils.die(self.logger,"no %s found, please install it"%(mirror_program))
 
         cmd = ""                  # command to run
         has_rpm_list = False      # flag indicating not to pull the whole repo
@@ -441,10 +441,10 @@ class RepoSync:
         # detect cases that require special handling
 
         if repo.rpm_list != "":
-            raise CX("has_rpm_list not yet supported on apt repos")
+            utils.die(self.logger,"has_rpm_list not yet supported on apt repos")
 
         if not repo.arch:
-            raise CX("Architecture is required for apt repositories")
+            utils.die(self.logger,"Architecture is required for apt repositories")
 
         # built destination path for the repo
         dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
@@ -487,7 +487,7 @@ class RepoSync:
                     
             rc = utils.subprocess_call(self.logger, cmd)
             if rc !=0:
-                raise CX("cobbler reposync failed")
+                utils.die(self.logger,"cobbler reposync failed")
  
 
         
