@@ -71,20 +71,11 @@ def main():
 
     options, args = op.parse_args()
 
-    log_settings = {}
-    if options.log_file:
-        log_settings['log_file'] = options.log_file
-    if options.log_level:
-        log_level = logging.getLevelName(options.log_level)
-        if not isinstance(log_level, int):
-            op.error('Unrecognized log level %r given')
-        log_settings['log_level'] = log_level
-
     # load the API now rather than later, to ensure cobblerd
     # startup time is done before the service returns
     api = None
     try:
-        api = cobbler_api.BootAPI(log_settings=log_settings, is_cobblerd=True)
+        api = cobbler_api.BootAPI(is_cobblerd=True)
     except Exception, exc:
         if sys.exc_type==SystemExit:
             return exc.code
