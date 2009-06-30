@@ -576,7 +576,7 @@ class Importer:
                utils.die(self.logger, "Given arch (%s) not found on imported tree %s"%(self.arch,importer.get_pkgdir()))
        if proposed_arch:
            if archs and proposed_arch not in archs:
-               self.logger.warning("arch from pathname (%s) not found on imported tree %s" % (proposed_arch,importer.get_pkgdir())
+               self.logger.warning("arch from pathname (%s) not found on imported tree %s" % (proposed_arch,importer.get_pkgdir()))
                return
 
            archs = [ proposed_arch ]
