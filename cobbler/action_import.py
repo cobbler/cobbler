@@ -247,7 +247,7 @@ class Importer:
        """
 
        my_cmd = cmd % args
-       utils.subprocess_call(self.logger,my_cmd,shell=True)
+       rc = utils.subprocess_call(self.logger,my_cmd,shell=True)
        if rc != 0:
           utils.die(self.logger,"Command failed")
 
@@ -268,7 +268,7 @@ class Importer:
                continue
 
            kdir = os.path.dirname(distro.kernel)   
-           importer = import_factory(kdir,self.path,self.breed)
+           importer = import_factory(kdir,self.path,self.breed,self.logger)
            if self.kickstart_file == None:
                for rpm in importer.get_release_files():
                      # FIXME : This redhat specific check should go into the importer.find_release_files method
@@ -369,7 +369,7 @@ class Importer:
            # FIXME : Shouldn't decide this the value of self.network_root ?
            if distro.kernel.find("ks_mirror") != -1:
                basepath = os.path.dirname(distro.kernel)
-               importer = import_factory(basepath,self.path,self.breed)
+               importer = import_factory(basepath,self.path,self.breed,self.logger)
                top = importer.get_rootdir()
                self.logger.info("descent into %s" % top)
                if distro.breed in [ "debian" , "ubuntu" ]:
@@ -565,7 +565,7 @@ class Importer:
        if self.arch and proposed_arch and self.arch != proposed_arch:
            utils.die(self.logger,"Arch from pathname (%s) does not match with supplied one %s"%(proposed_arch,self.arch))
 
-       importer = import_factory(dirname,self.path,self.breed)
+       importer = import_factory(dirname,self.path,self.breed,self.logger)
 
        archs = importer.learn_arch_from_tree()
        if not archs:
