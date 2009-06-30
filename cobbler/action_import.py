@@ -101,7 +101,7 @@ class Importer:
        mpath = os.path.join(self.settings.webdir, "ks_mirror", self.mirror_name)
        if os.path.exists(mpath) and self.arch is None:
            # FIXME : Raise exception even when network_root is given ?
-           utils.die(self.logger,"Something already exists at this import location (%s).  You must specify --arch to avoid potentially overwriting existing files.")
+           utils.die(self.logger,"Something already exists at this import location (%s).  You must specify --arch to avoid potentially overwriting existing files." % mpath)
 
        # import takes a --kickstart for forcing selection that can't be used in all circumstances
  
@@ -247,7 +247,7 @@ class Importer:
        """
 
        my_cmd = cmd % args
-       utils.subprocess_call(my_cmd,shell=True)
+       utils.subprocess_call(self.logger,my_cmd,shell=True)
        if rc != 0:
           utils.die(self.logger,"Command failed")
 
