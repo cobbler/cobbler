@@ -50,11 +50,11 @@ class HardLinker:
         # changes will be required here.
 
         if not os.path.exists("/usr/sbin/hardlink"):
-            raise CX("please install 'hardlink' (/usr/sbin/hardlink) to use this feature")
+            utils.die(self.logger,"please install 'hardlink' (/usr/sbin/hardlink) to use this feature")
 
-        print "now hardlinking to save space, this may take some time."
+        self.logger.info("now hardlinking to save space, this may take some time.")
 
-        rc = utils.os_system("/usr/sbin/hardlink -c -v /var/www/cobbler/ks_mirror /var/www/cobbler/repo_mirror")
+        utils.subprocess_call(self.logger,"/usr/sbin/hardlink -c -v /var/www/cobbler/ks_mirror /var/www/cobbler/repo_mirror",shell=True)
 
         return rc
 
