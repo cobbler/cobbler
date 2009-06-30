@@ -24,7 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import os.path
 import shutil
-import sub_process
 import sys
 import glob
 import traceback
@@ -97,14 +96,12 @@ class AclConfig:
                cmd2 = cmd
 
             cmd2 = "%s %s" % (cmd2,d)
-            print "- setfacl -d %s" % cmd2
-            rc = sub_process.call("setfacl -d %s" % cmd2,shell=True,close_fds=True)
+            rc = utils.subprocess_call(self.logger,"setfacl -d %s" % cmd2,shell=True)
             if not rc == 0:
-               raise CX(_("command failed"))
-            print "- setfacl %s" % cmd2
-            rc = sub_process.call("setfacl %s" % cmd2,shell=True,close_fds=True)
+               utils.die(self.logger,"command failed")
+            rc = utils.subprocess_call(self.logger,"setfacl %s" % cmd2,shell=True)
             if not rc == 0:
-               raise CX(_("command failed"))
+               utils.die(self.logger,"command failed")
 
 
 

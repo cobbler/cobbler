@@ -24,11 +24,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import os.path
 import shutil
-import sub_process
 import sys
 import traceback
 import shutil
-import sub_process
 import re
 
 import utils
@@ -89,7 +87,7 @@ class BuildIso:
 
   
     def generate_netboot_iso(self,imagesdir,isolinuxdir,profiles=None,systems=None,exclude_dns=None):
-        print _("- copying kernels and initrds - for profiles")
+        self.logger.info("copying kernels and initrds for profiles")
         # copy all images in included profiles to images dir
         for profile in self.api.profiles():
            use_this = True
@@ -101,7 +99,7 @@ class BuildIso:
            if use_this:
               dist = profile.get_conceptual_parent()
               if dist.name.lower().find("-xen") != -1:
-                  print "skipping Xen distro: %s" % dist.name
+                  self.logger.info("skipping Xen distro: %s" % dist.name)
                   continue
               distname = self.make_shorter(dist.name)
               # tempdir/isolinux/$distro/vmlinuz, initrd.img
@@ -109,14 +107,14 @@ class BuildIso:
               f1 = os.path.join(isolinuxdir, "%s.krn" % distname)
               f2 = os.path.join(isolinuxdir, "%s.img" % distname)
               if not os.path.exists(dist.kernel):
-                 raise CX("path does not exist: %s" % dist.kernel)
+                 utils.die(self.logger,"path does not exist: %s" % dist.kernel)
               if not os.path.exists(dist.initrd):
-                 raise CX("path does not exist: %s" % dist.initrd)
+                 utils.die(self.logger,"path does not exist: %s" % dist.initrd)
               shutil.copyfile(dist.kernel, f1)
               shutil.copyfile(dist.initrd, f2)
 
         if systems is not None:
-           print _("- copying kernels and initrds - for systems")
+           self.logger.info("copying kernels and initrds for systems")
            # copy all images in included profiles to images dir
            for system in self.api.systems():
               if system.name in systems:
@@ -130,12 +128,12 @@ class BuildIso:
                  shutil.copyfile(dist.kernel, os.path.join(isolinuxdir, "%s.krn" % distname))
                  shutil.copyfile(dist.initrd, os.path.join(isolinuxdir, "%s.img" % distname))
 
-        print _("- generating a isolinux.cfg")
+        self.logger.info("generating a isolinux.cfg")
         isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
         cfg = open(isolinuxcfg, "w+")
         cfg.write(HEADER) # fixme, use template
 
-        print _("- generating profile list...")
+        self.logger.info("generating profile list")
        #sort the profiles
         profile_list = [profile for profile in self.profiles]
         def sort_name(a,b):
@@ -173,12 +171,12 @@ class BuildIso:
 
                 length=len(append_line)
                 if length>254:
-                   print _("WARNING - append line length is greater than 254 chars: (%s chars)") % length
+                   self.logger.warning("append line length is greater than 254 chars: (%s chars)" % length)
 
                 cfg.write(append_line)
 
         if systems is not None:
-           print _("- generating system list...")
+           self.logger.info("generating system list")
 
            cfg.write("\nMENU SEPARATOR\n")
 
@@ -239,11 +237,11 @@ class BuildIso:
 
                    length=len(append_line)
                    if length > 254:
-                      print _("WARNING - append line length is greater than 254 chars: (%s chars)") % length
+                      self.logger.warning("append line length is greater than 254 chars: (%s chars)" % length)
 
                    cfg.write(append_line)
 
-        print _("- done writing config")
+        self.logger.info("done writing config")
         cfg.write("\n")
         cfg.write("MENU END\n")
         cfg.close()
@@ -255,44 +253,44 @@ class BuildIso:
         # and then get all of its descendants (profiles/sub-profiles/systems)
         distro = self.api.find_distro(distname)
         if distro is None:
-            raise CX("distro %s was not found, aborting" % distname)
+            utils.die(self.logger,"distro %s was not found, aborting" % distname)
         descendants = distro.get_descendants()
 
         if filesource is None:
             # Try to determine the source from the distro kernel path
-            print _("- trying to locate source for distro")
+            self.logger.debug("trying to locate source for distro")
             found_source = False
             (source_head, source_tail) = os.path.split(distro.kernel)
             while source_tail != '':
                 if source_head == os.path.join(self.api.settings().webdir, "ks_mirror"):
                     filesource = os.path.join(source_head, source_tail)
                     found_source = True
-                    print _("  found source in %s" % filesource)
+                    self.logger.debug("found source in %s" % filesource)
                     break
                 (source_head, source_tail) = os.path.split(source_head)
             # Can't find the source, raise an error
             if not found_source:
-                raise CX(_(" Error, no installation source found. When building a standalone ISO, you must specify a --source if the distro install tree is not hosted locally"))
+                utils.die(self.logger," Error, no installation source found. When building a standalone ISO, you must specify a --source if the distro install tree is not hosted locally")
 
-        print _("- copying kernels and initrds - for standalone distro")
+        self.logger.info("copying kernels and initrds for standalone distro")
         # tempdir/isolinux/$distro/vmlinuz, initrd.img
         # FIXME: this will likely crash on non-Linux breeds
         f1 = os.path.join(isolinuxdir, "vmlinuz")
         f2 = os.path.join(isolinuxdir, "initrd.img")
         if not os.path.exists(distro.kernel):
-            raise CX("path does not exist: %s" % distro.kernel)
+            utils.die(self.logger,"path does not exist: %s" % distro.kernel)
         if not os.path.exists(distro.initrd):
-            raise CX("path does not exist: %s" % distro.initrd)
+            utils.die(self.logger,"path does not exist: %s" % distro.initrd)
         shutil.copyfile(distro.kernel, f1)
         shutil.copyfile(distro.initrd, f2)
 
         cmd = "rsync -rlptgu --exclude=boot.cat --exclude=TRANS.TBL --exclude=isolinux/ %s/ %s/../" % (filesource, isolinuxdir)
-        print _("- copying distro %s files (%s)" % (distname,cmd))
-        rc = sub_process.call(cmd, shell=True, close_fds=True)
+        self.logger.info("- copying distro %s files (%s)" % (distname,cmd))
+        rc = utils.subprocess_call(self.logger, cmd, shell=True)
         if rc:
-            raise CX(_("rsync of files failed"))
+            utils.die(self.logger,"rsync of files failed")
 
-        print _("- generating a isolinux.cfg")
+        self.logger.info("generating a isolinux.cfg")
         isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
         cfg = open(isolinuxcfg, "w+")
         cfg.write(HEADER) # fixme, use template
@@ -326,7 +324,7 @@ class BuildIso:
             ks_file.write(kickstart_data)
             ks_file.close()
 
-        print _("- done writing config")
+        self.logger.info("done writing config")
         cfg.write("\n")
         cfg.write("MENU END\n")
         cfg.close()
@@ -338,16 +336,16 @@ class BuildIso:
 
         # the distro option is for stand-alone builds only
         if not standalone and distro is not None:
-            raise CX(_("The --distro option should only be used when creating a standalone ISO"))
+            utils.die(self.logger,"The --distro option should only be used when creating a standalone ISO")
         # if building standalone, we only want --distro,
         # profiles/systems are disallowed
         if standalone:
             if profiles is not None or systems is not None:
-                raise CX(_("When building a standalone ISO, use --distro only instead of --profiles/--systems"))
+                utils.die(self.logger,"When building a standalone ISO, use --distro only instead of --profiles/--systems")
             elif distro is None:
-                raise CX(_("When building a standalone ISO, you must specify a --distro"))
+                utils.die(self.logger,"When building a standalone ISO, you must specify a --distro")
             if source != None and not os.path.exists(source):
-                raise CX(_("The source specified (%s) does not exist" % source))
+                utils.die(self.logger,"The source specified (%s) does not exist" % source)
 
         # if iso is none, create it in . as "kickstart.iso"
         if iso is None:
@@ -357,13 +355,13 @@ class BuildIso:
             tempdir = os.path.join(os.getcwd(), "buildiso")
         else:
             if not os.path.isdir(tempdir):
-                raise CX(_("The --tempdir specified is not a directory"))
+                utils.die(self.logger,"The --tempdir specified is not a directory")
 
             (tempdir_head,tempdir_tail) = os.path.split(os.path.normpath(tempdir))
             if tempdir_tail != "buildiso":
                 tempdir = os.path.join(tempdir, "buildiso")
 
-        print _("- using/creating tempdir: %s") % tempdir
+        self.logger.info("using/creating tempdir: %s" % tempdir)
         if not os.path.exists(tempdir):
             os.makedirs(tempdir)
         else:
@@ -376,20 +374,20 @@ class BuildIso:
         imagesdir = os.path.join(tempdir, "images")
         isolinuxdir = os.path.join(tempdir, "isolinux")
 
-        print _("- building tree for isolinux")
+        self.logger.info("building tree for isolinux")
         if not os.path.exists(imagesdir):
             os.makedirs(imagesdir)
         if not os.path.exists(isolinuxdir):
             os.makedirs(isolinuxdir)
 
-        print _("- copying miscellaneous files")
+        self.logger.info("copying miscellaneous files")
         isolinuxbin = "/usr/lib/syslinux/isolinux.bin"
         menu = "/var/lib/cobbler/menu.c32"
         chain = "/usr/lib/syslinux/chain.c32"
         files = [ isolinuxbin, menu, chain ]
         for f in files:
             if not os.path.exists(f):
-               raise CX(_("Required file not found: %s") % f)
+               utils.die(self.logger,"Required file not found: %s" % f)
             else:
                utils.copyfile(f, os.path.join(isolinuxdir, os.path.basename(f)), self.api)
 
@@ -402,13 +400,13 @@ class BuildIso:
         cmd = cmd + " -no-emul-boot -boot-load-size 4"
         cmd = cmd + " -boot-info-table -V Cobbler\ Install -R -J -T %s" % tempdir
 
-        print _("- running: %s") % cmd
-        rc = sub_process.call(cmd, shell=True, close_fds=True)
-        if rc:
-            raise CX(_("mkisofs failed"))
+        rc = utils.subprocess_call(self.logger, cmd, shell=True)
+        if rc != 0:
+            utils.die(self.logger,"mkisofs failed")
 
-        print _("ISO build complete")
-        print _("You may wish to delete: %s") % tempdir
-        print _("The output file is: %s") % iso
+        self.logger.info("ISO build complete")
+        self.logger.info("You may wish to delete: %s" % tempdir)
+        self.logger.info("The output file is: %s" % iso)
 
+        return True
 
