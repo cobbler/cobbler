@@ -26,7 +26,6 @@ import os.path
 import shutil
 import time
 import yaml # Howell-Clark version
-import sub_process
 import sys
 import glob
 import traceback
@@ -83,7 +82,7 @@ class BootSync:
         Using the Check().run_ functions previously is recommended
         """
         if not os.path.exists(self.bootloc):
-            raise CX("cannot find directory: %s" % self.bootloc)
+            utils.die(self.logger,"cannot find directory: %s" % self.bootloc)
 
         if self.verbose:
             self.logger.info("running pre-sync triggers")
