@@ -65,6 +65,7 @@ class AclConfig:
         webdir = self.settings.webdir
         snipdir = self.settings.snippetsdir
         tftpboot = utils.tftpboot_location()
+
         PROCESS_DIRS = {
            webdir                      : "rwx",
            "/var/log/cobbler"          : "rwx",

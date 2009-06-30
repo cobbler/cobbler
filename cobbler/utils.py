@@ -1448,6 +1448,13 @@ def subprocess_call(logger, cmd, shell=True):
     logger.info("returned: %s" % rc)
     return rc
 
+def subprocess_get(logger, cmd, shell=True):
+    logger.info("running: %s" % cmd)
+    sp = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE)
+    data = sp.communicate()[0] 
+    logger.info("recieved: %s" % data)
+    return data
+
 def popen2(args, **kwargs):
     """ 
     Leftovers from borrowing some bits from Snake, replace this 
