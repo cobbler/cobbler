@@ -62,14 +62,14 @@ class ContentDownloader:
           ( "%s/menu.c32-3.61" % content_server, "%s/menu.c32" % dest),
        )
 
-       print "- now downloading content required to netboot all arches"
+       self.logger.info("downloading content required to netboot all arches")
        for f in files:
           src = f[0]
           dst = f[1]
           if os.path.exists(dst) and not force:
-             print "- path %s already exists, not overwriting existing content, use --force if you wish to update" % dst
+             self.logger.info("path %s already exists, not overwriting existing content, use --force if you wish to update" % dst)
              continue
-          print "- downloading %s to %s" % (src,dst)
+          self.logger.info("downloading %s to %s" % (src,dst))
           urlgrabber.urlgrab(src,dst)
 
        return True
