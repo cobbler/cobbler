@@ -28,7 +28,7 @@ WARNING = "WARNING"
 DEBUG   = "DEBUG"
 INFO    = "INFO"
 
-class Logger():
+class Logger:
 
    def __init__(self, logfile="/var/log/cobbler/cobbler.log"):
       # Main logfile is append mode, other logfiles not.
