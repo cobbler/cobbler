@@ -1444,7 +1444,13 @@ def is_remote_file(file):
 
 def subprocess_call(logger, cmd, shell=True):
     logger.info("running: %s" % cmd)
-    rc = sub_process.call(cmd, shell=shell, stdout=logger.handle(), stderr=logger.handle())
+    try:
+       rc = sub_process.call(cmd, shell=shell, stdout=logger.handle(), stderr=logger.handle())
+    except OSError:
+       log_exc(logger)
+       if not isinstance(cmd, basestring):
+          cmd = str(" ".join(cmd))
+       die(logger, "OS Error, command not found?  While running: %s" % cmd)
     logger.info("returned: %s" % rc)
     return rc
 
