@@ -28,9 +28,12 @@ class Images(collection.Collection):
         return "image"
 
     def factory_produce(self,config,seed_data):
+        """
+        Return a Distro forged from seed_data
+        """
         return image.Image(config).from_datastruct(seed_data)
 
-    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=True):
+    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=True, logger=None):
         """
         Remove element named 'name' from the collection
         """
@@ -53,13 +56,13 @@ class Images(collection.Collection):
             if recursive:
                 kids = obj.get_children()
                 for k in kids:
-                    self.config.api.remove_system(k, recursive=True)
+                    self.config.api.remove_system(k, recursive=True, logger=logger)
 
             if with_delete:
                 if with_triggers:
                     self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/image/pre/*")
                 if with_sync:
-                    lite_sync = action_litesync.BootLiteSync(self.config)
+                    lite_sync = action_litesync.BootLiteSync(self.config, logger=logger)
                     lite_sync.remove_single_image(name)
 
             del self.listing[name]

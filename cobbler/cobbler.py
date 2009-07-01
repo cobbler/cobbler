@@ -90,7 +90,8 @@ def main():
         if sys.exc_type==SystemExit:
             return exc.code
         else:
-            utils.print_exc(exc,full=True)
+            # FIXME: log to logfile instead/also ?
+            traceback.print_exc()
             return 1
 
 def test_hello():

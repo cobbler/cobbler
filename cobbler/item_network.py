@@ -49,6 +49,12 @@ class Network(item.Item):
     TYPE_NAME = _("network")
     COLLECTION_TYPE = "network"
 
+    def make_clone(self):
+        ds = self.to_datastruct()
+        cloned = Network(self.config)
+        cloned.from_datastruct(ds)
+        return cloned
+
     def get_fields(self):
         return FIELDS
 

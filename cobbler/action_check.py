@@ -23,20 +23,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import re
-import sub_process
 import action_sync
 import utils
 import glob
 from utils import _
+import clogger
 
 class BootCheck:
 
-   def __init__(self,config):
+   def __init__(self,config,logger=None):
        """
        Constructor
        """
        self.config   = config
        self.settings = config.settings()
+       if logger is None:
+           logger       = clogger.Logger()
+       self.logger      = logger
+
 
    def run(self):
        """
@@ -100,13 +104,13 @@ class BootCheck:
        rc = 0
        if self.checked_dist == "redhat" or self.checked_dist == "suse":
            if os.path.exists("/etc/rc.d/init.d/%s" % which):
-               rc = sub_process.call("/sbin/service %s status > /dev/null 2>/dev/null" % which, shell=True, close_fds=True)
+               rc = utils.subprocess_call(self.logger,"/sbin/service %s status > /dev/null 2>/dev/null" % which, shell=True)
            if rc != 0:
                status.append(_("service %s is not running%s") % (which,notes))
                return False
        elif self.checked_dist == "debian":
            if os.path.exists("/etc/init.d/%s" % which):
-	       rc = sub_process.call("/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True, close_fds=True)
+	       rc = utils.subprocess_call(self.logger,"/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
 	   if rc != 0:
 	       status.append(_("service %s is not running%s") % which,notes)
                return False
@@ -117,7 +121,7 @@ class BootCheck:
 
    def check_iptables(self, status):
        if os.path.exists("/etc/rc.d/init.d/iptables"):
-           rc = sub_process.call("/sbin/service iptables status >/dev/null 2>/dev/null", shell=True, close_fds=True)
+           rc = utils.subprocess_call(self.logger,"/sbin/service iptables status >/dev/null 2>/dev/null", shell=True)
            if rc == 0:
               status.append(_("since iptables may be running, ensure 69, 80, and %(xmlrpc)s are unblocked") % { "xmlrpc" : self.settings.xmlrpc_port })
 
@@ -130,8 +134,7 @@ class BootCheck:
            status.append(_("yumdownloader is not installed, needed for cobbler repo add with --rpm-list parameter, install/upgrade yum-utils?"))
        if self.settings.reposync_flags.find("\-l"):
            if self.checked_dist == "redhat" or self.checked_dist == "suse":
-               yum_utils_check = sub_process.Popen("/usr/bin/rpmquery --queryformat=%{VERSION} yum-utils", shell=True, close_fds=True, stdout=sub_process.PIPE)
-               yum_utils_ver = yum_utils_check.communicate()[0]
+               yum_utils_ver = utils.subprocess_get(self.logger,"/usr/bin/rpmquery --queryformat=%{VERSION} yum-utils", shell=True)
                if yum_utils_ver < "1.1.17":
                    status.append(_("yum-utils need to be at least version 1.1.17 for reposync -l, current version is %s") % yum_utils_ver )
 
@@ -163,13 +166,12 @@ class BootCheck:
    def check_selinux(self,status):
        enabled = self.config.api.is_selinux_enabled()
        if enabled:
-           prc2 = sub_process.Popen("/usr/sbin/getsebool -a",shell=True,stdout=sub_process.PIPE, close_fds=True)
-           data2 = prc2.communicate()[0]
+           data2 = utils.subprocess_get(self.logger,"/usr/sbin/getsebool -a",shell=True)
            for line in data2.split("\n"):
               if line.find("httpd_can_network_connect ") != -1:
                   if line.find("off") != -1:
                       status.append(_("Must enable selinux boolean to enable Apache and web services components, run: setsebool -P httpd_can_network_connect true"))
-           data3 = sub_process.Popen("/usr/sbin/semanage fcontext -l | grep public_content_t",shell=True,stdout=sub_process.PIPE).communicate()[0]
+           data3 = utils.subprocess_get(self.logger,"/usr/sbin/semanage fcontext -l | grep public_content_t",shell=True)
 
            rule1 = False
            rule2 = False

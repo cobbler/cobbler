@@ -26,6 +26,7 @@ import os.path
 import glob
 import time
 import api as cobbler_api
+import clogger
 
 #from utils import _
 
@@ -40,7 +41,7 @@ STATE              = 5
 class BootStatusReport:
 
   
-    def __init__(self,config,mode):
+    def __init__(self,config,mode,logger=None):
         """
         Constructor
         """
@@ -48,6 +49,10 @@ class BootStatusReport:
         self.settings = config.settings()
         self.ip_data  = {}
         self.mode     = mode
+        if logger is None:
+            logger       = clogger.Logger()
+        self.logger      = logger
+
 
     # -------------------------------------------------------
 

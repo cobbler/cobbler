@@ -35,20 +35,11 @@ import api as cobbler_api
 
 LOCK_ENABLED = True
 LOCK_HANDLE = None
-BLOCK_SIGNAL = True
 
 def handler(num,frame): 
    print >> sys.stderr, "Ctrl-C not allowed during writes.  Please wait."
    return True
     
-def no_ctrl_c():
-#   signal.signal(signal.SIGINT, handler)
-   return True
-
-def ctrl_c_ok():
-#   signal.signal(signal.SIGINT, signal.default_int_handler)
-   return True   
-
 def __grab_lock():
     """
     Dual purpose locking:
@@ -62,8 +53,6 @@ def __grab_lock():
                 fd.close()
             LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
             fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_EX)
-        if BLOCK_SIGNAL:
-            no_ctrl_c()
         return True
     except:
         # this is pretty much FATAL, avoid corruption and quit now.
@@ -84,8 +73,6 @@ def __release_lock(with_changes=False):
         LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
         fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
         LOCK_HANDLE.close()
-    if BLOCK_SIGNAL:
-        ctrl_c_ok()
     return True
 
 def serialize(obj):

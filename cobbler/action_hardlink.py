@@ -23,17 +23,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import utils
 from cexceptions import *
+import clogger
 
 class HardLinker:
 
-    def __init__(self,config):
+    def __init__(self,config,logger=None):
         """
         Constructor
         """
         #self.config   = config
         #self.api      = config.api
         #self.settings = config.settings()
-        pass
+        if logger is None:
+            logger       = clogger.Logger()
+        self.logger      = logger
+
 
     def run(self):
         """
@@ -46,11 +50,11 @@ class HardLinker:
         # changes will be required here.
 
         if not os.path.exists("/usr/sbin/hardlink"):
-            raise CX("please install 'hardlink' (/usr/sbin/hardlink) to use this feature")
+            utils.die(self.logger,"please install 'hardlink' (/usr/sbin/hardlink) to use this feature")
 
-        print "now hardlinking to save space, this may take some time."
+        self.logger.info("now hardlinking to save space, this may take some time.")
 
-        rc = utils.os_system("/usr/sbin/hardlink -c -v /var/www/cobbler/ks_mirror /var/www/cobbler/repo_mirror")
+        utils.subprocess_call(self.logger,"/usr/sbin/hardlink -c -v /var/www/cobbler/ks_mirror /var/www/cobbler/repo_mirror",shell=True)
 
         return rc
 
