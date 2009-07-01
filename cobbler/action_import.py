@@ -761,7 +761,7 @@ class Importer:
 # ==============================================
 
 
-def guess_breed(kerneldir,path,cli_breed):
+def guess_breed(kerneldir,path,cli_breed,logger):
 
     """
     This tries to guess the distro. Traverses from kernel dir to imported root checking 
@@ -790,7 +790,7 @@ def guess_breed(kerneldir,path,cli_breed):
     guess = None
 
     while kerneldir != os.path.dirname(path) :
-        self.logger.info("scanning %s for distro signature" % kerneldir)
+        logger.info("scanning %s for distro signature" % kerneldir)
         for (x, breedguess) in signatures:
             d = os.path.join( kerneldir , x )
             if os.path.exists( d ):
@@ -802,7 +802,7 @@ def guess_breed(kerneldir,path,cli_breed):
         kerneldir = os.path.dirname(kerneldir)
     else:
         if cli_breed:
-            self.logger.info("Warning: No distro signature for kernel at %s, using value from command line" % kerneldir)
+            logger.info("Warning: No distro signature for kernel at %s, using value from command line" % kerneldir)
             return (cli_breed , kerneldir , None)
         utils.die(self.logger, "No distro signature for kernel at %s" % kerneldir )
 
@@ -828,18 +828,18 @@ def import_factory(kerneldir,path,cli_breed,logger):
     that can be used to complete the import.
     """
 
-    breed , rootdir, pkgdir = guess_breed(kerneldir,path,cli_breed)
+    breed , rootdir, pkgdir = guess_breed(kerneldir,path,cli_breed,logger)
     # NOTE : The guess_breed code should be included in the factory, in order to make 
     # the real root directory available, so allowing kernels at different levels within 
     # the same tree (removing the isolinux rejection from distro_adder) -- JP
 
     if rootdir[1]:
-        self.logger.info("found content (breed=%s) at %s" % (breed,os.path.join( rootdir[0] , rootdir[1])))
+        logger.info("found content (breed=%s) at %s" % (breed,os.path.join( rootdir[0] , rootdir[1])))
     else:
-        self.logger.info("found content (breed=%s) at %s" % (breed,rootdir[0]))
+        logger.info("found content (breed=%s) at %s" % (breed,rootdir[0]))
     if cli_breed:
         if cli_breed != breed:
-            utils.die(self.logger, "Requested breed (%s); breed found is %s" % ( cli_breed , breed ) )
+            utils.die(logger, "Requested breed (%s); breed found is %s" % ( cli_breed , breed ) )
         breed = cli_breed
 
     if breed == "redhat":
@@ -849,9 +849,9 @@ def import_factory(kerneldir,path,cli_breed,logger):
     elif breed == "ubuntu":
         return UbuntuImporter(logger,rootdir,pkgdir)
     elif breed:
-        utils.die(self.logger, "Unknown breed %s" % breed)
+        utils.die(logger, "Unknown breed %s" % breed)
     else:
-        utils.die(self.logger, "No breed given")
+        utils.die(logger, "No breed given")
 
 
 class BaseImporter:
