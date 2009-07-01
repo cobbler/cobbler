@@ -37,6 +37,8 @@ import codes
 
 FIELDS = [
    [ "name","",0,"Name",True,"Ex: Fedora-11-i386",0],
+   ["ctime",0,0,"",False,"",0],
+   ["mtime",0,0,"",False,"",0],
    [ "uid","",0,"",False,"",0],
    [ "owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",0],
    [ "kernel",None,0,"Kernel",True,"Absolute path to kernel on filesystem",0],

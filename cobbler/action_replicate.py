@@ -28,18 +28,21 @@ import api as cobbler_api
 import utils
 from utils import _
 from cexceptions import *
-import sub_process
+import clogger
 
 class Replicate:
-    def __init__(self,config):
+    def __init__(self,config,logger=None):
         """
         Constructor
         """
         self.config   = config
         self.settings = config.settings()
-        self.api         = config.api
-        self.remote = None
-        self.uri = None
+        self.api      = config.api
+        self.remote   = None
+        self.uri      = None
+        if logger is None:
+           logger = clogger.Logger()
+        self.logger   = logger
 
     # -------------------------------------------------------
 
@@ -48,10 +51,10 @@ class Replicate:
         Create the distro links
         """
         # find the tree location
-        dirname = os.path.dirname(distro.kernel)
-        tokens = dirname.split("/")
-        tokens = tokens[:-2]
-        base = "/".join(tokens)
+        dirname   = os.path.dirname(distro.kernel)
+        tokens    = dirname.split("/")
+        tokens    = tokens[:-2]
+        base      = "/".join(tokens)
         dest_link = os.path.join(self.settings.webdir, "links", distro.name)
 
         # create the links directory only if we are mirroring because with
@@ -63,23 +66,21 @@ class Replicate:
                 os.symlink(base, dest_link)
             except:
                 # this shouldn't happen but I've seen it ... debug ...
-                print _("- symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
+                self.logger.warning("symlink creation failed: %(base)s, %(dest)s" % { "base" : base, "dest" : dest_link })
 
     # -------------------------------------------------------
 
     def rsync_it(self,from_path,to_path):
         from_path = "%s:%s" % (self.host, from_path)
         cmd = "rsync -avz %s %s" % (from_path, to_path)
-        print _("- %s") % cmd
-        rc = sub_process.call(cmd, shell=True, close_fds=True)
+        rc = utils.subprocess_call(cmd, shell=True)
         if rc !=0:
-            raise CX(_("rsync failed"))
+            self.logger.info("rsync failed")
     
     def scp_it(self,from_path,to_path):
         from_path = "%s:%s" % (self.host, from_path)
         cmd = "scp %s %s" % (from_path, to_path)
-        print _("- %s") % cmd
-        rc = sub_process.call(cmd, shell=True, close_fds=True)
+        rc = utils.subprocess_call(cmd, shell=True)
         if rc !=0:
             raise CX(_("scp failed"))
 
@@ -121,19 +122,19 @@ class Replicate:
     def replicate_data(self):
        
         # distros 
-        print _("----- Copying Distros")
+        self.logger.info("Copying Distros")
         local_distros = self.api.distros()
         try:
             remote_distros = self.remote.get_distros()
         except:
-            raise CX(_("Failed to contact remote server"))
+            self.logger.info("Failed to contact remote server")
 
         if self.sync_all or self.sync_trees:
-            print _("----- Rsyncing Distribution Trees")
+            self.logger.info("Rsyncing Distribution Trees")
             self.rsync_it(os.path.join(self.settings.webdir,"ks_mirror"),self.settings.webdir)
 
         for distro in remote_distros:
-            print _("Importing remote distro %s.") % distro['name']
+            self.logger.info("Importing remote distro %s." % distro['name'])
             if os.path.exists(distro['kernel']):
                 remote_mtime = distro['mtime']
                 if self.should_add_or_replace(distro, "distros"): 
@@ -141,46 +142,46 @@ class Replicate:
                     new_distro.from_datastruct(distro)
                     try:
                         self.api.add_distro(new_distro)
-                        print _("Copied distro %s.") % distro['name']
+                        self.logger.info("Copied distro %s." % distro['name'])
                     except Exception, e:
                         traceback.print_exc() 
-                        print _("Failed to copy distro %s") % distro['name']
+                        self.logger.error("Failed to copy distro %s" % distro['name'])
                 else:
                     # FIXME: force logic
-                    print "Not copying distro %s, sufficiently new mtime" % distro['name']
+                    self.logger.info("Not copying distro %s, sufficiently new mtime" % distro['name'])
             else:
-                print _("Failed to copy distro %s, content not here yet.") % distro['name']
+                self.logger.error("Failed to copy distro %s, content not here yet." % distro['name'])
 
         if self.sync_all or self.sync_repos:
-            print _("----- Rsyncing Package Mirrors")
+            self.logger.info("Rsyncing Package Mirrors")
             self.rsync_it(os.path.join(self.settings.webdir,"repo_mirror"),self.settings.webdir)
 
         if self.sync_all or self.sync_kickstarts:
-            print _("----- Rsyncing kickstart templates & snippets")
+            self.logger.info("Rsyncing kickstart templates & snippets")
             self.rsync_it("/var/lib/cobbler/kickstarts","/var/lib/cobbler")
             self.rsync_it("/var/lib/cobbler/snippets","/var/lib/cobbler")
 
         # repos
         # FIXME: check to see if local mirror is here, or if otherwise accessible
-        print _("----- Copying Repos")
+        self.logger.info("Copying Repos")
         local_repos = self.api.repos()
         remote_repos = self.remote.get_repos()
         for repo in remote_repos:
-            print _("Importing remote repo %s.") % repo['name']
+            self.logger.info("Importing remote repo %s." % repo['name'])
             if self.should_add_or_replace(repo, "repos"): 
                 new_repo = self.api.new_repo()
                 new_repo.from_datastruct(repo)
                 try:
                     self.api.add_repo(new_repo)
-                    print _("Copied repo %s.") % repo['name']
+                    self.logger.info("Copied repo %s." % repo['name'])
                 except Exception, e:
                     traceback.print_exc() 
-                    print _("Failed to copy repo %s.") % repo['name']
+                    self.logger.error("Failed to copy repo %s." % repo['name'])
             else:
-                print "Not copying repo %s, sufficiently new mtime" % repo['name']
+                self.logger.info("Not copying repo %s, sufficiently new mtime" % repo['name'])
 
         # profiles
-        print _("----- Copying Profiles")
+        self.logger.info("Copying Profiles")
         local_profiles = self.api.profiles()
         remote_profiles = self.remote.get_profiles()
 
@@ -190,58 +191,58 @@ class Replicate:
         remote_profiles.sort(__depth_sort)
 
         for profile in remote_profiles:
-            print _("Importing remote profile %s" % profile['name'])
+            self.logger.info("Importing remote profile %s" % profile['name'])
             if self.should_add_or_replace(profile, "profiles"): 
                 new_profile = self.api.new_profile()
                 new_profile.from_datastruct(profile)
                 try:
                     self.api.add_profile(new_profile)
-                    print _("Copied profile %s.") % profile['name']
+                    self.logger.info("Copied profile %s." % profile['name'])
                 except Exception, e:
                     traceback.print_exc()
-                    print _("Failed to copy profile %s.") % profile['name']
+                    self.logger.error("Failed to copy profile %s." % profile['name'])
             else:
-                print "Not copying profile %s, sufficiently new mtime" % profile['name']
+                self.logger.info("Not copying profile %s, sufficiently new mtime" % profile['name'])
 
         # images
-        print _("----- Copying Images")
+        self.logger.info("Copying Images")
         remote_images = self.remote.get_images()
         for image in remote_images:
-            print _("Importing remote image %s" % image['name'])
+            self.logger.info("Importing remote image %s" % image['name'])
             if self.should_add_or_replace(image, "images"): 
                 new_image = self.api.new_image()
                 new_image.from_datastruct(image)
                 try:
                     self.api.add_image(new_image)
-                    print _("Copied image %s.") % image['name']
+                    self.logger.info("Copied image %s." % image['name'])
                 except Exception, e:
                     traceback.print_exc()
-                    print _("Failed to copy image %s.") % profile['image']
+                    self.logger.info("Failed to copy image %s." % profile['image'])
             else:
-                print "Not copying image %s, sufficiently new mtime" % image['name']
+                self.logger.info("Not copying image %s, sufficiently new mtime" % image['name'])
 
         # systems
         # (optional)
         if self.include_systems:
-            print _("----- Copying Systems")
+            self.logger.info("Copying Systems")
             local_systems = self.api.systems()
             remote_systems = self.remote.get_systems()
             for system in remote_systems:
-                print _("Importing remote system %s" % system['name'])
+                self.logger.info("Importing remote system %s" % system['name'])
                 if self.should_add_or_replace(system, "systems"): 
                     new_system = self.api.new_system()
                     new_system.from_datastruct(system)
                     try:
                         self.api.add_system(new_system)
-                        print _("Copied system %s.") % system['name']
+                        self.logger.info("Copied system %s." % system['name'])
                     except Exception, e:
                         traceback.print_exc()
-                        print _("Failed to copy system %s") % system['name']        
+                        self.logger.info("Failed to copy system %s" % system['name'])    
                 else:
-                    print "Not copying system %s, sufficiently new mtime" % system['name']  
+                    self.logger.info("Not copying system %s, sufficiently new mtime" % system['name'])
 
         if self.sync_all or self.sync_triggers:
-            print _("----- Rsyncing triggers")
+            self.logger.info("Rsyncing triggers")
             self.rsync_it("/var/lib/cobbler/triggers","/var/lib/cobbler")
 
     # -------------------------------------------------------
@@ -269,10 +270,11 @@ class Replicate:
         else:
             raise CX(_('No cobbler master specified, try --master.'))
 
-        print _("XMLRPC endpoint: %s") % self.uri        
+        self.logger.info("XMLRPC endpoint: %s" % self.uri)     
         self.remote =  xmlrpclib.Server(self.uri)
         self.replicate_data()
-        print _("----- Syncing")
+        self.logger.info("Syncing")
         self.api.sync()
-        print _("----- Done")
+        self.logger.info("Done")
+        return True
 
