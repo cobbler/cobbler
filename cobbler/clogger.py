@@ -21,7 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import sub_process
 import time
+import os
 
 ERROR   = "ERROR"
 WARNING = "WARNING"
@@ -32,10 +34,16 @@ class Logger:
 
    def __init__(self, logfile="/var/log/cobbler/cobbler.log"):
       # Main logfile is append mode, other logfiles not.
+      if not os.path.exists(logfile):
+         self.logfile = open(logfile, "a")
+         sub_process.call("chown apache %s" % logfile, shell=True)
+         self.logfile.close()
+
       if logfile.find("tasks") != -1:
          self.logfile = open(logfile, "w+")
       else:
          self.logfile = open(logfile, "a")
+      
 
    def warning(self, msg):
       self.__write(WARNING, msg)
