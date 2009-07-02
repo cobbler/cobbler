@@ -1,5 +1,9 @@
 Cobbler CHANGELOG
 
+- 1.6.7
+- (BUGF/koan) Workaround for a bug in ybin, use --verbose for happy return codes
+- (BUGF/cobbler) patch to redhat_register for Satellite 
+
 - - 1.6.6
 - (BUGF) fix typo in /usr/bin/cobbler-register
 - (NOTE: koan changelog in subdirectory is no longer maintained)

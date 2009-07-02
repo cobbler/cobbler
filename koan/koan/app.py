@@ -822,7 +822,7 @@ class Koan:
             if not ANCIENT_PYTHON and arch.startswith("ppc"):
                 # FIXME - CHRP hardware uses a 'PPC PReP Boot' partition and doesn't require running ybin
                 print "- applying ybin changes"
-                cmd = [ "/sbin/ybin" ]
+                cmd = [ "/sbin/ybin", "--verbose" ]
                 utils.subprocess_call(cmd)
             elif not ANCIENT_PYTHON and arch.startswith("s390"):
                 print "- applying zipl changes"
