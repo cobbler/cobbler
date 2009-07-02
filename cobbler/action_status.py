@@ -27,6 +27,7 @@ import glob
 import time
 import api as cobbler_api
 import clogger
+import utils
 
 #from utils import _
 
@@ -165,7 +166,7 @@ class BootStatusReport:
         self.scan_logfiles()
         results = self.process_results()
         if self.mode is "text":
-            print self.get_printable_results()
+            self.logger.flat(self.get_printable_results())
             return True
         else:
             return results
