@@ -36,7 +36,6 @@ class Validate:
         self.config   = config
         self.settings = config.settings()
         self.kickgen  = kickgen.KickGen(config)
-        self.ks_cache = []
         if logger is None:
             logger       = clogger.Logger()
         self.logger      = logger
@@ -50,8 +49,7 @@ class Validate:
         """
 
         if not os.path.exists("/usr/bin/ksvalidator"):
-            print _("ksvalidator not installed, please install pykickstart")
-            return False 
+            utils.die(self.logger,"ksvalidator not installed, please install pykickstart")
 
         failed = False
         for x in self.config.profiles():
@@ -59,18 +57,18 @@ class Validate:
             if not result:
                 failed = True
             if len(errors) > 0:
-                self.print_errors(errors)
+                self.log_errors(errors)
         for x in self.config.systems():
             (result, errors) = self.checkfile(x, False)
             if not result:
                 failed = True
             if len(errors) > 0:
-                self.print_errors(errors)
+                self.log_errors(errors)
  
         if failed:
-            print _("*** potential errors detected in kickstarts ***")
+            self.logger.warning("*** potential errors detected in kickstarts ***")
         else:
-            print _("*** all kickstarts seem to be ok ***")
+            self.logger.info("*** all kickstarts seem to be ok ***")
 
         return failed
 
@@ -80,22 +78,16 @@ class Validate:
 
         os_version = blended["os_version"]
 
-        print "----------------------------"
+        self.logger.info("----------------------------")
 
         ks = blended["kickstart"]
         if ks is None or ks == "":
-            print "%s has no kickstart, skipping" % obj.name
+            self.logger.info("%s has no kickstart, skipping" % obj.name)
             return [True, last_errors]
-
-        if ks in self.ks_cache:
-            print "Skipping kickstart %s, already checked previously" % ks
-            return [True, ()]
-        else: 
-            self.ks_cache.append(ks)
 
         breed = blended["breed"]
         if breed != "redhat":
-            print "%s has a breed of %s, skipping" % (obj.name, breed)
+            self.logger.info("%s has a breed of %s, skipping" % (obj.name, breed))
             return [True, last_errors]
 
         server = blended["server"] 
@@ -110,18 +102,18 @@ class Validate:
                 self.kickgen.generate_kickstart_for_system(obj.name)
             last_errors = self.kickgen.get_last_errors()
 
-        print "checking url: %s" % url
+        self.logger.info("checking url: %s" % url)
 
-        rc = utils.os_system("/usr/bin/ksvalidator \"%s\"" % url)
+        rc = utils.subprocess_call(self.logger,"/usr/bin/ksvalidator \"%s\"" % url, shell=True)
         if rc != 0:
             return [False, last_errors]
        
         return [True, last_errors]
 
 
-    def print_errors(self, errors):
-        print _("Potential templating errors:")
+    def log_errors(self, errors):
+        self.logger.warning("Potential templating errors:")
         for error in errors:
             (line,col) = error["lineCol"]
             line -= 1 # we add some lines to the template data, so numbering is off
-            print _("Unknown variable found at line %d, column %d: '%s'" % (line,col,error["rawCode"]))
+            self.logger.warning("Unknown variable found at line %d, column %d: '%s'" % (line,col,error["rawCode"]))
