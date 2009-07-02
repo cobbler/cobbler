@@ -2,7 +2,7 @@
 
 Summary: Network provisioning tool for Xen and Bare Metal Machines 
 Name: koan
-Version: 1.6.6
+Version: 1.6.8
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
@@ -61,23 +61,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Thu May 28 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.6-1
-- Placeholder for future release
+* Thu Jul 02 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.8-1
+- Upstream changes (see CHANGELOG)
 
 * Thu May 28 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.5-1
 - Upstream changes (see CHANGELOG)
-
-* Fri May 8 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.4-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Apr 17 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.3-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Mar 27 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.1-1
-- Upstream changes (see CHANGELOG)
-- added cobbler-register script and manpage
-
-* Tue Feb 17 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.3-1
-- Upstream changes (see CHANGELOG)
-- Reduce python version requirements
 

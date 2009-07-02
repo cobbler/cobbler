@@ -4,7 +4,7 @@
 Summary: Boot server configurator
 Name: cobbler
 AutoReq: no
-Version: 1.6.6
+Version: 1.6.8
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
@@ -299,59 +299,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Thu May 28 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.6-1
-- Placeholder for future release
+* Thu Jul 02 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.8-1
+- Upstream changes (see CHANGELOG)
 
 * Thu May 28 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.5-1
 - Upstream changes (see CHANGELOG)
-
-* Fri May 8 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.4-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Apr 17 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.3-1
-- Upstream changes (see CHANGELOG)
-
-* Mon Mar 30 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.2-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Mar 27 2009 Michael DeHaan <mdehaan@redhat.com> - 1.6.1-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Mar 06 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.3-4
-- Upstream changes (see CHANGELOG)
-- Now requires PyYAML
-
-* Thu Feb 12 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.2-1
-- Upstream changes (see CHANGELOG)
-- Adding build_report.trigger
-
-* Mon Jan 09 2009 Michael DeHaan <mdehaan@redhat.com> - 1.4.1-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Dec 19 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.0-4
-- Fix for rawhide python requirement.
-
-* Fri Dec 19 2008 Michael DeHaan <mdehaan@redhat.com> - 1.4.0-2
-- Upstream changes (see CHANGELOG)
-
-* Wed Dec 10 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.4-1
-- Updated test release (see CHANGELOG)
-
-- Upstream changes (see CHANGELOG)
-- Added specfile changes for python 2.6
-* Mon Dec 08 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.3-1
-- Upstream changes (see CHANGELOG)
-- Added specfile changes for python 2.6
-
-* Tue Nov 18 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.2-1
-- Upstream changes (see CHANGELOG)
-- placeholder for future test release
-- packaged /var/lib/cobbler/version
-
-* Fri Nov 14 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.1-1
-- Upstream changes (see CHANGELOG)
-
-* Fri Sep 26 2008 Michael DeHaan <mdehaan@redhat.com> - 1.3.0-1
-- Upstream changes (see CHANGELOG)
-- added sample.seed file
-- added /usr/bin/cobbler-ext-nodes
