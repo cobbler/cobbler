@@ -1,9 +1,9 @@
 """
 Report from a cobbler master.
 
-Copyright 2007-2008, Red Hat, Inc
+Copyright 2007-2009, Red Hat, Inc
 Anderson Silva <ansilva@redhat.com>
-
+Michael DeHaan <mdehaan@redhat.com>
 
 This software may be freely redistributed under the terms of the GNU
 general public license.
@@ -13,13 +13,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-import os
-import os.path
-import xmlrpclib
 import re
-import api as cobbler_api
 from cexceptions import *
-from utils import _
+import utils
 import clogger
 
 class Report:
@@ -223,13 +219,13 @@ class Report:
         Used for picking the correct format to output data as
         """
         if report_type == "csv":
-            print self.reporting_csv(data, order, noheaders)
+            self.logger.flat(self.reporting_csv(data, order, noheaders))
         if report_type == "mediawiki":
-            print self.reporting_mediawiki(data, order, noheaders)
+            self.logger.flat(self.reporting_mediawiki(data, order, noheaders))
         if report_type == "trac":
-            print self.reporting_trac(data, order, noheaders)
+            self.logger.flat(self.reporting_trac(data, order, noheaders))
         if report_type == "doku":
-            print self.reporting_doku(data, order, noheaders)
+            self.logger.flat(self.reporting_doku(data, order, noheaders))
 
         return True
 
@@ -246,7 +242,7 @@ class Report:
         collection = [x for x in collection]
         collection.sort(self.reporting_sorter)
         for x in collection:
-            print x.printable()
+            self.logger.flat(x.printable())
         return True
 
     def reporting_list_names2(self, collection, name):
@@ -255,7 +251,7 @@ class Report:
         """
         obj = collection.get(name)
         if obj is not None:
-            print obj.printable()
+            self.logger.flat(obj.printable())
         return True
     
     def reporting_print_all_fields(self, collection, report_name, report_type, report_noheaders):
@@ -353,7 +349,7 @@ class Report:
                         self.reporting_print_sorted(self.api.get_items(collection_name))
 
         elif report_type == 'text' and report_fields != 'all':
-            raise CX(_("The 'text' type can only be used with field set to 'all'"))
+            utils.die(self.logger,"The 'text' type can only be used with field set to 'all'")
  
         elif report_type != 'text' and report_fields == 'all':
 

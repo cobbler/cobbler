@@ -49,8 +49,14 @@ class Logger:
    def info(self, msg):
       self.__write(INFO, msg)
 
+   def flat(self, msg):
+      self.__write(None, msg)
+
    def __write(self, level, msg):
-      self.logfile.write("%s - %s | %s" % (time.asctime(), level, msg))
+      if level is not None:
+          self.logfile.write("%s - %s | %s" % (time.asctime(), level, msg))
+      else:
+          self.logfile.write(msg)
       self.logfile.write("\n")
       self.logfile.flush()
  
