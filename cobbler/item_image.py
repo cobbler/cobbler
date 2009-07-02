@@ -58,6 +58,12 @@ class Image(item.Item):
     TYPE_NAME = _("image")
     COLLECTION_TYPE = "image"
 
+    def make_clone(self):
+        ds = self.to_datastruct()
+        cloned = Image(self.config)
+        cloned.from_datastruct(ds)
+        return cloned
+
     def get_fields(self):
         return FIELDS
  

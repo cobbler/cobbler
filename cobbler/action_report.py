@@ -20,11 +20,11 @@ import re
 import api as cobbler_api
 from cexceptions import *
 from utils import _
-
+import clogger
 
 class Report:
 
-    def __init__(self, config):
+    def __init__(self, config, logger=None):
         """
         Constructor
         """
@@ -37,6 +37,10 @@ class Report:
         self.report_fields = None
         self.report_noheaders = None
         self.array_re = re.compile('([^[]+)\[([^]]+)\]')
+        if logger is None:
+            logger       = clogger.Logger()
+        self.logger      = logger
+
 
     def fielder(self, structure, fields_list):
         """

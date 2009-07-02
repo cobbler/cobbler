@@ -383,7 +383,7 @@ function page_onload() {
             {% endifequal %}
 
             {% ifequal item.html_element "checkbox" %}
-                {% ifequal item.value True %}
+                {% ifequal item.value 1 %}
                     <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}" checked> Enabled<br>
                 {% else %}
                     <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}"> Enabled<br>

@@ -6,7 +6,7 @@ set up.  This makes power cycling a system for reinstallation much easier.
 
 See https://fedorahosted.org/cobbler/wiki/PowerManagement
 
-Copyright 2008, Red Hat, Inc
+Copyright 2008-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify
@@ -28,8 +28,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import os.path
-import sub_process
-import sys
 import traceback
 import time
 
@@ -37,13 +35,14 @@ import utils
 import func_utils
 from cexceptions import *
 import templar
+import clogger
 
 class PowerTool:
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,config,system,api,force_user=None,force_pass=None):
+    def __init__(self,config,system,api,force_user=None,force_pass=None,logger=None):
         """
         Power library constructor requires a cobbler system object.
         """
@@ -53,6 +52,9 @@ class PowerTool:
         self.api         = api
         self.force_user  = force_user
         self.force_pass  = force_pass
+        if logger is None:
+            logger = clogger.Logger()
+        self.logger      = logger
 
     def power(self, desired_state):
         """
@@ -73,7 +75,7 @@ class PowerTool:
                 else:
                     rc = client.virt.destroy(self.system.hostname)[self.system.virt_host]
                 if rc != 0:
-                    print rc[2]
+                    self.logger.info("virt rc=%s" % rc[2])
                 else:
                     return rc
             except func_utils.Func_Client_Exception:
@@ -97,12 +99,12 @@ class PowerTool:
 
         cmd = cmd.strip()
 
-        print "cobbler power configuration is:\n"
+        self.logger.info("cobbler power configuration is:")
 
-        print "      type   : %s" % self.system.power_type
-        print "      address: %s" % self.system.power_address
-        print "      user   : %s" % self.system.power_user
-        print "      id     : %s" % self.system.power_id
+        self.logger.info("      type   : %s" % self.system.power_type)
+        self.logger.info("      address: %s" % self.system.power_address)
+        self.logger.info("      user   : %s" % self.system.power_user)
+        self.logger.info("      id     : %s" % self.system.power_id)
 
         # if no username/password data, check the environment
 
@@ -111,28 +113,20 @@ class PowerTool:
         if meta.get("power_pass","") == "":
             meta["power_pass"] = os.environ.get("COBBLER_POWER_PASS","")
 
-        print ""
-
-        print "- %s" % cmd
-
         # now reprocess the command so we don't feed it through the shell
         cmd = cmd.split(" ")
-
-        #tool_needed = cmd.split(" ")[0]
-        #if not os.path.exists(tool_needed):
-        #   print "warning: %s does not seem to be installed" % tool_needed
 
         # Try the power command 5 times before giving up.
         # Some power switches are flakey
         for x in range(0,5):
-            rc = sub_process.call(cmd, shell=False, close_fds=True)
+            rc = utils.subprocess_call(self.logger, cmd, shell=False)
             if rc == 0:
                 break
             else:
                 time.sleep(2)
 
         if not rc == 0:
-           raise CX("command failed (rc=%s), please validate the physical setup and cobbler config" % rc)
+           utils.die(self.logger,"command failed (rc=%s), please validate the physical setup and cobbler config" % rc)
 
         return rc
 
@@ -145,10 +139,10 @@ class PowerTool:
         """
 
         if self.system.power_type in [ "", "none" ]:
-            raise CX("Power management is not enabled for this system")
+            utils.die(self.logger,"Power management is not enabled for this system")
 
         result = utils.get_power(self.system.power_type)
         if not result:
-            raise CX("Invalid power management type for this system (%s, %s)" % (self.system.power_type, self.system.name))
+            utils.die(self.logger, "Invalid power management type for this system (%s, %s)" % (self.system.power_type, self.system.name))
         return result
 

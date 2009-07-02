@@ -23,30 +23,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-
 import os
 import os.path
-import shutil
-import time
-import yaml # Howell-Clark version
-import sub_process
-import sys
 
 import utils
-import action_sync
-from cexceptions import *
 import traceback
-import errno
-
-from utils import _
-
+import clogger
 
 class BootLiteSync:
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,config,verbose=False):
+    def __init__(self,config,verbose=False,logger=None):
         """
         Constructor
         """
@@ -59,7 +48,10 @@ class BootLiteSync:
         self.settings    = config.settings()
         self.repos       = config.repos()
         self.networks    = config.networks()
-        self.sync        = config.api.get_sync(verbose)
+        if logger is None:
+            logger = clogger.Logger()
+        self.logger      = logger
+        self.sync        = config.api.get_sync(verbose,logger=self.logger)
 
     def add_single_distro(self, name):
         # get the distro record
@@ -129,7 +121,7 @@ class BootLiteSync:
     def update_system_netboot_status(self,name):
         system = self.systems.find(name=name)
         if system is None:
-            raise CX(_("error in system lookup for %s") % name)
+            utils.die(self.logger,"error in system lookup for %s" % name)
         self.sync.pxegen.write_all_system_files(system)
         # generate any templates listed in the system
         self.sync.pxegen.write_templates(system)

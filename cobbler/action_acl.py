@@ -24,7 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import os.path
 import shutil
-import sub_process
 import sys
 import glob
 import traceback
@@ -32,21 +31,20 @@ import errno
 import utils
 from cexceptions import *
 from utils import _
-
+import clogger
 
 class AclConfig:
 
-    def __init__(self,config):
+    def __init__(self,config,logger=None):
         """
         Constructor
         """
         self.config      = config
         self.api         = config.api
         self.settings    = config.settings()
-        #self.distros     = config.distros()
-        #self.profiles    = config.profiles()
-        #self.systems     = config.systems()
-        #self.repos       = config.repos()
+        if logger is None:
+            logger       = clogger.Logger()
+        self.logger      = logger
 
     def run(self,adduser=None,addgroup=None,removeuser=None,removegroup=None):
         """
@@ -67,6 +65,7 @@ class AclConfig:
         webdir = self.settings.webdir
         snipdir = self.settings.snippetsdir
         tftpboot = utils.tftpboot_location()
+
         PROCESS_DIRS = {
            webdir                      : "rwx",
            "/var/log/cobbler"          : "rwx",
@@ -98,14 +97,12 @@ class AclConfig:
                cmd2 = cmd
 
             cmd2 = "%s %s" % (cmd2,d)
-            print "- setfacl -d %s" % cmd2
-            rc = sub_process.call("setfacl -d %s" % cmd2,shell=True,close_fds=True)
+            rc = utils.subprocess_call(self.logger,"setfacl -d %s" % cmd2,shell=True)
             if not rc == 0:
-               raise CX(_("command failed"))
-            print "- setfacl %s" % cmd2
-            rc = sub_process.call("setfacl %s" % cmd2,shell=True,close_fds=True)
+               utils.die(self.logger,"command failed")
+            rc = utils.subprocess_call(self.logger,"setfacl %s" % cmd2,shell=True)
             if not rc == 0:
-               raise CX(_("command failed"))
+               utils.die(self.logger,"command failed")
 
 
 

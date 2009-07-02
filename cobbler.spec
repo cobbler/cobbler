@@ -9,7 +9,6 @@ AutoReq: no
 Version: 1.7.0
 Release: 1%{?dist}
 Source0: cobbler-%{version}.tar.gz
-License: GPLv2+
 Group: Applications/System
 
 Requires: python >= 2.3
@@ -169,6 +168,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %defattr(755,apache,apache)
 %dir /var/log/cobbler
+%dir /var/log/cobbler/tasks
 %dir /var/log/cobbler/kicklog
 %dir /var/www/cobbler/
 %dir /var/www/cobbler/localmirror
@@ -364,7 +364,6 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %defattr(-,apache,apache)
 %dir /usr/share/cobbler/web
 /usr/share/cobbler/web/*.py
-%dir /usr/share/cobbler/web/sessions
 %dir /usr/share/cobbler/web/cobbler_web
 /usr/share/cobbler/web/cobbler_web/*
 #%dir /usr/share/cobbler/web/cobbler_web/templates

@@ -37,6 +37,8 @@ import codes
 
 FIELDS = [
    [ "name","",0,"Name",True,"Ex: Fedora-11-i386",0],
+   ["ctime",0,0,"",False,"",0],
+   ["mtime",0,0,"",False,"",0],
    [ "uid","",0,"",False,"",0],
    [ "owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",0],
    [ "kernel",None,0,"Kernel",True,"Absolute path to kernel on filesystem",0],
@@ -62,6 +64,12 @@ class Distro(item.Item):
 
     TYPE_NAME = _("distro")
     COLLECTION_TYPE = "distro"
+
+    def make_clone(self):
+        ds = self.to_datastruct()
+        cloned = Distro(self.config)
+        cloned.from_datastruct(ds)
+        return cloned
 
     def get_fields(self):
         return FIELDS

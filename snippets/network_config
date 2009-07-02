@@ -38,7 +38,7 @@
                 #set $i = $i + 1 
             #end if
             #if $mac != "" or $ip != "" and $is_vlan == "false"
-                #if $static == "True":
+                #if $static == True:
                     #if $ip != "":
                         #set $network_str = "--bootproto=static"
                         #set $network_str = $network_str + " --ip=" + $ip 

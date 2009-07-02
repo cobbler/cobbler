@@ -88,6 +88,11 @@ class System(item.Item):
     def get_fields(self):
         return FIELDS
 
+    def make_clone(self):
+        ds = self.to_datastruct()
+        cloned = System(self.config)
+        cloned.from_datastruct(ds)
+        return cloned
 
     def delete_interface(self,name):
         """

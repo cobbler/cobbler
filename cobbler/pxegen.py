@@ -51,11 +51,12 @@ class PXEGen:
     Handles building out PXE stuff
     """
 
-    def __init__(self,config):
+    def __init__(self,config,logger):
         """
         Constructor
         """
         self.config      = config
+        self.logger      = logger
         self.api         = config.api
         self.distros     = config.distros()
         self.profiles    = config.profiles()
@@ -116,11 +117,11 @@ class PXEGen:
         for d in self.distros:
             try:
                 if self.verbose:
-                   print "- copying files for distro: %s" % d.name
+                   self.logger.info("copying files for distro: %s" % d.name)
                 self.copy_single_distro_files(d)
             except CX, e:
                 errors.append(e)
-                print e.value
+                self.logger.error(e.value)
 
         # FIXME: using logging module so this ends up in cobbler.log?
 
@@ -131,12 +132,10 @@ class PXEGen:
         errors = list()
         for i in self.images:
             try:
-                if self.verbose:
-                   print "- copying files for image: %s" % i.name
                 self.copy_single_image_files(i)
             except CX, e:
                 errors.append(e)
-                print e.value
+                self.logger.error(e.value)
 
         # FIXME: using logging module so this ends up in cobbler.log?
 
@@ -148,9 +147,9 @@ class PXEGen:
             kernel = utils.find_kernel(d.kernel) # full path
             initrd = utils.find_initrd(d.initrd) # full path
             if kernel is None or not os.path.isfile(kernel):
-                raise CX(_("kernel not found: %(file)s, distro: %(distro)s") % { "file" : d.kernel, "distro" : d.name })
+                raise CX("kernel not found: %(file)s, distro: %(distro)s" % { "file" : d.kernel, "distro" : d.name })
             if initrd is None or not os.path.isfile(initrd):
-                raise CX(_("initrd not found: %(file)s, distro: %(distro)s") % { "file" : d.initrd, "distro" : d.name })
+                raise CX("initrd not found: %(file)s, distro: %(distro)s" % { "file" : d.initrd, "distro" : d.name })
             b_kernel = os.path.basename(kernel)
             b_initrd = os.path.basename(initrd)
             allow_symlink=False
@@ -179,13 +178,13 @@ class PXEGen:
 
         profile = system.get_conceptual_parent()
         if profile is None:
-            raise CX(_("system %(system)s references a missing profile %(profile)s") % { "system" : system.name, "profile" : system.profile})
+            raise CX("system %(system)s references a missing profile %(profile)s" % { "system" : system.name, "profile" : system.profile})
         distro = profile.get_conceptual_parent()
         image_based = False
         image = None
         if distro is None:
             if profile.COLLECTION_TYPE == "profile":
-               raise CX(_("profile %(profile)s references a missing distro %(distro)s") % { "profile" : system.profile, "distro" : profile.distro})
+               raise CX("profile %(profile)s references a missing distro %(distro)s" % { "profile" : system.profile, "distro" : profile.distro})
             else:
                image_based = True
                image = profile
@@ -226,7 +225,7 @@ class PXEGen:
 
             f1 = utils.get_config_filename(system,interface=name)
             if f1 is None:
-                print "WARNING: invalid interface recorded for system (%s,%s)" % (system.name,name)
+                self.logger.warning("invalid interface recorded for system (%s,%s)" % (system.name,name))
                 continue;
 
             if image_based:
@@ -245,7 +244,7 @@ class PXEGen:
                 # elilo expects files to be named "$name.conf" in the root
                 # and can not do files based on the MAC address
                 if ip is not None and ip != "":
-                    print _("Warning: Itanium system object (%s) needs an IP address to PXE") % system.name
+                    self.logger.warning("Warning: Itanium system object (%s) needs an IP address to PXE" % system.name)
 
                 filename = "%s.conf" % utils.get_config_filename(system,interface=name)
                 f2 = os.path.join(self.bootloc, filename)
@@ -289,7 +288,7 @@ class PXEGen:
         for profile in profile_list:
             distro = profile.get_conceptual_parent()
             if distro is None:
-                raise CX(_("profile is missing distribution: %s, %s") % (profile.name, profile.distro))
+                raise CX("profile is missing distribution: %s, %s" % (profile.name, profile.distro))
             if distro.arch.startswith("s390"):
                 listfile.write("%s\n" % profile.name)
                 f2 = os.path.join(self.bootloc, "s390x", "p_%s" % profile.name)
@@ -522,7 +521,7 @@ class PXEGen:
 
         # FIXME - the append_line length limit is architecture specific
         if len(append_line) >= 255 + len("append "):
-            print _("warning: kernel option length exceeds 255")
+            self.logger.warning("warning: kernel option length exceeds 255")
 
         # kickstart path rewriting (get URLs for local files)
         if kickstart_path is not None and kickstart_path != "":
@@ -546,8 +545,8 @@ class PXEGen:
                 for k,v in translations.iteritems():
                     append_line = append_line.replace("%s="%k,"%s="%v)
 
-            # interface=bootif causes a failure
-            #    append_line = append_line.replace("ksdevice","interface")
+                # interface=bootif causes a failure
+                append_line = append_line.replace("interface=bootif","")
 
         if distro is not None and (distro.breed in [ "debian", "ubuntu" ]):
             # Hostname is required as a parameter, the one in the preseed is
@@ -684,7 +683,7 @@ class PXEGen:
             # arbitrary system files (This also makes cleanup easier).
             if os.path.isabs(dest_dir):
                if write_file:
-                   raise CX(_(" warning: template destination (%s) is an absolute path, skipping.") % dest_dir)
+                   raise CX(" warning: template destination (%s) is an absolute path, skipping." % dest_dir)
                    continue
             else:
                 dest_dir = os.path.join(self.settings.webdir, "rendered", dest_dir)
@@ -694,19 +693,19 @@ class PXEGen:
 
             # Check for problems
             if not os.path.exists(template):
-               raise CX(_("template source %s does not exist") % template)
+               raise CX("template source %s does not exist" % template)
                continue
             elif write_file and not os.path.isdir(dest_dir):
-               raise CX(_("template destination (%s) is invalid") % dest_dir)
+               raise CX("template destination (%s) is invalid" % dest_dir)
                continue
             elif write_file and os.path.exists(dest): 
-               raise CX(_("template destination (%s) already exists") % dest)
+               raise CX("template destination (%s) already exists" % dest)
                continue
             elif write_file and os.path.isdir(dest):
-               raise CX(_("template destination (%s) is a directory") % dest)
+               raise CX("template destination (%s) is a directory" % dest)
                continue
             elif template == "" or dest == "": 
-               raise CX(_("either the template source or destination was blank (unknown variable used?)") % dest)
+               raise CX("either the template source or destination was blank (unknown variable used?)" % dest)
                continue
             
             template_fh = open(template)
@@ -720,8 +719,6 @@ class PXEGen:
                 fd = open(dest, "w")
                 fd.write(buffer)
                 fd.close()
-
-            # print _(" template %s created ok") % dest
 
         return results
 

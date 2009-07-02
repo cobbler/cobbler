@@ -54,6 +54,12 @@ class Repo(item.Item):
     TYPE_NAME = _("repo")
     COLLECTION_TYPE = "repo"
 
+    def make_clone(self):
+        ds = self.to_datastruct()
+        cloned = Repo(self.config)
+        cloned.from_datastruct(ds)
+        return cloned
+
     def get_fields(self):
         return FIELDS
 
