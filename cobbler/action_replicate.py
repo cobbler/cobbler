@@ -82,7 +82,7 @@ class Replicate:
         cmd = "scp %s %s" % (from_path, to_path)
         rc = utils.subprocess_call(cmd, shell=True)
         if rc !=0:
-            raise CX(_("scp failed"))
+            utils.die("scp failed")
 
     # -------------------------------------------------------
 
@@ -127,7 +127,8 @@ class Replicate:
         try:
             remote_distros = self.remote.get_distros()
         except:
-            self.logger.info("Failed to contact remote server")
+            utils.die(self.logger,"Failed to contact remote server")
+            
 
         if self.sync_all or self.sync_trees:
             self.logger.info("Rsyncing Distribution Trees")
@@ -144,7 +145,7 @@ class Replicate:
                         self.api.add_distro(new_distro)
                         self.logger.info("Copied distro %s." % distro['name'])
                     except Exception, e:
-                        traceback.print_exc() 
+                        utils.log_exc(self.logger)
                         self.logger.error("Failed to copy distro %s" % distro['name'])
                 else:
                     # FIXME: force logic
@@ -175,7 +176,7 @@ class Replicate:
                     self.api.add_repo(new_repo)
                     self.logger.info("Copied repo %s." % repo['name'])
                 except Exception, e:
-                    traceback.print_exc() 
+                    utils.log_exc(self.logger)
                     self.logger.error("Failed to copy repo %s." % repo['name'])
             else:
                 self.logger.info("Not copying repo %s, sufficiently new mtime" % repo['name'])
@@ -199,7 +200,7 @@ class Replicate:
                     self.api.add_profile(new_profile)
                     self.logger.info("Copied profile %s." % profile['name'])
                 except Exception, e:
-                    traceback.print_exc()
+                    utils.log_exc(self.logger)
                     self.logger.error("Failed to copy profile %s." % profile['name'])
             else:
                 self.logger.info("Not copying profile %s, sufficiently new mtime" % profile['name'])
@@ -216,7 +217,7 @@ class Replicate:
                     self.api.add_image(new_image)
                     self.logger.info("Copied image %s." % image['name'])
                 except Exception, e:
-                    traceback.print_exc()
+                    utils.log_exc(self.logger)
                     self.logger.info("Failed to copy image %s." % profile['image'])
             else:
                 self.logger.info("Not copying image %s, sufficiently new mtime" % image['name'])
@@ -236,7 +237,7 @@ class Replicate:
                         self.api.add_system(new_system)
                         self.logger.info("Copied system %s." % system['name'])
                     except Exception, e:
-                        traceback.print_exc()
+                        utils.log_exc(self.logger)
                         self.logger.info("Failed to copy system %s" % system['name'])    
                 else:
                     self.logger.info("Not copying system %s, sufficiently new mtime" % system['name'])
@@ -268,7 +269,7 @@ class Replicate:
             self.host = self.settings.cobbler_master
             self.uri = 'http://%s/cobbler_api' % self.settings.cobbler_master
         else:
-            raise CX(_('No cobbler master specified, try --master.'))
+            utils.die('No cobbler master specified, try --master.')
 
         self.logger.info("XMLRPC endpoint: %s" % self.uri)     
         self.remote =  xmlrpclib.Server(self.uri)

@@ -47,7 +47,6 @@ class Collection(serializable.Serializable):
         self.config = config
         self.clear()
         self.api = self.config.api
-        self.log_func = self.api.log
         self.lite_sync = None
 
     def factory_produce(self,config,seed_data):
@@ -269,7 +268,6 @@ class Collection(serializable.Serializable):
 
         # perform filesystem operations
         if save:
-            self.log_func("saving %s %s" % (self.collection_type(), ref.name))
             # failure of a pre trigger will prevent the object from being added
             if with_triggers:
                 self._run_triggers(self.api, ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())

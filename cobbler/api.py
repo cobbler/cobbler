@@ -440,23 +440,23 @@ class BootAPI:
         return res
 
 
-    def find_distro(self, name=None, return_list=False, no_errors=False, logger=None, **kargs):
-        return self._config.distros().find(name=name, return_list=return_list, no_errors=no_errors, logger=logger, **kargs)
+    def find_distro(self, name=None, return_list=False, no_errors=False, **kargs):
+        return self._config.distros().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
         
-    def find_profile(self, name=None, return_list=False, no_errors=False, logger=None, **kargs):
-        return self._config.profiles().find(name=name, return_list=return_list, no_errors=no_errors, logger=logger, **kargs)
+    def find_profile(self, name=None, return_list=False, no_errors=False, **kargs):
+        return self._config.profiles().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
-    def find_system(self, name=None, return_list=False, no_errors=False, logger=None, **kargs):
-        return self._config.systems().find(name=name, return_list=return_list, no_errors=no_errors, logger=logger, **kargs)
+    def find_system(self, name=None, return_list=False, no_errors=False, **kargs):
+        return self._config.systems().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
-    def find_repo(self, name=None, return_list=False, no_errors=False, logger=None, **kargs):
-        return self._config.repos().find(name=name, return_list=return_list, no_errors=no_errors, logger=None, **kargs)
+    def find_repo(self, name=None, return_list=False, no_errors=False, **kargs):
+        return self._config.repos().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
-    def find_image(self, name=None, return_list=False, no_errors=False, logger=None, **kargs):
-        return self._config.images().find(name=name, return_list=return_list, no_errors=no_errors, logger=logger, **kargs)
+    def find_image(self, name=None, return_list=False, no_errors=False, **kargs):
+        return self._config.images().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
-    def find_network(self, name=None, return_list=False, no_errors=False, logger=None, **kargs):
-        return self._config.networks().find(name=name, return_list=return_list, no_errors=no_errors, logger=logger, **kargs)
+    def find_network(self, name=None, return_list=False, no_errors=False, **kargs):
+        return self._config.networks().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     # ==========================================================================
 
