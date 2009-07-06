@@ -151,8 +151,25 @@ class CobblerXMLRPCInterface:
         return id
 
     def get_tasks(self):
-        # FIXME:
+        """
+        Returns a hash(key=task id) = [ statetime, name, state ]
+        """
         return self.tasks
+
+    def get_task_log(self,taskid):
+        """
+        Returns the contents of a task log.
+        """
+        taskid = str(taskid).replace("..","").replace("/","")
+        path = "/var/log/cobbler/tasks/%s.log" % taskid
+        self._log("getting log for %s" % taskid)
+        if os.path.exists(path):
+           fh = open(path, "r")
+           data = fh.read()
+           fh.close()
+           return data
+        else:
+           return "?"
 
     def __start_task(self, thr_obj, name, args):
         id = self.next_task_id

@@ -32,6 +32,8 @@ urlpatterns = patterns('',
     #(r'^random_mac$', random_mac),
     #(r'^random_mac/virttype/(?P<virttype>.+)$', random_mac),
     (r'^settings$', settings),
+    (r'^tasks$', tasks),
+    (r'^tasklog/(?P<task>.+)$', tasklog),
     (r'^sync$', dosync),
     (r'^(?P<what>\w+)/save$', generic_save),
 )

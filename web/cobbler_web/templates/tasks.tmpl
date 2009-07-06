@@ -1,0 +1,36 @@
+{% extends "master.tmpl" %}
+
+{% block content %}
+
+<span class="section_caption">Tasks</span>
+
+<table class="sortable">
+    <thead>
+        <tr>
+            <th class="text">Task Name</th>
+            <th class="text">Start Time</th>
+            <th class="text">State</th>
+            <th class="text">Log</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if settings %}
+        {% for id,name,time,state in tasks.items %}
+        <tr class="{% cycle 'rowodd' 'roweven' %}">
+            <td>{{ name }}</td>
+            <td>{{ time }}</td>
+            <td>{{ state }}</td>
+            <td><A HREF="/cobbler_web/tasklog/{{ id }}">log</A>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+            <td>No Tasks</td>
+            <td/>
+            <td/>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+{% endblock %}

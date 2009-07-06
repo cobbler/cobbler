@@ -1,0 +1,10 @@
+{% extends 'master.tmpl' %}
+{% block content %}
+
+<div class="section_caption">Task {{ taskid }} : {{ taskname }} :: {{ taskstate }}</div>
+
+<textarea rows="40" cols="120" name="tasklog" id="tasklog">{{ tasklog }}</textarea>
+
+</div>
+
+{% endblock content %}

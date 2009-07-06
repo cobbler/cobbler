@@ -188,13 +188,12 @@ if __name__ == "__main__":
             (dj_templates, [ 'web/cobbler_web/templates/message.tmpl' ]),
             (dj_templates, [ 'web/cobbler_web/templates/paginate.tmpl' ]),
             (dj_templates, [ 'web/cobbler_web/templates/settings.tmpl' ]),
-            #(dj_templates, [ 'web/cobbler_web/templates/system_netboot.tmpl' ]),
-            #(dj_templates, [ 'web/cobbler_web/templates/system_power.tmpl' ]),
-            #(dj_templates, [ 'web/cobbler_web/templates/system_profile.tmpl' ]),
             (dj_templates, [ 'web/cobbler_web/templates/generic_edit.tmpl' ]),
             (dj_templates, [ 'web/cobbler_web/templates/generic_list.tmpl' ]),
             (dj_templates, [ 'web/cobbler_web/templates/generic_delete.tmpl' ]),
             (dj_templates, [ 'web/cobbler_web/templates/generic_rename.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/tasks.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/tasklog.tmpl' ]),
 
             # django code, private to cobbler-web application
             (dj_webui,       [ 'web/cobbler_web/__init__.py' ]),
