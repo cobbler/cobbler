@@ -585,41 +585,42 @@ def tasks(request):
    This page presents a list of all the tasks and links to the task log viewer.
    """
    tasks = remote.get_tasks()
+ 
    tasks2 = []
    for id in tasks.keys():
-      (name, time, state) = tasks[id]
-      tasks2.append(id,name,time,state)
+      (ttime, name, state) = tasks[id]
+      tasks2.append([id,time.asctime(time.gmtime(ttime)),name,state])
 
    def sorter(a,b):
       return cmp(a[2],b[2])
    tasks2.sort(sorter)
 
    t = get_template('tasks.tmpl')
-   html = t.render(Context({'settings': tasks2 }))
+   html = t.render(Context({'results': tasks2 }))
    return HttpResponse(html)
 
 # ======================================================================
 
-def tasklog(request, taskid):
+def tasklog(request, task=0):
    """
    Shows the log for a given task.
    """
    task_info = remote.get_tasks()
-   if not task_info.has_key(taskid):
+   if not task_info.has_key(task):
       return HttpResponse("task not found")
 
-   data      = task_info[taskid]
-   taskname  = data[1]
-   tasktime  = data[2]
-   taskstate = data[3]
-   tasklog   = remote.get_task_log(taskid)
+   data      = task_info[task]
+   taskname  = data[0]
+   tasktime  = data[1]
+   taskstate = data[2]
+   tasklog   = remote.get_task_log(task)
 
    t = get_template('tasklog.tmpl')
    vars = {
-      'tasklog'   : data,
+      'tasklog'   : tasklog,
       'taskname'  : taskname,
       'taskstate' : taskstate,
-      'taskid'    : taskid,
+      'taskid'    : task,
       'tasktime'  : tasktime
    }
    html = t.render(Context(vars))

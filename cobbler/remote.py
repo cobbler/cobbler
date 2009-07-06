@@ -38,7 +38,6 @@ import glob
 import sub_process as subprocess
 from threading import Thread
 
-# import pdb # FIXME: testing only
 import api as cobbler_api
 import utils
 from cexceptions import *
@@ -49,7 +48,8 @@ import item_repo
 import item_image
 import item_network
 import clogger
-from utils import *
+import utils
+#from utils import * # BAD!
 from utils import _
 
 import sub_process
@@ -96,6 +96,7 @@ class CobblerXMLRPCInterface:
         self.tasks = {}
         self.next_task_id = 0
         random.seed(time.time())
+        self.translator = utils.Translator(keep=string.printable)
 
     def background_sync(self, token):
         class SyncThread(CobblerThread):
@@ -154,36 +155,40 @@ class CobblerXMLRPCInterface:
         """
         Returns a hash(key=task id) = [ statetime, name, state ]
         """
+        self._log("tasks=%s" % self.tasks)
         return self.tasks
 
-    def get_task_log(self,taskid):
+    def get_task_log(self,task_id):
         """
         Returns the contents of a task log.
         """
-        taskid = str(taskid).replace("..","").replace("/","")
-        path = "/var/log/cobbler/tasks/%s.log" % taskid
-        self._log("getting log for %s" % taskid)
+        task_id = str(task_id).replace("..","").replace("/","")
+        path = "/var/log/cobbler/tasks/%s.log" % task_id
+        self._log("getting log for %s" % task_id)
         if os.path.exists(path):
            fh = open(path, "r")
-           data = fh.read()
+           data = str(fh.read())
+           data = self.translator(data)
            fh.close()
            return data
         else:
            return "?"
 
     def __start_task(self, thr_obj, name, args):
-        id = self.next_task_id
+        task_id = self.next_task_id
         self.next_task_id = self.next_task_id + 1
-        self.tasks[id] = [ time.time(), name, TASK_SCHEDULED ]
+        task_id = str(task_id)
+        self.tasks[task_id] = [ float(time.time()), str(name), TASK_SCHEDULED ]
         
-        self._log("start_task(%s); task_id(%d)"%(name,id))
-        logatron = clogger.Logger("/var/log/cobbler/tasks/%s.log" % id)
+        self._log("start_task(%s); task_id(%s)"%(name,task_id))
+        logatron = clogger.Logger("/var/log/cobbler/tasks/%s.log" % task_id)
         thr = thr_obj(id,self,logatron,args)
         # thr.setDaemon(True)
         thr.start()
-        return id
+        return task_id
 
     def _set_task_state(self,task_id,new_state):
+        task_id = str(task_id)
         if self.tasks.has_key(task_id):
             start_time = self.tasks[task_id][0]
             name       = self.tasks[task_id][1]
@@ -191,23 +196,12 @@ class CobblerXMLRPCInterface:
             self.logger.info("task %s (%s) moves to state %s" % (task_id, name, state))
             self.tasks[task_id][2] = new_state
 
-    def get_task_log_data(id):
-        id = int(id) # force safe values
-        path = "/var/log/cobbler/tasks/%s" % id
-        if os.path.exists(path):
-            fd = open(path)
-            data = fd.read()
-            fd.close()
-        else:
-            data = "No log data exists for task %s" % id
-        return data
-
-    def get_task_status(self, id):
-        if self.tasks.has_key(id):
-            return self.tasks[id]
+    def get_task_status(self, task_id):
+        task_id = str(task_id)
+        if self.tasks.has_key(task_id):
+            return self.tasks[task_id]
         else:
             raise CX("no task with that id")
-        
 
     def __sorter(self,a,b):
         """
@@ -1554,6 +1548,8 @@ class ProxiedXMLRPCInterface:
         try:
             return method_handle(*params)
         except Exception, e:
+            # DEBUG...
+            traceback.print_exc()
             utils.log_exc(self.logger)
             raise e
 

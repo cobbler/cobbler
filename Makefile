@@ -48,6 +48,7 @@ debinstall: manpage
 	python setup.py install -f --root $(DESTDIR)
 
 devinstall:
+	-rm -rf /usr/share/cobbler
 	make savestate
 	make install
 	make restorestate
