@@ -342,6 +342,11 @@ if __name__ == "__main__":
             (wwwcon,            ['web/content/style.css']),
             (wwwcon,            ['web/content/logo-cobbler.png']),
             (modpython,         ['web/content/index.html']),
+            # FIXME: someday Fedora/EPEL will package these and then we should not embed them then.
+            (dj_js,             ['web/content/jquery-1.3.2.js']),
+            (dj_js,             ['web/content/jquery-1.3.2.min.js']),
+            (dj_js,             ['web/content/jsGrowl_jquery.js']),
+            (dj_js,             ['web/content/jsGrowl.js']),
 
             # Anamon script
             (vw_aux,            ['aux/anamon', 'aux/anamon.init']),
