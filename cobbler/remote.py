@@ -56,6 +56,7 @@ import sub_process
 
 # FIXME: make configurable?
 TOKEN_TIMEOUT = 60*60 # 60 minutes
+TASK_TIMEOUT = 7*24*60*60 # 1 week
 CACHE_TIMEOUT = 10*60 # 10 minutes
 
 # task codes
@@ -1248,15 +1249,11 @@ class CobblerXMLRPCInterface:
             (tokentime, entry) = self.object_cache[oid]
             if (timenow > tokentime + CACHE_TIMEOUT):
                 del self.object_cache[oid]
-        #for ids in self.tasks.keys()
-        #    (tasktime, name, status) = self.tasks[id]
-        #    if status in [ TASK_COMPLETE, TASK_FAILED ]:
-        #        if (timenow > tasktime) 
-        #        filename = "/var/log/cobbler/tasks/%s.log" % ids
-        #        if os.path.exists(filename):
-        #            os.remove(filename)
-            
-
+        for tid in self.tasks.keys():
+            (tasktime, name, status) = self.tasks[tid]
+            if (timenow > tasktime + TASK_TIMEOUT):
+                del self.tasks[tid]
+            # logfile cleanup should be dealt w/ by logrotate
 
     def __validate_user(self,input_user,input_password):
         """
