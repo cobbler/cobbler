@@ -1,11 +1,32 @@
---2009-07-07 14:56:30--  http://github.com/rdejuana/jsGrowl/raw/329342868736c69917b50f02194753bae6e28f5f/stylesheets/jsGrowl.css
-Resolving github.com... 65.74.177.129
-Connecting to github.com|65.74.177.129|:80... connected.
-HTTP request sent, awaiting response... 200 OK
-Length: 2507 (2.4K) [text/css]
-Saving to: `jsGrowl.css.1'
+.jsgrowl_msg_container .jsg_body{
+  background-color:#FFF;
+}
 
-     0K ..                                                    100% 28.4K=0.09s
+.jsgrowl_msg_container .jsg_title{
+  color:#000;
+}
 
-2009-07-07 14:56:31 (28.4 KB/s) - `jsGrowl.css.1' saved [2507/2507]
-
+.jsgrowl_msg_container .jsg_msg{
+  color:#000;
+}
+.jsgrowl_msg_container .jsg_side{
+  background-color:#fff;
+}
+.jsgrowl_msg_container .jsg_middle{
+  background-color:#fff;
+}
+.jsgrowl_msg_container .jsg_corner {
+  background-image:url(../images/white/jsgrowl_corners.png) ;
+}
+.jsgrowl_msg_container:hover .jsg_corner {
+  background-image:url(../images/white/jsgrowl_corners_hover.png) ;
+}
+.jsgrowl_msg_container:hover .jsg_middle {
+  background-image:url(../images/white/jsgrowl_middle_hover.png) ;
+}
+.jsgrowl_msg_container:hover .jsg_side {
+  background-image:url(../images/white/jsgrowl_side_hover.png) ;
+}
+.jsgrowl_msg_container:hover .jsg_close{
+  background-image: url(../images/white/jsgrowl_close.png);
+}

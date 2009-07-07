@@ -347,6 +347,12 @@ if __name__ == "__main__":
             (dj_js,             ['web/content/jquery-1.3.2.min.js']),
             (dj_js,             ['web/content/jsGrowl_jquery.js']),
             (dj_js,             ['web/content/jsGrowl.js']),
+            (dj_js,             ['web/content/jsgrowl_close.png']),
+            (dj_js,             ['web/content/jsgrowl_corners.png']),
+            (dj_js,             ['web/content/jsgrowl_middle_hover.png']),
+            (dj_js,             ['web/content/jsgrowl_corners_hover.png']),
+            (dj_js,             ['web/content/jsgrowl_side_hover.png']),
+            (dj_js,             ['web/content/jsGrowl.css']),
 
             # Anamon script
             (vw_aux,            ['aux/anamon', 'aux/anamon.init']),
