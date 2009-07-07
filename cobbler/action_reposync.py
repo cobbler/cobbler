@@ -59,7 +59,7 @@ class RepoSync:
         self.systems   = config.systems()
         self.settings  = config.settings()
         self.repos     = config.repos()
-        self.rflags    = self.settings.yumreposync_flags
+        self.rflags    = self.settings.reposync_flags
         self.tries     = tries
         self.nofail    = nofail
         self.logger    = logger

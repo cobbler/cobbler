@@ -40,6 +40,7 @@ import api as cobbler_api
 import utils
 import os
 import os.path
+import simplejson
 
 def log_exc(apache):
     """
@@ -86,6 +87,18 @@ class CobblerSvc(object):
         self.__xmlrpc_setup()
         data = self.remote.generate_kickstart(profile,system,REMOTE_ADDR,REMOTE_MAC)
         return u"%s" % data    
+
+    def tasks(self,since=0,**rest):
+        self.__xmlrpc_setup()
+        data = self.remote.get_tasks()
+        # sort it... it looks like { timestamp : [ array of details ] }
+        keylist = data.keys()
+        keylist.sort()
+        results = []
+        for k in keylist:
+           if data[k][1] >= int(since):
+               results.append([k, data[k][0], data[k][1], data[k][2]])
+        return simplejson.dumps(results) 
 
     def template(self,profile=None,system=None,path=None,**rest):
         """
