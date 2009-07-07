@@ -60,7 +60,6 @@ TASK_TIMEOUT = 7*24*60*60 # 1 week
 CACHE_TIMEOUT = 10*60 # 10 minutes
 
 # task codes
-TASK_SCHEDULED = "scheduled"
 TASK_RUNNING   = "running"
 TASK_COMPLETE  = "complete"
 TASK_FAILED    = "failed"
@@ -103,7 +102,6 @@ class CobblerXMLRPCInterface:
         class SyncThread(CobblerThread):
             def run(self):
                 try:
-                    self.remote._set_task_state(self.task_id,TASK_RUNNING)
                     self.remote.api.sync(logger=self.logger)
                     self.remote._set_task_state(self.task_id,TASK_COMPLETE)
                 except:
@@ -121,7 +119,6 @@ class CobblerXMLRPCInterface:
                 repos = self.args[0]
                 tries = self.args[1]
                 try:
-                    self.remote._set_task_state(self.task_id,TASK_RUNNING)
                     for name in repos:
                         self.logger.debug("reposync for: %s" % name)
                         self.remote.api.reposync(tries=tries, name=name, nofail=True, logger=self.logger)
@@ -141,7 +138,6 @@ class CobblerXMLRPCInterface:
                 power = self.args[1]
                 token = self.args[2]
                 try:
-                    self.remote._set_task_state(self.task_id,TASK_RUNNING)
                     self.remote.power_system(object_id,power,token,logger=self.logger)
                     self.remote._set_task_state(self.task_id,TASK_COMPLETE)
                 except:
@@ -179,7 +175,7 @@ class CobblerXMLRPCInterface:
         task_id = self.next_task_id
         self.next_task_id = self.next_task_id + 1
         task_id = str(task_id)
-        self.tasks[task_id] = [ float(time.time()), str(name), TASK_SCHEDULED ]
+        self.tasks[task_id] = [ float(time.time()), str(name), TASK_RUNNING ]
         
         self._log("start_task(%s); task_id(%s)"%(name,task_id))
         logatron = clogger.Logger("/var/log/cobbler/tasks/%s.log" % task_id)
