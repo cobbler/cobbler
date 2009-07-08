@@ -95,8 +95,8 @@ class CobblerSvc(object):
         keylist = data.keys()
         keylist.sort()
         results = []
-        results.append([0, 1, "%s" % since, "running"])
         for k in keylist:
+           # this part is probably wrong -- FIXME
            if int(data[k][0]) >= int(since):
                results.append([k, data[k][0], data[k][1], data[k][2]])
         return simplejson.dumps(results) 

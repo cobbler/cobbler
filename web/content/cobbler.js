@@ -11,10 +11,8 @@ function get_latest_task_info() {
         /* the first time on each page, get events since now - 1 second */
         /* after just track new ones */
         page_load = (now.getTime() * 1000) - 5
-        alert("*calling since = " + page_load)
     } else {
         page_load = page_load + 5000
-        alert("calling since = " + page_load)
     }
 
     $.getJSON("/cblr/svc/op/events/since/" + page_load,
@@ -28,7 +26,6 @@ function get_latest_task_info() {
                var state = record[3];
                var buf = ""
                var logmsg = " <A HREF=\"/cobbler_web/tasklog/" + id + "\">(log)</A>";
-               alert(state)
                if (state == "complete") {
                     buf = "Task " + name + " is complete: " + logmsg
                }
