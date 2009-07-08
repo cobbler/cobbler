@@ -1,10 +1,20 @@
 var js_growl = new jsGrowl('js_growl');
+var run_once = 0
+var taskmem = new Array()
+var now = new Date()
+var page_load = -1
 
-function get_latest_task_info(last) {
+/* show tasks not yet recorded, update task found time in hidden field */
 
-    /* FIXME: only show tasks since the last time interval */
+function get_latest_task_info() {
 
-    $.getJSON("/cblr/svc/op/tasks/since" + last,
+    if (page_load == -1) {
+        /* the first time on each page, get events since now - 1 second */
+        /* after just track new ones */
+        page_load = now.getTime() - 1
+    }
+
+    $.getJSON("/cblr/svc/op/tasks/since/" + page_load,
         function(data){
           $.each(data, function(i,record){
                var id = record[0];
@@ -25,19 +35,35 @@ function get_latest_task_info(last) {
                else {
                     buf = name
                }
-               js_growl.addMessage({msg:buf});
+               show_it = False
+               if (taskmem.indexOf(ts) == -1) {
+                   show_it = True
+                   taskmem[ts] = state
+               }
+               else {
+                   if (taskmem[ts] != state) {
+                       show_it = True
+                       taskmem[ts] = state
+                   }
+               }
+
+               if (show_it) {
+                   js_growl.addMessage({msg:buf});
+               }
           });
         });
 
-
+        now = new Date()
+        last_time = now.getTime()
 }
 
 function go_go_gadget() {
     js_growl.addMessage({msg:'Hello'})
-    now = new Date()
-    nowt = now.getTime()
-    js_growl.addMessage({msg:nowt})
-    get_latest_task_info(3)
+    get_latest_task_info()
+    setInterval(get_latest_task_info, 10)
+    if (page_onload) {
+       page_onload()
+    }
 }
 
 

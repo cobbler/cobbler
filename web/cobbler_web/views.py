@@ -11,6 +11,7 @@ import simplejson
 import string
 import distutils
 import exceptions
+import time
 
 import cobbler.item_distro  as item_distro
 import cobbler.item_profile as item_profile
