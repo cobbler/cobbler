@@ -11,7 +11,20 @@ function get_latest_task_info(last) {
                var ts = record[1];
                var name = record[2];
                var state = record[3];
-               var buf = "Task " + state + " : " + name + " <A HREF=\"/cobbler_web/tasklog/" + id + "\">(log)</A>";
+               var buf = ""
+               var logmsg = " <A HREF=\"/cobbler_web/tasklog/" + id + "\">(log)</A>";
+               if (state == "complete") {
+                    buf = "Task " + name + " is complete: " + logmsg
+               }
+               if (state == "complete") {
+                    buf = "Task " + name + " is running: " + logmsg
+               }
+               if (state == "failed") {
+                    buf = "Task " + name + " has failed: " + logmsg
+               }
+               else {
+                    buf = name
+               }
                js_growl.addMessage({msg:buf});
           });
         });

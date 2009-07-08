@@ -580,11 +580,11 @@ def settings(request):
 
 # ======================================================================
 
-def tasks(request):
+def events(request):
    """
    This page presents a list of all the tasks and links to the task log viewer.
    """
-   tasks = remote.get_tasks()
+   tasks = remote.get_events()
  
    tasks2 = []
    for id in tasks.keys():
@@ -605,7 +605,7 @@ def tasklog(request, task=0):
    """
    Shows the log for a given task.
    """
-   task_info = remote.get_tasks()
+   task_info = remote.get_events()
    if not task_info.has_key(task):
       return HttpResponse("task not found")
 

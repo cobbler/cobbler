@@ -88,9 +88,9 @@ class CobblerSvc(object):
         data = self.remote.generate_kickstart(profile,system,REMOTE_ADDR,REMOTE_MAC)
         return u"%s" % data    
 
-    def tasks(self,since=0,**rest):
+    def events(self,since=0,**rest):
         self.__xmlrpc_setup()
-        data = self.remote.get_tasks()
+        data = self.remote.get_events()
         # sort it... it looks like { timestamp : [ array of details ] }
         keylist = data.keys()
         keylist.sort()
