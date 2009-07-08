@@ -154,8 +154,6 @@ class CobblerXMLRPCInterface:
         """
         Returns a hash(key=event id) = [ statetime, name, state, who? ]
         """
-        self._new_event("Testing 1234")
-        self._log("events=%s" % self.events)
         return self.events
 
     def get_task_log(self,event_id):
@@ -1348,11 +1346,10 @@ class CobblerXMLRPCInterface:
         method calls.  The token will time out after a set interval if not
         used.  Re-logging in permitted.
         """
-        self._log("login attempt", user=login_user)
+        # this should not log to disk OR make events as we're going to
+        # call it like crazy in CobblerWeb.  Just failed attempts.
         if self.__validate_user(login_user,login_password):
             token = self.__make_token(login_user)
-            self._log("login succeeded",user=login_user)
-            self._new_event("Logged In: %s" % login_user)
             return token
         else:
             self._log("login failed",user=login_user)
