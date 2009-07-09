@@ -48,9 +48,11 @@ function get_latest_task_info() {
 function go_go_gadget() {
     get_latest_task_info()
     setInterval(get_latest_task_info, 5000)
-    /* if (page_onload) {
+    try {
        page_onload()
-    } */
+    } 
+    catch (error) {
+    }
 }
 
 
