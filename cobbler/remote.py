@@ -144,9 +144,11 @@ class CobblerXMLRPCInterface:
                          sync_kickstarts = sync_kickstarts,
                          sync_trees      = sync_trees,
                          sync_repos      = sync_repos,
-                         systems    = sync_systems,
-                         sync_triggers   = sync_triggers
+                         systems         = sync_systems,
+                         sync_triggers   = sync_triggers,
+                         logger          = self.logger
                     )
+                    self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
                 except:
                     utils.log_exc(self.logger)
                     self.remote._set_task_state(self.event_id,EVENT_FAILED)

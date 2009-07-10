@@ -261,6 +261,14 @@ class Replicate:
         self.sync_triggers   = sync_triggers
         self.include_systems = include_systems
 
+        self.logger.debug("cobbler_master = %s" % cobbler_master)
+        self.logger.debug("sync_all = %s" % sync_all)
+        self.logger.debug("sync_kickstarts = %s" % sync_kickstarts)
+        self.logger.debug("sync_trees = %s" % sync_trees)
+        self.logger.debug("sync_repos = %s" % sync_repos)
+        self.logger.debug("sync_triggers = %s" % sync_triggers)
+        self.logger.debug("include_systems = %s" % include_systems)
+
         if cobbler_master is not None:
             self.host = cobbler_master
             self.uri = 'http://%s/cobbler_api' % cobbler_master
