@@ -56,7 +56,10 @@ def index(request):
    This is the main greeting page for cobbler web.  
    """
    t = get_template('index.tmpl')
-   html = t.render(Context({'version': remote.version(token), 'username':username}))
+   html = t.render(Context({
+        'version': remote.version(token), 
+        'username':username
+   }))
    return HttpResponse(html)
 
 #==================================================================================
@@ -70,7 +73,10 @@ def error_page(request,message):
    t = get_template('error_page.tmpl')
    message = message.replace("<Fault 1: \"<class 'cobbler.cexceptions.CX'>:'","Remote exception: ")
    message = message.replace(": '\">","")
-   html = t.render(Context({'message': message}))
+   html = t.render(Context({
+       'message': message,
+       'username': username
+   }))
    return HttpResponse(html)
 
 #==================================================================================
@@ -254,6 +260,7 @@ def genlist(request, what, page=None):
         'items'          : __format_items(pageditems["items"],columns),
         'pageinfo'       : pageditems["pageinfo"],
         'filters'        : filters,
+        'username'       : username,
     }))
     return HttpResponse(html)
 
@@ -450,7 +457,11 @@ def ksfile_list(request, page=None):
          ksfile_list.append((ksfile,ksfile,None))
 
    t = get_template('ksfile_list.tmpl')
-   html = t.render(Context({'what':'ksfile', 'ksfiles': ksfile_list}))
+   html = t.render(Context({
+       'what':'ksfile', 
+       'ksfiles': ksfile_list,
+       'username': username
+   }))
    return HttpResponse(html)
 
 # ======================================================================
@@ -471,7 +482,14 @@ def ksfile_edit(request, ksfile_name=None, editmode='edit'):
       ksdata = remote.read_or_write_kickstart_template(ksfile_name, True, "", token)
 
    t = get_template('ksfile_edit.tmpl')
-   html = t.render(Context({'ksfile_name':ksfile_name, 'deleteable':deleteable, 'ksdata':ksdata, 'editable':editable, 'editmode':editmode}))
+   html = t.render(Context({
+       'ksfile_name' : ksfile_name, 
+       'deleteable'  : deleteable, 
+       'ksdata'      : ksdata, 
+       'editable'    : editable, 
+       'editmode'    : editmode,
+       'username'    : username
+   }))
    return HttpResponse(html)
 
 # ======================================================================
@@ -517,7 +535,11 @@ def snippet_list(request, page=None):
          snippet_list.append((snippet,snippet,None))
 
    t = get_template('snippet_list.tmpl')
-   html = t.render(Context({'what':'snippet', 'snippets': snippet_list}))
+   html = t.render(Context({
+       'what'     : 'snippet', 
+       'snippets' : snippet_list,
+       'username' : username
+   }))
    return HttpResponse(html)
 
 # ======================================================================
@@ -538,7 +560,14 @@ def snippet_edit(request, snippet_name=None, editmode='edit'):
       snippetdata = remote.read_or_write_snippet(snippet_name, True, "", token)
 
    t = get_template('snippet_edit.tmpl')
-   html = t.render(Context({'snippet_name':snippet_name, 'deleteable':deleteable, 'snippetdata':snippetdata, 'editable':editable, 'editmode':editmode}))
+   html = t.render(Context({
+       'snippet_name' : snippet_name, 
+       'deleteable'   : deleteable, 
+       'snippetdata'  : snippetdata, 
+       'editable'     : editable, 
+       'editmode'     : editmode,
+       'username'     : username
+   }))
    return HttpResponse(html)
 
 # ======================================================================
@@ -576,7 +605,10 @@ def settings(request):
    """
    settings = remote.get_settings()
    t = get_template('settings.tmpl')
-   html = t.render(Context({'settings': settings }))
+   html = t.render(Context({
+        'settings' : settings,
+        'username' : username,
+   }))
    return HttpResponse(html)
 
 # ======================================================================
@@ -589,7 +621,7 @@ def events(request):
  
    tasks2 = []
    for id in tasks.keys():
-      (ttime, name, state) = tasks[id]
+      (ttime, name, state, read_by) = tasks[id]
       tasks2.append([id,time.asctime(time.gmtime(ttime)),name,state])
 
    def sorter(a,b):
@@ -597,7 +629,10 @@ def events(request):
    tasks2.sort(sorter)
 
    t = get_template('tasks.tmpl')
-   html = t.render(Context({'results': tasks2 }))
+   html = t.render(Context({
+       'results'  : tasks2,
+       'username' : username
+   }))
    return HttpResponse(html)
 
 # ======================================================================
@@ -622,7 +657,8 @@ def tasklog(request, task=0):
       'taskname'  : taskname,
       'taskstate' : taskstate,
       'taskid'    : task,
-      'tasktime'  : tasktime
+      'tasktime'  : tasktime,
+      'username'  : username
    }
    html = t.render(Context(vars))
    return HttpResponse(html)
@@ -727,7 +763,8 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
        'editable'        : editable,
        'interfaces'      : interfaces,
        'interface_names' : inames,
-       'interface_length': len(inames)
+       'interface_length': len(inames),
+       'username'        : username
    }))
 
    return HttpResponse(html)

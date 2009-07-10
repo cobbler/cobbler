@@ -88,17 +88,19 @@ class CobblerSvc(object):
         data = self.remote.generate_kickstart(profile,system,REMOTE_ADDR,REMOTE_MAC)
         return u"%s" % data    
 
-    def events(self,since=0,**rest):
+    def events(self,user="",**rest):
         self.__xmlrpc_setup()
-        data = self.remote.get_events()
+        if user == "":
+           data = self.remote.get_events()
+        else:
+           data = self.remote.get_events(user)
+
         # sort it... it looks like { timestamp : [ array of details ] }
         keylist = data.keys()
         keylist.sort()
         results = []
         for k in keylist:
-           # this part is probably wrong -- FIXME
-           if int(data[k][0]) >= int(since):
-               results.append([k, data[k][0], data[k][1], data[k][2]])
+            results.append([k, data[k][0], data[k][1], data[k][2]])
         return simplejson.dumps(results) 
 
     def template(self,profile=None,system=None,path=None,**rest):

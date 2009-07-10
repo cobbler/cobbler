@@ -7,15 +7,12 @@ var page_load = -1
 
 function get_latest_task_info() {
 
-    if (page_load == -1) {
-        /* the first time on each page, get events since now - 1 second */
-        /* after just track new ones */
-        page_load = (now.getTime() * 1000) - 5
-    } else {
-        page_load = page_load + 5000
-    }
+    username = document.getElementById("username").value
 
-    $.getJSON("/cblr/svc/op/events/since/" + page_load,
+    /* FIXME: used the logged in user here instead */
+    /* FIXME: don't show events that are older than 40 seconds */
+
+    $.getJSON("/cblr/svc/op/events/user/" + username,
         function(data){
           $.each(data, function(i,record){
 
@@ -29,10 +26,10 @@ function get_latest_task_info() {
                if (state == "complete") {
                     buf = "Task " + name + " is complete: " + logmsg
                }
-               if (state == "running") {
+               else if (state == "running") {
                     buf = "Task " + name + " is running: " + logmsg
                }
-               if (state == "failed") {
+               else if (state == "failed") {
                     buf = "Task " + name + " has failed: " + logmsg
                }
                else {
@@ -46,8 +43,7 @@ function get_latest_task_info() {
 }
 
 function go_go_gadget() {
-    get_latest_task_info()
-    setInterval(get_latest_task_info, 5000)
+    setInterval(get_latest_task_info, 2000)
     try {
        page_onload()
     } 

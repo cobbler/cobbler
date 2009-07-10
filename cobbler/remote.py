@@ -150,11 +150,26 @@ class CobblerXMLRPCInterface:
         id = self.__start_task(PowerThread, "Background power", [object_id,power,token])
         return id
 
-    def get_events(self):
+    def get_events(self, for_user=None):
         """
-        Returns a hash(key=event id) = [ statetime, name, state, who? ]
+        Returns a hash(key=event id) = [ statetime, name, state, [read_by_who] ]
+        If for_user is set to a string, it will only return events the user
+        has not seen yet.  If left unset, it will return /all/ events.
         """
-        return self.events
+
+        # return only the events the user has not seen
+        self.events_filtered = {}
+        for (k,x) in self.events.iteritems():
+           if not (for_user in x[3]):
+              self.events_filtered[k] = x
+
+        # mark as read so user will not get events again
+        if for_user is not None:
+           for (k,x) in self.events.iteritems():
+               if not (for_user in x[3]):
+                  x[3].append(for_user)
+
+        return self.events_filtered
 
     def get_task_log(self,event_id):
         """
@@ -177,13 +192,13 @@ class CobblerXMLRPCInterface:
         event_id = self.next_event_id
         self.next_event_id = self.next_event_id + 1
         event_id = str(event_id)
-        self.events[event_id] = [ float(time.time()), str(name), EVENT_INFO ]
+        self.events[event_id] = [ float(time.time()), str(name), EVENT_INFO, [] ]
 
     def __start_task(self, thr_obj, name, args):
         event_id = self.next_event_id
         self.next_event_id = self.next_event_id + 1
         event_id = str(event_id)
-        self.events[event_id] = [ float(time.time()), str(name), EVENT_RUNNING ]
+        self.events[event_id] = [ float(time.time()), str(name), EVENT_RUNNING, [] ]
         
         self._log("start_task(%s); event_id(%s)"%(name,event_id))
         logatron = clogger.Logger("/var/log/cobbler/tasks/%s.log" % event_id)
@@ -199,7 +214,7 @@ class CobblerXMLRPCInterface:
             #name       = self.events[event_id][1]
             #state      = self.events[event_id][2]
             # self.logger.info("task %s (%s) moves to state %s" % (event_id, name, state))
-            self.tasks[event_id][2] = new_state
+            self.events[event_id][2] = new_state
 
     def get_task_status(self, event_id):
         event_id = str(event_id)
@@ -1254,7 +1269,7 @@ class CobblerXMLRPCInterface:
             if (timenow > tokentime + CACHE_TIMEOUT):
                 del self.object_cache[oid]
         for tid in self.events.keys():
-            (eventtime, name, status) = self.events[tid]
+            (eventtime, name, status, who) = self.events[tid]
             if (timenow > eventtime + EVENT_TIMEOUT):
                 del self.events[tid]
             # logfile cleanup should be dealt w/ by logrotate
