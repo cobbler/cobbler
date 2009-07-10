@@ -36,6 +36,7 @@ urlpatterns = patterns('',
     (r'^tasklog/(?P<task>.+)$', tasklog),
     (r'^sync$', sync),
     (r'^reposync$',reposync),
+    (r'^replicate$',replicate),
     (r'^hardlink', hardlink),
     (r'^(?P<what>\w+)/save$', generic_save),
 )

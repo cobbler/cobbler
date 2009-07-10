@@ -128,6 +128,33 @@ class CobblerXMLRPCInterface:
         id = self.__start_task(HardLinkThread, "Background hardlink", [])
         return id
 
+    def background_replicate(self, token):
+        class ReplicateThread(CobblerThread):
+            def run(self):
+                try:
+                    settings = self.remote.get_settings()
+                    cobbler_master = settings.get("replicate_cobbler_master", "cobbler")
+                    sync_kickstarts = settings.get("replicate_sync_kickstarts", 1)
+                    sync_trees      = settings.get("replicate_sync_trees",1)
+                    sync_repos      = settings.get("replicate_sync_repos",1)
+                    sync_triggers   = settings.get("replicate_sync_triggers",0)
+                    sync_systems    = settings.get("replicate_sync_systems",1)
+                    self.remote.api.replicate(
+                         cobbler_master  = cobbler_master,
+                         sync_kickstarts = sync_kickstarts,
+                         sync_trees      = sync_trees,
+                         sync_repos      = sync_repos,
+                         systems    = sync_systems,
+                         sync_triggers   = sync_triggers
+                    )
+                except:
+                    utils.log_exc(self.logger)
+                    self.remote._set_task_state(self.event_id,EVENT_FAILED)
+
+        self.check_access(token, "replicate")
+        id = self.__start_task(ReplicateThread, "Background replicate", [])
+        return id
+
     def background_reposync(self, repos, tries, token):
         class RepoSyncThread(CobblerThread):
             def run(self):

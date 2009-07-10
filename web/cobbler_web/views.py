@@ -702,6 +702,16 @@ def hardlink(request):
 
 # ======================================================================
 
+def replicate(request):
+   """
+   Replicate configuration from the central cobbler server, configured
+   in /etc/cobbler/settings (note: this is uni-directional!)
+   """
+   remote.background_replicate(token)
+   return HttpResponseRedirect("/cobbler_web/")
+
+# ======================================================================
+
 def __names_from_dicts(loh,optional=True):
    """
    Tiny helper function.

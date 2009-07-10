@@ -73,14 +73,14 @@ class Replicate:
     def rsync_it(self,from_path,to_path):
         from_path = "%s:%s" % (self.host, from_path)
         cmd = "rsync -avz %s %s" % (from_path, to_path)
-        rc = utils.subprocess_call(cmd, shell=True)
+        rc = utils.subprocess_call(self.logger, cmd, shell=True)
         if rc !=0:
             self.logger.info("rsync failed")
     
     def scp_it(self,from_path,to_path):
         from_path = "%s:%s" % (self.host, from_path)
         cmd = "scp %s %s" % (from_path, to_path)
-        rc = utils.subprocess_call(cmd, shell=True)
+        rc = utils.subprocess_call(self.logger, cmd, shell=True)
         if rc !=0:
             utils.die("scp failed")
 
