@@ -14,9 +14,10 @@ function get_latest_task_info() {
 
     $.getJSON("/cblr/svc/op/events/user/" + username,
         function(data){
+
           $.each(data, function(i,record){
 
-
+                    
                var id = record[0];
                var ts = record[1];
                var name = record[2];

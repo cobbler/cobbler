@@ -104,7 +104,7 @@ class CobblerXMLRPCInterface:
         class SyncThread(CobblerThread):
             def run(self):
                 try:
-                    self.remote.api.sync(logger=self.logger)
+                    self.remote.api.sync(verbose=True,logger=self.logger)
                     self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
                 except:
                     utils.log_exc(self.logger)
@@ -114,6 +114,19 @@ class CobblerXMLRPCInterface:
         id = self.__start_task(SyncThread, "Background sync", []) 
         return id
 
+    def background_hardlink(self, token):
+        class HardLinkThread(CobblerThread):
+            def run(self):
+                try:
+                    self.remote.api.hardlink(logger=self.logger)
+                    self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
+                except:
+                    utils.log_exc(self.logger)
+                    self.remote._set_task_state(self.event_id,EVENT_FAILED)
+
+        self.check_access(token, "hardlink")
+        id = self.__start_task(HardLinkThread, "Background hardlink", [])
+        return id
 
     def background_reposync(self, repos, tries, token):
         class RepoSyncThread(CobblerThread):
@@ -121,9 +134,12 @@ class CobblerXMLRPCInterface:
                 repos = self.args[0]
                 tries = self.args[1]
                 try:
-                    for name in repos:
-                        self.logger.debug("reposync for: %s" % name)
-                        self.remote.api.reposync(tries=tries, name=name, nofail=True, logger=self.logger)
+                    if repos != "":
+                        for name in repos:
+                            self.logger.debug("reposync for: %s" % name)
+                            self.remote.api.reposync(tries=tries, name=name, nofail=True, logger=self.logger)
+                    else:
+                        self.remote.api.reposync(tries=tries, name=None, nofail=False, logger=self.logger)
                     self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
                 except:
                     utils.log_exc(self.logger)
@@ -143,14 +159,14 @@ class CobblerXMLRPCInterface:
                     self.remote.power_system(object_id,power,token,logger=self.logger)
                     self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
                 except:
-                    traceback.print_exc() # to log file
+                    utils.log_exc(self.logger)
                     self.remote._set_task_state(self.event_id,EVENT_FAILED)
 
         self.check_access(token, "power")
         id = self.__start_task(PowerThread, "Background power", [object_id,power,token])
         return id
 
-    def get_events(self, for_user=None):
+    def get_events(self, for_user=""):
         """
         Returns a hash(key=event id) = [ statetime, name, state, [read_by_who] ]
         If for_user is set to a string, it will only return events the user
@@ -160,14 +176,18 @@ class CobblerXMLRPCInterface:
         # return only the events the user has not seen
         self.events_filtered = {}
         for (k,x) in self.events.iteritems():
-           if not (for_user in x[3]):
+           if for_user in x[3]:
+              pass
+           else:
               self.events_filtered[k] = x
 
         # mark as read so user will not get events again
-        if for_user is not None:
+        if for_user is not None and for_user != "":
            for (k,x) in self.events.iteritems():
-               if not (for_user in x[3]):
-                  x[3].append(for_user)
+               if for_user in x[3]:
+                  pass
+               else:
+                  self.events[k][3].append(for_user)
 
         return self.events_filtered
 
@@ -202,7 +222,7 @@ class CobblerXMLRPCInterface:
         
         self._log("start_task(%s); event_id(%s)"%(name,event_id))
         logatron = clogger.Logger("/var/log/cobbler/tasks/%s.log" % event_id)
-        thr = thr_obj(id,self,logatron,args)
+        thr = thr_obj(event_id,self,logatron,args)
         # thr.setDaemon(True)
         thr.start()
         return event_id
@@ -210,11 +230,8 @@ class CobblerXMLRPCInterface:
     def _set_task_state(self,event_id,new_state):
         event_id = str(event_id)
         if self.events.has_key(event_id):
-            #start_time = self.events[event_id][0]
-            #name       = self.events[event_id][1]
-            #state      = self.events[event_id][2]
-            # self.logger.info("task %s (%s) moves to state %s" % (event_id, name, state))
             self.events[event_id][2] = new_state
+            self.events[event_id][3] = [] # clear the list of who has read it
 
     def get_task_status(self, event_id):
         event_id = str(event_id)
@@ -1562,7 +1579,7 @@ class ProxiedXMLRPCInterface:
         try:
             return method_handle(*params)
         except Exception, e:
-            # DEBUG...
+            # FIXME: REMOVE NEXT LINE (DEBUG)...
             traceback.print_exc()
             utils.log_exc(self.logger)
             raise e

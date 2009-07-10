@@ -48,7 +48,7 @@ class BootSync:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,config,verbose=False,dhcp=None,dns=None,logger=None):
+    def __init__(self,config,verbose=True,dhcp=None,dns=None,logger=None):
         """
         Constructor
         """
@@ -158,14 +158,14 @@ class BootSync:
             path = os.path.join(self.settings.webdir,x)
             if os.path.isfile(path):
                 if not x.endswith(".py"):
-                    utils.rmfile(path,verbose=self.verbose)
+                    utils.rmfile(path,logger=self.logger)
             if os.path.isdir(path):
                 if not x in ["aux", "web", "webui", "localmirror","repo_mirror","ks_mirror","images","links","repo_profile","repo_system","svc","rendered"] :
                     # delete directories that shouldn't exist
-                    utils.rmtree(path,verbose=self.verbose)
+                    utils.rmtree(path,logger=self.logger)
                 if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system","rendered"]:
                     # clean out directory contents
-                    utils.rmtree_contents(path,verbose=self.verbose)
+                    utils.rmtree_contents(path,logger=self.logger)
         pxelinux_dir = os.path.join(self.bootloc, "pxelinux.cfg")
         images_dir = os.path.join(self.bootloc, "images")
         yaboot_bin_dir = os.path.join(self.bootloc, "ppc")
@@ -173,21 +173,21 @@ class BootSync:
         s390_dir = os.path.join(self.bootloc, "s390x")
         rendered_dir = os.path.join(self.settings.webdir, "rendered")
         if not os.path.exists(pxelinux_dir):
-            utils.mkdir(pxelinux_dir,verbose=self.verbose)
+            utils.mkdir(pxelinux_dir,logger=self.logger)
         if not os.path.exists(images_dir):
-            utils.mkdir(images_dir,verbose=self.verbose)
+            utils.mkdir(images_dir,logger=self.logger)
         if not os.path.exists(rendered_dir):
-            utils.mkdir(rendered_dir,verbose=self.verbose)
+            utils.mkdir(rendered_dir,logger=self.logger)
         if not os.path.exists(yaboot_bin_dir):
-            utils.mkdir(yaboot_bin_dir,verbose=self.verbose)
+            utils.mkdir(yaboot_bin_dir,logger=self.logger)
         if not os.path.exists(yaboot_cfg_dir):
-            utils.mkdir(yaboot_cfg_dir,verbose=self.verbose)
-        utils.rmtree_contents(os.path.join(self.bootloc, "pxelinux.cfg"),verbose=self.verbose)
-        utils.rmtree_contents(os.path.join(self.bootloc, "images"),verbose=self.verbose)
-        utils.rmtree_contents(os.path.join(self.bootloc, "s390x"),verbose=self.verbose)
-        utils.rmtree_contents(os.path.join(self.bootloc, "ppc"),verbose=self.verbose)
-        utils.rmtree_contents(os.path.join(self.bootloc, "etc"),verbose=self.verbose)
-        utils.rmtree_contents(rendered_dir,verbose=self.verbose)
+            utils.mkdir(yaboot_cfg_dir,logger=self.logger)
+        utils.rmtree_contents(os.path.join(self.bootloc, "pxelinux.cfg"),logger=self.logger)
+        utils.rmtree_contents(os.path.join(self.bootloc, "images"),logger=self.logger)
+        utils.rmtree_contents(os.path.join(self.bootloc, "s390x"),logger=self.logger)
+        utils.rmtree_contents(os.path.join(self.bootloc, "ppc"),logger=self.logger)
+        utils.rmtree_contents(os.path.join(self.bootloc, "etc"),logger=self.logger)
+        utils.rmtree_contents(rendered_dir,logger=self.logger)
         
 
 

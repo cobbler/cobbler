@@ -350,10 +350,11 @@ def find_kernel(path):
         return find_highest_files(path,"vmlinuz",_re_kernel)
     return None
 
-def remove_yum_olddata(path):
+def remove_yum_olddata(path,logger=None):
     """
     Delete .olddata files that might be present from a failed run
     of createrepo.  
+    # FIXME: verify this is still being used
     """
     trythese = [
         ".olddata",
@@ -364,7 +365,8 @@ def remove_yum_olddata(path):
     for pathseg in trythese:
         olddata = os.path.join(path, pathseg)
         if os.path.exists(olddata):
-            print _("- removing: %s") % olddata
+            if logger is not None:
+                logger.info("removing: %s" % olddata)
             shutil.rmtree(olddata, ignore_errors=False, onerror=None)  
 
 def find_initrd(path):
@@ -765,7 +767,8 @@ def run_triggers(api,ref,globber,additional=[]):
                 arglist.append(x)
             rc = sub_process.call(arglist, shell=False) # close_fds=True)
         except:
-            print _("Warning: failed to execute trigger: %s" % file)
+            if logger is not None:
+               logger.warning("failed to execute trigger: %s" % file)
             continue
 
         if rc != 0:
@@ -900,7 +903,7 @@ def is_safe_to_hardlink(src,dst,api):
     # we're dealing with SELinux and files that are not safe to chcon
     return False
 
-def linkfile(src, dst, symlink_ok=False, api=None, verbose=False):
+def linkfile(src, dst, symlink_ok=False, api=None, logger=None):
     """
     Attempt to create a link dst that points to src.  Because file
     systems suck we attempt several different methods or bail to
@@ -921,26 +924,24 @@ def linkfile(src, dst, symlink_ok=False, api=None, verbose=False):
             if not is_safe_to_hardlink(src,dst,api):
                 # may have to remove old hardlinks for SELinux reasons
                 # as previous implementations were not complete
-                if verbose:
-                   print "- removing: %s" % dst
+                if logger is not None:
+                   logger.info("removing: %s" % dst)
                 os.remove(dst)
             else:
-                # restorecon(dst,api=api,verbose=verbose)
                 return True
         elif os.path.islink(dst):
             # existing path exists and is a symlink, update the symlink
-            if verbose:
-               print "- removing: %s" % dst
+            if logger is not None:
+               logger.info("removing: %s" % dst)
             os.remove(dst)
 
     if is_safe_to_hardlink(src,dst,api):
         # we can try a hardlink if the destination isn't to NFS or Samba
         # this will help save space and sync time.
         try:
-            if verbose:
-                print "- trying hardlink %s -> %s" % (src,dst)
+            if logger is not None:
+                logger.info("trying hardlink %s -> %s" % (src,dst))
             rc = os.link(src, dst)
-            # restorecon(dst,api=api,verbose=verbose)
             return rc
         except (IOError, OSError):
             # hardlink across devices, or link already exists
@@ -952,24 +953,22 @@ def linkfile(src, dst, symlink_ok=False, api=None, verbose=False):
         # we can symlink anywhere except for /tftpboot because
         # that is run chroot, so if we can symlink now, try it.
         try:
-            if verbose:
-               print "- trying symlink %s -> %s" % (src,dst)
+            if logger is not None:
+                logger.info("trying symlink %s -> %s" % (src,dst))
             rc = os.symlink(src, dst)
-            # restorecon(dst,api=api,verbose=verbose)
             return rc
         except (IOError, OSError):
             pass
 
     # we couldn't hardlink and we couldn't symlink so we must copy
 
-    return copyfile(src, dst, api=api, verbose=verbose)
+    return copyfile(src, dst, api=api, logger=logger)
 
-def copyfile(src,dst,api=None,verbose=False):
+def copyfile(src,dst,api=None,logger=None):
     try:
-        if verbose:
-           print "- copying: %s -> %s" % (src,dst)
+        if logger is not None:
+           logger.info("copying: %s -> %s" % (src,dst))
         rc = shutil.copyfile(src,dst)
-        # restorecon(dst,api,verbose=verbose)
         return rc
     except:
         if not os.access(src,os.R_OK):
@@ -1002,56 +1001,57 @@ def check_openfiles(src):
             raise
 
 
-def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None, verbose=False):
+def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None,logger=None):
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
         raise CX(_("Could not find files matching %s") % pattern)
     for file in files:
         base = os.path.basename(file)
         dst1 = os.path.join(dst,os.path.basename(file))
-        linkfile(file,dst1,symlink_ok=symlink_ok,api=api,verbose=verbose)
-        # restorecon(dst1,api=api,verbose=verbose)
+        linkfile(file,dst1,symlink_ok=symlink_ok,api=api,logger=logger)
 
-def rmfile(path,verbose=False):
+def rmfile(path,logger=None):
     try:
-        if verbose:
-           print "- removing: %s" % path
+        if logger is not None:
+           logger.info("removing: %s" % path)
         os.unlink(path)
         return True
     except OSError, ioe:
         if not ioe.errno == errno.ENOENT: # doesn't exist
-            traceback.print_exc()
+            if logger is not None:
+                log_exc(logger)
             raise CX(_("Error deleting %s") % path)
         return True
 
-def rmtree_contents(path,verbose=False):
+def rmtree_contents(path,logger=None):
    what_to_delete = glob.glob("%s/*" % path)
    for x in what_to_delete:
-       rmtree(x,verbose=verbose)
+       rmtree(x,logger=logger)
 
-def rmtree(path,verbose=False):
+def rmtree(path,logger=None):
    try:
        if os.path.isfile(path):
-           return rmfile(path,verbose=verbose)
+           return rmfile(path,logger=logger)
        else:
-           if verbose:
-               print "- removing: %s" % path
+           if logger is not None:
+               logger.info("removing: %s" % path)
            return shutil.rmtree(path,ignore_errors=True)
    except OSError, ioe:
-       traceback.print_exc()
+       if logger is not None:
+           log_exc(logger)
        if not ioe.errno == errno.ENOENT: # doesn't exist
            raise CX(_("Error deleting %s") % path)
        return True
 
-def mkdir(path,mode=0777,verbose=False):
+def mkdir(path,mode=0777,logger=None):
    try:
-       if verbose:
-          "- mkdir: %s" % path
+       if logger is not None:
+          logger.info("mkdir: %s" % path)
        return os.makedirs(path,mode)
    except OSError, oe:
        if not oe.errno == 17: # already exists (no constant for 17?)
-           traceback.print_exc()
-           print oe.errno
+           if logger is not None:
+               log_exc(logger)
            raise CX(_("Error creating") % path)
 
 def set_redhat_management_key(self,key):
@@ -1499,7 +1499,6 @@ def ram_consumption_of_guests(host, api):
           continue
        host_data = blender(api,False,host_obj)
        ram = host_data.get("virt_ram", 512)
-       print "extending virt ram for %s by %s" % (host.name, ram)
        ttl_ram = ttl_ram + host_data["virt_ram"]
     return ttl_ram
 
@@ -1567,16 +1566,6 @@ def from_datastruct_from_fields(obj, seed_data, fields):
             continue
         k = elems[0]
         if seed_data.has_key(k):
-            # print "FDFF: %s->%s"  % (k,seed_data[k])
-            #if k == "interfaces":
-            #    # FIXME: add a method for this?
-            #    setattr(obj, k, seed_data[k])
-            #else:
-            #    setfn = getattr(obj, "set_%s" % k)
-            #    setfn(seed_data[k])
-
-            # provided we have a validation function elsewhere it's much faster
-            # not to play getattr/setfn games here.
             setattr(obj, k, seed_data[k])
 
     if obj.uid == '':

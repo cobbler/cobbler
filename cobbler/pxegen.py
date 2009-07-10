@@ -66,6 +66,7 @@ class PXEGen:
         self.images      = config.images()
         self.templar     = templar.Templar(config)
         self.bootloc     = utils.tftpboot_location()
+        # FIXME: not used anymore, can remove?
         self.verbose     = False
 
     def copy_bootloaders(self):
@@ -79,28 +80,29 @@ class PXEGen:
         # copy syslinux from one of two locations
         try:
             try:
-                utils.copyfile_pattern('/var/lib/cobbler/loaders/pxelinux.0', dst, api=self.api, verbose=self.verbose)
-                utils.copyfile_pattern('/var/lib/cobbler/loaders/menu.c32', dst, api=self.api, verbose=self.verbose)
+                utils.copyfile_pattern('/var/lib/cobbler/loaders/pxelinux.0', dst, api=self.api, logger=self.logger)
+                utils.copyfile_pattern('/var/lib/cobbler/loaders/menu.c32', dst, api=self.api, logger=self.logger)
             except:
-                utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0', dst, api=self.api, verbose=self.verbose)
-                utils.copyfile_pattern('/usr/share/syslinux/menu.c32', dst, api=self.api, verbose=self.verbose)
+                utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0', dst, api=self.api, logger=self.logger)
+                utils.copyfile_pattern('/usr/share/syslinux/menu.c32', dst, api=self.api, logger=self.logger)
+
         except:
-            utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',   dst, api=self.api, verbose=self.verbose)
-            utils.copyfile_pattern('/usr/lib/syslinux/menu.c32',   dst, api=self.api, verbose=self.verbose)
+            utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',   dst, api=self.api, logger=self.logger)
+            utils.copyfile_pattern('/usr/lib/syslinux/menu.c32',   dst, api=self.api, logger=self.logger)
  
         # copy memtest only if we find it
-        utils.copyfile_pattern('/boot/memtest*', dst, require_match=False, api=self.api, verbose=self.verbose)
+        utils.copyfile_pattern('/boot/memtest*', dst, require_match=False, api=self.api, logger=self.logger)
   
         # copy elilo which we include for IA64 targets
-        utils.copyfile_pattern('/var/lib/cobbler/loaders/elilo.efi', dst, require_match=False, api=self.api, verbose=self.verbose)
+        utils.copyfile_pattern('/var/lib/cobbler/loaders/elilo.efi', dst, require_match=False, api=self.api, logger=self.logger)
 
         # copy yaboot which we include for PowerPC targets
-        utils.copyfile_pattern('/var/lib/cobbler/loaders/yaboot', dst, require_match=False, api=self.api, verbose=self.verbose)
+        utils.copyfile_pattern('/var/lib/cobbler/loaders/yaboot', dst, require_match=False, api=self.api, logger=self.logger)
 
         try:
-            utils.copyfile_pattern('/usr/lib/syslinux/memdisk',   dst, api=self.api, verbose=self.verbose)
+            utils.copyfile_pattern('/usr/lib/syslinux/memdisk',   dst, api=self.api, logger=self.logger)
         except:
-            utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst, require_match=False, api=self.api, verbose=self.verbose)
+            utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst, require_match=False, api=self.api, logger=self.logger)
 
 
     def copy_distros(self):
@@ -116,8 +118,7 @@ class PXEGen:
         errors = list()
         for d in self.distros:
             try:
-                if self.verbose:
-                   self.logger.info("copying files for distro: %s" % d.name)
+                self.logger.info("copying files for distro: %s" % d.name)
                 self.copy_single_distro_files(d)
             except CX, e:
                 errors.append(e)
@@ -157,9 +158,9 @@ class PXEGen:
                 allow_symlink=True
             dst1 = os.path.join(distro_dir, b_kernel)
             dst2 = os.path.join(distro_dir, b_initrd)
-            utils.linkfile(kernel, dst1, symlink_ok=allow_symlink, api=self.api, verbose=self.verbose)
+            utils.linkfile(kernel, dst1, symlink_ok=allow_symlink, api=self.api, logger=self.logger)
 
-            utils.linkfile(initrd, dst2, symlink_ok=allow_symlink, api=self.api, verbose=self.verbose)
+            utils.linkfile(initrd, dst2, symlink_ok=allow_symlink, api=self.api, logger=self.logger)
 
     def copy_single_image_files(self, img):
         images_dir = os.path.join(self.bootloc, "images2")
@@ -171,7 +172,7 @@ class PXEGen:
             os.makedirs(images_dir)
         basename = os.path.basename(img.file)
         newfile = os.path.join(images_dir, img.name)
-        utils.linkfile(filename, newfile, api=self.api, verbose=self.verbose)
+        utils.linkfile(filename, newfile, api=self.api, logger=self.logger)
         return True
 
     def write_all_system_files(self,system):

@@ -675,11 +675,29 @@ def random_mac(request, virttype="xenpv"):
 
 # ======================================================================
 
-def dosync(request):
+def sync(request):
    """
    Runs 'cobbler sync' from the API when the user presses the sync button.
    """
    remote.background_sync(token)
+   return HttpResponseRedirect("/cobbler_web/")
+
+# ======================================================================
+
+def reposync(request):
+   """
+   Syncs all repos that are configured to be synced.
+   """
+   remote.background_reposync("",3,token)
+   return HttpResponseRedirect("/cobbler_web/")
+
+# ======================================================================
+
+def hardlink(request):
+   """
+   Hardlinks files between repos and install trees to save space.
+   """
+   remote.background_hardlink(token)
    return HttpResponseRedirect("/cobbler_web/")
 
 # ======================================================================

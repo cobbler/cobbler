@@ -91,7 +91,7 @@ class CobblerSvc(object):
     def events(self,user="",**rest):
         self.__xmlrpc_setup()
         if user == "":
-           data = self.remote.get_events()
+           data = self.remote.get_events("")
         else:
            data = self.remote.get_events(user)
 
