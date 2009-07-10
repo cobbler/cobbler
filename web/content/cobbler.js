@@ -37,6 +37,7 @@ function get_latest_task_info() {
                     buf = name
                }
 
+               window.status = buf;
                js_growl.addMessage({msg:buf});
           });
         });

@@ -74,6 +74,10 @@ class CobblerThread(Thread):
         self.logger   = logatron
         self.args     = args
 
+    def run(self):
+        # may want to do some global run stuff here later.
+        return self._run()
+   
 # *********************************************************************
 # *********************************************************************
 
@@ -102,7 +106,7 @@ class CobblerXMLRPCInterface:
 
     def background_sync(self, token):
         class SyncThread(CobblerThread):
-            def run(self):
+            def _run(self):
                 try:
                     self.remote.api.sync(verbose=True,logger=self.logger)
                     self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
@@ -116,7 +120,7 @@ class CobblerXMLRPCInterface:
 
     def background_hardlink(self, token):
         class HardLinkThread(CobblerThread):
-            def run(self):
+            def _run(self):
                 try:
                     self.remote.api.hardlink(logger=self.logger)
                     self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
@@ -130,7 +134,7 @@ class CobblerXMLRPCInterface:
 
     def background_replicate(self, token):
         class ReplicateThread(CobblerThread):
-            def run(self):
+            def _run(self):
                 try:
                     settings = self.remote.get_settings()
                     cobbler_master = settings.get("replicate_cobbler_master", "cobbler")
@@ -159,7 +163,7 @@ class CobblerXMLRPCInterface:
 
     def background_reposync(self, repos, tries, token):
         class RepoSyncThread(CobblerThread):
-            def run(self):
+            def _run(self):
                 repos = self.args[0]
                 tries = self.args[1]
                 try:
@@ -179,8 +183,9 @@ class CobblerXMLRPCInterface:
         return id
 
     def background_power_system(self, object_id,power=None,token=None):
+        # FIXME: needs testing
         class PowerThread(CobblerThread):
-            def run(self):
+            def _run(self):
                 object_id = self.args[0]
                 power = self.args[1]
                 token = self.args[2]
