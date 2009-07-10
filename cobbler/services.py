@@ -100,7 +100,10 @@ class CobblerSvc(object):
         keylist.sort()
         results = []
         for k in keylist:
-            results.append([k, data[k][0], data[k][1], data[k][2]])
+            etime = int(data[k][0])
+            nowtime = time.time()
+            if ((nowtime - etime) < 30):
+                results.append([k, data[k][0], data[k][1], data[k][2]])
         return simplejson.dumps(results) 
 
     def template(self,profile=None,system=None,path=None,**rest):
