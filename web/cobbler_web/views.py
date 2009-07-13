@@ -467,7 +467,7 @@ def import_run(request):
    path  = request.POST.get("path","") 
    breed = request.POST.get("breed","") 
    arch  = request.POST.get("arch","") 
-   remote.background_import(name,path,breed,arch,token)
+   remote.background_import(name, path, arch, breed, "", "", "", "", token)
    return HttpResponseRedirect('/cobbler_web/task_created')
 
 # ======================================================================

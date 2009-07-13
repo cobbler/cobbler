@@ -115,7 +115,7 @@ class CobblerXMLRPCInterface:
                     self.remote._set_task_state(self.event_id,EVENT_FAILED)
 
         self.check_access(token, "sync")
-        id = self.__start_task(SyncThread, "Background sync", []) 
+        id = self.__start_task(SyncThread, "Sync", []) 
         return id
 
     def background_hardlink(self, token):
@@ -129,7 +129,7 @@ class CobblerXMLRPCInterface:
                     self.remote._set_task_state(self.event_id,EVENT_FAILED)
 
         self.check_access(token, "hardlink")
-        id = self.__start_task(HardLinkThread, "Background hardlink", [])
+        id = self.__start_task(HardLinkThread, "Hardlink", [])
         return id
 
     def background_replicate(self, token):
@@ -158,9 +158,30 @@ class CobblerXMLRPCInterface:
                     self.remote._set_task_state(self.event_id,EVENT_FAILED)
 
         self.check_access(token, "replicate")
-        id = self.__start_task(ReplicateThread, "Background replicate", [])
+        id = self.__start_task(ReplicateThread, "Replicate", [])
         return id
 
+    def background_import(self, name, path, arch, breed, available_as, kickstart, rsync_flags, os_version, token):
+        class ImportThread(CobblerThread):
+            def _run(self):
+
+                (name, path, arch, breed, available_as, kickstart, rsync_flags, os_version) = self.args
+                try:
+                    if arch == "": arch = None
+                    if breed == "": breed = None
+                    if available_as == "": available_as = None
+                    if kickstart == "": kickstart = None
+                    if rsync_flags == "" or rsync_flags == {}: rsync_flags = None
+                    if os_version == "": os_version = None
+                    self.remote.api.import_tree(path,name,available_as,kickstart,rsync_flags,arch,breed,os_version,self.logger)
+                    self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
+                except:
+                    utils.log_exc(self.logger)
+                    self.remote._set_task_state(self.event_id,EVENT_FAILED)
+        self.check_access(token, "import")
+        id = self.__start_task(ImportThread, "Media import", [name,path,arch,breed,available_as,kickstart,rsync_flags, os_version])
+        return id
+                     
     def background_reposync(self, repos, tries, token):
         class RepoSyncThread(CobblerThread):
             def _run(self):
@@ -179,7 +200,7 @@ class CobblerXMLRPCInterface:
                     self.remote._set_task_state(self.event_id,EVENT_FAILED)
 
         self.check_access(token, "reposync")
-        id = self.__start_task(RepoSyncThread, "Background reposync", [repos, tries])
+        id = self.__start_task(RepoSyncThread, "Reposync", [repos, tries])
         return id
 
     def background_power_system(self, object_id,power=None,token=None):
@@ -197,7 +218,7 @@ class CobblerXMLRPCInterface:
                     self.remote._set_task_state(self.event_id,EVENT_FAILED)
 
         self.check_access(token, "power")
-        id = self.__start_task(PowerThread, "Background power", [object_id,power,token])
+        id = self.__start_task(PowerThread, "Power management", [object_id,power,token])
         return id
 
     def get_events(self, for_user=""):
