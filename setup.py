@@ -194,6 +194,8 @@ if __name__ == "__main__":
             (dj_templates, [ 'web/cobbler_web/templates/generic_rename.tmpl' ]),
             (dj_templates, [ 'web/cobbler_web/templates/tasks.tmpl' ]),
             (dj_templates, [ 'web/cobbler_web/templates/tasklog.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/import.tmpl' ]),
+            (dj_templates, [ 'web/cobbler_web/templates/task_created.tmpl' ]),
 
             # django code, private to cobbler-web application
             (dj_webui,       [ 'web/cobbler_web/__init__.py' ]),

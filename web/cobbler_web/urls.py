@@ -39,4 +39,6 @@ urlpatterns = patterns('',
     (r'^replicate$',replicate),
     (r'^hardlink', hardlink),
     (r'^(?P<what>\w+)/save$', generic_save),
+    (r'^import/prompt$', import_prompt),
+    (r'^import/run$', import_run),
 )

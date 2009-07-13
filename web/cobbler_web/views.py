@@ -62,7 +62,19 @@ def index(request):
    }))
    return HttpResponse(html)
 
-#==================================================================================
+#========================================================================
+
+def task_created(request):
+   """
+   Let's the user know what to expect for task updates.
+   """
+   t = get_template("task_created.tmpl")
+   html = t.render(Context({
+       'username' : username
+   }))
+   return HttpResponse(html)
+
+#========================================================================
 
 def error_page(request,message):
    """
@@ -441,6 +453,25 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
 
 # ======================================================================
 
+def import_prompt(request):
+   t = get_template('import.tmpl')
+   html = t.render(Context({
+       'username' : username,
+   }))
+   return HttpResponse(html)
+
+# ======================================================================
+
+def import_run(request):
+   name  = request.POST.get("name","")
+   path  = request.POST.get("path","") 
+   breed = request.POST.get("breed","") 
+   arch  = request.POST.get("arch","") 
+   remote.background_import(name,path,breed,arch,token)
+   return HttpResponseRedirect('/cobbler_web/task_created')
+
+# ======================================================================
+
 def ksfile_list(request, page=None):
    """
    List all kickstart templates and link to their edit pages.
@@ -465,6 +496,7 @@ def ksfile_list(request, page=None):
    return HttpResponse(html)
 
 # ======================================================================
+
 
 def ksfile_edit(request, ksfile_name=None, editmode='edit'):
    """
@@ -680,7 +712,7 @@ def sync(request):
    Runs 'cobbler sync' from the API when the user presses the sync button.
    """
    remote.background_sync(token)
-   return HttpResponseRedirect("/cobbler_web/")
+   return HttpResponseRedirect("/cobbler_web/task_created")
 
 # ======================================================================
 
@@ -689,7 +721,7 @@ def reposync(request):
    Syncs all repos that are configured to be synced.
    """
    remote.background_reposync("",3,token)
-   return HttpResponseRedirect("/cobbler_web/")
+   return HttpResponseRedirect("/cobbler_web/task_created")
 
 # ======================================================================
 
@@ -698,7 +730,7 @@ def hardlink(request):
    Hardlinks files between repos and install trees to save space.
    """
    remote.background_hardlink(token)
-   return HttpResponseRedirect("/cobbler_web/")
+   return HttpResponseRedirect("/cobbler_web/task_created")
 
 # ======================================================================
 
@@ -708,7 +740,7 @@ def replicate(request):
    in /etc/cobbler/settings (note: this is uni-directional!)
    """
    remote.background_replicate(token)
-   return HttpResponseRedirect("/cobbler_web/")
+   return HttpResponseRedirect("/cobbler_web/task_created")
 
 # ======================================================================
 
