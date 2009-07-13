@@ -1,0 +1,69 @@
+{% extends 'master.tmpl' %}
+{% block content %}
+
+
+<div class="section_caption">DVD Importer</div>
+
+
+<form method="post" action="/cobbler_web/import/run">
+    <fieldset id="cform">
+    <table>
+    <tr>
+        <td>
+            <label for="name">Prefix</label>
+        </td>
+        <td>
+             <input type="text" size="128" style="width: 300px;" name="name" id="name" />
+             <p class="context-tip">Example:  rhel5u3, fedora11 (do not include the arch name)</p>
+     </td>
+    </tr>
+    <tr>
+        <td>
+           <label for="arch">Arch</label>
+        </td>
+        <td>
+           <select name="arch" id="arch">
+             <option value="i386">i386</option>
+             <option value="x86_64">x86_64</option>
+             <option value="ia64">ia64</option>
+             <option value="ppc">ppc</option>
+             <option value="ppc64">ppc64</option>
+             <option value="s390">s390</option>
+             <option value="s390x">s390x</option>
+           </select>
+          <p class="context-tip">Architecture of the DVD you are importing</p>
+        </td>
+    </tr>
+    <tr>
+        <td>
+           <label for="breed">Breed</label>
+        </td>
+        <td>
+           <select name="breed" id="breed">
+             <option value="redhat">Red Hat based (includes Fedora, CentOS, Scientific Linux)</option>
+             <option value="debian">Debian</option>
+             <option value="ubuntu">Ubuntu</option>
+           </select>
+           <p class="context-tip">Type of OS you are importing.  If yours is not listed here (ex: SUSE), you will have to add a distro manually.  Other distro imports may be supported in the future.  Non Red Hat based distros may require additional instructions, see the <A HREF="http://fedorahosted.org/cobbler">Wiki</A> for details.</p>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <label for="path">Path</label>
+        </td>
+        <td>
+            <input type="text" size="128" style="width: 300px;" name="path" id="path" />
+            <p class="context-tip">Full path to mounted DVD contents only (ex: /mnt/cdrom).  No CD ISOs!.  Content will be copied by Cobbler to /var/www/cobbler/ks_mirror automatically and then cobbler will create distro and profile objects for each ISO imported.  If you need more control about where files are sourced or end up, create new distro and profile object manually.</p>
+        </td>
+    </tr> 
+    
+    <tr>
+     <td colspan="2">
+      <input type="submit" name="submit" value="Run"/>
+     </td>
+    </tr>
+
+    </table>
+    </fieldset>
+</form>
+{% endblock content %}
