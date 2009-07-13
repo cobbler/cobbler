@@ -1,55 +1,64 @@
 #raw
-# Nifty trick to restore ssh keys without using a nochroot %post
+# Nifty trick to restore keys without using a nochroot %post
 
-echo "Saving ssh host keys..." > /dev/ttyS0
+echo "Saving keys..." > /dev/ttyS0
+
+SEARCHDIR=/etc/ssh
+TEMPDIR=ssh
+PATTERN=ssh_host_
 
 keys_found=no
-
+# /var could be a separate partition
+SHORTDIR=${SEARCHDIR#/var}
+if [ $SHORTDIR = $SEARCHDIR ]; then
+	SHORTDIR=''
+fi	
 insmod /lib/jbd.o
 insmod /lib/ext3.o
 
-mkdir -p /tmp/ssh
+mkdir -p /tmp/$TEMPDIR
 
-DISKS=$(awk '{if ($NF ~ "^[a-zA-Z].*[0-9]$" && $NF !~ "c[0-9]+d[0-9]+$") print "/dev/"$NF}'  /proc/partitions)
-# In the awk line above we want to make list of partitions, but not devices/controllers
-# cciss raid controllers have partitions like /dev/cciss/cNdMpL, where N,M,L - some digits, we want to make sure 'pL' is there
-# 
-# Try to find the keys on ordinary partitions
-for disk in $DISKS; do
+function findkeys
+{
+ for disk in $DISKS; do
     name=$(basename $disk)
-    mkdir -p /tmp/$name
-    mount $disk /tmp/$name
+    tmpdir=$(mktemp -d $name.XXXXXX)
+    mkdir -p /tmp/$tmpdir
+    mount $disk /tmp/$tmpdir
     [ $? -eq 0 ] || continue # Skip to the next partition if the mount fails
 
-    # Copy current ssh host keys out to be reused
-    if [ -d /tmp/${name}/etc/ssh ]; then
-        cp -a /tmp/${name}/etc/ssh/ssh_host* /tmp/ssh
+    # Copy current host keys out to be reused
+    if [ -d /tmp/$tmpdir$SEARCHDIR ]; then
+        cp -a /tmp/$tmpdir$SEARCHDIR/${PATTERN}* /tmp/$TEMPDIR
         keys_found="yes"
-        umount /tmp/$name
+	umount /tmp/$tmpdir
+	rm -r /tmp/$tmpdir
+	break
+    elif [ -n "$SHORTDIR" ] && [ -d /tmp/$tmpdir$SHORTDIR ]; then
+	cp -a /tmp/$tmpdir$SHORTDIR/${PATTERN}* /tmp/$TEMPDIR
+	keys_found="yes"
+        umount /tmp/$tmpdir
+	rm -r /tmp/$tmpdir
         break
     fi
-    umount /tmp/$name
-    rm -r /tmp/$name
-done
+    umount /tmp/$tmpdir
+    rm -r /tmp/$tmpdir
+ done
+}
+
+DISKS=$(awk '{if ($NF ~ "^[a-zA-Z].*[0-9]$" && $NF !~ "c[0-9]+d[0-9]+$" && $NF !~ "^loop.*") print "/dev/"$NF}'  /proc/partitions)
+# In the awk line above we want to make list of partitions, but not devices/controllers
+# cciss raid controllers have partitions like /dev/cciss/cNdMpL, where N,M,L - some digits, we want to make sure 'pL' is there
+# No need to scan loopback niether.
+# Try to find the keys on ordinary partitions
+
+findkeys
 
 # Try software RAID
 if [ "$keys_found" = "no" ]; then
   if mdadm -As; then
-      RDISKS="$(awk '/md/{print $1}' /proc/mdstat)"
-      for rdisk in $RDISKS; do
-          mkdir -p /tmp/$rdisk
-          mount /dev/$rdisk /tmp/$rdisk
-          [ $? -eq 0 ] || continue # Skip to the next partition if the mount fails
-          # Copy current ssh host keys out to be reused
-          if [ -d /tmp/${rdisk}/etc/ssh ]; then
-            cp -a /tmp/${rdisk}/etc/ssh/ssh_host* /tmp/ssh
-            keys_found="yes"
-            umount /tmp/$rdisk
-            break
-          fi
-          umount /tmp/$rdisk
-	  rm -r /tmp/$rdisk
-      done
+      DISKS=$(awk '/md/{print "/dev/"$1}' /proc/mdstat)
+      findkeys
   fi
 fi
 
@@ -63,36 +72,22 @@ if [ "$keys_found" = "no" ]; then
         lvm vgchange -ay $vg
     done
     
-    lvs=$(lvm lvs | tail -n +2 | awk '{ print "/dev/" $2 "/" $1 }')
-    for lv in $lvs; do
-        tmpdir=$(mktemp -d findkeys.XXXXXX)
-        mkdir -p /tmp/${tmpdir}
-        mount $lv /tmp/${tmpdir} || continue # Skip to next volume if this fails
+    DISKS=$(lvm lvs | tail -n +2 | awk '{ print "/dev/" $2 "/" $1 }')
+    findkeys    
 
-        # Let's see if the keys are in there
-        if [ -d /tmp/${tmpdir}/etc/ssh ]; then
-            cp -a /tmp/${tmpdir}/etc/ssh/ssh_host* /tmp/ssh/
-            keys_found="yes"
-            umount /tmp/${tmpdir}
-            break # We're done!
-        fi
-        umount /tmp/${tmpdir}
-        rm -r /tmp/${tmpdir}
-    done
-    
     # And clean up..
     for vg in $vgs; do
         lvm vgchange -an $vg
     done
 fi
 
-# Loop until the ssh rpm is installed
+# Loop until the corresponding rpm is installed
 if [ "$keys_found" = "yes" ]; then
     while : ; do
         sleep 10
-        if [ -d /mnt/sysimage/etc/ssh ] ; then
-            cp -f /tmp/ssh/ssh_host* /mnt/sysimage/etc/ssh/
-            logger "SSH-HOST-KEY copied to newly installed system"
+        if [ -d /mnt/sysimage$SEARCHDIR ] ; then
+            cp -f /tmp/$TEMPDIR/${PATTERN}* /mnt/sysimage$SEARCHDIR
+            logger "keys copied to newly installed system"
             break
         fi
     done &
