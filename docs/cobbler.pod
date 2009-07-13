@@ -816,7 +816,7 @@ Cobbler also makes itself available as a Python API for use by higher level mana
 
 Most of the day-to-day actions in cobbler's command line can be performed in Cobbler's Web UI.  To enable and access the WebUI, see the following documentation:
 
-https://fedorahosted.org/cobbler/wiki/CobblerWebUi
+https://fedorahosted.org/cobbler/wiki/CobblerWebInterface
 
 =head2 BOOT CD
 

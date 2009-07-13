@@ -28,6 +28,15 @@ Cobbler CHANGELOG
 - (FEAT) per-task logging
 - (BUGF) validateks checkes /every/ kickstart, as different variables may be present
 
+- - 1.6.9
+- (FEAT/cobbler) cobbler can now pass the virtio26 os version to virtinst, so virtio drivers can be used for RHEL5
+.3 for instance
+- (BUGF/cobbler) The URL to the WebUI documentation in the manpage was corrected
+
+- 1.6.7
+- (BUGF/koan) Workaround for a bug in ybin, use --verbose for happy return codes
+- (BUGF/cobbler) patch to redhat_register for Satellite 
+
 1.6.6 (for more accurate listing, see release16 branch)
 - (BUGF) don't use -m option for drac unless power_id is set
 - (BUGF) don't run createrepo on reposync'd repos, it is redundant
