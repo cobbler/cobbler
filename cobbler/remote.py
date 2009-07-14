@@ -203,7 +203,7 @@ class CobblerXMLRPCInterface:
         id = self.__start_task(RepoSyncThread, "Reposync", [repos, tries])
         return id
 
-    def background_power_system(self, object_id,power=None,token=None):
+    def background_power_system(self, system_names, power=None,token=None):
         # FIXME: needs testing
         class PowerThread(CobblerThread):
             def _run(self):
@@ -211,14 +211,17 @@ class CobblerXMLRPCInterface:
                 power = self.args[1]
                 token = self.args[2]
                 try:
-                    self.remote.power_system(object_id,power,token,logger=self.logger)
+                    for x in system_names:
+                        self.logger.debug("performing power actions for system %s" % x)
+                        object_id = self.remote.get_system_handle(x,token)
+                        self.remote.power_system(object_id,power,token,logger=self.logger)
                     self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
                 except:
                     utils.log_exc(self.logger)
                     self.remote._set_task_state(self.event_id,EVENT_FAILED)
 
         self.check_access(token, "power")
-        id = self.__start_task(PowerThread, "Power management", [object_id,power,token])
+        id = self.__start_task(PowerThread, "Power management (%s)" % power, [system_names,power,token])
         return id
 
     def get_events(self, for_user=""):
@@ -1577,18 +1580,20 @@ class CobblerXMLRPCInterface:
             return True
 
 
-    def power_system(self,object_id,power=None,token=None):
+    def power_system(self,object_id,power=None,token=None,logger=None):
         """
+        Internal implementation used by background_power, do not call
+        directly if possible.  
         Allows poweron/poweroff/reboot of a system specified by object_id.
         """
         obj = self.__get_object(object_id)
         self.check_access(token, "power_system", obj)
         if power=="on":
-            rc=self.api.power_on(obj)
+            rc=self.api.power_on(obj, user=None, password=None, logger=logger)
         elif power=="off":
-            rc=self.api.power_off(obj)
+            rc=self.api.power_off(obj, user=None, password=None, logger=logger)
         elif power=="reboot":
-            rc=self.api.reboot(obj)
+            rc=self.api.reboot(obj, user=None, password=None, logger=logger)
         else:
             raise CX("invalid power mode '%s', expected on/off/reboot" % power)
         return rc

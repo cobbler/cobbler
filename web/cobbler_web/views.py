@@ -439,14 +439,16 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
             remote.modify_system(obj_id, "profile", profile, token)
             remote.save_system(obj_id, token, "edit")
     elif what == "system" and multi_mode == "power":
+        # FIXME: power should not loop, but send the list of all systems
+        # in one set.
         power = multi_arg
         if power is None:
             return error_page(request,"Cannot modify systems without specifying power option")
-        for obj_name in names:
-            obj_id = remote.get_system_handle(obj_name, token)
-            remote.background_power_system(obj_id, power, token)
+        remote.background_power_system(names, power, token)
+    elif what == "profile" and multi_mode == "reposync":
+        remote.background_reposync(names,3,token)
     else:
-        return error_page(request,"Unknown multiple operation on %ss: %s" % (what,str(multi_mode)))
+        return error_page(request,"Unknown batch operation on %ss: %s" % (what,str(multi_mode)))
 
     # FIXME: "operation complete" would make a lot more sense here than a redirect
     return HttpResponseRedirect("/cobbler_web/%s/list"%what)

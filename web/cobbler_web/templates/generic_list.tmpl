@@ -74,6 +74,10 @@ function action_multi(otype, action, param) {
   if ((action == "netboot") && (param == "disable")) {
      value = confirm("Confirm: Really disable all checked systems for PXE reinstallation?")
   }
+  if ((action == "reposync")) {
+     value = "reposync"
+  }
+
   if (value) {
      document.myform.action = "/cobbler_web/" + otype + "/multi/" + action + "/" + param
      document.myform.submit()  
@@ -154,6 +158,15 @@ function action_multi(otype, action, param) {
    <input type="button" onClick="javascript:action_multi('system','profile','')" value="Change Profile"/>
    <input type="button" onClick="javascript:action_multi('system','netboot','enable')" value="Enable Netboot"/>
    <input type="button" onClick="javascript:action_multi('system','netboot','disable')" value="Disable Netboot"/>
+{% endifequal %}
+
+{% ifequal what "repo" %}
+   <br/>
+   Batch actions:
+   <br/>
+   <br/>
+   <input type="button" onClick="javascript:action_multi('profile','reposync','go')" value="Sync Repos"/>
+
 {% endifequal %}
 
 {% else %}
