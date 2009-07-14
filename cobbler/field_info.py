@@ -37,7 +37,6 @@ USES_MULTI_SELECT = [
 USES_SELECT = [
    "profile",
    "distro",
-   "network",
    "image",
    "virt_type",
    "arch",
@@ -96,7 +95,6 @@ CSS_MAPPINGS = {
    "*bonding_master" : "netedit",
    "*dns_name"       : "netedit",
    "*static_routes"  : "netedit",
-   "*network"        : "netedit",
    "*subnet"         : "netedit",
    "hostname"        : "netedit",
    "gateway"         : "netedit",
