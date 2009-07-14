@@ -27,6 +27,8 @@ from cexceptions import *
 
 from utils import _
 
+# this datastructure is described in great detail in item_distro.py -- read the comments there.
+
 FIELDS = [
   ["name","",None,"Name",True,"Ex: F10-i386-webserver",0],
   ["uid","","","",False,"",0],

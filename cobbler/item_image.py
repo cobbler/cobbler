@@ -28,6 +28,8 @@ from cexceptions import *
 import codes
 from utils import _
 
+# this datastructure is described in great detail in item_distro.py -- read the comments there.
+
 FIELDS = [
   ['name','',0,"Name",True,"",0],
   ['arch','i386',0,"Architecture",True,"",["i386","x86_64","ia64","s390","ppc"]],

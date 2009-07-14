@@ -26,6 +26,8 @@ import time
 from cexceptions import *
 from utils import _
 
+# this datastructure is described in great detail in item_distro.py -- read the comments there.
+
 FIELDS = [
   ["name","",0,"Name",True,"Ex: vanhalen.example.org",0],
   ["uid","",0,"",False,"",0],

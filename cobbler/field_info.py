@@ -22,7 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-# FIXME: presumably incomplete.
+# fields that display as a text area in the web app
+# note: not the same as a text field, this is the big one.
 
 USES_TEXTAREA = [
    "comment",
@@ -30,9 +31,13 @@ USES_TEXTAREA = [
    "template_files"
 ]
 
+# fields that use a multi select in the web app
+
 USES_MULTI_SELECT = [
    "repos"
 ]
+
+# fields that use a select in the web app
 
 USES_SELECT = [
    "profile",
@@ -46,6 +51,8 @@ USES_SELECT = [
    "os_version",
 ]
 
+# fields that should use the checkbox in the web app
+
 USES_CHECKBOX = [
    "enable_menu",
    "*netboot_enabled",
@@ -54,8 +61,13 @@ USES_CHECKBOX = [
 ]
 
 # select killed the radio button
+# we should not make anything use a radio button, we hate radio buttons.
+
 USES_RADIO = [
 ]
+
+# this is the map of what color to color code each field type.
+# it may also be used to expand/collapse certain web elements as a set.
 
 CSS_MAPPINGS = {
    "virt_ram"        : "virtedit",
@@ -101,7 +113,10 @@ CSS_MAPPINGS = {
    "name_servers"         : "netedit",
    "name_servers_search"  : "netedit"
 }
-    
+   
+# Certain legacy fields need to have different CLI options than the direct translation of their
+# name in the FIELDS data structure.  We should not add any more of these under any conditions.
+ 
 ALTERNATE_OPTIONS = {
    "ks_meta"             : "--ksmeta",
    "kernel_options"      : "--kopts",
