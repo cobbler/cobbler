@@ -136,8 +136,8 @@ class BootSync:
         if self.verbose:
             self.logger.info("running post-sync triggers")
 
-        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*")
-        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/change/*")
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*", logger=self.logger)
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/change/*", logger=self.logger)
 
         return True
 

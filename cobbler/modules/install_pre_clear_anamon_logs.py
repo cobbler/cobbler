@@ -19,7 +19,8 @@ def register():
     # the return of this method indicates the trigger type
     return "/var/lib/cobbler/triggers/install/pre/*"
 
-def run(api, args):
+def run(api, args, logger):
+    # FIXME: use the logger
 
     if len(args) < 3:
         raise CX("invalid invocation")
