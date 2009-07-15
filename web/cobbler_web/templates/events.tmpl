@@ -17,9 +17,9 @@
         {% if results %}
         {% for line in results %}
         <tr class="{% cycle 'rowodd' 'roweven' %}">
-            <td>{{ line.1 }}</td>
-            <td>{{ line.2 }}</td>
-            <td>{{ line.3 }}</td>
+            <td>{{ line.1|safe }}</td>
+            <td>{{ line.2|safe }}</td>
+            <td>{{ line.3|safe }}</td>
             <td><A HREF="/cobbler_web/eventlog/{{ line.0 }}">log</A>
         </tr>
         {% endfor %}
