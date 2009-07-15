@@ -60,6 +60,9 @@
                 #if $gateway != ""
 	            #set $netinfo = "%s --gateway=%s" % ($netinfo, $gateway)
     	        #end if
+    	        #if $len($name_servers) > 0
+    	            #set $netinfo = "%s --nameserver=%s" % ($netinfo, $name_servers[0])
+                #end if
             #else if not $static
                 #set $netinfo = "--bootproto=dhcp"
             #else
