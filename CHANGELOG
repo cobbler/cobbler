@@ -32,6 +32,7 @@ Cobbler CHANGELOG
 - (FEAT/cobbler) cobbler can now pass the virtio26 os version to virtinst, so virtio drivers can be used for RHEL5
 .3 for instance
 - (BUGF/cobbler) The URL to the WebUI documentation in the manpage was corrected
+- (BUGF/cobbler) add the --nameserver option for static interfaces when defined (snippet fix)
 
 - 1.6.7
 - (BUGF/koan) Workaround for a bug in ybin, use --verbose for happy return codes
