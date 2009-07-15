@@ -29,7 +29,8 @@ def register():
    # the return of this method indicates the trigger type
    return "/var/lib/cobbler/triggers/install/post/*"
 
-def run(api, args):
+def run(api, args, logger):
+    # FIXME: make everything use the logger
 
     settings = api.settings()
 

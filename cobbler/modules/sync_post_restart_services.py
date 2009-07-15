@@ -18,7 +18,7 @@ def register():
     # the return of this method indicates the trigger type
     return "/var/lib/cobbler/triggers/sync/post/*"
 
-def run(api,args):
+def run(api,args,logger):
 
     settings = api.settings()
 
@@ -42,28 +42,28 @@ def run(api,args):
     if manage_dhcp != "0":
         if which_dhcp_module == "manage_isc":
             if not omapi_enabled in [ "1", "true", "yes", "y" ] and restart_dhcp:
-                rc = utils.os_system("%s -t -q" % dhcpd_bin)
+                rc = utils.subprocess_call(logger, "%s -t -q" % dhcpd_bin, shell=True)
                 if rc != 0:
-                   print "%s -t failed" % dhcpd_bin
+                   logger.error("%s -t failed" % dhcpd_bin)
                    return 1
-                rc = utils.os_system("%s %s restart" % (restart_bin, dhcpd_init))
+                rc = utils.subprocess_call(logger,"%s %s restart" % (restart_bin, dhcpd_init), shell=True)
         elif which_dhcp_module == "manage_dnsmasq":
             if restart_dhcp:
-                rc = utils.os_system("/sbin/service dnsmasq restart")
+                rc = utils.subprocess_call(logger, "/sbin/service dnsmasq restart")
                 has_restarted_dnsmasq = True
         else:
-            print "- error: unknown DHCP engine: %s" % which_dhcp_module
+            logger.error("unknown DHCP engine: %s" % which_dhcp_module)
             rc = 411
 
     if manage_dns != "0" and restart_dns != "0":
         if which_dns_module == "manage_bind":
-            rc = utils.os_system("/sbin/service named restart")
+            rc = utils.subprocess_call(logger, "/sbin/service named restart", shell=True)
         elif which_dns_module == "manage_dnsmasq" and not has_restarted_dnsmasq:
-            rc = utils.os_system("/sbin/service dnsmasq restart")
+            rc = utils.subprocess_call(logger, "/sbin/service dnsmasq restart", shell=True)
         elif which_dns_module == "manage_dnsmasq" and has_restarted_dnsmasq:
             rc = 0
         else:
-            print "- error: unknown DNS engine: %s" % which_dns_module
+            logger.error("unknown DNS engine: %s" % which_dns_module)
             rc = 412
 
     return rc

@@ -17,7 +17,9 @@ def register():
     # the return of this method indicates the trigger type
     return "/var/lib/cobbler/triggers/install/post/*"
 
-def run(api, args):
+def run(api, args, logger):
+    # FIXME: make everything use the logger, no prints, use util.subprocess_call, etc
+
     objtype = args[0] # "system" or "profile"
     name    = args[1] # name of system or profile
     ip      = args[2] # ip or "?"

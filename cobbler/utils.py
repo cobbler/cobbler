@@ -725,7 +725,7 @@ def hash_to_string(hash):
           buffer = buffer + str(key) + "=" + str(value) + " "
     return buffer
 
-def run_triggers(api,ref,globber,additional=[]):
+def run_triggers(api,ref,globber,additional=[],logger=None):
     """
     Runs all the trigger scripts in a given directory.
     ref can be a cobbler object, if not None, the name will be passed
@@ -745,7 +745,7 @@ def run_triggers(api,ref,globber,additional=[]):
            arglist.append(ref.name)
        for x in additional:
            arglist.append(x)
-       rc = m.run(api, arglist)
+       rc = m.run(api, arglist, logger)
        if rc != 0:
            raise CX("cobbler trigger failed: %s" % m.__name__)
 
@@ -765,7 +765,7 @@ def run_triggers(api,ref,globber,additional=[]):
                 arglist.append(ref.name)
             for x in additional:
                 arglist.append(x)
-            rc = sub_process.call(arglist, shell=False) # close_fds=True)
+            rc = subprocess_call(logger, arglist, shell=False) # close_fds=True)
         except:
             if logger is not None:
                logger.warning("failed to execute trigger: %s" % file)

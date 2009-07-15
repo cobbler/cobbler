@@ -231,7 +231,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/config/systems.d/
 %dir /var/lib/cobbler/config/repos.d/
 %dir /var/lib/cobbler/config/images.d/
-%dir /var/lib/cobbler/config/networks.d/
 %dir /var/lib/cobbler/kickstarts/
 %dir /var/lib/cobbler/backup/
 %dir /var/lib/cobbler/triggers

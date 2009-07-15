@@ -26,6 +26,8 @@ import time
 from cexceptions import *
 from utils import _
 
+# this datastructure is described in great detail in item_distro.py -- read the comments there.
+
 FIELDS = [
   ["name","",0,"Name",True,"Ex: vanhalen.example.org",0],
   ["uid","",0,"",False,"",0],
@@ -66,7 +68,6 @@ FIELDS = [
   ["redhat_management_server","<<inherit>>",0,"Red Hat Management Server",True,"Address of Satellite or Spacewalk Server",0],
   ["network_widget_a","",0,"Add Interface",True,"",0], # not a real field, a marker for the web app
   ["network_widget_b","",0,"Edit Interface",True,"",0], # not a real field, a marker for the web app
-  ["*network","",0,"Network",True,"Parent network object for this interface",0],
   ["*mac_address","",0,"MAC Address",True,"",0],
   ["*ip_address","",0,"IP Address",True,"",0],
   ["*bonding","na",0,"Bonding Mode",True,"",["na","master","slave"]],
@@ -125,7 +126,6 @@ class System(item.Item):
                 "bonding_opts"   : "",
                 "dns_name"       : "",
                 "static_routes"  : [],
-                "network"        : "",
             }
 
         return self.interfaces[name]
@@ -214,11 +214,6 @@ class System(item.Item):
 
         if intf["ip_address"] != "": 
             return intf["ip_address"].strip()
-        elif intf.get("network","") != "":
-            net = self.config.networks().find(name=intf["network"])
-            if net == None:
-                raise CX(_("Network %s does not exist" % network))
-            return net.get_assigned_address(self.name, interface)
         else:
             return ""
 
@@ -267,43 +262,6 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         intf["static"] = utils.input_boolean(truthiness)
         return True
-
-    def set_network(self,network,interface):
-        """
-        Add an interface to a network object.  If network is empty,
-        clear the network.
-        """
-
-        # the following is to make the absense a network clearer for the webapp
-        # FIXME: testing needed
-        if network == "<<None>>":
-            network = ""
-
-        intf = self.__get_interface(interface)
-
-        if network == intf['network']:
-            # setting the existing network is no-op
-            return
-
-        if intf['network'] != '':
-            # we are currently subscribed to a network, so to join
-            # a different one we need to leave this one first.
-            net = self.config.networks().find(name=intf['network'])
-            if net == None:
-                raise CX(_("Network %s does not exist" % network))
-            net.unsubscribe_system(self.name, interface)
-            intf['network'] = ''
-
-        if network != '': # Join
-            net  = self.config.networks().find(name=network)
-            if net == None:
-                raise CX(_("Network %s does not exist" % network))
-            net.subscribe_system(self.name, interface, intf['ip_address'])
-            intf['network'] = network
-
-        # FIXME figure out why the network collection doesn't
-        # serialize itself out to disk without this
-        # self.config.serialize()
 
     def set_ip_address(self,address,interface):
         """

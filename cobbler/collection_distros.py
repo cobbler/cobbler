@@ -64,7 +64,7 @@ class Distros(collection.Collection):
 
             if with_delete:
                 if with_triggers: 
-                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/distro/pre/*")
+                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/distro/pre/*", [], logger)
                 if with_sync:
                     lite_sync = action_litesync.BootLiteSync(self.config, logger=logger)
                     lite_sync.remove_single_distro(name)
@@ -75,8 +75,8 @@ class Distros(collection.Collection):
             if with_delete:
                 self.log_func("deleted distro %s" % name)
                 if with_triggers: 
-                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/distro/post/*")
-                    self._run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*")
+                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/distro/post/*", [], logger)
+                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
 
 
             # look through all mirrored directories and find if any directory is holding

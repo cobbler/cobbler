@@ -23,7 +23,7 @@ def scall(args):
     op.communicate()
     
 
-def run(api,args):
+def run(api,args,logger):
 
     
     settings = api.settings()

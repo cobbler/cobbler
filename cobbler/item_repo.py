@@ -27,6 +27,8 @@ from utils import _
 import time
 import codes
 
+# this datastructure is described in great detail in item_distro.py -- read the comments there.
+
 FIELDS = [
   ["arch","",0,"Arch",True,"ex: i386, x86_64",['i386','x86_64','ia64','ppc','s390']],
   ["breed","",0,"Breed",True,"",codes.VALID_OS_BREEDS],

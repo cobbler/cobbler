@@ -46,7 +46,6 @@ import item_profile
 import item_system
 import item_repo
 import item_image
-import item_network
 import clogger
 import utils
 #from utils import * # BAD!
@@ -238,7 +237,7 @@ class CobblerXMLRPCInterface:
         id = self.__start_task(RepoSyncThread, "Reposync", [repos, tries])
         return id
 
-    def background_power_system(self, object_id,power=None,token=None):
+    def background_power_system(self, system_names, power=None,token=None):
         # FIXME: needs testing
         class PowerThread(CobblerThread):
             def _run(self):
@@ -246,14 +245,17 @@ class CobblerXMLRPCInterface:
                 power = self.args[1]
                 token = self.args[2]
                 try:
-                    self.remote.power_system(object_id,power,token,logger=self.logger)
+                    for x in system_names:
+                        self.logger.debug("performing power actions for system %s" % x)
+                        object_id = self.remote.get_system_handle(x,token)
+                        self.remote.power_system(object_id,power,token,logger=self.logger)
                     self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
                 except:
                     utils.log_exc(self.logger)
                     self.remote._set_task_state(self.event_id,EVENT_FAILED)
 
         self.check_access(token, "power")
-        id = self.__start_task(PowerThread, "Power management", [object_id,power,token])
+        id = self.__start_task(PowerThread, "Power management (%s)" % power, [system_names,power,token])
         return id
 
     def get_events(self, for_user=""):
@@ -515,8 +517,6 @@ class CobblerXMLRPCInterface:
         return self.get_item("repo",name,flatten=flatten)
     def get_image(self,name,flatten=False,token=None,**rest):
         return self.get_item("image",name,flatten=flatten)
-    def get_network(self,name,flatten=False,token=None,**rest):
-        return self.get_item("network",name,flatten=flatten)
 
     def get_items(self, what):
         """
@@ -538,8 +538,6 @@ class CobblerXMLRPCInterface:
         return self.get_items("repo")
     def get_images(self,page=None,results_per_page=None,token=None,**rest):
         return self.get_items("image")
-    def get_networks(self,page=None,results_per_page=None,token=None,**rest):
-        return self.get_items("network")
 
     def find_items(self, what, criteria=None,sort_field=None,expand=True):
         """
@@ -567,8 +565,6 @@ class CobblerXMLRPCInterface:
         return self.find_items("repo",criteria,expand=expand)
     def find_image(self,criteria={},expand=False,token=None,**rest):
         return self.find_items("image",criteria,expand=expand)
-    def find_network(self,criteria={},expand=False,token=None,**rest):
-        return self.find_items("network",criteria,expand=expand)
 
     def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page=None, token=None):
         """
@@ -621,8 +617,6 @@ class CobblerXMLRPCInterface:
         return self.get_item_handle("repo",name,token)
     def get_image_handle(self,name,token):
         return self.get_item_handle("image",name,token)
-    def get_network_handle(self,name,token):
-        return self.get_item_handle("network",name,token)
         
     def remove_item(self,what,name,token,recursive=True):
         """
@@ -643,8 +637,6 @@ class CobblerXMLRPCInterface:
         return self.remove_item("repo",name,token,recursive)
     def remove_image(self,name,token,recursive=1):
         return self.remove_item("image",name,token,recursive)
-    def remove_network(self,name,token,recursive=1):
-        return self.remove_item("network",name,token,recursive)
 
     def copy_item(self,what,object_id,newname,token=None):
         """
@@ -665,8 +657,6 @@ class CobblerXMLRPCInterface:
         return self.copy_item("repo",object_id,newname,token)
     def copy_image(self,object_id,newname,token=None):
         return self.copy_item("image",object_id,newname,token)
-    def copy_network(self,object_id,newname,token=None):
-        return self.copy_item("network",object_id,newname,token)
     
     def rename_item(self,what,object_id,newname,token=None):
         """
@@ -686,8 +676,6 @@ class CobblerXMLRPCInterface:
         return self.rename_item("repo",object_id,newname,token)
     def rename_image(self,object_id,newname,token=None):
         return self.rename_item("image",object_id,newname,token)
-    def rename_network(self,object_id,newname,token=None):
-        return self.rename_item("network",object_id,newname,token)
     
     def new_item(self,what,token):
         """
@@ -695,7 +683,7 @@ class CobblerXMLRPCInterface:
         handle that can be used with modify_* methods and then finally
         save_* methods.  The handle only exists in memory until saved.
         "what" specifies the type of object: 
-            distro, profile, system, repo, image, or network
+            distro, profile, system, repo, or image
         """      
         self._log("new_item(%s)"%what,token=token)
         self.check_access(token,"new_%s"%what)
@@ -709,8 +697,6 @@ class CobblerXMLRPCInterface:
             d = item_repo.Repo(self.api._config)
         elif what == "image":
             d = item_image.Image(self.api._config)
-        elif what == "network":
-            d = item_network.Network(self.api._config)
         else:
             raise CX("internal error, collection name is %s" % what)
         key = "___NEW___%s::%s" % (what,self.__get_random(25))
@@ -727,8 +713,6 @@ class CobblerXMLRPCInterface:
         return self.new_item("repo",token)
     def new_image(self,token):
         return self.new_item("image",token)
-    def new_network(self,token):
-        return self.new_item("network",token)
 
     def modify_item(self,what,object_id,attribute,arg,token):
         """
@@ -754,8 +738,6 @@ class CobblerXMLRPCInterface:
         return self.modify_item("image",object_id,attribute,arg,token)
     def modify_repo(self,object_id,attribute,arg,token):
         return self.modify_item("repo",object_id,attribute,arg,token)
-    def modify_network(self,object_id,attribute,arg,token):
-        return self.modify_item("network",object_id,attribute,arg,token)
     
     def save_item(self,what,object_id,token,editmode="bypass"):
         """
@@ -780,8 +762,6 @@ class CobblerXMLRPCInterface:
         return self.save_item("image",object_id,token,editmode=editmode)
     def save_repo(self,object_id,token,editmode="bypass"):
         return self.save_item("repo",object_id,token,editmode=editmode)
-    def save_network(self,object_id,token,editmode="bypass"):
-        return self.save_item("network",object_id,token,editmode=editmode)
 
     def get_kickstart_templates(self,token=None,**rest):
         """
@@ -1155,12 +1135,6 @@ class CobblerXMLRPCInterface:
         data = self.api.get_images_since(mtime, collapse=True)
         return self.xmlrpc_hacks(data)
     
-    def get_networks_since(self,mtime):
-        """
-        See documentation for get_distros_since
-        """
-        data = self.api.get_networks_since(mtime, collapse=True)
-
     def get_repos_compatible_with_profile(self,profile=None,token=None,**rest):
         """
         Get repos that can be used with a given profile name
@@ -1612,18 +1586,20 @@ class CobblerXMLRPCInterface:
             return True
 
 
-    def power_system(self,object_id,power=None,token=None):
+    def power_system(self,object_id,power=None,token=None,logger=None):
         """
+        Internal implementation used by background_power, do not call
+        directly if possible.  
         Allows poweron/poweroff/reboot of a system specified by object_id.
         """
         obj = self.__get_object(object_id)
         self.check_access(token, "power_system", obj)
         if power=="on":
-            rc=self.api.power_on(obj)
+            rc=self.api.power_on(obj, user=None, password=None, logger=logger)
         elif power=="off":
-            rc=self.api.power_off(obj)
+            rc=self.api.power_off(obj, user=None, password=None, logger=logger)
         elif power=="reboot":
-            rc=self.api.reboot(obj)
+            rc=self.api.reboot(obj, user=None, password=None, logger=logger)
         else:
             raise CX("invalid power mode '%s', expected on/off/reboot" % power)
         return rc

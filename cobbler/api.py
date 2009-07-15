@@ -61,7 +61,6 @@ import item_profile
 import item_system
 import item_repo
 import item_image
-import item_network
 
 ERROR = 100
 INFO  = 10
@@ -274,12 +273,6 @@ class BootAPI:
         """
         return self.get_items("image")
 
-    def networks(self):
-        """
-        Return the current list of networks
-        """
-        return self.get_items("network")
-
     def settings(self):
         """
         Return the application configuration
@@ -316,9 +309,6 @@ class BootAPI:
     def copy_image(self, ref, newname):
         return self.copy_item("image", ref, newname, logger=None)
 
-    def copy_network(self, ref, newname):
-        return self.copy_item("network", ref, newname, logger=None)
-
     # ==========================================================================
 
     def remove_item(self, what, ref, recursive=False, delete=True, with_triggers=True, logger=None):
@@ -342,9 +332,6 @@ class BootAPI:
     def remove_image(self, ref, recursive=False, delete=True, with_triggers=True):
         return self.remove_item(self, "image", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
-    def remove_network(self, ref, recursive=False, delete=True, with_triggers=True):
-        return self.remove_item(self, "distro", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
-    
     # ==========================================================================
 
     def rename_item(self, what, ref, newname, logger=None):
@@ -366,9 +353,6 @@ class BootAPI:
     def rename_image(self, ref, newname, logger=None):
         return self.rename_item("image", ref, newname, logger=logger)
 
-    def rename_network(self, ref, newname, logger=None):
-        return self.rename_item("network", ref, newname, logger=logger)
-    
     # ==========================================================================
    
     # FIXME: add a new_item method
@@ -393,10 +377,6 @@ class BootAPI:
         self.log("new_image",[is_subobject])
         return self._config.new_image(is_subobject=is_subobject)
 
-    def new_network(self,is_subobject=False):
-        self.log("new_network",[is_subobject])
-        return self._config.new_network(is_subobject=is_subobject)
-
     # ==========================================================================
 
     def add_item(self, what, ref, check_for_duplicate_names=False, save=True,logger=None):
@@ -417,9 +397,6 @@ class BootAPI:
 
     def add_image(self, ref, check_for_duplicate_names=False,save=True, logger=None):
         return self.add_item("image", ref, check_for_duplicate_names=check_for_duplicate_names, save=save,logger=logger)
-
-    def add_network(self, ref, check_for_duplicate_names=False,save=True, logger=None):
-        return self.add_item("network", ref, check_for_duplicate_names=check_for_duplicate_names, save=save,logger=logger)
 
     # ==========================================================================
 
@@ -455,9 +432,6 @@ class BootAPI:
     def find_image(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.images().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
-    def find_network(self, name=None, return_list=False, no_errors=False, **kargs):
-        return self._config.networks().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
-
     # ==========================================================================
 
     def __since(self,mtime,collector,collapse=False):
@@ -492,9 +466,6 @@ class BootAPI:
 
     def get_images_since(self,mtime,collapse=False):
         return self.__since(mtime,self.images,collapse=collapse)
-
-    def get_networks_since(self,mtime,collapse=False):
-        return self.__since(mtime,self.networks,collapse=collapse)
 
     # ==========================================================================
 

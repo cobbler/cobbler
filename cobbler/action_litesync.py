@@ -47,7 +47,6 @@ class BootLiteSync:
         self.images      = config.images()
         self.settings    = config.settings()
         self.repos       = config.repos()
-        self.networks    = config.networks()
         if logger is None:
             logger = clogger.Logger()
         self.logger      = logger
@@ -180,8 +179,3 @@ class BootLiteSync:
             else:
                 utils.rmfile(os.path.join(bootloc, filename))
 
-    # not sure sure I actually need anything special to litesync networks
-    def add_single_network(self, name):
-        pass
-    def remote_single_network(self, name):
-        pass
