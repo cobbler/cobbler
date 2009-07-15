@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<span class="section_caption">Tasks</span>
+<span class="section_caption">Events</span>
 
 <table class="sortable">
     <thead>
@@ -20,7 +20,7 @@
             <td>{{ line.1 }}</td>
             <td>{{ line.2 }}</td>
             <td>{{ line.3 }}</td>
-            <td><A HREF="/cobbler_web/tasklog/{{ line.0 }}">log</A>
+            <td><A HREF="/cobbler_web/eventlog/{{ line.0 }}">log</A>
         </tr>
         {% endfor %}
         {% else %}

@@ -199,7 +199,7 @@ class BootCheck:
    def check_for_default_password(self,status):
        default_pass = self.settings.default_password_crypted
        if default_pass == "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac.":
-           status.append(_("The default password used by the sample templates for newly installed machines (default_password_crypted in /etc/cobbler/settings) is still set to 'cobbler' and should be changed"))
+           status.append(_("The default password used by the sample templates for newly installed machines (default_password_crypted in /etc/cobbler/settings) is still set to 'cobbler' and should be changed, try: \"openssl passwd -1 -salt 'random-phrase-here' 'your-password-here'\" to generate new one"))
 
 
    def check_for_unreferenced_repos(self,status):

@@ -381,9 +381,17 @@ class BuildIso:
             os.makedirs(isolinuxdir)
 
         self.logger.info("copying miscellaneous files")
-        isolinuxbin = "/usr/lib/syslinux/isolinux.bin"
-        menu = "/var/lib/cobbler/menu.c32"
-        chain = "/usr/lib/syslinux/chain.c32"
+
+        isolinuxbin = "/usr/share/syslinux/isolinux.bin"
+        if not os.path.exists(isolinuxbin):
+            isolinuxbin = "/usr/lib/syslinux/isolinux.bin"
+
+        menu = "/var/lib/cobbler/loaders/menu.c32"
+
+        chain = "/usr/share/syslinux/chain.c32"
+        if not os.path.exists(chain):
+            chain = "/usr/lib/syslinux/chain.c32"
+
         files = [ isolinuxbin, menu, chain ]
         for f in files:
             if not os.path.exists(f):
@@ -396,7 +404,8 @@ class BuildIso:
         else:
             self.generate_netboot_iso(imagesdir,isolinuxdir,profiles,systems,exclude_dns)
 
-        cmd = "mkisofs -quiet -o %s -r -b isolinux/isolinux.bin -c isolinux/boot.cat" % iso
+        # removed --quiet
+        cmd = "mkisofs -o %s -r -b isolinux/isolinux.bin -c isolinux/boot.cat" % iso
         cmd = cmd + " -no-emul-boot -boot-load-size 4"
         cmd = cmd + " -boot-info-table -V Cobbler\ Install -R -J -T %s" % tempdir
 

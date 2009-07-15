@@ -23,7 +23,7 @@ function get_latest_task_info() {
                var name = record[2];
                var state = record[3];
                var buf = ""
-               var logmsg = " <A HREF=\"/cobbler_web/tasklog/" + id + "\">(log)</A>";
+               var logmsg = " <A HREF=\"/cobbler_web/eventlog/" + id + "\">(log)</A>";
                if (state == "complete") {
                     buf = "Task " + name + " is complete: " + logmsg
                }

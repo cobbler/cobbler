@@ -66,7 +66,7 @@ def index(request):
 
 def task_created(request):
    """
-   Let's the user know what to expect for task updates.
+   Let's the user know what to expect for event updates.
    """
    t = get_template("task_created.tmpl")
    html = t.render(Context({
@@ -445,6 +445,8 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
         for obj_name in names:
             obj_id = remote.get_system_handle(obj_name, token)
             remote.background_power_system(obj_id, power, token)
+    elif what == "repo" and multi_mode == "reposync":
+        pass
     else:
         return error_page(request,"Unknown multiple operation on %ss: %s" % (what,str(multi_mode)))
 
@@ -459,6 +461,26 @@ def import_prompt(request):
        'username' : username,
    }))
    return HttpResponse(html)
+
+# ======================================================================
+
+def check(request):
+   """
+   Shows a page with the results of 'cobbler check'
+   """
+   results = remote.check(token)
+   t = get_template('check.tmpl')
+   html = t.render(Context({
+       'username' : username,
+       'results'  : results
+   }))
+   return HttpResponse(html)
+
+# ======================================================================
+
+def buildiso(request):
+   remote.background_buildiso(token)
+   return HttpResponseRedirect('/cobbler_web/task_created')
 
 # ======================================================================
 
@@ -636,9 +658,16 @@ def settings(request):
    This page presents a list of all the settings to the user.  They are not editable.
    """
    settings = remote.get_settings()
+   skeys = settings.keys()
+   skeys.sort()
+ 
+   results = []
+   for k in skeys:
+      results.append([k,settings[k]])
+
    t = get_template('settings.tmpl')
    html = t.render(Context({
-        'settings' : settings,
+        'settings' : results,
         'username' : username,
    }))
    return HttpResponse(html)
@@ -647,49 +676,49 @@ def settings(request):
 
 def events(request):
    """
-   This page presents a list of all the tasks and links to the task log viewer.
+   This page presents a list of all the events and links to the event log viewer.
    """
-   tasks = remote.get_events()
+   events = remote.get_events()
  
-   tasks2 = []
-   for id in tasks.keys():
-      (ttime, name, state, read_by) = tasks[id]
-      tasks2.append([id,time.asctime(time.gmtime(ttime)),name,state])
+   events2 = []
+   for id in events.keys():
+      (ttime, name, state, read_by) = events[id]
+      events2.append([id,time.asctime(time.gmtime(ttime)),name,state])
 
    def sorter(a,b):
       return cmp(a[2],b[2])
-   tasks2.sort(sorter)
+   events2.sort(sorter)
 
-   t = get_template('tasks.tmpl')
+   t = get_template('events.tmpl')
    html = t.render(Context({
-       'results'  : tasks2,
+       'results'  : events2,
        'username' : username
    }))
    return HttpResponse(html)
 
 # ======================================================================
 
-def tasklog(request, task=0):
+def eventlog(request, event=0):
    """
-   Shows the log for a given task.
+   Shows the log for a given event.
    """
-   task_info = remote.get_events()
-   if not task_info.has_key(task):
-      return HttpResponse("task not found")
+   event_info = remote.get_events()
+   if not event_info.has_key(event):
+      return HttpResponse("event not found")
 
-   data      = task_info[task]
-   taskname  = data[0]
-   tasktime  = data[1]
-   taskstate = data[2]
-   tasklog   = remote.get_task_log(task)
+   data       = event_info[event]
+   eventname  = data[0]
+   eventtime  = data[1]
+   eventstate = data[2]
+   eventlog   = remote.get_event_log(event)
 
-   t = get_template('tasklog.tmpl')
+   t = get_template('eventlog.tmpl')
    vars = {
-      'tasklog'   : tasklog,
-      'taskname'  : taskname,
-      'taskstate' : taskstate,
-      'taskid'    : task,
-      'tasktime'  : tasktime,
+      'eventlog'   : eventlog,
+      'eventname'  : eventname,
+      'eventstate' : eventstate,
+      'eventid'    : event,
+      'eventtime'  : eventtime,
       'username'  : username
    }
    html = t.render(Context(vars))

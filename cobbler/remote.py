@@ -104,6 +104,41 @@ class CobblerXMLRPCInterface:
         random.seed(time.time())
         self.translator = utils.Translator(keep=string.printable)
 
+    def check(self, token):
+        """
+        Returns a list of all the messages/warnings that are things
+        that admin may want to correct about the configuration of 
+        the cobbler server
+        """
+        self.check_access(token, "sync")
+        return self.api.check(logger=self.logger)
+
+    def background_buildiso(self, token):
+        """
+        Generates an ISO in /var/www/cobbler/pub that can be used to install
+        profiles without using PXE.
+        """
+        # this currently doesn't allow the full set of options to buildiso
+        # though the goal of the web app is to not overwhelm folks with options.  Subject
+        # to change later.  We could take the route of 'replicate' and put these options
+        # in the settings file.
+        class BuildIsoThread(CobblerThread):
+            def _run(self):
+                try:
+                    isopath = "/var/www/cobbler/pub/generated.iso" 
+                    self.remote.api.build_iso(iso=isopath,logger=self.logger)
+                    self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
+                    msg = "ISO now available for <A HREF=\"/cobbler/pub/generated.iso\">download</A>"
+                    self.remote._new_event(msg)
+                except:
+                    utils.log_exc(self.logger)
+                    self.remote._set_task_state(self.event_id,EVENT_FAILED)
+               
+        self.check_access(token, "buildiso")
+        id = self.__start_task(BuildIsoThread, "Build Iso", [])
+        return id
+
+
     def background_sync(self, token):
         class SyncThread(CobblerThread):
             def _run(self):
@@ -246,7 +281,7 @@ class CobblerXMLRPCInterface:
 
         return self.events_filtered
 
-    def get_task_log(self,event_id):
+    def get_event_log(self,event_id):
         """
         Returns the contents of a task log.
         Events that are not task-based do not have logs.

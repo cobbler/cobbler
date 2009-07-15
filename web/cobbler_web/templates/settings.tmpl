@@ -3,17 +3,19 @@
 {% block content %}
 
 <span class="section_caption">Settings (Read Only)</span>
+<br/>
+<br/>
 
 <table class="sortable">
     <thead>
         <tr>
-            <th class="text">Key</th>
+            <th class="text">Property</th>
             <th class="text">Value</th>
         </tr>
     </thead>
     <tbody>
         {% if settings %}
-        {% for setting,value in settings.items %}
+        {% for setting,value in settings %}
         <tr class="{% cycle 'rowodd' 'roweven' %}">
             <td>{{ setting }}</td>
             <td>{{ value }}</td>
@@ -26,5 +28,9 @@
         {% endif %}
     </tbody>
 </table>
+
+<br/>
+These settings live in /etc/cobbler/settings on the server.<br/>
+After making changes, run "cobbler sync" and restart cobblerd.
 
 {% endblock %}

@@ -150,6 +150,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %files
 
 %defattr(755,apache,apache)
+%dir /var/www/cobbler/pub/
 %dir /var/www/cobbler/web/
 /var/www/cobbler/web/index.html
 %dir /var/www/cobbler/svc/
