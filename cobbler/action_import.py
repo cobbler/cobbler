@@ -77,17 +77,26 @@ class Importer:
        This contains the guts of the import command.
        """
 
+       # some fixups for the XMLRPC interface, which does not use "None"
+       if self.arch == "":           self.arch           = None
+       if self.mirror == "":         self.mirror         = None
+       if self.mirror_name == "":    self.mirror_name    = None
+       if self.breed == "":          self.breed          = None
+       if self.kickstart_file == "": self.kickstart_file = None
+       if self.os_version == "":     self.os_version     = None
+       if self.rsync_flags == "":    self.rsync_flags    = None
+       if self.network_root == "":   self.network_root   = None
 
        # both --import and --name are required arguments
 
        if self.mirror is None:
-           utils.die(self.logger,"import failed.  no --mirror specified")
+           utils.die(self.logger,"import failed.  no --path specified")
        if self.mirror_name is None:
            utils.die(self.logger,"import failed.  no --name specified")
 
        # if --arch is supplied, validate it to ensure it's valid
 
-       if self.arch is not None:
+       if self.arch is not None and self.arch != "":
            self.arch = self.arch.lower()
            if self.arch == "x86":
                # be consistent

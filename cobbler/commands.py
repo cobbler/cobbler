@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import optparse
 import sys
 import xmlrpclib
+import traceback
 
 HELP_FORMAT = "%-20s%s"
 
@@ -73,6 +74,8 @@ class FunctionLoader:
         try:
             fn = self.functions[called_name]
         except:
+            # FIXME: temporary
+            traceback.print_exc()
             return self.show_options()
 
         subs = fn.subcommands()

@@ -713,13 +713,13 @@ After an import is run, cobbler will try to detect the distribution type and aut
 
 Mirrored content is saved automatically in /var/www/cobbler/ks_mirror.
 
-Example:  B<cobbler import --mirror=rsync://mirrorserver.example.com/path/ --name=fedora --arch=x86>
+Example:  B<cobbler import --path=rsync://mirrorserver.example.com/path/ --name=fedora --arch=x86>
 
-Example2:  B<cobbler import --mirror=root@192.168.1.10:/stuff --name=bar>
+Example2:  B<cobbler import --path=root@192.168.1.10:/stuff --name=bar>
 
-Example3:  B<cobbler import --mirror=/mnt/dvd --name=baz --arch=x86_64>
+Example3:  B<cobbler import --path=/mnt/dvd --name=baz --arch=x86_64>
 
-Example4:  B<cobbler import --mirror=/path/to/stuff --name=glorp>
+Example4:  B<cobbler import --path=/path/to/stuff --name=glorp>
 
 Example5:  B<cobbler import --path=/path/where/filer/is/mounted --name=anyname --available-as=nfs://nfs.example.org:/where/mounted/>
 

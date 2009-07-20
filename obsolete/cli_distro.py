@@ -1,7 +1,7 @@
 """
 Distro CLI module.
 
-Copyright 2007-2008, Red Hat, Inc
+Copyright 2007-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify
@@ -50,7 +50,7 @@ class DistroFunction(commands.CobblerFunction):
     def run(self):
 
         if self.args and "find" in self.args:
-            items = self.api.find_distro(return_list=True, no_errors=True, **self.options.__dict__)
+            items = utils.cli_find_via_xmlrpc(self.remote, "distro", self.options)
             for x in items:
                 print x.name
             return True

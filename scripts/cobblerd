@@ -19,10 +19,9 @@ import os
 import cobbler.cobblerd as app
 import logging
 import cobbler.utils as utils
-import cobbler.sub_process as sub_process
 import traceback
-import cobbler.api as cobbler_api
 import optparse
+import cobbler.api as cobbler_api
 
 def daemonize_self():
     # daemonizing code:  http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66012
@@ -49,7 +48,6 @@ def daemonize_self():
             sys.exit(0) 
     except OSError, e: 
         print >>sys.stderr, "fork #2 failed: %d (%s)" % (e.errno, e.strerror) 
-        #utils.log_exc(logger)
         sys.exit(1) 
 
     #dev_null = file('/dev/null','rw') 

@@ -1679,7 +1679,7 @@ def apply_options_from_fields(obj, fields, options):
             deleter(x)
 
 
-def add_options_from_fields(parser, fields, args):
+def add_options_from_fields(parser, fields, object_action):
     for elem in fields:
         k = elem[0] 
         if k.find("widget") != -1:
@@ -1705,16 +1705,20 @@ def add_options_from_fields(parser, fields, args):
         else:
             parser.add_option(niceopt, dest=k, help=desc)
 
-    if not matches_args(args, ["dumpvars","find","remove","report","list"]): 
-        parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
-        parser.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts or ksmeta without clearing the other items")
-    if matches_args(args, ["copy","rename"]):
+    # FIXME: not supported in 2.0?
+    #if not object_action in ["dumpvars","find","remove","report","list"]: 
+    #    parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
+    # FIXME: not supported in 2.0?
+    #    parser.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts or ksmeta without clearing the other items")
+    if not object_action in ["copy","rename"]:
         parser.add_option("--newname", help="new object name")
-    if not matches_args(args, ["dumpvars","find","remove","report","list"]): 
-        parser.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
-    if not matches_args(args,["dumpvars","report","list"]):
-        parser.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
-    if matches_args(args,["remove"]):
+    # FIXME: not supported in 2.0 ?
+    #if not object_action in ["dumpvars","find","remove","report","list"]: 
+    #    parser.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
+    # FIXME: not supported in 2.0 ?
+    # if not matches_args(args,["dumpvars","report","list"]):
+    #    parser.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
+    if object_action in ["remove"]:
         parser.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
 
 
@@ -1768,4 +1772,43 @@ def get_shared_secret():
        return -1
     return data
 
+def strip_none(data):
+    """
+    Remove "none" entries from datastructures.
+    Used prior to communicating with XMLRPC.
+    """
+    if data is None:
+        data = '~'
+
+    elif type(data) == list:
+        data = [ strip_none(x) for x in data ]
+
+    elif type(data) == dict:
+        data2 = {}
+        for key in data.keys():
+            keydata = data[key]
+            data2[str(key)] = strip_none(data[key])
+        return data2
+
+    return data
+
+def strip_none2(data):
+    """
+    Same as stripnone but hash keys with "~" as elements are removed.
+    Not recursive, until we need it to be.
+    """
+    data2 = {}
+    data  = strip_none(data)
+    for r in data.keys():
+       if data[r] != "~":
+          data2[r] = data[r]
+    return data
+
+def cli_find_via_xmlrpc(remote, otype, options):
+    """
+    Given an options object and a remote handle, find options matching
+    the criteria given.
+    """
+    criteria = strip_none2(options.__dict__)
+    return remote.find_items(otype,criteria,"name",False)
 

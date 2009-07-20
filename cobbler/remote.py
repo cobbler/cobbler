@@ -72,7 +72,6 @@ class CobblerThread(Thread):
         self.remote          = remote
         self.logger          = logatron
         self.args            = args
-        self.shared_secret   = utils.get_shared_secret()
 
     def run(self):
         # may want to do some global run stuff here later.
@@ -101,6 +100,7 @@ class CobblerXMLRPCInterface:
         self.timestamp = self.api.last_modified_time()
         self.events = {}
         self.next_event_id = 0
+        self.shared_secret = utils.get_shared_secret()
         random.seed(time.time())
         self.translator = utils.Translator(keep=string.printable)
 
@@ -525,9 +525,16 @@ class CobblerXMLRPCInterface:
         what is the name of a cobbler object type, as described for get_item.
         Individual list elements are the same for get_item.
         """
-        self._log("get_items(%s)"%what)
+        # FIXME: is the xmlrpc_hacks method still required ?
         item = [x.to_datastruct() for x in self.api.get_items(what)]
         return self.xmlrpc_hacks(item)
+
+    def get_item_names(self, what):
+        """
+        Returns a list of object names (keys) for the given object type.
+        This is just like get_items, but transmits less data.
+        """
+        return [x.name for x in self.api.get_items(what)]
 
     def get_distros(self,page=None,results_per_page=None,token=None,**rest):
         return self.get_items("distro")
@@ -1290,21 +1297,7 @@ class CobblerXMLRPCInterface:
         that when dicts with integer keys (or other types) are transmitted
         with string keys.
         """
-
-        if data is None:
-            data = '~'
-
-        elif type(data) == list:
-            data = [ self.xmlrpc_hacks(x) for x in data ]
-
-        elif type(data) == dict:
-            data2 = {}
-            for key in data.keys():
-               keydata = data[key]
-               data2[str(key)] = self.xmlrpc_hacks(data[key])
-            return data2
-
-        return data
+        return utils.strip_none(data)
 
     def get_status(self,**rest):
         """
