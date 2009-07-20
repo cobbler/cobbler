@@ -1772,7 +1772,7 @@ def get_shared_secret():
        return -1
     return str(data).strip()
 
-def strip_none(data):
+def strip_none(data, omit_none=False):
     """
     Remove "none" entries from datastructures.
     Used prior to communicating with XMLRPC.
@@ -1781,27 +1781,24 @@ def strip_none(data):
         data = '~'
 
     elif type(data) == list:
-        data = [ strip_none(x) for x in data ]
+        data2 = []
+        for x in data:
+            if omit_none and x is None:
+                pass
+            else:
+                data2.append(strip_none(x))
+        return data2
 
     elif type(data) == dict:
         data2 = {}
         for key in data.keys():
             keydata = data[key]
-            data2[str(key)] = strip_none(data[key])
+            if omit_none and data[key] is None:
+                pass
+            else:
+                data2[str(key)] = strip_none(data[key])
         return data2
 
-    return data
-
-def strip_none2(data):
-    """
-    Same as stripnone but hash keys with "~" as elements are removed.
-    Not recursive, until we need it to be.
-    """
-    data2 = {}
-    data  = strip_none(data)
-    for r in data.keys():
-       if data[r] != "~":
-          data2[r] = data[r]
     return data
 
 def cli_find_via_xmlrpc(remote, otype, options):

@@ -732,7 +732,10 @@ class CobblerXMLRPCInterface:
         self.check_access(token, "modify_%s"%what, obj, attribute)
         method = obj.remote_methods().get(attribute, None)
         if method == None:
-            raise CX("object has no method: %s" % attribute)
+            # it's ok, the CLI will send over lots of junk we can't process
+            # (like newname or in-place) so just go with it.
+            return False
+            # raise CX("object has no method: %s" % attribute)
         return method(arg)
     
     def modify_distro(self,object_id,attribute,arg,token):
@@ -745,7 +748,43 @@ class CobblerXMLRPCInterface:
         return self.modify_item("image",object_id,attribute,arg,token)
     def modify_repo(self,object_id,attribute,arg,token):
         return self.modify_item("repo",object_id,attribute,arg,token)
-    
+   
+    def xapi_object_edit(self,object_type,object_name,edit_type,attributes,token):
+        """
+        Extended API:  New style object manipulations, 2.0 and later
+        Prefered over using new_, modify_, save_ directly.
+        Though we must preserve the old ways for backwards compatibility these 
+        cause much less XMLRPC traffic.
+
+        Ex: xapi_object_edit("distro","el5","new",{"kernel":"/tmp/foo","initrd":"/tmp/foo"},token)
+        """
+        self.check_access(token,"xedit_%s" % object_type, token)
+
+        if edit_type == "add":
+            handle = self.new_item(object_type, token) 
+        else:
+            handle = self.get_item(object_type, object_name, token)
+
+        if edit_type == "rename":
+            self.rename_item(object_type, handle, attributes["newname"], token)
+            handle = self.get_item(object_type, attributes["newname"], token)
+        if edit_type == "copy":
+            self.copy_item(object_type, handle, attributes["newname"], token)
+            handle = self.get_item(object_type, attributes["newname"], token)
+        if edit_type in [ "copy", "rename" ]:
+            del attributes["name"] 
+            del attributes["newname"] 
+
+        if edit_type != "remove":
+            for (k,v) in attributes.iteritems():
+                self.modify_item(object_type,handle,k,v,token)
+        else:
+           self.remove_item(object_type, object_name, token, recursive=True)
+
+        # FIXME: use the bypass flag or not?
+        return self.save_item(object_type, handle, token)
+        
+ 
     def save_item(self,what,object_id,token,editmode="bypass"):
         """
         Saves a newly created or modified object to disk.
