@@ -789,28 +789,18 @@ B<cobbler status>
 
 Using the status command will show when cobbler thinks a machine started kickstarting and when it finished, provided the proper snippets are found in the kickstart template.   This is a good way to track machines that may have gone interactive (or stalled/crashed) during kickstarts.  
 
-=head2 SYSLOG
-
-For Anaconda installers that support syslog forwarding, cobbler will log their output by IP in /var/log/cobbler.
-
 =head2 IMAGES
 
 Cobbler can help with booting images physically and virtually, though the usage of these commands varies
 substantially by the type of image.   Non-image based deployments are generally easier to work with and lead to more sustaintable infrastructure. See https://fedorahosted.org/cobbler/wiki/AllAboutImages for details on things that are offered.  Some manual use of other commands beyond of what is typically required of cobbler may be needed to prepare images for use with this feature.
 
-=head2 TWEAKING
-
-Enterprising users can edit the files in /var/lib/cobbler directly versus using the command line.  The repair mechanism for user error here is to delete the files in /var/lib/cobbler.  There are also a few configuration files in /etc/cobbler that can be edited.
-
-Running "cobbler sync" is often required to apply any changes that are made manually.
-
 =head2 TRIGGERS
 
-Triggers provide a way to integrate cobbler with arbitrary 3rd party software without modifying cobbler's code.  When adding a distro, profile, system, or repo, all scripts in /var/lib/cobbler/triggers/add are executed for the particular object type.  Each particular file must be executable and it is executed with the name of the item being added as a parameter.  Deletions work similarly -- delete triggers live in /var/lib/cobbler/triggers/delete.  Order of execution is arbitrary, and cobbler does not ship with any triggers by default.  There are also other kinds of triggers -- these are described on the Cobbler Wiki.
+Triggers provide a way to integrate cobbler with arbitrary 3rd party software without modifying cobbler's code.  When adding a distro, profile, system, or repo, all scripts in /var/lib/cobbler/triggers/add are executed for the particular object type.  Each particular file must be executable and it is executed with the name of the item being added as a parameter.  Deletions work similarly -- delete triggers live in /var/lib/cobbler/triggers/delete.  Order of execution is arbitrary, and cobbler does not ship with any triggers by default.  There are also other kinds of triggers -- these are described on the Cobbler Wiki.   For larger configurations, triggers should be written in Python -- in which case they are installed differently.  This is also documented on the Wiki.
 
 =head2 API
 
-Cobbler also makes itself available as a Python API for use by higher level management software.  Learn more at http://fedorahosted.org/cobbler
+Cobbler also makes itself available as an XMLRPC API for use by higher level management software.  Learn more at http://fedorahosted.org/cobbler.  
 
 =head2 WEB USER INTERFACE
 
