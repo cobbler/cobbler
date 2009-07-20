@@ -68,10 +68,11 @@ EVENT_INFO      = "notification"
 class CobblerThread(Thread):
     def __init__(self,event_id,remote,logatron,args):
         Thread.__init__(self)
-        self.event_id  = event_id
-        self.remote   = remote
-        self.logger   = logatron
-        self.args     = args
+        self.event_id        = event_id
+        self.remote          = remote
+        self.logger          = logatron
+        self.args            = args
+        self.shared_secret   = utils.get_shared_secret()
 
     def run(self):
         # may want to do some global run stuff here later.
@@ -601,7 +602,6 @@ class CobblerXMLRPCInterface:
         reference (object id) that can be used with modify_* functions or save_* functions
         to manipulate that object.
         """
-        self._log("get_item_handle(%s)"%what,token=token,name=name)
         found = self.api.get_item(what,name)
         if found is None:
             raise CX("internal error, unknown %s name %s" % (what,name))
@@ -1442,25 +1442,31 @@ class CobblerXMLRPCInterface:
         method calls.  The token will time out after a set interval if not
         used.  Re-logging in permitted.
         """
+       
+        # if shared secret access is requested, don't bother hitting the auth
+        # plugin
+        if login_user == "":
+            if login_password == self.shared_secret:
+                return self.__make_token("<DIRECT>")
+            else:
+                utils.die(self.logger, "login failed")
+
         # this should not log to disk OR make events as we're going to
         # call it like crazy in CobblerWeb.  Just failed attempts.
         if self.__validate_user(login_user,login_password):
             token = self.__make_token(login_user)
             return token
         else:
-            self._log("login failed",user=login_user)
-            raise CX("login failed: %s" % login_user)
+            utils.die(self.logger, "login failed (%s)" % login_user)
 
     def __authorize(self,token,resource,arg1=None,arg2=None):
         user = self.get_user_from_token(token)
         args = [ resource, arg1, arg2 ]
-        self._log("calling authorize for resource %s" % args, user=user)
-
         rc = self.api.authorize(user,resource,arg1,arg2)
         if rc:
             return True
         else:
-            raise CX("user does not have access to resource: %s" % resource)
+            utils.die(self.logger, "user does not have access to resource: %s" % resource)
 
     def logout(self,token):
         """
@@ -1517,17 +1523,17 @@ class CobblerXMLRPCInterface:
         self.check_access(token,what,kickstart_file,is_read)
  
         if kickstart_file.find("..") != -1 or not kickstart_file.startswith("/"):
-            raise CX("tainted file location")
+            utils.die(self.logger,"tainted file location")
 
         if not kickstart_file.startswith("/etc/cobbler/") and not kickstart_file.startswith("/var/lib/cobbler/kickstarts"):
-            raise CX("unable to view or edit kickstart in this location")
+            utils.die(self.logger, "unable to view or edit kickstart in this location")
         
         if kickstart_file.startswith("/etc/cobbler/"):
            if not kickstart_file.endswith(".ks") and not kickstart_file.endswith(".cfg"):
               # take care to not allow config files to be altered.
-              raise CX("this does not seem to be a kickstart file")
+              utils.die(self.logger, "this does not seem to be a kickstart file")
            if not is_read and not os.path.exists(kickstart_file):
-              raise CX("new files must go in /var/lib/cobbler/kickstarts")
+              utils.die(self.logger, "new files must go in /var/lib/cobbler/kickstarts")
         
         if is_read:
             fileh = open(kickstart_file,"r")
@@ -1540,7 +1546,7 @@ class CobblerXMLRPCInterface:
                 if not self.is_kickstart_in_use(kickstart_file,token):
                     os.remove(kickstart_file)
                 else:
-                    raise CX("attempt to delete in-use file")
+                    utils.die(self.logger, "attempt to delete in-use file")
             else:
                 fileh = open(kickstart_file,"w+")
                 fileh.write(new_data)
@@ -1565,10 +1571,10 @@ class CobblerXMLRPCInterface:
         self.check_access(token,what,snippet_file,is_read)
  
         if snippet_file.find("..") != -1 or not snippet_file.startswith("/"):
-            raise CX("tainted file location")
+            utils.die(self.logger, "tainted file location")
 
         if not snippet_file.startswith("/var/lib/cobbler/snippets"):
-            raise CX("unable to view or edit snippet in this location")
+            utils.die(self.logger, "unable to view or edit snippet in this location")
         
         if is_read:
             fileh = open(snippet_file,"r")
@@ -1601,7 +1607,7 @@ class CobblerXMLRPCInterface:
         elif power=="reboot":
             rc=self.api.reboot(obj, user=None, password=None, logger=logger)
         else:
-            raise CX("invalid power mode '%s', expected on/off/reboot" % power)
+            utils.die(self.logger, "invalid power mode '%s', expected on/off/reboot" % power)
         return rc
 
     def deploy(self, object_id, virt_host=None, virt_group=None, token=None, method="ssh", operation="install"):
@@ -1637,18 +1643,18 @@ class ProxiedXMLRPCInterface:
     def _dispatch(self, method, params, **rest):
 
         if not hasattr(self.proxied, method):
-            self.logger.error("remote:unknown method %s" % method)
-            raise CX("Unknown remote method")
+            raise CX("unknown remote method")
 
         method_handle = getattr(self.proxied, method)
 
-        try:
-            return method_handle(*params)
-        except Exception, e:
-            # FIXME: REMOVE NEXT LINE (DEBUG)...
-            traceback.print_exc()
-            utils.log_exc(self.logger)
-            raise e
+        # FIXME: see if this works without extra boilerplate
+        #try:
+        return method_handle(*params)
+        #except Exception, e:
+        #    # FIXME: REMOVE NEXT LINE (DEBUG)...
+        #    traceback.print_exc()
+        #    utils.log_exc(self.logger)
+        #    raise e
 
 # *********************************************************************
 # *********************************************************************

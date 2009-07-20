@@ -42,6 +42,7 @@ import netaddr
 import shlex
 import field_info
 import clogger
+import yaml
 
 try:
     import hashlib as fiver
@@ -1750,3 +1751,21 @@ def get_power(powertype=None):
         if os.path.isfile(powerpath):
             return powerpath
     return None
+
+def get_shared_secret():
+    """
+    The 'web.ss' file is regenerated each time cobblerd restarts and is
+    used to agree on shared secret interchange between mod_python and
+    cobblerd, and also the CLI and cobblerd, when username/password
+    access is not required.  For the CLI, this enables root users
+    to avoid entering username/pass if on the cobbler server.
+    """
+
+    try:
+       fd = open("/var/lib/cobbler/web.ss")
+       data = fd.read()
+    except:
+       return -1
+    return data
+
+
