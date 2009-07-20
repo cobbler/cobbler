@@ -229,7 +229,8 @@ class Collection(serializable.Serializable):
         """
     
         if ref is None or ref.name is None:
-           return
+           return False
+
         ref.check_if_valid()
 
         if ref.uid == '':

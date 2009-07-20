@@ -146,6 +146,8 @@ class Distro(item.Item):
 	naming conventions are checked, see docs in the utils module
 	for find_kernel.
 	"""
+        if kernel is None or kernel == "":
+            raise CX("kernel not specified")
         if utils.find_kernel(kernel):
             self.kernel = kernel
             return True
@@ -170,6 +172,8 @@ class Distro(item.Item):
 	Specifies an initrd image.  Path search works as in set_kernel.
 	File must be named appropriately.
 	"""
+        if initrd is None or initrd == "":
+            raise CX("initrd not specified")
         if utils.find_initrd(initrd):
             self.initrd = initrd
             return True
@@ -213,6 +217,10 @@ class Distro(item.Item):
     def check_if_valid(self):
         if self.name is None:
             raise CX("name is required")
+        if self.kernel is None:
+            raise CX("kernel is required")
+        if self.initrd is None:
+            raise CX("initrd is required")
         if not os.path.exists(self.kernel):
             raise CX("kernel path not found")
         if not os.path.exists(self.initrd):

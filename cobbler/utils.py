@@ -1770,7 +1770,7 @@ def get_shared_secret():
        data = fd.read()
     except:
        return -1
-    return data
+    return str(data).strip()
 
 def strip_none(data):
     """
