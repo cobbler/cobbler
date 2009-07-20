@@ -758,10 +758,7 @@ class CobblerXMLRPCInterface:
             rc = self.api.add_item(what,obj,check_for_duplicate_names=True)
         else:
             rc = self.api.add_item(what,obj)
-        if rc is None:
-            # FIXME: why would it be None? but yet test show it can be.  
-            return False
-        return True
+        return rc
 
     def save_distro(self,object_id,token,editmode="bypass"):
         return self.save_item("distro",object_id,token,editmode=editmode)
@@ -1645,13 +1642,13 @@ class ProxiedXMLRPCInterface:
         method_handle = getattr(self.proxied, method)
 
         # FIXME: see if this works without extra boilerplate
-        try:
-            return method_handle(*params)
-        except Exception, e:
-            # FIXME: remove next line (debug)
-            traceback.print_exc()
-            utils.log_exc(self.logger)
-            raise e
+        #try:
+        return method_handle(*params)
+        #except Exception, e:
+        #    # FIXME: REMOVE NEXT LINE (DEBUG)...
+        #    traceback.print_exc()
+        #    utils.log_exc(self.logger)
+        #    raise e
 
 # *********************************************************************
 # *********************************************************************
