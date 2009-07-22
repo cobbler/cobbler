@@ -60,7 +60,7 @@ class Distros(collection.Collection):
             if recursive:
                 kids = obj.get_children()
                 for k in kids:
-                    self.config.api.remove_profile(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers, logger=logger)
+                    self.config.api.remove_profile(k.name, recursive=recursive, delete=with_delete, with_triggers=with_triggers, logger=logger)
 
             if with_delete:
                 if with_triggers: 
@@ -73,7 +73,6 @@ class Distros(collection.Collection):
             self.config.serialize_delete(self, obj)
 
             if with_delete:
-                self.log_func("deleted distro %s" % name)
                 if with_triggers: 
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/distro/post/*", [], logger)
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
@@ -101,5 +100,4 @@ class Distros(collection.Collection):
                if not found:
                    utils.rmtree(path)
 
-        raise CX(_("cannot delete object that does not exist: %s") % name)
-
+        return True

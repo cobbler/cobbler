@@ -312,25 +312,27 @@ class BootAPI:
     # ==========================================================================
 
     def remove_item(self, what, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        if isinstance(what, basestr):
+        if isinstance(what, basestring):
              ref = self.get_item(what, ref)
+             if ref is None:
+                return # nothing to remove
         self.log("remove_item(%s)" % what, [ref.name])
         return self.get_items(what).remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers, logger=logger)
 
-    def remove_distro(self, ref, recursive=False, delete=True, with_triggers=True, ):
-        return self.remove_item(self, "distro", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+    def remove_distro(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
+        return self.remove_item("distro", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
     
-    def remove_profile(self,ref, recursive=False, delete=True, with_triggers=True):
-        return self.remove_item(self, "profile", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+    def remove_profile(self,ref, recursive=False, delete=True, with_triggers=True, logger=None):
+        return self.remove_item("profile", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
-    def remove_system(self, ref, recursive=False, delete=True, with_triggers=True):
-        return self.remove_item(self, "system", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+    def remove_system(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
+        return self.remove_item("system", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
-    def remove_repo(self, ref, recursive=False, delete=True, with_triggers=True):
-        return self.remove_item(self, "repo", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+    def remove_repo(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
+        return self.remove_item("repo", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
-    def remove_image(self, ref, recursive=False, delete=True, with_triggers=True):
-        return self.remove_item(self, "image", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+    def remove_image(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
+        return self.remove_item("image", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     # ==========================================================================
 

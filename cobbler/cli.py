@@ -173,7 +173,7 @@ class BootCLI:
         Process object-based commands such as "distro add" or "profile rename"
         """
         fields = self.get_fields(object_type)
-        if object_action not in [ "report", "getks", "dumpvars" ]:
+        if object_action not in [ "report", "getks", "dumpvars", "remove" ]:
             utils.add_options_from_fields(self.parser, fields, object_action)
         elif object_action in [ "list" ]:
             pass

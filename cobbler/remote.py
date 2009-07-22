@@ -780,6 +780,7 @@ class CobblerXMLRPCInterface:
                 self.modify_item(object_type,handle,k,v,token)
         else:
            self.remove_item(object_type, object_name, token, recursive=True)
+           return True
 
         # FIXME: use the bypass flag or not?
         return self.save_item(object_type, handle, token)
@@ -1688,13 +1689,11 @@ class ProxiedXMLRPCInterface:
         method_handle = getattr(self.proxied, method)
 
         # FIXME: see if this works without extra boilerplate
-        #try:
-        return method_handle(*params)
-        #except Exception, e:
-        #    # FIXME: REMOVE NEXT LINE (DEBUG)...
-        #    traceback.print_exc()
-        #    utils.log_exc(self.logger)
-        #    raise e
+        try:
+            return method_handle(*params)
+        except Exception, e:
+            utils.log_exc(self.logger)
+            raise e
 
 # *********************************************************************
 # *********************************************************************

@@ -62,7 +62,6 @@ class Repos(collection.Collection):
             self.config.serialize_delete(self, obj)
 
             if with_delete:
-                self.log_func("deleted repo %s" % name)
                 if with_triggers: 
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*", [], logger)
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)

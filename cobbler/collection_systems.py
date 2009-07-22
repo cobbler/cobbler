@@ -59,7 +59,6 @@ class Systems(collection.Collection):
             del self.listing[name]
             self.config.serialize_delete(self, obj)
             if with_delete:
-                self.log_func("deleted system %s" % name)
                 if with_triggers: 
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/system/post/*", [], logger)
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)

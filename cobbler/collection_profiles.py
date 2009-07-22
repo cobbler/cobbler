@@ -61,9 +61,9 @@ class Profiles(collection.Collection):
                 kids = obj.get_children()
                 for k in kids:
                     if k.COLLECTION_TYPE == "profile":
-                        self.config.api.remove_profile(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers, logger=logger)
+                        self.config.api.remove_profile(k.name, recursive=recursive, delete=with_delete, with_triggers=with_triggers, logger=logger)
                     else:
-                        self.config.api.remove_system(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers, logger=logger)
+                        self.config.api.remove_system(k.name, recursive=recursive, delete=with_delete, with_triggers=with_triggers, logger=logger)
  
             if with_delete:
                 if with_triggers: 
@@ -74,7 +74,6 @@ class Profiles(collection.Collection):
             del self.listing[name]
             self.config.serialize_delete(self, obj)
             if with_delete:
-                self.log_func("deleted profile %s" % name)
                 if with_triggers: 
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/profile/post/*", [], logger)
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
