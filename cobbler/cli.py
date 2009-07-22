@@ -173,9 +173,14 @@ class BootCLI:
         Process object-based commands such as "distro add" or "profile rename"
         """
         fields = self.get_fields(object_type)
-        utils.add_options_from_fields(self.parser, fields, object_action)
-
+        if object_action not in [ "report", "getks", "dumpvars" ]:
+            utils.add_options_from_fields(self.parser, fields, object_action)
+        elif object_action in [ "list" ]:
+            pass
+        else:
+            self.parser.add_option("--name", dest="name", help="name of object")
         (options, args) = self.parser.parse_args()
+
 
         if object_action in [ "add", "edit", "copy", "rename", "remove" ]:
             if opt(options, "name") == "":
@@ -196,7 +201,14 @@ class BootCLI:
             # FIXME: pretty-printing and sorting here
             print data
         elif object_action == "report":
-            # FIXME: implement this!
+            if options.name is not None:
+                report_item(self.remote,object_type,None,options.name)
+            else:
+                report_items(self.remote,object_type)
+        elif object_action == "list":
+            list_items(self.remote, object_type)
+        elif object_action == "find":
+            # FIXME
             raise exceptions.NotImplementedError()
         else:
             raise exceptions.NotImplementedError() 
