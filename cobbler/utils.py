@@ -1604,12 +1604,15 @@ def to_datastruct_from_fields(obj, fields):
     return ds
 
 def printable_from_fields(obj, fields):
+    """
+    Obj is a hash datastructure, fields is something like item_distro.FIELDS
+    """
     buf  = ""
     keys = []
     for elem in fields:
        keys.append((elem[0], elem[3], elem[4]))
     keys.sort()
-    buf = buf + "%-30s : %s\n" % ("Name", getattr(obj, "name"))
+    buf = buf + "%-30s : %s\n" % ("Name", obj["name"])
     for (k, nicename, editable) in keys:
        # FIXME: make interfaces print nicely
        # FIXME: supress fields users don't need to see?
@@ -1619,18 +1622,18 @@ def printable_from_fields(obj, fields):
 
        if k != "name":
            # FIXME: move examples one field over, use description here.
-           buf = buf + "%-30s : %s\n" % (nicename, getattr(obj, k))
+           buf = buf + "%-30s : %s\n" % (nicename, obj[k])
 
     # somewhat brain-melting special handling to print the hashes
     # inside of the interfaces more neatly.
-    if obj.COLLECTION_TYPE == "system":
-       for iname in obj.interfaces.keys():
+    if obj.has_key("interfaces"):
+       for iname in obj["interfaces"].keys():
           # FIXME: inames possibly not sorted
           buf = buf + "%-30s : %s\n" % ("Interface ===== ",iname)
           for (k, nicename, editable) in keys:
              nkey = k.replace("*","")
              if k.startswith("*") and editable:
-                 buf = buf + "%-30s : %s\n" % (nicename, obj.interfaces[iname].get(nkey,""))
+                 buf = buf + "%-30s : %s\n" % (nicename, obj[interfaces][iname].get(nkey,""))
 
     return buf
 

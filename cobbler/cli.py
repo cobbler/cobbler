@@ -47,6 +47,32 @@ DIRECT_ACTIONS = [ "buildiso", "reposync", "sync", "validateks", "import", "acls
 
 ####################################################
 
+def report_items(remote, otype):
+   items = remote.get_items(otype)
+   for x in items:
+      report_item(remote,otype,item=x)
+
+def report_item(remote,otype,item=None,name=None):
+   if item is None:
+      item = remote.get_item(otype, name)
+   if otype == "distro":
+      data = utils.printable_from_fields(item, item_distro.FIELDS)
+   elif otype == "profile":
+      data = utils.printable_from_fields(item, item_profile.FIELDS)
+   elif otype == "system":
+      data = utils.printable_from_fields(item, item_system.FIELDS)
+   elif otype == "repo":
+      data = utils.printable_from_fields(item, item_repo.FIELDS)
+   elif otype == "image":
+      data = utils.printable_from_fields(item, item_image.FIELDS)
+   print data
+
+def list_items(remote,otype):
+   items = remote.get_item_names(otype)
+   items.sort()
+   for x in items:
+      print "   %s" % x
+
 def n2s(data):
    """
    Return spaces for None
@@ -230,39 +256,31 @@ class BootCLI:
             print "parse_args"
             (options, args) = self.parser.parse_args()
             # FIXME: run here
+        elif action_name == "report":
+            print "distros:\n=========="
+            report_items(self.remote,"distro")
+            print "\nprofiles:\n=========="
+            report_items(self.remote,"profile")
+            print "\nsystems:\n=========="
+            report_items(self.remote,"system")
+            print "\nrepos:\n=========="
+            report_items(self.remote,"repo")
+            print "\nimages:\n=========="
+            report_items(self.remote,"image")
         elif action_name == "list":
             # no tree view like 1.6?  This is more efficient remotely
             # for large configs and prevents xfering the whole config
             # though we could consider that...
             print "distros:"
-            distros  = self.remote.get_item_names("distro")
-            distros.sort()
-            for d in distros:
-               print "  %s" % d
-
+            list_items(self.remote,"distro")
             print "\nprofiles:"
-            profiles = self.remote.get_item_names("profile")
-            profiles.sort()
-            for p in profiles:
-               print "  %s" % p 
-
+            list_items(self.remote,"profile")
             print "\nsystems:"
-            systems = self.remote.get_item_names("system")
-            systems.sort()
-            for s in systems:
-               print "  %s" % s
-
+            list_items(self.remote,"system")
             print "\nrepos:"
-            repos    = self.remote.get_item_names("repo")
-            repos.sort()
-            for r in repos:
-               print "  %s" % r
-
+            list_items(self.remote,"repo")
             print "\nimages:"
-            images   = self.remote.get_item_names("image")
-            images.sort()
-            for i in images:
-               print "  %s" % i
+            list_items(self.remote,"image")
         else:
             raise Exception("internal error, no such action: %s" % action_name)
             # FIXME: run here
