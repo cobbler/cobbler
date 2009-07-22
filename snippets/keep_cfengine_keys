@@ -1,11 +1,11 @@
 #raw
-# Nifty trick to restore keys without using a nochroot %post
+# Nifty trick to restore cfengine keys without using a nochroot %post
 
-echo "Saving keys..." > /dev/ttyS0
+echo "Saving cfengine  keys..." > /dev/ttyS0
 
-SEARCHDIR=/etc/ssh
-TEMPDIR=ssh
-PATTERN=ssh_host_
+SEARCHDIR=/var/cfengine/ppkeys
+TEMPDIR=cfengine
+PATTERN=localhost
 
 keys_found=no
 # /var could be a separate partition
@@ -26,9 +26,9 @@ function findkeys
     mkdir -p /tmp/$tmpdir
     mount $disk /tmp/$tmpdir
     if [ $? -ne 0 ]; then # Skip to the next partition if the mount fails
-      rm -rf /tmp/$tmpdir                                                
-      continue                                                           
-    fi                                                                   
+      rm -rf /tmp/$tmpdir
+      continue
+    fi
     # Copy current host keys out to be reused
     if [ -d /tmp/$tmpdir$SEARCHDIR ]; then
         cp -a /tmp/$tmpdir$SEARCHDIR/${PATTERN}* /tmp/$TEMPDIR
