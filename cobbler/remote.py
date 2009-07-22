@@ -852,6 +852,13 @@ class CobblerXMLRPCInterface:
         self._log("generate_kickstart")
         return self.api.generate_kickstart(profile,system)
 
+    def get_blended_data(self,profile=None,system=None):
+        if profile is not None:
+            obj = self.api.find_profile(profile)
+        else:
+            obj = self.api.find_system(system)
+        return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+
     def get_settings(self,token=None,**rest):
         """
         Return the contents of /etc/cobbler/settings, which is a hash.

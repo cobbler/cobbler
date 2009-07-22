@@ -155,9 +155,21 @@ class BootCLI:
                 sys.exit(1)
             self.remote.xapi_object_edit(object_type, options.name, object_action, utils.strip_none(vars(options), omit_none=True), self.token)
         elif object_action == "getks":
-            print "getks"
+            if object_type == "profile":
+                data = self.remote.generate_kickstart(options.name,"")
+            elif object_type == "system":
+                data = self.remote.generate_kickstart("",options.name)
+            print data
         elif object_action == "dumpvars":
-            print "dumpvars"
+            if object_type == "profile":
+                data = self.remote.get_blended_data(options.name,"")
+            elif object_type == "system":
+                data = self.remote.get_blended_data("",options.name)
+            # FIXME: pretty-printing and sorting here
+            print data
+        elif object_action == "report":
+            # FIXME: implement this!
+            raise exceptions.NotImplementedError()
         else:
             raise exceptions.NotImplementedError() 
 
