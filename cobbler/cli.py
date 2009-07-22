@@ -36,11 +36,11 @@ import item_repo
 import item_image
 
 OBJECT_ACTIONS   = {
-   "distro"  : "add copy edit list remove report".split(" "),
-   "profile" : "add copy dumpvars edit getks list remove report".split(" "),
-   "system"  : "add copy dumpvars edit getks list remove report".split(" "),
-   "image"   : "add copy edit list remove report".split(" "),
-   "repo"    : "add copy edit list remove report".split(" ")
+   "distro"  : "add copy edit find list remove report".split(" "),
+   "profile" : "add copy dumpvars edit find getks list remove report".split(" "),
+   "system"  : "add copy dumpvars edit find getks list remove report".split(" "),
+   "image"   : "add copy edit find list remove report".split(" "),
+   "repo"    : "add copy edit find list remove report".split(" ")
 } 
 OBJECT_TYPES = OBJECT_ACTIONS.keys()
 DIRECT_ACTIONS = [ "buildiso", "reposync", "sync", "validateks", "import", "aclsetup", "list", "report" ]
@@ -208,8 +208,9 @@ class BootCLI:
         elif object_action == "list":
             list_items(self.remote, object_type)
         elif object_action == "find":
-            # FIXME
-            raise exceptions.NotImplementedError()
+            items = self.remote.find_items(object_type, utils.strip_none(vars(options), omit_none=True), "name", False)
+            for item in items:
+                print item
         else:
             raise exceptions.NotImplementedError() 
 
