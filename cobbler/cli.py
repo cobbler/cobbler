@@ -43,7 +43,7 @@ OBJECT_ACTIONS   = {
    "repo"    : "add copy edit list remove report".split(" ")
 } 
 OBJECT_TYPES = OBJECT_ACTIONS.keys()
-DIRECT_ACTIONS = [ "buildiso", "reposync", "sync", "validateks", "import", "aclsetup" ]
+DIRECT_ACTIONS = [ "buildiso", "reposync", "sync", "validateks", "import", "aclsetup", "list", "report" ]
 
 ####################################################
 
@@ -111,6 +111,8 @@ class BootCLI:
         object_type   = self.get_object_type(args)
         object_action = self.get_object_action(object_type, args)
         direct_action = self.get_direct_action(object_type, args) 
+ 
+        print "DEBUG: CLI (%s,%s,%s)" % (object_type, object_action, direct_action)
 
         if object_type is not None:
             if object_action is not None:
@@ -179,6 +181,7 @@ class BootCLI:
         """
         # FIXME: copy in all the options from the old cli_misc.py
 
+        print "DEBUG: direct_command: %s" % action_name
         task_id = -1  # if assigned, we must tail the logfile
 
         if action_name == "buildiso":
@@ -227,6 +230,39 @@ class BootCLI:
             print "parse_args"
             (options, args) = self.parser.parse_args()
             # FIXME: run here
+        elif action_name == "list":
+            # no tree view like 1.6?  This is more efficient remotely
+            # for large configs and prevents xfering the whole config
+            # though we could consider that...
+            print "distros:"
+            distros  = self.remote.get_item_names("distro")
+            distros.sort()
+            for d in distros:
+               print "  %s" % d
+
+            print "\nprofiles:"
+            profiles = self.remote.get_item_names("profile")
+            profiles.sort()
+            for p in profiles:
+               print "  %s" % p 
+
+            print "\nsystems:"
+            systems = self.remote.get_item_names("system")
+            systems.sort()
+            for s in systems:
+               print "  %s" % s
+
+            print "\nrepos:"
+            repos    = self.remote.get_item_names("repo")
+            repos.sort()
+            for r in repos:
+               print "  %s" % r
+
+            print "\nimages:"
+            images   = self.remote.get_item_names("image")
+            images.sort()
+            for i in images:
+               print "  %s" % i
         else:
             raise Exception("internal error, no such action: %s" % action_name)
             # FIXME: run here
