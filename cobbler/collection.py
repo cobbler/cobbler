@@ -153,9 +153,10 @@ class Collection(serializable.Serializable):
             item = self.factory_produce(self.config,seed_data)
             self.add(item)
 
-    def copy(self,ref,newname,logger=None):
-        ref.name = newname
-        ref.uid = self.config.generate_uid()
+    def copy(self,ref,newname,logger=None): 
+        ref       = ref.make_clone()
+        ref.name  = newname
+        ref.uid   = self.config.generate_uid()
         ref.ctime = 0
         if ref.COLLECTION_TYPE == "system":
             # this should only happen for systems
