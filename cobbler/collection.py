@@ -153,7 +153,7 @@ class Collection(serializable.Serializable):
             item = self.factory_produce(self.config,seed_data)
             self.add(item)
 
-    def copy(self,ref,newname):
+    def copy(self,ref,newname,logger=None):
         ref.name = newname
         ref.uid = self.config.generate_uid()
         ref.ctime = 0
@@ -166,7 +166,7 @@ class Collection(serializable.Serializable):
                 ref.set_ip_address("",iname)
         return self.add(ref,save=True,with_copy=True,with_triggers=True,with_sync=True,check_for_duplicate_names=True,check_for_duplicate_netinfo=False)
 
-    def rename(self,ref,newname,with_sync=True,with_triggers=True):
+    def rename(self,ref,newname,with_sync=True,with_triggers=True,logger=None):
         """
         Allows an object "ref" to be given a newname without affecting the rest
         of the object tree. 

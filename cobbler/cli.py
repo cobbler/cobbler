@@ -36,11 +36,11 @@ import item_repo
 import item_image
 
 OBJECT_ACTIONS   = {
-   "distro"  : "add copy edit find list remove report".split(" "),
-   "profile" : "add copy dumpvars edit find getks list remove report".split(" "),
-   "system"  : "add copy dumpvars edit find getks list remove report".split(" "),
-   "image"   : "add copy edit find list remove report".split(" "),
-   "repo"    : "add copy edit find list remove report".split(" ")
+   "distro"  : "add copy edit find list remove rename report".split(" "),
+   "profile" : "add copy dumpvars edit find getks list remove rename report".split(" "),
+   "system"  : "add copy dumpvars edit find getks list remove rename report".split(" "),
+   "image"   : "add copy edit find list remove rename report".split(" "),
+   "repo"    : "add copy edit find list remove rename report".split(" ")
 } 
 OBJECT_TYPES = OBJECT_ACTIONS.keys()
 DIRECT_ACTIONS = [ "buildiso", "reposync", "sync", "validateks", "import", "aclsetup", "list", "report" ]
@@ -125,6 +125,8 @@ class BootCLI:
         If this is a general command, e.g. "cobbler hardlink", return the action, like "hardlink"
         """
         if object_type is not None:
+            return None
+        if len(args) < 2:
             return None
         if args[1] in DIRECT_ACTIONS:
             return args[1]

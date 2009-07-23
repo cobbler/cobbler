@@ -1715,7 +1715,7 @@ def add_options_from_fields(parser, fields, object_action):
     #    parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
     # FIXME: not supported in 2.0?
     #    parser.add_option("--in-place", action="store_true", default=False, dest="inplace", help="edit items in kopts or ksmeta without clearing the other items")
-    if not object_action in ["copy","rename"]:
+    if object_action in ["copy","rename"]:
         parser.add_option("--newname", help="new object name")
     # FIXME: not supported in 2.0 ?
     #if not object_action in ["dumpvars","find","remove","report","list"]: 
