@@ -177,7 +177,7 @@ class BootCLI:
         """
         fields = self.get_fields(object_type)
         if object_action not in [ "report", "getks", "dumpvars", "remove" ]:
-            utils.add_options_from_fields(self.parser, fields, object_action)
+            utils.add_options_from_fields(object_type, self.parser, fields, object_action)
         elif object_action in [ "list" ]:
             pass
         else:

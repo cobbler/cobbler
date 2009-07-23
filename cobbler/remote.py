@@ -749,6 +749,14 @@ class CobblerXMLRPCInterface:
     def modify_repo(self,object_id,attribute,arg,token):
         return self.modify_item("repo",object_id,attribute,arg,token)
    
+    def __is_interface_field(self,f):
+        k = "*%s" % f
+        for x in item_system.FIELDS:
+           self.logger.debug("considering field: %s" % f)
+           if k == x[0]:
+              return True
+        return False
+
     def xapi_object_edit(self,object_type,object_name,edit_type,attributes,token):
         """
         Extended API:  New style object manipulations, 2.0 and later
@@ -759,6 +767,7 @@ class CobblerXMLRPCInterface:
         Ex: xapi_object_edit("distro","el5","new",{"kernel":"/tmp/foo","initrd":"/tmp/foo"},token)
         """
         self.check_access(token,"xedit_%s" % object_type, token)
+        self.logger.debug(attributes)
 
         if edit_type == "add":
             handle = self.new_item(object_type, token) 
@@ -776,8 +785,24 @@ class CobblerXMLRPCInterface:
             del attributes["newname"] 
 
         if edit_type != "remove":
+            # FIXME: this doesn't know about interfaces yet!
+            # if object type is system and fields add to hash and then
+            # modify when done, rather than now.
+            imods = {}
+            # FIXME: needs to know about how to delete interfaces too!
             for (k,v) in attributes.iteritems():
-                self.modify_item(object_type,handle,k,v,token)
+                if not object_type == "system" or not self.__is_interface_field(k):
+                    self.modify_item(object_type,handle,k,v,token)
+                else:
+                    self.logger.debug("key for interface: %s = %s" % (k,v))
+                    modkey = "%s-%s" % (k, attributes.get("interface","eth0"))
+                    imods[modkey] = v
+            if object_type == "system" and not attributes.has_key("delete_interface"):
+                self.modify_system(handle, 'modify_interface', imods, token)
+            elif object_type == "system":
+                self.modify_system(handle, 'delete_interface', attributes.get("interface", "eth0"), token)
+
+
         else:
            self.remove_item(object_type, object_name, token, recursive=True)
            return True

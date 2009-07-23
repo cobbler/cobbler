@@ -1616,8 +1616,8 @@ def printable_from_fields(obj, fields):
     keys.sort()
     buf = buf + "%-30s : %s\n" % ("Name", obj["name"])
     for (k, nicename, editable) in keys:
-       # FIXME: make interfaces print nicely
        # FIXME: supress fields users don't need to see?
+       # FIXME: interfaces should be sorted
        # FIXME: print ctime, mtime nicely
        if k.startswith("*") or not editable or k.find("widget") != -1:
            continue
@@ -1635,7 +1635,7 @@ def printable_from_fields(obj, fields):
           for (k, nicename, editable) in keys:
              nkey = k.replace("*","")
              if k.startswith("*") and editable:
-                 buf = buf + "%-30s : %s\n" % (nicename, obj[interfaces][iname].get(nkey,""))
+                 buf = buf + "%-30s : %s\n" % (nicename, obj["interfaces"][iname].get(nkey,""))
 
     return buf
 
@@ -1648,7 +1648,7 @@ def matches_args(args, list_of):
             return True
     return False
 
-def add_options_from_fields(parser, fields, object_action):
+def add_options_from_fields(object_type, parser, fields, object_action):
     for elem in fields:
         k = elem[0] 
         if k.find("widget") != -1:
@@ -1674,6 +1674,7 @@ def add_options_from_fields(parser, fields, object_action):
         else:
             parser.add_option(niceopt, dest=k, help=desc)
 
+
     # FIXME: not supported in 2.0?
     #if not object_action in ["dumpvars","find","remove","report","list"]: 
     #    parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
@@ -1689,6 +1690,10 @@ def add_options_from_fields(parser, fields, object_action):
     #    parser.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
     if object_action in ["remove"]:
         parser.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
+    if object_type == "system":
+        # system object
+        parser.add_option("--interface", dest="interface", default="eth0", help="which interface to edit")
+        parser.add_option("--delete-interface", dest="delete_interface", action="store_true")
 
 
 def get_remote_methods_from_fields(obj,fields):
