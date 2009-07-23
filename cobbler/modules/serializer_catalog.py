@@ -27,6 +27,7 @@ import glob
 import traceback
 import yaml # PyYAML
 import simplejson
+import exceptions
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
@@ -49,6 +50,10 @@ def register():
     return "serializer"
 
 def serialize_item(obj, item):
+
+    if item.name is None or item.name == "":
+       raise exceptions.RuntimeError("name unset for object!")
+
     filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
     datastruct = item.to_datastruct()
 

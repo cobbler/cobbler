@@ -88,6 +88,8 @@ def opt(options, k):
    try:
       data = getattr(options, k) 
    except:
+      # FIXME: debug only
+      traceback.print_exc()
       return ""
    return n2s(data)
 
@@ -140,8 +142,7 @@ class BootCLI:
         object_action = self.get_object_action(object_type, args)
         direct_action = self.get_direct_action(object_type, args) 
  
-        print "DEBUG: CLI (%s,%s,%s)" % (object_type, object_action, direct_action)
-
+        # print "DEBUG: CLI (%s,%s,%s)" % (object_type, object_action, direct_action)
         if object_type is not None:
             if object_action is not None:
                self.object_command(object_type, object_action)
@@ -183,7 +184,6 @@ class BootCLI:
             self.parser.add_option("--name", dest="name", help="name of object")
         (options, args) = self.parser.parse_args()
 
-
         if object_action in [ "add", "edit", "copy", "rename", "remove" ]:
             if opt(options, "name") == "":
                 print "--name is required"
@@ -222,7 +222,6 @@ class BootCLI:
         """
         # FIXME: copy in all the options from the old cli_misc.py
 
-        print "DEBUG: direct_command: %s" % action_name
         task_id = -1  # if assigned, we must tail the logfile
 
         if action_name == "buildiso":

@@ -1648,42 +1648,6 @@ def matches_args(args, list_of):
             return True
     return False
 
-def apply_options_from_fields(obj, fields, options):
-    for elem in fields:
-       k = elem[0]
-       if k.find("widget") != -1:
-           continue
-       # interfaces are handled differently
-       details  = elem[3]
-       editable = elem[4]
-       if editable and details != "":
-          optval = getattr(options, k.replace("*",""))
-          if optval is not None:
-              setfn = getattr(obj, "set_%s" % k.replace("*",""))
-              if k in ("kernel_options","kernel_options_post","ks_meta","template_files"):
-                  setfn(optval, options.inplace)
-              elif not k.startswith("*"):
-                  # if it doesn't start with "*", it's not a per interface
-                  # option and we can treat it normally
-                  setfn(optval)
-              else:
-                  # handling for system interface options on the CLI
-                  interfaces = options.interface.split()
-                  for x in interfaces:
-                      setfn(optval, x)
-
-    # the delete interface option (systems only) is also special
-    try:
-        deleter = getattr(obj,"delete_interface")
-    except:
-        return
-    cli_value = getattr(options, "delete_interface")
-    if cli_value is not None:
-        interfaces = cli_value.split()
-        for x in interfaces:
-            deleter(x)
-
-
 def add_options_from_fields(parser, fields, object_action):
     for elem in fields:
         k = elem[0] 

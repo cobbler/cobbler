@@ -771,14 +771,13 @@ class CobblerXMLRPCInterface:
         if edit_type == "copy":
             self.copy_item(object_type, handle, attributes["newname"], token)
             handle = self.get_item_handle(object_type, attributes["newname"], token)
-        #if edit_type in [ "copy", "rename" ]:
-        #    del attributes["name"] 
-        #    del attributes["newname"] 
+        if edit_type in [ "copy", "rename" ]:
+            del attributes["name"] 
+            del attributes["newname"] 
 
         if edit_type != "remove":
             for (k,v) in attributes.iteritems():
-                if k not in [ "newname", "name" ]:
-                    self.modify_item(object_type,handle,k,v,token)
+                self.modify_item(object_type,handle,k,v,token)
         else:
            self.remove_item(object_type, object_name, token, recursive=True)
            return True
