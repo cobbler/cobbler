@@ -43,7 +43,7 @@ OBJECT_ACTIONS   = {
    "repo"    : "add copy edit find list remove rename report".split(" ")
 } 
 OBJECT_TYPES = OBJECT_ACTIONS.keys()
-DIRECT_ACTIONS = [ "buildiso", "reposync", "sync", "validateks", "import", "aclsetup", "list", "report" ]
+DIRECT_ACTIONS = "aclsetup buildiso deploy import list report reposync sync validateks".split()
 
 ####################################################
 
@@ -130,9 +130,7 @@ class BootCLI:
             return None
         if len(args) < 2:
             return None
-        if args[1] in DIRECT_ACTIONS:
-            return args[1]
-        return None
+        return args[1]
 
     def run(self, args):
         """
@@ -350,7 +348,8 @@ class BootCLI:
             print "\nimages:"
             list_items(self.remote,"image")
         else:
-            raise Exception("internal error, no such action: %s" % action_name)
+            print "No such command: %s" % action_name
+            sys.exit(1)
             # FIXME: run here
 
         # FIXME: add tail/polling code here
@@ -380,10 +379,9 @@ class BootCLI:
         Prints general-top level help, e.g. "cobbler --help" or "cobbler" or "cobbler command-does-not-exist"
         """
         print "usage\n====="
-        print "cobbler <distro|profile|system|repo|image> --help"
-        print "cobbler <distro|profile|system|repo|image> <subcommand> [options|--help]"
-        print "cobbler <aclsetup|check|buildiso|hardlink> [options|--help]"
-        print "cobbler <import|reposync|sync|validateks> [options|--help]"
+        print "cobbler <distro|profile|system|repo|image> ... "
+        print "        [add|edit|copy|getks*|list|remove|rename|report] [options|--help]"
+        print "cobbler <%s> [options|--help]" % "|".join(DIRECT_ACTIONS)
         sys.exit(2)
 
 ####################################################
