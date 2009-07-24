@@ -226,12 +226,60 @@ class BootCLI:
 
         if action_name == "buildiso":
             print "buildiso"
+            self.parser.add_option("--iso",      dest="isoname",  help="(OPTIONAL) output ISO to this path")
+            self.parser.add_option("--profiles", dest="profiles", help="(OPTIONAL) use these profiles only")
+            self.parser.add_option("--systems",  dest="systems",  help="(OPTIONAL) use these systems only")
+            self.parser.add_option("--tempdir",  dest="tempdir",  help="(OPTIONAL) working directory")
+            self.parser.add_option("--distro",   dest="distro",   help="(OPTIONAL) used with --standalone to create a distro-based ISO including all associated profiles/systems")
+            self.parser.add_option("--standalone", dest="standalone", action="store_true", help="(OPTIONAL) creates a standalone ISO with all required distro files on it")
+            self.parser.add_option("--source",   dest="source",   help="(OPTIONAL) used with --standalone to specify a source for the distribution files")
+            self.parser.add_option("--exclude-dns", dest="exclude_dns", action="store_true", help="(OPTIONAL) prevents addition of name server addresses to the kernel boot options")
+
             (options, args) = self.parser.parse_args()
             # FIXME: run here
+        elif action_name == "replicate":
+            self.parser.add_option("--master",               dest="master",           help="Cobbler server to replicate from.")
+            self.parser.add_option("--include-systems",      dest="systems",          action="store_true", help="include systems in addition to distros, profiles, and repos")
+            self.parser.add_option("--full-data-sync",       dest="all",              action="store_true", help="rsync everything")
+            self.parser.add_option("--sync-kickstarts",      dest="kickstarts",       action="store_true", help="rsync kickstart templates")
+            self.parser.add_option("--sync-trees",           dest="trees",            action="store_true", help="rsync imported trees")
+            self.parser.add_option("--sync-triggers",        dest="triggers",         action="store_true", help="rsync trigger scripts")
+            self.parser.add_option("--sync-repos",           dest="repos",            action="store_true", help="rsync mirrored repo data")
+            (options, args) = self.parser.parse_args()
+        elif action_name == "deploy":
+            self.parser.add_option("--system", dest="system", help="name of cobbler guest system")
+            self.parser.add_option("--virt-group", dest="virt_group", help="for create operations, the group name of cobbler systems to use instead of --virt-host")
+            self.parser.add_option("--virt-host", dest="virt_host", help="for create operations, the name of the system that will host the instance")
+            self.parser.add_option("--method", dest="method", help="communication mechanism, ssh or func")
+            self.parser.add_option("--operation", dest="operation", help="install, uninstall, start, reboot, shutdown, or unplug")
+            (options, args) = self.parser.parse_args()
+        elif action_name == "aclsetup":
+            self.parser.add_option("--adduser",            dest="adduser",            help="give acls to this user")
+            self.parser.add_option("--addgroup",           dest="addgroup",           help="give acls to this group")
+            self.parser.add_option("--removeuser",         dest="removeuser",         help="remove acls from this user")
+            self.parser.add_option("--removegroup",        dest="removegroup",        help="remove acls from this group")
+            (options, args) = self.parser.parse_args()
+        elif action_name == "version":
+            (options, args) = self.parser.parse_args()
+            pass
+
+
         elif action_name == "hardlink":
             print "hardlink"
             (options, args) = self.parser.parse_args()
             # FIXME: run here
+        elif action_name == "reserialize":
+            (options, args) = self.parser.parse_args()
+            pass
+        elif action_name == "status":
+            (options, args) = self.parser.parse_args()
+            pass
+        elif action_name == "validateks":
+            (options, args) = self.parser.parse_args()
+            pass
+        elif action_name == "get-loaders":
+            self.parser.add_option("--force", dest="force", action="store_true", help="overwrite any existing content in /var/lib/cobbler/loaders")
+            (options, args) = self.parser.parse_args()
         elif action_name == "import":
             self.parser.add_option("--arch",         dest="arch",           help="OS architecture being imported")
             self.parser.add_option("--breed",        dest="breed",          help="the breed being imported")
@@ -256,6 +304,9 @@ class BootCLI:
             # FIXME: run here
         elif action_name == "reposync":
             print "reposync"
+            self.parser.add_option("--only",           dest="only",             help="update only this repository name")
+            self.parser.add_option("--tries",          dest="tries",            help="try each repo this many times", default=1)
+            self.parser.add_option("--no-fail",        dest="nofail",           help="don't stop reposyncing if a failure occurs", action="store_true")
             (options, args) = self.parser.parse_args()
             # FIXME: run here
         elif action_name == "aclsetup":
@@ -269,8 +320,10 @@ class BootCLI:
         elif action_name == "sync":
             print "parse_args"
             (options, args) = self.parser.parse_args()
+            self.parser.add_option("--verbose", dest="verbose", action="store_true", help="run sync with more output")
             # FIXME: run here
         elif action_name == "report":
+            (options, args) = self.parser.parse_args()
             print "distros:\n=========="
             report_items(self.remote,"distro")
             print "\nprofiles:\n=========="
@@ -285,6 +338,7 @@ class BootCLI:
             # no tree view like 1.6?  This is more efficient remotely
             # for large configs and prevents xfering the whole config
             # though we could consider that...
+            (options, args) = self.parser.parse_args()
             print "distros:"
             list_items(self.remote,"distro")
             print "\nprofiles:"
