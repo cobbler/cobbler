@@ -113,7 +113,7 @@ class CobblerXMLRPCInterface:
         self.check_access(token, "sync")
         return self.api.check(logger=self.logger)
 
-    def background_buildiso(self, token):
+    def background_buildiso(self, token, options=None):
         """
         Generates an ISO in /var/www/cobbler/pub that can be used to install
         profiles without using PXE.
@@ -124,9 +124,19 @@ class CobblerXMLRPCInterface:
         # in the settings file.
         class BuildIsoThread(CobblerThread):
             def _run(self):
+                options = self.args[0]
+                if options is None:
+                    options = {}
                 try:
-                    isopath = "/var/www/cobbler/pub/generated.iso" 
-                    self.remote.api.build_iso(iso=isopath,logger=self.logger)
+                    isopath     = options.get("isopath","/var/www/cobbler/pub/generated.iso")
+                    profiles    = options.get("profiles",None)
+                    systems     = options.get("systems",None)
+                    tempdir     = options.get("tempdir",None)
+                    distro      =  options.get("distro",None)
+                    standalone  = options.get("standalone",False)
+                    source      = options.get("source",None)
+                    exclude_dns = options.get("exclude_dns",False)
+                    self.remote.api.build_iso(isopath,profiles,systems,tempdir,distro,standalone,source,exclude_dns,self.logger)
                     self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
                     msg = "ISO now available for <A HREF=\"/cobbler/pub/generated.iso\">download</A>"
                     self.remote._new_event(msg)
@@ -135,7 +145,7 @@ class CobblerXMLRPCInterface:
                     self.remote._set_task_state(self.event_id,EVENT_FAILED)
                
         self.check_access(token, "buildiso")
-        id = self.__start_task(BuildIsoThread, "Build Iso", [])
+        id = self.__start_task(BuildIsoThread, "Build Iso", [options])
         return id
 
 

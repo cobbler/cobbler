@@ -234,6 +234,7 @@ class BootCLI:
             self.parser.add_option("--exclude-dns", dest="exclude_dns", action="store_true", help="(OPTIONAL) prevents addition of name server addresses to the kernel boot options")
 
             (options, args) = self.parser.parse_args()
+            task_id = self.remote.background_buildiso(self.token, utils.strip_none(vars(options),omit_none=True))
             # FIXME: run here
         elif action_name == "replicate":
             self.parser.add_option("--master",               dest="master",           help="Cobbler server to replicate from.")
