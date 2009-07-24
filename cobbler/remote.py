@@ -128,11 +128,11 @@ class CobblerXMLRPCInterface:
                 if options is None:
                     options = {}
                 try:
-                    isopath     = options.get("isopath","/var/www/cobbler/pub/generated.iso")
+                    isopath     = options.get("iso","/var/www/cobbler/pub/generated.iso")
                     profiles    = options.get("profiles",None)
                     systems     = options.get("systems",None)
                     tempdir     = options.get("tempdir",None)
-                    distro      =  options.get("distro",None)
+                    distro      = options.get("distro",None)
                     standalone  = options.get("standalone",False)
                     source      = options.get("source",None)
                     exclude_dns = options.get("exclude_dns",False)
@@ -146,6 +146,31 @@ class CobblerXMLRPCInterface:
                
         self.check_access(token, "buildiso")
         id = self.__start_task(BuildIsoThread, "Build Iso", [options])
+        return id
+
+    def background_dlcontent(self, token, options=None):
+        """
+        Download bootloaders and other support files.
+        """
+        # this currently doesn't allow the full set of options to buildiso
+        # though the goal of the web app is to not overwhelm folks with options.  Subject
+        # to change later.  We could take the route of 'replicate' and put these options
+        # in the settings file.
+        class LoadersThread(CobblerThread):
+            def _run(self):
+                options = self.args[0]
+                if options is None:
+                    options = {}
+                try:
+                    force = options.get("force",False)
+                    self.remote.api.dlcontent(force, self.logger)
+                    self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
+                except:
+                    utils.log_exc(self.logger)
+                    self.remote._set_task_state(self.event_id,EVENT_FAILED)
+
+        self.check_access(token, "get_loaders")
+        id = self.__start_task(LoadersThread, "Download Bootloader Content", [options])
         return id
 
 

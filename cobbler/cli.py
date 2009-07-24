@@ -26,6 +26,7 @@ import traceback
 import optparse
 import exceptions
 import time
+import os
 
 import utils
 import module_loader
@@ -224,7 +225,8 @@ class BootCLI:
 
         if action_name == "buildiso":
             print "buildiso"
-            self.parser.add_option("--iso",      dest="isoname",  help="(OPTIONAL) output ISO to this path")
+            defaultiso = os.path.join(os.getcwd(), "generated.iso")
+            self.parser.add_option("--iso",      dest="isoname",  default=defaultiso, help="(OPTIONAL) output ISO to this path")
             self.parser.add_option("--profiles", dest="profiles", help="(OPTIONAL) use these profiles only")
             self.parser.add_option("--systems",  dest="systems",  help="(OPTIONAL) use these systems only")
             self.parser.add_option("--tempdir",  dest="tempdir",  help="(OPTIONAL) working directory")
@@ -245,6 +247,7 @@ class BootCLI:
             self.parser.add_option("--sync-triggers",        dest="triggers",         action="store_true", help="rsync trigger scripts")
             self.parser.add_option("--sync-repos",           dest="repos",            action="store_true", help="rsync mirrored repo data")
             (options, args) = self.parser.parse_args()
+
         elif action_name == "deploy":
             self.parser.add_option("--system", dest="system", help="name of cobbler guest system")
             self.parser.add_option("--virt-group", dest="virt_group", help="for create operations, the group name of cobbler systems to use instead of --virt-host")
@@ -279,6 +282,8 @@ class BootCLI:
         elif action_name == "get-loaders":
             self.parser.add_option("--force", dest="force", action="store_true", help="overwrite any existing content in /var/lib/cobbler/loaders")
             (options, args) = self.parser.parse_args()
+            # FIXME: add reflexive function to minimize this boilerplate:
+            task_id = self.remote.background_dlcontent(self.token, utils.strip_none(vars(options),omit_none=True))
         elif action_name == "import":
             self.parser.add_option("--arch",         dest="arch",           help="OS architecture being imported")
             self.parser.add_option("--breed",        dest="breed",          help="the breed being imported")
