@@ -252,6 +252,7 @@ class BootCLI:
             self.parser.add_option("--sync-triggers",        dest="triggers",         action="store_true", help="rsync trigger scripts")
             self.parser.add_option("--sync-repos",           dest="repos",            action="store_true", help="rsync mirrored repo data")
             (options, args) = self.parser.parse_args()
+            task_id = self.start_task("replicate",options)
 
         elif action_name == "deploy":
             self.parser.add_option("--system", dest="system", help="name of cobbler guest system")
@@ -260,6 +261,7 @@ class BootCLI:
             self.parser.add_option("--method", dest="method", help="communication mechanism, ssh or func")
             self.parser.add_option("--operation", dest="operation", help="install, uninstall, start, reboot, shutdown, or unplug")
             (options, args) = self.parser.parse_args()
+            task_id = self.start_task("deploy",options)
 
         elif action_name == "aclsetup":
             self.parser.add_option("--adduser",            dest="adduser",            help="give acls to this user")
@@ -267,28 +269,30 @@ class BootCLI:
             self.parser.add_option("--removeuser",         dest="removeuser",         help="remove acls from this user")
             self.parser.add_option("--removegroup",        dest="removegroup",        help="remove acls from this group")
             (options, args) = self.parser.parse_args()
+            task_id = self.start_task("deploy",options)
+
         elif action_name == "version":
             (options, args) = self.parser.parse_args()
-            pass
-
+            version = self.remote.extended_version()
+            print "Cobbler %s" % version["version"]
+            print "  source: %s, %s" % (version["gitstamp"], version["gitdate"])
+            print "  build time: %s" % version["builddate"]
 
         elif action_name == "hardlink":
-            print "hardlink"
             (options, args) = self.parser.parse_args()
-            # FIXME: run here
+            task_id = self.start_task("hardlink",options)
         elif action_name == "reserialize":
             (options, args) = self.parser.parse_args()
-            pass
+            task_id = self.start_task("reserialize",options)
         elif action_name == "status":
             (options, args) = self.parser.parse_args()
-            pass
+            task_id = self.start_task("status",options)
         elif action_name == "validateks":
             (options, args) = self.parser.parse_args()
-            pass
+            task_id = self.start_task("validateks",options)
         elif action_name == "get-loaders":
             self.parser.add_option("--force", dest="force", action="store_true", help="overwrite any existing content in /var/lib/cobbler/loaders")
             (options, args) = self.parser.parse_args()
-            # FIXME: add reflexive function to minimize this boilerplate:
             task_id = self.start_task("dlcontent",options)
         elif action_name == "import":
             self.parser.add_option("--arch",         dest="arch",           help="OS architecture being imported")
@@ -307,20 +311,19 @@ class BootCLI:
             self.parser.add_option("--tries",          dest="tries",            help="try each repo this many times", default=1)
             self.parser.add_option("--no-fail",        dest="nofail",           help="don't stop reposyncing if a failure occurs", action="store_true")
             (options, args) = self.parser.parse_args()
-            # FIXME: run here
+            task_id = self.start_task("reposync",options)
         elif action_name == "aclsetup":
-            print "aclsetup"
             (options, args) = self.parser.parse_args()
-            # FIXME: run here
+            # FIXME: missing options, add them here
+            task_id = self.start_task("aclsetup",options)
         elif action_name == "check":
-            print "check"
             (options, args) = self.parser.parse_args()
-            # FIXME: run here
+            task_id = self.start_task("check",options)
         elif action_name == "sync":
             print "parse_args"
             (options, args) = self.parser.parse_args()
             self.parser.add_option("--verbose", dest="verbose", action="store_true", help="run sync with more output")
-            # FIXME: run here
+            task_id = self.start_task("sync",options)
         elif action_name == "report":
             (options, args) = self.parser.parse_args()
             print "distros:\n=========="
