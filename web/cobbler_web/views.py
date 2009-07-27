@@ -444,9 +444,11 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
         power = multi_arg
         if power is None:
             return error_page(request,"Cannot modify systems without specifying power option")
-        remote.background_power_system(names, power, token)
+        options = { "names" : names, "power" : power }
+        remote.background_power_system(options, token)
     elif what == "profile" and multi_mode == "reposync":
-        remote.background_reposync(names,3,token)
+        options = { "names" : names, "tries" : 3 }
+        remote.background_reposync(options,token)
     else:
         return error_page(request,"Unknown batch operation on %ss: %s" % (what,str(multi_mode)))
 
@@ -479,17 +481,19 @@ def check(request):
 # ======================================================================
 
 def buildiso(request):
-   remote.background_buildiso(token)
+   remote.background_buildiso({},token)
    return HttpResponseRedirect('/cobbler_web/task_created')
 
 # ======================================================================
 
 def import_run(request):
-   name  = request.POST.get("name","")
-   path  = request.POST.get("path","") 
-   breed = request.POST.get("breed","") 
-   arch  = request.POST.get("arch","") 
-   remote.background_import(name, path, arch, breed, "", "", "", "", token)
+   options = {
+       "name"  : request.POST.get("name",""),
+       "path"  : request.POST.get("path",""),
+       "breed" : request.POST.get("breed",""),
+       "arch"  : request.POST.get("arch","") 
+   }
+   remote.background_import(options,token)
    return HttpResponseRedirect('/cobbler_web/task_created')
 
 # ======================================================================
@@ -740,7 +744,7 @@ def sync(request):
    """
    Runs 'cobbler sync' from the API when the user presses the sync button.
    """
-   remote.background_sync(token)
+   remote.background_sync({"verbose":"True"},token)
    return HttpResponseRedirect("/cobbler_web/task_created")
 
 # ======================================================================
@@ -749,7 +753,7 @@ def reposync(request):
    """
    Syncs all repos that are configured to be synced.
    """
-   remote.background_reposync("",3,token)
+   remote.background_reposync({ "names":"", "tries" : 3},token)
    return HttpResponseRedirect("/cobbler_web/task_created")
 
 # ======================================================================
@@ -758,7 +762,7 @@ def hardlink(request):
    """
    Hardlinks files between repos and install trees to save space.
    """
-   remote.background_hardlink(token)
+   remote.background_hardlink({},token)
    return HttpResponseRedirect("/cobbler_web/task_created")
 
 # ======================================================================
@@ -768,7 +772,9 @@ def replicate(request):
    Replicate configuration from the central cobbler server, configured
    in /etc/cobbler/settings (note: this is uni-directional!)
    """
-   remote.background_replicate(token)
+   settings = remote.get_settings()
+   options = settings # just load settings from file until we decide to ask user (later?)
+   remote.background_replicate(options, token)
    return HttpResponseRedirect("/cobbler_web/task_created")
 
 # ======================================================================

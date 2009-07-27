@@ -685,7 +685,7 @@ class Importer:
                profile.set_distro(name)
                profile.set_virt_type("qemu")
                profile.kernel_options['rescue'] = None
-               profile.kickstart = '/etc/cobbler/pxerescue.ks'
+               profile.kickstart = '/var/lib/cobbler/kickstarts/pxerescue.ks'
 
                self.profiles.add(profile,save=True)
 

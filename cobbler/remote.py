@@ -75,7 +75,7 @@ class CobblerThread(Thread):
             options = {}
         self.options         = options
 
-    def on_done(self,options):
+    def on_done(self):
         pass
 
     def run(self):
@@ -143,7 +143,7 @@ class CobblerXMLRPCInterface:
                 self.options.get("exclude_dns",False),
                 self.logger
             )
-        def on_done():
+        def on_done(self):
             if self.options.get("iso","") == "/var/www/cobbler/pub/generated.iso":
                 msg = "ISO now available for <A HREF=\"/cobbler/pub/generated.iso\">download</A>"
                 self.remote._new_event(msg)
@@ -160,7 +160,7 @@ class CobblerXMLRPCInterface:
     def background_sync(self, options, token):
         def runner(self):
             return self.remote.api.sync(self.options.get("verbose",False),logger=self.logger)
-        return self.__start_task(runner, token, "Sync", options) 
+        return self.__start_task(runner, token, "sync", "Sync", options) 
 
     def background_hardlink(self, options, token):
         def runner(self):
@@ -198,8 +198,9 @@ class CobblerXMLRPCInterface:
                      
     def background_reposync(self, options, token):
         def runner(self):
+            repos = options.get("repos", [])
             if repos != "":
-                for name in self.options.get("repos",[]):
+                for name in repos:
                     self.logger.debug("reposync for: %s" % name)
                     self.remote.api.reposync(tries=self.options.get("tries",3), name=name, nofail=True, logger=self.logger)
                 else:
