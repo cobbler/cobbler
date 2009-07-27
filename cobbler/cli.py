@@ -106,6 +106,7 @@ class BootCLI:
     def start_task(self, name, options):
         options = utils.strip_none(vars(options), omit_none=True)
         fn = getattr(self.remote, "background_%s" % name)
+        print "DEBUG: options=%s" % options
         return fn(options, self.token)
 
     def get_object_type(self, args):
@@ -230,7 +231,7 @@ class BootCLI:
         if action_name == "buildiso":
 
             defaultiso = os.path.join(os.getcwd(), "generated.iso")
-            self.parser.add_option("--iso",      dest="isoname",  default=defaultiso, help="(OPTIONAL) output ISO to this path")
+            self.parser.add_option("--iso",      dest="iso",  default=defaultiso, help="(OPTIONAL) output ISO to this path")
             self.parser.add_option("--profiles", dest="profiles", help="(OPTIONAL) use these profiles only")
             self.parser.add_option("--systems",  dest="systems",  help="(OPTIONAL) use these systems only")
             self.parser.add_option("--tempdir",  dest="tempdir",  help="(OPTIONAL) working directory")
