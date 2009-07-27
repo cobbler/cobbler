@@ -365,9 +365,37 @@ class BootCLI:
             (etime, name, status, who_viewed) = events[task_id]
             atime = time.asctime(time.localtime(etime))
             print "task started (id=%s, time=%s)" % (name, atime)
-            # FIXME: add log tailing code here?
+            self.follow_task(task_id) 
 
         return True
+
+
+    def follow_task(self, task_id):
+        logfile = "/var/log/cobbler/tasks/%s.log" % task_id
+        # adapted from:  http://code.activestate.com/recipes/157035/        
+        file = open(logfile,'r')
+        #Find the size of the file and move to the end
+        #st_results = os.stat(filename)
+        #st_size = st_results[6]
+        #file.seek(st_size)
+
+        while 1:
+            where = file.tell()
+            line = file.readline()
+            if line.find("### TASK COMPLETE ###") != -1:
+                print "*** TASK COMPLETE ***"
+                sys.exit(0)
+            if line.find("### TASK FAILED ###") != -1:
+                print "!!! TASK FAILED !!!"
+                sys.exit(1)
+            if not line:
+                time.sleep(1)
+                file.seek(where)
+            else:
+                if line.find(" | "):
+                    line = line.split(" | ")[-1]
+                print line, # already has newline
+
 
     def print_object_help(self, object_type):
         """
@@ -389,8 +417,6 @@ class BootCLI:
         print "        [add|edit|copy|getks*|list|remove|rename|report] [options|--help]"
         print "cobbler <%s> [options|--help]" % "|".join(DIRECT_ACTIONS)
         sys.exit(2)
-
-####################################################
 
 def main():
     """

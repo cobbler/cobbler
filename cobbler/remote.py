@@ -74,7 +74,7 @@ class CobblerThread(Thread):
         self.args            = args
 
     def run(self):
-        # may want to do some global run stuff here later.
+        time.sleep(1)  # allow CLI log tailing to start up
         return self._run()
    
 # *********************************************************************
@@ -137,12 +137,12 @@ class CobblerXMLRPCInterface:
                     source      = options.get("source",None)
                     exclude_dns = options.get("exclude_dns",False)
                     self.remote.api.build_iso(isopath,profiles,systems,tempdir,distro,standalone,source,exclude_dns,self.logger)
-                    self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
+                    self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
                     msg = "ISO now available for <A HREF=\"/cobbler/pub/generated.iso\">download</A>"
                     self.remote._new_event(msg)
                 except:
                     utils.log_exc(self.logger)
-                    self.remote._set_task_state(self.event_id,EVENT_FAILED)
+                    self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
                
         self.check_access(token, "buildiso")
         id = self.__start_task(BuildIsoThread, "Build Iso", [options])
@@ -164,10 +164,10 @@ class CobblerXMLRPCInterface:
                 try:
                     force = options.get("force",False)
                     self.remote.api.dlcontent(force, self.logger)
-                    self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
+                    self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
                 except:
                     utils.log_exc(self.logger)
-                    self.remote._set_task_state(self.event_id,EVENT_FAILED)
+                    self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
 
         self.check_access(token, "get_loaders")
         id = self.__start_task(LoadersThread, "Download Bootloader Content", [options])
@@ -179,10 +179,10 @@ class CobblerXMLRPCInterface:
             def _run(self):
                 try:
                     self.remote.api.sync(verbose=True,logger=self.logger)
-                    self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
+                    self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
                 except:
                     utils.log_exc(self.logger)
-                    self.remote._set_task_state(self.event_id,EVENT_FAILED)
+                    self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
 
         self.check_access(token, "sync")
         id = self.__start_task(SyncThread, "Sync", []) 
@@ -193,10 +193,10 @@ class CobblerXMLRPCInterface:
             def _run(self):
                 try:
                     self.remote.api.hardlink(logger=self.logger)
-                    self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
+                    self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
                 except:
                     utils.log_exc(self.logger)
-                    self.remote._set_task_state(self.event_id,EVENT_FAILED)
+                    self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
 
         self.check_access(token, "hardlink")
         id = self.__start_task(HardLinkThread, "Hardlink", [])
@@ -222,10 +222,10 @@ class CobblerXMLRPCInterface:
                          sync_triggers   = sync_triggers,
                          logger          = self.logger
                     )
-                    self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
+                    self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
                 except:
                     utils.log_exc(self.logger)
-                    self.remote._set_task_state(self.event_id,EVENT_FAILED)
+                    self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
 
         self.check_access(token, "replicate")
         id = self.__start_task(ReplicateThread, "Replicate", [])
@@ -244,10 +244,10 @@ class CobblerXMLRPCInterface:
                     if rsync_flags == "" or rsync_flags == {}: rsync_flags = None
                     if os_version == "": os_version = None
                     self.remote.api.import_tree(path,name,available_as,kickstart,rsync_flags,arch,breed,os_version,self.logger)
-                    self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
+                    self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
                 except:
                     utils.log_exc(self.logger)
-                    self.remote._set_task_state(self.event_id,EVENT_FAILED)
+                    self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
         self.check_access(token, "import")
         id = self.__start_task(ImportThread, "Media import", [name,path,arch,breed,available_as,kickstart,rsync_flags, os_version])
         return id
@@ -264,10 +264,10 @@ class CobblerXMLRPCInterface:
                             self.remote.api.reposync(tries=tries, name=name, nofail=True, logger=self.logger)
                     else:
                         self.remote.api.reposync(tries=tries, name=None, nofail=False, logger=self.logger)
-                    self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
+                    self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
                 except:
                     utils.log_exc(self.logger)
-                    self.remote._set_task_state(self.event_id,EVENT_FAILED)
+                    self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
 
         self.check_access(token, "reposync")
         id = self.__start_task(RepoSyncThread, "Reposync", [repos, tries])
@@ -285,10 +285,10 @@ class CobblerXMLRPCInterface:
                         self.logger.debug("performing power actions for system %s" % x)
                         object_id = self.remote.get_system_handle(x,token)
                         self.remote.power_system(object_id,power,token,logger=self.logger)
-                    self.remote._set_task_state(self.event_id,EVENT_COMPLETE)
+                    self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
                 except:
                     utils.log_exc(self.logger)
-                    self.remote._set_task_state(self.event_id,EVENT_FAILED)
+                    self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
 
         self.check_access(token, "power")
         id = self.__start_task(PowerThread, "Power management (%s)" % power, [system_names,power,token])
@@ -355,11 +355,16 @@ class CobblerXMLRPCInterface:
         thr.start()
         return event_id
 
-    def _set_task_state(self,event_id,new_state):
+    def _set_task_state(self,thread_obj,event_id,new_state):
         event_id = str(event_id)
         if self.events.has_key(event_id):
             self.events[event_id][2] = new_state
             self.events[event_id][3] = [] # clear the list of who has read it
+        if thread_obj is not None:
+            if new_state == EVENT_COMPLETE: 
+                thread_obj.logger.info("### TASK COMPLETE ###")
+            if new_state == EVENT_FAILED: 
+                thread.obj.logger.error("### TASK FAILED ###")
 
     def get_task_status(self, event_id):
         event_id = str(event_id)
