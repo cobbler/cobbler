@@ -44,7 +44,7 @@ OBJECT_ACTIONS   = {
    "repo"    : "add copy edit find list remove rename report".split(" ")
 } 
 OBJECT_TYPES = OBJECT_ACTIONS.keys()
-DIRECT_ACTIONS = "aclsetup buildiso deploy import list report reposync sync validateks".split()
+DIRECT_ACTIONS = "aclsetup buildiso deploy import list report reposync sync validateks version".split()
 
 ####################################################
 
@@ -106,7 +106,6 @@ class BootCLI:
     def start_task(self, name, options):
         options = utils.strip_none(vars(options), omit_none=True)
         fn = getattr(self.remote, "background_%s" % name)
-        print "DEBUG: options=%s" % options
         return fn(options, self.token)
 
     def get_object_type(self, args):
@@ -135,9 +134,14 @@ class BootCLI:
         """
         if object_type is not None:
             return None
-        if len(args) < 2:
+        elif len(args) < 2:
             return None
-        return args[1]
+        elif args[1] == "--help":
+            return None
+        elif args[1] == "--version":
+            return "version"
+        else:
+            return args[1]
 
     def run(self, args):
         """
@@ -146,8 +150,7 @@ class BootCLI:
         object_type   = self.get_object_type(args)
         object_action = self.get_object_action(object_type, args)
         direct_action = self.get_direct_action(object_type, args) 
- 
-        # print "DEBUG: CLI (%s,%s,%s)" % (object_type, object_action, direct_action)
+
         if object_type is not None:
             if object_action is not None:
                self.object_command(object_type, object_action)
@@ -220,6 +223,7 @@ class BootCLI:
                 print item
         else:
             raise exceptions.NotImplementedError() 
+        
 
     # BOOKMARK
     def direct_command(self, action_name):
@@ -272,7 +276,6 @@ class BootCLI:
             task_id = self.start_task("deploy",options)
 
         elif action_name == "version":
-            (options, args) = self.parser.parse_args()
             version = self.remote.extended_version()
             print "Cobbler %s" % version["version"]
             print "  source: %s, %s" % (version["gitstamp"], version["gitdate"])
