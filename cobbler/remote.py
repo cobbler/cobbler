@@ -66,17 +66,30 @@ EVENT_FAILED    = "failed"
 EVENT_INFO      = "notification"
 
 class CobblerThread(Thread):
-    def __init__(self,event_id,remote,logatron,args):
+    def __init__(self,event_id,remote,logatron,options):
         Thread.__init__(self)
         self.event_id        = event_id
         self.remote          = remote
         self.logger          = logatron
-        self.args            = args
+        if options is None:
+            options = {}
+        self.options         = options
+
+    def on_done(self,options):
+        pass
 
     def run(self):
-        time.sleep(1)  # allow CLI log tailing to start up
-        return self._run()
-   
+        time.sleep(1)
+        try:
+            rc = self._run(self)
+            self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
+            self.on_done()
+            return rc
+        except:
+            utils.log_exc(self.logger)
+            self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
+            return False  
+ 
 # *********************************************************************
 # *********************************************************************
 
@@ -113,186 +126,96 @@ class CobblerXMLRPCInterface:
         self.check_access(token, "sync")
         return self.api.check(logger=self.logger)
 
-    def background_buildiso(self, token, options=None):
+    def background_buildiso(self, options, token):
         """
         Generates an ISO in /var/www/cobbler/pub that can be used to install
         profiles without using PXE.
         """
-        # this currently doesn't allow the full set of options to buildiso
-        # though the goal of the web app is to not overwhelm folks with options.  Subject
-        # to change later.  We could take the route of 'replicate' and put these options
-        # in the settings file.
-        class BuildIsoThread(CobblerThread):
-            def _run(self):
-                options = self.args[0]
-                if options is None:
-                    options = {}
-                try:
-                    isopath     = options.get("iso","/var/www/cobbler/pub/generated.iso")
-                    profiles    = options.get("profiles",None)
-                    systems     = options.get("systems",None)
-                    tempdir     = options.get("tempdir",None)
-                    distro      = options.get("distro",None)
-                    standalone  = options.get("standalone",False)
-                    source      = options.get("source",None)
-                    exclude_dns = options.get("exclude_dns",False)
-                    self.remote.api.build_iso(isopath,profiles,systems,tempdir,distro,standalone,source,exclude_dns,self.logger)
-                    self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
-                    msg = "ISO now available for <A HREF=\"/cobbler/pub/generated.iso\">download</A>"
-                    self.remote._new_event(msg)
-                except:
-                    utils.log_exc(self.logger)
-                    self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
-               
-        self.check_access(token, "buildiso")
-        id = self.__start_task(BuildIsoThread, "Build Iso", [options])
-        return id
+        def runner(self):
+            return self.remote.api.build_iso(
+                self.options.get("iso","/var/www/cobbler/pub/generated.iso"),
+                self.options.get("profiles",None),
+                self.options.get("systems",None),
+                self.options.get("tempdir",None),
+                self.options.get("distro",None),
+                self.options.get("standalone",False),
+                self.options.get("source",None),
+                self.options.get("exclude_dns",False),
+                self.logger
+            )
+        def on_done():
+            if self.options.get("iso","") == "/var/www/cobbler/pub/generated.iso":
+                msg = "ISO now available for <A HREF=\"/cobbler/pub/generated.iso\">download</A>"
+                self.remote._new_event(msg)
+        return self.__start_task(runner, token, "buildiso", "Build Iso", options, on_done)
 
-    def background_dlcontent(self, token, options=None):
+    def background_dlcontent(self, options, token):
         """
         Download bootloaders and other support files.
         """
-        # this currently doesn't allow the full set of options to buildiso
-        # though the goal of the web app is to not overwhelm folks with options.  Subject
-        # to change later.  We could take the route of 'replicate' and put these options
-        # in the settings file.
-        class LoadersThread(CobblerThread):
-            def _run(self):
-                options = self.args[0]
-                if options is None:
-                    options = {}
-                try:
-                    force = options.get("force",False)
-                    self.remote.api.dlcontent(force, self.logger)
-                    self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
-                except:
-                    utils.log_exc(self.logger)
-                    self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
+        def runner(self):
+            return self.remote.api.dlcontent(self.options.get("force",False), self.logger)
+        return self.__start_task(runner, token, "get_loaders", "Download Bootloader Content", options)
 
-        self.check_access(token, "get_loaders")
-        id = self.__start_task(LoadersThread, "Download Bootloader Content", [options])
-        return id
+    def background_sync(self, options, token):
+        def runner(self):
+            return self.remote.api.sync(self.options.get("verbose",False),logger=self.logger)
+        return self.__start_task(runner, token, "Sync", options) 
 
+    def background_hardlink(self, options, token):
+        def runner(self):
+            return self.remote.api.hardlink(logger=self.logger)
+        return self.__start_task(runner, token, "hardlink", "Hardlink", options)
 
-    def background_sync(self, token):
-        class SyncThread(CobblerThread):
-            def _run(self):
-                try:
-                    self.remote.api.sync(verbose=True,logger=self.logger)
-                    self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
-                except:
-                    utils.log_exc(self.logger)
-                    self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
+    def background_replicate(self, options, token):
+        def runner(self):
+            # FIXME: defaults from settings here should come from views, fix in views.py
+            return self.remote.api.replicate(
+                self.options.get("replicate_master", "cobbler"),
+                self.options.get("replicate_sync_kickstarts", 1),
+                self.options.get("replicate_sync_trees", 1),
+                self.options.get("replicate_sync_repos", 1),
+                self.options.get("replicate_sync_systems", 1),
+                self.options.get("replicate_sync_triggers", 0),
+                self.logger
+            )
+        return self.__start_task(runner, token, "replicate", "Replicate", options)
 
-        self.check_access(token, "sync")
-        id = self.__start_task(SyncThread, "Sync", []) 
-        return id
-
-    def background_hardlink(self, token):
-        class HardLinkThread(CobblerThread):
-            def _run(self):
-                try:
-                    self.remote.api.hardlink(logger=self.logger)
-                    self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
-                except:
-                    utils.log_exc(self.logger)
-                    self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
-
-        self.check_access(token, "hardlink")
-        id = self.__start_task(HardLinkThread, "Hardlink", [])
-        return id
-
-    def background_replicate(self, token):
-        class ReplicateThread(CobblerThread):
-            def _run(self):
-                try:
-                    settings = self.remote.get_settings()
-                    cobbler_master = settings.get("replicate_cobbler_master", "cobbler")
-                    sync_kickstarts = settings.get("replicate_sync_kickstarts", 1)
-                    sync_trees      = settings.get("replicate_sync_trees",1)
-                    sync_repos      = settings.get("replicate_sync_repos",1)
-                    sync_triggers   = settings.get("replicate_sync_triggers",0)
-                    sync_systems    = settings.get("replicate_sync_systems",1)
-                    self.remote.api.replicate(
-                         cobbler_master  = cobbler_master,
-                         sync_kickstarts = sync_kickstarts,
-                         sync_trees      = sync_trees,
-                         sync_repos      = sync_repos,
-                         systems         = sync_systems,
-                         sync_triggers   = sync_triggers,
-                         logger          = self.logger
-                    )
-                    self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
-                except:
-                    utils.log_exc(self.logger)
-                    self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
-
-        self.check_access(token, "replicate")
-        id = self.__start_task(ReplicateThread, "Replicate", [])
-        return id
-
-    def background_import(self, name, path, arch, breed, available_as, kickstart, rsync_flags, os_version, token):
-        class ImportThread(CobblerThread):
-            def _run(self):
-
-                (name, path, arch, breed, available_as, kickstart, rsync_flags, os_version) = self.args
-                try:
-                    if arch == "": arch = None
-                    if breed == "": breed = None
-                    if available_as == "": available_as = None
-                    if kickstart == "": kickstart = None
-                    if rsync_flags == "" or rsync_flags == {}: rsync_flags = None
-                    if os_version == "": os_version = None
-                    self.remote.api.import_tree(path,name,available_as,kickstart,rsync_flags,arch,breed,os_version,self.logger)
-                    self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
-                except:
-                    utils.log_exc(self.logger)
-                    self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
-        self.check_access(token, "import")
-        id = self.__start_task(ImportThread, "Media import", [name,path,arch,breed,available_as,kickstart,rsync_flags, os_version])
-        return id
+    def background_import(self, options, token):
+        def runner(self):
+            return self.remote.api.import_tree(
+                self.options.get("path", None),
+                self.options.get("name", None),
+                self.options.get("available_as", None),
+                self.options.get("kickstart", None),
+                self.options.get("rsync_flags",None),
+                self.options.get("arch",None),
+                self.options.get("breed", None),
+                self.options.get("os_version", None),
+                self.logger
+            ) 
+        return self.__start_task(runner, token, "import", "Media import", options)
                      
-    def background_reposync(self, repos, tries, token):
-        class RepoSyncThread(CobblerThread):
-            def _run(self):
-                repos = self.args[0]
-                tries = self.args[1]
-                try:
-                    if repos != "":
-                        for name in repos:
-                            self.logger.debug("reposync for: %s" % name)
-                            self.remote.api.reposync(tries=tries, name=name, nofail=True, logger=self.logger)
-                    else:
-                        self.remote.api.reposync(tries=tries, name=None, nofail=False, logger=self.logger)
-                    self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
-                except:
-                    utils.log_exc(self.logger)
-                    self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
+    def background_reposync(self, options, token):
+        def runner(self):
+            if repos != "":
+                for name in self.options.get("repos",[]):
+                    self.logger.debug("reposync for: %s" % name)
+                    self.remote.api.reposync(tries=self.options.get("tries",3), name=name, nofail=True, logger=self.logger)
+                else:
+                    self.remote.api.reposync(tries=self.options.get("tries",3), name=None, nofail=False, logger=self.logger)
+            return True
+        return self.__start_task(runner, token, "reposync", "Reposync", options)
 
-        self.check_access(token, "reposync")
-        id = self.__start_task(RepoSyncThread, "Reposync", [repos, tries])
-        return id
-
-    def background_power_system(self, system_names, power=None,token=None):
-        # FIXME: needs testing
-        class PowerThread(CobblerThread):
-            def _run(self):
-                object_id = self.args[0]
-                power = self.args[1]
-                token = self.args[2]
-                try:
-                    for x in system_names:
-                        self.logger.debug("performing power actions for system %s" % x)
-                        object_id = self.remote.get_system_handle(x,token)
-                        self.remote.power_system(object_id,power,token,logger=self.logger)
-                    self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
-                except:
-                    utils.log_exc(self.logger)
-                    self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
-
+    def background_power_system(self, options, token):
+        def runner(self):
+            for x in self.options.get("systems",[]):
+                self.logger.debug("performing power actions for system %s" % x)
+                object_id = self.remote.get_system_handle(x,token)
+                self.remote.power_system(object_id,self.options.get("power",""),token,logger=self.logger)
+            return True
         self.check_access(token, "power")
-        id = self.__start_task(PowerThread, "Power management (%s)" % power, [system_names,power,token])
-        return id
+        return self.__start_task(runner, token, "power", "Power management (%s)" % self.options.get("power",""), options)
 
     def get_events(self, for_user=""):
         """
@@ -342,7 +265,18 @@ class CobblerXMLRPCInterface:
         event_id = str(event_id)
         self.events[event_id] = [ float(time.time()), str(name), EVENT_INFO, [] ]
 
-    def __start_task(self, thr_obj, name, args):
+    def __start_task(self, thr_obj_fn, token, role_name, name, args, on_done=None):
+        """
+        Starts a new background task.
+            token      -- token from login() call, all tasks require tokens
+            role_name  -- used to check token against authn/authz layers
+            thr_obj_fn -- function handle to run in a background thread
+            name       -- display name to show in logs/events
+            args       -- usually this is a single hash, containing options
+            on_done    -- an optional second function handle to run after success (and only success)
+        Returns a task id.
+        """
+        self.check_access(token, role_name)
         event_id = self.next_event_id
         self.next_event_id = self.next_event_id + 1
         event_id = str(event_id)
@@ -350,9 +284,12 @@ class CobblerXMLRPCInterface:
         
         self._log("start_task(%s); event_id(%s)"%(name,event_id))
         logatron = clogger.Logger("/var/log/cobbler/tasks/%s.log" % event_id)
-        thr = thr_obj(event_id,self,logatron,args)
-        # thr.setDaemon(True)
-        thr.start()
+
+        thr_obj = CobblerThread(event_id,self,logatron,args)
+        thr_obj._run = thr_obj_fn
+        if on_done is not None:
+           thr_obj.on_done = on_done
+        thr_obj.start()
         return event_id
 
     def _set_task_state(self,thread_obj,event_id,new_state):
@@ -364,7 +301,7 @@ class CobblerXMLRPCInterface:
             if new_state == EVENT_COMPLETE: 
                 thread_obj.logger.info("### TASK COMPLETE ###")
             if new_state == EVENT_FAILED: 
-                thread.obj.logger.error("### TASK FAILED ###")
+                thread_obj.logger.error("### TASK FAILED ###")
 
     def get_task_status(self, event_id):
         event_id = str(event_id)

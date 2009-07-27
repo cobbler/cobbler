@@ -103,6 +103,11 @@ class BootCLI:
         self.shared_secret = utils.get_shared_secret()
         self.token         = self.remote.login("", self.shared_secret)
 
+    def start_task(self, name, options):
+        options = utils.strip_none(vars(options), omit_none=True)
+        fn = getattr(self.remote, "background_%s" % name)
+        return fn(options, self.token)
+
     def get_object_type(self, args):
         """
         If this is a CLI command about an object type, e.g. "cobbler distro add", return the type, like "distro"
@@ -215,16 +220,15 @@ class BootCLI:
         else:
             raise exceptions.NotImplementedError() 
 
+    # BOOKMARK
     def direct_command(self, action_name):
         """
         Process non-object based commands like "sync" and "hardlink"
         """
-        # FIXME: copy in all the options from the old cli_misc.py
-
-        task_id = -1  # if assigned, we must tail the logfile
+        task_id = -1 # if assigned, we must tail the logfile
 
         if action_name == "buildiso":
-            print "buildiso"
+
             defaultiso = os.path.join(os.getcwd(), "generated.iso")
             self.parser.add_option("--iso",      dest="isoname",  default=defaultiso, help="(OPTIONAL) output ISO to this path")
             self.parser.add_option("--profiles", dest="profiles", help="(OPTIONAL) use these profiles only")
@@ -236,8 +240,8 @@ class BootCLI:
             self.parser.add_option("--exclude-dns", dest="exclude_dns", action="store_true", help="(OPTIONAL) prevents addition of name server addresses to the kernel boot options")
 
             (options, args) = self.parser.parse_args()
-            task_id = self.remote.background_buildiso(self.token, utils.strip_none(vars(options),omit_none=True))
-            # FIXME: run here
+            task_id = self.start_task("buildiso",options)
+
         elif action_name == "replicate":
             self.parser.add_option("--master",               dest="master",           help="Cobbler server to replicate from.")
             self.parser.add_option("--include-systems",      dest="systems",          action="store_true", help="include systems in addition to distros, profiles, and repos")
@@ -255,6 +259,7 @@ class BootCLI:
             self.parser.add_option("--method", dest="method", help="communication mechanism, ssh or func")
             self.parser.add_option("--operation", dest="operation", help="install, uninstall, start, reboot, shutdown, or unplug")
             (options, args) = self.parser.parse_args()
+
         elif action_name == "aclsetup":
             self.parser.add_option("--adduser",            dest="adduser",            help="give acls to this user")
             self.parser.add_option("--addgroup",           dest="addgroup",           help="give acls to this group")
@@ -283,7 +288,7 @@ class BootCLI:
             self.parser.add_option("--force", dest="force", action="store_true", help="overwrite any existing content in /var/lib/cobbler/loaders")
             (options, args) = self.parser.parse_args()
             # FIXME: add reflexive function to minimize this boilerplate:
-            task_id = self.remote.background_dlcontent(self.token, utils.strip_none(vars(options),omit_none=True))
+            task_id = self.start_task("dlcontent",options)
         elif action_name == "import":
             self.parser.add_option("--arch",         dest="arch",           help="OS architecture being imported")
             self.parser.add_option("--breed",        dest="breed",          help="the breed being imported")
@@ -294,18 +299,7 @@ class BootCLI:
             self.parser.add_option("--kickstart",    dest="kickstart_file", help="assign this kickstart file")
             self.parser.add_option("--rsync-flags",  dest="rsync_flags",    help="pass additional flags to rsync")
             (options, args) = self.parser.parse_args()
-            task_id = self.remote.background_import(
-                opt(options,"name"), 
-                opt(options,"path"), 
-                opt(options,"arch"), 
-                opt(options,"breed"), 
-                opt(options,"available_as"), 
-                opt(options,"kickstart"), 
-                opt(options,"rsync_flags"), 
-                opt(options,"os_version"), 
-                self.token
-            )
-            # FIXME: run here
+            task_id = self.start_task("import",options)
         elif action_name == "reposync":
             print "reposync"
             self.parser.add_option("--only",           dest="only",             help="update only this repository name")
