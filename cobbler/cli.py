@@ -294,7 +294,7 @@ class BootCLI:
             self.parser.add_option("--arch",         dest="arch",           help="OS architecture being imported")
             self.parser.add_option("--breed",        dest="breed",          help="the breed being imported")
             self.parser.add_option("--os-version",   dest="os_version",     help="the version being imported")
-            self.parser.add_option("--path",         dest="mirror",         help="local path or rsync location")
+            self.parser.add_option("--path",         dest="path",         help="local path or rsync location")
             self.parser.add_option("--name",         dest="name",           help="name, ex 'RHEL-5'")
             self.parser.add_option("--available-as", dest="available_as",   help="tree is here, don't mirror")
             self.parser.add_option("--kickstart",    dest="kickstart_file", help="assign this kickstart file")

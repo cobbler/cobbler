@@ -187,7 +187,7 @@ class CobblerXMLRPCInterface:
                 self.options.get("path", None),
                 self.options.get("name", None),
                 self.options.get("available_as", None),
-                self.options.get("kickstart", None),
+                self.options.get("kickstart_file", None),
                 self.options.get("rsync_flags",None),
                 self.options.get("arch",None),
                 self.options.get("breed", None),
