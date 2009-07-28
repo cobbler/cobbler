@@ -280,7 +280,7 @@ class BootCLI:
             task_id = self.start_task("reserialize",options)
         elif action_name == "status":
             (options, args) = self.parser.parse_args()
-            print self.remote.get_status("text")
+            print self.remote.get_status("text",self.token)
         elif action_name == "validateks":
             (options, args) = self.parser.parse_args()
             task_id = self.start_task("validateks",options)
@@ -311,8 +311,17 @@ class BootCLI:
             # FIXME: missing options, add them here
             task_id = self.start_task("aclsetup",options)
         elif action_name == "check":
-            (options, args) = self.parser.parse_args()
-            task_id = self.start_task("check",options)
+            results = self.remote.check(self.token)
+            ct = 0
+            if len(results) > 0:
+                print "The following are potential configuration items that you may want to fix:\n"
+                for r in results:
+                    ct = ct + 1
+                    print "%s : %s" % (ct, r)
+                print "\nRestart cobblerd and then run 'cobbler sync' to apply changes."
+            else:
+                print "No configuration problems found.  All systems go."
+                
         elif action_name == "sync":
             print "parse_args"
             (options, args) = self.parser.parse_args()

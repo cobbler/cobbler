@@ -121,9 +121,10 @@ class CobblerXMLRPCInterface:
         """
         Returns a list of all the messages/warnings that are things
         that admin may want to correct about the configuration of 
-        the cobbler server
+        the cobbler server.  This has nothing to do with "check_access"
+        which is an auth/authz function in the XMLRPC API.
         """
-        self.check_access(token, "sync")
+        self.check_access(token, "check")
         return self.api.check(logger=self.logger)
 
     def background_buildiso(self, options, token):
@@ -1351,7 +1352,6 @@ class CobblerXMLRPCInterface:
     def get_random_mac(self,virt_type="xenpv",token=None,**rest):
         """
         Wrapper for utils.get_random_mac
-
         Used in the webui
         """
         self._log("get_random_mac",token=None)
@@ -1366,10 +1366,12 @@ class CobblerXMLRPCInterface:
         """
         return utils.strip_none(data)
 
-    def get_status(self,mode="normal",**rest):
+    def get_status(self,mode="normal",token=None,**rest):
         """
         Returns the same information as `cobbler status`
+        While a read-only operation, this requires a token because it's potentially a fair amount of I/O
         """
+        self.check_access(token,"sync")
         return self.api.status(mode=mode)
 
    ######
