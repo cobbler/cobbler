@@ -258,22 +258,13 @@ class BootCLI:
             (options, args) = self.parser.parse_args()
             task_id = self.start_task("replicate",options)
 
-        elif action_name == "deploy":
-            self.parser.add_option("--system", dest="system", help="name of cobbler guest system")
-            self.parser.add_option("--virt-group", dest="virt_group", help="for create operations, the group name of cobbler systems to use instead of --virt-host")
-            self.parser.add_option("--virt-host", dest="virt_host", help="for create operations, the name of the system that will host the instance")
-            self.parser.add_option("--method", dest="method", help="communication mechanism, ssh or func")
-            self.parser.add_option("--operation", dest="operation", help="install, uninstall, start, reboot, shutdown, or unplug")
-            (options, args) = self.parser.parse_args()
-            task_id = self.start_task("deploy",options)
-
         elif action_name == "aclsetup":
             self.parser.add_option("--adduser",            dest="adduser",            help="give acls to this user")
             self.parser.add_option("--addgroup",           dest="addgroup",           help="give acls to this group")
             self.parser.add_option("--removeuser",         dest="removeuser",         help="remove acls from this user")
             self.parser.add_option("--removegroup",        dest="removegroup",        help="remove acls from this group")
             (options, args) = self.parser.parse_args()
-            task_id = self.start_task("deploy",options)
+            task_id = self.start_task("aclsetup",options)
 
         elif action_name == "version":
             version = self.remote.extended_version()

@@ -1,6 +1,8 @@
 """
 Configures acls for various users/groups so they can access the cobbler command
-line as non-root.
+line as non-root.  Now that CLI is largely remoted (XMLRPC) this is largely just
+useful for not having to log in (access to shared-secret) file but also grants
+access to hand-edit various config files and other useful things.
 
 Copyright 2006-2008, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
@@ -51,15 +53,22 @@ class AclConfig:
         Automate setfacl commands
         """
 
+        ok = False
         if adduser:
+            ok = True
             self.modacl(True,True,adduser)
         if addgroup:
+            ok = True
             self.modacl(True,False,addgroup)
         if removeuser:
+            ok = True
             self.modacl(False,True,removeuser)
         if removegroup:
+            ok = True
             self.modacl(False,False,removegroup) 
-             
+        if not ok:
+            raise CX("no arguments specified, nothing to do")
+     
     def modacl(self,isadd,isuser,who):
 
         webdir = self.settings.webdir
@@ -67,8 +76,8 @@ class AclConfig:
         tftpboot = utils.tftpboot_location()
 
         PROCESS_DIRS = {
-           webdir                      : "rwx",
            "/var/log/cobbler"          : "rwx",
+           "/var/log/cobbler/tasks"    : "rwx",
            "/var/lib/cobbler"          : "rwx",
            "/etc/cobbler"              : "rwx",
            tftpboot                    : "rwx",

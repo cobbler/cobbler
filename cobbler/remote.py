@@ -149,6 +149,17 @@ class CobblerXMLRPCInterface:
                 self.remote._new_event(msg)
         return self.__start_task(runner, token, "buildiso", "Build Iso", options, on_done)
 
+    def background_aclsetup(self, options, token):
+        def runner(self):
+            return self.remote.api.acl_config(
+                self.options.get("adduser",None),
+                self.options.get("addgroup",None),
+                self.options.get("removeuser",None),
+                self.options.get("removegroup",None),
+                self.logger
+            )
+        return self.__start_task(runner, token, "aclsetup", "(CLI) ACL Configuration", options)
+
     def background_dlcontent(self, options, token):
         """
         Download bootloaders and other support files.
