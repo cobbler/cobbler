@@ -1290,44 +1290,6 @@ def set_virt_cpus(self,num):
     self.virt_cpus = num
     return True
 
-def set_virt_host(self,host):
-    """
-    For setting the virtual host that the virt system resides on.
-    """
-    if host is None:
-        self.virt_host = ''
-        return True
- 
-    if host == "<<inherit>>":
-        self.virt_host = "<<inherit>>"
-        return True
-
-    self.virt_host = host
-    return True
-
-def set_virt_group(self,group):
-    """
-    For setting the virtual group that the virt system resides in.
-    """
-    if group is None:
-        self.virt_group = ''
-        return True
-    if group == "<<inherit>>":
-        self.virt_group = "<<inherit>>"
-        return True
-    self.virt_group = group
-    return True
-
-def set_virt_guests(self,guests):
-    """
-    For setting the list of cobbler system records that a given host
-    has running on it.
-    """
-    data = input_string_or_list(guests)
-    data = uniquify(data) # don't double enter any guest names if reinstalled
-    self.virt_guests = data
-    return True
-
 def get_kickstart_templates(api):
     files = {}
     for x in api.profiles():

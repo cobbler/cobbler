@@ -49,9 +49,10 @@ FIELDS = [
   ["virt_file_size","<<inherit>>",0,"Virt File Size(GB)",True,"",0],
   ["virt_ram","<<inherit>>",0,"Virt RAM (MB)",True,"",0],
   ["virt_auto_boot","<<inherit>>",0,"Virt Auto Boot",True,"Auto boot this VM?",0],
-  ["virt_host","",0,"Virt Host",True,"What physical host was this VM installed on?",0],
-  ["virt_group","",0,"Virt Group",True,"To what physical group does this host belong?",0],
-  ["virt_guests",[],0,"Virt Guests",True,"What virtual guests does this host host?",0],
+# from the deployment feature, no longer in the 2.0 release
+#  ["virt_host","",0,"Virt Host",True,"What physical host was this VM installed on?",0],
+#  ["virt_group","",0,"Virt Group",True,"To what physical group does this host belong?",0],
+#  ["virt_guests",[],0,"Virt Guests",True,"What virtual guests does this host host?",0],
   ["comment","",0,"Comment",True,"Free form text description",0],
   ["ctime",0,0,"",False,"",0],
   ["mtime",0,0,"",False,"",0],
@@ -374,15 +375,6 @@ class System(item.Item):
 
     def set_virt_cpus(self,num):
         return utils.set_virt_cpus(self,num)
-
-    def set_virt_host(self,host):
-        return utils.set_virt_host(self,host)
-
-    def set_virt_group(self,group):
-        return utils.set_virt_group(self,group)
-
-    def set_virt_guests(self,guests):
-        return utils.set_virt_guests(self,guests)
 
     def set_virt_file_size(self,num):
         return utils.set_virt_file_size(self,num)
