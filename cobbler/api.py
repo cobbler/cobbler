@@ -629,8 +629,7 @@ class BootAPI:
 
     # ==========================================================================
 
-    def status(self,mode=None,logger=None):
-        self.log("status")
+    def status(self,mode,logger=None):
         statusifier = action_status.BootStatusReport(self._config,mode,logger=logger)
         return statusifier.run()
 

@@ -1361,11 +1361,11 @@ class CobblerXMLRPCInterface:
         """
         return utils.strip_none(data)
 
-    def get_status(self,**rest):
+    def get_status(self,mode="normal",**rest):
         """
         Returns the same information as `cobbler status`
         """
-        return self.api.status()
+        return self.api.status(mode=mode)
 
    ######
    # READ WRITE METHODS BELOW REQUIRE A TOKEN, use login()

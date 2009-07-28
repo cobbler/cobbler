@@ -280,7 +280,7 @@ class BootCLI:
             task_id = self.start_task("reserialize",options)
         elif action_name == "status":
             (options, args) = self.parser.parse_args()
-            task_id = self.start_task("status",options)
+            print self.remote.get_status("text")
         elif action_name == "validateks":
             (options, args) = self.parser.parse_args()
             task_id = self.start_task("validateks",options)
