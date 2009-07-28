@@ -844,7 +844,6 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    elif what == "system":
       __tweak_field(fields, "profile", "choices",   __names_from_dicts(remote.get_profiles()))
       __tweak_field(fields, "image", "choices",     __names_from_dicts(remote.get_images(),optional=True))
-      __tweak_field(fields, "network", "choices",   __names_from_dicts(remote.get_networks(),optional=True))
 
 
    t = get_template('generic_edit.tmpl')
