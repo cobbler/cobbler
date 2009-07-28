@@ -344,6 +344,7 @@ if __name__ == "__main__":
             (wwwcon,            ['web/content/style.css']),
             (wwwcon,            ['web/content/logo-cobbler.png']),
             (modpython,         ['web/content/index.html']),
+            (wwwpath + "/pub",  []),
             (dj_js,             ['web/content/cobbler.js']),
             # FIXME: someday Fedora/EPEL will package these and then we should not embed them then.
             (dj_js,             ['web/content/jquery-1.3.2.js']),
