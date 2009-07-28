@@ -1425,7 +1425,7 @@ def is_remote_file(file):
 def subprocess_call(logger, cmd, shell=True):
     logger.info("running: %s" % cmd)
     try:
-       rc = sub_process.call(cmd, shell=shell, stdout=logger.handle(), stderr=logger.handle())
+       rc = sub_process.call(cmd, shell=shell, stdout=logger.handle(), stderr=logger.handle(), close_fds=True)
     except OSError:
        log_exc(logger)
        if not isinstance(cmd, basestring):
