@@ -178,6 +178,11 @@ class CobblerXMLRPCInterface:
             return self.remote.api.hardlink(logger=self.logger)
         return self.__start_task(runner, token, "hardlink", "Hardlink", options)
 
+    def background_validateks(self, options, token):
+        def runner(self):
+            return self.remote.api.validateks(logger=self.logger)
+        return self.__start_task(runner, token, "validateks", "Kickstart Validation", options)
+
     def background_replicate(self, options, token):
         def runner(self):
             # FIXME: defaults from settings here should come from views, fix in views.py
@@ -1368,10 +1373,9 @@ class CobblerXMLRPCInterface:
         return self.api.status(mode=mode)
 
    ######
-   # READ WRITE METHODS BELOW REQUIRE A TOKEN, use login()
+   # READ WRITE METHODS REQUIRE A TOKEN, use login()
    # TO OBTAIN ONE
    ######
-
 
     def __get_random(self,length):
         urandom = open("/dev/urandom")
@@ -1550,15 +1554,6 @@ class CobblerXMLRPCInterface:
         self._log("sync",token=token)
         self.check_access(token,"sync")
         return self.api.sync()
-
-    def hardlink(self,token):
-        """
-        Hardlink trees and repos to save disk space.  Caution: long
-        running op. Calling via a background task is recommended 
-        """
-        self._log("hardlink",token=token)
-        self.check_access(token,"hardlink")
-        return self.api.hardlink()
 
     def read_or_write_kickstart_template(self,kickstart_file,is_read,new_data,token):
         """
