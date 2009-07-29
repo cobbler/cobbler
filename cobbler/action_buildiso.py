@@ -223,6 +223,26 @@ class BuildIso:
                    else:
                       primary_interface = "eth0"
 
+                   # check if ksdevice entry exists and use that for network info
+
+                   blended = utils.blender(self.api, False, system) # don't collapse
+
+                   if blended["kernel_options"].has_key("ksdevice") and blended["kernel_options"]["ksdevice"] != "":
+                       ksdevice = blended["kernel_options"]["ksdevice"]
+                       self.logger.info(" - ksdevice %s set for system %s" % (ksdevice,system.name))
+
+                       if data.has_key("ip_address_" + ksdevice ) and data["ip_address_" + ksdevice] != "":
+                           primary_interface = ksdevice
+                       else:
+
+                           for (obj_iname, obj_interface) in data['interfaces'].iteritems():
+                               mac = obj_interface["mac_address"].upper()
+                               ksdevice_mac = ksdevice.upper()
+
+                               if mac == ksdevice_mac:
+                                   primary_interface = obj_iname
+
+
                    if data.has_key("ip_address_" + primary_interface) and data["ip_address_" + primary_interface] != "":
                        append_line = append_line + " ip=%s" % data["ip_address_" + primary_interface]
 
