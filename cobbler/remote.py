@@ -787,7 +787,19 @@ class CobblerXMLRPCInterface:
             # FIXME: needs to know about how to delete interfaces too!
             for (k,v) in attributes.iteritems():
                 if not object_type == "system" or not self.__is_interface_field(k):
+
+                    # in place modifications allow for adding a key/value pair while keeping other k/v
+                    # pairs intact.
+                    if k in [ "ks_meta", "kernel_options", "kernel_options_post", "template_files"] and attributes.has_key("in_place"):
+                        details = self.get_item(object_type,object_name)
+                        v2 = details[k]
+                        (ok, input) = utils.input_string_or_hash(v)
+                        for (a,b) in input:
+                           v2[a] = b
+                        v = v2
+
                     self.modify_item(object_type,handle,k,v,token)
+
                 else:
                     self.logger.debug("key for interface: %s = %s" % (k,v))
                     modkey = "%s-%s" % (k, attributes.get("interface","eth0"))
