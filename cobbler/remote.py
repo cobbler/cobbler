@@ -112,7 +112,6 @@ class CobblerXMLRPCInterface:
         self.object_cache = {}
         self.timestamp = self.api.last_modified_time()
         self.events = {}
-        self.next_event_id = 0
         self.shared_secret = utils.get_shared_secret()
         random.seed(time.time())
         self.translator = utils.Translator(keep=string.printable)
@@ -275,9 +274,13 @@ class CobblerXMLRPCInterface:
         else:
            return "?"
 
+    def __generate_event_id(self,optype):
+        t = time.time()
+        (year, month, day, hour, minute, second, weekday, julian, dst) = time.localtime()
+        return "%04d-%02d-%02d_%02d:%02d:%02d_%s" % (year,month,day,hour,minute,second,optype)
+
     def _new_event(self, name):
-        event_id = self.next_event_id
-        self.next_event_id = self.next_event_id + 1
+        event_id = self.__generate_event_id("event")
         event_id = str(event_id)
         self.events[event_id] = [ float(time.time()), str(name), EVENT_INFO, [] ]
 
@@ -293,8 +296,7 @@ class CobblerXMLRPCInterface:
         Returns a task id.
         """
         self.check_access(token, role_name)
-        event_id = self.next_event_id
-        self.next_event_id = self.next_event_id + 1
+        event_id = self.__generate_event_id(role_name) # use short form for logfile suffix
         event_id = str(event_id)
         self.events[event_id] = [ float(time.time()), str(name), EVENT_RUNNING, [] ]
         
