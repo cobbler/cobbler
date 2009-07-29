@@ -162,7 +162,7 @@ def start_install(name=None,
         for iname in interfaces:
             intf = profile_data["interfaces"][iname]
 
-            if intf["bonding"] == "master" or vlanpattern.match(iname):
+            if intf["bonding"] == "master" or vlanpattern.match(iname) or iname.find(":") != -1:
                 continue
 
             mac = intf["mac_address"]
