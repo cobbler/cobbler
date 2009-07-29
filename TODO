@@ -10,4 +10,4 @@
 - Replicate improvements
 - yum SHA knowledge for F12 from older OS (reposync/import)
 - dhcp.conf config path default change for F11 (F12?)
-
+- reinstate reports with formatted output options
