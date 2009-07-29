@@ -151,17 +151,38 @@ class BootCLI:
         object_action = self.get_object_action(object_type, args)
         direct_action = self.get_direct_action(object_type, args) 
 
-        if object_type is not None:
-            if object_action is not None:
-               self.object_command(object_type, object_action)
+        try:
+            if object_type is not None:
+                if object_action is not None:
+                    self.object_command(object_type, object_action)
+                else:
+                    self.print_object_help(object_type)   
+
+            elif direct_action is not None:
+                self.direct_command(direct_action)
+
             else:
-               self.print_object_help(object_type)   
+                self.print_help()
+        except xmlrpclib.Fault, err:
+            if err.faultString.find("cobbler.cexceptions.CX") != -1:
+                print self.cleanup_fault_string(err.faultString)
+            else:
+                print "### ERROR ###"
+                print "Unexpected remote error, check the server side logs for further info"
+                print err.faultString
 
-        elif direct_action is not None:
-            self.direct_command(direct_action)
-
+    def cleanup_fault_string(self,str):
+        """
+        Make a remote exception nicely readable by humans so it's not evident that is a remote
+        fault.  Users should not have to understand tracebacks.
+        """
+        if str.find(">:\"") != -1:
+            (first, rest) = str.split(">:\"",1)
+            if rest.endswith("\""):
+                rest = rest[:-1]
+            return rest
         else:
-            self.print_help()
+            return str
 
     def get_fields(self, object_type):
         """
