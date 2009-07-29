@@ -794,7 +794,7 @@ class CobblerXMLRPCInterface:
                         details = self.get_item(object_type,object_name)
                         v2 = details[k]
                         (ok, input) = utils.input_string_or_hash(v)
-                        for (a,b) in input:
+                        for (a,b) in input.iteritems():
                            v2[a] = b
                         v = v2
 
