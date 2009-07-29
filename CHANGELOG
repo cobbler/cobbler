@@ -2,23 +2,18 @@ Cobbler CHANGELOG
 
 - TBD 2009 - for 2.0 release
 - Development release start
-- (FEAT) network objects
 - (FEAT) add two new default flags to yum reposync (-m and -d) for grabbing comps automatically and also deleting duplicate RPMs
 - (FEAT) ongoing work contributed to improve Debian and Ubuntu support (import+pkg)
-- (FEAT) ability to toggle virt auto-boot on/off
 - (BUGF) validate gateway input against python-netaddr
 - (FEAT) --kopts="~foo" --in-place can be used to delete a hash entry without affecting the others, not to be confused with "!foo" to supress it.
 - (BUGF) fixes to "cobbler report" (not cobbler ___ report)
-- (BUGF) debian import changes
-- (FEAT) web app moving to Django
-- (FEAT) deployment APIs and command (SSH+Func+TBD)
+- (FEAT) web app moves to Django
 - (FEAT) koan: Support for virt-autoboot feature (Xen only at this point, needs fixing)
 - (FEAT) koan: use private address range for random MACs
 - (FEAT) yum createrepo flags are now tweakable in settings
 - (FEAT) new snippet for RHN Hosted: keep RHN keys between reinstalls
 - (FEAT) allow per_distro snippets in addition to per_profile/per_system
 - (BUGF) don't add port number to http_server if it's 80.
-- (FEAT) replicate is now mtime aware
 - (FEAT) support F11 fence-agent paths
 - (FEAT) bringing back the koan live CD
 - (FEAT) koan live CD can go interactive if no profile is specified and system autodiscovery fails
@@ -27,6 +22,11 @@ Cobbler CHANGELOG
 - (FEAT) keep_ssh_host_keys gets F11+RAID support
 - (FEAT) per-task logging
 - (BUGF) validateks checkes /every/ kickstart, as different variables may be present
+- (FEAT) CLI now speaks XMLRPC (faster)
+- (FEAT) task engine for webapp
+- (FEAT) background APIs for all actions
+- (FEAT) look at ksdevice when building buildiso CDs to add the proper network lines
+- (FEAT) WIP:  replicate is now mtime aware
 
 - - 1.6.9
 - (FEAT/cobbler) cobbler can now pass the virtio26 os version to virtinst, so virtio drivers can be used for RHEL5
