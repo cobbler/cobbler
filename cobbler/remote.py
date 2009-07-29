@@ -218,7 +218,6 @@ class CobblerXMLRPCInterface:
             repos = options.get("repos", [])
             if repos != "":
                 for name in repos:
-                    self.logger.debug("reposync for: %s" % name)
                     self.remote.api.reposync(tries=self.options.get("tries",3), name=name, nofail=True, logger=self.logger)
                 else:
                     self.remote.api.reposync(tries=self.options.get("tries",3), name=None, nofail=False, logger=self.logger)
@@ -228,7 +227,6 @@ class CobblerXMLRPCInterface:
     def background_power_system(self, options, token):
         def runner(self):
             for x in self.options.get("systems",[]):
-                self.logger.debug("performing power actions for system %s" % x)
                 object_id = self.remote.get_system_handle(x,token)
                 self.remote.power_system(object_id,self.options.get("power",""),token,logger=self.logger)
             return True
@@ -747,7 +745,6 @@ class CobblerXMLRPCInterface:
     def __is_interface_field(self,f):
         k = "*%s" % f
         for x in item_system.FIELDS:
-           self.logger.debug("considering field: %s" % f)
            if k == x[0]:
               return True
         return False
@@ -762,7 +759,16 @@ class CobblerXMLRPCInterface:
         Ex: xapi_object_edit("distro","el5","new",{"kernel":"/tmp/foo","initrd":"/tmp/foo"},token)
         """
         self.check_access(token,"xedit_%s" % object_type, token)
-        self.logger.debug(attributes)
+
+        if edit_type == "add" and not attributes.has_key("clobber"):
+            handle = 0
+            try:
+                handle = self.get_item_handle(object_type, object_name)
+            except:
+                utils.log_exc(self.logger)
+                pass
+            if handle != 0:
+                raise CX("it seems unwise to overwrite this object, try 'edit'")
 
         if edit_type == "add":
             handle = self.new_item(object_type, token) 
@@ -801,7 +807,6 @@ class CobblerXMLRPCInterface:
                     self.modify_item(object_type,handle,k,v,token)
 
                 else:
-                    self.logger.debug("key for interface: %s = %s" % (k,v))
                     modkey = "%s-%s" % (k, attributes.get("interface","eth0"))
                     imods[modkey] = v
             if object_type == "system" and not attributes.has_key("delete_interface"):
