@@ -193,8 +193,8 @@ def get_fields(what, is_subobject, seed_item=None):
         else:
             elem["html_element"] = "text"
 
-        elem["css_class"] = field_info.CSS_MAPPINGS.get(name, "genericedit")
-        
+        elem["block_section"] = field_info.BLOCK_MAPPINGS.get(name, "General")
+ 
         # flatten lists for those that aren't using select boxes
         if type(elem["value"]) == type([]):
             if elem["html_element"] != "select":

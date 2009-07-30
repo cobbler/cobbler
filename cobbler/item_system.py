@@ -38,10 +38,9 @@ FIELDS = [
   ["kernel_options_post",{},0,"Post Install Kernel Options",False,"Ex: clocksource=pit noapic",0],
   ["ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86",0],
   ["netboot_enabled",True,0,"Netboot Enabled",True,"PXE (re)install this machine at next boot?",0],
-  ["depth",2,0,"",False,"",0],
-  ["mgmt_classes",[],0,"Management Classes",True,"For external config management",0],
-  ["template_files",{},0,"Template Files",True,"File mappings for built-in configuration management",0],
   ["kickstart","<<inherit>>",0,"Kickstart",True,"Path to kickstart template",0],
+  ["comment","",0,"Comment",True,"Free form text description",0],
+  ["depth",2,0,"",False,"",0],
   ["server","<<inherit>>",0,"Server Override",True,"See manpage or leave blank",0],
   ["virt_path","<<inherit>>",0,"Virt Path",True,"Ex: /directory or VolGroup00",0],
   ["virt_type","<<inherit>>",0,"Virt Type",True,"Virtualization technology to use",["xenpv","xenfv","qemu","vmware"]],
@@ -53,7 +52,6 @@ FIELDS = [
 #  ["virt_host","",0,"Virt Host",True,"What physical host was this VM installed on?",0],
 #  ["virt_group","",0,"Virt Group",True,"To what physical group does this host belong?",0],
 #  ["virt_guests",[],0,"Virt Guests",True,"What virtual guests does this host host?",0],
-  ["comment","",0,"Comment",True,"Free form text description",0],
   ["ctime",0,0,"",False,"",0],
   ["mtime",0,0,"",False,"",0],
   ["power_type","SETTINGS:power_management_default_type",0,"Power Management Type",True,"",utils.get_power_types()],
@@ -65,8 +63,6 @@ FIELDS = [
   ["gateway","",0,"Gateway",True,"",0],
   ["name_servers",[],0,"Name Servers",True,"space delimited",0],
   ["name_servers_search",[],0,"Name Servers Search Path",True,"space delimited",0],
-  ["redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Satellite, or Spacewalk",0],
-  ["redhat_management_server","<<inherit>>",0,"Red Hat Management Server",True,"Address of Satellite or Spacewalk Server",0],
   ["network_widget_a","",0,"Add Interface",True,"",0], # not a real field, a marker for the web app
   ["network_widget_b","",0,"Edit Interface",True,"",0], # not a real field, a marker for the web app
   ["*mac_address","",0,"MAC Address",True,"",0],
@@ -80,6 +76,10 @@ FIELDS = [
   ["*dns_name","",0,"DNS Name",True,"",0],
   ["*static_routes",[],0,"Static Routes",True,"",0],
   ["*virt_bridge","",0,"Virt Bridge",True,"",0],
+  ["mgmt_classes",[],0,"Management Classes",True,"For external config management",0],
+  ["template_files",{},0,"Template Files",True,"File mappings for built-in configuration management",0],
+  ["redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Satellite, or Spacewalk",0],
+  ["redhat_management_server","<<inherit>>",0,"Red Hat Management Server",True,"Address of Satellite or Spacewalk Server",0],
 ]
 
 class System(item.Item):

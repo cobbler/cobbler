@@ -58,6 +58,8 @@ USES_CHECKBOX = [
    "*netboot_enabled",
    "netboot_enabled",
    "*static"
+   "keep_updated",
+   "mirror_locally"
 ]
 
 # select killed the radio button
@@ -69,49 +71,63 @@ USES_RADIO = [
 # this is the map of what color to color code each field type.
 # it may also be used to expand/collapse certain web elements as a set.
 
-CSS_MAPPINGS = {
-   "virt_ram"        : "virtedit",
-   "virt_disk"       : "virtedit",
-   "virt_cpus"       : "virtedit",
-   "virt_bridge"     : "virtedit",
-   "virt_path"       : "virtedit",
-   "virt_file_size"  : "virtedit",
-   "virt_type"       : "virtedit",
-   "virt_auto_boot"  : "virtedit",
-   "virt_host"       : "virtedit",
-   "virt_group"      : "virtedit",
-   "virt_guests"     : "virtedit",
-   "*virt_ram"       : "virtedit",
-   "*virt_disk"      : "virtedit",
-   "*virt_path"      : "virtedit",
-   "*virt_cpus"      : "virtedit",
-   "*virt_bridge"    : "netedit",
-   "*virt_type"      : "virtedit",
-   "*virt_file_size" : "virtedit",
-   "*virt_auto_boot" : "virtedit",
-   "power_id"        : "poweredit",
-   "power_address"   : "poweredit",
-   "power_user"      : "poweredit",
-   "power_pass"      : "poweredit",
-   "power_type"      : "poweredit",
-   "address"         : "netedit", # from network
-   "cidr"            : "netedit", # ditto
-   "broadcast"       : "netedit", # ..
-   "reserved"        : "netedit", # ..
-   "*mac_address"    : "netedit",
-   "*ip_address"     : "netedit",
-   "*dhcp_tag"       : "netedit",
-   "*static"         : "netedit",
-   "*bonding"        : "netedit",
-   "*bonding_opts"   : "netedit",
-   "*bonding_master" : "netedit",
-   "*dns_name"       : "netedit",
-   "*static_routes"  : "netedit",
-   "*subnet"         : "netedit",
-   "hostname"        : "netedit",
-   "gateway"         : "netedit",
-   "name_servers"         : "netedit",
-   "name_servers_search"  : "netedit"
+BLOCK_MAPPINGS = {
+   "virt_ram"        : "Virtualization",
+   "virt_disk"       : "Virtualization",
+   "virt_cpus"       : "Virtualization",
+   "virt_bridge"     : "Virtualization",
+   "virt_path"       : "Virtualization",
+   "virt_file_size"  : "Virtualization",
+   "virt_type"       : "Virtualization",
+   "virt_auto_boot"  : "Virtualization",
+   "virt_host"       : "Virtualization",
+   "virt_group"      : "Virtualization",
+   "virt_guests"     : "Virtualization",
+   "*virt_ram"       : "Virtualization",
+   "*virt_disk"      : "Virtualization",
+   "*virt_path"      : "Virtualization",
+   "*virt_cpus"      : "Virtualization",
+   "*virt_bridge"    : "Networking",
+   "*virt_type"      : "Virtualization",
+   "*virt_file_size" : "Virtualization",
+   "*virt_auto_boot" : "Virtualization",
+   "power_id"        : "Power",
+   "power_address"   : "Power",
+   "power_user"      : "Power",
+   "power_pass"      : "Power",
+   "power_type"      : "Power",
+   "address"         : "Networking", # from network
+   "cidr"            : "Networking", # ditto
+   "broadcast"       : "Networking", # ..
+   "reserved"        : "Networking", # ..
+   "*mac_address"    : "Networking",
+   "*ip_address"     : "Networking",
+   "*dhcp_tag"       : "Networking",
+   "*static"         : "Networking",
+   "*bonding"        : "Networking",
+   "*bonding_opts"   : "Networking",
+   "*bonding_master" : "Networking",
+   "*dns_name"       : "Networking",
+   "*static_routes"  : "Networking",
+   "*subnet"         : "Networking",
+   "hostname"        : "Networking (Global)",
+   "gateway"         : "Networking (Global)",
+   "name_servers"         : "Networking (Global)",
+   "name_servers_search"  : "Networking (Global)",
+   "repos"                : "General",
+   "dhcp_tag"             : "Advanced",
+   "mgmt_classes"   : "Management",
+   "template_files"       : "Management",
+   "network_widget_a"     : "Networking",
+   "network_widget_b"     : "Networking",
+   "server"      : "Advanced",
+   "redhat_management_key"  : "Management",
+   "redhat_management_server" : "Management",
+   "createrepo_flags"         : "Advanced",
+   "environment"              : "Advanced",
+   "mirror_locally"           : "Advanced",
+   "priority"                 : "Advanced",
+   "yumopts"                  : "Advanced"
 }
    
 # Certain legacy fields need to have different CLI options than the direct translation of their

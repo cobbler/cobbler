@@ -107,11 +107,11 @@ FIELDS = [
    [ "breed",'redhat',0,"Breed",True,"What is the type of distribution?",codes.VALID_OS_BREEDS],
    [ "os_version","generic26",0,"OS Version",True,"Needed for some virtualization optimizations",codes.get_all_os_versions()],
    [ "source_repos",[],0,"Source Repos", False,"",0],
-   [ "mgmt_classes",[],0,"Management Classes",True,"Management classes for external config management",0],
    [ "depth",0,0,"Depth",False,"",0],
-   [ "template_files",{},0,"Template Files",True,"File mappings for built-in config management",0],
    [ "comment","",0,"Comment",True,"Free form text description",0],
    [ "tree_build_time",0,0,"Tree Build Time",False,"",0],
+   [ "mgmt_classes",[],0,"Management Classes",True,"Management classes for external config management",0],
+   [ "template_files",{},0,"Template Files",True,"File mappings for built-in config management",0],
    [ "redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Spacewalk, or Satellite",0],
    [ "redhat_management_server", "<<inherit>>",0,"Red Hat Management Server",True,"Address of Spacewalk or Satellite Server"
 ,0]

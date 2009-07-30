@@ -336,6 +336,19 @@ function page_onload() {
 </script>
 {% endifequal %}
 
+<script type="text/javascript">
+$(document).ready(function()
+{
+  //hide the all of the element with class msg_body
+  $(".msg_body").hide();
+  document.getElementById("block_General").style.display = "block";
+  //toggle the componenet with class msg_body
+  $(".msg_head").click(function()
+  {
+    $(this).next(".msg_body").slideToggle(600);
+  });
+});
+</script>
 
 <div class="section_caption">{% ifequal editmode 'edit'  %}Editing{% else %}Adding{% endifequal %} a {{ what|capfirst }}</div>
 
@@ -346,11 +359,21 @@ function page_onload() {
     <input type="hidden" name="editmode" value="{{ editmode }}"/>
     <input type="hidden" name="subobject" value="{{ subobject }}"/>
 
-    <table border=0>
+ 
+    <div class="">
+    <table border=0 width=0 height=0>
 
     {% for item in fields %}
 
-        <tr id="{{ item.name }}_row" class="{{ item.css_class }}">
+        {% ifchanged item.block_section %}
+            </table>
+            </div>
+            <p class="msg_head">{{ item.block_section }}</p>
+            <div class="msg_body" id="block_{{ item.block_section }}">
+            <table border=0>
+        {% endifchanged %}
+
+        <tr id="{{ item.name }}_row" class="editrow">
 
             {% ifequal item.html_element "widget" %}
 
@@ -423,6 +446,8 @@ function page_onload() {
         </tr>
 
     {% endfor %}
+    </table>
+    </div>
 
     {% ifequal what "system" %}
         <input type="hidden" id="interface_list" name="interface_list" value="1"/>
@@ -431,6 +456,8 @@ function page_onload() {
     {% endifequal %}
 
     {% if editable %}
+
+    <table border=0>
     <tr>
     <td>
     </td>
@@ -442,6 +469,10 @@ function page_onload() {
     {% endif %}
 
 </table>
+
+    </div>
+    </div>
+
 </fieldset>
 </form>
 {% endblock content %}

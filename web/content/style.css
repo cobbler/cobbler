@@ -121,18 +121,6 @@ div#content {
   padding: 20px 45px;
 }
 
-tr.virtedit {
-  background-color: #882121;
-}
-
-tr.poweredit {
-  background-color: #218821;
-}
-
-tr.netedit {
-  background-color: #212188;
-}
-
 div#content h1 {
   font-size: x-large;
   font-weight: normal;
@@ -246,3 +234,19 @@ table.sortable th {
     white-space: nowrap;
 }
 
+.msg_list {
+    margin: 0px;
+    padding: 0px;
+    width: 383px;
+}
+.msg_head {
+    padding: 5px 10px;
+    cursor: pointer;
+    position: relative;
+    color: #212121;
+    background-color: #C88800;
+    margin:1px;
+}
+.msg_body {
+    padding: 5px 10px 15px;
+}
