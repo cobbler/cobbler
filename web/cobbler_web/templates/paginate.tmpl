@@ -19,8 +19,11 @@ function add_filter() {
 </script>
 
 <br/>
-<span class="nav_label">Filters:</font>
-<div id="nav_filter">
+</div>
+
+<center><p class="navblock_head">Filters & Paging</p></center>
+<div class="navblock_body" id="block_nav_filters">
+
 <table>
 
 <tr id="filter-adder">
@@ -169,15 +172,6 @@ function add_filter() {
 
 </td>
 </tr>
-</table>
-
-</div>
-
-<br/> 
-
-<span class="nav_label">Page:</span>
-<div id="nav_page">
-<table>
 <tr>
 <td>
 Items/page: <select name="limit" id="limit" onchange="javascript:location='/cobbler_web/{{ what }}/modifylist/limit/'+this.value">

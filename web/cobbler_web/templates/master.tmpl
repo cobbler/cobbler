@@ -9,7 +9,21 @@
     <script src="/cobbler_webui_content/cobbler.js" type="text/javascript"></script> 
     <link rel="stylesheet" type="text/css" media="all" href="/cobbler_webui_content/style.css" />
     <link rel="stylesheet" type="text/css" media="all" href="/cobbler_webui_content/jsGrowl.css" />
+
+<script type="text/javascript">
+$(document).ready(function()
+{
+  $(".navblock_head").click(function()
+  {
+    $(this).next(".navblock_body").slideToggle(600);
+  });
+});
+</script>
+
+
 </head>
+
+
 
 <body onload="go_go_gadget()">
 <div id="main">
@@ -21,8 +35,12 @@
 <div id="sidebar">
     <a href="/cobbler_web/"><img alt="Cobbler Logo" width="185" src="/cobbler_webui_content/logo-cobbler.png"/></a>
     <br/>
-    <span class="nav_label">Configuration:</span>
-    <div id="nav_object">
+
+    <div class="navblock_list">
+
+    <center><p class="navblock_head">Configuration</p></center>
+    <div class="navblock_body" id="block_nav_configuration">
+
     <table>
     <tr>
         <td><a href="/cobbler_web/settings" class="menu">Settings</a></td>
@@ -69,8 +87,9 @@
 
     <br/>
 
-    <span class="nav_label">Global Actions:</span>
-    <div id="nav_action">
+    <center><p class="navblock_head">Actions</p></center>
+    <div class="navblock_body" id="block_nav_actopms">
+
     <table>
     <tr>
         <td><a href="/cobbler_web/import/prompt">Import DVD ...</a>
@@ -91,11 +110,13 @@
         <td><a href="/cobbler_web/buildiso">-&gt; Build ISO</a>
     </tr>
     </table>
-    </div>
 
 {% include "paginate.tmpl" %}
 
 </div>
+</div>
+</div>
+
 </TD>
 <TD>
 
