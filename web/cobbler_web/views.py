@@ -444,10 +444,10 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
         power = multi_arg
         if power is None:
             return error_page(request,"Cannot modify systems without specifying power option")
-        options = { "names" : names, "power" : power }
+        options = { "systems" : names, "power" : power }
         remote.background_power_system(options, token)
     elif what == "profile" and multi_mode == "reposync":
-        options = { "names" : names, "tries" : 3 }
+        options = { "repos" : names, "tries" : 3 }
         remote.background_reposync(options,token)
     else:
         return error_page(request,"Unknown batch operation on %ss: %s" % (what,str(multi_mode)))

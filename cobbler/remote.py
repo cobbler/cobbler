@@ -230,7 +230,7 @@ class CobblerXMLRPCInterface:
                 self.remote.power_system(object_id,self.options.get("power",""),token,logger=self.logger)
             return True
         self.check_access(token, "power")
-        return self.__start_task(runner, token, "power", "Power management (%s)" % self.options.get("power",""), options)
+        return self.__start_task(runner, token, "power", "Power management (%s)" % options.get("power",""), options)
 
     def get_events(self, for_user=""):
         """

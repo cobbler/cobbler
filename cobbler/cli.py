@@ -39,7 +39,7 @@ import item_image
 OBJECT_ACTIONS   = {
    "distro"  : "add copy edit find list remove rename report".split(" "),
    "profile" : "add copy dumpvars edit find getks list remove rename report".split(" "),
-   "system"  : "add copy dumpvars edit find getks list remove rename report".split(" "),
+   "system"  : "add copy dumpvars edit find getks list remove rename report poweron poweroff reboot".split(" "),
    "image"   : "add copy edit find list remove rename report".split(" "),
    "repo"    : "add copy edit find list remove rename report".split(" ")
 } 
@@ -204,8 +204,10 @@ class BootCLI:
         """
         Process object-based commands such as "distro add" or "profile rename"
         """
+        task_id = -1 # if assigned, we must tail the logfile
+        
         fields = self.get_fields(object_type)
-        if object_action not in [ "report", "getks", "dumpvars", "remove" ]:
+        if object_action in [ "add", "edit", "copy", "rename", "find" ]:
             utils.add_options_from_fields(object_type, self.parser, fields, object_action)
         elif object_action in [ "list" ]:
             pass
@@ -231,6 +233,11 @@ class BootCLI:
                 data = self.remote.get_blended_data("",options.name)
             # FIXME: pretty-printing and sorting here
             print data
+        elif object_action in [ "poweron", "poweroff", "reboot" ]:
+            power={}
+            power["power"] = object_action.replace("power","")
+            power["systems"] = [options.name]
+            task_id = self.remote.background_power_system(power, self.token)
         elif object_action == "report":
             if options.name is not None:
                 report_item(self.remote,object_type,None,options.name)
@@ -244,7 +251,13 @@ class BootCLI:
                 print item
         else:
             raise exceptions.NotImplementedError() 
-        
+            
+        # FIXME: add tail/polling code here
+        if task_id != -1:
+            self.print_task(task_id)
+            self.follow_task(task_id)
+                                                
+        return True
 
     # BOOKMARK
     def direct_command(self, action_name):
@@ -382,16 +395,20 @@ class BootCLI:
 
         # FIXME: add tail/polling code here
         if task_id != -1:
-            print "task started: %s" % task_id
-            events = self.remote.get_events()
-            (etime, name, status, who_viewed) = events[task_id]
-            atime = time.asctime(time.localtime(etime))
-            print "task started (id=%s, time=%s)" % (name, atime)
+            self.print_task(task_id) 
             self.follow_task(task_id) 
 
         return True
 
 
+    def print_task(self, task_id):
+        print "task started: %s" % task_id
+        events = self.remote.get_events()
+        (etime, name, status, who_viewed) = events[task_id]
+        atime = time.asctime(time.localtime(etime))
+        print "task started (id=%s, time=%s)" % (name, atime)
+
+    
     def follow_task(self, task_id):
         logfile = "/var/log/cobbler/tasks/%s.log" % task_id
         # adapted from:  http://code.activestate.com/recipes/157035/        

@@ -67,20 +67,6 @@ class PowerTool:
         interested in maximum security should take that route.
         """
 
-        if self.system.virt_host != '' and func_utils.HAZFUNC:
-            try:
-                client = func_utils.func.Client(self.system.virt_host)
-                if desired_state == 'on':
-                    rc = client.virt.create(self.system.hostname)[self.system.virt_host]
-                else:
-                    rc = client.virt.destroy(self.system.hostname)[self.system.virt_host]
-                if rc != 0:
-                    self.logger.info("virt rc=%s" % rc[2])
-                else:
-                    return rc
-            except func_utils.Func_Client_Exception:
-                pass
-
         template = self.get_command_template()
         template_file = open(template, "r")
 
