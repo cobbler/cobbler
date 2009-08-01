@@ -223,12 +223,10 @@ pre.config_data {
     min-height: 480px;
 }
 
-br {
-    clear: both;
-}
+br { clear: both; }
 
-tr.rowodd  { background-color: #BBB8A8; }
-tr.roweven { background-color: #A19E91; }
+tr.rowodd  { background-color: #DFE7EF; }
+tr.roweven { background-color: #DFE7ED; }
 
 table.sortable th {
     background-color: #306CAC;
