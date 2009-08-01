@@ -18,7 +18,6 @@ import cobbler.item_profile as item_profile
 import cobbler.item_system  as item_system
 import cobbler.item_repo    as item_repo
 import cobbler.item_image   as item_image
-import cobbler.item_network as item_network
 import cobbler.field_info   as field_info
 
 my_uri = "http://127.0.0.1/cobbler_api"
@@ -112,8 +111,6 @@ def get_fields(what, is_subobject, seed_item=None):
        field_data = item_repo.FIELDS
     if what == "image":
        field_data =  item_image.FIELDS
-    if what == "network":
-       field_data = item_network.FIELDS
 
     settings = remote.get_settings()
   
