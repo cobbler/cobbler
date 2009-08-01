@@ -7,7 +7,7 @@ Name: cobbler
 License: GPLv2+
 AutoReq: no
 Version: 1.7.0
-Release: 1%{?dist}
+Release: 3%{?dist}
 Source0: cobbler-%{version}.tar.gz
 Group: Applications/System
 
@@ -96,40 +96,47 @@ PREFIX="--prefix=/usr"
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
 
 %post
-
-# backup config
-if [ -e /var/lib/cobbler/distros ]; then
-    cp /var/lib/cobbler/distros*  /var/lib/cobbler/backup 2>/dev/null
-    cp /var/lib/cobbler/profiles* /var/lib/cobbler/backup 2>/dev/null
-    cp /var/lib/cobbler/systems*  /var/lib/cobbler/backup 2>/dev/null
-    cp /var/lib/cobbler/repos*    /var/lib/cobbler/backup 2>/dev/null
-    cp /var/lib/cobbler/networks* /var/lib/cobbler/backup 2>/dev/null
+if [ "$1" = "1" ];
+then
+    # This happens upon initial install. Upgrades will follow the next else
+    /sbin/chkconfig --add cobblerd
+elif [ "$1" = "2" ];
+then
+    echo -n "UPGRADING.."
+    # backup config
+    if [ -e /var/lib/cobbler/distros ]; then
+        cp /var/lib/cobbler/distros*  /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/profiles* /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/systems*  /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/repos*    /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/networks* /var/lib/cobbler/backup 2>/dev/null
+    fi
+    if [ -e /var/lib/cobbler/config ]; then
+        cp -a /var/lib/cobbler/config    /var/lib/cobbler/backup 2>/dev/null
+    fi
+    # upgrade older installs
+    # move power and pxe-templates from /etc/cobbler, backup new templates to *.rpmnew
+    for n in power pxe; do
+      rm -f /etc/cobbler/$n*.rpmnew
+      find /etc/cobbler -maxdepth 1 -name "$n*" -type f | while read f; do
+        newf=/etc/cobbler/$n/`basename $f`
+        [ -e $newf ] &&  mv $newf $newf.rpmnew
+        mv $f $newf
+      done
+    done
+    # upgrade older installs
+    # copy kickstarts from /etc/cobbler to /var/lib/cobbler/kickstarts
+    rm -f /etc/cobbler/*.ks.rpmnew
+    find /etc/cobbler -maxdepth 1 -name "*.ks" -type f | while read f; do
+      newf=/var/lib/cobbler/kickstarts/`basename $f`
+      [ -e $newf ] &&  mv $newf $newf.rpmnew
+      cp $f $newf
+    done
+    # reserialize and restart
+    /usr/bin/cobbler reserialize
+    /sbin/service cobblerd condrestart
+    echo " DONE."
 fi
-if [ -e /var/lib/cobbler/config ]; then
-    cp -a /var/lib/cobbler/config    /var/lib/cobbler/backup 2>/dev/null
-fi
-# upgrade older installs
-# move power and pxe-templates from /etc/cobbler, backup new templates to *.rpmnew
-for n in power pxe; do
-  rm -f /etc/cobbler/$n*.rpmnew
-  find /etc/cobbler -maxdepth 1 -name "$n*" -type f | while read f; do
-    newf=/etc/cobbler/$n/`basename $f`
-    [ -e $newf ] &&  mv $newf $newf.rpmnew
-    mv $f $newf
-  done
-done
-# upgrade older installs
-# copy kickstarts from /etc/cobbler to /var/lib/cobbler/kickstarts
-rm -f /etc/cobbler/*.ks.rpmnew
-find /etc/cobbler -maxdepth 1 -name "*.ks" -type f | while read f; do
-  newf=/var/lib/cobbler/kickstarts/`basename $f`
-  [ -e $newf ] &&  mv $newf $newf.rpmnew
-  cp $f $newf
-done
-# reserialize and restart
-/usr/bin/cobbler reserialize
-/sbin/chkconfig --add cobblerd
-/sbin/service cobblerd condrestart
 
 %preun
 if [ $1 = 0 ]; then
@@ -291,7 +298,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 Summary: Helper tool that performs cobbler orders on remote machines.
 Version: 1.7.0
-Release: 1%{?dist}
+Release: 3%{?dist}
 Group: Applications/System
 Requires: mkinitrd
 Requires: python >= 1.5
@@ -338,7 +345,7 @@ of an existing system.  For use with a boot-server configured with Cobbler
 
 Summary: Web interface for Cobbler
 Version: 1.7.0
-Release: 1%{?dist}
+Release: 3%{?dist}
 Group: Applications/System
 Requires: cobbler
 Requires: Django
