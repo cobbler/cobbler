@@ -1,34 +1,27 @@
 {% if pageinfo %}
 
-<script language="Javascript">
+  <script language="Javascript">
 
-function add_filter() {
+  function add_filter() {
 
-   field_name = document.getElementById("filter_field");
-   field_value = document.getElementById("filter_value");
+     field_name = document.getElementById("filter_field");
+     field_value = document.getElementById("filter_value");
 
-   if (field_name.value == "") {
-      alert("You must select a field to filter on.");
-   } else if (field_value.value == "") {
-      alert("You must select a filter value.");
-   } else {
-      location = '/cobbler_web/{{ what }}/modifylist/addfilter/'+field_name.value+':'+field_value.value;
-   }
+     if (field_name.value == "") {
+        alert("You must select a field to filter on.");
+     } else if (field_value.value == "") {
+        alert("You must select a filter value.");
+     } else {
+        location = '/cobbler_web/{{ what }}/modifylist/addfilter/'+field_name.value+':'+field_value.value;
+     }
 
-}
-</script>
+  }
+  </script>
+  <h3>Filters & Paging</h3>
+  <table>
 
-<br/>
-</div>
-
-<center><p class="navblock_head">Filters & Paging</p></center>
-<div class="navblock_body" id="block_nav_filters">
-
-<table>
-
-<tr id="filter-adder">
-<td>
-<select id="filter_field" name="filter_field" style="width:50px" width="50">
+<ul id="filter-adder">
+<li style="float: left"><select id="filter_field" name="filter_field" style="width:50px" width="50">
    <option value="">[?]</option>
    <option value="name">name</option>
    {% ifequal what "distro" %}
@@ -156,7 +149,8 @@ function add_filter() {
    <option value="name_servers">name servers</option>
    <option value="owners">owners</option>
    {% endifequal %}
-</select>&nbsp;<input type="text" name="filter_value" id="filter_value" size="10"  onkeypress="javascript:if (event.keyCode == 13) add_filter();"/>
+</select></li>
+<li style="float: left"><input type="text" name="filter_value" id="filter_value" size="10"  onkeypress="javascript:if (event.keyCode == 13) add_filter();"/></li>
 
 <tr id="filter-remover">
 <td>
@@ -213,7 +207,6 @@ Items/page: <select name="limit" id="limit" onchange="javascript:location='/cobb
 </tr>
 
 </table>
-</div>
 
 {% endif %}
 

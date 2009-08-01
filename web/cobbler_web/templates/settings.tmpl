@@ -1,11 +1,7 @@
 {% extends "master.tmpl" %}
 
 {% block content %}
-
-<span class="section_caption">Settings (Read Only)</span>
-<br/>
-<br/>
-
+<h3>Settings (Read Only)</h3>
 <table class="sortable">
     <thead>
         <tr>
@@ -32,5 +28,4 @@
 <br/>
 These settings live in /etc/cobbler/settings on the server.<br/>
 After making changes, run "cobbler sync" and restart cobblerd.
-
 {% endblock %}

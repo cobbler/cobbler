@@ -1,7 +1,17 @@
+body, html {
+  font-family: "URW Gothic", "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", sans-serif;
+  background-color: #D9D8D2;
+  color: #3E4547;
+  font-size: .9em;
+}
+
+h3 { color: #306CAC; }
+
 .button {
   border: 1px solid #d0d0d0;
   -moz-border-radius: 6px;
-  background-color: #717171;
+  -webkit-border-radius: 6px;
+  background-color: #BBB595;
   padding: 2px 16px;
   padding-left: 32px;
   background-position: 15%;
@@ -15,10 +25,6 @@ a.button, a.button:link, a.button:visited, a.button:active {
   font-family: sans-serif;
 }
 
-body, html {
-  background-color: #212121;
-}
-
 td {
   text-align: left;
   vertical-align: top;
@@ -28,34 +34,23 @@ th {
   text-align: left;
 }
 
-body {
-  /* min-width: 750px; */
-}
-
 img {
   border: none;
 }
 
-body, ul, li, p, h1, h2, h3 {
+p, h1, {
   font-family: "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", sans-serif;
-  color: white;
+  color: #59574B;
 }
-
-/* 
-ul {
-  list-style-type: square;
-}
-*/
 
 fieldset {
   border: 0;
 }
 
 #sidebar {
-  height: auto;
-  width: 185px;
+  width: 200px;
   float: left;
-  margin-left: 24px;
+  margin-left: 12px;
 }
 
 span.nav_label {
@@ -88,7 +83,6 @@ ul#nav {
   text-transform: uppercase;
   letter-spacing: -.05em;
   list-style-type: none;
-  font-family: "URW Gothic", "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", sans-serif;
 }
 
 ul#nav li a {
@@ -108,12 +102,15 @@ ul#navaction li a {
 }
 
 div#main {
-  overflow: auto;
-  padding: 20px 0px;
+  padding: 10px 0px;
 }
 
+div#container { width: 100%; overflow: hidden; }
+
+div#jsGrowl { float: left; padding-left: 20px;}
+
 div#content {
-  /* float: left; */
+  float: left;
   padding: 20px 45px;
 }
 
@@ -138,21 +135,30 @@ div#content p {
 }
 
 a:link {
-  color: #C88800;
+  color: #50595C;
+  text-decoration: none;
+  display: block;
 }
 
 a:hover {
   color: white;
+  text-decoration: underline;
 }
 
 a:visited {
-  color: #99d9e8;
+  color: #50595C;
+  text-decoration: none;
 }
 
+li { list-style-position: outside; list-style-type: none; padding: 3px; display: block;}
+ul { padding: 0px; margin: 0;}
+ol { padding: 0px; margin: 0;}
 #content p.metadata {
   font-size: x-small;
-  color: white;
+  color: #59574B;
 }
+
+#templates_edit { padding-left: 15px; }
 
 dt {
   font-weight: 900;
@@ -221,11 +227,12 @@ br {
     clear: both;
 }
 
-tr.rowodd  { background-color: #212121; }
-tr.roweven { background-color: #3f3d3d; }
+tr.rowodd  { background-color: #BBB8A8; }
+tr.roweven { background-color: #A19E91; }
 
 table.sortable th {
-    background-color: #363a4e;
+    background-color: #306CAC;
+    color: #D9D8D2;
     margin: 0;
     white-space: nowrap;
 }
