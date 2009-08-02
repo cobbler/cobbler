@@ -100,14 +100,21 @@ ul#navaction li a {
   color: #C8C800;
   text-decoration: none;
 }
+/* imeyer css additions in here */
+div#float { float: left; }
+li#clear { clear: both; }
+label.form_input { width: 60px; display: block; float: left; line-height: 1.8; font-weight: bold;}
+legend { color: #306CAC; font-size: 1.2em; font-weight: bold; }
+tr.rowodd  { background-color: #BBB8A8; }
+tr.roweven { background-color: #A19E91; }
+p { font-weight: bold; font-size: 0.8em; padding: 2px; margin-left: 30px; border: 1px solid #999; background-color: #EEE;}
+div#jsGrowl { float: left; padding-left: 20px; width: 750px;}
+span.example { font-size: 0.9em; }
+/* end imeyer css */
 
-div#main {
-  padding: 10px 0px;
-}
 
 div#container { width: 100%; overflow: hidden; }
 
-div#jsGrowl { float: left; padding-left: 20px;}
 
 div#content {
   float: left;
@@ -137,7 +144,6 @@ div#content p {
 a:link {
   color: #50595C;
   text-decoration: none;
-  display: block;
 }
 
 a:hover {
@@ -151,8 +157,8 @@ a:visited {
 }
 
 li { list-style-position: outside; list-style-type: none; padding: 3px; display: block;}
-ul { padding: 0px; margin: 0;}
-ol { padding: 0px; margin: 0;}
+ul { padding-left: 6px; margin: 0;}
+ol { padding: 6px; margin: 0;}
 #content p.metadata {
   font-size: x-small;
   color: #59574B;
@@ -223,10 +229,6 @@ pre.config_data {
     min-height: 480px;
 }
 
-br { clear: both; }
-
-tr.rowodd  { background-color: #DFE7EF; }
-tr.roweven { background-color: #DFE7ED; }
 
 table.sortable th {
     background-color: #306CAC;

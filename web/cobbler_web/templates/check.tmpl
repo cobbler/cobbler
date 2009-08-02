@@ -5,16 +5,11 @@
 <span class="section_caption">Things You Might Want To Fix:</span>
 <br/>
 <br/>
-<table class="sortable">
-    <tbody>
-        {% for entry in results %}
-        <tr class="{% cycle 'rowodd' 'roweven' %}">
-            <td>{{ entry }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
+<ol class="check_list">
+    {% for entry in results %}
+    <li>{{ entry }}</li>
+    {% endfor %}
+</ol>
 <br/>
 
 After making changes, run "cobbler sync" and restart cobblerd.

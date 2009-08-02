@@ -41,7 +41,8 @@ $(document).ready(function()
     <div style="clear: both;"></div>
     <div id="container">
     <div id="sidebar">
-      <h3>Configuration</h3>
+      <fieldset>
+        <legend>Configuration</legend>
         <ul>
           <li><a href="/cobbler_web/settings" class="menu">Settings</a></li>
           <li><a href="/cobbler_web/check" class="menu">Check</a></li>
@@ -61,10 +62,12 @@ $(document).ready(function()
           <li style="float: left;"><a id="templates" href="javascript:;">&raquo;</a></li>
           <li><a href="/cobbler_web/ksfile/list" class="edit">Kickstart Templates</a></li>
           <li id="templates_edit"><a href="/cobbler_web/ksfile/edit" onclick="">&rarr; Add</a></li>
-          <li style="float: left;"><a href="/cobbler_web/snippet/edit">&raquo;</A></li>
+          <li style="float: left;"><a href="/cobbler_web/snippet/edit">&raquo;</a></li>
           <li><a href="/cobbler_web/snippet/list" class="edit">Snippets</a></li>
         </ul>
-      <h3>Actions</h3>
+      </fieldset>
+      <fieldset>
+        <legend>Actions</legend>
         <ul>
           <li><a href="/cobbler_web/import/prompt"> Import DVD</a></li>
           <li><a href="/cobbler_web/sync"> Sync</a></li>
@@ -73,6 +76,7 @@ $(document).ready(function()
           <li><a href="/cobbler_web/replicate"> Replicate</a></li>
           <li><a href="/cobbler_web/buildiso"> Build ISO</a></li>
         </ul>
+      </fieldset>
 {% include "paginate.tmpl" %}
     </div>
   <div id="jsGrowl"/>  
@@ -80,7 +84,6 @@ $(document).ready(function()
       <h1 style="color: red;">Template Failure</h1>
     {% endblock %}
   </div><!-- jsGrowl -->
-</div>
 </div><!-- main -->
 </body>
 </html>
