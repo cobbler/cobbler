@@ -7,7 +7,7 @@ Name: cobbler
 License: GPLv2+
 AutoReq: no
 Version: 1.7.0
-Release: 3%{?dist}
+Release: 1%{?dist}
 Source0: cobbler-%{version}.tar.gz
 Group: Applications/System
 
@@ -100,9 +100,8 @@ if [ "$1" = "1" ];
 then
     # This happens upon initial install. Upgrades will follow the next else
     /sbin/chkconfig --add cobblerd
-elif [ "$1" = "2" ];
+elif [ "$1" -ge "2" ];
 then
-    echo -n "UPGRADING.."
     # backup config
     if [ -e /var/lib/cobbler/distros ]; then
         cp /var/lib/cobbler/distros*  /var/lib/cobbler/backup 2>/dev/null
@@ -133,9 +132,9 @@ then
       cp $f $newf
     done
     # reserialize and restart
-    /usr/bin/cobbler reserialize
+    # FIXIT: ?????
+    #/usr/bin/cobbler reserialize
     /sbin/service cobblerd condrestart
-    echo " DONE."
 fi
 
 %preun
@@ -298,7 +297,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 Summary: Helper tool that performs cobbler orders on remote machines.
 Version: 1.7.0
-Release: 3%{?dist}
+Release: 1%{?dist}
 Group: Applications/System
 Requires: mkinitrd
 Requires: python >= 1.5
@@ -345,7 +344,7 @@ of an existing system.  For use with a boot-server configured with Cobbler
 
 Summary: Web interface for Cobbler
 Version: 1.7.0
-Release: 3%{?dist}
+Release: 1%{?dist}
 Group: Applications/System
 Requires: cobbler
 Requires: Django
