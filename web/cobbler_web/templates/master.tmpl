@@ -21,7 +21,7 @@ $(document).ready(function()
   $("#profile_edit").hide();
   $("#profile_sub_edit").hide();
   $("#templates").click(function() {
-    $("#" + this.id + "_edit").toggle('slow');
+    $("#" + this.id + "_edit").toggle('normal');
     if ($(this).css('display') == 'block') {
         $(this).html('&laquo;');
     }
@@ -33,57 +33,59 @@ $(document).ready(function()
 </script>
 </head>
 <body onload="go_go_gadget()">
-  <input type="hidden" name="username" id="username" value="{{ username }}"/>
-  <div id="main">
+  <div><input type="hidden" name="username" id="username" value="{{ username }}"/></div>
+  <div>
     <div>
       <a href="/cobbler_web/"><img alt="Cobbler Logo" width="185" src="/cobbler_webui_content/logo-cobbler.png"/></a>
     </div>
     <div style="clear: both;"></div>
-    <div id="container">
-    <div id="sidebar">
+    <div class="container">
+    <div class="menubar">
       <fieldset>
         <legend>Configuration</legend>
-        <ul>
-          <li><a href="/cobbler_web/settings" class="menu">Settings</a></li>
-          <li><a href="/cobbler_web/check" class="menu">Check</a></li>
-          <li><a href="/cobbler_web/events" class="menu">Events</a></li>
-          <li style="float: left;"><a href="/cobbler_web/distro/edit">&raquo;</a></li>
-          <li><a href="/cobbler_web/distro/list" class="edit">Distros</a></li>
-          <li style="float: left;"><a href="javascript:;">&raquo;</a></li>
-          <li><a href="/cobbler_web/profile/list" class="edit">Profiles</a></li>
-          <li id="profile_edit"><a href="/cobbler_web/profile/edit">&rarr; Add</a></li>
-          <li id="profile_sub_edit"><a href="/cobbler_web/subprofile/edit">&rarr; Add sub-profile</a></li>
-          <li style="float: left;"><a href="/cobbler_web/system/edit">&raquo;</a></li>
-          <li><a href="/cobbler_web/system/list" class="edit">Systems</a></li>
-          <li style="float: left;"><a href="/cobbler_web/repo/edit">&raquo;</a></li>
-          <li><a href="/cobbler_web/repo/list" class="edit">Repos</a></li>
-          <li style="float: left;"><a href="/cobbler_web/image/edit">&raquo;</a></li>
-          <li><a href="/cobbler_web/image/list" class="edit">Images</a></li>
-          <li style="float: left;"><a id="templates" href="javascript:;">&raquo;</a></li>
-          <li><a href="/cobbler_web/ksfile/list" class="edit">Kickstart Templates</a></li>
-          <li id="templates_edit"><a href="/cobbler_web/ksfile/edit" onclick="">&rarr; Add</a></li>
-          <li style="float: left;"><a href="/cobbler_web/snippet/edit">&raquo;</a></li>
-          <li><a href="/cobbler_web/snippet/list" class="edit">Snippets</a></li>
+        <ul class="list menubar">
+          <li class="menubar"><a href="/cobbler_web/settings" class="menu">Settings</a></li>
+          <li class="menubar"><a href="/cobbler_web/check" class="menu">Check</a></li>
+          <li class="menubar"><a href="/cobbler_web/events" class="menu">Events</a></li>
+          <li class="menubar" style="float: left;"><a href="/cobbler_web/distro/edit">&raquo;</a></li>
+          <li class="menubar"><a href="/cobbler_web/distro/list" class="edit">Distros</a></li>
+          <li class="menubar" style="float: left;"><a href="javascript:;">&raquo;</a></li>
+          <li class="menubar"><a href="/cobbler_web/profile/list" class="edit">Profiles</a></li>
+          <li class="menubar" id="profile_edit"><a href="/cobbler_web/profile/edit">&rarr; Add</a></li>
+          <li class="menubar" id="profile_sub_edit"><a href="/cobbler_web/subprofile/edit">&rarr; Add sub-profile</a></li>
+          <li class="menubar" style="float: left;"><a href="/cobbler_web/system/edit">&raquo;</a></li>
+          <li class="menubar"><a href="/cobbler_web/system/list" class="edit">Systems</a></li>
+          <li class="menubar" style="float: left;"><a href="/cobbler_web/repo/edit">&raquo;</a></li>
+          <li class="menubar"><a href="/cobbler_web/repo/list" class="edit">Repos</a></li>
+          <li class="menubar" style="float: left;"><a href="/cobbler_web/image/edit">&raquo;</a></li>
+          <li class="menubar"><a href="/cobbler_web/image/list" class="edit">Images</a></li>
+          <li class="menubar" style="float: left;"><a id="templates" href="javascript:;">&raquo;</a></li>
+          <li class="menubar"><a href="/cobbler_web/ksfile/list" class="edit">Kickstart Templates</a></li>
+          <li class="menubar" id="templates_edit"><a href="/cobbler_web/ksfile/edit" onclick="">&rarr; Add</a></li>
+          <li class="menubar" style="float: left;"><a href="/cobbler_web/snippet/edit">&raquo;</a></li>
+          <li class="menubar"><a href="/cobbler_web/snippet/list" class="edit">Snippets</a></li>
         </ul>
       </fieldset>
       <fieldset>
         <legend>Actions</legend>
-        <ul>
-          <li><a href="/cobbler_web/import/prompt"> Import DVD</a></li>
-          <li><a href="/cobbler_web/sync"> Sync</a></li>
-          <li><a href="/cobbler_web/reposync"> Reposync</a></li>
-          <li><a href="/cobbler_web/hardlink"> Hardlink</a></li>
-          <li><a href="/cobbler_web/replicate"> Replicate</a></li>
-          <li><a href="/cobbler_web/buildiso"> Build ISO</a></li>
+        <ul class="list menubar">
+          <li class="menubar"><a href="/cobbler_web/import/prompt">Import DVD</a></li>
+          <li class="menubar"><a href="/cobbler_web/sync">Sync</a></li>
+          <li class="menubar"><a href="/cobbler_web/reposync">Reposync</a></li>
+          <li class="menubar"><a href="/cobbler_web/hardlink">Hardlink</a></li>
+          <li class="menubar"><a href="/cobbler_web/replicate">Replicate</a></li>
+          <li class="menubar"><a href="/cobbler_web/buildiso">Build ISO</a></li>
         </ul>
       </fieldset>
 {% include "paginate.tmpl" %}
     </div>
-  <div id="jsGrowl"/>  
+  <div class="content"/>  
     {% block content %}
       <h1 style="color: red;">Template Failure</h1>
     {% endblock %}
-  </div><!-- jsGrowl -->
+  </div>
+  <div id="jsGrowl"></div>
+  </div><!-- container -->
 </div><!-- main -->
 </body>
 </html>

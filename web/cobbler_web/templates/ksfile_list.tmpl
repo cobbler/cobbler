@@ -1,25 +1,27 @@
 {% extends 'master.tmpl' %}
 {% block content %}
-<table class="sortable">
-    <thead>
-        <caption>Cobbler Kickstart Templates</caption>
-        <tr>
-            <th class="text">File</th>
-            <th class="text">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for ksfile,shortname,option in ksfiles %}
-        <tr class="{% cycle 'rowodd' 'roweven' %}">
-            <td>{{ shortname }}</td>
-            {% if option %}
-            {% ifequal option "editable" %}<td><input type="button" value="Edit" onclick="javascript:location='/cobbler_web/ksfile/edit/{{ ksfile }}'"/></td>{% endifequal %}
-            {% ifequal option "viewable" %}<td><input type="button" value="View" onclick="javascript:location='{{ ksfile }}'/></td>{% endifequal %}
-            {% else %}
-            <td>N/A</td>
-            {% endif %}
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<fieldset>
+  <legend>Cobbler Kickstart Templates</legend>
+  <div class="clear bgheader">
+    <ul class="list">
+      <li class="float key">File</th>
+      <li class="float value">Actions</th>
+    </ul>
+  </div>
+{% for ksfile,shortname,option in ksfiles %}
+  <div class="{% cycle 'rowodd' 'roweven' %} clear">
+    <ul class="list">
+      <li class="float key">{{ shortname }}</li>
+      {% if option %}
+      <li class="float value">
+        {% ifequal option "editable" %}<input type="button" value="Edit" onclick="javascript:location='/cobbler_web/ksfile/edit/{{ ksfile }}'"/>{% endifequal %}
+        {% ifequal option "viewable" %}<input type="button" value="View" onclick="javascript:location='{{ ksfile }}'"/>{% endifequal %}
+      </li>
+      {% else %}
+        <li>N/A</li>
+      {% endif %}
+    </ul>
+  </div>
+{% endfor %}
+</fieldset>
 {% endblock content %}

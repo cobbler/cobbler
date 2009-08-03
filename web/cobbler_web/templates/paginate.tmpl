@@ -1,5 +1,5 @@
     {% if pageinfo %}
-      <script language="Javascript">
+      <script type="text/javascript">
         function add_filter() {
           field_name = document.getElementById("filter_field");
           field_value = document.getElementById("filter_value");
@@ -13,11 +13,11 @@
         }
       </script>
       <fieldset>
-        <legend>Filters & Paging</legend>
-          <ul id="filter-adder">
+        <legend>Filters &amp; Paging</legend>
+          <ul class="list" id="filter-adder">
             <li style="float: left">
-              <select id="filter_field" name="filter_field" style="width:50px" width="50">
-                <option value="">[?]</option>
+              <select id="filter_field" name="filter_field" class="filter">
+                <option value=""></option>
                 <option value="name">name</option>
                 {% ifequal what "distro" %}<option value="arch">arch</option>
                 <option value="breed">breed</option>
@@ -135,42 +135,42 @@
                 {% endifequal %}
               </select>
           </li>
-          <li style="float: left"><input type="text" name="filter_value" id="filter_value" size="10"  onkeypress="javascript:if (event.keyCode == 13) add_filter();"/></li>
+          <li><input type="text" name="filter_value" id="filter_value" size="12"  onkeypress="javascript:if (event.keyCode == 13) add_filter();"/></li>
         </ul>
       {% if filters %}
-      <ul id="filter-remover">
+      <ul class="list" id="filter-remover">
         {% for key,value in filters.items %}
         <li><a href="/cobbler_web/{{ what }}/modifylist/removefilter/{{ key }}" title="remove">[x]</a> {{ key }} = {{ value }}</li>
         {% endfor %}
       </ul>
       {% endif %}
-      <ul>
+      <ul class="list">
         <li>Items/page:
           <select name="limit" id="limit" onchange="javascript:location='/cobbler_web/{{ what }}/modifylist/limit/'+this.value">
           {% for p in pageinfo.items_per_page_list %}
-          <option value="{{ p }}"{% ifequal pageinfo.items_per_page p %} selected{% endifequal %}>{{ p }}</option>
+          <option value="{{ p }}"{% ifequal pageinfo.items_per_page p %} selected="selected"{% endifequal %}>{{ p }}</option>
           {% endfor %}
           </select>
         </li>
       </ul>
-      <ul id="page_prev_next">
+      <ul class="list" id="page_prev_next">
         <li style="float: left;">
           {% ifnotequal pageinfo.prev_page "~" %}
           <input type="button" value="&lt;" onclick='javascript:location="/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.prev_page }}"'/>
           {% else %}
-          <input type="button" value="&lt;" disabled='true'/>
+          <input type="button" value="&lt;" disabled="disabled" />
           {% endifnotequal %}
         </li>
         <li style="float: left;">
           <select name="page" id="page" onchange="javascript:location='/cobbler_web/{{ what }}/modifylist/page/'+this.value">
-            {% for p in pageinfo.pages %}<option value="{{ p }}"{% ifequal pageinfo.page p %} selected{% endifequal %}>Page {{ p }}</option>{% endfor %}
+            {% for p in pageinfo.pages %}<option value="{{ p }}"{% ifequal pageinfo.page p %} selected="selected"{% endifequal %}>Page {{ p }}</option>{% endfor %}
           </select>
         </li>
         <li style="float: left;">
           {% ifnotequal pageinfo.next_page "~" %}
           <input type="button" value="&gt;" onclick='javascript:location="/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.next_page }}"'/>
           {% else %}
-          <input type="button" value="&gt;" disabled="true"/>
+          <input type="button" value="&gt;" disabled="disabled"/>
           {% endifnotequal %}
         </li>
       </ul>

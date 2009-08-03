@@ -1,9 +1,9 @@
 {% extends "master.tmpl" %}
 {% load site %}
 {% block content %}
+{% if items %}
 
-<script language="javascript">
-
+<script type="text/javascript">
 function items_check_all(){
     var checkall = document.getElementById("itemsall").checked
     var items    = document.getElementsByName("items")
@@ -86,66 +86,51 @@ function action_multi(otype, action, param) {
      alert("Operation aborted.")
   }
 }
-
 </script>
-
-<div class="section_caption">{{ what|title }}s</div>
-
-{% if items %}
-<form name="myform" method="post" action="/cobbler_web/{{ what }}/action">
-    <table class="sortable">
-    <thead>
-        <tr>
-	    <th class="text"><input type="checkbox" id="itemsall" onclick="javascript:items_check_all();"></th>
-            {% for column_name in columns %}
-                <th class="text">{{ column_name|title }}</th>
-            {% endfor %}
-
-            <th class="text">Actions</th>
-
-        </tr>
-    </thead>
-    <tbody>
-           {% for item in items %}
-
-           <tr class="{% cycle 'rowodd' 'roweven' %}">
-               <td><input type="checkbox" name="items" value="{{ item.0.1 }}"/></td>
-
-               {% for value in item %}
-                    <td>
-                        {% ifequal value.0 "profile" %}
-                           <A HREF="/cobbler_web/profile/edit/{{ value.1 }}">{{ value.1 }}</A>
-                        {% endifequal %}
-                        {% ifequal value.0 "distro" %}
-                           <A HREF="/cobbler_web/distro/edit/{{ value.1 }}">{{ value.1 }}</A>
-                        {% endifequal %}
-                        {% ifequal value.0 "image" %}
-                           <A HREF="/cobbler_web/image/edit/{{ value.1 }}">{{ value.1 }}</A>
-                        {% endifequal %}
-                        {% smart_if value.0 in otypes %}
-                        {% else %}
-                            {{ value.1 }}
-                        {% endsmart_if %}
-                    </td>
-               {% endfor %}
-
-               <td><input type="button" name="edit" value="Edit" onClick="javascript:location='/cobbler_web/{{ what }}/edit/{{ item.0.1 }}'">
-               <input type="button" name="copy" value="Copy" onClick="javascript:obj_copy('{{ item.0.1 }}')"/>
-               <input type="button" name="rename" value="Rename" onClick="javascript:obj_rename('{{ item.0.1 }}')"/>
-               <input type="button" name="delete" value="Delete" onClick="javascript:obj_delete('{{ item.0.1 }}')"/>
-               </td>
-
-           </tr>
-
+<fieldset>
+  <legend>{{ what|title }}s</legend>
+  <form name="myform" method="post" action="/cobbler_web/{{ what }}/action">
+    <table border="0" width="100%" cellspacing="0" cellpadding="2">
+      <tr class="bgheader">
+        <td>
+          &nbsp;<input type="checkbox" id="itemsall" onclick="javascript:items_check_all();">
+        </td>
+        {% for column_name in columns %}
+        <td align="left"><strong>{{ column_name|title }}</strong></td>
+        {% endfor %}
+        <td align="left"><strong>Actions</strong></td>
+      </tr>
+      {% for item in items %}
+      <tr class="{% cycle 'rowodd' 'roweven' %}">
+        <td>&nbsp;<input type="checkbox" name="items" value="{{ item.0.1 }}"/></td>
+        {% for value in item %}
+        <td>
+          {% ifequal value.0 "profile" %}
+          <a href="/cobbler_web/profile/edit/{{ value.1 }}">{{ value.1 }}</a>
+          {% endifequal %}
+          {% ifequal value.0 "distro" %}
+          <a href="/cobbler_web/distro/edit/{{ value.1 }}">{{ value.1 }}</a>
+          {% endifequal %}
+          {% ifequal value.0 "image" %}
+          <a href="/cobbler_web/image/edit/{{ value.1 }}">{{ value.1 }}</a>
+          {% endifequal %}
+          {% smart_if value.0 in otypes %}
+          {% else %}
+          {{ value.1 }}
+          {% endsmart_if %}
+        </td>
+        {% endfor %}
+        <td>
+          <a onClick="window.location='/cobbler_web/{{ what }}/edit/{{ item.0.1 }}'">Edit</a>
+          <a onClick="javascript:obj_copy('{{ item.0.1 }}')"/>Copy</a>
+          <a onClick="javascript:obj_rename('{{ item.0.1 }}')"/>Rename</a>
+          <a onClick="javascript:obj_delete('{{ item.0.1 }}')"/>Delete</a>
+       </td>
+       </tr>
        {% endfor %}
-
-
-    </tbody>
     </table>
-
-<input type="hidden" name="names" id="names" value=""/>
-
-</form>
+  <input type="hidden" name="names" id="names" value=""/>
+  </form>
 
 {% ifequal what "system" %}
    <br/>
@@ -168,7 +153,7 @@ function action_multi(otype, action, param) {
    <input type="button" onClick="javascript:action_multi('profile','reposync','go')" value="Sync Repos"/>
 
 {% endifequal %}
-
+</fieldset>
 {% else %}
 There are no objects of this type yet.
 {% endif %}

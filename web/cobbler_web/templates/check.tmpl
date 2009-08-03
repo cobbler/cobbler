@@ -1,17 +1,14 @@
 {% extends "master.tmpl" %}
 
 {% block content %}
-<div>
-<span class="section_caption">Things You Might Want To Fix:</span>
-<br/>
-<br/>
-<ol class="check_list">
+<fieldset>
+  <legend>Things You Might Want To Fix:</legend>
+  <ol class="check_list">
     {% for entry in results %}
     <li>{{ entry }}</li>
     {% endfor %}
-</ol>
-<br/>
-
-After making changes, run "cobbler sync" and restart cobblerd.
-</div>
+  </ol>
+  After making changes, run "cobbler sync" and restart cobblerd.
+  </div>
+</fieldset>
 {% endblock %}

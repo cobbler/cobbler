@@ -1,31 +1,32 @@
 {% extends "master.tmpl" %}
 
 {% block content %}
-<h3>Settings (Read Only)</h3>
-<table class="sortable">
-    <thead>
-        <tr>
-            <th class="text">Property</th>
-            <th class="text">Value</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% if settings %}
-        {% for setting,value in settings %}
-        <tr class="{% cycle 'rowodd' 'roweven' %}">
-            <td>{{ setting }}</td>
-            <td>{{ value }}</td>
-        </tr>
-        {% endfor %}
-        {% else %}
-        <tr>
-          <td colspan="3">No settings found.</td>
-        </tr>
-        {% endif %}
-    </tbody>
-</table>
-
-<br/>
-These settings live in /etc/cobbler/settings on the server.<br/>
-After making changes, run "cobbler sync" and restart cobblerd.
+<fieldset>
+  <legend>Settings (Read Only)</legend>
+      <ul class="list bgheader clear">
+        <li class="row property">Property</li>
+        <li class="row value">
+          Value
+        </li>
+      </ul>
+    {% if settings %}
+    {% for setting,value in settings %}
+      <ul class="list clear {% cycle 'rowodd' 'roweven' %}">
+        <li class="row property">{{ setting }}</li>
+        <li class="row value">
+          {% if value %}{{ value }}{% else %}None{% endif %}
+        </li>
+      </ul>
+    {% endfor %}
+    {% else %}
+    <div>
+      <ul>
+        <li>No settings found.</li>
+      </ul>
+    </div>
+    {% endif %}
+    <br/>
+    These settings live in /etc/cobbler/settings on the server.<br/>
+    After making changes <a href="/cobbler_web/sync">sync</a> or run "cobbler sync" from the command line then restart cobblerd.
+</fieldset>
 {% endblock %}

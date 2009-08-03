@@ -11,65 +11,62 @@ if you need to resolve this.
 </blockquote>
 <br />
 {% endif %}
-
-{% ifequal editmode 'edit' %}
-    <div class="section_caption">Editing a Snippet</div>
-{% else %}
-    <div class="section_caption">Adding a Snippet</div>
-{% endifequal %}
-
-
-<form method="post" action="/cobbler_web/snippet/save">
+<fieldset>
+  <legend>
+  {% ifequal editmode 'edit' %}
+    Editing a Snippet
+  {% else %}
+    Adding a Snippet
+  {% endifequal %}
+  </legend>
+  <form method="post" action="/cobbler_web/snippet/save">
     <fieldset id="cform">
-
     <table>
-    <tr>
-     <td colspan="2">
-     <label for="snippetdata">{% if snippet_name %}Editing: {{ snippet_name }}{% else %}Filename:{% endif %}</label>
-     {% ifnotequal editmode 'edit' %}
-     <input type="text" size="128" style="width: 300px;" name="snippet_name" id="snippet_name" />
-     <p class="context-tip">Example:  foo.ks (to be saved in /var/lib/cobbler/snippets/)</p>
-     {% else %}
-     <input type="hidden" name="snippet_name" value="{{ snippet_name }}"/>
-     {% endifnotequal %}
-     <td>
-    </tr> 
-    
-    <tr>
-     <td colspan="2">
-      <pre><textarea rows="40" cols="120" name="snippetdata" id="snippetdata">{{ snippetdata }}</textarea></pre>
-      <br/>
-     </td>
-    </tr>
-    {% if deleteable %}
-    <tr>
-     <td>
-     <label>Delete</label>
-     </td>
-     <td>
-     <input type="checkbox" name="delete1" value="delete1">Yes</input>
-     <input type="checkbox" name="delete2" value="delete2">Really</input>
-     <p class="context-tip">Check both buttons and click save to delete this object</p>
-     </td>
-    </tr>
-    {% else %}
-    {% ifequal editmode "edit" %}
-    <tr>
-     <td colspan="2">NOTE: This kickstart template is currently in-use.</td>
-    </tr>
-    {% endifequal %}
-    {% endif %}
-    <tr>
-     <td colspan="2">
-      {% if editable %}
-      <input type="hidden" name="editmode" value="{{ editmode }}"/>
-      <input type="submit" name="submit" value="Save"/>
-      <input type="reset" name="reset" value="Reset"/>
+      <tr>
+        <td colspan="2">
+        <label for="snippetdata"><strong>{% if snippet_name %}Snippet: {{ snippet_name }}{% else %}Filename:{% endif %}</strong></label>
+        {% ifnotequal editmode 'edit' %}
+        <input type="text" size="128" style="width: 300px;" name="snippet_name" id="snippet_name" />
+        <p class="context-tip">Example:  foo.ks (to be saved in /var/lib/cobbler/snippets/)</p>
+        {% else %}
+        <input type="hidden" name="snippet_name" value="{{ snippet_name }}"/>
+        {% endifnotequal %}
+        <td>
+      </tr> 
+      <tr>
+        <td colspan="2">
+          <pre><textarea rows="50" cols="100" name="snippetdata" id="snippetdata">{{ snippetdata }}</textarea></pre>
+        </td>
+      </tr>
+      {% if deleteable %}
+      <tr>
+        <td>
+          <label>Delete</label>
+        </td>
+        <td>
+          <input type="checkbox" name="delete1" value="delete1">Yes</input>
+          <input type="checkbox" name="delete2" value="delete2">Really</input>
+          <p class="context-tip">Check both buttons and click save to delete this object</p>
+        </td>
+      </tr>
+      {% else %}
+      {% ifequal editmode "edit" %}
+      <tr>
+        <td colspan="2">NOTE: This kickstart template is currently in-use.</td>
+      </tr>
+      {% endifequal %}
       {% endif %}
-     </td>
-    </tr>
-
+      <tr>
+        <td colspan="2">
+          {% if editable %}
+          <input type="hidden" name="editmode" value="{{ editmode }}"/>
+          <input type="submit" name="submit" value="Save"/>
+          <input type="reset" name="reset" value="Reset"/>
+          {% endif %}
+        </td>
+      </tr>
     </table>
     </fieldset>
 </form>
+</fieldset>
 {% endblock content %}
