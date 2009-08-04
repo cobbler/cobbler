@@ -2,26 +2,25 @@
 {% block content %}
 <fieldset>
   <legend>Cobbler Kickstart Templates</legend>
-  <div class="clear bgheader">
-    <ul class="list">
-      <li class="float key">File</th>
-      <li class="float value">Actions</th>
-    </ul>
-  </div>
-{% for ksfile,shortname,option in ksfiles %}
-  <div class="{% cycle 'rowodd' 'roweven' %} clear">
-    <ul class="list">
-      <li class="float key">{{ shortname }}</li>
-      {% if option %}
-      <li class="float value">
-        {% ifequal option "editable" %}<input type="button" value="Edit" onclick="javascript:location='/cobbler_web/ksfile/edit/{{ ksfile }}'"/>{% endifequal %}
-        {% ifequal option "viewable" %}<input type="button" value="View" onclick="javascript:location='{{ ksfile }}'"/>{% endifequal %}
-      </li>
-      {% else %}
-        <li>N/A</li>
-      {% endif %}
-    </ul>
-  </div>
-{% endfor %}
+  <hr />
+  <p class="action">
+    <!-- This is kind weird, but force the name "kickstart"
+    because we know this is the ksfile page. If this gets moved
+    to generic_list, then it can be hacked around -->
+    <strong>Actions: </strong>
+    <a href="/cobbler_web/{{ what }}/edit">Add new kickstart file</a>
+  </p>
+  <ul class="list bgheader theader clear">
+    <li class="row setting theader bgheader">File</li>
+    <li class="row value theader bgheader">Actions</li>
+  </ul>{% for ksfile,shortname,option in ksfiles %}
+  <ul class="list clear {% cycle 'roweven' 'rowodd' %}">
+    <li class="row setting {% cycle 'roweven' 'rowodd' %}">{{ shortname }}</li>{% if option %}
+    <li class="row value {% cycle 'roweven' 'rowodd' %}">
+      {% ifequal option "editable" %}<a href="/cobbler_web/ksfile/edit/{{ ksfile }}">Edit</a> {% endifequal %}
+      {% ifequal option "viewable" %}<a href="{{ ksfile }}">View</a>{% endifequal %}
+    </li>{% else %}
+    <li>N/A</li>{% endif %}
+  </ul>{% endfor %}
 </fieldset>
 {% endblock content %}
