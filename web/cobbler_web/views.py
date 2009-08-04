@@ -515,7 +515,8 @@ def ksfile_list(request, page=None):
    html = t.render(Context({
        'what':'ksfile', 
        'ksfiles': ksfile_list,
-       'username': username
+       'username': username,
+       'item_count': len(ksfile_list[0]),
    }))
    return HttpResponse(html)
 
