@@ -5,7 +5,7 @@
 
 {% ifequal what "system" %}
 
-<script language="javascript">
+<script type="text/javascript">
 
 function intf_enable_field(field,enabled)
 {
@@ -341,110 +341,86 @@ $(document).ready(function()
 {
   //hide the all of the element with class msg_body
   $(".msg_body").hide();
-  document.getElementById("block_General").style.display = "block";
+  $("#block_General").show();
+  //document.getElementById("block_General").style.display = "block";
   //toggle the componenet with class msg_body
   $(".msg_head").click(function()
   {
-    $(this).next(".msg_body").slideToggle(600);
+    $(this).next(".msg_body").slideToggle(500);
   });
 });
 </script>
 
-<div class="section_caption">{% ifequal editmode 'edit'  %}Editing{% else %}Adding{% endifequal %} a {{ what|capfirst }}</div>
-
-<form method="POST" action="/cobbler_web/{{ what }}/save">
-
-<fieldset id="myform">
-
+<fieldset>
+  <legend>{% ifequal editmode 'edit'  %}Editing{% else %}Adding{% endifequal %} a {{ what|capfirst }}</legend>
+  <form method="post" action="/cobbler_web/{{ what }}/save">
     <input type="hidden" name="editmode" value="{{ editmode }}"/>
     <input type="hidden" name="subobject" value="{{ subobject }}"/>
-
- 
-    <div class="">
-    <table border=0 width=0 height=0>
-
-    {% for item in fields %}
-
+    <div>
+      <table border=0 width=0 height=0>
+      {% for item in fields %}
         {% ifchanged item.block_section %}
-            </table>
-            </div>
-            <p class="msg_head">{{ item.block_section }}</p>
-            <div class="msg_body" id="block_{{ item.block_section }}">
-            <table border=0>
-        {% endifchanged %}
-
-        <tr id="{{ item.name }}_row" class="editrow">
-
-            {% ifequal item.html_element "widget" %}
-
-                <td><span id="{{item.name}}_caption">{{ item.caption }}</span></td>
-                <td><DIV id="widget_{{ item.name }}"/></td>
-
-
-            {% else %}
-            
-            <td><span id="{{item.name}}_caption">{{ item.caption }}</span></td>
-
-            <td>
-
-            {% ifequal item.html_element "text" %}
-                <input type="text" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.value }}"/>
-            {% endifequal %}
-
-            {% ifequal item.html_element "textarea" %}
-                <textarea name="{{ item.name }}" id="{{ item.name }}" rows="4" cols="40">{{ item.value }}</textarea>
-            {% endifequal %}
-
-            {% ifequal item.html_element "radio" %}
-                {% for choice in item.choices %}
-                    {% ifequal item.value choice %}
-                        <input type="radio" name="{{ item.name }}" id="{{ item.name }}" value="{{ choice }}" checked>{{ choice }}&nbsp;
-                    {% else %}
-                        <input type="radio" name="{{ item.name }}" id="{{ item.name }}" value="{{ choice }}">{{ choice }}&nbsp;
-                    {% endifequal %}
-                {% endfor %}
-            {% endifequal %}
-
-            {% ifequal item.html_element "checkbox" %}
-                {% ifequal item.value 1 %}
-                    <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}" checked> Enabled<br>
+      </table>
+    </div>
+    <p class="msg_head funnyborder">&raquo; {{ item.block_section }}</p>
+    <div class="msg_body indent" id="block_{{ item.block_section }}">
+    <table border="0">
+      {% endifchanged %}
+      <tr id="{{ item.name }}_row" class="editrow">
+        {% ifequal item.html_element "widget" %}
+        <td valign="top"><span id="{{item.name}}_caption">{{ item.caption }}</span></td>
+        <td><div id="widget_{{ item.name }}" /> wjat </td><!-- WHATISTHIS -->
+        {% else %}
+        <td valign="top" class="theader"><span id="{{item.name}}_caption">{{ item.caption }}</span></td>
+        <td>
+          {% ifequal item.html_element "text" %}
+          <input type="text" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.value }}"/>
+          {% endifequal %}
+          {% ifequal item.html_element "textarea" %}
+          <textarea name="{{ item.name }}" id="{{ item.name }}" rows="4" cols="40">{{ item.value }}</textarea><br />
+          {% endifequal %}
+          {% ifequal item.html_element "radio" %}
+            {% for choice in item.choices %}
+              {% ifequal item.value choice %}
+          <input type="radio" name="{{ item.name }}" id="{{ item.name }}" value="{{ choice }}" checked="checked">{{ choice }}&nbsp;
                 {% else %}
-                    <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}"> Enabled<br>
-                {% endifequal %}
+          <input type="radio" name="{{ item.name }}" id="{{ item.name }}" value="{{ choice }}">{{ choice }}&nbsp;
+              {% endifequal %}
+            {% endfor %}
+          {% endifequal %}
+            {% ifequal item.html_element "checkbox" %}
+              {% ifequal item.value 1 %}
+          <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}" checked="checked" /> Enabled
+              {% else %}
+          <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}" /> Enabled
+              {% endifequal %}
             {% endifequal %}
-
             {% ifequal item.html_element "select" %}
-                <select id="{{ item.name }}" name="{{ item.name }}">
-                    {% for choice in item.choices %}
-                        {% ifequal item.value choice %}
-                            <option value="{{ choice }}" selected>{{ choice }}</A>
-                        {% else %}
-                            <option value="{{ choice }}">{{ choice }}</A>
-                        {% endifequal %}
-                    {% endfor %} 
-                </select>
-            {% endifequal %}
-
-            {% ifequal item.html_element "multiselect" %}
-                <select multiple id="{{ item.name }}">
-                    {% for choice in item.choices %}
-                        {% smart_if choice in item.value_raw %}
-                            <option value="{{ choice }}" selected>{{ choice }}</A>
-                        {% else %}
-                            <option value="{{ choice }}">{{ choice }}</A>
-                        {% endsmart_if %}
-                    {% endfor %} 
-                </select>
-            {% endifequal %}
-
-
-            <p class="context-tip">{{ item.tooltip }}</p>
-            </td>
-
-            {% endifequal %}
-
-        </tr>
-
+          <select id="{{ item.name }}" name="{{ item.name }}">
+              {% for choice in item.choices %}
+                {% ifequal item.value choice %}
+          <option value="{{ choice }}" selected>{{ choice }}</A>
+                {% else %}
+          <option value="{{ choice }}">{{ choice }}</A>
+                {% endifequal %}
+              {% endfor %} 
+          </select>
+          {% endifequal %}
+          {% ifequal item.html_element "multiselect" %}
+          <select multiple id="{{ item.name }}" class="edit">
+            {% for choice in item.choices %}
+              {% smart_if choice in item.value_raw %}
+          <option value="{{ choice }}" selected>{{ choice }}</a>
+              {% else %}
+          <option value="{{ choice }}">{{ choice }}</a>
+              {% endsmart_if %}
+            {% endfor %} 
+          </select>
+          {% endifequal %}
+          <sup><em>{{ item.tooltip }}</em></sup>
+        </td>
+        {% endifequal %}
+      </tr>
     {% endfor %}
     </table>
     </div>

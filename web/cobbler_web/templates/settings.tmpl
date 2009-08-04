@@ -2,18 +2,18 @@
 
 {% block content %}
 <fieldset>
-  <legend>Settings (Read Only)</legend>
+  <legend>Settings</legend>
       <ul class="list bgheader clear">
-        <li class="row property">Property</li>
-        <li class="row value">
-          Value
+        <li class="row theader setting bgheader">Setting</li>
+        <li class="row theader value bgheader">
+          Value (read-only)
         </li>
       </ul>
     {% if settings %}
     {% for setting,value in settings %}
       <ul class="list clear {% cycle 'rowodd' 'roweven' %}">
-        <li class="row property">{{ setting }}</li>
-        <li class="row value">
+        <li class="row setting {% cycle 'rowodd' 'roweven' %}">{{ setting }}</li>
+        <li class="row value {% cycle 'rowodd' 'roweven' %}">
           {% if value %}{{ value }}{% else %}None{% endif %}
         </li>
       </ul>
@@ -26,6 +26,7 @@
     </div>
     {% endif %}
     <br/>
+    <br />
     These settings live in /etc/cobbler/settings on the server.<br/>
     After making changes <a href="/cobbler_web/sync">sync</a> or run "cobbler sync" from the command line then restart cobblerd.
 </fieldset>
