@@ -140,7 +140,7 @@
       {% if filters %}
       <ul class="list" id="filter-remover">
         {% for key,value in filters.items %}
-        <li><a href="/cobbler_web/{{ what }}/modifylist/removefilter/{{ key }}" title="remove">[x]</a> {{ key }} = {{ value }}</li>
+        <li><a href="/cobbler_web/{{ what }}/modifylist/removefilter/{{ key }}" title="remove">✖</a> {{ key }} = {{ value }}</li>
         {% endfor %}
       </ul>
       {% endif %}
@@ -156,9 +156,9 @@
       <ul class="list" id="page_prev_next">
         <li style="float: left;">
           {% ifnotequal pageinfo.prev_page "~" %}
-          <input type="button" value="&lt;" onclick='javascript:location="/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.prev_page }}"'/>
+          <a href=";" onclick="javascript:location='/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.prev_page }}'"><span class="lpointers">&laquo;</span></a>
           {% else %}
-          <input type="button" value="&lt;" disabled="disabled" />
+          <span class="lpointers">&laquo;</span>
           {% endifnotequal %}
         </li>
         <li style="float: left;">
@@ -168,9 +168,9 @@
         </li>
         <li style="float: left;">
           {% ifnotequal pageinfo.next_page "~" %}
-          <input type="button" value="&gt;" onclick='javascript:location="/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.next_page }}"'/>
+          <a href=";" onclick="javascript:location='/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.next_page }}'"><span class="rpointers">&raquo;</span></a>
           {% else %}
-          <input type="button" value="&gt;" disabled="disabled"/>
+          <span class="rpointers">&raquo;</span>
           {% endifnotequal %}
         </li>
       </ul>
