@@ -18,7 +18,7 @@ legend { color: #306CAC; font-size: 1.2em; font-weight: bold; margin: 0px; paddi
 .bottomborder { border-width: 0px 0px 1px 0px; border-color: #306CAC; border-style: solid; padding-bottom: 2px; }
 hr { margin-top: -2px; color: #306CAC; height: 1px; }
 .indent { margin-left: 20px; }
-p.something { font-weight: bold; font-size: 1.2em; color: #306CAC; }
+p.addobject { font-weight: bold; font-size: 1.2em; color: #306CAC; }
 .action { margin-left: 10px;}
 /* p { font-weight: bold; font-size: 0.8em; padding: 5px; margin: 10px; border: 1px solid #999; background-color: #EEE; } */
 span.example { font-size: 0.9em; }
