@@ -8,6 +8,8 @@ body, html {
 
 h3 { color: #306CAC; }
 /* imeyer css additions in here */
+.rpointers { font-size: 1.6em; margin-left: 5px; }
+.lpointers { font-size: 1.6em; margin-right: 5px; }
 .cursor { cursor: pointer; }
 ul.list { list-style-position: outside; list-style-type: none; overflow: hidden; }
 ul.menubar { padding-bottom: 10px; }
