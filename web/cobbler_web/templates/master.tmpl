@@ -17,17 +17,8 @@ $(document).ready(function()
   {
     $(this).next(".navblock_body").slideToggle(600);
   });
-  $("#templates_edit").hide();
-  $("#profile_edit").hide();
-  $("#profile_sub_edit").hide();
-  $("#templates").click(function() {
-    $("#" + this.id + "_edit").toggle('normal');
-    if ($(this).css('display') == 'block') {
-        $(this).html('&laquo;');
-    }
-    else {
-        $(this).html('&raquo;');
-    }
+  $("#clicky").click(function () {
+    $("p.action").toggle('slow');
   });
 });
 </script>
