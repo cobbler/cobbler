@@ -1,25 +1,26 @@
 {% extends 'master.tmpl' %}
 {% block content %}
-<table class="sortable">
-    <thead>
-        <caption>Cobbler Kickstart Templates</caption>
-        <tr>
-            <th class="text">File</th>
-            <th class="text">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for ksfile,shortname,option in ksfiles %}
-        <tr class="{% cycle 'rowodd' 'roweven' %}">
-            <td>{{ shortname }}</td>
-            {% if option %}
-            {% ifequal option "editable" %}<td><input type="button" value="Edit" onclick="javascript:location='/cobbler_web/ksfile/edit/{{ ksfile }}'"/></td>{% endifequal %}
-            {% ifequal option "viewable" %}<td><input type="button" value="View" onclick="javascript:location='{{ ksfile }}'/></td>{% endifequal %}
-            {% else %}
-            <td>N/A</td>
-            {% endif %}
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<fieldset>
+  <legend id="clicky" class="cursor">Cobbler Kickstart Templates</legend>
+  <hr />
+  <p class="action">
+    <!-- This is kind weird, but force the name "kickstart"
+    because we know this is the ksfile page. If this gets moved
+    to generic_list, then it can be hacked around -->
+    <strong>Actions: </strong>
+    <a href="/cobbler_web/{{ what }}/edit">Add new kickstart file</a>
+  </p>
+  <ul class="list bgheader theader clear">
+    <li class="row setting theader bgheader">File</li>
+    <li class="row value theader bgheader">Actions</li>
+  </ul>{% for ksfile,shortname,option in ksfiles %}
+  <ul class="list clear {% cycle 'roweven' 'rowodd' %}">
+    <li class="row setting {% cycle 'roweven' 'rowodd' %}">{{ shortname }}</li>{% if option %}
+    <li class="row value {% cycle 'roweven' 'rowodd' %}">
+      {% ifequal option "editable" %}<a href="/cobbler_web/ksfile/edit/{{ ksfile }}">Edit</a> {% endifequal %}
+      {% ifequal option "viewable" %}<a href="{{ ksfile }}">View</a>{% endifequal %}
+    </li>{% else %}
+    <li>N/A</li>{% endif %}
+  </ul>{% endfor %}
+</fieldset>
 {% endblock content %}

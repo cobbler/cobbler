@@ -1,22 +1,14 @@
 {% extends "master.tmpl" %}
 
 {% block content %}
-
-<span class="section_caption">Things You Might Want To Fix:</span>
-<br/>
-<br/>
-<table class="sortable">
-    <tbody>
-        {% for entry in results %}
-        <tr class="{% cycle 'rowodd' 'roweven' %}">
-            <td>{{ entry }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-<br/>
-
-After making changes, run "cobbler sync" and restart cobblerd.
-
+<fieldset>
+  <legend>Things You Might Want To Fix:</legend>
+  <ol class="check_list">
+    {% for entry in results %}
+    <li>{{ entry }}</li>
+    {% endfor %}
+  </ol>
+  After making changes, run "cobbler sync" and restart cobblerd.
+  </div>
+</fieldset>
 {% endblock %}

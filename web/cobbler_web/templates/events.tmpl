@@ -2,35 +2,28 @@
 
 {% block content %}
 
-<span class="section_caption">Events</span>
-
-<table class="sortable">
-    <thead>
-        <tr>
-            <th class="text">Start Time</th>
-            <th class="text">Name</th>
-            <th class="text">State</th>
-            <th class="text">Log</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% if results %}
-        {% for line in results %}
-        <tr class="{% cycle 'rowodd' 'roweven' %}">
-            <td>{{ line.1|safe }}</td>
-            <td>{{ line.2|safe }}</td>
-            <td>{{ line.3|safe }}</td>
-            <td><A HREF="/cobbler_web/eventlog/{{ line.0 }}">log</A>
-        </tr>
-        {% endfor %}
-        {% else %}
-        <tr>
-            <td>No Tasks</td>
-            <td/>
-            <td/>
-        </tr>
-        {% endif %}
-    </tbody>
-</table>
+{% if results %}
+<fieldset>
+  <legend>Events</legend>
+  <table width="60%" cellpadding="2" cellspacing="0" border="0">
+      <tr class="bgheader">
+        <td class="theader">Start Time</td>
+        <td class="theader">Name</td>
+        <td class="theader">State</td>
+        <td class="theader">Log</td>
+      </tr>
+      {% for line in results %}
+      <tr class="{% cycle 'rowodd' 'roweven' %}">
+        <td>{{ line.1|safe }}</td>
+        <td>{{ line.2|safe }}</td>
+        <td>{{ line.3|safe }}</td>
+        <td><a href="/cobbler_web/eventlog/{{ line.0 }}">log</a></td>
+      </tr>
+      {% endfor %}
+  </table>
+</fieldset>
+{% else %}
+<h3>No events</h3>
+{% endif %}
 
 {% endblock %}

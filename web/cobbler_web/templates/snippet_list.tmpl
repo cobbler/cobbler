@@ -1,24 +1,30 @@
 {% extends 'master.tmpl' %}
 {% block content %}
-<table class="sortable">
-    <thead>
-        <caption>Cobbler Kickstart Snippets</caption>
-        <tr>
-            <th class="text">File</th>
-            <th class="text">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for snippet,shortname,option in snippets %}
-        <tr class="{% cycle 'rowodd' 'roweven' %}">
-            <td>{{ shortname }}</td>
-            {% if option %}
-            {% ifequal option "editable" %}<td><input type="button" value="Edit" onclick="javascript:location='/cobbler_web/snippet/edit/{{ snippet }}'"/></td>{% endifequal %}
-            {% else %}
-            <td>N/A</td>
-            {% endif %}
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<fieldset>
+  <legend>Cobbler Kickstart Snippets</legend>
+  <hr />
+  <p class="action">
+    <!-- This is kind weird, but force the name "snippet"
+    because we know this is the ksfile page. If this gets moved
+    to generic_list, then it can be hacked around -->
+    <strong>Actions:</strong>
+    <a href="/cobbler_web/{{ what }}/edit">Add new snippet</a>
+  </p>
+  <table width="75%" cellpadding="2" cellspacing="0" border="0">
+    <tr class="bgheader">
+      <td>File</th>
+      <td>Actions</th>
+    </tr>
+    {% for snippet,shortname,option in snippets %}
+    <tr class="{% cycle 'rowodd' 'roweven' %}">
+      <td>{{ shortname }}</td>
+      {% if option %}
+      {% ifequal option "editable" %}<td><a href="/cobbler_web/snippet/edit/{{ snippet }}"/>Edit</a></td>{% endifequal %}
+      {% else %}
+      <td>N/A</td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+</fieldset>
 {% endblock content %}

@@ -17,119 +17,56 @@ $(document).ready(function()
   {
     $(this).next(".navblock_body").slideToggle(600);
   });
+  $("#clicky").click(function () {
+    $("p.action").toggle('slow');
+  });
 });
 </script>
-
-
 </head>
-
-
-
 <body onload="go_go_gadget()">
-<div id="main">
-
-<input type="hidden" name="username" id="username" value="{{ username }}"/>
-
-<TABLE BORDER="0" id="container"/>
-<TR><TD>
-<div id="sidebar">
-    <a href="/cobbler_web/"><img alt="Cobbler Logo" width="185" src="/cobbler_webui_content/logo-cobbler.png"/></a>
-    <br/>
-
-    <div class="navblock_list">
-
-    <center><p class="navblock_head">Configuration</p></center>
-    <div class="navblock_body" id="block_nav_configuration">
-
-    <table>
-    <tr>
-        <td><a href="/cobbler_web/settings" class="menu">Settings</a></td>
-        <td/>
-    </tr>
-    <tr>
-        <td><a href="/cobbler_web/check" class="menu">Check</a></td>
-        <td/>
-    </tr>
-    <tr>
-        <td><a href="/cobbler_web/events" class="menu">Events</a></td>
-        <td/>
-    </tr>
-    <tr>
-        <td><a href="/cobbler_web/distro/list" class="edit">Distros</a></td>
-        <td><a href="/cobbler_web/distro/edit">[+]</A>
-    </tr>
-    <tr>
-        <td><a href="/cobbler_web/profile/list" class="edit">Profiles</a></td>
-        <td><a href="/cobbler_web/profile/edit">[+]</A>&nbsp;<a href="/cobbler_web/subprofile/edit">[+child]</A>
-    </tr>
-    <tr>
-        <td><a href="/cobbler_web/system/list" class="edit">Systems</a></td>
-        <td><a href="/cobbler_web/system/edit">[+]</A>
-    </tr>
-    <tr>
-        <td><a href="/cobbler_web/repo/list" class="edit">Repos</a></td>
-        <td><a href="/cobbler_web/repo/edit">[+]</A>
-    </tr>
-    <tr>
-        <td><a href="/cobbler_web/image/list" class="edit">Images</a></td>
-        <td><a href="/cobbler_web/image/edit">[+]</A>
-    </tr>
-    <tr>
-        <td><a href="/cobbler_web/ksfile/list" class="edit">Templates</a></td>
-        <td><a href="/cobbler_web/ksfile/edit">[+]</A>
-    </tr>
-    <tr>
-        <td><a href="/cobbler_web/snippet/list" class="edit">Snippets</a></td>
-        <td><a href="/cobbler_web/snippet/edit">[+]</A>
-    </tr>
-    </table>
+  <div><input type="hidden" name="username" id="username" value="{{ username }}"/></div>
+  <div>
+    <div>
+      <a href="/cobbler_web/"><img alt="Cobbler Logo" width="185" src="/cobbler_webui_content/logo-cobbler.png"/></a>
     </div>
-
-    <br/>
-
-    <center><p class="navblock_head">Actions</p></center>
-    <div class="navblock_body" id="block_nav_actopms">
-
-    <table>
-    <tr>
-        <td><a href="/cobbler_web/import/prompt">Import DVD ...</a>
-    </tr>
-    <tr>
-        <td><a href="/cobbler_web/sync">-&gt; Sync</a>
-    </tr>
-    <tr>
-        <td><a href="/cobbler_web/reposync">-&gt; Reposync</a>
-    </tr>
-    <tr>
-        <td><a href="/cobbler_web/hardlink">-&gt; Hardlink</a>
-    </tr>
-    <tr>
-        <td><a href="/cobbler_web/replicate">-&gt; Replicate</a>
-    </tr>
-    <tr>
-        <td><a href="/cobbler_web/buildiso">-&gt; Build ISO</a>
-    </tr>
-    </table>
-
+    <div style="clear: both;"></div>
+    <div class="container">
+    <div class="menubar">
+      <fieldset>
+        <legend>Configuration</legend>
+        <ul class="list menubar">
+          <li class="menubar"><a href="/cobbler_web/settings" class="menu">Settings</a></li>
+          <li class="menubar"><a href="/cobbler_web/check" class="menu">Check</a></li>
+          <li class="menubar"><a href="/cobbler_web/events" class="menu">Events</a></li>
+          <li class="menubar"><a href="/cobbler_web/distro/list" class="edit">Distros</a></li>
+          <li class="menubar"><a href="/cobbler_web/profile/list" class="edit">Profiles</a></li>
+          <li class="menubar"><a href="/cobbler_web/system/list" class="edit">Systems</a></li>
+          <li class="menubar"><a href="/cobbler_web/repo/list" class="edit">Repos</a></li>
+          <li class="menubar"><a href="/cobbler_web/image/list" class="edit">Images</a></li>
+          <li class="menubar"><a href="/cobbler_web/ksfile/list" class="edit">Kickstart Templates</a></li>
+          <li class="menubar"><a href="/cobbler_web/snippet/list" class="edit">Snippets</a></li>
+        </ul>
+      </fieldset>
+      <fieldset>
+        <legend>Actions</legend>
+        <ul class="list menubar">
+          <li class="menubar"><a href="/cobbler_web/import/prompt">Import DVD</a></li>
+          <li class="menubar"><a href="/cobbler_web/sync">Sync</a></li>
+          <li class="menubar"><a href="/cobbler_web/reposync">Reposync</a></li>
+          <li class="menubar"><a href="/cobbler_web/hardlink">Hardlink</a></li>
+          <li class="menubar"><a href="/cobbler_web/replicate">Replicate</a></li>
+          <li class="menubar"><a href="/cobbler_web/buildiso">Build ISO</a></li>
+        </ul>
+      </fieldset>
 {% include "paginate.tmpl" %}
-
-</div>
-</div>
-</div>
-
-</TD>
-<TD>
-
-
-<div id="content">
-<div id="jsGrowl"/>  
-{% block content %}
-
-    <h1 style="color: red;">Template Failure</h1>
-
-{% endblock %}
-</div><!-- content -->
-</TD></TABLE>
+    </div>
+  <div class="content"/>  
+    {% block content %}
+      <h1 style="color: red;">Template Failure</h1>
+    {% endblock %}
+  </div>
+  <div id="jsGrowl"></div>
+  </div><!-- container -->
 </div><!-- main -->
 </body>
 </html>
