@@ -629,6 +629,7 @@ class Importer:
            if self.os_version:
                distro.set_os_version(self.os_version)
            distro.source_repos = []
+           distro.ks_meta = {}
 
            self.distros.add(distro,save=True)
            distros_added.append(distro)       
