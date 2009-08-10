@@ -29,8 +29,6 @@ def run(api,args,logger):
     restart_dns        = str(settings.restart_dns).lower()
     dhcpd_bin          = str(settings.dhcpd_bin).lower()
     dhcpd_init         = str(settings.dhcpd_init).lower()
-    omapi_enabled      = str(settings.omapi_enabled).lower()
-    omapi_port         = str(settings.omapi_port).lower()
 
     which_dhcp_module = module_loader.get_module_from_file("dhcp","module",just_name=True).strip()
     which_dns_module  = module_loader.get_module_from_file("dns","module",just_name=True).strip()
@@ -41,7 +39,7 @@ def run(api,args,logger):
     rc = 0
     if manage_dhcp != "0":
         if which_dhcp_module == "manage_isc":
-            if not omapi_enabled in [ "1", "true", "yes", "y" ] and restart_dhcp:
+            if restart_dhcp:
                 rc = utils.subprocess_call(logger, "%s -t -q" % dhcpd_bin, shell=True)
                 if rc != 0:
                    logger.error("%s -t failed" % dhcpd_bin)

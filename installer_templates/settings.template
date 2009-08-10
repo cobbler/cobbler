@@ -206,15 +206,6 @@ named_conf: /etc/named.conf
 # if you do not set this correctly, this will be manifested in TFTP open timeouts.
 next_server: $next_server
 
-# if using cobbler with manage_dhcp and ISC, omapi allows realtime DHCP
-# updates without restarting ISC dhcpd.  However, it may cause
-# problems with removing leases and make things less reliable. OMAPI
-# usage is experimental and not recommended at this time.
-
-omapi_enabled: 0
-omapi_port: 647
-omshell_bin: /usr/bin/omshell
-
 # settings for power management features.  optional.
 # see https://fedorahosted.org/cobbler/wiki/PowerManagement to learn more
 #

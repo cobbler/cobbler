@@ -149,8 +149,6 @@ class DnsmasqManager:
         # we are now done with the looping through each interface of each system
 
         metadata = {
-           "omapi_enabled"  : self.settings.omapi_enabled,
-           "omapi_port"     : self.settings.omapi_port,
            "insert_cobbler_system_definitions" : system_definitions.get("default",""),
            "date"           : time.asctime(time.gmtime()),
            "cobbler_server" : self.settings.server,
