@@ -65,6 +65,14 @@ EVENT_FAILED    = "failed"
 # normal events
 EVENT_INFO      = "notification"
 
+# for backwards compatibility with 1.6 and prev XMLRPC
+# do not remove!
+REMAP_COMPAT = {
+   "ksmeta"     : "ks_meta",
+   "kopts"      : "kernel_options",
+   "kopts_post" : "kernel_options_post"
+}
+
 class CobblerThread(Thread):
     def __init__(self,event_id,remote,logatron,options):
         Thread.__init__(self)
@@ -725,6 +733,8 @@ class CobblerXMLRPCInterface:
         self._log("modify_item(%s)" % what,object_id=object_id,attribute=attribute,token=token)
         obj = self.__get_object(object_id)
         self.check_access(token, "modify_%s"%what, obj, attribute)
+        # support 1.6 field name exceptions for backwards compat
+        attribute = REMAP_COMPAT.get(attribute,attribute)
         method = obj.remote_methods().get(attribute, None)
         if method == None:
             # it's ok, the CLI will send over lots of junk we can't process
