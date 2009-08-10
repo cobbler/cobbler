@@ -28,6 +28,7 @@ Cobbler CHANGELOG
 - (FEAT) look at ksdevice when building buildiso CDs to add the proper network lines
 - (FEAT) WIP:  replicate is now mtime aware
 - (BUGF) don't use RPM to check os_version, so RPM won't be called in rpm %post
+- (BUGF) deprecated omapi/omshell features for manage_isc now removed
 
 - - 1.6.9
 - (FEAT/cobbler) cobbler can now pass the virtio26 os version to virtinst, so virtio drivers can be used for RHEL5
