@@ -1429,7 +1429,7 @@ def subprocess_call(logger, cmd, shell=True):
 
 def subprocess_get(logger, cmd, shell=True):
     logger.info("running: %s" % cmd)
-    sp = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE)
+    sp = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE, stderr=sub_process.PIPE)
     data = sp.communicate()[0] 
     logger.info("recieved: %s" % data)
     return data

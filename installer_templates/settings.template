@@ -22,9 +22,6 @@ allow_duplicate_ips: 0
 # this is undesirable.
 allow_duplicate_macs: 0
 
-# the path to BIND's executable for this distribution.
-bind_bin: /usr/sbin/named
-
 # Email out a report when cobbler finishes installing a system.
 # enabled: set to 1 to turn this feature on
 # sender: optional
@@ -111,16 +108,10 @@ default_ownership:
 # may also be a good solution to prevent unwanted reinstallations
 enable_menu: 1
 
-# location of the tool which is used to restart services 
-# for Debian use: /usr/sbin/invoke-rc.d
-restart_bin: /sbin/service
-
-# location for some important binaries and config files and the names
+# location for some config files and the names
 # of the init scripts that can vary based on the distribution.
-dhcpd_bin: /usr/sbin/dhcpd
 dhcpd_conf: /etc/dhcpd.conf
 dhcpd_init: dhcpd
-dnsmasq_bin: /usr/sbin/dnsmasq
 dnsmasq_conf: /etc/dnsmasq.conf
 
 # enable Func-integration?  This makes sure each installed machine is set up
@@ -136,9 +127,6 @@ dnsmasq_conf: /etc/dnsmasq.conf
 
 func_auto_setup: 0
 func_master: overlord.example.org
-
-# more important file locations...
-httpd_bin: /usr/sbin/httpd
 
 # change this port if Apache is not running plaintext on port
 # 80.  Most people can leave this alone.
@@ -378,8 +366,7 @@ snippetsdir: /var/lib/cobbler/snippets
 # ok with this limitation.
 anamon_enabled: 0
 
-# locations of the TFTP binary and config file
-tftpd_bin: /usr/sbin/in.tftpd
+# locations of the TFTP config file
 tftpd_conf: /etc/xinetd.d/tftp
 
 # should new profiles for virtual machines default to auto booting with the physical host when the physical host reboots?
