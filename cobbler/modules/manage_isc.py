@@ -62,15 +62,16 @@ class IscManager:
         """
         Constructor
         """
-        self.verbose     = verbose
-        self.config      = config
-        self.api         = config.api
-        self.distros     = config.distros()
-        self.profiles    = config.profiles()
-        self.systems     = config.systems()
-        self.settings    = config.settings()
-        self.repos       = config.repos()
-        self.templar     = templar.Templar(config)
+        self.verbose       = verbose
+        self.config        = config
+        self.api           = config.api
+        self.distros       = config.distros()
+        self.profiles      = config.profiles()
+        self.systems       = config.systems()
+        self.settings      = config.settings()
+        self.repos         = config.repos()
+        self.templar       = templar.Templar(config)
+        self.settings_file = utils.dhcpconf_location(self.api)
 
     def write_dhcp_file(self):
         """
@@ -78,7 +79,6 @@ class IscManager:
         /var/lib/cobbler/settings.
         """
 
-        settings_file = self.settings.dhcpd_conf
         template_file = "/etc/cobbler/dhcp.template"
         blender_cache = {}
 
@@ -190,7 +190,7 @@ class IscManager:
            "dhcp_tags"      : dhcp_tags
         }
 
-        self.templar.render(template_data, metadata, settings_file, None)
+        self.templar.render(template_data, metadata, self.settings_file, None)
 
     def regen_ethers(self):
         pass # ISC/BIND do not use this

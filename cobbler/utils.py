@@ -1738,6 +1738,16 @@ def cli_find_via_xmlrpc(remote, otype, options):
     criteria = strip_none2(options.__dict__)
     return remote.find_items(otype,criteria,"name",False)
 
+def dhcpconf_location(api)
+    version = api.os_version()
+    if version[0] in [ "redhat", "centos" ] and version[1] < 6:
+        return "/etc/dhcp.conf"
+    elif version[0] in [ "fedora" ] and version[1] < 11: 
+        return "/etc/dhcp.conf"
+    else:
+        return "/etc/dhcp/dhcp.conf"
+
+
 if __name__ == "__main__":
     print os_release() # returns 2, not 3
 

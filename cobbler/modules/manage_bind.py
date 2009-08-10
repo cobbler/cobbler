@@ -182,7 +182,7 @@ class BindManager:
         """
         Write out the named.conf main config file from the template.
         """
-        settings_file = self.settings.named_conf
+        settings_file = "/etc/named.conf"
         template_file = "/etc/cobbler/named.template"
         forward_zones = self.settings.manage_forward_zones
         reverse_zones = self.settings.manage_reverse_zones

@@ -78,8 +78,8 @@ class DnsmasqManager:
         DHCP files are written when manage_dhcp is set in
         /var/lib/cobbler/settings.
         """
-        
-        settings_file = self.settings.dnsmasq_conf
+       
+        settings_file = "/etc/dnsmasq.conf"
         template_file = "/etc/cobbler/dnsmasq.template"
 
         try:

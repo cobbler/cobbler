@@ -30,6 +30,7 @@ Cobbler CHANGELOG
 - (BUGF) don't use RPM to check os_version, so RPM won't be called in rpm %post
 - (BUGF) deprecated omapi/omshell features for manage_isc now removed
 - (FEAT) removed configuration files for binary paths, will look for in PATH
+- (FEAT) removed configuration settings indicating where some config files are
 
 - - 1.6.9
 - (FEAT/cobbler) cobbler can now pass the virtio26 os version to virtinst, so virtio drivers can be used for RHEL5

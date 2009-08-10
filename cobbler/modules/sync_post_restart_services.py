@@ -26,7 +26,6 @@ def run(api,args,logger):
     manage_dns         = str(settings.manage_dns).lower()
     restart_dhcp       = str(settings.restart_dhcp).lower()
     restart_dns        = str(settings.restart_dns).lower()
-    dhcpd_init         = str(settings.dhcpd_init).lower()
 
     which_dhcp_module = module_loader.get_module_from_file("dhcp","module",just_name=True).strip()
     which_dns_module  = module_loader.get_module_from_file("dns","module",just_name=True).strip()
@@ -42,7 +41,7 @@ def run(api,args,logger):
                 if rc != 0:
                    logger.error("dhcpd -t failed")
                    return 1
-                rc = utils.subprocess_call(logger,"/etc/rc.d/init.d/%s restart" % (dhcpd_init), shell=True)
+                rc = utils.subprocess_call(logger,"/etc/rc.d/init.d/dhcpd restart", shell=True)
         elif which_dhcp_module == "manage_dnsmasq":
             if restart_dhcp:
                 rc = utils.subprocess_call(logger, "/etc/rc.d/init.d/dnsmasq restart")
