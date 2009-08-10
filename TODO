@@ -2,12 +2,10 @@
 - Test interfaces in CLI and webapp thoroughly
 - make authz_ownership work for all of the new commands (require admin group?)
 - verify duplicate hostname and ip code works
+- yum SHA knowledge for F11/F12 from older OS (reposync/import)
 
 - MODERATE PRIORITY:
 - Look over old webapp and ensure tooltips in new version are good enough or better
 - Replicate improvements
-- yum SHA knowledge for F12 from older OS (reposync/import)
-- dhcp.conf config path default change for F11 (F12?)
 - reinstate reports with formatted output options
-- automatically generated tabs for webapp (virt parameters on different page, etc)
 
