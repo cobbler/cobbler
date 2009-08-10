@@ -4,7 +4,6 @@
 
 - MODERATE PRIORITY:
 - Look over old webapp and ensure tooltips in new version are good enough or better
-- Look for missing fields in CLI/webapp
 - Replicate improvements
 - yum SHA knowledge for F12 from older OS (reposync/import)
 - dhcp.conf config path default change for F11 (F12?)
