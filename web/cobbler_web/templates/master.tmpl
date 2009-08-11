@@ -27,11 +27,10 @@ $(document).ready(function()
 <body onload="go_go_gadget()">
   <div><input type="hidden" name="username" id="username" value="{{ username }}"/></div>
   <div>
-    <div>
-      <a href="/cobbler_web/"><img alt="Cobbler Logo" width="185" src="/cobbler_webui_content/logo-cobbler.png"/></a>
-    </div>
-    <div style="clear: both;"></div>
-    <div class="container">
+    <a href="/cobbler_web/"><img alt="Cobbler Logo" width="185" src="/cobbler_webui_content/logo-cobbler.png"/></a>
+  </div>
+  <div style="clear: both;"></div>
+  <div class="container">
     <div class="menubar">
       <fieldset>
         <legend>Configuration</legend>
@@ -53,21 +52,20 @@ $(document).ready(function()
         <ul class="list menubar">
           <li class="menubar"><a href="/cobbler_web/import/prompt">Import DVD</a></li>
           <li class="menubar"><a href="/cobbler_web/sync">Sync</a> ☼</li>
-          <li class="menubar"><a href="/cobbler_web/reposync">Reposync</a>☼ </li>
-          <li class="menubar"><a href="/cobbler_web/hardlink">Hardlink</a>☼ </li>
-          <li class="menubar"><a href="/cobbler_web/replicate">Replicate</a>☼ </li>
-          <li class="menubar"><a href="/cobbler_web/buildiso">Build ISO</a>☼ </li>
+          <li class="menubar"><a href="/cobbler_web/reposync">Reposync</a> ☼ </li>
+          <li class="menubar"><a href="/cobbler_web/hardlink">Hardlink</a> ☼ </li>
+          <li class="menubar"><a href="/cobbler_web/replicate">Replicate</a> ☼ </li>
+          <li class="menubar"><a href="/cobbler_web/buildiso">Build ISO</a> ☼ </li>
         </ul>
       </fieldset>
-{% include "paginate.tmpl" %}
+    {% include "paginate.tmpl" %}
     </div>
-  <div class="content"/>  
-    {% block content %}
-      <h1 style="color: red;">Template Failure</h1>
-    {% endblock %}
+    <div class="content"/>  
+      {% block content %}
+        <h1 style="color: red;">Template Failure</h1>
+      {% endblock %}
+    </div>
+    <div id="jsGrowl"></div>
   </div>
-  <div id="jsGrowl"></div>
-  </div><!-- container -->
-</div><!-- main -->
 </body>
 </html>

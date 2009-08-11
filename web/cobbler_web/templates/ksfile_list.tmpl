@@ -1,25 +1,28 @@
 {% extends 'master.tmpl' %}
 {% block content %}
-<fieldset>
-  <legend id="clicky" class="cursor">&raquo; Cobbler Kickstart Templates</legend>
-  <hr />
-  <!-- This is kind weird, but force the name "kickstart"
-  because we know this is the ksfile page. If this gets moved
-  to generic_list, then it can be hacked around -->
-  <ul class="list menubar" id="action">
-    <li class="menubar"><a href="/cobbler_web/{{ what }}/edit">Create new kickstart file</a><li>
-  </ul>
-  <ul class="list bgheader theader clear">
-    <li class="row setting theader bgheader">File</li>
-    <li class="row value theader bgheader">Actions</li>
-  </ul>{% for ksfile,shortname,option in ksfiles %}
-  <ul class="list clear {% cycle 'roweven' 'rowodd' %}">
-    <li class="row setting {% cycle 'roweven' 'rowodd' %}">{{ shortname }}</li>{% if option %}
-    <li class="row value {% cycle 'roweven' 'rowodd' %}">
-      {% ifequal option "editable" %}<a href="/cobbler_web/ksfile/edit/{{ ksfile }}">Edit</a> {% endifequal %}
-      {% ifequal option "viewable" %}<a href="{{ ksfile }}">View</a>{% endifequal %}
-    </li>{% else %}
-    <li class="row setting {% cycle 'roweven' 'rowodd' %}">N/A</li>{% endif %}
-  </ul>{% endfor %}
-</fieldset>
+    <fieldset>
+      <legend id="clicky" class="cursor">&raquo; Cobbler Kickstart Templates</legend>
+      <hr />
+      <!-- This is kind weird, but force the name "kickstart"
+      because we know this is the ksfile page. If this gets moved
+      to generic_list, then it can be hacked around -->
+      <ul class="list menubar" id="action">
+        <li class="menubar"><a href="/cobbler_web/{{ what }}/edit">Create new kickstart file</a></li>
+      </ul>
+      <ul class="list bgheader theader clear">
+        <li class="row setting theader bgheader">File</li>
+        <li class="row value theader bgheader">Actions</li>
+      </ul>
+      {% for ksfile,shortname,option in ksfiles %}
+      <ul class="list clear {% cycle 'roweven' 'rowodd' %}">
+        <li class="row setting">{{ shortname }}</li>
+        {% if option %}
+        <li class="row value {% cycle 'roweven' 'rowodd' %}">
+          {% ifequal option "editable" %}<a href="/cobbler_web/ksfile/edit/{{ ksfile }}">Edit</a> {% endifequal %}
+          {% ifequal option "viewable" %}<a href="{{ ksfile }}">View</a>{% endifequal %}
+          <!-- <li class="row value {% cycle 'roweven' 'rowodd' %}">WTF BBQ</li> -->
+        {% endif %}
+        </li>
+      </ul>{% endfor %}
+    </fieldset>
 {% endblock content %}

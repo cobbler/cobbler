@@ -490,7 +490,7 @@ class Importer:
            if not processed_repos.has_key(comps_path):
                utils.remove_yum_olddata(comps_path)
                #cmd = "createrepo --basedir / --groupfile %s %s" % (os.path.join(comps_path, masterdir, comps_file), comps_path)
-               cmd = "createrepo -c cache --groupfile %s %s" % (os.path.join(comps_path, masterdir, comps_file), comps_path)
+               cmd = "createrepo %s --groupfile %s %s" % (self.settings.createrepo_flags,os.path.join(comps_path, masterdir, comps_file), comps_path)
                utils.subprocess_call(self.logger, cmd, shell=True)
                processed_repos[comps_path] = 1
                # for older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up one...
@@ -629,6 +629,7 @@ class Importer:
            if self.os_version:
                distro.set_os_version(self.os_version)
            distro.source_repos = []
+           distro.ks_meta = {}
 
            self.distros.add(distro,save=True)
            distros_added.append(distro)       

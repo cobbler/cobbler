@@ -24,13 +24,8 @@ def run(api,args,logger):
 
     manage_dhcp        = str(settings.manage_dhcp).lower()
     manage_dns         = str(settings.manage_dns).lower()
-    restart_bin        = str(settings.restart_bin).lower()
     restart_dhcp       = str(settings.restart_dhcp).lower()
     restart_dns        = str(settings.restart_dns).lower()
-    dhcpd_bin          = str(settings.dhcpd_bin).lower()
-    dhcpd_init         = str(settings.dhcpd_init).lower()
-    omapi_enabled      = str(settings.omapi_enabled).lower()
-    omapi_port         = str(settings.omapi_port).lower()
 
     which_dhcp_module = module_loader.get_module_from_file("dhcp","module",just_name=True).strip()
     which_dns_module  = module_loader.get_module_from_file("dns","module",just_name=True).strip()
@@ -41,15 +36,15 @@ def run(api,args,logger):
     rc = 0
     if manage_dhcp != "0":
         if which_dhcp_module == "manage_isc":
-            if not omapi_enabled in [ "1", "true", "yes", "y" ] and restart_dhcp:
-                rc = utils.subprocess_call(logger, "%s -t -q" % dhcpd_bin, shell=True)
+            if restart_dhcp:
+                rc = utils.subprocess_call(logger, "dhcpd -t -q", shell=True)
                 if rc != 0:
-                   logger.error("%s -t failed" % dhcpd_bin)
+                   logger.error("dhcpd -t failed")
                    return 1
-                rc = utils.subprocess_call(logger,"%s %s restart" % (restart_bin, dhcpd_init), shell=True)
+                rc = utils.subprocess_call(logger,"/etc/rc.d/init.d/dhcpd restart", shell=True)
         elif which_dhcp_module == "manage_dnsmasq":
             if restart_dhcp:
-                rc = utils.subprocess_call(logger, "/sbin/service dnsmasq restart")
+                rc = utils.subprocess_call(logger, "/etc/rc.d/init.d/dnsmasq restart")
                 has_restarted_dnsmasq = True
         else:
             logger.error("unknown DHCP engine: %s" % which_dhcp_module)
@@ -57,9 +52,9 @@ def run(api,args,logger):
 
     if manage_dns != "0" and restart_dns != "0":
         if which_dns_module == "manage_bind":
-            rc = utils.subprocess_call(logger, "/sbin/service named restart", shell=True)
+            rc = utils.subprocess_call(logger, "/etc/rc.d/init.d/named restart", shell=True)
         elif which_dns_module == "manage_dnsmasq" and not has_restarted_dnsmasq:
-            rc = utils.subprocess_call(logger, "/sbin/service dnsmasq restart", shell=True)
+            rc = utils.subprocess_call(logger, "/etc/rc.d/init.d/dnsmasq restart", shell=True)
         elif which_dns_module == "manage_dnsmasq" and has_restarted_dnsmasq:
             rc = 0
         else:

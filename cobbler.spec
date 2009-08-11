@@ -10,7 +10,6 @@ Version: 1.7.0
 Release: 1%{?dist}
 Source0: cobbler-%{version}.tar.gz
 Group: Applications/System
-
 Requires: python >= 2.3
 %ifarch %{ix86} x86_64
 Requires: syslinux

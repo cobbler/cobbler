@@ -22,8 +22,14 @@ allow_duplicate_ips: 0
 # this is undesirable.
 allow_duplicate_macs: 0
 
-# the path to BIND's executable for this distribution.
-bind_bin: /usr/sbin/named
+# by default, installs are *not* set to send installation logs to the cobbler
+# # # server.  With 'anamon_enabled', kickstart templates may use the pre_anamon
+# # # snippet to allow remote live monitoring of their installations from the
+# # # cobbler server.  Installation logs will be stored under
+# # # /var/log/cobbler/anamon/.  NOTE: This does allow an xmlrpc call to send logs
+# # # to this directory, without authentication, so enable only if you are
+# # # ok with this limitation.
+anamon_enabled: 0
 
 # Email out a report when cobbler finishes installing a system.
 # enabled: set to 1 to turn this feature on
@@ -31,7 +37,6 @@ bind_bin: /usr/sbin/named
 # email: which addresses to email
 # smtp_server: used to specify another server for an MTA
 # subject: use the default subject unless overridden
-
 build_reporting_enabled: 0
 build_reporting_sender: ""
 build_reporting_email: [ 'root@localhost' ]
@@ -50,17 +55,27 @@ cheetah_import_whitelist:
    - "re"
    - "time"
 
-# The command "cobbler deploy" can be used to deploy guests
-# that are defined by cobbler system objects onto hosts that
-# are defined by cobbler system objects.  This setting 
-# specifies the default deployment vector to use when it
-# is not specified on the command line to "cobbler deploy"
-# 
-# options: ssh, func
-default_deploy_method: "ssh"
+# Default createrepo_flags to use for new repositories. If you have
+# createrepo >= 0.4.10, consider "-c cache --update -C", which can
+# dramatically improve your "cobbler reposync" time.  "-s sha"
+# enables working with Fedora repos from F11/F12 from EL-4 or
+# EL-5 without python-hashlib installed (which is not available
+# on EL-4)
+createrepo_flags: "-c cache -s sha"
 
-# if no kickstart is specified, use this template (FIXME)
+# if no kickstart is specified to profile add, use this template
 default_kickstart: /var/lib/cobbler/kickstarts/default.ks
+
+# configure all installed systems to use these nameservers by default
+# unless defined differently in the profile.  For DHCP configurations
+# you probably do /not/ want to supply this.
+default_name_servers: []
+
+# if using the authz_ownership module (see the Wiki), objects
+# created without specifying an owner are assigned to this
+# owner and/or group.  Can be a comma seperated list.
+default_ownership:
+    - "admin"
 
 # cobbler has various sample kickstart templates stored
 # in /var/lib/cobbler/kickstarts/.  This controls
@@ -68,13 +83,7 @@ default_kickstart: /var/lib/cobbler/kickstarts/default.ks
 # systems that reference this variable.  The factory
 # default is "cobbler" and cobbler check will warn if
 # this is not changed.
-
 default_password_crypted: "\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac."
-
-# configure all installed systems to use these nameservers by default
-# unless defined differently in the profile.  For DHCP configurations
-# you probably do /not/ want to supply this.
-default_name_servers: []
 
 # for libvirt based installs in koan, if no virt bridge
 # is specified, which bridge do we try?  For EL 4/5 hosts
@@ -84,23 +93,17 @@ default_name_servers: []
 # typing to just set it here to the most common option.
 default_virt_bridge: xenbr0
 
-# if koan is invoked without --virt-type and no virt-type
-# is set on the profile/system, what virtualization type
-# should be assumed?  Values: xenpv, xenfv, qemu, vmware
-# (NOTE: this does not change what virt_type is chosen by import)
-default_virt_type: xenpv
-
 # use this as the default disk size for virt guests (GB)
 default_virt_file_size: 5
 
 # use this as the default memory size for virt guests (MB)
 default_virt_ram: 512
 
-# if using the authz_ownership module (see the Wiki), objects
-# created without specifying an owner are assigned to this
-# owner and/or group.  Can be a comma seperated list.
-default_ownership:
-    - "admin"
+# if koan is invoked without --virt-type and no virt-type
+# is set on the profile/system, what virtualization type
+# should be assumed?  Values: xenpv, xenfv, qemu, vmware
+# (NOTE: this does not change what virt_type is chosen by import)
+default_virt_type: xenpv
 
 # controls whether cobbler will add each new profile entry to the default
 # PXE boot menu.  This can be over-ridden on a per-profile
@@ -110,18 +113,6 @@ default_ownership:
 # boot menu.  Adding a password to the boot menus templates 
 # may also be a good solution to prevent unwanted reinstallations
 enable_menu: 1
-
-# location of the tool which is used to restart services 
-# for Debian use: /usr/sbin/invoke-rc.d
-restart_bin: /sbin/service
-
-# location for some important binaries and config files and the names
-# of the init scripts that can vary based on the distribution.
-dhcpd_bin: /usr/sbin/dhcpd
-dhcpd_conf: /etc/dhcpd.conf
-dhcpd_init: dhcpd
-dnsmasq_bin: /usr/sbin/dnsmasq
-dnsmasq_conf: /etc/dnsmasq.conf
 
 # enable Func-integration?  This makes sure each installed machine is set up
 # to use func out of the box, which is a powerful way to script and control
@@ -133,12 +124,8 @@ dnsmasq_conf: /etc/dnsmasq.conf
 # you will need to mirror Fedora/EPEL packages for this feature, so see
 # https://fedorahosted.org/cobbler/wiki/ManageYumRepos if you want cobbler
 # to help you with this
-
 func_auto_setup: 0
 func_master: overlord.example.org
-
-# more important file locations...
-httpd_bin: /usr/sbin/httpd
 
 # change this port if Apache is not running plaintext on port
 # 80.  Most people can leave this alone.
@@ -154,7 +141,6 @@ kernel_options:
 
 # s390 systems require additional kernel options in addition to the
 # above defaults
-
 kernel_options_s390x:
     RUNKS: 1
     ramdisk_size: 40000
@@ -175,6 +161,14 @@ ldap_search_bind_dn: ''
 ldap_search_passwd: ''
 ldap_search_prefix: 'uid='
 
+# cobbler has a feature that allows for integration with config management
+# systems such as Puppet.  The following parameters work in conjunction with 
+# --mgmt-classes  and are described in furhter detail at:
+# https://fedorahosted.org/cobbler/wiki/UsingCobblerWithConfigManagementSystem
+mgmt_classes: []
+mgmt_parameters:
+   from_cobbler: 1
+
 # set to 1 to enable Cobbler's DHCP management features.
 # the choice of DHCP management engine is in /etc/cobbler/modules.conf
 manage_dhcp: $enable_dhcp
@@ -189,50 +183,17 @@ manage_dns: $enable_dns
 manage_forward_zones: []
 manage_reverse_zones: []
 
-# cobbler has a feature that allows for integration with config management
-# systems such as Puppet.  The following parameters work in conjunction with 
-# --mgmt-classes  and are described in furhter detail at:
-# https://fedorahosted.org/cobbler/wiki/UsingCobblerWithConfigManagementSystem
-mgmt_classes: []
-mgmt_parameters:
-   from_cobbler: 1
-
-# location where cobbler will write its named.conf when BIND dns management is
-# enabled
-named_conf: /etc/named.conf
-
 # if using cobbler with manage_dhcp, put the IP address
 # of the cobbler server here so that PXE booting guests can find it
 # if you do not set this correctly, this will be manifested in TFTP open timeouts.
 next_server: $next_server
 
-# if using cobbler with manage_dhcp and ISC, omapi allows realtime DHCP
-# updates without restarting ISC dhcpd.  However, it may cause
-# problems with removing leases and make things less reliable. OMAPI
-# usage is experimental and not recommended at this time.
-
-omapi_enabled: 0
-omapi_port: 647
-omshell_bin: /usr/bin/omshell
-
 # settings for power management features.  optional.
 # see https://fedorahosted.org/cobbler/wiki/PowerManagement to learn more
 #
 # choices:
-#    bullpap
-#    wti
-#    apc
-#    apc_snmp
-#    ether-wake
-#    ipmilan
-#    drac
-#    ipmitool
-#    ilo
-#    rsa
-#    lpar
-#    bladecenter
-#    virsh
-
+#    bullpap wti apc apc_snmp ether-wake ipmilan
+#    drac ipmitool ilo rsa lpar bladecenter virsh
 power_management_default_type: 'ipmitool'
 
 # the commands used by the power management module are sourced
@@ -260,7 +221,6 @@ pxe_template_dir: "/etc/cobbler/pxe"
 #   "site"   : I'm using Red Hat Satellite Server or Spacewalk
 #   
 # You will also want to read: https://fedorahosted.org/cobbler/wiki/TipsForRhn
-
 redhat_management_type: "$redhat_management_type"
 
 # if redhat_management_type is enabled, choose your server
@@ -271,7 +231,6 @@ redhat_management_type: "$redhat_management_type"
 # within Cobbler Web and Cobbler XMLRPC.  Using RHN Hosted for this is not supported.
 # This feature can be used even if redhat_management_type is off, you just have
 # to have authn_spacewalk selected in modules.conf
-
 redhat_management_server: "$redhat_management_server"
 
 # specify the default Red Hat authorization key to use to register
@@ -296,6 +255,12 @@ redhat_management_key: ""
 # on and then you can use CobblerWeb alongside a Satellite install.
 redhat_management_permissive: 0
 
+# if set to 1, allows /usr/bin/cobbler-register (part of the koan package)
+# to be used to remotely add new cobbler system records to cobbler.
+# this effectively allows for registration of new hardware from system
+# records.
+register_new_installs: 0
+
 # the cobbler replicate feature can be used to make one cobbler
 # server be centrally managed from another -- for example for
 # a setup that involved multiple geographies or scalability/HA
@@ -318,13 +283,16 @@ redhat_management_permissive: 0
 # paths (like NFS or SANs).
 #
 # Read more at https://fedorahosted.org/cobbler/wiki/ReplicateMaster
-
 replicate_cobbler_master: "cobbler"
 replicate_sync_kickstarts: 1 
 replicate_sync_trees: 1
 replicate_sync_repos: 1
 replicate_sync_triggers: 0
 replicate_systems: 1
+
+# Flags to use for yum's reposync.  If your version of yum reposync
+# does not support -l, you may need to remove that option.
+reposync_flags: "-l -m -d"
 
 # when DHCP and DNS management are enabled, cobbler sync can automatically
 # restart those services to apply changes.  The exception for this is
@@ -341,12 +309,6 @@ replicate_systems: 1
 restart_dns: 1
 restart_dhcp: 1
 
-# if set to 1, allows /usr/bin/cobbler-register (part of the koan package)
-# to be used to remotely add new cobbler system records to cobbler.
-# this effectively allows for registration of new hardware from system
-# records.
-register_new_installs: 0
-
 # install triggers are scripts in /var/lib/cobbler/triggers/install
 # that are triggered in kickstart pre and post sections.  Any
 # executable script in those directories is run.  They can be used
@@ -361,7 +323,6 @@ run_install_triggers: 1
 # to revert to previous database versions, generate RSS feeds, or for
 # other auditing or backup purposes.  git is the recommend SCM
 # for use with this feature.  
-
 scm_track_enabled: 0
 scm_track_mode: "git"
 
@@ -377,19 +338,6 @@ server: $server
 # templating easier.  See the Wiki for more information.  Changing
 # this directory should not be required.
 snippetsdir: /var/lib/cobbler/snippets
-
-# by default, installs are *not* set to send installation logs to the cobbler
-# server.  With 'anamon_enabled', kickstart templates may use the pre_anamon
-# snippet to allow remote live monitoring of their installations from the
-# cobbler server.  Installation logs will be stored under
-# /var/log/cobbler/anamon/.  NOTE: This does allow an xmlrpc call to send logs
-# to this directory, without authentication, so enable only if you are
-# ok with this limitation.
-anamon_enabled: 0
-
-# locations of the TFTP binary and config file
-tftpd_bin: /usr/sbin/in.tftpd
-tftpd_conf: /etc/xinetd.d/tftp
 
 # should new profiles for virtual machines default to auto booting with the physical host when the physical host reboots?
 # this can be overridden on each profile or system object.
@@ -417,15 +365,6 @@ xmlrpc_port: 25151
 # accessable at http://cobbler.example.org/cblr/repo_mirror and yum
 # configuration can still be done manually.  This is just a shortcut.
 yum_post_install_mirror: $yum_post_install_mirror
-
-# Default createrepo_flags to use for new repositories. If you have
-# createrepo >= 0.4.10, consider "-c cache --update -C", which can
-# dramatically improve your "cobbler reposync" time.
-createrepo_flags: "-c cache"
-
-# Flags to use for yum's reposync.  If your version of yum reposync
-# does not support -l, you may need to remove that option.
-reposync_flags: "-l -m -d"
 
 # Flags to use for yumdownloader.  Not all versions may support 
 # --resolve.
