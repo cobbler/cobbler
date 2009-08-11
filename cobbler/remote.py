@@ -717,6 +717,8 @@ class CobblerXMLRPCInterface:
         return self.new_item("distro",token)
     def new_profile(self,token):
         return self.new_item("profile",token)
+    # for API backwards compatibility reasons only:
+    new_subprofile = new_profile
     def new_system(self,token):
         return self.new_item("system",token)
     def new_repo(self,token):
