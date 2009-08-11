@@ -57,8 +57,11 @@ cheetah_import_whitelist:
 
 # Default createrepo_flags to use for new repositories. If you have
 # createrepo >= 0.4.10, consider "-c cache --update -C", which can
-# dramatically improve your "cobbler reposync" time.
-createrepo_flags: "-c cache"
+# dramatically improve your "cobbler reposync" time.  "-s sha"
+# enables working with Fedora repos from F11/F12 from EL-4 or
+# EL-5 without python-hashlib installed (which is not available
+# on EL-4)
+createrepo_flags: "-c cache -s sha"
 
 # if no kickstart is specified to profile add, use this template
 default_kickstart: /var/lib/cobbler/kickstarts/default.ks
