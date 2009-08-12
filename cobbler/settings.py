@@ -105,6 +105,7 @@ DEFAULTS = {
     "xmlrpc_port"                 : 25151,
     "yum_post_install_mirror"     : 1,
     "createrepo_flags"            : "-c cache -s sha",
+    "yum_distro_priority"         : 1,
     "yumdownloader_flags"         : "--resolve",
     "reposync_flags"              : "-l -m -d"
 }
