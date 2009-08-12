@@ -31,6 +31,7 @@ Cobbler CHANGELOG
 - (BUGF) deprecated omapi/omshell features for manage_isc now removed
 - (FEAT) removed configuration files for binary paths, will look for in PATH
 - (FEAT) removed configuration settings indicating where some config files are
+- (FEAT) yum priorities plugin setting for distro repos now tweakable in settings
 
 - - 1.6.9
 - (FEAT/cobbler) cobbler can now pass the virtio26 os version to virtinst, so virtio drivers can be used for RHEL5

@@ -481,7 +481,7 @@ class Importer:
            config_file.write("baseurl=http://@@http_server@@/cobbler/ks_mirror/%s\n" % (urlseg))
            config_file.write("enabled=1\n")
            config_file.write("gpgcheck=0\n")
-           config_file.write("priority=1\n")
+           config_file.write("priority=$yum_distro_priority\n")
            config_file.close()
 
            # don't run creatrepo twice -- this can happen easily for Xen and PXE, when

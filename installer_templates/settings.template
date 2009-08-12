@@ -366,6 +366,10 @@ xmlrpc_port: 25151
 # configuration can still be done manually.  This is just a shortcut.
 yum_post_install_mirror: $yum_post_install_mirror
 
+# the default yum priority for all the distros.  This is only used
+# if yum-priorities plugin is used.  1=maximum.  Tweak with caution.
+yum_distro_priority: 1
+
 # Flags to use for yumdownloader.  Not all versions may support 
 # --resolve.
 yumdownloader_flags: "--resolve"
