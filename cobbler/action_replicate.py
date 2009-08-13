@@ -73,6 +73,7 @@ class Replicate:
          remotes2 = utils.loh_sort_by_key(remote_obj_data,"depth")
 
          for rdata in remotes:
+
              if not locals.has_key(rdata["uid"]):
                  creator = getattr(self.api, "new_%s" % otype)
                  newobj = creator()
@@ -93,6 +94,10 @@ class Replicate:
              if locals.has_key(ruid):
                  ldata = locals[ruid]
                  if ldata["mtime"] < rdata["mtime"]:
+
+                     if ldata["name"] != rdata["name"]:
+                         self.logger.info("removing %s %s" % (obj_type, ldata["name"]))
+                         self.api.remove_item(obj_type, ldata["name"], recursive=True, logger=self.logger)
                      creator = getattr(self.api, "new_%s" % otype)
                      newobj = creator()
                      newobj.from_datastruct(rdata)
