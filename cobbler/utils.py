@@ -1745,3 +1745,27 @@ def cli_find_via_xmlrpc(remote, otype, options):
     criteria = strip_none2(options.__dict__)
     return remote.find_items(otype,criteria,"name",False)
 
+# -------------------------------------------------------
+    
+def loh_to_hoh(datastruct, indexkey):
+    """
+    things like get_distros() returns a list of a hashes
+    convert this to a hash of hashes keyed off of an arbitrary field
+
+    EX:  [  { "a" : 2 }, { "a : 3 } ]  ->  { "2" : { "a" : 2 }, "3" : { "a" : "3" }
+
+    """
+    results = {}
+    for item in datastruct:
+        results[item[indexkey]] = item
+    return results
+
+# -------------------------------------------------------
+
+def loh_sort_by_key(datastruct, indexkey):
+    """
+    Sorts a list of hashes by a given key in the hashes
+    note: this is a destructive operation
+    """
+    datastruct.sort(lambda a, b: a[indexkey] < b[indexkey])
+    return datastruct
