@@ -1776,3 +1776,4 @@ def dhcpconf_location(api):
 if __name__ == "__main__":
     print os_release() # returns 2, not 3
 
+
