@@ -78,8 +78,8 @@ class DnsmasqManager:
         DHCP files are written when manage_dhcp is set in
         /var/lib/cobbler/settings.
         """
-        
-        settings_file = self.settings.dnsmasq_conf
+       
+        settings_file = "/etc/dnsmasq.conf"
         template_file = "/etc/cobbler/dnsmasq.template"
 
         try:
@@ -149,8 +149,6 @@ class DnsmasqManager:
         # we are now done with the looping through each interface of each system
 
         metadata = {
-           "omapi_enabled"  : self.settings.omapi_enabled,
-           "omapi_port"     : self.settings.omapi_port,
            "insert_cobbler_system_definitions" : system_definitions.get("default",""),
            "date"           : time.asctime(time.gmtime()),
            "cobbler_server" : self.settings.server,

@@ -812,38 +812,31 @@ def check_dist():
 def os_release():
 
    if check_dist() == "redhat":
-
-      if not os.path.exists("/bin/rpm"):
-         return ("unknown", 0)
-      args = ["/bin/rpm", "-q", "--whatprovides", "redhat-release", "--queryformat", "%"+"{name}"+"-%" + "{version}" + "-%" + "{release}"]
-      cmd = sub_process.Popen(args,shell=False,stdout=sub_process.PIPE,close_fds=True)
-      data = cmd.communicate()[0]
-      data = data.rstrip().lower()
-      make = "other"
-      if data.find("redhat") != -1:
-          make = "redhat"
+      fh = open("/etc/redhat-release")
+      data = fh.read().lower()
+      if data.find("fedora") != -1:
+         make = "fedora"
       elif data.find("centos") != -1:
-          make = "centos"
-      elif data.find("fedora") != -1:
-          make = "fedora"
-      version = data.split("release-")[-1]
-      rest = 0
-      if version.find("-"):
-         parts = version.split("-")
-         version = parts[0]
-         rest = parts[1]
-      try:
-         version = float(version)
-      except:
-         version = float(version[0])
-      return (make, float(version), rest)
+         make = "centos"
+      else:
+         make = "redhat"
+      release_index = data.find("release") 
+      rest = data[release_index+7:-1]
+      tokens = rest.split(" ")
+      for t in tokens:
+         try:
+             return (make,float(t))
+         except ValueError, ve:
+             pass
+      raise CX("failed to detect local OS version from /etc/redhat-release")
+
    elif check_dist() == "debian":
       fd = open("/etc/debian_version")
       parts = fd.read().split(".")
       version = parts[0]
       rest = parts[1]
       make = "debian"
-      return (make, float(version), rest)
+      return (make, float(version))
    elif check_dist() == "suse":
       fd = open("/etc/SuSE-release")
       for line in fd.read().split("\n"):
@@ -852,7 +845,7 @@ def os_release():
          if line.find("PATCHLEVEL") != -1:
             rest = line.replace("PATCHLEVEL = ","")
       make = "suse"
-      return (make, float(version), rest)
+      return (make, float(version))
    else:
       return ("unknown",0)
 
@@ -1436,7 +1429,7 @@ def subprocess_call(logger, cmd, shell=True):
 
 def subprocess_get(logger, cmd, shell=True):
     logger.info("running: %s" % cmd)
-    sp = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE)
+    sp = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE, stderr=sub_process.PIPE)
     data = sp.communicate()[0] 
     logger.info("recieved: %s" % data)
     return data
@@ -1769,3 +1762,17 @@ def loh_sort_by_key(datastruct, indexkey):
     """
     datastruct.sort(lambda a, b: a[indexkey] < b[indexkey])
     return datastruct
+
+def dhcpconf_location(api):
+    version = api.os_version
+    if version[0] in [ "redhat", "centos" ] and version[1] < 6:
+        return "/etc/dhcp.conf"
+    elif version[0] in [ "fedora" ] and version[1] < 11: 
+        return "/etc/dhcp.conf"
+    else:
+        return "/etc/dhcp/dhcp.conf"
+
+
+if __name__ == "__main__":
+    print os_release() # returns 2, not 3
+

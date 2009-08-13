@@ -84,10 +84,6 @@ class BootCheck:
        self.check_for_default_password(status)
        self.check_for_unreferenced_repos(status)
        self.check_for_unsynced_repos(status)
-       
-       # comment out until s390 virtual PXE is fully supported
-       # self.check_vsftpd_bin(status)
-
        self.check_for_cman(status)
 
        return status
@@ -234,32 +230,37 @@ class BootCheck:
        Check if Apache is installed.
        """
        if self.checked_dist == "suse":
-           self.check_service(status,"apache2")
+           rc = utils.subprocess_get(self.logger,"httpd -v")
        else:
-           self.check_service(status,"httpd")
+           rc = utils.subprocess_get(self.logger,"apache2 -v")
+       if rc.find("Server") != -1:
+           status.append("Apache (httpd) is not installed and/or in path")
+
 
    def check_dhcpd_bin(self,status):
        """
        Check if dhcpd is installed
        """
-       if not os.path.exists(self.settings.dhcpd_bin):
-           status.append(_("dhcpd isn't installed, but management is enabled in /etc/cobbler/settings"))
+       rc = utils.subprocess_get(self.logger,"dhcpd --help")
+       if rc.find("exiting") == -1:
+           status.append("dhcpd is not installed and/or in path")
 
    def check_dnsmasq_bin(self,status):
        """
        Check if dnsmasq is installed
        """
-       if not os.path.exists(self.settings.dnsmasq_bin):
-           status.append(_("dnsmasq isn't installed, but management is enabled in /etc/cobbler/settings"))
+       rc = utils.subprocess_get(self.logger,"dnsmasq --help")
+       if rc.find("Valid options") == -1:
+           status.append("dnsmasq is not installed and/or in path")
 
    def check_bind_bin(self,status):
        """
        Check if bind is installed.
        """
-       if not os.path.exists(self.settings.bind_bin):
-           status.append(_("bind isn't installed, but management is enabled in /etc/cobbler/settings"))
+       rc = utils.subprocess_get(self.logger,"named --help")
+       if rc.find("unknown option") == -1:
+           status.append("named is not installed and/or in path")
        
-
    def check_bootloaders(self,status):
        """
        Check if network bootloaders are installed
@@ -307,34 +308,8 @@ class BootCheck:
        """
        Check if tftpd is installed
        """
-       if not os.path.exists(self.settings.tftpd_bin):
-          status.append(_("tftp-server is not installed."))
-       else:
-          self.check_service(status,"xinetd")
-
-   def check_vsftpd_bin(self,status):
-       """
-       Check if vsftpd is installed
-       """
-       if not os.path.exists(self.settings.vsftpd_bin):
-           status.append(_("vsftpd is not installed (NOTE: needed for s390x support only)"))
-       else:
-           self.check_service(status,"vsftpd","needed for 390x support only")
-           
-       bootloc = utils.tftpboot_location()
-       if not os.path.exists("/etc/vsftpd/vsftpd.conf"):
-           status.append("missing /etc/vsftpd/vsftpd.conf")   
-       conf = open("/etc/vsftpd/vsftpd.conf")
-       data = conf.read()
-       lines = data.split("\n")
-       ok = False
-       for line in lines:
-           if line.find("anon_root") != -1 and line.find(bootloc) != -1:
-               ok = True
-               break
-       conf.close()
-       if not ok:
-           status.append("in /etc/vsftpd/vsftpd.conf the line 'anon_root=%s' should be added (needed for s390x support only)" % bootloc)
+       if not os.path.exists("/etc/xinetd.d/tftp"):
+          status.append("missing /etc/xinetd.d/tftp, install tftp-server?")
 
    def check_tftpd_dir(self,status):
        """
@@ -350,14 +325,14 @@ class BootCheck:
        Check that configured tftpd boot directory matches with actual
        Check that tftpd is enabled to autostart
        """
-       if os.path.exists(self.settings.tftpd_conf):
+       if os.path.exists("/etc/xinet.d/tftp"):
           f = open(self.settings.tftpd_conf)
           re_disable = re.compile(r'disable.*=.*yes')
           for line in f.readlines():
              if re_disable.search(line) and not line.strip().startswith("#"):
                  status.append(_("change 'disable' to 'no' in %(file)s") % { "file" : self.settings.tftpd_conf })
        else:
-          status.append(_("file %(file)s does not exist") % { "file" : self.settings.tftpd_conf })
+          status.append(_("file %(file)s does not exist") % { "file" : "/etc/xinetd.d/tftp" })
        
        bootloc = utils.tftpboot_location()
        if not os.path.exists(bootloc):

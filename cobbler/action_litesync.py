@@ -139,30 +139,12 @@ class BootLiteSync:
         self.sync.pxegen.write_all_system_files(system)
         # generate any templates listed in the distro
         self.sync.pxegen.write_templates(system)
-        # per system kickstarts
-        if self.settings.manage_dhcp:
-            if self.settings.omapi_enabled: 
-                for (name,interface) in system.interfaces.iteritems():
-                    self.sync.dhcp.write_dhcp_lease(
-                        self.settings.omapi_port,
-                        interface["dns_name"],
-                        interface["mac_address"],
-                        interface["ip_address"]
-                    )
 
     def remove_single_system(self, name):
         bootloc = utils.tftpboot_location()
         system_record = self.systems.find(name=name)
         # delete contents of kickstarts_sys/$name in webdir
         system_record = self.systems.find(name=name)
-
-        if self.settings.manage_dhcp:
-            if self.settings.omapi_enabled: 
-                for (name,interface) in system_record.interfaces.iteritems():
-                    self.sync.dhcp.remove_dhcp_lease(
-                        self.settings.omapi_port,
-                        interface["dns_name"]
-                    )
 
         itanic = False
         profile = self.profiles.find(name=system_record.profile)
