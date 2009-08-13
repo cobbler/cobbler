@@ -60,8 +60,8 @@ class Replicate:
         for (luid, ldata) in locals.iteritems():
             if not remotes.has_key(luid):
                 try:
-                    self.logger.info("removing %s %s" % (obj_type, x["name"]))
-                    self.api.remove(obj_type, x["name"], recursive=True, logger=self.logger)
+                    self.logger.info("removing %s %s" % (obj_type, ldata["name"]))
+                    self.api.remove_item(obj_type, ldata["name"], recursive=True, logger=self.logger)
                 except Exception, e:
                     utils.log_exc(self.logger)
 
@@ -77,10 +77,9 @@ class Replicate:
                  creator = getattr(self.api, "new_%s" % otype)
                  newobj = creator()
                  newobj.from_datastruct(remotes2[rdata["uid"]])
-                 adder = getattr(self.api, "add_%s" % otype)
                  try:
                      self.logger.info("adding %s %s" % (otype, rdata["name"])) 
-                     adder(newobj)
+                     self.api.add_item(otype, newobj)
                  except Exception, e:
                      utils.log_exc(self.logger)
 
@@ -97,10 +96,9 @@ class Replicate:
                      creator = getattr(self.api, "new_%s" % otype)
                      newobj = creator()
                      newobj.from_datastruct(rdata)
-                     adder = getattr(self.api, "add_%s" % otype)
                      try:
                          self.logger.info("updating %s %s" % (otype, rdata["name"])) 
-                         adder(newobj)
+                         self.api.add_item(otype, newobj)
                      except Exception, e:
                          utils.log_exc(self.logger)
 
