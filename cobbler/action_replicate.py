@@ -1,7 +1,7 @@
 """
 Replicate from a cobbler master.
 
-Copyright 2007-2008, Red Hat, Inc
+Copyright 2007-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 Scott Henson <shenson@redhat.com>
 
@@ -41,7 +41,7 @@ class Replicate:
         self.remote   = None
         self.uri      = None
         if logger is None:
-           logger = clogger.Logger()
+           logger     = clogger.Logger()
         self.logger   = logger
 
     def rsync_it(self,from_path,to_path):
@@ -54,12 +54,13 @@ class Replicate:
     # -------------------------------------------------------
 
     def remove_objects_not_on_master(self, local_obj_data, remote_obj_data, obj_type):
-        locals = utils.loh_to_hoh("uid")
-        remotes = utils.loh_to_hoh("uid")
+        locals = utils.loh_to_hoh(local_obj_data,"uid")
+        remotes = utils.loh_to_hoh(remote_obj_data,"uid")
 
-        for (luid, ldata) in locals:
+        for (luid, ldata) in locals.iteritems():
             if not remotes.has_key(luid):
                 try:
+                    self.logger.info("removing %s %s" % (obj_type, x["name"]))
                     self.api.remove(obj_type, x["name"], recursive=True, logger=self.logger)
                 except Exception, e:
                     utils.log_exc(self.logger)
@@ -78,6 +79,7 @@ class Replicate:
                  newobj.from_datastruct(remotes2[rdata["uid"]])
                  adder = getattr(self.api, "add_%s" % otype)
                  try:
+                     self.logger.info("adding %s %s" % (otype, rdata["name"])) 
                      adder(newobj)
                  except Exception, e:
                      utils.log_exc(self.logger)
@@ -85,10 +87,10 @@ class Replicate:
     # -------------------------------------------------------
 
     def replace_objects_newer_on_remote(self, local_obj_data, remote_obj_data, otype):
-         locals = utils.loh_to_hoh("uid")
-         remotes = utils.loh_to_hoh("uid")
+         locals = utils.loh_to_hoh(local_obj_data,"uid")
+         remotes = utils.loh_to_hoh(remote_obj_data,"uid")
 
-         for (ruid, rdata) in remotes:
+         for (ruid, rdata) in remotes.iteritems():
              if locals.has_key(ruid):
                  ldata = locals[ruid]
                  if ldata["mtime"] < rdata["mtime"]:
@@ -97,6 +99,7 @@ class Replicate:
                      newobj.from_datastruct(rdata)
                      adder = getattr(self.api, "add_%s" % otype)
                      try:
+                         self.logger.info("updating %s %s" % (otype, rdata["name"])) 
                          adder(newobj)
                      except Exception, e:
                          utils.log_exc(self.logger)
@@ -111,13 +114,14 @@ class Replicate:
        
         self.logger.info("Querying Both Servers")
         for what in obj_types:
-            self.remote_data[what] = self.remote.get_items(what)
-            self.local_data[what]  = self.local.get_items(what)
+            remote_data[what] = self.remote.get_items(what)
+            local_data[what]  = self.local.get_items(what)
 
-        # FIXME: this should be optional!
+        # FIXME: this should be optional as we might want to maintain local system records
+        # and just keep profiles/distros common
         self.logger.info("Removing Objects Not Stored On Master")
         for what in obj_types:
-            self.remote_objects_not_on_master(self, local_data[what], remote_data[what], what) 
+            self.remove_objects_not_on_master(local_data[what], remote_data[what], what) 
 
         if self.sync_all or self.sync_trees:
             self.logger.info("Rsyncing Distribution Trees")
@@ -125,11 +129,11 @@ class Replicate:
 
         self.logger.info("Removing Objects Not Stored On Local")
         for what in obj_types:
-            self.add_objects_not_on_local(self, local_data[what], remote_data[what], what)
+            self.add_objects_not_on_local(local_data[what], remote_data[what], what)
 
         self.logger.info("Updating Objects Newer On Remote")
         for what in obj_types:
-            self.replace_objects_newer_on_remote(self, local_data[what], remote_data[what], what)
+            self.replace_objects_newer_on_remote(local_data[what], remote_data[what], what)
 
 
         #for distro in remote_distros:
@@ -259,19 +263,20 @@ class Replicate:
         self.sync_triggers   = sync_triggers
         self.include_systems = include_systems
 
-        self.logger.debug("cobbler_master = %s" % cobbler_master)
-        self.logger.debug("sync_all = %s" % sync_all)
-        self.logger.debug("sync_kickstarts = %s" % sync_kickstarts)
-        self.logger.debug("sync_trees = %s" % sync_trees)
-        self.logger.debug("sync_repos = %s" % sync_repos)
-        self.logger.debug("sync_triggers = %s" % sync_triggers)
-        self.logger.debug("include_systems = %s" % include_systems)
+        self.logger.info("cobbler_master = %s" % cobbler_master)
+        self.logger.info("sync_all = %s" % sync_all)
+        self.logger.info("sync_kickstarts = %s" % sync_kickstarts)
+        self.logger.info("sync_trees = %s" % sync_trees)
+        self.logger.info("sync_repos = %s" % sync_repos)
+        self.logger.info("sync_triggers = %s" % sync_triggers)
+        self.logger.info("include_systems = %s" % include_systems)
 
         if cobbler_master is not None:
+            self.logger.info("using CLI defined master")
             self.host = cobbler_master
             self.uri = 'http://%s/cobbler_api' % cobbler_master
-             
         elif len(self.settings.cobbler_master) > 0:
+            self.logger.info("using info from master")
             self.host = self.settings.cobbler_master
             self.uri = 'http://%s/cobbler_api' % self.settings.cobbler_master
         else:
@@ -279,8 +284,10 @@ class Replicate:
 
         self.logger.info("XMLRPC endpoint: %s" % self.uri)     
         self.remote =  xmlrpclib.Server(self.uri)
-        self.local  =  xmlrpclib.Server("http://127.0.0.1/cobbler/api")
-
+        self.remote.ping()
+        self.local  =  xmlrpclib.Server("http://127.0.0.1/cobbler_api")
+        self.local.ping()
+ 
         self.replicate_data()
         self.logger.info("Syncing")
         self.api.sync()
