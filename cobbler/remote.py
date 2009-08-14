@@ -195,12 +195,13 @@ class CobblerXMLRPCInterface:
         def runner(self):
             # FIXME: defaults from settings here should come from views, fix in views.py
             return self.remote.api.replicate(
-                self.options.get("replicate_master", "cobbler"),
-                self.options.get("replicate_sync_kickstarts", 1),
-                self.options.get("replicate_sync_trees", 1),
-                self.options.get("replicate_sync_repos", 1),
-                self.options.get("replicate_sync_systems", 1),
-                self.options.get("replicate_sync_triggers", 0),
+                self.options.get("master", None),
+                self.options.get("sync_all", 1),
+                self.options.get("kickstarts", 1),
+                self.options.get("trees", 1),
+                self.options.get("repos", 1),
+                self.options.get("triggers", 0),
+                self.options.get("systems", 1),
                 self.logger
             )
         return self.__start_task(runner, token, "replicate", "Replicate", options)
@@ -285,7 +286,7 @@ class CobblerXMLRPCInterface:
     def __generate_event_id(self,optype):
         t = time.time()
         (year, month, day, hour, minute, second, weekday, julian, dst) = time.localtime()
-        return "%04d-%02d-%02d_%02d:%02d:%02d_%s" % (year,month,day,hour,minute,second,optype)
+        return "%04d-%02d-%02d_%02d%02d%02d_%s" % (year,month,day,hour,minute,second,optype)
 
     def _new_event(self, name):
         event_id = self.__generate_event_id("event")

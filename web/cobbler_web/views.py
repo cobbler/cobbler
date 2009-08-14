@@ -770,10 +770,14 @@ def replicate(request):
    """
    Replicate configuration from the central cobbler server, configured
    in /etc/cobbler/settings (note: this is uni-directional!)
+
+   FIXME: this is disabled because we really need a web page to provide options for
+   this command.
+
    """
-   settings = remote.get_settings()
-   options = settings # just load settings from file until we decide to ask user (later?)
-   remote.background_replicate(options, token)
+   #settings = remote.get_settings()
+   #options = settings # just load settings from file until we decide to ask user (later?)
+   #remote.background_replicate(options, token)
    return HttpResponseRedirect("/cobbler_web/task_created")
 
 # ======================================================================

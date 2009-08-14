@@ -261,35 +261,6 @@ redhat_management_permissive: 0
 # records.
 register_new_installs: 0
 
-# the cobbler replicate feature can be used to make one cobbler
-# server be centrally managed from another -- for example for
-# a setup that involved multiple geographies or scalability/HA
-# configurations.   
-#
-# The settings below control what happens
-# when using the replicate button from Cobbler Web only.
-#
-# If you have some content on shared storage you may want to turn 
-# off syncing of some/all of the data.  replicate_systems in 
-# particular controls whether systems come from the central server 
-# or whether only distro/profile data comes from the central server 
-# and the user is keeping system records only on the local machines.
-#
-# Note you MUST have authorized keys set up to use this feature
-# from the web app if you are using the data sync options as 
-# otherwise SSH will try to prompt for credentials
-# and hang.  Either sync the data on your own or use authorized
-# keys or shared storage with everything in commonly accessible
-# paths (like NFS or SANs).
-#
-# Read more at https://fedorahosted.org/cobbler/wiki/ReplicateMaster
-replicate_cobbler_master: "cobbler"
-replicate_sync_kickstarts: 1 
-replicate_sync_trees: 1
-replicate_sync_repos: 1
-replicate_sync_triggers: 0
-replicate_systems: 1
-
 # Flags to use for yum's reposync.  If your version of yum reposync
 # does not support -l, you may need to remove that option.
 reposync_flags: "-l -m -d"
