@@ -507,17 +507,21 @@ Cobbler can replicate configurations from a master cobbler server.  Each cobbler
 expected to have a locally relevant /etc/cobbler/cobbler.conf and modules.conf, as these files are not
 synced. 
 
-This feature is intended for load-balancing, disaster-recovery, or multiple geography support.
+This feature is intended for load-balancing, disaster-recovery, backup, or multiple geography support.
 
-B<cobbler replicate --master=cobbler.example.org [--include-systems] [--full-data-sync] [--sync-kickstarts] [--sync-trees] [--sync-triggers] [--sync-repos]>
+B<cobbler replicate --master=cobbler.example.org [--distros=pattern] [--profiles=pattern] [--systems=pattern] [--repos-pattern] [--images=pattern] [--prune] [--omit-data]>
 
-A default cobbler master can be configured in the settings file.  Unless --include-systems is specified, only distributions, profiles, repos, and images will be transferred.  
+Cobbler can replicate data from a central server.  
 
-To move the accompanying data via rsync/scp, use --full-data-sync or a combination of the more specific sync options.  If not using --full-data-sync, the files must be mirrored via some other means or the objects will not be imported successfully.  
+Objects that need to be replicated should be specified with a pattern, such as --profiles="webservers* dbservers*" or --systems="*.example.org".   All objects matched by the pattern, and all dependencies of those objects matched by the pattern (recursively) will be transferred from the remote server to the central server.  This is to say if you intend to transfer "*.example.org"
+and the definition of the systems have not changed, but a profile above them has changed, the
+changes to that profile will also be transferred.
 
-This command works best if you are using "cobbler import" and "cobbler reposync" to manage your trees and repos.  
+In the case where objects are more recent on the local server, those changes will not be overridden locally.  
 
-If doing some of this work outside of Cobbler, additional scripting will be required to achieve replication, though this command will still do a large part of the heavy lifting.
+Common data locations will be rsync'ed from the master server unless --omit-data is specified.
+
+To delete objects that are no longer present on the master server, use --prune.  Warning:  this will delete all object types not present on the remote server from the local server, and is recursive.   If you use prune, it is best to manage cobbler centrally and not expect changes made on the slave servers to be preserved.   It is not currently possible to just prune objects of a specific type.
 
 =head2 REBUILDING CONFIGURATIONS
 

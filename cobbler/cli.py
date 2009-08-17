@@ -282,13 +282,14 @@ class BootCLI:
             task_id = self.start_task("buildiso",options)
 
         elif action_name == "replicate":
-            self.parser.add_option("--master",               dest="master",           help="Cobbler server to replicate from.")
-            self.parser.add_option("--include-systems",      dest="systems",          action="store_true", help="include systems in addition to distros, profiles, and repos")
-            self.parser.add_option("--full-data-sync",       dest="all",              action="store_true", help="rsync everything")
-            self.parser.add_option("--sync-kickstarts",      dest="kickstarts",       action="store_true", help="rsync kickstart templates")
-            self.parser.add_option("--sync-trees",           dest="trees",            action="store_true", help="rsync imported trees")
-            self.parser.add_option("--sync-triggers",        dest="triggers",         action="store_true", help="rsync trigger scripts")
-            self.parser.add_option("--sync-repos",           dest="repos",            action="store_true", help="rsync mirrored repo data")
+            self.parser.add_option("--master",    dest="master",    help="Cobbler server to replicate from.")
+            self.parser.add_option("--distros",   dest="distro_patterns",   help="patterns of distros to replicate")
+            self.parser.add_option("--profiles",  dest="profile_patterns",  help="patterns of profiles to replicate")
+            self.parser.add_option("--systems",   dest="system_patterns",   help="patterns of systems to replicate")
+            self.parser.add_option("--repos",     dest="repo_patterns",     help="patterns of repos to replicate")
+            self.parser.add_option("--image",     dest="image_patterns",   help="patterns of images to replicate")
+            self.parser.add_option("--omit-data", dest="omit_data", action="store_true", help="do not rsync data")
+            self.parser.add_option("--prune",     dest="prune", action="store_true", help="remove objects (of all types) not found on the master")
             (options, args) = self.parser.parse_args()
             task_id = self.start_task("replicate",options)
 
