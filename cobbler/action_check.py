@@ -325,7 +325,7 @@ class BootCheck:
        Check that configured tftpd boot directory matches with actual
        Check that tftpd is enabled to autostart
        """
-       if os.path.exists("/etc/xinet.d/tftp"):
+       if os.path.exists("/etc/xinetd.d/tftp"):
           f = open(self.settings.tftpd_conf)
           re_disable = re.compile(r'disable.*=.*yes')
           for line in f.readlines():
