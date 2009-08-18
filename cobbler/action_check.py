@@ -325,18 +325,17 @@ class BootCheck:
        Check that configured tftpd boot directory matches with actual
        Check that tftpd is enabled to autostart
        """
-       bootloc = utils.tftpboot_location()
-       if self.settings.tftpd_conf:
-          bootloc = self.settings.tftpd_conf
-       if os.path.exists(bootloc):
-          f = open(self.bootloc)
+       if os.path.exists("/etc/xinet.d/tftp"):
+          f = open(self.settings.tftpd_conf)
           re_disable = re.compile(r'disable.*=.*yes')
           for line in f.readlines():
              if re_disable.search(line) and not line.strip().startswith("#"):
                  status.append(_("change 'disable' to 'no' in %(file)s") % { "file" : bootloc })
        else:
           status.append(_("directory needs to be created: %s" % bootloc))
-
+       bootloc = utils.tftpboot_location()
+       if not os.path.exists(bootloc):
+          status.append(_("directory needs to be created: %s" % bootloc))
 
    def check_dhcpd_conf(self,status):
        """
