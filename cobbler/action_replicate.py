@@ -29,8 +29,12 @@ import utils
 from utils import _
 from cexceptions import *
 import clogger
+import fnmatch
+
+OBJ_TYPES = [ "distro", "profile", "system", "repo", "image" ]
 
 class Replicate:
+
     def __init__(self,config,logger=None):
         """
         Constructor
@@ -53,9 +57,9 @@ class Replicate:
     
     # -------------------------------------------------------
 
-    def remove_objects_not_on_master(self, local_obj_data, remote_obj_data, obj_type):
-        locals = utils.loh_to_hoh(local_obj_data,"uid")
-        remotes = utils.loh_to_hoh(remote_obj_data,"uid")
+    def remove_objects_not_on_master(self, obj_type):
+        locals = utils.loh_to_hoh(self.local_data[obj_type],"uid")
+        remotes = utils.loh_to_hoh(self.remote_data[obj_type],"uid")
 
         for (luid, ldata) in locals.iteritems():
             if not remotes.has_key(luid):
@@ -67,12 +71,16 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def add_objects_not_on_local(self, local_obj_data, remote_obj_data, otype):
-         locals = utils.loh_to_hoh(local_obj_data, "uid")
-         remotes = utils.loh_sort_by_key(remote_obj_data,"depth")
-         remotes2 = utils.loh_sort_by_key(remote_obj_data,"depth")
+    def add_objects_not_on_local(self, obj_type):
+         locals   = utils.loh_to_hoh(self.local_data[obj_type], "uid")
+         remotes  = utils.loh_sort_by_key(self.remote_data[obj_type],"depth")
+         remotes2 = utils.loh_sort_by_key(self.remote_data[obj_type],"depth")
 
          for rdata in remotes:
+
+             # do not add the system if it is not on the transfer list
+             if not self.must_include[obj_type].has_key(rdata["name"]):
+                 continue
 
              if not locals.has_key(rdata["uid"]):
                  creator = getattr(self.api, "new_%s" % otype)
@@ -86,11 +94,16 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def replace_objects_newer_on_remote(self, local_obj_data, remote_obj_data, otype):
-         locals = utils.loh_to_hoh(local_obj_data,"uid")
-         remotes = utils.loh_to_hoh(remote_obj_data,"uid")
+    def replace_objects_newer_on_remote(self, otype):
+         locals = utils.loh_to_hoh(self.local_data[otype],"uid")
+         remotes = utils.loh_to_hoh(self.remote_data[otype],"uid")
 
          for (ruid, rdata) in remotes.iteritems():
+             
+             # do not add the system if it is not on the transfer list
+             if not self.must_include[otype].has_key(rdata["name"]):
+                 continue
+
              if locals.has_key(ruid):
                  ldata = locals[ruid]
                  if ldata["mtime"] < rdata["mtime"]:
@@ -111,168 +124,146 @@ class Replicate:
 
     def replicate_data(self):
 
-        obj_types = [ "distro", "profile", "system", "repo", "image" ]
-        local_data  = {}    
-        remote_data = {}
+        self.local_data  = {}    
+        self.remote_data = {}
        
         self.logger.info("Querying Both Servers")
-        for what in obj_types:
-            remote_data[what] = self.remote.get_items(what)
-            local_data[what]  = self.local.get_items(what)
+        for what in OBJ_TYPES:
+            self.remote_data[what] = self.remote.get_items(what)
+            self.local_data[what]  = self.local.get_items(what)
+
+
+        self.generate_include_map()
 
         # FIXME: this should be optional as we might want to maintain local system records
         # and just keep profiles/distros common
-        self.logger.info("Removing Objects Not Stored On Master")
-        for what in obj_types:
-            self.remove_objects_not_on_master(local_data[what], remote_data[what], what) 
+        if self.prune:
+            self.logger.info("Removing Objects Not Stored On Master")
+            for what in OBJ_TYPES:
+                self.remove_objects_not_on_master(what) 
+        else:
+            self.logger.info("*NOT* Removing Objects Not Stored On Master")
 
-        if self.sync_all or self.sync_trees:
-            self.logger.info("Rsyncing Distribution Trees")
+        if not self.omit_data:
+            self.logger.info("Rsyncing trees")
             self.rsync_it(os.path.join(self.settings.webdir,"ks_mirror"),self.settings.webdir)
-
-        self.logger.info("Removing Objects Not Stored On Local")
-        for what in obj_types:
-            self.add_objects_not_on_local(local_data[what], remote_data[what], what)
-
-        self.logger.info("Updating Objects Newer On Remote")
-        for what in obj_types:
-            self.replace_objects_newer_on_remote(local_data[what], remote_data[what], what)
-
-
-        #for distro in remote_distros:
-        #    self.logger.info("Importing remote distro %s." % distro['name'])
-        #    if os.path.exists(distro['kernel']):
-        #        remote_mtime = distro['mtime']
-        #        if self.should_add_or_replace(distro, "distros"): 
-        #            new_distro = self.api.new_distro()
-        #            new_distro.from_datastruct(distro)
-        #            try:
-        #                self.api.add_distro(new_distro)
-        #                self.logger.info("Copied distro %s." % distro['name'])
-        #            except Exception, e:
-        #                utils.log_exc(self.logger)
-        #                self.logger.error("Failed to copy distro %s" % distro['name'])
-        #        else:
-        #            # FIXME: force logic
-        #            self.logger.info("Not copying distro %s, sufficiently new mtime" % distro['name'])
-        #    else:
-        #        self.logger.error("Failed to copy distro %s, content not here yet." % distro['name'])
-
-        if self.sync_all or self.sync_repos:
-            self.logger.info("Rsyncing Package Mirrors")
+            self.logger.info("Rsyncing repos")
             self.rsync_it(os.path.join(self.settings.webdir,"repo_mirror"),self.settings.webdir)
-
-        if self.sync_all or self.sync_kickstarts:
             self.logger.info("Rsyncing kickstart templates & snippets")
             self.rsync_it("/var/lib/cobbler/kickstarts","/var/lib/cobbler")
             self.rsync_it("/var/lib/cobbler/snippets","/var/lib/cobbler")
-
-        # repos
-        # FIXME: check to see if local mirror is here, or if otherwise accessible
-        #self.logger.info("Copying Repos")
-        #local_repos = self.api.repos()
-        #remote_repos = self.remote.get_repos()
-        #for repo in remote_repos:
-        #    self.logger.info("Importing remote repo %s." % repo['name'])
-        #    if self.should_add_or_replace(repo, "repos"): 
-        #        new_repo = self.api.new_repo()
-        #        new_repo.from_datastruct(repo)
-        #        try:
-        #            self.api.add_repo(new_repo)
-        #            self.logger.info("Copied repo %s." % repo['name'])
-        #        except Exception, e:
-        #            utils.log_exc(self.logger)
-        #            self.logger.error("Failed to copy repo %s." % repo['name'])
-        #    else:
-        #        self.logger.info("Not copying repo %s, sufficiently new mtime" % repo['name'])
-
-        # profiles
-        #self.logger.info("Copying Profiles")
-        #local_profiles = self.api.profiles()
-        #remote_profiles = self.remote.get_profiles()
-
-        # workaround for profile inheritance, must load in order
-        #def __depth_sort(a,b):
-        #    return cmp(a["depth"],b["depth"])
-        #remote_profiles.sort(__depth_sort)
-
-        #for profile in remote_profiles:
-        #    self.logger.info("Importing remote profile %s" % profile['name'])
-        #    if self.should_add_or_replace(profile, "profiles"): 
-        #        new_profile = self.api.new_profile()
-        #        new_profile.from_datastruct(profile)
-        #        try:
-        #            self.api.add_profile(new_profile)
-        #            self.logger.info("Copied profile %s." % profile['name'])
-        #        except Exception, e:
-        #            utils.log_exc(self.logger)
-        #            self.logger.error("Failed to copy profile %s." % profile['name'])
-        #    else:
-        #        self.logger.info("Not copying profile %s, sufficiently new mtime" % profile['name'])
-
-        # images
-        #self.logger.info("Copying Images")
-        #remote_images = self.remote.get_images()
-        #for image in remote_images:
-        #    self.logger.info("Importing remote image %s" % image['name'])
-        #    if self.should_add_or_replace(image, "images"): 
-        ##        new_image = self.api.new_image()
-        #        new_image.from_datastruct(image)
-        #        try:
-        #            self.api.add_image(new_image)
-        #            self.logger.info("Copied image %s." % image['name'])
-        #        except Exception, e:
-        #            utils.log_exc(self.logger)
-        ##            self.logger.info("Failed to copy image %s." % profile['image'])
-        #    else:
-        #        self.logger.info("Not copying image %s, sufficiently new mtime" % image['name'])
-
-        # systems
-        # (optional)
-        #if self.include_systems:
-        #    self.logger.info("Copying Systems")
-        #    local_systems = self.api.systems()
-        #    remote_systems = self.remote.get_systems()
-        #    for system in remote_systems:
-        #        self.logger.info("Importing remote system %s" % system['name'])
-        #        if self.should_add_or_replace(system, "systems"): 
-        #            new_system = self.api.new_system()
-        #            new_system.from_datastruct(system)
-        #            try:
-        #                self.api.add_system(new_system)
-        #                self.logger.info("Copied system %s." % system['name'])
-        #            except Exception, e:
-        #                utils.log_exc(self.logger)
-        #                self.logger.info("Failed to copy system %s" % system['name'])    
-        #        else:
-        #            self.logger.info("Not copying system %s, sufficiently new mtime" % system['name'])
-
-        if self.sync_all or self.sync_triggers:
             self.logger.info("Rsyncing triggers")
             self.rsync_it("/var/lib/cobbler/triggers","/var/lib/cobbler")
+        else:
+            self.logger.infon("*NOT* Rsyncing Data")
+
+        self.logger.info("Removing Objects Not Stored On Local")
+        for what in OBJ_TYPES:
+            self.add_objects_not_on_local(what)
+
+        self.logger.info("Updating Objects Newer On Remote")
+        for what in OBJ_TYPES:
+            self.replace_objects_newer_on_remote(what)
+
+
+    def generate_include_map(self):
+
+        self.remote_names = {}
+        self.remote_dict  = {}
+        for ot in OBJ_TYPES:
+            self.remote_names[ot] = utils.loh_to_hoh(self.remote_data[ot],"name").keys()
+            self.remote_dict[ot]  = utils.loh_to_hoh(self.remote_data[ot],"name")
+         
+        self.logger.debug("remote names struct is %s" % self.remote_names)
+
+        self.must_include = {
+            "distro"  : {},
+            "profile" : {},
+            "system"  : {},
+            "image"   : {},
+            "repo"    : {} 
+        }
+
+        # include all profiles that are matched by a pattern
+        for otype in OBJ_TYPES:
+            patvar = getattr(self, "%s_patterns" % otype)
+            self.logger.debug("* Finding Explicit %s Matches" % otype)
+            for pat in patvar:
+                for remote in self.remote_names[otype]:
+                    self.logger.debug("?: seeing if %s looks like %s" % (remote,pat))
+                    if fnmatch.fnmatch(remote, pat):
+                        self.must_include[otype][remote] = 1
+
+        # include all profiles that systems require
+        # whether they are explicitly included or not
+        self.logger.debug("* Adding Profiles Required By Systems")
+        for sys in self.must_include["system"]:
+            pro = self.remote_dict["system"][sys].get("profile","")
+            self.logger.debug("?: requires profile: %s" % pro)
+            if pro != "":
+               self.must_include["profile"][pro] = 1
+
+        # include all profiles that subprofiles require 
+        # whether they are explicitly included or not
+        # very deep nesting is possible
+        self.logger.debug("* Adding Profiles Required By SubProfiles")
+        loop_exit = True
+        while True:
+            for pro in self.must_include["profile"]:
+                parent = self.remote_dict["profile"][pro].get("parent","")
+                if parent != "":
+                     self.must_include["profile"][parent] = 1
+                     loop_exit = False
+            if loop_exit:
+                break
+
+        # require all distros that any profiles in the generated list requires
+        # whether they are explicitly included or not
+        self.logger.debug("* Adding Distros Required By Profiles")
+        for p in self.must_include["profile"]:
+            distro = self.remote_dict["profile"][p].get("distro","")
+            self.must_include["distro"][distro] = 1
+
+        # require any repos that any profiles in the generated list requires
+        # whether they are explicitly included or not
+        self.logger.debug("* Adding Repos Required By Profiles")
+        for p in self.must_include["profile"]:
+            repos = self.remote_dict["profile"][p].get("repos",[])
+            for r in repos:
+                self.must_include["repo"][r] = 1
+
+        # include all images that systems require
+        # whether they are explicitly included or not
+        self.logger.debug("* Adding Images Required By Systems")
+        for sys in self.must_include["system"]:
+            img = self.remote_dict["system"][sys].get("image","")
+            self.logger.debug("?: requires profile: %s" % pro)
+            if img != "":
+               self.must_include["image"][img] = 1
+
+        # FIXME: remove debug
+        for ot in OBJ_TYPES:
+            self.logger.debug("transfer list for %s is %s" % (ot, self.must_include[ot].keys())) 
 
     # -------------------------------------------------------
 
-    def run(self, cobbler_master=None, sync_all=False, sync_kickstarts=False,
-                  sync_trees=False, sync_repos=False, sync_triggers=False, include_systems=False):
+    def run(self, cobbler_master=None, distro_patterns=None, profile_patterns=None, system_patterns=None, repo_patterns=None, image_patterns=None, prune=False, omit_data=False):
         """
         Get remote profiles and distros and sync them locally
         """
 
-        self.sync_all        = sync_all
-        self.sync_kickstarts = sync_kickstarts
-        self.sync_trees      = sync_trees
-        self.sync_repos      = sync_repos
-        self.sync_triggers   = sync_triggers
-        self.include_systems = include_systems
+        self.distro_patterns  = distro_patterns.split()
+        self.profile_patterns = profile_patterns.split()
+        self.system_patterns  = system_patterns.split()
+        self.repo_patterns    = repo_patterns.split()
+        self.image_patterns   = image_patterns.split()
+        self.omit_data        = omit_data
+        self.prune            = prune
 
-        self.logger.info("cobbler_master = %s" % cobbler_master)
-        self.logger.info("sync_all = %s" % sync_all)
-        self.logger.info("sync_kickstarts = %s" % sync_kickstarts)
-        self.logger.info("sync_trees = %s" % sync_trees)
-        self.logger.info("sync_repos = %s" % sync_repos)
-        self.logger.info("sync_triggers = %s" % sync_triggers)
-        self.logger.info("include_systems = %s" % include_systems)
+        self.logger.info("cobbler_master   = %s" % cobbler_master)
+        self.logger.info("profile_patterns = %s" % self.profile_patterns)
+        self.logger.info("system_patterns  = %s" % self.system_patterns)
+        self.logger.info("omit_data        = %s" % self.omit_data)
 
         if cobbler_master is not None:
             self.logger.info("using CLI defined master")

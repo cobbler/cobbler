@@ -756,20 +756,20 @@ class BootAPI:
 
     # ==========================================================================
 
-    def replicate(self, cobbler_master = None, sync_all=False, sync_kickstarts=False, sync_trees=False, sync_repos=False, sync_triggers=False, systems=False, logger=None):
+    def replicate(self, cobbler_master = None, distro_patterns="", profile_patterns="", system_patterns="", repo_patterns="", image_patterns="", prune=False, omit_data=False, logger=None):
         """
-        Pull down metadata from a remote cobbler server that is a master to this server.
-        Optionally rsync data from it.
+        Pull down data/configs from a remote cobbler server that is a master to this server.
         """
         replicator = action_replicate.Replicate(self._config, logger=logger)
         return replicator.run(
-              cobbler_master = cobbler_master,
-              sync_all = sync_all,
-              sync_kickstarts = sync_kickstarts,
-              sync_trees = sync_trees,
-              sync_repos = sync_repos,
-              sync_triggers = sync_triggers,
-              include_systems = systems
+              cobbler_master   = cobbler_master,
+              distro_patterns  = distro_patterns,
+              profile_patterns = profile_patterns,
+              system_patterns  = system_patterns,
+              repo_patterns    = repo_patterns,
+              image_patterns   = image_patterns,
+              prune            = prune,
+              omit_data        = omit_data
         )
 
     # ==========================================================================
