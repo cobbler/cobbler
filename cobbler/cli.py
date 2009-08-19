@@ -101,7 +101,6 @@ class BootCLI:
         self.parser        = optparse.OptionParser()
         self.remote        = xmlrpclib.Server(endpoint)
         self.shared_secret = utils.get_shared_secret()
-        self.token         = self.remote.login("", self.shared_secret)
 
     def start_task(self, name, options):
         options = utils.strip_none(vars(options), omit_none=True)
@@ -143,13 +142,45 @@ class BootCLI:
         else:
             return args[1]
 
+
+    def check_setup(self):
+        """
+        Detect permissions and service accessibility problems and provide
+        nicer error messages for them.
+        """
+
+        s = xmlrpclib.Server("http://127.0.0.1:25151")
+        try:
+            s.ping()
+        except:
+            print >> sys.stderr, "cobblerd does not appear to be running/accessible" 
+            sys.exit(411)
+
+        s = xmlrpclib.Server("http://127.0.0.1/cobbler_api")
+        try:
+            s.ping()
+        except:
+            print >> sys.stderr, "httpd does not appear to be running and proxying cobbler"
+            sys.exit(411)
+
+        if not os.path.exists("/var/lib/cobbler/web.ss"):
+            print >> sys.stderr, "Missing login credentials file.  Has cobblerd failed to start?"
+            sys.exit(411)
+
+        if not os.access("/var/lib/cobbler/web.ss", os.R_OK):
+            print >> sys.stderr, "User cannot run command line, need read access to /var/lib/cobbler/web.ss"
+            sys.exit(411)
+
     def run(self, args):
         """
         Process the command line and do what the user asks.
         """
+        self.token         = self.remote.login("", self.shared_secret)
         object_type   = self.get_object_type(args)
         object_action = self.get_object_action(object_type, args)
-        direct_action = self.get_direct_action(object_type, args) 
+        direct_action = self.get_direct_action(object_type, args)
+
+
 
         try:
             if object_type is not None:
@@ -462,7 +493,9 @@ def main():
     """
     CLI entry point
     """
-    rc = BootCLI().run(sys.argv)
+    cli = BootCLI()
+    cli.check_setup()
+    rc = cli.run(sys.argv)
     if rc == True or rc is None:
         sys.exit(0)
     elif rc == False:
