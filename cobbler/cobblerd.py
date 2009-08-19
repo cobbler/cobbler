@@ -1,7 +1,7 @@
 """
 cobbler daemon for logging remote syslog traffic during kickstart
  
-Copyright 2007, Red Hat, Inc
+Copyright 2007-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

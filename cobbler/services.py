@@ -3,7 +3,7 @@ Mod Python service functions for Cobbler's public interface
 (aka cool stuff that works with wget)
 
 based on code copyright 2007 Albert P. Tobey <tobert@gmail.com>
-additions: 2007-2008 Michael DeHaan <mdehaan@redhat.com>
+additions: 2007-2009 Michael DeHaan <mdehaan@redhat.com>
  
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

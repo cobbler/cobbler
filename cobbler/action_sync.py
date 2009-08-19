@@ -2,7 +2,7 @@
 Builds out filesystem trees/data based on the object tree.
 This is the code behind 'cobbler sync'.
 
-Copyright 2006-2008, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

@@ -2,8 +2,7 @@
 """
 various codes and constants used by Cobbler
 
-
-Copyright 2006-2008, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

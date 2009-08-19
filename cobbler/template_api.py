@@ -4,6 +4,7 @@ such function and is now used to implement Cobbler's SNIPPET:: syntax.
 
 Written by Daniel Guernsey <danpg102@gmail.com>
 Contributions by Michael DeHaan <mdehaan@redhat.com>
+US Government work; No explicit copyright attached to this file.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

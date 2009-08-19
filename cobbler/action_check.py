@@ -2,7 +2,7 @@
 Validates whether the system is reasonably well configured for
 serving up content.  This is the code behind 'cobbler check'.
 
-Copyright 2006, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify
