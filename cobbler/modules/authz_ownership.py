@@ -4,7 +4,7 @@ Authorization module that allow users listed in
 the further restriction that cobbler objects can be edited to only
 allow certain users/groups to access those specific objects.
 
-Copyright 2008, Red Hat, Inc
+Copyright 2008-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify
@@ -58,7 +58,7 @@ def __parse_config():
            alldata[g][o] = 1
     return alldata 
 
-def __authorize_kickstart(api_handle, group, user, kickstart, acl_engine):
+def __authorize_kickstart(api_handle, group, user, kickstart):
     # the authorization rules for kickstart editing are a bit
     # of a special case.  Non-admin users can edit a kickstart
     # only if all objects that depend on that kickstart are
@@ -80,35 +80,37 @@ def __authorize_kickstart(api_handle, group, user, kickstart, acl_engine):
     lst = api_handle.find_profile(kickstart=kickstart, return_list=True)
     lst.extend(api_handle.find_system(kickstart=kickstart, return_list=True))
     for obj in lst:
-       if not __is_user_allowed(obj, group, user, "write_kickstart", kickstart, None, acl_engine):
+       if not __is_user_allowed(obj, group, user, "write_kickstart", kickstart, None):
           return 0
     return 1
 
-def __authorize_snippet(api_handle, group, user, kickstart, acl_engine):
+def __authorize_snippet(api_handle, group, user, kickstart):
     # only allow admins to edit snippets -- since we don't have detection to see
     # where each snippet is in use
     if group not in [ "admins", "admin" ]:
        return False
     return True
 
-def __is_user_allowed(obj, group, user, resource, arg1, arg2, acl_engine):
+def __is_user_allowed(obj, group, user, resource, arg1, arg2):
+    if user == "":
+        # system user, logged in via web.ss
+        return True
     if group in [ "admins", "admin" ]:
-        return acl_engine.can_access(group, user, resource, arg1, arg2)
+        return True
     if obj.owners == []:
-        # no ownership restrictions, cleared
-        return acl_engine.can_access(group, user, resource, arg1, arg2)
+        return True
     for allowed in obj.owners:
         if user == allowed:
            # user match
-           return acl_engine.can_access(group, user, resource, arg1, arg2)
+           return True
         # else look for a group match
         if group == allowed:
-           return acl_engine.can_access(group, user, resource, arg1, arg2)
+           return True
     return 0
 
 
 
-def authorize(api_handle,user,resource,arg1=None,arg2=None,acl_engine=None):
+def authorize(api_handle,user,resource,arg1=None,arg2=None):
     """
     Validate a user against a resource.
     All users in the file are permitted by this module.
@@ -128,7 +130,7 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,acl_engine=None):
 
     # classify the type of operation
     modify_operation = False
-    for criteria in ["save","copy","rename","remove","modify","write","edit"]:
+    for criteria in ["save","copy","rename","remove","modify","edit","xapi","background"]:
         if resource.find(criteria) != -1:
            modify_operation = True
 
@@ -146,7 +148,7 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,acl_engine=None):
                # if user is in the admin group, always authorize
                # regardless of the ownership of the object.
                if g == "admins" or g == "admin":
-                   return acl_engine.can_access(found_group,user,resource,arg1,arg2)
+                   return True
                break
 
     if not found_user:
@@ -156,7 +158,7 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,acl_engine=None):
     if not modify_operation:
         # sufficient to allow access for non save/remove ops to all
         # users for now, may want to refine later.
-        return acl_engine.can_access(found_group,user,resource,arg1,arg2)
+        return True
 
     # now we have a modify_operation op, so we must check ownership
     # of the object.  remove ops pass in arg1 as a string name, 
@@ -165,18 +167,18 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,acl_engine=None):
     # function, rather than going through the rest of the code here.
 
     if resource.find("write_kickstart") != -1:
-        return __authorize_kickstart(api_handle,found_group,user,arg1,acl_engine)
+        return __authorize_kickstart(api_handle,found_group,user,arg1)
     elif resource.find("read_kickstart") != -1:
-        return acl_engine.can_access(found_group,user,resource,arg1,arg2)
+        return True
 
     # the API for editing snippets also needs to do something similar.
     # as with kickstarts, though since they are more widely used it's more
     # restrictive   
  
     if resource.find("write_snippet") != -1:
-        return __authorize_snippet(api_handle,found_group,user,arg1,acl_engine)
+        return __authorize_snippet(api_handle,found_group,user,arg1)
     elif resource.find("read_snipppet") != -1:
-        return acl_engine.can_access(found_group,user,resource,arg1,arg2)
+        return True
 
     obj = None
     if resource.find("remove") != -1:
@@ -187,46 +189,16 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None,acl_engine=None):
         elif resource == "remove_system":
            obj = api_handle.find_system(arg1)
         elif resource == "remove_repo":
-           obj = api_handle.find_system(arg1)
+           obj = api_handle.find_repo(arg1)
+        elif resource == "remove_image":
+           obj = api_handle.find_image(arg1)
     elif resource.find("save") != -1 or resource.find("modify") != -1:
         obj = arg1
 
     # if the object has no ownership data, allow access regardless
     if obj is None or obj.owners is None or obj.owners == []:
-        return acl_engine.can_access(found_group,user,resource,arg1,arg2)
+        return True
      
-    return __is_user_allowed(obj,found_group,user,resource,arg1,arg2,acl_engine)
+    return __is_user_allowed(obj,found_group,user,resource,arg1,arg2)
            
-
-if __name__ == "__main__":
-    # real tests are contained in tests/tests.py
-    import api as cobbler_api
-    import acls
-    acl_engine = acls.AclEngine()
-    api = cobbler_api.BootAPI()
-    print __parse_config()
-    print authorize(api, "testing", "sync", acl_engine=acl_engine)
-    d = api.find_distro("F9I-i386")
-    d.set_owners(["jradmin"])
-    api.add_distro(d)
-    p = api.find_profile("F9I-i386")
-    p.set_owners(["jradmin"])
-    api.add_profile(p)
-    s = api.find_system("foo")
-    s.set_owners(["jradmin"])
-    api.add_system(s)
-    print "**** TRY SOMETHING I CAN'T DO"
-    print authorize(api, "testing", "save_profile", p, acl_engine=acl_engine)
-    print "**** TRY SOMETHING I CAN'T DO"
-    print authorize(api, "testing", "save_distro",  d, acl_engine=acl_engine)
-    print "***** EDIT SYSTEM I OWN"
-    print authorize(api, "testing", "save_system",  s, acl_engine=acl_engine)
-    s = api.find_system("foo")
-    s.set_owners("notyou")
-    api.add_system(s)
-    print "***** EDIT SYSTEM I DONT OWN"
-    print authorize(api, "testing", "save_system",  s, acl_engine=acl_engine)
-    print authorize(api, "admin1", "write_kickstart", "/etc/cobbler/sample.ks", acl_engine=acl_engine)
-    print authorize(api, "admin1", "write_kickstart", "/etc/cobbler/sample2.ks", acl_engine=acl_engine)
-
 

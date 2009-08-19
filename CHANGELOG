@@ -3,10 +3,8 @@ Cobbler CHANGELOG
 - TBD 2009 - for 2.0 release
 - Development release start
 - (FEAT) add two new default flags to yum reposync (-m and -d) for grabbing comps automatically and also deleting duplicate RPMs
-- (FEAT) ongoing work contributed to improve Debian and Ubuntu support (import+pkg)
 - (BUGF) validate gateway input against python-netaddr
 - (FEAT) --kopts="~foo" --in-place can be used to delete a hash entry without affecting the others, not to be confused with "!foo" to supress it.
-- (BUGF) fixes to "cobbler report" (not cobbler ___ report)
 - (FEAT) web app moves to Django
 - (FEAT) koan: Support for virt-autoboot feature (Xen only at this point, needs fixing)
 - (FEAT) koan: use private address range for random MACs
@@ -15,8 +13,6 @@ Cobbler CHANGELOG
 - (FEAT) allow per_distro snippets in addition to per_profile/per_system
 - (BUGF) don't add port number to http_server if it's 80.
 - (FEAT) support F11 fence-agent paths
-- (FEAT) bringing back the koan live CD
-- (FEAT) koan live CD can go interactive if no profile is specified and system autodiscovery fails
 - (BUGF) koan autodetection now can gather MACs/IPs for bridged interfaces better
 - (FEAT) F11 and RAID support for keep_ssh_host_keys 
 - (FEAT) keep_ssh_host_keys gets F11+RAID support
@@ -26,12 +22,14 @@ Cobbler CHANGELOG
 - (FEAT) task engine for webapp
 - (FEAT) background APIs for all actions
 - (FEAT) look at ksdevice when building buildiso CDs to add the proper network lines
-- (FEAT) WIP:  replicate is now mtime aware
 - (BUGF) don't use RPM to check os_version, so RPM won't be called in rpm %post
 - (BUGF) deprecated omapi/omshell features for manage_isc now removed
 - (FEAT) removed configuration files for binary paths, will look for in PATH
 - (FEAT) removed configuration settings indicating where some config files are
 - (FEAT) yum priorities plugin setting for distro repos now tweakable in settings
+- (BUGF) unfinished contrib. debian import/repo support disabled until it can be finished
+- (FEAT) replicate is now greatly improved and smarter
+- (BUGF) aclengine (unfinished feature) removed, (not the same as aclsetup)
 
 - - 1.6.9
 - (FEAT/cobbler) cobbler can now pass the virtio26 os version to virtinst, so virtio drivers can be used for RHEL5

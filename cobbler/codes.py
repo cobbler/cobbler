@@ -53,7 +53,8 @@ VALID_OS_VERSIONS = {
 }
 
 VALID_REPO_BREEDS = [
-    "rsync", "rhn", "yum", "apt"
+#    "rsync", "rhn", "yum", "apt"
+     "rsync", "rhn", "yum"
 ]
 
 def get_all_os_versions():

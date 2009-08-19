@@ -326,11 +326,11 @@ class BootCheck:
        Check that tftpd is enabled to autostart
        """
        if os.path.exists("/etc/xinetd.d/tftp"):
-          f = open(self.settings.tftpd_conf)
+          f = open("/etc/xinetd.d/tftp")
           re_disable = re.compile(r'disable.*=.*yes')
           for line in f.readlines():
              if re_disable.search(line) and not line.strip().startswith("#"):
-                 status.append(_("change 'disable' to 'no' in %(file)s") % { "file" : self.settings.tftpd_conf })
+                 status.append(_("change 'disable' to 'no' in %(file)s") % { "file" : "/etc/xinetd.d/tftp" })
        else:
           status.append(_("file %(file)s does not exist") % { "file" : "/etc/xinetd.d/tftp" })
        
