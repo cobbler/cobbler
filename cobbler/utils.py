@@ -866,7 +866,7 @@ def tftpboot_location():
                     return t
 
     # otherwise, guess based on the distro
-    (make,version,rest) = os_release()
+    (make,version) = os_release()
     if make == "fedora" and version >= 9:
        return "/var/lib/tftpboot"
     return "/tftpboot"
