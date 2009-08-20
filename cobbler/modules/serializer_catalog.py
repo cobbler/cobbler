@@ -1,7 +1,12 @@
 """
-Serializer code for cobbler
+Serializer code for cobbler.
+As of 8/2009, this is the "best" serializer option.
+It uses multiple files in /var/lib/cobbler/config/distros.d, profiles.d, etc
+And JSON, when possible, and YAML, when not.
+It is particularly fast, especially when using JSON.   YAML, not so much.
+It also knows how to upgrade the old "single file" configs to .d versions.
 
-Copyright 2006-2008, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

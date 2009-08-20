@@ -2,7 +2,7 @@
 Authentication module that denies everything.
 Unsafe demo.  Allows anyone in with testing/testing.
 
-Copyright 2007-2008, Red Hat, Inc
+Copyright 2007-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

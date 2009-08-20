@@ -38,7 +38,6 @@ import collection_profiles as profiles
 import collection_systems as systems
 import collection_repos as repos
 import collection_images as images
-import modules.serializer_yaml as serializer_yaml
 
 import settings
 import serializer

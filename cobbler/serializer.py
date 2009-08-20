@@ -157,7 +157,7 @@ def __get_storage_module(collection_type):
     Look up serializer in /etc/cobbler/modules.conf
     """    
     capi = cobbler_api.BootAPI()
-    return capi.get_module_from_file("serializers",collection_type,"serializer_catalog")
+    return capi.get_module_by_name("serializer_catalog")
 
 if __name__ == "__main__":
     __grab_lock()
