@@ -8,13 +8,13 @@
 # ==========================================================
 #
 # if 1, cobbler will allow insertions of system records that duplicate
-# the hostname information of other system records.  In general,
-# this is undesirable.
+# the --dns-name information of other system records.  In general,
+# this is undesirable and should be left 0.
 allow_duplicate_hostnames: 0
 
 # if 1, cobbler will allow insertions of system records that duplicate
 # the ip address information of other system records.  In general,
-# this is undesirable.
+# this is undesirable and should be left 0.
 allow_duplicate_ips: 0
 
 # if 1, cobbler will allow insertions of system records that duplicate
