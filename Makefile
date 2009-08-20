@@ -63,6 +63,7 @@ savestate:
 	cp /etc/cobbler/users.conf $(statepath)/users.conf
 	cp /etc/cobbler/users.digest $(statepath)/users.digest
 	cp /etc/cobbler/dhcp.template $(statepath)/dhcp.template
+	cp /etc/cobbler/rsync.template $(statepath)/rsync.template
 
 
 restorestate:
@@ -74,6 +75,7 @@ restorestate:
 	cp $(statepath)/users.digest /etc/cobbler/users.digest
 	cp $(statepath)/http.conf /etc/httpd/conf.d/cobbler.conf
 	cp $(statepath)/dhcp.template /etc/cobbler/dhcp.template
+	cp $(statepath)/rsync.template /etc/cobbler/rsync.template
 	find /var/lib/cobbler/triggers | xargs chmod +x
 	chown -R apache /var/www/cobbler
 	chmod -R +x /var/www/cobbler/web

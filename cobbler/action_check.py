@@ -77,6 +77,7 @@ class BootCheck:
        self.check_tftpd_bin(status)
        self.check_tftpd_dir(status)
        self.check_tftpd_conf(status)
+       self.check_rsync_conf(status)
        self.check_httpd(status)
        self.check_iptables(status)
        self.check_yum(status)
@@ -337,6 +338,20 @@ class BootCheck:
        bootloc = utils.tftpboot_location()
        if not os.path.exists(bootloc):
           status.append(_("directory needs to be created: %s" % bootloc))
+
+
+   def check_rsync_conf(self,status):
+       """
+       Check that rsync is enabled to autostart
+       """
+       if os.path.exists("/etc/xinetd.d/rsync"):
+          f = open("/etc/xinetd.d/rsync")
+          re_disable = re.compile(r'disable.*=.*yes')
+          for line in f.readlines():
+             if re_disable.search(line) and not line.strip().startswith("#"):
+                 status.append(_("change 'disable' to 'no' in %(file)s") % { "file" : "/etc/xinetd.d/rsync" })
+       else:
+          status.append(_("file %(file)s does not exist") % { "file" : "/etc/xinetd.d/rsync" })
 
 
    def check_dhcpd_conf(self,status):

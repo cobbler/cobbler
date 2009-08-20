@@ -169,6 +169,9 @@ mgmt_classes: []
 mgmt_parameters:
    from_cobbler: 1
 
+# set to 1 to enable Cobbler's RSYNC management features.
+manage_rsync: $enable_rsync
+
 # set to 1 to enable Cobbler's DHCP management features.
 # the choice of DHCP management engine is in /etc/cobbler/modules.conf
 manage_dhcp: $enable_dhcp

@@ -1,0 +1,43 @@
+# ******************************************************************
+# Cobbler managed rsyncd.conf file
+#
+# generated from cobbler rsyncd.conf template ($date)
+# Do NOT make changes to /etc/rsyncd.conf. Instead, make your changes
+# in /etc/cobbler/rsyncd.template, as /etc/rsyncd.conf will be
+# overwritten.
+#
+# ******************************************************************
+
+[cobbler-distros]
+    path    = /var/www/cobbler/ks_mirror
+    comment = All Cobbler Distros
+
+[cobbler-repos]
+    path    = /var/www/cobbler/repo_mirror
+    comment = All Cobbler Distros
+
+[cobbler-kickstarts]
+    path    = /var/lib/cobbler/kickstarts
+    comment = Cobbler Kickstarts
+
+[cobbler-snippets]
+    path    = /var/lib/cobbler/snippets
+    comment = Cobbler Snippets
+
+[cobbler-triggers]
+    path    = /var/lib/cobbler/triggers
+    comment = Cobbler Triggers
+
+#for repo in $repos:
+[repo-$repo]
+    path    = /var/www/cobbler/repo_mirror/$repo
+    comment = Cobbler Repo $repo
+#end for
+
+#for distro in $distros:
+[distro-$distro]
+    path    = /var/www/cobbler/ks_mirror/$distro
+    comment = Cobbler Distro $distro
+
+#end for
+
