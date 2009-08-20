@@ -276,6 +276,8 @@ class System(item.Item):
         raise CX(_("invalid format for IP address (%s)") % address)
 
     def set_mac_address(self,address,interface):
+        if address == "random":
+           address = utils.get_random_mac(self.config.api)
         intf = self.__get_interface(interface)
         if address == "" or utils.is_mac(address):
            intf["mac_address"] = address.strip()
