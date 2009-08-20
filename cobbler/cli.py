@@ -207,9 +207,11 @@ class BootCLI:
         Make a remote exception nicely readable by humans so it's not evident that is a remote
         fault.  Users should not have to understand tracebacks.
         """
-        if str.find(">:\"") != -1:
-            (first, rest) = str.split(">:\"",1)
-            if rest.endswith("\""):
+        if str.find(">:") != -1:
+            (first, rest) = str.split(">:",1)
+            if rest.startswith("\"") or rest.startswith("\'"):
+                rest = rest[1:]
+            if rest.endswith("\"") or rest.endswith("\'"):
                 rest = rest[:-1]
             return rest
         else:
