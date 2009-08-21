@@ -2,7 +2,7 @@
 Authentication module that uses /etc/cobbler/auth.conf
 Choice of authentication module is in /etc/cobbler/modules.conf
 
-Copyright 2007-2008, Red Hat, Inc
+Copyright 2007-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

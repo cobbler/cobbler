@@ -120,7 +120,8 @@ class Importer:
        if self.os_version and not self.breed:
            utils.die(self.logger,"OS version can only be specified when a specific breed is selected")
 
-       if self.breed and self.breed.lower() not in [ "redhat", "debian", "ubuntu", "windows" ]:
+       #if self.breed and self.breed.lower() not in [ "redhat", "debian", "ubuntu", "windows" ]:
+       if self.breed and self.breed.lower() not in [ "redhat" ]:
            utils.die(self.logger,"Supplied import breed is not supported")
  
        # if --arch is supplied, make sure the user is not importing a path with a different
@@ -854,14 +855,13 @@ def import_factory(kerneldir,path,cli_breed,logger):
 
     if breed == "redhat":
         return RedHatImporter(logger,rootdir,pkgdir)
-    elif breed == "debian":
-        return DebianImporter(logger,rootdir,pkgdir)
-    elif breed == "ubuntu":
-        return UbuntuImporter(logger,rootdir,pkgdir)
+    # disabled for 2.0
+    #elif breed == "debian":
+    #    return DebianImporter(logger,rootdir,pkgdir)
+    #elif breed == "ubuntu":
+    #    return UbuntuImporter(logger,rootdir,pkgdir)
     elif breed:
-        utils.die(logger, "Unknown breed %s" % breed)
-    else:
-        utils.die(logger, "No breed given")
+        utils.die(logger, "Unsupported OS breed %s" % breed)
 
 
 class BaseImporter:
@@ -1112,126 +1112,127 @@ class RedHatImporter ( BaseImporter ) :
        self.logger.warning("could not use distro specifics, using rhel 4 compatible kickstart")
        return None , "/var/lib/cobbler/kickstarts/legacy.ks"
 
-class DebianImporter ( BaseImporter ) :
+#class DebianImporter ( BaseImporter ) :
+#
+#   def __init__(self,logger,rootdir,pkgdir):
+#       self.breed = "debian"
+#       self.ks = "/var/lib/cobbler/kickstarts/sample.seed"
+#       self.rootdir = rootdir
+#       self.pkgdir = pkgdir
+#       self.logger = logger
+#
+#   def get_release_files(self):
+#       if not self.get_pkgdir():
+#           return []
+#       # search for base-files or base-installer ?
+#       return glob.glob(os.path.join(self.get_pkgdir(), "main/b/base-files" , "base-files_*"))
+#
+#   def match_kernelarch_file(self, filename):
+#       if not filename.endswith("deb"):
+#           return False
+#       if filename.startswith("linux-headers-"):
+#           return True
+#       return False
+#
+#   def scan_pkg_filename(self, deb):
+#
+#       deb = os.path.basename(deb)
+#       self.logger.info("processing deb : %s" % deb)
+#
+#       # get all the tokens and try to guess a version
+#       accum = []
+#       tokens = deb.split("_")
+#       tokens2 = tokens[1].split(".")
+#       for t2 in tokens2:
+#          try:
+#              val = int(t2)
+#              accum.append(val)
+#          except:
+#              pass
+#       # Safeguard for non-guessable versions
+#       if not accum:
+#          return None
+#       accum.append(0)
+#
+#       return (None, accum[0], accum[1])
+#
+#   def set_variance(self, flavor, major, minor, arch):
+#
+#       dist_names = { '4.0' : "etch" , '5.0' : "lenny" }
+#       dist_vers = "%s.%s" % ( major , minor )
+#       os_version = dist_names[dist_vers]
+#
+#       return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
+#
+#   def set_install_tree(self, distro, url):
+#       idx = url.find("://")
+#       url = url[idx+3:]
+#
+#       idx = url.find("/")
+#       distro.ks_meta["hostname"] = url[:idx]
+#       distro.ks_meta["directory"] = url[idx:]
+#       if not distro.os_version :
+#           utils.die(self.logger, "OS version is required for debian distros")
+#       distro.ks_meta["suite"] = distro.os_version
+#   
+#   def process_repos(self, main_importer, distro):
+#
+#       # Create a disabled repository for the new distro, and the security updates
+#       #
+#       # NOTE : We cannot use ks_meta nor os_version because they get fixed at a later stage
+#
+#       repo = item_repo.Repo(main_importer.config)
+#       repo.set_breed( "apt" )
+#       repo.set_arch( distro.arch )
+#       repo.set_keep_updated( False )
+#       repo.yumopts["--ignore-release-gpg"] = None
+#       repo.yumopts["--verbose"] = None
+#       repo.set_name( distro.name )
+#       repo.set_os_version( distro.os_version )
+#       # NOTE : The location of the mirror should come from timezone
+#       repo.set_mirror( "http://ftp.%s.debian.org/debian/dists/%s" % ( 'us' , '@@suite@@' ) )
+#
+#       security_repo = item_repo.Repo(main_importer.config)
+#       security_repo.set_breed( "apt" )
+#       security_repo.set_arch( distro.arch )
+#       security_repo.set_keep_updated( False )
+#       security_repo.yumopts["--ignore-release-gpg"] = None
+#       security_repo.yumopts["--verbose"] = None
+#       security_repo.set_name( distro.name + "-security" )
+#       security_repo.set_os_version( distro.os_version )
+#       # There are no official mirrors for security updates
+#       security_repo.set_mirror( "http://security.debian.org/debian-security/dists/%s/updates" % '@@suite@@' )
+#
+#       self.logger.info("Added repos for %s" % distro.name)
+#       repos  = main_importer.config.repos()
+#       repos.add(repo,save=True)
+#       repos.add(security_repo,save=True)
 
-   def __init__(self,logger,rootdir,pkgdir):
-       self.breed = "debian"
-       self.ks = "/var/lib/cobbler/kickstarts/sample.seed"
-       self.rootdir = rootdir
-       self.pkgdir = pkgdir
-       self.logger = logger
 
-   def get_release_files(self):
-       if not self.get_pkgdir():
-           return []
-       # search for base-files or base-installer ?
-       return glob.glob(os.path.join(self.get_pkgdir(), "main/b/base-files" , "base-files_*"))
+#class UbuntuImporter ( DebianImporter ) :
+#
+#   def __init__(self,rootdir,pkgdir):
+#       DebianImporter.__init__(self,rootdir,pkgdir)
+#       self.breed = "ubuntu"
+#
+#   def get_release_files(self):
+#       if not self.get_pkgdir():
+#           return []
+#       return glob.glob(os.path.join(self.get_pkgdir(), "main/u/ubuntu-docs" , "ubuntu-docs_*"))
+#
+#   def set_variance(self, flavor, major, minor, arch):
+#  
+#       # Release names taken from wikipedia
+#       dist_names = { '6.4':"dapper", '8.4':"hardy", '8.10':"intrepid", '9.4':"jaunty" }
+#       dist_vers = "%s.%s" % ( major , minor )
+#       if not dist_names.has_key( dist_vers ):
+#           dist_names['4ubuntu2.0'] = "IntrepidIbex"
+#       os_version = dist_names[dist_vers]
+#
+#       return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
+#
+#   def process_repos(self, main_importer, distro):
+#
+#       pass
 
-   def match_kernelarch_file(self, filename):
-       if not filename.endswith("deb"):
-           return False
-       if filename.startswith("linux-headers-"):
-           return True
-       return False
-
-   def scan_pkg_filename(self, deb):
-
-       deb = os.path.basename(deb)
-       self.logger.info("processing deb : %s" % deb)
-
-       # get all the tokens and try to guess a version
-       accum = []
-       tokens = deb.split("_")
-       tokens2 = tokens[1].split(".")
-       for t2 in tokens2:
-          try:
-              val = int(t2)
-              accum.append(val)
-          except:
-              pass
-       # Safeguard for non-guessable versions
-       if not accum:
-          return None
-       accum.append(0)
-
-       return (None, accum[0], accum[1])
-
-   def set_variance(self, flavor, major, minor, arch):
-
-       dist_names = { '4.0' : "etch" , '5.0' : "lenny" }
-       dist_vers = "%s.%s" % ( major , minor )
-       os_version = dist_names[dist_vers]
-
-       return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
-
-   def set_install_tree(self, distro, url):
-       idx = url.find("://")
-       url = url[idx+3:]
-
-       idx = url.find("/")
-       distro.ks_meta["hostname"] = url[:idx]
-       distro.ks_meta["directory"] = url[idx:]
-       if not distro.os_version :
-           utils.die(self.logger, "OS version is required for debian distros")
-       distro.ks_meta["suite"] = distro.os_version
-   
-   def process_repos(self, main_importer, distro):
-
-       # Create a disabled repository for the new distro, and the security updates
-       #
-       # NOTE : We cannot use ks_meta nor os_version because they get fixed at a later stage
-
-       repo = item_repo.Repo(main_importer.config)
-       repo.set_breed( "apt" )
-       repo.set_arch( distro.arch )
-       repo.set_keep_updated( False )
-       repo.yumopts["--ignore-release-gpg"] = None
-       repo.yumopts["--verbose"] = None
-       repo.set_name( distro.name )
-       repo.set_os_version( distro.os_version )
-       # NOTE : The location of the mirror should come from timezone
-       repo.set_mirror( "http://ftp.%s.debian.org/debian/dists/%s" % ( 'us' , '@@suite@@' ) )
-
-       security_repo = item_repo.Repo(main_importer.config)
-       security_repo.set_breed( "apt" )
-       security_repo.set_arch( distro.arch )
-       security_repo.set_keep_updated( False )
-       security_repo.yumopts["--ignore-release-gpg"] = None
-       security_repo.yumopts["--verbose"] = None
-       security_repo.set_name( distro.name + "-security" )
-       security_repo.set_os_version( distro.os_version )
-       # There are no official mirrors for security updates
-       security_repo.set_mirror( "http://security.debian.org/debian-security/dists/%s/updates" % '@@suite@@' )
-
-       self.logger.info("Added repos for %s" % distro.name)
-       repos  = main_importer.config.repos()
-       repos.add(repo,save=True)
-       repos.add(security_repo,save=True)
-
-
-class UbuntuImporter ( DebianImporter ) :
-
-   def __init__(self,rootdir,pkgdir):
-       DebianImporter.__init__(self,rootdir,pkgdir)
-       self.breed = "ubuntu"
-
-   def get_release_files(self):
-       if not self.get_pkgdir():
-           return []
-       return glob.glob(os.path.join(self.get_pkgdir(), "main/u/ubuntu-docs" , "ubuntu-docs_*"))
-
-   def set_variance(self, flavor, major, minor, arch):
-  
-       # Release names taken from wikipedia
-       dist_names = { '6.4':"dapper", '8.4':"hardy", '8.10':"intrepid", '9.4':"jaunty" }
-       dist_vers = "%s.%s" % ( major , minor )
-       if not dist_names.has_key( dist_vers ):
-           dist_names['4ubuntu2.0'] = "IntrepidIbex"
-       os_version = dist_names[dist_vers]
-
-       return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
-
-   def process_repos(self, main_importer, distro):
-
-       pass
 

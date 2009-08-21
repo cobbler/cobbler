@@ -3,7 +3,7 @@ python API module for Cobbler
 see source for cobbler.py, or pydoc, for example usage.
 CLI apps and daemons should import api.py, and no other cobbler code.
 
-Copyright 2006-2008, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify
@@ -110,8 +110,6 @@ class BootAPI:
             self.dist = utils.check_dist()
             self.os_version = utils.os_release()
 
-            self.acl_engine = acls.AclEngine()
-            
             BootAPI.__has_loaded   = True
 
             module_loader.load_modules()
@@ -736,7 +734,7 @@ class BootAPI:
         (Remote) access control.
         Cobbler internal use only.
         """
-        rc = self.authz.authorize(self,user,resource,arg1,arg2,acl_engine=self.acl_engine)
+        rc = self.authz.authorize(self,user,resource,arg1,arg2)
         self.log("authorize",[user,resource,arg1,arg2,rc],debug=True)
         return rc
 

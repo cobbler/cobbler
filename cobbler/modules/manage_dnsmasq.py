@@ -1,8 +1,7 @@
-
 """
 This is some of the code behind 'cobbler sync'.
 
-Copyright 2006-2008, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 John Eckersberg <jeckersb@redhat.com>
 

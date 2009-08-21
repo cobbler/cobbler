@@ -1,7 +1,7 @@
 """
 Base class for any serializable list of things...
 
-Copyright 2006-2008, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify
@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import exceptions
 from cexceptions import *
-import serializable
 import utils
 import glob
 import time
@@ -37,7 +36,7 @@ import item_repo
 import item_image
 from utils import _
 
-class Collection(serializable.Serializable):
+class Collection:
 
     def __init__(self,config):
         """

@@ -3,7 +3,7 @@ Repositories in cobbler are way to create a local mirror of a yum repository.
 When used in conjunction with a mirrored kickstart tree (see "cobbler import")
 outside bandwidth needs can be reduced and/or eliminated.
 
-Copyright 2006-2008, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

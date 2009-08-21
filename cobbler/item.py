@@ -1,7 +1,7 @@
 """
 An Item is a serializable thing that can appear in a Collection
 
-Copyright 2006, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This software may be freely redistributed under the terms of the GNU
@@ -13,14 +13,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import exceptions
-import serializable
 import utils
 from cexceptions import *
 from utils import _
 import pprint
 import fnmatch
 
-class Item(serializable.Serializable):
+class Item:
 
     TYPE_NAME = "generic"
 

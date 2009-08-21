@@ -5,15 +5,6 @@
 # cobbler module configuration file
 # =================================
 
-# serializers:
-# what file/data formats to use for metadata
-#
-# choices:
-#    serializer_catalog (VERY fast, uses .d directories in /var/lib/cobbler/config)
-#    serializer_yaml (original serializer, uses a few text files, DEPRECATED)
-#
-# for 99% or more of all installations, use serializer_catalog.
-
 # authentication: 
 # what users can log into the WebUI and Read-Write XMLRPC?
 #

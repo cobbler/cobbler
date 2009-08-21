@@ -2,7 +2,7 @@
 Validates whether the system is reasonably well configured for
 serving up content.  This is the code behind 'cobbler check'.
 
-Copyright 2006, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify
@@ -331,7 +331,13 @@ class BootCheck:
           for line in f.readlines():
              if re_disable.search(line) and not line.strip().startswith("#"):
                  status.append(_("change 'disable' to 'no' in %(file)s") % { "file" : bootloc })
-       else:
+       if os.path.exists("/etc/xinetd.d/tftp"):
+          f = open("/etc/xinetd.d/tftp")
+          re_disable = re.compile(r'disable.*=.*yes')
+          for line in f.readlines():
+             if re_disable.search(line) and not line.strip().startswith("#"):
+                 status.append(_("change 'disable' to 'no' in %(file)s") % { "file" : "/etc/xinetd.d/tftp" })
+       lse:
           status.append(_("directory needs to be created: %s" % bootloc))
        bootloc = utils.tftpboot_location()
        if not os.path.exists(bootloc):

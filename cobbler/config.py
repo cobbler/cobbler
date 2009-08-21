@@ -1,7 +1,7 @@
 """
 Config.py is a repository of the Cobbler object model
 
-Copyright 2006-2008, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify
@@ -38,7 +38,6 @@ import collection_profiles as profiles
 import collection_systems as systems
 import collection_repos as repos
 import collection_images as images
-import modules.serializer_yaml as serializer_yaml
 
 import settings
 import serializer

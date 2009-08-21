@@ -211,7 +211,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/logrotate.d/cobblerd_rotate
 %config(noreplace) /etc/cobbler/modules.conf
 %config(noreplace) /etc/cobbler/users.conf
-%config(noreplace) /etc/cobbler/acls.conf
 %config(noreplace) /etc/cobbler/cheetah_macros
 %dir %{python_sitelib}/cobbler
 %dir %{python_sitelib}/cobbler/modules

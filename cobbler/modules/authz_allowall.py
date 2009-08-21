@@ -2,7 +2,7 @@
 Authorization module that allows everything, which is the default
 for new cobbler installs.
 
-Copyright 2007-2008, Red Hat, Inc
+Copyright 2007-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify
@@ -40,7 +40,7 @@ def register():
     """
     return "authz"
 
-def authorize(api_handle,user,resource,arg1=None,arg2=None,acl_engine=None):
+def authorize(api_handle,user,resource,arg1=None,arg2=None):
     """
     Validate a user against a resource.
     NOTE: acls are not enforced as there is no group support in this module

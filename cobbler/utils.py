@@ -1,7 +1,7 @@
 """
 Misc heavy lifting functions for cobbler
 
-Copyright 2006-2008, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify
@@ -866,7 +866,7 @@ def tftpboot_location():
                     return t
 
     # otherwise, guess based on the distro
-    (make,version,rest) = os_release()
+    (make,version) = os_release()
     if make == "fedora" and version >= 9:
        return "/var/lib/tftpboot"
     return "/tftpboot"

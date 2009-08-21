@@ -1,7 +1,6 @@
 {% extends "master.tmpl" %}
 {% load site %}
 {% block content %}
-{% if items %}
 
 <script type="text/javascript">
 function items_check_all(){
@@ -154,9 +153,6 @@ function action_multi(otype, action, param) {
   <input type="hidden" name="names" id="names" value=""/>
   </form>
 </fieldset>
-{% else %}
-There are no objects of this type yet.
-{% endif %}
 
 {% endblock content %}
 

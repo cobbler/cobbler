@@ -2,7 +2,7 @@
 A distro represents a network bootable matched set of kernels
 and initrd files
 
-Copyright 2006-2008, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

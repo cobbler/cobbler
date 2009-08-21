@@ -1,7 +1,7 @@
 """
 A Cobbler System.
 
-Copyright 2006-2008, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify
@@ -244,6 +244,15 @@ class System(item.Item):
 
     def set_dns_name(self,dns_name,interface):
         intf = self.__get_interface(interface)
+        # FIXME: move duplicate supression code to the object validation
+        # functions to take a harder line on supression?
+        if not str(self.config._settings.allow_duplicate_hostnames).lower() in [ "1", "y", "yes"]:
+           matched = self.config.api.find_items("system", {"dns_name" : dns_name})
+           for x in matched:
+               if x.name != self.name:
+                   raise CX("dns-name duplicated: %s" % dns_name)
+
+
         intf["dns_name"] = dns_name
         return True
  
@@ -270,17 +279,39 @@ class System(item.Item):
         Only works if manage_dhcp is set in /etc/cobbler/settings
         """
         intf = self.__get_interface(interface)
+
+        # FIXME: move duplicate supression code to the object validation
+        # functions to take a harder line on supression?
+        if not str(self.config._settings.allow_duplicate_ips).lower() in [ "1", "y", "yes"]:
+           matched = self.config.api.find_items("system", {"ip_address" : address})
+           for x in matched:
+               if x.name != self.name:
+                   raise CX("IP address duplicated: %s" % address)
+
+
         if address == "" or utils.is_ip(address):
            intf["ip_address"] = address.strip()
            return True
         raise CX(_("invalid format for IP address (%s)") % address)
 
     def set_mac_address(self,address,interface):
+        if address == "random":
+           address = utils.get_random_mac(self.config.api)
+
+        # FIXME: move duplicate supression code to the object validation
+        # functions to take a harder line on supression?
+        if not str(self.config._settings.allow_duplicate_macs).lower() in [ "1", "y", "yes"]:
+           matched = self.config.api.find_items("system", {"mac_address" : address})
+           for x in matched:
+               if x.name != self.name:
+                   raise CX("MAC address duplicated: %s" % address)
+
         intf = self.__get_interface(interface)
         if address == "" or utils.is_mac(address):
            intf["mac_address"] = address.strip()
            return True
         raise CX(_("invalid format for MAC address (%s)" % address))
+
 
     def set_gateway(self,gateway):
         if gateway is None:
@@ -495,5 +526,4 @@ class System(item.Item):
         if self.profile is None or self.profile == "":
             raise CX("profile is required")
             
-
 

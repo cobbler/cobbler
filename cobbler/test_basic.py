@@ -10,7 +10,6 @@ import shutil
 import traceback
 
 from cexceptions import *  
-import acls
 
 import modules.authz_ownership as authz_module
 import api
@@ -293,9 +292,8 @@ class Ownership(BootTest):
         # now edit the groups file.  We won't test the full XMLRPC
         # auth stack here, but just the module in question
 
-        acl_engine = acls.AclEngine()
         def authorize(api, user, resource, arg1=None, arg2=None):
-            return authz_module.authorize(api, user,resource,arg1,arg2,acl_engine=acl_engine)
+            return authz_module.authorize(api, user,resource,arg1,arg2)
 
         # if the users.conf file exists, back it up for the tests
         if os.path.exists("/etc/cobbler/users.conf"):

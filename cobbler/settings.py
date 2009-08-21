@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import serializable
 import utils
 from utils import _
 
@@ -105,7 +104,7 @@ DEFAULTS = {
 }
 
 
-class Settings(serializable.Serializable):
+class Settings:
 
    def collection_type(self):
        return "settings"

@@ -74,7 +74,7 @@ class Replicate:
     def add_objects_not_on_local(self, obj_type):
          locals   = utils.loh_to_hoh(self.local_data[obj_type], "uid")
          remotes  = utils.loh_sort_by_key(self.remote_data[obj_type],"depth")
-         remotes2 = utils.loh_sort_by_key(self.remote_data[obj_type],"depth")
+         remotes2 = utils.loh_to_hoh(self.remote_data[obj_type],"depth")
 
          for rdata in remotes:
 
@@ -83,12 +83,12 @@ class Replicate:
                  continue
 
              if not locals.has_key(rdata["uid"]):
-                 creator = getattr(self.api, "new_%s" % otype)
+                 creator = getattr(self.api, "new_%s" % obj_type)
                  newobj = creator()
-                 newobj.from_datastruct(remotes2[rdata["uid"]])
+                 newobj.from_datastruct(rdata)
                  try:
-                     self.logger.info("adding %s %s" % (otype, rdata["name"])) 
-                     self.api.add_item(otype, newobj)
+                     self.logger.info("adding %s %s" % (obj_type, rdata["name"])) 
+                     self.api.add_item(obj_type, newobj)
                  except Exception, e:
                      utils.log_exc(self.logger)
 
@@ -155,7 +155,7 @@ class Replicate:
             self.logger.info("Rsyncing triggers")
             self.rsync_it("/var/lib/cobbler/triggers","/var/lib/cobbler")
         else:
-            self.logger.infon("*NOT* Rsyncing Data")
+            self.logger.info("*NOT* Rsyncing Data")
 
         self.logger.info("Removing Objects Not Stored On Local")
         for what in OBJ_TYPES:
@@ -277,7 +277,9 @@ class Replicate:
             utils.die('No cobbler master specified, try --master.')
 
         self.logger.info("XMLRPC endpoint: %s" % self.uri)     
+        self.logger.debug("test ALPHA")
         self.remote =  xmlrpclib.Server(self.uri)
+        self.logger.debug("test BETA")
         self.remote.ping()
         self.local  =  xmlrpclib.Server("http://127.0.0.1/cobbler_api")
         self.local.ping()
