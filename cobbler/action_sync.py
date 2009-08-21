@@ -128,10 +128,9 @@ class BootSync:
            self.dns.regen_hosts()
            self.dns.write_dns_files()
 
-        if self.settings.manage_rsync:
-            if self.verbose:
-                self.logger.info("rendering Rsync files")
-            self.rsync_gen()
+        if self.verbose:
+            self.logger.info("rendering Rsync files")
+        self.rsync_gen()
 
         if self.verbose:
            self.logger.info("generating PXE menu structure")

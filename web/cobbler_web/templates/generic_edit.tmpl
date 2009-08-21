@@ -431,18 +431,22 @@ $(document).ready(function()
         <input type="hidden" id="original" name="original" value="1"/>
     {% endifequal %}
 
-    {% if editable %}
 
     <table border=0>
     <tr>
     <td>
     </td>
     <td>
+    {% if editable %}
     <input type="submit" name="submit" onClick="on_form_submit();" value="Save"/>
     <input type="reset" name="reset" value="Reset"/>
+    {% else %}
+    This user does not have permissions to edit this object.
+    {% endif %}
     </td>
     </tr>
-    {% endif %}
+    
+
 
 </table>
 

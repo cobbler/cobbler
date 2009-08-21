@@ -92,7 +92,7 @@ def __authorize_snippet(api_handle, group, user, kickstart):
     return True
 
 def __is_user_allowed(obj, group, user, resource, arg1, arg2):
-    if user == "":
+    if user == "<DIRECT>":
         # system user, logged in via web.ss
         return True
     if group in [ "admins", "admin" ]:
@@ -115,8 +115,9 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None):
     Validate a user against a resource.
     All users in the file are permitted by this module.
     """
-
-    # FIXME: this must be modified to use the new ACL engine
+    if user == "<DIRECT>":
+        # CLI should always be permitted
+        return True
 
     # everybody can get read-only access to everything
     # if they pass authorization, they don't have to be in users.conf

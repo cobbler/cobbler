@@ -4,7 +4,6 @@ dns_module: 'manage_bind'
 dhcp_module: 'manage_isc'
 enable_dhcp: 0
 enable_dns: 0
-enable_rsync: 1
 next_server: '127.0.0.1'
 pxe_once: 0
 redhat_management_type: "off"
