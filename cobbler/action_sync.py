@@ -209,6 +209,8 @@ class BootSync:
         template_data = template.read()
         template.close()
 
+        # FIXME: I think we need to glob all of ks_mirror here due to various import
+        # fun things
         distros = [ distro.name for distro in self.api.distros()
                     if distro.ks_meta.has_key('tree')
                     and os.path.isdir("/var/www/cobbler/ks_mirror/%s"%distro.name)
