@@ -128,6 +128,11 @@ class BootSync:
            self.dns.regen_hosts()
            self.dns.write_dns_files()
 
+        if self.settings.manage_rsync:
+            if self.verbose:
+                self.logger.info("rendering Rsync files")
+            self.rsync_gen()
+
         if self.verbose:
            self.logger.info("generating PXE menu structure")
         self.pxegen.make_pxe_menu()
@@ -188,6 +193,38 @@ class BootSync:
         utils.rmtree_contents(os.path.join(self.bootloc, "ppc"),logger=self.logger)
         utils.rmtree_contents(os.path.join(self.bootloc, "etc"),logger=self.logger)
         utils.rmtree_contents(rendered_dir,logger=self.logger)
-        
+
+
+    def rsync_gen(self):
+        """
+        Generate rsync modules of all repositories and distributions
+        """
+        template_file = "/etc/cobbler/rsync.template"
+
+        try:
+            template = open(template_file,"r")
+        except:
+            raise CX(_("error writing template to file: %s") % template_file)
+
+        template_data = ""
+        template_data = template.read()
+        template.close()
+
+        distros = [ distro.name for distro in self.api.distros()
+                    if distro.ks_meta.has_key('tree')
+                    and os.path.isdir("/var/www/cobbler/ks_mirror/%s"%distro.name)
+                    ]
+        repos = [ repo.name for repo in self.api.repos()
+                  if os.path.isdir("/var/www/cobbler/repo_mirror/%s"%repo.name)
+                  ]
+
+        metadata = {
+           "date"           : time.asctime(time.gmtime()),
+           "cobbler_server" : self.settings.server,
+           "distros"        : distros,
+           "repos"          : repos,
+        }
+
+        self.templar.render(template_data, metadata, "/etc/rsyncd.conf", None)
 
 

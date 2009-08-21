@@ -237,11 +237,12 @@ if __name__ == "__main__":
             # seed files for debian
             (kickpath,  ['kickstarts/sample.seed']),
  
-            # templates for DHCP, DNS, TFTP
+            # templates for DHCP, DNS, TFTP, RSYNC
             (etcpath,  ['templates/dhcp.template']),
             (etcpath,  ['templates/dnsmasq.template']),
             (etcpath,  ['templates/named.template']),
             (etcpath,  ['templates/zone.template']),
+            (etcpath,  ['templates/rsync.template']),
                                 
             # templates for netboot configs
             (pxepath,  ['templates/pxedefault.template']),
