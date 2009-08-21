@@ -264,7 +264,7 @@ def genlist(request, what, page=None):
     t = get_template('generic_list.tmpl')
     html = t.render(RequestContext(request,{
         'what'           : what,
-        'otypes'         : [ "distro", "profile", "image" ], # controls linking in fields
+        'otypes'         : [ "name", "repo", "distro", "profile", "image" ], # controls linking in fields
         'columns'        : columns,
         'items'          : __format_items(pageditems["items"],columns),
         'pageinfo'       : pageditems["pageinfo"],
