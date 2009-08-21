@@ -145,10 +145,14 @@ class Replicate:
             self.logger.info("*NOT* Removing Objects Not Stored On Master")
 
         if not self.omit_data:
-            self.logger.info("Rsyncing trees")
-            self.rsync_it("cobbler-distros", os.path.join(self.settings.webdir,"ks_mirror")
+            self.logger.info("Rsyncing distros")
+            for distro in self.must_include["distro"].keys():
+                if self.must_include["distro"][distro] == 1:
+                    self.rsync_it("distro-%s"%distro, os.path.join(self.settings.webdir,"ks_mirror",distro))
             self.logger.info("Rsyncing repos")
-            self.rsync_it("cobbler-repos", os.path.join(self.settings.webdir,"repo_mirror"))
+            for repo in self.must_include["repo"].keys():
+                if self.must_include["repo"][distro] == 1:
+                    self.rsync_it("repo-%s"%distro, os.path.join(self.settings.webdir,"repo_mirror",distro))
             self.logger.info("Rsyncing kickstart templates & snippets")
             self.rsync_it("cobbler-kickstarts","/var/lib/cobbler/kickstarts")
             self.rsync_it("cobbler-snippets","/var/lib/cobbler/snippets")
@@ -197,7 +201,7 @@ class Replicate:
         # include all profiles that systems require
         # whether they are explicitly included or not
         self.logger.debug("* Adding Profiles Required By Systems")
-        for sys in self.must_include["system"]:
+        for sys in self.must_include["system"].keys():
             pro = self.remote_dict["system"][sys].get("profile","")
             self.logger.debug("?: requires profile: %s" % pro)
             if pro != "":
@@ -207,27 +211,28 @@ class Replicate:
         # whether they are explicitly included or not
         # very deep nesting is possible
         self.logger.debug("* Adding Profiles Required By SubProfiles")
-        loop_exit = True
         while True:
-            for pro in self.must_include["profile"]:
+            loop_exit = True
+            for pro in self.must_include["profile"].keys():
                 parent = self.remote_dict["profile"][pro].get("parent","")
                 if parent != "":
-                     self.must_include["profile"][parent] = 1
-                     loop_exit = False
+                    if not self.must_include["profile"].has_key(parent):
+                        self.must_include["profile"][parent] = 1
+                        loop_exit = False
             if loop_exit:
                 break
 
         # require all distros that any profiles in the generated list requires
         # whether they are explicitly included or not
         self.logger.debug("* Adding Distros Required By Profiles")
-        for p in self.must_include["profile"]:
+        for p in self.must_include["profile"].keys():
             distro = self.remote_dict["profile"][p].get("distro","")
             self.must_include["distro"][distro] = 1
 
         # require any repos that any profiles in the generated list requires
         # whether they are explicitly included or not
         self.logger.debug("* Adding Repos Required By Profiles")
-        for p in self.must_include["profile"]:
+        for p in self.must_include["profile"].keys():
             repos = self.remote_dict["profile"][p].get("repos",[])
             for r in repos:
                 self.must_include["repo"][r] = 1
@@ -235,7 +240,7 @@ class Replicate:
         # include all images that systems require
         # whether they are explicitly included or not
         self.logger.debug("* Adding Images Required By Systems")
-        for sys in self.must_include["system"]:
+        for sys in self.must_include["system"].keys():
             img = self.remote_dict["system"][sys].get("image","")
             self.logger.debug("?: requires profile: %s" % pro)
             if img != "":
