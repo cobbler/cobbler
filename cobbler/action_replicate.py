@@ -146,7 +146,7 @@ class Replicate:
 
         if not self.omit_data:
             self.logger.info("Rsyncing distros")
-            self.logger.info("Distros %s"%','.join(self.must_include["distro"])
+            self.logger.info("Distros %s"%','.join(self.must_include["distro"]))
             for distro in self.must_include["distro"].keys():
                 if self.must_include["distro"][distro] == 1:
                     self.rsync_it("distro-%s"%distro, os.path.join(self.settings.webdir,"ks_mirror",distro))
