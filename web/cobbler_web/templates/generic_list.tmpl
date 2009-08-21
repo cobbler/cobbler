@@ -105,6 +105,15 @@ function action_multi(otype, action, param) {
     {% endifequal %}
     {% ifequal what "repo" %}
     <li class="list clear"><a href=";" onClick="javascript:action_multi('profile','reposync','go')">Sync</a> ☼ </li>
+    <li class="list clear">☼ <a href=";" onClick="javascript:action_multi('system','power','on')">Power on</a></li>
+    <li class="list clear">☼ <a href=";" onClick="javascript:action_multi('system','power','off')">Power Off</a></li>
+    <li class="list clear">☼ <a href=";" onClick="javascript:action_multi('system','power','reboot')">Reboot</a></li>
+    <li class="list clear">☼ <a href=";" onClick="javascript:action_multi('system','profile','')">Change Profile</a></li>
+    <li class="list clear">☼ <a href=";" onClick="javascript:action_multi('system','netboot','enable')">Enable Netboot</a></li>
+    <li class="list clear">☼ <a href=";" onClick="javascript:action_multi('system','netboot','disable')">Disable Netboot</a></li>
+    {% endifequal %}
+    {% ifequal what "repo" %}
+    <li class="list clear">☼ <a href=";" onClick="javascript:action_multi('profile','reposync','go')">Sync</a></li>
     {% endifequal %}
   </ul>
   <form name="myform" method="post" action="/cobbler_web/{{ what }}/action">
