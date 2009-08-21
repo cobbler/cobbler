@@ -146,12 +146,13 @@ class Replicate:
 
         if not self.omit_data:
             self.logger.info("Rsyncing distros")
+            self.logger.info("Distros %s"%','.join(self.must_include["distro"]))
             for distro in self.must_include["distro"].keys():
                 if self.must_include["distro"][distro] == 1:
                     self.rsync_it("distro-%s"%distro, os.path.join(self.settings.webdir,"ks_mirror",distro))
             self.logger.info("Rsyncing repos")
             for repo in self.must_include["repo"].keys():
-                if self.must_include["repo"][distro] == 1:
+                if self.must_include["repo"][repo] == 1:
                     self.rsync_it("repo-%s"%distro, os.path.join(self.settings.webdir,"repo_mirror",distro))
             self.logger.info("Rsyncing kickstart templates & snippets")
             self.rsync_it("cobbler-kickstarts","/var/lib/cobbler/kickstarts")
