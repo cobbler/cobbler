@@ -59,7 +59,7 @@ Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]" || echo 0)}
-Requires: python(abi) = %{pyver}
+Requires: python(abi) >= %{pyver}
 %endif
 
 BuildRequires: PyYAML
@@ -302,7 +302,7 @@ Requires: python >= 1.5
 BuildRequires: python-devel
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
-Requires: python(abi)=%{pyver}
+Requires: python(abi) >= %{pyver}
 %endif
 %if 0%{?fedora} >= 8
 BuildRequires: python-setuptools-devel
@@ -349,7 +349,7 @@ Requires: Django
 BuildRequires: python-devel
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
-Requires: python(abi)=%{pyver}
+Requires: python(abi) >= %{pyver}
 %endif
 %if 0%{?fedora} >= 8
 BuildRequires: python-setuptools-devel
