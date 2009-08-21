@@ -44,7 +44,6 @@ import module_loader
 import kickgen
 import yumgen
 import pxegen
-import acls
 from utils import _
 
 import logging
