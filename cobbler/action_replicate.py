@@ -228,8 +228,8 @@ class Replicate:
         self.logger.debug("* Adding Distros Required By Profiles")
         for p in self.must_include["profile"].keys():
             distro = self.remote_dict["profile"][p].get("distro","")
-            self.logger.info("Adding repo %s for profile %s."%(p, distro))
             if not distro == "<<inherit>>" and not distro == "~":
+                self.logger.info("Adding repo %s for profile %s."%(p, distro))
                 self.must_include["distro"][distro] = 1
 
         # require any repos that any profiles in the generated list requires
