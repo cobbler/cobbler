@@ -153,7 +153,7 @@ class Replicate:
             self.logger.info("Rsyncing repos")
             for repo in self.must_include["repo"].keys():
                 if self.must_include["repo"][repo] == 1:
-                    self.rsync_it("repo-%s"%distro, os.path.join(self.settings.webdir,"repo_mirror",distro))
+                    self.rsync_it("repo-%s"%distro, os.path.join(self.settings.webdir,"repo_mirror",repo))
             self.logger.info("Rsyncing kickstart templates & snippets")
             self.rsync_it("cobbler-kickstarts","/var/lib/cobbler/kickstarts")
             self.rsync_it("cobbler-snippets","/var/lib/cobbler/snippets")
