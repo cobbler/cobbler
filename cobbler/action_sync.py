@@ -128,10 +128,9 @@ class BootSync:
            self.dns.regen_hosts()
            self.dns.write_dns_files()
 
-        if self.settings.manage_rsync:
-            if self.verbose:
-                self.logger.info("rendering Rsync files")
-            self.rsync_gen()
+        if self.verbose:
+           self.logger.info("rendering Rsync files")
+        self.rsync_gen()
 
         if self.verbose:
            self.logger.info("generating PXE menu structure")
@@ -212,10 +211,10 @@ class BootSync:
 
         distros = [ distro.name for distro in self.api.distros()
                     if distro.ks_meta.has_key('tree')
-                    and os.path.isdir("/var/www/cobbler/ks_mirror/%s"%distro.name)
+                    and os.path.isdir(os.path.join(self.settings.webdir,"ks_mirror",distro.name))
                     ]
         repos = [ repo.name for repo in self.api.repos()
-                  if os.path.isdir("/var/www/cobbler/repo_mirror/%s"%repo.name)
+                  if os.path.isdir(os.path.join(self.settings.webdir,"repo_mirror", repo.name)
                   ]
 
         metadata = {
@@ -223,6 +222,7 @@ class BootSync:
            "cobbler_server" : self.settings.server,
            "distros"        : distros,
            "repos"          : repos,
+           "webdir"         : self.settings.webdir
         }
 
         self.templar.render(template_data, metadata, "/etc/rsyncd.conf", None)
