@@ -214,7 +214,7 @@ class BootSync:
                     and os.path.isdir(os.path.join(self.settings.webdir,"ks_mirror",distro.name))
                     ]
         repos = [ repo.name for repo in self.api.repos()
-                  if os.path.isdir(os.path.join(self.settings.webdir,"repo_mirror", repo.name)
+                  if os.path.isdir(os.path.join(self.settings.webdir,"repo_mirror", repo.name))
                   ]
 
         metadata = {
