@@ -9,11 +9,11 @@
 # ******************************************************************
 
 [cobbler-distros]
-    path    = /var/www/cobbler/ks_mirror
+    path    = $webdir/ks_mirror
     comment = All Cobbler Distros
 
 [cobbler-repos]
-    path    = /var/www/cobbler/repo_mirror
+    path    = $webdir/repo_mirror
     comment = All Cobbler Distros
 
 [cobbler-kickstarts]
@@ -30,13 +30,13 @@
 
 #for repo in $repos:
 [repo-$repo]
-    path    = /var/www/cobbler/repo_mirror/$repo
+    path    = $webdir/repo_mirror/$repo
     comment = Cobbler Repo $repo
 #end for
 
 #for distro in $distros:
 [distro-$distro]
-    path    = /var/www/cobbler/ks_mirror/$distro
+    path    = $webdir/ks_mirror/$distro
     comment = Cobbler Distro $distro
 
 #end for

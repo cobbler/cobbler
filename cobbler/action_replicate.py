@@ -146,14 +146,15 @@ class Replicate:
 
         if not self.omit_data:
             self.logger.info("Rsyncing distros")
-            self.logger.info("Distros %s"%','.join(self.must_include["distro"]))
             for distro in self.must_include["distro"].keys():
                 if self.must_include["distro"][distro] == 1:
                     self.rsync_it("distro-%s"%distro, os.path.join(self.settings.webdir,"ks_mirror",distro))
             self.logger.info("Rsyncing repos")
             for repo in self.must_include["repo"].keys():
                 if self.must_include["repo"][repo] == 1:
-                    self.rsync_it("repo-%s"%distro, os.path.join(self.settings.webdir,"repo_mirror",distro))
+                    self.rsync_it("repo-%s"%repo, os.path.join(self.settings.webdir,"repo_mirror",repo))
+            self.logger.info("Rsyncing distro repo configs")
+            self.rsync_it("cobbler-distros/config", os.path.join(self.settings.webdir,"ks_mirror"))
             self.logger.info("Rsyncing kickstart templates & snippets")
             self.rsync_it("cobbler-kickstarts","/var/lib/cobbler/kickstarts")
             self.rsync_it("cobbler-snippets","/var/lib/cobbler/snippets")
@@ -228,7 +229,9 @@ class Replicate:
         self.logger.debug("* Adding Distros Required By Profiles")
         for p in self.must_include["profile"].keys():
             distro = self.remote_dict["profile"][p].get("distro","")
-            self.must_include["distro"][distro] = 1
+            if not distro == "<<inherit>>" and not distro == "~":
+                self.logger.info("Adding repo %s for profile %s."%(p, distro))
+                self.must_include["distro"][distro] = 1
 
         # require any repos that any profiles in the generated list requires
         # whether they are explicitly included or not
