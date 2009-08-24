@@ -225,7 +225,15 @@ def __format_items(items, column_names):
     for itemhash in items:
         row = []
         for fieldname in column_names:
-            row.append([fieldname,itemhash[fieldname]])
+            if fieldname == "name":
+                html_element = "name"
+            elif fieldname in [ "system", "repo", "distro", "profile", "image" ]:
+                html_element = "editlink"
+            elif fieldname in field_info.USES_CHECKBOX:
+                html_element = "checkbox"
+            else:
+                html_element = "text"
+            row.append([fieldname,itemhash[fieldname],html_element])
         dataset.append(row)
     return dataset
 

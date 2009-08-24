@@ -126,14 +126,18 @@ function action_multi(otype, action, param) {
           {% ifequal value.0 "name" %}
           <a href="/cobbler_web/{{ what }}/edit/{{ value.1 }}">{{ value.1 }}</a>
           {% endifequal %}
-          {% ifequal value.0 "profile" %}
-          <a href="/cobbler_web/profile/edit/{{ value.1 }}">{{ value.1 }}</a>
+          {% ifequal value.2 "editlink" %}
+          <a href="/cobbler_web/{{ value.0 }}/edit/{{ value.1 }}">{{ value.1 }}</a>
           {% endifequal %}
-          {% ifequal value.0 "distro" %}
-          <a href="/cobbler_web/distro/edit/{{ value.1 }}">{{ value.1 }}</a>
+          {% ifequal value.2 "checkbox" %}
+            {% ifequal value.1 1 %}
+            <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}" disabled="disabled" checked="checked" />
+            {% else %}
+            <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}" disabled="disabled" />
+            {% endifequal %}
           {% endifequal %}
-          {% ifequal value.0 "image" %}
-          <a href="/cobbler_web/image/edit/{{ value.1 }}">{{ value.1 }}</a>
+          {% ifequal value.2 "text" %}
+          {{ value.1 }}
           {% endifequal %}
         </td>
         {% endfor %}
