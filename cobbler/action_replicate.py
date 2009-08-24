@@ -49,12 +49,12 @@ class Replicate:
         self.logger   = logger
 
     def rsync_it(self,from_path,to_path):
-        from_path = "%s:%s" % (self.host, from_path)
+        from_path = "%s::%s" % (self.host, from_path)
         cmd = "rsync -avz %s %s" % (from_path, to_path)
         rc = utils.subprocess_call(self.logger, cmd, shell=True)
         if rc !=0:
             self.logger.info("rsync failed")
-    
+
     # -------------------------------------------------------
 
     def remove_objects_not_on_master(self, obj_type):
@@ -87,7 +87,7 @@ class Replicate:
                  newobj = creator()
                  newobj.from_datastruct(rdata)
                  try:
-                     self.logger.info("adding %s %s" % (obj_type, rdata["name"])) 
+                     self.logger.info("adding %s %s" % (obj_type, rdata["name"]))
                      self.api.add_item(obj_type, newobj)
                  except Exception, e:
                      utils.log_exc(self.logger)
@@ -99,7 +99,7 @@ class Replicate:
          remotes = utils.loh_to_hoh(self.remote_data[otype],"uid")
 
          for (ruid, rdata) in remotes.iteritems():
-             
+
              # do not add the system if it is not on the transfer list
              if not self.must_include[otype].has_key(rdata["name"]):
                  continue
@@ -115,7 +115,7 @@ class Replicate:
                      newobj = creator()
                      newobj.from_datastruct(rdata)
                      try:
-                         self.logger.info("updating %s %s" % (otype, rdata["name"])) 
+                         self.logger.info("updating %s %s" % (otype, rdata["name"]))
                          self.api.add_item(otype, newobj)
                      except Exception, e:
                          utils.log_exc(self.logger)
@@ -124,9 +124,9 @@ class Replicate:
 
     def replicate_data(self):
 
-        self.local_data  = {}    
+        self.local_data  = {}
         self.remote_data = {}
-       
+
         self.logger.info("Querying Both Servers")
         for what in OBJ_TYPES:
             self.remote_data[what] = self.remote.get_items(what)
@@ -140,20 +140,25 @@ class Replicate:
         if self.prune:
             self.logger.info("Removing Objects Not Stored On Master")
             for what in OBJ_TYPES:
-                self.remove_objects_not_on_master(what) 
+                self.remove_objects_not_on_master(what)
         else:
             self.logger.info("*NOT* Removing Objects Not Stored On Master")
 
         if not self.omit_data:
-            self.logger.info("Rsyncing trees")
-            self.rsync_it(os.path.join(self.settings.webdir,"ks_mirror"),self.settings.webdir)
+            self.logger.info("Rsyncing distros")
+            self.logger.info("Distros %s"%','.join(self.must_include["distro"]))
+            for distro in self.must_include["distro"].keys():
+                if self.must_include["distro"][distro] == 1:
+                    self.rsync_it("distro-%s"%distro, os.path.join(self.settings.webdir,"ks_mirror",distro))
             self.logger.info("Rsyncing repos")
-            self.rsync_it(os.path.join(self.settings.webdir,"repo_mirror"),self.settings.webdir)
+            for repo in self.must_include["repo"].keys():
+                if self.must_include["repo"][repo] == 1:
+                    self.rsync_it("repo-%s"%distro, os.path.join(self.settings.webdir,"repo_mirror",distro))
             self.logger.info("Rsyncing kickstart templates & snippets")
-            self.rsync_it("/var/lib/cobbler/kickstarts","/var/lib/cobbler")
-            self.rsync_it("/var/lib/cobbler/snippets","/var/lib/cobbler")
+            self.rsync_it("cobbler-kickstarts","/var/lib/cobbler/kickstarts")
+            self.rsync_it("cobbler-snippets","/var/lib/cobbler/snippets")
             self.logger.info("Rsyncing triggers")
-            self.rsync_it("/var/lib/cobbler/triggers","/var/lib/cobbler")
+            self.rsync_it("cobbler-triggers","/var/lib/cobbler/triggers")
         else:
             self.logger.info("*NOT* Rsyncing Data")
 
@@ -173,7 +178,7 @@ class Replicate:
         for ot in OBJ_TYPES:
             self.remote_names[ot] = utils.loh_to_hoh(self.remote_data[ot],"name").keys()
             self.remote_dict[ot]  = utils.loh_to_hoh(self.remote_data[ot],"name")
-         
+
         self.logger.debug("remote names struct is %s" % self.remote_names)
 
         self.must_include = {
@@ -181,7 +186,7 @@ class Replicate:
             "profile" : {},
             "system"  : {},
             "image"   : {},
-            "repo"    : {} 
+            "repo"    : {}
         }
 
         # include all profiles that are matched by a pattern
@@ -197,37 +202,38 @@ class Replicate:
         # include all profiles that systems require
         # whether they are explicitly included or not
         self.logger.debug("* Adding Profiles Required By Systems")
-        for sys in self.must_include["system"]:
+        for sys in self.must_include["system"].keys():
             pro = self.remote_dict["system"][sys].get("profile","")
             self.logger.debug("?: requires profile: %s" % pro)
             if pro != "":
                self.must_include["profile"][pro] = 1
 
-        # include all profiles that subprofiles require 
+        # include all profiles that subprofiles require
         # whether they are explicitly included or not
         # very deep nesting is possible
         self.logger.debug("* Adding Profiles Required By SubProfiles")
-        loop_exit = True
         while True:
-            for pro in self.must_include["profile"]:
+            loop_exit = True
+            for pro in self.must_include["profile"].keys():
                 parent = self.remote_dict["profile"][pro].get("parent","")
                 if parent != "":
-                     self.must_include["profile"][parent] = 1
-                     loop_exit = False
+                    if not self.must_include["profile"].has_key(parent):
+                        self.must_include["profile"][parent] = 1
+                        loop_exit = False
             if loop_exit:
                 break
 
         # require all distros that any profiles in the generated list requires
         # whether they are explicitly included or not
         self.logger.debug("* Adding Distros Required By Profiles")
-        for p in self.must_include["profile"]:
+        for p in self.must_include["profile"].keys():
             distro = self.remote_dict["profile"][p].get("distro","")
             self.must_include["distro"][distro] = 1
 
         # require any repos that any profiles in the generated list requires
         # whether they are explicitly included or not
         self.logger.debug("* Adding Repos Required By Profiles")
-        for p in self.must_include["profile"]:
+        for p in self.must_include["profile"].keys():
             repos = self.remote_dict["profile"][p].get("repos",[])
             for r in repos:
                 self.must_include["repo"][r] = 1
@@ -235,7 +241,7 @@ class Replicate:
         # include all images that systems require
         # whether they are explicitly included or not
         self.logger.debug("* Adding Images Required By Systems")
-        for sys in self.must_include["system"]:
+        for sys in self.must_include["system"].keys():
             img = self.remote_dict["system"][sys].get("image","")
             self.logger.debug("?: requires profile: %s" % pro)
             if img != "":
@@ -243,7 +249,7 @@ class Replicate:
 
         # FIXME: remove debug
         for ot in OBJ_TYPES:
-            self.logger.debug("transfer list for %s is %s" % (ot, self.must_include[ot].keys())) 
+            self.logger.debug("transfer list for %s is %s" % (ot, self.must_include[ot].keys()))
 
     # -------------------------------------------------------
 
@@ -276,17 +282,16 @@ class Replicate:
         else:
             utils.die('No cobbler master specified, try --master.')
 
-        self.logger.info("XMLRPC endpoint: %s" % self.uri)     
+        self.logger.info("XMLRPC endpoint: %s" % self.uri)
         self.logger.debug("test ALPHA")
         self.remote =  xmlrpclib.Server(self.uri)
         self.logger.debug("test BETA")
         self.remote.ping()
         self.local  =  xmlrpclib.Server("http://127.0.0.1/cobbler_api")
         self.local.ping()
- 
+
         self.replicate_data()
         self.logger.info("Syncing")
         self.api.sync()
         self.logger.info("Done")
         return True
-

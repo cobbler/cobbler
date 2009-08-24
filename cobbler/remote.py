@@ -1560,7 +1560,7 @@ class CobblerXMLRPCInterface:
         if rc:
             return True
         else:
-            utils.die(self.logger, "user does not have access to resource: %s" % resource)
+            utils.die(self.logger, "user %s does not have access to resource: %s" % (user,resource))
 
     def logout(self,token):
         """
