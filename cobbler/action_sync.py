@@ -216,7 +216,7 @@ class BootSync:
             distro = {}
             distro["path"] = os.path.realpath(link)
             distro["name"] = os.path.basename(link)
-            distros.apend(distro)
+            distros.append(distro)
 
         repos = [ repo.name for repo in self.api.repos()
                   if os.path.isdir(os.path.join(self.settings.webdir,"repo_mirror", repo.name))
