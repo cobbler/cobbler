@@ -155,7 +155,9 @@ class Replicate:
                         while top != 'images' and top != '':
                             dest, top = os.path.split(dest)
                         if not dest == os.path.sep and len(dest) > 1:
-                            os.makedirs(dest)
+                            parentdir = os.path.split(dest)[0]
+                            if not os.path.isdir(parentdir):
+                                os.makedirs(parentdir)
                             self.rsync_it("distro-%s"%distro["name"], dest)
             self.logger.info("Rsyncing repos")
             for repo in self.must_include["repo"].keys():
