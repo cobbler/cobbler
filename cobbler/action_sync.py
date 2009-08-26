@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import os.path
+import glob
 import shutil
 import time
 import yaml # Howell-Clark version
@@ -209,12 +210,14 @@ class BootSync:
         template_data = template.read()
         template.close()
 
-        # FIXME: I think we need to glob all of ks_mirror here due to various import
-        # fun things
-        distros = [ distro.name for distro in self.api.distros()
-                    if distro.ks_meta.has_key('tree')
-                    and os.path.isdir(os.path.join(self.settings.webdir,"ks_mirror",distro.name))
-                    ]
+        distros = []
+
+        for link in glob.glob(os.path.join(self.settings.webdir,'links','*')):
+            distro = {}
+            distro["path"] = os.path.realpath(link)
+            distro["name"] = os.path.basename(link)
+            distros.append(distro)
+
         repos = [ repo.name for repo in self.api.repos()
                   if os.path.isdir(os.path.join(self.settings.webdir,"repo_mirror", repo.name))
                   ]

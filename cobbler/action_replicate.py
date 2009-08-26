@@ -148,7 +148,17 @@ class Replicate:
             self.logger.info("Rsyncing distros")
             for distro in self.must_include["distro"].keys():
                 if self.must_include["distro"][distro] == 1:
-                    self.rsync_it("distro-%s"%distro, os.path.join(self.settings.webdir,"ks_mirror",distro))
+                    distro = self.remote.get_item('distro',distro)
+                    if distro["breed"] == 'redhat':
+                        dest = distro["kernel"]
+                        top = None
+                        while top != 'images' and top != '':
+                            dest, top = os.path.split(dest)
+                        if not dest == os.path.sep and len(dest) > 1:
+                            parentdir = os.path.split(dest)[0]
+                            if not os.path.isdir(parentdir):
+                                os.makedirs(parentdir)
+                            self.rsync_it("distro-%s"%distro["name"], dest)
             self.logger.info("Rsyncing repos")
             for repo in self.must_include["repo"].keys():
                 if self.must_include["repo"][repo] == 1:
