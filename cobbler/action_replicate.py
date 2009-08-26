@@ -148,8 +148,8 @@ class Replicate:
             self.logger.info("Rsyncing distros")
             for distro in self.must_include["distro"].keys():
                 if self.must_include["distro"][distro] == 1:
-                    if self.must_include['distro'][distro]['breed'] == 'redhat':
-                        dest = self.must_include['distro'][distro]['kernel']
+                    if self.must_include['distro'][distro].breed == 'redhat':
+                        dest = self.must_include['distro'][distro].kernel
                         top = None
                         while top != 'images' and top != '':
                             dest, top = os.path.split(dest)
