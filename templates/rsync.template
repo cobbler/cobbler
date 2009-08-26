@@ -35,9 +35,9 @@
 #end for
 
 #for distro in $distros:
-[distro-$distro]
-    path    = $webdir/ks_mirror/$distro
-    comment = Cobbler Distro $distro
+[distro-$distro.name]
+    path    = $distro.path
+    comment = Cobbler Distro $distro.name
 
 #end for
 
