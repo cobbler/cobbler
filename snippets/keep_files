@@ -1,0 +1,156 @@
+##  This snippet preserves files during re-build.
+##  It supersedes other similar snippets - keep_*_keys.
+##  Put it in %pre section of the kickstart template file
+##  It uses preserve_files field which should contain a list of items to preserve
+##  This field for now could contain any of the following:
+##  'ssh', 'cfengine', 'rhn' in any order
+##  'rhn' part of this snippet should NOT be used with systems subscribed
+##  to Red Hat Satellite Server or Spacewalk as these
+##  have a concept of "reactivation keys" to keep the systems
+##  appearing to be the same.  Also do not use if changing
+##  base channels, i.e. RHEL4 -> RHEL5 upgrades.
+##
+
+#if $getVar('$preserve_files','') != ''
+  #set $preserve_files = $getVar('$preserve_files','')	
+  preserve_files = $preserve_files  
+  
+#raw
+# Nifty trick to restore keys without using a nochroot %post
+
+echo "Saving keys..." > /dev/ttyS0
+
+insmod /lib/jbd.o
+insmod /lib/ext3.o
+
+function findkeys
+{
+ for disk in $DISKS; do
+    name=$(basename $disk)
+    tmpdir=$(mktemp -d $name.XXXXXX)
+    mkdir -p /tmp/$tmpdir
+    mount $disk /tmp/$tmpdir
+    if [ $? -ne 0 ]; then # Skip to the next partition if the mount fails
+      rm -rf /tmp/$tmpdir                                                
+      continue                                                           
+    fi                                                                   
+    # Copy current host keys out to be reused
+    if [ -d /tmp/$tmpdir$SEARCHDIR ]; then
+        cp -a /tmp/$tmpdir$SEARCHDIR/${PATTERN}* /tmp/$TEMPDIR
+        keys_found="yes"
+	umount /tmp/$tmpdir
+	rm -r /tmp/$tmpdir
+	break
+    elif [ -n "$SHORTDIR" ] && [ -d /tmp/$tmpdir$SHORTDIR ]; then
+	cp -a /tmp/$tmpdir$SHORTDIR/${PATTERN}* /tmp/$TEMPDIR
+	keys_found="yes"
+        umount /tmp/$tmpdir
+	rm -r /tmp/$tmpdir
+        break
+    fi
+    umount /tmp/$tmpdir
+    rm -r /tmp/$tmpdir
+ done
+}
+
+function search_for_keys
+{
+
+ SEARCHDIR=$1
+ TEMPDIR=$2
+ PATTERN=$3
+
+ keys_found=no
+ # /var could be a separate partition
+ SHORTDIR=${SEARCHDIR#/var}
+ if [ $SHORTDIR = $SEARCHDIR ]; then
+	SHORTDIR=''
+ fi	
+
+ mkdir -p /tmp/$TEMPDIR
+
+ DISKS=$(awk '{if ($NF ~ "^[a-zA-Z].*[0-9]$" && $NF !~ "c[0-9]+d[0-9]+$" && $NF !~ "^loop.*") print "/dev/"$NF}'  /proc/partitions)
+ # In the awk line above we want to make list of partitions, but not devices/controllers
+ # cciss raid controllers have partitions like /dev/cciss/cNdMpL, where N,M,L - some digits, we want to make sure 'pL' is there
+ # No need to scan loopback niether.
+ # Try to find the keys on ordinary partitions
+
+ findkeys
+
+ # Try software RAID
+ if [ "$keys_found" = "no" ]; then
+  if mdadm -As; then
+      DISKS=$(awk '/md/{print "/dev/"$1}' /proc/mdstat)
+      findkeys
+  fi
+ fi
+
+
+ # Try LVM if that didn't work
+ if [ "$keys_found" = "no" ]; then
+    lvm lvmdiskscan
+    vgs=$(lvm vgs | tail -n +2 | awk '{ print $1 }')
+    for vg in $vgs; do
+        # Activate any VG we found
+        lvm vgchange -ay $vg
+    done
+    
+    DISKS=$(lvm lvs | tail -n +2 | awk '{ print "/dev/" $2 "/" $1 }')
+    findkeys    
+
+    # And clean up..
+    for vg in $vgs; do
+        lvm vgchange -an $vg
+    done
+ fi
+}
+
+function restore_keys
+{
+ SEARCHDIR=$1
+ TEMPDIR=$2
+ PATTERN=$3
+ # Loop until the corresponding rpm is installed if the keys are saved
+ if [ "$keys_found" = "yes" ] && [ -f /tmp/$TEMPDIR/${PATTERN}* ]; then
+    while : ; do
+        sleep 10
+        if [ -d /mnt/sysimage$SEARCHDIR ] ; then
+            cp -f /tmp/$TEMPDIR/${PATTERN}* /mnt/sysimage$SEARCHDIR
+            logger "$TEMPDIR keys copied to newly installed system"
+            break
+        fi
+    done &
+ fi
+}
+
+for key in $preserve_files
+do
+ if [ $key = 'ssh' ]; then
+   search_for_keys '/etc/ssh' 'ssh' 'ssh_host_'
+ elif [ $key = 'cfengine' ]; then
+   search_for_keys '/var/cfengine/ppkeys' 'cfengine' 'localhost'
+ elif [ $key = 'rhn' ]; then
+   search_for_keys '/etc/sysconfig/rhn', 'rhn', '*'
+ else
+   echo "No keys to save!" > /dev/ttyS0
+ fi
+done
+
+# now restore keys if found
+
+for key in $preserve_files
+do
+ if [ $key = 'ssh' ]; then
+   restore_keys '/etc/ssh' 'ssh' 'ssh_host_'
+ elif [ $key = 'cfengine' ]; then
+   restore_keys '/var/cfengine/ppkeys' 'cfengine' 'localhost'
+ elif [ $key = 'rhn' ]; then
+   restore_keys '/etc/sysconfig/rhn', 'rhn', '*'
+ else
+   echo "Nothing to restore!" > /dev/ttyS0
+ fi
+done
+
+
+#end raw
+#end if
