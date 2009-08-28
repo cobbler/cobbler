@@ -333,11 +333,7 @@ class BootCheck:
              if re_disable.search(line) and not line.strip().startswith("#"):
                  status.append(_("change 'disable' to 'no' in %(file)s") % { "file" : "/etc/xinetd.d/tftp" })
        else:
-          status.append(_("directory needs to be created: %s" % bootloc))
-
-       bootloc = utils.tftpboot_location()
-       if not os.path.exists(bootloc):
-          status.append(_("directory needs to be created: %s" % bootloc))
+          status.append("missing configuration file: /etc/xinetd.d/tftp")
 
 
    def check_rsync_conf(self,status):
