@@ -59,7 +59,6 @@ savestate:
 	cp /etc/cobbler/settings $(statepath)/settings
 	cp /etc/cobbler/modules.conf $(statepath)/modules.conf
 	cp /etc/httpd/conf.d/cobbler.conf $(statepath)/http.conf
-	cp /etc/cobbler/acls.conf $(statepath)/acls.conf
 	cp /etc/cobbler/users.conf $(statepath)/users.conf
 	cp /etc/cobbler/users.digest $(statepath)/users.digest
 	cp /etc/cobbler/dhcp.template $(statepath)/dhcp.template
@@ -71,7 +70,6 @@ restorestate:
 	cp $(statepath)/settings /etc/cobbler/settings
 	cp $(statepath)/modules.conf /etc/cobbler/modules.conf
 	cp $(statepath)/users.conf /etc/cobbler/users.conf
-	cp $(statepath)/acls.conf /etc/cobbler/acls.conf
 	cp $(statepath)/users.digest /etc/cobbler/users.digest
 	cp $(statepath)/http.conf /etc/httpd/conf.d/cobbler.conf
 	cp $(statepath)/dhcp.template /etc/cobbler/dhcp.template
