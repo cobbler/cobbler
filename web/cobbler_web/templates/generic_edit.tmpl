@@ -340,18 +340,18 @@ function page_onload() {
 $(document).ready(function()
 {
   //hide the all of the element with class msg_body
-  $(".msg_body").hide();
+  $(".sectionbody").hide();
   $("#block_General").show();
   //document.getElementById("block_General").style.display = "block";
-  //toggle the componenet with class msg_body
-  $(".msg_head").click(function()
+  //toggle the componenet with class sectionbody
+  $(".sectionheader").click(function()
   {
-    $(this).next(".msg_body").slideToggle(500);
+    $(this).next(".sectionbody").slideToggle(500);
   });
 });
 </script>
 
-<fieldset>
+<fieldset id="edit">
   <legend>{% ifequal editmode 'edit'  %}Editing{% else %}Adding{% endifequal %} a {{ what|capfirst }}</legend>
   <form method="post" action="/cobbler_web/{{ what }}/save">
     <input type="hidden" name="editmode" value="{{ editmode }}"/>
@@ -362,16 +362,15 @@ $(document).ready(function()
         {% ifchanged item.block_section %}
       </table>
     </div>
-    <p class="msg_head addobject bottomborder cursor">&raquo; {{ item.block_section }}</p>
-    <div class="msg_body indent" id="block_{{ item.block_section }}">
+    <h3 class="sectionheader action">&raquo; {{ item.block_section }}</h3>
+    <div class="sectionbody" id="block_{{ item.block_section }}">
     <table border="0">
       {% endifchanged %}
       <tr id="{{ item.name }}_row" class="editrow">
+        <td valign="top"><label id="{{item.name}}_caption">{{ item.caption }}</label></td>
         {% ifequal item.html_element "widget" %}
-        <td valign="top"><span id="{{item.name}}_caption">{{ item.caption }}</span></td>
         <td><div id="widget_{{ item.name }}" /> wjat </td><!-- WHATISTHIS -->
         {% else %}
-        <td valign="top" class="theader"><span id="{{item.name}}_caption">{{ item.caption }}</span></td>
         <td>
           {% ifequal item.html_element "text" %}
           <input type="text" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.value }}"/>

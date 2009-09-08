@@ -5,46 +5,41 @@ body, html {
   color: #222222;
   font-size: .9em;
 }
-
-h3 { color: #306CAC; }
-/* imeyer css additions in here */
-.rpointers { font-size: 1.6em; margin-left: 5px; }
-.lpointers { font-size: 1.6em; margin-right: 5px; }
-.cursor { cursor: pointer; }
-ul.list { list-style-position: outside; list-style-type: none; overflow: hidden; }
-ul.menubar { padding-bottom: 10px; }
-li.menubar { padding-left: 8px; }
-label.form_input { width: 60px; float: left; font-weight: bold;}
-legend { color: #306CAC; font-size: 1.2em; font-weight: bold; margin: 0px; padding: 0px 0px 3px 0px; }
-.rowodd  { background-color: #d3d3d3; color: #222;}
-.roweven { background-color: #e0e0e0; color: #222; }
-.bottomborder { border-width: 0px 0px 1px 0px; border-color: #306CAC; border-style: solid; padding-bottom: 2px; }
-hr { margin-top: -2px; color: #306CAC; height: 1px; }
-.indent { margin-left: 20px; }
-p.addobject { font-weight: bold; font-size: 1.2em; color: #306CAC; }
-.action { margin-left: 10px;}
-/* p { font-weight: bold; font-size: 0.8em; padding: 5px; margin: 10px; border: 1px solid #999; background-color: #EEE; } */
-span.example { font-size: 0.9em; }
-.clear { clear: both; overflow: hidden; }
-.bgheader { background-color: #306CAC; color: #ddd; }
-li.import { padding: 8px; }
-ul { padding: 0px 0px 0px 2px; margin: 0px; }
-tr { padding: 0px; margin: 0px; }
-.row { margin: 0px; float: left; padding: 0.23em 0;}
-pre { padding: 0px; margin: 0px; }
-ol { }
-.warn { color: #900; font-weight: bold; font-size: 1.0em; }
-li.setting { width: 25%; }
-li.value { width: 65%; }
-a { color: #525a5d; text-decoration: none; cursor: pointer; }
-a:hover { color: #636b6e; text-decoration: underline;}
+a { color: #222222; text-decoration: none; }
+label { font-weight: bold; }
+legend,h3 { color: #306CAC; font-size: 1.2em; font-weight: bold; }
+legend { margin: 0px; padding-bottom: 3px; }
+hr { margin-top: -2px; height: 1px; }
 fieldset { border: 0px; padding: 0px; margin: 0px; }
 img { border: 0px; }
-div.menubar { float: left; padding-left: 11px; width: 140px;}
+ul { list-style-position: outside; list-style-type: none; overflow: hidden; } 
+
+.action { cursor: pointer; }
+.warn { color: #990000; font-weight: bold; font-size: 1.0em; }
+.rpointers { font-size: 1.6em; margin-left: 5px; }
+.lpointers { font-size: 1.6em; margin-right: 5px; }
+
 div.content { float: left; margin-left: 0px; padding: 0px; min-width: 400px; width: 80%; }
 div.container { float: left; margin: 0px; padding: 0px; min-width: 400px; width: 100%; overflow: none; }
-select.filter { width: 102px; }
-select.edit { width: 175px; }
-.theader { font-weight: bold; }
-.editblock { margin-left: 20px; }
-/* end imeyer css */
+
+#menubar { float: left; padding-left: 11px; width: 140px; }
+#menubar ul { padding: 0px 0px 10px 2px; margin: 0px; }
+#menubar ul li { padding-left: 8px; }
+#menubar select { width: 102px; }
+
+#listactions { padding-left: 11px; width: 140px; }
+#listactions ul { padding: 0px 0px 0px 2px; margin: 0px; } 
+#listactions ul li { padding-left: 8px; }
+
+#listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; }
+#listitems thead a { color: #dddddd; }
+#listitems tbody a { text-decoration: underline; }
+#listitems tbody .rowodd { background-color: #d3d3d3; }
+#listitems tbody .roweven { background-color: #e0e0e0; }
+#listitems tbody .action { text-decoration: underline; }
+
+#import li { padding: 8px; }
+#import label { width: 60px; float: left; }
+
+#edit h3 { border-width: 0px 0px 1px 0px; border-style: solid; padding-bottom: 2px;}
+#edit select { width: 175px; }
