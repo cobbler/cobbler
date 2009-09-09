@@ -314,9 +314,9 @@ class Koan:
                    self.virt_type = "xenpv"
                raise InfoException, "--virt-type should be qemu, xenpv, xenfv, vmware, vmwarew, or auto"
 
-        # if --specific-interface and --profile was called together, then fail
-        if self.specific_interface is not None and self.profile is not None:
-            raise InfoException, "--specific-interface option is incompatible with --profile option use --system instead"
+        # if --static-interface and --profile was called together, then fail
+        if self.static_interface is not None and self.profile is not None:
+            raise InfoException, "--static-interface option is incompatible with --profile option use --system instead"
 
         # perform one of three key operations
         if self.is_virt:
