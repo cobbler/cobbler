@@ -57,7 +57,7 @@ USES_CHECKBOX = [
    "enable_menu",
    "*netboot_enabled",
    "netboot_enabled",
-   "*static"
+   "*static",
    "keep_updated",
    "mirror_locally"
 ]
