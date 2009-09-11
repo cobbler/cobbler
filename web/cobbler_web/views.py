@@ -83,7 +83,7 @@ def error_page(request,message):
    # field errors
    t = get_template('error_page.tmpl')
    message = message.replace("<Fault 1: \"<class 'cobbler.cexceptions.CX'>:'","Remote exception: ")
-   message = message.replace(": '\">","")
+   message = message.replace("'\">","")
    html = t.render(Context({
        'message': message,
        'username': username
