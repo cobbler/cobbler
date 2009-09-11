@@ -877,7 +877,13 @@ def generic_save(request,what):
     # load request fields and see if they are valid
     editmode  = request.POST.get('editmode', 'edit')
     obj_name  = request.POST.get('name', "")    
-    subobject = request.POST.get('subobject', True)    
+    subobject = request.POST.get('subobject', "False")  
+  
+    if subobject == "False":
+       subobject = False
+    else:
+       subobject = True
+
     if obj_name == "":
         return error_page(request,"Required field name is missing")
               
@@ -897,6 +903,7 @@ def generic_save(request,what):
     fields = get_fields(what, subobject)
 
     for field in fields:
+
         if field['name'] == 'name' and editmode == 'edit':
             # do not attempt renames here
             continue
