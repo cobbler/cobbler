@@ -15,7 +15,7 @@
       </script>
       <fieldset>
         <legend>Filters &amp; Paging</legend>
-          <ul class="list" id="filter-adder">
+          <ul id="filter-adder">
             <li style="float: left">
               <select id="filter_field" name="filter_field" class="filter">
                 <option value=""></option>
@@ -139,14 +139,14 @@
           <li><input type="text" name="filter_value" id="filter_value" size="12"  onkeypress="javascript:if (event.keyCode == 13) add_filter();"/></li>
         </ul>
       {% if filters %}
-      <ul class="list" id="filter-remover">
+      <ul id="filter-remover">
         {% for key,value in filters.items %}
         <li><a href="/cobbler_web/{{ what }}/modifylist/removefilter/{{ key }}" title="remove">✖</a> {{ key }} = {{ value }}</li>
         {% endfor %}
       </ul>
       {% endif %}
       {% smart_if item_count >= limit %}
-      <ul class="list">
+      <ul>
         <li>Items/page:
           <select name="limit" id="limit" onchange="javascript:location='/cobbler_web/{{ what }}/modifylist/limit/'+this.value">
           {% for p in pageinfo.items_per_page_list %}
@@ -155,7 +155,7 @@
           </select>
         </li>
       </ul>
-      <ul class="list" id="page_prev_next">
+      <ul id="page_prev_next">
         <li style="float: left;">
           {% ifnotequal pageinfo.prev_page "~" %}
           <a href=";" onclick="javascript:location='/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.prev_page }}'"><span class="lpointers">&laquo;</span></a>

@@ -1,15 +1,14 @@
 {% extends "master.tmpl" %}
 
 {% block content %}
-<fieldset>
+<fieldset id="check">
   <legend>Things You Might Want To Fix:</legend>
-  <hr />
-  <ol class="check_list">
+  <hr/>
+  <ol>
     {% for entry in results %}
     <li>{{ entry }}</li>
     {% endfor %}
   </ol>
   After making changes, run "cobbler sync" and restart cobblerd.
-  </div>
 </fieldset>
 {% endblock %}

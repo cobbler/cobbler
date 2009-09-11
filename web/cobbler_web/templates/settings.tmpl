@@ -3,31 +3,28 @@
 {% block content %}
 <fieldset>
   <legend>Settings</legend>
-      <ul class="list bgheader clear">
-        <li class="row theader setting bgheader">Setting</li>
-        <li class="row theader value bgheader">
-          Value (read-only)
-        </li>
-      </ul>
-    {% if settings %}
-    {% for setting,value in settings %}
-      <ul class="list clear {% cycle 'rowodd' 'roweven' %}">
-        <li class="row setting {% cycle 'rowodd' 'roweven' %}">{{ setting }}</li>
-        <li class="row value {% cycle 'rowodd' 'roweven' %}">
-          {% if value %}{{ value }}{% else %}None{% endif %}
-        </li>
-      </ul>
-    {% endfor %}
-    {% else %}
-    <div>
-      <ul>
-        <li>No settings found.</li>
-      </ul>
-    </div>
-    {% endif %}
-    <br/>
-    <br />
+  <hr/>
+  <p>
     These settings live in /etc/cobbler/settings on the server.<br/>
     After making changes <a href="/cobbler_web/sync">sync</a> or run "cobbler sync" from the command line then restart cobblerd.
+  </p>
+  {% if settings %}
+  <table id="listitems" border="0" width="100%" cellspacing="0" cellpadding="2">
+    <thead>
+      <td>Setting</td>
+      <td>Value (read-only)</td>
+    </thead>
+    <tbody>
+      {% for setting,value in settings %}
+      <tr class="{% cycle 'rowodd' 'roweven' %}">
+        <td>{{ setting }}</td>
+        <td>{% if value %}{{ value }}{% else %}None{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <h3>No settings found.</h3>
+  {% endif %}
 </fieldset>
-{% endblock %}
+{% endblock content %}

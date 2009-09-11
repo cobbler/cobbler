@@ -5,12 +5,15 @@
 {% if results %}
 <fieldset>
   <legend>Events</legend>
-  <table width="60%" cellpadding="2" cellspacing="0" border="0">
-      <tr class="bgheader">
-        <td class="theader">Start Time</td>
-        <td class="theader">Name</td>
-        <td class="theader">State</td>
-        <td class="theader">Log</td>
+  <hr/>
+  <table id="listitems" width="60%" cellpadding="2" cellspacing="0" border="0">
+     <thead>
+        <td>Start Time</td>
+        <td>Name</td>
+        <td>State</td>
+        <td>Log</td>
+     </thead>
+     <tbody>
       </tr>
       {% for line in results %}
       <tr class="{% cycle 'rowodd' 'roweven' %}">
@@ -20,6 +23,7 @@
         <td><a href="/cobbler_web/eventlog/{{ line.0 }}">log</a></td>
       </tr>
       {% endfor %}
+     </tbody>
   </table>
 </fieldset>
 {% else %}

@@ -217,6 +217,34 @@ def __tweak_field(fields,field_name,attribute,value):
 #==================================================================================
 
 
+def __format_columns(column_names,sort_field):
+    """
+    Format items retrieved from XMLRPC for rendering by the generic_edit template
+    """
+    dataset = []
+
+    # Default is sorting on name    
+    if sort_field is not None:
+        sort_name = sort_field
+    else:
+        sort_name = "name"
+    
+    if sort_name.startswith("!"):
+        sort_name = sort_name[1:]
+        sort_order = "desc"
+    else:
+        sort_order = "asc"
+
+    for fieldname in column_names:
+        fieldorder = "none"
+        if fieldname == sort_name:
+            fieldorder = sort_order
+        dataset.append([fieldname,fieldorder])
+    return dataset
+
+
+#==================================================================================
+
 def __format_items(items, column_names):
     """
     Format items retrieved from XMLRPC for rendering by the generic_edit template
@@ -225,7 +253,15 @@ def __format_items(items, column_names):
     for itemhash in items:
         row = []
         for fieldname in column_names:
-            row.append([fieldname,itemhash[fieldname]])
+            if fieldname == "name":
+                html_element = "name"
+            elif fieldname in [ "system", "repo", "distro", "profile", "image" ]:
+                html_element = "editlink"
+            elif fieldname in field_info.USES_CHECKBOX:
+                html_element = "checkbox"
+            else:
+                html_element = "text"
+            row.append([fieldname,itemhash[fieldname],html_element])
         dataset.append(row)
     return dataset
 
@@ -241,7 +277,7 @@ def genlist(request, what, page=None):
     if page == None:
         page = int(request.session.get("%s_page" % what, 1))
     limit = int(request.session.get("%s_limit" % what, 50))   
-    sort_field = request.session.get("%s_sort_field" % what, None)  # FIXME: no UI for this?
+    sort_field = request.session.get("%s_sort_field" % what, "name")
     filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
     pageditems = remote.find_items_paged(what,filters,sort_field,page,limit)
 
@@ -264,8 +300,7 @@ def genlist(request, what, page=None):
     t = get_template('generic_list.tmpl')
     html = t.render(RequestContext(request,{
         'what'           : what,
-        'otypes'         : [ "name", "repo", "distro", "profile", "image" ], # controls linking in fields
-        'columns'        : columns,
+        'columns'        : __format_columns(columns,sort_field),
         'items'          : __format_items(pageditems["items"],columns),
         'pageinfo'       : pageditems["pageinfo"],
         'filters'        : filters,
@@ -293,7 +328,7 @@ def modify_list(request, what, pref, value=None):
         # FIXME: this isn't exposed in the UI.
 
         # sorting list on columns
-        old_sort = request.session.get("%s_sort_field" % what,"")
+        old_sort = request.session.get("%s_sort_field" % what,"name")
         if old_sort.startswith("!"):
             old_sort = old_sort[1:]
             old_revsort = True

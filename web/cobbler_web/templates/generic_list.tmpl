@@ -87,69 +87,83 @@ function action_multi(otype, action, param) {
 }
 </script>
 <fieldset>
-  <legend id="clicky" class="cursor">&raquo; {{ what|title }}s</legend>
+  <legend id="listheader" class="action">&raquo; {{ what|title }}s</legend>
   <hr />
-  <ul id="action" class="list menubar">
-    <li class="list clear"><a href="/cobbler_web/{{ what }}/edit">Create new {{ what }}</a></li>
+  <ul id="listactions">
+    <li><a href="/cobbler_web/{{ what }}/edit">Create new {{ what }}</a></li>
     {% ifequal what "profile" %}
-    <li class="list clear"><a href="/cobbler_web/sub{{ what }}/edit">Create new sub-{{ what }}</a></li>
+    <li><a href="/cobbler_web/sub{{ what }}/edit">Create new sub-{{ what }}</a></li>
     {% endifequal %}
     {% ifequal what "system" %}
-    <li class="list clear"><strong>Batch actions</strong></li>
-    <li class="list clear"><a href=";" onClick="javascript:action_multi('system','power','on')">Power On</a> ☼ </li>
-      <li class="list clear"><a href=";" onClick="javascript:action_multi('system','power','off')">Power Off</a> ☼ </li>
-      <li class="list clear"><a href=";" onClick="javascript:action_multi('system','power','reboot')">Reboot</a> ☼ </li>
-      <li class="list clear"><a href=";" onClick="javascript:action_multi('system','profile','')">Change Profile</a> ☼ </li>
-      <li class="list clear"><a href=";" onClick="javascript:action_multi('system','netboot','enable')">Enable Netboot</a> ☼ </li>
-      <li class="list clear"><a href=";" onClick="javascript:action_multi('system','netboot','disable')">Disable Netboot</a> ☼ </li>
+    <li><strong>Batch actions</strong></li>
+      <li><span class="action" onClick="javascript:action_multi('system','power','on')">Power On</span> ☼ </li>
+      <li><span class="action" onClick="javascript:action_multi('system','power','off')">Power Off</span> ☼ </li>
+      <li><span class="action" onClick="javascript:action_multi('system','power','reboot')">Reboot</span> ☼ </li>
+      <li><span class="action" onClick="javascript:action_multi('system','profile','')">Change Profile</span> ☼ </li>
+      <li><span class="action" onClick="javascript:action_multi('system','netboot','enable')">Enable Netboot</span> ☼ </li>
+      <li><span class="action" onClick="javascript:action_multi('system','netboot','disable')">Disable Netboot</span> ☼ </li>
     {% endifequal %}
     {% ifequal what "repo" %}
-      <li class="list clear"><a href=";" onClick="javascript:action_multi('profile','reposync','go')">Sync</a> ☼ </li>
+      <li><span class="action" onClick="javascript:action_multi('profile','reposync','go')">Sync</span> ☼ </li>
     {% endifequal %}
   </ul>
   <form name="myform" method="post" action="/cobbler_web/{{ what }}/action">
-    <table border="0" width="100%" cellspacing="0" cellpadding="2">
-      <tr class="bgheader">
+    <table id="listitems" border="0" width="100%" cellspacing="0" cellpadding="2">
+      <thead>
         <td>
           &nbsp;<input type="checkbox" id="itemsall" onclick="javascript:items_check_all();">
         </td>
-        {% for column_name in columns %}
-        <td align="left"><strong>{{ column_name|title }}</strong></td>
+        {% for value in columns %}
+        <td>
+          <a href="/cobbler_web/{{ what }}/modifylist/sort/{{ value.0 }}">{{ value.0|title }}</a>
+          {% ifequal value.1 "asc" %}
+          &darr;
+          {% endifequal %}
+          {% ifequal value.1 "desc" %}
+          &uarr;
+          {% endifequal %}
+        </td>
         {% endfor %}
-        <td align="left"><strong>Actions</strong></td>
-      </tr>
+        <td>Actions</td>
+      </thead>
+      <tbody>
       {% for item in items %}
       <tr class="{% cycle 'rowodd' 'roweven' %}">
         <td>&nbsp;<input type="checkbox" name="items" value="{{ item.0.1 }}"/></td>
         {% for value in item %}
         <td>
           {% ifequal value.0 "name" %}
-          <a href="/cobbler_web/{{ what }}/edit/{{ value.1 }}">{{ value.1 }}</a>
+              <a href="/cobbler_web/{{ what }}/edit/{{ value.1 }}">{{ value.1 }}</a>
           {% endifequal %}
-          {% ifequal value.0 "profile" %}
-          <a href="/cobbler_web/profile/edit/{{ value.1 }}">{{ value.1 }}</a>
+          {% ifequal value.2 "editlink" %}
+              {% ifnotequal value.1 "~" %}
+                  <a href="/cobbler_web/{{ value.0 }}/edit/{{ value.1 }}">{{ value.1 }}</a>
+              {% endifnotequal %}
           {% endifequal %}
-          {% ifequal value.0 "distro" %}
-             {% ifnotequal value.1 "~" %}
-                 <a href="/cobbler_web/distro/edit/{{ value.1 }}">{{ value.1 }}</a>
-             {% endifnotequal %}
+          {% ifequal value.2 "checkbox" %}
+            {% ifequal value.1 1 %}
+            <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}" disabled="disabled" checked="checked" />
+            {% else %}
+            <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}" disabled="disabled" />
+            {% endifequal %}
           {% endifequal %}
-          {% ifequal value.0 "image" %}
-          <a href="/cobbler_web/image/edit/{{ value.1 }}">{{ value.1 }}</a>
+          {% ifequal value.2 "text" %}
+              {{ value.1 }}
           {% endifequal %}
         </td>
         {% endfor %}
         <td>
-          <a onClick="window.location='/cobbler_web/{{ what }}/edit/{{ item.0.1 }}'">Edit</a> 
-          <a onClick="javascript:obj_copy('{{ item.0.1 }}')"/>Copy</a> 
-          <a onClick="javascript:obj_rename('{{ item.0.1 }}')"/>Rename</a> 
-          <a onClick="javascript:obj_delete('{{ item.0.1 }}')"/>Delete</a> 
+          <span class="action" onClick="window.location='/cobbler_web/{{ what }}/edit/{{ item.0.1 }}'">Edit</span> 
+          <span class="action" onClick="javascript:obj_copy('{{ item.0.1 }}')"/>Copy</span> 
+          <span class="action" onClick="javascript:obj_rename('{{ item.0.1 }}')"/>Rename</span> 
+          <span class="action" onClick="javascript:obj_delete('{{ item.0.1 }}')"/>Delete</span> 
           {% ifequal what "system" %}
-          <a href="/cblr/svc/op/ks/system/{{ item.0.1 }}">View kickstart</a>
+          <span class="action" onClick="window.location='/cblr/svc/op/ks/system/{{ item.0.1 }}'">View kickstart</span>
           {% endifequal %}
-       </td>
-       </tr>
-       {% endfor %}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
     </table>
   <input type="hidden" name="names" id="names" value=""/>
   </form>

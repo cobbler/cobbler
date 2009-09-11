@@ -1,29 +1,31 @@
 {% extends 'master.tmpl' %}
 {% block content %}
 <fieldset>
-  <legend id="clicky" class="cursor">&raquo; Cobbler Kickstart Snippets</legend>
+  <legend id="listheader" class="action">&raquo; Cobbler Kickstart Snippets</legend>
   <hr />
-    <!-- This is kind weird, but force the name "snippet"
-    because we know this is the ksfile page. If this gets moved
-    to generic_list, then it can be hacked around -->
-  <ul id="action" class="list menubar">
-    <li class="list clear"><a href="/cobbler_web/{{ what }}/edit">Add new snippet</a></li>
+  <!-- This is kind weird, but force the name "snippet"
+  because we know this is the ksfile page. If this gets moved
+  to generic_list, then it can be hacked around -->
+  <ul id="listactions">
+    <li><a class="action" href="/cobbler_web/{{ what }}/edit">Create new snippet</a><li>
   </ul>
-  <table width="75%" cellpadding="2" cellspacing="0" border="0">
-    <tr class="bgheader">
-      <td>File</th>
-      <td>Actions</th>
-    </tr>
-    {% for snippet,shortname,option in snippets %}
-    <tr class="{% cycle 'rowodd' 'roweven' %}">
-      <td>{{ shortname }}</td>
-      {% if option %}
-      {% ifequal option "editable" %}<td><a href="/cobbler_web/snippet/edit/{{ snippet }}"/>Edit</a></td>{% endifequal %}
-      {% else %}
-      <td>N/A</td>
-      {% endif %}
-    </tr>
-    {% endfor %}
+  <table id="listitems" border="0" width="100%" cellspacing="0" cellpadding="2">
+    <thead>
+      <td>File</td>
+      <td>Actions</td>
+    </thead>
+    <tbody>
+      {% for snippet,shortname,option in snippets %}
+      <tr class="{% cycle 'rowodd' 'roweven' %}">
+        <td>{{ shortname }}</td>
+        {% if option %}
+        <td>
+        {% ifequal option "editable" %}<span class="action" onClick="window.location='/cobbler_web/snippet/edit/{{ snippet }}'">Edit</a> {% endifequal %}
+        </td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
   </table>
 </fieldset>
 {% endblock content %}

@@ -13,13 +13,9 @@
 <script type="text/javascript">
 $(document).ready(function()
 {
-  $(".navblock_head").click(function()
-  {
-    $(this).next(".navblock_body").slideToggle(600);
-  });
-  $("ul#action").hide();
-  $("#clicky").click(function () {
-    $("ul#action").toggle('slow');
+  $("#listactions").hide();
+  $("#listheader").click(function () {
+    $("#listactions").toggle('slow');
   });
 });
 </script>
@@ -31,32 +27,32 @@ $(document).ready(function()
   </div>
   <div style="clear: both;"></div>
   <div class="container">
-    <div class="menubar">
+    <div id="menubar">
       <fieldset>
         <legend>Configuration</legend>
-        <ul class="list menubar">
-          <li class="menubar"><a href="/cobbler_web/settings" class="menu">Settings</a></li>
-          <li class="menubar"><a href="/cobbler_web/check" class="menu">Check</a></li>
-          <li class="menubar"><a href="/cobbler_web/events" class="menu">Events</a></li>
-          <li class="menubar"><a href="/cobbler_web/distro/list" class="edit">Distros</a></li>
-          <li class="menubar"><a href="/cobbler_web/profile/list" class="edit">Profiles</a></li>
-          <li class="menubar"><a href="/cobbler_web/system/list" class="edit">Systems</a></li>
-          <li class="menubar"><a href="/cobbler_web/repo/list" class="edit">Repos</a></li>
-          <li class="menubar"><a href="/cobbler_web/image/list" class="edit">Images</a></li>
-          <li class="menubar"><a href="/cobbler_web/ksfile/list" class="edit">Kickstart Templates</a></li>
-          <li class="menubar"><a href="/cobbler_web/snippet/list" class="edit">Snippets</a></li>
+        <ul>
+          <li><a href="/cobbler_web/settings" class="menu">Settings</a></li>
+          <li><a href="/cobbler_web/check" class="menu">Check</a></li>
+          <li><a href="/cobbler_web/events" class="menu">Events</a></li>
+          <li><a href="/cobbler_web/distro/list" class="edit">Distros</a></li>
+          <li><a href="/cobbler_web/profile/list" class="edit">Profiles</a></li>
+          <li><a href="/cobbler_web/system/list" class="edit">Systems</a></li>
+          <li><a href="/cobbler_web/repo/list" class="edit">Repos</a></li>
+          <li><a href="/cobbler_web/image/list" class="edit">Images</a></li>
+          <li><a href="/cobbler_web/ksfile/list" class="edit">Kickstart Templates</a></li>
+          <li><a href="/cobbler_web/snippet/list" class="edit">Snippets</a></li>
         </ul>
       </fieldset>
       <fieldset>
         <legend>Actions</legend>
-        <ul class="list menubar">
-          <li class="menubar"><a href="/cobbler_web/import/prompt">Import DVD</a></li>
-          <li class="menubar"><a href="/cobbler_web/sync">Sync</a> ☼</li>
-          <li class="menubar"><a href="/cobbler_web/reposync">Reposync</a> ☼ </li>
-          <li class="menubar"><a href="/cobbler_web/hardlink">Hardlink</a> ☼ </li>
-          <!-- <li class="menubar"><a href="/cobbler_web/replicate">Replicate</a> ☼ </li> -->
-          <li class="menubar"><a href="/cobbler_web/buildiso">Build ISO</a> ☼ </li>
-          <li class="menubar"><a href="http://webchat.freenode.net?channels=#cobbler">Online Help Chat</A>
+        <ul>
+          <li><a href="/cobbler_web/import/prompt">Import DVD</a></li>
+          <li><a href="/cobbler_web/sync">Sync</a> ☼</li>
+          <li><a href="/cobbler_web/reposync">Reposync</a> ☼ </li>
+          <li><a href="/cobbler_web/hardlink">Hardlink</a> ☼ </li>
+          <!-- <li><a href="/cobbler_web/replicate">Replicate</a> ☼ </li> -->
+          <li><a href="/cobbler_web/buildiso">Build ISO</a> ☼ </li>
+          <li><a href="http://webchat.freenode.net?channels=#cobbler">Online Help Chat</A>
         </ul>
       </fieldset>
     {% include "paginate.tmpl" %}
