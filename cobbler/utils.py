@@ -1766,11 +1766,11 @@ def loh_sort_by_key(datastruct, indexkey):
 def dhcpconf_location(api):
     version = api.os_version
     if version[0] in [ "redhat", "centos" ] and version[1] < 6:
-        return "/etc/dhcp.conf"
+        return "/etc/dhcpd.conf"
     elif version[0] in [ "fedora" ] and version[1] < 11: 
-        return "/etc/dhcp.conf"
+        return "/etc/dhcpd.conf"
     else:
-        return "/etc/dhcp/dhcp.conf"
+        return "/etc/dhcp/dhcpd.conf"
 
 
 if __name__ == "__main__":
