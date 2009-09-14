@@ -641,6 +641,7 @@ class PXEGen:
         # save file and/or return results, depending on how called.
         buffer = self.templar.render(template_data, metadata, None)
         if filename is not None:
+            self.logger.info("generating: %s" % filename)
             fd = open(filename, "w")
             fd.write(buffer)
             fd.close()
@@ -744,6 +745,7 @@ class PXEGen:
             results[dest] = buffer
 
             if write_file:
+                self.logger.info("generating: %s" % dest)
                 fd = open(dest, "w")
                 fd.write(buffer)
                 fd.close()

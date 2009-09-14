@@ -117,6 +117,7 @@ class BootSync:
         self.logger.info("copying images")
         self.pxegen.copy_images()
 
+        self.logger.info("generating PXE configuration files")
         for x in self.systems:
             self.pxegen.write_all_system_files(x)
 
