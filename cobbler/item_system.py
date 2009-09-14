@@ -246,7 +246,7 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         # FIXME: move duplicate supression code to the object validation
         # functions to take a harder line on supression?
-        if not str(self.config._settings.allow_duplicate_hostnames).lower() in [ "1", "y", "yes"]:
+        if dns_name != "" and not str(self.config._settings.allow_duplicate_hostnames).lower() in [ "1", "y", "yes"]:
            matched = self.config.api.find_items("system", {"dns_name" : dns_name})
            for x in matched:
                if x.name != self.name:
@@ -282,7 +282,7 @@ class System(item.Item):
 
         # FIXME: move duplicate supression code to the object validation
         # functions to take a harder line on supression?
-        if not str(self.config._settings.allow_duplicate_ips).lower() in [ "1", "y", "yes"]:
+        if address != "" and not str(self.config._settings.allow_duplicate_ips).lower() in [ "1", "y", "yes"]:
            matched = self.config.api.find_items("system", {"ip_address" : address})
            for x in matched:
                if x.name != self.name:
@@ -300,7 +300,7 @@ class System(item.Item):
 
         # FIXME: move duplicate supression code to the object validation
         # functions to take a harder line on supression?
-        if not str(self.config._settings.allow_duplicate_macs).lower() in [ "1", "y", "yes"]:
+        if address != "" and not str(self.config._settings.allow_duplicate_macs).lower() in [ "1", "y", "yes"]:
            matched = self.config.api.find_items("system", {"mac_address" : address})
            for x in matched:
                if x.name != self.name:
