@@ -57,11 +57,11 @@ class IscManager:
     def what(self):
         return "isc"
 
-    def __init__(self,config,verbose=False):
+    def __init__(self,config,logger):
         """
         Constructor
         """
-        self.verbose       = verbose
+        self.logger        = logger
         self.config        = config
         self.api           = config.api
         self.distros       = config.distros()
@@ -189,11 +189,13 @@ class IscManager:
            "dhcp_tags"      : dhcp_tags
         }
 
+        if self.logger is not None:
+            self.logger.info("generating %s" % self.settings_file)
         self.templar.render(template_data, metadata, self.settings_file, None)
 
     def regen_ethers(self):
         pass # ISC/BIND do not use this
 
 
-def get_manager(config):
-    return IscManager(config)
+def get_manager(config,logger):
+    return IscManager(config,logger)

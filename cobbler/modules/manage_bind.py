@@ -57,11 +57,11 @@ class BindManager:
     def what(self):
         return "bind"
 
-    def __init__(self,config,verbose=False):
+    def __init__(self,config,logger):
         """
         Constructor
         """
-        self.verbose     = verbose
+        self.logger      = logger
         self.config      = config
         self.api         = config.api
         self.distros     = config.distros()
@@ -219,6 +219,8 @@ zone "%(arpa)s." {
         template_data = f2.read()
         f2.close()
 
+        if self.logger is not None:
+            self.logger.info("generating %s" % settings_file)
         self.templar.render(template_data, metadata, settings_file, None)
 
     def __ip_sort(self, ips):
@@ -289,7 +291,10 @@ zone "%(arpa)s." {
 
             metadata['host_record'] = self.__pretty_print_host_records(hosts)
 
-            self.templar.render(template_data, metadata, '/var/named/' + zone, None)
+            zonefilename='/var/named/' + zone
+            if self.logger is not None:
+               self.logger.info("generating (forward) %s" % zonefilename)
+            self.templar.render(template_data, metadata, zonefilename, None)
 
         for (zone, hosts) in reverse.iteritems():
             metadata = {
@@ -308,7 +313,10 @@ zone "%(arpa)s." {
 
             metadata['host_record'] = self.__pretty_print_host_records(hosts, rectype='PTR')
 
-            self.templar.render(template_data, metadata, '/var/named/' + zone, None)
+            zonefilename='/var/named/' + zone
+            if self.logger is not None:
+               self.logger.info("generating (reverse) %s" % zonefilename)
+            self.templar.render(template_data, metadata, zonefilename, None)
 
 
     def write_dns_files(self):
@@ -320,6 +328,5 @@ zone "%(arpa)s." {
         self.__write_named_conf()
         self.__write_zone_files()
 
-def get_manager(config):
-    return BindManager(config)
-
+def get_manager(config,logger):
+    return BindManager(config,logger)

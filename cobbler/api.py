@@ -615,12 +615,12 @@ class BootAPI:
            "dhcp",
            "module",
            "manage_isc"
-        ).get_manager(self._config)
+        ).get_manager(self._config,logger)
         self.dns = self.get_module_from_file(
            "dns",
            "module",
            "manage_bind"
-        ).get_manager(self._config)
+        ).get_manager(self._config,logger)
         return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns,verbose=verbose,logger=logger)
 
     # ==========================================================================
