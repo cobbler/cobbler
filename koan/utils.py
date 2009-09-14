@@ -178,7 +178,7 @@ def subprocess_call(cmd,ignore_rc=0):
         raise InfoException, "command failed (%s)" % rc
     return rc
 
-def input_string_or_hash(options,delim=None):
+def input_string_or_hash(options,delim=None,allow_multiples=True):
     """
     Older cobbler files stored configurations in a flat way, such that all values for strings.
     Newer versions of cobbler allow dictionaries.  This function is used to allow loading
@@ -194,12 +194,29 @@ def input_string_or_hash(options,delim=None):
         tokens = string.split(options, delim)
         for t in tokens:
             tokens2 = string.split(t,"=")
-            if len(tokens2) == 1 and tokens2[0] != '':
-                new_dict[tokens2[0]] = None
-            elif len(tokens2) == 2 and tokens2[0] != '':
-                new_dict[tokens2[0]] = tokens2[1]
+            if len(tokens2) == 1:
+                # this is a singleton option, no value
+                key = tokens2[0]
+                value = None
             else:
-                return {}
+                key = tokens2[0]
+                value = tokens2[1]
+
+            # if we're allowing multiple values for the same key,
+            # check to see if this token has already been
+            # inserted into the dictionary of values already
+
+            if key in new_dict.keys() and allow_multiples:
+                # if so, check to see if there is already a list of values
+                # otherwise convert the dictionary value to an array, and add
+                # the new value to the end of the list
+                if type(new_dict[key]) == list:
+                    new_dict[key].append(value)
+                else:
+                    new_dict[key] = [new_dict[key], value]
+            else:
+                new_dict[key] = value
+
         # dict.pop is not avail in 2.2
         if new_dict.has_key(""):
            del new_dict[""]
@@ -209,6 +226,29 @@ def input_string_or_hash(options,delim=None):
         return options
     else:
         raise InfoException("invalid input type: %s" % type(options))
+
+def hash_to_string(hash):
+    """
+    Convert a hash to a printable string.
+    used primarily in the kernel options string
+    and for some legacy stuff where koan expects strings
+    (though this last part should be changed to hashes)
+    """
+    buffer = ""
+    if type(hash) != dict:
+       return hash
+    for key in hash:
+       value = hash[key]
+       if value is None:
+           buffer = buffer + str(key) + " "
+       elif type(value) == list:
+           # this value is an array, so we print out every
+           # key=value
+           for item in value:
+              buffer = buffer + str(key) + "=" + str(item) + " "
+       else:
+              buffer = buffer + str(key) + "=" + str(value) + " "
+    return buffer
 
 def nfsmount(input_path):
     # input:  [user@]server:/foo/bar/x.img as string

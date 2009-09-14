@@ -1082,12 +1082,7 @@ class Koan:
         if self.kopts_override is not None:
            hash2 = utils.input_string_or_hash(self.kopts_override)
            hashv.update(hash2)
-        options = ""
-        for x in hashv.keys():
-            if hashv[x] is None:
-                options = options + "%s " % x
-            else:
-                options = options + "%s=%s " % (x, hashv[x])
+        options = utils.hash_to_string(hashv)
         options = string.replace(options, "lang ","lang= ")
         # if using ksdevice=bootif that only works for PXE so replace
         # it with something that will work
