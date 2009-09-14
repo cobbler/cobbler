@@ -368,7 +368,6 @@ class BootCLI:
             (options, args) = self.parser.parse_args()
             task_id = self.start_task("import",options)
         elif action_name == "reposync":
-            print "reposync"
             self.parser.add_option("--only",           dest="only",             help="update only this repository name")
             self.parser.add_option("--tries",          dest="tries",            help="try each repo this many times", default=1)
             self.parser.add_option("--no-fail",        dest="nofail",           help="don't stop reposyncing if a failure occurs", action="store_true")
@@ -391,7 +390,6 @@ class BootCLI:
                 print "No configuration problems found.  All systems go."
                 
         elif action_name == "sync":
-            print "parse_args"
             (options, args) = self.parser.parse_args()
             self.parser.add_option("--verbose", dest="verbose", action="store_true", help="run sync with more output")
             task_id = self.start_task("sync",options)
