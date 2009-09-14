@@ -179,7 +179,7 @@ class RepoSync:
                     # need createrepo >= 0.9.7 to add deltas
                     if utils.check_dist() == "redhat" or utils.check_dist() == "suse":
                         cmd = "/usr/bin/rpmquery --queryformat=%{VERSION} createrepo"
-                        createrepo_ver = utils.subprocess_get(cmd)
+                        createrepo_ver = utils.subprocess_get(self.logger, cmd)
                         if createrepo_ver >= "0.9.7":
                             mdoptions.append("--deltas")
                         else:
