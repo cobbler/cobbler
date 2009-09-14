@@ -92,8 +92,7 @@ class BootSync:
         if not os.path.exists(self.bootloc):
             utils.die(self.logger,"cannot find directory: %s" % self.bootloc)
 
-        if self.verbose:
-            self.logger.info("running pre-sync triggers")
+        self.logger.info("running pre-sync triggers")
 
         # run pre-triggers...
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/pre/*")
@@ -106,48 +105,38 @@ class BootSync:
 
         # execute the core of the sync operation
 
-        if self.verbose:
-           self.logger.info("cleaning trees")
+        self.logger.info("cleaning trees")
         self.clean_trees()
 
-        if self.verbose:
-           self.logger.info("copying bootloaders")
+        self.logger.info("copying bootloaders")
         self.pxegen.copy_bootloaders()
 
-        if self.verbose:
-           self.logger.info("copying distros")
+        self.logger.info("copying distros")
         self.pxegen.copy_distros()
 
-        if self.verbose:
-           self.logger.info("copying images")
+        self.logger.info("copying images")
         self.pxegen.copy_images()
 
         for x in self.systems:
             self.pxegen.write_all_system_files(x)
 
         if self.settings.manage_dhcp:
-           if self.verbose:
-                self.logger.info("rendering DHCP files")
+           self.logger.info("rendering DHCP files")
            self.dhcp.write_dhcp_file()
            self.dhcp.regen_ethers()
         if self.settings.manage_dns:
-           if self.verbose:
-                self.logger.info("rendering DNS files")
+           self.logger.info("rendering DNS files")
            self.dns.regen_hosts()
            self.dns.write_dns_files()
 
-        if self.verbose:
-           self.logger.info("rendering Rsync files")
+        self.logger.info("rendering Rsync files")
         self.rsync_gen()
 
-        if self.verbose:
-           self.logger.info("generating PXE menu structure")
+        self.logger.info("generating PXE menu structure")
         self.pxegen.make_pxe_menu()
 
         # run post-triggers
-        if self.verbose:
-            self.logger.info("running post-sync triggers")
-
+        self.logger.info("running post-sync triggers")
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*", logger=self.logger)
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/change/*", logger=self.logger)
 
