@@ -1,8 +1,0 @@
-- HIGH PRIORITY:
-- Test interfaces in CLI and webapp thoroughly
-- make authz_ownership work for all of the new commands (require admin group?)
-
-- MODERATE PRIORITY:
-- Look over old webapp and ensure tooltips in new version are good enough or better
-- reinstate reports with formatted output options
-
