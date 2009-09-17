@@ -11,9 +11,6 @@ Release: 1%{?dist}
 Source0: cobbler-%{version}.tar.gz
 Group: Applications/System
 Requires: python >= 2.3
-%ifarch %{ix86} x86_64
-Requires: syslinux
-%endif
 %if 0%{?suse_version} >= 1000
 Requires: apache2
 Requires: apache2-mod_python
@@ -65,7 +62,8 @@ Requires: python(abi) >= %{pyver}
 BuildRequires: PyYAML
 BuildRequires: python-cheetah
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-Url: http://cobbler.et.redhat.com
+BuildArch: noarch
+Url: http://fedorahosted.org/cobbler
 
 %description
 
