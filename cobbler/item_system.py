@@ -524,6 +524,7 @@ class System(item.Item):
         if self.name is None or self.name == "":
             raise CX("name is required")
         if self.profile is None or self.profile == "":
-            raise CX("profile is required")
+            if self.image is None or self.image == "":
+                raise CX("profile or image is required")
             
 
