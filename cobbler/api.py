@@ -83,9 +83,16 @@ class BootAPI:
         Constructor
         """
 
+        # FIXME: this should be switchable through some simple system
+
         self.__dict__ = BootAPI.__shared_state
         self.perms_ok = False
         if not BootAPI.__has_loaded:
+
+            if os.path.exists("/etc/cobbler/use.couch"):
+                 self.use_couch = True
+            else:
+                 self.use_couch = False
 
             # NOTE: we do not log all API actions, because
             # a simple CLI invocation may call adds and such

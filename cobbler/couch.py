@@ -25,23 +25,24 @@ class Couch:
         """Creates a new database on the server"""
 
         r = self.put(''.join(['/',dbName,'/']), "")
-        prettyPrint(r)
+        return r.read()
 
     def deleteDb(self, dbName):
         """Deletes the database on the server"""
 
         r = self.delete(''.join(['/',dbName,'/']))
-        prettyPrint(r)
+        return r.read()
 
     def listDb(self):
         """List the databases on the server"""
 
-        prettyPrint(self.get('/_all_dbs'))
+        r = self.get('/_all_dbs')
+        return r.read()
 
     def infoDb(self, dbName):
         """Returns info about the couchDB"""
         r = self.get(''.join(['/', dbName, '/']))
-        prettyPrint(r)
+        return r.read()
 
     # Document operations
 
@@ -49,12 +50,12 @@ class Couch:
         """List all documents in a given database"""
 
         r = self.get(''.join(['/', dbName, '/', '_all_docs']))
-        prettyPrint(r)
+        return r.read()
 
     def openDoc(self, dbName, docId):
         """Open a document in a given database"""
         r = self.get(''.join(['/', dbName, '/', docId,]))
-        prettyPrint(r)
+        return r.read()
 
     def saveDoc(self, dbName, body, docId=None):
         """Save/create a document to/in a given database"""
@@ -62,14 +63,14 @@ class Couch:
             r = self.put(''.join(['/', dbName, '/', docId]), body)
         else:
             r = self.post(''.join(['/', dbName, '/']), body)
-        prettyPrint(r)
+        return r.read()
 
     def deleteDoc(self, dbName, docId):
         # XXX Crashed if resource is non-existent; not so for DELETE on db. Bug?
         # XXX Does not work any more, on has to specify an revid 
         #     Either do html head to get the recten revid or provide it as parameter
         r = self.delete(''.join(['/', dbName, '/', docId]))
-        prettyPrint(r)
+        return r.read()
 
     # Basic http methods
 

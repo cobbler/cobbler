@@ -41,6 +41,7 @@ import collection_images as images
 
 import settings
 import serializer
+import traceback
 
 from utils import _
 from cexceptions import *
@@ -200,6 +201,7 @@ class Config:
        try:
            serializer.deserialize(self._settings)
        except:
+           traceback.print_exc()
            raise CX("/etc/cobbler/settings is not a valid YAML file")
        serializer.deserialize(self._distros)
        serializer.deserialize(self._repos)

@@ -8,7 +8,7 @@ import time
 import sys
 import random
 
-N = 30000
+N = 500
 print "sample size is %s" % N
 
 api = capi.BootAPI()
@@ -16,9 +16,9 @@ api = capi.BootAPI()
 # part one ... create our test systems for benchmarking purposes if
 # they do not seem to exist.
 
-if not api.find_profile("foo"):
-    print "CREATE A PROFILE NAMED 'foo' to be able to run this test"
-    sys.exit(0)
+#if not api.find_profile("foo"):
+#    print "CREATE A PROFILE NAMED 'foo' to be able to run this test"
+#    sys.exit(0)
 
 def random_mac():
     mac = [ 0x00, 0x16, 0x3e,

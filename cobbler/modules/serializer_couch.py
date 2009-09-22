@@ -40,34 +40,41 @@ from cexceptions import *
 import os
 import couch
 
-typez = [ "distros", "profiles", "systems", "images", "repos" ]
-couchdb = couch.CouchDb('127.0.0.1')
+typez = [ "distro", "profile", "system", "image", "repo" ]
+couchdb = couch.Couch('127.0.0.1')
+
+def __connect():
+   couchdb.connect()
+   for x in typez:
+       couchdb.createDb(x)
 
 def register():
     """
     The mandatory cobbler module registration hook.
     """
-    couchdb.connect()
-    for x in typez:
-        couch.createDb(x)
+    # FIXME: only run this if enabled.
     return "serializer"
 
 def serialize_item(obj, item):
-
+    __connect()
     datastruct = item.to_datastruct()
-    couch.saveDoc(obj.collection_type(),
+    # blindly prevent conflict resolution
+    couchdb.openDoc(obj.collection_type(), item.name)
+    data = couchdb.saveDoc(obj.collection_type(),
                   simplejson.dumps(datastruct, encoding="utf-8"),
-                  obj.name)
- 
+                  item.name)
+    data = simplejson.loads(data)
     return True
 
 def serialize_delete(obj, item):
-    couch.deleteDoc(obj.collection_type(),
+    __connect()
+    couchdb.deleteDoc(obj.collection_type(),
                     item.name)
     return True
 
 def deserialize_item_raw(collection_type, item_name):
-    data = couch.openDoc(collection_type, item_name)
+    __connect()
+    data = couchdb.openDoc(collection_type, item_name)
     return simplejson.loads(data, encoding="utf-8")
 
 def serialize(obj):
@@ -76,6 +83,7 @@ def serialize(obj):
     FIXME: Return False on access/permission errors.
     This should NOT be used by API if serialize_item is available.
     """
+    __connect()
     ctype = obj.collection_type()
     if ctype == "settings":
         return True
@@ -84,7 +92,15 @@ def serialize(obj):
     return True
 
 def deserialize_raw(collection_type):
-    items = couch.listDoc(collection_type)
+    __connect()
+    contents = simplejson.loads(couchdb.listDoc(collection_type))
+    items = []
+    if contents.has_key("error") and contents.get("reason","").find("Missing") != -1:
+        # no items in the DB yet
+        return []
+    for x in contents["rows"]:
+       items.append(x["key"])
+
     if collection_type == "settings":
          fd = open("/etc/cobbler/settings")
          datastruct = yaml.load(fd.read())
@@ -93,8 +109,9 @@ def deserialize_raw(collection_type):
     else:
          results = []
          for f in items:
-             data = couch.openDoc(collection_type, f)
-             datastruct = simplejson.loads(ydata, encoding='utf-8')
+             data = couchdb.openDoc(collection_type, f)
+             datastruct = simplejson.loads(data, encoding='utf-8')
+             results.append(datastruct)
          return results    
 
 def deserialize(obj,topological=True):
@@ -102,6 +119,7 @@ def deserialize(obj,topological=True):
     Populate an existing object with the contents of datastruct.
     Object must "implement" Serializable.  
     """
+    __connect()
     datastruct = deserialize_raw(obj.collection_type())
     if topological and type(datastruct) == list:
        datastruct.sort(__depth_cmp)
