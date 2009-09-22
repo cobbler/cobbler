@@ -231,7 +231,7 @@ class BootCLI:
         elif object_type == "repo":
             return item_repo.FIELDS
         elif object_type == "image":
-            return item_repo.FIELDS
+            return item_image.FIELDS
 
     def object_command(self, object_type, object_action):
         """
