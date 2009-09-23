@@ -273,7 +273,7 @@ class Importer:
        """
 
        for profile in self.profiles:
-           distro = self.distros.find(name=profile.get_conceptual_parent())
+           distro = self.distros.find(name=profile.get_conceptual_parent().name)
            if distro is None or not (distro in distros_added):
                continue
 
