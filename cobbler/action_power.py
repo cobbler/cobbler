@@ -50,6 +50,7 @@ class PowerTool:
         self.config      = config
         self.settings    = config.settings()
         self.api         = api
+        self.logger      = self.api.logger
         self.force_user  = force_user
         self.force_pass  = force_pass
         if logger is None:
@@ -99,8 +100,10 @@ class PowerTool:
         if meta.get("power_pass","") == "":
             meta["power_pass"] = os.environ.get("COBBLER_POWER_PASS","")
 
-        # now reprocess the command so we don't feed it through the shell
-        cmd = cmd.split(" ")
+        self.logger.info("- %s" % cmd)
+
+        # use shell so we can have mutliple power commands chained together
+        cmd = ['/bin/sh','-c', cmd]
 
         # Try the power command 5 times before giving up.
         # Some power switches are flakey
