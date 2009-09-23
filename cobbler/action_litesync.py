@@ -51,6 +51,7 @@ class BootLiteSync:
             logger = clogger.Logger()
         self.logger      = logger
         self.sync        = config.api.get_sync(verbose,logger=self.logger)
+        self.sync.make_tftpboot()
 
     def add_single_distro(self, name):
         # get the distro record
