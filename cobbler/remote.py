@@ -24,6 +24,7 @@ import sys
 import socket
 import time
 import os
+import errno
 import base64
 import SimpleXMLRPCServer
 from SocketServer import ThreadingMixIn
@@ -68,9 +69,10 @@ EVENT_INFO      = "notification"
 # for backwards compatibility with 1.6 and prev XMLRPC
 # do not remove!
 REMAP_COMPAT = {
-   "ksmeta"     : "ks_meta",
-   "kopts"      : "kernel_options",
-   "kopts_post" : "kernel_options_post"
+   "ksmeta"          : "ks_meta",
+   "kopts"           : "kernel_options",
+   "kopts_post"      : "kernel_options_post",
+   "netboot-enabled" : "netboot_enabled"
 }
 
 class CobblerThread(Thread):
