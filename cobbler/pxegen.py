@@ -494,6 +494,8 @@ class PXEGen:
                     return None
                 elif arch is not None and arch.startswith("s390"):
                     template = os.path.join(self.settings.pxe_template_dir,"pxelocal_s390x.template")
+                elif arch is not None and arch.startswith("ia64"):
+                    template = os.path.join(self.settings.pxe_template_dir,"pxelocal_ia64.template")
                 else:
                     template = os.path.join(self.settings.pxe_template_dir,"pxelocal.template")
         else:
