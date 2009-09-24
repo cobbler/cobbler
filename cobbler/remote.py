@@ -814,7 +814,7 @@ class CobblerXMLRPCInterface:
 
                     # in place modifications allow for adding a key/value pair while keeping other k/v
                     # pairs intact.
-                    if k in [ "ks_meta", "kernel_options", "kernel_options_post", "template_files"] and attributes.has_key("in_place"):
+                    if k in [ "ks_meta", "kernel_options", "kernel_options_post", "template_files"] and attributes.has_key("in_place") and attributes["in_place"]:
                         details = self.get_item(object_type,object_name)
                         v2 = details[k]
                         (ok, input) = utils.input_string_or_hash(v)
