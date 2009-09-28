@@ -4,6 +4,8 @@ Cobbler CHANGELOG
 - (BUGF) Fixes for image based CLI usage and object validation
 - (BUGF) Show object name on cobbler-web edit pages
 - (BUGF) Make memtest integration look in the right file locations
+- (BUGF) Fix check for dhcpd installation
+- (BUGF) Fix code to detect dhcpd config file installation
 
 - Sep 17 2009 - for 2.0 release
 - Development release start
