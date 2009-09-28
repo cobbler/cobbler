@@ -896,7 +896,8 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
        'interfaces'      : interfaces,
        'interface_names' : inames,
        'interface_length': len(inames),
-       'username'        : username
+       'username'        : username,
+       'name'            : obj_name
    }))
 
    return HttpResponse(html)
