@@ -1,1 +1,1 @@
-/usr/local/bin/fence_integrity -a $power_address -l $power_user -p $power_pass -o $power_mode
+/usr/local/bin/fence_integrity -a "$power_address" -l "$power_user" -p "$power_pass" -o "$power_mode"

@@ -1,4 +1,4 @@
 #if $getVar("power_id","") != ""
    #set $power_id = "-m %s" % $power_id
 #end if
-fence_drac -a $power_address -l $power_user -p $power_pass $power_id -o $power_mode 
+fence_drac -a "$power_address" -l "$power_user" -p "$power_pass" $power_id -o "$power_mode"

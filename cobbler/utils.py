@@ -1307,7 +1307,7 @@ def get_kickstart_templates(api):
 def safe_filter(var):
     if var is None:
        return
-    if var.find("/") != -1 or var.find(";") != -1:
+    if var.find("..") != -1 or var.find(";") != -1:
        raise CX("Invalid characters found in input")
 
 def is_selinux_enabled():

@@ -122,6 +122,11 @@ class Distro(item.Item):
     TYPE_NAME = _("distro")
     COLLECTION_TYPE = "distro"
 
+    def __init__(self, *args, **kwargs):
+        item.Item.__init__(self, *args, **kwargs)
+        self.ks_meta = {}
+        self.source_repos = []
+
     def make_clone(self):
         ds = self.to_datastruct()
         cloned = Distro(self.config)

@@ -75,6 +75,13 @@ class BootSync:
         self.dns.verbose    = verbose
         self.dhcp.verbose   = verbose
 
+        self.pxelinux_dir = os.path.join(self.bootloc, "pxelinux.cfg")
+        self.images_dir = os.path.join(self.bootloc, "images")
+        self.yaboot_bin_dir = os.path.join(self.bootloc, "ppc")
+        self.yaboot_cfg_dir = os.path.join(self.bootloc, "etc")
+        self.s390_dir = os.path.join(self.bootloc, "s390x")
+        self.rendered_dir = os.path.join(self.settings.webdir, "rendered")
+
 
 
     def run(self):
@@ -146,6 +153,23 @@ class BootSync:
 
         return True
 
+    def make_tftpboot(self):
+        """
+        Make directories for tftpboot images
+        """
+        if not os.path.exists(self.pxelinux_dir):
+            utils.mkdir(self.pxelinux_dir,logger=self.logger)
+        if not os.path.exists(self.images_dir):
+            utils.mkdir(self.images_dir,logger=self.logger)
+        if not os.path.exists(self.s390_dir):
+            utils.mkdir(self.s390_dir,logger=self.logger)
+        if not os.path.exists(self.rendered_dir):
+            utils.mkdir(self.rendered_dir,logger=self.logger)
+        if not os.path.exists(self.yaboot_bin_dir):
+            utils.mkdir(self.yaboot_bin_dir,logger=self.logger)
+        if not os.path.exists(self.yaboot_cfg_dir):
+            utils.mkdir(self.yaboot_cfg_dir,logger=self.logger)
+
     def clean_trees(self):
         """
         Delete any previously built pxelinux.cfg tree and virt tree info and then create
@@ -171,28 +195,13 @@ class BootSync:
                 if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system","rendered"]:
                     # clean out directory contents
                     utils.rmtree_contents(path,logger=self.logger)
-        pxelinux_dir = os.path.join(self.bootloc, "pxelinux.cfg")
-        images_dir = os.path.join(self.bootloc, "images")
-        yaboot_bin_dir = os.path.join(self.bootloc, "ppc")
-        yaboot_cfg_dir = os.path.join(self.bootloc, "etc")
-        s390_dir = os.path.join(self.bootloc, "s390x")
-        rendered_dir = os.path.join(self.settings.webdir, "rendered")
-        if not os.path.exists(pxelinux_dir):
-            utils.mkdir(pxelinux_dir,logger=self.logger)
-        if not os.path.exists(images_dir):
-            utils.mkdir(images_dir,logger=self.logger)
-        if not os.path.exists(rendered_dir):
-            utils.mkdir(rendered_dir,logger=self.logger)
-        if not os.path.exists(yaboot_bin_dir):
-            utils.mkdir(yaboot_bin_dir,logger=self.logger)
-        if not os.path.exists(yaboot_cfg_dir):
-            utils.mkdir(yaboot_cfg_dir,logger=self.logger)
-        utils.rmtree_contents(os.path.join(self.bootloc, "pxelinux.cfg"),logger=self.logger)
-        utils.rmtree_contents(os.path.join(self.bootloc, "images"),logger=self.logger)
-        utils.rmtree_contents(os.path.join(self.bootloc, "s390x"),logger=self.logger)
-        utils.rmtree_contents(os.path.join(self.bootloc, "ppc"),logger=self.logger)
-        utils.rmtree_contents(os.path.join(self.bootloc, "etc"),logger=self.logger)
-        utils.rmtree_contents(rendered_dir,logger=self.logger)
+        self.make_tftpboot()
+        utils.rmtree_contents(self.pxelinux_dir,logger=self.logger)
+        utils.rmtree_contents(self.images_dir,logger=self.logger)
+        utils.rmtree_contents(self.s390_dir,logger=self.logger)
+        utils.rmtree_contents(self.yaboot_bin_dir,logger=self.logger)
+        utils.rmtree_contents(self.yaboot_cfg_dir,logger=self.logger)
+        utils.rmtree_contents(self.rendered_dir,logger=self.logger)
 
 
     def rsync_gen(self):

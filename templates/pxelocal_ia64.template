@@ -1,0 +1,4 @@
+default=linux
+
+image=dummy
+	label=linux

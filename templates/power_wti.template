@@ -1,1 +1,1 @@
-fence_wti -a $power_address -n $power_id -p $power_pass -o $power_mode
+fence_wti -a "$power_address" -n "$power_id" -p "$power_pass" -o "$power_mode"

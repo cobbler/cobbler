@@ -209,7 +209,6 @@ class Profile(item.Item):
     def check_if_valid(self):
         if self.name is None or self.name == "":
             raise CX("name is required")
-        if self.distro is None or self.distro == "":
-            if self.parent is None or self.parent == "":
-                raise CX("distro is required")
-
+        distro = self.get_conceptual_parent()
+        if distro is None:
+            raise CX("distro is required")
