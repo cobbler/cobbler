@@ -3,6 +3,7 @@ Cobbler CHANGELOG
 - Sep 18 2009 - 2.0.1
 - (BUGF) Fixes for image based CLI usage and object validation
 - (BUGF) Show object name on cobbler-web edit pages
+- (BUGF) Make memtest integration look in the right file locations
 
 - Sep 17 2009 - for 2.0 release
 - Development release start
