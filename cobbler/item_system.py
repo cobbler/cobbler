@@ -31,7 +31,7 @@ from utils import _
 FIELDS = [
   ["name","",0,"Name",True,"Ex: vanhalen.example.org",0],
   ["uid","",0,"",False,"",0],
-  ["owners","SETTINGS:default_ownership",0,"Owners",False,"Owners list for authz_ownership (space delimited)",0],
+  ["owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",0],
   ["profile",None,0,"Profile",True,"Parent profile",[]],
   ["image",None,0,"Image",True,"Parent image (if not a profile)",0],
   ["kernel_options",{},0,"Kernel Options",True,"Ex: selinux=permissive",0],
