@@ -242,9 +242,8 @@ class BootCheck:
        """
        Check if dhcpd is installed
        """
-       rc = utils.subprocess_get(self.logger,"dhcpd --help")
-       if rc.find("exiting") == -1:
-           status.append("dhcpd is not installed and/or in path")
+       if not os.path.exists("/usr/sbin/dhcpd"):
+           status.append("dhcpd is not installed")
 
    def check_dnsmasq_bin(self,status):
        """
