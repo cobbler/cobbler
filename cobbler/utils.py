@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import sys
 import os
 import re
+import copy
 import socket
 import glob
 import random
@@ -1538,7 +1539,7 @@ def from_datastruct_from_fields(obj, seed_data, fields):
 
     # special handling for interfaces
     if obj.COLLECTION_TYPE == "system":
-        obj.interfaces = seed_data["interfaces"]
+        obj.interfaces = copy.deepcopy(seed_data["interfaces"])
 
     return obj
 
@@ -1564,7 +1565,7 @@ def to_datastruct_from_fields(obj, fields):
     # interfaces on systems require somewhat special handling
     # they are the only exception in Cobbler.
     if obj.COLLECTION_TYPE == "system":
-        ds["interfaces"] = obj.interfaces
+        ds["interfaces"] = copy.deepcopy(obj.interfaces)
     return ds
 
 def printable_from_fields(obj, fields):
