@@ -6,6 +6,7 @@ Cobbler CHANGELOG
 - (BUGF) Make memtest integration look in the right file locations
 - (BUGF) Fix check for dhcpd installation
 - (BUGF) Fix code to detect dhcpd config file installation
+- (BUGF) Cleaned up generated comments in settings files
 
 - Sep 17 2009 - for 2.0 release
 - Development release start
