@@ -56,6 +56,9 @@ def report_items(remote, otype):
 def report_item(remote,otype,item=None,name=None):
    if item is None:
       item = remote.get_item(otype, name)
+      if item == "~":
+          print "No %s found: %s" % (otype, name)
+          sys.exit(1)
    if otype == "distro":
       data = utils.printable_from_fields(item, item_distro.FIELDS)
    elif otype == "profile":
@@ -201,6 +204,7 @@ class BootCLI:
                 print "### ERROR ###"
                 print "Unexpected remote error, check the server side logs for further info"
                 print err.faultString
+                sys.exit(1)
 
     def cleanup_fault_string(self,str):
         """
