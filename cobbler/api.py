@@ -241,13 +241,13 @@ class BootAPI:
     # ==========================================================
 
     def get_item(self, what, name):
-        self.log("get_item",[what,name])
+        self.log("get_item",[what,name],debug=True)
         return self._config.get_items(what).get(name)
 
     # =============================================================
 
     def get_items(self, what):
-        self.log("get_items",[what])
+        self.log("get_items",[what],debug=True)
         return self._config.get_items(what)
     
     def distros(self):

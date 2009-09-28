@@ -569,7 +569,7 @@ class CobblerXMLRPCInterface:
         Example:  { "name" : "*.example.org" }
         Wildcards work as described by 'pydoc fnmatch'.
         """
-        self._log("find_items(%s)"%what)
+        self._log("find_items(%s); criteria(%s); sort(%s)" % (what,criteria,sort_field))
         items = self.api.find_items(what,criteria=criteria)
         items = self.__sort(items,sort_field)
         if not expand:     
@@ -596,7 +596,7 @@ class CobblerXMLRPCInterface:
         a web app that wants to show a limited amount of items per page.
         """
         # FIXME: make token required for all logging calls
-        self._log("find_items_paged(%s)" % what, token=token)
+        self._log("find_items_paged(%s); criteria(%s); sort(%s)" % (what,criteria,sort_field), token=token)
         items = self.api.find_items(what,criteria=criteria)
         items = self.__sort(items,sort_field)
         (items,pageinfo) = self.__paginate(items,page,items_per_page)
@@ -931,7 +931,7 @@ class CobblerXMLRPCInterface:
         """
         self._log("get_settings",token=token)
         results = self.api.settings().to_datastruct()
-        self._log("my settings are: %s" % results)
+        self._log("my settings are: %s" % results, debug=True)
         return self.xmlrpc_hacks(results)
 
     def get_repo_config_for_profile(self,profile_name,**rest):
@@ -1536,7 +1536,7 @@ class CobblerXMLRPCInterface:
         validated = self.__validate_token(token)
         user = self.get_user_from_token(token)
         rc = self.__authorize(token,resource,arg1,arg2)
-        self._log("authorization result: %s" % rc)
+        self._log("authorization result: %s" % rc,debug=True)
         if not rc:
             raise CX("authorization failure for user %s" % user) 
         return rc
