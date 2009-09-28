@@ -7,6 +7,7 @@ Cobbler CHANGELOG
 - (BUGF) Fix check for dhcpd installation
 - (BUGF) Fix code to detect dhcpd config file installation
 - (BUGF) Cleaned up generated comments in settings files
+- (BUGF) Unhide per-system post-install kernel options
 
 - Sep 17 2009 - for 2.0 release
 - Development release start
