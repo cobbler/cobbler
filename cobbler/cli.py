@@ -265,7 +265,10 @@ class BootCLI:
             elif object_type == "system":
                 data = self.remote.get_blended_data("",options.name)
             # FIXME: pretty-printing and sorting here
-            print data
+            keys = data.keys()
+            keys.sort()
+            for x in keys:
+               print "%s : %s" % (x, data[x])
         elif object_action in [ "poweron", "poweroff", "reboot" ]:
             power={}
             power["power"] = object_action.replace("power","")

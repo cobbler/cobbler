@@ -909,7 +909,7 @@ class CobblerXMLRPCInterface:
         return self.api.generate_kickstart(profile,system)
 
     def get_blended_data(self,profile=None,system=None):
-        if profile is not None:
+        if profile is not None and profile != "":
             obj = self.api.find_profile(profile)
         else:
             obj = self.api.find_system(system)
