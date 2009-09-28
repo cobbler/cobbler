@@ -921,8 +921,14 @@ class CobblerXMLRPCInterface:
     def get_blended_data(self,profile=None,system=None):
         if profile is not None and profile != "":
             obj = self.api.find_profile(profile)
-        else:
+            if obj is None:
+                raise CX("profile not found: %s" % profile)
+        elif system is not None and system != "":
             obj = self.api.find_system(system)
+            if obj is None:
+                raise CX("system not found: %s" % system)
+        else:
+            raise CX("internal error, no system or profile specified")
         return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
 
     def get_settings(self,token=None,**rest):
