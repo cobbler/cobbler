@@ -32,7 +32,7 @@ from utils import _
 FIELDS = [
   ["name","",None,"Name",True,"Ex: F10-i386-webserver",0],
   ["uid","","","",False,"",0],
-  ["owners","SETTINGS:default_ownership","SETTINGS:self.settings.default_ownership","Owners",False,"Owners list for authz_ownership (space delimited)",0],
+  ["owners","SETTINGS:default_ownership","SETTINGS:self.settings.default_ownership","Owners",True,"Owners list for authz_ownership (space delimited)",0],
   ["distro",None,'<<inherit>>',"Distribution",True,"Parent distribution",[]],
   ["enable_menu","SETTINGS:enable_menu",'<<inherit>>',"Enable PXE Menu?",True,"Show this profile in the PXE menu?",0],
   ["kickstart","SETTINGS:default_kickstart",'<<inherit>>',"Kickstart",True,"Path to kickstart template",0],
@@ -209,7 +209,6 @@ class Profile(item.Item):
     def check_if_valid(self):
         if self.name is None or self.name == "":
             raise CX("name is required")
-        if self.distro is None or self.distro == "":
-            if self.parent is None or self.parent == "":
-                raise CX("distro is required")
-
+        distro = self.get_conceptual_parent()
+        if distro is None:
+            raise CX("distro is required")

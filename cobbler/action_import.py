@@ -273,7 +273,7 @@ class Importer:
        """
 
        for profile in self.profiles:
-           distro = self.distros.find(name=profile.distro)
+           distro = self.distros.find(name=profile.get_conceptual_parent().name)
            if distro is None or not (distro in distros_added):
                continue
 
@@ -629,8 +629,6 @@ class Importer:
            # If a version was supplied on command line, we set it now
            if self.os_version:
                distro.set_os_version(self.os_version)
-           distro.source_repos = []
-           distro.ks_meta = {}
 
            self.distros.add(distro,save=True)
            distros_added.append(distro)       

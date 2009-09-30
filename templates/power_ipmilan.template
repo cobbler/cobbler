@@ -1,1 +1,2 @@
-fence_ipmilan -i $power_address -l $power_user -p $power_pass -o $power_mode
+#use power_id to pass in additional options like -P, Use Lanplus
+fence_ipmilan -i "$power_address" $power_id -l "$power_user" -p "$power_pass" -o "$power_mode"

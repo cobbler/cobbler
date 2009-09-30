@@ -352,7 +352,7 @@ $(document).ready(function()
 </script>
 
 <fieldset id="edit">
-  <legend>{% ifequal editmode 'edit'  %}Editing{% else %}Adding{% endifequal %} a {{ what|capfirst }}</legend>
+  <legend>{% ifequal editmode 'edit'  %}Editing{% else %}Adding{% endifequal %} a {{ what|capfirst }}{%ifequal editmode 'edit' %}: {{ name }}{% endifequal %}</legend>
   <form method="post" action="/cobbler_web/{{ what }}/save">
     <input type="hidden" name="editmode" value="{{ editmode }}"/>
     <input type="hidden" name="subobject" value="{{ subobject }}"/>

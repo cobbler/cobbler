@@ -54,6 +54,15 @@ except ImportError:
     def md5(key):
         return fiver.md5(key)
 
+# python-netaddr 0.7 broke backward compatability, try to use the old IP
+# classes, and fallback on the newer if there's an import error.
+NETADDR_PRE_0_7 = True
+try:
+    # Try importing the old (pre-0.7) netaddr IP class:
+    from netaddr import IP
+except ImportError:
+    NETADDR_PRE_0_7 = False
+
 CHEETAH_ERROR_DISCLAIMER="""
 # *** ERROR ***
 #
@@ -165,8 +174,14 @@ def get_host_ip(ip, shorten=True):
     """
     Return the IP encoding needed for the TFTP boot tree.
     """
-    ip = netaddr.IP(ip)
-    cidr = ip.cidr()
+    cidr = None
+
+    if NETADDR_PRE_0_7:
+        ip = netaddr.IP(ip)
+        cidr = ip.cidr()
+    else:
+        ip = netaddr.ip.IPAddress(ip)
+        cidr = netaddr.ip.IPNetwork(ip)
 
     if len(cidr) == 1: # Just an IP, e.g. a /32
         return pretty_hex(ip)
@@ -185,23 +200,15 @@ def _IP(ip):
    If ip is already an netaddr.IP instance just return it.
    Else return a new instance
    """
-   if isinstance(ip, netaddr.IP) or ip == "":
+   ip_class = None
+   if NETADDR_PRE_0_7:
+       ip_class = netaddr.IP
+   else:
+        ip_class = netaddr.ip.IPAddress
+   if isinstance(ip, ip_class) or ip == "":
       return ip
    else:
-      return netaddr.IP(ip)
-
-def _CIDR(cidr):
-   """
-   Returns a netaddr.CIDR object representing cidr.
-   If cidr is already an netaddr.CIDR instance just return it.
-   Else return a new instance
-   """
-   if cidr is None:
-      return None
-   if isinstance(cidr, netaddr.CIDR) or cidr == "":
-      return cidr
-   else:
-      return netaddr.CIDR(cidr)
+      return ip_class(ip)
 
 def get_config_filename(sys,interface):
     """
@@ -1307,7 +1314,7 @@ def get_kickstart_templates(api):
 def safe_filter(var):
     if var is None:
        return
-    if var.find("/") != -1 or var.find(";") != -1:
+    if var.find("..") != -1 or var.find(";") != -1:
        raise CX("Invalid characters found in input")
 
 def is_selinux_enabled():

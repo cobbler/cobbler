@@ -1,1 +1,1 @@
-/sbin/ether-wake -i eth0 $power_address
+/sbin/ether-wake -i eth0 "$power_address"

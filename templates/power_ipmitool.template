@@ -1,1 +1,1 @@
-/usr/bin/ipmitool -H $power_address -U $power_user -P $power_pass power $power_mode
+/usr/bin/ipmitool -H "$power_address" -U "$power_user" -P "$power_pass" power "$power_mode"

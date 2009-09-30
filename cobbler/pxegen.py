@@ -358,12 +358,12 @@ class PXEGen:
 
         # if we have any memtest files in images, make entries for them
         # after we list the profiles
-        memtests = glob.glob(self.bootloc + "/images/memtest*")
+        memtests = glob.glob(self.bootloc + "/memtest*")
         if len(memtests) > 0:
             pxe_menu_items = pxe_menu_items + "\n\n"
-            for memtest in glob.glob(self.bootloc + '/images/memtest*'):
+            for memtest in glob.glob(self.bootloc + '/memtest*'):
                 base = os.path.basename(memtest)
-                contents = self.write_memtest_pxe("/images/%s" % base)
+                contents = self.write_memtest_pxe("/%s" % base)
                 pxe_menu_items = pxe_menu_items + contents + "\n"
               
         # save the template.
@@ -494,6 +494,8 @@ class PXEGen:
                     return None
                 elif arch is not None and arch.startswith("s390"):
                     template = os.path.join(self.settings.pxe_template_dir,"pxelocal_s390x.template")
+                elif arch is not None and arch.startswith("ia64"):
+                    template = os.path.join(self.settings.pxe_template_dir,"pxelocal_ia64.template")
                 else:
                     template = os.path.join(self.settings.pxe_template_dir,"pxelocal.template")
         else:

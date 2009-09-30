@@ -1,5 +1,4 @@
 ---
-#import time
 # cobbler settings file
 # restart cobblerd and run "cobbler sync" after making changes
 #

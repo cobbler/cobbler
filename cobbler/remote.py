@@ -24,6 +24,7 @@ import sys
 import socket
 import time
 import os
+import errno
 import base64
 import SimpleXMLRPCServer
 from SocketServer import ThreadingMixIn
@@ -68,9 +69,10 @@ EVENT_INFO      = "notification"
 # for backwards compatibility with 1.6 and prev XMLRPC
 # do not remove!
 REMAP_COMPAT = {
-   "ksmeta"     : "ks_meta",
-   "kopts"      : "kernel_options",
-   "kopts_post" : "kernel_options_post"
+   "ksmeta"          : "ks_meta",
+   "kopts"           : "kernel_options",
+   "kopts_post"      : "kernel_options_post",
+   "netboot-enabled" : "netboot_enabled"
 }
 
 class CobblerThread(Thread):
@@ -812,7 +814,7 @@ class CobblerXMLRPCInterface:
 
                     # in place modifications allow for adding a key/value pair while keeping other k/v
                     # pairs intact.
-                    if k in [ "ks_meta", "kernel_options", "kernel_options_post", "template_files"] and attributes.has_key("in_place"):
+                    if k in [ "ks_meta", "kernel_options", "kernel_options_post", "template_files"] and attributes.has_key("in_place") and attributes["in_place"]:
                         details = self.get_item(object_type,object_name)
                         v2 = details[k]
                         (ok, input) = utils.input_string_or_hash(v)
@@ -907,7 +909,7 @@ class CobblerXMLRPCInterface:
         return self.api.generate_kickstart(profile,system)
 
     def get_blended_data(self,profile=None,system=None):
-        if profile is not None:
+        if profile is not None and profile != "":
             obj = self.api.find_profile(profile)
         else:
             obj = self.api.find_system(system)
