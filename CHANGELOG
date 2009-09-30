@@ -2,6 +2,8 @@ Cobbler CHANGELOG
 
 - Sep 18 2009 - 2.0.1
 - (BUGF) Fixes for image based CLI usage and object validation
+- (BUGF) Fix koan check for images ... they don't need a kickstart
+- (BUGF) Get NFS image mounting working again
 - (BUGF) Show object name on cobbler-web edit pages
 - (BUGF) Make memtest integration look in the right file locations
 - (BUGF) Fix check for dhcpd installation

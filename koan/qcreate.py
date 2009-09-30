@@ -96,7 +96,9 @@ def start_install(name=None,
     if profile_data.has_key("file"):
         # this is an image based installation
         input_path = profile_data["file"]
-        if not input_path.startswith("nfs://"):
+        print "- using image location %s" % input_path
+        if input_path.find(":") == -1:
+            # this is not an NFS path
             guest.cdrom = input_path
         else:
             (tempdir, filename) = utils.nfsmount(input_path)
