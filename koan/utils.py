@@ -208,19 +208,17 @@ def input_string_or_hash(options,delim=None):
         raise InfoException("invalid input type: %s" % type(options))
 
 def nfsmount(input_path):
-    # input:  nfs://user@server:/foo/bar/x.img as string
+    # input:  [user@]server:/foo/bar/x.img as string
     # output:  (dirname where mounted, last part of filename) as 2-element tuple
-    input_path = input_path[6:]
     # FIXME: move this function to util.py so other modules can use it
     # we have to mount it first
-    segments = input_path.split("/") # discard nfs:// prefix
-    filename = segments[-1]
-    dirpath = "/".join(segments[:-1])
+    filename = input_path.split("/")[-1]
+    dirpath = string.join(input_path.split("/")[:-1],"/")
     tempdir = tempfile.mkdtemp(suffix='.mnt', prefix='koan_', dir='/tmp')
     mount_cmd = [
          "/bin/mount", "-t", "nfs", "-o", "ro", dirpath, tempdir
     ]
-    print "- running: %s" % " ".join(mount_cmd)
+    print "- running: %s" % mount_cmd
     rc = sub_process.call(mount_cmd)
     if not rc == 0:
         shutil.rmtree(tempdir, ignore_errors=True)

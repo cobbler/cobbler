@@ -2,6 +2,8 @@ Cobbler CHANGELOG
 
 - Sep 18 2009 - 2.0.1
 - (BUGF) Fixes for image based CLI usage and object validation
+- (BUGF) Fix koan check for images ... they don't need a kickstart
+- (BUGF) Get NFS image mounting working again
 
 - Sep 17 2009 - for 2.0 release
 - Development release start

@@ -437,7 +437,7 @@ class Koan:
             # shouldn't end up here, right?
             profile_data = {}
 
-        if profile_data.has_key("kickstart"):
+        if profile_data.get("kickstart","") != "":
 
             # fix URLs
             if profile_data["kickstart"][0] == "/":
