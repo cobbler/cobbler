@@ -13,6 +13,9 @@ Cobbler CHANGELOG
 - (BUGF) Unhide owners fields
 - (BUGF) Fix "cobbler profile/system dumpvars" command
 - (BUGF) Remove acl_engine reference from authz_configfile
+- (BUGF) Add "View Kickstart" link back on profile list page
+- (FEAT) Very Experimental CouchDB serializer, off by default.  Touch /etc/cobbler/use.couch
+
 
 - Sep 17 2009 - for 2.0 release
 - Development release start
