@@ -190,19 +190,6 @@ def _IP(ip):
    else:
       return netaddr.IP(ip)
 
-def _CIDR(cidr):
-   """
-   Returns a netaddr.CIDR object representing cidr.
-   If cidr is already an netaddr.CIDR instance just return it.
-   Else return a new instance
-   """
-   if cidr is None:
-      return None
-   if isinstance(cidr, netaddr.CIDR) or cidr == "":
-      return cidr
-   else:
-      return netaddr.CIDR(cidr)
-
 def get_config_filename(sys,interface):
     """
     The configuration file for each system pxe uses is either
