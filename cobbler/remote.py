@@ -227,6 +227,9 @@ class CobblerXMLRPCInterface:
     def background_reposync(self, options, token):
         def runner(self):
             repos = options.get("repos", [])
+            only = options.get("only", None)
+            if only is not None:
+                repos = [ only ] 
             if repos != "":
                 for name in repos:
                     self.remote.api.reposync(tries=self.options.get("tries",3), name=name, nofail=True, logger=self.logger)
