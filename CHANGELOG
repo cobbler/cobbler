@@ -21,6 +21,7 @@ Cobbler CHANGELOG
 - (BUGF) Fix interface additions from web system edit page for new systems
 - (BUGF) Make cobbler reposync --only=N sync only that repo
 - (BUGF) Mark cobbler_web.conf config(noreplace) in the RPM specfile
+- (BUGF) Have cobbler check look for more SELinux things to do
  
 - Sep 17 2009 - for 2.0 release
 - Development release start
