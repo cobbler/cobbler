@@ -15,7 +15,8 @@ Cobbler CHANGELOG
 - (BUGF) Remove acl_engine reference from authz_configfile
 - (BUGF) Add "View Kickstart" link back on profile list page
 - (FEAT) Very Experimental CouchDB serializer, off by default.  Touch /etc/cobbler/use.couch
-
+- (BUGF) Fix pagination for webapp
+- (BUGF) Widen left column for webapp to better show controls
 
 - Sep 17 2009 - for 2.0 release
 - Development release start
