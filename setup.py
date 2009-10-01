@@ -133,7 +133,7 @@ if __name__ == "__main__":
     dj_webui     = "/usr/share/cobbler/web/cobbler_web"
     dj_webui2    = "/usr/share/cobbler/web/cobbler_web/templatetags"
     dj_webui_proj= "/usr/share/cobbler/web"
-    dj_sessions  = "/usr/share/cobbler/web/sessions"
+    dj_sessions  = "/var/lib/cobbler/webui_sessions"
     dj_js        = "/var/www/cobbler_webui_content/"
 
     setup(

@@ -368,7 +368,7 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %dir /usr/share/cobbler/web/cobbler_web
 /usr/share/cobbler/web/cobbler_web/*
 %config(noreplace) /etc/httpd/conf.d/cobbler_web.conf
-%dir /usr/share/cobbler/web/sessions
+%dir /var/lib/cobbler/webui_sessions
 %dir /var/www/cobbler_webui_content
 /var/www/cobbler_webui_content/*
 %doc AUTHORS COPYING CHANGELOG README

@@ -209,10 +209,10 @@ class BootCheck:
            selinux_msg = "you need to set some SELinux rules if you want to use cobbler-web (an optional package), run the following: /usr/sbin/semanage fcontext -a -t httpd_sys_content_rw_t \"%s\""
            rule4 = False
            for line in data4.split("\n"):
-               if line.startswith("/usr/share/cobbler/web/sessions/.*"):
+               if line.startswith("/var/lib/cobbler/webui_sessions/.*"):
                    rule4 = True
            if not rule4:
-               status.append(selinux_msg % "/usr/share/cobbler/web/sessions/.*")
+               status.append(selinux_msg % "/var/lib/cobbler/webui_sessions/.*")
 
 
    def check_for_default_password(self,status):
