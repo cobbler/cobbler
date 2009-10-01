@@ -127,6 +127,7 @@ def get_fields(what, is_subobject, seed_item=None):
 
         elem = {
             "name"                    : row[0],
+            "dname"                   : row[0].replace("*",""),
             "value"                   : "?",
             "caption"                 : row[3],
             "editable"                : row[4],

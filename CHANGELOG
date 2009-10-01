@@ -17,7 +17,8 @@ Cobbler CHANGELOG
 - (FEAT) Very Experimental CouchDB serializer, off by default.  Touch /etc/cobbler/use.couch
 - (BUGF) Fix pagination for webapp
 - (BUGF) Widen left column for webapp to better show controls
-- (BUGF) workaround older mod_python scoping bug with utils.uniquify
+- (BUGF) Workaround older mod_python scoping bug with utils.uniquify
+- (BUGF) Fix interface additions from web system edit page for new systems
  
 - Sep 17 2009 - for 2.0 release
 - Development release start

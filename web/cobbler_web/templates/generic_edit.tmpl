@@ -46,11 +46,13 @@ function get_selected_interface()
    return document.getElementById("interfaces").value
 }
 
+last_interface = ""
+
 function on_interface_change()
 {
     // called when the user picks something new from the interface selector
-    save_intf(last_interface)
-    clear_intf()
+    save_intf(last_interface);
+    clear_intf();
     last_interface = get_selected_interface()
     load_intf()
 }
@@ -76,6 +78,7 @@ function on_interface_add()
    // called when the user hits the "new interface" button
 
    var iname = document.getElementById("newinterfacename").value
+
    if ((iname == "") || (iname == " ")) {
       alert("invalid interface name")
       return
@@ -111,7 +114,6 @@ function on_interface_add()
    interfaces.options[ilen] = new_option
    interfaces.selectedIndex = ilen
    on_interface_change() // explicit firing required   
-
 }
 
 function on_interface_delete()
@@ -160,7 +162,6 @@ function save_intf(which)
     is_slave  = false
     is_master = false
 
-    // FIXME
     value = document.getElementById("bonding").value
     if (value == "master") {
        master = true;
@@ -204,7 +205,6 @@ function load_intf()
     // FIXME: can we load this up from the template data?
     intf = get_selected_interface()
     document.getElementById("mac_address").value    = interface_table[intf]["mac_address"]
-    // FIXME: not sure we can do this to radios
     document.getElementById("bonding").value        = interface_table[intf]["bonding"]  
     document.getElementById("bonding_master").value = interface_table[intf]["bonding_master"]
     document.getElementById("bonding_opts").value   = interface_table[intf]["bonding_opts"]
@@ -266,21 +266,6 @@ function build_interface_table()
            interface_table['{{ key }}']["original"]       = "1"
            last = "{{ key }}"
        {% endfor %}
-    {% else %}
-       interface_table["eth0"] = new Array()
-       interface_table["eth0"]["mac_address"]    = ""
-       interface_table["eth0"]["bonding"]        = ""
-       interface_table["eth0"]["bonding_master"] = ""
-       interface_table["eth0"]["bonding_opts"]   = ""
-       interface_table["eth0"]["static"]         = ""
-       interface_table["eth0"]["ip_address"]     = ""
-       interface_table["eth0"]["subnet"]         = ""
-       interface_table["eth0"]["dns_name"]       = ""
-       interface_table["eth0"]["static_routes"]  = ""
-       interface_table["eth0"]["dhcp_tag"]       = ""
-       interface_table["eth0"]["virt_bridge"]    = ""
-       interface_table["eth0"]["present"]        = "1"
-       interface_table["eth0"]["original"]       = "0"
     {% endsmart_if %}
     return interface_table
 }
@@ -342,7 +327,6 @@ $(document).ready(function()
   //hide the all of the element with class msg_body
   $(".sectionbody").hide();
   $("#block_General").show();
-  //document.getElementById("block_General").style.display = "block";
   //toggle the componenet with class sectionbody
   $(".sectionheader").click(function()
   {
@@ -366,36 +350,36 @@ $(document).ready(function()
     <div class="sectionbody" id="block_{{ item.block_section }}">
     <table border="0">
       {% endifchanged %}
-      <tr id="{{ item.name }}_row" class="editrow">
-        <td valign="top"><label id="{{item.name}}_caption">{{ item.caption }}</label></td>
+      <tr id="{{ item.dname  }}_row" class="editrow">
+        <td valign="top"><label id="{{ item.dname }}_caption">{{ item.caption }}</label></td>
         {% ifequal item.html_element "widget" %}
-        <td><div id="widget_{{ item.name }}" /> wjat </td><!-- WHATISTHIS -->
+        <td><div id="widget_{{ item.dname }}" />
         {% else %}
         <td>
           {% ifequal item.html_element "text" %}
-          <input type="text" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.value }}"/>
+          <input type="text" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.value }}"/>
           {% endifequal %}
           {% ifequal item.html_element "textarea" %}
-          <textarea name="{{ item.name }}" id="{{ item.name }}" rows="4" cols="40">{{ item.value }}</textarea><br />
+          <textarea name="{{ item.dname }}" id="{{ item.dname }}" rows="4" cols="40">{{ item.value }}</textarea><br />
           {% endifequal %}
           {% ifequal item.html_element "radio" %}
             {% for choice in item.choices %}
               {% ifequal item.value choice %}
-          <input type="radio" name="{{ item.name }}" id="{{ item.name }}" value="{{ choice }}" checked="checked">{{ choice }}&nbsp;
+          <input type="radio" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ choice }}" checked="checked">{{ choice }}&nbsp;
                 {% else %}
-          <input type="radio" name="{{ item.name }}" id="{{ item.name }}" value="{{ choice }}">{{ choice }}&nbsp;
+          <input type="radio" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ choice }}">{{ choice }}&nbsp;
               {% endifequal %}
             {% endfor %}
           {% endifequal %}
             {% ifequal item.html_element "checkbox" %}
               {% ifequal item.value 1 %}
-          <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}" checked="checked" /> Enabled
+          <input type="checkbox" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.dname }}" checked="checked" /> Enabled
               {% else %}
-          <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}" /> Enabled
+          <input type="checkbox" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.dname }}" /> Enabled
               {% endifequal %}
             {% endifequal %}
             {% ifequal item.html_element "select" %}
-          <select id="{{ item.name }}" name="{{ item.name }}">
+          <select id="{{ item.dname }}" name="{{ item.dname }}">
               {% for choice in item.choices %}
                 {% ifequal item.value choice %}
           <option value="{{ choice }}" selected>{{ choice }}</A>
@@ -406,7 +390,7 @@ $(document).ready(function()
           </select>
           {% endifequal %}
           {% ifequal item.html_element "multiselect" %}
-          <select multiple id="{{ item.name }}" class="edit">
+          <select multiple id="{{ item.dname }}" class="edit">
             {% for choice in item.choices %}
               {% smart_if choice in item.value_raw %}
           <option value="{{ choice }}" selected>{{ choice }}</a>
