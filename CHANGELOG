@@ -19,6 +19,7 @@ Cobbler CHANGELOG
 - (BUGF) Widen left column for webapp to better show controls
 - (BUGF) Workaround older mod_python scoping bug with utils.uniquify
 - (BUGF) Fix interface additions from web system edit page for new systems
+- (BUGF) Make cobbler reposync --only=N sync only that repo
  
 - Sep 17 2009 - for 2.0 release
 - Development release start
