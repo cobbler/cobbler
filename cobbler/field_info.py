@@ -59,7 +59,8 @@ USES_CHECKBOX = [
    "netboot_enabled",
    "*static",
    "keep_updated",
-   "mirror_locally"
+   "mirror_locally",
+   "virt_auto_boot"
 ]
 
 # select killed the radio button
@@ -90,7 +91,6 @@ BLOCK_MAPPINGS = {
    "*virt_bridge"    : "Networking",
    "*virt_type"      : "Virtualization",
    "*virt_file_size" : "Virtualization",
-   "*virt_auto_boot" : "Virtualization",
    "power_id"        : "Power",
    "power_address"   : "Power",
    "power_user"      : "Power",
