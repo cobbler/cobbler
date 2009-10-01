@@ -22,7 +22,7 @@ ul { list-style-position: outside; list-style-type: none; overflow: hidden; }
 div.content { float: left; margin-left: 0px; padding: 0px; min-width: 400px; width: 80%; }
 div.container { float: left; margin: 0px; padding: 0px; min-width: 400px; width: 100%; overflow: none; }
 
-#menubar { float: left; padding-left: 11px; width: 140px; }
+#menubar { float: left; padding-left: 11px; width: 200px; }
 #menubar ul { padding: 0px 0px 10px 2px; margin: 0px; }
 #menubar ul li { padding-left: 8px; }
 #menubar select { width: 102px; }

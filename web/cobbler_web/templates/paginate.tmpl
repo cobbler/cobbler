@@ -158,7 +158,7 @@
       <ul id="page_prev_next">
         <li style="float: left;">
           {% ifnotequal pageinfo.prev_page "~" %}
-          <a href=";" onclick="javascript:location='/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.prev_page }}'"><span class="lpointers">&laquo;</span></a>
+          <a href="/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.prev_page }}"><span class="lpointers">&laquo;</span></a>
           {% else %}
           <span class="lpointers">&laquo;</span>
           {% endifnotequal %}
@@ -170,7 +170,7 @@
         </li>
         <li style="float: left;">
           {% ifnotequal pageinfo.next_page "~" %}
-          <a href=";" onclick="javascript:location='/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.next_page }}'"><span class="rpointers">&raquo;</span></a>
+          <a href="/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.next_page }}"><span class="rpointers">&raquo;</span></a>
           {% else %}
           <span class="rpointers">&raquo;</span>
           {% endifnotequal %}
