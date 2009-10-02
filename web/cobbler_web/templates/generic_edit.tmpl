@@ -158,7 +158,6 @@ function save_intf(which)
        itable = interface_table[iname]
     }
 
-
     is_slave  = false
     is_master = false
 
@@ -175,7 +174,6 @@ function save_intf(which)
 
     var bond = document.getElementById("bonding").value
     var is_slave  = false;
-    var is_static = false;
     var is_master = false;
     if (bond == "master") {
        is_master  = true;
@@ -183,10 +181,14 @@ function save_intf(which)
     if (bond == "slave") {
        is_slave   = true;
     }
+    is_static=document.getElementById("static").checked
+
+    itable["name"]       = iname
+    itable["mac_address"] = document.getElementById("mac_address").value
     itable["bonding"]        = bond
     itable["bonding_master"] = get_enabled_field("bonding_master",is_slave)
     itable["bonding_opts"]   = get_enabled_field("bonding_opts",is_master)
-    itable["static"]         = document.getElementById("static").checked
+    itable["static"]         = is_static
     itable["ip_address"]     = get_enabled_field("ip_address",(!is_slave))
     itable["subnet"]         = get_enabled_field("subnet",(!is_slave) && is_static)
     itable["dns_name"]       = get_enabled_field("dns_name",!is_slave)

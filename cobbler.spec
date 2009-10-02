@@ -6,7 +6,7 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.0.0
+Version: 2.0.1
 Release: 1%{?dist}
 Source0: cobbler-%{version}.tar.gz
 Group: Applications/System
@@ -76,8 +76,7 @@ integrates with cobbler.  There is also a web interface
 include importing distributions from DVDs and rsync 
 mirrors, kickstart templating, integrated yum 
 mirroring, and built-in DHCP/DNS Management.  Cobbler has 
-a Python and XMLRPC API for integration with other  
-applications.
+a XMLRPC API for integration with other applications.
 
 %prep
 %setup -q
@@ -292,7 +291,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %package -n koan
 
 Summary: Helper tool that performs cobbler orders on remote machines.
-Version: 2.0.0
+Version: 2.0.1
 Release: 1%{?dist}
 Group: Applications/System
 Requires: mkinitrd
@@ -339,7 +338,7 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %package -n cobbler-web
 
 Summary: Web interface for Cobbler
-Version: 2.0.0
+Version: 2.0.1
 Release: 1%{?dist}
 Group: Applications/System
 Requires: cobbler
