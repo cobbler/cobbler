@@ -150,7 +150,7 @@ class BootLiteSync:
         itanic = False
         profile = self.profiles.find(name=system_record.profile)
         if profile is not None:
-            distro = self.distros.find(name=profile.distro)
+            distro = self.distros.find(name=profile.get_conceptual_parent().name)
             if distro is not None and distro in [ "ia64", "IA64"]:
                 itanic = True
 
