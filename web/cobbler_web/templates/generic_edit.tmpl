@@ -158,20 +158,6 @@ function save_intf(which)
        itable = interface_table[iname]
     }
 
-    is_slave  = false
-    is_master = false
-
-    value = document.getElementById("bonding").value
-    if (value == "master") {
-       master = true;
-    } else if (value == "slave") {
-       slave = true;
-    }
-    is_static=document.getElementById("static").checked
-
-    itable["name"]       = iname
-    itable["mac_address"] = document.getElementById("mac_address").value
-
     var bond = document.getElementById("bonding").value
     var is_slave  = false;
     var is_master = false;
