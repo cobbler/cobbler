@@ -1,0 +1,386 @@
+/**
+ * Copyright (c) 2009 Red Hat, Inc.
+ *
+ * This software is licensed to you under the GNU General Public License,
+ * version 2 (GPLv2). There is NO WARRANTY for this software, express or
+ * implied, including the implied warranties of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. You should have received a copy of GPLv2
+ * along with this software; if not, see
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
+ *
+ * Red Hat trademarks are not licensed under GPLv2. No permission is
+ * granted to use or replicate Red Hat trademarks that are incorporated
+ * in this software or its documentation.
+ */
+
+package org.cobbler;
+
+import com.redhat.rhn.common.util.StringUtil;
+
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+
+/**
+ * Base class has attributes common to 
+ * distros, profiles, system records
+ * @author paji
+ * @version $Rev$
+ */
+public abstract class CobblerObject {
+    
+    protected String handle;
+    protected Map<String, Object> dataMap = new HashMap<String, Object>();
+    protected CobblerConnection client;    
+
+    /**
+     * Helper method used by all cobbler objects to 
+     * return a version of themselves by UID
+     * @see org.cobbler.Distro.lookupById for example usage..
+     * 
+     * @param client the Cobbler Connection
+     * @param id the UID of the distro/profile/system record
+     * @param findMethod the find xmlrpc method, eg: find_distro
+     * @return true if the cobbler object was found. 
+     */
+
+    protected static Map<String, Object> lookupDataMapById(CobblerConnection client, 
+                             String id, String findMethod) {
+        if (id == null) {
+            return null;
+        }
+        List<Map<String, Object>> objects = lookupDataMapsByCriteria(client,
+                                                            UID, id, findMethod);
+        if (!objects.isEmpty()) {
+            return objects.get(0);
+        }
+        return null;
+
+    }
+
+    /**
+     * look up data maps by a certain criteria
+     * @param client the xmlrpc client
+     * @param critera (i.e. uid profile, etc..)
+     * @param value the value of the criteria
+     * @param findMethod the find method to use (find_system, find_profile)
+     * @return List of maps
+     */
+
+    protected static List<Map<String, Object>> lookupDataMapsByCriteria(
+            CobblerConnection client, String critera, String value, String findMethod) {
+        if (value == null) {
+            return null;
+        }
+
+        Map<String, String> criteria  = new HashMap<String, String>();
+        criteria.put(critera, value);
+        List<Map<String, Object>> objects = (List<Map<String, Object>>)
+                                client.invokeTokenMethod(findMethod, criteria);
+        return objects;
+
+    }
+    
+
+    /**
+     * Helper method used by all cobbler objects to 
+     * return a Map of themselves by name.
+     * @see org.cobbler.Distro.lookupByName for example usage..
+     * @param client  the Cobbler Connection
+     * @param name the name of the cobbler object
+     * @param lookupMethod the name of the xmlrpc
+     *                       method to lookup: eg get_profile for profile 
+     * @return the Cobbler Object Data Map or null
+     */
+
+    protected static Map <String, Object> lookupDataMapByName(CobblerConnection client, 
+                                    String name, String lookupMethod) {
+        Map <String, Object> map = (Map<String, Object>)client.
+                                        invokeMethod(lookupMethod, name);
+        if (map == null || map.isEmpty()) {
+            return null;
+        }
+        return map;
+    }
+    
+    protected abstract void invokeModify(String key, Object value);
+    protected abstract void invokeSave();
+    protected abstract boolean invokeRemove();
+    protected abstract String invokeGetHandle();
+    protected abstract void reload();
+    protected abstract void invokeRename(String newName);
+    
+    protected String getHandle() {
+        if (isBlank(handle)) {
+            handle = invokeGetHandle();
+        }
+        return handle;
+    }
+    
+    protected void modify(String key, Object value) {
+        invokeModify(key, value);
+        dataMap.put(key, value);
+    }
+    
+    /**
+     * calls save object to complete the commit
+     */
+    public void save() {
+        invokeSave();
+        update();
+    }
+
+    /**
+     * removes the kickstart object from cobbler.
+     * @return true if sucessfull
+     */
+    public boolean remove() {
+        return invokeRemove();
+    }
+    
+    /**
+     * @return the created (FIXME: note some datatype munging here)
+     */
+    public Date getCreated() {
+        Double time = (Double)dataMap.get(CTIME);
+        return new Date(time.longValue());        
+    }
+    
+    /**
+     * @param createdIn the created to set
+     */
+    public void setCreated(Date createdIn) {
+        modify(CTIME, createdIn.getTime());
+    }
+    
+    /**
+     * @return the modified
+     */
+    public Date getModified() {
+        Double time = (Double)dataMap.get(MTIME);
+        return new Date(time.longValue());
+    }
+    
+    /**
+     * @param modifiedIn the modified to set
+     */
+    public void setModified(Date modifiedIn) {
+        modify(MTIME, modifiedIn.getTime());
+    }
+
+    /**
+     * @return the depth
+     */
+    public int getDepth() {
+        return (Integer)dataMap.get(DEPTH);
+    }
+    
+    /**
+     * @param depthIn the depth to set
+     */
+    public void setDepth(int depthIn) {
+        modify(DEPTH, depthIn);
+    }
+
+    /**
+     * @return the kernelOptions
+     */
+    public Map<String, Object> getKernelOptions() {
+        return (Map<String, Object>)dataMap.get(KERNEL_OPTIONS);
+    }
+
+    /**
+     * gets the kernel options in string form
+     * @return the string
+     */
+    public String getKernelOptionsString() {
+        return convertOptionsMap(getKernelOptions());
+    }
+
+    /**
+     * gets the kernel post options in string form
+     * @return the string
+     */
+    public String getKernelPostOptionsString() {
+        return convertOptionsMap(getKernelPostOptions());
+    }
+
+    private String convertOptionsMap(Map<String, Object> map) {
+        StringBuilder string = new StringBuilder();
+        for (Object key : map.keySet()) {
+            if (StringUtils.isEmpty((String)map.get(key))) {
+                string.append(key + " ");
+            }
+            else {
+                string.append(key + "=" + map.get(key) + " ");
+            }
+        }
+        return string.toString();
+    }
+
+    
+    /**
+     * @param kernelOptionsIn the kernelOptions to set
+     */
+    public void setKernelOptions(Map<String, Object> kernelOptionsIn) {
+        modify(SET_KERNEL_OPTIONS, kernelOptionsIn);
+    }
+
+    /**
+     * @param kernelOptsIn the kernelOptions to set
+     */
+    public void setKernelOptions(String kernelOptsIn) {
+        setKernelOptions(parseKernelOpts(kernelOptsIn));
+    }
+
+
+    /**
+     * @param kernelOptsIn the kernelOptions to set
+     */
+    public void setKernelPostOptions(String kernelOptsIn) {
+        setKernelPostOptions(parseKernelOpts(kernelOptsIn));
+    }
+
+    private Map<String, Object> parseKernelOpts(String kernelOpts) {
+        Map<String, Object> toRet = new HashMap<String, Object>();
+
+        if (StringUtils.isEmpty(kernelOpts)) {
+            return toRet;
+        }
+
+        String[] options = StringUtils.split(kernelOpts);
+        for (String option : options) {
+            String[] split = option.split("=");
+            if (split.length == 1) {
+                toRet.put(split[0], "");
+            }
+            else if (split.length == 2) {
+                toRet.put(split[0], split[1]);
+            }
+        }
+        return toRet;
+    }
+
+    
+    /**
+     * @return the kernelMeta
+     */
+    public Map<String, Object> getKsMeta() {
+        return (Map<String, Object>)dataMap.get(KS_META);
+    }
+
+    
+    /**
+     * @param kernelMetaIn the kernelMeta to set
+     */
+    public void setKsMeta(Map<String, ? extends Object> kernelMetaIn) {
+        modify(SET_KS_META, kernelMetaIn);
+    }
+
+    
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return (String)dataMap.get(NAME);
+    }
+
+    /**
+     * @param nameIn sets the new name
+     */
+    public void setName(String nameIn) {
+        invokeRename(nameIn);
+        dataMap.put(NAME, nameIn);
+        handle = null;
+        handle = getHandle();
+        reload();
+    }
+    
+    
+    /**
+     * @return the kernelPostOptions
+     */
+    public Map<String, Object> getKernelPostOptions() {
+        return (Map<String, Object>)dataMap.get(KERNEL_OPTIONS_POST);
+    }
+
+    
+    /**
+     * @param kernelPostOptionsIn the kernelPostOptions to set
+     */
+    public void setKernelPostOptions(Map<String, Object> kernelPostOptionsIn) {
+        modify(SET_KERNEL_OPTIONS_POST, kernelPostOptionsIn);
+    }
+    
+    protected void update() {
+        client.invokeTokenMethod("update");            
+    }
+    
+    protected boolean isBlank(String str) {
+        return str == null || str.trim().length() == 0;
+    }
+    
+    /**
+     * {@inheritDoc} 
+     */
+    @Override
+    public String toString() {
+        return "DataMap = " + dataMap;
+    }
+
+    /**
+     * @param key the red hat activation key
+     */
+    public void setRedHatManagementKey(String key) {
+        modify(REDHAT_KEY, key);
+    }
+
+    /**
+     * @param keys the red hat activation keys in a set
+     */
+    public void setRedHatManagementKey(Set<String> keys) {
+        modify(REDHAT_KEY, StringUtil.join(",", keys));
+    }
+
+    /**
+     * get the red hat management key
+     * @return returns the red hat key as a string
+     */
+    public String getRedHatManagementKey() {
+        return (String) dataMap.get(REDHAT_KEY);
+    }
+
+    /**
+     * get the redhate management key as a Set of keys
+     * @return returns the red hat key as a string
+     */
+    public Set<String> getRedHatManagementKeySet() {
+        String keys = StringUtils.defaultString(getRedHatManagementKey());
+        String[] sets = (keys).split(",");
+        Set set = new HashSet();
+        set.addAll(Arrays.asList(sets));
+        return set;
+    }
+
+    /**
+     * remove the specified keys from the key set and add the specified set
+     * @param keysToRemove list of tokens to remove
+     * @param keysToAdd list of tokens to add
+     */
+    public void syncRedHatManagementKeys(Collection<String> keysToRemove,
+                                            Collection<String> keysToAdd) {
+        Set keySet = getRedHatManagementKeySet();
+        keySet.removeAll(keysToRemove);
+        keySet.addAll(keysToAdd);
+        setRedHatManagementKey(keySet);
+    }
+
+}
