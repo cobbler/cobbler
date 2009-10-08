@@ -5,18 +5,15 @@
  * @version $Rev$
  */
 public class Distro extends CobblerObject {
-    private static final String KERNEL = "kernel";
-
-    private static final String ARCH = "arch";
-    private static final String BREED = "breed";
-    private static final String OS_VERSION = "os_version";
-    private static final String INITRD = "initrd";
-    private static final String SOURCE_REPOS = "source_repos";
-    private static final String TREE_BUILD_TIME = "tree_build_time";
-
+    
     private Distro(CobblerConnection clientIn) {
         client = clientIn;
     }
+
+    $java_setters
+
+    $java_getters
+
   
     /**
      * Create a new distro in cobbler
