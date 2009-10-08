@@ -205,9 +205,8 @@ class BootCheck:
            # now check to see that the Django sessions path is accessible
            # by Apache
            
-           data4 = utils.subprocess_get(self.logger,"/usr/sbin/semanage fcontext -l | grep httpd_sys_content_t",shell=True)
-           print "DEBUG: data4=%s\n" % data4
-           selinux_msg = "you need to set some SELinux rules if you want to use cobbler-web (an optional package), run the following: /usr/sbin/semanage fcontext -a -t httpd_sys_content_t \"%s\""
+           data4 = utils.subprocess_get(self.logger,"/usr/sbin/semanage fcontext -l | grep httpd_sys_content_rw_t",shell=True)
+           selinux_msg = "you need to set some SELinux rules if you want to use cobbler-web (an optional package), run the following: /usr/sbin/semanage fcontext -a -t httpd_sys_content_rw_t \"%s\""
            rule4 = False
            for line in data4.split("\n"):
                if line.startswith("/usr/share/cobbler/web/sessions/.*"):
