@@ -1,0 +1,145 @@
+#include header.tmpl
+
+/**
+ * @author paji    (original for spacewalk)
+ * @author mdehaan (code generated new version)
+ * @version $Rev$
+ */
+public class $ObjectType extends CobblerObject {
+    
+    private ${ObjectType}(CobblerConnection clientIn) {
+        client = clientIn;
+    }
+
+    #for $val in $fields 
+        #set $field_name = $val[0]
+        #set $field_default = $val[1]
+        #set $field_default_sub = $val[2]
+        #set $field_hidden = $val[3]
+        #set $field_tooltip = $val[4]
+        #set $field_editable = $val[5]
+        #set $values = $val[6]
+        #set $field_tokens = $field_name.split("_")
+        #set $up_var_name = ""
+        #set $ft_ctr = 0
+        #for $ft in $field_tokens
+           #if $ft_ctr == 0
+              #set $up_var_name = $up_var_name + $ft
+           #else
+              #set $up_var_name = $up_var_name + $ft.upper()
+           #endif
+           #set $ft_ctr = $ft_ctr + 1
+        #end for
+        ## // FIXME: need to infer the types and template stuff out
+        ## // magically
+        #set $var_type = "String" 
+
+    #if $editable == True and $hidden == False
+    /**
+     * %{tooltip}s
+     * @param input input value
+     */
+    public void set${up_var_name}(${var_type} input) {
+        // FIXME: type mangling
+        modify($field_name, input);
+    }
+
+    #end if
+
+    #if $hidden == False
+    public void get$up_var_name() {
+        // FIXME: type mangling
+        // FIXME: implement
+        access($field_name);
+    }
+
+    #end if
+
+    #end for
+
+    // FIXME: superclass this stuff
+
+    public static String getGetFunctionName() {
+        return "get_$ObjectTypeLower"
+    }
+  
+    public static String getFindFunctionName() {
+        return "find_$ObjectTypeLower" 
+    }
+
+    //public static $ObjectType lookupById(CobblerConnection client, String id) {
+    //    return handleLookup(client, lookupDataMapById(client, 
+    //                                    id, "find_$ObjectTypeLower"));
+    //}
+    
+    private static $ObjectType handleLookup(CobblerConnection client, Map map) {
+        if (map != null) {
+            $ObjectType obj = new ${ObjectType}(client);
+            obj.dataMap = map;
+            return obj;
+        }
+        return null;
+    }    
+    
+    /**
+     * Returns a list of available $ObjectType objects 
+     * @param connection the cobbler connection
+     * @return a list of $ObjectType objects.
+     */
+    public static List<$ObjectType> list(CobblerConnection connection) {
+        List <$ObjectType> list = new LinkedList<$ObjectType>();
+        List <Map<String, Object > rawList = (List <Map<String, Object >>) 
+                                        connection.invokeMethod("get_${ObjectTypeLower}s");
+        
+        for (Map<String, Object> map : rawList) {
+            $ObjectType obj = new $ObjectType(connection);
+            obj.dataMap = obj;
+            list.add(obj);
+        }
+        return list;
+    }
+
+    @Override
+    protected String invokeGetHandle() {
+        return (String)client.invokeTokenMethod("get_${ObjectTypeLower}_handle", this.getName());
+    }
+    
+    @Override
+    protected void invokeModify(String key, Object value) {
+        client.invokeTokenMethod("modify_${ObjectTypeLower}", getHandle(), key, value);
+    }
+    
+    /**
+     * Save the $ObjectType
+     */
+    @Override
+    protected void invokeSave() {
+        client.invokeTokenMethod("save_${ObjectTypeLower}", getHandle());
+    }
+
+    /**
+     * Remove the $ObjectType
+     */
+    @Override
+    protected boolean invokeRemove() {
+        return (Boolean) client.invokeTokenMethod("remove_${ObjectTypeLower}", getName());
+    }
+
+    /**
+     * Rename the $ObjectType 
+     */
+    @Override
+    protected void invokeRename(String newName) {
+        client.invokeTokenMethod("rename_${ObjectTypeLower}", getHandle(), newName);
+    }
+    
+    /**
+     * Reloads the $ObjectType
+     */
+    @Override
+    public void reload() {
+        $ObjectType obj = lookupById(client, getId());
+        map = obj.dataMap;
+    }
+    
+}

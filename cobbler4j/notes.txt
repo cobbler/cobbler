@@ -1,3 +1,7 @@
+// this file contains some things left over from refactoring that I'm going
+// to adapt and likely kill.  It was better than commenting them out but I 
+// don't want to get rid of these things yet.
+
 /**
  * Copyright (c) 2009 Red Hat, Inc.
  *
@@ -111,6 +115,13 @@ public abstract class CobblerObject {
         return map;
     }
     
+    protected abstract void invokeModify(String key, Object value);
+    protected abstract void invokeSave();
+    protected abstract boolean invokeRemove();
+    protected abstract String invokeGetHandle();
+    protected abstract void reload();
+    protected abstract void invokeRename(String newName);
+    
     protected String getHandle() {
         if (handle == null) {
             handle = invokeGetHandle();
@@ -119,9 +130,6 @@ public abstract class CobblerObject {
     }
     
     protected void modify(String key, Object value) {
-        // FIXME: this should modify the datamap and then have seperate 'commit'
-        // semantics all in one XMLRPC command, not many with server-side state
-        // representation as currently implemented
         // FIXME: invokeModify(key, value);
         dataMap.put(key, value);
     }
@@ -141,6 +149,40 @@ public abstract class CobblerObject {
     public boolean remove() {
         return invokeRemove();
     }
+    
+    //public int getDepth() {
+    //    return (Integer)dataMap.get(DEPTH);
+    //}
+    
+    /**
+     * @param depthIn the depth to set
+     */
+    //public void setDepth(int depthIn) {
+    //    modify(DEPTH, depthIn);
+    //}
+
+    /**
+     * @return the kernelOptions
+     */
+    //public Map<String, Object> getKernelOptions() {
+    //    return (Map<String, Object>)dataMap.get(KERNEL_OPTIONS);
+    // }
+
+    /**
+     * gets the kernel options in string form
+     * @return the string
+     */
+    //public String getKernelOptionsString() {
+    //    return convertOptionsMap(getKernelOptions());
+    //}
+
+    /**
+     * gets the kernel post options in string form
+     * @return the string
+     */
+    //public String getKernelPostOptionsString() {
+    //    return convertOptionsMap(getKernelPostOptions());
+    //}
 
     // FIXME: refactor
     private String convertOptionsMap(Map<String, Object> map) {
@@ -157,6 +199,28 @@ public abstract class CobblerObject {
     }
 
     
+    /**
+     * @param kernelOptionsIn the kernelOptions to set
+     */
+    //public void setKernelOptions(Map<String, Object> kernelOptionsIn) {
+    //    modify(SET_KERNEL_OPTIONS, kernelOptionsIn);
+    //}
+
+    /**
+     * @param kernelOptsIn the kernelOptions to set
+     */
+    //public void setKernelOptions(String kernelOptsIn) {
+    //    setKernelOptions(parseKernelOpts(kernelOptsIn));
+    //}
+
+
+    /**
+     * @param kernelOptsIn the kernelOptions to set
+     */
+    //public void setKernelPostOptions(String kernelOptsIn) {
+    //    setKernelPostOptions(parseKernelOpts(kernelOptsIn));
+    //}
+
     // FIXME: refactor
     private Map<String, Object> parseKernelOpts(String kernelOpts) {
         Map<String, Object> toRet = new HashMap<String, Object>();
@@ -178,6 +242,45 @@ public abstract class CobblerObject {
         return toRet;
     }
 
+    
+    /**
+     * @return the kickstart Metadata
+     */
+    //public Map<String, Object> getKsMeta() {
+    //    return (Map<String, Object>)dataMap.get(KS_META);
+    //}
+
+    
+    /**
+     * @param kernelMetaIn the kernelMeta to set
+     */
+    //public void setKsMeta(Map<String, ? extends Object> kernelMetaIn) {
+    //    modify(SET_KS_META, kernelMetaIn);
+    //}
+
+    
+    /**
+     * @return the name
+     */
+    //public String getName() {
+    //    return (String)dataMap.get(NAME);
+    //}
+
+    /**
+     * @param nameIn sets the new name
+     */
+    //public void setName(String nameIn) {
+    //    invokeRename(nameIn);
+    //    dataMap.put(NAME, nameIn);
+    //    handle = null;
+    //    handle = getHandle();
+    //    reload();
+    // }
+    
+    //protected void update() {
+    //    // FIXME: comments?
+    //    client.invokeTokenMethod("update");            
+    //}
     
     public String toString() {
         return "$ObjectType :: " + dataMap;
@@ -204,8 +307,6 @@ public abstract class CobblerObject {
     }
     
     public void reload() {
-        // FIXME: what if the object is deleted server-side in the interval?
-        // it would be better to go with a more functional approach (less side effects)
         $ObjectType obj = lookupById(client, getId());
         map = obj.dataMap;
     }

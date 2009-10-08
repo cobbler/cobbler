@@ -21,36 +21,17 @@ import os.path
 # Define what files we need to template out dynamically
 # FIXME: also do this for XMLPC
 OBJECT_MAP = [
-   [ "Distro.tmpl",  cobbler_distro.FIELDS ],
-   [ "Profile.tmpl", cobbler_profile.FIELDS ],
-   [ "System.tmpl",  cobbler_system.FIELDS ],
-   [ "Repo.tmpl",    cobbler_repo.FIELDS ],
-   [ "Image.tmpl",   cobbler_image.FIELDS ],
+   [ "Distro",  cobbler_distro.FIELDS ],
+   [ "Profile", cobbler_profile.FIELDS ],
+   [ "System",  cobbler_system.FIELDS ],
+   [ "Repo",    cobbler_repo.FIELDS ],
+   [ "Image",   cobbler_image.FIELDS ],
 ]
 
 # Define what variables to expose in all templates
 COMMON_VARS = {
    "Rev" : "2.0.X",  # artifact of spacewalk, removable
 }
-
-# Define what a java setter looks like
-# NOTE: python templating here, not Cheetah
-SET_FUNCTION = """
-    /**
-     * %{tooltip}s
-     * @param %{var_name}s input value
-     */
-
-    public void set%{up_var_name}s(str %{var_name}s) {
-        modify(%{field_name}, %{var_name});
-    }
-"""
-
-# Define what a java getter looks like
-# NOTE: python templating here, not Cheetah
-GET_FUNCTION = """
-   FIXME
-"""
 
 def camelize(field_name):
    """
@@ -65,53 +46,6 @@ def camelize(field_name):
       else:
          result += val.title()
    return tokens
-
-def get_java_setter(field_name, tooltip):
-   """
-   For a given field name, return the java code for setting that field.
-   """
-   print tooltip
-   assert type(field_name) == type("")
-   assert type(tooltip) == type("")
-   camel = camelize(field_name)
-   return SET_FUNCTION % {
-       "var_name"    : camel,
-       "up_var_name" : camel.title(),
-       "field_name"  : field_name,
-       "tooltip"     : tool_tip
-   }
-
-def get_setters_from_fields(field_struct):
-   """
-   Given a list of fields, return the code for all the setters.
-   """
-   assert type(field_struct) == type([])
-   results = ""
-   for field in field_struct:
-       (field_name, default, subobject_default, tooltip, is_hidden, is_editable, values) = field
-
-       if is_editable and not is_hidden:
-          setter = get_java_setter(field_name, tooltip)
-          results += setter
-   return results 
-
-def get_getters_from_fields(field_struct):
-   """
-   Given a list of fields, return the code for all the getters.
-   """
-   # FIXME: implement this
-   assert type(field_struct) == type([])
-   return ""
-
-def get_vars_from_fields(field_struct):
-   """
-   Given a cobbler field structure, return the template data we need to template out a given object.
-   """
-   assert type(field_struct) == type([])
-   return {
-       "getters" : get_getters_from_fields(field_struct),
-       "setters" : get_setters_from_fields(field_struct)
-   }
 
 def main():
    """
@@ -153,23 +87,32 @@ def template_to_disk(infile, vars, outfile):
    fd.close()
 
 
-def templatize_from_vars(filename, vars):
+def templatize_from_vars(objname, vars):
    """
    Given a source template and some variables, write out the java equivalent.
    """
-   assert type(filename) == type("")
+   assert type(objname) == type("")
    assert type(vars) == type({})
-   filename2 = filename.replace(".tmpl",".java")
-   template_to_disk(filename, vars, filename2)
+   vars.update({
+      "ObjectType"      : objname.title(),
+      "ObjectTypeLower" : objname
+   })
+   filename1 = "object_base.tmpl"
+   filename2 = "%s.java" % objname
+   print "-----------------------------"
+   print "TEMPLATING %s to %s" % (filename1, filename2)
+   print "VARS: %s" % vars
+   print "-----------------------------"
+   template_to_disk(filename1, vars, filename2)
 
-def templatize_from_fields(filename, field_struct):
+def templatize_from_fields(objname, field_struct):
    """
    Given a source template and a field structure, write out the java code for it.
    """
-   assert type(filename) == type("")
+   assert type(objname) == type("")
    assert type(field_struct) == type([])
-   vars = get_vars_from_fields(field_struct)
-   return templatize_from_vars(filename, vars)
+   vars = { "fields" : field_struct }
+   return templatize_from_vars(objname, vars)
 
 def generate_main_classes():
    """
