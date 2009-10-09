@@ -13,7 +13,7 @@
  * in this software or its documentation.
  */
 
-package org.cobbler;
+package org.fedorahosted.cobbler;
 
 
 /**

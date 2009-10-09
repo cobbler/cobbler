@@ -1,15 +1,28 @@
 <project>
+
     <target name="clean">
         <delete dir="build"/>
     </target>
+
     <target name="compile">
         <mkdir dir="build/classes"/>
-        <javac srcdir="." destdir="build/classes"/>
+        <javac srcdir="." destdir="build/classes">
+            <classpath>
+               <pathelement location="lib/simple-xmlrpc-1.0.jar"/>
+               <pathelement location="lib/xmlrpc-1.1.1.jar"/>
+               <pathelement location="lib/simple-4.0.1.jar"/>
+            </classpath>
+        </javac>  
     </target>
 
     <target name="jar">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/cobbler4j.jar" basedir="build/classes">
+            <classpath>
+               <pathelement location="lib/simple-xmlrpc-1.0.jar"/>
+               <pathelement location="lib/xmlrpc-1.1.1.jar"/>
+               <pathelement location="lib/simple-4.0.1.jar"/>
+            </classpath>
             <manifest>
             </manifest>
         </jar>

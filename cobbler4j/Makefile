@@ -6,5 +6,9 @@ build: clean
 	ant jar
 
 clean:
-	-(rm *.java)
+	rm Distro.java
+	rm Profile.java
+	rm System.java
+	rm Image.java
+	rm Repo.java
 	ant clean

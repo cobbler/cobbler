@@ -15,7 +15,6 @@
 
 package org.fedorahosted.cobbler;
 
-import org.apache.commons.lang.StringUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -36,7 +35,12 @@ public class $ObjectType extends CobblerObject {
     }
 
     #for $val in $fields 
+        #set $interface_specific = "False"
         #set $field_name = $val[0]
+        #if $field_name.find("*") != -1
+            #set $interface_specific = "True"
+            #set $field_name = $field_name.replace("*","")
+        #end if
         #set $field_default = $val[1]
         #set $field_default_sub = $val[2]
         #set $field_display_name = $val[3]
@@ -60,9 +64,9 @@ public class $ObjectType extends CobblerObject {
     #elif $field_type == "float"
         #set $var_type = "Double"
     #elif $field_type == "list"
-        #set $var_type = "List <String>"
+        #set $var_type = "List<String>"
     #elif $field_type == "dict"
-        #set $var_type = "Map <String, String>"
+        #set $var_type = "Map<String, String>"
     #elif $field_type == "bool"
         #set $var_type = "Boolean"
     #end if
@@ -73,9 +77,16 @@ public class $ObjectType extends CobblerObject {
      * Set the value for field: $field_name
      * ${field_tooltip}s
      * @param input input value
+     #if $interface_specific == "True"
+     * @param interfaceName name of the interface, such as "eth0", to manipulate
+     #end if
      */
+    #if $interface_specific == "False"
     public void set${up_var_name}(${var_type} input) {
-        // FIXME: type mangling
+    #else
+    public void set${up_var_name}(${var_type} input, String interfaceName) {
+    #end if
+        // FIXME: any further type mangling needed?
         modify("${field_name}", input);
     }
     #end if
@@ -86,9 +97,16 @@ public class $ObjectType extends CobblerObject {
      * comments: ${field_tooltip}
     #end if
      * @param input input value
+     #if $interface_specific == "True"
+     * @param interface the name of the interface, such as "eth0", to manipulate
+     #end if
      * @return the value of the field
      */
+    #if $interface_specific == "False"
     public void get${up_var_name}() {
+    #else
+    public void get${up_var_name}(String interfaceName) {
+    #end if
         // FIXME: type mangling
         // FIXME: implement
         return (${var_type})access("${field_name}");
@@ -97,7 +115,7 @@ public class $ObjectType extends CobblerObject {
     #end for
 
     public static String getObjectType() {
-        return "$ObjectTypeLower"
+        return "$ObjectTypeLower";
     }
 
     //public static $ObjectType lookupById(CobblerConnection client, String id) {
@@ -121,7 +139,7 @@ public class $ObjectType extends CobblerObject {
      */
     public static List<$ObjectType> list(CobblerConnection connection) {
         List <$ObjectType> list = new LinkedList<$ObjectType>();
-        List <Map<String, Object > rawList = (List <Map<String, Object >>) 
+        List <Map<String, Object>> rawList = (List <Map<String, Object >>) 
                                         connection.invokeMethod("get_${ObjectTypeLower}s");
         
         for (Map<String, Object> map : rawList) {

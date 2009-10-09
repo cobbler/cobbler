@@ -70,7 +70,6 @@ def template_to_disk(infile, vars, outfile):
    Given a cheetah template and a dict of variables, write the templatized version to disk.
    """
    assert type(infile) == type("")
-   print infile
    assert os.path.exists(infile)
    assert type(vars) == type({})
    assert type(outfile) == type("")
@@ -93,16 +92,14 @@ def templatize_from_vars(objname, vars):
    """
    assert type(objname) == type("")
    assert type(vars) == type({})
-   vars.update({
-      "ObjectType"      : objname.title(),
-      "ObjectTypeLower" : objname
-   })
+   if objname is not None:
+      vars.update({
+          "ObjectType"      : objname.title(),
+          "ObjectTypeLower" : objname
+      })
    filename1 = "object_base.tmpl"
    filename2 = "%s.java" % objname
-   print "-----------------------------"
    print "TEMPLATING %s to %s" % (filename1, filename2)
-   print "VARS: %s" % vars
-   print "-----------------------------"
    template_to_disk(filename1, vars, filename2)
 
 def templatize_from_fields(objname, field_struct):

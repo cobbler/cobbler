@@ -13,11 +13,7 @@
  * in this software or its documentation.
  */
 
-package org.cobbler;
-
-import com.redhat.rhn.common.util.StringUtil;
-
-import org.apache.commons.lang.StringUtils;
+package org.fedorahosted.cobbler;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,6 +48,7 @@ public abstract class CobblerObject {
      * @return true if the cobbler object was found. 
      */
 
+    // FIXME: generalize lookup function? "by id" seems redundant
     protected static Map<String, Object> lookupDataMapById(CobblerConnection client, 
                              String id, String findMethod) {
         if (id == null) {
@@ -75,6 +72,7 @@ public abstract class CobblerObject {
      * @return List of maps
      */
 
+    // FIXME: refactor?
     protected static List<Map<String, Object>> lookupDataMapsByCriteria(
             CobblerConnection client, String critera, String value, String findMethod) {
         if (value == null) {
@@ -101,22 +99,16 @@ public abstract class CobblerObject {
      * @return the Cobbler Object Data Map or null
      */
 
-    protected static Map <String, Object> lookupDataMapByName(CobblerConnection client, 
-                                    String name, String lookupMethod) {
-        Map <String, Object> map = (Map<String, Object>)client.
-                                        invokeMethod(lookupMethod, name);
-        if (map == null || map.isEmpty()) {
-            return null;
-        }
-        return map;
-    }
-    
-    protected String getHandle() {
-        if (handle == null) {
-            handle = invokeGetHandle();
-        }
-        return handle;
-    }
+    // FIXME: refactor?
+    //protected static Map <String, Object> lookupDataMapByName(CobblerConnection client, 
+    //                                String name, String lookupMethod) {
+    //    Map <String, Object> map = (Map<String, Object>)client.
+    //                                    invokeMethod(lookupMethod, name);
+    //    if (map == null || map.isEmpty()) {
+    //        return null;
+    //    }
+    //    return map;
+    //}
     
     protected void modify(String key, Object value) {
         // FIXME: this should modify the datamap and then have seperate 'commit'
@@ -126,99 +118,25 @@ public abstract class CobblerObject {
         dataMap.put(key, value);
     }
     
-    /**
-     * calls save object to complete the commit
-     */
-    public void save() {
-        // FIXME: invokeSave();
-        update();
+    protected void modify(String key, Object value, String interfaceName) {
+        // FIXME: create interface hash if not already here
+        HashMap<String, Object> interfaces = dataMap.get(key, "interfaces");
+        HashMap<String, Object> theInterface = interfaces.get(key, interfaceName);
+        theInterface.put(key,value);
     }
-
-    /**
-     * removes the kickstart object from cobbler.
-     * @return true if sucessfull
-     */
-    public boolean remove() {
-        return invokeRemove();
+   
+    protected Object access(String key) {
+        return dataMap.get(key);
     }
-
-    // FIXME: refactor
-    private String convertOptionsMap(Map<String, Object> map) {
-        StringBuilder string = new StringBuilder();
-        for (Object key : map.keySet()) {
-            if (StringUtils.isEmpty((String)map.get(key))) {
-                string.append(key + " ");
-            }
-            else {
-                string.append(key + "=" + map.get(key) + " ");
-            }
-        }
-        return string.toString();
+ 
+    protected void access(String key, String interfaceName) {
+        HashMap<String, Object> interfaces   = dataMap.get(key, "interfaces");
+        HashMap<String, Object> theInterface = interfaces.get(key, interfaceName);
+        return theInterface.get(key);
     }
-
-    
-    // FIXME: refactor
-    private Map<String, Object> parseKernelOpts(String kernelOpts) {
-        Map<String, Object> toRet = new HashMap<String, Object>();
-
-        if (StringUtils.isEmpty(kernelOpts)) {
-            return toRet;
-        }
-
-        String[] options = StringUtils.split(kernelOpts);
-        for (String option : options) {
-            String[] split = option.split("=");
-            if (split.length == 1) {
-                toRet.put(split[0], "");
-            }
-            else if (split.length == 2) {
-                toRet.put(split[0], split[1]);
-            }
-        }
-        return toRet;
-    }
-
-    
+   
     public String toString() {
-        return "$ObjectType :: " + dataMap;
+        return getObjectType() + dataMap.toString();
     }
-
-    protected String invokeGetHandle() {
-        return (String)client.invokeTokenMethod(getGetHandleFunctionName(), this.getName());
-    }
-
-    protected void invokeModify(String key, Object value) {
-        client.invokeTokenMethod(getModifyFunctionName(), getHandle(), key, value);
-    }
-
-    protected void invokeSave() {
-        client.invokeTokenMethod(getSaveFunctionName(), getHandle());
-    }
-
-    protected boolean invokeRemove() {
-        return (Boolean) client.invokeTokenMethod(getRemoveFunctionName(), getName());
-    }
-
-    protected void invokeRename(String newName) {
-        client.invokeTokenMethod(getRenameFunctionName(), getHandle(), newName);
-    }
-    
-    public void reload() {
-        // FIXME: what if the object is deleted server-side in the interval?
-        // it would be better to go with a more functional approach (less side effects)
-        $ObjectType obj = lookupById(client, getId());
-        map = obj.dataMap;
-    }
-
-    // FIXME: needed/refactor?
-    protected static CobblerObject handleLookup(CobblerConnection client, Map map) {
-        if (map != null) {
-            $ObjectType obj = new $ObjectType(client);
-            obj.dataMap = map;
-            return obj;
-        }
-        return null;
-    }
-
 
 }
