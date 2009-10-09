@@ -81,7 +81,7 @@ def template_to_disk(infile, vars, outfile):
        errorCatcher="Echo", 
        searchList=[vars]
    )
-   out_data = str(template)
+   out_data = template.respond()
    fd = open(outfile, "w+")
    fd.write(out_data)
    fd.close()

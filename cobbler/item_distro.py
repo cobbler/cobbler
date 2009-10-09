@@ -37,7 +37,7 @@ import codes
 # entry to the list following some conventions to be described later.  You must also add a method called
 # set_$fieldname.  Do not write a method called get_$fieldname, that will not be called.
 #
-# name | default | subobject default | hidden | tooltip | editable? | values ?
+# name | default | subobject default | hidden | tooltip | editable? | values ? | type
 #
 # name -- what the filed should be called.   For the command line, underscores will be replaced with
 #         a hyphen programatically, so use underscores to seperate things that are seperate words
@@ -93,28 +93,27 @@ import codes
 # must operate as normal with the default value for all fields and not choke on the default values.
 
 FIELDS = [
-   [ "name","",0,"Name",True,"Ex: Fedora-11-i386",0],
-   ["ctime",0,0,"",False,"",0],
-   ["mtime",0,0,"",False,"",0],
-   [ "uid","",0,"",False,"",0],
-   [ "owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",0],
-   [ "kernel",None,0,"Kernel",True,"Absolute path to kernel on filesystem",0],
-   [ "initrd",None,0,"Initrd",True,"Absolute path to kernel on filesystem",0],
-   [ "kernel_options",{},0,"Kernel Options",True,"Ex: selinux=permissive",0],
-   [ "kernel_options_post",{},0,"Kernel Options (Post Install)",True,"Ex: clocksource=pit noapic",0],
-   [ "ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86", 0],
-   [ "arch",'i386',0,"Architecture",True,"", ['i386','x86_64','ia64','ppc','s390']],
-   [ "breed",'redhat',0,"Breed",True,"What is the type of distribution?",codes.VALID_OS_BREEDS],
-   [ "os_version","generic26",0,"OS Version",True,"Needed for some virtualization optimizations",codes.get_all_os_versions()],
-   [ "source_repos",[],0,"Source Repos", False,"",0],
-   [ "depth",0,0,"Depth",False,"",0],
-   [ "comment","",0,"Comment",True,"Free form text description",0],
-   [ "tree_build_time",0,0,"Tree Build Time",False,"",0],
-   [ "mgmt_classes",[],0,"Management Classes",True,"Management classes for external config management",0],
-   [ "template_files",{},0,"Template Files",True,"File mappings for built-in config management",0],
-   [ "redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Spacewalk, or Satellite",0],
-   [ "redhat_management_server", "<<inherit>>",0,"Red Hat Management Server",True,"Address of Spacewalk or Satellite Server"
-,0]
+   [ "name","",0,"Name",True,"Ex: Fedora-11-i386",0,"str"],
+   ["ctime",0,0,"",False,"",0,"float"],
+   ["mtime",0,0,"",False,"",0,"float"],
+   [ "uid","",0,"",False,"",0,"str"],
+   [ "owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",0,"list"],
+   [ "kernel",None,0,"Kernel",True,"Absolute path to kernel on filesystem",0,"str"],
+   [ "initrd",None,0,"Initrd",True,"Absolute path to kernel on filesystem",0,"str"],
+   [ "kernel_options",{},0,"Kernel Options",True,"Ex: selinux=permissive",0,"dict"],
+   [ "kernel_options_post",{},0,"Kernel Options (Post Install)",True,"Ex: clocksource=pit noapic",0,"dict"],
+   [ "ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86", 0,"dict"],
+   [ "arch",'i386',0,"Architecture",True,"", ['i386','x86_64','ia64','ppc','s390'],"str"],
+   [ "breed",'redhat',0,"Breed",True,"What is the type of distribution?",codes.VALID_OS_BREEDS,"str"],
+   [ "os_version","generic26",0,"OS Version",True,"Needed for some virtualization optimizations",codes.get_all_os_versions(),"str"],
+   [ "source_repos",[],0,"Source Repos", False,"",0,"list"],
+   [ "depth",0,0,"Depth",False,"",0,"int"],
+   [ "comment","",0,"Comment",True,"Free form text description",0,"str"],
+   [ "tree_build_time",0,0,"Tree Build Time",False,"",0,"str"],
+   [ "mgmt_classes",[],0,"Management Classes",True,"Management classes for external config management",0,"list"],
+   [ "template_files",{},0,"Template Files",True,"File mappings for built-in config management",0,"list"],
+   [ "redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Spacewalk, or Satellite",0,"str"],
+   [ "redhat_management_server", "<<inherit>>",0,"Red Hat Management Server",True,"Address of Spacewalk or Satellite Server",0,"str"]
 ]
 
 class Distro(item.Item):
