@@ -1,0 +1,19 @@
+<project>
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+    <target name="compile">
+        <mkdir dir="build/classes"/>
+        <javac srcdir="." destdir="build/classes"/>
+    </target>
+
+    <target name="jar">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/cobbler4j.jar" basedir="build/classes">
+            <manifest>
+            </manifest>
+        </jar>
+    </target>
+
+</project>
+
