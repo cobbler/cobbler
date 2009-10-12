@@ -64,9 +64,9 @@ public class $ObjectType extends CobblerObject {
     #elif $field_type == "float"
         #set $var_type = "Double"
     #elif $field_type == "list"
-        #set $var_type = "List<String>"
+        #set $var_type = "List"
     #elif $field_type == "dict"
-        #set $var_type = "Map<String, String>"
+        #set $var_type = "HashMap"
     #elif $field_type == "bool"
         #set $var_type = "Boolean"
     #end if
@@ -103,9 +103,9 @@ public class $ObjectType extends CobblerObject {
      * @return the value of the field
      */
     #if $interface_specific == "False"
-    public void get${up_var_name}() {
+    public ${var_type} get${up_var_name}() {
     #else
-    public void get${up_var_name}(String interfaceName) {
+    public ${var_type} get${up_var_name}(String interfaceName) {
     #end if
         // FIXME: type mangling
         // FIXME: implement
@@ -114,7 +114,7 @@ public class $ObjectType extends CobblerObject {
 
     #end for
 
-    public static String getObjectType() {
+    public String getObjectType() {
         return "$ObjectTypeLower";
     }
 
@@ -138,16 +138,17 @@ public class $ObjectType extends CobblerObject {
      * @return a list of $ObjectType objects.
      */
     public static List<$ObjectType> list(CobblerConnection connection) {
-        List <$ObjectType> list = new LinkedList<$ObjectType>();
-        List <Map<String, Object>> rawList = (List <Map<String, Object >>) 
+        //List <$ObjectType> list = new LinkedList<$ObjectType>();
+        //List <Map<String, Object>> rawList = (List <Map<String, Object >>) 
                                         connection.invokeMethod("get_${ObjectTypeLower}s");
         
-        for (Map<String, Object> map : rawList) {
-            $ObjectType obj = new ${ObjectType}(connection);
-            obj.dataMap = obj;
-            list.add(obj);
-        }
-        return list;
+        //for (Map<String, Object> map : rawList) {
+        //    $ObjectType obj = new ${ObjectType}(connection);
+        //    obj.dataMap = obj;
+        //    list.add(obj);
+        //}
+        //return list;
+        return null;
     }
 
     //protected String invokeGetHandle() {

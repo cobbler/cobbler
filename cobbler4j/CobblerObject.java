@@ -34,7 +34,7 @@ import java.util.Set;
 public abstract class CobblerObject {
     
     protected String handle;
-    protected Map<String, Object> dataMap = new HashMap<String, Object>();
+    protected HashMap dataMap = new HashMap();
     protected CobblerConnection client;    
 
     /**
@@ -49,19 +49,20 @@ public abstract class CobblerObject {
      */
 
     // FIXME: generalize lookup function? "by id" seems redundant
-    protected static Map<String, Object> lookupDataMapById(CobblerConnection client, 
-                             String id, String findMethod) {
-        if (id == null) {
-            return null;
-        }
-        List<Map<String, Object>> objects = lookupDataMapsByCriteria(client,
-                                                            UID, id, findMethod);
-        if (!objects.isEmpty()) {
-            return objects.get(0);
-        }
-        return null;
+    //protected static Map<String, Object> lookupDataMapById(CobblerConnection client, String id, String findMethod) {
+    //    if (id == null) {
+    //        return null;
+    //    }
+    //    List<Map<String, Object>> objects = lookupDataMapsByCriteria(client,
+    //                                                        UID, id, findMethod);
+    //    if (!objects.isEmpty()) {
+    //        return objects.get(0);
+    //    }
+    //    return null;
 
-    }
+    //}
+
+    protected abstract String getObjectType();
 
     /**
      * look up data maps by a certain criteria
@@ -79,10 +80,9 @@ public abstract class CobblerObject {
             return null;
         }
 
-        Map<String, String> criteria  = new HashMap<String, String>();
-        criteria.put(critera, value);
-        List<Map<String, Object>> objects = (List<Map<String, Object>>)
-                                client.invokeTokenMethod(findMethod, criteria);
+        Map criteria  = new HashMap();
+        criteria.put((Object)critera, (Object)value);
+        List objects = (List) client.invokeTokenMethod(findMethod, criteria);
         return objects;
 
     }
@@ -120,19 +120,21 @@ public abstract class CobblerObject {
     
     protected void modify(String key, Object value, String interfaceName) {
         // FIXME: create interface hash if not already here
-        HashMap<String, Object> interfaces = dataMap.get(key, "interfaces");
-        HashMap<String, Object> theInterface = interfaces.get(key, interfaceName);
-        theInterface.put(key,value);
+        HashMap interfaces = (HashMap) dataMap.get((Object)"interfaces");
+        HashMap theInterface = (HashMap) interfaces.get((Object)key);
+        String theName = (String) interfaces.get((Object)interfaceName);
+        theInterface.put((Object)key,(Object)value);
     }
    
     protected Object access(String key) {
         return dataMap.get(key);
     }
  
-    protected void access(String key, String interfaceName) {
-        HashMap<String, Object> interfaces   = dataMap.get(key, "interfaces");
-        HashMap<String, Object> theInterface = interfaces.get(key, interfaceName);
-        return theInterface.get(key);
+    protected Object access(String key, String interfaceName) {
+        // FIXME: error handling
+        HashMap interfaces   = (HashMap) dataMap.get((Object) "interfaces");
+        HashMap theInterface = (HashMap) interfaces.get((Object)interfaceName);
+        return (Object) theInterface.get((Object)key);
     }
    
     public String toString() {
