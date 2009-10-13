@@ -23,143 +23,51 @@ import java.util.List;
 import redstone.xmlrpc.*;
 
 /**
- * 
- * XMLRPCHelper - class that contains wraps calls to Redstone's XMLRPC client.
- * Intentionally implements the XMLRPCInvoker interface so we can also provide
- * a mock implementation to our unit tests so they don't require an actual cobbler
- * server.
- * @author paji
- * @version $Rev$
+ * CobblerConnection - represents an authenticatable 
+ * XMLRPC connection to Cobbler.
  */
+
 public class CobblerConnection {
+
     private XmlRpcClient client;
-    private String actualUrl;
-    //private static Logger log = Logger.getLogger(CobblerConnection.class);
     private String token;
-    
-    protected CobblerConnection() {
-    }
 
     /**
-     * Constructor to just connect the client to the server
-     * NO token is setup.. Client has to call token
-     * @param url  cobbler base url, example http://localhost 
-     * @throws XmlRpcException if there some communication issue..
+     * Constructor creates an authenticated connection to Cobbler.
+     * read-only XMLRPC is not supported.
+     * @param url  cobbler XMLRPC endpoint, ex: http://server/cobbler_api
+     * @param username cobbler XMLRPC username
+     * @param password cobbler XMLRPC password
+     * @throws XmlRpcException on remote or communication errors
      */
     
-    public CobblerConnection(String url) {
+    public CobblerConnection(String url, String user, String pass) {
+        List auth = new LinkedList();
+        auth.add(user);
+        auth.add(pass);
         try {
             client = new XmlRpcClient(url, false);
         }
         catch (MalformedURLException e) {
             throw new XmlRpcException(e);
         }
+        token = (String) invokeMethod("login", auth);
     }    
     
-    /**
-     * Constructor to setup the client based on 
-     * user name and password.. Connects to cobbler
-     * and logs in the user right here to obtain the
-     * token 
-     * @param url  cobbler base url, example http://localhost 
-     * @param user the username
-     * @param pass the password
-     * @throws XmlRpcException if there some communication issue..
-     */
-    public CobblerConnection(String url, String user, String pass) {
-        this(url);
-        login(user, pass);
-    }
-
-    /**
-     * Constructor to setup the client based on 
-     * the token itself.. Connects to cobbler. Idea here
-     * is that if you have the xmlrpc token by logging in previously
-     * you could use that here..
-     * @param url cobbler base url, example http://localhost
-     * @param tokenIn the token
-     * @throws XmlRpcException if there some communication issue..
-     */    
-    public CobblerConnection(String url, String tokenIn) {
-        this(url);
-         token = tokenIn; 
-    }    
-    
-    /**
-     * Simple method to login in to cobbler with the given 
-     * user name and password.. The returned token 
-     * is stored in the connection itself so that it
-     * could be used for futre operations.. It
-     * is also returned if so needed. 
-     * @param login user name
-     * @param password password
-     * @return the login token
-     */
-    public String login(String login, String password) {
-        token = (String) invokeMethod("login", login, password);
-        return token;
-    }
-    
-
     /**
      * Invoke an XMLRPC method.
-     * @param procedureName to invoke
-     * @param args to pass to method
-     * @return Object returned.
+     * @param method method to invoke
+     * @param args args to pass to method
+     * @return Object data returned.
      */
-    private Object invokeMethod(String procedureName, List args) {
-        //log.debug("procedure: " + procedureName + " args: " + args);
-        Object retval;
+    protected Object invokeMethod(String method, List args) {
+        args.add(token);
         try {
-            retval = client.invoke(procedureName, args);
+            return client.invoke(method, args);
         } 
         catch (Exception e) {
             throw new XmlRpcException("XmlRpcException calling cobbler.", e);
         } 
-        return retval;
     }
 
-    /**
-     * Invoke an XMLRPC method.
-     * @param procedureName to invoke
-     * @param args to pass to method
-     * @return Object returned.
-     */
-    public Object invokeMethod(String procedureName, Object... args) {
-        return invokeMethod(procedureName, Arrays.asList(args));
-    }
-    
-    /**
-     * Invoke an XMLRPC method, 
-     * but this one appends the cobbler xmlrpc
-     * token at the end of the args. Basically this
-     * serves the majority of calls to cobbler
-     *  where token is exxpected as the last param..
-     * @param procedureName to invoke
-     * @param args to pass to method
-     * @return Object returned.
-     * @throws XmlRpcException if any unexpected error occurs
-     */
-    public Object invokeTokenMethod(String procedureName, 
-                                    Object... args) {
-        List<Object> params = new LinkedList<Object>(Arrays.asList(args));
-        params.add(token);
-        return invokeMethod(procedureName, params);
-    }
-    
-    /**
-     * updates the token
-     * @param tokenIn the cobbler auth token
-     */
-    public void setToken(String tokenIn) {
-        token = tokenIn;
-    }
-
-    /**
-     * Returns the actual cobbler server url including the suffix
-     * @return the server URL
-     */
-    public String getUrl() {
-        return actualUrl;
-    }
 }

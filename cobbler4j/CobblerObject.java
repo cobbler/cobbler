@@ -74,17 +74,17 @@ public abstract class CobblerObject {
      */
 
     // FIXME: refactor?
-    protected static List<Map<String, Object>> lookupDataMapsByCriteria(
+    protected static List lookupDataMapsByCriteria(
             CobblerConnection client, String critera, String value, String findMethod) {
-        if (value == null) {
-            return null;
-        }
+        //if (value == null) {
+        //    return null;
+        //}
 
-        Map criteria  = new HashMap();
-        criteria.put((Object)critera, (Object)value);
-        List objects = (List) client.invokeTokenMethod(findMethod, criteria);
-        return objects;
-
+        //Map criteria  = new HashMap();
+        //criteria.put((Object)critera, (Object)value);
+        //List objects = (List) client.invokeMethod(findMethod, criteria);
+        //return objects;
+        return null;
     }
     
 
