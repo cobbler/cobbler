@@ -28,9 +28,9 @@ import java.util.Set;
  * @author mdehaan (code generated new version)
  * @version $Rev$
  */
-public class $ObjectType extends CobblerObject {
+public class $JavaObjectType extends CobblerObject {
     
-    private ${ObjectType}(CobblerConnection clientIn) {
+    public ${JavaObjectType}(CobblerConnection clientIn) {
         client = clientIn;
     }
 
@@ -108,84 +108,23 @@ public class $ObjectType extends CobblerObject {
     public ${var_type} get${up_var_name}(String interfaceName) {
     #end if
         // FIXME: type mangling
-        // FIXME: implement
         return (${var_type})access("${field_name}");
     }
 
     #end for
 
     public String getObjectType() {
-        return "$ObjectTypeLower";
+        return "$CobblerObjectType";
     }
-
-    //public static $ObjectType lookupById(CobblerConnection client, String id) {
-    //    return handleLookup(client, lookupDataMapById(client, 
-    //                                    id, "find_$ObjectTypeLower"));
-    //}
     
-    //private static $ObjectType handleLookup(CobblerConnection client, Map map) {
-    //    if (map != null) {
-    //        $ObjectType obj = new ${ObjectType}(client);
-    //        obj.dataMap = map;
-    //        return obj;
-    //    }
-    //    return null;
-    //}    
     
     /**
-     * Returns a list of available $ObjectType objects 
+     * Returns a list of available $JavaObjectType objects 
      * @param connection the cobbler connection
-     * @return a list of $ObjectType objects.
+     * @return a list of $JavaObjectType objects.
      */
-    public static List<$ObjectType> list(CobblerConnection connection) {
-        //List <$ObjectType> list = new LinkedList<$ObjectType>();
-        //List <Map<String, Object>> rawList = (List <Map<String, Object >>) 
-                                        connection.invokeMethod("get_${ObjectTypeLower}s");
-        
-        //for (Map<String, Object> map : rawList) {
-        //    $ObjectType obj = new ${ObjectType}(connection);
-        //    obj.dataMap = obj;
-        //    list.add(obj);
-        //}
-        //return list;
+    public static List list(CobblerConnection connection) {
         return null;
     }
 
-    //protected String invokeGetHandle() {
-    //    return (String)client.invokeTokenMethod("get_${ObjectTypeLower}_handle", this.getName());
-    //}
-    
-    //protected void invokeModify(String key, Object value) {
-    //    client.invokeTokenMethod("modify_${ObjectTypeLower}", getHandle(), key, value);
-    //}
-    
-    /**
-     * Save the $ObjectType
-     */
-    //protected void invokeSave() {
-    //    client.invokeTokenMethod("save_${ObjectTypeLower}", getHandle());
-    //}
-
-    /**
-     * Remove the $ObjectType
-     */
-    //protected boolean invokeRemove() {
-    //    return (Boolean) client.invokeTokenMethod("remove_${ObjectTypeLower}", getName());
-    //}
-
-    /**
-     * Rename the $ObjectType 
-     */
-    //protected void invokeRename(String newName) {
-    //    client.invokeTokenMethod("rename_${ObjectTypeLower}", getHandle(), newName);
-    //}
-    
-    /**
-     * Reloads the $ObjectType
-     */
-    //public void reload() {
-    //    $ObjectType obj = lookupById(client, getId());
-    //    map = obj.dataMap;
-    //}
-    
 }

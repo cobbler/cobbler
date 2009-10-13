@@ -5,22 +5,33 @@
     </target>
 
     <target name="compile">
-        <mkdir dir="build/classes"/>
-        <javac srcdir="." destdir="build/classes" nowarn="true">
+        <mkdir dir="build"/>
+        <javac srcdir="." destdir="build" nowarn="true">
             <classpath>
-               <pathelement location="lib/simple-xmlrpc-1.0.jar"/>
-               <pathelement location="lib/xmlrpc-1.1.1.jar"/>
-               <pathelement location="lib/simple-4.0.1.jar"/>
+                <pathelement location="xmlrpc.jar"/>
+                <pathelement location="simple-xmlrpc.jar"/>
+                <pathelement location="simple.jar"/>
             </classpath>
         </javac>  
     </target>
 
     <target name="jar">
-        <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/cobbler4j.jar" basedir="build/classes">
-            <manifest>
-            </manifest>
+        <jar destfile="cobbler4j.jar" basedir="build">
+         <manifest>
+             <attribute name="Main-Class" value="org.fedorahosted.cobbler.Test"/>
+         </manifest>
         </jar>
+    </target>
+
+    <target name="test">
+        <java jar="cobbler4j.jar" fork="true">
+            <classpath>
+                <pathelement location="xmlrpc.jar"/>
+                <pathelement location="simple-xmlrpc.jar"/>
+                <pathelement location="simple.jar"/>
+            </classpath>
+            <arg value="http://127.0.0.1/cobbler_api"/>
+        </java>
     </target>
 
 </project>

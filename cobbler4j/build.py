@@ -21,11 +21,11 @@ import os.path
 # Define what files we need to template out dynamically
 # FIXME: also do this for XMLPC
 OBJECT_MAP = [
-   [ "Distro",  cobbler_distro.FIELDS ],
-   [ "Profile", cobbler_profile.FIELDS ],
-   [ "System",  cobbler_system.FIELDS ],
-   [ "Repo",    cobbler_repo.FIELDS ],
-   [ "Image",   cobbler_image.FIELDS ],
+   [ "Distro",  "CobblerDistro",  cobbler_distro.FIELDS  ],
+   [ "Profile", "CobblerProfile", cobbler_profile.FIELDS ],
+   [ "System",  "CobblerSystem",  cobbler_system.FIELDS  ],
+   [ "Repo",    "CobblerRepo",    cobbler_repo.FIELDS    ],
+   [ "Image",   "CobblerImage",   cobbler_image.FIELDS   ],
 ]
 
 # Define what variables to expose in all templates
@@ -86,7 +86,7 @@ def template_to_disk(infile, vars, outfile):
    fd.close()
 
 
-def templatize_from_vars(objname, vars):
+def templatize_from_vars(objname, jclass, vars):
    """
    Given a source template and some variables, write out the java equivalent.
    """
@@ -94,22 +94,23 @@ def templatize_from_vars(objname, vars):
    assert type(vars) == type({})
    if objname is not None:
       vars.update({
-          "ObjectType"      : objname.title(),
-          "ObjectTypeLower" : objname
+          "JavaObjectType"      : jclass,
+          "CobblerObjectType"   : objname
       })
    filename1 = "object_base.tmpl"
-   filename2 = "%s.java" % objname
+   filename2 = "%s.java" % jclass
    print "TEMPLATING %s to %s" % (filename1, filename2)
    template_to_disk(filename1, vars, filename2)
 
-def templatize_from_fields(objname, field_struct):
+def templatize_from_fields(objname, jclass, field_struct):
    """
    Given a source template and a field structure, write out the java code for it.
    """
    assert type(objname) == type("")
+   assert type(jclass) == type("")
    assert type(field_struct) == type([])
    vars = { "fields" : field_struct }
-   return templatize_from_vars(objname, vars)
+   return templatize_from_vars(objname, jclass, vars)
 
 def generate_main_classes():
    """
@@ -122,7 +123,7 @@ def generate_object_classes():
    For classes that ARE cobbler-object tree related, template out the corresponding Java code.
    """
    for items in OBJECT_MAP:
-       templatize_from_fields(items[0], items[1])
+       templatize_from_fields(items[0], items[1], items[2])
 
 if __name__ == "__main__":
    """

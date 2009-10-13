@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import redstone.xmlrpc.XmlRpcClient;
+import redstone.xmlrpc.*;
 
 /**
  * 
@@ -49,8 +49,7 @@ public class CobblerConnection {
     
     public CobblerConnection(String url) {
         try {
-            actualUrl = url + "/cobbler_api";
-            client = new XmlRpcClient(actualUrl, false);
+            client = new XmlRpcClient(url, false);
         }
         catch (MalformedURLException e) {
             throw new XmlRpcException(e);
