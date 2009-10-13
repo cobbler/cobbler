@@ -1,35 +1,22 @@
 <project>
 
-    <target name="clean">
-        <delete dir="build"/>
-    </target>
-
-    <target name="compile">
+    <target name="build">
         <mkdir dir="build"/>
+        <unjar src="xmlrpc.jar" dest="build"/>
         <javac srcdir="." destdir="build" nowarn="true">
             <classpath>
-                <pathelement location="xmlrpc.jar"/>
-                <pathelement location="simple-xmlrpc.jar"/>
-                <pathelement location="simple.jar"/>
+                <pathelement location="build"/>
             </classpath>
         </javac>  
-    </target>
-
-    <target name="jar">
         <jar destfile="cobbler4j.jar" basedir="build">
-         <manifest>
-             <attribute name="Main-Class" value="org.fedorahosted.cobbler.Test"/>
-         </manifest>
+            <manifest>
+                <attribute name="Main-Class" value="org.fedorahosted.cobbler.Test"/>
+            </manifest>
         </jar>
     </target>
 
     <target name="test">
         <java jar="cobbler4j.jar" fork="true">
-            <classpath>
-                <pathelement location="xmlrpc.jar"/>
-                <pathelement location="simple-xmlrpc.jar"/>
-                <pathelement location="simple.jar"/>
-            </classpath>
             <arg value="http://127.0.0.1/cobbler_api"/>
         </java>
     </target>
