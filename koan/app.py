@@ -1160,9 +1160,10 @@ class Koan:
         if virt_auto_boot:
             if self.virt_type in [ "xenpv", "xenfv" ]:
                 utils.create_xendomains_symlink(virtname)
+            elif self.virt_type == "qemu":
+               utils.libvirt_enable_autostart(virtname)
             else:
                 print "- warning: don't know how to autoboot this virt type yet"
-            # else qemu
             # else...
         return results
 

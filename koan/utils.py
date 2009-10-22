@@ -424,6 +424,20 @@ def create_xendomains_symlink(name):
     else:
         raise InfoException("Could not create /etc/xen/auto/%s symlink.  Please check write permissions and ownership" % name)
 
+def libvirt_enable_autostart(domain_name):
+   import libvirt
+   try:
+      conn = libvirt.open("qemu:///system")
+      print "- pausing for a few seconds to allow libvirt to register the new domain"
+      time.sleep(5)
+      domain = conn.lookupByName(domain_name)
+      domain.setAutostart(1)
+   except:
+      raise InfoException("libvirt could not find domain %s" % domain_name)
+
+   if not domain.autostart:
+      raise InfoException("Could not enable autostart on domain %s." % domain_name)
+
 def make_floppy(kickstart):
 
     (fd, floppy_path) = tempfile.mkstemp(suffix='.floppy', prefix='tmp', dir="/tmp")
