@@ -1381,7 +1381,7 @@ class Koan:
            if self.virt_type in [ "xenpv", "xenfv" ]:
                prefix = "/var/lib/xen/images/"
            elif self.virt_type == "qemu":
-               prefix = "/opt/qemu/"
+               prefix = "/var/lib/libvirt/images/"
            elif self.virt_type == "vmwarew":
                prefix = "/var/lib/vmware/%s/" % name
            else:
