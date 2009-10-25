@@ -26,7 +26,6 @@ import os.path
 import time
 import yaml # Howell-Clark version
 import sys
-import sub_process
 HAS_YUM = True
 try:
     import yum
@@ -291,7 +290,6 @@ class RepoSync:
         # commands here.  Any failure at any point stops the operation.
 
         if repo.mirror_locally:
-            #rc = sub_process.call(cmd, shell=True, close_fds=True)
             rc = utils.subprocess_call(self.logger, cmd)
             if rc !=0:
                 utils.die(self.logger,"cobbler reposync failed")

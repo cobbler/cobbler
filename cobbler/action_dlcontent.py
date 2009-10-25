@@ -21,8 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import os
-import sub_process
-import glob
 import urlgrabber
 import clogger
 

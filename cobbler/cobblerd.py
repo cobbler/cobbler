@@ -34,7 +34,6 @@ import utils
 import api as cobbler_api
 import yaml # Howell Clark version
 import utils
-import sub_process
 import remote
 
 

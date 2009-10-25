@@ -25,7 +25,6 @@ import os
 import os.path
 import shutil
 import time
-import sub_process
 import sys
 import glob
 import traceback
