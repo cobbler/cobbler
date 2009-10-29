@@ -20,7 +20,7 @@
 %include /tmp/pre_install_network_config
     #else
 # Using "old" style networking config. Make sure all MAC-addresses are in cobbler to use the new-style config
-        #set $vlanpattern = $re.compile("[a-zA-Z0-9]+\.[0-9]+")
+        #set $vlanpattern = $re.compile("[a-zA-Z0-9]+(\.|:)[0-9]+")
         #for $iname in $ikeys
             #set $idata    = $interfaces[$iname]
             #set $mac      = $idata["mac_address"]
