@@ -6,7 +6,7 @@
     #set ikeys = $interfaces.keys()
     #set osversion = $getVar("os_version","") 
     #import re
-    #set $vlanpattern = $re.compile("[a-zA-Z0-9]+\.[0-9]+")
+    #set $vlanpattern = $re.compile("[a-zA-Z0-9]+[\.:][0-9]+")
     ## Determine if we should use the MAC address to configure the interfaces first
     ## Only physical interfaces are required to have a MAC address
     ## Also determine the number of bonding devices we have, so we can set the
