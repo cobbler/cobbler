@@ -6,11 +6,12 @@ build:
 
 clean:
 	-rm -rf build
-	-rm Distro.java
-	-rm Profile.java
-	-rm SystemRecord.java
-	-rm Image.java
-	-rm Repo.java
+	-rm src/org/fedorahosted/cobbler/Distro.java
+	-rm src/org/fedorahosted/cobbler/Profile.java
+	-rm src/org/fedorahosted/cobbler/SystemRecord.java
+	-rm src/org/fedorahosted/cobbler/Image.java
+	-rm src/org/fedorahosted/cobbler/Repo.java
+	-rm cobbler4j.jar
 
 test:
 	ant test

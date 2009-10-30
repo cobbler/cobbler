@@ -98,7 +98,7 @@ def templatize_from_vars(objname, jclass, vars):
           "CobblerObjectType"   : objname.upper()
       })
    filename1 = "object_base.tmpl"
-   filename2 = "%s.java" % jclass
+   filename2 = "src/org/fedorahosted/cobbler/%s.java" % jclass
    print "TEMPLATING %s to %s" % (filename1, filename2)
    template_to_disk(filename1, vars, filename2)
 
