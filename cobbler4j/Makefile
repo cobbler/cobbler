@@ -1,7 +1,7 @@
-all: clean build test
+all: clean build 
 
 build:
-	python build.py
+	PYTHONPATH=../ python build.py
 	ant build
 
 clean:
