@@ -1,5 +1,7 @@
 package org.fedorahosted.cobbler;
 
+import java.util.List;
+
 public class Test {
 
   public static final String user = "testing";
@@ -13,9 +15,9 @@ public class Test {
       String endPoint = args[0];
       System.out.println("Running cobbler4j tests against " + endPoint);
       CobblerConnection conn = new CobblerConnection(endPoint,user,pass);
-      CobblerDistro distro = new CobblerDistro(conn);
-      System.out.println(distro.toString());
-
+      List<Distro> distros = (List<Distro>)Finder.getInstance().
+										listItems(conn, ObjectType.DISTRO);
+		System.out.println(distros.get(0));
   }
 
 }

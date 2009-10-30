@@ -6,11 +6,11 @@ build:
 
 clean:
 	-rm -rf build
-	-rm CobblerDistro.java
-	-rm CobblerProfile.java
-	-rm CobblerSystem.java
-	-rm CobblerImage.java
-	-rm CobblerRepo.java
+	-rm Distro.java
+	-rm Profile.java
+	-rm SystemRecord.java
+	-rm Image.java
+	-rm Repo.java
 
 test:
 	ant test

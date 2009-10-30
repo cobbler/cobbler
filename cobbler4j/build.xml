@@ -1,12 +1,16 @@
-<project>
-
-    <target name="build">
-        <mkdir dir="build"/>
-        <unjar src="xmlrpc.jar" dest="build"/>
-        <javac srcdir="." destdir="build" nowarn="true">
-            <classpath>
+<project default = "build">
+    <target name="init">
+       <path id="class.path">
                 <pathelement location="build"/>
-            </classpath>
+                 <fileset dir="lib">
+                    <include name="**/*.jar"/>
+                 </fileset>
+        </path>
+
+    </target>
+    <target name="build" depends="init">
+        <mkdir dir="build"/>
+        <javac srcdir="." destdir="build" nowarn="true"  classpathref="class.path">
         </javac>  
         <jar destfile="cobbler4j.jar" basedir="build">
             <manifest>
@@ -15,9 +19,9 @@
         </jar>
     </target>
 
-    <target name="test">
-        <java jar="cobbler4j.jar" fork="true">
-            <arg value="http://127.0.0.1/cobbler_api"/>
+    <target name="test" depends="build">
+        <java classname="org.fedorahosted.cobbler.Test" fork="true" classpathref="class.path">
+            <arg value="http://192.168.1.1"/>
         </java>
     </target>
 

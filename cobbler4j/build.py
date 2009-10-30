@@ -21,11 +21,11 @@ import os.path
 # Define what files we need to template out dynamically
 # FIXME: also do this for XMLPC
 OBJECT_MAP = [
-   [ "Distro",  "CobblerDistro",  cobbler_distro.FIELDS  ],
-   [ "Profile", "CobblerProfile", cobbler_profile.FIELDS ],
-   [ "System",  "CobblerSystem",  cobbler_system.FIELDS  ],
-   [ "Repo",    "CobblerRepo",    cobbler_repo.FIELDS    ],
-   [ "Image",   "CobblerImage",   cobbler_image.FIELDS   ],
+   [ "Distro",  "Distro",  cobbler_distro.FIELDS  ],
+   [ "Profile", "Profile", cobbler_profile.FIELDS ],
+   [ "System",  "SystemRecord",  cobbler_system.FIELDS  ],
+   [ "Repo",    "Repo",    cobbler_repo.FIELDS    ],
+   [ "Image",   "Image",   cobbler_image.FIELDS   ],
 ]
 
 # Define what variables to expose in all templates
@@ -95,7 +95,7 @@ def templatize_from_vars(objname, jclass, vars):
    if objname is not None:
       vars.update({
           "JavaObjectType"      : jclass,
-          "CobblerObjectType"   : objname
+          "CobblerObjectType"   : objname.upper()
       })
    filename1 = "object_base.tmpl"
    filename2 = "%s.java" % jclass

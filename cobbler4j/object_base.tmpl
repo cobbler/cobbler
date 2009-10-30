@@ -33,6 +33,7 @@ public class $JavaObjectType extends CobblerObject {
     public ${JavaObjectType}(CobblerConnection clientIn) {
         client = clientIn;
     }
+    protected ${JavaObjectType} () {}
 
     #for $val in $fields 
         #set $interface_specific = "False"
@@ -113,18 +114,8 @@ public class $JavaObjectType extends CobblerObject {
 
     #end for
 
-    public String getObjectType() {
-        return "$CobblerObjectType";
-    }
-    
-    
-    /**
-     * Returns a list of available $JavaObjectType objects 
-     * @param connection the cobbler connection
-     * @return a list of $JavaObjectType objects.
-     */
-    public static List list(CobblerConnection connection) {
-        return null;
+    public ObjectType getObjectType() {
+        return ObjectType.$CobblerObjectType;
     }
 
 }
