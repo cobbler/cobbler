@@ -272,7 +272,7 @@ When using the CIDR notation trick, don't specify any arguments other than --nam
 
 =item --dns-name
 
-If using the DNS management feature (see advanced section -- cobbler supports auto-setup of BIND and dnsmasq), use this to define a hostname for the system to recieve from DNS.   
+If using the DNS management feature (see advanced section -- cobbler supports auto-setup of BIND and dnsmasq), use this to define a hostname for the system to receive from DNS.
 
 Example: --dns-name=mycomputer.example.com
 
