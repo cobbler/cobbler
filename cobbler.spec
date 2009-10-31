@@ -214,6 +214,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/cobbler/*.py*
 #%{python_sitelib}/cobbler/server/*.py*
 %{python_sitelib}/cobbler/modules/*.py*
+%if 0%{?fedora} >= 9 || 0%{?rhel} >= 5
+%exclude %{python_sitelib}/cobbler/sub_process.py*
+%endif
 %{_mandir}/man1/cobbler.1.gz
 /etc/init.d/cobblerd
 %if 0%{?suse_version} >= 1000
@@ -329,6 +332,11 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %{_bindir}/cobbler-register
 %dir %{python_sitelib}/koan
 %{python_sitelib}/koan/*.py*
+%if 0%{?fedora} >= 9 || 0%{?rhel} >= 5
+%exclude %{python_sitelib}/koan/sub_process.py*
+%exclude %{python_sitelib}/koan/opt_parse.py*
+%exclude %{python_sitelib}/koan/text_wrap.py*
+%endif
 %{_mandir}/man1/koan.1.gz
 %{_mandir}/man1/cobbler-register.1.gz
 %dir /var/log/koan
