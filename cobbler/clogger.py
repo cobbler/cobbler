@@ -33,16 +33,24 @@ INFO    = "INFO"
 class Logger:
 
    def __init__(self, logfile="/var/log/cobbler/cobbler.log"):
+      self.logfile = None
+
       # Main logfile is append mode, other logfiles not.
       if not os.path.exists(logfile):
          self.logfile = open(logfile, "a")
          sub_process.call("chown apache %s" % logfile, shell=True)
          self.logfile.close()
 
-      if logfile.find("tasks") != -1:
-         self.logfile = open(logfile, "w+")
-      else:
-         self.logfile = open(logfile, "a")
+      try:
+         if logfile.find("tasks") != -1:
+            self.logfile = open(logfile, "w+")
+         else:
+            self.logfile = open(logfile, "a")
+      except IOError:
+          # You likely don't have write access, this logger will just print 
+          # things to stdout.
+          pass
+
       
 
    def warning(self, msg):
@@ -61,12 +69,16 @@ class Logger:
       self.__write(None, msg)
 
    def __write(self, level, msg):
+
       if level is not None:
-          self.logfile.write("%s - %s | %s" % (time.asctime(), level, msg))
+         msg = "%s - %s | %s" % (time.asctime(), level, msg)
+
+      if self.logfile is not None:
+         self.logfile.write(msg)
+         self.logfile.write("\n")
+         self.logfile.flush()
       else:
-          self.logfile.write(msg)
-      self.logfile.write("\n")
-      self.logfile.flush()
+         print(msg)
  
    def handle(self):
       return self.logfile
