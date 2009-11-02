@@ -12,13 +12,18 @@ May Guido have mercy on your application.
 import sys
 sys.path.insert(0, "../")
 
+import os.path
+import commands
+
 import Cheetah.Template     as Template
+
 import cobbler.item_distro  as cobbler_distro
 import cobbler.item_profile as cobbler_profile
 import cobbler.item_system  as cobbler_system
 import cobbler.item_repo    as cobbler_repo
 import cobbler.item_image   as cobbler_image
-import os.path
+
+AUTOGEN_PATH = "src/org/fedorahosted/cobbler/autogen/"
 
 # FIXME: make this also do Ruby
 # FIXME: network object handling is quasi-special
@@ -103,7 +108,8 @@ def templatize_from_vars(objname, jclass, vars):
           "CobblerObjectType"   : objname.upper()
       })
    filename1 = "object_base.tmpl"
-   filename2 = "src/org/fedorahosted/cobbler/%s.java" % jclass
+   filename2 = "%s%s.java" % (AUTOGEN_PATH, jclass)
+   commands.getstatusoutput("mkdir -p %s" % AUTOGEN_PATH)
    print "TEMPLATING %s to %s" % (filename1, filename2)
    template_to_disk(filename1, vars, filename2)
 

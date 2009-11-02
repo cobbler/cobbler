@@ -1,6 +1,8 @@
 <project default = "build">
 
-    <target name="init">
+    <!-- Might be wasteful to clean everything here, but with the 
+      auto-generation in play it seems wise. -->
+    <target name="init" depends="clean">
         <path id="class.path">
             <pathelement location="build"/>
             <fileset dir="lib">
@@ -29,6 +31,11 @@
                 <attribute name="Main-Class" value="org.fedorahosted.cobbler.Test"/>
             </manifest>
         </jar>
+    </target>
+
+    <target name="clean">
+        <delete dir="build/" quiet="true"/>
+        <delete dir="src/org/fedorahosted/cobbler/autogen/" quiet="true"/>
     </target>
 
     <target name="test" depends="build">

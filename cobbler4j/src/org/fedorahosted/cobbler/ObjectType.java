@@ -14,6 +14,10 @@
  */
 package org.fedorahosted.cobbler;
 
+// Wildcard isn't great, but better than an explicit list of objects that 
+// may change.
+import org.fedorahosted.cobbler.autogen.*;
+
 public enum ObjectType {
     DISTRO ("distro", Distro.class),
     PROFILE ("profile", Profile.class),
