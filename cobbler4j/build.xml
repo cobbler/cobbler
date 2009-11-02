@@ -1,13 +1,17 @@
 <project default = "build">
-    <target name="init">
-       <path id="class.path">
-                <pathelement location="build"/>
-                 <fileset dir="lib">
-                    <include name="**/*.jar"/>
-                 </fileset>
-        </path>
 
+    <target name="init">
+        <path id="class.path">
+            <pathelement location="build"/>
+            <fileset dir="lib">
+                <include name="**/*.jar"/>
+            </fileset>
+            <fileset dir="/usr/share/java/">
+                <include name="junit4.jar"/>
+            </fileset>
+        </path>
     </target>
+
     <target name="build" depends="init">
         <mkdir dir="build"/>
         <javac srcdir="." destdir="build" nowarn="true"  classpathref="class.path">
@@ -20,9 +24,21 @@
     </target>
 
     <target name="test" depends="build">
+        <!--
         <java classname="org.fedorahosted.cobbler.Test" fork="true" classpathref="class.path">
             <arg value="http://192.168.1.1"/>
         </java>
+        -->
+        <junit printsummary="yes" haltonfailure="yes">
+            <formatter type="xml"/>
+            <classpath refid="class.path"/>
+            <batchtest fork="yes" todir="build/">
+                <fileset dir="src">
+                    <include name="**/*Test*.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+
     </target>
 
 </project>

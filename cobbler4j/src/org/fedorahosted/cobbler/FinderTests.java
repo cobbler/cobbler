@@ -1,12 +1,15 @@
 package org.fedorahosted.cobbler;
 
 import java.util.List;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
-public class Test {
+public class FinderTests {
 
   public static final String user = "testing";
   public static final String pass = "testing";
   
+  /*
   public static void main(String[] args) {
   
       if (args.length < 1) {
@@ -18,6 +21,11 @@ public class Test {
       List<Distro> distros = (List<Distro>)Finder.getInstance().
 										listItems(conn, ObjectType.DISTRO);
 		System.out.println(distros.get(0));
+  }
+  */
+
+  @Test public void testSomething() {
+      assertTrue(true);
   }
 
 }
