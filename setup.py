@@ -38,7 +38,7 @@ def gen_build_version():
     builddate = time.asctime()
     if os.path.exists(".git"): 
        # for builds coming from git, include the date of the last commit
-       cmd = subprocess.Popen(["/usr/bin/git","log"],stdout=subprocess.PIPE)
+       cmd = subprocess.Popen(["/usr/bin/git","log","-1"],stdout=subprocess.PIPE)
        data = cmd.communicate()[0].strip()
        for line in data.split("\n"):
            if line.startswith("commit"):
