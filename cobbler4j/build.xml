@@ -36,6 +36,7 @@
     <target name="clean">
         <delete dir="build/" quiet="true"/>
         <delete dir="src/org/fedorahosted/cobbler/autogen/" quiet="true"/>
+        <delete file="cobbler4j.jar" quiet="true"/>
     </target>
 
     <target name="test" depends="build">
