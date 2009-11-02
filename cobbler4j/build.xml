@@ -45,8 +45,8 @@
             <arg value="http://192.168.1.1"/>
         </java>
         -->
-        <junit printsummary="yes" haltonfailure="no">
-            <formatter type="xml"/>
+        <junit printsummary="yes" haltonfailure="no" showoutput="yes">
+            <formatter type="plain"/>
             <classpath refid="class.path"/>
             <batchtest fork="yes" todir="build/">
                 <fileset dir="src">

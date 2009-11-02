@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.lang.reflect.Constructor;
 
 
 /**
@@ -38,6 +39,12 @@ public abstract class CobblerObject {
     protected CobblerConnection client;    
     static final String NAME = "name";
     static final String UID = "uid";    
+
+    public CobblerObject(CobblerConnection clientIn, Map dataMapIn) {
+        client = clientIn;
+        dataMap = dataMapIn;
+    }
+
     /**
      * @return the name
      */
@@ -169,9 +176,10 @@ public abstract class CobblerObject {
     static CobblerObject load(ObjectType type, CobblerConnection client, Map<String, Object> dataMap) {
         try 
         {
-            CobblerObject obj = (CobblerObject) type.getObjectClass().newInstance();
-            obj.dataMap = dataMap;
-            obj.client = client;
+            Constructor ctor = type.getObjectClass().getConstructor(new Class [] {
+                    CobblerConnection.class, Map.class});
+
+            CobblerObject obj = (CobblerObject) ctor.newInstance(new Object [] {client, dataMap});
             return obj;
         }
         catch(Exception e) {

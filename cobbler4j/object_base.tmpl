@@ -33,10 +33,9 @@ import org.fedorahosted.cobbler.ObjectType;
  */
 public class $JavaObjectType extends CobblerObject {
     
-    public ${JavaObjectType}(CobblerConnection clientIn) {
-        client = clientIn;
+    public ${JavaObjectType}(CobblerConnection clientIn, Map dataMapIn) {
+        super(clientIn, dataMapIn);
     }
-    protected ${JavaObjectType} () {}
 
     #for $val in $fields 
         #set $interface_specific = "False"
