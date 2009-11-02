@@ -1,4 +1,4 @@
-package org.fedorahosted.cobbler;
+package org.fedorahosted.cobbler.test;
 
 import java.util.List;
 import org.junit.Test;
@@ -6,6 +6,7 @@ import org.junit.BeforeClass;
 import static org.junit.Assert.*;
 
 import org.fedorahosted.cobbler.autogen.*;
+import org.fedorahosted.cobbler.*;
 
 public class FinderTests {
 
