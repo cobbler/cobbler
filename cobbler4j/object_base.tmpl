@@ -37,6 +37,10 @@ public class $JavaObjectType extends CobblerObject {
         super(clientIn, dataMapIn);
     }
 
+    public ${JavaObjectType}(CobblerConnection clientIn) {
+        super(clientIn, new HashMap());
+    }
+
     #for $val in $fields 
         #set $interface_specific = "False"
         #set $field_name = $val[0]

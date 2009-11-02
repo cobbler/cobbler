@@ -13,7 +13,6 @@ public class FinderTests extends Fixture {
     @Test 
     public void findDistros() {
         Finder finder = Finder.getInstance();
-        // TODO: Will fail if your cobbler server has no distros:
         List<Distro> d = (List<Distro>)finder.listItems(cobblercon, 
                 ObjectType.DISTRO);
 

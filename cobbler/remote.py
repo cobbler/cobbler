@@ -781,7 +781,9 @@ class CobblerXMLRPCInterface:
         Though we must preserve the old ways for backwards compatibility these 
         cause much less XMLRPC traffic.
 
-        Ex: xapi_object_edit("distro","el5","new",{"kernel":"/tmp/foo","initrd":"/tmp/foo"},token)
+        edit_type - One of 'add', 'rename', 'copy', 'remove'
+
+        Ex: xapi_object_edit("distro","el5","add",{"kernel":"/tmp/foo","initrd":"/tmp/foo"},token)
         """
         self.check_access(token,"xedit_%s" % object_type, token)
 

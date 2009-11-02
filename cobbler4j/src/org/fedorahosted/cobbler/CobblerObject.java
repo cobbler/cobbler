@@ -157,9 +157,19 @@ public abstract class CobblerObject {
     }
 
     public void commit() {
-        client.invokeMethod("commit_" + getObjectType().getName()  , getHandle(), dataMap);
+        // Old way:
+        //client.invokeMethod("commit_" + getObjectType().getName(), getHandle(), 
+        //        dataMap);
+        
+        // New less chatty cobbler 2.0 way:
+        client.invokeMethod("xapi_object_edit", getObjectType().getName(), 
+                getName(), "add", dataMap);
     }
 
+    public void remove() {
+        client.invokeMethod("xapi_object_edit", getObjectType().getName(), 
+                getName(), "remove", dataMap);
+    }
 
     protected String getHandle() {
         if (handle == null || handle.trim().length() == 0) {
@@ -168,18 +178,20 @@ public abstract class CobblerObject {
         return handle;
     }
 
-
     private String invokeGetHandle() {
-        return (String)client.invokeMethod("get_"+ getObjectType().getName() + "_handle", this.getName());
+        return (String)client.invokeMethod("get_"+ getObjectType().getName() + 
+                "_handle", this.getName());
     }
     
-    static CobblerObject load(ObjectType type, CobblerConnection client, Map<String, Object> dataMap) {
+    static CobblerObject load(ObjectType type, CobblerConnection client, 
+                              Map<String, Object> dataMap) {
         try 
         {
-            Constructor ctor = type.getObjectClass().getConstructor(new Class [] {
-                    CobblerConnection.class, Map.class});
+            Constructor ctor = type.getObjectClass().getConstructor(
+                    new Class [] {CobblerConnection.class, Map.class});
 
-            CobblerObject obj = (CobblerObject) ctor.newInstance(new Object [] {client, dataMap});
+            CobblerObject obj = (CobblerObject) ctor.newInstance(
+                    new Object [] {client, dataMap});
             return obj;
         }
         catch(Exception e) {
