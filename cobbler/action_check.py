@@ -279,8 +279,9 @@ class BootCheck:
        """
        Check if bind is installed.
        """
-       rc = utils.subprocess_get(self.logger,"named --help")
-       if rc.find("unknown option") == -1:
+       rc = utils.subprocess_get(self.logger,"named -v")
+       # it should return something like "BIND 9.6.1-P1-RedHat-9.6.1-6.P1.fc11"
+       if rc.find("BIND") == -1:
            status.append("named is not installed and/or in path")
        
    def check_bootloaders(self,status):
