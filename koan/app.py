@@ -389,7 +389,7 @@ class Koan:
                 ip  = obj_interface["ip_address"].upper()
                 for my_mac in mac_criteria:
                     if mac == my_mac:
-                        detLected_systems.append(obj_name)
+                        detected_systems.append(obj_name)
                 for my_ip in ip_criteria:
                     if ip == my_ip:
                         detected_systems.append(obj_name)
