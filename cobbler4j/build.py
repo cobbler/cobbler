@@ -7,6 +7,11 @@ Michael DeHaan <mdehaan@redhat.com>
 May Guido have mercy on your application.
 """
 
+# Force to build from the Python modules in this source checkout,
+# not what's installed on the system.
+import sys
+sys.path.insert(0, "../")
+
 import Cheetah.Template     as Template
 import cobbler.item_distro  as cobbler_distro
 import cobbler.item_profile as cobbler_profile
